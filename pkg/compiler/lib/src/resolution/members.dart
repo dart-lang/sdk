@@ -2407,8 +2407,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     functionParameters.forEachParameter((ParameterElement element) {
       // TODO(karlklose): should be a list of [FormalElement]s, but the actual
       // implementation uses [Element].
-      Link<Element> optionals = functionParameters.optionalParameters;
-      if (!optionals.isEmpty && element == optionals.head) {
+      List<Element> optionals = functionParameters.optionalParameters;
+      if (!optionals.isEmpty && element == optionals.first) {
         NodeList nodes = parameterNodes.head;
         parameterNodes = nodes.nodes;
       }

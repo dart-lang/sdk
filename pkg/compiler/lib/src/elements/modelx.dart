@@ -1749,8 +1749,8 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
 // [FunctionType].
 // TODO(karlklose): all these lists should have element type [FormalElement].
 class FunctionSignatureX implements FunctionSignature {
-  final Link<Element> requiredParameters;
-  final Link<Element> optionalParameters;
+  final List<Element> requiredParameters;
+  final List<Element> optionalParameters;
   final int requiredParameterCount;
   final int optionalParameterCount;
   final bool optionalParametersAreNamed;
@@ -1758,9 +1758,9 @@ class FunctionSignatureX implements FunctionSignature {
   final FunctionType type;
   final bool hasOptionalParameters;
 
-  FunctionSignatureX({this.requiredParameters: const Link<Element>(),
+  FunctionSignatureX({this.requiredParameters: const <Element>[],
                       this.requiredParameterCount: 0,
-                      Link<Element> optionalParameters: const Link<Element>(),
+                      List<Element> optionalParameters: const <Element>[],
                       this.optionalParameterCount: 0,
                       this.optionalParametersAreNamed: false,
                       this.orderedOptionalParameters: const <Element>[],
@@ -1769,22 +1769,14 @@ class FunctionSignatureX implements FunctionSignature {
         hasOptionalParameters = !optionalParameters.isEmpty;
 
   void forEachRequiredParameter(void function(Element parameter)) {
-    for (Link<Element> link = requiredParameters;
-         !link.isEmpty;
-         link = link.tail) {
-      function(link.head);
-    }
+    requiredParameters.forEach(function);
   }
 
   void forEachOptionalParameter(void function(Element parameter)) {
-    for (Link<Element> link = optionalParameters;
-         !link.isEmpty;
-         link = link.tail) {
-      function(link.head);
-    }
+    optionalParameters.forEach(function);
   }
 
-  Element get firstOptionalParameter => optionalParameters.head;
+  Element get firstOptionalParameter => optionalParameters.first;
 
   void forEachParameter(void function(Element parameter)) {
     forEachRequiredParameter(function);
@@ -1814,8 +1806,8 @@ class FunctionSignatureX implements FunctionSignature {
       if (requiredParameterCount != signature.requiredParameterCount) {
         return false;
       }
-      Set<String> names = optionalParameters.mapToSet(
-          (Element element) => element.name);
+      Set<String> names = optionalParameters.map(
+          (Element element) => element.name).toSet();
       for (Element namedParameter in signature.optionalParameters) {
         if (!names.contains(namedParameter.name)) {
           return false;

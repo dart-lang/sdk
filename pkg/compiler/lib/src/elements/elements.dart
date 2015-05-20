@@ -1088,8 +1088,8 @@ abstract class AbstractFieldElement extends Element {
 
 abstract class FunctionSignature {
   FunctionType get type;
-  Link<FormalElement> get requiredParameters;
-  Link<FormalElement> get optionalParameters;
+  List<FormalElement> get requiredParameters;
+  List<FormalElement> get optionalParameters;
 
   int get requiredParameterCount;
   int get optionalParameterCount;

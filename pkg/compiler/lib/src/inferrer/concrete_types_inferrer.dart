@@ -1613,23 +1613,16 @@ class ConcreteTypesInferrer
         argumentsTypes.positional.iterator;
     // we attach each positional parameter to its corresponding positional
     // argument
-    for (Link<Element> requiredParameters = signature.requiredParameters;
-        !requiredParameters.isEmpty;
-        requiredParameters = requiredParameters.tail) {
-      final Element requiredParameter = requiredParameters.head;
+    for (Element requiredParameter in signature.requiredParameters) {
       // we know moveNext() succeeds because of guard 2
       remainingPositionalArguments.moveNext();
       result[requiredParameter] = remainingPositionalArguments.current;
     }
     if (signature.optionalParametersAreNamed) {
       // we build a map out of the remaining named parameters
-      Link<Element> remainingOptionalParameters = signature.optionalParameters;
       final Map<String, Element> leftOverNamedParameters =
           new Map<String, Element>();
-      for (;
-           !remainingOptionalParameters.isEmpty;
-           remainingOptionalParameters = remainingOptionalParameters.tail) {
-        final Element namedParameter = remainingOptionalParameters.head;
+      for (Element namedParameter in signature.optionalParameters) {
         leftOverNamedParameters[namedParameter.name] = namedParameter;
       }
       // we attach the named arguments to their corresponding optional
@@ -1648,17 +1641,16 @@ class ConcreteTypesInferrer
     } else { // optional parameters are positional
       // we attach the remaining positional arguments to their corresponding
       // optional parameters
-      Link<Element> remainingOptionalParameters = signature.optionalParameters;
+      Iterator<Element> remainingOptionalParameters =
+          signature.optionalParameters.iterator;
       while (remainingPositionalArguments.moveNext()) {
-        final Element optionalParameter = remainingOptionalParameters.head;
+        // we know this is true because of guard 1
+        remainingOptionalParameters.moveNext();
+        final Element optionalParameter = remainingOptionalParameters.current;
         result[optionalParameter] = remainingPositionalArguments.current;
-        // we know tail is defined because of guard 1
-        remainingOptionalParameters = remainingOptionalParameters.tail;
       }
-      for (;
-           !remainingOptionalParameters.isEmpty;
-           remainingOptionalParameters = remainingOptionalParameters.tail) {
-        handleLeftoverOptionalParameter(remainingOptionalParameters.head);
+      while (remainingOptionalParameters.moveNext()) {
+        handleLeftoverOptionalParameter(remainingOptionalParameters.current);
       }
     }
     return result;
@@ -1692,14 +1684,13 @@ class ConcreteTypesInferrer
     // don't override these methods. So for 1+2, getSpecialCaseReturnType will
     // be invoked with function = num#+. We use environment.typeOfThis instead.
     ClassElement cls = environment.classOfThis;
+    List<Element> parameters = function.parameters;
     if (cls != null) {
       String name = function.name;
       if ((cls == baseTypes.intBaseType.element
           || cls == baseTypes.doubleBaseType.element)
           && (name == '+' || name == '-' || name == '*')) {
-        Link<Element> parameters =
-            function.functionSignature.requiredParameters;
-        ConcreteType argumentType = environment.lookupType(parameters.head);
+        ConcreteType argumentType = environment.lookupType(parameters.single);
         if (argumentType.getUniqueType() == cls) {
           return singletonConcreteType(new ClassBaseType(cls));
         }
@@ -1707,24 +1698,21 @@ class ConcreteTypesInferrer
     }
 
     if (function == listIndex || function == listRemoveAt) {
-      Link<Element> parameters = function.functionSignature.requiredParameters;
-      ConcreteType indexType = environment.lookupType(parameters.head);
+      ConcreteType indexType = environment.lookupType(parameters.single);
       if (!indexType.baseTypes.contains(baseTypes.intBaseType)) {
         return emptyConcreteType;
       }
       return listElementType;
     } else if (function == listIndexSet || function == listInsert) {
-      Link<Element> parameters = function.functionSignature.requiredParameters;
-      ConcreteType indexType = environment.lookupType(parameters.head);
+      ConcreteType indexType = environment.lookupType(parameters[0]);
       if (!indexType.baseTypes.contains(baseTypes.intBaseType)) {
         return emptyConcreteType;
       }
-      ConcreteType elementType = environment.lookupType(parameters.tail.head);
+      ConcreteType elementType = environment.lookupType(parameters[1]);
       augmentListElementType(elementType);
       return emptyConcreteType;
     } else if (function == listAdd) {
-      Link<Element> parameters = function.functionSignature.requiredParameters;
-      ConcreteType elementType = environment.lookupType(parameters.head);
+      ConcreteType elementType = environment.lookupType(parameters.single);
       augmentListElementType(elementType);
       return emptyConcreteType;
     } else if (function == listRemoveLast) {
@@ -1819,9 +1807,9 @@ class ConcreteTypesInferrer
     // When List([length]) is called with some length, we must augment
     // listElementType with {null}.
     if (element == listConstructor) {
-      Link<Element> parameters =
+      List<Element> parameters =
           listConstructor.functionSignature.optionalParameters;
-      ConcreteType lengthType = environment.lookupType(parameters.head);
+      ConcreteType lengthType = environment.lookupType(parameters.first);
       if (lengthType.baseTypes.contains(baseTypes.intBaseType)) {
         augmentListElementType(nullConcreteType);
       }

@@ -452,7 +452,8 @@ class CallStructure {
     // TODO(ngeoffray): Should the resolver do it instead?
     List<String> namedParameters;
     if (signature.optionalParametersAreNamed) {
-      namedParameters = signature.optionalParameters.mapToList((e) => e.name);
+      namedParameters =
+          signature.optionalParameters.map((e) => e.name).toList();
     }
     CallStructure callStructure =
         new CallStructure(signature.parameterCount, namedParameters);

@@ -221,7 +221,7 @@ class EnumCreator {
         indexVariable);
 
     FunctionSignatureX constructorSignature = new FunctionSignatureX(
-        requiredParameters: builder.linkedList([indexFormal]),
+        requiredParameters: [indexFormal],
         requiredParameterCount: 1,
         type: new FunctionType(constructor, const VoidType(),
             <DartType>[intType]));
