@@ -1859,7 +1859,8 @@ abstract class IrBuilder {
     List<ir.Parameter> catchParameters =
         <ir.Parameter>[exceptionParameter, traceParameter];
     ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
-    catchContinuation.body = catchBody;
+    catchBuilder.add(catchBody);
+    catchContinuation.body = catchBuilder._root;
 
     tryCatchBuilder.add(
         new ir.LetHandler(catchContinuation, tryBuilder._root));
@@ -2475,6 +2476,8 @@ class JsIrBuilder extends IrBuilder {
                                             location.field);
       result.useElementAsHint(local);
       return addPrimitive(result);
+    } else if (isInMutableVariable(local)) {
+      return addPrimitive(new ir.GetMutableVariable(getMutableVariable(local)));
     } else {
       return environment.lookup(local);
     }
@@ -2490,6 +2493,8 @@ class JsIrBuilder extends IrBuilder {
       add(new ir.SetField(environment.lookup(location.box),
                           location.field,
                           value));
+    } else if (isInMutableVariable(local)) {
+      add(new ir.SetMutableVariable(getMutableVariable(local), value));
     } else {
       value.useElementAsHint(local);
       environment.update(local, value);

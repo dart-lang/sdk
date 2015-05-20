@@ -906,7 +906,6 @@ super_implicit_closure_test: RuntimeError # Please triage this failure.
 super_inferrer_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 super_operator_index2_test: RuntimeError # Please triage this failure.
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
-super_operator_index6_test: Crash # (super[0]+=1): visitUnresolvedSuperGetterCompoundIndexSet
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
 super_operator_index_test/01: Crash # (super[4]+=5): visitUnresolvedSuperGetterCompoundIndexSet
@@ -967,9 +966,7 @@ try_catch3_test: Crash #  try/finally
 try_catch4_test: Crash #  try/finally
 try_catch5_test: Crash # (try {try {a=8;return;}finally {b=8==a;entered=true;continue;}}finally {continue;}): try/finally
 try_catch_on_syntax_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for UndefinedClass.
-try_catch_optimized1_test: RuntimeError # Please triage this failure.
 try_catch_optimized2_test: Crash # (try {bar();}finally {}): try/finally
-try_catch_optimized3_test: RuntimeError # Please triage this failure.
 try_catch_osr_test: Crash # (try {if(x==null)throw 42;return 99;}finally {}): try/finally
 try_catch_syntax_test/08: Crash # Instance of 'TypeOperator': type check unimplemented for MammaMia.
 try_catch_test/01: Crash # Please triage this failure.
