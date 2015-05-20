@@ -1000,6 +1000,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           type.normalParameterTypes.every(_typeIsLoaded));
     }
     if (type.isDynamic || type.isVoid || type.isBottom) return true;
+    if (type is ParameterizedType && !type.typeArguments.every(_typeIsLoaded)) {
+      return false;
+    }
     return _loader.isLoaded(type.element);
   }
 
