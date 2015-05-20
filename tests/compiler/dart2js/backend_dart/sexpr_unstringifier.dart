@@ -712,8 +712,7 @@ class SExpressionUnstringifier {
 
   MutableVariable addMutableVariable(String name) {
     assert(!name2variable.containsKey(name));
-    MutableVariable variable =
-        new MutableVariable(new DummyElement(""), new DummyElement(name));
+    MutableVariable variable = new MutableVariable(new DummyElement(name));
     name2variable[name] = variable;
     return variable;
   }

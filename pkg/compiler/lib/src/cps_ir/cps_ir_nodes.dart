@@ -863,11 +863,9 @@ class FieldDefinition extends RootNode implements DartSpecificNode {
 
 /// Identifies a mutable variable.
 class MutableVariable extends Definition {
-  /// Body of source code that declares this mutable variable.
-  ExecutableElement host;
   Entity hint;
 
-  MutableVariable(this.host, this.hint);
+  MutableVariable(this.hint);
 
   accept(Visitor v) => v.visitMutableVariable(this);
 }

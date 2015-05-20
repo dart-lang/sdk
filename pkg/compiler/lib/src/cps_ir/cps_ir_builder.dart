@@ -491,15 +491,8 @@ abstract class IrBuilder {
   }
 
   /// Creates a [ir.MutableVariable] for the given local.
-  void makeMutableVariable(Local local, [ClosureClassMap closureMap]) {
-    ExecutableElement owner;
-    if (closureMap == null || closureMap.closureClassElement == null) {
-      owner = local.executableContext;
-    } else {
-      assert(local.executableContext == closureMap.closureElement);
-      owner = closureMap.callElement;
-    }
-    mutableVariables[local] = new ir.MutableVariable(owner, local);
+  void makeMutableVariable(Local local) {
+    mutableVariables[local] = new ir.MutableVariable(local);
   }
 
   /// Remove an [ir.MutableVariable] for a local.
@@ -1765,7 +1758,7 @@ abstract class IrBuilder {
     for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
       assert(!tryCatchBuilder.isInMutableVariable(variable));
       ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
-      tryCatchBuilder.makeMutableVariable(variable, closureClassMap);
+      tryCatchBuilder.makeMutableVariable(variable);
       tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
     }
 
