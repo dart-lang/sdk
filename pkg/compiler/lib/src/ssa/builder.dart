@@ -3564,7 +3564,7 @@ class SsaBuilder extends NewResolvedVisitor {
         templates.add(rti.getTypeRepresentationWithPlaceholders(argument, (variable) {
           HInstruction runtimeType = addTypeVariableReference(variable);
           inputs.add(runtimeType);
-        }));
+        }, firstPlaceholderIndex : inputs.length));
       }
       // TODO(sra): This is a fresh template each time.  We can't let the
       // template manager build them.
