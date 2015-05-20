@@ -588,7 +588,6 @@ flatten_test/12: Crash #  cannot handle async/sync*/async* functions
 flatten_test/none: Crash # (test()async{}): cannot handle async/sync*/async* functions
 for2_test: Crash # Please triage this failure.
 for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
-forwarding_factory_constructor_default_values_test: RuntimeError # Please triage this failure.
 function_propagation_test: Crash # Instance of 'TypeOperator': type check unimplemented for F.
 function_subtype0_test: Crash # Instance of 'TypeOperator': type check unimplemented for t__.
 function_subtype1_test: Crash # Please triage this failure.
@@ -846,7 +845,6 @@ private_access_test/05: Crash # Instance of 'TypeOperator': type check unimpleme
 private_access_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 private_mixin2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 range_analysis2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-redirecting_factory_default_values_test/none: RuntimeError # Please triage this failure.
 redirecting_factory_incompatible_signature_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 redirecting_factory_long_test: Crash # Instance of 'TypeOperator': type check unimplemented for X<int>.
 ref_before_declaration_test/00: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node

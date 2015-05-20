@@ -3008,10 +3008,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       _) {
     List<ir.Primitive> arguments =
         node.send.arguments.mapToList(visit, growable:false);
-    arguments = normalizeStaticArguments(
-        callStructure, constructor, arguments);
+    // Use default values from the effective target, not the immediate target.
+    ConstructorElement target = constructor.effectiveTarget;
+    arguments = normalizeStaticArguments(callStructure, target, arguments);
     return irBuilder.buildConstructorInvocation(
-        constructor.effectiveTarget,
+        target,
         callStructure,
         constructor.computeEffectiveTargetType(type),
         arguments);
