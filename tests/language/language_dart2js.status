@@ -1055,3 +1055,8 @@ value_range2_test: Crash # Instance of 'TypeOperator': type check unimplemented 
 value_range3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 value_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 void_type_test: Crash #  Unhandled node
+static_getter_no_setter1_test/01 : RuntimeError
+top_level_getter_no_setter1_test/01 : RuntimeError
+top_level_getter_no_setter2_test/01 : RuntimeError
+static_getter_no_setter3_test/01 : RuntimeError
+super_operator_index6_test : Crash # bailout: (super[0]+=1): visitUnresolvedSuperGetterCompoundIndexSet
