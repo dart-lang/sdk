@@ -503,10 +503,10 @@ const corelibOrder = const [
   'dart.typed_data',
   'dart._isolate_helper',
   'dart._js_primitives',
+  'dart.convert',
 
   // TODO(jmesserly): add others
   /*
-  'dart.convert',
   'dart._foreign_helper',
   'dart._interceptors',
   'dart._native_typed_data',

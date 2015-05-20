@@ -51,6 +51,19 @@ class Generic<T> {
   static String bar = 'hello';
 }
 
+class StaticFieldOrder1 {
+  static const a = b + 1;
+  static const c = d + 2;
+  static const b = c + 3;
+  static const d = 4;
+}
+class StaticFieldOrder2 {
+  static const a = StaticFieldOrder2.b + 1;
+  static const c = StaticFieldOrder2.d + 2;
+  static const b = StaticFieldOrder2.c + 3;
+  static const d = 4;
+}
+
 void main() {
   var a = new A();
   foo(a);

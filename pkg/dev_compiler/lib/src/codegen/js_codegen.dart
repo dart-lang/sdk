@@ -716,7 +716,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // Generate optional/named argument value assignment. These can not have
     // side effects, and may be used by the constructor's initializers, so it's
     // nice to do them first.
+    // Also for const constructors we need to ensure default values are
+    // available for use by top-level constant initializers.
+    ClassDeclaration cls = node.parent;
+    if (node.constKeyword != null) _loader.startTopLevel(cls.element);
     var init = _emitArgumentInitializers(node, constructor: true);
+    if (node.constKeyword != null) _loader.finishTopLevel(cls.element);
     if (init != null) body.add(init);
 
     // Redirecting constructors: these are not allowed to have initializers,
@@ -735,7 +740,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       // These are expanded into each non-redirecting constructor.
       // In the future we may want to create an initializer function if we have
       // multiple constructors, but it needs to be balanced against readability.
-      body.add(_initializeFields(node, fields));
+      body.add(_initializeFields(node.parent, fields, node));
 
       var superCall = node.initializers.firstWhere(
           (i) => i is SuperConstructorInvocation, orElse: () => null);
@@ -800,9 +805,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   ///   3. constructor field initializers,
   ///   4. initialize fields not covered in 1-3
   JS.Statement _initializeFields(
-      AstNode node, List<FieldDeclaration> fieldDecls) {
-    var unit = node.getAncestor((a) => a is CompilationUnit);
+      ClassDeclaration cls, List<FieldDeclaration> fieldDecls,
+      [ConstructorDeclaration ctor]) {
+    var unit = cls.getAncestor((a) => a is CompilationUnit);
     var constField = new ConstFieldVisitor(types, unit);
+    bool isConst = ctor != null && ctor.constKeyword != null;
+    if (isConst) _loader.startTopLevel(cls.element);
 
     // Run field initializers if they can have side-effects.
     var fields = new Map<FieldElement, JS.Expression>();
@@ -819,11 +827,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     // Initialize fields from `this.fieldName` parameters.
-    if (node is ConstructorDeclaration) {
-      var parameters = node.parameters;
-      var initializers = node.initializers;
-
-      for (var p in parameters.parameters) {
+    if (ctor != null) {
+      for (var p in ctor.parameters.parameters) {
         var element = p.element;
         if (element is FieldFormalParameterElement) {
           fields[element.field] = _visit(p);
@@ -831,7 +836,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       }
 
       // Run constructor field initializers such as `: foo = bar.baz`
-      for (var init in initializers) {
+      for (var init in ctor.initializers) {
         if (init is ConstructorFieldInitializer) {
           fields[init.fieldName.staticElement] = _visit(init.expression);
         }
@@ -860,6 +865,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       var access = _emitMemberName(e.name, type: e.enclosingElement.type);
       body.add(js.statement('this.# = #;', [access, initialValue]));
     });
+
+    if (isConst) _loader.finishTopLevel(cls.element);
     return _statement(body);
   }
 
@@ -1981,7 +1988,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
   JS.Expression _emitGet(Expression target, SimpleIdentifier memberId) {
     var member = memberId.staticElement;
-    bool isStatic = member is ExecutableElement && member.isStatic;
+    if (member is PropertyAccessorElement) member = member.variable;
+    bool isStatic = member is ClassMemberElement && member.isStatic;
+    if (isStatic) {
+      _loader.declareBeforeUse(member);
+    }
     var name = _emitMemberName(memberId.name,
         type: getStaticType(target), isStatic: isStatic);
     if (rules.isDynamicTarget(target)) {

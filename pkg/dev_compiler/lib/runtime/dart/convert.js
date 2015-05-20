@@ -618,6 +618,24 @@ var collection = dart.import(collection);
     },
     set _nameToEncoding(_) {}
   });
+  let _name = Symbol('_name');
+  class HtmlEscapeMode extends core.Object {
+    _(name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
+      this[_name] = name;
+      this.escapeLtGt = escapeLtGt;
+      this.escapeQuot = escapeQuot;
+      this.escapeApos = escapeApos;
+      this.escapeSlash = escapeSlash;
+    }
+    toString() {
+      return this[_name];
+    }
+  }
+  dart.defineNamedConstructor(HtmlEscapeMode, '_');
+  dart.setSignature(HtmlEscapeMode, {
+    methods: () => ({toString: dart.functionType(core.String, [])})
+  });
+  HtmlEscapeMode.UNKNOWN = dart.const(new HtmlEscapeMode._('unknown', true, true, true, true));
   let _convert = Symbol('_convert');
   class HtmlEscape extends Converter$(core.String, core.String) {
     HtmlEscape(mode) {
@@ -702,24 +720,6 @@ var collection = dart.import(collection);
     })
   });
   let HTML_ESCAPE = dart.const(new HtmlEscape());
-  let _name = Symbol('_name');
-  class HtmlEscapeMode extends core.Object {
-    _(name, escapeLtGt, escapeQuot, escapeApos, escapeSlash) {
-      this[_name] = name;
-      this.escapeLtGt = escapeLtGt;
-      this.escapeQuot = escapeQuot;
-      this.escapeApos = escapeApos;
-      this.escapeSlash = escapeSlash;
-    }
-    toString() {
-      return this[_name];
-    }
-  }
-  dart.defineNamedConstructor(HtmlEscapeMode, '_');
-  dart.setSignature(HtmlEscapeMode, {
-    methods: () => ({toString: dart.functionType(core.String, [])})
-  });
-  HtmlEscapeMode.UNKNOWN = dart.const(new HtmlEscapeMode._('unknown', true, true, true, true));
   HtmlEscapeMode.ATTRIBUTE = dart.const(new HtmlEscapeMode._('attribute', false, true, false, false));
   HtmlEscapeMode.ELEMENT = dart.const(new HtmlEscapeMode._('element', true, false, false, true));
   let _escape = Symbol('_escape');
@@ -2807,9 +2807,9 @@ var collection = dart.import(collection);
   exports.ChunkedConversionSink = ChunkedConversionSink;
   exports.ByteConversionSink = ByteConversionSink;
   exports.ByteConversionSinkBase = ByteConversionSinkBase;
+  exports.HtmlEscapeMode = HtmlEscapeMode;
   exports.HtmlEscape = HtmlEscape;
   exports.HTML_ESCAPE = HTML_ESCAPE;
-  exports.HtmlEscapeMode = HtmlEscapeMode;
   exports.JsonUnsupportedObjectError = JsonUnsupportedObjectError;
   exports.JsonCyclicError = JsonCyclicError;
   exports.JsonCodec = JsonCodec;
