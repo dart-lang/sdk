@@ -13,35 +13,40 @@ class InterceptorEmitter extends CodeEmitterHelper {
     }
   }
 
-  void emitGetInterceptorMethod(CodeOutput output,
-                                String key,
-                                Set<ClassElement> classes) {
+  jsAst.Expression buildGetInterceptorMethod(String key,
+                                             Set<ClassElement> classes) {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(compiler, namer, backend);
     jsAst.Expression function =
         stubGenerator.generateGetInterceptorMethod(classes);
 
-    output.addBuffer(jsAst.prettyPrint(
-        js('${namer.globalObjectFor(backend.interceptorsLibrary)}.# = #',
-           [key, function]),
-        compiler));
-    output.add(N);
+    return function;
   }
 
   /**
    * Emit all versions of the [:getInterceptor:] method.
    */
-  void emitGetInterceptorMethods(CodeOutput output) {
-    emitter.addComment('getInterceptor methods', output);
+  jsAst.Statement buildGetInterceptorMethods() {
+    List<jsAst.Statement> parts = <jsAst.Statement>[];
+
+    parts.add(js.comment('getInterceptor methods'));
+
     Map<String, Set<ClassElement>> specializedGetInterceptors =
         backend.specializedGetInterceptors;
     for (String name in specializedGetInterceptors.keys.toList()..sort()) {
       Set<ClassElement> classes = specializedGetInterceptors[name];
-      emitGetInterceptorMethod(output, name, classes);
+      parts.add(
+          js.statement('#.# = #',
+                       [namer.globalObjectFor(backend.interceptorsLibrary),
+                        name,
+                        buildGetInterceptorMethod(name, classes)]));
     }
+
+    return new jsAst.Block(parts);
   }
 
-  void emitOneShotInterceptors(CodeOutput output) {
+  jsAst.Statement buildOneShotInterceptors() {
+    List<jsAst.Statement> parts = <jsAst.Statement>[];
     List<String> names = backend.oneShotInterceptors.keys.toList();
     names.sort();
 
@@ -51,12 +56,10 @@ class InterceptorEmitter extends CodeEmitterHelper {
     for (String name in names) {
       jsAst.Expression function =
           stubGenerator.generateOneShotInterceptor(name);
-      jsAst.Expression assignment =
-          js('${globalObject}.# = #', [name, function]);
-
-      output.addBuffer(jsAst.prettyPrint(assignment, compiler));
-      output.add(N);
+      parts.add(js.statement('${globalObject}.# = #', [name, function]));
     }
+
+    return new jsAst.Block(parts);
   }
 
   /**
@@ -87,15 +90,12 @@ class InterceptorEmitter extends CodeEmitterHelper {
    * `findInterceptorForType`.  See declaration of `typeToInterceptor` in
    * `interceptors.dart`.
    */
-  void emitTypeToInterceptorMap(Program program, CodeOutput output) {
+  jsAst.Statement buildTypeToInterceptorMap(Program program) {
     jsAst.Expression array = program.typeToInterceptorMap;
-    if (array == null) return;
+    if (array == null) return js.comment("Empty type-to-interceptor map.");
 
     jsAst.Expression typeToInterceptorMap = emitter
         .generateEmbeddedGlobalAccess(embeddedNames.TYPE_TO_INTERCEPTOR_MAP);
-    jsAst.Expression assignment = js('# = #', [typeToInterceptorMap, array]);
-
-    output.addBuffer(jsAst.prettyPrint(assignment, compiler));
-    output.add(N);
+    return js.statement('# = #', [typeToInterceptorMap, array]);
   }
 }

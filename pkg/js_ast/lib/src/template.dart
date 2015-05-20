@@ -56,6 +56,7 @@ class Template {
 
   Template(this.source, this.ast,
            {this.isExpression: true, this.forceCopy: false}) {
+    assert(this.isExpression ? ast is Expression : ast is Statement);
     _compile();
   }
 

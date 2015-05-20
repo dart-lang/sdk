@@ -3559,17 +3559,17 @@ class SsaBuilder extends NewResolvedVisitor {
       InterfaceType interface = type;
       List<HInstruction> inputs = <HInstruction>[];
       bool first = true;
-      List<String> templates = <String>[];
+      List<js.Expression> templates = <js.Expression>[];
       for (DartType argument in interface.typeArguments) {
-        templates.add(rti.getTypeRepresentationWithHashes(argument, (variable) {
+        templates.add(rti.getTypeRepresentationWithPlaceholders(argument, (variable) {
           HInstruction runtimeType = addTypeVariableReference(variable);
           inputs.add(runtimeType);
         }));
       }
-      String template = '[${templates.join(', ')}]';
       // TODO(sra): This is a fresh template each time.  We can't let the
       // template manager build them.
-      js.Template code = js.js.uncachedExpressionTemplate(template);
+      js.Template code = new js.Template(null,
+                                         new js.ArrayInitializer(templates));
       HInstruction representation =
           new HForeignCode(code, backend.readableArrayType, inputs,
               nativeBehavior: native.NativeBehavior.PURE_ALLOCATION);
@@ -4618,11 +4618,12 @@ class SsaBuilder extends NewResolvedVisitor {
 
     List<HInstruction> inputs = <HInstruction>[];
 
-    String template = rti.getTypeRepresentationWithHashes(argument, (variable) {
-      inputs.add(addTypeVariableReference(variable));
-    });
+    js.Expression template =
+        rti.getTypeRepresentationWithPlaceholders(argument, (variable) {
+            inputs.add(addTypeVariableReference(variable));
+        });
 
-    js.Template code = js.js.uncachedExpressionTemplate(template);
+    js.Template code = new js.Template(null, template);
     HInstruction result = new HForeignCode(code, backend.stringType, inputs,
         nativeBehavior: native.NativeBehavior.PURE);
     add(result);

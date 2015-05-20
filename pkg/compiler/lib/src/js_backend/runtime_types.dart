@@ -550,15 +550,16 @@ class RuntimeTypes {
     }
   }
 
-  String getTypeRepresentationWithHashes(DartType type,
-                                         OnVariableCallback onVariable) {
+  jsAst.Expression getTypeRepresentationWithPlaceholders(DartType type,
+      OnVariableCallback onVariable) {
     // Create a type representation.  For type variables call the original
     // callback for side effects and return a template placeholder.
+    int positions = 0;
     jsAst.Expression representation = getTypeRepresentation(type, (variable) {
       onVariable(variable);
-      return new jsAst.LiteralString('#');
+      return new jsAst.InterpolatedExpression(positions++);
     });
-    return jsAst.prettyPrint(representation, compiler).buffer.toString();
+    return representation;
   }
 
   jsAst.Expression getTypeRepresentation(

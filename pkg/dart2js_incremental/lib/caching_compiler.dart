@@ -130,7 +130,6 @@ Future<Compiler> reuseCompiler(
 
     backend.emitter.oldEmitter
         ..outputBuffers.clear()
-        ..isolateProperties = null
         ..classesCollector = null
         ..mangledFieldNames.clear()
         ..mangledGlobalFieldNames.clear()
