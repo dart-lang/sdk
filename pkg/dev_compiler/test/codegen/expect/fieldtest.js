@@ -73,7 +73,7 @@ var core = dart.import(core);
     class Generic extends core.Object {
       foo(t) {
         dart.as(t, T);
-        return core.print(dart.notNull(Generic$().bar) + dart.notNull(t));
+        return core.print(dart.notNull(Generic$().bar) + dart.notNull(dart.as(t, core.String)));
       }
     }
     dart.setSignature(Generic, {

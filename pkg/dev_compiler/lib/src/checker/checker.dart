@@ -705,14 +705,57 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
+  visitBinaryExpression(BinaryExpression node) {
+    var op = node.operator;
+    if (op.isUserDefinableOperator) {
+      if (_rules.isDynamicTarget(node.leftOperand)) {
+        // Dynamic invocation
+        // TODO(vsm): Move this logic to the resolver?
+        if (op.type != TokenType.EQ_EQ && op.type != TokenType.BANG_EQ) {
+          _recordDynamicInvoke(node);
+        }
+      } else {
+        var element = node.staticElement;
+        // Method invocation.
+        if (element is MethodElement) {
+          var type = element.type as FunctionType;
+          assert(type.normalParameterTypes.length == 1);
+          node.rightOperand =
+              checkArgument(node.rightOperand, type.normalParameterTypes[0]);
+        } else {
+          // TODO(vsm): Assert that the analyzer found an error here?
+        }
+      }
+    } else {
+      // Non-method operator.
+      switch (op.type) {
+        case TokenType.AMPERSAND_AMPERSAND:
+        case TokenType.BAR_BAR:
+          var boolType = _rules.provider.boolType;
+          node.leftOperand = checkArgument(node.leftOperand, boolType);
+          node.rightOperand = checkArgument(node.rightOperand, boolType);
+          break;
+        case TokenType.BANG_EQ:
+          break;
+        default:
+          assert(false);
+      }
+    }
+    node.visitChildren(this);
+  }
+
   DartType getType(TypeName name) {
     return (name == null) ? _rules.provider.dynamicType : name.type;
   }
 
   Expression checkAssignment(Expression expr, DartType type) {
-    final staticInfo = _rules.checkAssignment(expr, type, _constantContext);
-    _recordMessage(staticInfo);
-    if (staticInfo is Conversion) expr = staticInfo;
+    if (expr is ParenthesizedExpression) {
+      expr.expression = checkAssignment(expr.expression, type);
+    } else {
+      final staticInfo = _rules.checkAssignment(expr, type, _constantContext);
+      _recordMessage(staticInfo);
+      if (staticInfo is Conversion) expr = staticInfo;
+    }
     return expr;
   }
 

@@ -446,8 +446,8 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }
     static _bitCount(i) {
       i = dart.as(dart.dsend(JSInt._shru(i, 0), '-', dart.dsend(JSInt._shru(i, 1), '&', 1431655765)), core.int);
-      i = (dart.notNull(i) & 858993459)['+'](dart.dsend(JSInt._shru(i, 2), '&', 858993459));
-      i = 252645135 & i['+'](JSInt._shru(i, 4));
+      i = (dart.notNull(i) & 858993459)['+'](dart.as(dart.dsend(JSInt._shru(i, 2), '&', 858993459), core.num));
+      i = 252645135 & dart.notNull(dart.notNull(i) + dart.notNull(dart.as(JSInt._shru(i, 4), core.num)));
       i = dart.notNull(i) + dart.notNull(dart.as(JSInt._shru(i, 8), core.int));
       i = dart.notNull(i) + dart.notNull(dart.as(JSInt._shru(i, 16), core.int));
       return dart.notNull(i) & 63;

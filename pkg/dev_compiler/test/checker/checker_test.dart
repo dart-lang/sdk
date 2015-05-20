@@ -108,8 +108,8 @@ void main() {
       class A {
         String x = "hello world";
 
-        void baz1(y) => x + y;
-        static baz2(y) => y + y;
+        void baz1(y) => x + /*info:DynamicCast*/y;
+        static baz2(y) => /*info:DynamicInvoke*/y + y;
       }
 
       void foo(String str) {
@@ -979,8 +979,8 @@ void main() {
            f = /*severe:StaticTypeError*/new B();
            f = i2i;
            f = /*warning:DownCastComposite*/n2n;
-           f = /*warning:DownCastComposite*/(i2i as Object);
-           f = /*warning:DownCastComposite*/(n2n as Function);
+           f = /*warning:DownCastComposite*/i2i as Object;
+           f = /*warning:DownCastComposite*/n2n as Function;
          }
          {
            N2N f;
@@ -988,8 +988,8 @@ void main() {
            f = new B();
            f = /*warning:DownCastComposite*/i2i;
            f = n2n;
-           f = /*warning:DownCastComposite*/(i2i as Object);
-           f = /*warning:DownCastComposite*/(n2n as Function);
+           f = /*warning:DownCastComposite*/i2i as Object;
+           f = /*warning:DownCastComposite*/n2n as Function;
          }
          {
            A f;
@@ -997,8 +997,8 @@ void main() {
            f = /*severe:StaticTypeError*/new B();
            f = /*severe:StaticTypeError*/i2i;
            f = /*severe:StaticTypeError*/n2n;
-           f = /*warning:DownCastImplicit*/(i2i as Object);
-           f = /*warning:DownCastImplicit*/(n2n as Function);
+           f = /*warning:DownCastImplicit*/i2i as Object;
+           f = /*warning:DownCastImplicit*/n2n as Function;
          }
          {
            B f;
@@ -1006,8 +1006,8 @@ void main() {
            f = new B();
            f = /*severe:StaticTypeError*/i2i;
            f = /*severe:StaticTypeError*/n2n;
-           f = /*warning:DownCastImplicit*/(i2i as Object);
-           f = /*warning:DownCastImplicit*/(n2n as Function);
+           f = /*warning:DownCastImplicit*/i2i as Object;
+           f = /*warning:DownCastImplicit*/n2n as Function;
          }
          {
            Function f;
@@ -1015,7 +1015,7 @@ void main() {
            f = new B();
            f = i2i;
            f = n2n;
-           f = /*warning:DownCastImplicit*/(i2i as Object);
+           f = /*warning:DownCastImplicit*/i2i as Object;
            f = (n2n as Function);
          }
       }
@@ -1042,10 +1042,10 @@ void main() {
       typedef dynamic D(t1, t2);
 
       void main() {
-        F f1 = (x, y) => x + y;
-        F<int> f2 = /*warning:ClosureWrapLiteral*/(x, y) => x + y;
-        D f3 = (x, y) => x + y;
-        Function f4 = (x, y) => x + y;
+        F f1 = (x, y) => /*info:DynamicInvoke*/x + y;
+        F<int> f2 = /*warning:ClosureWrapLiteral*/(x, y) => /*info:DynamicInvoke*/x + y;
+        D f3 = (x, y) => /*info:DynamicInvoke*/x + y;
+        Function f4 = (x, y) => /*info:DynamicInvoke*/x + y;
         f2 = /*warning:ClosureWrap*/f1;
         f1 = (int x, int y) => x + y;
         f2 = /*severe:StaticTypeError*/(int x) => -x;
@@ -1955,12 +1955,12 @@ void main() {
             B b = new B();
             var c = foo();
             a = a * b;
-            a = a * /*pass should be warning:DownCastImplicit*/c;
+            a = a * /*info:DynamicCast*/c;
             a = a / b;
             a = a ~/ b;
             a = a % b;
             a = a + b;
-            a = a + /*pass should be severe:StaticTypeError*/a;
+            a = a + /*severe:StaticTypeError*/a;
             a = a - b;
             b = /*severe:StaticTypeError*/b - b;
             a = a << b;
@@ -1968,7 +1968,21 @@ void main() {
             a = a & b;
             a = a ^ b;
             a = a | b;
-            c = (/*pass should be info:DynamicInvoke*/c + b);
+            c = (/*info:DynamicInvoke*/c + b);
+
+            String x = 'hello';
+            int y = 42;
+            x = x + x;
+            x = x + /*info:DynamicCast*/c;
+            x = x + /*severe:StaticTypeError*/y;
+
+            bool p = true;
+            p = p && p;
+            p = p && /*info:DynamicCast*/c;
+            p = (/*info:DynamicCast*/c) && p;
+            p = (/*info:DynamicCast*/c) && /*info:DynamicCast*/c;
+            p = (/*severe:StaticTypeError*/y) && p;
+            p = c == y;
           }
        '''
     });

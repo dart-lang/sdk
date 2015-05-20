@@ -113,18 +113,22 @@ final Map<String, String> mockSdkSources = {
           int get hashCode {}
           Type get runtimeType {}
           String toString(){}
+          bool ==(other){}
         }
         class Function {}
         class StackTrace {}
         class Symbol {}
         class Type {}
 
-        class String {}
+        class String {
+          String operator +(String other) {}
+        }
         class bool {}
         class num {
           num operator +(num other) {}
         }
         class int extends num {
+          bool operator<(num other) {}
           int operator-() {}
         }
         class double extends num {}

@@ -24,7 +24,7 @@ if (offset != -1) {
   }
  return report;
 }
- if (offset != -1 && (offset < 0 || offset > source.length)) {
+ if (offset != -1 && (offset < 0 || offset > DEVC$RT.cast(source.length, dynamic, num, "DynamicCast", """line 108, column 49 of dart:core/exceptions.dart: """, source.length is num, true))) {
 offset = -1;
 }
  if (offset == -1) {
@@ -59,7 +59,7 @@ report += " (at line $lineNum, character ${offset - lineStart + 1})\n";
 report += " (at character ${offset + 1})\n";
 }
  int lineEnd = DEVC$RT.cast(source.length, dynamic, int, "DynamicCast", """line 141, column 19 of dart:core/exceptions.dart: """, source.length is int, true);
- for (int i = offset; i < source.length; i++) {
+ for (int i = offset; i < DEVC$RT.cast(source.length, dynamic, num, "DynamicCast", """line 142, column 30 of dart:core/exceptions.dart: """, source.length is num, true); i++) {
 int char = ((__x5) => DEVC$RT.cast(__x5, dynamic, int, "DynamicCast", """line 143, column 18 of dart:core/exceptions.dart: """, __x5 is int, true))(source.codeUnitAt(i));
  if (char == 0x0a || char == 0x0d) {
   lineEnd = i;

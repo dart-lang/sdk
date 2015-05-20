@@ -123,7 +123,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       forEach(f) {
         dart.as(f, dart.functionType(dart.void, [K, V]));
         let keys = this[_keys];
-        for (let i = 0; i['<'](dart.dload(keys, 'length')); i = dart.notNull(i) + 1) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(dart.as(dart.dload(keys, 'length'), core.num)); i = dart.notNull(i) + 1) {
           let key = dart.dindex(keys, i);
           f(dart.as(key, K), dart.as(this[_fetch](key), V));
         }
@@ -432,7 +432,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       let context = window;
       let fun = function() {
       };
-      for (let i = 0; i['<'](dart.dload(tags, 'length')); i = dart.notNull(i) + 1) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(dart.as(dart.dload(tags, 'length'), core.num)); i = dart.notNull(i) + 1) {
         let tag = dart.dindex(tags, i);
         let proto = dart.dcall(exports.prototypeForTagFunction, tag);
         if (proto != null) {
@@ -445,7 +445,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         }
       }
     }
-    for (let i = 0; i['<'](dart.dload(tags, 'length')); i = dart.notNull(i) + 1) {
+    for (let i = 0; dart.notNull(i) < dart.notNull(dart.as(dart.dload(tags, 'length'), core.num)); i = dart.notNull(i) + 1) {
       let tag = tags[i];
       if (/^[A-Za-z_]/.test(tag)) {
         let interceptorClass = propertyGet(map, tag);
@@ -1318,7 +1318,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     if (hasNoField(s, `${_foreign_helper.JS_FUNCTION_TYPE_TAG()}`))
       return false;
     if (hasField(s, `${_foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG()}`)) {
-      if (dart.dsend(hasNoField(t, `${_foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG()}`), '&&', hasField(t, `${_foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG()}`))) {
+      if (dart.notNull(dart.as(hasNoField(t, `${_foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG()}`), core.bool)) && dart.notNull(dart.as(hasField(t, `${_foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG()}`), core.bool))) {
         return false;
       }
     } else if (hasNoField(t, `${_foreign_helper.JS_FUNCTION_TYPE_VOID_RETURN_TAG()}`)) {
@@ -2010,8 +2010,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         if (dart.dsend(i, '<=', 65535)) {
           a[core.$add](dart.as(i, core.int));
         } else if (dart.dsend(i, '<=', 1114111)) {
-          a[core.$add]((55296)['+'](dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023)));
-          a[core.$add]((56320)['+'](dart.dsend(i, '&', 1023)));
+          a[core.$add]((55296)['+'](dart.as(dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023), core.num)));
+          a[core.$add]((56320)['+'](dart.as(dart.dsend(i, '&', 1023), core.num)));
         } else {
           throw new core.ArgumentError(i);
         }
@@ -2030,14 +2030,14 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return Primitives._fromCharCodeApply(dart.as(charCodes, core.List$(core.int)));
     }
     static stringFromCharCode(charCode) {
-      if ((0)['<='](charCode)) {
+      if (0 <= dart.notNull(dart.as(charCode, core.num))) {
         if (dart.dsend(charCode, '<=', 65535)) {
           return String.fromCharCode(charCode);
         }
         if (dart.dsend(charCode, '<=', 1114111)) {
           let bits = dart.dsend(charCode, '-', 65536);
-          let low = (56320)['|'](dart.dsend(bits, '&', 1023));
-          let high = (55296)['|'](dart.dsend(bits, '>>', 10));
+          let low = (56320)['|'](dart.as(dart.dsend(bits, '&', 1023), core.int));
+          let high = (55296)['|'](dart.as(dart.dsend(bits, '>>', 10), core.int));
           return String.fromCharCode(high, low);
         }
       }
@@ -2082,10 +2082,10 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       } else {
         value = new Date(years, jsMonth, day, hours, minutes, seconds, milliseconds).valueOf();
       }
-      if (dart.dsend(dart.dload(value, 'isNaN'), '||', dart.dsend(value, '<', -dart.notNull(MAX_MILLISECONDS_SINCE_EPOCH)))['||'](dart.dsend(value, '>', MAX_MILLISECONDS_SINCE_EPOCH))) {
+      if (dart.notNull(dart.as(dart.dload(value, 'isNaN'), core.bool)) || dart.notNull(dart.as(dart.dsend(value, '<', -dart.notNull(MAX_MILLISECONDS_SINCE_EPOCH)), core.bool)) || dart.notNull(dart.as(dart.dsend(value, '>', MAX_MILLISECONDS_SINCE_EPOCH), core.bool))) {
         return null;
       }
-      if (dart.dsend(dart.dsend(years, '<=', 0), '||', dart.dsend(years, '<', 100)))
+      if (dart.notNull(dart.as(dart.dsend(years, '<=', 0), core.bool)) || dart.notNull(dart.as(dart.dsend(years, '<', 100), core.bool)))
         return Primitives.patchUpY2K(value, years, isUtc);
       return value;
     }
@@ -3642,7 +3642,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     static listToRti(list) {
       list = list;
       let result = [];
-      for (let i = 0; i['<'](dart.dload(list, 'length')); i = dart.notNull(i) + 1) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(dart.as(dart.dload(list, 'length'), core.num)); i = dart.notNull(i) + 1) {
         result.push(dart.dsend(dart.dindex(list, i), 'toRti'));
       }
       return result;
@@ -3721,7 +3721,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   dart.fn(buildNamedFunctionType, RuntimeFunctionType, [dart.dynamic, dart.dynamic, dart.dynamic]);
   function buildInterfaceType(rti, typeArguments) {
     let name = dart.as(rti.name, core.String);
-    if ((typeArguments == null)['||'](dart.dload(typeArguments, 'isEmpty'))) {
+    if (dart.notNull(typeArguments == null) || dart.notNull(dart.as(dart.dload(typeArguments, 'isEmpty'), core.bool))) {
       return new RuntimeTypePlain(name);
     }
     return new RuntimeTypeGeneric(name, dart.as(typeArguments, core.List$(RuntimeType)), null);

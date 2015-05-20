@@ -1073,7 +1073,7 @@ var convert = dart.lazyImport(convert);
         }
         return report;
       }
-      if (offset != -1 && (dart.notNull(offset) < 0 || offset['>'](dart.dload(this.source, 'length')))) {
+      if (offset != -1 && (dart.notNull(offset) < 0 || dart.notNull(offset) > dart.notNull(dart.as(dart.dload(this.source, 'length'), num)))) {
         offset = -1;
       }
       if (offset == -1) {
@@ -1106,7 +1106,7 @@ var convert = dart.lazyImport(convert);
         report = dart.notNull(report) + ` (at character ${dart.notNull(offset) + 1})\n`;
       }
       let lineEnd = dart.as(dart.dload(this.source, 'length'), int);
-      for (let i = offset; i['<'](dart.dload(this.source, 'length')); i = dart.notNull(i) + 1) {
+      for (let i = offset; dart.notNull(i) < dart.notNull(dart.as(dart.dload(this.source, 'length'), num)); i = dart.notNull(i) + 1) {
         let char = dart.as(dart.dsend(this.source, 'codeUnitAt', i), int);
         if (char == 10 || char == 13) {
           lineEnd = i;

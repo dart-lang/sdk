@@ -46,7 +46,7 @@ class Derived extends BaseWithGetter {
 }
 
 class Generic<T> {
-  foo(T t) => print(bar + t);
+  foo(T t) => print(bar + (t as String));
 
   static String bar = 'hello';
 }

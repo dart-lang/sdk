@@ -669,7 +669,7 @@ void main() {
         dynamic a = new A();
         A b = /*info:DynamicCast*/a;
         print(/*info:DynamicInvoke*/a.x);
-        print((/*info:DynamicInvoke*/a.x) + 2);
+        print(/*info:DynamicInvoke*/(/*info:DynamicInvoke*/a.x) + 2);
       }
     '''
     });
@@ -1232,7 +1232,7 @@ void main() {
           }
           {
             int f(int x) {};
-            A<int> = new A(f);
+            A<int> a = /*info:InferredTypeAllocation*/new A(f);
           }
       }
       '''
@@ -1507,7 +1507,7 @@ void main() {
         }
         {
           Function2<int, int> l0 = /*info:InferredTypeClosure*/(x) => x;
-          Function2<int, int> l1 = /*info:InferredTypeClosure*/(x) => x+1;
+          Function2<int, int> l1 = /*info:InferredTypeClosure*/(x) => /*info:DynamicInvoke should be pass*/x+1;
           Function2<int, String> l2 = /*info:InferredTypeClosure should be severe:StaticTypeError*/(x) => x;
           Function2<int, String> l3 = /*info:InferredTypeClosure should be severe:StaticTypeError*/(x) => /*info:DynamicInvoke should be pass*/x.substring(3);
           Function2<String, String> l4 = /*info:InferredTypeClosure*/(x) => /*info:DynamicInvoke should be pass*/x.substring(3);
