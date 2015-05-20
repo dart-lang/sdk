@@ -5,6 +5,7 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_ANDROID)
 
+#include "bin/file.h"
 #include "bin/platform.h"
 
 #include <signal.h>  // NOLINT
