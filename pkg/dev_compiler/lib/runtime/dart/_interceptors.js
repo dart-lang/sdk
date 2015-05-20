@@ -388,7 +388,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       '/': [core.double, [core.num]],
       '*': [core.num, [core.num]],
       '%': [core.num, [core.num]],
-      [_isInt32]: [core.bool, [dart.dynamic]],
+      [_isInt32]: [core.bool, [core.Object]],
       '~/': [core.int, [core.num]],
       [_tdivFast]: [core.int, [core.num]],
       [_tdivSlow]: [core.int, [core.num]],
@@ -477,9 +477,9 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }),
     statics: () => ({
       _bitCount: [core.int, [core.int]],
-      _shru: [dart.dynamic, [core.int, core.int]],
-      _shrs: [dart.dynamic, [core.int, core.int]],
-      _ors: [dart.dynamic, [core.int, core.int]],
+      _shru: [core.Object, [core.int, core.int]],
+      _shrs: [core.Object, [core.int, core.int]],
+      _ors: [core.Object, [core.int, core.int]],
       _spread: [core.int, [core.int]]
     }),
     names: ['_bitCount', '_shru', '_shrs', '_ors', '_spread']
@@ -977,13 +977,13 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   function _symbolMapToStringMap(map) {
     if (map == null)
       return null;
-    let result = new (core.Map$(core.String, dart.dynamic))();
+    let result = new (core.Map$(core.String, core.Object))();
     map.forEach(dart.fn((key, value) => {
       result.set(_symbolToString(key), value);
-    }, dart.dynamic, [core.Symbol, dart.dynamic]));
+    }, core.Object, [core.Symbol, core.Object]));
     return result;
   }
-  dart.fn(_symbolMapToStringMap, dart.dynamic, [core.Map$(core.Symbol, dart.dynamic)]);
+  dart.fn(_symbolMapToStringMap, core.Object, [core.Map$(core.Symbol, core.Object)]);
   function getInterceptor(object) {
     return void 0;
   }
@@ -1076,7 +1076,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     let map = dart.as(exports.mapTypeToInterceptor, core.List);
     return map[core.$get](dart.notNull(index) + 1);
   }
-  dart.fn(findInterceptorConstructorForType, dart.dynamic, [core.Type]);
+  dart.fn(findInterceptorConstructorForType, core.Object, [core.Type]);
   function findConstructorForNativeSubclassType(type, name) {
     let index = findIndexForNativeSubclassType(type);
     if (index == null)
@@ -1086,14 +1086,14 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     let constructorFn = constructorMap[name];
     return constructorFn;
   }
-  dart.fn(findConstructorForNativeSubclassType, dart.dynamic, [core.Type, core.String]);
+  dart.fn(findConstructorForNativeSubclassType, core.Object, [core.Type, core.String]);
   function findInterceptorForType(type) {
     let constructor = findInterceptorConstructorForType(type);
     if (constructor == null)
       return null;
     return constructor.prototype;
   }
-  dart.fn(findInterceptorForType, dart.dynamic, [core.Type]);
+  dart.fn(findInterceptorForType, core.Object, [core.Type]);
   class JSBool extends Interceptor {
     JSBool() {
       super.Interceptor();
@@ -1131,7 +1131,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   }
   JSNull[dart.implements] = () => [core.Null];
   dart.setSignature(JSNull, {
-    methods: () => ({'==': [core.bool, [dart.dynamic]]})
+    methods: () => ({'==': [core.bool, [core.Object]]})
   });
   class JSIndexable extends core.Object {}
   class JSMutableIndexable extends JSIndexable {}

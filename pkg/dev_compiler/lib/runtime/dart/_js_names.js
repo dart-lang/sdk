@@ -41,13 +41,13 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
     return result;
   }
-  dart.fn(computeMangledNames, core.Map$(core.String, core.String), [dart.dynamic, core.bool]);
+  dart.fn(computeMangledNames, core.Map$(core.String, core.String), [core.Object, core.bool]);
   function computeReflectiveNames(map) {
     preserveNames();
     let result = dart.map();
     map.forEach(dart.fn((mangledName, reflectiveName) => {
       result.set(reflectiveName, mangledName);
-    }, dart.dynamic, [core.String, core.String]));
+    }, core.Object, [core.String, core.String]));
     return result;
   }
   dart.fn(computeReflectiveNames, core.Map$(core.String, core.String), [core.Map$(core.String, core.String)]);
@@ -62,7 +62,7 @@ var _js_helper = dart.lazyImport(_js_helper);
     }(victim, Object.prototype.hasOwnProperty);
     return new _interceptors.JSArray.markFixed(result);
   }
-  dart.fn(extractKeys, core.List, [dart.dynamic]);
+  dart.fn(extractKeys, core.List, [core.Object]);
   function unmangleGlobalNameIfPreservedAnyways(name) {
     let names = _foreign_helper.JS_EMBEDDED_GLOBAL('=Object', _js_embedded_names.MANGLED_GLOBAL_NAMES);
     return dart.as(_js_helper.JsCache.fetch(names, name), core.String);

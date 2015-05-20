@@ -93,7 +93,7 @@ var core = dart.import(core);
   dart.setSignature(Constraint, {
     methods: () => ({
       addConstraint: [dart.void, []],
-      satisfy: [Constraint, [dart.dynamic]],
+      satisfy: [Constraint, [core.Object]],
       destroyConstraint: [dart.void, []],
       isInput: [core.bool, []]
     })

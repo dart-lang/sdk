@@ -34,9 +34,9 @@ var convert = dart.lazyImport(convert);
   }
   dart.setSignature(Object, {
     methods: () => ({
-      '==': [bool, [dart.dynamic]],
+      '==': [bool, [Object]],
       toString: [String, []],
-      noSuchMethod: [dart.dynamic, [Invocation]]
+      noSuchMethod: [Object, [Invocation]]
     })
   });
   class JsName extends Object {
@@ -786,7 +786,7 @@ var convert = dart.lazyImport(convert);
   dart.setSignature(RangeError, {
     statics: () => ({
       checkValueInInterval: [dart.void, [int, int, int], [String, String]],
-      checkValidIndex: [dart.void, [int, dart.dynamic], [String, int, String]],
+      checkValidIndex: [dart.void, [int, Object], [String, int, String]],
       checkValidRange: [dart.void, [int, int, int], [String, String, String]],
       checkNotNegative: [dart.void, [int], [String, String]]
     }),
@@ -874,7 +874,7 @@ var convert = dart.lazyImport(convert);
           sb.write(": ");
           sb.write(Error.safeToString(value));
           i = dart.notNull(i) + 1;
-        }, dart.dynamic, [Symbol, dart.dynamic]));
+        }, Object, [Symbol, Object]));
       }
       if (this[_existingArgumentNames] == null) {
         return `NoSuchMethodError : method not found: '${this[_memberName]}'\n` + `Receiver: ${Error.safeToString(this[_receiver])}\n` + `Arguments: [${sb}]`;
@@ -1152,8 +1152,8 @@ var convert = dart.lazyImport(convert);
   }
   dart.setSignature(Function, {
     statics: () => ({
-      apply: [dart.dynamic, [Function, List], [Map$(Symbol, dart.dynamic)]],
-      _toMangledNames: [Map$(String, dart.dynamic), [Map$(Symbol, dart.dynamic)]]
+      apply: [Object, [Function, List], [Map$(Symbol, Object)]],
+      _toMangledNames: [Map$(String, Object), [Map$(Symbol, Object)]]
     }),
     names: ['apply', '_toMangledNames']
   });
@@ -1446,7 +1446,7 @@ var convert = dart.lazyImport(convert);
         }
       }
       [$map](f) {
-        dart.as(f, dart.functionType(dart.dynamic, [E]));
+        dart.as(f, dart.functionType(Object, [E]));
         return _internal.IterableMixinWorkaround.mapList(this, f);
       }
       [$join](separator) {
@@ -1477,7 +1477,7 @@ var convert = dart.lazyImport(convert);
         return dart.as(_internal.IterableMixinWorkaround.reduce(this, combine), E);
       }
       [$fold](initialValue, combine) {
-        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
+        dart.as(combine, dart.functionType(Object, [dart.bottom, E]));
         return _internal.IterableMixinWorkaround.fold(this, initialValue, combine);
       }
       [$firstWhere](test, opts) {
@@ -1741,19 +1741,19 @@ var convert = dart.lazyImport(convert);
     dart.defineNamedConstructor(List, 'generate');
     dart.setSignature(List, {
       methods: () => ({
-        [$checkMutable]: [dart.dynamic, [dart.dynamic]],
-        [$checkGrowable]: [dart.dynamic, [dart.dynamic]],
+        [$checkMutable]: [Object, [Object]],
+        [$checkGrowable]: [Object, [Object]],
         [$where]: [Iterable$(E), [dart.functionType(bool, [E])]],
         [$expand]: [Iterable, [dart.functionType(Iterable, [E])]],
         [$forEach]: [dart.void, [dart.functionType(dart.void, [E])]],
-        [$map]: [Iterable, [dart.functionType(dart.dynamic, [E])]],
+        [$map]: [Iterable, [dart.functionType(Object, [E])]],
         [$join]: [String, [], [String]],
         [$take]: [Iterable$(E), [int]],
         [$takeWhile]: [Iterable$(E), [dart.functionType(bool, [E])]],
         [$skip]: [Iterable$(E), [int]],
         [$skipWhile]: [Iterable$(E), [dart.functionType(bool, [E])]],
         [$reduce]: [E, [dart.functionType(E, [E, E])]],
-        [$fold]: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
+        [$fold]: [Object, [Object, dart.functionType(Object, [dart.bottom, E])]],
         [$firstWhere]: [E, [dart.functionType(bool, [E])], {rEls: dart.functionType(E, [])}],
         [$lastWhere]: [E, [dart.functionType(bool, [E])], {rEls: dart.functionType(E, [])}],
         [$singleWhere]: [E, [dart.functionType(bool, [E])]],
@@ -2218,7 +2218,7 @@ var convert = dart.lazyImport(convert);
       writeAll: [dart.void, [Iterable], [String]],
       writeln: [dart.void, [], [Object]],
       clear: [dart.void, []],
-      [_writeString]: [dart.void, [dart.dynamic]]
+      [_writeString]: [dart.void, [Object]]
     })
   });
   class StringSink extends Object {}
@@ -2850,7 +2850,7 @@ var convert = dart.lazyImport(convert);
       if (path != null) {
         result = Uri._normalize(path, start, end, dart.as(Uri._pathCharOrSlashTable, List$(int)));
       } else {
-        result = pathSegments[$map](dart.fn(s => Uri._uriEncode(dart.as(Uri._pathCharTable, List$(int)), dart.as(s, String)), String, [dart.dynamic]))[$join]("/");
+        result = pathSegments[$map](dart.fn(s => Uri._uriEncode(dart.as(Uri._pathCharTable, List$(int)), dart.as(s, String)), String, [Object]))[$join]("/");
       }
       if (dart.dload(result, 'isEmpty')) {
         if (isFile)
@@ -3248,7 +3248,7 @@ var convert = dart.lazyImport(convert);
       let combine = (part, current) => {
         return dart.as(dart.dsend(dart.dsend(dart.dsend(current, '*', 31), '+', dart.hashCode(part)), '&', 1073741823), int);
       };
-      dart.fn(combine, int, [dart.dynamic, dart.dynamic]);
+      dart.fn(combine, int, [Object, Object]);
       return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }
     static _addIfNonEmpty(sb, test, first, second) {
@@ -3322,7 +3322,7 @@ var convert = dart.lazyImport(convert);
           position = null;
         throw new FormatException(`Illegal IPv6 address, ${msg}`, host, dart.as(position, int));
       };
-      dart.fn(error, dart.void, [String], [dart.dynamic]);
+      dart.fn(error, dart.void, [String], [Object]);
       let parseHex = (start, end) => {
         if (dart.notNull(end) - dart.notNull(start) > 4) {
           error('an IPv6 part can only contain a maximum of 4 hex digits', start);
@@ -3511,11 +3511,11 @@ var convert = dart.lazyImport(convert);
       parse: [Uri, [String]],
       _fail: [dart.void, [String, int, String]],
       _makeHttpUri: [Uri, [String, String, String, Map$(String, String)]],
-      _checkNonWindowsPathReservedCharacters: [dart.dynamic, [List$(String), bool]],
-      _checkWindowsPathReservedCharacters: [dart.dynamic, [List$(String), bool], [int]],
-      _checkWindowsDriveLetter: [dart.dynamic, [int, bool]],
-      _makeFileUri: [dart.dynamic, [String]],
-      _makeWindowsFileUrl: [dart.dynamic, [String]],
+      _checkNonWindowsPathReservedCharacters: [Object, [List$(String), bool]],
+      _checkWindowsPathReservedCharacters: [Object, [List$(String), bool], [int]],
+      _checkWindowsDriveLetter: [Object, [int, bool]],
+      _makeFileUri: [Object, [String]],
+      _makeWindowsFileUrl: [Object, [String]],
       _makePort: [int, [int, String]],
       _makeHost: [String, [String, int, int, bool]],
       _isRegNameChar: [bool, [int]],
@@ -3530,7 +3530,7 @@ var convert = dart.lazyImport(convert);
       _hexValue: [int, [int]],
       _normalizeEscape: [String, [String, int, bool]],
       _isUnreservedChar: [bool, [int]],
-      _escapeChar: [String, [dart.dynamic]],
+      _escapeChar: [String, [Object]],
       _normalize: [String, [String, int, int, List$(int)]],
       _isSchemeCharacter: [bool, [int]],
       _isGeneralDelimiter: [bool, [int]],
@@ -3595,13 +3595,13 @@ var convert = dart.lazyImport(convert);
   function _symbolMapToStringMap(map) {
     if (map == null)
       return null;
-    let result = new (Map$(String, dart.dynamic))();
+    let result = new (Map$(String, Object))();
     map.forEach(dart.fn((key, value) => {
       result.set(_symbolToString(key), value);
-    }, dart.dynamic, [Symbol, dart.dynamic]));
+    }, Object, [Symbol, Object]));
     return result;
   }
-  dart.fn(_symbolMapToStringMap, dart.dynamic, [Map$(Symbol, dart.dynamic)]);
+  dart.fn(_symbolMapToStringMap, Object, [Map$(Symbol, Object)]);
   class SupportJsExtensionMethods extends Object {
     SupportJsExtensionMethods() {
     }

@@ -33,7 +33,7 @@ var async = dart.import(async);
     static spawn(entryPoint, message, opts) {
       let paused = opts && 'paused' in opts ? opts.paused : false;
       try {
-        return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [dart.dynamic])), async.Future$(Isolate));
+        return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [core.Object])), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
         return new (async.Future$(Isolate)).error(e, st);
@@ -55,7 +55,7 @@ var async = dart.import(async);
         } else if (args != null) {
           throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
         }
-        return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [dart.dynamic])), async.Future$(Isolate));
+        return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [core.Object])), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
         return new (async.Future$(Isolate)).error(e, st);
@@ -137,7 +137,7 @@ var async = dart.import(async);
         let error = new RemoteError(errorDescription, stackDescription);
         controller.addError(error, error.stackTrace);
       };
-      dart.fn(handleError, dart.void, [dart.dynamic]);
+      dart.fn(handleError, dart.void, [core.Object]);
       controller = new async.StreamController.broadcast({sync: true, onListen: dart.fn((() => {
           port = new RawReceivePort(handleError);
           this.addErrorListener(port.sendPort);
@@ -163,8 +163,8 @@ var async = dart.import(async);
       removeErrorListener: [dart.void, [SendPort]]
     }),
     statics: () => ({
-      spawn: [async.Future$(Isolate), [dart.functionType(dart.void, [dart.dynamic]), dart.dynamic], {ause: core.bool}],
-      spawnUri: [async.Future$(Isolate), [core.Uri, core.List$(core.String), dart.dynamic], {ause: core.bool, ackageRoo: core.Uri}]
+      spawn: [async.Future$(Isolate), [dart.functionType(dart.void, [dart.bottom]), core.Object], {ause: core.bool}],
+      spawnUri: [async.Future$(Isolate), [core.Uri, core.List$(core.String), core.Object], {ause: core.bool, ackageRoo: core.Uri}]
     }),
     names: ['spawn', 'spawnUri']
   });

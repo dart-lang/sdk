@@ -21,9 +21,9 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(Expect, {
-    methods: () => ({fail: [dart.dynamic, [dart.dynamic]]}),
+    methods: () => ({fail: [core.Object, [core.Object]]}),
     statics: () => ({
-      equals: [dart.void, [dart.dynamic, dart.dynamic]],
+      equals: [dart.void, [core.Object, core.Object]],
       listEquals: [dart.void, [core.List, core.List]]
     }),
     names: ['equals', 'listEquals']

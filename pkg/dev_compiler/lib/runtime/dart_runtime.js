@@ -565,8 +565,13 @@ var dart, _js_helper, _js_primitives;
     if (arguments.length == 1) {
       // No type arguments, it's all dynamic
       let len = closure.length;
-      let args = Array.apply(null, new Array(len)).map(() => dart.dynamic);
-      t = functionType(dart.dynamic, args);
+      function build() {
+        let args = Array.apply(null, new Array(len)).map(() => core.Object);
+        return functionType(core.Object, args);
+      }
+      // We could be called before Object is defined.
+      if (core.Object === void 0) return fn(closure, build);
+      t = build();
     } else {
       // We're passed the piecewise components of the function type,
       // construct it.
@@ -958,6 +963,10 @@ var dart, _js_helper, _js_primitives;
         throw Error('requires ' + length + ' or 0 type arguments');
       }
       let args = Array.prototype.slice.call(arguments);
+      // TODO(leafp): This should really be core.Object for
+      // consistency, but Object is not attached to core
+      // until the entire core library has been processed,
+      // which is too late.
       while (args.length < length) args.push(dart.dynamic);
 
       let value = resultMap;

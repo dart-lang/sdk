@@ -31,7 +31,7 @@ var core = dart.import(core);
     }
   });
   function main() {
-    exports.slider.addEventListener('change', dart.fn(e => draw(), dart.void, [dart.dynamic]));
+    exports.slider.addEventListener('change', dart.fn(e => draw(), dart.void, [core.Object]));
     draw();
   }
   dart.fn(main, dart.void, []);

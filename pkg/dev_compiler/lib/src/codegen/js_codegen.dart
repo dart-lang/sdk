@@ -599,10 +599,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
           var unary = node.parameters.parameters.isEmpty;
           var memberName = _emitMemberName(name,
               type: cType, unary: unary, isStatic: node.isStatic);
-          var parts = _emitFunctionTypeParts(element.type);
+          var parts =
+              _emitFunctionTypeParts(element.type, dynamicIsBottom: false);
           var property =
               new JS.Property(memberName, new JS.ArrayInitializer(parts));
-          if (node.isStatic) {
+         if (node.isStatic) {
             tStatics.add(property);
             sNames.add(memberName);
           } else tMethods.add(property);
@@ -1026,9 +1027,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         return js.call('dart.fn(#)', [clos]);
       }
       if (lazy) {
-        return js.call('dart.fn(#, () => #)', [clos, _emitTypeName(type)]);
+        return js.call('dart.fn(#, () => #)', [clos, _emitFunctionRTTI(type)]);
       }
-      return js.call('dart.fn(#, #)', [clos, _emitFunctionTypeParts(type)]);
+      return js.call('dart.fn(#, #)', [
+        clos,
+        _emitFunctionTypeParts(type, dynamicIsBottom: false)
+      ]);
     }
     throw 'Function has non function type: $type';
   }
@@ -1160,38 +1164,52 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   JS.TemporaryId _getTemp(Object key, String name) =>
       _temps.putIfAbsent(key, () => new JS.TemporaryId(name));
 
-  JS.ArrayInitializer _emitTypeNames(List<DartType> types) {
-    return new JS.ArrayInitializer(types.map(_emitTypeName).toList());
+  JS.ArrayInitializer _emitTypeNames(List<DartType> types,
+      {dynamicIsBottom: false}) {
+    var build = (t) => _emitTypeName(t, dynamicIsBottom: dynamicIsBottom);
+    return new JS.ArrayInitializer(types.map(build).toList());
   }
 
-  JS.ObjectInitializer _emitTypeProperties(Map<String, DartType> types) {
+  JS.ObjectInitializer _emitTypeProperties(Map<String, DartType> types,
+      {dynamicIsBottom: false}) {
     var properties = <JS.Property>[];
     types.forEach((name, type) {
       var key = new JS.LiteralString(name);
-      var value = _emitTypeName(type);
+      var value = _emitTypeName(type, dynamicIsBottom: dynamicIsBottom);
       properties.add(new JS.Property(key, value));
     });
     return new JS.ObjectInitializer(properties);
   }
 
-  List<JS.Expression> _emitFunctionTypeParts(FunctionType type) {
+  /// Emit the pieces of a function type, as an array of return type,
+  /// regular args, and optional/named args.
+  /// If [dynamicIsBottom] is true, then dynamics in argument positions
+  /// will be lowered to bottom instead of Object.
+  List<JS.Expression> _emitFunctionTypeParts(FunctionType type,
+      {bool dynamicIsBottom: true}) {
     var returnType = type.returnType;
     var parameterTypes = type.normalParameterTypes;
     var optionalTypes = type.optionalParameterTypes;
     var namedTypes = type.namedParameterTypes;
     var rt = _emitTypeName(returnType);
-    var ra = _emitTypeNames(parameterTypes);
+    var ra = _emitTypeNames(parameterTypes, dynamicIsBottom: dynamicIsBottom);
     if (!namedTypes.isEmpty) {
       assert(optionalTypes.isEmpty);
-      var na = _emitTypeProperties(namedTypes);
+      var na =
+          _emitTypeProperties(namedTypes, dynamicIsBottom: dynamicIsBottom);
       return [rt, ra, na];
     }
     if (!optionalTypes.isEmpty) {
       assert(namedTypes.isEmpty);
-      var oa = _emitTypeNames(optionalTypes);
+      var oa = _emitTypeNames(optionalTypes, dynamicIsBottom: dynamicIsBottom);
       return [rt, ra, oa];
     }
     return [rt, ra];
+  }
+
+  JS.Expression _emitFunctionRTTI(FunctionType type) {
+    var parts = _emitFunctionTypeParts(type, dynamicIsBottom: false);
+    return js.call('dart.functionType(#)', [parts]);
   }
 
   /// Emits a Dart [type] into code.
@@ -1200,14 +1218,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// function type. Similarly if [lowerGeneric] is set, the `List$()` form
   /// will be used instead of `List`. These flags are used when generating
   /// the definitions for typedefs and generic types, respectively.
-  JS.Expression _emitTypeName(DartType type,
-      {bool lowerTypedef: false, bool lowerGeneric: false}) {
+  JS.Expression _emitTypeName(DartType type, {bool lowerTypedef: false,
+      bool lowerGeneric: false, bool dynamicIsBottom: false}) {
 
     // The void and dynamic types are not defined in core.
     if (type.isVoid) {
       return js.call('dart.void');
     } else if (type.isDynamic) {
-      return js.call('dart.dynamic');
+      if (dynamicIsBottom) return js.call('dart.bottom');
+      return _emitTypeName(types.objectType);
     } else if (type.isBottom) {
       return js.call('dart.bottom');
     }

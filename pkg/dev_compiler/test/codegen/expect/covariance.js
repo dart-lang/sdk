@@ -19,8 +19,8 @@ var core = dart.import(core);
     }
     dart.setSignature(Foo, {
       methods: () => ({
-        add: [dart.dynamic, [T]],
-        forEach: [dart.dynamic, [dart.functionType(dart.void, [T])]]
+        add: [core.Object, [T]],
+        forEach: [core.Object, [dart.functionType(dart.void, [T])]]
       })
     });
     return Foo;
@@ -36,7 +36,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(Bar, {
-    methods: () => ({add: [dart.dynamic, [core.int]]})
+    methods: () => ({add: [core.Object, [core.int]]})
   });
   function main() {
     let foo = new Bar();

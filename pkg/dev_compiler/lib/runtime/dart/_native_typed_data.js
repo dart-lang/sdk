@@ -496,7 +496,7 @@ var math = dart.import(math);
       throw new core.ArgumentError(`Invalid length ${length}`);
     return dart.as(length, core.int);
   }
-  dart.fn(_checkLength, core.int, [dart.dynamic]);
+  dart.fn(_checkLength, core.int, [core.Object]);
   function _checkViewArguments(buffer, offsetInBytes, length) {
     if (!dart.is(buffer, NativeByteBuffer)) {
       throw new core.ArgumentError('Invalid view buffer');
@@ -508,7 +508,7 @@ var math = dart.import(math);
       throw new core.ArgumentError(`Invalid view length ${length}`);
     }
   }
-  dart.fn(_checkViewArguments, dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]);
+  dart.fn(_checkViewArguments, dart.void, [core.Object, core.Object, core.Object]);
   function _ensureNativeList(list) {
     if (dart.is(list, _interceptors.JSIndexable))
       return list;
@@ -673,9 +673,9 @@ var math = dart.import(math);
       setUint8: [dart.void, [core.int, core.int]]
     }),
     statics: () => ({
-      _create1: [NativeByteData, [dart.dynamic]],
-      _create2: [NativeByteData, [dart.dynamic, dart.dynamic]],
-      _create3: [NativeByteData, [dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create1: [NativeByteData, [core.Object]],
+      _create2: [NativeByteData, [core.Object, core.Object]],
+      _create3: [NativeByteData, [core.Object, core.Object, core.Object]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -798,9 +798,9 @@ var math = dart.import(math);
   dart.setSignature(NativeFloat32List, {
     methods: () => ({[core.$sublist]: [core.List$(core.double), [core.int], [core.int]]}),
     statics: () => ({
-      _create1: [NativeFloat32List, [dart.dynamic]],
-      _create2: [NativeFloat32List, [dart.dynamic, dart.dynamic]],
-      _create3: [NativeFloat32List, [dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create1: [NativeFloat32List, [core.Object]],
+      _create2: [NativeFloat32List, [core.Object, core.Object]],
+      _create3: [NativeFloat32List, [core.Object, core.Object, core.Object]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -841,9 +841,9 @@ var math = dart.import(math);
   dart.setSignature(NativeFloat64List, {
     methods: () => ({[core.$sublist]: [core.List$(core.double), [core.int], [core.int]]}),
     statics: () => ({
-      _create1: [NativeFloat64List, [dart.dynamic]],
-      _create2: [NativeFloat64List, [dart.dynamic, dart.dynamic]],
-      _create3: [NativeFloat64List, [dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create1: [NativeFloat64List, [core.Object]],
+      _create2: [NativeFloat64List, [core.Object, core.Object]],
+      _create3: [NativeFloat64List, [core.Object, core.Object, core.Object]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -891,9 +891,9 @@ var math = dart.import(math);
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: [NativeInt16List, [dart.dynamic]],
-      _create2: [NativeInt16List, [dart.dynamic, dart.dynamic]],
-      _create3: [NativeInt16List, [dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create1: [NativeInt16List, [core.Object]],
+      _create2: [NativeInt16List, [core.Object, core.Object]],
+      _create3: [NativeInt16List, [core.Object, core.Object, core.Object]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -941,9 +941,9 @@ var math = dart.import(math);
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: [NativeInt32List, [dart.dynamic]],
-      _create2: [NativeInt32List, [dart.dynamic, dart.dynamic]],
-      _create3: [NativeInt32List, [dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create1: [NativeInt32List, [core.Object]],
+      _create2: [NativeInt32List, [core.Object, core.Object]],
+      _create3: [NativeInt32List, [core.Object, core.Object, core.Object]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -991,9 +991,9 @@ var math = dart.import(math);
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: [NativeInt8List, [dart.dynamic]],
-      _create2: [NativeInt8List, [dart.dynamic, dart.dynamic]],
-      _create3: [typed_data.Int8List, [dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create1: [NativeInt8List, [core.Object]],
+      _create2: [NativeInt8List, [core.Object, core.Object]],
+      _create3: [typed_data.Int8List, [core.Object, core.Object, core.Object]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -1041,9 +1041,9 @@ var math = dart.import(math);
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: [NativeUint16List, [dart.dynamic]],
-      _create2: [NativeUint16List, [dart.dynamic, dart.dynamic]],
-      _create3: [NativeUint16List, [dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create1: [NativeUint16List, [core.Object]],
+      _create2: [NativeUint16List, [core.Object, core.Object]],
+      _create3: [NativeUint16List, [core.Object, core.Object, core.Object]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -1091,9 +1091,9 @@ var math = dart.import(math);
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: [NativeUint32List, [dart.dynamic]],
-      _create2: [NativeUint32List, [dart.dynamic, dart.dynamic]],
-      _create3: [NativeUint32List, [dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create1: [NativeUint32List, [core.Object]],
+      _create2: [NativeUint32List, [core.Object, core.Object]],
+      _create3: [NativeUint32List, [core.Object, core.Object, core.Object]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -1144,9 +1144,9 @@ var math = dart.import(math);
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: [NativeUint8ClampedList, [dart.dynamic]],
-      _create2: [NativeUint8ClampedList, [dart.dynamic, dart.dynamic]],
-      _create3: [NativeUint8ClampedList, [dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create1: [NativeUint8ClampedList, [core.Object]],
+      _create2: [NativeUint8ClampedList, [core.Object, core.Object]],
+      _create3: [NativeUint8ClampedList, [core.Object, core.Object, core.Object]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -1197,9 +1197,9 @@ var math = dart.import(math);
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
     }),
     statics: () => ({
-      _create1: [NativeUint8List, [dart.dynamic]],
-      _create2: [NativeUint8List, [dart.dynamic, dart.dynamic]],
-      _create3: [NativeUint8List, [dart.dynamic, dart.dynamic, dart.dynamic]]
+      _create1: [NativeUint8List, [core.Object]],
+      _create2: [NativeUint8List, [core.Object, core.Object]],
+      _create3: [NativeUint8List, [core.Object, core.Object, core.Object]]
     }),
     names: ['_create1', '_create2', '_create3']
   });
@@ -1491,7 +1491,7 @@ var math = dart.import(math);
       reciprocal: [typed_data.Float32x4, []],
       reciprocalSqrt: [typed_data.Float32x4, []]
     }),
-    statics: () => ({_truncate: [dart.dynamic, [dart.dynamic]]}),
+    statics: () => ({_truncate: [core.Object, [core.Object]]}),
     names: ['_truncate']
   });
   dart.defineLazyProperties(NativeFloat32x4, {
@@ -1700,7 +1700,7 @@ var math = dart.import(math);
       withFlagW: [typed_data.Int32x4, [core.bool]],
       select: [typed_data.Float32x4, [typed_data.Float32x4, typed_data.Float32x4]]
     }),
-    statics: () => ({_truncate: [dart.dynamic, [dart.dynamic]]}),
+    statics: () => ({_truncate: [core.Object, [core.Object]]}),
     names: ['_truncate']
   });
   dart.defineLazyProperties(NativeInt32x4, {

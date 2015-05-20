@@ -28,23 +28,23 @@ var core = dart.import(core);
     if (arg11 === void 0)
       arg11 = null;
   }
-  dart.fn(JS, dart.dynamic, [core.String, core.String], [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]);
+  dart.fn(JS, core.Object, [core.String, core.String], [core.Object, core.Object, core.Object, core.Object, core.Object, core.Object, core.Object, core.Object, core.Object, core.Object, core.Object, core.Object]);
   function JS_CURRENT_ISOLATE_CONTEXT() {
   }
   dart.fn(JS_CURRENT_ISOLATE_CONTEXT, () => dart.functionType(IsolateContext, []));
   class IsolateContext extends core.Object {}
   function JS_CALL_IN_ISOLATE(isolate, func) {
   }
-  dart.fn(JS_CALL_IN_ISOLATE, dart.dynamic, [dart.dynamic, core.Function]);
+  dart.fn(JS_CALL_IN_ISOLATE, core.Object, [core.Object, core.Function]);
   function DART_CLOSURE_TO_JS(func) {
   }
-  dart.fn(DART_CLOSURE_TO_JS, dart.dynamic, [core.Function]);
+  dart.fn(DART_CLOSURE_TO_JS, core.Object, [core.Function]);
   function RAW_DART_FUNCTION_REF(func) {
   }
-  dart.fn(RAW_DART_FUNCTION_REF, dart.dynamic, [core.Function]);
+  dart.fn(RAW_DART_FUNCTION_REF, core.Object, [core.Function]);
   function JS_SET_CURRENT_ISOLATE(isolate) {
   }
-  dart.fn(JS_SET_CURRENT_ISOLATE, dart.void, [dart.dynamic]);
+  dart.fn(JS_SET_CURRENT_ISOLATE, dart.void, [core.Object]);
   function JS_CREATE_ISOLATE() {
   }
   dart.fn(JS_CREATE_ISOLATE);
@@ -53,7 +53,7 @@ var core = dart.import(core);
   dart.fn(JS_DART_OBJECT_CONSTRUCTOR);
   function JS_INTERCEPTOR_CONSTANT(type) {
   }
-  dart.fn(JS_INTERCEPTOR_CONSTANT, dart.dynamic, [core.Type]);
+  dart.fn(JS_INTERCEPTOR_CONSTANT, core.Object, [core.Type]);
   function JS_OPERATOR_IS_PREFIX() {
   }
   dart.fn(JS_OPERATOR_IS_PREFIX, core.String, []);
@@ -104,7 +104,7 @@ var core = dart.import(core);
   dart.fn(JS_GET_NAME, core.String, [core.String]);
   function JS_EMBEDDED_GLOBAL(typeDescription, name) {
   }
-  dart.fn(JS_EMBEDDED_GLOBAL, dart.dynamic, [core.String, core.String]);
+  dart.fn(JS_EMBEDDED_GLOBAL, core.Object, [core.String, core.String]);
   function JS_GET_FLAG(name) {
   }
   dart.fn(JS_GET_FLAG, core.bool, [core.String]);

@@ -104,7 +104,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(Foo, {
-    methods: () => ({test_final_field_generic: [dart.void, [dart.dynamic]]})
+    methods: () => ({test_final_field_generic: [dart.void, [core.Object]]})
   });
   // Exports:
   exports.A = A;

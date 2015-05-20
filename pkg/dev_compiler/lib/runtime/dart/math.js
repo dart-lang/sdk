@@ -25,8 +25,8 @@ var _js_helper = dart.lazyImport(_js_helper);
     statics: () => ({
       combine: [core.int, [core.int, core.int]],
       finish: [core.int, [core.int]],
-      hash2: [core.int, [dart.dynamic, dart.dynamic]],
-      hash4: [core.int, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]]
+      hash2: [core.int, [core.Object, core.Object]],
+      hash4: [core.int, [core.Object, core.Object, core.Object, core.Object]]
     }),
     names: ['combine', 'finish', 'hash2', 'hash4']
   });

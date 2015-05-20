@@ -58,7 +58,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(Bar, {
-    methods: () => ({call: [dart.dynamic, [dart.dynamic]]})
+    methods: () => ({call: [core.Object, [core.Object]]})
   });
   class Foo extends core.Object {
     Foo() {

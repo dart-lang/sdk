@@ -27,11 +27,11 @@ var core = dart.import(core);
     core.print(dart.dload(a, 'x'));
     return dart.as(dart.dload(a, 'x'), core.int);
   }
-  dart.fn(bar, core.int, [dart.dynamic]);
+  dart.fn(bar, core.int, [core.Object]);
   function baz(a) {
     return a.x;
   }
-  dart.fn(baz, dart.dynamic, [A]);
+  dart.fn(baz, core.Object, [A]);
   function compute() {
     return 123;
   }
@@ -73,7 +73,7 @@ var core = dart.import(core);
       }
     }
     dart.setSignature(Generic, {
-      methods: () => ({foo: [dart.dynamic, [T]]})
+      methods: () => ({foo: [core.Object, [T]]})
     });
     return Generic;
   });
