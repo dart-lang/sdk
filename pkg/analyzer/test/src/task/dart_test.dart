@@ -1312,6 +1312,28 @@ class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
     return null;
   }
 
+  test_annotation_non_const_constructor() {
+    // Calling a non-const constructor from an annotation that is illegal, but
+    // shouldn't crash analysis.
+    Source source = newSource('/test.dart', '''
+class A {
+  final int i;
+  A(this.i);
+}
+
+@A(5)
+class C {}
+''');
+    // First compute the resolved unit for the source.
+    CompilationUnit unit = _resolveSource(source);
+    // Compute the constant value of the annotation on C.
+    EvaluationResultImpl evaluationResult =
+        computeClassAnnotation(source, unit, 'C');
+    // And check that it has no value stored in it.
+    expect(evaluationResult, isNotNull);
+    expect(evaluationResult.value, isNull);
+  }
+
   test_annotation_with_args() {
     Source source = newSource('/test.dart', '''
 const x = 1;
@@ -1322,10 +1344,7 @@ class D {
 }
 ''');
     // First compute the resolved unit for the source.
-    LibrarySpecificUnit librarySpecificUnit =
-        new LibrarySpecificUnit(source, source);
-    _computeResult(librarySpecificUnit, RESOLVED_UNIT1);
-    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    CompilationUnit unit = _resolveSource(source);
     // Compute the constant value of the annotation on C.
     EvaluationResultImpl evaluationResult =
         computeClassAnnotation(source, unit, 'C');
@@ -1344,10 +1363,7 @@ const x = 1;
 @x class C {}
 ''');
     // First compute the resolved unit for the source.
-    LibrarySpecificUnit librarySpecificUnit =
-        new LibrarySpecificUnit(source, source);
-    _computeResult(librarySpecificUnit, RESOLVED_UNIT1);
-    CompilationUnit unit = outputs[RESOLVED_UNIT1];
+    CompilationUnit unit = _resolveSource(source);
     // Compute the constant value of the annotation on C.
     EvaluationResultImpl evaluationResult =
         computeClassAnnotation(source, unit, 'C');
@@ -1462,15 +1478,16 @@ const x = 1;
         (TopLevelVariableElement variable) => variable.name == variableName);
   }
 
-  CompilationUnit _resolveUnit(String content) {
-    Source source = newSource('/test.dart', content);
-    // First compute the resolved unit for the source.
+  CompilationUnit _resolveSource(Source source) {
     LibrarySpecificUnit librarySpecificUnit =
         new LibrarySpecificUnit(source, source);
     _computeResult(librarySpecificUnit, RESOLVED_UNIT1);
     CompilationUnit unit = outputs[RESOLVED_UNIT1];
     return unit;
   }
+
+  CompilationUnit _resolveUnit(String content) =>
+      _resolveSource(newSource('/test.dart', content));
 }
 
 @reflectiveTest

@@ -370,7 +370,7 @@ class ConstantEvaluationEngine {
           VariableElementImpl variableElement =
               element.variable as VariableElementImpl;
           elementAnnotation.evaluationResult = variableElement.evaluationResult;
-        } else if (element is ConstructorElementImpl &&
+        } else if (element is ConstructorElementImpl && element.isConst &&
             constNode.arguments != null) {
           RecordingErrorListener errorListener = new RecordingErrorListener();
           CompilationUnit sourceCompilationUnit =
@@ -485,8 +485,6 @@ class ConstantEvaluationEngine {
         } else if (element is ConstructorElementImpl && element.isConst) {
           // The annotation is a constructor invocation, so it depends on the
           // constructor.
-          // TODO(paulberry): make sure the right thing happens if the
-          // constructor is non-const.
           callback(element);
         } else {
           // This could happen in the event of invalid code.  The error will be
