@@ -3012,10 +3012,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         AbstractFieldElement field = target;
         setter = field.setter;
         getter = field.getter;
-        if (setter == null && !inInstanceContext) {
-          setter = reportAndCreateErroneousElement(node.selector, field.name,
-              MessageKind.CANNOT_RESOLVE_SETTER, const {});
-          registry.registerThrowNoSuchMethod();
+        if (setter == null) {
+          if (!inInstanceContext || getter.isTopLevel || getter.isStatic) {
+            setter = reportAndCreateErroneousElement(node.selector, field.name,
+                MessageKind.CANNOT_RESOLVE_SETTER, const {});
+            registry.registerThrowNoSuchMethod();
+          }
         }
         if (isComplex && getter == null && !inInstanceContext) {
           getter = reportAndCreateErroneousElement(node.selector, field.name,
