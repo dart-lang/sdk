@@ -52,7 +52,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ StoreToOffset(kWord, SP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;
@@ -151,7 +151,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(kWord, SP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;
@@ -244,7 +244,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(kWord, SP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;

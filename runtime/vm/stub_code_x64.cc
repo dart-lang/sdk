@@ -51,7 +51,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RSP);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -148,7 +148,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RSP);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -222,7 +222,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RSP);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
