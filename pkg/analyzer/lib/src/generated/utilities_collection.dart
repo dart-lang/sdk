@@ -681,6 +681,9 @@ class SingleMapIterator<K, V> implements MapIterator<K, V> {
     if (_currentKey == null) {
       throw new NoSuchElementException();
     }
+    if (_currentValue == null) {
+      _currentValue = _map[_currentKey];
+    }
     return _currentValue;
   }
 
@@ -697,7 +700,7 @@ class SingleMapIterator<K, V> implements MapIterator<K, V> {
   bool moveNext() {
     if (_keyIterator.moveNext()) {
       _currentKey = _keyIterator.current;
-      _currentValue = _map[_currentKey];
+      _currentValue = null;
       return true;
     } else {
       _currentKey = null;
