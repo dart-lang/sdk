@@ -712,14 +712,11 @@ class _TypePropagationVisitor<T> implements Visitor {
     _AbstractValue<T> cell = getValue(node.receiver.definition);
     if (cell.isNothing) {
       return;  // And come back later.
-    } else if (cell.isNonConst) {
-      setValues(nonConstant(cell.type));
-    } else if (node.type.kind == types.TypeKind.INTERFACE) {
+    } else if (cell.isConstant && node.type.kind == types.TypeKind.INTERFACE) {
       // Receiver is a constant, perform is-checks at compile-time.
 
       types.InterfaceType checkedType = node.type;
       ConstantValue constant = cell.constant;
-      // TODO(karlklose): remove call to computeType.
       types.DartType constantType = constant.getType(_dartTypes.coreTypes);
 
       T type = typeSystem.boolType;
@@ -738,6 +735,8 @@ class _TypePropagationVisitor<T> implements Visitor {
             type);
       }
       setValues(result);
+    } else {
+      setValues(nonConstant(typeSystem.boolType));
     }
   }
 
