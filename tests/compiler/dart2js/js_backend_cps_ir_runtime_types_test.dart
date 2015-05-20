@@ -40,7 +40,7 @@ main() {
 }""",
 """
 function() {
-  return P.print($createType($typeToString($getSubstitutedTypeArgument(this, "\$asC", 1))));
+  return P.print($createType($typeToString($getSubstitutedTypeArgument(this, "C", 1))));
 }"""),
   const TestEntry.forMethod('function(C#foo)', r"""
 class C<T> {

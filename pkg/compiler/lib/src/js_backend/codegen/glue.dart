@@ -159,7 +159,7 @@ class Glue {
     return _backend.getRuntimeTypeToString();
   }
 
-  FunctionElement getTypeArgumentWithSubstitution() {
+  FunctionElement getRuntimeTypeArgument() {
     return _backend.getGetRuntimeTypeArgument();
   }
 
@@ -171,8 +171,8 @@ class Glue {
     return _backend.getSetRuntimeTypeInfo();
   }
 
-  js.Expression getSubstitutionName(ClassElement cls) {
-    return js.string(_namer.substitutionName(cls));
+  js.Expression getRuntimeTypeName(ClassElement cls) {
+    return js.string(_namer.runtimeTypeName(cls));
   }
 
   int getTypeVariableIndex(TypeVariableType variable) {

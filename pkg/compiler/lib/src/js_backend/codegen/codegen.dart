@@ -636,10 +636,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
     ClassElement context = node.variable.element.enclosingClass;
     js.Expression index = js.number(glue.getTypeVariableIndex(node.variable));
     if (glue.needsSubstitutionForTypeVariableAccess(context)) {
-      js.Expression substitution = glue.getSubstitutionName(context);
+      js.Expression typeName = glue.getRuntimeTypeName(context);
       return buildStaticHelperInvocation(
-          glue.getTypeArgumentWithSubstitution(),
-          [visitExpression(node.target), substitution, index]);
+          glue.getRuntimeTypeArgument(),
+          [visitExpression(node.target), typeName, index]);
     } else {
       return buildStaticHelperInvocation(
           glue.getTypeArgumentByIndex(),
