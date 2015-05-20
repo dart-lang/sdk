@@ -1007,8 +1007,19 @@ class SimpleTypeInferrerVisitor<T>
   @override
   T visitSuperCompoundIndexSet(
       ast.SendSet node,
-      FunctionElement getter,
-      FunctionElement setter,
+      MethodElement getter,
+      MethodElement setter,
+      ast.Node index,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return handleSuperCompoundIndexSet(node, index, rhs);
+  }
+
+  @override
+  T visitUnresolvedSuperCompoundIndexSet(
+      ast.Send node,
+      Element element,
       ast.Node index,
       op.AssignmentOperator operator,
       ast.Node rhs,
@@ -1020,6 +1031,7 @@ class SimpleTypeInferrerVisitor<T>
   T visitUnresolvedSuperGetterCompoundIndexSet(
       ast.SendSet node,
       Element element,
+      MethodElement setter,
       ast.Node index,
       op.AssignmentOperator operator,
       ast.Node rhs,
@@ -1030,7 +1042,7 @@ class SimpleTypeInferrerVisitor<T>
   @override
   T visitUnresolvedSuperSetterCompoundIndexSet(
       ast.SendSet node,
-      FunctionElement getter,
+      MethodElement getter,
       Element element,
       ast.Node index,
       op.AssignmentOperator operator,
@@ -1040,9 +1052,21 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitUnresolvedSuperIndexPrefix(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, superType, indexType);
+  }
+
+  @override
   T visitUnresolvedSuperGetterIndexPrefix(
       ast.SendSet node,
       Element element,
+      MethodElement setter,
       ast.Node index,
       op.IncDecOperator operator,
       _) {
@@ -1053,7 +1077,18 @@ class SimpleTypeInferrerVisitor<T>
   @override
   T visitUnresolvedSuperSetterIndexPrefix(
       ast.SendSet node,
-      FunctionElement getter,
+      MethodElement getter,
+      Element element,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, superType, indexType);
+  }
+
+  @override
+  T visitUnresolvedSuperIndexPostfix(
+      ast.Send node,
       Element element,
       ast.Node index,
       op.IncDecOperator operator,
@@ -1066,6 +1101,7 @@ class SimpleTypeInferrerVisitor<T>
   T visitUnresolvedSuperGetterIndexPostfix(
       ast.SendSet node,
       Element element,
+      MethodElement setter,
       ast.Node index,
       op.IncDecOperator operator,
       _) {
@@ -1076,7 +1112,7 @@ class SimpleTypeInferrerVisitor<T>
   @override
   T visitUnresolvedSuperSetterIndexPostfix(
       ast.SendSet node,
-      FunctionElement getter,
+      MethodElement getter,
       Element element,
       ast.Node index,
       op.IncDecOperator operator,

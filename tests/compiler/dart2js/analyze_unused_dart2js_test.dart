@@ -24,13 +24,11 @@ const Map<String, List<String>> WHITE_LIST = const {
   // Some things in dart_printer are not yet used
   "lib/src/dart_backend/backend_ast_nodes.dart": const [" is never "],
 
-  // Uncalled error methods in SemanticSendVisitor and subclasses.
+  // Uncalled methods in SemanticSendVisitor and subclasses.
   "lib/src/resolution/semantic_visitor.dart": const [
-      "The method 'error"],
+      "The method 'error", "The method 'visit"],
   "lib/src/resolution/semantic_visitor_mixins.dart": const [
-      "The method 'error"],
-  "lib/src/cps_ir/cps_ir_builder_task.dart": const [
-      "The method 'error"],
+      "The class 'Base", "The method 'error", "The method 'visit"],
 
   // Uncalled type predicate.  Keep while related predicates are used.
   "lib/src/ssa/nodes.dart": const [

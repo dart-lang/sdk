@@ -2806,6 +2806,40 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     sendIsMemberAccess = oldSendIsMemberAccess;
   }
 
+  void registerTypeLiteralAccess(Send node, Element target) {
+    // Set the type of the node to [Type] to mark this send as a
+    // type literal.
+    DartType type;
+
+    // TODO(johnniwinther): Remove this hack when we can pass more complex
+    // information between methods than resolved elements.
+    if (target == compiler.typeClass && node.receiver == null) {
+      // Potentially a 'dynamic' type literal.
+      type = registry.getType(node.selector);
+    }
+    if (type == null) {
+      type = target.computeType(compiler);
+    }
+    registry.registerTypeLiteral(node, type);
+
+    if (!target.isTypeVariable) {
+      // Don't try to make constants of calls and assignments to type literals.
+      if (!node.isCall && node.asSendSet() == null) {
+        analyzeConstantDeferred(node, enforceConst: false);
+      } else {
+        // The node itself is not a constant but we register the selector (the
+        // identifier that refers to the class/typedef) as a constant.
+        if (node.receiver != null) {
+          // This is a hack for the case of prefix.Type, we need to store
+          // the element on the selector, so [analyzeConstant] can build
+          // the type literal from the selector.
+          registry.useElement(node.selector, target);
+        }
+        analyzeConstantDeferred(node.selector, enforceConst: false);
+      }
+    }
+  }
+
   ResolutionResult visitSend(Send node) {
     bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = node.isPropertyAccess || node.isCall;
@@ -2849,39 +2883,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         }
         registry.registerClassUsingVariableExpression(cls);
         registry.registerTypeVariableExpression();
-        // Set the type of the node to [Type] to mark this send as a
-        // type variable expression.
-        registry.registerTypeLiteral(node, target.computeType(compiler));
+        registerTypeLiteralAccess(node, target);
       } else if (target.impliesType && (!sendIsMemberAccess || node.isCall)) {
-        // Set the type of the node to [Type] to mark this send as a
-        // type literal.
-        DartType type;
-
-        // TODO(johnniwinther): Remove this hack when we can pass more complex
-        // information between methods than resolved elements.
-        if (target == compiler.typeClass && node.receiver == null) {
-          // Potentially a 'dynamic' type literal.
-          type = registry.getType(node.selector);
-        }
-        if (type == null) {
-          type = target.computeType(compiler);
-        }
-        registry.registerTypeLiteral(node, type);
-
-        // Don't try to make constants of calls to type literals.
-        if (!node.isCall) {
-          analyzeConstantDeferred(node, enforceConst: false);
-        } else {
-          // The node itself is not a constant but we register the selector (the
-          // identifier that refers to the class/typedef) as a constant.
-          if (node.receiver != null) {
-            // This is a hack for the case of prefix.Type, we need to store
-            // the element on the selector, so [analyzeConstant] can build
-            // the type literal from the selector.
-            registry.useElement(node.selector, target);
-          }
-          analyzeConstantDeferred(node.selector, enforceConst: false);
-        }
+        registerTypeLiteralAccess(node, target);
       }
       if (isPotentiallyMutableTarget(target)) {
         if (enclosingElement != target.enclosingElement) {
@@ -3028,6 +3032,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         setter = reportAndCreateErroneousElement(node.selector, target.name,
             MessageKind.ASSIGNING_TYPE, const {});
         registry.registerThrowNoSuchMethod();
+        registerTypeLiteralAccess(node, target);
       } else if (target.isFinal || target.isConst) {
         if (Elements.isStaticOrTopLevelField(target) || target.isLocal) {
           setter = reportAndCreateErroneousElement(

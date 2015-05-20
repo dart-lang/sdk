@@ -1352,11 +1352,13 @@ abstract class SemanticSendVisitor<R, A> {
       A arg);
 
   /// Prefix operation on an index expression `operator super[index]` where
-  /// 'operator []' and maybe also 'operator []=' is unresolved and the
-  /// operation is defined by [operator].
+  /// 'operator []' is unresolved, 'operator []=' is defined by [setter], and
+  /// the operation is defined by [operator].
   ///
   /// For instance:
-  ///     class B {}
+  ///     class B {
+  ///       operator []=(a, b) {}
+  ///     }
   ///     class C extends B {
   ///       m(a) => --super[a];
   ///     }
@@ -1364,16 +1366,19 @@ abstract class SemanticSendVisitor<R, A> {
   R visitUnresolvedSuperGetterIndexPrefix(
       Send node,
       Element element,
+      MethodElement setter,
       Node index,
       IncDecOperator operator,
       A arg);
 
   /// Postfix operation on an index expression `super[index] operator` where
-  /// 'operator []' and maybe also 'operator []=' is unresolved and the
-  /// operation is defined by [operator].
+  /// 'operator []' is unresolved, 'operator []=' is defined by [setter], and
+  /// the operation is defined by [operator].
   ///
   /// For instance:
-  ///     class B {}
+  ///     class B {
+  ///       operator []=(a, b) {}
+  ///     }
   ///     class C extends B {
   ///       m(a) => super[a]++;
   ///     }
@@ -1381,6 +1386,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitUnresolvedSuperGetterIndexPostfix(
       Send node,
       Element element,
+      MethodElement setter,
       Node index,
       IncDecOperator operator,
       A arg);
@@ -1390,7 +1396,9 @@ abstract class SemanticSendVisitor<R, A> {
   /// 'operator []=' is unresolved and the operation is defined by [operator].
   ///
   /// For instance:
-  ///     class B {}
+  ///     class B {
+  ///       operator [](_) => 42;
+  ///     }
   ///     class C extends B {
   ///       m(a) => --super[a];
   ///     }
@@ -1408,7 +1416,9 @@ abstract class SemanticSendVisitor<R, A> {
   /// 'operator []=' is unresolved and the operation is defined by [operator].
   ///
   /// For instance:
-  ///     class B {}
+  ///     class B {
+  ///       operator [](_) => 42;
+  ///     }
   ///     class C extends B {
   ///       m(a) => super[a]++;
   ///     }
@@ -1416,6 +1426,44 @@ abstract class SemanticSendVisitor<R, A> {
   R visitUnresolvedSuperSetterIndexPostfix(
       Send node,
       MethodElement indexFunction,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix operation on an index expression `super[index] operator` where
+  /// both 'operator []' and 'operator []=' are unresolved and the operation is
+  /// defined by [operator].
+  ///
+  /// For instance:
+  ///     class B {
+  ///       operator [](_) => 42;
+  ///     }
+  ///     class C extends B {
+  ///       m(a) => super[a]++;
+  ///     }
+  ///
+  R visitUnresolvedSuperIndexPrefix(
+      Send node,
+      Element element,
+      Node index,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation on an index expression `super[index] operator` where
+  /// both 'operator []' and 'operator []=' are unresolved and the operation is
+  /// defined by [operator].
+  ///
+  /// For instance:
+  ///     class B {
+  ///       operator [](_) => 42;
+  ///     }
+  ///     class C extends B {
+  ///       m(a) => super[a]++;
+  ///     }
+  ///
+  R visitUnresolvedSuperIndexPostfix(
+      Send node,
       Element element,
       Node index,
       IncDecOperator operator,
@@ -1692,7 +1740,7 @@ abstract class SemanticSendVisitor<R, A> {
   /// For instance:
   ///     m(final parameter, rhs) => parameter += rhs;
   ///
-  R errorFinalParameterCompound(
+  R visitFinalParameterCompound(
       Send node,
       ParameterElement parameter,
       AssignmentOperator operator,
@@ -1724,7 +1772,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       variable += rhs;
   ///     }
   ///
-  R errorFinalLocalVariableCompound(
+  R visitFinalLocalVariableCompound(
       Send node,
       LocalVariableElement variable,
       AssignmentOperator operator,
@@ -1740,7 +1788,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       function += rhs;
   ///     }
   ///
-  R errorLocalFunctionCompound(
+  R visitLocalFunctionCompound(
       Send node,
       LocalFunctionElement function,
       AssignmentOperator operator,
@@ -1772,7 +1820,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => field += rhs;
   ///     }
   ///
-  R errorFinalStaticFieldCompound(
+  R visitFinalStaticFieldCompound(
       Send node,
       FieldElement field,
       AssignmentOperator operator,
@@ -1810,8 +1858,8 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   R visitStaticMethodSetterCompound(
       Send node,
-      FunctionElement method,
-      FunctionElement setter,
+      MethodElement method,
+      MethodElement setter,
       AssignmentOperator operator,
       Node rhs,
       A arg);
@@ -1837,7 +1885,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     final field = 0;
   ///     m(rhs) => field += rhs;
   ///
-  R errorFinalTopLevelFieldCompound(
+  R visitFinalTopLevelFieldCompound(
       Send node,
       FieldElement field,
       AssignmentOperator operator,
@@ -1877,6 +1925,21 @@ abstract class SemanticSendVisitor<R, A> {
       Node rhs,
       A arg);
 
+  /// Compound assignment expression of [rhs] with [operator] reading from a
+  /// top level [method], that is, closurizing [method], and writing to an
+  /// unresolved setter.
+  ///
+  /// For instance:
+  ///     o() {}
+  ///     m(rhs) => o += rhs;
+  ///
+  R visitTopLevelMethodCompound(
+      Send node,
+      FunctionElement method,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
   /// Compound assignment expression of [rhs] with [operator] on a super
   /// [field].
   ///
@@ -1900,15 +1963,117 @@ abstract class SemanticSendVisitor<R, A> {
   ///
   /// For instance:
   ///     class B {
-  ///       final field = 0;
+  ///       final field = 42;
   ///     }
   ///     class C extends B {
   ///       m(rhs) => super.field += rhs;
   ///     }
   ///
-  R errorFinalSuperFieldCompound(
+  R visitFinalSuperFieldCompound(
       Send node,
       FieldElement field,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Prefix expression with [operator] on a final super [field].
+  ///
+  /// For instance:
+  ///     class B {
+  ///       final field = 42;
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => ++super.field;
+  ///     }
+  ///
+  R visitFinalSuperFieldPrefix(
+      Send node,
+      FieldElement field,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix expression with [operator] on an unresolved super property.
+  ///
+  /// For instance:
+  ///     class B {
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => ++super.unresolved;
+  ///     }
+  ///
+  R visitUnresolvedSuperPrefix(
+      Send node,
+      Element element,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix expression with [operator] on an unresolved super property.
+  ///
+  /// For instance:
+  ///     class B {
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.unresolved++;
+  ///     }
+  ///
+  R visitUnresolvedSuperPostfix(
+      Send node,
+      Element element,
+      IncDecOperator operator,
+      A arg);
+
+  /// Compound assignment expression of [rhs] with [operator] on an unresolved
+  /// super property.
+  ///
+  /// For instance:
+  ///     class B {
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.unresolved += rhs;
+  ///     }
+  ///
+  R visitUnresolvedSuperCompound(
+      Send node,
+      Element element,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Postfix expression with [operator] on a final super [field].
+  ///
+  /// For instance:
+  ///     class B {
+  ///       final field = 42;
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.field++;
+  ///     }
+  ///
+  R visitFinalSuperFieldPostfix(
+      Send node,
+      FieldElement field,
+      IncDecOperator operator,
+      A arg);
+
+  /// Compound assignment expression of [rhs] with [operator] reading from the
+  /// super field [readField] and writing to the different super field
+  /// [writtenField].
+  ///
+  /// For instance:
+  ///     class A {
+  ///       var field;
+  ///     }
+  ///     class B extends A {
+  ///       final field;
+  ///     }
+  ///     class C extends B {
+  ///       m() => super.field += rhs;
+  ///     }
+  ///
+  R visitSuperFieldFieldCompound(
+      Send node,
+      FieldElement readField,
+      FieldElement writtenField,
       AssignmentOperator operator,
       Node rhs,
       A arg);
@@ -1950,6 +2115,62 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       FunctionElement method,
       FunctionElement setter,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Compound assignment expression of [rhs] with [operator] reading the
+  /// closurized super [method] and trying to invoke the non-existing setter.
+  ///
+  /// For instance:
+  ///     class B {
+  ///       o() {}
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.o += rhs;
+  ///     }
+  ///
+  R visitSuperMethodCompound(
+      Send node,
+      FunctionElement method,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Compound assignment expression of [rhs] with [operator] reading from the
+  /// non-existing super getter and writing to a super [setter].
+  ///
+  /// For instance
+  ///     class B {
+  ///       set o(_) {}
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.o += rhs;
+  ///     }
+  ///
+  R visitUnresolvedSuperGetterCompound(
+      Send node,
+      Element element,
+      MethodElement setter,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Compound assignment expression of [rhs] with [operator] reading from a
+  /// super [getter] and writing to the non-existing super setter.
+  ///
+  /// For instance
+  ///     class B {
+  ///       get o => 42;
+  ///     }
+  ///     class C extends B {
+  ///       m(rhs) => super.o += rhs;
+  ///     }
+  ///
+  R visitUnresolvedSuperSetterCompound(
+      Send node,
+      MethodElement getter,
+      Element element,
       AssignmentOperator operator,
       Node rhs,
       A arg);
@@ -2005,7 +2226,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m(rhs) => C += rhs;
   ///
-  R errorClassTypeLiteralCompound(
+  R visitClassTypeLiteralCompound(
       Send node,
       ConstantExpression constant,
       AssignmentOperator operator,
@@ -2019,7 +2240,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     typedef F();
   ///     m(rhs) => F += rhs;
   ///
-  R errorTypedefTypeLiteralCompound(
+  R visitTypedefTypeLiteralCompound(
       Send node,
       ConstantExpression constant,
       AssignmentOperator operator,
@@ -2034,7 +2255,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m(rhs) => T += rhs;
   ///     }
   ///
-  R errorTypeVariableTypeLiteralCompound(
+  R visitTypeVariableTypeLiteralCompound(
       Send node,
       TypeVariableElement element,
       AssignmentOperator operator,
@@ -2047,7 +2268,7 @@ abstract class SemanticSendVisitor<R, A> {
   /// For instance:
   ///     m(rhs) => dynamic += rhs;
   ///
-  R errorDynamicTypeLiteralCompound(
+  R visitDynamicTypeLiteralCompound(
       Send node,
       ConstantExpression constant,
       AssignmentOperator operator,
@@ -2091,8 +2312,8 @@ abstract class SemanticSendVisitor<R, A> {
       A arg);
 
   /// Compound index assignment of [rhs] with [operator] to [index] on a super
-  /// super class where the index getter is undefined. The index setter might
-  /// also be undefined.
+  /// super class where the index getter is undefined and the index setter is
+  /// defined by [setter].
   ///
   /// For instance
   ///     class B {
@@ -2104,6 +2325,7 @@ abstract class SemanticSendVisitor<R, A> {
   R visitUnresolvedSuperGetterCompoundIndexSet(
       Send node,
       Element element,
+      MethodElement setter,
       Node index,
       AssignmentOperator operator,
       Node rhs,
@@ -2124,6 +2346,24 @@ abstract class SemanticSendVisitor<R, A> {
   R visitUnresolvedSuperSetterCompoundIndexSet(
       Send node,
       MethodElement getter,
+      Element element,
+      Node index,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Compound index assignment of [rhs] with [operator] to [index] on a super
+  /// super class where the index getter and setter are undefined.
+  ///
+  /// For instance
+  ///     class B {
+  ///     }
+  ///     class C extends B {
+  ///       m() => super[1] += 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperCompoundIndexSet(
+      Send node,
       Element element,
       Node index,
       AssignmentOperator operator,
@@ -2156,6 +2396,17 @@ abstract class SemanticSendVisitor<R, A> {
       IncDecOperator operator,
       A arg);
 
+  /// Prefix expression with [operator] on a final [parameter].
+  ///
+  /// For instance:
+  ///     m(final parameter) => ++parameter;
+  ///
+  R visitFinalParameterPrefix(
+      Send node,
+      ParameterElement parameter,
+      IncDecOperator operator,
+      A arg);
+
   /// Prefix expression with [operator] on a local [variable].
   ///
   /// For instance:
@@ -2170,6 +2421,20 @@ abstract class SemanticSendVisitor<R, A> {
       IncDecOperator operator,
       A arg);
 
+  /// Prefix expression with [operator] on a final local [variable].
+  ///
+  /// For instance:
+  ///     m() {
+  ///     final variable;
+  ///      ++variable;
+  ///     }
+  ///
+  R visitFinalLocalVariablePrefix(
+      Send node,
+      LocalVariableElement variable,
+      IncDecOperator operator,
+      A arg);
+
   /// Prefix expression with [operator] on a local [function].
   ///
   /// For instance:
@@ -2178,7 +2443,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///      ++function;
   ///     }
   ///
-  R errorLocalFunctionPrefix(
+  R visitLocalFunctionPrefix(
       Send node,
       LocalFunctionElement function,
       IncDecOperator operator,
@@ -2214,6 +2479,20 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitStaticFieldPrefix(
+      Send node,
+      FieldElement field,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix expression with [operator] on a final static [field].
+  ///
+  /// For instance:
+  ///     class C {
+  ///       static final field = 42;
+  ///       m() => ++field;
+  ///     }
+  ///
+  R visitFinalStaticFieldPrefix(
       Send node,
       FieldElement field,
       IncDecOperator operator,
@@ -2261,6 +2540,18 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => ++field;
   ///
   R visitTopLevelFieldPrefix(
+      Send node,
+      FieldElement field,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix expression with [operator] on a final top level [field].
+  ///
+  /// For instance:
+  ///     final field;
+  ///     m() => ++field;
+  ///
+  R visitFinalTopLevelFieldPrefix(
       Send node,
       FieldElement field,
       IncDecOperator operator,
@@ -2414,13 +2705,69 @@ abstract class SemanticSendVisitor<R, A> {
       IncDecOperator operator,
       A arg);
 
+  /// Prefix expression with [operator] reading from a super [method], that is,
+  /// closurizing [method], and writing to an unresolved super setter.
+  ///
+  /// For instance:
+  ///     class B {
+  ///       o() {}
+  ///       set o(_) {}
+  ///     }
+  ///     class C extends B {
+  ///       m() => ++super.o;
+  ///     }
+  ///
+  R visitSuperMethodPrefix(
+      Send node,
+      FunctionElement method,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix expression with [operator] reading from an unresolved super getter
+  /// and writing to a super [setter].
+  ///
+  /// For instance
+  ///     class B {
+  ///       set o(_) {}
+  ///     }
+  ///     class C extends B {
+  ///       m() => ++super.o;
+  ///     }
+  ///
+  ///
+  R visitUnresolvedSuperGetterPrefix(
+      Send node,
+      Element element,
+      MethodElement setter,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix expression with [operator] reading from a super [getter] and
+  /// writing to an unresolved super setter.
+  ///
+  /// For instance
+  ///     class B {
+  ///       get o => 42
+  ///     }
+  ///     class C extends B {
+  ///       m() => ++super.o;
+  ///     }
+  ///
+  ///
+  R visitUnresolvedSuperSetterPrefix(
+      Send node,
+      MethodElement getter,
+      Element element,
+      IncDecOperator operator,
+      A arg);
+
   /// Prefix expression with [operator] on a type literal for a class [element].
   ///
   /// For instance:
   ///     class C {}
   ///     m() => ++C;
   ///
-  R errorClassTypeLiteralPrefix(
+  R visitClassTypeLiteralPrefix(
       Send node,
       ConstantExpression constant,
       IncDecOperator operator,
@@ -2433,7 +2780,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     typedef F();
   ///     m() => ++F;
   ///
-  R errorTypedefTypeLiteralPrefix(
+  R visitTypedefTypeLiteralPrefix(
       Send node,
       ConstantExpression constant,
       IncDecOperator operator,
@@ -2447,7 +2794,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => ++T;
   ///     }
   ///
-  R errorTypeVariableTypeLiteralPrefix(
+  R visitTypeVariableTypeLiteralPrefix(
       Send node,
       TypeVariableElement element,
       IncDecOperator operator,
@@ -2458,7 +2805,7 @@ abstract class SemanticSendVisitor<R, A> {
   /// For instance:
   ///     m() => ++dynamic;
   ///
-  R errorDynamicTypeLiteralPrefix(
+  R visitDynamicTypeLiteralPrefix(
       Send node,
       ConstantExpression constant,
       IncDecOperator operator,
@@ -2490,15 +2837,40 @@ abstract class SemanticSendVisitor<R, A> {
       IncDecOperator operator,
       A arg);
 
+  /// Postfix expression with [operator] on a final [parameter].
+  ///
+  /// For instance:
+  ///     m(final parameter) => parameter++;
+  ///
+  R visitFinalParameterPostfix(
+      Send node,
+      ParameterElement parameter,
+      IncDecOperator operator,
+      A arg);
+
   /// Postfix expression with [operator] on a local [variable].
   ///
   /// For instance:
   ///     m() {
-  ///     var variable;
-  ///      variable++;
+  ///       var variable;
+  ///       variable++;
   ///     }
   ///
   R visitLocalVariablePostfix(
+      Send node,
+      LocalVariableElement variable,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix expression with [operator] on a final local [variable].
+  ///
+  /// For instance:
+  ///     m() {
+  ///       final variable;
+  ///       variable++;
+  ///     }
+  ///
+  R visitFinalLocalVariablePostfix(
       Send node,
       LocalVariableElement variable,
       IncDecOperator operator,
@@ -2512,7 +2884,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///      function++;
   ///     }
   ///
-  R errorLocalFunctionPostfix(
+  R visitLocalFunctionPostfix(
       Send node,
       LocalFunctionElement function,
       IncDecOperator operator,
@@ -2548,6 +2920,20 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitStaticFieldPostfix(
+      Send node,
+      FieldElement field,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix expression with [operator] on a final static [field].
+  ///
+  /// For instance:
+  ///     class C {
+  ///       static final field;
+  ///       m() => field++;
+  ///     }
+  ///
+  R visitFinalStaticFieldPostfix(
       Send node,
       FieldElement field,
       IncDecOperator operator,
@@ -2595,6 +2981,18 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m() => field++;
   ///
   R visitTopLevelFieldPostfix(
+      Send node,
+      FieldElement field,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix expression with [operator] on a final top level [field].
+  ///
+  /// For instance:
+  ///     final field = 42;
+  ///     m() => field++;
+  ///
+  R visitFinalTopLevelFieldPostfix(
       Send node,
       FieldElement field,
       IncDecOperator operator,
@@ -2748,6 +3146,62 @@ abstract class SemanticSendVisitor<R, A> {
       IncDecOperator operator,
       A arg);
 
+  /// Postfix expression with [operator] reading from a super [method], that is,
+  /// closurizing [method], and writing to an unresolved super.
+  ///
+  /// For instance:
+  ///     class B {
+  ///       o() {}
+  ///       set o(_) {}
+  ///     }
+  ///     class C extends B {
+  ///       m() => super.o++;
+  ///     }
+  ///
+  R visitSuperMethodPostfix(
+      Send node,
+      FunctionElement method,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix expression with [operator] reading from an unresolved super getter
+  /// and writing to a super [setter].
+  ///
+  /// For instance
+  ///     class B {
+  ///       set o(_) {}
+  ///     }
+  ///     class C extends B {
+  ///       m() => super.o++;
+  ///     }
+  ///
+  ///
+  R visitUnresolvedSuperGetterPostfix(
+      Send node,
+      Element element,
+      MethodElement setter,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix expression with [operator] reading from a super [getter] and
+  /// writing to an unresolved super setter.
+  ///
+  /// For instance
+  ///     class B {
+  ///       get o => 42
+  ///     }
+  ///     class C extends B {
+  ///       m() => super.o++;
+  ///     }
+  ///
+  ///
+  R visitUnresolvedSuperSetterPostfix(
+      Send node,
+      MethodElement getter,
+      Element element,
+      IncDecOperator operator,
+      A arg);
+
   /// Postfix expression with [operator] on a type literal for a class
   /// [element].
   ///
@@ -2755,7 +3209,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() => C++;
   ///
-  R errorClassTypeLiteralPostfix(
+  R visitClassTypeLiteralPostfix(
       Send node,
       ConstantExpression constant,
       IncDecOperator operator,
@@ -2768,7 +3222,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     typedef F();
   ///     m() => F++;
   ///
-  R errorTypedefTypeLiteralPostfix(
+  R visitTypedefTypeLiteralPostfix(
       Send node,
       ConstantExpression constant,
       IncDecOperator operator,
@@ -2782,7 +3236,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() => T++;
   ///     }
   ///
-  R errorTypeVariableTypeLiteralPostfix(
+  R visitTypeVariableTypeLiteralPostfix(
       Send node,
       TypeVariableElement element,
       IncDecOperator operator,
@@ -2793,7 +3247,7 @@ abstract class SemanticSendVisitor<R, A> {
   /// For instance:
   ///     m() => dynamic++;
   ///
-  R errorDynamicTypeLiteralPostfix(
+  R visitDynamicTypeLiteralPostfix(
       Send node,
       ConstantExpression constant,
       IncDecOperator operator,
@@ -2908,7 +3362,87 @@ abstract class SemanticSendVisitor<R, A> {
       Selector selector,
       A arg);
 
-  /// Compound assignment of [rhs] on the unresolved [element].
+  /// Compound assignment of [rhs] with [operator] reading from the
+  /// non-existing static getter and writing to the static [setter].
+  ///
+  /// For instance
+  ///     class C {
+  ///       set foo(_) {}
+  ///     }
+  ///     m1() => C.foo += 42;
+  ///
+  R visitUnresolvedStaticGetterCompound(
+      Send node,
+      Element element,
+      MethodElement setter,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Compound assignment of [rhs] with [operator] reading from the
+  /// non-existing top level getter and writing to the top level [setter].
+  ///
+  /// For instance
+  ///     set foo(_) {}
+  ///     m1() => foo += 42;
+  ///
+  R visitUnresolvedTopLevelGetterCompound(
+      Send node,
+      Element element,
+      MethodElement setter,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Compound assignment of [rhs] with [operator] reading from the static
+  /// [getter] and writing to the non-existing static setter.
+  ///
+  /// For instance
+  ///     class C {
+  ///       get foo => 42;
+  ///     }
+  ///     m1() => C.foo += 42;
+  ///
+  R visitUnresolvedStaticSetterCompound(
+      Send node,
+      MethodElement getter,
+      Element element,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Compound assignment of [rhs] with [operator] reading from the top level
+  /// [getter] and writing to the non-existing top level setter.
+  ///
+  /// For instance
+  ///     get foo => 42;
+  ///     m1() => foo += 42;
+  ///
+  R visitUnresolvedTopLevelSetterCompound(
+      Send node,
+      MethodElement getter,
+      Element element,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Compound assignment of [rhs] with [operator] reading the closurized static
+  /// [method] and trying to invoke the non-existing setter.
+  ///
+  /// For instance
+  ///     class C {
+  ///       foo() {}
+  ///     }
+  ///     m1() => C.foo += 42;
+  ///
+  R visitStaticMethodCompound(
+      Send node,
+      MethodElement method,
+      AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// Compound assignment of [rhs] where both getter and setter are unresolved.
   ///
   /// For instance
   ///     class C {}
@@ -2921,14 +3455,104 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m7() => prefix.C.unresolved += 42;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
-  R errorUnresolvedCompound(
+  R visitUnresolvedCompound(
       Send node,
       Element element,
       AssignmentOperator operator,
       Node rhs,
       A arg);
 
-  /// Prefix operation on the unresolved [element].
+  /// Prefix operation of [operator] reading from the non-existing static getter
+  /// and writing to the static [setter].
+  ///
+  /// For instance
+  ///     class C {
+  ///       set foo(_) {}
+  ///     }
+  ///     m1() => ++C.foo;
+  ///
+  R visitUnresolvedStaticGetterPrefix(
+      Send node,
+      Element element,
+      MethodElement setter,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix operation of [operator] reading from the non-existing top level
+  /// getter and writing to the top level [setter].
+  ///
+  /// For instance
+  ///     set foo(_) {}
+  ///     m1() => ++foo;
+  ///
+  R visitUnresolvedTopLevelGetterPrefix(
+      Send node,
+      Element element,
+      MethodElement setter,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix operation of [operator] reading from the static [getter] and
+  /// writing to the non-existing static setter.
+  ///
+  /// For instance
+  ///     class C {
+  ///       get foo => 42;
+  ///     }
+  ///     m1() => ++C.foo;
+  ///
+  R visitUnresolvedStaticSetterPrefix(
+      Send node,
+      MethodElement getter,
+      Element element,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation of [operator] reading from the top level [getter] and
+  /// writing to the non-existing top level setter.
+  ///
+  /// For instance
+  ///     get foo => 42;
+  ///     m1() => ++foo;
+  ///
+  R visitUnresolvedTopLevelSetterPrefix(
+      Send node,
+      MethodElement getter,
+      Element element,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix operation of [operator] reading the closurized static [method] and
+  /// trying to invoke the non-existing setter.
+  ///
+  /// For instance
+  ///     class C {
+  ///       foo() {}
+  ///     }
+  ///     m1() => ++C.foo;
+  ///
+  R visitStaticMethodPrefix(
+      Send node,
+      MethodElement method,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix operation of [operator] reading the closurized top level [method]
+  /// and trying to invoke the non-existing setter.
+  ///
+  /// For instance
+  ///     class C {
+  ///       foo() {}
+  ///     }
+  ///     m1() => ++C.foo;
+  ///
+  R visitTopLevelMethodPrefix(
+      Send node,
+      MethodElement method,
+      IncDecOperator operator,
+      A arg);
+
+  /// Prefix operation where both getter and setter are unresolved.
   ///
   /// For instance
   ///     class C {}
@@ -2941,13 +3565,103 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m7() => ++prefix.C.unresolved;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
-  R errorUnresolvedPrefix(
+  R visitUnresolvedPrefix(
       Send node,
       Element element,
       IncDecOperator operator,
       A arg);
 
-  /// Postfix operation on the unresolved [element].
+  /// Postfix operation of [operator] reading from the non-existing static
+  /// getter and writing to the static [setter].
+  ///
+  /// For instance
+  ///     class C {
+  ///       set foo(_) {}
+  ///     }
+  ///     m1() => C.foo++;
+  ///
+  R visitUnresolvedStaticGetterPostfix(
+      Send node,
+      Element element,
+      MethodElement setter,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation of [operator] reading from the non-existing top level
+  /// getter and writing to the top level [setter].
+  ///
+  /// For instance
+  ///     set foo(_) {}
+  ///     m1() => foo++;
+  ///
+  R visitUnresolvedTopLevelGetterPostfix(
+      Send node,
+      Element element,
+      MethodElement setter,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation of [operator] reading from the static [getter] and
+  /// writing to the non-existing static setter.
+  ///
+  /// For instance
+  ///     class C {
+  ///       get foo => 42;
+  ///     }
+  ///     m1() => C.foo++;
+  ///
+  R visitUnresolvedStaticSetterPostfix(
+      Send node,
+      MethodElement getter,
+      Element element,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation of [operator] reading from the top level [getter] and
+  /// writing to the non-existing top level setter.
+  ///
+  /// For instance
+  ///     get foo => 42;
+  ///     m1() => foo++;
+  ///
+  R visitUnresolvedTopLevelSetterPostfix(
+      Send node,
+      MethodElement getter,
+      Element element,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation of [operator] reading the closurized static [method] and
+  /// trying to invoke the non-existing setter.
+  ///
+  /// For instance
+  ///     class C {
+  ///       foo() {}
+  ///     }
+  ///     m1() => C.foo++;
+  ///
+  R visitStaticMethodPostfix(
+      Send node,
+      MethodElement method,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation of [operator] reading the closurized top level [method]
+  /// and trying to invoke the non-existing setter.
+  ///
+  /// For instance
+  ///     class C {
+  ///       foo() {}
+  ///     }
+  ///     m1() => C.foo++;
+  ///
+  R visitTopLevelMethodPostfix(
+      Send node,
+      MethodElement method,
+      IncDecOperator operator,
+      A arg);
+
+  /// Postfix operation where both getter and setter are unresolved.
   ///
   /// For instance
   ///     class C {}
@@ -2960,7 +3674,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m7() => prefix.C.unresolved++;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
-  R errorUnresolvedPostfix(
+  R visitUnresolvedPostfix(
       Send node,
       Element element,
       IncDecOperator operator,
