@@ -4685,6 +4685,16 @@ class C {
     verify([source]);
   }
 
+  void test_recursiveCompileTimeConstant_singleVariable() {
+    Source source = addSource(r'''
+const x = x;
+''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT]);
+    verify([source]);
+  }
+
   void test_recursiveConstructorRedirect() {
     Source source = addSource(r'''
 class A {

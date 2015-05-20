@@ -1273,11 +1273,14 @@ class ConstantValueComputer {
         referenceGraph.computeTopologicalSort();
     for (List<ConstantEvaluationTarget> constantsInCycle in topologicalSort) {
       if (constantsInCycle.length == 1) {
-        _computeValueFor(constantsInCycle[0]);
-      } else {
-        for (ConstantEvaluationTarget constant in constantsInCycle) {
-          evaluationEngine.generateCycleError(constantsInCycle, constant);
+        ConstantEvaluationTarget constant = constantsInCycle[0];
+        if (!referenceGraph.getTails(constant).contains(constant)) {
+          _computeValueFor(constant);
+          continue;
         }
+      }
+      for (ConstantEvaluationTarget constant in constantsInCycle) {
+        evaluationEngine.generateCycleError(constantsInCycle, constant);
       }
     }
   }

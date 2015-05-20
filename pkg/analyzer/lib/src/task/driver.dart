@@ -348,7 +348,7 @@ abstract class CycleAwareDependencyWalker<Node> {
    * it.  The client is expected to evaluate this component before calling
    * [getNextStronglyConnectedComponent] again.
    */
-  List<Node> getNextStronglyConnectedComponent() {
+  StronglyConnectedComponent<Node> getNextStronglyConnectedComponent() {
     while (_currentIndices.isNotEmpty) {
       Node nextUnevaluatedInput = getNextInput(_path[_currentIndices.last],
           _provisionalDependencies[_currentIndices.last]);
@@ -394,11 +394,17 @@ abstract class CycleAwareDependencyWalker<Node> {
           // No more nodes in the current strongly connected component need to
           // have their indices examined.  We can now yield this component to
           // the caller.
-          List<Node> component = _path.sublist(_contractedPath.last);
+          List<Node> nodes = _path.sublist(_contractedPath.last);
+          bool containsCycle = nodes.length > 1;
+          if (!containsCycle) {
+            if (_provisionalDependencies.last.isNotEmpty) {
+              containsCycle = true;
+            }
+          }
           _path.length = _contractedPath.last;
           _provisionalDependencies.length = _contractedPath.last;
           _contractedPath.removeLast();
-          return component;
+          return new StronglyConnectedComponent<Node>(nodes, containsCycle);
         } else {
           // At least one node in the current strongly connected component
           // still needs to have its inputs examined.  So loop and allow the
@@ -443,6 +449,27 @@ class InfiniteTaskLoopException extends AnalysisException {
    */
   InfiniteTaskLoopException(AnalysisTask task, this.dependencyCycle) : super(
           'Infinite loop while performing task ${task.descriptor.name} for ${task.target}');
+}
+
+/**
+ * Object used by CycleAwareDependencyWalker to report a single strongly
+ * connected component of nodes.
+ */
+class StronglyConnectedComponent<Node> {
+  /**
+   * The nodes contained in the strongly connected component.
+   */
+  final List<Node> nodes;
+
+  /**
+   * Indicates whether the strongly component contains any cycles.  Note that
+   * if [nodes] has multiple elements, this will always be `true`.  However, if
+   * [nodes] has exactly one element, this may be either `true` or `false`
+   * depending on whether the node has a dependency on itself.
+   */
+  final bool containsCycle;
+
+  StronglyConnectedComponent(this.nodes, this.containsCycle);
 }
 
 /**
@@ -695,11 +722,14 @@ class WorkOrder implements Iterator<WorkItem> {
       return true;
     } else {
       // Get a new strongly connected component.
-      currentItems = _dependencyWalker.getNextStronglyConnectedComponent();
-      if (currentItems == null) {
+      StronglyConnectedComponent<WorkItem> nextStronglyConnectedComponent =
+          _dependencyWalker.getNextStronglyConnectedComponent();
+      if (nextStronglyConnectedComponent == null) {
+        currentItems = null;
         return false;
       }
-      if (currentItems.length > 1) {
+      currentItems = nextStronglyConnectedComponent.nodes;
+      if (nextStronglyConnectedComponent.containsCycle) {
         // A cycle has been found.
         for (WorkItem item in currentItems) {
           item.dependencyCycle = currentItems.toList();

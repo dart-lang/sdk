@@ -1312,11 +1312,6 @@ class ComputeConstantValueTaskTest extends _AbstractDartTaskTest {
     return null;
   }
 
-  fail_circular_reference_one_element() {
-    // See dartbug.com/23490.
-    _checkCircularities('x', [], 'const x = x;');
-  }
-
   test_annotation_with_args() {
     Source source = newSource('/test.dart', '''
 const x = 1;
@@ -1367,6 +1362,11 @@ const x = 1;
 const x = y + 1;
 const y = x + 1;
 ''');
+  }
+
+  test_circular_reference_one_element() {
+    // See dartbug.com/23490.
+    _checkCircularities('x', [], 'const x = x;');
   }
 
   test_circular_reference_strongly_connected_component() {

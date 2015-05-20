@@ -454,22 +454,34 @@ class AnalysisDriverTest extends AbstractDriverTest {
 @reflectiveTest
 class CycleAwareDependencyWalkerTest {
   void checkGraph(Map<int, List<int>> graph, int startingNode,
-      List<List<int>> expectedResults) {
+      List<StronglyConnectedComponent<int>> expectedResults) {
     List<Set<int>> expectedResultsDisregardingOrder =
-        expectedResults.map((nodes) => nodes.toSet()).toList();
+        expectedResults.map((component) => component.nodes.toSet()).toList();
+    List<bool> expectedCycleIndicators =
+        expectedResults.map((component) => component.containsCycle).toList();
     List<Set<int>> results = <Set<int>>[];
+    List<bool> cycleIndicators = <bool>[];
     _TestCycleAwareDependencyWalker walker =
         new _TestCycleAwareDependencyWalker(graph, startingNode);
     while (true) {
-      List<int> nextResult = walker.getNextStronglyConnectedComponent();
-      if (nextResult == null) {
+      StronglyConnectedComponent<int> nextStronglyConnectedComponent =
+          walker.getNextStronglyConnectedComponent();
+      if (nextStronglyConnectedComponent == null) {
         break;
       }
-      results.add(nextResult.toSet());
-      walker.evaluatedNodes.addAll(nextResult);
+      results.add(nextStronglyConnectedComponent.nodes.toSet());
+      cycleIndicators.add(nextStronglyConnectedComponent.containsCycle);
+      walker.evaluatedNodes.addAll(nextStronglyConnectedComponent.nodes);
     }
     expect(results, expectedResultsDisregardingOrder);
+    expect(cycleIndicators, expectedCycleIndicators);
   }
+
+  StronglyConnectedComponent<int> cycle(List<int> nodes) =>
+      new StronglyConnectedComponent(nodes, true);
+
+  StronglyConnectedComponent<int> singleton(int node) =>
+      new StronglyConnectedComponent(<int>[node], false);
 
   void test_complex_graph() {
     checkGraph({
@@ -479,27 +491,35 @@ class CycleAwareDependencyWalkerTest {
       4: [3, 5],
       5: [2, 6],
       6: [3, 4]
-    }, 1, [[3], [2, 4, 5, 6], [1]]);
+    }, 1, [singleton(3), cycle([2, 4, 5, 6]), singleton(1)]);
   }
 
   void test_cycle_depends_on_other_nodes() {
-    checkGraph({1: [2, 3], 2: [4, 1], 3: [], 4: []}, 1, [[4], [3], [1, 2]]);
+    checkGraph({1: [2, 3], 2: [4, 1], 3: [], 4: []}, 1, [
+      singleton(4),
+      singleton(3),
+      cycle([1, 2])
+    ]);
   }
 
   void test_initial_node_depends_on_cycle() {
-    checkGraph({1: [2], 2: [3], 3: [2]}, 1, [[2, 3], [1]]);
+    checkGraph({1: [2], 2: [3], 3: [2]}, 1, [cycle([2, 3]), singleton(1)]);
   }
 
   void test_simple_cycle() {
-    checkGraph({1: [2], 2: [1]}, 1, [[1, 2]]);
+    checkGraph({1: [2], 2: [1]}, 1, [cycle([1, 2])]);
   }
 
   void test_simple_dependency_chain() {
-    checkGraph({1: [2], 2: []}, 1, [[2], [1]]);
+    checkGraph({1: [2], 2: []}, 1, [singleton(2), singleton(1)]);
   }
 
   void test_single_node() {
-    checkGraph({1: []}, 1, [[1]]);
+    checkGraph({1: []}, 1, [singleton(1)]);
+  }
+
+  void test_single_node_cycle() {
+    checkGraph({1: [1]}, 1, [cycle([1])]);
   }
 }
 
