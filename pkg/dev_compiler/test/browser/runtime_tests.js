@@ -545,36 +545,36 @@ suite('instanceOf', () => {
     let c = collection;
     // Tear off of an inherited method
     let map = new (Map$(core.int, core.String))();
-    checkType(dart.tearoff(map, 'toString'),
+    checkType(dart.bind(map, 'toString'),
         dart.functionType(String, []));
-    checkType(dart.tearoff(map, 'toString'),
+    checkType(dart.bind(map, 'toString'),
         dart.functionType(int, []), false);
 
     // Tear off of a method directly on the object
     let smap = new (c.SplayTreeMap$(core.int, core.String))();
-    checkType(dart.tearoff(smap, 'forEach'),
+    checkType(dart.bind(smap, 'forEach'),
         dart.functionType(dart.void,
             [dart.functionType(dart.void, [core.int, core.String])]));
-    checkType(dart.tearoff(smap, 'forEach'),
+    checkType(dart.bind(smap, 'forEach'),
         dart.functionType(dart.void,
             [dart.functionType(dart.void,
                 [core.String, core.String])]), false);
 
     // Tear off of a mixed in method
     let mapB = new (c.MapBase$(core.int, core.int))();
-    checkType(dart.tearoff(mapB, 'forEach'),
+    checkType(dart.bind(mapB, 'forEach'),
         dart.functionType(dart.void, [
             dart.functionType(dart.void, [core.int, core.int])]));
-    checkType(dart.tearoff(mapB, 'forEach'),
+    checkType(dart.bind(mapB, 'forEach'),
         dart.functionType(dart.void, [
             dart.functionType(dart.void, [core.int, core.String])]),
               false);
 
     // Tear off of a method with a symbol name
     let listB = new (c.ListBase$(core.int))();
-    checkType(dart.tearoff(listB, core.$add),
+    checkType(dart.bind(listB, core.$add),
               dart.functionType(dart.void, [core.int]));
-    checkType(dart.tearoff(listB, core.$add),
+    checkType(dart.bind(listB, core.$add),
               dart.functionType(dart.void, [core.String]), false);
 
     // Tear off of a static method
@@ -616,7 +616,7 @@ suite('instanceOf', () => {
     };
     dart.setSignature(O, {});
     var obj = new O();
-    var m = dart.tearoff(obj, 'm');
+    var m = dart.bind(obj, 'm');
     checkType(m, dart.functionType(core.Object, [core.int]));
     checkType(m, dart.functionType(core.int, [core.int]), false);
   });

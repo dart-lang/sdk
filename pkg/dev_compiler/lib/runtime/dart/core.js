@@ -2786,7 +2786,7 @@ var convert = dart.lazyImport(convert);
     get pathSegments() {
       if (this[_pathSegments] == null) {
         let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) == Uri._SLASH ? this.path.substring(1) : this.path;
-        this[_pathSegments] = new (collection.UnmodifiableListView$(String))(pathToSplit == "" ? dart.const(dart.setType([], List$(String))) : new (List$(String)).from(pathToSplit.split("/")[$map](dart.bind(Uri, 'decodeComponent')), {growable: false}));
+        this[_pathSegments] = new (collection.UnmodifiableListView$(String))(pathToSplit == "" ? dart.const(dart.setType([], List$(String))) : new (List$(String)).from(pathToSplit.split("/")[$map](Uri.decodeComponent), {growable: false}));
       }
       return this[_pathSegments];
     }

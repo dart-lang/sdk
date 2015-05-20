@@ -70,7 +70,7 @@ var core = dart.import(core);
     let f = new Foo();
     dart.dcall(f.bar, "Bar's call method!");
     let a = new A();
-    let g = a.x.bind(a);
+    let g = dart.bind(a, 'x');
     let aa = new A();
     let h = dart.dload(aa, 'x');
   }

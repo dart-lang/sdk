@@ -1793,7 +1793,7 @@ var math = dart.lazyImport(math);
         if (compare === void 0)
           compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
-        _internal.Sort.sort(this, compare == null ? dart.bind(core.Comparable, 'compare') : compare);
+        _internal.Sort.sort(this, compare == null ? core.Comparable.compare : compare);
       }
       [core.$shuffle](random) {
         if (random === void 0)
@@ -3279,7 +3279,7 @@ var math = dart.lazyImport(math);
           compare = null;
         if (isValidKey === void 0)
           isValidKey = null;
-        this[_comparator] = dart.as(compare == null ? dart.bind(core.Comparable, 'compare') : compare, core.Comparator$(K));
+        this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator$(K));
         this[_validKey] = isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, K), core.bool, [dart.dynamic]);
         super._SplayTree();
       }
@@ -3702,7 +3702,7 @@ var math = dart.lazyImport(math);
           compare = null;
         if (isValidKey === void 0)
           isValidKey = null;
-        this[_comparator] = dart.as(compare == null ? dart.bind(core.Comparable, 'compare') : compare, core.Comparator$(E));
+        this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator$(E));
         this[_validKey] = isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, E), core.bool, [dart.dynamic]);
         super._SplayTree();
       }

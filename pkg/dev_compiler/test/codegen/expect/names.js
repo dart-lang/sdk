@@ -46,7 +46,7 @@ var core = dart.import(core);
     core.print(new Foo()[_foo$]());
     core.print(_foo());
     core.print(new Frame.caller([1, 2, 3]));
-    let eval$ = dart.bind(Frame, 'callee');
+    let eval$ = Frame.callee;
     core.print(eval$);
     core.print(dart.notNull(Frame2.caller) + dart.notNull(Frame2.arguments));
   }

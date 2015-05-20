@@ -1237,7 +1237,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       static sortList(list, compare) {
         dart.as(compare, dart.functionType(core.int, [dart.dynamic, dart.dynamic]));
         if (compare == null)
-          compare = dart.bind(core.Comparable, 'compare');
+          compare = core.Comparable.compare;
         Sort.sort(list, compare);
       }
       static shuffleList(list, random) {

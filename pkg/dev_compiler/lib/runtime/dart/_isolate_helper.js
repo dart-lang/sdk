@@ -118,7 +118,7 @@ var async = dart.import(async);
       return x;
     }
     serializeMap(x) {
-      let serializeTearOff = this.serialize.bind(this);
+      let serializeTearOff = dart.bind(this, 'serialize');
       return ['map', x.keys[core.$map](dart.as(serializeTearOff, __CastType0))[core.$toList](), x.values[core.$map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[core.$toList]()];
     }
     serializeJSObject(x) {
@@ -315,7 +315,7 @@ var async = dart.import(async);
       let values = dart.as(dart.dindex(x, 2), core.List);
       let result = dart.map();
       this.deserializedObjects[core.$add](result);
-      keys = keys[core.$map](this.deserialize.bind(this))[core.$toList]();
+      keys = keys[core.$map](dart.bind(this, 'deserialize'))[core.$toList]();
       for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
         result.set(keys[core.$get](i), this.deserialize(values[core.$get](i)));
       }
@@ -501,7 +501,7 @@ var async = dart.import(async);
         return function(e) {
           f(a, e);
         };
-      }(_foreign_helper.DART_CLOSURE_TO_JS(dart.bind(IsolateNatives, '_processWorkerMessage')), this.mainManager);
+      }(_foreign_helper.DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage), this.mainManager);
       self.onmessage = func;
       self.dartPrint = self.dartPrint || function(serialize) {
         return function(object) {
@@ -627,14 +627,14 @@ var async = dart.import(async);
         return;
       }
       if (priority == isolate.Isolate.AS_EVENT) {
-        exports._globalState.topEventLoop.enqueue(this, this.kill.bind(this), "kill");
+        exports._globalState.topEventLoop.enqueue(this, dart.bind(this, 'kill'), "kill");
         return;
       }
       dart.assert(priority == isolate.Isolate.BEFORE_NEXT_EVENT);
       if (this[_scheduledControlEvents] == null) {
         this[_scheduledControlEvents] = new collection.Queue();
       }
-      dart.dsend(this[_scheduledControlEvents], 'addLast', this.kill.bind(this));
+      dart.dsend(this[_scheduledControlEvents], 'addLast', dart.bind(this, 'kill'));
     }
     addErrorListener(port) {
       this.errorPorts.add(port);
@@ -1397,7 +1397,7 @@ var async = dart.import(async);
       this[_rawPort] = rawPort;
       this[_controller] = null;
       super.Stream();
-      this[_controller] = new async.StreamController({onCancel: this.close.bind(this), sync: true});
+      this[_controller] = new async.StreamController({onCancel: dart.bind(this, 'close'), sync: true});
       this[_rawPort].handler = dart.bind(this[_controller], 'add');
     }
     listen(onData, opts) {

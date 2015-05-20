@@ -160,7 +160,7 @@ var collection = dart.import(collection);
         let controller = null;
         let subscription = null;
         let onListen = (() => {
-          let add = controller.add.bind(controller);
+          let add = dart.bind(controller, 'add');
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = controller;
           let addError = eventSink[_addError];
@@ -181,7 +181,7 @@ var collection = dart.import(collection);
             } else {
               controller.add(newValue);
             }
-          }, dart.dynamic, [T]), {onError: dart.as(addError, core.Function), onDone: controller.close.bind(controller)});
+          }, dart.dynamic, [T]), {onError: dart.as(addError, core.Function), onDone: dart.bind(controller, 'close')});
         }).bind(this);
         dart.fn(onListen, dart.void, []);
         if (this.isBroadcast) {
@@ -221,7 +221,7 @@ var collection = dart.import(collection);
               subscription.pause();
               controller.addStream(newStream).whenComplete(dart.bind(subscription, 'resume'));
             }
-          }, dart.dynamic, [T]), {onError: dart.as(eventSink[_addError], core.Function), onDone: controller.close.bind(controller)});
+          }, dart.dynamic, [T]), {onError: dart.as(eventSink[_addError], core.Function), onDone: dart.bind(controller, 'close')});
         }).bind(this);
         dart.fn(onListen, dart.void, []);
         if (this.isBroadcast) {
@@ -273,7 +273,7 @@ var collection = dart.import(collection);
             value = element;
             seenFirst = true;
           }
-        }, dart.dynamic, [T]), {onError: result[_completeError].bind(result), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(result, _completeError), onDone: dart.fn(() => {
             if (!dart.notNull(seenFirst)) {
               try {
                 throw _internal.IterableElementError.noElement();
@@ -342,7 +342,7 @@ var collection = dart.import(collection);
               _cancelAndValue(subscription, future, true);
             }
           }, dart.dynamic, [core.bool]), dart.as(_cancelAndErrorClosure(subscription, future), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](false);
           }), cancelOnError: true});
         return future;
@@ -355,7 +355,7 @@ var collection = dart.import(collection);
           dart.as(element, T);
           _runUserCode(dart.fn(() => action(element), dart.void, []), dart.fn(_ => {
           }), dart.as(_cancelAndErrorClosure(subscription, future), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](null);
           }), cancelOnError: true});
         return future;
@@ -371,7 +371,7 @@ var collection = dart.import(collection);
               _cancelAndValue(subscription, future, false);
             }
           }, dart.dynamic, [core.bool]), dart.as(_cancelAndErrorClosure(subscription, future), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](true);
           }), cancelOnError: true});
         return future;
@@ -387,7 +387,7 @@ var collection = dart.import(collection);
               _cancelAndValue(subscription, future, true);
             }
           }, dart.dynamic, [core.bool]), dart.as(_cancelAndErrorClosure(subscription, future), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](false);
           }), cancelOnError: true});
         return future;
@@ -397,7 +397,7 @@ var collection = dart.import(collection);
         let count = 0;
         this.listen(dart.fn(_ => {
           count = dart.notNull(count) + 1;
-        }), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](count);
           }), cancelOnError: true});
         return future;
@@ -407,7 +407,7 @@ var collection = dart.import(collection);
         let subscription = null;
         subscription = this.listen(dart.fn(_ => {
           _cancelAndValue(subscription, future, false);
-        }), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](true);
           }), cancelOnError: true});
         return future;
@@ -418,7 +418,7 @@ var collection = dart.import(collection);
         this.listen(dart.fn(data => {
           dart.as(data, T);
           result[core.$add](data);
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](result);
           }), cancelOnError: true});
         return future;
@@ -429,7 +429,7 @@ var collection = dart.import(collection);
         this.listen(dart.fn(data => {
           dart.as(data, T);
           result.add(data);
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](result);
           }), cancelOnError: true});
         return future;
@@ -465,7 +465,7 @@ var collection = dart.import(collection);
         subscription = this.listen(dart.fn(value => {
           dart.as(value, T);
           _cancelAndValue(subscription, future, value);
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             try {
               throw _internal.IterableElementError.noElement();
             } catch (e) {
@@ -485,7 +485,7 @@ var collection = dart.import(collection);
           dart.as(value, T);
           foundResult = true;
           result = value;
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             if (foundResult) {
               future[_complete](result);
               return;
@@ -519,7 +519,7 @@ var collection = dart.import(collection);
           }
           foundResult = true;
           result = value;
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             if (foundResult) {
               future[_complete](result);
               return;
@@ -547,9 +547,9 @@ var collection = dart.import(collection);
               _cancelAndValue(subscription, future, value);
             }
           }, dart.dynamic, [core.bool]), dart.as(_cancelAndErrorClosure(subscription, future), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             if (defaultValue != null) {
-              _runUserCode(defaultValue, future[_complete].bind(future), future[_completeError].bind(future));
+              _runUserCode(defaultValue, dart.bind(future, _complete), dart.bind(future, _completeError));
               return;
             }
             try {
@@ -578,13 +578,13 @@ var collection = dart.import(collection);
               result = value;
             }
           }, dart.dynamic, [core.bool]), dart.as(_cancelAndErrorClosure(subscription, future), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             if (foundResult) {
               future[_complete](result);
               return;
             }
             if (defaultValue != null) {
-              _runUserCode(defaultValue, future[_complete].bind(future), future[_completeError].bind(future));
+              _runUserCode(defaultValue, dart.bind(future, _complete), dart.bind(future, _completeError));
               return;
             }
             try {
@@ -621,7 +621,7 @@ var collection = dart.import(collection);
               result = value;
             }
           }, dart.dynamic, [core.bool]), dart.as(_cancelAndErrorClosure(subscription, future), dart.functionType(dart.dynamic, [dart.dynamic, core.StackTrace])));
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn(() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             if (foundResult) {
               future[_complete](result);
               return;
@@ -649,7 +649,7 @@ var collection = dart.import(collection);
             return;
           }
           elementIndex = dart.notNull(elementIndex) + 1;
-        }, dart.dynamic, [T]), {onError: future[_completeError].bind(future), onDone: dart.fn((() => {
+        }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn((() => {
             future[_completeError](new core.RangeError.index(index, this, "index", null, elementIndex));
           }).bind(this)), cancelOnError: true});
         return future;
@@ -936,11 +936,11 @@ var collection = dart.import(collection);
         let wasInputPaused = this[_isInputPaused];
         this[_state] = dart.notNull(this[_state]) + dart.notNull(_BufferingStreamSubscription$()._STATE_PAUSE_COUNT) | dart.notNull(_BufferingStreamSubscription$()._STATE_INPUT_PAUSED);
         if (resumeSignal != null)
-          resumeSignal.whenComplete(this.resume.bind(this));
+          resumeSignal.whenComplete(dart.bind(this, 'resume'));
         if (!dart.notNull(wasPaused) && dart.notNull(this[_pending] != null))
           this[_pending].cancelSchedule();
         if (!dart.notNull(wasInputPaused) && !dart.notNull(this[_inCallback]))
-          this[_guardCallback](this[_onPause].bind(this));
+          this[_guardCallback](dart.bind(this, _onPause));
       }
       resume() {
         if (this[_isCanceled])
@@ -954,7 +954,7 @@ var collection = dart.import(collection);
               dart.assert(this[_mayResumeInput]);
               this[_state] = dart.notNull(this[_state]) & ~dart.notNull(_BufferingStreamSubscription$()._STATE_INPUT_PAUSED);
               if (!dart.notNull(this[_inCallback]))
-                this[_guardCallback](this[_onResume].bind(this));
+                this[_guardCallback](dart.bind(this, _onResume));
             }
           }
         }
@@ -1730,7 +1730,7 @@ var collection = dart.import(collection);
         if (resumeSignal === void 0)
           resumeSignal = null;
         if (resumeSignal != null)
-          resumeSignal.then(this[_resume].bind(this));
+          resumeSignal.then(dart.bind(this, _resume));
         this[_pauseCount] = dart.notNull(this[_pauseCount]) + 1;
       }
       resume() {
@@ -1948,7 +1948,7 @@ var collection = dart.import(collection);
         let nextIteration = null;
         nextIteration = Zone.current.bindUnaryCallback(dart.fn(keepGoing => {
           if (keepGoing) {
-            new (Future$()).sync(f).then(dart.as(nextIteration, __CastType4), {onError: doneSignal[_completeError].bind(doneSignal)});
+            new (Future$()).sync(f).then(dart.as(nextIteration, __CastType4), {onError: dart.bind(doneSignal, _completeError)});
           } else {
             doneSignal[_complete](null);
           }
@@ -3390,7 +3390,7 @@ var collection = dart.import(collection);
     class _AddStreamState extends core.Object {
       _AddStreamState(controller, source, cancelOnError) {
         this.addStreamFuture = new _Future();
-        this.addSubscription = source.listen(controller[_add].bind(controller), {onError: cancelOnError ? dart.as(_AddStreamState$().makeErrorHandler(controller), core.Function) : controller[_addError].bind(controller), onDone: controller[_close].bind(controller), cancelOnError: cancelOnError});
+        this.addSubscription = source.listen(dart.bind(controller, _add), {onError: cancelOnError ? dart.as(_AddStreamState$().makeErrorHandler(controller), core.Function) : dart.bind(controller, _addError), onDone: dart.bind(controller, _close), cancelOnError: cancelOnError});
       }
       static makeErrorHandler(controller) {
         return dart.fn((e, s) => {
@@ -3745,7 +3745,7 @@ var collection = dart.import(collection);
       [_schedule]() {
         if (this[_isScheduled])
           return;
-        this[_zone].scheduleMicrotask(this[_sendDone].bind(this));
+        this[_zone].scheduleMicrotask(dart.bind(this, _sendDone));
         this[_state] = dart.notNull(this[_state]) | dart.notNull(_DoneStreamSubscription$()._SCHEDULED);
       }
       onData(handleData) {
@@ -3761,7 +3761,7 @@ var collection = dart.import(collection);
           resumeSignal = null;
         this[_state] = dart.notNull(this[_state]) + dart.notNull(_DoneStreamSubscription$()._PAUSED);
         if (resumeSignal != null)
-          resumeSignal.whenComplete(this.resume.bind(this));
+          resumeSignal.whenComplete(dart.bind(this, 'resume'));
       }
       resume() {
         if (this.isPaused) {
@@ -3829,7 +3829,7 @@ var collection = dart.import(collection);
         this[_controller] = null;
         this[_subscription] = null;
         super.Stream();
-        this[_controller] = new (_AsBroadcastStreamController$(T))(this[_onListen].bind(this), this[_onCancel].bind(this));
+        this[_controller] = new (_AsBroadcastStreamController$(T))(dart.bind(this, _onListen), dart.bind(this, _onCancel));
       }
       get isBroadcast() {
         return true;
@@ -3965,7 +3965,7 @@ var collection = dart.import(collection);
         this[_current] = null;
         this[_futureOrPrefetch] = null;
         this[_state] = _StreamIteratorImpl$()._STATE_FOUND;
-        this[_subscription] = stream.listen(this[_onData].bind(this), {onError: this[_onError].bind(this), onDone: this[_onDone].bind(this), cancelOnError: true});
+        this[_subscription] = stream.listen(dart.bind(this, _onData), {onError: dart.bind(this, _onError), onDone: dart.bind(this, _onDone), cancelOnError: true});
       }
       get current() {
         return this[_current];
@@ -4199,7 +4199,7 @@ var collection = dart.import(collection);
         this[_stream] = stream;
         this[_subscription] = null;
         super._BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
-        this[_subscription] = this[_stream][_source].listen(this[_handleData].bind(this), {onError: this[_handleError].bind(this), onDone: this[_handleDone].bind(this)});
+        this[_subscription] = this[_stream][_source].listen(dart.bind(this, _handleData), {onError: dart.bind(this, _handleError), onDone: dart.bind(this, _handleDone)});
       }
       [_add](data) {
         dart.as(data, T);
@@ -4616,7 +4616,7 @@ var collection = dart.import(collection);
         super._BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
         let eventSink = new (_EventSinkWrapper$(T))(this);
         this[_transformerSink] = mapper(eventSink);
-        this[_subscription] = source.listen(this[_handleData].bind(this), {onError: this[_handleError].bind(this), onDone: this[_handleDone].bind(this)});
+        this[_subscription] = source.listen(dart.bind(this, _handleData), {onError: dart.bind(this, _handleError), onDone: dart.bind(this, _handleDone)});
       }
       get [_isSubscribed]() {
         return this[_subscription] != null;

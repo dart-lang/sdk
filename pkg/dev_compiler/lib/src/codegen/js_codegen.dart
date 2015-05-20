@@ -1124,10 +1124,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
       // For instance members, we add implicit-this.
       // For method tear-offs, we ensure it's a bound method.
-      var code = 'this.#';
-      if (element is MethodElement && !inInvocationContext(node)) {
-        code += '.bind(this)';
-      }
+      var tearOff = element is MethodElement && !inInvocationContext(node);
+      var code = (tearOff) ? 'dart.bind(this, #)' : 'this.#';
       return js.call(code, member);
     }
 
@@ -2003,13 +2001,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     String code;
-    if (member != null && member is MethodElement) {
+    if (member != null && member is MethodElement && !isStatic) {
       // Tear-off methods: explicitly bind it.
+      // TODO(leafp): Attach runtime types to these static tearoffs
       if (_requiresStaticDispatch(target, memberId.name)) {
         return js.call('dart.#.bind(#)', [name, _visit(target)]);
-      }
-      if (isStateless(target, target)) {
-        return js.call('#.#.bind(#)', [_visit(target), name, _visit(target)]);
       }
       code = 'dart.bind(#, #)';
     } else if (_requiresStaticDispatch(target, memberId.name)) {

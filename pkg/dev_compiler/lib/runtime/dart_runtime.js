@@ -44,7 +44,7 @@ var dart, _js_helper, _js_primitives;
   function dload(obj, field) {
     field = _canonicalFieldName(obj, field);
     if (_getMethodType(obj, field) !== void 0) {
-      return dart.tearoff(obj, field);
+      return dart.bind(obj, field);
     }
     // TODO(vsm): Implement NSM robustly.  An 'in' check breaks on certain
     // types.  hasOwnProperty doesn't chase the proto chain.
@@ -153,17 +153,6 @@ var dart, _js_helper, _js_primitives;
     return checkAndCall(obj.set, obj, [index, value], '[]=');
   }
   dart.dsetindex = dsetindex;
-
-  /**
-   * Returns bound `method`.
-   * This helper function avoids needing a temp for `obj`.
-   */
-  function bind(obj, method) {
-    // This is a static bind (dynamic would use `dload`) so no need to check
-    // if `method` is really there on `obj`.`
-    return obj[method].bind(obj);
-  }
-  dart.bind = bind;
 
   function typeToString(type) {
     if (typeof(type) == "function") {
@@ -1021,14 +1010,14 @@ var dart, _js_helper, _js_primitives;
   /// Sets the runtime type of the torn off method appropriately,
   /// and also binds the object.
   /// TODO(leafp): Consider caching the tearoff on the object?
-  function tearoff(obj, name) {
+  function bind(obj, name) {
     let f = obj[name].bind(obj);
     let sig = _getMethodType(obj, name)
     assert(sig);
     setRuntimeType(f, sig);
     return f;
   }
-  dart.tearoff = tearoff;
+  dart.bind = bind;
 
   // Set up the method signature field on the constructor
   function _setMethodSignature(f, sigF) {
