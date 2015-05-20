@@ -517,7 +517,7 @@ class CompileTimeErrorCode extends ErrorCode {
    */
   static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_TYPE =
       const CompileTimeErrorCode('BUILT_IN_IDENTIFIER_AS_TYPE',
-          "The built-in identifier '{0}' cannot be as a type");
+          "The built-in identifier '{0}' cannot be used as a type");
 
   /**
    * 12.30 Identifier Reference: It is a compile-time error if a built-in
