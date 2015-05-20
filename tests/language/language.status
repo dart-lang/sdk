@@ -29,6 +29,8 @@ conditional_property_access_test: Fail
 conditional_method_invocation_test: Fail
 
 deferred_redirecting_factory_test: Fail # Issue 23408
+redirecting_constructor_initializer_test: RuntimeError # Issue 23488
+
 [ $compiler == none ]
 # Non-contractive types are not supported in the vm.
 cyclic_type_test/02: Fail, OK

@@ -3195,6 +3195,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// 3. Calls constructor body and super constructor bodies.
   /// 4. Returns the created object.
   ir.FunctionDefinition buildConstructor(ConstructorElement constructor) {
+    // TODO(asgerf): Optimization: If constructor is redirecting, then just
+    //               evaluate arguments and call the target constructor.
     constructor = constructor.implementation;
     ClassElement classElement = constructor.enclosingClass.implementation;
 
@@ -3295,21 +3297,25 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// All constructors will be added to [supers], with superconstructors first.
   void evaluateConstructorFieldInitializers(ConstructorElement constructor,
                                             List<ConstructorElement> supers) {
-    // Evaluate declaration-site field initializers.
     ClassElement enclosingClass = constructor.enclosingClass.implementation;
-    enclosingClass.forEachInstanceField((ClassElement c, FieldElement field) {
-      if (field.initializer != null) {
-        fieldValues[field] = inlineExpression(field, field.initializer);
-      } else {
-        if (Elements.isNativeOrExtendsNative(c)) {
-          // Native field is initialized elsewhere.
+    // Evaluate declaration-site field initializers, unless this constructor
+    // redirects to another using a `this()` initializer. In that case, these
+    // will be initialized by the effective target constructor.
+    if (!constructor.isRedirectingGenerative) {
+      enclosingClass.forEachInstanceField((ClassElement c, FieldElement field) {
+        if (field.initializer != null) {
+          fieldValues[field] = inlineExpression(field, field.initializer);
         } else {
-          // Fields without an initializer default to null.
-          // This value will be overwritten below if an initializer is found.
-          fieldValues[field] = irBuilder.buildNullConstant();
+          if (Elements.isNativeOrExtendsNative(c)) {
+            // Native field is initialized elsewhere.
+          } else {
+            // Fields without an initializer default to null.
+            // This value will be overwritten below if an initializer is found.
+            fieldValues[field] = irBuilder.buildNullConstant();
+          }
         }
-      }
-    });
+      });
+    }
     // Evaluate initializing parameters, e.g. `Foo(this.x)`.
     constructor.functionSignature.orderedForEachParameter(
         (ParameterElement parameter) {
@@ -3333,7 +3339,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           // Super or this initializer.
           ConstructorElement target = elements[initializer].implementation;
           Selector selector = elements.getSelector(initializer);
-          List<ir.Primitive> arguments = initializer.arguments.mapToList(visit);
+          ir.Primitive evaluateArgument(ast.Node arg) {
+            return inlineExpression(constructor, arg);
+          }
+          List<ir.Primitive> arguments =
+              initializer.arguments.mapToList(evaluateArgument);
           loadArguments(target, selector, arguments);
           evaluateConstructorFieldInitializers(target, supers);
           hasConstructorCall = true;

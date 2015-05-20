@@ -1827,7 +1827,7 @@ class SsaBuilder extends NewResolvedVisitor {
    *
    * Invariant: [constructors] must contain only implementation elements.
    */
-  void inlineSuperOrRedirect(FunctionElement callee,
+  void inlineSuperOrRedirect(ConstructorElement callee,
                              List<HInstruction> compiledArguments,
                              List<FunctionElement> constructors,
                              Map<Element, HInstruction> fieldValues,
@@ -1869,9 +1869,9 @@ class SsaBuilder extends NewResolvedVisitor {
         }
       }
 
-      // For redirecting constructors, the fields have already been
-      // initialized by the caller.
-      if (callee.enclosingClass != caller.enclosingClass) {
+      // For redirecting constructors, the fields will be initialized later
+      // by the effective target.
+      if (!callee.isRedirectingGenerative) {
         inlinedFrom(callee, () {
           buildFieldInitializers(callee.enclosingElement.implementation,
                                fieldValues);
@@ -2074,7 +2074,7 @@ class SsaBuilder extends NewResolvedVisitor {
    *  - Call the constructor bodies, starting from the constructor(s) in the
    *    super class(es).
    */
-  HGraph buildFactory(FunctionElement functionElement) {
+  HGraph buildFactory(ConstructorElement functionElement) {
     functionElement = functionElement.implementation;
     ClassElement classElement =
         functionElement.enclosingClass.implementation;
@@ -2093,8 +2093,11 @@ class SsaBuilder extends NewResolvedVisitor {
     Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
 
     // Compile the possible initialization code for local fields and
-    // super fields.
-    buildFieldInitializers(classElement, fieldValues);
+    // super fields, unless this is a redirecting constructor, in which case
+    // the effective target will initialize these.
+    if (!functionElement.isRedirectingGenerative) {
+      buildFieldInitializers(classElement, fieldValues);
+    }
 
     // Compile field-parameters such as [:this.x:].
     FunctionSignature params = functionElement.functionSignature;

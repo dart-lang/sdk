@@ -529,7 +529,6 @@ enum_private_test/02: Crash # Instance of 'TypeOperator': type check unimplement
 enum_test: Crash #  Unhandled node
 equality_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 error_stacktrace_test: RuntimeError # Please triage this failure.
-evaluation_redirecting_constructor_test: RuntimeError # Please triage this failure.
 execute_finally10_test: Crash #  try/finally
 execute_finally11_test: Crash #  try/finally
 execute_finally12_test: Crash # (try {try {}finally {a=8;break;}}finally {return a==8;}): try/finally
@@ -695,7 +694,6 @@ inferrer_synthesized_constructor_test: Crash # Instance of 'TypeOperator': type 
 inferrer_synthesized_super_constructor_test: Crash # Please triage this failure.
 inferrer_this_access_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 infinite_switch_label_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-inline_super_test: Crash # Please triage this failure.
 inlined_throw_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 instance_creation_in_function_annotation_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 instanceof2_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<Object>.
