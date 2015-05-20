@@ -25,6 +25,7 @@
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
+#include "vm/thread_interrupter.h"
 #include "vm/visitor.h"
 
 
@@ -2147,6 +2148,11 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace) {
         break;
       }
     }
+  }
+  if (!isolate_->single_step()) {
+    // We are no longer single stepping, make sure that the ThreadInterrupter
+    // is awake.
+    ThreadInterrupter::WakeUp();
   }
 }
 
