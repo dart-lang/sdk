@@ -63,7 +63,7 @@ dart/optimized_stacktrace_test: RuntimeError
 
 # Methods can be missing in dart2js stack traces due to inlining.  Also when
 # minifying they can be renamed, which is issue 7953.
-dart/inline_stack_frame_test: RuntimeError # Issue 7953
+dart/inline_stack_frame_test: RuntimeError, Pass # Issue 7953
 
 [ $compiler == dart2js || $compiler == dartanalyzer || $compiler == dart2analyzer ]
 # Data uri's not supported by dart2js or the analyzer.
@@ -90,6 +90,3 @@ dart/snapshot_version_test: SkipByDesign  # Spawns processes
 
 [ $runtime == vm && $mode == debug && $builder_tag == asan ]
 cc/Dart2JSCompileAll: Skip  # Timeout.
-
-[ $compiler == dart2js && $cps_ir ]
-dart/error_stacktrace_test: RuntimeError # Please triage this failure.

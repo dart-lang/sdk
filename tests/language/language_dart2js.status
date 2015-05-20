@@ -528,7 +528,6 @@ enum_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented f
 enum_private_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 enum_test: Crash #  Unhandled node
 equality_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-error_stacktrace_test: RuntimeError # Please triage this failure.
 execute_finally10_test: Crash #  try/finally
 execute_finally11_test: Crash #  try/finally
 execute_finally12_test: Crash # (try {try {}finally {a=8;break;}}finally {return a==8;}): try/finally
