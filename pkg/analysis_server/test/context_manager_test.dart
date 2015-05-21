@@ -1019,6 +1019,20 @@ class TestContextManager extends ContextManager {
   }
 
   @override
+  bool shouldFileBeAnalyzed(File file) {
+    if (!(AnalysisEngine.isDartFileName(file.path) ||
+        AnalysisEngine.isHtmlFileName(file.path))) {
+      return false;
+    }
+    // Emacs creates dummy links to track the fact that a file is open for
+    // editing and has unsaved changes (e.g. having unsaved changes to
+    // 'foo.dart' causes a link '.#foo.dart' to be created, which points to the
+    // non-existent file 'username@hostname.pid'.  To avoid these dummy links
+    // causing the analyzer to thrash, just ignore links to non-existent files.
+    return file.exists;
+  }
+
+  @override
   void updateContextPackageUriResolver(
       Folder contextFolder, UriResolver packageUriResolver) {
     currentContextPackageUriResolvers[contextFolder.path] = packageUriResolver;

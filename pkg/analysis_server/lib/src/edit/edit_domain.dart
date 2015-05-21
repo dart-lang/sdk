@@ -11,7 +11,6 @@ import 'package:analysis_server/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/constants.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -43,11 +42,6 @@ class EditDomainHandler implements RequestHandler {
   final AnalysisServer server;
 
   /**
-   * The server plugin that defines the extension points used by this handler.
-   */
-  final ServerPlugin plugin;
-
-  /**
    * The [SearchEngine] for this server.
    */
   SearchEngine searchEngine;
@@ -57,7 +51,7 @@ class EditDomainHandler implements RequestHandler {
   /**
    * Initialize a newly created handler to handle requests for the given [server].
    */
-  EditDomainHandler(this.server, this.plugin) {
+  EditDomainHandler(this.server) {
     searchEngine = server.searchEngine;
     _newRefactoringManager();
   }
@@ -138,8 +132,8 @@ class EditDomainHandler implements RequestHandler {
     Source source = pair.source;
     List<SourceChange> changes = <SourceChange>[];
     if (context != null && source != null) {
-      List<Assist> assists =
-          computeAssists(plugin, context, source, params.offset, params.length);
+      List<Assist> assists = computeAssists(
+          server.serverPlugin, context, source, params.offset, params.length);
       assists.forEach((Assist assist) {
         changes.add(assist.change);
       });
@@ -162,7 +156,8 @@ class EditDomainHandler implements RequestHandler {
         for (engine.AnalysisError error in errorInfo.errors) {
           int errorLine = lineInfo.getLocation(error.offset).lineNumber;
           if (errorLine == requestLine) {
-            List<Fix> fixes = computeFixes(plugin, unit.element.context, error);
+            List<Fix> fixes =
+                computeFixes(server.serverPlugin, unit.element.context, error);
             if (fixes.isNotEmpty) {
               AnalysisError serverError =
                   newAnalysisError_fromEngine(lineInfo, error);

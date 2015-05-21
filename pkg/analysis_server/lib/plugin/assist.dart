@@ -13,9 +13,8 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:plugin/plugin.dart';
 
 /**
- * The identifier of the extension point that allows plugins to register new
- * assist contributors with the server. The object used as an extension must be
- * an [AssistContributor].
+ * The identifier of the extension point that allows plugins to register assist
+ * contributors. The object used as an extension must be an [AssistContributor].
  */
 final String ASSIST_CONTRIBUTOR_EXTENSION_POINT_ID = Plugin.join(
     ServerPlugin.UNIQUE_IDENTIFIER,

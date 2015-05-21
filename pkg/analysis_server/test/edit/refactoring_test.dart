@@ -7,7 +7,6 @@ library test.edit.refactoring;
 import 'dart:async';
 
 import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_memory_index.dart';
@@ -670,9 +669,8 @@ class GetAvailableRefactoringsTest extends AbstractAnalysisTest {
     super.setUp();
     createProject();
     ExtensionManager manager = new ExtensionManager();
-    ServerPlugin plugin = new ServerPlugin();
-    manager.processPlugins([plugin]);
-    handler = new EditDomainHandler(server, plugin);
+    manager.processPlugins([server.serverPlugin]);
+    handler = new EditDomainHandler(server);
     server.handlers = [handler];
   }
 
@@ -1713,9 +1711,8 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
     super.setUp();
     createProject();
     ExtensionManager manager = new ExtensionManager();
-    ServerPlugin plugin = new ServerPlugin();
-    manager.processPlugins([plugin]);
-    handler = new EditDomainHandler(server, plugin);
+    manager.processPlugins([server.serverPlugin]);
+    handler = new EditDomainHandler(server);
     server.handlers = [handler];
   }
 }

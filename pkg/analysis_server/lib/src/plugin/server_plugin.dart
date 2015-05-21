@@ -8,8 +8,8 @@ import 'package:analysis_server/analysis/index/index_core.dart';
 import 'package:analysis_server/completion/completion_core.dart';
 import 'package:analysis_server/edit/assist/assist_core.dart';
 import 'package:analysis_server/edit/fix/fix_core.dart';
+import 'package:analysis_server/plugin/analyzed_files.dart';
 import 'package:analysis_server/plugin/assist.dart';
-//import 'package:analysis_server/plugin/completion.dart';
 import 'package:analysis_server/plugin/fix.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
@@ -21,6 +21,8 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:plugin/plugin.dart';
 
 /**
@@ -36,32 +38,38 @@ typedef RequestHandler RequestHandlerFactory(AnalysisServer server);
 class ServerPlugin implements Plugin {
   /**
    * The simple identifier of the extension point that allows plugins to
-   * register new assist contributors with the server.
+   * register functions that can cause files to be analyzed.
+   */
+  static const String ANALYZE_FILE_EXTENSION_POINT = 'analyzeFile';
+
+  /**
+   * The simple identifier of the extension point that allows plugins to
+   * register assist contributors.
    */
   static const String ASSIST_CONTRIBUTOR_EXTENSION_POINT = 'assistContributor';
 
   /**
    * The simple identifier of the extension point that allows plugins to
-   * register new completion contributors with the server.
+   * register completion contributors.
    */
   static const String COMPLETION_CONTRIBUTOR_EXTENSION_POINT =
       'completionContributor';
 
   /**
    * The simple identifier of the extension point that allows plugins to
-   * register new domains with the server.
+   * register domains.
    */
   static const String DOMAIN_EXTENSION_POINT = 'domain';
 
   /**
    * The simple identifier of the extension point that allows plugins to
-   * register new fix contributors with the server.
+   * register fix contributors.
    */
   static const String FIX_CONTRIBUTOR_EXTENSION_POINT = 'fixContributor';
 
   /**
    * The simple identifier of the extension point that allows plugins to
-   * register new index contributors with the server.
+   * register index contributors.
    */
   static const String INDEX_CONTRIBUTOR_EXTENSION_POINT = 'indexContributor';
 
@@ -71,32 +79,36 @@ class ServerPlugin implements Plugin {
   static const String UNIQUE_IDENTIFIER = 'analysis_server.core';
 
   /**
-   * The extension point that allows plugins to register new assist contributors
-   * with the server.
+   * The extension point that allows plugins to register functions that can
+   * cause files to be analyzed.
+   */
+  ExtensionPoint analyzeFileExtensionPoint;
+
+  /**
+   * The extension point that allows plugins to register assist contributors.
    */
   ExtensionPoint assistContributorExtensionPoint;
 
   /**
-   * The extension point that allows plugins to register new completion
-   * contributors with the server.
+   * The extension point that allows plugins to register completion
+   * contributors.
    */
   ExtensionPoint completionContributorExtensionPoint;
 
   /**
-   * The extension point that allows plugins to register new domains with the
+   * The extension point that allows plugins to register domains with the
    * server.
    */
   ExtensionPoint domainExtensionPoint;
 
   /**
-   * The extension point that allows plugins to register new fix contributors
-   * with the server.
+   * The extension point that allows plugins to register fix contributors with
+   * the server.
    */
   ExtensionPoint fixContributorExtensionPoint;
 
   /**
-   * The extension point that allows plugins to register new index contributors
-   * with the server.
+   * The extension point that allows plugins to register index contributors.
    */
   ExtensionPoint indexContributorExtensionPoint;
 
@@ -104,6 +116,13 @@ class ServerPlugin implements Plugin {
    * Initialize a newly created plugin.
    */
   ServerPlugin();
+
+  /**
+   * Return a list containing all of the functions that can cause files to be
+   * analyzed.
+   */
+  List<ShouldAnalyzeFile> get analyzeFileFunctions =>
+      analyzeFileExtensionPoint.extensions;
 
   /**
    * Return a list containing all of the assist contributors that were
@@ -150,6 +169,8 @@ class ServerPlugin implements Plugin {
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {
+    analyzeFileExtensionPoint = registerExtensionPoint(
+        ANALYZE_FILE_EXTENSION_POINT, _validateAnalyzeFileExtension);
     assistContributorExtensionPoint = registerExtensionPoint(
         ASSIST_CONTRIBUTOR_EXTENSION_POINT,
         _validateAssistContributorExtension);
@@ -166,6 +187,12 @@ class ServerPlugin implements Plugin {
 
   @override
   void registerExtensions(RegisterExtension registerExtension) {
+    //
+    // Register analyze file functions.
+    //
+    registerExtension(ANALYZE_FILE_EXTENSION_POINT_ID,
+        (File file) => AnalysisEngine.isDartFileName(file.path) ||
+            AnalysisEngine.isHtmlFileName(file.path));
     //
     // Register assist contributors.
     //
@@ -184,8 +211,8 @@ class ServerPlugin implements Plugin {
         domainId, (AnalysisServer server) => new ServerDomainHandler(server));
     registerExtension(
         domainId, (AnalysisServer server) => new AnalysisDomainHandler(server));
-    registerExtension(domainId,
-        (AnalysisServer server) => new EditDomainHandler(server, this));
+    registerExtension(
+        domainId, (AnalysisServer server) => new EditDomainHandler(server));
     registerExtension(
         domainId, (AnalysisServer server) => new SearchDomainHandler(server));
     registerExtension(domainId,
@@ -202,6 +229,18 @@ class ServerPlugin implements Plugin {
     //
     // TODO(brianwilkerson) Register the index contributors.
 //    registerExtension(INDEX_CONTRIBUTOR_EXTENSION_POINT, ???);
+  }
+
+  /**
+   * Validate the given extension by throwing an [ExtensionError] if it is not a
+   * valid assist contributor.
+   */
+  void _validateAnalyzeFileExtension(Object extension) {
+    if (extension is! ShouldAnalyzeFile) {
+      String id = analyzeFileExtensionPoint.uniqueIdentifier;
+      throw new ExtensionError(
+          'Extensions to $id must be an ShouldAnalyzeFile function');
+    }
   }
 
   /**

@@ -13,6 +13,7 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/domain_completion.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/completion/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
@@ -25,6 +26,7 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -48,9 +50,13 @@ class CompletionManagerTest extends AbstractAnalysisTest {
   String testFile2 = '/project/bin/test2.dart';
 
   AnalysisServer createAnalysisServer(Index index) {
+    ExtensionManager manager = new ExtensionManager();
+    ServerPlugin serverPlugin = new ServerPlugin();
+    manager.processPlugins([serverPlugin]);
     return new Test_AnalysisServer(super.serverChannel, super.resourceProvider,
-        super.packageMapProvider, index, new AnalysisServerOptions(),
-        new MockSdk(), InstrumentationService.NULL_SERVICE);
+        super.packageMapProvider, index, serverPlugin,
+        new AnalysisServerOptions(), new MockSdk(),
+        InstrumentationService.NULL_SERVICE);
   }
 
   @override
@@ -651,10 +657,11 @@ class Test_AnalysisServer extends AnalysisServer {
   Test_AnalysisServer(ServerCommunicationChannel channel,
       ResourceProvider resourceProvider,
       OptimizingPubPackageMapProvider packageMapProvider, Index index,
-      AnalysisServerOptions analysisServerOptions, DartSdk defaultSdk,
-      InstrumentationService instrumentationService)
+      ServerPlugin serverPlugin, AnalysisServerOptions analysisServerOptions,
+      DartSdk defaultSdk, InstrumentationService instrumentationService)
       : super(channel, resourceProvider, packageMapProvider, index,
-          analysisServerOptions, defaultSdk, instrumentationService);
+          serverPlugin, analysisServerOptions, defaultSdk,
+          instrumentationService);
 
   @override
   AnalysisContext getAnalysisContext(String path) {

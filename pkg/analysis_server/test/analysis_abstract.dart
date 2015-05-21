@@ -9,11 +9,13 @@ import 'dart:async';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
@@ -79,9 +81,12 @@ class AbstractAnalysisTest {
   }
 
   AnalysisServer createAnalysisServer(Index index) {
+    ExtensionManager manager = new ExtensionManager();
+    ServerPlugin serverPlugin = new ServerPlugin();
+    manager.processPlugins([serverPlugin]);
     return new AnalysisServer(serverChannel, resourceProvider,
-        packageMapProvider, index, new AnalysisServerOptions(), new MockSdk(),
-        InstrumentationService.NULL_SERVICE);
+        packageMapProvider, index, serverPlugin, new AnalysisServerOptions(),
+        new MockSdk(), InstrumentationService.NULL_SERVICE);
   }
 
   Index createIndex() {

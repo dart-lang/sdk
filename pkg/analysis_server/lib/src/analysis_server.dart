@@ -8,12 +8,14 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:math' show max;
 
+import 'package:analysis_server/plugin/analyzed_files.dart';
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element;
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
@@ -95,6 +97,11 @@ class AnalysisServer {
    * The [SearchEngine] for this server, may be `null` if indexing is disabled.
    */
   final SearchEngine searchEngine;
+
+  /**
+   * The plugin associated with this analysis server.
+   */
+  final ServerPlugin serverPlugin;
 
   /**
    * [ContextManager] which handles the mapping from analysis roots
@@ -250,8 +257,9 @@ class AnalysisServer {
    */
   AnalysisServer(this.channel, this.resourceProvider,
       OptimizingPubPackageMapProvider packageMapProvider, Index _index,
-      AnalysisServerOptions analysisServerOptions, this.defaultSdk,
-      this.instrumentationService, {this.rethrowExceptions: true})
+      this.serverPlugin, AnalysisServerOptions analysisServerOptions,
+      this.defaultSdk, this.instrumentationService,
+      {this.rethrowExceptions: true})
       : index = _index,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
@@ -281,6 +289,7 @@ class AnalysisServer {
         new ServerConnectedParams(VERSION).toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
+    handlers = serverPlugin.createDomains(this);
   }
 
   /**
@@ -1371,6 +1380,24 @@ class ServerContextManager extends ContextManager {
     analysisServer.sendContextAnalysisDoneNotifications(
         context, AnalysisDoneReason.CONTEXT_REMOVED);
     context.dispose();
+  }
+
+  @override
+  bool shouldFileBeAnalyzed(File file) {
+    List<ShouldAnalyzeFile> functions =
+        analysisServer.serverPlugin.analyzeFileFunctions;
+    for (ShouldAnalyzeFile shouldAnalyzeFile in functions) {
+      if (shouldAnalyzeFile(file)) {
+        // Emacs creates dummy links to track the fact that a file is open for
+        // editing and has unsaved changes (e.g. having unsaved changes to
+        // 'foo.dart' causes a link '.#foo.dart' to be created, which points to
+        // the non-existent file 'username@hostname.pid'. To avoid these dummy
+        // links causing the analyzer to thrash, just ignore links to
+        // non-existent files.
+        return file.exists;
+      }
+    }
+    return false;
   }
 
   @override
