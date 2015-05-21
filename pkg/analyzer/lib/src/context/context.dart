@@ -935,13 +935,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> getSourcesWithFullName(String path) {
-    List<Source> sources = <Source>[];
-    for (Source source in _cache.sources) {
-      if (source.fullName == path) {
-        sources.add(source);
-      }
-    }
-    return sources;
+    return analysisCache.getSourcesWithFullName(path);
   }
 
   @override

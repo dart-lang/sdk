@@ -67,6 +67,33 @@ class AnalysisCacheTest extends AbstractCacheTest {
     expect(cache.getContextFor(target), context);
   }
 
+  void test_getSourcesWithFullName() {
+    String filePath = '/foo/lib/file.dart';
+    // no sources
+    expect(cache.getSourcesWithFullName(filePath), isEmpty);
+    // add source1
+    TestSourceWithUri source1 =
+        new TestSourceWithUri(filePath, Uri.parse('file://$filePath'));
+    cache.put(new CacheEntry(source1));
+    expect(cache.getSourcesWithFullName(filePath), unorderedEquals([source1]));
+    // add source2
+    TestSourceWithUri source2 =
+        new TestSourceWithUri(filePath, Uri.parse('package:foo/file.dart'));
+    cache.put(new CacheEntry(source2));
+    expect(cache.getSourcesWithFullName(filePath),
+        unorderedEquals([source1, source2]));
+    // remove source1
+    cache.remove(source1);
+    expect(cache.getSourcesWithFullName(filePath), unorderedEquals([source2]));
+    // remove source2
+    cache.remove(source2);
+    expect(cache.getSourcesWithFullName(filePath), isEmpty);
+    // ignored
+    cache.remove(source1);
+    cache.remove(source2);
+    expect(cache.getSourcesWithFullName(filePath), isEmpty);
+  }
+
   void test_getState_hasEntry_flushed() {
     ResultDescriptor result = new ResultDescriptor('result', -1);
     AnalysisTarget target = new TestSource();

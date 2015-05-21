@@ -111,6 +111,19 @@ class AnalysisCache {
   }
 
   /**
+   * Return [Source]s whose full path is equal to the given [path].
+   * Maybe empty, but not `null`.
+   */
+  List<Source> getSourcesWithFullName(String path) {
+    List<Source> sources = <Source>[];
+    for (CachePartition partition in _partitions) {
+      List<Source> partitionSources = partition.getSourcesWithFullName(path);
+      sources.addAll(partitionSources);
+    }
+    return sources;
+  }
+
+  /**
    * Return the state of the given [result] for the given [target].
    *
    * It does not update the cache, if the corresponding [CacheEntry] does not
@@ -728,6 +741,11 @@ abstract class CachePartition {
   final HashSet<Source> _sources = new HashSet<Source>();
 
   /**
+   * A table mapping full paths to lists of [Source]s with these full paths.
+   */
+  final Map<String, List<Source>> _pathToSources = <String, List<Source>>{};
+
+  /**
    * Initialize a newly created cache partition, belonging to the given
    * [context].
    */
@@ -746,6 +764,15 @@ abstract class CachePartition {
    * Return the entry associated with the given [target].
    */
   CacheEntry get(AnalysisTarget target) => _targetMap[target];
+
+  /**
+   * Return [Source]s whose full path is equal to the given [path].
+   * Maybe empty, but not `null`.
+   */
+  List<Source> getSourcesWithFullName(String path) {
+    List<Source> sources = _pathToSources[path];
+    return sources != null ? sources : Source.EMPTY_LIST;
+  }
 
   /**
    * Return `true` if this partition is responsible for the given [target].
@@ -827,6 +854,10 @@ abstract class CachePartition {
   void _addIfSource(AnalysisTarget target) {
     if (target is Source) {
       _sources.add(target);
+      {
+        String fullName = target.fullName;
+        _pathToSources.putIfAbsent(fullName, () => <Source>[]).add(target);
+      }
     }
   }
 
@@ -858,6 +889,16 @@ abstract class CachePartition {
   void _removeIfSource(AnalysisTarget target) {
     if (target is Source) {
       _sources.remove(target);
+      {
+        String fullName = target.fullName;
+        List<Source> sources = _pathToSources[fullName];
+        if (sources != null) {
+          sources.remove(target);
+          if (sources.isEmpty) {
+            _pathToSources.remove(fullName);
+          }
+        }
+      }
     }
   }
 }
