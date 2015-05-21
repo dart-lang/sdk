@@ -154,7 +154,12 @@ main() {
       expect(fragment.childNodes.length, 1);
       expect(fragment.childNodes[0].id, "bad");
       expect(fragment.childNodes[0].childNodes.length, 0);
-    });    
+    });
+
+    testHtml("sanitizes embed",
+      validator,
+      "<div><embed src='' type='application/x-shockwave-flash'></embed></div>",
+      "<div></div>");
   });
 
   group('URI_sanitization', () {

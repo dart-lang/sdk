@@ -1392,7 +1392,7 @@ $endif
    * Those attributes are: attributes, lastChild, children, previousNode and tagName.
    */
 $if DART2JS
-  bool get _hasCorruptedAttributes {
+  static bool _hasCorruptedAttributes(Element element) {
      return JS('bool', r'''
        (function(element) {
          if (!(element.attributes instanceof NamedNodeMap)) {
@@ -1410,11 +1410,11 @@ $if DART2JS
 	   }
 	 }
 	 return false;
-          })(#)''', this);
+          })(#)''', element);
   }
 $else
   // Dartium isn't affected by these attacks, because it goes directly to the C++ API.
-  bool get _hasCorruptedAttributes => false;
+  static bool _hasCorruptedAttributes(Element element) => false;
 $endif
 
 $if DART2JS
