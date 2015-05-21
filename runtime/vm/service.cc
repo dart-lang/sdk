@@ -1196,7 +1196,7 @@ static void PrintSentinel(JSONStream* js, SentinelType sentinel_type) {
 }
 
 
-static SourceBreakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
+static Breakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
   size_t end_pos = strcspn(id, "/");
   if (end_pos == strlen(id)) {
     return NULL;
@@ -1204,7 +1204,7 @@ static SourceBreakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
   const char* rest = id + end_pos + 1;  // +1 for '/'.
   if (strncmp("breakpoints", id, end_pos) == 0) {
     intptr_t bpt_id = 0;
-    SourceBreakpoint* bpt = NULL;
+    Breakpoint* bpt = NULL;
     if (GetIntegerId(rest, &bpt_id)) {
       bpt = isolate->debugger()->GetBreakpointById(bpt_id);
     }
@@ -1808,7 +1808,7 @@ static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
   }
   const Script& script = Script::Cast(obj);
   const String& script_url = String::Handle(script.url());
-  SourceBreakpoint* bpt =
+  Breakpoint* bpt =
       isolate->debugger()->SetBreakpointAtLine(script_url, line);
   if (bpt == NULL) {
     js->PrintError(kNoBreakAtLine, NULL);
@@ -1834,8 +1834,34 @@ static bool AddBreakpointAtEntry(Isolate* isolate, JSONStream* js) {
     return true;
   }
   const Function& function = Function::Cast(obj);
-  SourceBreakpoint* bpt =
-      isolate->debugger()->SetBreakpointAtEntry(function);
+  Breakpoint* bpt =
+      isolate->debugger()->SetBreakpointAtEntry(function, false);
+  if (bpt == NULL) {
+    js->PrintError(kNoBreakAtFunction, NULL);
+    return true;
+  }
+  bpt->PrintJSON(js);
+  return true;
+}
+
+
+static const MethodParameter* add_breakpoint_at_activation_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("objectId", true),
+  NULL,
+};
+
+
+static bool AddBreakpointAtActivation(Isolate* isolate, JSONStream* js) {
+  const char* object_id = js->LookupParam("objectId");
+  Object& obj = Object::Handle(LookupHeapObject(isolate, object_id, NULL));
+  if (obj.raw() == Object::sentinel().raw() || !obj.IsInstance()) {
+    PrintInvalidParamError(js, "objectId");
+    return true;
+  }
+  const Instance& closure = Instance::Cast(obj);
+  Breakpoint* bpt =
+      isolate->debugger()->SetBreakpointAtActivation(closure);
   if (bpt == NULL) {
     js->PrintError(kNoBreakAtFunction, NULL);
     return true;
@@ -1857,7 +1883,7 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
     return true;
   }
   const char* bpt_id = js->LookupParam("breakpointId");
-  SourceBreakpoint* bpt = LookupBreakpoint(isolate, bpt_id);
+  Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id);
   if (bpt == NULL) {
     fprintf(stderr, "ERROR1");
     PrintInvalidParamError(js, "breakpointId");
@@ -2384,7 +2410,7 @@ static bool GetObject(Isolate* isolate, JSONStream* js) {
   }
 
   // Handle non-heap objects.
-  SourceBreakpoint* bpt = LookupBreakpoint(isolate, id);
+  Breakpoint* bpt = LookupBreakpoint(isolate, id);
   if (bpt != NULL) {
     bpt->PrintJSON(js);
     return true;
@@ -2574,6 +2600,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     add_breakpoint_params },
   { "addBreakpointAtEntry", AddBreakpointAtEntry,
     add_breakpoint_at_entry_params },
+  { "_addBreakpointAtActivation", AddBreakpointAtActivation,
+    add_breakpoint_at_activation_params },
   { "clearCpuProfile", ClearCpuProfile,
     clear_cpu_profile_params },
   { "evaluate", Evaluate,

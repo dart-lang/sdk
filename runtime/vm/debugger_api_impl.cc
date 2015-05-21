@@ -130,13 +130,13 @@ static void DebuggerEventHandler(DebuggerEvent* event) {
     }
   } else if (event->type() == DebuggerEvent::kBreakpointResolved) {
     if (bp_resolved_handler != NULL) {
-      SourceBreakpoint* bpt = event->breakpoint();
+      Breakpoint* bpt = event->breakpoint();
       ASSERT(bpt != NULL);
       Dart_CodeLocation location;
       Library& library = Library::Handle(isolate);
       Script& script = Script::Handle(isolate);
       intptr_t token_pos;
-      bpt->GetCodeLocation(&library, &script, &token_pos);
+      bpt->bpt_location()->GetCodeLocation(&library, &script, &token_pos);
       location.script_url = Api::NewHandle(isolate, script.url());
       location.library_id = library.index();
       location.token_pos = token_pos;
@@ -341,7 +341,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(
 
   Debugger* debugger = isolate->debugger();
   ASSERT(debugger != NULL);
-  SourceBreakpoint* bpt =
+  Breakpoint* bpt =
       debugger->SetBreakpointAtLine(script_url, line_number);
   if (bpt == NULL) {
     return Api::NewError("%s: could not set breakpoint at line %" Pd " in '%s'",
@@ -357,12 +357,12 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id) {
   Debugger* debugger = isolate->debugger();
   ASSERT(debugger != NULL);
 
-  SourceBreakpoint* bpt = debugger->GetBreakpointById(bp_id);
+  Breakpoint* bpt = debugger->GetBreakpointById(bp_id);
   if (bpt == NULL) {
     return Api::NewError("%s: breakpoint with id %" Pd " does not exist",
                            CURRENT_FUNC, bp_id);
   }
-  return Api::NewHandle(isolate, bpt->url());
+  return Api::NewHandle(isolate, bpt->bpt_location()->url());
 }
 
 
@@ -372,12 +372,12 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id) {
   Debugger* debugger = isolate->debugger();
   ASSERT(debugger != NULL);
 
-  SourceBreakpoint* bpt = debugger->GetBreakpointById(bp_id);
+  Breakpoint* bpt = debugger->GetBreakpointById(bp_id);
   if (bpt == NULL) {
     return Api::NewError("%s: breakpoint with id %" Pd " does not exist",
                          CURRENT_FUNC, bp_id);
   }
-  return Dart_NewInteger(bpt->LineNumber());
+  return Dart_NewInteger(bpt->bpt_location()->LineNumber());
 }
 
 
@@ -411,7 +411,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                          function_name.ToCString());
   }
 
-  SourceBreakpoint* bpt = debugger->SetBreakpointAtEntry(bp_target);
+  Breakpoint* bpt = debugger->SetBreakpointAtEntry(bp_target, false);
   if (bpt == NULL) {
     const char* target_name = Debugger::QualifiedFunctionName(bp_target);
     return Api::NewError("%s: no breakpoint location found in '%s'",
