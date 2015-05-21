@@ -60,6 +60,15 @@ class AnalysisCache {
 //  }
 
   /**
+   * Return an iterator returning all of the [Source] targets.
+   */
+  Iterable<Source> get sources {
+    return _partitions
+        .map((CachePartition partition) => partition._sources)
+        .expand((Iterable<Source> sources) => sources);
+  }
+
+  /**
    * Return the entry associated with the given [target].
    */
   CacheEntry get(AnalysisTarget target) {
@@ -455,6 +464,7 @@ class CacheEntry {
     // If empty, remove the entry altogether.
     if (_resultMap.isEmpty) {
       _partition._targetMap.remove(target);
+      _partition._removeIfSource(target);
     }
   }
 
@@ -707,6 +717,11 @@ abstract class CachePartition {
       new HashMap<AnalysisTarget, CacheEntry>();
 
   /**
+   * A set of the [Source] targets.
+   */
+  final HashSet<Source> _sources = new HashSet<Source>();
+
+  /**
    * Initialize a newly created cache partition, belonging to the given
    * [context].
    */
@@ -750,6 +765,7 @@ abstract class CachePartition {
     entry._partition = this;
     entry.fixExceptionState();
     _targetMap[target] = entry;
+    _addIfSource(target);
   }
 
   /**
@@ -763,6 +779,7 @@ abstract class CachePartition {
     if (entry != null) {
       entry._invalidateAll();
     }
+    _removeIfSource(target);
   }
 
   /**
@@ -798,6 +815,15 @@ abstract class CachePartition {
    */
   int size() => _targetMap.length;
 
+  /**
+   * If the given [target] is a [Source], adds it to [_sources].
+   */
+  void _addIfSource(AnalysisTarget target) {
+    if (target is Source) {
+      _sources.add(target);
+    }
+  }
+
   ResultData _getDataFor(TargetedResult result, {bool orNull: false}) {
     CacheEntry entry = context.analysisCache.get(result.target);
     if (orNull) {
@@ -818,6 +844,15 @@ abstract class CachePartition {
 
   bool _isPriorityAnalysisTarget(AnalysisTarget target) {
     return context.priorityTargets.contains(target);
+  }
+
+  /**
+   * If the given [target] is a [Source], removes it from [_sources].
+   */
+  void _removeIfSource(AnalysisTarget target) {
+    if (target is Source) {
+      _sources.remove(target);
+    }
   }
 }
 

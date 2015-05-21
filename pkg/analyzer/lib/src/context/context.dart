@@ -291,16 +291,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> get launchableClientLibrarySources {
-    List<Source> sources = new List<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      AnalysisTarget target = iterator.key;
-      CacheEntry entry = iterator.value;
-      if (target is Source &&
-          entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
-          !target.isInSystemLibrary &&
-          isClientLibrary(target)) {
-        sources.add(target);
+    List<Source> sources = <Source>[];
+    for (Source source in _cache.sources) {
+      CacheEntry entry = _cache.get(source);
+      if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
+          !source.isInSystemLibrary &&
+          isClientLibrary(source)) {
+        sources.add(source);
       }
     }
     return sources;
@@ -308,16 +305,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> get launchableServerLibrarySources {
-    List<Source> sources = new List<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      AnalysisTarget target = iterator.key;
-      CacheEntry entry = iterator.value;
-      if (target is Source &&
+    List<Source> sources = <Source>[];
+    for (Source source in _cache.sources) {
+      CacheEntry entry = _cache.get(source);
+      if (source is Source &&
           entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
-          !target.isInSystemLibrary &&
-          isServerLibrary(target)) {
-        sources.add(target);
+          !source.isInSystemLibrary &&
+          isServerLibrary(source)) {
+        sources.add(source);
       }
     }
     return sources;
@@ -364,15 +359,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> get sources {
-    List<Source> sources = new List<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      AnalysisTarget target = iterator.key;
-      if (target is Source) {
-        sources.add(target);
-      }
-    }
-    return sources;
+    return _cache.sources.toList();
   }
 
   /**
@@ -769,30 +756,28 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceKind == null) {
       return Source.EMPTY_LIST;
     }
-    List<Source> htmlSources = new List<Source>();
+    List<Source> htmlSources = <Source>[];
     while (true) {
       if (sourceKind == SourceKind.PART) {
         List<Source> librarySources = getLibrariesContaining(source);
-        MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-        while (iterator.moveNext()) {
-          CacheEntry entry = iterator.value;
+        for (Source source in _cache.sources) {
+          CacheEntry entry = _cache.get(source);
           if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
             List<Source> referencedLibraries =
                 (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
             if (_containsAny(referencedLibraries, librarySources)) {
-              htmlSources.add(iterator.key);
+              htmlSources.add(source);
             }
           }
         }
       } else {
-        MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-        while (iterator.moveNext()) {
-          CacheEntry entry = iterator.value;
+        for (Source source in _cache.sources) {
+          CacheEntry entry = _cache.get(source);
           if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
             List<Source> referencedLibraries =
                 (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
             if (_contains(referencedLibraries, source)) {
-              htmlSources.add(iterator.key);
+              htmlSources.add(source);
             }
           }
         }
@@ -823,13 +808,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       return <Source>[source];
     } else if (kind == SourceKind.PART) {
       List<Source> libraries = <Source>[];
-      MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-      while (iterator.moveNext()) {
-        AnalysisTarget target = iterator.key;
-        if (target is Source && getKindOf(target) == SourceKind.LIBRARY) {
-          List<Source> parts = _cache.getValue(target, INCLUDED_PARTS);
+      for (Source library in _cache.sources) {
+        CacheEntry entry = _cache.get(library);
+        if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY) {
+          List<Source> parts = entry.getValue(INCLUDED_PARTS);
           if (parts.contains(source)) {
-            libraries.add(target);
+            libraries.add(library);
           }
         }
       }
@@ -842,16 +826,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> getLibrariesDependingOn(Source librarySource) {
-    List<Source> dependentLibraries = new List<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      CacheEntry entry = iterator.value;
+    List<Source> dependentLibraries = <Source>[];
+    for (Source source in _cache.sources) {
+      CacheEntry entry = _cache.get(source);
       if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY) {
         if (_contains(entry.getValue(EXPORTED_LIBRARIES), librarySource)) {
-          dependentLibraries.add(iterator.key);
+          dependentLibraries.add(source);
         }
         if (_contains(entry.getValue(IMPORTED_LIBRARIES), librarySource)) {
-          dependentLibraries.add(iterator.key);
+          dependentLibraries.add(source);
         }
       }
     }
@@ -953,11 +936,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   List<Source> getSourcesWithFullName(String path) {
     List<Source> sources = <Source>[];
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      AnalysisTarget target = iterator.key;
-      if (target is Source && target.fullName == path) {
-        sources.add(target);
+    for (Source source in _cache.sources) {
+      if (source.fullName == path) {
+        sources.add(source);
       }
     }
     return sources;
@@ -1250,9 +1231,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * given list of [sources].
    */
   void _addSourcesInContainer(List<Source> sources, SourceContainer container) {
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      Source source = iterator.key;
+    for (Source source in _cache.sources) {
       if (container.contains(source)) {
         sources.add(source);
       }
@@ -1420,12 +1399,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * the given [kind].
    */
   List<Source> _getSources(SourceKind kind) {
-    List<Source> sources = new List<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      if (iterator.value.getValue(SOURCE_KIND) == kind &&
-          iterator.key is Source) {
-        sources.add(iterator.key);
+    List<Source> sources = <Source>[];
+    for (Source source in _cache.sources) {
+      CacheEntry entry = _cache.get(source);
+      if (entry.getValue(SOURCE_KIND) == kind) {
+        sources.add(source);
       }
     }
     return sources;
@@ -1624,7 +1602,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   void _removeFromPriorityOrder(Source source) {
     int count = _priorityOrder.length;
-    List<Source> newOrder = new List<Source>();
+    List<Source> newOrder = <Source>[];
     for (int i = 0; i < count; i++) {
       if (_priorityOrder[i] != source) {
         newOrder.add(_priorityOrder[i]);
@@ -1808,19 +1786,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     int consistencyCheckStart = JavaSystem.nanoTime();
     HashSet<Source> changedSources = new HashSet<Source>();
     HashSet<Source> missingSources = new HashSet<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      AnalysisTarget target = iterator.key;
-      if (target is Source) {
-        CacheEntry entry = iterator.value;
-        int sourceTime = getModificationStamp(target);
-        if (sourceTime != entry.modificationTime) {
-          changedSources.add(target);
-        }
-        if (entry.exception != null) {
-          if (!exists(target)) {
-            missingSources.add(target);
-          }
+    for (Source source in _cache.sources) {
+      CacheEntry entry = _cache.get(source);
+      int sourceTime = getModificationStamp(source);
+      if (sourceTime != entry.modificationTime) {
+        changedSources.add(source);
+      }
+      if (entry.exception != null) {
+        if (!exists(source)) {
+          missingSources.add(source);
         }
       }
     }

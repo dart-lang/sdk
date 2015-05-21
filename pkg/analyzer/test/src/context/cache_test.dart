@@ -183,6 +183,29 @@ class AnalysisCacheTest extends AbstractCacheTest {
     }
     expect(cache.size(), size);
   }
+
+  void test_sources() {
+    AnalysisTarget source1 = new TestSource('1.dart');
+    AnalysisTarget source2 = new TestSource('2.dart');
+    AnalysisTarget target1 = new _TestAnalysisTarget();
+    // no entries
+    expect(cache.sources, isEmpty);
+    // add source1
+    cache.put(new CacheEntry(source1));
+    expect(cache.sources, unorderedEquals([source1]));
+    // add target1
+    cache.put(new CacheEntry(target1));
+    expect(cache.sources, unorderedEquals([source1]));
+    // add source2
+    cache.put(new CacheEntry(source2));
+    expect(cache.sources, unorderedEquals([source1, source2]));
+    // remove source1
+    cache.remove(source1);
+    expect(cache.sources, unorderedEquals([source2]));
+    // remove source2
+    cache.remove(source2);
+    expect(cache.sources, isEmpty);
+  }
 }
 
 @reflectiveTest
@@ -841,4 +864,9 @@ class UniversalCachePartitionTest extends CachePartitionTest {
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _TestAnalysisTarget implements AnalysisTarget {
+  @override
+  Source get source => null;
 }
