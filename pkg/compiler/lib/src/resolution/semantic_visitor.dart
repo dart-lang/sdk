@@ -175,7 +175,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       parameter = rhs;
   ///     }
   ///
-  R errorFinalParameterSet(
+  R visitFinalParameterSet(
       SendSet node,
       ParameterElement parameter,
       Node rhs,
@@ -230,7 +230,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       variable = rhs;
   ///     }
   ///
-  R errorFinalLocalVariableSet(
+  R visitFinalLocalVariableSet(
       SendSet node,
       LocalVariableElement variable,
       Node rhs,
@@ -272,7 +272,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       o = rhs;
   ///     }
   ///
-  R errorLocalFunctionSet(
+  R visitLocalFunctionSet(
       SendSet node,
       LocalFunctionElement function,
       Node rhs,
@@ -457,7 +457,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo = rhs; }
   ///     }
   ///
-  R errorFinalSuperFieldSet(
+  R visitFinalSuperFieldSet(
       SendSet node,
       FieldElement field,
       Node rhs,
@@ -539,7 +539,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo = rhs; }
   ///     }
   ///
-  R errorSuperMethodSet(
+  R visitSuperMethodSet(
       Send node,
       MethodElement method,
       Node rhs,
@@ -570,7 +570,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() => super.foo;
   ///     }
   ///
-  R errorSuperSetterGet(
+  R visitSuperSetterGet(
       Send node,
       FunctionElement setter,
       A arg);
@@ -601,7 +601,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo = rhs; }
   ///     }
   ///
-  R errorSuperGetterSet(
+  R visitSuperGetterSet(
       SendSet node,
       FunctionElement getter,
       Node rhs,
@@ -634,7 +634,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///        m() { super.foo(null, 42; }
   ///     }
   ///
-  R errorSuperSetterInvoke(
+  R visitSuperSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
@@ -688,7 +688,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo = rhs; }
   ///
-  R errorFinalStaticFieldSet(
+  R visitFinalStaticFieldSet(
       SendSet node,
       FieldElement field,
       Node rhs,
@@ -760,7 +760,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo = rhs; }
   ///
-  R errorStaticFunctionSet(
+  R visitStaticFunctionSet(
       Send node,
       MethodElement function,
       Node rhs,
@@ -787,7 +787,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() => C.foo;
   ///
-  R errorStaticSetterGet(
+  R visitStaticSetterGet(
       Send node,
       FunctionElement setter,
       A arg);
@@ -814,7 +814,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo = rhs; }
   ///
-  R errorStaticGetterSet(
+  R visitStaticGetterSet(
       SendSet node,
       FunctionElement getter,
       Node rhs,
@@ -843,7 +843,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///     m() { C.foo(null, 42; }
   ///
-  R errorStaticSetterInvoke(
+  R visitStaticSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
@@ -879,7 +879,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     final foo = null;
   ///     m() { foo = rhs; }
   ///
-  R errorFinalTopLevelFieldSet(
+  R visitFinalTopLevelFieldSet(
       SendSet node,
       FieldElement field,
       Node rhs,
@@ -943,7 +943,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     foo(a, b) {};
   ///     m() { foo = rhs; }
   ///
-  R errorTopLevelFunctionSet(
+  R visitTopLevelFunctionSet(
       Send node,
       MethodElement function,
       Node rhs,
@@ -966,7 +966,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set foo(_) {}
   ///     m() => foo;
   ///
-  R errorTopLevelSetterGet(
+  R visitTopLevelSetterGet(
       Send node,
       FunctionElement setter,
       A arg);
@@ -989,7 +989,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     get foo => null;
   ///     m() { foo = rhs; }
   ///
-  R errorTopLevelGetterSet(
+  R visitTopLevelGetterSet(
       SendSet node,
       FunctionElement getter,
       Node rhs,
@@ -1014,7 +1014,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     set foo(_) {};
   ///     m() { foo(null, 42); }
   ///
-  R errorTopLevelSetterInvoke(
+  R visitTopLevelSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
@@ -1051,7 +1051,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     class C {}
   ///     m() { C = rhs; }
   ///
-  R errorClassTypeLiteralSet(
+  R visitClassTypeLiteralSet(
       SendSet node,
       ConstantExpression constant,
       Node rhs,
@@ -1087,7 +1087,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     typedef F();
   ///     m() { F = rhs; }
   ///
-  R errorTypedefTypeLiteralSet(
+  R visitTypedefTypeLiteralSet(
       SendSet node,
       ConstantExpression constant,
       Node rhs,
@@ -1127,7 +1127,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///       m() { T = rhs; }
   ///     }
   ///
-  R errorTypeVariableTypeLiteralSet(
+  R visitTypeVariableTypeLiteralSet(
       SendSet node,
       TypeVariableElement element,
       Node rhs,
@@ -1160,7 +1160,7 @@ abstract class SemanticSendVisitor<R, A> {
   /// For instance
   ///     m() { dynamic = rhs; }
   ///
-  R errorDynamicTypeLiteralSet(
+  R visitDynamicTypeLiteralSet(
       SendSet node,
       ConstantExpression constant,
       Node rhs,
@@ -3321,7 +3321,7 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m7() => prefix.C.unresolved = 42;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
-  R errorUnresolvedSet(
+  R visitUnresolvedSet(
       Send node,
       Element element,
       Node rhs,

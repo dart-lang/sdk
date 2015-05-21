@@ -33,219 +33,12 @@ abstract class ErrorBulkMixin<R, A>
   }
 
   @override
-  R errorClassTypeLiteralSet(
-      SendSet node,
-      ConstantExpression constant,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorDynamicTypeLiteralSet(
-      SendSet node,
-      ConstantExpression constant,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorFinalLocalVariableSet(
-      SendSet node,
-      LocalVariableElement variable,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorFinalParameterSet(
-      SendSet node,
-      ParameterElement parameter,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorFinalStaticFieldSet(
-      SendSet node,
-      FieldElement field,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorFinalSuperFieldSet(
-      SendSet node,
-      FieldElement field,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorFinalTopLevelFieldSet(
-      SendSet node,
-      FieldElement field,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorLocalFunctionSet(
-      SendSet node,
-      LocalFunctionElement function,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
   R errorNonConstantConstructorInvoke(
       NewExpression node,
       Element element,
       DartType type,
       NodeList arguments,
       CallStructure callStructure,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorStaticFunctionSet(
-      Send node,
-      MethodElement function,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorStaticGetterSet(
-      SendSet node,
-      FunctionElement getter,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorStaticSetterGet(
-      Send node,
-      FunctionElement setter,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorStaticSetterInvoke(
-      Send node,
-      FunctionElement setter,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorSuperGetterSet(
-      SendSet node,
-      FunctionElement getter,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorSuperMethodSet(
-      Send node,
-      MethodElement method,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorSuperSetterGet(
-      Send node,
-      FunctionElement setter,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorSuperSetterInvoke(
-      Send node,
-      FunctionElement setter,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorTopLevelFunctionSet(
-      Send node,
-      MethodElement function,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorTopLevelGetterSet(
-      SendSet node,
-      FunctionElement getter,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorTopLevelSetterGet(
-      Send node,
-      FunctionElement setter,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorTopLevelSetterInvoke(
-      Send node,
-      FunctionElement setter,
-      NodeList arguments,
-      CallStructure callStructure,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorTypeVariableTypeLiteralSet(
-      SendSet node,
-      TypeVariableElement element,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorTypedefTypeLiteralSet(
-      SendSet node,
-      ConstantExpression constant,
-      Node rhs,
-      A arg) {
-    return bulkHandleError(node, arg);
-  }
-
-  @override
-  R errorUnresolvedSet(
-      Send node,
-      Element element,
-      Node rhs,
       A arg) {
     return bulkHandleError(node, arg);
   }
@@ -1780,6 +1573,36 @@ abstract class InvokeBulkMixin<R, A>
       A arg) {
     return bulkHandleInvoke(node, arg);
   }
+
+  @override
+  R visitStaticSetterInvoke(
+      Send node,
+      FunctionElement setter,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleInvoke(node, arg);
+  }
+
+  @override
+  R visitSuperSetterInvoke(
+      Send node,
+      FunctionElement setter,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleInvoke(node, arg);
+  }
+
+  @override
+  R visitTopLevelSetterInvoke(
+      Send node,
+      FunctionElement setter,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleInvoke(node, arg);
+  }
 }
 
 /// Mixin that implements all `visitXGet` methods of [SemanticSendVisitor] by
@@ -1967,6 +1790,30 @@ abstract class GetBulkMixin<R, A>
       A arg) {
     return bulkHandleGet(node, arg);
   }
+
+  @override
+  R visitStaticSetterGet(
+      Send node,
+      FunctionElement setter,
+      A arg) {
+    return bulkHandleGet(node, arg);
+  }
+
+  @override
+  R visitSuperSetterGet(
+      Send node,
+      FunctionElement setter,
+      A arg) {
+    return bulkHandleGet(node, arg);
+  }
+
+  @override
+  R visitTopLevelSetterGet(
+      Send node,
+      FunctionElement setter,
+      A arg) {
+    return bulkHandleGet(node, arg);
+  }
 }
 
 /// Mixin that implements all `visitXSet` methods of [SemanticSendVisitor] by
@@ -2067,6 +1914,159 @@ abstract class SetBulkMixin<R, A>
   R visitTopLevelSetterSet(
       SendSet node,
       FunctionElement setter,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitClassTypeLiteralSet(
+      SendSet node,
+      ConstantExpression constant,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitDynamicTypeLiteralSet(
+      SendSet node,
+      ConstantExpression constant,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitFinalLocalVariableSet(
+      SendSet node,
+      LocalVariableElement variable,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitFinalParameterSet(
+      SendSet node,
+      ParameterElement parameter,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitFinalStaticFieldSet(
+      SendSet node,
+      FieldElement field,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitFinalSuperFieldSet(
+      SendSet node,
+      FieldElement field,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitFinalTopLevelFieldSet(
+      SendSet node,
+      FieldElement field,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitLocalFunctionSet(
+      SendSet node,
+      LocalFunctionElement function,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitStaticFunctionSet(
+      Send node,
+      MethodElement function,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitStaticGetterSet(
+      SendSet node,
+      FunctionElement getter,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitSuperGetterSet(
+      SendSet node,
+      FunctionElement getter,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitSuperMethodSet(
+      Send node,
+      MethodElement method,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitTopLevelFunctionSet(
+      Send node,
+      MethodElement function,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitTopLevelGetterSet(
+      SendSet node,
+      FunctionElement getter,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitTypeVariableTypeLiteralSet(
+      SendSet node,
+      TypeVariableElement element,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitTypedefTypeLiteralSet(
+      SendSet node,
+      ConstantExpression constant,
+      Node rhs,
+      A arg) {
+    return bulkHandleSet(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSet(
+      Send node,
+      Element element,
       Node rhs,
       A arg) {
     return bulkHandleSet(node, arg);
@@ -3395,7 +3395,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorClassTypeLiteralSet(
+  R visitClassTypeLiteralSet(
       SendSet node,
       ConstantExpression constant,
       Node rhs,
@@ -3405,7 +3405,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorDynamicTypeLiteralSet(
+  R visitDynamicTypeLiteralSet(
       SendSet node,
       ConstantExpression constant,
       Node rhs,
@@ -3426,7 +3426,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorFinalLocalVariableSet(
+  R visitFinalLocalVariableSet(
       SendSet node,
       LocalVariableElement variable,
       Node rhs,
@@ -3447,7 +3447,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorFinalParameterSet(
+  R visitFinalParameterSet(
       SendSet node,
       ParameterElement parameter,
       Node rhs,
@@ -3468,7 +3468,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorFinalStaticFieldSet(
+  R visitFinalStaticFieldSet(
       SendSet node,
       FieldElement field,
       Node rhs,
@@ -3478,7 +3478,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorFinalSuperFieldSet(
+  R visitFinalSuperFieldSet(
       SendSet node,
       FieldElement field,
       Node rhs,
@@ -3499,7 +3499,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorFinalTopLevelFieldSet(
+  R visitFinalTopLevelFieldSet(
       SendSet node,
       FieldElement field,
       Node rhs,
@@ -3538,7 +3538,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorLocalFunctionSet(
+  R visitLocalFunctionSet(
       SendSet node,
       LocalFunctionElement function,
       Node rhs,
@@ -3548,7 +3548,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorStaticFunctionSet(
+  R visitStaticFunctionSet(
       Send node,
       MethodElement function,
       Node rhs,
@@ -3558,7 +3558,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorStaticGetterSet(
+  R visitStaticGetterSet(
       SendSet node,
       FunctionElement getter,
       Node rhs,
@@ -3568,7 +3568,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorStaticSetterGet(
+  R visitStaticSetterGet(
       Send node,
       FunctionElement setter,
       A arg) {
@@ -3576,7 +3576,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorStaticSetterInvoke(
+  R visitStaticSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
@@ -3587,7 +3587,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorSuperGetterSet(
+  R visitSuperGetterSet(
       SendSet node,
       FunctionElement getter,
       Node rhs,
@@ -3597,7 +3597,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorSuperMethodSet(
+  R visitSuperMethodSet(
       Send node,
       MethodElement method,
       Node rhs,
@@ -3607,7 +3607,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorSuperSetterGet(
+  R visitSuperSetterGet(
       Send node,
       FunctionElement setter,
       A arg) {
@@ -3615,7 +3615,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorSuperSetterInvoke(
+  R visitSuperSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
@@ -3626,7 +3626,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorTopLevelFunctionSet(
+  R visitTopLevelFunctionSet(
       Send node,
       MethodElement function,
       Node rhs,
@@ -3636,7 +3636,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorTopLevelGetterSet(
+  R visitTopLevelGetterSet(
       SendSet node,
       FunctionElement getter,
       Node rhs,
@@ -3646,7 +3646,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorTopLevelSetterGet(
+  R visitTopLevelSetterGet(
       Send node,
       FunctionElement setter,
       A arg) {
@@ -3654,7 +3654,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorTopLevelSetterInvoke(
+  R visitTopLevelSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
@@ -3665,7 +3665,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorTypeVariableTypeLiteralSet(
+  R visitTypeVariableTypeLiteralSet(
       SendSet node,
       TypeVariableElement element,
       Node rhs,
@@ -3675,7 +3675,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorTypedefTypeLiteralSet(
+  R visitTypedefTypeLiteralSet(
       SendSet node,
       ConstantExpression constant,
       Node rhs,
@@ -5120,7 +5120,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
   }
 
   @override
-  R errorUnresolvedSet(
+  R visitUnresolvedSet(
       Send node,
       Element element,
       Node rhs,
@@ -6400,6 +6400,12 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       FunctionElement getter,
       A arg);
 
+  R handleStaticGetterSet(
+      Send node,
+      FunctionElement getter,
+      Node rhs,
+      A arg);
+
   R handleStaticGetterInvoke(
       Send node,
       FunctionElement getter,
@@ -6407,9 +6413,33 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       CallStructure callStructure,
       A arg);
 
+  R handleStaticSetterGet(
+      SendSet node,
+      FunctionElement setter,
+      A arg);
+
   R handleStaticSetterSet(
       SendSet node,
       FunctionElement setter,
+      Node rhs,
+      A arg);
+
+  R handleStaticSetterInvoke(
+      Send node,
+      FunctionElement setter,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg);
+
+  R handleFinalStaticFieldSet(
+      SendSet node,
+      FieldElement field,
+      Node rhs,
+      A arg);
+
+  R handleStaticFunctionSet(
+      SendSet node,
+      MethodElement function,
       Node rhs,
       A arg);
 
@@ -6564,6 +6594,15 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
   }
 
   @override
+  R visitTopLevelGetterSet(
+      SendSet node,
+      FunctionElement getter,
+      Node rhs,
+      A arg) {
+    return handleStaticGetterSet(node, getter, rhs, arg);
+  }
+
+  @override
   R visitTopLevelGetterInvoke(
       Send node,
       FunctionElement getter,
@@ -6581,6 +6620,89 @@ abstract class BaseImplementationOfStaticsMixin<R, A>
       Node rhs,
       A arg) {
     return handleStaticSetterSet(node, setter, rhs, arg);
+  }
+
+  @override
+  R visitStaticSetterInvoke(
+      Send node,
+      FunctionElement setter,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return handleStaticSetterInvoke(
+        node, setter, arguments, callStructure, arg);
+  }
+
+  @override
+  R visitTopLevelSetterInvoke(
+      Send node,
+      FunctionElement setter,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return handleStaticSetterInvoke(
+        node, setter, arguments, callStructure, arg);
+  }
+
+  @override
+  R visitStaticSetterGet(
+      Send node,
+      FunctionElement setter,
+      A arg) {
+    return handleStaticSetterGet(node, setter, arg);
+  }
+
+  @override
+  R visitStaticGetterSet(
+      SendSet node,
+      FunctionElement getter,
+      Node rhs,
+      A arg) {
+    return handleStaticGetterSet(node, getter, rhs, arg);
+  }
+
+  @override
+  R visitTopLevelSetterGet(
+      Send node,
+      FunctionElement setter,
+      A arg) {
+    return handleStaticSetterGet(node, setter, arg);
+  }
+
+  @override
+  R visitFinalStaticFieldSet(
+      SendSet node,
+      FieldElement field,
+      Node rhs,
+      A arg) {
+    return handleFinalStaticFieldSet(node, field, rhs, arg);
+  }
+
+  @override
+  R visitFinalTopLevelFieldSet(
+      SendSet node,
+      FieldElement field,
+      Node rhs,
+      A arg) {
+    return handleFinalStaticFieldSet(node, field, rhs, arg);
+  }
+
+  @override
+  R visitStaticFunctionSet(
+      Send node,
+      MethodElement function,
+      Node rhs,
+      A arg) {
+    return handleStaticFunctionSet(node, function, rhs, arg);
+  }
+
+  @override
+  R visitTopLevelFunctionSet(
+      Send node,
+      MethodElement function,
+      Node rhs,
+      A arg) {
+    return handleStaticFunctionSet(node, function, rhs, arg);
   }
 }
 
@@ -7049,6 +7171,12 @@ abstract class BaseImplementationOfLocalsMixin<R, A>
       Node rhs,
       A arg);
 
+  R handleImmutableLocalSet(
+      SendSet node,
+      LocalElement element,
+      Node rhs,
+      A arg);
+
   @override
   R visitLocalFunctionGet(
       Send node,
@@ -7119,6 +7247,33 @@ abstract class BaseImplementationOfLocalsMixin<R, A>
       Node rhs,
       A arg) {
     return handleLocalSet(node, parameter, rhs, arg);
+  }
+
+  @override
+  R visitFinalLocalVariableSet(
+      SendSet node,
+      LocalVariableElement variable,
+      Node rhs,
+      A arg) {
+    return handleImmutableLocalSet(node, variable, rhs, arg);
+  }
+
+  @override
+  R visitFinalParameterSet(
+      SendSet node,
+      ParameterElement parameter,
+      Node rhs,
+      A arg) {
+    return handleImmutableLocalSet(node, parameter, rhs, arg);
+  }
+
+  @override
+  R visitLocalFunctionSet(
+      SendSet node,
+      LocalFunctionElement function,
+      Node rhs,
+      A arg) {
+    return handleImmutableLocalSet(node, function, rhs, arg);
   }
 }
 

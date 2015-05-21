@@ -1692,7 +1692,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorUnresolvedSet(
+  ir.Primitive visitUnresolvedSet(
       ast.Send node,
       Element element,
       ast.Node rhs, _) {
@@ -1748,45 +1748,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorTopLevelFunctionSet(
-      ast.Send node,
-      MethodElement function,
-      ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
-        new Selector.setter(function.name, function.library),
-        [visit(rhs)]);
-  }
-
-  @override
-  ir.Primitive errorTopLevelSetterGet(
-      ast.Send node,
-      FunctionElement setter, _) {
-    return buildStaticNoSuchMethod(
-        new Selector.getter(setter.name, setter.library), []);
-  }
-
-  @override
-  ir.Primitive errorTopLevelGetterSet(
-      ast.SendSet node,
-      FunctionElement getter,
-      ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
-        new Selector.setter(getter.name, getter.library),
-        [visit(rhs)]);
-  }
-
-  @override
-  ir.Primitive errorTopLevelSetterInvoke(
-      ast.Send node,
-      FunctionElement setter,
-      ast.NodeList arguments,
-      CallStructure callStructure, _) {
-    return buildStaticNoSuchMethod(
-        new Selector.getter(setter.name, setter.library), []);
-  }
-
-  @override
-  ir.Primitive errorClassTypeLiteralSet(
+  ir.Primitive visitClassTypeLiteralSet(
       ast.SendSet node,
       TypeConstantExpression constant,
       ast.Node rhs, _) {
@@ -1797,7 +1759,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorTypedefTypeLiteralSet(
+  ir.Primitive visitTypedefTypeLiteralSet(
       ast.SendSet node,
       TypeConstantExpression constant,
       ast.Node rhs, _) {
@@ -1808,7 +1770,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorTypeVariableTypeLiteralSet(
+  ir.Primitive visitTypeVariableTypeLiteralSet(
       ast.SendSet node,
       TypeVariableElement element,
       ast.Node rhs, _) {
@@ -1817,7 +1779,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorDynamicTypeLiteralSet(
+  ir.Primitive visitDynamicTypeLiteralSet(
       ast.SendSet node,
       ConstantExpression constant,
       ast.Node rhs, _) {
@@ -1836,36 +1798,18 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorFinalLocalVariableSet(
-      ast.SendSet node,
-      LocalVariableElement variable,
-      ast.Node rhs, _) {
-    Selector selector = new Selector.setter(variable.name, null);
-    return buildStaticNoSuchMethod(selector, [visit(rhs)]);
-  }
-
-  @override
-  ir.Primitive errorFinalParameterSet(
-      ast.SendSet node,
-      ParameterElement parameter,
-      ast.Node rhs, _) {
-    Selector selector = new Selector.setter(parameter.name, null);
-    return buildStaticNoSuchMethod(selector, [visit(rhs)]);
-  }
-
-  @override
-  ir.Primitive errorFinalStaticFieldSet(
+  ir.Primitive handleFinalStaticFieldSet(
       ast.SendSet node,
       FieldElement field,
       ast.Node rhs, _) {
-    // TODO(asgerf): Include class name somehow?
+    // TODO(asgerf): Include class name somehow for static class members?
     return buildStaticNoSuchMethod(
         new Selector.setter(field.name, field.library),
         [visit(rhs)]);
   }
 
   @override
-  ir.Primitive errorFinalSuperFieldSet(
+  ir.Primitive visitFinalSuperFieldSet(
       ast.SendSet node,
       FieldElement field,
       ast.Node rhs, _) {
@@ -1876,27 +1820,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorFinalTopLevelFieldSet(
+  ir.Primitive handleImmutableLocalSet(
       ast.SendSet node,
-      FieldElement field,
+      LocalElement local,
       ast.Node rhs, _) {
     return buildStaticNoSuchMethod(
-        new Selector.setter(field.name, field.library),
+        new Selector.setter(local.name, null),
         [visit(rhs)]);
   }
 
   @override
-  ir.Primitive errorLocalFunctionSet(
-      ast.SendSet node,
-      LocalFunctionElement function,
-      ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
-        new Selector.setter(function.name, null),
-        [visit(rhs)]);
-  }
-
-  @override
-  ir.Primitive errorStaticFunctionSet(
+  ir.Primitive handleStaticFunctionSet(
       ast.Send node,
       MethodElement function,
       ast.Node rhs,
@@ -1907,7 +1841,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorStaticGetterSet(
+  ir.Primitive handleStaticGetterSet(
       ast.SendSet node,
       FunctionElement getter,
       ast.Node rhs,
@@ -1918,7 +1852,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorStaticSetterGet(
+  ir.Primitive handleStaticSetterGet(
       ast.Send node,
       FunctionElement setter,
       _) {
@@ -1928,7 +1862,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorStaticSetterInvoke(
+  ir.Primitive handleStaticSetterInvoke(
       ast.Send node,
       FunctionElement setter,
       ast.NodeList arguments,
@@ -1942,7 +1876,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorSuperGetterSet(
+  ir.Primitive visitSuperGetterSet(
       ast.SendSet node,
       FunctionElement getter,
       ast.Node rhs,
@@ -1954,7 +1888,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorSuperMethodSet(
+  ir.Primitive visitSuperMethodSet(
       ast.Send node,
       MethodElement method,
       ast.Node rhs,
@@ -1966,7 +1900,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorSuperSetterGet(
+  ir.Primitive visitSuperSetterGet(
       ast.Send node,
       FunctionElement setter, _) {
     Selector selector = useSelectorTypeOfNode(
@@ -1976,7 +1910,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorSuperSetterInvoke(
+  ir.Primitive visitSuperSetterInvoke(
       ast.Send node,
       FunctionElement setter,
       ast.NodeList arguments,

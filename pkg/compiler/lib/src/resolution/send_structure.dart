@@ -219,7 +219,7 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             callStructure,
             arg);
       case AccessKind.STATIC_SETTER:
-        return visitor.errorStaticSetterInvoke(
+        return visitor.visitStaticSetterInvoke(
             node,
             semantics.element,
             node.argumentsNode,
@@ -248,7 +248,7 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             callStructure,
             arg);
       case AccessKind.TOPLEVEL_SETTER:
-        return visitor.errorTopLevelSetterInvoke(
+        return visitor.visitTopLevelSetterInvoke(
             node,
             semantics.element,
             node.argumentsNode,
@@ -324,7 +324,7 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
             callStructure,
             arg);
       case AccessKind.SUPER_SETTER:
-        return visitor.errorSuperSetterInvoke(
+        return visitor.visitSuperSetterInvoke(
             node,
             semantics.element,
             node.argumentsNode,
@@ -463,7 +463,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             arg);
       case AccessKind.STATIC_SETTER:
-        return visitor.errorStaticSetterGet(
+        return visitor.visitStaticSetterGet(
             node,
             semantics.element,
             arg);
@@ -484,7 +484,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             arg);
       case AccessKind.TOPLEVEL_SETTER:
-        return visitor.errorTopLevelSetterGet(
+        return visitor.visitTopLevelSetterGet(
             node,
             semantics.element,
             arg);
@@ -536,7 +536,7 @@ class GetStructure<R, A> implements SendStructure<R, A> {
             semantics.element,
             arg);
       case AccessKind.SUPER_SETTER:
-        return visitor.errorSuperSetterGet(
+        return visitor.visitSuperSetterGet(
             node,
             semantics.element,
             arg);
@@ -585,7 +585,7 @@ class SetStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             arg);
       case AccessKind.LOCAL_FUNCTION:
-        return visitor.errorLocalFunctionSet(
+        return visitor.visitLocalFunctionSet(
             node,
             semantics.element,
             node.arguments.single,
@@ -597,7 +597,7 @@ class SetStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             arg);
       case AccessKind.FINAL_LOCAL_VARIABLE:
-        return visitor.errorFinalLocalVariableSet(
+        return visitor.visitFinalLocalVariableSet(
             node,
             semantics.element,
             node.arguments.single,
@@ -609,7 +609,7 @@ class SetStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             arg);
       case AccessKind.FINAL_PARAMETER:
-        return visitor.errorFinalParameterSet(
+        return visitor.visitFinalParameterSet(
             node,
             semantics.element,
             node.arguments.single,
@@ -621,19 +621,19 @@ class SetStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             arg);
       case AccessKind.FINAL_STATIC_FIELD:
-        return visitor.errorFinalStaticFieldSet(
+        return visitor.visitFinalStaticFieldSet(
             node,
             semantics.element,
             node.arguments.single,
             arg);
       case AccessKind.STATIC_METHOD:
-        return visitor.errorStaticFunctionSet(
+        return visitor.visitStaticFunctionSet(
             node,
             semantics.element,
             node.arguments.single,
             arg);
       case AccessKind.STATIC_GETTER:
-        return visitor.errorStaticGetterSet(
+        return visitor.visitStaticGetterSet(
             node,
             semantics.element,
             node.arguments.single,
@@ -651,19 +651,19 @@ class SetStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             arg);
       case AccessKind.FINAL_TOPLEVEL_FIELD:
-        return visitor.errorFinalTopLevelFieldSet(
+        return visitor.visitFinalTopLevelFieldSet(
             node,
             semantics.element,
             node.arguments.single,
             arg);
       case AccessKind.TOPLEVEL_METHOD:
-        return visitor.errorTopLevelFunctionSet(
+        return visitor.visitTopLevelFunctionSet(
             node,
             semantics.element,
             node.arguments.single,
             arg);
       case AccessKind.TOPLEVEL_GETTER:
-        return visitor.errorTopLevelGetterSet(
+        return visitor.visitTopLevelGetterSet(
             node,
             semantics.element,
             node.arguments.single,
@@ -675,25 +675,25 @@ class SetStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             arg);
       case AccessKind.CLASS_TYPE_LITERAL:
-        return visitor.errorClassTypeLiteralSet(
+        return visitor.visitClassTypeLiteralSet(
             node,
             semantics.constant,
             node.arguments.single,
             arg);
       case AccessKind.TYPEDEF_TYPE_LITERAL:
-        return visitor.errorTypedefTypeLiteralSet(
+        return visitor.visitTypedefTypeLiteralSet(
             node,
             semantics.constant,
             node.arguments.single,
             arg);
       case AccessKind.DYNAMIC_TYPE_LITERAL:
-        return visitor.errorDynamicTypeLiteralSet(
+        return visitor.visitDynamicTypeLiteralSet(
             node,
             semantics.constant,
             node.arguments.single,
             arg);
       case AccessKind.TYPE_PARAMETER_TYPE_LITERAL:
-        return visitor.errorTypeVariableTypeLiteralSet(
+        return visitor.visitTypeVariableTypeLiteralSet(
             node,
             semantics.element,
             node.arguments.single,
@@ -717,19 +717,19 @@ class SetStructure<R, A> implements SendStructure<R, A> {
             node.arguments.single,
             arg);
       case AccessKind.SUPER_FINAL_FIELD:
-        return visitor.errorFinalSuperFieldSet(
+        return visitor.visitFinalSuperFieldSet(
             node,
             semantics.element,
             node.arguments.single,
             arg);
       case AccessKind.SUPER_METHOD:
-        return visitor.errorSuperMethodSet(
+        return visitor.visitSuperMethodSet(
             node,
             semantics.element,
             node.arguments.single,
             arg);
       case AccessKind.SUPER_GETTER:
-        return visitor.errorSuperGetterSet(
+        return visitor.visitSuperGetterSet(
             node,
             semantics.element,
             node.arguments.single,
@@ -746,7 +746,7 @@ class SetStructure<R, A> implements SendStructure<R, A> {
       case AccessKind.UNRESOLVED_SUPER:
         // TODO(johnniwinther): Handle this separately.
       case AccessKind.UNRESOLVED:
-        return visitor.errorUnresolvedSet(
+        return visitor.visitUnresolvedSet(
             node,
             semantics.element,
             node.arguments.single,

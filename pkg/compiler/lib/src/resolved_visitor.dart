@@ -412,7 +412,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorStaticSetterGet(
+  R visitStaticSetterGet(
       Send node,
       FunctionElement setter,
       ResolvedKindVisitor<R> visitor) {
@@ -420,7 +420,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorStaticSetterInvoke(
+  R visitStaticSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
@@ -430,7 +430,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorSuperSetterGet(
+  R visitSuperSetterGet(
       Send node,
       FunctionElement setter,
       ResolvedKindVisitor<R> visitor) {
@@ -438,7 +438,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorSuperSetterInvoke(
+  R visitSuperSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
@@ -448,7 +448,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorTopLevelSetterGet(
+  R visitTopLevelSetterGet(
       Send node,
       FunctionElement setter,
       ResolvedKindVisitor<R> visitor) {
@@ -456,7 +456,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorTopLevelSetterInvoke(
+  R visitTopLevelSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
