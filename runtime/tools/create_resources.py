@@ -7,13 +7,14 @@
 
 import os
 import sys
-from os.path import join
+from os.path import join, splitext
 import time
 from optparse import OptionParser
 import re
 from datetime import date
+import zlib
 
-def makeResources(root_dir, client_dir, input_files, table_name):
+def makeResources(root_dir, client_dir, input_files, table_name, compress, no_compress_extensions):
   result = ''
   resources = []
 
@@ -25,6 +26,10 @@ def makeResources(root_dir, client_dir, input_files, table_name):
       resource_file_name = resource_file[ len(client_dir) : ]
     else:
       resource_file_name = resource_file
+    _, ext = os.path.splitext(resource_file)
+    if ext in no_compress_extensions:
+      # Force no compression for files of this extension.
+      compress = None
     resource_url = '/%s' % resource_file_name
     result += '// %s\n' % resource_file
     result += 'const char '
@@ -33,7 +38,10 @@ def makeResources(root_dir, client_dir, input_files, table_name):
     result += '[] = {\n   '
     fileHandle = open(resource_file, 'rb')
     lineCounter = 0
-    for byte in fileHandle.read():
+    file_contents = fileHandle.read()
+    if compress:
+      file_contents = zlib.compress(file_contents)
+    for byte in file_contents:
       result += r" '\x%02x'," % ord(byte)
       lineCounter += 1
       if lineCounter == 10:
@@ -44,7 +52,7 @@ def makeResources(root_dir, client_dir, input_files, table_name):
     result += ' 0\n};\n\n'
     resource_url_scrubbed = re.sub(r'\\', '/', resource_url)
     resources.append(
-        (resource_url_scrubbed, resource_name, os.stat(resource_file).st_size));
+        (resource_url_scrubbed, resource_name, len(file_contents)));
 
   # Write the resource table.
   result += 'ResourcesEntry __%s_resources_[] = ' % table_name
@@ -57,7 +65,7 @@ def makeResources(root_dir, client_dir, input_files, table_name):
 
 
 def makeFile(output_file, root_dir, client_dir, input_files, outer_namespace,
-             inner_namespace, table_name):
+             inner_namespace, table_name, compress, no_compress_extensions):
   cc_text = '''
 // Copyright (c) %d, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -75,7 +83,8 @@ struct ResourcesEntry {
 };
 
 '''
-  cc_text += makeResources(root_dir, client_dir, input_files, table_name)
+  cc_text += makeResources(root_dir, client_dir, input_files, table_name,
+                           compress, no_compress_extensions)
   cc_text += '\n'
   if inner_namespace != None:
     cc_text += '}  // namespace %s\n' % inner_namespace
@@ -107,6 +116,14 @@ def main(args):
     parser.add_option("--client_root",
                       action="store", type="string",
                       help="root directory client resources")
+    parser.add_option("--compress",
+                      action="store_true",
+                      help="zlib compress resources")
+    parser.add_option("--no_compress_extensions",
+                      action="append",
+                      default=['.dart'],
+                      help="file extensions that should not be compressed.")
+
     (options, args) = parser.parse_args()
     if not options.output:
       sys.stderr.write('--output not specified\n')
@@ -139,7 +156,8 @@ def main(args):
 
     if not makeFile(options.output, options.root_prefix, options.client_root,
                     files, options.outer_namespace, options.inner_namespace,
-                    options.table_name):
+                    options.table_name, options.compress,
+                    options.no_compress_extensions):
       return -1
 
     return 0

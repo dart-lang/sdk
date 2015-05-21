@@ -506,6 +506,7 @@
           'action': [
             'python',
             'tools/create_resources.py',
+            '--compress',
             '--output', '<(resources_cc_file)',
             '--outer_namespace', 'dart',
             '--inner_namespace', 'bin',

@@ -318,8 +318,9 @@ Dart_Handle VmService::LoadResource(Dart_Handle library,
   RETURN_ERROR_HANDLE(result);
 
   // Make invoke call.
-  const intptr_t kNumArgs = 2;
-  Dart_Handle args[kNumArgs] = { name, data_list };
+  const intptr_t kNumArgs = 3;
+  Dart_Handle compressed = Dart_True();
+  Dart_Handle args[kNumArgs] = { name, data_list, compressed };
   result = Dart_Invoke(library, Dart_NewStringFromCString("_addResource"),
                        kNumArgs, args);
   return result;
