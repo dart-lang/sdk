@@ -346,7 +346,7 @@ await_backwards_compatibility_test/await4: Crash # (test1()async{var x=await 9;E
 await_backwards_compatibility_test/none: Crash # (test1()async{var x=await 9;Expect.equals(9,x);}): cannot handle async/sync*/async* functions
 await_exceptions_test: Crash # (awaitFoo()async{await foo();}): cannot handle async/sync*/async* functions
 await_for_cancel_test: Crash # (test()async{await test1();await test2();}): cannot handle async/sync*/async* functions
-await_for_test: Crash # unsupported element kind: t4:field
+await_for_test: Crash #  cannot handle async/sync*/async* functions
 await_for_use_local_test: Crash #  cannot handle async/sync*/async* functions
 await_future_test: Crash #  cannot handle async/sync*/async* functions
 await_nonfuture_test: Crash # (foo()async{Expect.equals(X,10);return await 5;}): cannot handle async/sync*/async* functions
@@ -707,6 +707,7 @@ is_not_class2_test: Crash # Instance of 'TypeOperator': type check unimplemented
 is_object_test: RuntimeError # Please triage this failure.
 isnot_malformed_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue10581_test: Crash #  Unhandled node
+issue10721_test: RuntimeError # Please triage this failure.
 issue10747_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue10783_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue11724_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -800,7 +801,7 @@ mixin_type_parameters_super_test: Crash # Instance of 'TypeOperator': type check
 mixin_typedef_constructor_test: Crash # Please triage this failure.
 mixin_with_two_implicit_constructors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 modulo_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-multiple_field_assignment_constructor_test: Crash # unsupported element kind: a:field
+multiple_field_assignment_constructor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 named_parameter_clash_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 named_parameters_aggregated_test/05: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 namer2_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<String>.
@@ -809,7 +810,7 @@ nested_switch_label_test: Crash #  Unhandled node
 no_such_constructor2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 no_such_constructor_test/01: MissingRuntimeError # Please triage this failure.
 no_such_method_dispatcher_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-no_such_method_empty_selector_test: Crash # unsupported element kind: b:field
+no_such_method_empty_selector_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 no_such_method_test: RuntimeError # Please triage this failure.
 non_const_super_negative_test: Crash # Please triage this failure.
 not_enough_positional_arguments_test/00: MissingRuntimeError # Please triage this failure.
@@ -818,7 +819,7 @@ null2_test: Crash # Instance of 'TypeOperator': type check unimplemented for dyn
 null_inline_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 null_is2_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 null_is_test: RuntimeError # Please triage this failure.
-null_no_such_method_test: Crash # unsupported element kind: array:field
+null_no_such_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 null_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
 null_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
 null_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
@@ -895,11 +896,11 @@ super_operator_index2_test: RuntimeError # Please triage this failure.
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
-super_operator_index_test/01: Crash # (super[4]+=5): visitUnresolvedSuperGetterCompoundIndexSet
+super_operator_index_test/01: Crash # Please triage this failure.
 super_operator_index_test/03: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-super_operator_index_test/04: Crash # (super[4]+=5): visitUnresolvedSuperSetterCompoundIndexSet
+super_operator_index_test/04: Crash # Please triage this failure.
 super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-super_operator_index_test/06: Crash # (super[4]+=5): visitUnresolvedSuperGetterCompoundIndexSet
+super_operator_index_test/06: Crash # Please triage this failure.
 super_operator_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 switch6_test: Crash # (switch (a){case 0:{x=0;break;}case 1:x=1;break;}): Unhandled node
 switch8_test: Crash # (switch (new List(1)[0]){case const A():throw 'Test failed';}): Unhandled node
