@@ -40813,7 +40813,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
       // If getting/indexing attributes throws, count that as corrupt.
       attrs = element.attributes;
       isAttr = attrs['is'];
-      corrupted = Element.hasCorruptedAttributes(element);
+      corrupted = Element._hasCorruptedAttributes(element);
     } catch(e) {}
      var elementText = 'element unprintable';
     try {
