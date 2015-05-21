@@ -102,12 +102,8 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
-element_animate_test/omit_timing: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
-element_animate_test/timing_dict: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
-
-[ $runtime == chrome && ($system == windows || $system == macos) ]
-# New failure on Chrome 42.  Linux bots are not yet updated.
-element_animate_test/simple_timing: RuntimeError # Please triage this failure
+#element_animate_test/omit_timing: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
+#element_animate_test/timing_dict: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
