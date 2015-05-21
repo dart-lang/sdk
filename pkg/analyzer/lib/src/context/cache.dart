@@ -657,6 +657,9 @@ class CacheFlushManager<T> {
    * Records that the given [result] was just read from the cache.
    */
   void resultAccessed(TargetedResult result) {
+    if (maxSize <= 0) {
+      return;
+    }
     if (recentlyUsed.remove(result)) {
       recentlyUsed.add(result);
     }
@@ -667,6 +670,9 @@ class CacheFlushManager<T> {
    * Returns [TargetedResult]s that should be flushed from the cache.
    */
   List<TargetedResult> resultStored(TargetedResult newResult, T newValue) {
+    if (maxSize <= 0) {
+      return TargetedResult.EMPTY_LIST;
+    }
     if (!recentlyUsed.remove(newResult)) {
       int size = policy.measure(newValue);
       resultSizeMap[newResult] = size;
