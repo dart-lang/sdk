@@ -8,10 +8,16 @@ var core = dart.import(core);
       this.name = name;
     }
   }
+  dart.setSignature(JsName, {
+    constructors: () => ({JsName: [JsName, [], {am: core.String}]})
+  });
   class Overload extends core.Object {
     Overload() {
     }
   }
+  dart.setSignature(Overload, {
+    constructors: () => ({Overload: [Overload, []]})
+  });
   let overload = dart.const(new Overload());
   let EventListener = dart.typedef('EventListener', () => dart.functionType(dart.void, [Event]));
   class Event extends core.Object {}

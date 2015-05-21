@@ -94,6 +94,7 @@ suite('instanceOf', () => {
   let runtimeType = dart.realRuntimeType;
   let functionType = dart.functionType;
   let typedef = dart.typedef;
+  let isSubtype = dart.isSubtype;
 
   let Object = core.Object;
   let String = core.String;
@@ -275,6 +276,28 @@ suite('instanceOf', () => {
     // Raw generic types
     checkType(m5, Map);
     checkType(m4, Map);
+  });
+
+  test('constructors', () => {
+    class C extends core.Object {
+      C(x) {};
+      named(x, y) {};
+    }
+    dart.defineNamedConstructor(C, 'named');
+    dart.setSignature(C, {
+      constructors: () => ({
+        C: [C, [core.int]],
+        named: [C, [core.int, core.int]]
+      })
+    });
+    let getType = dart.classGetConstructorType;
+    isSubtype(getType(C), dart.functionType(C, [core.int]));
+    isSubtype(getType(C), dart.functionType(C, [core.String]), false);
+    isSubtype(getType(C, 'C'), dart.functionType(C, [core.int]));
+    isSubtype(getType(C, 'C'), dart.functionType(C, [core.String]), false);
+    isSubtype(getType(C, 'named'), dart.functionType(C, [core.int, core.int]));
+    isSubtype(getType(C, 'named'),
+              dart.functionType(C, [core.int, core.String]), false);
   });
 
   test('generic and inheritance', () => {

@@ -73,6 +73,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(BenchmarkBase, {
+    constructors: () => ({BenchmarkBase: [BenchmarkBase, [core.String]]}),
     methods: () => ({
       run: [dart.void, []],
       warmup: [dart.void, []],

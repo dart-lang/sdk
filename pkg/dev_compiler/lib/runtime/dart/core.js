@@ -33,6 +33,7 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.setSignature(Object, {
+    constructors: () => ({Object: [Object, []]}),
     methods: () => ({
       '==': [bool, [Object]],
       toString: [String, []],
@@ -45,16 +46,25 @@ var convert = dart.lazyImport(convert);
       this.name = name;
     }
   }
+  dart.setSignature(JsName, {
+    constructors: () => ({JsName: [JsName, [], {am: String}]})
+  });
   class JsPeerInterface extends Object {
     JsPeerInterface(opts) {
       let name = opts && 'name' in opts ? opts.name : null;
       this.name = name;
     }
   }
+  dart.setSignature(JsPeerInterface, {
+    constructors: () => ({JsPeerInterface: [JsPeerInterface, [], {am: String}]})
+  });
   class SupportJsExtensionMethod extends Object {
     SupportJsExtensionMethod() {
     }
   }
+  dart.setSignature(SupportJsExtensionMethod, {
+    constructors: () => ({SupportJsExtensionMethod: [SupportJsExtensionMethod, []]})
+  });
   class Deprecated extends Object {
     Deprecated(expires) {
       this.expires = expires;
@@ -63,16 +73,25 @@ var convert = dart.lazyImport(convert);
       return `Deprecated feature. Will be removed ${this.expires}`;
     }
   }
+  dart.setSignature(Deprecated, {
+    constructors: () => ({Deprecated: [Deprecated, [String]]})
+  });
   class _Override extends Object {
     _Override() {
     }
   }
+  dart.setSignature(_Override, {
+    constructors: () => ({_Override: [_Override, []]})
+  });
   let deprecated = dart.const(new Deprecated("next release"));
   let override = dart.const(new _Override());
   class _Proxy extends Object {
     _Proxy() {
     }
   }
+  dart.setSignature(_Proxy, {
+    constructors: () => ({_Proxy: [_Proxy, []]})
+  });
   let proxy = dart.const(new _Proxy());
   class bool extends Object {
     fromEnvironment(name, opts) {
@@ -84,6 +103,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.defineNamedConstructor(bool, 'fromEnvironment');
+  dart.setSignature(bool, {
+    constructors: () => ({fromEnvironment: [bool, [String], {efaultValu: bool}]})
+  });
   let Comparator$ = dart.generic(function(T) {
     let Comparator = dart.typedef('Comparator', () => dart.functionType(int, [T, T]));
     return Comparator;
@@ -353,6 +375,14 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(DateTime, '_internal');
   dart.defineNamedConstructor(DateTime, '_now');
   dart.setSignature(DateTime, {
+    constructors: () => ({
+      DateTime: [DateTime, [int], [int, int, int, int, int, int]],
+      utc: [DateTime, [int], [int, int, int, int, int, int]],
+      now: [DateTime, []],
+      fromMillisecondsSinceEpoch: [DateTime, [int], {sUt: bool}],
+      _internal: [DateTime, [int, int, int, int, int, int, int, bool]],
+      _now: [DateTime, []]
+    }),
     methods: () => ({
       isBefore: [bool, [DateTime]],
       isAfter: [bool, [DateTime]],
@@ -559,6 +589,10 @@ var convert = dart.lazyImport(convert);
   Duration[dart.implements] = () => [Comparable$(Duration)];
   dart.defineNamedConstructor(Duration, '_microseconds');
   dart.setSignature(Duration, {
+    constructors: () => ({
+      Duration: [Duration, [], {ay: int, our: int, inute: int, econd: int, illisecond: int, icrosecond: int}],
+      _microseconds: [Duration, [int]]
+    }),
     methods: () => ({
       '+': [Duration, [Duration]],
       '-': [Duration, [Duration]],
@@ -612,6 +646,7 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.setSignature(Error, {
+    constructors: () => ({Error: [Error, []]}),
     statics: () => ({
       safeToString: [String, [Object]],
       _stringToSafeString: [String, [String]],
@@ -682,6 +717,13 @@ var convert = dart.lazyImport(convert);
   }
   dart.defineNamedConstructor(ArgumentError, 'value');
   dart.defineNamedConstructor(ArgumentError, 'notNull');
+  dart.setSignature(ArgumentError, {
+    constructors: () => ({
+      ArgumentError: [ArgumentError, [], [Object]],
+      value: [ArgumentError, [Object], [String, String]],
+      notNull: [ArgumentError, [], [String]]
+    })
+  });
   class RangeError extends ArgumentError {
     RangeError(message) {
       this.start = null;
@@ -784,6 +826,12 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(RangeError, 'range');
   dart.defineNamedConstructor(RangeError, 'index');
   dart.setSignature(RangeError, {
+    constructors: () => ({
+      RangeError: [RangeError, [Object]],
+      value: [RangeError, [num], [String, String]],
+      range: [RangeError, [num, int, int], [String, String]],
+      index: [RangeError, [int, Object], [String, String, int]]
+    }),
     statics: () => ({
       checkValueInInterval: [dart.void, [int, int, int], [String, String]],
       checkValidIndex: [dart.void, [int, Object], [String, int, String]],
@@ -821,11 +869,17 @@ var convert = dart.lazyImport(convert);
     }
   }
   IndexError[dart.implements] = () => [RangeError];
+  dart.setSignature(IndexError, {
+    constructors: () => ({IndexError: [IndexError, [int, Object], [String, String, int]]})
+  });
   class FallThroughError extends Error {
     FallThroughError() {
       super.Error();
     }
   }
+  dart.setSignature(FallThroughError, {
+    constructors: () => ({FallThroughError: [FallThroughError, []]})
+  });
   let _className = dart.JsSymbol('_className');
   class AbstractClassInstantiationError extends Error {
     AbstractClassInstantiationError(className) {
@@ -836,6 +890,9 @@ var convert = dart.lazyImport(convert);
       return `Cannot instantiate abstract class: '${this[_className]}'`;
     }
   }
+  dart.setSignature(AbstractClassInstantiationError, {
+    constructors: () => ({AbstractClassInstantiationError: [AbstractClassInstantiationError, [String]]})
+  });
   let _receiver = dart.JsSymbol('_receiver');
   let _memberName = dart.JsSymbol('_memberName');
   let _arguments = dart.JsSymbol('_arguments');
@@ -892,6 +949,9 @@ var convert = dart.lazyImport(convert);
       }
     }
   }
+  dart.setSignature(NoSuchMethodError, {
+    constructors: () => ({NoSuchMethodError: [NoSuchMethodError, [Object, Symbol, List, Map$(Symbol, Object)], [List]]})
+  });
   class UnsupportedError extends Error {
     UnsupportedError(message) {
       this.message = message;
@@ -901,6 +961,9 @@ var convert = dart.lazyImport(convert);
       return `Unsupported operation: ${this.message}`;
     }
   }
+  dart.setSignature(UnsupportedError, {
+    constructors: () => ({UnsupportedError: [UnsupportedError, [String]]})
+  });
   class UnimplementedError extends Error {
     UnimplementedError(message) {
       if (message === void 0)
@@ -913,6 +976,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   UnimplementedError[dart.implements] = () => [UnsupportedError];
+  dart.setSignature(UnimplementedError, {
+    constructors: () => ({UnimplementedError: [UnimplementedError, [], [String]]})
+  });
   class StateError extends Error {
     StateError(message) {
       this.message = message;
@@ -922,6 +988,9 @@ var convert = dart.lazyImport(convert);
       return `Bad state: ${this.message}`;
     }
   }
+  dart.setSignature(StateError, {
+    constructors: () => ({StateError: [StateError, [String]]})
+  });
   class ConcurrentModificationError extends Error {
     ConcurrentModificationError(modifiedObject) {
       if (modifiedObject === void 0)
@@ -936,6 +1005,9 @@ var convert = dart.lazyImport(convert);
       return "Concurrent modification during iteration: " + `${Error.safeToString(this.modifiedObject)}.`;
     }
   }
+  dart.setSignature(ConcurrentModificationError, {
+    constructors: () => ({ConcurrentModificationError: [ConcurrentModificationError, [], [Object]]})
+  });
   class OutOfMemoryError extends Object {
     OutOfMemoryError() {
     }
@@ -947,6 +1019,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   OutOfMemoryError[dart.implements] = () => [Error];
+  dart.setSignature(OutOfMemoryError, {
+    constructors: () => ({OutOfMemoryError: [OutOfMemoryError, []]})
+  });
   class StackOverflowError extends Object {
     StackOverflowError() {
     }
@@ -958,6 +1033,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   StackOverflowError[dart.implements] = () => [Error];
+  dart.setSignature(StackOverflowError, {
+    constructors: () => ({StackOverflowError: [StackOverflowError, []]})
+  });
   class CyclicInitializationError extends Error {
     CyclicInitializationError(variableName) {
       if (variableName === void 0)
@@ -969,6 +1047,9 @@ var convert = dart.lazyImport(convert);
       return this.variableName == null ? "Reading static variable during its initialization" : `Reading static variable '${this.variableName}' during its initialization`;
     }
   }
+  dart.setSignature(CyclicInitializationError, {
+    constructors: () => ({CyclicInitializationError: [CyclicInitializationError, [], [String]]})
+  });
   class Exception extends Object {
     Exception(message) {
       if (message === void 0)
@@ -976,6 +1057,9 @@ var convert = dart.lazyImport(convert);
       return new _ExceptionImplementation(message);
     }
   }
+  dart.setSignature(Exception, {
+    constructors: () => ({Exception: [Exception, [], [Object]]})
+  });
   class _ExceptionImplementation extends Object {
     _ExceptionImplementation(message) {
       if (message === void 0)
@@ -989,6 +1073,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   _ExceptionImplementation[dart.implements] = () => [Exception];
+  dart.setSignature(_ExceptionImplementation, {
+    constructors: () => ({_ExceptionImplementation: [_ExceptionImplementation, [], [Object]]})
+  });
   class FormatException extends Object {
     FormatException(message, source, offset) {
       if (message === void 0)
@@ -1078,6 +1165,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   FormatException[dart.implements] = () => [Exception];
+  dart.setSignature(FormatException, {
+    constructors: () => ({FormatException: [FormatException, [], [String, Object, int]]})
+  });
   class IntegerDivisionByZeroException extends Object {
     IntegerDivisionByZeroException() {
     }
@@ -1086,6 +1176,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   IntegerDivisionByZeroException[dart.implements] = () => [Exception];
+  dart.setSignature(IntegerDivisionByZeroException, {
+    constructors: () => ({IntegerDivisionByZeroException: [IntegerDivisionByZeroException, []]})
+  });
   let _getKey = dart.JsSymbol('_getKey');
   let Expando$ = dart.generic(function(T) {
     class Expando extends Object {
@@ -1124,6 +1217,7 @@ var convert = dart.lazyImport(convert);
       }
     }
     dart.setSignature(Expando, {
+      constructors: () => ({Expando: [Expando$(T), [], [String]]}),
       methods: () => ({
         get: [T, [Object]],
         set: [dart.void, [Object, T]],
@@ -1178,6 +1272,7 @@ var convert = dart.lazyImport(convert);
   }
   dart.defineNamedConstructor(int, 'fromEnvironment');
   dart.setSignature(int, {
+    constructors: () => ({fromEnvironment: [int, [String], {efaultValu: int}]}),
     statics: () => ({parse: [int, [String], {adi: int, nErro: dart.functionType(int, [String])}]}),
     names: ['parse']
   });
@@ -1212,6 +1307,10 @@ var convert = dart.lazyImport(convert);
     }
     dart.defineNamedConstructor(Iterable, 'generate');
     dart.setSignature(Iterable, {
+      constructors: () => ({
+        Iterable: [Iterable$(E), []],
+        generate: [Iterable$(E), [int], [dart.functionType(E, [int])]]
+      }),
       methods: () => ({[$join]: [String, [], [String]]})
     });
     return Iterable;
@@ -1272,6 +1371,10 @@ var convert = dart.lazyImport(convert);
     _GeneratorIterable[dart.implements] = () => [_internal.EfficientLength];
     dart.defineNamedConstructor(_GeneratorIterable, 'slice');
     dart.setSignature(_GeneratorIterable, {
+      constructors: () => ({
+        _GeneratorIterable: [exports._GeneratorIterable$(E), [int, dart.functionType(E, [int])]],
+        slice: [exports._GeneratorIterable$(E), [int, int, _Generator$(E)]]
+      }),
       methods: () => ({
         [$skip]: [Iterable$(E), [int]],
         [$take]: [Iterable$(E), [int]]
@@ -1308,6 +1411,7 @@ var convert = dart.lazyImport(convert);
     }
     _GeneratorIterator[dart.implements] = () => [Iterator$(E)];
     dart.setSignature(_GeneratorIterator, {
+      constructors: () => ({_GeneratorIterator: [_GeneratorIterator$(E), [int, int, _Generator$(E)]]}),
       methods: () => ({moveNext: [bool, []]})
     });
     return _GeneratorIterator;
@@ -1740,6 +1844,12 @@ var convert = dart.lazyImport(convert);
     dart.defineNamedConstructor(List, 'from');
     dart.defineNamedConstructor(List, 'generate');
     dart.setSignature(List, {
+      constructors: () => ({
+        List: [List$(E), [], [int]],
+        filled: [List$(E), [int, E]],
+        from: [List$(E), [Iterable], {rowabl: bool}],
+        generate: [List$(E), [int, dart.functionType(E, [int])], {rowabl: bool}]
+      }),
       methods: () => ({
         [$checkMutable]: [Object, [Object]],
         [$checkGrowable]: [Object, [Object]],
@@ -1815,6 +1925,15 @@ var convert = dart.lazyImport(convert);
     dart.defineNamedConstructor(Map, 'identity');
     dart.defineNamedConstructor(Map, 'fromIterable');
     dart.defineNamedConstructor(Map, 'fromIterables');
+    dart.setSignature(Map, {
+      constructors: () => ({
+        Map: [Map$(K, V), []],
+        from: [Map$(K, V), [Map$()]],
+        identity: [Map$(K, V), []],
+        fromIterable: [Map$(K, V), [Iterable], {e: dart.functionType(K, [dart.bottom]), alu: dart.functionType(V, [dart.bottom])}],
+        fromIterables: [Map$(K, V), [Iterable$(K), Iterable$(V)]]
+      })
+    });
     return Map;
   });
   let Map = Map$();
@@ -1827,6 +1946,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.defineNamedConstructor(Null, '_uninstantiable');
+  dart.setSignature(Null, {
+    constructors: () => ({_uninstantiable: [Null, []]})
+  });
   num._parseError = false;
   class Pattern extends Object {}
   function print(object) {
@@ -1847,6 +1969,9 @@ var convert = dart.lazyImport(convert);
     }
   }
   RegExp[dart.implements] = () => [Pattern];
+  dart.setSignature(RegExp, {
+    constructors: () => ({RegExp: [RegExp, [String], {ultiLin: bool, aseSensitiv: bool}]})
+  });
   let Set$ = dart.generic(function(E) {
     class Set extends collection.IterableBase$(E) {
       Set() {
@@ -1862,6 +1987,13 @@ var convert = dart.lazyImport(convert);
     Set[dart.implements] = () => [_internal.EfficientLength];
     dart.defineNamedConstructor(Set, 'identity');
     dart.defineNamedConstructor(Set, 'from');
+    dart.setSignature(Set, {
+      constructors: () => ({
+        Set: [exports.Set$(E), []],
+        identity: [exports.Set$(E), []],
+        from: [exports.Set$(E), [Iterable]]
+      })
+    });
     return Set;
   });
   dart.defineLazyClassGeneric(exports, 'Set', {get: Set$});
@@ -1931,6 +2063,7 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.setSignature(Stopwatch, {
+    constructors: () => ({Stopwatch: [Stopwatch, []]}),
     methods: () => ({
       start: [dart.void, []],
       stop: [dart.void, []],
@@ -2006,6 +2139,11 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(String, 'fromCharCode');
   dart.defineNamedConstructor(String, 'fromEnvironment');
   dart.setSignature(String, {
+    constructors: () => ({
+      fromCharCodes: [String, [Iterable$(int)], [int, int]],
+      fromCharCode: [String, [int]],
+      fromEnvironment: [String, [String], {efaultValu: String}]
+    }),
     statics: () => ({_stringFromIterable: [String, [Iterable$(int), int, int]]}),
     names: ['_stringFromIterable']
   });
@@ -2034,6 +2172,9 @@ var convert = dart.lazyImport(convert);
           return code;
         }
       }
+      dart.setSignature(Runes, {
+        constructors: () => ({Runes: [exports.Runes, [String]]})
+      });
       return Runes;
     }
   });
@@ -2146,6 +2287,10 @@ var convert = dart.lazyImport(convert);
   RuneIterator[dart.implements] = () => [BidirectionalIterator$(int)];
   dart.defineNamedConstructor(RuneIterator, 'at');
   dart.setSignature(RuneIterator, {
+    constructors: () => ({
+      RuneIterator: [RuneIterator, [String]],
+      at: [RuneIterator, [String, int]]
+    }),
     methods: () => ({
       [_checkSplitSurrogate]: [dart.void, [int]],
       reset: [dart.void, [], [int]],
@@ -2212,6 +2357,7 @@ var convert = dart.lazyImport(convert);
   }
   StringBuffer[dart.implements] = () => [StringSink];
   dart.setSignature(StringBuffer, {
+    constructors: () => ({StringBuffer: [StringBuffer, [], [Object]]}),
     methods: () => ({
       write: [dart.void, [Object]],
       writeCharCode: [dart.void, [int]],
@@ -2227,6 +2373,9 @@ var convert = dart.lazyImport(convert);
       return new _internal.Symbol(name);
     }
   }
+  dart.setSignature(Symbol, {
+    constructors: () => ({Symbol: [Symbol, [String]]})
+  });
   class Type extends Object {}
   let _writeAuthority = dart.JsSymbol('_writeAuthority');
   let _userInfo = dart.JsSymbol('_userInfo');
@@ -3494,6 +3643,13 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(Uri, 'https');
   dart.defineNamedConstructor(Uri, 'file');
   dart.setSignature(Uri, {
+    constructors: () => ({
+      _internal: [Uri, [String, String, String, num, String, String, String]],
+      Uri: [Uri, [], {chem: String, serInf: String, os: String, or: int, at: String, athSegment: Iterable$(String), uer: String, ueryParameter: Map$(String, String), ragmen: String}],
+      http: [Uri, [String, String], [Map$(String, String)]],
+      https: [Uri, [String, String], [Map$(String, String)]],
+      file: [Uri, [String], {indow: bool}]
+    }),
     methods: () => ({
       replace: [Uri, [], {chem: String, serInf: String, os: String, or: int, at: String, athSegment: Iterable$(String), uer: String, ueryParameter: Map$(String, String), ragmen: String}],
       [_merge]: [String, [String, String]],
@@ -3606,10 +3762,16 @@ var convert = dart.lazyImport(convert);
     SupportJsExtensionMethods() {
     }
   }
+  dart.setSignature(SupportJsExtensionMethods, {
+    constructors: () => ({SupportJsExtensionMethods: [SupportJsExtensionMethods, []]})
+  });
   class _ListConstructorSentinel extends Object {
     _ListConstructorSentinel() {
     }
   }
+  dart.setSignature(_ListConstructorSentinel, {
+    constructors: () => ({_ListConstructorSentinel: [_ListConstructorSentinel, []]})
+  });
   // Exports:
   exports.Object = Object;
   exports.JsName = JsName;

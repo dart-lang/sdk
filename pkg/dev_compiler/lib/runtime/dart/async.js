@@ -32,6 +32,9 @@ var collection = dart.import(collection);
     }
   }
   AsyncError[dart.implements] = () => [core.Error];
+  dart.setSignature(AsyncError, {
+    constructors: () => ({AsyncError: [AsyncError, [core.Object, core.StackTrace]]})
+  });
   class _UncaughtAsyncError extends AsyncError {
     _UncaughtAsyncError(error, stackTrace) {
       super.AsyncError(error, _UncaughtAsyncError._getBestStackTrace(error, stackTrace));
@@ -53,6 +56,7 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(_UncaughtAsyncError, {
+    constructors: () => ({_UncaughtAsyncError: [_UncaughtAsyncError, [core.Object, core.StackTrace]]}),
     statics: () => ({_getBestStackTrace: [core.StackTrace, [core.Object, core.StackTrace]]}),
     names: ['_getBestStackTrace']
   });
@@ -719,6 +723,13 @@ var collection = dart.import(collection);
     dart.defineNamedConstructor(Stream, 'periodic');
     dart.defineNamedConstructor(Stream, 'eventTransformed');
     dart.setSignature(Stream, {
+      constructors: () => ({
+        Stream: [Stream$(T), []],
+        fromFuture: [Stream$(T), [Future$(T)]],
+        fromIterable: [Stream$(T), [core.Iterable$(T)]],
+        periodic: [Stream$(T), [core.Duration], [dart.functionType(T, [core.int])]],
+        eventTransformed: [Stream$(T), [Stream$(), dart.functionType(EventSink, [EventSink$(T)])]]
+      }),
       methods: () => ({
         asBroadcastStream: [Stream$(T), [], {nListe: dart.functionType(dart.void, [StreamSubscription$(T)]), nCance: dart.functionType(dart.void, [StreamSubscription$(T)])}],
         where: [Stream$(T), [dart.functionType(core.bool, [T])]],
@@ -814,6 +825,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_ControllerStream, {
+      constructors: () => ({_ControllerStream: [_ControllerStream$(T), [_StreamControllerLifecycle$(T)]]}),
       methods: () => ({
         [_createSubscription]: [StreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]],
         '==': [core.bool, [core.Object]]
@@ -831,6 +843,9 @@ var collection = dart.import(collection);
         return true;
       }
     }
+    dart.setSignature(_BroadcastStream, {
+      constructors: () => ({_BroadcastStream: [_BroadcastStream$(T), [_StreamControllerLifecycle]]})
+    });
     return _BroadcastStream;
   });
   let _BroadcastStream = _BroadcastStream$();
@@ -1176,6 +1191,7 @@ var collection = dart.import(collection);
     }
     _BufferingStreamSubscription[dart.implements] = () => [StreamSubscription$(T), _EventSink$(T), _EventDispatch$(T)];
     dart.setSignature(_BufferingStreamSubscription, {
+      constructors: () => ({_BufferingStreamSubscription: [_BufferingStreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
       methods: () => ({
         [_setPendingEvents]: [dart.void, [_PendingEvents]],
         [_extractPending]: [_PendingEvents, []],
@@ -1225,6 +1241,9 @@ var collection = dart.import(collection);
         this[_controller][_recordResume](this);
       }
     }
+    dart.setSignature(_ControllerSubscription, {
+      constructors: () => ({_ControllerSubscription: [_ControllerSubscription$(T), [_StreamControllerLifecycle$(T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]})
+    });
     return _ControllerSubscription;
   });
   let _ControllerSubscription = _ControllerSubscription$();
@@ -1267,6 +1286,7 @@ var collection = dart.import(collection);
     }
     _BroadcastSubscription[dart.implements] = () => [_BroadcastSubscriptionLink];
     dart.setSignature(_BroadcastSubscription, {
+      constructors: () => ({_BroadcastSubscription: [_BroadcastSubscription$(T), [_StreamControllerLifecycle, dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
       methods: () => ({
         [_expectsEvent]: [core.bool, [core.int]],
         [_toggleEventId]: [dart.void, []],
@@ -1501,6 +1521,7 @@ var collection = dart.import(collection);
     }
     _BroadcastStreamController[dart.implements] = () => [StreamController$(T), _StreamControllerLifecycle$(T), _BroadcastSubscriptionLink, _EventSink$(T), _EventDispatch$(T)];
     dart.setSignature(_BroadcastStreamController, {
+      constructors: () => ({_BroadcastStreamController: [_BroadcastStreamController$(T), [_NotificationHandler, _NotificationHandler]]}),
       methods: () => ({
         [_ensureDoneFuture]: [_Future, []],
         [_addListener]: [dart.void, [_BroadcastSubscription$(T)]],
@@ -1575,6 +1596,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_SyncBroadcastStreamController, {
+      constructors: () => ({_SyncBroadcastStreamController: [_SyncBroadcastStreamController$(T), [dart.functionType(dart.void, []), dart.functionType(dart.void, [])]]}),
       methods: () => ({
         [_sendData]: [dart.void, [T]],
         [_sendError]: [dart.void, [core.Object, core.StackTrace]],
@@ -1616,6 +1638,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_AsyncBroadcastStreamController, {
+      constructors: () => ({_AsyncBroadcastStreamController: [_AsyncBroadcastStreamController$(T), [dart.functionType(dart.void, []), dart.functionType(dart.void, [])]]}),
       methods: () => ({
         [_sendData]: [dart.void, [T]],
         [_sendError]: [dart.void, [core.Object, core.StackTrace]],
@@ -1686,6 +1709,7 @@ var collection = dart.import(collection);
     }
     _AsBroadcastStreamController[dart.implements] = () => [_EventDispatch$(T)];
     dart.setSignature(_AsBroadcastStreamController, {
+      constructors: () => ({_AsBroadcastStreamController: [_AsBroadcastStreamController$(T), [dart.functionType(dart.void, []), dart.functionType(dart.void, [])]]}),
       methods: () => ({
         [_addPendingEvent]: [dart.void, [_DelayedEvent]],
         add: [dart.void, [T]]
@@ -1767,6 +1791,7 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(DeferredLibrary, {
+    constructors: () => ({DeferredLibrary: [DeferredLibrary, [core.String], {r: core.String}]}),
     methods: () => ({load: [Future$(core.Null), []]})
   });
   let _s = Symbol('_s');
@@ -1779,6 +1804,9 @@ var collection = dart.import(collection);
     }
   }
   DeferredLoadException[dart.implements] = () => [core.Exception];
+  dart.setSignature(DeferredLoadException, {
+    constructors: () => ({DeferredLoadException: [DeferredLoadException, [core.String]]})
+  });
   let _completeWithValue = Symbol('_completeWithValue');
   let Future$ = dart.generic(function(T) {
     class Future extends core.Object {
@@ -1942,6 +1970,14 @@ var collection = dart.import(collection);
     dart.defineNamedConstructor(Future, 'error');
     dart.defineNamedConstructor(Future, 'delayed');
     dart.setSignature(Future, {
+      constructors: () => ({
+        Future: [Future$(T), [dart.functionType(core.Object, [])]],
+        microtask: [Future$(T), [dart.functionType(core.Object, [])]],
+        sync: [Future$(T), [dart.functionType(core.Object, [])]],
+        value: [Future$(T), [], [core.Object]],
+        error: [Future$(T), [core.Object], [core.StackTrace]],
+        delayed: [Future$(T), [core.Duration], [dart.functionType(T, [])]]
+      }),
       statics: () => ({
         wait: [Future$(core.List), [core.Iterable$(Future$())], {agerErro: core.bool, leanU: dart.functionType(dart.void, [dart.bottom])}],
         forEach: [Future$(), [core.Iterable, dart.functionType(core.Object, [dart.bottom])]],
@@ -1974,6 +2010,9 @@ var collection = dart.import(collection);
     }
   }
   TimeoutException[dart.implements] = () => [core.Exception];
+  dart.setSignature(TimeoutException, {
+    constructors: () => ({TimeoutException: [TimeoutException, [core.String], [core.Duration]]})
+  });
   let Completer$ = dart.generic(function(T) {
     class Completer extends core.Object {
       Completer() {
@@ -1984,6 +2023,12 @@ var collection = dart.import(collection);
       }
     }
     dart.defineNamedConstructor(Completer, 'sync');
+    dart.setSignature(Completer, {
+      constructors: () => ({
+        Completer: [Completer$(T), []],
+        sync: [Completer$(T), []]
+      })
+    });
     return Completer;
   });
   let Completer = Completer$();
@@ -2156,6 +2201,14 @@ var collection = dart.import(collection);
   dart.defineNamedConstructor(_FutureListener, 'catchError');
   dart.defineNamedConstructor(_FutureListener, 'whenComplete');
   dart.defineNamedConstructor(_FutureListener, 'chain');
+  dart.setSignature(_FutureListener, {
+    constructors: () => ({
+      then: [_FutureListener, [_Future, _FutureOnValue, core.Function]],
+      catchError: [_FutureListener, [_Future, core.Function, _FutureErrorTest]],
+      whenComplete: [_FutureListener, [_Future, _FutureAction]],
+      chain: [_FutureListener, [_Future]]
+    })
+  });
   _FutureListener.MASK_VALUE = 1;
   _FutureListener.MASK_ERROR = 2;
   _FutureListener.MASK_TEST_ERROR = 4;
@@ -2600,6 +2653,11 @@ var collection = dart.import(collection);
     dart.defineNamedConstructor(_Future, 'immediate');
     dart.defineNamedConstructor(_Future, 'immediateError');
     dart.setSignature(_Future, {
+      constructors: () => ({
+        _Future: [_Future$(T), []],
+        immediate: [_Future$(T), [core.Object]],
+        immediateError: [_Future$(T), [core.Object], [core.StackTrace]]
+      }),
       methods: () => ({
         then: [Future, [dart.functionType(core.Object, [T])], {nErro: core.Function}],
         catchError: [Future, [core.Function], {es: dart.functionType(core.bool, [dart.bottom])}],
@@ -2647,6 +2705,9 @@ var collection = dart.import(collection);
       this.next = null;
     }
   }
+  dart.setSignature(_AsyncCallbackEntry, {
+    constructors: () => ({_AsyncCallbackEntry: [_AsyncCallbackEntry, [_AsyncCallback]]})
+  });
   exports._nextCallback = null;
   exports._lastCallback = null;
   exports._lastPriorityCallback = null;
@@ -2824,6 +2885,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(StreamView, {
+      constructors: () => ({StreamView: [StreamView$(T), [Stream$(T)]]}),
       methods: () => ({
         asBroadcastStream: [Stream$(T), [], {nListe: dart.functionType(dart.void, [StreamSubscription$(T)]), nCance: dart.functionType(dart.void, [StreamSubscription$(T)])}],
         listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}]
@@ -2853,6 +2915,12 @@ var collection = dart.import(collection);
       }
     }
     dart.defineNamedConstructor(StreamTransformer, 'fromHandlers');
+    dart.setSignature(StreamTransformer, {
+      constructors: () => ({
+        StreamTransformer: [StreamTransformer$(S, T), [dart.functionType(StreamSubscription$(T), [Stream$(S), core.bool])]],
+        fromHandlers: [StreamTransformer$(S, T), [], {andleDat: dart.functionType(dart.void, [S, EventSink$(T)]), andleErro: dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]), andleDon: dart.functionType(dart.void, [EventSink$(T)])}]
+      })
+    });
     return StreamTransformer;
   });
   let StreamTransformer = StreamTransformer$();
@@ -2862,6 +2930,9 @@ var collection = dart.import(collection);
         return new (_StreamIteratorImpl$(T))(stream);
       }
     }
+    dart.setSignature(StreamIterator, {
+      constructors: () => ({StreamIterator: [StreamIterator$(T), [Stream$(T)]]})
+    });
     return StreamIterator;
   });
   let StreamIterator = StreamIterator$();
@@ -2885,6 +2956,7 @@ var collection = dart.import(collection);
     }
     _ControllerEventSinkWrapper[dart.implements] = () => [EventSink$(T)];
     dart.setSignature(_ControllerEventSinkWrapper, {
+      constructors: () => ({_ControllerEventSinkWrapper: [_ControllerEventSinkWrapper$(T), [EventSink]]}),
       methods: () => ({
         add: [dart.void, [T]],
         addError: [dart.void, [core.Object], [core.StackTrace]],
@@ -2920,6 +2992,12 @@ var collection = dart.import(collection);
     }
     StreamController[dart.implements] = () => [StreamSink$(T)];
     dart.defineNamedConstructor(StreamController, 'broadcast');
+    dart.setSignature(StreamController, {
+      constructors: () => ({
+        StreamController: [StreamController$(T), [], {nListe: dart.functionType(dart.void, []), nPaus: dart.functionType(dart.void, []), nResum: dart.functionType(dart.void, []), nCance: dart.functionType(core.Object, []), yn: core.bool}],
+        broadcast: [StreamController$(T), [], {nListe: dart.functionType(dart.void, []), nCance: dart.functionType(dart.void, []), yn: core.bool}]
+      })
+    });
     return StreamController;
   });
   let StreamController = StreamController$();
@@ -3177,6 +3255,7 @@ var collection = dart.import(collection);
     }
     _StreamController[dart.implements] = () => [StreamController$(T), _StreamControllerLifecycle$(T), _EventSink$(T), _EventDispatch$(T)];
     dart.setSignature(_StreamController, {
+      constructors: () => ({_StreamController: [_StreamController$(T), []]}),
       methods: () => ({
         [_ensurePendingEvents]: [_StreamImplEvents, []],
         [_badEventState]: [core.Error, []],
@@ -3262,6 +3341,9 @@ var collection = dart.import(collection);
         super._StreamController();
       }
     }
+    dart.setSignature(_AsyncStreamController, {
+      constructors: () => ({_AsyncStreamController: [_AsyncStreamController$(T), [dart.functionType(dart.void, []), dart.functionType(dart.void, []), dart.functionType(dart.void, []), dart.functionType(core.Object, [])]]})
+    });
     return _AsyncStreamController;
   });
   let _AsyncStreamController = _AsyncStreamController$();
@@ -3275,6 +3357,9 @@ var collection = dart.import(collection);
         super._StreamController();
       }
     }
+    dart.setSignature(_SyncStreamController, {
+      constructors: () => ({_SyncStreamController: [_SyncStreamController$(T), [dart.functionType(dart.void, []), dart.functionType(dart.void, []), dart.functionType(dart.void, []), dart.functionType(core.Object, [])]]})
+    });
     return _SyncStreamController;
   });
   let _SyncStreamController = _SyncStreamController$();
@@ -3339,6 +3424,7 @@ var collection = dart.import(collection);
     }
     _StreamSinkWrapper[dart.implements] = () => [StreamSink$(T)];
     dart.setSignature(_StreamSinkWrapper, {
+      constructors: () => ({_StreamSinkWrapper: [_StreamSinkWrapper$(T), [StreamController]]}),
       methods: () => ({
         add: [dart.void, [T]],
         addError: [dart.void, [core.Object], [core.StackTrace]],
@@ -3382,6 +3468,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_AddStreamState, {
+      constructors: () => ({_AddStreamState: [_AddStreamState$(T), [_EventSink$(T), Stream, core.bool]]}),
       methods: () => ({
         pause: [dart.void, []],
         resume: [dart.void, []],
@@ -3404,6 +3491,9 @@ var collection = dart.import(collection);
         }
       }
     }
+    dart.setSignature(_StreamControllerAddStreamState, {
+      constructors: () => ({_StreamControllerAddStreamState: [_StreamControllerAddStreamState$(T), [_StreamController, core.Object, Stream, core.bool]]})
+    });
     return _StreamControllerAddStreamState;
   });
   let _StreamControllerAddStreamState = _StreamControllerAddStreamState$();
@@ -3448,6 +3538,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_GeneratedStreamImpl, {
+      constructors: () => ({_GeneratedStreamImpl: [_GeneratedStreamImpl$(T), [_EventGenerator]]}),
       methods: () => ({[_createSubscription]: [StreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]})
     });
     return _GeneratedStreamImpl;
@@ -3531,6 +3622,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_IterablePendingEvents, {
+      constructors: () => ({_IterablePendingEvents: [_IterablePendingEvents$(T), [core.Iterable$(T)]]}),
       methods: () => ({
         handleNext: [dart.void, [_EventDispatch]],
         clear: [dart.void, []]
@@ -3578,6 +3670,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_DelayedData, {
+      constructors: () => ({_DelayedData: [_DelayedData$(T), [T]]}),
       methods: () => ({perform: [dart.void, [_EventDispatch$(T)]]})
     });
     return _DelayedData;
@@ -3594,6 +3687,7 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(_DelayedError, {
+    constructors: () => ({_DelayedError: [_DelayedError, [core.Object, core.StackTrace]]}),
     methods: () => ({perform: [dart.void, [_EventDispatch]]})
   });
   class _DelayedDone extends core.Object {
@@ -3611,6 +3705,7 @@ var collection = dart.import(collection);
   }
   _DelayedDone[dart.implements] = () => [_DelayedEvent];
   dart.setSignature(_DelayedDone, {
+    constructors: () => ({_DelayedDone: [_DelayedDone, []]}),
     methods: () => ({perform: [dart.void, [_EventDispatch]]})
   });
   _PendingEvents._STATE_UNSCHEDULED = 0;
@@ -3753,6 +3848,7 @@ var collection = dart.import(collection);
     }
     _DoneStreamSubscription[dart.implements] = () => [StreamSubscription$(T)];
     dart.setSignature(_DoneStreamSubscription, {
+      constructors: () => ({_DoneStreamSubscription: [_DoneStreamSubscription$(T), [_DoneHandler]]}),
       methods: () => ({
         [_schedule]: [dart.void, []],
         onData: [dart.void, [dart.functionType(dart.void, [T])]],
@@ -3850,6 +3946,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_AsBroadcastStream, {
+      constructors: () => ({_AsBroadcastStream: [_AsBroadcastStream$(T), [Stream$(T), dart.functionType(dart.void, [StreamSubscription]), dart.functionType(dart.void, [StreamSubscription])]]}),
       methods: () => ({
         listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}],
         [_onCancel]: [dart.void, []],
@@ -3901,6 +3998,7 @@ var collection = dart.import(collection);
     }
     _BroadcastSubscriptionWrapper[dart.implements] = () => [StreamSubscription$(T)];
     dart.setSignature(_BroadcastSubscriptionWrapper, {
+      constructors: () => ({_BroadcastSubscriptionWrapper: [_BroadcastSubscriptionWrapper$(T), [_AsBroadcastStream]]}),
       methods: () => ({
         onData: [dart.void, [dart.functionType(dart.void, [T])]],
         onError: [dart.void, [core.Function]],
@@ -4026,6 +4124,7 @@ var collection = dart.import(collection);
     }
     _StreamIteratorImpl[dart.implements] = () => [StreamIterator$(T)];
     dart.setSignature(_StreamIteratorImpl, {
+      constructors: () => ({_StreamIteratorImpl: [_StreamIteratorImpl$(T), [Stream$(T)]]}),
       methods: () => ({
         moveNext: [Future$(core.bool), []],
         [_clear]: [dart.void, []],
@@ -4141,6 +4240,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_ForwardingStream, {
+      constructors: () => ({_ForwardingStream: [_ForwardingStream$(S, T), [Stream$(S)]]}),
       methods: () => ({
         listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}],
         [_createSubscription]: [StreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]],
@@ -4201,6 +4301,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_ForwardingStreamSubscription, {
+      constructors: () => ({_ForwardingStreamSubscription: [_ForwardingStreamSubscription$(S, T), [_ForwardingStream$(S, T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
       methods: () => ({
         [_add]: [dart.void, [T]],
         [_handleData]: [dart.void, [S]],
@@ -4250,6 +4351,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_WhereStream, {
+      constructors: () => ({_WhereStream: [_WhereStream$(T), [Stream$(T), dart.functionType(core.bool, [T])]]}),
       methods: () => ({[_handleData]: [dart.void, [T, _EventSink$(T)]]})
     });
     return _WhereStream;
@@ -4283,6 +4385,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_MapStream, {
+      constructors: () => ({_MapStream: [_MapStream$(S, T), [Stream$(S), dart.functionType(T, [S])]]}),
       methods: () => ({[_handleData]: [dart.void, [S, _EventSink$(T)]]})
     });
     return _MapStream;
@@ -4310,6 +4413,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_ExpandStream, {
+      constructors: () => ({_ExpandStream: [_ExpandStream$(S, T), [Stream$(S), dart.functionType(core.Iterable$(T), [S])]]}),
       methods: () => ({[_handleData]: [dart.void, [S, _EventSink$(T)]]})
     });
     return _ExpandStream;
@@ -4355,6 +4459,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_HandleErrorStream, {
+      constructors: () => ({_HandleErrorStream: [_HandleErrorStream$(T), [Stream$(T), core.Function, dart.functionType(core.bool, [dart.bottom])]]}),
       methods: () => ({[_handleError]: [dart.void, [core.Object, core.StackTrace, _EventSink$(T)]]})
     });
     return _HandleErrorStream;
@@ -4382,6 +4487,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_TakeStream, {
+      constructors: () => ({_TakeStream: [_TakeStream$(T), [Stream$(T), core.int]]}),
       methods: () => ({[_handleData]: [dart.void, [T, _EventSink$(T)]]})
     });
     return _TakeStream;
@@ -4414,6 +4520,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_TakeWhileStream, {
+      constructors: () => ({_TakeWhileStream: [_TakeWhileStream$(T), [Stream$(T), dart.functionType(core.bool, [T])]]}),
       methods: () => ({[_handleData]: [dart.void, [T, _EventSink$(T)]]})
     });
     return _TakeWhileStream;
@@ -4438,6 +4545,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_SkipStream, {
+      constructors: () => ({_SkipStream: [_SkipStream$(T), [Stream$(T), core.int]]}),
       methods: () => ({[_handleData]: [dart.void, [T, _EventSink$(T)]]})
     });
     return _SkipStream;
@@ -4475,6 +4583,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_SkipWhileStream, {
+      constructors: () => ({_SkipWhileStream: [_SkipWhileStream$(T), [Stream$(T), dart.functionType(core.bool, [T])]]}),
       methods: () => ({[_handleData]: [dart.void, [T, _EventSink$(T)]]})
     });
     return _SkipWhileStream;
@@ -4521,6 +4630,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_DistinctStream, {
+      constructors: () => ({_DistinctStream: [_DistinctStream$(T), [Stream$(T), dart.functionType(core.bool, [T, T])]]}),
       methods: () => ({[_handleData]: [dart.void, [T, _EventSink$(T)]]})
     });
     return _DistinctStream;
@@ -4552,6 +4662,7 @@ var collection = dart.import(collection);
     }
     _EventSinkWrapper[dart.implements] = () => [EventSink$(T)];
     dart.setSignature(_EventSinkWrapper, {
+      constructors: () => ({_EventSinkWrapper: [_EventSinkWrapper$(T), [_EventSink]]}),
       methods: () => ({
         add: [dart.void, [T]],
         addError: [dart.void, [core.Object], [core.StackTrace]],
@@ -4648,6 +4759,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_SinkTransformerStreamSubscription, {
+      constructors: () => ({_SinkTransformerStreamSubscription: [_SinkTransformerStreamSubscription$(S, T), [Stream$(S), _SinkMapper$(S, T), dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]]}),
       methods: () => ({
         [_add]: [dart.void, [T]],
         [_handleData]: [dart.void, [S]],
@@ -4676,6 +4788,7 @@ var collection = dart.import(collection);
     }
     _StreamSinkTransformer[dart.implements] = () => [StreamTransformer$(S, T)];
     dart.setSignature(_StreamSinkTransformer, {
+      constructors: () => ({_StreamSinkTransformer: [_StreamSinkTransformer$(S, T), [_SinkMapper$(S, T)]]}),
       methods: () => ({bind: [Stream$(T), [Stream$(S)]]})
     });
     return _StreamSinkTransformer;
@@ -4703,6 +4816,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_BoundSinkStream, {
+      constructors: () => ({_BoundSinkStream: [_BoundSinkStream$(S, T), [Stream$(S), _SinkMapper$(S, T)]]}),
       methods: () => ({listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}]})
     });
     return _BoundSinkStream;
@@ -4746,6 +4860,7 @@ var collection = dart.import(collection);
     }
     _HandlerEventSink[dart.implements] = () => [EventSink$(S)];
     dart.setSignature(_HandlerEventSink, {
+      constructors: () => ({_HandlerEventSink: [_HandlerEventSink$(S, T), [_TransformDataHandler$(S, T), _TransformErrorHandler$(T), _TransformDoneHandler$(T), EventSink$(T)]]}),
       methods: () => ({
         add: [dart.void, [S]],
         addError: [dart.void, [core.Object], [core.StackTrace]],
@@ -4787,6 +4902,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_StreamHandlerTransformer, {
+      constructors: () => ({_StreamHandlerTransformer: [_StreamHandlerTransformer$(S, T), [], {andleDat: dart.functionType(dart.void, [S, EventSink$(T)]), andleErro: dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]), andleDon: dart.functionType(dart.void, [EventSink$(T)])}]}),
       methods: () => ({bind: [Stream$(T), [Stream$(S)]]}),
       statics: () => ({
         _defaultHandleData: [dart.void, [core.Object, EventSink]],
@@ -4816,6 +4932,7 @@ var collection = dart.import(collection);
     }
     _StreamSubscriptionTransformer[dart.implements] = () => [StreamTransformer$(S, T)];
     dart.setSignature(_StreamSubscriptionTransformer, {
+      constructors: () => ({_StreamSubscriptionTransformer: [_StreamSubscriptionTransformer$(S, T), [_SubscriptionTransformer$(S, T)]]}),
       methods: () => ({bind: [Stream$(T), [Stream$(S)]]})
     });
     return _StreamSubscriptionTransformer;
@@ -4843,6 +4960,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_BoundSubscriptionStream, {
+      constructors: () => ({_BoundSubscriptionStream: [_BoundSubscriptionStream$(S, T), [Stream$(S), _SubscriptionTransformer$(S, T)]]}),
       methods: () => ({listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}]})
     });
     return _BoundSubscriptionStream;
@@ -4889,6 +5007,10 @@ var collection = dart.import(collection);
   }
   dart.defineNamedConstructor(Timer, 'periodic');
   dart.setSignature(Timer, {
+    constructors: () => ({
+      Timer: [Timer, [core.Duration, dart.functionType(dart.void, [])]],
+      periodic: [Timer, [core.Duration, dart.functionType(dart.void, [Timer])]]
+    }),
     statics: () => ({
       run: [dart.void, [dart.functionType(dart.void, [])]],
       _createTimer: [Timer, [core.Duration, dart.functionType(dart.void, [])]],
@@ -4919,6 +5041,9 @@ var collection = dart.import(collection);
       this.function = func;
     }
   }
+  dart.setSignature(_ZoneFunction, {
+    constructors: () => ({_ZoneFunction: [_ZoneFunction, [_Zone, core.Function]]})
+  });
   class ZoneSpecification extends core.Object {
     ZoneSpecification(opts) {
       return new _ZoneSpecification(opts);
@@ -4941,6 +5066,12 @@ var collection = dart.import(collection);
     }
   }
   dart.defineNamedConstructor(ZoneSpecification, 'from');
+  dart.setSignature(ZoneSpecification, {
+    constructors: () => ({
+      ZoneSpecification: [ZoneSpecification, [], {andleUncaughtErro: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.bottom, core.StackTrace]), u: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), unUnar: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom]), dart.bottom]), unBinar: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom]), dart.bottom, dart.bottom]), egisterCallbac: dart.functionType(ZoneCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), egisterUnaryCallbac: dart.functionType(ZoneUnaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom])]), egisterBinaryCallbac: dart.functionType(ZoneBinaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom])]), rrorCallbac: dart.functionType(AsyncError, [Zone, ZoneDelegate, Zone, core.Object, core.StackTrace]), cheduleMicrotas: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), reateTime: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]), reatePeriodicTime: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [Timer])]), rin: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, core.String]), or: dart.functionType(Zone, [Zone, ZoneDelegate, Zone, ZoneSpecification, core.Map])}],
+      from: [ZoneSpecification, [ZoneSpecification], {andleUncaughtErro: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.bottom, core.StackTrace]), u: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), unUnar: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom]), dart.bottom]), unBinar: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom]), dart.bottom, dart.bottom]), egisterCallbac: dart.functionType(ZoneCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), egisterUnaryCallbac: dart.functionType(ZoneUnaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom])]), egisterBinaryCallbac: dart.functionType(ZoneBinaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom])]), rrorCallbac: dart.functionType(AsyncError, [Zone, ZoneDelegate, Zone, core.Object, core.StackTrace]), cheduleMicrotas: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), reateTime: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]), reatePeriodicTime: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [Timer])]), rin: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, core.String]), or: dart.functionType(Zone, [Zone, ZoneDelegate, Zone, ZoneSpecification, core.Map])}]
+    })
+  });
   class _ZoneSpecification extends core.Object {
     _ZoneSpecification(opts) {
       let handleUncaughtError = opts && 'handleUncaughtError' in opts ? opts.handleUncaughtError : null;
@@ -4972,6 +5103,9 @@ var collection = dart.import(collection);
     }
   }
   _ZoneSpecification[dart.implements] = () => [ZoneSpecification];
+  dart.setSignature(_ZoneSpecification, {
+    constructors: () => ({_ZoneSpecification: [_ZoneSpecification, [], {andleUncaughtErro: core.Object, u: core.Object, unUnar: core.Object, unBinar: core.Object, egisterCallbac: core.Object, egisterUnaryCallbac: core.Object, egisterBinaryCallbac: core.Object, rrorCallbac: core.Object, cheduleMicrotas: core.Object, reateTime: core.Object, reatePeriodicTime: core.Object, rin: core.Object, or: core.Object}]})
+  });
   class ZoneDelegate extends core.Object {}
   class Zone extends core.Object {
     _() {
@@ -4993,6 +5127,7 @@ var collection = dart.import(collection);
   }
   dart.defineNamedConstructor(Zone, '_');
   dart.setSignature(Zone, {
+    constructors: () => ({_: [Zone, []]}),
     statics: () => ({
       _enter: [Zone, [Zone]],
       _leave: [dart.void, [Zone]]
@@ -5008,6 +5143,7 @@ var collection = dart.import(collection);
   }
   _Zone[dart.implements] = () => [Zone];
   dart.setSignature(_Zone, {
+    constructors: () => ({_Zone: [_Zone, []]}),
     methods: () => ({inSameErrorZone: [core.bool, [Zone]]})
   });
   let _run = Symbol('_run');
@@ -5194,6 +5330,7 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(_RootZone, {
+    constructors: () => ({_RootZone: [_RootZone, []]}),
     methods: () => ({
       runGuarded: [core.Object, [dart.functionType(core.Object, [])]],
       runUnaryGuarded: [core.Object, [dart.functionType(core.Object, [dart.bottom]), core.Object]],
@@ -5301,6 +5438,7 @@ var collection = dart.import(collection);
   }
   _ZoneDelegate[dart.implements] = () => [ZoneDelegate];
   dart.setSignature(_ZoneDelegate, {
+    constructors: () => ({_ZoneDelegate: [_ZoneDelegate, [_Zone]]}),
     methods: () => ({
       handleUncaughtError: [core.Object, [Zone, core.Object, core.StackTrace]],
       run: [core.Object, [Zone, dart.functionType(core.Object, [])]],
@@ -5513,6 +5651,7 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(_CustomZone, {
+    constructors: () => ({_CustomZone: [_CustomZone, [_Zone, ZoneSpecification, core.Map]]}),
     methods: () => ({
       runGuarded: [core.Object, [dart.functionType(core.Object, [])]],
       runUnaryGuarded: [core.Object, [dart.functionType(core.Object, [dart.bottom]), core.Object]],

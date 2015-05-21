@@ -603,11 +603,21 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
               _emitFunctionTypeParts(element.type, dynamicIsBottom: false);
           var property =
               new JS.Property(memberName, new JS.ArrayInitializer(parts));
-         if (node.isStatic) {
+          if (node.isStatic) {
             tStatics.add(property);
             sNames.add(memberName);
           } else tMethods.add(property);
         }
+      }
+      var tCtors = [];
+      for (ConstructorDeclaration node in ctors) {
+        var memberName = _constructorName(classElem.name, node.name);
+        var element = node.element;
+        var parts =
+            _emitFunctionTypeParts(element.type, dynamicIsBottom: false);
+        var property =
+            new JS.Property(memberName, new JS.ArrayInitializer(parts));
+        tCtors.add(property);
       }
       build(name, elements) {
         var o =
@@ -617,6 +627,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         return p;
       }
       var sigFields = [];
+      if (!tCtors.isEmpty) sigFields.add(build('constructors', tCtors));
       if (!tMethods.isEmpty) sigFields.add(build('methods', tMethods));
       if (!tStatics.isEmpty) {
         assert(!sNames.isEmpty);
@@ -625,7 +636,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         sigFields.add(build('statics', tStatics));
         sigFields.add(aNames);
       }
-
       if (!sigFields.isEmpty) {
         var sig = new JS.ObjectInitializer(sigFields);
         var classExpr = new JS.Identifier(name);

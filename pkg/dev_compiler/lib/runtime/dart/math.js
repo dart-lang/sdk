@@ -75,6 +75,7 @@ var _js_helper = dart.lazyImport(_js_helper);
       }
     }
     dart.setSignature(Point, {
+      constructors: () => ({Point: [Point$(T), [T, T]]}),
       methods: () => ({
         '+': [Point$(T), [Point$(T)]],
         '-': [Point$(T), [Point$(T)]],
@@ -93,6 +94,9 @@ var _js_helper = dart.lazyImport(_js_helper);
       return seed == null ? dart.const(new _JSRandom()) : new _Random(seed);
     }
   }
+  dart.setSignature(Random, {
+    constructors: () => ({Random: [Random, [], [core.int]]})
+  });
   let _RectangleBase$ = dart.generic(function(T) {
     class _RectangleBase extends core.Object {
       _RectangleBase() {
@@ -158,6 +162,7 @@ var _js_helper = dart.lazyImport(_js_helper);
       }
     }
     dart.setSignature(_RectangleBase, {
+      constructors: () => ({_RectangleBase: [_RectangleBase$(T), []]}),
       methods: () => ({
         intersection: [Rectangle$(T), [Rectangle$(T)]],
         intersects: [core.bool, [Rectangle$(core.num)]],
@@ -187,6 +192,12 @@ var _js_helper = dart.lazyImport(_js_helper);
       }
     }
     dart.defineNamedConstructor(Rectangle, 'fromPoints');
+    dart.setSignature(Rectangle, {
+      constructors: () => ({
+        Rectangle: [Rectangle$(T), [T, T, T, T]],
+        fromPoints: [Rectangle$(T), [Point$(T), Point$(T)]]
+      })
+    });
     return Rectangle;
   });
   let Rectangle = Rectangle$();
@@ -229,6 +240,12 @@ var _js_helper = dart.lazyImport(_js_helper);
     }
     MutableRectangle[dart.implements] = () => [Rectangle$(T)];
     dart.defineNamedConstructor(MutableRectangle, 'fromPoints');
+    dart.setSignature(MutableRectangle, {
+      constructors: () => ({
+        MutableRectangle: [MutableRectangle$(T), [T, T, T, T]],
+        fromPoints: [MutableRectangle$(T), [Point$(T), Point$(T)]]
+      })
+    });
     return MutableRectangle;
   });
   let MutableRectangle = MutableRectangle$();
@@ -356,6 +373,7 @@ var _js_helper = dart.lazyImport(_js_helper);
   }
   _JSRandom[dart.implements] = () => [Random];
   dart.setSignature(_JSRandom, {
+    constructors: () => ({_JSRandom: [_JSRandom, []]}),
     methods: () => ({
       nextInt: [core.int, [core.int]],
       nextDouble: [core.double, []],
@@ -465,6 +483,7 @@ var _js_helper = dart.lazyImport(_js_helper);
   }
   _Random[dart.implements] = () => [Random];
   dart.setSignature(_Random, {
+    constructors: () => ({_Random: [_Random, [core.int]]}),
     methods: () => ({
       [_nextState]: [dart.void, []],
       nextInt: [core.int, [core.int]],

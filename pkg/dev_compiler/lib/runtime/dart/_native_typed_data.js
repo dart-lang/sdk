@@ -241,6 +241,12 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat32x4List, '_slowFromList');
   dart.defineNamedConstructor(NativeFloat32x4List, 'fromList');
   dart.setSignature(NativeFloat32x4List, {
+    constructors: () => ({
+      NativeFloat32x4List: [NativeFloat32x4List, [core.int]],
+      _externalStorage: [NativeFloat32x4List, [NativeFloat32List]],
+      _slowFromList: [NativeFloat32x4List, [core.List$(typed_data.Float32x4)]],
+      fromList: [NativeFloat32x4List, [core.List$(typed_data.Float32x4)]]
+    }),
     methods: () => ({
       [_invalidIndex]: [dart.void, [core.int, core.int]],
       [_checkIndex]: [dart.void, [core.int, core.int]],
@@ -343,6 +349,12 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeInt32x4List, '_slowFromList');
   dart.defineNamedConstructor(NativeInt32x4List, 'fromList');
   dart.setSignature(NativeInt32x4List, {
+    constructors: () => ({
+      NativeInt32x4List: [NativeInt32x4List, [core.int]],
+      _externalStorage: [NativeInt32x4List, [typed_data.Int32List]],
+      _slowFromList: [NativeInt32x4List, [core.List$(typed_data.Int32x4)]],
+      fromList: [NativeInt32x4List, [core.List$(typed_data.Int32x4)]]
+    }),
     methods: () => ({
       [_invalidIndex]: [dart.void, [core.int, core.int]],
       [_checkIndex]: [dart.void, [core.int, core.int]],
@@ -439,6 +451,12 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat64x2List, '_slowFromList');
   dart.defineNamedConstructor(NativeFloat64x2List, 'fromList');
   dart.setSignature(NativeFloat64x2List, {
+    constructors: () => ({
+      NativeFloat64x2List: [NativeFloat64x2List, [core.int]],
+      _externalStorage: [NativeFloat64x2List, [NativeFloat64List]],
+      _slowFromList: [NativeFloat64x2List, [core.List$(typed_data.Float64x2)]],
+      fromList: [NativeFloat64x2List, [core.List$(typed_data.Float64x2)]]
+    }),
     methods: () => ({
       [_invalidIndex]: [dart.void, [core.int, core.int]],
       [_checkIndex]: [dart.void, [core.int, core.int]],
@@ -638,6 +656,10 @@ var math = dart.import(math);
   NativeByteData[dart.implements] = () => [typed_data.ByteData];
   dart.defineNamedConstructor(NativeByteData, 'view');
   dart.setSignature(NativeByteData, {
+    constructors: () => ({
+      NativeByteData: [NativeByteData, [core.int]],
+      view: [NativeByteData, [typed_data.ByteBuffer, core.int, core.int]]
+    }),
     methods: () => ({
       getFloat32: [core.double, [core.int], [typed_data.Endianness]],
       [_getFloat32]: [core.double, [core.int], [core.bool]],
@@ -796,6 +818,11 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat32List, 'fromList');
   dart.defineNamedConstructor(NativeFloat32List, 'view');
   dart.setSignature(NativeFloat32List, {
+    constructors: () => ({
+      NativeFloat32List: [NativeFloat32List, [core.int]],
+      fromList: [NativeFloat32List, [core.List$(core.double)]],
+      view: [NativeFloat32List, [typed_data.ByteBuffer, core.int, core.int]]
+    }),
     methods: () => ({[core.$sublist]: [core.List$(core.double), [core.int], [core.int]]}),
     statics: () => ({
       _create1: [NativeFloat32List, [core.Object]],
@@ -839,6 +866,11 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat64List, 'fromList');
   dart.defineNamedConstructor(NativeFloat64List, 'view');
   dart.setSignature(NativeFloat64List, {
+    constructors: () => ({
+      NativeFloat64List: [NativeFloat64List, [core.int]],
+      fromList: [NativeFloat64List, [core.List$(core.double)]],
+      view: [NativeFloat64List, [typed_data.ByteBuffer, core.int, core.int]]
+    }),
     methods: () => ({[core.$sublist]: [core.List$(core.double), [core.int], [core.int]]}),
     statics: () => ({
       _create1: [NativeFloat64List, [core.Object]],
@@ -886,6 +918,11 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeInt16List, 'fromList');
   dart.defineNamedConstructor(NativeInt16List, 'view');
   dart.setSignature(NativeInt16List, {
+    constructors: () => ({
+      NativeInt16List: [NativeInt16List, [core.int]],
+      fromList: [NativeInt16List, [core.List$(core.int)]],
+      view: [NativeInt16List, [NativeByteBuffer, core.int, core.int]]
+    }),
     methods: () => ({
       [core.$get]: [core.int, [core.int]],
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
@@ -936,6 +973,11 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeInt32List, 'fromList');
   dart.defineNamedConstructor(NativeInt32List, 'view');
   dart.setSignature(NativeInt32List, {
+    constructors: () => ({
+      NativeInt32List: [NativeInt32List, [core.int]],
+      fromList: [NativeInt32List, [core.List$(core.int)]],
+      view: [NativeInt32List, [typed_data.ByteBuffer, core.int, core.int]]
+    }),
     methods: () => ({
       [core.$get]: [core.int, [core.int]],
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
@@ -986,6 +1028,11 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeInt8List, 'fromList');
   dart.defineNamedConstructor(NativeInt8List, 'view');
   dart.setSignature(NativeInt8List, {
+    constructors: () => ({
+      NativeInt8List: [NativeInt8List, [core.int]],
+      fromList: [NativeInt8List, [core.List$(core.int)]],
+      view: [NativeInt8List, [typed_data.ByteBuffer, core.int, core.int]]
+    }),
     methods: () => ({
       [core.$get]: [core.int, [core.int]],
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
@@ -1036,6 +1083,11 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeUint16List, 'fromList');
   dart.defineNamedConstructor(NativeUint16List, 'view');
   dart.setSignature(NativeUint16List, {
+    constructors: () => ({
+      NativeUint16List: [NativeUint16List, [core.int]],
+      fromList: [NativeUint16List, [core.List$(core.int)]],
+      view: [NativeUint16List, [typed_data.ByteBuffer, core.int, core.int]]
+    }),
     methods: () => ({
       [core.$get]: [core.int, [core.int]],
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
@@ -1086,6 +1138,11 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeUint32List, 'fromList');
   dart.defineNamedConstructor(NativeUint32List, 'view');
   dart.setSignature(NativeUint32List, {
+    constructors: () => ({
+      NativeUint32List: [NativeUint32List, [core.int]],
+      fromList: [NativeUint32List, [core.List$(core.int)]],
+      view: [NativeUint32List, [typed_data.ByteBuffer, core.int, core.int]]
+    }),
     methods: () => ({
       [core.$get]: [core.int, [core.int]],
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
@@ -1139,6 +1196,11 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeUint8ClampedList, 'fromList');
   dart.defineNamedConstructor(NativeUint8ClampedList, 'view');
   dart.setSignature(NativeUint8ClampedList, {
+    constructors: () => ({
+      NativeUint8ClampedList: [NativeUint8ClampedList, [core.int]],
+      fromList: [NativeUint8ClampedList, [core.List$(core.int)]],
+      view: [NativeUint8ClampedList, [typed_data.ByteBuffer, core.int, core.int]]
+    }),
     methods: () => ({
       [core.$get]: [core.int, [core.int]],
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
@@ -1192,6 +1254,11 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeUint8List, 'fromList');
   dart.defineNamedConstructor(NativeUint8List, 'view');
   dart.setSignature(NativeUint8List, {
+    constructors: () => ({
+      NativeUint8List: [NativeUint8List, [core.int]],
+      fromList: [NativeUint8List, [core.List$(core.int)]],
+      view: [NativeUint8List, [typed_data.ByteBuffer, core.int, core.int]]
+    }),
     methods: () => ({
       [core.$get]: [core.int, [core.int]],
       [core.$sublist]: [core.List$(core.int), [core.int], [core.int]]
@@ -1464,6 +1531,15 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat32x4, '_doubles');
   dart.defineNamedConstructor(NativeFloat32x4, '_truncated');
   dart.setSignature(NativeFloat32x4, {
+    constructors: () => ({
+      NativeFloat32x4: [NativeFloat32x4, [core.double, core.double, core.double, core.double]],
+      splat: [NativeFloat32x4, [core.double]],
+      zero: [NativeFloat32x4, []],
+      fromInt32x4Bits: [NativeFloat32x4, [typed_data.Int32x4]],
+      fromFloat64x2: [NativeFloat32x4, [typed_data.Float64x2]],
+      _doubles: [NativeFloat32x4, [core.double, core.double, core.double, core.double]],
+      _truncated: [NativeFloat32x4, [core.double, core.double, core.double, core.double]]
+    }),
     methods: () => ({
       '+': [typed_data.Float32x4, [typed_data.Float32x4]],
       'unary-': [typed_data.Float32x4, []],
@@ -1681,6 +1757,12 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeInt32x4, 'fromFloat32x4Bits');
   dart.defineNamedConstructor(NativeInt32x4, '_truncated');
   dart.setSignature(NativeInt32x4, {
+    constructors: () => ({
+      NativeInt32x4: [NativeInt32x4, [core.int, core.int, core.int, core.int]],
+      bool: [NativeInt32x4, [core.bool, core.bool, core.bool, core.bool]],
+      fromFloat32x4Bits: [NativeInt32x4, [typed_data.Float32x4]],
+      _truncated: [NativeInt32x4, [core.int, core.int, core.int, core.int]]
+    }),
     methods: () => ({
       '|': [typed_data.Int32x4, [typed_data.Int32x4]],
       '&': [typed_data.Int32x4, [typed_data.Int32x4]],
@@ -1801,6 +1883,13 @@ var math = dart.import(math);
   dart.defineNamedConstructor(NativeFloat64x2, 'fromFloat32x4');
   dart.defineNamedConstructor(NativeFloat64x2, '_doubles');
   dart.setSignature(NativeFloat64x2, {
+    constructors: () => ({
+      NativeFloat64x2: [NativeFloat64x2, [core.double, core.double]],
+      splat: [NativeFloat64x2, [core.double]],
+      zero: [NativeFloat64x2, []],
+      fromFloat32x4: [NativeFloat64x2, [typed_data.Float32x4]],
+      _doubles: [NativeFloat64x2, [core.double, core.double]]
+    }),
     methods: () => ({
       '+': [typed_data.Float64x2, [typed_data.Float64x2]],
       'unary-': [typed_data.Float64x2, []],

@@ -117,6 +117,9 @@ var core = dart.import(core);
       this.code = code;
     }
   }
+  dart.setSignature(JS_CONST, {
+    constructors: () => ({JS_CONST: [JS_CONST, [core.String]]})
+  });
   function JS_STRING_CONCAT(a, b) {
     return a + b;
   }

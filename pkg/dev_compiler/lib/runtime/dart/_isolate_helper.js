@@ -165,6 +165,7 @@ var async = dart.import(async);
     }
   }
   dart.setSignature(_Serializer, {
+    constructors: () => ({_Serializer: [_Serializer, [], {erializeSendPort: core.Object}]}),
     methods: () => ({
       serialize: [core.Object, [core.Object]],
       unsupported: [dart.void, [core.Object], [core.String]],
@@ -378,6 +379,7 @@ var async = dart.import(async);
     }
   }
   dart.setSignature(_Deserializer, {
+    constructors: () => ({_Deserializer: [_Deserializer, [], {djustSendPort: core.Object}]}),
     methods: () => ({
       deserialize: [core.Object, [core.Object]],
       isPrimitive: [core.bool, [core.Object]],
@@ -523,6 +525,7 @@ var async = dart.import(async);
     }
   }
   dart.setSignature(_Manager, {
+    constructors: () => ({_Manager: [_Manager, [core.Function]]}),
     methods: () => ({
       [_nativeDetectEnvironment]: [dart.void, []],
       [_nativeInitWorkerMessageHandler]: [dart.void, []],
@@ -796,6 +799,7 @@ var async = dart.import(async);
   }
   _IsolateContext[dart.implements] = () => [_foreign_helper.IsolateContext];
   dart.setSignature(_IsolateContext, {
+    constructors: () => ({_IsolateContext: [_IsolateContext, []]}),
     methods: () => ({
       addPause: [dart.void, [isolate.Capability, isolate.Capability]],
       removePause: [dart.void, [isolate.Capability]],
@@ -880,6 +884,7 @@ var async = dart.import(async);
     }
   }
   dart.setSignature(_EventLoop, {
+    constructors: () => ({_EventLoop: [_EventLoop, []]}),
     methods: () => ({
       enqueue: [dart.void, [core.Object, core.Object, core.Object]],
       prequeue: [dart.void, [_IsolateEvent]],
@@ -905,6 +910,7 @@ var async = dart.import(async);
     }
   }
   dart.setSignature(_IsolateEvent, {
+    constructors: () => ({_IsolateEvent: [_IsolateEvent, [_IsolateContext, core.Function, core.String]]}),
     methods: () => ({process: [dart.void, []]})
   });
   class _MainManagerStub extends core.Object {
@@ -1252,6 +1258,7 @@ var async = dart.import(async);
   }
   _BaseSendPort[dart.implements] = () => [isolate.SendPort];
   dart.setSignature(_BaseSendPort, {
+    constructors: () => ({_BaseSendPort: [_BaseSendPort, [core.int]]}),
     methods: () => ({[_checkReplyTo]: [dart.void, [isolate.SendPort]]})
   });
   let _isClosed = Symbol('_isClosed');
@@ -1287,6 +1294,7 @@ var async = dart.import(async);
   }
   _NativeJsSendPort[dart.implements] = () => [isolate.SendPort];
   dart.setSignature(_NativeJsSendPort, {
+    constructors: () => ({_NativeJsSendPort: [_NativeJsSendPort, [RawReceivePortImpl, core.int]]}),
     methods: () => ({send: [dart.void, [core.Object]]})
   });
   class _WorkerSendPort extends _BaseSendPort {
@@ -1315,6 +1323,7 @@ var async = dart.import(async);
   }
   _WorkerSendPort[dart.implements] = () => [isolate.SendPort];
   dart.setSignature(_WorkerSendPort, {
+    constructors: () => ({_WorkerSendPort: [_WorkerSendPort, [core.int, core.int, core.int]]}),
     methods: () => ({send: [dart.void, [core.Object]]})
   });
   let _handler = Symbol('_handler');
@@ -1371,6 +1380,11 @@ var async = dart.import(async);
   dart.defineNamedConstructor(RawReceivePortImpl, 'weak');
   dart.defineNamedConstructor(RawReceivePortImpl, '_controlPort');
   dart.setSignature(RawReceivePortImpl, {
+    constructors: () => ({
+      RawReceivePortImpl: [RawReceivePortImpl, [core.Function]],
+      weak: [RawReceivePortImpl, [core.Function]],
+      _controlPort: [RawReceivePortImpl, []]
+    }),
     methods: () => ({
       [_close]: [dart.void, []],
       close: [dart.void, []],
@@ -1412,6 +1426,11 @@ var async = dart.import(async);
   dart.defineNamedConstructor(ReceivePortImpl, 'weak');
   dart.defineNamedConstructor(ReceivePortImpl, 'fromRawReceivePort');
   dart.setSignature(ReceivePortImpl, {
+    constructors: () => ({
+      ReceivePortImpl: [ReceivePortImpl, []],
+      weak: [ReceivePortImpl, []],
+      fromRawReceivePort: [ReceivePortImpl, [isolate.RawReceivePort]]
+    }),
     methods: () => ({
       listen: [async.StreamSubscription, [dart.functionType(dart.void, [dart.bottom])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}],
       close: [dart.void, []]
@@ -1486,6 +1505,10 @@ var async = dart.import(async);
   TimerImpl[dart.implements] = () => [async.Timer];
   dart.defineNamedConstructor(TimerImpl, 'periodic');
   dart.setSignature(TimerImpl, {
+    constructors: () => ({
+      TimerImpl: [TimerImpl, [core.int, dart.functionType(dart.void, [])]],
+      periodic: [TimerImpl, [core.int, dart.functionType(dart.void, [async.Timer])]]
+    }),
     methods: () => ({cancel: [dart.void, []]})
   });
   function hasTimer() {
@@ -1523,6 +1546,10 @@ var async = dart.import(async);
   CapabilityImpl[dart.implements] = () => [isolate.Capability];
   dart.defineNamedConstructor(CapabilityImpl, '_internal');
   dart.setSignature(CapabilityImpl, {
+    constructors: () => ({
+      CapabilityImpl: [CapabilityImpl, []],
+      _internal: [CapabilityImpl, [core.int]]
+    }),
     methods: () => ({'==': [core.bool, [core.Object]]})
   });
   // Exports:

@@ -16,6 +16,9 @@ var core = dart.import(core);
       projectionTest(100);
     }
   }
+  dart.setSignature(DeltaBlue, {
+    constructors: () => ({DeltaBlue: [DeltaBlue, []]})
+  });
   class Strength extends core.Object {
     Strength(value, name) {
       this.value = value;
@@ -38,6 +41,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(Strength, {
+    constructors: () => ({Strength: [Strength, [core.int, core.String]]}),
     methods: () => ({nextWeaker: [Strength, []]}),
     statics: () => ({
       stronger: [core.bool, [Strength, Strength]],
@@ -91,6 +95,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(Constraint, {
+    constructors: () => ({Constraint: [Constraint, [Strength]]}),
     methods: () => ({
       addConstraint: [dart.void, []],
       satisfy: [Constraint, [core.Object]],
@@ -138,6 +143,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(UnaryConstraint, {
+    constructors: () => ({UnaryConstraint: [UnaryConstraint, [Variable, Strength]]}),
     methods: () => ({
       addToGraph: [dart.void, []],
       chooseMethod: [dart.void, [core.int]],
@@ -157,6 +163,7 @@ var core = dart.import(core);
     execute() {}
   }
   dart.setSignature(StayConstraint, {
+    constructors: () => ({StayConstraint: [StayConstraint, [Variable, Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
   class EditConstraint extends UnaryConstraint {
@@ -169,6 +176,7 @@ var core = dart.import(core);
     execute() {}
   }
   dart.setSignature(EditConstraint, {
+    constructors: () => ({EditConstraint: [EditConstraint, [Variable, Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
   let NONE = 1;
@@ -235,6 +243,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(BinaryConstraint, {
+    constructors: () => ({BinaryConstraint: [BinaryConstraint, [Variable, Variable, Strength]]}),
     methods: () => ({
       chooseMethod: [dart.void, [core.int]],
       addToGraph: [dart.void, []],
@@ -286,6 +295,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(ScaleConstraint, {
+    constructors: () => ({ScaleConstraint: [ScaleConstraint, [Variable, Variable, Variable, Variable, Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
   class EqualityConstraint extends BinaryConstraint {
@@ -297,6 +307,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(EqualityConstraint, {
+    constructors: () => ({EqualityConstraint: [EqualityConstraint, [Variable, Variable, Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
   class Variable extends core.Object {
@@ -319,6 +330,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(Variable, {
+    constructors: () => ({Variable: [Variable, [core.String, core.int]]}),
     methods: () => ({
       addConstraint: [dart.void, [Constraint]],
       removeConstraint: [dart.void, [Constraint]]

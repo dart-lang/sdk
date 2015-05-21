@@ -997,6 +997,7 @@ var dart, _js_helper, _js_primitives;
   }
   dart.generic = generic;
 
+  let _constructorSig = Symbol('sigCtor');
   let _methodSig = Symbol("sig");
   let _staticSig = Symbol("sigStatic");
 
@@ -1016,6 +1017,22 @@ var dart, _js_helper, _js_primitives;
     let sig = functionType.apply(null, parts);
     return sig;
   }
+
+  /// Get the type of a constructor from a class using the stored signature
+  /// If name is undefined, returns the type of the default constructor
+  /// Returns undefined if the constructor is not found.
+  function _getConstructorType(cls, name) {
+    if(!name) name = cls.name;
+    if (cls === void 0) return void 0;
+    if (cls == null) return void 0;
+    let sigCtor = cls[_constructorSig];
+    if (sigCtor === void 0) return void 0;
+    let parts = sigCtor[name];
+    if (parts === void 0) return void 0;
+    let sig = functionType.apply(null, parts);
+    return sig;
+  }
+  dart.classGetConstructorType = _getConstructorType;
 
   /// Given an object and a method name, tear off the method.
   /// Sets the runtime type of the torn off method appropriately,
@@ -1037,6 +1054,11 @@ var dart, _js_helper, _js_primitives;
       sigObj.__proto__ = f.__proto__[_methodSig];
       return sigObj;
     });
+  }
+
+  // Set up the constructor signature field on the constructor
+  function _setConstructorSignature(f, sigF) {
+    defineMemoizedGetter(f, _constructorSig, sigF);
   }
 
   // Set up the static signature field on the constructor
@@ -1066,12 +1088,15 @@ var dart, _js_helper, _js_primitives;
   ///   permit eagerly setting the runtimeType field on the methods
   ///   while still lazily computing the type descriptor object.
   function setSignature(f, signature) {
+    let constructors =
+      ('constructors' in signature) ? signature.constructors : () => ({});
     let methods =
       ('methods' in signature) ? signature.methods : () => ({});
     let statics =
       ('statics' in signature) ? signature.statics : () => ({});
     let names =
       ('names' in signature) ? signature.names : [];
+    _setConstructorSignature(f, constructors);
     _setMethodSignature(f, methods);
     _setStaticSignature(f, statics);
     _setStaticTypes(f, names);

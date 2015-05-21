@@ -26,6 +26,7 @@ var core = dart.import(core);
   }
   dart.defineNamedConstructor(Frame, 'caller');
   dart.setSignature(Frame, {
+    constructors: () => ({caller: [Frame, [core.List]]}),
     statics: () => ({callee: [core.Object, []]}),
     names: ['callee']
   });

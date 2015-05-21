@@ -6,6 +6,9 @@ var core = dart.import(core);
     _Uninitialized() {
     }
   }
+  dart.setSignature(_Uninitialized, {
+    constructors: () => ({_Uninitialized: [_Uninitialized, []]})
+  });
   let UNINITIALIZED = dart.const(new _Uninitialized());
   let Generic$ = dart.generic(function(T) {
     class Generic extends core.Object {
