@@ -477,16 +477,18 @@ class OldEmitter implements Emitter {
       // constructor-functions and getter/setter functions can be stored in the
       // library-description table. Setting properties on these can be moved to
       // finishClasses.
-      return js.statement('''
-        # = function (\$collectedClasses) {
-          var \$desc;
-          #;
-          return #;
-        };''',
-          [generateEmbeddedGlobalAccess(embeddedNames.PRECOMPILED),
-           cspPrecompiledFunctionFor(outputUnit),
-           new jsAst.ArrayInitializer(
-               cspPrecompiledConstructorNamesFor(outputUnit))]);
+      return js.statement(r"""
+        #precompiled = function ($collectedClasses$) {
+          #norename;
+          var $desc;
+          #functions;
+          return #result;
+        };""",
+        {'norename': new jsAst.Comment("// ::norenaming:: "),
+         'precompiled': generateEmbeddedGlobalAccess(embeddedNames.PRECOMPILED),
+         'functions': cspPrecompiledFunctionFor(outputUnit),
+         'result': new jsAst.ArrayInitializer(
+               cspPrecompiledConstructorNamesFor(outputUnit))});
     } else {
       return js.comment("Constructors are generated at runtime.");
     }
@@ -1044,7 +1046,7 @@ class OldEmitter implements Emitter {
           #constructorName.#typeNameProperty = #constructorNameString;
           if (!"name" in #constructorName)
               #constructorName.name = #constructorNameString;
-          $desc = $collectedClasses.#constructorName[1];
+          $desc = $collectedClasses$.#constructorName[1];
           #constructorName.prototype = $desc;
           ''' /* next string is not a raw string */ '''
           if (#hasIsolateSupport) {
@@ -1388,6 +1390,8 @@ class OldEmitter implements Emitter {
 
        #mangledNames;
 
+       #cspPrecompiledFunctions;
+
        #setupProgram;
 
        #functionThatReturnsNull;
@@ -1398,8 +1402,6 @@ class OldEmitter implements Emitter {
        var dart = #descriptors;
 
        #setupProgramName(dart, 0);
-
-       #cspPrecompiledFunctions;
 
        #getInterceptorMethods;
        #oneShotInterceptors;
