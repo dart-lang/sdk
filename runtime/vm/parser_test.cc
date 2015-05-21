@@ -363,7 +363,7 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
   EXPECT_STREQ(
       // bb captures only value2 from aa.  No others.
       "a.b.aa.bb\n"
-      " 0 ContextVar    level=0   begin=32  end=42  name=value2\n"
+      " 0 ContextVar    level=0   begin=33  end=43  name=value2\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
 
@@ -379,9 +379,9 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       "a.b.aa\n"
       " 0 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 1 ContextLevel  level=1   scope=2   begin=22  end=50\n"
-      " 2 ContextVar    level=1   begin=28  end=50  name=value2\n"
-      " 3 StackVar      scope=2   begin=30  end=50  name=bb\n"
+      " 1 ContextLevel  level=1   scope=2   begin=22  end=52\n"
+      " 2 ContextVar    level=1   begin=28  end=52  name=value2\n"
+      " 3 StackVar      scope=2   begin=30  end=52  name=bb\n"
 
       // Closure call saves current context.
       "_FunctionImpl.call\n"
@@ -391,10 +391,10 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
 
       // b captures value1 from a.
       "a.b\n"
-      " 0 ContextVar    level=0   begin=14  end=60  name=value1\n"
+      " 0 ContextVar    level=0   begin=14  end=62  name=value1\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 2 StackVar      scope=2   begin=18  end=60  name=aa\n"
+      " 2 StackVar      scope=2   begin=18  end=62  name=aa\n"
 
       // Closure call saves current context.
       "_FunctionImpl.call\n"
@@ -406,9 +406,9 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       "a\n"
       " 0 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 1 ContextLevel  level=1   scope=2   begin=4   end=68\n"
-      " 2 ContextVar    level=1   begin=10  end=68  name=value1\n"
-      " 3 StackVar      scope=2   begin=12  end=68  name=b\n",
+      " 1 ContextLevel  level=1   scope=2   begin=4   end=70\n"
+      " 2 ContextVar    level=1   begin=10  end=70  name=value1\n"
+      " 3 StackVar      scope=2   begin=12  end=70  name=b\n",
       CaptureVarsAtLine(lib, "a", 7));
 }
 
@@ -533,7 +533,7 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
   EXPECT_VALID(lib);
   EXPECT_STREQ(
       "a.b.c\n"
-      " 0 ContextVar    level=0   begin=48  end=60  name=x\n"
+      " 0 ContextVar    level=0   begin=50  end=62  name=x\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
       "_FunctionImpl.call\n"
@@ -543,13 +543,13 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
 
       // Doesn't save the entry context.  Chains to parent instead.
       "a.b\n"
-      " 0 ContextVar    level=0   begin=12  end=68  name=x\n"
+      " 0 ContextVar    level=0   begin=12  end=71  name=x\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 2 StackVar      scope=2   begin=46  end=68  name=c\n"
-      " 3 ContextLevel  level=1   scope=3   begin=18  end=46\n"
-      " 4 ContextVar    level=1   begin=22  end=46  name=i\n"
-      " 5 StackVar      scope=4   begin=32  end=46  name=d\n"
+      " 2 StackVar      scope=2   begin=47  end=71  name=c\n"
+      " 3 ContextLevel  level=1   scope=3   begin=18  end=47\n"
+      " 4 ContextVar    level=1   begin=22  end=47  name=i\n"
+      " 5 StackVar      scope=4   begin=32  end=47  name=d\n"
 
       "_FunctionImpl.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
@@ -559,9 +559,9 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       "a\n"
       " 0 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      " 1 ContextLevel  level=1   scope=2   begin=3   end=76\n"
-      " 2 ContextVar    level=1   begin=9   end=76  name=x\n"
-      " 3 StackVar      scope=2   begin=11  end=76  name=b\n",
+      " 1 ContextLevel  level=1   scope=2   begin=3   end=79\n"
+      " 2 ContextVar    level=1   begin=9   end=79  name=x\n"
+      " 3 StackVar      scope=2   begin=11  end=79  name=b\n",
       CaptureVarsAtLine(lib, "a", 10));
 }
 

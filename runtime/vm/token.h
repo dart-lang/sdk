@@ -11,18 +11,19 @@ namespace dart {
 
 //  Operator precedence table
 //
-//  13  multiplicative  * / ~/ %
-//  12  additive        + -
-//  11  shift           << >>
-//  10  bitwise and     &
-//   9  bitwise xor     ^
-//   8  bitwise or      |
-//   7  relational      >= > <= < is as
-//   6  equality        == != === !==
-//   5  logical and     &&
-//   4  logical or      ||
+//  14  multiplicative  * / ~/ %
+//  13  additive        + -
+//  12  shift           << >>
+//  11  bitwise and     &
+//  10  bitwise xor     ^
+//   9  bitwise or      |
+//   8  relational      >= > <= < is as
+//   7  equality        == != === !==
+//   6  logical and     &&
+//   5  logical or      ||
+//   4  null check      ??
 //   3  conditional     ?
-//   2  assignment      = *= /= ~/= %= += -= <<= >>= &= ^= |=
+//   2  assignment      = *= /= ~/= %= += -= <<= >>= &= ^= |= ??=
 //   1  comma           ,
 
 
@@ -43,6 +44,7 @@ namespace dart {
   TOK(kCOLON,  ":", 0, kNoAttribute)                                           \
   TOK(kSEMICOLON, ";", 0, kNoAttribute)                                        \
   TOK(kPERIOD, ".", 0, kNoAttribute)                                           \
+  TOK(kQM_PERIOD, "?.", 0, kNoAttribute)                                       \
   TOK(kINCR,   "++", 0, kNoAttribute)                                          \
   TOK(kDECR,   "--", 0, kNoAttribute)                                          \
                                                                                \
@@ -61,52 +63,55 @@ namespace dart {
   TOK(kASSIGN_TRUNCDIV, "~/=", 2, kNoAttribute)                                \
   TOK(kASSIGN_DIV, "/=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_MOD, "%=", 2, kNoAttribute)                                      \
+  /* Avoid trigraph ??= below. */                                              \
+  TOK(kASSIGN_COND, "?\?=", 2, kNoAttribute)                                   \
                                                                                \
   TOK(kCASCADE, "..", 2, kNoAttribute)                                         \
                                                                                \
   TOK(kCOMMA, ",", 1, kNoAttribute)                                            \
-  TOK(kOR, "||", 4, kNoAttribute)                                              \
-  TOK(kAND, "&&", 5, kNoAttribute)                                             \
-  TOK(kBIT_OR, "|", 8, kNoAttribute)                                           \
-  TOK(kBIT_XOR, "^", 9, kNoAttribute)                                          \
-  TOK(kBIT_AND, "&", 10, kNoAttribute)                                         \
+  TOK(kOR, "||", 5, kNoAttribute)                                              \
+  TOK(kAND, "&&", 6, kNoAttribute)                                             \
+  TOK(kBIT_OR, "|", 9, kNoAttribute)                                           \
+  TOK(kBIT_XOR, "^", 10, kNoAttribute)                                         \
+  TOK(kBIT_AND, "&", 11, kNoAttribute)                                         \
   TOK(kBIT_NOT, "~", 0, kNoAttribute)                                          \
                                                                                \
   /* Shift operators. */                                                       \
-  TOK(kSHL, "<<", 11, kNoAttribute)                                            \
-  TOK(kSHR, ">>", 11, kNoAttribute)                                            \
+  TOK(kSHL, "<<", 12, kNoAttribute)                                            \
+  TOK(kSHR, ">>", 12, kNoAttribute)                                            \
                                                                                \
   /* Additive operators. */                                                    \
-  TOK(kADD, "+", 12, kNoAttribute)                                             \
-  TOK(kSUB, "-", 12, kNoAttribute)                                             \
+  TOK(kADD, "+", 13, kNoAttribute)                                             \
+  TOK(kSUB, "-", 13, kNoAttribute)                                             \
                                                                                \
   /* Multiplicative operators */                                               \
-  TOK(kMUL, "*", 13, kNoAttribute)                                             \
-  TOK(kDIV, "/", 13, kNoAttribute)                                             \
-  TOK(kTRUNCDIV, "~/", 13, kNoAttribute)                                       \
-  TOK(kMOD, "%", 13, kNoAttribute)                                             \
+  TOK(kMUL, "*", 14, kNoAttribute)                                             \
+  TOK(kDIV, "/", 14, kNoAttribute)                                             \
+  TOK(kTRUNCDIV, "~/", 14, kNoAttribute)                                       \
+  TOK(kMOD, "%", 14, kNoAttribute)                                             \
                                                                                \
   TOK(kNOT, "!", 0, kNoAttribute)                                              \
   TOK(kCONDITIONAL, "?", 3, kNoAttribute)                                      \
+  TOK(kIFNULL, "??", 4, kNoAttribute)                                          \
                                                                                \
   /* Equality operators.                             */                        \
   /* Please update IsEqualityOperator() if you make  */                        \
   /* any changes to this block.                      */                        \
-  TOK(kEQ, "==", 6, kNoAttribute)                                              \
-  TOK(kNE, "!=", 6, kNoAttribute)                                              \
-  TOK(kEQ_STRICT, "===", 6, kNoAttribute)                                      \
-  TOK(kNE_STRICT, "!==", 6, kNoAttribute)                                      \
+  TOK(kEQ, "==", 7, kNoAttribute)                                              \
+  TOK(kNE, "!=", 7, kNoAttribute)                                              \
+  TOK(kEQ_STRICT, "===", 7, kNoAttribute)                                      \
+  TOK(kNE_STRICT, "!==", 7, kNoAttribute)                                      \
                                                                                \
   /* Relational operators.                             */                      \
   /* Please update IsRelationalOperator() if you make  */                      \
   /* any changes to this block.                        */                      \
-  TOK(kLT, "<", 7, kNoAttribute)                                               \
-  TOK(kGT, ">", 7, kNoAttribute)                                               \
-  TOK(kLTE, "<=", 7, kNoAttribute)                                             \
-  TOK(kGTE, ">=", 7, kNoAttribute)                                             \
+  TOK(kLT, "<", 8, kNoAttribute)                                               \
+  TOK(kGT, ">", 8, kNoAttribute)                                               \
+  TOK(kLTE, "<=", 8, kNoAttribute)                                             \
+  TOK(kGTE, ">=", 8, kNoAttribute)                                             \
                                                                                \
   /* Internal token for !(expr is Type) negative type test operator */         \
-  TOK(kISNOT, "", 10, kNoAttribute)                                            \
+  TOK(kISNOT, "", 11, kNoAttribute)                                            \
                                                                                \
   TOK(kINDEX, "[]", 0, kNoAttribute)                                           \
   TOK(kASSIGN_INDEX, "[]=", 0, kNoAttribute)                                   \
@@ -141,8 +146,8 @@ namespace dart {
 // to update kFirstKeyword and kLastKeyword below.
 #define DART_KEYWORD_LIST(KW)                                                  \
   KW(kABSTRACT, "abstract", 0, kPseudoKeyword) /* == kFirstKeyword */          \
-  KW(kAS, "as", 10, kPseudoKeyword)                                            \
-  KW(kASSERT, "assert", 10, kKeyword)                                          \
+  KW(kAS, "as", 11, kPseudoKeyword)                                            \
+  KW(kASSERT, "assert", 11, kKeyword)                                          \
   KW(kBREAK, "break", 0, kKeyword)                                             \
   KW(kCASE, "case", 0, kKeyword)                                               \
   KW(kCATCH, "catch", 0, kKeyword)                                             \
@@ -166,7 +171,7 @@ namespace dart {
   KW(kIMPLEMENTS, "implements", 0, kPseudoKeyword)                             \
   KW(kIMPORT, "import", 0, kPseudoKeyword)                                     \
   KW(kIN, "in", 0, kKeyword)                                                   \
-  KW(kIS, "is", 10, kKeyword)                                                  \
+  KW(kIS, "is", 11, kKeyword)                                                  \
   KW(kLIBRARY, "library", 0, kPseudoKeyword)                                   \
   KW(kNEW, "new", 0, kKeyword)                                                 \
   KW(kNULL, "null", 0, kKeyword)                                               \
@@ -212,7 +217,7 @@ class Token {
   static const int kNumKeywords = kLastKeyword - kFirstKeyword + 1;
 
   static bool IsAssignmentOperator(Kind tok) {
-    return kASSIGN <= tok && tok <= kASSIGN_MOD;
+    return kASSIGN <= tok && tok <= kASSIGN_COND;
   }
 
   static bool IsRelationalOperator(Kind tok) {
