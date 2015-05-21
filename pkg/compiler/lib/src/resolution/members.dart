@@ -3360,7 +3360,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   visitParenthesizedExpression(ParenthesizedExpression node) {
     bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = false;
+    var oldCategory = allowedCategory;
+    allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
+        | ElementCategory.IMPLIES_TYPE;
     visit(node.expression);
+    allowedCategory = oldCategory;
     sendIsMemberAccess = oldSendIsMemberAccess;
   }
 
