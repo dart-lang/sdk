@@ -501,20 +501,22 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
    * given [classElement].
    */
   static Map<String, TaskInput> buildInputs(ClassElement classElement) {
-    // TODO(scheglov) Here we implicitly depend on LIBRARY_ELEMENT5, i.e. that
-    // "supertype" for the "classElement" is set.
-    // We need to make it an explicit dependency.
+    Source librarySource = classElement.library.source;
     DartType superType = classElement.supertype;
     if (superType is InterfaceType) {
       if (classElement.isTypedef || classElement.mixins.isNotEmpty) {
         ClassElement superElement = superType.element;
         return <String, TaskInput>{
+          'libraryDep': LIBRARY_ELEMENT5.of(librarySource),
           SUPER_CONSTRUCTORS: CONSTRUCTORS.of(superElement)
         };
       }
     }
-    // No implicit constructors, no inputs required.
-    return <String, TaskInput>{};
+    // No implicit constructors.
+    // Depend on LIBRARY_ELEMENT5 for invalidation.
+    return <String, TaskInput>{
+      'libraryDep': LIBRARY_ELEMENT5.of(librarySource)
+    };
   }
 
   /**
