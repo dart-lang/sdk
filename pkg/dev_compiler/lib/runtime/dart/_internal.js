@@ -244,8 +244,8 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         [core.$forEach]: [dart.void, [dart.functionType(dart.void, [E])]],
         [core.$every]: [core.bool, [dart.functionType(core.bool, [E])]],
         [core.$any]: [core.bool, [dart.functionType(core.bool, [E])]],
-        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
-        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
+        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         [core.$singleWhere]: [E, [dart.functionType(core.bool, [E])]],
         [core.$where]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [core.$map]: [core.Iterable, [dart.functionType(core.Object, [E])]],
@@ -255,7 +255,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         [core.$skipWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [core.$take]: [core.Iterable$(E), [core.int]],
         [core.$takeWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        [core.$toList]: [core.List$(E), [], {rowabl: core.bool}],
+        [core.$toList]: [core.List$(E), [], {growable: core.bool}],
         [core.$toSet]: [core.Set$(E), []]
       })
     });
@@ -357,7 +357,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         [core.$elementAt]: [E, [core.int]],
         [core.$skip]: [core.Iterable$(E), [core.int]],
         [core.$take]: [core.Iterable$(E), [core.int]],
-        [core.$toList]: [core.List$(E), [], {rowabl: core.bool}]
+        [core.$toList]: [core.List$(E), [], {growable: core.bool}]
       })
     });
     return SubListIterable;
@@ -996,9 +996,9 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         [core.$elementAt]: [E, [core.int]],
         [core.$every]: [core.bool, [dart.functionType(core.bool, [E])]],
         [core.$any]: [core.bool, [dart.functionType(core.bool, [E])]],
-        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
-        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
-        [core.$singleWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
+        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        [core.$singleWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         [core.$where]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [core.$map]: [core.Iterable, [dart.functionType(core.Object, [E])]],
         [core.$reduce]: [E, [dart.functionType(E, [E, E])]],
@@ -1007,7 +1007,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         [core.$skipWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [core.$take]: [core.Iterable$(E), [core.int]],
         [core.$takeWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        [core.$toList]: [core.List$(E), [], {rowabl: core.bool}],
+        [core.$toList]: [core.List$(E), [], {growable: core.bool}],
         [core.$toSet]: [core.Set$(E), []]
       })
     });

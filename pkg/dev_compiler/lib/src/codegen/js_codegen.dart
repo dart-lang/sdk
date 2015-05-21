@@ -1184,7 +1184,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       {dynamicIsBottom: false}) {
     var properties = <JS.Property>[];
     types.forEach((name, type) {
-      var key = new JS.LiteralString(name);
+      var key = _propertyName(name);
       var value = _emitTypeName(type, dynamicIsBottom: dynamicIsBottom);
       properties.add(new JS.Property(key, value));
     });

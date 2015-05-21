@@ -47,7 +47,7 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.setSignature(JsName, {
-    constructors: () => ({JsName: [JsName, [], {am: String}]})
+    constructors: () => ({JsName: [JsName, [], {name: String}]})
   });
   class JsPeerInterface extends Object {
     JsPeerInterface(opts) {
@@ -56,7 +56,7 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.setSignature(JsPeerInterface, {
-    constructors: () => ({JsPeerInterface: [JsPeerInterface, [], {am: String}]})
+    constructors: () => ({JsPeerInterface: [JsPeerInterface, [], {name: String}]})
   });
   class SupportJsExtensionMethod extends Object {
     SupportJsExtensionMethod() {
@@ -104,7 +104,7 @@ var convert = dart.lazyImport(convert);
   }
   dart.defineNamedConstructor(bool, 'fromEnvironment');
   dart.setSignature(bool, {
-    constructors: () => ({fromEnvironment: [bool, [String], {efaultValu: bool}]})
+    constructors: () => ({fromEnvironment: [bool, [String], {defaultValue: bool}]})
   });
   let Comparator$ = dart.generic(function(T) {
     let Comparator = dart.typedef('Comparator', () => dart.functionType(int, [T, T]));
@@ -379,7 +379,7 @@ var convert = dart.lazyImport(convert);
       DateTime: [DateTime, [int], [int, int, int, int, int, int]],
       utc: [DateTime, [int], [int, int, int, int, int, int]],
       now: [DateTime, []],
-      fromMillisecondsSinceEpoch: [DateTime, [int], {sUt: bool}],
+      fromMillisecondsSinceEpoch: [DateTime, [int], {isUtc: bool}],
       _internal: [DateTime, [int, int, int, int, int, int, int, bool]],
       _now: [DateTime, []]
     }),
@@ -590,7 +590,7 @@ var convert = dart.lazyImport(convert);
   dart.defineNamedConstructor(Duration, '_microseconds');
   dart.setSignature(Duration, {
     constructors: () => ({
-      Duration: [Duration, [], {ay: int, our: int, inute: int, econd: int, illisecond: int, icrosecond: int}],
+      Duration: [Duration, [], {days: int, hours: int, minutes: int, seconds: int, milliseconds: int, microseconds: int}],
       _microseconds: [Duration, [int]]
     }),
     methods: () => ({
@@ -1272,8 +1272,8 @@ var convert = dart.lazyImport(convert);
   }
   dart.defineNamedConstructor(int, 'fromEnvironment');
   dart.setSignature(int, {
-    constructors: () => ({fromEnvironment: [int, [String], {efaultValu: int}]}),
-    statics: () => ({parse: [int, [String], {adi: int, nErro: dart.functionType(int, [String])}]}),
+    constructors: () => ({fromEnvironment: [int, [String], {defaultValue: int}]}),
+    statics: () => ({parse: [int, [String], {radix: int, onError: dart.functionType(int, [String])}]}),
     names: ['parse']
   });
   class Invocation extends Object {
@@ -1847,8 +1847,8 @@ var convert = dart.lazyImport(convert);
       constructors: () => ({
         List: [List$(E), [], [int]],
         filled: [List$(E), [int, E]],
-        from: [List$(E), [Iterable], {rowabl: bool}],
-        generate: [List$(E), [int, dart.functionType(E, [int])], {rowabl: bool}]
+        from: [List$(E), [Iterable], {growable: bool}],
+        generate: [List$(E), [int, dart.functionType(E, [int])], {growable: bool}]
       }),
       methods: () => ({
         [$checkMutable]: [Object, [Object]],
@@ -1864,14 +1864,14 @@ var convert = dart.lazyImport(convert);
         [$skipWhile]: [Iterable$(E), [dart.functionType(bool, [E])]],
         [$reduce]: [E, [dart.functionType(E, [E, E])]],
         [$fold]: [Object, [Object, dart.functionType(Object, [dart.bottom, E])]],
-        [$firstWhere]: [E, [dart.functionType(bool, [E])], {rEls: dart.functionType(E, [])}],
-        [$lastWhere]: [E, [dart.functionType(bool, [E])], {rEls: dart.functionType(E, [])}],
+        [$firstWhere]: [E, [dart.functionType(bool, [E])], {orElse: dart.functionType(E, [])}],
+        [$lastWhere]: [E, [dart.functionType(bool, [E])], {orElse: dart.functionType(E, [])}],
         [$singleWhere]: [E, [dart.functionType(bool, [E])]],
         [$elementAt]: [E, [int]],
         [$any]: [bool, [dart.functionType(bool, [E])]],
         [$every]: [bool, [dart.functionType(bool, [E])]],
         [$contains]: [bool, [Object]],
-        [$toList]: [List$(E), [], {rowabl: bool}],
+        [$toList]: [List$(E), [], {growable: bool}],
         [$toSet]: [exports.Set$(E), []],
         [$get]: [E, [int]],
         [$set]: [dart.void, [int, E]],
@@ -1930,7 +1930,7 @@ var convert = dart.lazyImport(convert);
         Map: [Map$(K, V), []],
         from: [Map$(K, V), [Map$()]],
         identity: [Map$(K, V), []],
-        fromIterable: [Map$(K, V), [Iterable], {e: dart.functionType(K, [dart.bottom]), alu: dart.functionType(V, [dart.bottom])}],
+        fromIterable: [Map$(K, V), [Iterable], {key: dart.functionType(K, [dart.bottom]), value: dart.functionType(V, [dart.bottom])}],
         fromIterables: [Map$(K, V), [Iterable$(K), Iterable$(V)]]
       })
     });
@@ -1970,7 +1970,7 @@ var convert = dart.lazyImport(convert);
   }
   RegExp[dart.implements] = () => [Pattern];
   dart.setSignature(RegExp, {
-    constructors: () => ({RegExp: [RegExp, [String], {ultiLin: bool, aseSensitiv: bool}]})
+    constructors: () => ({RegExp: [RegExp, [String], {multiLine: bool, caseSensitive: bool}]})
   });
   let Set$ = dart.generic(function(E) {
     class Set extends collection.IterableBase$(E) {
@@ -2142,7 +2142,7 @@ var convert = dart.lazyImport(convert);
     constructors: () => ({
       fromCharCodes: [String, [Iterable$(int)], [int, int]],
       fromCharCode: [String, [int]],
-      fromEnvironment: [String, [String], {efaultValu: String}]
+      fromEnvironment: [String, [String], {defaultValue: String}]
     }),
     statics: () => ({_stringFromIterable: [String, [Iterable$(int), int, int]]}),
     names: ['_stringFromIterable']
@@ -3645,19 +3645,19 @@ var convert = dart.lazyImport(convert);
   dart.setSignature(Uri, {
     constructors: () => ({
       _internal: [Uri, [String, String, String, num, String, String, String]],
-      Uri: [Uri, [], {chem: String, serInf: String, os: String, or: int, at: String, athSegment: Iterable$(String), uer: String, ueryParameter: Map$(String, String), ragmen: String}],
+      Uri: [Uri, [], {scheme: String, userInfo: String, host: String, port: int, path: String, pathSegments: Iterable$(String), query: String, queryParameters: Map$(String, String), fragment: String}],
       http: [Uri, [String, String], [Map$(String, String)]],
       https: [Uri, [String, String], [Map$(String, String)]],
-      file: [Uri, [String], {indow: bool}]
+      file: [Uri, [String], {windows: bool}]
     }),
     methods: () => ({
-      replace: [Uri, [], {chem: String, serInf: String, os: String, or: int, at: String, athSegment: Iterable$(String), uer: String, ueryParameter: Map$(String, String), ragmen: String}],
+      replace: [Uri, [], {scheme: String, userInfo: String, host: String, port: int, path: String, pathSegments: Iterable$(String), query: String, queryParameters: Map$(String, String), fragment: String}],
       [_merge]: [String, [String, String]],
       [_hasDotSegments]: [bool, [String]],
       [_removeDotSegments]: [String, [String]],
       resolve: [Uri, [String]],
       resolveUri: [Uri, [Uri]],
-      toFilePath: [String, [], {indow: bool}],
+      toFilePath: [String, [], {windows: bool}],
       [_toFilePath]: [String, []],
       [_toWindowsFilePath]: [String, []],
       [_writeAuthority]: [dart.void, [StringSink]]
@@ -3692,17 +3692,17 @@ var convert = dart.lazyImport(convert);
       _isGeneralDelimiter: [bool, [int]],
       _addIfNonEmpty: [dart.void, [StringBuffer, String, String, String]],
       encodeComponent: [String, [String]],
-      encodeQueryComponent: [String, [String], {ncodin: convert.Encoding}],
+      encodeQueryComponent: [String, [String], {encoding: convert.Encoding}],
       decodeComponent: [String, [String]],
-      decodeQueryComponent: [String, [String], {ncodin: convert.Encoding}],
+      decodeQueryComponent: [String, [String], {encoding: convert.Encoding}],
       encodeFull: [String, [String]],
       decodeFull: [String, [String]],
-      splitQueryString: [Map$(String, String), [String], {ncodin: convert.Encoding}],
+      splitQueryString: [Map$(String, String), [String], {encoding: convert.Encoding}],
       parseIPv4Address: [List$(int), [String]],
       parseIPv6Address: [List$(int), [String], [int, int]],
-      _uriEncode: [String, [List$(int), String], {ncodin: convert.Encoding, paceToPlu: bool}],
+      _uriEncode: [String, [List$(int), String], {encoding: convert.Encoding, spaceToPlus: bool}],
       _hexCharPairToByte: [int, [String, int]],
-      _uriDecode: [String, [String], {lusToSpac: bool, ncodin: convert.Encoding}],
+      _uriDecode: [String, [String], {plusToSpace: bool, encoding: convert.Encoding}],
       _isAlphabeticCharacter: [bool, [int]]
     }),
     names: ['_defaultPort', 'parse', '_fail', '_makeHttpUri', '_checkNonWindowsPathReservedCharacters', '_checkWindowsPathReservedCharacters', '_checkWindowsDriveLetter', '_makeFileUri', '_makeWindowsFileUrl', '_makePort', '_makeHost', '_isRegNameChar', '_normalizeRegName', '_makeScheme', '_makeUserInfo', '_makePath', '_makeQuery', '_makeFragment', '_stringOrNullLength', '_isHexDigit', '_hexValue', '_normalizeEscape', '_isUnreservedChar', '_escapeChar', '_normalize', '_isSchemeCharacter', '_isGeneralDelimiter', '_addIfNonEmpty', 'encodeComponent', 'encodeQueryComponent', 'decodeComponent', 'decodeQueryComponent', 'encodeFull', 'decodeFull', 'splitQueryString', 'parseIPv4Address', 'parseIPv6Address', '_uriEncode', '_hexCharPairToByte', '_uriDecode', '_isAlphabeticCharacter']

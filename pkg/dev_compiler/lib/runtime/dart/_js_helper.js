@@ -647,7 +647,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   }
   JSSyntaxRegExp[dart.implements] = () => [core.RegExp];
   dart.setSignature(JSSyntaxRegExp, {
-    constructors: () => ({JSSyntaxRegExp: [JSSyntaxRegExp, [core.String], {ultiLin: core.bool, aseSensitiv: core.bool}]}),
+    constructors: () => ({JSSyntaxRegExp: [JSSyntaxRegExp, [core.String], {multiLine: core.bool, caseSensitive: core.bool}]}),
     methods: () => ({
       firstMatch: [core.Match, [core.String]],
       hasMatch: [core.bool, [core.String]],
@@ -1058,7 +1058,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let className = getConstructorName(getIndex(runtimeType, 0));
     return `${className}` + `${joinArguments(runtimeType, 1, {onTypeVariable: onTypeVariable})}`;
   }
-  dart.fn(getRuntimeTypeAsString, core.String, [core.Object], {nTypeVariabl: dart.functionType(core.String, [core.int])});
+  dart.fn(getRuntimeTypeAsString, core.String, [core.Object], {onTypeVariable: dart.functionType(core.String, [core.int])});
   function getConstructorName(type) {
     return type.builtin$cls;
   }
@@ -1081,7 +1081,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return null;
     }
   }
-  dart.fn(runtimeTypeToString, core.String, [core.Object], {nTypeVariabl: dart.functionType(core.String, [core.int])});
+  dart.fn(runtimeTypeToString, core.String, [core.Object], {onTypeVariable: dart.functionType(core.String, [core.int])});
   function joinArguments(types, startIndex, opts) {
     let onTypeVariable = opts && 'onTypeVariable' in opts ? opts.onTypeVariable : null;
     if (types == null)
@@ -1104,7 +1104,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     return allDynamic ? '' : `<${buffer}>`;
   }
-  dart.fn(joinArguments, core.String, [core.Object, core.int], {nTypeVariabl: dart.functionType(core.String, [core.int])});
+  dart.fn(joinArguments, core.String, [core.Object, core.int], {onTypeVariable: dart.functionType(core.String, [core.int])});
   function getRuntimeTypeString(object) {
     let className = getClassName(object);
     if (object == null)

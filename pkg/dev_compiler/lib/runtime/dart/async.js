@@ -731,12 +731,12 @@ var collection = dart.import(collection);
         eventTransformed: [Stream$(T), [Stream$(), dart.functionType(EventSink, [EventSink$(T)])]]
       }),
       methods: () => ({
-        asBroadcastStream: [Stream$(T), [], {nListe: dart.functionType(dart.void, [StreamSubscription$(T)]), nCance: dart.functionType(dart.void, [StreamSubscription$(T)])}],
+        asBroadcastStream: [Stream$(T), [], {onListen: dart.functionType(dart.void, [StreamSubscription$(T)]), onCancel: dart.functionType(dart.void, [StreamSubscription$(T)])}],
         where: [Stream$(T), [dart.functionType(core.bool, [T])]],
         map: [Stream$(), [dart.functionType(core.Object, [T])]],
         asyncMap: [Stream$(), [dart.functionType(core.Object, [T])]],
         asyncExpand: [Stream$(), [dart.functionType(Stream$(), [T])]],
-        handleError: [Stream$(T), [core.Function], {es: dart.functionType(core.bool, [dart.bottom])}],
+        handleError: [Stream$(T), [core.Function], {test: dart.functionType(core.bool, [dart.bottom])}],
         expand: [Stream$(), [dart.functionType(core.Iterable, [T])]],
         pipe: [Future, [StreamConsumer$(T)]],
         transform: [Stream$(), [StreamTransformer$(T, core.Object)]],
@@ -755,11 +755,11 @@ var collection = dart.import(collection);
         skip: [Stream$(T), [core.int]],
         skipWhile: [Stream$(T), [dart.functionType(core.bool, [T])]],
         distinct: [Stream$(T), [], [dart.functionType(core.bool, [T, T])]],
-        firstWhere: [Future, [dart.functionType(core.bool, [T])], {efaultValu: dart.functionType(core.Object, [])}],
-        lastWhere: [Future, [dart.functionType(core.bool, [T])], {efaultValu: dart.functionType(core.Object, [])}],
+        firstWhere: [Future, [dart.functionType(core.bool, [T])], {defaultValue: dart.functionType(core.Object, [])}],
+        lastWhere: [Future, [dart.functionType(core.bool, [T])], {defaultValue: dart.functionType(core.Object, [])}],
         singleWhere: [Future$(T), [dart.functionType(core.bool, [T])]],
         elementAt: [Future$(T), [core.int]],
-        timeout: [Stream$(), [core.Duration], {nTimeou: dart.functionType(dart.void, [EventSink])}]
+        timeout: [Stream$(), [core.Duration], {onTimeout: dart.functionType(dart.void, [EventSink])}]
       })
     });
     return Stream;
@@ -792,7 +792,7 @@ var collection = dart.import(collection);
     }
     dart.setSignature(_StreamImpl, {
       methods: () => ({
-        listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}],
+        listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
         [_createSubscription]: [StreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]],
         [_onListen]: [dart.void, [StreamSubscription]]
       })
@@ -1534,7 +1534,7 @@ var collection = dart.import(collection);
         add: [dart.void, [T]],
         addError: [dart.void, [core.Object], [core.StackTrace]],
         close: [Future, []],
-        addStream: [Future, [Stream$(T)], {ancelOnErro: core.bool}],
+        addStream: [Future, [Stream$(T)], {cancelOnError: core.bool}],
         [_add]: [dart.void, [T]],
         [_addError]: [dart.void, [core.Object, core.StackTrace]],
         [_close]: [dart.void, []],
@@ -1791,7 +1791,7 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(DeferredLibrary, {
-    constructors: () => ({DeferredLibrary: [DeferredLibrary, [core.String], {r: core.String}]}),
+    constructors: () => ({DeferredLibrary: [DeferredLibrary, [core.String], {uri: core.String}]}),
     methods: () => ({load: [Future$(core.Null), []]})
   });
   let _s = Symbol('_s');
@@ -1979,7 +1979,7 @@ var collection = dart.import(collection);
         delayed: [Future$(T), [core.Duration], [dart.functionType(T, [])]]
       }),
       statics: () => ({
-        wait: [Future$(core.List), [core.Iterable$(Future$())], {agerErro: core.bool, leanU: dart.functionType(dart.void, [dart.bottom])}],
+        wait: [Future$(core.List), [core.Iterable$(Future$())], {eagerError: core.bool, cleanUp: dart.functionType(dart.void, [dart.bottom])}],
         forEach: [Future$(), [core.Iterable, dart.functionType(core.Object, [dart.bottom])]],
         doWhile: [Future$(), [dart.functionType(core.Object, [])]]
       }),
@@ -2659,8 +2659,8 @@ var collection = dart.import(collection);
         immediateError: [_Future$(T), [core.Object], [core.StackTrace]]
       }),
       methods: () => ({
-        then: [Future, [dart.functionType(core.Object, [T])], {nErro: core.Function}],
-        catchError: [Future, [core.Function], {es: dart.functionType(core.bool, [dart.bottom])}],
+        then: [Future, [dart.functionType(core.Object, [T])], {onError: core.Function}],
+        catchError: [Future, [core.Function], {test: dart.functionType(core.bool, [dart.bottom])}],
         whenComplete: [Future$(T), [dart.functionType(core.Object, [])]],
         asStream: [Stream$(T), []],
         [_markPendingCompletion]: [dart.void, []],
@@ -2674,7 +2674,7 @@ var collection = dart.import(collection);
         [_completeError]: [dart.void, [core.Object], [core.StackTrace]],
         [_asyncComplete]: [dart.void, [core.Object]],
         [_asyncCompleteError]: [dart.void, [core.Object, core.StackTrace]],
-        timeout: [Future, [core.Duration], {nTimeou: dart.functionType(core.Object, [])}]
+        timeout: [Future, [core.Duration], {onTimeout: dart.functionType(core.Object, [])}]
       }),
       statics: () => ({
         _chainForeignFuture: [dart.void, [Future, _Future$()]],
@@ -2887,8 +2887,8 @@ var collection = dart.import(collection);
     dart.setSignature(StreamView, {
       constructors: () => ({StreamView: [StreamView$(T), [Stream$(T)]]}),
       methods: () => ({
-        asBroadcastStream: [Stream$(T), [], {nListe: dart.functionType(dart.void, [StreamSubscription$(T)]), nCance: dart.functionType(dart.void, [StreamSubscription$(T)])}],
-        listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}]
+        asBroadcastStream: [Stream$(T), [], {onListen: dart.functionType(dart.void, [StreamSubscription$(T)]), onCancel: dart.functionType(dart.void, [StreamSubscription$(T)])}],
+        listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}]
       })
     });
     return StreamView;
@@ -2918,7 +2918,7 @@ var collection = dart.import(collection);
     dart.setSignature(StreamTransformer, {
       constructors: () => ({
         StreamTransformer: [StreamTransformer$(S, T), [dart.functionType(StreamSubscription$(T), [Stream$(S), core.bool])]],
-        fromHandlers: [StreamTransformer$(S, T), [], {andleDat: dart.functionType(dart.void, [S, EventSink$(T)]), andleErro: dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]), andleDon: dart.functionType(dart.void, [EventSink$(T)])}]
+        fromHandlers: [StreamTransformer$(S, T), [], {handleData: dart.functionType(dart.void, [S, EventSink$(T)]), handleError: dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]), handleDone: dart.functionType(dart.void, [EventSink$(T)])}]
       })
     });
     return StreamTransformer;
@@ -2994,8 +2994,8 @@ var collection = dart.import(collection);
     dart.defineNamedConstructor(StreamController, 'broadcast');
     dart.setSignature(StreamController, {
       constructors: () => ({
-        StreamController: [StreamController$(T), [], {nListe: dart.functionType(dart.void, []), nPaus: dart.functionType(dart.void, []), nResum: dart.functionType(dart.void, []), nCance: dart.functionType(core.Object, []), yn: core.bool}],
-        broadcast: [StreamController$(T), [], {nListe: dart.functionType(dart.void, []), nCance: dart.functionType(dart.void, []), yn: core.bool}]
+        StreamController: [StreamController$(T), [], {onListen: dart.functionType(dart.void, []), onPause: dart.functionType(dart.void, []), onResume: dart.functionType(dart.void, []), onCancel: dart.functionType(core.Object, []), sync: core.bool}],
+        broadcast: [StreamController$(T), [], {onListen: dart.functionType(dart.void, []), onCancel: dart.functionType(dart.void, []), sync: core.bool}]
       })
     });
     return StreamController;
@@ -3259,7 +3259,7 @@ var collection = dart.import(collection);
       methods: () => ({
         [_ensurePendingEvents]: [_StreamImplEvents, []],
         [_badEventState]: [core.Error, []],
-        addStream: [Future, [Stream$(T)], {ancelOnErro: core.bool}],
+        addStream: [Future, [Stream$(T)], {cancelOnError: core.bool}],
         [_ensureDoneFuture]: [Future, []],
         add: [dart.void, [T]],
         addError: [dart.void, [core.Object], [core.StackTrace]],
@@ -3429,7 +3429,7 @@ var collection = dart.import(collection);
         add: [dart.void, [T]],
         addError: [dart.void, [core.Object], [core.StackTrace]],
         close: [Future, []],
-        addStream: [Future, [Stream$(T)], {ancelOnErro: core.bool}]
+        addStream: [Future, [Stream$(T)], {cancelOnError: core.bool}]
       })
     });
     return _StreamSinkWrapper;
@@ -3948,7 +3948,7 @@ var collection = dart.import(collection);
     dart.setSignature(_AsBroadcastStream, {
       constructors: () => ({_AsBroadcastStream: [_AsBroadcastStream$(T), [Stream$(T), dart.functionType(dart.void, [StreamSubscription]), dart.functionType(dart.void, [StreamSubscription])]]}),
       methods: () => ({
-        listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}],
+        listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
         [_onCancel]: [dart.void, []],
         [_onListen]: [dart.void, []],
         [_cancelSubscription]: [dart.void, []],
@@ -4242,7 +4242,7 @@ var collection = dart.import(collection);
     dart.setSignature(_ForwardingStream, {
       constructors: () => ({_ForwardingStream: [_ForwardingStream$(S, T), [Stream$(S)]]}),
       methods: () => ({
-        listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}],
+        listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
         [_createSubscription]: [StreamSubscription$(T), [dart.functionType(dart.void, [T]), core.Function, dart.functionType(dart.void, []), core.bool]],
         [_handleData]: [dart.void, [S, _EventSink$(T)]],
         [_handleError]: [dart.void, [core.Object, core.StackTrace, _EventSink$(T)]],
@@ -4817,7 +4817,7 @@ var collection = dart.import(collection);
     }
     dart.setSignature(_BoundSinkStream, {
       constructors: () => ({_BoundSinkStream: [_BoundSinkStream$(S, T), [Stream$(S), _SinkMapper$(S, T)]]}),
-      methods: () => ({listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}]})
+      methods: () => ({listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}]})
     });
     return _BoundSinkStream;
   });
@@ -4902,7 +4902,7 @@ var collection = dart.import(collection);
       }
     }
     dart.setSignature(_StreamHandlerTransformer, {
-      constructors: () => ({_StreamHandlerTransformer: [_StreamHandlerTransformer$(S, T), [], {andleDat: dart.functionType(dart.void, [S, EventSink$(T)]), andleErro: dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]), andleDon: dart.functionType(dart.void, [EventSink$(T)])}]}),
+      constructors: () => ({_StreamHandlerTransformer: [_StreamHandlerTransformer$(S, T), [], {handleData: dart.functionType(dart.void, [S, EventSink$(T)]), handleError: dart.functionType(dart.void, [core.Object, core.StackTrace, EventSink$(T)]), handleDone: dart.functionType(dart.void, [EventSink$(T)])}]}),
       methods: () => ({bind: [Stream$(T), [Stream$(S)]]}),
       statics: () => ({
         _defaultHandleData: [dart.void, [core.Object, EventSink]],
@@ -4961,7 +4961,7 @@ var collection = dart.import(collection);
     }
     dart.setSignature(_BoundSubscriptionStream, {
       constructors: () => ({_BoundSubscriptionStream: [_BoundSubscriptionStream$(S, T), [Stream$(S), _SubscriptionTransformer$(S, T)]]}),
-      methods: () => ({listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}]})
+      methods: () => ({listen: [StreamSubscription$(T), [dart.functionType(dart.void, [T])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}]})
     });
     return _BoundSubscriptionStream;
   });
@@ -5068,8 +5068,8 @@ var collection = dart.import(collection);
   dart.defineNamedConstructor(ZoneSpecification, 'from');
   dart.setSignature(ZoneSpecification, {
     constructors: () => ({
-      ZoneSpecification: [ZoneSpecification, [], {andleUncaughtErro: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.bottom, core.StackTrace]), u: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), unUnar: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom]), dart.bottom]), unBinar: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom]), dart.bottom, dart.bottom]), egisterCallbac: dart.functionType(ZoneCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), egisterUnaryCallbac: dart.functionType(ZoneUnaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom])]), egisterBinaryCallbac: dart.functionType(ZoneBinaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom])]), rrorCallbac: dart.functionType(AsyncError, [Zone, ZoneDelegate, Zone, core.Object, core.StackTrace]), cheduleMicrotas: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), reateTime: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]), reatePeriodicTime: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [Timer])]), rin: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, core.String]), or: dart.functionType(Zone, [Zone, ZoneDelegate, Zone, ZoneSpecification, core.Map])}],
-      from: [ZoneSpecification, [ZoneSpecification], {andleUncaughtErro: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.bottom, core.StackTrace]), u: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), unUnar: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom]), dart.bottom]), unBinar: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom]), dart.bottom, dart.bottom]), egisterCallbac: dart.functionType(ZoneCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), egisterUnaryCallbac: dart.functionType(ZoneUnaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom])]), egisterBinaryCallbac: dart.functionType(ZoneBinaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom])]), rrorCallbac: dart.functionType(AsyncError, [Zone, ZoneDelegate, Zone, core.Object, core.StackTrace]), cheduleMicrotas: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), reateTime: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]), reatePeriodicTime: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [Timer])]), rin: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, core.String]), or: dart.functionType(Zone, [Zone, ZoneDelegate, Zone, ZoneSpecification, core.Map])}]
+      ZoneSpecification: [ZoneSpecification, [], {handleUncaughtError: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.bottom, core.StackTrace]), run: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), runUnary: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom]), dart.bottom]), runBinary: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom]), dart.bottom, dart.bottom]), registerCallback: dart.functionType(ZoneCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), registerUnaryCallback: dart.functionType(ZoneUnaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom])]), registerBinaryCallback: dart.functionType(ZoneBinaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom])]), errorCallback: dart.functionType(AsyncError, [Zone, ZoneDelegate, Zone, core.Object, core.StackTrace]), scheduleMicrotask: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), createTimer: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]), createPeriodicTimer: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [Timer])]), print: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, core.String]), fork: dart.functionType(Zone, [Zone, ZoneDelegate, Zone, ZoneSpecification, core.Map])}],
+      from: [ZoneSpecification, [ZoneSpecification], {handleUncaughtError: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.bottom, core.StackTrace]), run: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), runUnary: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom]), dart.bottom]), runBinary: dart.functionType(core.Object, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom]), dart.bottom, dart.bottom]), registerCallback: dart.functionType(ZoneCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), registerUnaryCallback: dart.functionType(ZoneUnaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom])]), registerBinaryCallback: dart.functionType(ZoneBinaryCallback, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [dart.bottom, dart.bottom])]), errorCallback: dart.functionType(AsyncError, [Zone, ZoneDelegate, Zone, core.Object, core.StackTrace]), scheduleMicrotask: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, dart.functionType(core.Object, [])]), createTimer: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [])]), createPeriodicTimer: dart.functionType(Timer, [Zone, ZoneDelegate, Zone, core.Duration, dart.functionType(dart.void, [Timer])]), print: dart.functionType(dart.void, [Zone, ZoneDelegate, Zone, core.String]), fork: dart.functionType(Zone, [Zone, ZoneDelegate, Zone, ZoneSpecification, core.Map])}]
     })
   });
   class _ZoneSpecification extends core.Object {
@@ -5104,7 +5104,7 @@ var collection = dart.import(collection);
   }
   _ZoneSpecification[dart.implements] = () => [ZoneSpecification];
   dart.setSignature(_ZoneSpecification, {
-    constructors: () => ({_ZoneSpecification: [_ZoneSpecification, [], {andleUncaughtErro: core.Object, u: core.Object, unUnar: core.Object, unBinar: core.Object, egisterCallbac: core.Object, egisterUnaryCallbac: core.Object, egisterBinaryCallbac: core.Object, rrorCallbac: core.Object, cheduleMicrotas: core.Object, reateTime: core.Object, reatePeriodicTime: core.Object, rin: core.Object, or: core.Object}]})
+    constructors: () => ({_ZoneSpecification: [_ZoneSpecification, [], {handleUncaughtError: core.Object, run: core.Object, runUnary: core.Object, runBinary: core.Object, registerCallback: core.Object, registerUnaryCallback: core.Object, registerBinaryCallback: core.Object, errorCallback: core.Object, scheduleMicrotask: core.Object, createTimer: core.Object, createPeriodicTimer: core.Object, print: core.Object, fork: core.Object}]})
   });
   class ZoneDelegate extends core.Object {}
   class Zone extends core.Object {
@@ -5335,12 +5335,12 @@ var collection = dart.import(collection);
       runGuarded: [core.Object, [dart.functionType(core.Object, [])]],
       runUnaryGuarded: [core.Object, [dart.functionType(core.Object, [dart.bottom]), core.Object]],
       runBinaryGuarded: [core.Object, [dart.functionType(core.Object, [dart.bottom, dart.bottom]), core.Object, core.Object]],
-      bindCallback: [ZoneCallback, [dart.functionType(core.Object, [])], {unGuarde: core.bool}],
-      bindUnaryCallback: [ZoneUnaryCallback, [dart.functionType(core.Object, [dart.bottom])], {unGuarde: core.bool}],
-      bindBinaryCallback: [ZoneBinaryCallback, [dart.functionType(core.Object, [dart.bottom, dart.bottom])], {unGuarde: core.bool}],
+      bindCallback: [ZoneCallback, [dart.functionType(core.Object, [])], {runGuarded: core.bool}],
+      bindUnaryCallback: [ZoneUnaryCallback, [dart.functionType(core.Object, [dart.bottom])], {runGuarded: core.bool}],
+      bindBinaryCallback: [ZoneBinaryCallback, [dart.functionType(core.Object, [dart.bottom, dart.bottom])], {runGuarded: core.bool}],
       get: [core.Object, [core.Object]],
       handleUncaughtError: [core.Object, [core.Object, core.StackTrace]],
-      fork: [Zone, [], {pecificatio: ZoneSpecification, oneValue: core.Map}],
+      fork: [Zone, [], {specification: ZoneSpecification, zoneValues: core.Map}],
       run: [core.Object, [dart.functionType(core.Object, [])]],
       runUnary: [core.Object, [dart.functionType(core.Object, [dart.bottom]), core.Object]],
       runBinary: [core.Object, [dart.functionType(core.Object, [dart.bottom, dart.bottom]), core.Object, core.Object]],
@@ -5656,12 +5656,12 @@ var collection = dart.import(collection);
       runGuarded: [core.Object, [dart.functionType(core.Object, [])]],
       runUnaryGuarded: [core.Object, [dart.functionType(core.Object, [dart.bottom]), core.Object]],
       runBinaryGuarded: [core.Object, [dart.functionType(core.Object, [dart.bottom, dart.bottom]), core.Object, core.Object]],
-      bindCallback: [ZoneCallback, [dart.functionType(core.Object, [])], {unGuarde: core.bool}],
-      bindUnaryCallback: [ZoneUnaryCallback, [dart.functionType(core.Object, [dart.bottom])], {unGuarde: core.bool}],
-      bindBinaryCallback: [ZoneBinaryCallback, [dart.functionType(core.Object, [dart.bottom, dart.bottom])], {unGuarde: core.bool}],
+      bindCallback: [ZoneCallback, [dart.functionType(core.Object, [])], {runGuarded: core.bool}],
+      bindUnaryCallback: [ZoneUnaryCallback, [dart.functionType(core.Object, [dart.bottom])], {runGuarded: core.bool}],
+      bindBinaryCallback: [ZoneBinaryCallback, [dart.functionType(core.Object, [dart.bottom, dart.bottom])], {runGuarded: core.bool}],
       get: [core.Object, [core.Object]],
       handleUncaughtError: [core.Object, [core.Object, core.StackTrace]],
-      fork: [Zone, [], {pecificatio: ZoneSpecification, oneValue: core.Map}],
+      fork: [Zone, [], {specification: ZoneSpecification, zoneValues: core.Map}],
       run: [core.Object, [dart.functionType(core.Object, [])]],
       runUnary: [core.Object, [dart.functionType(core.Object, [dart.bottom]), core.Object]],
       runBinary: [core.Object, [dart.functionType(core.Object, [dart.bottom, dart.bottom]), core.Object, core.Object]],
@@ -5864,7 +5864,7 @@ var collection = dart.import(collection);
       return zone.run(body);
     }
   }
-  dart.fn(runZoned, core.Object, [dart.functionType(core.Object, [])], {oneValue: core.Map, oneSpecificatio: ZoneSpecification, nErro: core.Function});
+  dart.fn(runZoned, core.Object, [dart.functionType(core.Object, [])], {zoneValues: core.Map, zoneSpecification: ZoneSpecification, onError: core.Function});
   let __CastType36 = dart.typedef('__CastType36', () => dart.functionType(dart.void, [Timer]));
   let __CastType38 = dart.typedef('__CastType38', () => dart.functionType(core.Object, [dart.bottom]));
   dart.copyProperties(exports, {

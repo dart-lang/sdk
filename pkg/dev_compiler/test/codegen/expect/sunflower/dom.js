@@ -9,7 +9,7 @@ var core = dart.import(core);
     }
   }
   dart.setSignature(JsName, {
-    constructors: () => ({JsName: [JsName, [], {am: core.String}]})
+    constructors: () => ({JsName: [JsName, [], {name: core.String}]})
   });
   class Overload extends core.Object {
     Overload() {

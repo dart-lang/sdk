@@ -103,10 +103,10 @@ var math = dart.lazyImport(math);
     dart.defineNamedConstructor(HashMap, 'fromIterables');
     dart.setSignature(HashMap, {
       constructors: () => ({
-        HashMap: [HashMap$(K, V), [], {qual: dart.functionType(core.bool, [K, K]), ashCod: dart.functionType(core.int, [K]), sValidKe: dart.functionType(core.bool, [core.Object])}],
+        HashMap: [HashMap$(K, V), [], {equals: dart.functionType(core.bool, [K, K]), hashCode: dart.functionType(core.int, [K]), isValidKey: dart.functionType(core.bool, [core.Object])}],
         identity: [HashMap$(K, V), []],
         from: [HashMap$(K, V), [core.Map]],
-        fromIterable: [HashMap$(K, V), [core.Iterable], {e: dart.functionType(K, [dart.bottom]), alu: dart.functionType(V, [dart.bottom])}],
+        fromIterable: [HashMap$(K, V), [core.Iterable], {key: dart.functionType(K, [dart.bottom]), value: dart.functionType(V, [dart.bottom])}],
         fromIterables: [HashMap$(K, V), [core.Iterable$(K), core.Iterable$(V)]]
       })
     });
@@ -395,7 +395,7 @@ var math = dart.lazyImport(math);
         union: [core.Set$(E), [core.Set$(E)]],
         intersection: [core.Set$(E), [core.Set$(core.Object)]],
         difference: [core.Set$(E), [core.Set$(core.Object)]],
-        [core.$toList]: [core.List$(E), [], {rowabl: core.bool}],
+        [core.$toList]: [core.List$(E), [], {growable: core.bool}],
         [core.$map]: [core.Iterable, [dart.functionType(core.Object, [E])]],
         [core.$where]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [core.$expand]: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
@@ -409,8 +409,8 @@ var math = dart.lazyImport(math);
         [core.$takeWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [core.$skip]: [core.Iterable$(E), [core.int]],
         [core.$skipWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
-        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
+        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         [core.$singleWhere]: [E, [dart.functionType(core.bool, [E])]],
         [core.$elementAt]: [E, [core.int]]
       })
@@ -516,7 +516,7 @@ var math = dart.lazyImport(math);
     dart.defineNamedConstructor(HashSet, 'from');
     dart.setSignature(HashSet, {
       constructors: () => ({
-        HashSet: [HashSet$(E), [], {qual: dart.functionType(core.bool, [E, E]), ashCod: dart.functionType(core.int, [E]), sValidKe: dart.functionType(core.bool, [core.Object])}],
+        HashSet: [HashSet$(E), [], {equals: dart.functionType(core.bool, [E, E]), hashCode: dart.functionType(core.int, [E]), isValidKey: dart.functionType(core.bool, [core.Object])}],
         identity: [HashSet$(E), []],
         from: [HashSet$(E), [core.Iterable]]
       })
@@ -747,14 +747,14 @@ var math = dart.lazyImport(math);
         [core.$every]: [core.bool, [dart.functionType(core.bool, [E])]],
         [core.$join]: [core.String, [], [core.String]],
         [core.$any]: [core.bool, [dart.functionType(core.bool, [E])]],
-        [core.$toList]: [core.List$(E), [], {rowabl: core.bool}],
+        [core.$toList]: [core.List$(E), [], {growable: core.bool}],
         [core.$toSet]: [core.Set$(E), []],
         [core.$take]: [core.Iterable$(E), [core.int]],
         [core.$takeWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [core.$skip]: [core.Iterable$(E), [core.int]],
         [core.$skipWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
-        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
+        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         [core.$singleWhere]: [E, [dart.functionType(core.bool, [E])]],
         [core.$elementAt]: [E, [core.int]]
       })
@@ -1118,14 +1118,14 @@ var math = dart.lazyImport(math);
         [core.$every]: [core.bool, [dart.functionType(core.bool, [E])]],
         [core.$join]: [core.String, [], [core.String]],
         [core.$any]: [core.bool, [dart.functionType(core.bool, [E])]],
-        [core.$toList]: [core.List$(E), [], {rowabl: core.bool}],
+        [core.$toList]: [core.List$(E), [], {growable: core.bool}],
         [core.$toSet]: [core.Set$(E), []],
         [core.$take]: [core.Iterable$(E), [core.int]],
         [core.$takeWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [core.$skip]: [core.Iterable$(E), [core.int]],
         [core.$skipWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
-        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
+        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         [core.$singleWhere]: [E, [dart.functionType(core.bool, [E])]],
         [core.$elementAt]: [E, [core.int]]
       }),
@@ -1256,10 +1256,10 @@ var math = dart.lazyImport(math);
     dart.defineNamedConstructor(LinkedHashMap, '_empty');
     dart.setSignature(LinkedHashMap, {
       constructors: () => ({
-        LinkedHashMap: [LinkedHashMap$(K, V), [], {qual: dart.functionType(core.bool, [K, K]), ashCod: dart.functionType(core.int, [K]), sValidKe: dart.functionType(core.bool, [core.Object])}],
+        LinkedHashMap: [LinkedHashMap$(K, V), [], {equals: dart.functionType(core.bool, [K, K]), hashCode: dart.functionType(core.int, [K]), isValidKey: dart.functionType(core.bool, [core.Object])}],
         identity: [LinkedHashMap$(K, V), []],
         from: [LinkedHashMap$(K, V), [core.Map]],
-        fromIterable: [LinkedHashMap$(K, V), [core.Iterable], {e: dart.functionType(K, [dart.bottom]), alu: dart.functionType(V, [dart.bottom])}],
+        fromIterable: [LinkedHashMap$(K, V), [core.Iterable], {key: dart.functionType(K, [dart.bottom]), value: dart.functionType(V, [dart.bottom])}],
         fromIterables: [LinkedHashMap$(K, V), [core.Iterable$(K), core.Iterable$(V)]],
         _literal: [LinkedHashMap$(K, V), [core.List]],
         _empty: [LinkedHashMap$(K, V), []]
@@ -1317,7 +1317,7 @@ var math = dart.lazyImport(math);
     dart.defineNamedConstructor(LinkedHashSet, 'from');
     dart.setSignature(LinkedHashSet, {
       constructors: () => ({
-        LinkedHashSet: [LinkedHashSet$(E), [], {qual: dart.functionType(core.bool, [E, E]), ashCod: dart.functionType(core.int, [E]), sValidKe: dart.functionType(core.bool, [core.Object])}],
+        LinkedHashSet: [LinkedHashSet$(E), [], {equals: dart.functionType(core.bool, [E, E]), hashCode: dart.functionType(core.int, [E]), isValidKey: dart.functionType(core.bool, [core.Object])}],
         identity: [LinkedHashSet$(E), []],
         from: [LinkedHashSet$(E), [core.Iterable$(E)]]
       })
@@ -2029,8 +2029,8 @@ var math = dart.lazyImport(math);
         [core.$contains]: [core.bool, [core.Object]],
         [core.$every]: [core.bool, [dart.functionType(core.bool, [E])]],
         [core.$any]: [core.bool, [dart.functionType(core.bool, [E])]],
-        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
-        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {rEls: dart.functionType(E, [])}],
+        [core.$firstWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        [core.$lastWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         [core.$singleWhere]: [E, [dart.functionType(core.bool, [E])]],
         [core.$join]: [core.String, [], [core.String]],
         [core.$where]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
@@ -2042,7 +2042,7 @@ var math = dart.lazyImport(math);
         [core.$skipWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [core.$take]: [core.Iterable$(E), [core.int]],
         [core.$takeWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        [core.$toList]: [core.List$(E), [], {rowabl: core.bool}],
+        [core.$toList]: [core.List$(E), [], {growable: core.bool}],
         [core.$toSet]: [core.Set$(E), []],
         [core.$add]: [dart.void, [E]],
         [core.$addAll]: [dart.void, [core.Iterable$(E)]],
@@ -3060,7 +3060,7 @@ var math = dart.lazyImport(math);
       methods: () => ({
         [core.$forEach]: [dart.void, [dart.functionType(dart.void, [E])]],
         [core.$elementAt]: [E, [core.int]],
-        [core.$toList]: [core.List$(E), [], {rowabl: core.bool}],
+        [core.$toList]: [core.List$(E), [], {growable: core.bool}],
         add: [dart.void, [E]],
         addAll: [dart.void, [core.Iterable$(E)]],
         remove: [core.bool, [core.Object]],
@@ -3544,7 +3544,7 @@ var math = dart.lazyImport(math);
       constructors: () => ({
         SplayTreeMap: [SplayTreeMap$(K, V), [], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [core.Object])]],
         from: [SplayTreeMap$(K, V), [core.Map], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [core.Object])]],
-        fromIterable: [SplayTreeMap$(K, V), [core.Iterable], {e: dart.functionType(K, [dart.bottom]), alu: dart.functionType(V, [dart.bottom]), ompar: dart.functionType(core.int, [K, K]), sValidKe: dart.functionType(core.bool, [core.Object])}],
+        fromIterable: [SplayTreeMap$(K, V), [core.Iterable], {key: dart.functionType(K, [dart.bottom]), value: dart.functionType(V, [dart.bottom]), compare: dart.functionType(core.int, [K, K]), isValidKey: dart.functionType(core.bool, [core.Object])}],
         fromIterables: [SplayTreeMap$(K, V), [core.Iterable$(K), core.Iterable$(V)], [dart.functionType(core.int, [K, K]), dart.functionType(core.bool, [core.Object])]],
         _internal: [SplayTreeMap$(K, V), []]
       }),

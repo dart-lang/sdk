@@ -156,7 +156,7 @@ var async = dart.import(async);
     }
   }
   dart.setSignature(Isolate, {
-    constructors: () => ({Isolate: [Isolate, [SendPort], {auseCapabilit: Capability, erminateCapabilit: Capability}]}),
+    constructors: () => ({Isolate: [Isolate, [SendPort], {pauseCapability: Capability, terminateCapability: Capability}]}),
     methods: () => ({
       pause: [Capability, [], [Capability]],
       [_pause]: [dart.void, [Capability]],
@@ -170,8 +170,8 @@ var async = dart.import(async);
       removeErrorListener: [dart.void, [SendPort]]
     }),
     statics: () => ({
-      spawn: [async.Future$(Isolate), [dart.functionType(dart.void, [dart.bottom]), core.Object], {ause: core.bool}],
-      spawnUri: [async.Future$(Isolate), [core.Uri, core.List$(core.String), core.Object], {ause: core.bool, ackageRoo: core.Uri}]
+      spawn: [async.Future$(Isolate), [dart.functionType(dart.void, [dart.bottom]), core.Object], {paused: core.bool}],
+      spawnUri: [async.Future$(Isolate), [core.Uri, core.List$(core.String), core.Object], {paused: core.bool, packageRoot: core.Uri}]
     }),
     names: ['spawn', 'spawnUri']
   });

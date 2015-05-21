@@ -88,8 +88,8 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(AsciiCodec, {
-    constructors: () => ({AsciiCodec: [AsciiCodec, [], {llowInvali: core.bool}]}),
-    methods: () => ({decode: [core.String, [core.List$(core.int)], {llowInvali: core.bool}]})
+    constructors: () => ({AsciiCodec: [AsciiCodec, [], {allowInvalid: core.bool}]}),
+    methods: () => ({decode: [core.String, [core.List$(core.int)], {allowInvalid: core.bool}]})
   });
   let ASCII = dart.const(new AsciiCodec());
   let _ASCII_MASK = 127;
@@ -294,7 +294,7 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(AsciiDecoder, {
-    constructors: () => ({AsciiDecoder: [AsciiDecoder, [], {llowInvali: core.bool}]}),
+    constructors: () => ({AsciiDecoder: [AsciiDecoder, [], {allowInvalid: core.bool}]}),
     methods: () => ({startChunkedConversion: [ByteConversionSink, [core.Sink$(core.String)]]})
   });
   let ChunkedConversionSink$ = dart.generic(function(T) {
@@ -796,7 +796,7 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(JsonUnsupportedObjectError, {
-    constructors: () => ({JsonUnsupportedObjectError: [JsonUnsupportedObjectError, [core.Object], {aus: core.Object}]})
+    constructors: () => ({JsonUnsupportedObjectError: [JsonUnsupportedObjectError, [core.Object], {cause: core.Object}]})
   });
   class JsonCyclicError extends JsonUnsupportedObjectError {
     JsonCyclicError(object) {
@@ -852,12 +852,12 @@ var collection = dart.import(collection);
   dart.defineNamedConstructor(JsonCodec, 'withReviver');
   dart.setSignature(JsonCodec, {
     constructors: () => ({
-      JsonCodec: [JsonCodec, [], {evive: dart.functionType(core.Object, [dart.bottom, dart.bottom]), oEncodabl: dart.functionType(core.Object, [dart.bottom])}],
+      JsonCodec: [JsonCodec, [], {reviver: dart.functionType(core.Object, [dart.bottom, dart.bottom]), toEncodable: dart.functionType(core.Object, [dart.bottom])}],
       withReviver: [JsonCodec, [dart.functionType(core.Object, [dart.bottom, dart.bottom])]]
     }),
     methods: () => ({
-      decode: [core.Object, [core.String], {evive: dart.functionType(core.Object, [dart.bottom, dart.bottom])}],
-      encode: [core.String, [core.Object], {oEncodabl: dart.functionType(core.Object, [dart.bottom])}]
+      decode: [core.Object, [core.String], {reviver: dart.functionType(core.Object, [dart.bottom, dart.bottom])}],
+      encode: [core.String, [core.Object], {toEncodable: dart.functionType(core.Object, [dart.bottom])}]
     })
   });
   let JSON = dart.const(new JsonCodec());
@@ -1586,8 +1586,8 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(Latin1Codec, {
-    constructors: () => ({Latin1Codec: [Latin1Codec, [], {llowInvali: core.bool}]}),
-    methods: () => ({decode: [core.String, [core.List$(core.int)], {llowInvali: core.bool}]})
+    constructors: () => ({Latin1Codec: [Latin1Codec, [], {allowInvalid: core.bool}]}),
+    methods: () => ({decode: [core.String, [core.List$(core.int)], {allowInvalid: core.bool}]})
   });
   let LATIN1 = dart.const(new Latin1Codec());
   let _LATIN1_MASK = 255;
@@ -1617,7 +1617,7 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(Latin1Decoder, {
-    constructors: () => ({Latin1Decoder: [Latin1Decoder, [], {llowInvali: core.bool}]}),
+    constructors: () => ({Latin1Decoder: [Latin1Decoder, [], {allowInvalid: core.bool}]}),
     methods: () => ({startChunkedConversion: [ByteConversionSink, [core.Sink$(core.String)]]})
   });
   let _addSliceToSink = Symbol('_addSliceToSink');
@@ -2095,8 +2095,8 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(Utf8Codec, {
-    constructors: () => ({Utf8Codec: [Utf8Codec, [], {llowMalforme: core.bool}]}),
-    methods: () => ({decode: [core.String, [core.List$(core.int)], {llowMalforme: core.bool}]})
+    constructors: () => ({Utf8Codec: [Utf8Codec, [], {allowMalformed: core.bool}]}),
+    methods: () => ({decode: [core.String, [core.List$(core.int)], {allowMalformed: core.bool}]})
   });
   let UTF8 = dart.const(new Utf8Codec());
   let _fillBuffer = Symbol('_fillBuffer');
@@ -2375,7 +2375,7 @@ var collection = dart.import(collection);
     }
   }
   dart.setSignature(Utf8Decoder, {
-    constructors: () => ({Utf8Decoder: [Utf8Decoder, [], {llowMalforme: core.bool}]}),
+    constructors: () => ({Utf8Decoder: [Utf8Decoder, [], {allowMalformed: core.bool}]}),
     methods: () => ({
       convert: [core.String, [core.List$(core.int)], [core.int, core.int]],
       startChunkedConversion: [ByteConversionSink, [core.Sink$(core.String)]],

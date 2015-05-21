@@ -31,7 +31,7 @@ var core = dart.import(core);
   dart.setSignature(OptionalArg, {
     constructors: () => ({
       OptionalArg: [OptionalArg, [], [core.int]],
-      named: [OptionalArg, [], {op: core.int}]
+      named: [OptionalArg, [], {_opt: core.int}]
     })
   });
   function main() {

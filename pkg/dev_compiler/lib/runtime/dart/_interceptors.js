@@ -935,7 +935,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       endsWith: [core.bool, [core.String]],
       replaceAll: [core.String, [core.Pattern, core.String]],
       replaceAllMapped: [core.String, [core.Pattern, dart.functionType(core.String, [core.Match])]],
-      splitMapJoin: [core.String, [core.Pattern], {nMatc: dart.functionType(core.String, [core.Match]), nNonMatc: dart.functionType(core.String, [core.String])}],
+      splitMapJoin: [core.String, [core.Pattern], {onMatch: dart.functionType(core.String, [core.Match]), onNonMatch: dart.functionType(core.String, [core.String])}],
       replaceFirst: [core.String, [core.Pattern, core.String], [core.int]],
       split: [core.List$(core.String), [core.Pattern]],
       [_defaultSplit]: [core.List$(core.String), [core.Pattern]],

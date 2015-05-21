@@ -165,7 +165,7 @@ var async = dart.import(async);
     }
   }
   dart.setSignature(_Serializer, {
-    constructors: () => ({_Serializer: [_Serializer, [], {erializeSendPort: core.Object}]}),
+    constructors: () => ({_Serializer: [_Serializer, [], {serializeSendPorts: core.Object}]}),
     methods: () => ({
       serialize: [core.Object, [core.Object]],
       unsupported: [dart.void, [core.Object], [core.String]],
@@ -379,7 +379,7 @@ var async = dart.import(async);
     }
   }
   dart.setSignature(_Deserializer, {
-    constructors: () => ({_Deserializer: [_Deserializer, [], {djustSendPort: core.Object}]}),
+    constructors: () => ({_Deserializer: [_Deserializer, [], {adjustSendPorts: core.Object}]}),
     methods: () => ({
       deserialize: [core.Object, [core.Object]],
       isPrimitive: [core.bool, [core.Object]],
@@ -1432,7 +1432,7 @@ var async = dart.import(async);
       fromRawReceivePort: [ReceivePortImpl, [isolate.RawReceivePort]]
     }),
     methods: () => ({
-      listen: [async.StreamSubscription, [dart.functionType(dart.void, [dart.bottom])], {nErro: core.Function, nDon: dart.functionType(dart.void, []), ancelOnErro: core.bool}],
+      listen: [async.StreamSubscription, [dart.functionType(dart.void, [dart.bottom])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
       close: [dart.void, []]
     })
   });
