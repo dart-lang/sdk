@@ -807,19 +807,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (kind == SourceKind.LIBRARY) {
       return <Source>[source];
     } else if (kind == SourceKind.PART) {
-      List<Source> libraries = <Source>[];
-      for (Source library in _cache.sources) {
-        CacheEntry entry = _cache.get(library);
-        if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY) {
-          List<Source> parts = entry.getValue(INCLUDED_PARTS);
-          if (parts.contains(source)) {
-            libraries.add(library);
-          }
-        }
-      }
-      if (libraries.isNotEmpty) {
-        return libraries;
-      }
+      return dartWorkManager.getLibrariesContainingPart(source);
     }
     return Source.EMPTY_ARRAY;
   }

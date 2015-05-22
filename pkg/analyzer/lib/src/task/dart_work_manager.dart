@@ -67,6 +67,18 @@ class DartWorkManager implements WorkManager {
   final LinkedHashSet<Source> librarySourceQueue = new LinkedHashSet<Source>();
 
   /**
+   * A table mapping library sources to the part sources they include.
+   */
+  final HashMap<Source, List<Source>> libraryPartsMap =
+      new HashMap<Source, List<Source>>();
+
+  /**
+   * A table mapping part sources to the library sources that include them.
+   */
+  final HashMap<Source, List<Source>> partLibrariesMap =
+      new HashMap<Source, List<Source>>();
+
+  /**
    * Initialize a newly created manager.
    */
   DartWorkManager(this.context);
@@ -99,6 +111,14 @@ class DartWorkManager implements WorkManager {
     // library queue
     librarySourceQueue.removeAll(changedSources);
     librarySourceQueue.removeAll(removedSources);
+    // parts in libraries
+    for (Source changedSource in changedSources) {
+      _onLibrarySourceChangedOrRemoved(changedSource);
+    }
+    for (Source removedSource in removedSources) {
+      partLibrariesMap.remove(removedSource);
+      _onLibrarySourceChangedOrRemoved(removedSource);
+    }
     // Some of the libraries might have been invalidated, reschedule them.
     {
       MapIterator<AnalysisTarget, CacheEntry> iterator =
@@ -161,6 +181,15 @@ class DartWorkManager implements WorkManager {
     }
     LineInfo lineInfo = analysisCache.getValue(source, LINE_INFO);
     return new AnalysisErrorInfoImpl(errors, lineInfo);
+  }
+
+  /**
+   * Returns libraries containing the given [part].
+   * Maybe empty, but not null.
+   */
+  List<Source> getLibrariesContainingPart(Source part) {
+    List<Source> libraries = partLibrariesMap[part];
+    return libraries != null ? libraries : Source.EMPTY_LIST;
   }
 
   @override
@@ -226,6 +255,21 @@ class DartWorkManager implements WorkManager {
         }
       }
     }
+    // Update parts in libraries.
+    if (_isDartSource(target)) {
+      Source library = target;
+      List<Source> includedParts = outputs[INCLUDED_PARTS];
+      if (includedParts != null) {
+        libraryPartsMap[library] = includedParts;
+        for (Source part in includedParts) {
+          List<Source> libraries =
+              partLibrariesMap.putIfAbsent(part, () => <Source>[]);
+          if (!libraries.contains(library)) {
+            libraries.add(library);
+          }
+        }
+      }
+    }
     // Update notice.
     if (_isDartSource(target)) {
       bool shouldSetErrors = false;
@@ -269,6 +313,22 @@ class DartWorkManager implements WorkManager {
   bool _needsComputing(AnalysisTarget target, ResultDescriptor result) {
     CacheState state = analysisCache.getState(target, result);
     return state != CacheState.VALID && state != CacheState.ERROR;
+  }
+
+  /**
+   * The given [library] source was changed or removed.
+   * Update [libraryPartsMap] and [partLibrariesMap].
+   */
+  void _onLibrarySourceChangedOrRemoved(Source library) {
+    List<Source> parts = libraryPartsMap.remove(library);
+    if (parts != null) {
+      for (Source part in parts) {
+        List<Source> libraries = partLibrariesMap[part];
+        if (libraries != null) {
+          libraries.remove(library);
+        }
+      }
+    }
   }
 
   static bool _isDartSource(AnalysisTarget target) {
