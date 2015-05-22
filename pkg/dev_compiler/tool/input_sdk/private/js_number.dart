@@ -393,9 +393,9 @@ class JSInt extends JSNumber implements int, double {
     return (i & 0x0000003F);
   }
 
-  static _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
-  static _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
-  static _ors(int a, int b) => JS('int', '# | #', a, b);
+  static int _shru(int value, int shift) => JS('int', '# >>> #', value, shift);
+  static int _shrs(int value, int shift) => JS('int', '# >> #', value, shift);
+  static int _ors(int a, int b) => JS('int', '# | #', a, b);
 
   // Assumes i is <= 32-bit
   static int _spread(int i) {

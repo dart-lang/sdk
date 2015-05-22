@@ -439,11 +439,11 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       return JSInt._bitCount(JSInt._spread(nonneg));
     }
     static _bitCount(i) {
-      i = dart.as(dart.dsend(JSInt._shru(i, 0), '-', dart.dsend(JSInt._shru(i, 1), '&', 1431655765)), core.int);
-      i = (dart.notNull(i) & 858993459)['+'](dart.as(dart.dsend(JSInt._shru(i, 2), '&', 858993459), core.num));
-      i = 252645135 & dart.notNull(dart.notNull(i) + dart.notNull(dart.as(JSInt._shru(i, 4), core.num)));
-      i = dart.notNull(i) + dart.notNull(dart.as(JSInt._shru(i, 8), core.int));
-      i = dart.notNull(i) + dart.notNull(dart.as(JSInt._shru(i, 16), core.int));
+      i = dart.notNull(JSInt._shru(i, 0)) - (dart.notNull(JSInt._shru(i, 1)) & 1431655765);
+      i = (dart.notNull(i) & 858993459) + (dart.notNull(JSInt._shru(i, 2)) & 858993459);
+      i = 252645135 & dart.notNull(i) + dart.notNull(JSInt._shru(i, 4));
+      i = dart.notNull(i) + dart.notNull(JSInt._shru(i, 8));
+      i = dart.notNull(i) + dart.notNull(JSInt._shru(i, 16));
       return dart.notNull(i) & 63;
     }
     static _shru(value, shift) {
@@ -456,11 +456,11 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       return a | b;
     }
     static _spread(i) {
-      i = dart.as(JSInt._ors(i, dart.as(JSInt._shrs(i, 1), core.int)), core.int);
-      i = dart.as(JSInt._ors(i, dart.as(JSInt._shrs(i, 2), core.int)), core.int);
-      i = dart.as(JSInt._ors(i, dart.as(JSInt._shrs(i, 4), core.int)), core.int);
-      i = dart.as(JSInt._ors(i, dart.as(JSInt._shrs(i, 8), core.int)), core.int);
-      i = dart.as(JSInt._shru(dart.as(JSInt._ors(i, dart.as(JSInt._shrs(i, 16), core.int)), core.int), 0), core.int);
+      i = JSInt._ors(i, JSInt._shrs(i, 1));
+      i = JSInt._ors(i, JSInt._shrs(i, 2));
+      i = JSInt._ors(i, JSInt._shrs(i, 4));
+      i = JSInt._ors(i, JSInt._shrs(i, 8));
+      i = JSInt._shru(JSInt._ors(i, JSInt._shrs(i, 16)), 0);
       return i;
     }
     get runtimeType() {
@@ -480,9 +480,9 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }),
     statics: () => ({
       _bitCount: [core.int, [core.int]],
-      _shru: [core.Object, [core.int, core.int]],
-      _shrs: [core.Object, [core.int, core.int]],
-      _ors: [core.Object, [core.int, core.int]],
+      _shru: [core.int, [core.int, core.int]],
+      _shrs: [core.int, [core.int, core.int]],
+      _ors: [core.int, [core.int, core.int]],
       _spread: [core.int, [core.int]]
     }),
     names: ['_bitCount', '_shru', '_shrs', '_ors', '_spread']
