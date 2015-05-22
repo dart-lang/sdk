@@ -679,6 +679,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CacheEntry entry = _cache.get(target);
     if (entry == null) {
       entry = new CacheEntry(target);
+      if (target is Source) {
+        entry.modificationTime = getModificationStamp(target);
+      }
       _cache.put(entry);
     }
     return entry;
