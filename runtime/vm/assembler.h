@@ -91,7 +91,7 @@ class AssemblerBuffer : public ValueObject {
 
   // Return address to code at |position| bytes.
   uword Address(intptr_t position) {
-    return reinterpret_cast<uword>(contents_ + position);
+    return contents_ + position;
   }
 
   template<typename T> T Load(intptr_t position) {

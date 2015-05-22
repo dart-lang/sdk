@@ -993,7 +993,6 @@ class RawCode : public RawObject {
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
   const int32_t* data() const { OPEN_ARRAY_START(int32_t, int32_t); }
 
-  friend class Code;
   friend class Function;
   friend class MarkingVisitor;
   friend class StackFrame;
