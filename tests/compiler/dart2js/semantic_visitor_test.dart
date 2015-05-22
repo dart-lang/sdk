@@ -4175,7 +4175,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_PROPERTY_SET,
         receiver: receiver, name: selector.name, rhs: rhs));
-    apply(receiver, arg);
+    super.visitDynamicPropertySet(node, receiver, selector, rhs, arg);
   }
 
   @override
