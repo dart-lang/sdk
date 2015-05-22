@@ -197,6 +197,7 @@ custom/document_register_type_extensions_test/single-parameter: Fail # Issue 131
 canvasrenderingcontext2d_test/arc: Pass, Fail # Pixel unexpected value. Please triage this failure.
 worker_test/functional: Pass, Fail # Issues 20659.
 transferables_test: Pass, Fail # Issues 20659.
+html/node_validator_important_if_you_suppress_make_the_bug_critical_test/dom_clobbering: Fail # Issue 23504
 
 # IE11 Feature support statuses-
 # These results not yet noted in platform support annotations.
