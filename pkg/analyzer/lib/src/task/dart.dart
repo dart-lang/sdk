@@ -32,7 +32,7 @@ import 'package:analyzer/task/model.dart';
  * The [ResultCachingPolicy] for ASTs.
  */
 const ResultCachingPolicy AST_CACHING_POLICY =
-    const SimpleResultCachingPolicy(1024, 512);
+    const SimpleResultCachingPolicy(8192, 8192);
 
 /**
  * The errors produced while resolving a library directives.

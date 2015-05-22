@@ -698,6 +698,24 @@ class CacheFlushManagerTest {
     expect(manager.recentlyUsed, orderedEquals([result1, result3, result2]));
   }
 
+  test_resultAccessed_negativeMaxSize() {
+    manager = new CacheFlushManager(new SimpleResultCachingPolicy(-1, -1),
+        (AnalysisTarget target) => false);
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
+    AnalysisTarget target = new TestSource();
+    TargetedResult result1 = new TargetedResult(target, descriptor1);
+    TargetedResult result2 = new TargetedResult(target, descriptor2);
+    manager.resultStored(result1, null);
+    manager.resultStored(result2, null);
+    expect(manager.currentSize, 0);
+    expect(manager.recentlyUsed, isEmpty);
+    // access result2
+    manager.resultAccessed(result2);
+    expect(manager.currentSize, 0);
+    expect(manager.recentlyUsed, isEmpty);
+  }
+
   test_resultAccessed_noSuchResult() {
     ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
     ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
@@ -714,24 +732,6 @@ class CacheFlushManagerTest {
     manager.resultAccessed(result3);
     expect(manager.currentSize, 2);
     expect(manager.recentlyUsed, orderedEquals([result1, result2]));
-  }
-
-  test_resultAccessed_unlimitedCachingPolicy() {
-    manager = new CacheFlushManager(new SimpleResultCachingPolicy(-1, -1),
-        (AnalysisTarget target) => false);
-    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
-    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
-    AnalysisTarget target = new TestSource();
-    TargetedResult result1 = new TargetedResult(target, descriptor1);
-    TargetedResult result2 = new TargetedResult(target, descriptor2);
-    manager.resultStored(result1, null);
-    manager.resultStored(result2, null);
-    expect(manager.currentSize, 0);
-    expect(manager.recentlyUsed, isEmpty);
-    // access result2
-    manager.resultAccessed(result2);
-    expect(manager.currentSize, 0);
-    expect(manager.recentlyUsed, isEmpty);
   }
 
   test_resultStored() {
@@ -766,7 +766,7 @@ class CacheFlushManagerTest {
     }
   }
 
-  test_resultStored_unlimitedCachingPolicy() {
+  test_resultStored_negativeMaxSize() {
     manager = new CacheFlushManager(new SimpleResultCachingPolicy(-1, -1),
         (AnalysisTarget target) => false);
     ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);

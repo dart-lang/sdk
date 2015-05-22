@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
@@ -629,7 +630,7 @@ class CacheFlushManager<T> {
    */
   List<TargetedResult> flushToSize() {
     // If still under the cap, done.
-    if (maxSize == -1 || currentSize <= maxSize) {
+    if (currentSize <= maxSize) {
       return TargetedResult.EMPTY_LIST;
     }
     // Flush results until we are under the cap.
@@ -670,9 +671,6 @@ class CacheFlushManager<T> {
    * Records that the given [result] was just read from the cache.
    */
   void resultAccessed(TargetedResult result) {
-    if (maxSize <= 0) {
-      return;
-    }
     if (recentlyUsed.remove(result)) {
       recentlyUsed.add(result);
     }
@@ -683,9 +681,6 @@ class CacheFlushManager<T> {
    * Returns [TargetedResult]s that should be flushed from the cache.
    */
   List<TargetedResult> resultStored(TargetedResult newResult, T newValue) {
-    if (maxSize <= 0) {
-      return TargetedResult.EMPTY_LIST;
-    }
     if (!recentlyUsed.remove(newResult)) {
       int size = policy.measure(newValue);
       resultSizeMap[newResult] = size;
@@ -875,8 +870,15 @@ abstract class CachePartition {
    */
   CacheFlushManager _getFlushManager(ResultDescriptor descriptor) {
     ResultCachingPolicy policy = descriptor.cachingPolicy;
-    return _flushManagerMap.putIfAbsent(
-        policy, () => new CacheFlushManager(policy, _isPriorityAnalysisTarget));
+    if (identical(policy, DEFAULT_CACHING_POLICY)) {
+      return UnlimitedCacheFlushManager.INSTANCE;
+    }
+    CacheFlushManager manager = _flushManagerMap[policy];
+    if (manager == null) {
+      manager = new CacheFlushManager(policy, _isPriorityAnalysisTarget);
+      _flushManagerMap[policy] = manager;
+    }
+    return manager;
   }
 
   bool _isPriorityAnalysisTarget(AnalysisTarget target) {
@@ -1025,4 +1027,24 @@ class UniversalCachePartition extends CachePartition {
 
   @override
   bool isResponsibleFor(AnalysisTarget target) => true;
+}
+
+/**
+ * [CacheFlushManager] that does nothing, results are never flushed.
+ */
+class UnlimitedCacheFlushManager extends CacheFlushManager {
+  static final CacheFlushManager INSTANCE = new UnlimitedCacheFlushManager();
+
+  UnlimitedCacheFlushManager() : super(DEFAULT_CACHING_POLICY, (_) => false);
+
+  @override
+  void resultAccessed(TargetedResult result) {}
+
+  @override
+  List<TargetedResult> resultStored(TargetedResult newResult, newValue) {
+    return TargetedResult.EMPTY_LIST;
+  }
+
+  @override
+  void targetRemoved(AnalysisTarget target) {}
 }
