@@ -658,7 +658,7 @@ class SkipWhileIterator<E> extends Iterator<E> {
  * The always empty [Iterable].
  */
 class EmptyIterable<E> extends Iterable<E>
-                      implements EfficientLengthIterable<E> {
+                       implements EfficientLengthIterable<E> {
   const EmptyIterable();
 
   Iterator<E> get iterator => const EmptyIterator();
