@@ -40,6 +40,8 @@ namespace dart {
 DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
 DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
+DEFINE_FLAG(bool, load_deferred_eagerly, false,
+    "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DECLARE_FLAG(bool, error_on_bad_type);
@@ -5779,7 +5781,8 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   // If loading hasn't been requested yet, and if this is not a deferred
   // library import, call the library tag handler to request loading
   // the library.
-  if (library.LoadNotStarted() && !is_deferred_import) {
+  if (library.LoadNotStarted() &&
+      (!is_deferred_import || FLAG_load_deferred_eagerly)) {
     library.SetLoadRequested();
     CallLibraryTagHandler(Dart_kImportTag, import_pos, canon_url);
   }
