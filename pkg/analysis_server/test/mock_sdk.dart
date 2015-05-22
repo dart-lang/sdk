@@ -6,6 +6,7 @@ library testing.mock_sdk;
 
 import 'package:analyzer/file_system/file_system.dart' as resource;
 import 'package:analyzer/file_system/memory_file_system.dart' as resource;
+import 'package:analyzer/src/context/context.dart' as newContext;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -203,7 +204,11 @@ external void printToConsole(String line);
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext();
+      if (AnalysisEngine.instance.useTaskModel) {
+        _analysisContext = new newContext.SdkAnalysisContext();
+      } else {
+        _analysisContext = new SdkAnalysisContext();
+      }
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
       ChangeSet changeSet = new ChangeSet();
