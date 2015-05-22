@@ -1309,7 +1309,7 @@ class OldEmitter implements Emitter {
 
     Iterable<LibraryElement> libraries =
         task.outputLibraryLists[mainOutputUnit];
-    if (libraries == null) libraries = [];
+    if (libraries == null) libraries = <LibraryElement>[];
 
     List<jsAst.Expression> parts = <jsAst.Expression>[];
     for (LibraryElement library in Elements.sortedByPosition(libraries)) {
@@ -1625,13 +1625,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 }""");
   }
 
-  /// Returns a map from OutputUnit to a hash of its content. The hash uniquely
-  /// identifies the code of the output-unit. It does not include
-  /// boilerplate JS code, like the sourcemap directives or the hash
-  /// itself.
-  Map<OutputUnit, String> emitDeferredOutputUnits(Program program) {
-    if (!program.isSplit) return const {};
-
+  Map<OutputUnit, jsAst.Expression> buildDescriptorsForOutputUnits(
+      Program program) {
     Map<OutputUnit, jsAst.Expression> outputs =
         new Map<OutputUnit, jsAst.Expression>();
 
@@ -1642,7 +1637,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
       if (descriptors != null && descriptors.isNotEmpty) {
         Iterable<LibraryElement> libraries =
-            task.outputLibraryLists[outputUnit];
+        task.outputLibraryLists[outputUnit];
         if (libraries == null) libraries = [];
 
         // TODO(johnniwinther): Avoid creating [CodeBuffer]s.
@@ -1656,7 +1651,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       }
     }
 
-    return emitDeferredCode(program, outputs);
+    return outputs;
   }
 
   int emitProgram(ProgramBuilder programBuilder) {
@@ -1665,13 +1660,17 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
     assembleProgram(program);
 
+    // Construct the ASTs for all deferred output units.
+    Map<OutputUnit, jsAst.Program> deferredParts =
+        buildOutputAstForDeferredCode(program);
+
     // Emit deferred units first, so we have their hashes.
     // Map from OutputUnit to a hash of its content. The hash uniquely
     // identifies the code of the output-unit. It does not include
     // boilerplate JS code, like the sourcemap directives or the hash
     // itself.
     Map<OutputUnit, String> deferredLoadHashes =
-        emitDeferredOutputUnits(program);
+        emitDeferredOutputUnits(deferredParts);
     emitMainOutputUnit(program, deferredLoadHashes);
 
     if (backend.requiresPreamble &&
@@ -1791,38 +1790,19 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return new jsAst.Block(parts);
   }
 
-  /// Emits code for all output units except the main.
-  /// Returns a mapping from outputUnit to a hash of the corresponding hunk that
-  /// can be used for calling the initializer.
-  Map<OutputUnit, String> emitDeferredCode(
-      Program program,
-      Map<OutputUnit, jsAst.Expression> deferredAsts) {
+  Map <OutputUnit, jsAst.Program> buildOutputAstForDeferredCode(
+      Program program) {
+    if (!program.isSplit) return const <OutputUnit, jsAst.Program>{};
 
-    Map<OutputUnit, String> hunkHashes = new Map<OutputUnit, String>();
+    Map<OutputUnit, jsAst.Program> result =
+        new Map<OutputUnit, jsAst.Program>();
+
+    Map<OutputUnit, jsAst.Expression> deferredAsts =
+        buildDescriptorsForOutputUnits(program);
 
     for (Fragment fragment in program.deferredFragments) {
       OutputUnit outputUnit = fragment.outputUnit;
-
       jsAst.Expression libraryDescriptor = deferredAsts[outputUnit];
-
-      List<CodeOutputListener> outputListeners = <CodeOutputListener>[];
-      Hasher hasher = new Hasher();
-      outputListeners.add(hasher);
-
-      LineColumnCollector lineColumnCollector;
-      if (generateSourceMap) {
-        lineColumnCollector = new LineColumnCollector();
-        outputListeners.add(lineColumnCollector);
-      }
-
-      String partPrefix =
-          backend.deferredPartFileName(outputUnit.name, addExtension: false);
-      CodeOutput output = new StreamCodeOutput(
-          compiler.outputProvider(partPrefix, 'part.js'),
-          outputListeners);
-
-      outputBuffers[outputUnit] = output;
-
       List<jsAst.Statement> body = <jsAst.Statement>[];
 
       // No renaming in the top-level function to save the locals for the
@@ -1869,14 +1849,49 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
       List<jsAst.Statement> statements = <jsAst.Statement>[];
 
-      statements..add(buildGeneratedBy())
+      statements
+          ..add(buildGeneratedBy())
           ..add(js.statement('${deferredInitializers}.current = '
-              """function (${globalsHolder}) {
-                   #
-                 }
+                             """function (${globalsHolder}) {
+                                  #
+                                }
                              """, [body]));
 
-      output.addBuffer(jsAst.prettyPrint(new jsAst.Program(statements),
+      result[outputUnit] = new jsAst.Program(statements);
+    }
+
+    return result;
+  }
+
+  /// Returns a map from OutputUnit to a hash of its content. The hash uniquely
+  /// identifies the code of the output-unit. It does not include
+  /// boilerplate JS code, like the sourcemap directives or the hash
+  /// itself.
+  Map<OutputUnit, String> emitDeferredOutputUnits(
+      Map<OutputUnit, jsAst.Program> outputAsts) {
+
+    Map<OutputUnit, String> hunkHashes = new Map<OutputUnit, String>();
+
+    for (OutputUnit outputUnit in outputAsts.keys) {
+      List<CodeOutputListener> outputListeners = <CodeOutputListener>[];
+      Hasher hasher = new Hasher();
+      outputListeners.add(hasher);
+
+      LineColumnCollector lineColumnCollector;
+      if (generateSourceMap) {
+        lineColumnCollector = new LineColumnCollector();
+        outputListeners.add(lineColumnCollector);
+      }
+
+      String partPrefix =
+          backend.deferredPartFileName(outputUnit.name, addExtension: false);
+      CodeOutput output = new StreamCodeOutput(
+          compiler.outputProvider(partPrefix, 'part.js'),
+          outputListeners);
+
+      outputBuffers[outputUnit] = output;
+
+      output.addBuffer(jsAst.prettyPrint(outputAsts[outputUnit],
                                          compiler,
                                          monitor: compiler.dumpInfoTask));
 
