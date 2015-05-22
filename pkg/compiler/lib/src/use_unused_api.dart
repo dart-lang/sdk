@@ -16,7 +16,6 @@ import 'constants/expressions.dart' as constants;
 import 'constants/values.dart' as constants;
 import 'cps_ir/cps_ir_builder.dart' as ir_builder;
 import 'cps_ir/cps_ir_builder_task.dart' as ir_builder;
-import 'cps_ir/cps_ir_nodes_sexpr.dart' as cps_ir_nodes_sexpr;
 import 'tree_ir/tree_ir_nodes.dart' as tree_ir;
 import 'dart_types.dart' as dart_types;
 import 'dart2js.dart' as dart2js;

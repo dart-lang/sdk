@@ -7554,8 +7554,6 @@ class SsaBranchBuilder {
       builder.stack.add(phi);
     }
 
-    HBasicBlock thenBlock = thenBranch.block;
-    HBasicBlock elseBlock = elseBranch.block;
     HBasicBlock joinBlock;
     // If at least one branch did not abort, open the joinBranch.
     if (!joinBranch.block.predecessors.isEmpty) {

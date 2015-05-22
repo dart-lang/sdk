@@ -664,11 +664,9 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
   }
 
   jsAst.Expression visitList(List<DartType> types, {jsAst.Expression head}) {
-    int index = 0;
     List<jsAst.Expression> elements = <jsAst.Expression>[];
     if (head != null) {
       elements.add(head);
-      index++;
     }
     for (DartType type in types) {
       jsAst.Expression element = visit(type);

@@ -63,7 +63,7 @@ class DietParserTask extends CompilerTask {
       PartialParser parser = new PartialParser(listener);
       try {
         parser.parseUnit(tokens);
-      } on ParserError catch (e) {
+      } on ParserError catch(_) {
         assert(invariant(compilationUnit, compiler.compilationFailed));
       }
     });

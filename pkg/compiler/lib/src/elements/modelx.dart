@@ -825,7 +825,6 @@ class ImportScope {
 
     if (existing != element) {
       Import existingImport = importers.getImport(existing);
-      Element newElement;
       if (existing.library.isPlatformLibrary &&
           !element.library.isPlatformLibrary) {
         // [existing] is implicitly hidden.

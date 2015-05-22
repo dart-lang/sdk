@@ -94,7 +94,6 @@ class PatchResolverTask extends CompilerTask {
   void checkMatchingPatchSignatures(FunctionElement origin,
                                     FunctionElement patch) {
     // TODO(johnniwinther): Show both origin and patch locations on errors.
-    FunctionExpression originTree = origin.node;
     FunctionSignature originSignature = origin.functionSignature;
     FunctionExpression patchTree = patch.node;
     FunctionSignature patchSignature = patch.functionSignature;

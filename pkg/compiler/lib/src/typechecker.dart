@@ -594,7 +594,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   DartType visitFunctionExpression(FunctionExpression node) {
     DartType type;
     DartType returnType;
-    DartType previousType;
     final FunctionElement element = elements.getFunctionDefinition(node);
     assert(invariant(node, element != null,
                      message: 'FunctionExpression with no element'));
@@ -994,7 +993,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       if (receiverType.treatAsDynamic || receiverType.isVoid) {
         return const DynamicAccess();
       }
-      TypeKind receiverKind = receiverType.kind;
       return lookupMember(node, receiverType, name, memberKind,
           elements[node.receiver],
           lookupClassMember: lookupClassMember ||
@@ -1683,7 +1681,6 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   DartType visitWhile(While node) {
     checkCondition(node.condition);
     analyze(node.body);
-    Expression cond = node.condition.asParenthesizedExpression().expression;
     return const StatementType();
   }
 

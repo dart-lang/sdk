@@ -10,7 +10,6 @@ part of js_backend;
 class TypeVariableHandler {
   final Compiler _compiler;
   FunctionElement _typeVariableConstructor;
-  CompileTimeConstantEvaluator _evaluator;
 
   /**
    * Set to 'true' on first encounter of a class with type variables.

@@ -68,8 +68,6 @@ class Unparser extends Indentation implements Visitor {
       indentMore();
       newline();
       visit(nodes.head);
-      String delimiter =
-        (statements.delimiter == null) ? "" : "${statements.delimiter}";
       for (Link link = nodes.tail; !link.isEmpty; link = link.tail) {
         newline();
         visit(link.head);

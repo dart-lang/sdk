@@ -117,7 +117,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
   bool dumpInfo = false;
   bool allowNativeExtensions = false;
   bool trustTypeAnnotations = false;
-  bool trustPrimitives = false;
   bool checkedMode = false;
   // List of provided options that imply that output is expected.
   List<String> optionsImplyCompilation = <String>[];
@@ -218,7 +217,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   setTrustPrimitives(String argument) {
-    trustPrimitives = true;
     implyCompilation(argument);
   }
 
@@ -625,7 +623,7 @@ be removed in a future version:
     Generates an out.info.json file with information about the generated code.
     You can inspect the generated file with the viewer at:
         https://dart-lang.github.io/dump-info-visualizer/
-    This feature is currently not supported in combination with the 
+    This feature is currently not supported in combination with the
     '--output-type=dart' option.
 
   --generate-code-with-compile-time-errors

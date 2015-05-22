@@ -695,7 +695,6 @@ class Listener {
                    [Map arguments = const {}]) {
     String message = messageKind.message(arguments, true).toString();
     Token token;
-    Node node;
     if (spannable is Token) {
       token = spannable;
     } else if (spannable is Node) {
@@ -716,7 +715,6 @@ class Listener {
       reportError(
           token, MessageKind.BAD_INPUT_CHARACTER, {'characterHex': hex});
     } else if (token is UnterminatedToken) {
-      String start = token.start;
       MessageKind kind;
       var arguments = const {};
       switch (token.start) {

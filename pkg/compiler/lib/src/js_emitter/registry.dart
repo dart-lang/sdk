@@ -72,7 +72,6 @@ class Registry {
 
   Registry(this._compiler);
 
-  bool get _isProgramSplit => _deferredLoadTask.isProgramSplit;
   OutputUnit get _mainOutputUnit => _deferredLoadTask.mainOutputUnit;
 
   LibrariesMap _mapUnitToLibrariesMap(OutputUnit targetUnit) {

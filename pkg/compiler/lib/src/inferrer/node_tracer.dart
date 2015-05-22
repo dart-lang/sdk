@@ -365,7 +365,6 @@ abstract class TracerVisitor<T extends TypeInformation>
   }
 
   void visitMemberTypeInformation(MemberTypeInformation info) {
-    Element element = info.element;
     if (info.isClosurized) {
       bailout('Returned from a closurized method');
     }

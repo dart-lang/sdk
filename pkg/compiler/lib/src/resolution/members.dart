@@ -1612,7 +1612,6 @@ class InitializerResolver {
     } else {
       initializers = functionNode.initializers.nodes;
     }
-    FunctionElement result;
     bool resolvedSuper = false;
     for (Link<Node> link = initializers; !link.isEmpty; link = link.tail) {
       if (link.head.asSendSet() != null) {
@@ -3816,7 +3815,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   visitLiteralMap(LiteralMap node) {
-    bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = false;
 
     NodeList arguments = node.typeArguments;
@@ -3890,10 +3888,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   void checkCaseExpressions(SwitchStatement node) {
-    JumpTarget breakElement = getOrDefineTarget(node);
-    Map<String, LabelDefinition> continueLabels = <String, LabelDefinition>{};
-
-    Link<Node> cases = node.cases.nodes;
     CaseMatch firstCase = null;
     DartType firstCaseType = null;
     bool hasReportedProblem = false;
@@ -4515,7 +4509,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       typeVariables.add(typeVariable);
     });
     // Setup bounds on the synthetic type variables.
-    List<DartType> link = typeVariables;
     int index = 0;
     element.typeVariables.forEach((TypeVariableType type) {
       TypeVariableType typeVariable = typeVariables[index++];

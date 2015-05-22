@@ -22,7 +22,7 @@ List<int> readAll(String filename) {
   var length = file.lengthSync();
   // +1 to have a 0 terminated list, see [Scanner].
   var buffer = new Uint8List(length + 1);
-  var bytes = file.readIntoSync(buffer, 0, length);
+  file.readIntoSync(buffer, 0, length);
   file.closeSync();
   return buffer;
 }

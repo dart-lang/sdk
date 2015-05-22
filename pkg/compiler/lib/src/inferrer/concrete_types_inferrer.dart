@@ -1200,7 +1200,6 @@ class ConcreteTypesInferrer
     listInsert = jsArrayClass.lookupMember('insert');
     listRemoveLast =
         jsArrayClass.lookupMember('removeLast');
-    List<String> typePreservingOps = const ['+', '-', '*'];
     listConstructor =
         compiler.listClass.lookupDefaultConstructor();
     if (listConstructor != null) {
