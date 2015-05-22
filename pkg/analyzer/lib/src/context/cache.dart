@@ -467,8 +467,8 @@ class CacheEntry {
       }
     });
     // Invalidate results that depend on this result.
-    List<TargetedResult> dependentResults = thisData.dependentResults;
-    thisData.dependentResults = <TargetedResult>[];
+    Set<TargetedResult> dependentResults = thisData.dependentResults;
+    thisData.dependentResults = new Set<TargetedResult>();
     dependentResults.forEach((TargetedResult dependentResult) {
       CacheEntry entry = _partition.get(dependentResult.target);
       if (entry != null) {
@@ -935,7 +935,7 @@ class ResultData {
   /**
    * A list of the results that depend on this result.
    */
-  List<TargetedResult> dependentResults = <TargetedResult>[];
+  Set<TargetedResult> dependentResults = new Set<TargetedResult>();
 
   /**
    * Initialize a newly created result holder to represent the value of data
