@@ -18,6 +18,8 @@ abstract class TreeElements {
 
   Element operator[](Node node);
 
+  SendStructure getSendStructure(Send send);
+
   // TODO(johnniwinther): Investigate whether [Node] could be a [Send].
   Selector getSelector(Node node);
   Selector getGetterSelectorInComplexSendSet(SendSet node);
@@ -100,6 +102,7 @@ class TreeElementMapping implements TreeElements {
   Map<Node, Map<VariableElement, List<Node>>> _accessedByClosureIn;
   Setlet<Element> _elements;
   Setlet<Send> _asserts;
+  Maplet<Send, SendStructure> _sendStructureMap;
 
   /// Map from nodes to the targets they define.
   Map<Node, JumpTarget> _definedTargets;
@@ -141,6 +144,18 @@ class TreeElementMapping implements TreeElements {
   }
 
   operator [](Node node) => getTreeElement(node);
+
+  SendStructure getSendStructure(Send send) {
+    if (_sendStructureMap == null) return null;
+    return _sendStructureMap[send];
+  }
+
+  void setSendStructure(Send send, SendStructure sendStructure) {
+    if (_sendStructureMap == null) {
+      _sendStructureMap = new Maplet<Send, SendStructure>();
+    }
+    _sendStructureMap[send] = sendStructure;
+  }
 
   void setType(Node node, DartType type) {
     if (_types == null) {
@@ -2579,16 +2594,20 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // If this send is of the form "assert(expr);", then
       // this is an assertion.
       if (selector.isAssert) {
+        SendStructure sendStructure = const AssertStructure();
         if (selector.argumentCount != 1) {
           error(node.selector,
                 MessageKind.WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT,
                 {'argumentCount': selector.argumentCount});
+          sendStructure = const InvalidAssertStructure();
         } else if (selector.namedArgumentCount != 0) {
           error(node.selector,
                 MessageKind.ASSERT_IS_GIVEN_NAMED_ARGUMENTS,
                 {'argumentCount': selector.namedArgumentCount});
+          sendStructure = const InvalidAssertStructure();
         }
         registry.registerAssert(node);
+        registry.registerSendStructure(node, sendStructure);
         return const AssertResult();
       }
 
@@ -2899,25 +2918,35 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     bool resolvedArguments = false;
     if (node.isOperator) {
       String operatorString = node.selector.asOperator().source;
-      if (identical(operatorString, 'is')) {
+      SendStructure sendStructure;
+      if (operatorString == 'is') {
         // TODO(johnniwinther): Use seen type tests to avoid registration of
         // mutation/access to unpromoted variables.
         DartType type =
             resolveTypeAnnotation(node.typeAnnotationFromIsCheckOrCast);
         if (type != null) {
+          sendStructure = node.isIsNotCheck
+              ? new IsNotStructure(type) : new IsStructure(type);
           registry.registerIsCheck(type);
         }
         resolvedArguments = true;
       } else if (identical(operatorString, 'as')) {
         DartType type = resolveTypeAnnotation(node.arguments.head);
         if (type != null) {
+          sendStructure = new AsStructure(type);
           registry.registerAsCheck(type);
         }
         resolvedArguments = true;
       } else if (identical(operatorString, '&&')) {
         doInPromotionScope(node.arguments.head,
             () => resolveArguments(node.argumentsNode));
+        sendStructure = const LogicalAndStructure();
         resolvedArguments = true;
+      } else if (operatorString == '||') {
+        sendStructure = const LogicalOrStructure();
+      }
+      if (sendStructure != null) {
+        registry.registerSendStructure(node, sendStructure);
       }
     }
 

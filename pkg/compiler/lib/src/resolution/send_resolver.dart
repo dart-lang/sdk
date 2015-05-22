@@ -196,12 +196,13 @@ abstract class SendResolverMixin {
   }
 
   SendStructure computeSendStructure(Send node) {
+    SendStructure sendStructure = elements.getSendStructure(node);
+    if (sendStructure != null) {
+      return sendStructure;
+    }
+
     if (elements.isAssert(node)) {
-      if (!node.arguments.isEmpty && node.arguments.tail.isEmpty) {
-        return const AssertStructure();
-      } else {
-        return const InvalidAssertStructure();
-      }
+      return internalError(node, "Unexpected assert.");
     }
 
     AssignmentOperator assignmentOperator;
@@ -212,18 +213,15 @@ abstract class SendResolverMixin {
     if (node.isOperator) {
       String operatorText = node.selector.asOperator().source;
       if (operatorText == 'is') {
-        if (node.isIsNotCheck) {
-          return new IsNotStructure(
-              elements.getType(node.arguments.single.asSend().receiver));
-        } else {
-          return new IsStructure(elements.getType(node.arguments.single));
-        }
+        return internalError(node, "Unexpected is test.");
       } else if (operatorText == 'as') {
+        return internalError(node, "Unexpected as cast.");
         return new AsStructure(elements.getType(node.arguments.single));
       } else if (operatorText == '&&') {
+        return internalError(node, "Unexpected logical and.");
         return const LogicalAndStructure();
       } else if (operatorText == '||') {
-        return const LogicalOrStructure();
+        return internalError(node, "Unexpected logical or.");
       }
     }
 

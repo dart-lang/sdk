@@ -52,6 +52,7 @@ import '../universe/universe.dart' show CallStructure;
 import 'class_members.dart' show MembersCreator;
 import 'enum_creator.dart';
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
+import 'send_structure.dart';
 
 part 'members.dart';
 part 'registry.dart';

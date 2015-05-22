@@ -379,6 +379,10 @@ class ResolutionRegistry extends Registry {
     return mapping.isAssert(node);
   }
 
+  void registerSendStructure(Send node, SendStructure sendStructure) {
+    mapping.setSendStructure(node, sendStructure);
+  }
+
   void registerAsyncMarker(FunctionElement element) {
     backend.registerAsyncMarker(element, world, this);
   }
