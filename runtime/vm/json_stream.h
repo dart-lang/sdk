@@ -22,7 +22,7 @@ class MessageQueue;
 class Metric;
 class Object;
 class ServiceEvent;
-class Breakpoint;
+class SourceBreakpoint;
 class String;
 class Zone;
 
@@ -115,7 +115,7 @@ class JSONStream : ValueObject {
   void PrintValueNoEscape(const char* s);
   void PrintfValue(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
   void PrintValue(const Object& o, bool ref = true);
-  void PrintValue(Breakpoint* bpt);
+  void PrintValue(SourceBreakpoint* bpt);
   void PrintValue(const ServiceEvent* event);
   void PrintValue(Metric* metric);
   void PrintValue(MessageQueue* queue);
@@ -135,7 +135,7 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, const Object& o, bool ref = true);
 
   void PrintProperty(const char* name, const ServiceEvent* event);
-  void PrintProperty(const char* name, Breakpoint* bpt);
+  void PrintProperty(const char* name, SourceBreakpoint* bpt);
   void PrintProperty(const char* name, Metric* metric);
   void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
@@ -214,7 +214,7 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, const ServiceEvent* event) const {
     stream_->PrintProperty(name, event);
   }
-  void AddProperty(const char* name, Breakpoint* bpt) const {
+  void AddProperty(const char* name, SourceBreakpoint* bpt) const {
     stream_->PrintProperty(name, bpt);
   }
   void AddProperty(const char* name, Metric* metric) const {
@@ -265,7 +265,7 @@ class JSONArray : public ValueObject {
   void AddValue(Isolate* isolate, bool ref = true) const {
     stream_->PrintValue(isolate, ref);
   }
-  void AddValue(Breakpoint* bpt) const {
+  void AddValue(SourceBreakpoint* bpt) const {
     stream_->PrintValue(bpt);
   }
   void AddValue(const ServiceEvent* event) const {

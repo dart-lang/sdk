@@ -108,9 +108,6 @@ void runIsolateTests(List<String> mainArgs,
   } else {
     var process = new _TestLauncher();
     process.launch(pause_on_exit).then((port) {
-      if (mainArgs.contains("--gdb")) {
-        port = 8181;
-      }
       String addr = 'ws://localhost:$port/ws';
       var testIndex = 1;
       var totalTests = tests.length;
@@ -195,9 +192,6 @@ Future runVMTests(List<String> mainArgs,
   } else {
     var process = new _TestLauncher();
     process.launch(pause_on_exit).then((port) async {
-      if (mainArgs.contains("--gdb")) {
-        port = 8181;
-      }
       String addr = 'ws://localhost:$port/ws';
       var testIndex = 1;
       var totalTests = tests.length;

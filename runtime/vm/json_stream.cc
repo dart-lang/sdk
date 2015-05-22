@@ -327,7 +327,7 @@ void JSONStream::PrintValue(const Object& o, bool ref) {
 }
 
 
-void JSONStream::PrintValue(Breakpoint* bpt) {
+void JSONStream::PrintValue(SourceBreakpoint* bpt) {
   PrintCommaIfNeeded();
   bpt->PrintJSON(this);
 }
@@ -415,7 +415,7 @@ void JSONStream::PrintProperty(const char* name, const ServiceEvent* event) {
 }
 
 
-void JSONStream::PrintProperty(const char* name, Breakpoint* bpt) {
+void JSONStream::PrintProperty(const char* name, SourceBreakpoint* bpt) {
   PrintPropertyName(name);
   PrintValue(bpt);
 }

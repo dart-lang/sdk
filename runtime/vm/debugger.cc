@@ -63,54 +63,58 @@ class RemoteObjectCache : public ZoneAllocated {
 
 
 // Create an unresolved breakpoint in given token range and script.
-BreakpointLocation::BreakpointLocation(const Script& script,
-                                       intptr_t token_pos,
-                                       intptr_t end_token_pos)
-    : script_(script.raw()),
+SourceBreakpoint::SourceBreakpoint(intptr_t id,
+                                   const Script& script,
+                                   intptr_t token_pos,
+                                   intptr_t end_token_pos)
+    : id_(id),
+      script_(script.raw()),
       url_(script.url()),
       token_pos_(token_pos),
       end_token_pos_(end_token_pos),
       is_resolved_(false),
+      is_enabled_(false),
+      is_one_shot_(false),
       next_(NULL),
-      conditions_(NULL),
       function_(Function::null()),
       line_number_(-1) {
+  ASSERT(id_ > 0);
   ASSERT(!script.IsNull());
   ASSERT(token_pos_ >= 0);
 }
 
 // Create a latent breakpoint at given url and line number.
-BreakpointLocation::BreakpointLocation(const String& url,
-                                       intptr_t line_number)
-    : script_(Script::null()),
+SourceBreakpoint::SourceBreakpoint(intptr_t id,
+                                   const String& url,
+                                   intptr_t line_number)
+    : id_(id),
+      script_(Script::null()),
       url_(url.raw()),
       token_pos_(-1),
       end_token_pos_(-1),
       is_resolved_(false),
+      is_enabled_(false),
+      is_one_shot_(false),
       next_(NULL),
-      conditions_(NULL),
       function_(Function::null()),
       line_number_(line_number) {
+  ASSERT(id >= 0);
   ASSERT(line_number_ >= 0);
 }
 
-
-BreakpointLocation::~BreakpointLocation() {
-  Breakpoint* bpt = breakpoints();
-  while (bpt != NULL) {
-    Breakpoint* temp = bpt;
-    bpt = bpt->next();
-    delete temp;
-  }
+void SourceBreakpoint::Enable() {
+  is_enabled_ = true;
+  Isolate::Current()->debugger()->SyncBreakpoint(this);
 }
 
 
-bool BreakpointLocation::AnyEnabled() const {
-  return breakpoints() != NULL;
+void SourceBreakpoint::Disable() {
+  is_enabled_ = false;
+  Isolate::Current()->debugger()->SyncBreakpoint(this);
 }
 
 
-void BreakpointLocation::SetResolved(const Function& func, intptr_t token_pos) {
+void SourceBreakpoint::SetResolved(const Function& func, intptr_t token_pos) {
   ASSERT(!IsLatent());
   ASSERT(func.script() == script_);
   ASSERT((func.token_pos() <= token_pos) &&
@@ -127,9 +131,9 @@ void BreakpointLocation::SetResolved(const Function& func, intptr_t token_pos) {
 // TODO(hausner): Get rid of library parameter. A source breakpoint location
 // does not imply a library, since the same source code can be included
 // in more than one library, e.g. the text location of mixin functions.
-void BreakpointLocation::GetCodeLocation(Library* lib,
-                                         Script* script,
-                                         intptr_t* pos) {
+void SourceBreakpoint::GetCodeLocation(Library* lib,
+                                       Script* script,
+                                       intptr_t* pos) {
   if (IsLatent()) {
     *lib = Library::null();
     *script = Script::null();
@@ -149,7 +153,7 @@ void BreakpointLocation::GetCodeLocation(Library* lib,
 }
 
 
-intptr_t BreakpointLocation::LineNumber() {
+intptr_t SourceBreakpoint::LineNumber() {
   // Latent breakpoints must have a requested line number >= 0.
   ASSERT(!IsLatent() || line_number_ >= 0);
   // Compute line number lazily since it causes scanning of the script.
@@ -161,31 +165,14 @@ intptr_t BreakpointLocation::LineNumber() {
 }
 
 
-void Breakpoint::set_bpt_location(BreakpointLocation* new_bpt_location) {
-  ASSERT(bpt_location_->IsLatent());  // Only reason to move.
-  bpt_location_ = new_bpt_location;
-}
-
-
-void Breakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&closure_));
-}
-
-
-void BreakpointLocation::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+void SourceBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&script_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&url_));
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&function_));
-
-  Breakpoint* bpt = conditions_;
-  while (bpt != NULL) {
-    bpt -> VisitObjectPointers(visitor);
-    bpt = bpt->next();
-  }
 }
 
 
-void Breakpoint::PrintJSON(JSONStream* stream) {
+void SourceBreakpoint::PrintJSON(JSONStream* stream) {
   Isolate* isolate = Isolate::Current();
 
   JSONObject jsobj(stream);
@@ -193,12 +180,12 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
 
   jsobj.AddPropertyF("id", "breakpoints/%" Pd "", id());
   jsobj.AddProperty("breakpointNumber", id());
-  jsobj.AddProperty("resolved", bpt_location_->IsResolved());
+  jsobj.AddProperty("resolved", IsResolved());
 
   Library& library = Library::Handle(isolate);
   Script& script = Script::Handle(isolate);
   intptr_t token_pos;
-  bpt_location_->GetCodeLocation(&library, &script, &token_pos);
+  GetCodeLocation(&library, &script, &token_pos);
   {
     JSONObject location(&jsobj, "location");
     location.AddProperty("type", "Location");
@@ -307,71 +294,12 @@ void Debugger::SignalIsolateInterrupted() {
 // The vm service handles breakpoint notifications in a different way
 // than the regular debugger breakpoint notifications.
 static void SendServiceBreakpointEvent(ServiceEvent::EventType type,
-                                       Breakpoint* bpt) {
+                                       SourceBreakpoint* bpt) {
   if (Service::NeedsEvents()) {
     ServiceEvent service_event(Isolate::Current(), type);
     service_event.set_breakpoint(bpt);
     Service::HandleEvent(&service_event);
   }
-}
-
-
-void BreakpointLocation::AddBreakpoint(Breakpoint* bpt, Debugger* dbg) {
-  bpt->set_next(breakpoints());
-  set_breakpoints(bpt);
-
-  dbg->SyncBreakpointLocation(this);
-
-  if (IsResolved()) {
-    dbg->SignalBpResolved(bpt);
-  }
-  SendServiceBreakpointEvent(ServiceEvent::kBreakpointAdded, bpt);
-}
-
-
-Breakpoint* BreakpointLocation::AddRepeated(Debugger* dbg) {
-  Breakpoint* bpt = breakpoints();
-  while (bpt != NULL) {
-    if (bpt->IsRepeated()) break;
-    bpt = bpt->next();
-  }
-  if (bpt == NULL) {
-    bpt = new Breakpoint(dbg->nextId(), this);
-    bpt->SetIsRepeated();
-    AddBreakpoint(bpt, dbg);
-  }
-  return bpt;
-}
-
-
-Breakpoint* BreakpointLocation::AddSingleShot(Debugger* dbg) {
-  Breakpoint* bpt = breakpoints();
-  while (bpt != NULL) {
-    if (bpt->IsSingleShot()) break;
-    bpt = bpt->next();
-  }
-  if (bpt == NULL) {
-    bpt = new Breakpoint(dbg->nextId(), this);
-    bpt->SetIsSingleShot();
-    AddBreakpoint(bpt, dbg);
-  }
-  return bpt;
-}
-
-
-Breakpoint* BreakpointLocation::AddPerClosure(Debugger* dbg,
-                                              const Instance& closure) {
-  Breakpoint* bpt = breakpoints();
-  while (bpt != NULL) {
-    if (bpt->IsPerClosure() && bpt->closure() == closure.raw()) break;
-    bpt = bpt->next();
-  }
-  if (bpt == NULL) {
-    bpt = new Breakpoint(dbg->nextId(), this);
-    bpt->SetIsPerClosure(closure);
-    AddBreakpoint(bpt, dbg);
-  }
-  return bpt;
 }
 
 
@@ -415,7 +343,7 @@ bool Debugger::HasBreakpoint(const Function& func) {
     // range of the function. This may be a false positive: the breakpoint
     // might be inside a local closure.
     Script& script = Script::Handle(isolate_);
-    BreakpointLocation* sbpt = breakpoint_locations_;
+    SourceBreakpoint* sbpt = src_breakpoints_;
     while (sbpt != NULL) {
       script = sbpt->script();
       if (FunctionContains(func, script, sbpt->token_pos())) {
@@ -449,13 +377,9 @@ bool Debugger::HasBreakpoint(const Code& code) {
 
 
 void Debugger::PrintBreakpointsToJSONArray(JSONArray* jsarr) const {
-  BreakpointLocation* sbpt = breakpoint_locations_;
+  SourceBreakpoint* sbpt = src_breakpoints_;
   while (sbpt != NULL) {
-    Breakpoint* bpt = sbpt->breakpoints();
-    while (bpt != NULL) {
-      jsarr->AddValue(bpt);
-      bpt = bpt->next();
-    }
+    jsarr->AddValue(sbpt);
     sbpt = sbpt->next_;
   }
 }
@@ -752,34 +676,6 @@ intptr_t ActivationFrame::NumLocalVariables() {
 }
 
 
-RawObject* ActivationFrame::GetParameter(intptr_t index) {
-  intptr_t num_parameters = function().num_fixed_parameters();
-  ASSERT(0 <= index && index < num_parameters);
-  intptr_t reverse_index = num_parameters - index;
-
-  if (function().NumOptionalParameters() > 0) {
-    // If the function has optional parameters, the first positional parameter
-    // can be in a number of places in the caller's frame depending on how many
-    // were actually supplied at the call site, but they are copied to a fixed
-    // place in the callee's frame.
-    uword var_address = fp() + ((kFirstLocalSlotFromFp - index) * kWordSize);
-    return reinterpret_cast<RawObject*>(
-        *reinterpret_cast<uword*>(var_address));
-  } else {
-    uword var_address = fp() + (kParamEndSlotFromFp * kWordSize)
-                             + (reverse_index * kWordSize);
-    return reinterpret_cast<RawObject*>(
-        *reinterpret_cast<uword*>(var_address));
-  }
-}
-
-
-RawObject* ActivationFrame::GetClosure() {
-  ASSERT(function().IsClosureFunction());
-  return GetParameter(0);
-}
-
-
 RawObject* ActivationFrame::GetLocalVar(intptr_t slot_index) {
   if (deopt_frame_.IsNull()) {
     uword var_address = fp() + slot_index * kWordSize;
@@ -1050,7 +946,7 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
       pc_(pc),
       line_number_(-1),
       is_enabled_(false),
-      bpt_location_(NULL),
+      src_bpt_(NULL),
       next_(NULL),
       breakpoint_kind_(kind),
       saved_value_(0) {
@@ -1068,7 +964,7 @@ CodeBreakpoint::~CodeBreakpoint() {
 #ifdef DEBUG
   code_ = Code::null();
   pc_ = 0ul;
-  bpt_location_ = NULL;
+  src_bpt_ = NULL;
   next_ = NULL;
   breakpoint_kind_ = RawPcDescriptors::kOther;
 #endif
@@ -1147,8 +1043,8 @@ Debugger::Debugger()
       isolate_id_(ILLEGAL_ISOLATE_ID),
       initialized_(false),
       next_id_(1),
-      latent_locations_(NULL),
-      breakpoint_locations_(NULL),
+      latent_breakpoints_(NULL),
+      src_breakpoints_(NULL),
       code_breakpoints_(NULL),
       resume_action_(kContinue),
       ignore_breakpoints_(false),
@@ -1163,8 +1059,8 @@ Debugger::Debugger()
 Debugger::~Debugger() {
   isolate_id_ = ILLEGAL_ISOLATE_ID;
   ASSERT(!IsPaused());
-  ASSERT(latent_locations_ == NULL);
-  ASSERT(breakpoint_locations_ == NULL);
+  ASSERT(latent_breakpoints_ == NULL);
+  ASSERT(src_breakpoints_ == NULL);
   ASSERT(code_breakpoints_ == NULL);
   ASSERT(stack_trace_ == NULL);
   ASSERT(obj_cache_ == NULL);
@@ -1172,14 +1068,14 @@ Debugger::~Debugger() {
 
 
 void Debugger::Shutdown() {
-  while (breakpoint_locations_ != NULL) {
-    BreakpointLocation* bpt = breakpoint_locations_;
-    breakpoint_locations_ = breakpoint_locations_->next();
+  while (src_breakpoints_ != NULL) {
+    SourceBreakpoint* bpt = src_breakpoints_;
+    src_breakpoints_ = src_breakpoints_->next();
     delete bpt;
   }
-  while (latent_locations_ != NULL) {
-    BreakpointLocation* bpt = latent_locations_;
-    latent_locations_ = latent_locations_->next();
+  while (latent_breakpoints_ != NULL) {
+    SourceBreakpoint* bpt = latent_breakpoints_;
+    latent_breakpoints_ = latent_breakpoints_->next();
     delete bpt;
   }
   while (code_breakpoints_ != NULL) {
@@ -1297,8 +1193,8 @@ void Debugger::DeoptimizeWorld() {
 }
 
 
-void Debugger::SignalBpResolved(Breakpoint* bpt) {
-  if (HasEventHandler() && !bpt->IsSingleShot()) {
+void Debugger::SignalBpResolved(SourceBreakpoint* bpt) {
+  if (HasEventHandler() && !bpt->IsOneShot()) {
     DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointResolved);
     event.set_breakpoint(bpt);
     InvokeEventHandler(&event);
@@ -1616,9 +1512,9 @@ intptr_t Debugger::ResolveBreakpointPos(const Function& func,
 
 
 void Debugger::MakeCodeBreakpointAt(const Function& func,
-                                    BreakpointLocation* loc) {
-  ASSERT(loc->token_pos_ != Scanner::kNoSourcePos);
-  ASSERT((loc != NULL) && loc->IsResolved());
+                                    SourceBreakpoint* bpt) {
+  ASSERT(bpt->token_pos_ != Scanner::kNoSourcePos);
+  ASSERT((bpt != NULL) && bpt->IsResolved());
   ASSERT(!func.HasOptimizedCode());
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
@@ -1629,7 +1525,7 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   // that maps to the token position of the source breakpoint.
   PcDescriptors::Iterator iter(desc, kSafepointKind);
   while (iter.MoveNext()) {
-    if (iter.TokenPos() == loc->token_pos_) {
+    if (iter.TokenPos() == bpt->token_pos_) {
       if (iter.PcOffset() < lowest_pc_offset) {
         lowest_pc_offset = iter.PcOffset();
         lowest_kind = iter.Kind();
@@ -1643,12 +1539,12 @@ void Debugger::MakeCodeBreakpointAt(const Function& func,
   CodeBreakpoint* code_bpt = GetCodeBreakpoint(lowest_pc);
   if (code_bpt == NULL) {
     // No code breakpoint for this code exists; create one.
-    code_bpt = new CodeBreakpoint(code, loc->token_pos_,
+    code_bpt = new CodeBreakpoint(code, bpt->token_pos_,
                                   lowest_pc, lowest_kind);
     RegisterCodeBreakpoint(code_bpt);
   }
-  code_bpt->set_bpt_location(loc);
-  if (loc->AnyEnabled()) {
+  code_bpt->set_src_bpt(bpt);
+  if (bpt->IsEnabled()) {
     code_bpt->Enable();
   }
 }
@@ -1800,7 +1696,7 @@ RawFunction* Debugger::FindBestFit(const Script& script,
 }
 
 
-BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
+SourceBreakpoint* Debugger::SetBreakpoint(const Script& script,
                                           intptr_t token_pos,
                                           intptr_t last_token_pos) {
   Function& func = Function::Handle(isolate_);
@@ -1828,14 +1724,14 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
     intptr_t breakpoint_pos =
         ResolveBreakpointPos(func, token_pos, last_token_pos);
     if (breakpoint_pos >= 0) {
-      BreakpointLocation* bpt = GetBreakpointLocation(script, breakpoint_pos);
+      SourceBreakpoint* bpt = GetSourceBreakpoint(script, breakpoint_pos);
       if (bpt != NULL) {
         // A source breakpoint for this location already exists.
         return bpt;
       }
-      bpt = new BreakpointLocation(script, token_pos, last_token_pos);
+      bpt = new SourceBreakpoint(nextId(), script, token_pos, last_token_pos);
       bpt->SetResolved(func, breakpoint_pos);
-      RegisterBreakpointLocation(bpt);
+      RegisterSourceBreakpoint(bpt);
 
       // Create code breakpoints for all compiled functions we found.
       const intptr_t num_functions = functions.Length();
@@ -1844,6 +1740,7 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
         ASSERT(func.HasCode());
         MakeCodeBreakpointAt(func, bpt);
       }
+      bpt->Enable();
       if (FLAG_verbose_debug) {
         intptr_t line_number;
         script.GetTokenLocation(breakpoint_pos, &line_number, NULL);
@@ -1852,6 +1749,8 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
                   func.ToFullyQualifiedCString(),
                   line_number);
       }
+      SignalBpResolved(bpt);
+      SendServiceBreakpointEvent(ServiceEvent::kBreakpointAdded, bpt);
       return bpt;
     }
   }
@@ -1865,24 +1764,24 @@ BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
               func.ToFullyQualifiedCString(),
               line_number);
   }
-  BreakpointLocation* bpt = GetBreakpointLocation(script, token_pos);
+  SourceBreakpoint* bpt = GetSourceBreakpoint(script, token_pos);
   if (bpt == NULL) {
-    bpt = new BreakpointLocation(script, token_pos, last_token_pos);
-    RegisterBreakpointLocation(bpt);
+    bpt = new SourceBreakpoint(nextId(), script, token_pos, last_token_pos);
+    RegisterSourceBreakpoint(bpt);
+    SendServiceBreakpointEvent(ServiceEvent::kBreakpointAdded, bpt);
   }
+  bpt->Enable();
   return bpt;
 }
 
 
 // Synchronize the enabled/disabled state of all code breakpoints
-// associated with the breakpoint location loc.
-void Debugger::SyncBreakpointLocation(BreakpointLocation* loc) {
-  bool any_enabled = loc->AnyEnabled();
-
+// associated with the source breakpoint bpt.
+void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
   CodeBreakpoint* cbpt = code_breakpoints_;
   while (cbpt != NULL) {
-    if (loc == cbpt->bpt_location()) {
-      if (any_enabled) {
+    if (bpt == cbpt->src_bpt()) {
+      if (bpt->IsEnabled()) {
         cbpt->Enable();
       } else {
         cbpt->Disable();
@@ -1896,7 +1795,10 @@ void Debugger::SyncBreakpointLocation(BreakpointLocation* loc) {
 RawError* Debugger::OneTimeBreakAtEntry(const Function& target_function) {
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    SetBreakpointAtEntry(target_function, true);
+    SourceBreakpoint* bpt = SetBreakpointAtEntry(target_function);
+    if (bpt != NULL) {
+      bpt->SetIsOneShot();
+    }
     return Error::null();
   } else {
     return isolate_->object_store()->sticky_error();
@@ -1904,48 +1806,21 @@ RawError* Debugger::OneTimeBreakAtEntry(const Function& target_function) {
 }
 
 
-Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
-                                           bool single_shot) {
+SourceBreakpoint* Debugger::SetBreakpointAtEntry(
+      const Function& target_function) {
   ASSERT(!target_function.IsNull());
   if (!target_function.is_debuggable()) {
     return NULL;
   }
   const Script& script = Script::Handle(target_function.script());
-  BreakpointLocation* bpt_location =
-      SetBreakpoint(script,
-                    target_function.token_pos(),
-                    target_function.end_token_pos());
-  if (single_shot) {
-    return bpt_location->AddSingleShot(this);
-  } else {
-    return bpt_location->AddRepeated(this);
-  }
+  return SetBreakpoint(script,
+                       target_function.token_pos(),
+                       target_function.end_token_pos());
 }
 
 
-Breakpoint* Debugger::SetBreakpointAtActivation(
-    const Instance& closure) {
-  if (!closure.IsClosure()) {
-    return NULL;
-  }
-  const Function& func = Function::Handle(Closure::function(closure));
-  const Script& script = Script::Handle(func.script());
-  BreakpointLocation* bpt = SetBreakpoint(script,
-                                          func.token_pos(),
-                                          func.end_token_pos());
-  return bpt->AddPerClosure(this, closure);
-}
-
-
-Breakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
-                                          intptr_t line_number) {
-  BreakpointLocation* bpt = BreakpointLocationAtLine(script_url, line_number);
-  return bpt->AddRepeated(this);
-}
-
-
-BreakpointLocation* Debugger::BreakpointLocationAtLine(const String& script_url,
-                                                       intptr_t line_number) {
+SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
+                                                intptr_t line_number) {
   Library& lib = Library::Handle(isolate_);
   Script& script = Script::Handle(isolate_);
   const GrowableObjectArray& libs =
@@ -1962,8 +1837,7 @@ BreakpointLocation* Debugger::BreakpointLocationAtLine(const String& script_url,
   if (scripts.Length() == 0) {
     // No script found with given url. Create a latent breakpoint which
     // will be set if the url is loaded later.
-    BreakpointLocation* latent_bpt = GetLatentBreakpoint(script_url,
-                                                         line_number);
+    SourceBreakpoint* latent_bpt = GetLatentBreakpoint(script_url, line_number);
     if (FLAG_verbose_debug) {
       OS::Print("Set latent breakpoint in url '%s' at line %" Pd "\n",
                 script_url.ToCString(),
@@ -1996,7 +1870,7 @@ BreakpointLocation* Debugger::BreakpointLocationAtLine(const String& script_url,
     return NULL;
   }
 
-  BreakpointLocation* bpt = NULL;
+  SourceBreakpoint* bpt = NULL;
   ASSERT(first_token_idx <= last_token_idx);
   while ((bpt == NULL) && (first_token_idx <= last_token_idx)) {
     bpt = SetBreakpoint(script, first_token_idx, last_token_idx);
@@ -2210,12 +2084,12 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
 // static
 void Debugger::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   ASSERT(visitor != NULL);
-  BreakpointLocation* bpt = breakpoint_locations_;
+  SourceBreakpoint* bpt = src_breakpoints_;
   while (bpt != NULL) {
     bpt->VisitObjectPointers(visitor);
     bpt = bpt->next();
   }
-  bpt = latent_locations_;
+  bpt = latent_breakpoints_;
   while (bpt != NULL) {
     bpt->VisitObjectPointers(visitor);
     bpt = bpt->next();
@@ -2298,13 +2172,13 @@ bool Debugger::IsDebuggable(const Function& func) {
 
 
 void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
-                                 Breakpoint* bpt) {
+                                 SourceBreakpoint* bpt) {
   resume_action_ = kContinue;
   stepping_fp_ = 0;
   isolate_->set_single_step(false);
   ASSERT(!IsPaused());
   ASSERT(obj_cache_ == NULL);
-  if ((bpt != NULL) && bpt->IsSingleShot())  {
+  if ((bpt != NULL) && bpt->IsOneShot()) {
     RemoveBreakpoint(bpt->id());
     bpt = NULL;
   }
@@ -2386,73 +2260,25 @@ void Debugger::SignalBpReached() {
   ASSERT(stack_trace->Length() > 0);
   ActivationFrame* top_frame = stack_trace->FrameAt(0);
   ASSERT(top_frame != NULL);
-  CodeBreakpoint* cbpt = GetCodeBreakpoint(top_frame->pc());
-  ASSERT(cbpt != NULL);
-
-  BreakpointLocation* bpt_location = cbpt->bpt_location_;
-  Breakpoint* bpt_hit = NULL;
-
-  // There may be more than one applicable breakpoint at this location, but we
-  // will report only one as reached. If there is a single-shot breakpoint, we
-  // favor it; then a closure-specific breakpoint ; then an general breakpoint.
-  if (bpt_location != NULL) {
-    Breakpoint* bpt = bpt_location->breakpoints();
-    while (bpt != NULL) {
-      if (bpt->IsSingleShot()) {
-        bpt_hit = bpt;
-        break;
-      }
-      bpt = bpt->next();
-    }
-
-    if (bpt_hit == NULL) {
-      bpt = bpt_location->breakpoints();
-      while (bpt != NULL) {
-        if (bpt->IsPerClosure()) {
-          Object& closure = Object::Handle(top_frame->GetClosure());
-          ASSERT(closure.IsInstance());
-          ASSERT(Instance::Cast(closure).IsClosure());
-          if (closure.raw() == bpt->closure()) {
-            bpt_hit = bpt;
-            break;
-          }
-        }
-        bpt = bpt->next();
-      }
-    }
-
-    if (bpt_hit == NULL) {
-      bpt = bpt_location->breakpoints();
-      while (bpt != NULL) {
-        if (bpt->IsRepeated()) {
-          bpt_hit = bpt;
-          break;
-        }
-        bpt = bpt->next();
-      }
-    }
-  }
-
-  if (bpt_hit == NULL) {
-    return;
-  }
+  CodeBreakpoint* bpt = GetCodeBreakpoint(top_frame->pc());
+  ASSERT(bpt != NULL);
 
   if (FLAG_verbose_debug) {
     OS::Print(">>> hit %s breakpoint at %s:%" Pd " "
               "(token %" Pd ") (address %#" Px ")\n",
-              cbpt->IsInternal() ? "internal" : "user",
-              String::Handle(cbpt->SourceUrl()).ToCString(),
-              cbpt->LineNumber(),
-              cbpt->token_pos(),
+              bpt->IsInternal() ? "internal" : "user",
+              String::Handle(bpt->SourceUrl()).ToCString(),
+              bpt->LineNumber(),
+              bpt->token_pos(),
               top_frame->pc());
   }
 
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
-  SignalPausedEvent(top_frame, bpt_hit);
+  SignalPausedEvent(top_frame, bpt->src_bpt_);
   HandleSteppingRequest(stack_trace_);
   stack_trace_ = NULL;
-  if (cbpt->IsInternal()) {
+  if (bpt->IsInternal()) {
     RemoveInternalBreakpoints();
   }
 }
@@ -2538,7 +2364,7 @@ RawFunction* Debugger::FindInnermostClosure(const Function& function,
 
 
 void Debugger::NotifyCompilation(const Function& func) {
-  if (breakpoint_locations_ == NULL) {
+  if (src_breakpoints_ == NULL) {
     // Return with minimal overhead if there are no breakpoints.
     return;
   }
@@ -2551,13 +2377,13 @@ void Debugger::NotifyCompilation(const Function& func) {
   // Iterate over all source breakpoints to check whether breakpoints
   // need to be set in the newly compiled function.
   Script& script = Script::Handle(isolate_);
-  for (BreakpointLocation* loc = breakpoint_locations_;
-      loc != NULL;
-      loc = loc->next()) {
-    script = loc->script();
-    if (FunctionContains(func, script, loc->token_pos())) {
+  for (SourceBreakpoint* bpt = src_breakpoints_;
+      bpt != NULL;
+      bpt = bpt->next()) {
+    script = bpt->script();
+    if (FunctionContains(func, script, bpt->token_pos())) {
       Function& inner_function = Function::Handle(isolate_);
-      inner_function = FindInnermostClosure(func, loc->token_pos());
+      inner_function = FindInnermostClosure(func, bpt->token_pos());
       if (!inner_function.IsNull()) {
         // The local function of a function we just compiled cannot
         // be compiled already.
@@ -2576,10 +2402,10 @@ void Debugger::NotifyCompilation(const Function& func) {
       // There is no local function within func that contains the
       // breakpoint token position. Resolve the breakpoint if necessary
       // and set the code breakpoints.
-      if (!loc->IsResolved()) {
+      if (!bpt->IsResolved()) {
         // Resolve source breakpoint in the newly compiled function.
         intptr_t bp_pos =
-            ResolveBreakpointPos(func, loc->token_pos(), loc->end_token_pos());
+            ResolveBreakpointPos(func, bpt->token_pos(), bpt->end_token_pos());
         if (bp_pos < 0) {
           if (FLAG_verbose_debug) {
             OS::Print("Failed resolving breakpoint for function '%s'\n",
@@ -2587,58 +2413,50 @@ void Debugger::NotifyCompilation(const Function& func) {
           }
           continue;
         }
-        intptr_t requested_pos = loc->token_pos();
-        intptr_t requested_end_pos = loc->end_token_pos();
-        loc->SetResolved(func, bp_pos);
-        Breakpoint* bpt = loc->breakpoints();
-        while (bpt != NULL) {
-          if (FLAG_verbose_debug) {
-            OS::Print("Resolved BP %" Pd " to pos %" Pd ", line %" Pd ", "
-                      "function '%s' (requested range %" Pd "-%" Pd ")\n",
-                      bpt->id(),
-                      loc->token_pos(),
-                      loc->LineNumber(),
-                      func.ToFullyQualifiedCString(),
-                      requested_pos,
-                      requested_end_pos);
-          }
-          SignalBpResolved(bpt);
-          SendServiceBreakpointEvent(ServiceEvent::kBreakpointResolved, bpt);
-          bpt = bpt->next();
-        }
-      }
-      ASSERT(loc->IsResolved());
-      if (FLAG_verbose_debug) {
-        Breakpoint* bpt = loc->breakpoints();
-        while (bpt != NULL) {
-          OS::Print("Setting breakpoint %" Pd " at line %" Pd " for %s '%s'\n",
+        intptr_t requested_pos = bpt->token_pos();
+        intptr_t requested_end_pos = bpt->end_token_pos();
+        bpt->SetResolved(func, bp_pos);
+        if (FLAG_verbose_debug) {
+          OS::Print("Resolved BP %" Pd " to pos %" Pd ", line %" Pd ", "
+                    "function '%s' (requested range %" Pd "-%" Pd ")\n",
                     bpt->id(),
-                    loc->LineNumber(),
-                    func.IsClosureFunction() ? "closure" : "function",
-                    String::Handle(func.name()).ToCString());
-          bpt = bpt->next();
+                    bpt->token_pos(),
+                    bpt->LineNumber(),
+                    func.ToFullyQualifiedCString(),
+                    requested_pos,
+                    requested_end_pos);
         }
+        SignalBpResolved(bpt);
+        SendServiceBreakpointEvent(ServiceEvent::kBreakpointResolved, bpt);
       }
-      MakeCodeBreakpointAt(func, loc);
+      ASSERT(bpt->IsResolved());
+      if (FLAG_verbose_debug) {
+        OS::Print("Setting breakpoint %" Pd " at line %" Pd " for %s '%s'\n",
+                  bpt->id(),
+                  bpt->LineNumber(),
+                  func.IsClosureFunction() ? "closure" : "function",
+                  String::Handle(func.name()).ToCString());
+      }
+      MakeCodeBreakpointAt(func, bpt);
     }
   }
 }
 
 
 void Debugger::NotifyDoneLoading() {
-  if (latent_locations_ == NULL) {
+  if (latent_breakpoints_ == NULL) {
     // Common, fast path.
     return;
   }
   Library& lib = Library::Handle(isolate_);
   Script& script = Script::Handle(isolate_);
   String& url = String::Handle(isolate_);
-  BreakpointLocation* loc = latent_locations_;
-  BreakpointLocation* prev_loc = NULL;
+  SourceBreakpoint* bpt = latent_breakpoints_;
+  SourceBreakpoint* prev_bpt = NULL;
   const GrowableObjectArray& libs =
       GrowableObjectArray::Handle(isolate_->object_store()->libraries());
-  while (loc != NULL) {
-    url = loc->url();
+  while (bpt != NULL) {
+    url = bpt->url();
     bool found_match = false;
     for (intptr_t i = 0; i < libs.Length(); i++) {
       lib ^= libs.At(i);
@@ -2647,16 +2465,16 @@ void Debugger::NotifyDoneLoading() {
         // Found a script with matching url for this latent breakpoint.
         // Unlink the latent breakpoint from the list.
         found_match = true;
-        BreakpointLocation* matched_loc = loc;
-        loc = loc->next();
-        if (prev_loc == NULL) {
-          latent_locations_ = loc;
+        SourceBreakpoint* matched_bpt = bpt;
+        bpt = bpt->next();
+        if (prev_bpt == NULL) {
+          latent_breakpoints_ = bpt;
         } else {
-          prev_loc->set_next(loc);
+          prev_bpt->set_next(bpt);
         }
         // Now find the token range at the requested line and make a
         // new unresolved source breakpoint.
-        intptr_t line_number = matched_loc->LineNumber();
+        intptr_t line_number = matched_bpt->LineNumber();
         ASSERT(line_number >= 0);
         intptr_t first_token_pos, last_token_pos;
         script.TokenRangeAtLine(line_number, &first_token_pos, &last_token_pos);
@@ -2664,54 +2482,40 @@ void Debugger::NotifyDoneLoading() {
             (last_token_pos < 0)) {
           // Script does not contain the given line number or there are no
           // tokens on the line. Drop the breakpoint silently.
-          Breakpoint* bpt = matched_loc->breakpoints();
-          while (bpt != NULL) {
-            if (FLAG_verbose_debug) {
-              OS::Print("No code found at line %" Pd ": "
-                        "dropping latent breakpoint %" Pd " in '%s'\n",
-                        line_number,
-                        bpt->id(),
-                        url.ToCString());
-            }
-            Breakpoint* prev = bpt;
-            bpt = bpt->next();
-            delete prev;
+          if (FLAG_verbose_debug) {
+            OS::Print("No code found at line %" Pd ": "
+                      "dropping latent breakpoint %" Pd " in '%s'\n",
+                      line_number,
+                      matched_bpt->id(),
+                      url.ToCString());
           }
-          delete matched_loc;
+          delete matched_bpt;
         } else {
           // We don't expect to already have a breakpoint for this location.
           // If there is one, assert in debug build but silently drop
           // the latent breakpoint in release build.
-          BreakpointLocation* existing_loc =
-              GetBreakpointLocation(script, first_token_pos);
-          ASSERT(existing_loc == NULL);
-          if (existing_loc == NULL) {
+          SourceBreakpoint* existing_bpt =
+              GetSourceBreakpoint(script, first_token_pos);
+          ASSERT(existing_bpt == NULL);
+          if (existing_bpt == NULL) {
             // Create and register a new source breakpoint for the
             // latent breakpoint.
-            BreakpointLocation* unresolved_loc =
-                new BreakpointLocation(script,
-                                       first_token_pos,
-                                       last_token_pos);
-            RegisterBreakpointLocation(unresolved_loc);
-
-            // Move breakpoints over.
-            Breakpoint* bpt = existing_loc->breakpoints();
-            unresolved_loc->set_breakpoints(bpt);
-            existing_loc->set_breakpoints(NULL);
-            while (bpt != NULL) {
-              bpt->set_bpt_location(unresolved_loc);
-              if (FLAG_verbose_debug) {
-                OS::Print("Converted latent breakpoint "
-                          "%" Pd " in '%s' at line %" Pd "\n",
-                          bpt->id(),
-                          url.ToCString(),
-                          line_number);
-              }
-              bpt = bpt->next();
+            SourceBreakpoint* unresolved_bpt =
+                new SourceBreakpoint(matched_bpt->id(),
+                                     script,
+                                     first_token_pos,
+                                     last_token_pos);
+            RegisterSourceBreakpoint(unresolved_bpt);
+            unresolved_bpt->Enable();
+            if (FLAG_verbose_debug) {
+              OS::Print("Converted latent breakpoint "
+                        "%" Pd " in '%s' at line %" Pd "\n",
+                        matched_bpt->id(),
+                        url.ToCString(),
+                        line_number);
             }
-            SyncBreakpointLocation(unresolved_loc);
           }
-          delete matched_loc;
+          delete matched_bpt;
           // Break out of the iteration over loaded libraries. If the
           // same url has been loaded into more than one library, we
           // only set a breakpoint in the first one.
@@ -2728,16 +2532,12 @@ void Debugger::NotifyDoneLoading() {
     if (!found_match) {
       // No matching url found in any of the libraries.
       if (FLAG_verbose_debug) {
-        Breakpoint* bpt = loc->breakpoints();
-        while (bpt != NULL) {
-          OS::Print("No match found for latent breakpoint id "
-                    "%" Pd " with url '%s'\n",
-                    bpt->id(),
-                    url.ToCString());
-          bpt = bpt->next();
-        }
+        OS::Print("No match found for latent breakpoint id "
+                  "%" Pd " with url '%s'\n",
+                  bpt->id(),
+                  url.ToCString());
       }
-      loc = loc->next();
+      bpt = bpt->next();
     }
   }
 }
@@ -2776,49 +2576,32 @@ uword Debugger::GetPatchedStubAddress(uword breakpoint_address) {
 // Remove and delete the source breakpoint bpt and its associated
 // code breakpoints.
 void Debugger::RemoveBreakpoint(intptr_t bp_id) {
-  BreakpointLocation* prev_loc = NULL;
-  BreakpointLocation* curr_loc = breakpoint_locations_;
-  while (curr_loc != NULL) {
-    Breakpoint* prev_bpt = NULL;
-    Breakpoint* curr_bpt = curr_loc->breakpoints();
-    while (curr_bpt != NULL) {
-      if (curr_bpt->id() == bp_id) {
-        if (prev_bpt == NULL) {
-          curr_loc->set_breakpoints(curr_bpt->next());
-        } else {
-          prev_bpt->set_next(curr_bpt->next());
-        }
-
-        SendServiceBreakpointEvent(ServiceEvent::kBreakpointRemoved, curr_bpt);
-
-        // Remove references from the current debugger pause event.
-        if (pause_event_ != NULL &&
-            pause_event_->type() == DebuggerEvent::kBreakpointReached &&
-            pause_event_->breakpoint() == curr_bpt) {
-          pause_event_->set_breakpoint(NULL);
-        }
-        return;
-      }
-
-      prev_bpt = curr_bpt;
-      curr_bpt = curr_bpt->next();
-    }
-
-    if (curr_loc->breakpoints() == NULL) {
-      if (prev_loc == NULL) {
-        breakpoint_locations_ = breakpoint_locations_->next();
+  SourceBreakpoint* prev_bpt = NULL;
+  SourceBreakpoint* curr_bpt = src_breakpoints_;
+  while (curr_bpt != NULL) {
+    if (curr_bpt->id() == bp_id) {
+      if (prev_bpt == NULL) {
+        src_breakpoints_ = src_breakpoints_->next();
       } else {
-        prev_loc->set_next(curr_loc->next());
+        prev_bpt->set_next(curr_bpt->next());
       }
+      SendServiceBreakpointEvent(ServiceEvent::kBreakpointRemoved, curr_bpt);
 
       // Remove references from code breakpoints to this source breakpoint,
       // and disable the code breakpoints.
-      UnlinkCodeBreakpoints(curr_loc);
-      delete curr_loc;
-    }
+      UnlinkCodeBreakpoints(curr_bpt);
+      delete curr_bpt;
 
-    prev_loc = curr_loc;
-    curr_loc = curr_loc->next();
+      // Remove references from the current debugger pause event.
+      if (pause_event_ != NULL &&
+          pause_event_->type() == DebuggerEvent::kBreakpointReached &&
+          pause_event_->breakpoint() == curr_bpt) {
+        pause_event_->set_breakpoint(NULL);
+      }
+      return;
+    }
+    prev_bpt = curr_bpt;
+    curr_bpt = curr_bpt->next();
   }
   // bpt is not a registered breakpoint, nothing to do.
 }
@@ -2829,13 +2612,13 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
 // returns from the user-defined breakpoint callback. Also, disable the
 // breakpoint so it no longer fires if it should be hit before it gets
 // deleted.
-void Debugger::UnlinkCodeBreakpoints(BreakpointLocation* bpt_location) {
-  ASSERT(bpt_location != NULL);
+void Debugger::UnlinkCodeBreakpoints(SourceBreakpoint* src_bpt) {
+  ASSERT(src_bpt != NULL);
   CodeBreakpoint* curr_bpt = code_breakpoints_;
   while (curr_bpt != NULL) {
-    if (curr_bpt->bpt_location() == bpt_location) {
+    if (curr_bpt->src_bpt() == src_bpt) {
       curr_bpt->Disable();
-      curr_bpt->set_bpt_location(NULL);
+      curr_bpt->set_src_bpt(NULL);
     }
     curr_bpt = curr_bpt->next();
   }
@@ -2848,7 +2631,7 @@ void Debugger::RemoveInternalBreakpoints() {
   CodeBreakpoint* prev_bpt = NULL;
   CodeBreakpoint* curr_bpt = code_breakpoints_;
   while (curr_bpt != NULL) {
-    if (curr_bpt->bpt_location() == NULL) {
+    if (curr_bpt->src_bpt() == NULL) {
       if (prev_bpt == NULL) {
         code_breakpoints_ = code_breakpoints_->next();
       } else {
@@ -2866,9 +2649,9 @@ void Debugger::RemoveInternalBreakpoints() {
 }
 
 
-BreakpointLocation* Debugger::GetBreakpointLocation(const Script& script,
-                                                    intptr_t token_pos) {
-  BreakpointLocation* bpt = breakpoint_locations_;
+SourceBreakpoint* Debugger::GetSourceBreakpoint(const Script& script,
+                                                intptr_t token_pos) {
+  SourceBreakpoint* bpt = src_breakpoints_;
   while (bpt != NULL) {
     if ((bpt->script_ == script.raw()) && (bpt->token_pos_ == token_pos)) {
       return bpt;
@@ -2879,25 +2662,21 @@ BreakpointLocation* Debugger::GetBreakpointLocation(const Script& script,
 }
 
 
-Breakpoint* Debugger::GetBreakpointById(intptr_t id) {
-  BreakpointLocation* loc = breakpoint_locations_;
-  while (loc != NULL) {
-    Breakpoint* bpt = loc->breakpoints();
-    while (bpt != NULL) {
-      if (bpt->id() == id) {
-        return bpt;
-      }
-      bpt = bpt->next();
+SourceBreakpoint* Debugger::GetBreakpointById(intptr_t id) {
+  SourceBreakpoint* bpt = src_breakpoints_;
+  while (bpt != NULL) {
+    if (bpt->id() == id) {
+      return bpt;
     }
-    loc = loc->next();
+    bpt = bpt->next();
   }
   return NULL;
 }
 
 
-BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,
-                                                  intptr_t line) {
-  BreakpointLocation* bpt = latent_locations_;
+SourceBreakpoint* Debugger::GetLatentBreakpoint(const String& url,
+                                                intptr_t line) {
+  SourceBreakpoint* bpt = latent_breakpoints_;
   String& bpt_url = String::Handle(isolate_);
   while (bpt != NULL) {
     bpt_url = bpt->url();
@@ -2907,17 +2686,17 @@ BreakpointLocation* Debugger::GetLatentBreakpoint(const String& url,
     bpt = bpt->next();
   }
   // No breakpint for this url and line requested. Allocate new one.
-  bpt = new BreakpointLocation(url, line);
-  bpt->set_next(latent_locations_);
-  latent_locations_ = bpt;
+  bpt = new SourceBreakpoint(nextId(), url, line);
+  bpt->set_next(latent_breakpoints_);
+  latent_breakpoints_ = bpt;
   return bpt;
 }
 
 
-void Debugger::RegisterBreakpointLocation(BreakpointLocation* bpt) {
+void Debugger::RegisterSourceBreakpoint(SourceBreakpoint* bpt) {
   ASSERT(bpt->next() == NULL);
-  bpt->set_next(breakpoint_locations_);
-  breakpoint_locations_ = bpt;
+  bpt->set_next(src_breakpoints_);
+  src_breakpoints_ = bpt;
 }
 
 

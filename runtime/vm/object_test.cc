@@ -4182,7 +4182,7 @@ TEST_CASE(FunctionWithBreakpointNotInlined) {
   EXPECT(func_b.CanBeInlined());
 
   // After setting a breakpoint in a function A.b, it is no longer inlineable.
-  Breakpoint* bpt =
+  SourceBreakpoint* bpt =
       Isolate::Current()->debugger()->SetBreakpointAtLine(name,
                                                           kBreakpointLine);
   ASSERT(bpt != NULL);
