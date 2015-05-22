@@ -96,9 +96,9 @@ abstract class SemanticDeclarationResolvedMixin<R, A>
       for (Node node in initializers) {
         InitializerStructure structure = computeInitializerStructure(node);
         if (structure == null) {
-          return internalError(node, 'No structure for $node');
+          internalError(node, 'No structure for $node');
         } else {
-          return structure.dispatch(declVisitor, node, arg);
+          structure.dispatch(declVisitor, node, arg);
         }
       }
     }

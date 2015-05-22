@@ -3466,6 +3466,33 @@ const Map<String, List<Test>> DECL_TESTS = const {
     const Test.clazz(
         '''
         class C {
+          var field1;
+          var field2;
+          C(a, b) : this.field1 = a, this.field2 = b;
+        }
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_DECL,
+              element: 'generative_constructor(C#)',
+              parameters: '(a,b)',
+              body: ';'),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#a)',
+              index: 0),
+          const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
+              element: 'parameter(#b)',
+              index: 1),
+          const Visit(VisitKind.VISIT_FIELD_INITIALIZER,
+              element: 'field(C#field1)',
+              rhs: 'a'),
+          const Visit(VisitKind.VISIT_FIELD_INITIALIZER,
+              element: 'field(C#field2)',
+              rhs: 'b'),
+        ],
+        method: ''),
+    const Test.clazz(
+        '''
+        class C {
           C(a, b) : this._(a, b);
           C._(a, b);
         }
