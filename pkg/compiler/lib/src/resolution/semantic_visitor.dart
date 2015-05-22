@@ -304,6 +304,18 @@ abstract class SemanticSendVisitor<R, A> {
       Selector selector,
       A arg);
 
+  /// Conditional (if not null) getter call on [receiver] of the property
+  /// defined by [selector].
+  ///
+  /// For instance
+  ///     m(receiver) => receiver?.foo;
+  ///
+  R visitIfNotNullDynamicPropertyGet(
+      Send node,
+      Node receiver,
+      Selector selector,
+      A arg);
+
   /// Setter call on [receiver] with argument [rhs] of the property defined by
   /// [selector].
   ///
@@ -319,6 +331,21 @@ abstract class SemanticSendVisitor<R, A> {
       Node rhs,
       A arg);
 
+  /// Conditional (if not null) setter call on [receiver] with argument [rhs] of
+  /// the property defined by [selector].
+  ///
+  /// For instance
+  ///     m(receiver) {
+  ///       receiver?.foo = rhs;
+  ///     }
+  ///
+  R visitIfNotNullDynamicPropertySet(
+      SendSet node,
+      Node receiver,
+      Selector selector,
+      Node rhs,
+      A arg);
+
   /// Invocation of the property defined by [selector] on [receiver] with
   /// [arguments].
   ///
@@ -328,6 +355,21 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitDynamicPropertyInvoke(
+      Send node,
+      Node receiver,
+      NodeList arguments,
+      Selector selector,
+      A arg);
+
+  /// Conditinal invocation of the property defined by [selector] on [receiver]
+  /// with [arguments], if [receiver] is not null.
+  ///
+  /// For instance
+  ///     m(receiver) {
+  ///       receiver?.foo(null, 42);
+  ///     }
+  ///
+  R visitIfNotNullDynamicPropertyInvoke(
       Send node,
       Node receiver,
       NodeList arguments,
@@ -1627,6 +1669,17 @@ abstract class SemanticSendVisitor<R, A> {
       Node rhs,
       A arg);
 
+  /// If-null, ??, expression with operands [left] and [right].
+  ///
+  /// For instance
+  ///     m() => left ?? right;
+  ///
+  R visitIfNull(
+      Send node,
+      Node left,
+      Node right,
+      A arg);
+
   /// Logical and, &&, expression with operands [left] and [right].
   ///
   /// For instance
@@ -1693,6 +1746,22 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(receiver, rhs) => receiver.foo += rhs;
   ///
   R visitDynamicPropertyCompound(
+      Send node,
+      Node receiver,
+      AssignmentOperator operator,
+      Node rhs,
+      Selector getterSelector,
+      Selector setterSelector,
+      A arg);
+
+  /// Compound assignment expression of [rhs] with [operator] of the property on
+  /// a possibly null [receiver] whose getter and setter are defined by
+  /// [getterSelector] and [setterSelector], respectively.
+  ///
+  /// For instance:
+  ///     m(receiver, rhs) => receiver?.foo += rhs;
+  ///
+  R visitIfNotNullDynamicPropertyCompound(
       Send node,
       Node receiver,
       AssignmentOperator operator,
@@ -2385,6 +2454,21 @@ abstract class SemanticSendVisitor<R, A> {
       Selector setterSelector,
       A arg);
 
+  /// Prefix expression with [operator] of the property on a possibly null
+  /// [receiver] whose getter and setter are defined by [getterSelector] and
+  /// [setterSelector], respectively.
+  ///
+  /// For instance:
+  ///     m(receiver) => ++receiver?.foo;
+  ///
+  R visitIfNotNullDynamicPropertyPrefix(
+      Send node,
+      Node receiver,
+      IncDecOperator operator,
+      Selector getterSelector,
+      Selector setterSelector,
+      A arg);
+
   /// Prefix expression with [operator] on a [parameter].
   ///
   /// For instance:
@@ -2819,6 +2903,21 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m(receiver) => receiver.foo++;
   ///
   R visitDynamicPropertyPostfix(
+      Send node,
+      Node receiver,
+      IncDecOperator operator,
+      Selector getterSelector,
+      Selector setterSelector,
+      A arg);
+
+  /// Postfix expression with [operator] of the property on a possibly null
+  /// [receiver] whose getter and setter are defined by [getterSelector] and
+  /// [setterSelector], respectively.
+  ///
+  /// For instance:
+  ///     m(receiver) => receiver?.foo++;
+  ///
+  R visitIfNotNullDynamicPropertyPostfix(
       Send node,
       Node receiver,
       IncDecOperator operator,
@@ -3288,6 +3387,10 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m5() => unresolved.Foo.bar;
   ///     m6() => C.unresolved;
   ///     m7() => prefix.C.unresolved;
+  ///     m8() => prefix?.unresolved;
+  ///     m9() => Unresolved?.foo;
+  ///     m10() => unresolved?.foo;
+  ///     m11() => unresolved?.Foo?.bar;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
   R visitUnresolvedGet(
@@ -3319,6 +3422,10 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m5() => unresolved.Foo.bar = 42;
   ///     m6() => C.unresolved = 42;
   ///     m7() => prefix.C.unresolved = 42;
+  ///     m8() => prefix?.unresolved = 42;
+  ///     m9() => Unresolved?.foo = 42;
+  ///     m10() => unresolved?.foo = 42;
+  ///     m11() => unresolved?.Foo?.bar = 42;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
   R visitUnresolvedSet(
@@ -3338,6 +3445,10 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m5() => unresolved.Foo.bar(null, 42);
   ///     m6() => C.unresolved(null, 42);
   ///     m7() => prefix.C.unresolved(null, 42);
+  ///     m8() => prefix?.unresolved(null, 42);
+  ///     m9() => Unresolved?.foo(null, 42);
+  ///     m10() => unresolved?.foo(null, 42);
+  ///     m11() => unresolved?.Foo?.bar(null, 42);
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
   R visitUnresolvedInvoke(
@@ -3453,6 +3564,10 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m5() => unresolved.Foo.bar += 42;
   ///     m6() => C.unresolved += 42;
   ///     m7() => prefix.C.unresolved += 42;
+  ///     m8() => prefix?.unresolved += 42;
+  ///     m9() => Unresolved?.foo += 42;
+  ///     m10() => unresolved?.foo += 42;
+  ///     m11() => unresolved?.Foo?.bar += 42;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
   R visitUnresolvedCompound(
@@ -3563,6 +3678,10 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m5() => ++unresolved.Foo.bar;
   ///     m6() => ++C.unresolved;
   ///     m7() => ++prefix.C.unresolved;
+  ///     m8() => ++prefix?.unresolved;
+  ///     m9() => ++Unresolved?.foo;
+  ///     m10() => ++unresolved?.foo;
+  ///     m11() => ++unresolved?.Foo?.bar;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
   R visitUnresolvedPrefix(
@@ -3672,6 +3791,10 @@ abstract class SemanticSendVisitor<R, A> {
   ///     m5() => unresolved.Foo.bar++;
   ///     m6() => C.unresolved++;
   ///     m7() => prefix.C.unresolved++;
+  ///     m8() => prefix?.unresolved++;
+  ///     m9() => Unresolved?.foo++;
+  ///     m10() => unresolved?.foo++;
+  ///     m11() => unresolved?.Foo?.bar++;
   ///
   // TODO(johnniwinther): Split the cases in which a prefix is resolved.
   R visitUnresolvedPostfix(

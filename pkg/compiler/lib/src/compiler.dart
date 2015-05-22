@@ -781,6 +781,10 @@ abstract class Compiler implements DiagnosticListener {
   /// If `true` native extension syntax is supported by the frontend.
   final bool allowNativeExtensions;
 
+  /// Temporary flag to enable `?.`, `??`, and `??=` until it becomes part of
+  /// the spec.
+  final bool enableNullAwareOperators;
+
   /// Output provider from user of Compiler API.
   api.CompilerOutputProvider userOutputProvider;
 
@@ -1044,6 +1048,7 @@ abstract class Compiler implements DiagnosticListener {
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
             this.allowNativeExtensions: false,
+            this.enableNullAwareOperators: false,
             this.generateCodeWithCompileTimeErrors: false,
             api.CompilerOutputProvider outputProvider,
             List<String> strips: const []})

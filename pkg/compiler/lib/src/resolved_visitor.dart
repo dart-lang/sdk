@@ -575,6 +575,15 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
+  R visitIfNull(
+      Send node,
+      Node left,
+      Node right,
+      ResolvedKindVisitor<R> visitor) {
+    return visitor.visitOperatorSend(node);
+  }
+
+  @override
   R visitLogicalAnd(
       Send node,
       Node left,
@@ -620,6 +629,16 @@ class ResolvedSemanticDispatcher<R> extends Object
 
   @override
   R visitDynamicPropertyInvoke(
+      Send node,
+      Node receiver,
+      NodeList arguments,
+      Selector selector,
+      ResolvedKindVisitor<R> visitor) {
+    return visitor.visitDynamicSend(node);
+  }
+
+  @override
+  R visitIfNotNullDynamicPropertyInvoke(
       Send node,
       Node receiver,
       NodeList arguments,

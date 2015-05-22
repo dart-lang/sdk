@@ -2615,7 +2615,26 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     var oldCategory = allowedCategory;
     allowedCategory |= ElementCategory.PREFIX | ElementCategory.SUPER;
+
+    bool oldSendIsMemberAccess = sendIsMemberAccess;
+    int oldAllowedCategory = allowedCategory;
+
+    // Conditional sends like `e?.foo` treat the receiver as an expression.  So
+    // `C?.foo` needs to be treated like `(C).foo`, not like C.foo. Prefixes and
+    // super are not allowed on their own in that context.
+    if (node.isConditional) {
+      sendIsMemberAccess = false;
+      allowedCategory =
+          ElementCategory.VARIABLE |
+          ElementCategory.FUNCTION |
+          ElementCategory.IMPLIES_TYPE;
+    }
     ResolutionResult resolvedReceiver = visit(node.receiver);
+    if (node.isConditional) {
+      sendIsMemberAccess = oldSendIsMemberAccess;
+      allowedCategory = oldAllowedCategory;
+    }
+
     allowedCategory = oldCategory;
 
     Element target;
@@ -2740,7 +2759,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (identical(string, '!') ||
           identical(string, '&&') || identical(string, '||') ||
           identical(string, 'is') || identical(string, 'as') ||
-          identical(string, '?') ||
+          identical(string, '?') || identical(string, '??') ||
           identical(string, '>>>')) {
         return null;
       }
@@ -2945,6 +2964,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         resolvedArguments = true;
       } else if (operatorString == '||') {
         sendStructure = const LogicalOrStructure();
+      } else if (operatorString == '??') {
+        sendStructure = const IfNullStructure();
       }
       if (sendStructure != null) {
         registry.registerSendStructure(node, sendStructure);
@@ -3059,9 +3080,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           registry.registerThrowNoSuchMethod();
         }
       } else if (target.impliesType) {
-        setter = reportAndCreateErroneousElement(node.selector, target.name,
-            MessageKind.ASSIGNING_TYPE, const {});
-        registry.registerThrowNoSuchMethod();
+        if (node.isIfNullAssignment) {
+          setter = reportAndCreateErroneousElement(node.selector, target.name,
+              MessageKind.IF_NULL_ASSIGNING_TYPE, const {});
+          // In this case, no assignment happens, the rest of the compiler can
+          // treat the expression `C ??= e` as if it's just reading `C`.
+        } else {
+          setter = reportAndCreateErroneousElement(node.selector, target.name,
+              MessageKind.ASSIGNING_TYPE, const {});
+          registry.registerThrowNoSuchMethod();
+        }
         registerTypeLiteralAccess(node, target);
       } else if (target.isFinal || target.isConst) {
         if (Elements.isStaticOrTopLevelField(target) || target.isLocal) {

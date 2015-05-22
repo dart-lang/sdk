@@ -544,11 +544,13 @@ class Selector {
            (memberName != INDEX_NAME && memberName != INDEX_SET_NAME));
     assert(kind == SelectorKind.OPERATOR ||
            kind == SelectorKind.INDEX ||
-           !Elements.isOperatorName(memberName.text));
+           !Elements.isOperatorName(memberName.text) ||
+           identical(memberName.text, '??'));
     assert(kind == SelectorKind.CALL ||
            kind == SelectorKind.GETTER ||
            kind == SelectorKind.SETTER ||
-           Elements.isOperatorName(memberName.text));
+           Elements.isOperatorName(memberName.text) ||
+           identical(memberName.text, '??'));
   }
 
   // TODO(johnniwinther): Extract caching.

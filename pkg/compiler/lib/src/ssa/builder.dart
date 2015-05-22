@@ -3142,6 +3142,12 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
+  void visitIfNull(ast.Send node, ast.Node left, ast.Node right, _) {
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+    brancher.handleIfNull(() => visit(left), () => visit(right));
+  }
+
+  @override
   void visitLogicalAnd(ast.Send node, ast.Node left, ast.Node right, _) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     branchBuilder.handleLogicalAndOrWithLeftNode(
@@ -3398,6 +3404,36 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
+  void visitIfNotNullDynamicPropertyGet(
+      ast.Send node,
+      ast.Node receiver,
+      Selector selector,
+      _) {
+    // exp?.x compiled as:
+    //   t1 = exp;
+    //   result = t1 == null ? t1 : t1.x;
+    // This is equivalent to t1 == null ? null : t1.x, but in the current form
+    // we will be able to later compress it as:
+    //   t1 || t1.x
+    HInstruction expression;
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+    brancher.handleConditional(
+        () {
+          expression = visitAndPop(receiver);
+          pushCheckNull(expression);
+        },
+        () => stack.add(expression),
+        () => generateInstanceGetterWithCompiledReceiver(
+            node, elements.getSelector(node), expression));
+  }
+
+  /// Pushes a boolean checking [expression] against null.
+  pushCheckNull(HInstruction expression) {
+    push(new HIdentity(expression, graph.addConstantNull(compiler),
+          null, backend.boolType));
+  }
+
+  @override
   void visitLocalVariableGet(ast.Send node, LocalVariableElement variable, _) {
     handleLocalGet(variable);
   }
@@ -3466,6 +3502,37 @@ class SsaBuilder extends NewResolvedVisitor {
       FunctionElement getter,
       _) {
     generateStaticGetterGet(node, getter);
+  }
+
+  void generatePossiblyConditionalInstanceSetter(ast.Send send,
+                                                 HInstruction pushReceiver(),
+                                                 HInstruction pushValue(),
+                                                 {Selector selector,
+                                                  ast.Node location}) {
+    if (send.isConditional) {
+      SsaBranchBuilder brancher = new SsaBranchBuilder(this, send);
+      // compile e?.x = e2 to:
+      //
+      // t1 = e
+      // if (t1 == null)
+      //   result = t1 // same as result = null
+      // else
+      //   result = e.x = e2
+      HInstruction receiver;
+      brancher.handleConditional(
+          () {
+            receiver = pushReceiver();
+            pushCheckNull(receiver);
+          },
+          () => stack.add(receiver),
+          () => generateInstanceSetterWithCompiledReceiver(
+                    send, receiver, pushValue(),
+                    selector: selector, location: location));
+    } else {
+      generateInstanceSetterWithCompiledReceiver(
+          send, pushReceiver(), pushValue(),
+          selector: selector, location: location);
+    }
   }
 
   void generateInstanceSetterWithCompiledReceiver(ast.Send send,
@@ -3730,10 +3797,14 @@ class SsaBuilder extends NewResolvedVisitor {
 
   /// Generate a dynamic method, getter or setter invocation.
   void generateDynamicSend(ast.Send node) {
+    HInstruction receiver = generateInstanceSendReceiver(node);
+    _generateDynamicSend(node, receiver);
+  }
+
+  void _generateDynamicSend(ast.Send node, HInstruction receiver) {
     Selector selector = elements.getSelector(node);
 
     List<HInstruction> inputs = <HInstruction>[];
-    HInstruction receiver = generateInstanceSendReceiver(node);
     inputs.add(receiver);
     addDynamicSendArgumentsToList(node, inputs);
 
@@ -3752,6 +3823,25 @@ class SsaBuilder extends NewResolvedVisitor {
       Selector selector,
       _) {
     generateDynamicSend(node);
+  }
+
+  @override
+  visitIfNotNullDynamicPropertyInvoke(
+      ast.Send node,
+      ast.Node receiver,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    /// Desugar `exp?.m()` to `(t1 = exp) == null ? t1 : t1.m()`
+    HInstruction receiver;
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+    brancher.handleConditional(
+        () {
+          receiver = generateInstanceSendReceiver(node);
+          pushCheckNull(receiver);
+        },
+        () => stack.add(receiver),
+        () => _generateDynamicSend(node, receiver));
   }
 
   @override
@@ -5505,11 +5595,22 @@ class SsaBuilder extends NewResolvedVisitor {
     }
     ast.Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
-      HInstruction result;
       List<HInstruction> setterInputs = <HInstruction>[];
+      void generateSuperSendSet() {
+        Selector setterSelector = elements.getSelector(node);
+        if (Elements.isUnresolved(element)
+            || !setterSelector.applies(element, compiler.world)) {
+          generateSuperNoSuchMethodSend(
+              node, setterSelector, setterInputs);
+          pop();
+        } else {
+          add(buildInvokeSuper(setterSelector, element, setterInputs));
+        }
+      }
       if (identical(node.assignmentOperator.source, '=')) {
         addDynamicSendArgumentsToList(node, setterInputs);
-        result = setterInputs.last;
+        generateSuperSendSet();
+        stack.add(setterInputs.last);
       } else {
         Element getter = elements[node.selector];
         List<HInstruction> getterInputs = <HInstruction>[];
@@ -5539,25 +5640,22 @@ class SsaBuilder extends NewResolvedVisitor {
               getterSelector, getter, getterInputs);
           add(getterInstruction);
         }
-        handleComplexOperatorSend(node, getterInstruction, arguments);
-        setterInputs.add(pop());
 
-        if (node.isPostfix) {
-          result = getterInstruction;
+        if (node.isIfNullAssignment) {
+          SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+          brancher.handleIfNull(() => stack.add(getterInstruction),
+              () {
+                addDynamicSendArgumentsToList(node, setterInputs);
+                generateSuperSendSet();
+                stack.add(setterInputs.last);
+              });
         } else {
-          result = setterInputs.last;
+          handleComplexOperatorSend(node, getterInstruction, arguments);
+          setterInputs.add(pop());
+          generateSuperSendSet();
+          stack.add(node.isPostfix ? getterInstruction : setterInputs.last);
         }
       }
-      Selector setterSelector = elements.getSelector(node);
-      if (Elements.isUnresolved(element)
-          || !setterSelector.applies(element, compiler.world)) {
-        generateSuperNoSuchMethodSend(
-            node, setterSelector, setterInputs);
-        pop();
-      } else {
-        add(buildInvokeSuper(setterSelector, element, setterInputs));
-      }
-      stack.add(result);
     } else if (node.isIndex) {
       if ("=" == op.source) {
         generateDynamicSend(node);
@@ -5577,27 +5675,42 @@ class SsaBuilder extends NewResolvedVisitor {
             elements.getGetterSelectorInComplexSendSet(node),
             [receiver, index]);
         HInstruction getterInstruction = pop();
-
-        handleComplexOperatorSend(node, getterInstruction, arguments);
-        HInstruction value = pop();
-
-        pushInvokeDynamic(
-            node, elements.getSelector(node), [receiver, index, value]);
-        pop();
-
-        if (node.isPostfix) {
-          stack.add(getterInstruction);
+        if (node.isIfNullAssignment) {
+          // Compile x[i] ??= e as:
+          //   t1 = x[i]
+          //   if (t1 == null)
+          //      t1 = x[i] = e;
+          //   result = t1
+          SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+          brancher.handleIfNull(() => stack.add(getterInstruction),
+              () {
+                visit(arguments.head);
+                HInstruction value = pop();
+                pushInvokeDynamic(
+                    node, elements.getSelector(node), [receiver, index, value]);
+                pop();
+                stack.add(value);
+              });
         } else {
-          stack.add(value);
+          handleComplexOperatorSend(node, getterInstruction, arguments);
+          HInstruction value = pop();
+          pushInvokeDynamic(
+              node, elements.getSelector(node), [receiver, index, value]);
+          pop();
+          if (node.isPostfix) {
+            stack.add(getterInstruction);
+          } else {
+            stack.add(value);
+          }
         }
       }
     } else if ("=" == op.source) {
       Link<ast.Node> link = node.arguments;
       assert(!link.isEmpty && link.tail.isEmpty);
       if (Elements.isInstanceSend(node, elements)) {
-        HInstruction receiver = generateInstanceSendReceiver(node);
-        visit(link.head);
-        generateInstanceSetterWithCompiledReceiver(node, receiver, pop());
+        generatePossiblyConditionalInstanceSetter(node,
+            () => generateInstanceSendReceiver(node),
+            () => visitAndPop(link.head));
       } else {
         visit(link.head);
         generateNonInstanceSetter(node, element, pop());
@@ -5608,20 +5721,64 @@ class SsaBuilder extends NewResolvedVisitor {
       assert("++" == op.source || "--" == op.source ||
              node.assignmentOperator.source.endsWith("="));
 
-      // [receiver] is only used if the node is an instance send.
-      HInstruction receiver = null;
       Element getter = elements[node.selector];
 
       if (!Elements.isUnresolved(getter) && getter.impliesType) {
-        ast.Identifier selector = node.selector;
-        generateThrowNoSuchMethod(node, selector.source,
-                                  argumentNodes: node.arguments);
+        if (node.isIfNullAssignment) {
+          // C ??= x is compiled just as C.
+          stack.add(addConstant(node.selector));
+        } else {
+          ast.Identifier selector = node.selector;
+          generateThrowNoSuchMethod(node, selector.source,
+                                    argumentNodes: node.arguments);
+        }
         return;
-      } else if (Elements.isInstanceSend(node, elements)) {
-        receiver = generateInstanceSendReceiver(node);
-        generateInstanceGetterWithCompiledReceiver(
-            node, elements.getGetterSelectorInComplexSendSet(node), receiver);
-      } else if (getter.isErroneous) {
+      }
+
+      if (Elements.isInstanceSend(node, elements)) {
+        void generateAssignment(HInstruction receiver) {
+          // desugars `e.x op= e2` to `e.x = e.x op e2`
+          generateInstanceGetterWithCompiledReceiver(
+              node, elements.getGetterSelectorInComplexSendSet(node), receiver);
+          HInstruction getterInstruction = pop();
+          if (node.isIfNullAssignment) {
+            SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+            brancher.handleIfNull(() => stack.add(getterInstruction),
+                () {
+                  visit(node.arguments.head);
+                  generateInstanceSetterWithCompiledReceiver(
+                      node, receiver, pop());
+                });
+          } else {
+            handleComplexOperatorSend(node, getterInstruction, node.arguments);
+            HInstruction value = pop();
+            generateInstanceSetterWithCompiledReceiver(node, receiver, value);
+          }
+          if (node.isPostfix) {
+            pop();
+            stack.add(getterInstruction);
+          }
+        }
+        if (node.isConditional) {
+          // generate `e?.x op= e2` as:
+          //   t1 = e
+          //   t1 == null ? t1 : (t1.x = t1.x op e2);
+          HInstruction receiver;
+          SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+          brancher.handleConditional(
+              () {
+                receiver = generateInstanceSendReceiver(node);
+                pushCheckNull(receiver);
+              },
+              () => stack.add(receiver),
+              () => generateAssignment(receiver));
+        } else {
+          generateAssignment(generateInstanceSendReceiver(node));
+        }
+        return;
+      }
+
+      if (getter.isErroneous) {
         generateStaticUnresolvedGet(node, getter);
       } else if (getter.isField) {
         generateStaticFieldGet(node, getter);
@@ -5635,14 +5792,16 @@ class SsaBuilder extends NewResolvedVisitor {
         internalError(node, "Unexpected getter: $getter");
       }
       HInstruction getterInstruction = pop();
-      handleComplexOperatorSend(node, getterInstruction, node.arguments);
-      HInstruction value = pop();
-      assert(value != null);
-      if (Elements.isInstanceSend(node, elements)) {
-        assert(receiver != null);
-        generateInstanceSetterWithCompiledReceiver(node, receiver, value);
+      if (node.isIfNullAssignment) {
+        SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+        brancher.handleIfNull(() => stack.add(getterInstruction),
+            () {
+              visit(node.arguments.head);
+              generateNonInstanceSetter(node, element, pop());
+            });
       } else {
-        assert(receiver == null);
+        handleComplexOperatorSend(node, getterInstruction, node.arguments);
+        HInstruction value = pop();
         generateNonInstanceSetter(node, element, value);
       }
       if (node.isPostfix) {
@@ -7449,6 +7608,19 @@ class SsaBranchBuilder {
   handleConditional(void visitCondition(), void visitThen(), void visitElse()) {
     assert(visitElse != null);
     _handleDiamondBranch(visitCondition, visitThen, visitElse, true);
+  }
+
+  handleIfNull(void left(), void right()) {
+    // x ?? y is transformed into: x == null ? y : x
+    HInstruction leftExpression;
+    handleConditional(
+        () {
+          left();
+          leftExpression = builder.pop();
+          builder.pushCheckNull(leftExpression);
+        },
+        right,
+        () => builder.stack.add(leftExpression));
   }
 
   void handleLogicalAndOr(void left(), void right(), {bool isAnd}) {

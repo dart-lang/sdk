@@ -27,6 +27,7 @@ if_null_assignment_static_test: Fail
 conditional_property_assignment_test: Fail
 conditional_property_access_test: Fail
 conditional_method_invocation_test: Fail
+this_conditional_operator_test/none: Fail
 
 deferred_redirecting_factory_test: Fail # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488

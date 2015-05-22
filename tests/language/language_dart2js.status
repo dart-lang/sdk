@@ -59,17 +59,8 @@ ref_before_declaration_test/06: MissingCompileTimeError
 regress_22976_test/01: CompileTimeError # Issue 23132
 regress_22976_test/02: CompileTimeError # Issue 23132
 
-# Null-aware operators aren't implemented in dart2js yet.
-if_null_evaluation_order_test: CompileTimeError
-if_null_precedence_test: CompileTimeError
-if_null_behavior_test: CompileTimeError
-if_null_assignment_behavior_test: CompileTimeError
-if_null_assignment_static_test: CompileTimeError
-conditional_property_assignment_test: CompileTimeError
-conditional_property_access_test: CompileTimeError
-conditional_method_invocation_test: CompileTimeError
-super_conditional_operator_test/none: CompileTimeError
-
+if_null_assignment_behavior_test/13: Crash # Issue 23491
+if_null_assignment_behavior_test/14: Crash # Issue 23491
 
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
@@ -1045,3 +1036,32 @@ value_range2_test: Crash # Instance of 'TypeOperator': type check unimplemented 
 value_range3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 value_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 void_type_test: Crash #  Unhandled node
+
+# Null-aware operators aren't implemented in the CPS IR yet.
+if_null_evaluation_order_test: Crash
+if_null_precedence_test: Crash
+if_null_behavior_test: Crash
+if_null_assignment_behavior_test: Crash
+if_null_assignment_static_test: Crash
+conditional_property_assignment_test: Fail
+conditional_property_assignment_test/06: Crash
+conditional_property_assignment_test/11: Crash
+conditional_property_assignment_test/14: Crash
+conditional_property_assignment_test/15: Crash
+conditional_property_assignment_test/16: Crash
+conditional_property_assignment_test/17: Crash
+conditional_property_assignment_test/18: Crash
+conditional_property_assignment_test/19: Crash
+conditional_property_assignment_test/20: Crash
+conditional_property_assignment_test/21: Crash
+conditional_property_assignment_test/22: Crash
+
+conditional_property_access_test: Fail
+conditional_property_access_test/07: Crash
+conditional_property_access_test/08: Crash
+conditional_property_access_test/09: Crash
+conditional_method_invocation_test: Fail
+conditional_method_invocation_test/none: Pass
+conditional_method_invocation_test/09: Crash
+conditional_method_invocation_test/10: Crash
+conditional_method_invocation_test/11: Crash

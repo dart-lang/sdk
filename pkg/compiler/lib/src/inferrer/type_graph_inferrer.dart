@@ -27,6 +27,8 @@ import '../native/native.dart' as native;
 import '../tree/tree.dart' as ast
     show DartString,
          Node,
+         Send,
+         SendSet,
          TryStatement;
 import '../types/types.dart'
     show ContainerTypeMask,
@@ -248,9 +250,15 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     return info.type != selector.mask;
   }
 
-  TypeInformation refineReceiver(Selector selector, TypeInformation receiver) {
+  TypeInformation refineReceiver(Selector selector, TypeInformation receiver,
+      bool isConditional) {
     if (receiver.type.isExact) return receiver;
     TypeMask otherType = compiler.world.allFunctions.receiverType(selector);
+    // Conditional sends (a?.b) can still narrow the possible types of `a`,
+    // however, we still need to consider that `a` may be null.
+    if (isConditional && receiver.type.isNullable) {
+      otherType = otherType.nullable();
+    }
     // If this is refining to nullable subtype of `Object` just return
     // the receiver. We know the narrowing is useless.
     if (otherType.isNullable && otherType.containsAll(classWorld)) {

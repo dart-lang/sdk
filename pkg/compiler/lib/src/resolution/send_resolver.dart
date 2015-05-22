@@ -225,9 +225,10 @@ abstract class SendResolverMixin {
         return new AsStructure(elements.getType(node.arguments.single));
       } else if (operatorText == '&&') {
         return internalError(node, "Unexpected logical and.");
-        return const LogicalAndStructure();
       } else if (operatorText == '||') {
         return internalError(node, "Unexpected logical or.");
+      } else if (operatorText == '??') {
+        return internalError(node, "Unexpected if-null.");
       }
     }
 
@@ -514,7 +515,11 @@ abstract class SendResolverMixin {
       } else {
         return new StaticAccess.superMethod(element);
       }
-    } else if (node.isOperator) {
+    } else if (node.isOperator || node.isConditional) {
+      // Conditional sends (e?.x) are treated as dynamic property reads because
+      // they are equivalent to do ((a) => a == null ? null : a.x)(e). If `e` is
+      // a type `A`, this is equivalent to write `(A).x`.
+      // TODO(johnniwinther): maybe add DynamicAccess.conditionalDynamicProperty
       return new DynamicAccess.dynamicProperty(node.receiver);
     } else if (Elements.isClosureSend(node, element)) {
       if (element == null) {

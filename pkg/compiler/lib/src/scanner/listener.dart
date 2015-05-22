@@ -746,6 +746,9 @@ class Listener {
           break;
       }
       reportError(token, kind, arguments);
+    } else if (token is UnsupportedNullAwareToken) {
+      reportError(token, MessageKind.NULL_AWARE_OPERATORS_DISABLED,
+          {'operator' : token.operator});
     } else if (token is UnmatchedToken) {
       String begin = token.begin.value;
       String end = closeBraceFor(begin);
@@ -1568,7 +1571,7 @@ class NodeListener extends ElementListener {
       if (name.asSend() == null) {
         name = new Send(thisIdentifier, name);
       } else {
-        name = name.asSend().copyWithReceiver(thisIdentifier);
+        name = name.asSend().copyWithReceiver(thisIdentifier, false);
       }
     }
     TypeAnnotation type = popNode();
@@ -1698,7 +1701,9 @@ class NodeListener extends ElementListener {
     Node argument = popNode();
     Node receiver = popNode();
     String tokenString = token.stringValue;
-    if (identical(tokenString, '.') || identical(tokenString, '..')) {
+    if (identical(tokenString, '.') ||
+        identical(tokenString, '..') ||
+        identical(tokenString, '?.')) {
       Send argumentSend = argument.asSend();
       if (argumentSend == null) {
         // TODO(ahe): The parser should diagnose this problem, not
@@ -1708,7 +1713,8 @@ class NodeListener extends ElementListener {
       }
       if (argumentSend.receiver != null) internalError(node: argument);
       if (argument is SendSet) internalError(node: argument);
-      pushNode(argument.asSend().copyWithReceiver(receiver));
+      pushNode(argument.asSend().copyWithReceiver(receiver,
+            identical(tokenString, '?.')));
     } else {
       NodeList arguments = new NodeList.singleton(argument);
       pushNode(new Send(receiver, new Operator(token), arguments));
@@ -1755,7 +1761,8 @@ class NodeListener extends ElementListener {
       arguments = new NodeList.singleton(arg);
     }
     Operator op = new Operator(token);
-    pushNode(new SendSet(send.receiver, send.selector, op, arguments));
+    pushNode(new SendSet(send.receiver, send.selector, op, arguments,
+        send.isConditional));
   }
 
   void reportNotAssignable(Node node) {
@@ -1922,9 +1929,11 @@ class NodeListener extends ElementListener {
     Operator op = new Operator(token);
 
     if (isPrefix) {
-      pushNode(new SendSet.prefix(send.receiver, send.selector, op, argument));
+      pushNode(new SendSet.prefix(send.receiver, send.selector, op, argument,
+          send.isConditional));
     } else {
-      pushNode(new SendSet.postfix(send.receiver, send.selector, op, argument));
+      pushNode(new SendSet.postfix(send.receiver, send.selector, op, argument,
+          send.isConditional));
     }
   }
 

@@ -532,7 +532,9 @@ class Elements {
   static bool isInstanceSend(Send send, TreeElements elements) {
     Element element = elements[send];
     if (element == null) return !isClosureSend(send, element);
-    return isInstanceMethod(element) || isInstanceField(element);
+    return isInstanceMethod(element) ||
+           isInstanceField(element) ||
+           send.isConditional;
   }
 
   static bool isClosureSend(Send send, Element element) {
@@ -640,7 +642,7 @@ class Elements {
   static String constructOperatorNameOrNull(String op, bool isUnary) {
     if (isMinusOperator(op)) {
       return isUnary ? 'unary-' : op;
-    } else if (isUserDefinableOperator(op)) {
+    } else if (isUserDefinableOperator(op) || op == '??') {
       return op;
     } else {
       return null;
@@ -666,6 +668,7 @@ class Elements {
     if (identical(op, '&=')) return '&';
     if (identical(op, '^=')) return '^';
     if (identical(op, '|=')) return '|';
+    if (identical(op, '??=')) return '??';
 
     return null;
   }

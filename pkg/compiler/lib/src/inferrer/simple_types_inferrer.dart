@@ -155,7 +155,8 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return type != selector.mask;
   }
 
-  TypeMask refineReceiver(Selector selector, TypeMask receiverType) {
+  TypeMask refineReceiver(Selector selector, TypeMask receiverType,
+      bool isConditional) {
     TypeMask newType = compiler.world.allFunctions.receiverType(selector);
     return receiverType.intersection(newType, classWorld);
   }
@@ -1759,6 +1760,15 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitIfNotNullDynamicPropertyGet(
+      ast.Send node,
+      ast.Node receiver,
+      Selector selector,
+      _) {
+    return handleDynamicGet(node);
+  }
+
+  @override
   T visitLocalVariableGet(
       ast.Send node,
       LocalVariableElement variable,
@@ -1943,12 +1953,14 @@ class SimpleTypeInferrerVisitor<T>
     // If the receiver of the call is a local, we may know more about
     // its type by refining it with the potential targets of the
     // calls.
-    if (node.asSend() != null) {
-      ast.Node receiver = node.asSend().receiver;
+    ast.Send send = node.asSend();
+    if (send != null) {
+      ast.Node receiver = send.receiver;
       if (receiver != null) {
         Element element = elements[receiver];
         if (Elements.isLocal(element) && !capturedVariables.contains(element)) {
-          T refinedType = types.refineReceiver(selector, receiverType);
+          T refinedType = types.refineReceiver(selector, receiverType,
+              send.isConditional);
           locals.update(element, refinedType, node);
         }
       }

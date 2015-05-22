@@ -59,6 +59,21 @@ class InvalidAssertStructure<R, A> implements SendStructure<R, A> {
   String toString() => 'invalid assert';
 }
 
+/// The structure for a [Send] of the form `a ?? b`.
+class IfNullStructure<R, A> implements SendStructure<R, A> {
+  const IfNullStructure();
+
+  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
+    return visitor.visitIfNull(
+        node,
+        node.receiver,
+        node.arguments.single,
+        arg);
+  }
+
+  String toString() => '??';
+}
+
 /// The structure for a [Send] of the form `a && b`.
 class LogicalAndStructure<R, A> implements SendStructure<R, A> {
   const LogicalAndStructure();
@@ -161,6 +176,14 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.DYNAMIC_PROPERTY:
+        if (node.isConditional) {
+          return visitor.visitIfNotNullDynamicPropertyInvoke(
+              node,
+              node.receiver,
+              node.argumentsNode,
+              selector,
+              arg);
+        }
         return visitor.visitDynamicPropertyInvoke(
             node,
             node.receiver,
@@ -424,6 +447,13 @@ class GetStructure<R, A> implements SendStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.DYNAMIC_PROPERTY:
+        if (node.isConditional) {
+          return visitor.visitIfNotNullDynamicPropertyGet(
+              node,
+              node.receiver,
+              selector,
+              arg);
+        }
         return visitor.visitDynamicPropertyGet(
             node,
             node.receiver,
@@ -578,12 +608,20 @@ class SetStructure<R, A> implements SendStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.DYNAMIC_PROPERTY:
-          return visitor.visitDynamicPropertySet(
+        if (node.isConditional) {
+          return visitor.visitIfNotNullDynamicPropertySet(
             node,
             node.receiver,
             selector,
             node.arguments.single,
             arg);
+        }
+        return visitor.visitDynamicPropertySet(
+          node,
+          node.receiver,
+          selector,
+          node.arguments.single,
+          arg);
       case AccessKind.LOCAL_FUNCTION:
         return visitor.visitLocalFunctionSet(
             node,
@@ -1257,6 +1295,16 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.DYNAMIC_PROPERTY:
+        if (node.isConditional) {
+          return visitor.visitIfNotNullDynamicPropertyCompound(
+              node,
+              node.receiver,
+              operator,
+              node.arguments.single,
+              getterSelector,
+              setterSelector,
+              arg);
+        }
         return visitor.visitDynamicPropertyCompound(
             node,
             node.receiver,
@@ -1674,6 +1722,15 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.DYNAMIC_PROPERTY:
+        if (node.isConditional) {
+          return visitor.visitIfNotNullDynamicPropertyPrefix(
+              node,
+              node.receiver,
+              operator,
+              getterSelector,
+              setterSelector,
+              arg);
+        }
         return visitor.visitDynamicPropertyPrefix(
             node,
             node.receiver,
@@ -1982,6 +2039,15 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.DYNAMIC_PROPERTY:
+        if (node.isConditional) {
+          return visitor.visitIfNotNullDynamicPropertyPostfix(
+              node,
+              node.receiver,
+              operator,
+              getterSelector,
+              setterSelector,
+              arg);
+        }
         return visitor.visitDynamicPropertyPostfix(
             node,
             node.receiver,

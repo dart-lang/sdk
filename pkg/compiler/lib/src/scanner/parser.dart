@@ -1784,7 +1784,8 @@ class Parser {
           token = parsePrecedenceExpression(token.next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
-          if (identical(info, PERIOD_INFO)) {
+          if (identical(info, PERIOD_INFO) ||
+              identical(info, QUESTION_PERIOD_INFO)) {
             // Left associative, so we recurse at the next higher
             // precedence level. However, POSTFIX_PRECEDENCE is the
             // highest level, so we just call parseUnaryExpression

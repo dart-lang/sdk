@@ -11,6 +11,9 @@ library lib;
 
 var topLevelVar;
 
+void topLevelFunction() {}
+
 class C {
   static var staticField;
+  static void staticMethod() {}
 }

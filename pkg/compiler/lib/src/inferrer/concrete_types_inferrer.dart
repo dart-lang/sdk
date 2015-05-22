@@ -579,7 +579,11 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
   }
 
   @override
-  ConcreteType refineReceiver(Selector selector, ConcreteType receiverType) {
+  ConcreteType refineReceiver(Selector selector, ConcreteType receiverType,
+      bool isConditional) {
+    if (isConditional) {
+      throw new UnimplementedError("isConditional in concrete type inferrer");
+    }
     return receiverType.refine(selector, compiler);
   }
 

@@ -347,6 +347,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
           "Async-await is supported by default.",
           api.Diagnostic.HINT);
     }),
+    new OptionHandler('--enable-null-aware-operators', passThrough),
     new OptionHandler('--enable-enum', (_) {
       diagnosticHandler.info(
           "Option '--enable-enum' is no longer needed. "

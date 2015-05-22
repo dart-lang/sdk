@@ -844,6 +844,12 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive visitIfNull(
+      ast.Send node, ast.Node left, ast.Node right, _) {
+    internalError(node, "If-null not yet implemented in cps_ir");
+  }
+
+  @override
   ir.Primitive visitLogicalAnd(
       ast.Send node, ast.Node left, ast.Node right, _) {
     return translateLogicalOperator(left, right, isLazyOr: false);

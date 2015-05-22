@@ -1237,6 +1237,10 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         return boolType;
       } else if (identical(name, '?')) {
         return boolType;
+      } else if (identical(name, '??')) {
+        final Node argument = node.arguments.head;
+        final DartType argumentType = analyze(argument);
+        return types.computeLeastUpperBound(receiverType, argumentType);
       }
       String operatorName = selector.source;
       if (identical(name, '-') && node.arguments.isEmpty) {
@@ -1405,7 +1409,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     Element element = elements[node];
     Identifier selector = node.selector;
     final name = node.assignmentOperator.source;
-    if (identical(name, '=')) {
+    if (identical(name, '=') || identical(name, '??=')) {
       // e1 = value
       if (node.isIndex) {
          // base[key] = value
@@ -1416,14 +1420,16 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         final DartType value = analyze(valueNode);
         DartType indexSet = lookupMemberType(
             node, base, '[]=', MemberKind.OPERATOR);
+        DartType indexSetValue = const DynamicType();
         if (indexSet is FunctionType) {
           FunctionType indexSetType = indexSet;
           DartType indexSetKey = firstType(indexSetType.parameterTypes);
           checkAssignable(keyNode, key, indexSetKey);
-          DartType indexSetValue = secondType(indexSetType.parameterTypes);
+          indexSetValue = secondType(indexSetType.parameterTypes);
           checkAssignable(node.assignmentOperator, value, indexSetValue);
         }
-        return value;
+        return identical(name, '=') ? value
+            : types.computeLeastUpperBound(value, indexSetValue);
       } else {
         // target = value
         DartType target;
@@ -1441,7 +1447,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         final Node valueNode = node.arguments.head;
         final DartType value = analyze(valueNode);
         checkAssignable(node.assignmentOperator, value, target);
-        return value;
+        return identical(name, '=') ? value
+            : types.computeLeastUpperBound(value, target);
       }
     } else if (identical(name, '++') || identical(name, '--')) {
       // e++ or e--
