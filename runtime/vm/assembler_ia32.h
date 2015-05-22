@@ -789,6 +789,11 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
 
+  // Address of code at offset.
+  uword CodeAddress(intptr_t offset) {
+    return buffer_.Address(offset);
+  }
+
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
 

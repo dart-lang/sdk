@@ -55,6 +55,17 @@ const int* ReturnPattern::pattern() const {
 }
 
 
+const int* ProloguePattern::pattern() const {
+  static const int kProloguePattern[kLengthInBytes] = { 0x55, 0x89, 0xe5 };
+  return kProloguePattern;
+}
+
+
+const int* SetFramePointerPattern::pattern() const {
+  static const int kFramePointerPattern[kLengthInBytes] = { 0x89, 0xe5 };
+  return kFramePointerPattern;
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

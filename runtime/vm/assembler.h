@@ -89,6 +89,11 @@ class AssemblerBuffer : public ValueObject {
     cursor_ -= sizeof(T);
   }
 
+  // Return address to code at |position| bytes.
+  uword Address(intptr_t position) {
+    return reinterpret_cast<uword>(contents_ + position);
+  }
+
   template<typename T> T Load(intptr_t position) {
     ASSERT(position >= 0 &&
            position <= (Size() - static_cast<intptr_t>(sizeof(T))));

@@ -25,8 +25,11 @@
 namespace dart {
 
 
+DECLARE_FLAG(bool, trace_profiler);
+
 DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
+
 #if defined(TARGET_OS_ANDROID) || defined(TARGET_ARCH_ARM64) ||                \
     defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
   DEFINE_FLAG(int, profile_period, 10000,
@@ -41,7 +44,7 @@ DEFINE_FLAG(int, profile_depth, 8,
 DEFINE_FLAG(bool, profile_vm, true,
             "Always collect native stack traces.");
 #else
-DEFINE_FLAG(bool, profile_vm, true,
+DEFINE_FLAG(bool, profile_vm, false,
             "Always collect native stack traces.");
 #endif
 
@@ -240,6 +243,12 @@ SampleBuffer::SampleBuffer(intptr_t capacity) {
   ASSERT(Sample::instance_size() > 0);
   samples_ = reinterpret_cast<Sample*>(
       calloc(capacity, Sample::instance_size()));
+  if (FLAG_trace_profiler) {
+    OS::Print("Profiler holds %" Pd " samples\n", capacity);
+    OS::Print("Profiler sample is %" Pd " bytes\n", Sample::instance_size());
+    OS::Print("Profiler memory usage = %" Pd " bytes\n",
+              capacity * Sample::instance_size());
+  }
   capacity_ = capacity;
   cursor_ = 0;
 }
@@ -262,7 +271,6 @@ Sample* SampleBuffer::ReserveSample() {
   return At(cursor);
 }
 
-
 // Attempts to find the true return address when a Dart frame is being setup
 // or torn down.
 // NOTE: Architecture specific implementations below.
@@ -270,14 +278,9 @@ class ReturnAddressLocator : public ValueObject {
  public:
   ReturnAddressLocator(Sample* sample, const Code& code)
       : sample_(sample),
-        code_(Code::ZoneHandle(code.raw())),
-        is_optimized_(code.is_optimized()) {
+        code_(Code::ZoneHandle(code.raw())) {
     ASSERT(!code_.IsNull());
     ASSERT(code_.ContainsInstructionAt(pc()));
-  }
-
-  bool is_code_optimized() {
-    return is_optimized_;
   }
 
   uword pc() {
@@ -288,12 +291,13 @@ class ReturnAddressLocator : public ValueObject {
   bool LocateReturnAddress(uword* return_address);
 
   // Returns offset into code object.
-  uword RelativePC() {
-    return pc() - code_.EntryPoint();
+  intptr_t RelativePC() {
+    ASSERT(pc() >= code_.EntryPoint());
+    return static_cast<intptr_t>(pc() - code_.EntryPoint());
   }
 
-  uint8_t* CodePointer(uword offset) {
-    const uword size = code_.Size();
+  uint8_t* CodePointer(intptr_t offset) {
+    const intptr_t size = code_.Size();
     ASSERT(offset < size);
     uint8_t* code_pointer = reinterpret_cast<uint8_t*>(code_.EntryPoint());
     code_pointer += offset;
@@ -309,152 +313,56 @@ class ReturnAddressLocator : public ValueObject {
  private:
   Sample* sample_;
   const Code& code_;
-  const bool is_optimized_;
 };
 
 
-#if defined(TARGET_ARCH_IA32)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
   ASSERT(return_address != NULL);
-  const uword offset = RelativePC();
-  const uword size = code_.Size();
-  if (is_optimized_) {
-    // 0: push ebp
-    // 1: mov ebp, esp
-    // 3: ...
-    if (offset == 0x0) {
-      // Stack layout:
-      // 0 RETURN ADDRESS.
-      *return_address = StackAt(0);
-      return true;
-    }
-    if (offset == 0x1) {
-      // Stack layout:
-      // 0 CALLER FRAME POINTER
-      // 1 RETURN ADDRESS
-      *return_address = StackAt(1);
-      return true;
-    }
-    ReturnPattern rp(pc());
-    if (rp.IsValid()) {
-      // Stack layout:
-      // 0 RETURN ADDRESS.
-      *return_address = StackAt(0);
-      return true;
-    }
-    return false;
-  } else {
-    // 0x00: mov edi, function
-    // 0x05: incl (inc usage count)   <-- this is optional.
-    // 0x08: cmpl (compare usage count)
-    // 0x0f: jump to optimize function
-    // 0x15: push ebp
-    // 0x16: mov ebp, esp
-    // 0x18: ...
-    ASSERT(size >= 0x08);
-    const uword incl_offset = 0x05;
-    const uword incl_length = 0x03;
-    const uint8_t incl_op_code = 0xFF;
-    const bool has_incl = (*CodePointer(incl_offset) == incl_op_code);
-    const uword push_fp_offset = has_incl ? 0x15 : 0x15 - incl_length;
-    if (offset <= push_fp_offset) {
-      // Stack layout:
-      // 0 RETURN ADDRESS.
-      *return_address = StackAt(0);
-      return true;
-    }
-    if (offset == (push_fp_offset + 1)) {
-      // Stack layout:
-      // 0 CALLER FRAME POINTER
-      // 1 RETURN ADDRESS
-      *return_address = StackAt(1);
-      return true;
-    }
-    ReturnPattern rp(pc());
-    if (rp.IsValid()) {
-      // Stack layout:
-      // 0 RETURN ADDRESS.
-      *return_address = StackAt(0);
-      return true;
-    }
-    return false;
+  const intptr_t offset = RelativePC();
+  ASSERT(offset >= 0);
+  const intptr_t size = code_.Size();
+  ASSERT(offset < size);
+  const intptr_t prologue_offset = code_.GetPrologueOffset();
+  if (offset < prologue_offset) {
+    // Before the prologue, return address is at the top of the stack.
+    // TODO(johnmccutchan): Some intrinsics and stubs do not conform to the
+    // expected stack layout. Use a more robust solution for those code objects.
+    *return_address = StackAt(0);
+    return true;
   }
-  UNREACHABLE();
-  return false;
-}
-#elif defined(TARGET_ARCH_X64)
-bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
-  ASSERT(return_address != NULL);
-  const uword offset = RelativePC();
-  const uword size = code_.Size();
-  if (is_optimized_) {
-    // 0x00: leaq (load pc marker)
-    // 0x07: movq (load pool pointer)
-    // 0x0c: push rpb
-    // 0x0d: movq rbp, rsp
-    // 0x10: ...
-    const uword push_fp_offset = 0x0c;
-    if (offset <= push_fp_offset) {
-      // Stack layout:
-      // 0 RETURN ADDRESS.
-      *return_address = StackAt(0);
-      return true;
-    }
-    if (offset == (push_fp_offset + 1)) {
-      // Stack layout:
-      // 0 CALLER FRAME POINTER
-      // 1 RETURN ADDRESS
-      *return_address = StackAt(1);
-      return true;
-    }
-    ReturnPattern rp(pc());
-    if (rp.IsValid()) {
-      // Stack layout:
-      // 0 RETURN ADDRESS.
-      *return_address = StackAt(0);
-      return true;
-    }
-    return false;
-  } else {
-    // 0x00: leaq (load pc marker)
-    // 0x07: movq (load pool pointer)
-    // 0x0c: movq (load function)
-    // 0x13: incl (inc usage count)   <-- this is optional.
-    // 0x16: cmpl (compare usage count)
-    // 0x1d: jl + 0x
-    // 0x23: jmp [pool pointer]
-    // 0x27: push rbp
-    // 0x28: movq rbp, rsp
-    // 0x2b: ...
-    ASSERT(size >= 0x16);
-    const uword incl_offset = 0x13;
-    const uword incl_length = 0x03;
-    const uint8_t incl_op_code = 0xFF;
-    const bool has_incl = (*CodePointer(incl_offset) == incl_op_code);
-    const uword push_fp_offset = has_incl ? 0x27 : 0x27 - incl_length;
-    if (offset <= push_fp_offset) {
-      // Stack layout:
-      // 0 RETURN ADDRESS.
-      *return_address = StackAt(0);
-      return true;
-    }
-    if (offset == (push_fp_offset + 1)) {
-      // Stack layout:
-      // 0 CALLER FRAME POINTER
-      // 1 RETURN ADDRESS
-      *return_address = StackAt(1);
-      return true;
-    }
-    ReturnPattern rp(pc());
-    if (rp.IsValid()) {
-      // Stack layout:
-      // 0 RETURN ADDRESS.
-      *return_address = StackAt(0);
-      return true;
-    }
-    return false;
+  // Detect if we are:
+  // push ebp      <--- here
+  // mov ebp, esp
+  // on X64 the register names are different but the sequence is the same.
+  ProloguePattern pp(pc());
+  if (pp.IsValid()) {
+    // Stack layout:
+    // 0 RETURN ADDRESS.
+    *return_address = StackAt(0);
+    return true;
   }
-  UNREACHABLE();
+  // Detect if we are:
+  // push ebp
+  // mov ebp, esp  <--- here
+  // on X64 the register names are different but the sequence is the same.
+  SetFramePointerPattern sfpp(pc());
+  if (sfpp.IsValid()) {
+    // Stack layout:
+    // 0 CALLER FRAME POINTER
+    // 1 RETURN ADDRESS
+    *return_address = StackAt(1);
+    return true;
+  }
+  // Detect if we are:
+  // ret           <--- here
+  ReturnPattern rp(pc());
+  if (rp.IsValid()) {
+    // Stack layout:
+    // 0 RETURN ADDRESS.
+    *return_address = StackAt(0);
+    return true;
+  }
   return false;
 }
 #elif defined(TARGET_ARCH_ARM)
@@ -538,6 +446,11 @@ void PreprocessVisitor::CheckForMissingDartFrame(const Code& code,
 
   if (!ral.LocateReturnAddress(&return_address)) {
     ASSERT(return_address == sample->pc_marker());
+    if (code.GetPrologueOffset() == 0) {
+      // Code has the prologue at offset 0. The frame is already setup and
+      // can be trusted.
+      return;
+    }
     // Could not find a better return address than the pc_marker.
     if (code.ContainsInstructionAt(return_address)) {
       // PC marker is in the same code as pc, no missing frame.
@@ -592,11 +505,11 @@ class ProfilerDartExitStackWalker : public ValueObject {
       : sample_(sample),
         frame_iterator_(isolate) {
     ASSERT(sample_ != NULL);
-    // Mark that this sample was collected from an exit frame.
-    sample_->set_exit_frame_sample(true);
   }
 
   void walk() {
+    // Mark that this sample was collected from an exit frame.
+    sample_->set_exit_frame_sample(true);
     intptr_t frame_index = 0;
     StackFrame* frame = frame_iterator_.NextFrame();
     while (frame != NULL) {
@@ -637,6 +550,7 @@ class ProfilerDartStackWalker : public ValueObject {
   }
 
   void walk() {
+    sample_->set_exit_frame_sample(false);
     if (!ValidFramePointer()) {
       sample_->set_ignore_sample(true);
       return;

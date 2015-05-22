@@ -9,6 +9,7 @@
 #include "vm/code_generator.h"
 #include "vm/cpu.h"
 #include "vm/heap.h"
+#include "vm/instructions.h"
 #include "vm/memory_region.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
@@ -2489,10 +2490,18 @@ void Assembler::DoubleAbs(XmmRegister reg) {
 
 void Assembler::EnterFrame(intptr_t frame_size) {
   if (prologue_offset_ == -1) {
+    Comment("PrologueOffset = %" Pd "", CodeSize());
     prologue_offset_ = CodeSize();
   }
+#ifdef DEBUG
+  intptr_t check_offset = CodeSize();
+#endif
   pushl(EBP);
   movl(EBP, ESP);
+#ifdef DEBUG
+  ProloguePattern pp(CodeAddress(check_offset));
+  ASSERT(pp.IsValid());
+#endif
   if (frame_size != 0) {
     Immediate frame_space(frame_size);
     subl(ESP, frame_space);
@@ -2792,6 +2801,10 @@ void Assembler::EnterDartFrame(intptr_t frame_size) {
 // allocate.
 void Assembler::EnterOsrFrame(intptr_t extra_size) {
   Comment("EnterOsrFrame");
+  if (prologue_offset_ == -1) {
+    Comment("PrologueOffset = %" Pd "", CodeSize());
+    prologue_offset_ = CodeSize();
+  }
   Label dart_entry;
   call(&dart_entry);
   Bind(&dart_entry);

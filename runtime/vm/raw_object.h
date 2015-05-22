@@ -944,6 +944,12 @@ class RawNamespace : public RawObject {
 
 
 class RawCode : public RawObject {
+  enum InlinedMetadataIndex {
+    kInlinedIntervalsIndex = 0,
+    kInlinedIdToFunctionIndex = 1,
+    kInlinedMetadataSize = 2,
+  };
+
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
   RawObject** from() {
@@ -960,9 +966,11 @@ class RawCode : public RawObject {
   RawArray* static_calls_target_table_;  // (code-offset, function, code).
   RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
-  RawArray* inlined_intervals_;
-  RawArray* inlined_id_to_function_;
+  RawArray* inlined_metadata_;
   RawArray* comments_;
+  // If return_address_info_ is a Smi, it is the offset to the prologue.
+  // Else, return_address_info_ is null.
+  RawObject* return_address_metadata_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->comments_);
   }
@@ -985,9 +993,10 @@ class RawCode : public RawObject {
   int32_t* data() { OPEN_ARRAY_START(int32_t, int32_t); }
   const int32_t* data() const { OPEN_ARRAY_START(int32_t, int32_t); }
 
-  friend class StackFrame;
-  friend class MarkingVisitor;
+  friend class Code;
   friend class Function;
+  friend class MarkingVisitor;
+  friend class StackFrame;
 };
 
 

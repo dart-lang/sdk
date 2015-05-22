@@ -12270,15 +12270,68 @@ void Code::set_comments(const Code::Comments& comments) const {
 }
 
 
-void Code::set_inlined_intervals(const Array& value) const {
-  ASSERT(value.IsOld());
-  StorePointer(&raw_ptr()->inlined_intervals_, value.raw());
+void Code::SetPrologueOffset(intptr_t offset) const {
+  ASSERT(offset >= 0);
+  StoreSmi(
+      reinterpret_cast<RawSmi* const *>(&raw_ptr()->return_address_metadata_),
+      Smi::New(offset));
 }
 
 
-void Code::set_inlined_id_to_function(const Array& value) const {
+intptr_t Code::GetPrologueOffset() const {
+  const Object& object = Object::Handle(raw_ptr()->return_address_metadata_);
+  // In the future we may put something other than a smi in
+  // |return_address_metadata_|.
+  if (object.IsNull() || !object.IsSmi()) {
+    return -1;
+  }
+  return Smi::Cast(object).Value();
+}
+
+
+RawArray* Code::GetInlinedIntervals() const {
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  if (metadata.IsNull()) {
+    return metadata.raw();
+  }
+  return reinterpret_cast<RawArray*>(
+      metadata.At(RawCode::kInlinedIntervalsIndex));
+}
+
+
+void Code::SetInlinedIntervals(const Array& value) const {
+  if (raw_ptr()->inlined_metadata_ == Array::null()) {
+    StorePointer(&raw_ptr()->inlined_metadata_,
+                 Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
+  }
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  ASSERT(!metadata.IsNull());
+  ASSERT(metadata.IsOld());
   ASSERT(value.IsOld());
-  StorePointer(&raw_ptr()->inlined_id_to_function_, value.raw());
+  metadata.SetAt(RawCode::kInlinedIntervalsIndex, value);
+}
+
+
+RawArray* Code::GetInlinedIdToFunction() const {
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  if (metadata.IsNull()) {
+    return metadata.raw();
+  }
+  return reinterpret_cast<RawArray*>(
+      metadata.At(RawCode::kInlinedIdToFunctionIndex));
+}
+
+
+void Code::SetInlinedIdToFunction(const Array& value) const {
+  if (raw_ptr()->inlined_metadata_ == Array::null()) {
+    StorePointer(&raw_ptr()->inlined_metadata_,
+                 Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
+  }
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  ASSERT(!metadata.IsNull());
+  ASSERT(metadata.IsOld());
+  ASSERT(value.IsOld());
+  metadata.SetAt(RawCode::kInlinedIdToFunctionIndex, value);
 }
 
 
@@ -12384,6 +12437,13 @@ RawCode* Code::FinalizeCode(const char* name,
     }
   }
   code.set_comments(assembler->GetCodeComments());
+  if (assembler->prologue_offset() >= 0) {
+    code.SetPrologueOffset(assembler->prologue_offset());
+  } else {
+    // No prologue was ever entered, optimistically assume nothing was ever
+    // pushed onto the stack.
+    code.SetPrologueOffset(assembler->CodeSize());
+  }
   INC_STAT(Isolate::Current(),
            total_code_size, code.comments().comments_.Length());
   return code.raw();
@@ -12615,7 +12675,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     JSONObject desc(&jsobj, "_descriptors");
     descriptors.PrintToJSONObject(&desc, false);
   }
-  const Array& inlined_function_table = Array::Handle(inlined_id_to_function());
+  const Array& inlined_function_table = Array::Handle(GetInlinedIdToFunction());
   if (!inlined_function_table.IsNull() &&
       (inlined_function_table.Length() > 0)) {
     JSONArray inlined_functions(&jsobj, "_inlinedFunctions");
@@ -12626,7 +12686,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
       inlined_functions.AddValue(function);
     }
   }
-  const Array& intervals = Array::Handle(inlined_intervals());
+  const Array& intervals = Array::Handle(GetInlinedIntervals());
   if (!intervals.IsNull() && (intervals.Length() > 0)) {
     Smi& start = Smi::Handle();
     Smi& end = Smi::Handle();
@@ -12706,7 +12766,7 @@ RawStackmap* Code::GetStackmap(
 
 intptr_t Code::GetCallerId(intptr_t inlined_id) const {
   if (inlined_id < 0) return -1;
-  const Array& intervals = Array::Handle(inlined_intervals());
+  const Array& intervals = Array::Handle(GetInlinedIntervals());
   if (intervals.IsNull() || (intervals.Length() == 0)) return -1;
   Smi& temp_smi = Smi::Handle();
   for (intptr_t i = 0; i < intervals.Length() - Code::kInlIntNumEntries;
@@ -12724,7 +12784,7 @@ intptr_t Code::GetCallerId(intptr_t inlined_id) const {
 void Code::GetInlinedFunctionsAt(
     intptr_t offset, GrowableArray<Function*>* fs) const {
   fs->Clear();
-  const Array& intervals = Array::Handle(inlined_intervals());
+  const Array& intervals = Array::Handle(GetInlinedIntervals());
   if (intervals.IsNull() || (intervals.Length() == 0)) {
     // E.g., for code stubs.
     return;
@@ -12747,7 +12807,7 @@ void Code::GetInlinedFunctionsAt(
   }
 
   // Find all functions.
-  const Array& id_map = Array::Handle(inlined_id_to_function());
+  const Array& id_map = Array::Handle(GetInlinedIdToFunction());
   Smi& temp_smi = Smi::Handle();
   temp_smi ^= intervals.At(found_interval_ix + Code::kInlIntInliningId);
   intptr_t inlining_id = temp_smi.Value();
@@ -12766,7 +12826,7 @@ void Code::GetInlinedFunctionsAt(
 
 void Code::DumpInlinedIntervals() const {
   OS::Print("Inlined intervals:\n");
-  const Array& intervals = Array::Handle(inlined_intervals());
+  const Array& intervals = Array::Handle(GetInlinedIntervals());
   if (intervals.IsNull() || (intervals.Length() == 0)) return;
   Smi& start = Smi::Handle();
   Smi& inlining_id = Smi::Handle();
@@ -12781,7 +12841,7 @@ void Code::DumpInlinedIntervals() const {
         start.Value(), inlining_id.Value(), caller_id.Value());
   }
   OS::Print("Inlined ids:\n");
-  const Array& id_map = Array::Handle(inlined_id_to_function());
+  const Array& id_map = Array::Handle(GetInlinedIdToFunction());
   Function& function = Function::Handle();
   for (intptr_t i = 0; i < id_map.Length(); i++) {
     function ^= id_map.At(i);

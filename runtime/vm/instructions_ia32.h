@@ -106,6 +106,33 @@ class ReturnPattern : public InstructionPattern {
   static const int kLengthInBytes = 1;
 };
 
+
+// push ebp
+// mov ebp, esp
+class ProloguePattern : public InstructionPattern {
+ public:
+  explicit ProloguePattern(uword pc) : InstructionPattern(pc) {}
+
+  virtual const int* pattern() const;
+  virtual int pattern_length_in_bytes() const { return kLengthInBytes; }
+
+ private:
+  static const int kLengthInBytes = 3;
+};
+
+
+// mov ebp, esp
+class SetFramePointerPattern : public InstructionPattern {
+ public:
+  explicit SetFramePointerPattern(uword pc) : InstructionPattern(pc) {}
+
+  virtual const int* pattern() const;
+  virtual int pattern_length_in_bytes() const { return kLengthInBytes; }
+
+ private:
+  static const int kLengthInBytes = 2;
+};
+
 }  // namespace dart
 
 #endif  // VM_INSTRUCTIONS_IA32_H_

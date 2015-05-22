@@ -3983,6 +3983,14 @@ class Code : public Object {
   const Comments& comments() const;
   void set_comments(const Comments& comments) const;
 
+  RawObject* return_address_metadata() const {
+    return raw_ptr()->return_address_metadata_;
+  }
+  // Sets |return_address_metadata|.
+  void SetPrologueOffset(intptr_t offset) const;
+  // Returns -1 if no prologue offset is available.
+  intptr_t GetPrologueOffset() const;
+
   enum InlinedIntervalEntries {
     kInlIntStart = 0,
     kInlIntInliningId = 1,
@@ -3990,15 +3998,11 @@ class Code : public Object {
     kInlIntNumEntries = 3,
   };
 
-  RawArray* inlined_intervals() const {
-    return raw_ptr()->inlined_intervals_;
-  }
-  void set_inlined_intervals(const Array& value) const;
+  RawArray* GetInlinedIntervals() const;
+  void SetInlinedIntervals(const Array& value) const;
 
-  RawArray* inlined_id_to_function() const {
-    return raw_ptr()->inlined_id_to_function_;
-  }
-  void set_inlined_id_to_function(const Array& value) const;
+  RawArray* GetInlinedIdToFunction() const;
+  void SetInlinedIdToFunction(const Array& value) const;
 
   void GetInlinedFunctionsAt(
       intptr_t offset, GrowableArray<Function*>* fs) const;
