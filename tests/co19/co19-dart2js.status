@@ -9697,7 +9697,7 @@ Language/13_Statements/11_Try_A01_t01: Crash # (try {throw "";}on int catch (ok)
 Language/13_Statements/11_Try_A03_t01: Crash # Instance of 'TypeOperator': type check unimplemented for Unavailable.
 Language/13_Statements/11_Try_A03_t02: Crash # Instance of 'TypeOperator': type check unimplemented for Unavailable.
 Language/13_Statements/11_Try_A03_t03: Crash # Instance of 'TypeOperator': type check unimplemented for Foo.
-Language/13_Statements/11_Try_A03_t04: Crash # unsupported element kind: error:field
+Language/13_Statements/11_Try_A03_t04: Crash # Instance of 'TypeOperator': type check unimplemented for Unavailable.
 Language/13_Statements/11_Try_A07_t02: Crash # (try {throw ex;}on int catch (i){}on bool catch (b){}finally {isFinallyExecuted=true;}): try/finally
 Language/13_Statements/11_Try_A08_t01: Crash #  try/finally
 Language/13_Statements/11_Try_A09_t01: Crash #  try/finally
@@ -9829,10 +9829,10 @@ LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: Crash # Please 
 LayoutTests/fast/canvas/webgl/functions-returning-strings_t01: Crash # Instance of 'TypeOperator': type check unimplemented for List<String>.
 LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: Crash #  Unhandled node
 LayoutTests/fast/canvas/webgl/index-validation_t01: Crash #  Unhandled node
-LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Crash # unsupported element kind: error:field
+LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Crash #  Unhandled node
 LayoutTests/fast/canvas/webgl/read-pixels-pack-alignment_t01: Crash #  Unhandled node
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: Crash #  Unhandled node
-LayoutTests/fast/css/css-keyframe-style-crash_t01: Crash # unsupported element kind: _completer:field
+LayoutTests/fast/css/css-keyframe-style-crash_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/first-line-parent-style-different_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/media-rule-dyn_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -9846,13 +9846,13 @@ LayoutTests/fast/css/pseudo-valid-dynamic_t01: Crash # Instance of 'TypeOperator
 LayoutTests/fast/css/readonly-pseudoclass-opera-005_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/visited-link-hang_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: Crash # Please triage this failure.
-LayoutTests/fast/dom/location-hash_t01: Crash # unsupported element kind: _asyncCounter:field
+LayoutTests/fast/dom/location-hash_t01: Crash #  Unhandled node
 LayoutTests/fast/dynamic/inline-to-block-crash_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/encoding/css-charset-dom_t01: Crash # unsupported element kind: _asyncCounter:field
+LayoutTests/fast/encoding/css-charset-dom_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/events/event-attributes-after-exception_t01: Crash #  try/finally
 LayoutTests/fast/eventsource/eventsource-constructor_t01: Crash # Please triage this failure.
 LayoutTests/fast/files/file-reader-methods-illegal-arguments_t01: Crash #  Unhandled node
-LayoutTests/fast/forms/autofocus-focus-only-once_t01: Crash # unsupported element kind: _asyncCounter:field
+LayoutTests/fast/forms/autofocus-focus-only-once_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/forms/datalist/datalist-child-validation_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/forms/datalist/datalist_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -9861,20 +9861,20 @@ LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-requir
 LayoutTests/fast/forms/datetimelocal/datetimelocal-pseudo-classes_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/forms/fieldset/fieldset-elements_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/forms/search-popup-crasher_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/loader/hashchange-event-properties_t01: Crash # unsupported element kind: _completer:field
+LayoutTests/fast/loader/hashchange-event-properties_t01: Crash #  Unhandled node
 LayoutTests/fast/media/media-query-list-syntax_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/mediastream/getusermedia_t01: Crash # unsupported element kind: navigator:field
+LayoutTests/fast/mediastream/getusermedia_t01: Crash # Please triage this failure.
 LayoutTests/fast/multicol/hit-test-above-or-below_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/parser/parse-wbr_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/replaced/table-replaced-element_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/selectors/style-sharing-last-child_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/svg/getbbox_t01: Crash # unsupported element kind: epsilon:field
+LayoutTests/fast/svg/getbbox_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/svg/tabindex-focus_t01: Crash #  try/finally
 LayoutTests/fast/svg/whitespace-angle_t01: Crash #  try/finally
 LayoutTests/fast/svg/whitespace-integer_t01: Crash #  try/finally
-LayoutTests/fast/svg/whitespace-length-invalid_t01: Crash # unsupported element kind: EPSILON:field
-LayoutTests/fast/svg/whitespace-length_t01: Crash # unsupported element kind: EPSILON:field
-LayoutTests/fast/svg/whitespace-number_t01: Crash # unsupported element kind: EPSILON:field
+LayoutTests/fast/svg/whitespace-length-invalid_t01: Crash #  try/finally
+LayoutTests/fast/svg/whitespace-length_t01: Crash #  try/finally
+LayoutTests/fast/svg/whitespace-number_t01: Crash #  try/finally
 LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: Crash #  Unhandled node
 LayoutTests/fast/table/hittest-tablecell-right-edge_t01: Crash #  Unhandled node
 LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: Crash #  Unhandled node
@@ -9882,14 +9882,14 @@ LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Crash #  U
 LayoutTests/fast/table/incorrect-colgroup-span-values_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/table/rowindex-comment-nodes_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/text/font-ligature-letter-spacing_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/anchor_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/file-http-base_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/file_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/host-lowercase-per-scheme_t01: Crash # unsupported element kind: urlExpectationsUppercase:field
-LayoutTests/fast/url/host_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/idna2003_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/idna2008_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/invalid-urls-utf8_t01: Crash # unsupported element kind: testSet:field
+LayoutTests/fast/url/anchor_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/file-http-base_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/file_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/host-lowercase-per-scheme_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/host_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/idna2003_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/idna2008_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/invalid-urls-utf8_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/ipv4_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/ipv6_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/mailto_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -9900,39 +9900,35 @@ LayoutTests/fast/url/query_t01: Crash # Instance of 'TypeOperator': type casts n
 LayoutTests/fast/url/relative-unix_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/relative-win_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/relative_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/safari-extension_t01: Crash # unsupported element kind: safariExtensionTestSet:field
+LayoutTests/fast/url/safari-extension_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/scheme_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/segments-from-data-url_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/segments_t01: Crash # unsupported element kind: cases:field
+LayoutTests/fast/url/segments-from-data-url_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/segments_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/standard-url_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/trivial-segments_t01: Crash # unsupported element kind: cases:field
+LayoutTests/fast/url/trivial-segments_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/trivial_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/xpath/name-null-namespace_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/xsl/default-html_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/xsl/extra-lf-at-end_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # (lazy.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-LibTest/async/Future/Future.delayed_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.error_A01_t01: Crash # unsupported element kind: _completer:field
 LibTest/async/Stream/Stream.periodic_A01_t01: Crash # Please triage this failure.
-LibTest/async/Stream/asBroadcastStream_A01_t01 : RuntimeError
+LibTest/async/Stream/asBroadcastStream_A01_t01: RuntimeError # Please triage this failure.
 LibTest/async/Stream/drain_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/Stream/drain_A02_t01: Crash # Please triage this failure.
 LibTest/async/Stream/elementAt_A02_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/expand_A01_t01 : RuntimeError
-LibTest/async/Stream/forEach_A01_t01 : RuntimeError
+LibTest/async/Stream/expand_A01_t01: RuntimeError # Please triage this failure.
+LibTest/async/Stream/forEach_A01_t01: RuntimeError # Please triage this failure.
 LibTest/async/Stream/handleError_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/handleError_A02_t01 : RuntimeError
+LibTest/async/Stream/handleError_A02_t01: RuntimeError # Please triage this failure.
 LibTest/async/Stream/handleError_A03_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/handleError_A04_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/listen_A01_t01 : RuntimeError
-LibTest/async/Stream/listen_A03_t01: Crash # unsupported element kind: _completer:field
+LibTest/async/Stream/listen_A01_t01: RuntimeError # Please triage this failure.
+LibTest/async/Stream/listen_A03_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/Stream/listen_A04_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/listen_A05_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/map_A01_t01 : RuntimeError
+LibTest/async/Stream/map_A01_t01: RuntimeError # Please triage this failure.
 LibTest/async/Stream/take_A01_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/toList_A01_t01 : RuntimeError
-LibTest/async/StreamController/StreamController.broadcast_A01_t01 : RuntimeError
-LibTest/async/StreamController/StreamController_A03_t01 : RuntimeError
+LibTest/async/Stream/toList_A01_t01: RuntimeError # Please triage this failure.
+LibTest/async/StreamController/StreamController.broadcast_A01_t01: RuntimeError # Please triage this failure.
+LibTest/async/StreamController/StreamController_A03_t01: RuntimeError # Please triage this failure.
 LibTest/async/Zone/registerBinaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneBinaryCallback.
 LibTest/async/Zone/registerCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneCallback.
 LibTest/async/Zone/registerUnaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneUnaryCallback.
@@ -9941,15 +9937,11 @@ LibTest/collection/DoubleLinkedQueue/forEach_A01_t04: RuntimeError # Please tria
 LibTest/collection/DoubleLinkedQueue/iterator_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for Iterator<int>.
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Please triage this failure.
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Please triage this failure.
-LibTest/convert/JsonCodec/decode_A01_t01 : RuntimeError
-LibTest/convert/JsonCodec/decode_A02_t01 : RuntimeError
-LibTest/convert/JsonCodec/encode_A01_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonCodec/encode_A01_t02: Crash # unsupported element kind: table:field
-LibTest/convert/JsonDecoder/convert_A01_t01 : RuntimeError
-LibTest/convert/JsonDecoder/convert_A02_t01 : RuntimeError
-LibTest/convert/JsonDecoder/fuse_A01_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonEncoder/convert_A01_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonEncoder/fuse_A01_t01 : RuntimeError
+LibTest/convert/JsonCodec/decode_A01_t01: RuntimeError # Please triage this failure.
+LibTest/convert/JsonCodec/decode_A02_t01: RuntimeError # Please triage this failure.
+LibTest/convert/JsonDecoder/convert_A01_t01: RuntimeError # Please triage this failure.
+LibTest/convert/JsonDecoder/convert_A02_t01: RuntimeError # Please triage this failure.
+LibTest/convert/JsonEncoder/fuse_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/FallThroughError/toString_A01_t02: Crash #  Unhandled node
 LibTest/core/Invocation/isAccessor_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/isGetter_A01_t02: RuntimeError # Please triage this failure.
@@ -9979,33 +9971,21 @@ LibTest/html/HttpRequest/overrideMimeType_A01_t01: Crash #  Unhandled node
 LibTest/html/HttpRequest/readyStateChangeEvent_A01_t01: Crash #  Unhandled node
 LibTest/html/HttpRequest/setRequestHeader_A01_t01: Crash #  Unhandled node
 LibTest/html/HttpRequestUpload/onLoad_A01_t01: Crash #  Unhandled node
-LibTest/html/IFrameElement/enteredView_A01_t01: Crash # unsupported element kind: _asyncCounter:field
 LibTest/html/Window/moveBy_A01_t01: Crash #  try/finally
 LibTest/html/Window/moveTo_A01_t01: Crash #  try/finally
 LibTest/html/Window/moveTo_A02_t01: Crash #  try/finally
 LibTest/html/Window/resizeBy_A01_t01: Crash #  try/finally
 LibTest/html/Window/resizeTo_A01_t01: Crash #  try/finally
-LibTest/isolate/Isolate/spawnUri_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawnUri_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawnUri_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawnUri_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawnUri_A01_t05: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/asBroadcastStream_A01_t01 : RuntimeError
+LibTest/isolate/ReceivePort/asBroadcastStream_A01_t01: RuntimeError # Please triage this failure.
 LibTest/isolate/ReceivePort/drain_A02_t01: Crash # Please triage this failure.
-LibTest/isolate/ReceivePort/expand_A01_t01 : RuntimeError
-LibTest/isolate/ReceivePort/forEach_A01_t01 : RuntimeError
-LibTest/isolate/ReceivePort/listen_A01_t01 : RuntimeError
-LibTest/isolate/ReceivePort/map_A01_t01 : RuntimeError
-LibTest/isolate/ReceivePort/sendPort_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/skip_A01_t01 : RuntimeError
-LibTest/isolate/ReceivePort/take_A01_t01 : RuntimeError
+LibTest/isolate/ReceivePort/expand_A01_t01: RuntimeError # Please triage this failure.
+LibTest/isolate/ReceivePort/forEach_A01_t01: RuntimeError # Please triage this failure.
+LibTest/isolate/ReceivePort/listen_A01_t01: RuntimeError # Please triage this failure.
+LibTest/isolate/ReceivePort/map_A01_t01: RuntimeError # Please triage this failure.
+LibTest/isolate/ReceivePort/skip_A01_t01: RuntimeError # Please triage this failure.
+LibTest/isolate/ReceivePort/take_A01_t01: RuntimeError # Please triage this failure.
 LibTest/isolate/ReceivePort/take_A01_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/isolate/ReceivePort/toList_A01_t01 : RuntimeError
-LibTest/isolate/SendPort/send_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/SendPort/send_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/SendPort/send_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/math/MutableRectangle/boundingBox_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/Rectangle/boundingBox_A01_t01: Crash # unsupported element kind: rand:field
+LibTest/isolate/ReceivePort/toList_A01_t01: RuntimeError # Please triage this failure.
 LibTest/typed_data/ByteData/ByteData.view_A01_t01: RuntimeError # Please triage this failure.
 LibTest/typed_data/ByteData/setInt16_A01_t01: RuntimeError # Please triage this failure.
 LibTest/typed_data/ByteData/setInt32_A01_t01: RuntimeError # Please triage this failure.

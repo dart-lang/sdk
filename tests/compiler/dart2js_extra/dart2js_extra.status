@@ -65,7 +65,6 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 10216a_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 10216b_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 12320_test: Crash #  Unhandled node
-16407_test: Crash # unsupported element kind: foo:field
 17094_test: RuntimeError # Please triage this failure.
 21666_test: Crash # Instance of 'TypeOperator': type check unimplemented for fInt.
 22868_test: Crash #  cannot handle async/sync*/async* functions
@@ -76,7 +75,7 @@ LayoutTests_fast_mediastream_getusermedia_t01_test/01: Crash # Please triage thi
 async_stacktrace_test/asyncStar: Crash #  cannot handle async/sync*/async* functions
 async_stacktrace_test/none: Crash #  cannot handle async/sync*/async* functions
 bailout8_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-bound_closure_interceptor_type_test: Crash # unsupported element kind: checkers:field
+bound_closure_interceptor_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for IntToT<String>.
 checked_accessor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
 code_motion_exception_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

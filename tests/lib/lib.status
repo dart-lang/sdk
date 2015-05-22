@@ -332,25 +332,25 @@ async/schedule_microtask2_test: Crash # Instance of 'TypeOperator': type casts n
 async/schedule_microtask3_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/schedule_microtask5_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/schedule_microtask_test: Crash # Please triage this failure.
-async/stream_controller_async_test: Crash # unsupported element kind: _defaultEnvironment:field
+async/stream_controller_async_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_controller_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-async/stream_first_where_test: Crash # unsupported element kind: _defaultEnvironment:field
-async/stream_from_iterable_test: Crash # unsupported element kind: _defaultEnvironment:field
+async/stream_first_where_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+async/stream_from_iterable_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_iterator_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_join_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_last_where_test: Crash # unsupported element kind: _defaultEnvironment:field
+async/stream_last_where_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_listen_zone_test: Crash #  Unhandled node
 async/stream_periodic2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_periodic3_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_periodic4_test: Crash # unsupported element kind: _defaultEnvironment:field
+async/stream_periodic4_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_periodic5_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_periodic_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_single_test: Crash # unsupported element kind: _defaultEnvironment:field
+async/stream_single_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_single_to_multi_subscriber_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_state_nonzero_timer_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_state_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_subscription_as_future_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_subscription_cancel_test: Crash # unsupported element kind: _escapeRegExp:field
+async/stream_subscription_cancel_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_timeout_test: Crash # Please triage this failure.
 async/stream_transform_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 async/stream_transformation_broadcast_test: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -367,21 +367,20 @@ convert/chunked_conversion_utf82_test: Crash # Instance of 'TypeOperator': type 
 convert/chunked_conversion_utf86_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/chunked_conversion_utf87_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/json_chunk_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/json_lib_test: Crash # unsupported element kind: _escapeRegExp:field
+convert/json_lib_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 convert/json_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/json_toEncodable_reviver_test: RuntimeError # Please triage this failure.
-convert/json_utf8_chunk_test: Crash # unsupported element kind: UNICODE_TESTS:field
+convert/json_utf8_chunk_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/json_util_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/latin1_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/line_splitter_test: Crash # Please triage this failure.
 convert/utf82_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/utf8_encode_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/utf8_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-js/null_test: Crash # unsupported element kind: _escapeRegExp:field
-math/double_pow_test: Crash # unsupported element kind: samples:field
+js/null_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 math/math_parse_double_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 math/min_max_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-math/point_test: Crash # unsupported element kind: _escapeRegExp:field
+math/point_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 math/random_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 math/rectangle_test: Crash # Please triage this failure.
 mirrors/abstract_class_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -485,7 +484,7 @@ mirrors/invoke_private_wrong_library_test: Crash # Instance of 'TypeOperator': t
 mirrors/invoke_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/invoke_throws_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/is_odd_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/lazy_static_test: Crash # unsupported element kind: hello:field
+mirrors/lazy_static_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/libraries_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_declarations_test/01: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
 mirrors/library_declarations_test/none: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
@@ -501,7 +500,7 @@ mirrors/library_imports_metadata_test: Crash # Instance of 'TypeOperator': type 
 mirrors/library_imports_prefixed_show_hide_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_imports_prefixed_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_imports_shown_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_uri_package_test: Crash # unsupported element kind: _escapeRegExp:field
+mirrors/library_uri_package_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 mirrors/list_constructor_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/list_constructor_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/load_library_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -537,16 +536,16 @@ mirrors/metadata_constructor_arguments_test/05: Crash # Instance of 'TypeOperato
 mirrors/metadata_constructor_arguments_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/metadata_constructor_arguments_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/metadata_constructor_arguments_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/01: Crash # unsupported element kind: closure:field
-mirrors/metadata_nested_constructor_call_test/02: Crash # unsupported element kind: closure:field
-mirrors/metadata_nested_constructor_call_test/03: Crash # unsupported element kind: closure:field
-mirrors/metadata_nested_constructor_call_test/04: Crash # unsupported element kind: closure:field
-mirrors/metadata_nested_constructor_call_test/05: Crash # unsupported element kind: closure:field
-mirrors/metadata_nested_constructor_call_test/06: Crash # unsupported element kind: closure:field
-mirrors/metadata_nested_constructor_call_test/07: Crash # unsupported element kind: closure:field
-mirrors/metadata_nested_constructor_call_test/08: Crash # unsupported element kind: closure:field
-mirrors/metadata_nested_constructor_call_test/09: Crash # unsupported element kind: closure:field
-mirrors/metadata_nested_constructor_call_test/none: Crash # unsupported element kind: closure:field
+mirrors/metadata_nested_constructor_call_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/metadata_nested_constructor_call_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/metadata_nested_constructor_call_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/metadata_nested_constructor_call_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/metadata_nested_constructor_call_test/05: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/metadata_nested_constructor_call_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/metadata_nested_constructor_call_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/metadata_nested_constructor_call_test/08: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/metadata_nested_constructor_call_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/metadata_nested_constructor_call_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/method_mirror_location_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 mirrors/method_mirror_name_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/method_mirror_properties_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -629,6 +628,7 @@ mirrors/typedef_reflected_type_test/none: Crash # Instance of 'TypeOperator': ty
 mirrors/unnamed_library_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/variable_is_const_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
 mirrors/variable_is_const_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
+profiler/metrics_num_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 profiler/metrics_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 profiler/user_tags_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 typed_data/constructor_checks_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -642,4 +642,3 @@ typed_data/typed_data_hierarchy_test: Crash # Instance of 'TypeOperator': type c
 typed_data/typed_data_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 typed_data/typed_data_sublist_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 typed_data/typed_list_iterable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-profiler/metrics_num_test : Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

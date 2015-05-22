@@ -336,7 +336,7 @@ string_runes_test: Crash # Instance of 'TypeOperator': type check unimplemented 
 string_source_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 string_substring_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-symbol_operator_test/03 : RuntimeError
+symbol_operator_test/03: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/03: Pass # Please triage this failure.
 symbol_reserved_word_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 symbol_reserved_word_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

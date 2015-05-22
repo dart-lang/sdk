@@ -141,7 +141,7 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 analyzer/test/*: PubGetError
 
 [ $compiler == dart2js && $cps_ir ]
-analysis_server/tool/spec/check_all_test: Crash # unsupported element kind: context:field
+analysis_server/tool/spec/check_all_test: Crash #  Unhandled node
 analyzer/test/cancelable_future_test: Crash #  try/finally
 analyzer/test/enum_test: Crash #  try/finally
 analyzer/test/file_system/memory_file_system_test: Crash #  try/finally
@@ -163,7 +163,7 @@ analyzer/test/generated/static_type_warning_code_test: Crash #  try/finally
 analyzer/test/generated/static_warning_code_test: Crash #  try/finally
 analyzer/test/generated/utilities_test: Crash #  try/finally
 analyzer/test/instrumentation/instrumentation_test: Crash #  try/finally
-analyzer/test/parse_compilation_unit_test: Crash # unsupported element kind: _escapeRegExp:field
+analyzer/test/parse_compilation_unit_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 analyzer/test/source/package_map_provider_test: Crash #  try/finally
 analyzer/test/source/package_map_resolver_test: Crash #  try/finally
 analyzer/test/src/context/cache_test: Crash #  try/finally
@@ -178,14 +178,14 @@ analyzer/test/src/task/manager_test: Crash #  try/finally
 analyzer/test/src/task/model_test: Crash #  try/finally
 analyzer/test/src/util/asserts_test: Crash #  try/finally
 analyzer/test/src/util/lru_map_test: Crash #  try/finally
-analyzer2dart/test/driver_test: Crash # unsupported element kind: _escapeRegExp:field
-analyzer2dart/test/end2end_test: Crash # unsupported element kind: _escapeRegExp:field
-analyzer2dart/test/identifier_semantics_test: Crash # unsupported element kind: NOT_SDK:field
-analyzer2dart/test/sexpr_test: Crash # unsupported element kind: _escapeRegExp:field
-analyzer2dart/test/tree_shaker_test: Crash # unsupported element kind: _escapeRegExp:field
+analyzer2dart/test/driver_test: Crash # Please triage this failure.
+analyzer2dart/test/end2end_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+analyzer2dart/test/identifier_semantics_test: Crash # Please triage this failure.
+analyzer2dart/test/sexpr_test: Crash # Please triage this failure.
+analyzer2dart/test/tree_shaker_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 fixnum/test/int_32_test: Crash #  try/finally
 fixnum/test/int_64_test: Crash #  try/finally
-js_ast/test/printer_callback_test: Crash # unsupported element kind: templateManager:field
-typed_data/test/typed_buffers_test/01: Crash # unsupported element kind: _escapeRegExp:field
-typed_data/test/typed_buffers_test/none: Crash # unsupported element kind: _escapeRegExp:field
+js_ast/test/printer_callback_test: Crash #  Unhandled node
+typed_data/test/typed_buffers_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
+typed_data/test/typed_buffers_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
 typed_mock/test/typed_mock_test: Crash #  try/finally
