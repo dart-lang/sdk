@@ -102,8 +102,8 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
-#element_animate_test/omit_timing: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
-#element_animate_test/timing_dict: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
+element_animate_test/omit_timing: Skip # Timing out on MacOS. Issue 23507
+element_animate_test/timing_dict: Skip # Timing out on MacOS. Issue 23507
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219

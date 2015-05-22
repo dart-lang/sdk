@@ -1464,11 +1464,21 @@ WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeEr
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && ($system == windows || $system == macos) ]
-# New failures on Chrome 42, linux bots are not yet at that version.
+# New failures on Chrome 43, linux bots are not yet at that version.
+LayoutTests/fast/css/content-language-case-insensitivity_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/content-language-dynamically-removed_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/content-language-dynamically-added_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/content-language-no-content_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/content-language-multiple_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/content-language-mapped-to-webkit-locale_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/getComputedStyle/computed-style-properties_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/nested-at-rules_t01: RuntimeError # Issue 23506
 LayoutTests/fast/css/getComputedStyle/counterIncrement-without-counter_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/image-set-setting_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-text-rendering_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/cssText-shorthand_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/background-shorthand-csstext_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/innerHTML/javascript-url_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLElement/HTMLMediaElement/addTextTrack_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/the-input-element/url_t01: RuntimeError # Please triage this failure
@@ -7835,6 +7845,7 @@ LayoutTests/fast/canvas/canvas-scale-shadowBlur_t01: Pass, RuntimeError # Please
 LayoutTests/fast/canvas/canvas-scale-strokePath-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-set-properties-with-non-invertible-ctm_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-setTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-strokePath-alpha-shadow_t01: Skip # Issue 23508
 LayoutTests/fast/canvas/canvas-to-canvas_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-toDataURL-crash_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: Pass, RuntimeError # Please triage this failure
