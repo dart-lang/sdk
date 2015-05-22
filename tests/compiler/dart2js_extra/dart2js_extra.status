@@ -71,6 +71,9 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 22895_test: Crash #  cannot handle async/sync*/async* functions
 22917_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 23264_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+23486_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+23486_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+23486_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 LayoutTests_fast_mediastream_getusermedia_t01_test/01: Crash # Please triage this failure.
 async_stacktrace_test/asyncStar: Crash #  cannot handle async/sync*/async* functions
 async_stacktrace_test/none: Crash #  cannot handle async/sync*/async* functions

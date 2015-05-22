@@ -247,6 +247,7 @@ int_parse_radix_test/02: Crash # Please triage this failure.
 int_parse_radix_test/none: Crash # Please triage this failure.
 is_operator_basic_types_test: RuntimeError # Please triage this failure.
 iterable_element_at_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+iterable_empty_test: Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<int>.
 iterable_expand_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 iterable_first_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 iterable_first_where_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
