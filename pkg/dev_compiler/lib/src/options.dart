@@ -26,6 +26,9 @@ class ResolverOptions {
   /// List of paths used for the multi-package resolver.
   final List<String> packagePaths;
 
+  /// List of additional non-Dart resources to resolve and serve.
+  final List<String> resources;
+
   /// Whether to infer return types and field types from overriden members.
   final bool inferFromOverrides;
   static const inferFromOverridesDefault = true;
@@ -60,7 +63,7 @@ class ResolverOptions {
   static const String implicitHtmlFile = 'index.html';
 
   ResolverOptions({this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const <String>[],
+      this.packagePaths: const <String>[], this.resources: const <String>[],
       this.inferFromOverrides: inferFromOverridesDefault,
       this.inferTransitively: inferTransitivelyDefault,
       this.onlyInferConstsAndFinalFields: onlyInferConstAndFinalFieldsDefault,
@@ -192,6 +195,10 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   @override
   final List<String> packagePaths;
 
+  /// List of additional non-Dart resources to resolve and serve.
+  @override
+  final List<String> resources;
+
   /// Whether to infer types downwards from local context
   @override
   final bool inferDownwards;
@@ -239,7 +246,7 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.outputDart: false, this.useColors: true,
       this.covariantGenerics: true, this.relaxedCasts: true,
       this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const <String>[],
+      this.packagePaths: const <String>[], this.resources: const <String>[],
       this.inferDownwards: RulesOptions.inferDownwardsDefault,
       this.inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
       this.inferTransitively: ResolverOptions.inferTransitivelyDefault,
@@ -304,6 +311,7 @@ CompilerOptions parseOptions(List<String> argv) {
       useMultiPackage: args['use-multi-package'],
       packageRoot: args['package-root'],
       packagePaths: args['package-paths'].split(','),
+      resources: args['resources'].split(','),
       inferDownwards: args['infer-downwards'],
       inferFromOverrides: args['infer-from-overrides'],
       inferTransitively: args['infer-transitively'],
@@ -377,6 +385,8 @@ final ArgParser argParser = new ArgParser()
   ..addOption('package-paths',
       help: 'if using the multi-package resolver, the list of directories to\n'
       'look for packages in.', defaultsTo: '')
+  ..addOption('resources',
+      help: 'Additional resources to serve', defaultsTo: '')
   ..addFlag('source-maps',
       help: 'Whether to emit source map files', defaultsTo: true)
   ..addOption('runtime-dir',

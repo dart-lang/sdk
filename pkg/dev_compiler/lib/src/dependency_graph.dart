@@ -76,6 +76,8 @@ class SourceGraph {
       }
     });
   }
+
+  List<String> get resources => _options.resources;
 }
 
 /// A node in the import graph representing a source file.
@@ -198,6 +200,9 @@ class HtmlSourceNode extends SourceNode {
       }
 
       var newResources = new Set<ResourceSourceNode>();
+      for (var resource in graph.resources) {
+        newResources.add(graph.nodeFromUri(uri.resolve(resource)));
+      }
       for (var tag in document.querySelectorAll('link[rel="stylesheet"]')) {
         newResources
             .add(graph.nodeFromUri(uri.resolve(tag.attributes['href'])));
