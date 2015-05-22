@@ -1184,6 +1184,13 @@ RawApiError* VmIsolateSnapshotReader::ReadVmIsolateSnapshot() {
     // Read in the symbol table.
     object_store->symbol_table_ = reinterpret_cast<RawArray*>(ReadObject());
 
+    Symbols::InitOnceFromSnapshot(isolate);
+
+    // Read in all the script objects and the accompanying token streams
+    // for bootstrap libraries so that they are in the VM isolate's read
+    // only memory.
+    *(ArrayHandle()) ^= ReadObject();
+
     // Validate the class table.
 #if defined(DEBUG)
     isolate->ValidateClassTable();
@@ -1466,6 +1473,43 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
 }
 
 
+// An object visitor which will iterate over all the script objects in the heap
+// and either count them or collect them into an array. This is used during
+// full snapshot generation of the VM isolate to write out all script
+// objects and their accompanying token streams.
+class ScriptVisitor : public ObjectVisitor {
+ public:
+  explicit ScriptVisitor(Isolate* isolate) :
+      ObjectVisitor(isolate),
+      objHandle_(Object::Handle(isolate)),
+      count_(0),
+      scripts_(NULL) {}
+
+  ScriptVisitor(Isolate* isolate, const Array* scripts) :
+      ObjectVisitor(isolate),
+      objHandle_(Object::Handle(isolate)),
+      count_(0),
+      scripts_(scripts) {}
+
+  void VisitObject(RawObject* obj) {
+    if (obj->IsScript()) {
+      if (scripts_ != NULL) {
+        objHandle_ = obj;
+        scripts_->SetAt(count_, objHandle_);
+      }
+      count_ += 1;
+    }
+  }
+
+  intptr_t count() const { return count_; }
+
+ private:
+  Object& objHandle_;
+  intptr_t count_;
+  const Array* scripts_;
+};
+
+
 void FullSnapshotWriter::WriteVmIsolateSnapshot() {
   ASSERT(vm_isolate_snapshot_buffer_ != NULL);
   SnapshotWriter writer(Snapshot::kFull,
@@ -1485,7 +1529,18 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
   isolate->ValidateClassTable();
 #endif
 
-  // Write full snapshot for a regular isolate.
+  // Collect all the script objects and their accompanying token stream objects
+  // into an array so that we can write it out as part of the VM isolate
+  // snapshot. We first count the number of script objects, allocate an array
+  // and then fill it up with the script objects.
+  ScriptVisitor scripts_counter(isolate);
+  isolate->heap()->old_space()->VisitObjects(&scripts_counter);
+  intptr_t count = scripts_counter.count();
+  const Array& scripts = Array::Handle(isolate, Array::New(count, Heap::kOld));
+  ScriptVisitor script_visitor(isolate, &scripts);
+  isolate->heap()->old_space()->VisitObjects(&script_visitor);
+
+  // Write full snapshot for the VM isolate.
   // Setup for long jump in case there is an exception while writing
   // the snapshot.
   LongJumpScope jump;
@@ -1496,7 +1551,12 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
     // Write out the version string.
     writer.WriteVersion();
 
-    // Write out the symbol table.
+    /*
+     * Now Write out the following
+     * - the symbol table
+     * - all the scripts and token streams for these scripts
+     *
+     **/
     {
       NoSafepointScope no_safepoint;
 
@@ -1504,6 +1564,14 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
       // regular isolate so that we do not write these symbols into the
       // snapshot of a regular dart isolate.
       writer.WriteObject(object_store->symbol_table());
+
+      // Write out all the script objects and the accompanying token streams
+      // for the bootstrap libraries so that they are in the VM isolate
+      // read only memory.
+      writer.WriteObject(scripts.raw());
+
+      // Write out all forwarded objects.
+      writer.WriteForwardedObjects();
 
       writer.FillHeader(writer.kind());
     }

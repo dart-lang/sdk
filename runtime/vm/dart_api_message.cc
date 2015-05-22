@@ -19,6 +19,7 @@ ApiMessageReader::ApiMessageReader(const uint8_t* buffer,
     : BaseReader(buffer, length),
       alloc_(alloc),
       backward_references_(kNumInitialReferences),
+      vm_isolate_references_(kNumInitialReferences),
       vm_symbol_references_(NULL),
       max_vm_isolate_object_id_(
           use_vm_isolate_snapshot ?
@@ -200,7 +201,41 @@ Dart_CObject* ApiMessageReader::AllocateDartCObjectArray(intptr_t length) {
 
 
 Dart_CObject* ApiMessageReader::AllocateDartCObjectVmIsolateObj(intptr_t id) {
-  return CreateDartCObjectString(VmIsolateSnapshotObject(id));
+  RawObject* raw = VmIsolateSnapshotObject(id);
+  intptr_t cid = raw->GetClassId();
+  switch (cid) {
+    case kOneByteStringCid: {
+      RawOneByteString* raw_str = reinterpret_cast<RawOneByteString*>(raw);
+      const char* str = reinterpret_cast<const char*>(raw_str->ptr()->data());
+      ASSERT(str != NULL);
+      Dart_CObject* object = NULL;
+      for (intptr_t i = 0; i < vm_isolate_references_.length(); i++) {
+        object = vm_isolate_references_.At(i);
+        if ((object->type == Dart_CObject_kString)) {
+          if (strcmp(str, const_cast<char*>(object->value.as_string)) == 0) {
+            return object;
+          }
+        }
+      }
+      object = CreateDartCObjectString(raw);
+      vm_isolate_references_.Add(object);
+      return object;
+    }
+
+    case kMintCid: {
+      const Mint& obj = Mint::Handle(reinterpret_cast<RawMint*>(raw));
+      int64_t value64 = obj.value();
+      if ((kMinInt32 <= value64) && (value64 <= kMaxInt32)) {
+        return GetCanonicalMintObject(Dart_CObject_kInt32, value64);
+      } else {
+        return GetCanonicalMintObject(Dart_CObject_kInt64, value64);
+      }
+    }
+
+    default:
+      UNREACHABLE();
+      return NULL;
+  }
 }
 
 
@@ -399,6 +434,27 @@ Dart_CObject* ApiMessageReader::CreateDartCObjectString(RawObject* raw) {
   char* p = object->value.as_string;
   memmove(p, raw_str->ptr()->data(), len);
   p[len] = '\0';
+  return object;
+}
+
+
+Dart_CObject* ApiMessageReader::GetCanonicalMintObject(Dart_CObject_Type type,
+                                                       int64_t value64) {
+  Dart_CObject* object = NULL;
+  for (intptr_t i = 0; i < vm_isolate_references_.length(); i++) {
+    object = vm_isolate_references_.At(i);
+    if (object->type == type) {
+      if (value64 == object->value.as_int64) {
+        return object;
+      }
+    }
+  }
+  if (type == Dart_CObject_kInt32) {
+    object = AllocateDartCObjectInt32(static_cast<int32_t>(value64));
+  } else {
+    object = AllocateDartCObjectInt64(value64);
+  }
+  vm_isolate_references_.Add(object);
   return object;
 }
 

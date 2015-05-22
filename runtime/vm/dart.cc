@@ -156,7 +156,6 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
         OS::Print("VM Isolate: Number of symbols : %" Pd "\n", size);
         OS::Print("VM Isolate: Symbol table capacity : %" Pd "\n", capacity);
       }
-      Symbols::InitOnceFromSnapshot(vm_isolate_);
     } else {
       Symbols::InitOnce(vm_isolate_);
     }

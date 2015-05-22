@@ -389,6 +389,9 @@ class RawObject {
   bool IsFreeListElement() {
     return ((GetClassId() == kFreeListElement));
   }
+  bool IsScript() {
+    return ((GetClassId() == kScriptCid));
+  }
 
   intptr_t Size() const {
     uword tags = ptr()->tags_;

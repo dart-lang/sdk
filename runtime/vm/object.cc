@@ -601,6 +601,17 @@ void Object::InitOnce(Isolate* isolate) {
   isolate->object_store()->set_one_byte_string_class(cls);
   cls = Class::NewStringClass(kTwoByteStringCid);
   isolate->object_store()->set_two_byte_string_class(cls);
+  cls = Class::New<Mint>();
+  isolate->object_store()->set_mint_class(cls);
+  cls = Class::New<Bigint>();
+  isolate->object_store()->set_bigint_class(cls);
+  cls = Class::New<Double>();
+  isolate->object_store()->set_double_class(cls);
+
+  // Ensure that class kExternalTypedDataUint8ArrayCid is registered as we
+  // need it when reading in the token stream of bootstrap classes in the VM
+  // isolate.
+  Class::NewExternalTypedDataClass(kExternalTypedDataUint8ArrayCid);
 
   // Allocate and initialize the empty_array instance.
   {
