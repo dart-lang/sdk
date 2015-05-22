@@ -271,7 +271,7 @@ class UnsupportedNullAwareToken extends ErrorToken {
 
   String toString() => "UnsupportedNullAwareToken($operator)";
 
-  String get assertionMessage => "'$opreator' isn't supported without "
+  String get assertionMessage => "'$operator' isn't supported without "
       "the --enable-null-aware-operators flag.";
 
   int get charCount => operator.length;
