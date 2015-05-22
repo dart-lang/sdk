@@ -556,6 +556,7 @@ factory_return_type_checked_test: Crash # Instance of 'TypeOperator': type check
 factory_type_parameter2_test: Crash # Please triage this failure.
 factory_type_parameter_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<List>.
 fast_method_extraction_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
+final_super_field_set_test/01: RuntimeError # Issue 23509
 finally_test: Crash # (try {i=12;}finally {Expect.equals(12,i);executedFinally=true;}): try/finally
 first_class_types_literals_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 first_class_types_literals_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -883,6 +884,7 @@ smi_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for 
 stack_trace_test: Crash #  try/finally
 statement_test: Crash #  try/finally
 static_postfix_operator_test: Crash # (try {if(a++ ==0){inIt=true;}}finally {}): try/finally
+static_setter_get_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_charcode_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_optimizations_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 super_all_named_constructor_test: Crash # Please triage this failure.

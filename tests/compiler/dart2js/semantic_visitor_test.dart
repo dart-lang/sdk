@@ -177,6 +177,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     element: 'parameter(m#o)',
                     arguments: '(null,42)',
                     selector: 'CallStructure(arity=2)')),
+    // TODO(johnniwinther): Expect [VISIT_FINAL_PARAMETER_SET] instead.
+    const Test('m(final o) { o = 42; }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs:'42')),
   ],
   'Local variables': const [
     // Local variables
@@ -192,6 +197,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     element: 'variable(m#o)',
                     arguments: '(null,42)',
                     selector: 'CallStructure(arity=2)')),
+    // TODO(johnniwinther): Expect [VISIT_FINAL_LOCAL_VARIABLE_SET] instead.
+    const Test('m() { final o = 0; o = 42; }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs:'42')),
+    // TODO(johnniwinther): Expect [VISIT_FINAL_LOCAL_VARIABLE_SET] instead.
+    const Test('m() { const o = 0; o = 42; }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs:'42')),
   ],
   'Local functions': const [
     // Local functions
@@ -203,6 +218,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     element: 'function(m#o)',
                     arguments: '(null,42)',
                     selector: 'CallStructure(arity=2)')),
+    // TODO(johnniwinther): Expect [VISIT_LOCAL_FUNCTION_SET] instead.
+    const Test('m() { o(a, b) {}; o = 42; }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
   ],
   'Static fields': const [
     // Static fields
@@ -316,6 +336,83 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_STATIC_FIELD_INVOKE,
                     element: 'field(C#o)',
                     arguments: '(null,42)')),
+    // TODO(johnniwinther): Expect [VISIT_FINAL_STATIC_FIELD_SET] instead.
+    const Test(
+        '''
+        class C { static final o = 0; }
+        m() { C.o = 42; }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static final o = 0;
+          m() { o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static final o = 0;
+          m() { C.o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.prefix(
+        '''
+        class C {
+          static final o = 0;
+        }
+        ''',
+        'm() { p.C.o = 42; }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test(
+        '''
+        class C { static const o = 0; }
+        m() { C.o = 42; }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static const o = 0;
+          m() { o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static const o = 0;
+          m() { C.o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.prefix(
+        '''
+        class C {
+          static const o = 0;
+        }
+        ''',
+        'm() { p.C.o = 42; }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
   ],
   'Static properties': const [
     // Static properties
@@ -355,6 +452,82 @@ const Map<String, List<Test>> SEND_TESTS = const {
         'm() => p.C.o;',
         const Visit(VisitKind.VISIT_STATIC_GETTER_GET,
                     element: 'getter(C#o)')),
+    // TODO(johnniwinther): Expected [VISIT_STATIC_GETTER_SET] instead.
+    const Test(
+        '''
+        class C { static get o => 42; }
+        m() { C.o = 42; }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static static get o => 42;
+          m() { o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static static get o => 42;
+          m() { C.o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.prefix(
+        '''
+        class C {
+          static static get o => 42;
+        }
+        ''',
+        'm() { p.C.o = 42; }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    // TODO(johnniwinther): Expected [VISIT_STATIC_SETTER_GET] instead.
+    const Test(
+        '''
+        class C {
+          static set o(_) {}
+        }
+        m() => C.o;
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                    name: 'o')),
+    const Test.clazz(
+        '''
+        class C {
+          static set o(_) {}
+          m() => o;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                    name: 'o')),
+    const Test.clazz(
+        '''
+        class C {
+          static set o(_) {}
+          m() => C.o;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                    name: 'o')),
+    const Test.prefix(
+        '''
+        class C {
+          static set o(_) {}
+        }
+        ''',
+        'm() => p.C.o;',
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                    name: 'o')),
     const Test(
         '''
         class C { static set o(_) {} }
@@ -431,6 +604,45 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_STATIC_GETTER_INVOKE,
                     element: 'getter(C#o)',
                     arguments: '(null,42)')),
+    // TODO(johnniwinther): Expect [VISIT_STATIC_SETTER_INVOKE] instead.
+    const Test(
+        '''
+        class C { static set o(_) {} }
+        m() => C.o(null, 42);
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                    name: 'o',
+                    arguments: '(null,42)')),
+    const Test.clazz(
+        '''
+        class C {
+          static set o(_) {}
+          m() { o(null, 42); }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                    name: 'o',
+                    arguments: '(null,42)')),
+    const Test.clazz(
+        '''
+        class C {
+          static set o(_) {}
+          m() { C.o(null, 42); }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                    name: 'o',
+                    arguments: '(null,42)')),
+    const Test.prefix(
+        '''
+        class C {
+          static set o(_) {}
+        }
+        ''',
+        'm() { p.C.o(null, 42); }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                    name: 'o',
+                    arguments: '(null,42)')),
   ],
   'Static functions': const [
     // Static functions
@@ -468,6 +680,45 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_STATIC_FUNCTION_GET,
                     element: 'function(C#o)')),
+    // TODO(johnniwinther): Expect [VISIT_STATIC_FUNCTION_SET] instead.
+    const Test(
+        '''
+        class C { static o(a, b) {} }
+        m() { C.o = 42; }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static o(a, b) {}
+          m() { o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.clazz(
+        '''
+        class C {
+          static o(a, b) {}
+          m() { C.o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.prefix(
+        '''
+        class C { static o(a, b) {} }
+        ''',
+        '''
+        m() { p.C.o = 42; }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
     const Test(
         '''
         class C { static o(a, b) {} }
@@ -547,6 +798,39 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_SET,
                     element: 'field(o)',
                     rhs: '42')),
+    // TODO(johnniwinther): Expect [VISIT_FINAL_TOP_LEVEL_FIELD_SET] instead.
+    const Test(
+        '''
+        final o = 0;
+        m() { o = 42; }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.prefix(
+        '''
+        final o = 0;
+        ''',
+        'm() { p.o = 42; }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test(
+        '''
+        const o = 0;
+        m() { o = 42; }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.prefix(
+        '''
+        const o = 0;
+        ''',
+        'm() { p.o = 42; }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
     const Test(
         '''
         var o;
@@ -588,6 +872,40 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_GET,
                     element: 'getter(o)')),
+    // TODO(johnniwinther): Expect [VISIT_TOP_LEVEL_SETTER_GET] instead.
+    const Test(
+        '''
+        set o(_) {}
+        m() => o;
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                    name: 'o')),
+    const Test.prefix(
+        '''
+        set o(_) {}
+        ''',
+        '''
+        m() => p.o;
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                    name: 'o')),
+    // TODO(johnniwinther): Expect [VISIT_TOP_LEVEL_GETTER_SET] instead.
+    const Test(
+        '''
+        get o => null;
+        m() { o = 42; }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.prefix(
+        '''
+        get o => null;
+        ''',
+        'm() { p.o = 42; }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
     const Test(
         '''
         set o(_) {}
@@ -619,6 +937,23 @@ const Map<String, List<Test>> SEND_TESTS = const {
         'm() { p.o(null, 42); }',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_INVOKE,
                     element: 'getter(o)',
+                    arguments: '(null,42)')),
+    // TODO(johnniwinther): Expected [VISIT_TOP_LEVEL_SETTER_INVOKE] instead.
+    const Test(
+        '''
+        set o(_) {}
+        m() => o(null, 42);
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                    name: 'o',
+                    arguments: '(null,42)')),
+    const Test.prefix(
+        '''
+        set o(_) {}
+        ''',
+        'm() { p.o(null, 42); }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                    name: 'o',
                     arguments: '(null,42)')),
   ],
   'Top level functions': const [
@@ -661,6 +996,23 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
                     name: 'o',
                     arguments: '(null,42)')),
+    // TODO(johnniwinther): Expect [VISIT_TOP_LEVEL_FUNCTION_SET] instead.
+    const Test(
+        '''
+        o(a, b) {}
+        m() { o = 42; }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
+    const Test.prefix(
+        '''
+        o(a, b) {}
+        ''',
+        'm() { p.o = 42; }',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
   ],
   'Dynamic properties': const [
     // Dynamic properties
@@ -834,6 +1186,19 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_FIELD_SET,
                     element: 'field(B#o)',
                     rhs: '42')),
+    // TODO(johnniwinther): Expect [VISIT_FINAL_SUPER_FIELD_SET] instead.
+    const Test.clazz(
+        '''
+        class B {
+          final o = 0;
+        }
+        class C extends B {
+          m() { super.o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -869,6 +1234,30 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_GET,
                     element: 'getter(B#o)')),
+    // TODO(johnniwinther): Expect [VISIT_SUPER_SETTER_GET] instead.
+    const Test.clazz(
+        '''
+        class B {
+          set o(_) {}
+        }
+        class C extends B {
+          m() => super.o;
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GET)),
+    // TODO(johnniwinther): Expect [VISIT_SUPER_GETTER_SET] instead.
+    const Test.clazz(
+        '''
+        class B {
+          get o => 0;
+        }
+        class C extends B {
+          m() { super.o = 42; }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                    name: 'o',
+                    rhs: '42')),
     const Test.clazz(
         '''
         class B {
@@ -892,6 +1281,18 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_INVOKE,
                     element: 'getter(B#o)',
+                    arguments: '(null,42)')),
+    // TODO(johnniwinther): Expect [VISIT_SUPER_SETTER_INVOKE] instead.
+    const Test.clazz(
+        '''
+        class B {
+          set o(_) {}
+        }
+        class C extends B {
+          m() { super.o(null, 42); }
+        }
+        ''',
+        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INVOKE,
                     arguments: '(null,42)')),
   ],
   'Super methods': const [
@@ -3873,6 +4274,24 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
   VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET,
   VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET,
   VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET,
+  VisitKind.VISIT_FINAL_PARAMETER_SET,
+  VisitKind.VISIT_FINAL_LOCAL_VARIABLE_SET,
+  VisitKind.VISIT_LOCAL_FUNCTION_SET,
+  VisitKind.VISIT_STATIC_GETTER_SET,
+  VisitKind.VISIT_STATIC_SETTER_GET,
+  VisitKind.VISIT_STATIC_SETTER_INVOKE,
+  VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
+  VisitKind.VISIT_STATIC_FUNCTION_SET,
+  VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
+  VisitKind.VISIT_TOP_LEVEL_GETTER_SET,
+  VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
+  VisitKind.VISIT_TOP_LEVEL_SETTER_INVOKE,
+  VisitKind.VISIT_TOP_LEVEL_FUNCTION_SET,
+  VisitKind.VISIT_FINAL_SUPER_FIELD_SET,
+  VisitKind.VISIT_SUPER_GETTER_SET,
+  VisitKind.VISIT_SUPER_SETTER_GET,
+  VisitKind.VISIT_SUPER_SETTER_INVOKE,
+  VisitKind.VISIT_SUPER_METHOD_SET,
 ];
 
 main(List<String> arguments) {
@@ -4092,14 +4511,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorClassTypeLiteralSet(
+  visitClassTypeLiteralSet(
       SendSet node,
       ConstantExpression constant,
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CLASS_TYPE_LITERAL_INVOKE,
         constant: constant.getText(), rhs: rhs));
-    apply(rhs, arg);
+    super.visitClassTypeLiteralSet(node, constant, rhs, arg);
   }
 
   @override
@@ -4199,14 +4618,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorDynamicTypeLiteralSet(
+  visitDynamicTypeLiteralSet(
       Send node,
       ConstantExpression constant,
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET,
         rhs: rhs));
-    apply(rhs, arg);
+    super.visitDynamicTypeLiteralSet(node, constant, rhs, arg);
   }
 
   @override
@@ -4276,6 +4695,17 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
+  visitLocalFunctionSet(
+      SendSet node,
+      LocalFunctionElement function,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_LOCAL_FUNCTION_SET,
+        element: function, rhs: rhs));
+    super.visitLocalFunctionSet(node, function, rhs, arg);
+  }
+
+  @override
   visitLocalFunctionInvoke(
       Send node,
       LocalFunctionElement function,
@@ -4316,7 +4746,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_VARIABLE_SET,
         element: variable, rhs: rhs));
-    apply(rhs, arg);
+    super.visitLocalVariableSet(node, variable, rhs, arg);
+  }
+
+  @override
+  visitFinalLocalVariableSet(
+      SendSet node,
+      LocalVariableElement variable,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_FINAL_LOCAL_VARIABLE_SET,
+        element: variable, rhs: rhs));
+    super.visitFinalLocalVariableSet(node, variable, rhs, arg);
   }
 
   @override
@@ -4347,7 +4788,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_PARAMETER_SET,
                          element: parameter, rhs: rhs));
-    apply(rhs, arg);
+    super.visitParameterSet(node, parameter, rhs, arg);
+  }
+
+  @override
+  visitFinalParameterSet(
+      SendSet node,
+      ParameterElement parameter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_FINAL_PARAMETER_SET,
+                         element: parameter, rhs: rhs));
+    super.visitFinalParameterSet(node, parameter, rhs, arg);
   }
 
   @override
@@ -4378,7 +4830,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_FIELD_SET,
         element: field, rhs: rhs));
-    apply(rhs, arg);
+    super.visitStaticFieldSet(node, field, rhs, arg);
+  }
+
+  @override
+  visitFinalStaticFieldSet(
+      SendSet node,
+      FieldElement field,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
+        element: field, rhs: rhs));
+    super.visitFinalStaticFieldSet(node, field, rhs, arg);
   }
 
   @override
@@ -4391,6 +4854,17 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
+  visitStaticFunctionSet(
+      SendSet node,
+      MethodElement function,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_FUNCTION_SET,
+        element: function, rhs: rhs));
+    super.visitStaticFunctionSet(node, function, rhs, arg);
+  }
+
+  @override
   visitStaticFunctionInvoke(
       Send node,
       MethodElement function,
@@ -4399,7 +4873,8 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_FUNCTION_INVOKE,
         element: function, arguments: arguments));
-    apply(arguments, arg);
+    super.visitStaticFunctionInvoke(
+        node, function, arguments, callStructure, arg);
   }
 
   @override
@@ -4421,6 +4896,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_GETTER_GET,
         element: getter));
+    super.visitStaticGetterGet(node, getter, arg);
+  }
+
+  @override
+  visitStaticGetterSet(
+      SendSet node,
+      MethodElement getter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_GETTER_SET,
+        element: getter, rhs: rhs));
+    super.visitStaticGetterSet(node, getter, rhs, arg);
   }
 
   @override
@@ -4432,7 +4919,29 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_GETTER_INVOKE,
         element: getter, arguments: arguments));
-    apply(arguments, arg);
+    super.visitStaticGetterInvoke(node, getter, arguments, callStructure, arg);
+  }
+
+  @override
+  visitStaticSetterInvoke(
+      Send node,
+      FunctionElement setter,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_SETTER_INVOKE,
+        element: setter, arguments: arguments));
+    super.visitStaticSetterInvoke(node, setter, arguments, callStructure, arg);
+  }
+
+  @override
+  visitStaticSetterGet(
+      Send node,
+      FunctionElement getter,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_STATIC_SETTER_GET,
+        element: getter));
+    super.visitStaticSetterGet(node, getter, arg);
   }
 
   @override
@@ -4443,7 +4952,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_STATIC_SETTER_SET,
         element: setter, rhs: rhs));
-    apply(rhs, arg);
+    super.visitStaticSetterSet(node, setter, rhs, arg);
   }
 
   @override
@@ -4577,7 +5086,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FIELD_SET,
         element: field, rhs: rhs));
-    apply(rhs, arg);
+    super.visitTopLevelFieldSet(node, field, rhs, arg);
+  }
+
+  @override
+  visitFinalTopLevelFieldSet(
+      SendSet node,
+      FieldElement field,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
+        element: field, rhs: rhs));
+    super.visitFinalTopLevelFieldSet(node, field, rhs, arg);
   }
 
   @override
@@ -4587,6 +5107,17 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_GET,
         element: function));
+  }
+
+  @override
+  visitTopLevelFunctionSet(
+      SendSet node,
+      MethodElement function,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_FUNCTION_SET,
+        element: function, rhs: rhs));
+    super.visitTopLevelFunctionSet(node, function, rhs, arg);
   }
 
   @override
@@ -4620,6 +5151,17 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_GET,
         element: getter));
+    super.visitTopLevelGetterGet(node, getter, arg);
+  }
+
+  @override
+  visitTopLevelSetterGet(
+      Send node,
+      FunctionElement setter,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
+        element: setter));
+    super.visitTopLevelSetterGet(node, setter, arg);
   }
 
   @override
@@ -4631,7 +5173,32 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_INVOKE,
         element: getter, arguments: arguments));
-    apply(arguments, arg);
+    super.visitTopLevelGetterInvoke(
+        node, getter, arguments, callStructure, arg);
+  }
+
+  @override
+  visitTopLevelSetterInvoke(
+      Send node,
+      FunctionElement setter,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_INVOKE,
+        element: setter, arguments: arguments));
+    super.visitTopLevelSetterInvoke(
+        node, setter, arguments, callStructure, arg);
+  }
+
+  @override
+  visitTopLevelGetterSet(
+      SendSet node,
+      FunctionElement getter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_SET,
+        element: getter, rhs: rhs));
+    super.visitTopLevelGetterSet(node, getter, rhs, arg);
   }
 
   @override
@@ -4642,7 +5209,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_SET,
         element: setter, rhs: rhs));
-    apply(rhs, arg);
+    super.visitTopLevelSetterSet(node, setter, rhs, arg);
   }
 
   @override
@@ -4667,14 +5234,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorTypeVariableTypeLiteralSet(
+  visitTypeVariableTypeLiteralSet(
       SendSet node,
       TypeVariableElement element,
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET,
         element: element, rhs: rhs));
-    apply(rhs, arg);
+    super.visitTypeVariableTypeLiteralSet(node, element, rhs, arg);
   }
 
   @override
@@ -4699,14 +5266,14 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
-  errorTypedefTypeLiteralSet(
+  visitTypedefTypeLiteralSet(
       SendSet node,
       ConstantExpression constant,
       Node rhs,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET,
         constant: constant.getText(), rhs: rhs));
-    apply(rhs, arg);
+    super.visitTypedefTypeLiteralSet(node, constant, rhs, arg);
   }
 
   @override
@@ -4777,7 +5344,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_FIELD_SET,
         element: field, rhs: rhs));
-    apply(rhs, arg);
+    super.visitSuperFieldSet(node, field, rhs, arg);
+  }
+
+  @override
+  visitFinalSuperFieldSet(
+      SendSet node,
+      FieldElement field,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_FINAL_SUPER_FIELD_SET,
+        element: field, rhs: rhs));
+    super.visitFinalSuperFieldSet(node, field, rhs, arg);
   }
 
   @override
@@ -4786,6 +5364,17 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       MethodElement method,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_METHOD_GET, element: method));
+  }
+
+  @override
+  visitSuperMethodSet(
+      SendSet node,
+      MethodElement method,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_METHOD_SET,
+        element: method, rhs: rhs));
+    super.visitSuperMethodSet(node, method, rhs, arg);
   }
 
   @override
@@ -4818,6 +5407,16 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       FunctionElement getter,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_GETTER_GET, element: getter));
+    super.visitSuperGetterGet(node, getter, arg);
+  }
+
+  @override
+  visitSuperSetterGet(
+      Send node,
+      FunctionElement setter,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_SETTER_GET, element: setter));
+    super.visitSuperSetterGet(node, setter, arg);
   }
 
   @override
@@ -4829,7 +5428,30 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_GETTER_INVOKE,
         element: getter, arguments: arguments));
-    apply(arguments, arg);
+    super.visitSuperGetterInvoke(node, getter, arguments, callStructure, arg);
+  }
+
+  @override
+  visitSuperSetterInvoke(
+      Send node,
+      FunctionElement setter,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_SETTER_INVOKE,
+        element: setter, arguments: arguments));
+    super.visitSuperSetterInvoke(node, setter, arguments, callStructure, arg);
+  }
+
+  @override
+  visitSuperGetterSet(
+      SendSet node,
+      FunctionElement getter,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_SUPER_GETTER_SET,
+        element: getter, rhs: rhs));
+    super.visitSuperGetterSet(node, getter, rhs, arg);
   }
 
   @override
@@ -4840,7 +5462,7 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_SETTER_SET,
         element: setter, rhs: rhs));
-    apply(rhs, arg);
+    super.visitSuperSetterSet(node, setter, rhs, arg);
   }
 
   @override
@@ -5883,6 +6505,17 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
   }
 
   @override
+  visitUnresolvedSet(
+      Send node,
+      Element element,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SET,
+                         name: element.name, rhs: rhs));
+    super.visitUnresolvedSet(node, element, rhs, arg);
+  }
+
+  @override
   visitUnresolvedInvoke(
       Send node,
       Element element,
@@ -5890,7 +6523,8 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Selector selector,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
-        name: element.name, arguments: arguments));
+                         name: element.name, arguments: arguments));
+    super.visitUnresolvedInvoke(node, element, arguments, selector, arg);
   }
 
   @override
@@ -7136,6 +7770,7 @@ enum VisitKind {
   VISIT_PARAMETER_COMPOUND,
   VISIT_PARAMETER_PREFIX,
   VISIT_PARAMETER_POSTFIX,
+  VISIT_FINAL_PARAMETER_SET,
   VISIT_FINAL_PARAMETER_COMPOUND,
   VISIT_FINAL_PARAMETER_PREFIX,
   VISIT_FINAL_PARAMETER_POSTFIX,
@@ -7148,6 +7783,7 @@ enum VisitKind {
   VISIT_LOCAL_VARIABLE_POSTFIX,
   VISIT_LOCAL_VARIABLE_DECL,
   VISIT_LOCAL_CONSTANT_DECL,
+  VISIT_FINAL_LOCAL_VARIABLE_SET,
   VISIT_FINAL_LOCAL_VARIABLE_COMPOUND,
   VISIT_FINAL_LOCAL_VARIABLE_PREFIX,
   VISIT_FINAL_LOCAL_VARIABLE_POSTFIX,
@@ -7156,6 +7792,7 @@ enum VisitKind {
   VISIT_LOCAL_FUNCTION_INVOKE,
   VISIT_LOCAL_FUNCTION_DECL,
   VISIT_CLOSURE_DECL,
+  VISIT_LOCAL_FUNCTION_SET,
   VISIT_LOCAL_FUNCTION_COMPOUND,
   VISIT_LOCAL_FUNCTION_PREFIX,
   VISIT_LOCAL_FUNCTION_POSTFIX,
@@ -7170,19 +7807,28 @@ enum VisitKind {
   VISIT_STATIC_CONSTANT_DECL,
 
   VISIT_STATIC_GETTER_GET,
-  VISIT_STATIC_SETTER_SET,
+  VISIT_STATIC_GETTER_SET,
   VISIT_STATIC_GETTER_INVOKE,
+
+  VISIT_STATIC_SETTER_GET,
+  VISIT_STATIC_SETTER_SET,
+  VISIT_STATIC_SETTER_INVOKE,
+
   VISIT_STATIC_GETTER_SETTER_COMPOUND,
   VISIT_STATIC_METHOD_SETTER_COMPOUND,
   VISIT_STATIC_GETTER_SETTER_PREFIX,
   VISIT_STATIC_GETTER_SETTER_POSTFIX,
+
   VISIT_STATIC_GETTER_DECL,
   VISIT_STATIC_SETTER_DECL,
+
+  VISIT_FINAL_STATIC_FIELD_SET,
   VISIT_STATIC_FINAL_FIELD_COMPOUND,
   VISIT_STATIC_FINAL_FIELD_POSTFIX,
   VISIT_STATIC_FINAL_FIELD_PREFIX,
 
   VISIT_STATIC_FUNCTION_GET,
+  VISIT_STATIC_FUNCTION_SET,
   VISIT_STATIC_FUNCTION_INVOKE,
   VISIT_STATIC_FUNCTION_INCOMPATIBLE_INVOKE,
   VISIT_STATIC_FUNCTION_DECL,
@@ -7202,6 +7848,7 @@ enum VisitKind {
   VISIT_TOP_LEVEL_FIELD_GET,
   VISIT_TOP_LEVEL_FIELD_SET,
   VISIT_TOP_LEVEL_FIELD_INVOKE,
+  VISIT_FINAL_TOP_LEVEL_FIELD_SET,
   VISIT_TOP_LEVEL_FIELD_COMPOUND,
   VISIT_TOP_LEVEL_FIELD_PREFIX,
   VISIT_TOP_LEVEL_FIELD_POSTFIX,
@@ -7212,8 +7859,11 @@ enum VisitKind {
   VISIT_TOP_LEVEL_FINAL_FIELD_PREFIX,
 
   VISIT_TOP_LEVEL_GETTER_GET,
-  VISIT_TOP_LEVEL_SETTER_SET,
+  VISIT_TOP_LEVEL_GETTER_SET,
   VISIT_TOP_LEVEL_GETTER_INVOKE,
+  VISIT_TOP_LEVEL_SETTER_GET,
+  VISIT_TOP_LEVEL_SETTER_SET,
+  VISIT_TOP_LEVEL_SETTER_INVOKE,
   VISIT_TOP_LEVEL_GETTER_SETTER_COMPOUND,
   VISIT_TOP_LEVEL_GETTER_SETTER_PREFIX,
   VISIT_TOP_LEVEL_GETTER_SETTER_POSTFIX,
@@ -7221,6 +7871,7 @@ enum VisitKind {
   VISIT_TOP_LEVEL_SETTER_DECL,
 
   VISIT_TOP_LEVEL_FUNCTION_GET,
+  VISIT_TOP_LEVEL_FUNCTION_SET,
   VISIT_TOP_LEVEL_FUNCTION_INVOKE,
   VISIT_TOP_LEVEL_FUNCTION_INCOMPATIBLE_INVOKE,
   VISIT_TOP_LEVEL_FUNCTION_DECL,
@@ -7257,6 +7908,7 @@ enum VisitKind {
 
   VISIT_SUPER_FIELD_GET,
   VISIT_SUPER_FIELD_SET,
+  VISIT_FINAL_SUPER_FIELD_SET,
   VISIT_SUPER_FIELD_INVOKE,
   VISIT_SUPER_FIELD_COMPOUND,
   VISIT_SUPER_FIELD_PREFIX,
@@ -7269,8 +7921,11 @@ enum VisitKind {
   VISIT_SUPER_FIELD_FIELD_POSTFIX,
 
   VISIT_SUPER_GETTER_GET,
-  VISIT_SUPER_SETTER_SET,
+  VISIT_SUPER_GETTER_SET,
   VISIT_SUPER_GETTER_INVOKE,
+  VISIT_SUPER_SETTER_GET,
+  VISIT_SUPER_SETTER_SET,
+  VISIT_SUPER_SETTER_INVOKE,
   VISIT_SUPER_GETTER_SETTER_COMPOUND,
   VISIT_SUPER_GETTER_FIELD_COMPOUND,
   VISIT_SUPER_FIELD_SETTER_COMPOUND,
@@ -7282,6 +7937,7 @@ enum VisitKind {
   VISIT_SUPER_FIELD_SETTER_POSTFIX,
 
   VISIT_SUPER_METHOD_GET,
+  VISIT_SUPER_METHOD_SET,
   VISIT_SUPER_METHOD_INVOKE,
   VISIT_SUPER_METHOD_INCOMPATIBLE_INVOKE,
   VISIT_SUPER_METHOD_SETTER_COMPOUND,
@@ -7292,6 +7948,7 @@ enum VisitKind {
   VISIT_SUPER_METHOD_POSTFIX,
 
   VISIT_UNRESOLVED_GET,
+  VISIT_UNRESOLVED_SET,
   VISIT_UNRESOLVED_INVOKE,
   VISIT_UNRESOLVED_SUPER_GET,
   VISIT_UNRESOLVED_SUPER_INVOKE,

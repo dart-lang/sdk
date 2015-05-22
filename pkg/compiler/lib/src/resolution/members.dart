@@ -2887,10 +2887,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else if (target.isAbstractField) {
         AbstractFieldElement field = target;
         target = field.getter;
-        if (target == null && !inInstanceContext) {
-          registry.registerThrowNoSuchMethod();
-          target = reportAndCreateErroneousElement(node.selector, field.name,
-              MessageKind.CANNOT_RESOLVE_GETTER, const {});
+        if (target == null) {
+          if (!inInstanceContext || field.isTopLevel || field.isStatic) {
+            registry.registerThrowNoSuchMethod();
+            target = reportAndCreateErroneousElement(node.selector, field.name,
+                MessageKind.CANNOT_RESOLVE_GETTER, const {});
+          }
         }
       } else if (target.isTypeVariable) {
         ClassElement cls = target.enclosingClass;

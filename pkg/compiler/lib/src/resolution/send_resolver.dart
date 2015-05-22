@@ -106,10 +106,16 @@ abstract class SendResolverMixin {
       }
       return new StaticAccess.unresolved(element);
     } else if (element.isParameter) {
-      return new StaticAccess.parameter(element);
+      if (element.isFinal) {
+        return new StaticAccess.finalParameter(element);
+      } else {
+        return new StaticAccess.parameter(element);
+      }
     } else if (element.isLocal) {
       if (element.isFunction) {
         return new StaticAccess.localFunction(element);
+      } else if (element.isFinal || element.isConst) {
+        return new StaticAccess.finalLocalVariable(element);
       } else {
         return new StaticAccess.localVariable(element);
       }
