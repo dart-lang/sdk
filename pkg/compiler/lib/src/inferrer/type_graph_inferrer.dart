@@ -256,7 +256,9 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     TypeMask otherType = compiler.world.allFunctions.receiverType(selector);
     // Conditional sends (a?.b) can still narrow the possible types of `a`,
     // however, we still need to consider that `a` may be null.
-    if (isConditional && receiver.type.isNullable) {
+    if (isConditional) {
+      // Note: we don't check that receiver.type.isNullable here because this is
+      // called during the graph construction.
       otherType = otherType.nullable();
     }
     // If this is refining to nullable subtype of `Object` just return
