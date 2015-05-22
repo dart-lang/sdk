@@ -108,11 +108,11 @@ static_library("libdart_builtin") {
 }
 
 
-static_library("libdart_withcore") {
+static_library("libdart_nosnapshot") {
   configs += ["..:dart_config"]
   deps = [
-    "../vm:libdart_lib_withcore",
-    "../vm:libdart_vm",
+    "../vm:libdart_lib_nosnapshot",
+    "../vm:libdart_vm_nosnapshot",
     "../vm:libdart_platform",
     "../third_party/double-conversion/src:libdouble_conversion",
     "..:generate_version_cc_file",
@@ -143,7 +143,7 @@ static_library("libdart_withcore") {
 executable("gen_snapshot") {
   configs += ["..:dart_config"]
   deps = [
-    ":libdart_withcore",
+    ":libdart_nosnapshot",
     ":libdart_builtin",
   ]
 

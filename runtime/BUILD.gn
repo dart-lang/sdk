@@ -111,7 +111,7 @@ action("generate_version_cc_file") {
 executable("libdart_dependency_helper") {
   configs += [":dart_config"]
   deps = [
-    "vm:libdart_lib_withcore",
+    "vm:libdart_lib_nosnapshot",
     "vm:libdart_lib",
     "vm:libdart_vm",
     "vm:libdart_platform",
