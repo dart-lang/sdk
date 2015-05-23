@@ -5728,6 +5728,10 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return false;
   }
   @override
+  void invalidateLibraryHints(Source librarySource) {
+    fail("Unexpected invocation of invalidateLibraryHints");
+  }
+  @override
   bool isClientLibrary(Source librarySource) {
     fail("Unexpected invocation of isClientLibrary");
     return false;

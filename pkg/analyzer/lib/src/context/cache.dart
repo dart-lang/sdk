@@ -302,6 +302,14 @@ class CacheEntry {
   }
 
   /**
+   * Look up the [ResultData] of [descriptor], or add a new one if it isn't
+   * there.
+   */
+  ResultData getResultData(ResultDescriptor descriptor) {
+    return _resultMap.putIfAbsent(descriptor, () => new ResultData(descriptor));
+  }
+
+  /**
    * Return the state of the result represented by the given [descriptor].
    */
   CacheState getState(ResultDescriptor descriptor) {
@@ -398,7 +406,7 @@ class CacheEntry {
         _invalidate(descriptor);
       }
     } else {
-      ResultData data = _getResultData(descriptor);
+      ResultData data = getResultData(descriptor);
       data.state = state;
       if (state != CacheState.IN_PROCESS) {
         //
@@ -422,10 +430,21 @@ class CacheEntry {
     if (_partition != null) {
       _partition.resultStored(thisResult, value);
     }
-    ResultData data = _getResultData(descriptor);
+    ResultData data = getResultData(descriptor);
     _setDependedOnResults(data, thisResult, dependedOn);
     data.state = CacheState.VALID;
     data.value = value == null ? descriptor.defaultValue : value;
+  }
+
+  /**
+   * Set the value of the result represented by the given [descriptor] to the
+   * given [value], keep its dependency, invalidate all the dependent result.
+   */
+  void setValueIncremental(ResultDescriptor descriptor, dynamic value) {
+    ResultData data = getResultData(descriptor);
+    List<TargetedResult> dependedOn = data.dependedOnResults;
+    _invalidate(descriptor);
+    setValue(descriptor, value, dependedOn);
   }
 
   @override
@@ -439,14 +458,6 @@ class CacheEntry {
    * Return the value of the flag with the given [index].
    */
   bool _getFlag(int index) => BooleanArray.get(_flags, index);
-
-  /**
-   * Look up the [ResultData] of [descriptor], or add a new one if it isn't
-   * there.
-   */
-  ResultData _getResultData(ResultDescriptor descriptor) {
-    return _resultMap.putIfAbsent(descriptor, () => new ResultData(descriptor));
-  }
 
   /**
    * Invalidate the result represented by the given [descriptor] and propagate
@@ -517,7 +528,7 @@ class CacheEntry {
    * their values to the corresponding default values
    */
   void _setErrorState(ResultDescriptor descriptor, CaughtException exception) {
-    ResultData thisData = _getResultData(descriptor);
+    ResultData thisData = getResultData(descriptor);
     // Set the error state.
     _exception = exception;
     thisData.state = CacheState.ERROR;
@@ -861,7 +872,7 @@ abstract class CachePartition {
     if (orNull) {
       return entry != null ? entry._resultMap[result.result] : null;
     } else {
-      return entry._getResultData(result.result);
+      return entry.getResultData(result.result);
     }
   }
 

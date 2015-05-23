@@ -242,6 +242,10 @@ class DartWorkManager implements WorkManager {
     return WorkOrderPriority.NONE;
   }
 
+  void unitIncrementallyResolved(Source librarySource, Source unitSource) {
+    librarySourceQueue.add(librarySource);
+  }
+
   @override
   void resultsComputed(
       AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs) {

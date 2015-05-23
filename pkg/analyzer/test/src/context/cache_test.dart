@@ -624,6 +624,35 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(entry.getValue(result2), 222);
   }
 
+  test_setValueIncremental() {
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    ResultDescriptor result3 = new ResultDescriptor('result3', -3);
+    // set results, all of them are VALID
+    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
+    entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
+    expect(entry.getState(result1), CacheState.VALID);
+    expect(entry.getState(result2), CacheState.VALID);
+    expect(entry.getState(result3), CacheState.VALID);
+    expect(entry.getValue(result1), 111);
+    expect(entry.getValue(result2), 222);
+    expect(entry.getValue(result3), 333);
+    // replace result1, keep "dependedOn", invalidate result3
+    entry.setValueIncremental(result2, 2222);
+    expect(entry.getState(result1), CacheState.VALID);
+    expect(entry.getState(result2), CacheState.VALID);
+    expect(entry.getState(result3), CacheState.INVALID);
+    expect(entry.getValue(result1), 111);
+    expect(entry.getValue(result2), 2222);
+    expect(entry.getValue(result3), -3);
+    expect(entry.getResultData(result2).dependedOnResults,
+        unorderedEquals([new TargetedResult(target, result1)]));
+  }
+
   test_toString_empty() {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);

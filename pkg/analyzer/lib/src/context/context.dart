@@ -7,6 +7,7 @@ library analyzer.src.context.context;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -21,6 +22,7 @@ import 'package:analyzer/src/generated/engine.dart'
         WorkManager;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart' as ht;
+import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -55,6 +57,16 @@ typedef T PendingFutureComputer<T>(CacheEntry entry);
  * An [AnalysisContext] in which analysis can be performed.
  */
 class AnalysisContextImpl implements InternalAnalysisContext {
+  /**
+   * The next context identifier.
+   */
+  static int _NEXT_ID = 0;
+
+  /**
+   * The unique identifier of this context.
+   */
+  final int _id = _NEXT_ID++;
+
   /**
    * A client-provided name used to identify this context, or `null` if the
    * client has not provided a name.
@@ -979,6 +991,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  void invalidateLibraryHints(Source librarySource) {
+    List<Source> sources = _cache.getValue(librarySource, UNITS);
+    if (sources != null) {
+      for (Source source in sources) {
+        getCacheEntry(source).setState(HINTS, CacheState.INVALID);
+      }
+    }
+  }
+
+  @override
   bool isClientLibrary(Source librarySource) {
     CacheEntry entry = _cache.get(librarySource);
     return entry.getValue(IS_CLIENT) && entry.getValue(IS_LAUNCHABLE);
@@ -1701,64 +1723,69 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * TODO(scheglov) A hackish, limited incremental resolution implementation.
    */
   bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
-    // TODO(brianwilkerson) Implement this.
-    return false;
-//    return PerformanceStatistics.incrementalAnalysis.makeCurrentWhile(() {
-//      incrementalResolutionValidation_lastUnitSource = null;
-//      incrementalResolutionValidation_lastLibrarySource = null;
-//      incrementalResolutionValidation_lastUnit = null;
-//      // prepare the entry
-//      cache.CacheEntry entry = _cache.get(unitSource);
-//      if (entry == null) {
-//        return false;
-//      }
-//      // prepare the (only) library source
-//      List<Source> librarySources = getLibrariesContaining(unitSource);
-//      if (librarySources.length != 1) {
-//        return false;
-//      }
-//      Source librarySource = librarySources[0];
-//      // prepare the library element
-//      LibraryElement libraryElement = getLibraryElement(librarySource);
-//      if (libraryElement == null) {
-//        return false;
-//      }
-//      // prepare the existing unit
-//      CompilationUnit oldUnit =
-//          getResolvedCompilationUnit2(unitSource, librarySource);
-//      if (oldUnit == null) {
-//        return false;
-//      }
-//      // do resolution
-//      Stopwatch perfCounter = new Stopwatch()..start();
-//      PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
-//          typeProvider, unitSource, entry, oldUnit,
-//          analysisOptions.incrementalApi, analysisOptions);
-//      bool success = resolver.resolve(newCode);
-//      AnalysisEngine.instance.instrumentationService.logPerformance(
-//          AnalysisPerformanceKind.INCREMENTAL, perfCounter,
-//          'success=$success,context_id=$_id,code_length=${newCode.length}');
-//      if (!success) {
-//        return false;
-//      }
-//      // if validation, remember the result, but throw it away
-//      if (analysisOptions.incrementalValidation) {
-//        incrementalResolutionValidation_lastUnitSource = oldUnit.element.source;
-//        incrementalResolutionValidation_lastLibrarySource =
-//            oldUnit.element.library.source;
-//        incrementalResolutionValidation_lastUnit = oldUnit;
-//        return false;
-//      }
-//      // prepare notice
-//      {
-//        LineInfo lineInfo = getLineInfo(unitSource);
-//        ChangeNoticeImpl notice = _getNotice(unitSource);
-//        notice.resolvedDartUnit = oldUnit;
-//        notice.setErrors(entry.allErrors, lineInfo);
-//      }
-//      // OK
-//      return true;
-//    });
+    return PerformanceStatistics.incrementalAnalysis.makeCurrentWhile(() {
+      incrementalResolutionValidation_lastUnitSource = null;
+      incrementalResolutionValidation_lastLibrarySource = null;
+      incrementalResolutionValidation_lastUnit = null;
+      // prepare the entry
+      CacheEntry sourceEntry = _cache.get(unitSource);
+      if (sourceEntry == null) {
+        return false;
+      }
+      // prepare the (only) library source
+      List<Source> librarySources = getLibrariesContaining(unitSource);
+      if (librarySources.length != 1) {
+        return false;
+      }
+      Source librarySource = librarySources[0];
+      CacheEntry unitEntry =
+          _cache.get(new LibrarySpecificUnit(librarySource, unitSource));
+      if (unitEntry == null) {
+        return false;
+      }
+      // prepare the library element
+      LibraryElement libraryElement = getLibraryElement(librarySource);
+      if (libraryElement == null) {
+        return false;
+      }
+      // prepare the existing unit
+      CompilationUnit oldUnit =
+          getResolvedCompilationUnit2(unitSource, librarySource);
+      if (oldUnit == null) {
+        return false;
+      }
+      // do resolution
+      Stopwatch perfCounter = new Stopwatch()..start();
+      PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
+          typeProvider, unitSource, null, sourceEntry, unitEntry, oldUnit,
+          analysisOptions.incrementalApi, analysisOptions);
+      bool success = resolver.resolve(newCode);
+      AnalysisEngine.instance.instrumentationService.logPerformance(
+          AnalysisPerformanceKind.INCREMENTAL, perfCounter,
+          'success=$success,context_id=$_id,code_length=${newCode.length}');
+      if (!success) {
+        return false;
+      }
+      // if validation, remember the result, but throw it away
+      if (analysisOptions.incrementalValidation) {
+        incrementalResolutionValidation_lastUnitSource = oldUnit.element.source;
+        incrementalResolutionValidation_lastLibrarySource =
+            oldUnit.element.library.source;
+        incrementalResolutionValidation_lastUnit = oldUnit;
+        return false;
+      }
+      // prepare notice
+      {
+        ChangeNoticeImpl notice = getNotice(unitSource);
+        notice.resolvedDartUnit = oldUnit;
+        AnalysisErrorInfo errorInfo = getErrors(unitSource);
+        notice.setErrors(errorInfo.errors, errorInfo.lineInfo);
+      }
+      // schedule
+      dartWorkManager.unitIncrementallyResolved(librarySource, unitSource);
+      // OK
+      return true;
+    });
   }
 
   /**

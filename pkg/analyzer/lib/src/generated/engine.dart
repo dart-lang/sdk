@@ -712,6 +712,11 @@ abstract class AnalysisContext {
   List<Source> getSourcesWithFullName(String path);
 
   /**
+   * Invalidates hints in the given [librarySource] and included parts.
+   */
+  void invalidateLibraryHints(Source librarySource);
+
+  /**
    * Return `true` if the given [librarySource] is known to be the defining
    * compilation unit of a library that can be run on a client (references
    * 'dart:html', either directly or indirectly).
@@ -2154,9 +2159,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changed;
   }
 
-  /**
-   * Invalidates hints in the given [librarySource] and included parts.
-   */
+  @override
   void invalidateLibraryHints(Source librarySource) {
     SourceEntry sourceEntry = _cache.get(librarySource);
     if (sourceEntry is! DartEntry) {
@@ -4652,8 +4655,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // do resolution
       Stopwatch perfCounter = new Stopwatch()..start();
       PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
-          typeProvider, unitSource, dartEntry, oldUnit,
-          analysisOptions.incrementalApi, analysisOptions);
+          typeProvider, unitSource, getReadableSourceEntryOrNull(unitSource),
+          null, null, oldUnit, analysisOptions.incrementalApi, analysisOptions);
       bool success = resolver.resolve(newCode);
       AnalysisEngine.instance.instrumentationService.logPerformance(
           AnalysisPerformanceKind.INCREMENTAL, perfCounter,
@@ -9006,8 +9009,8 @@ class IncrementalAnalysisTask extends AnalysisTask {
       if (element != null) {
         LibraryElement library = element.library;
         if (library != null) {
-          IncrementalResolver resolver = new IncrementalResolver(
-              element, cache.offset, cache.oldLength, cache.newLength);
+          IncrementalResolver resolver = new IncrementalResolver(null, null,
+              null, element, cache.offset, cache.oldLength, cache.newLength);
           resolver.resolve(parser.updatedNode);
         }
       }
