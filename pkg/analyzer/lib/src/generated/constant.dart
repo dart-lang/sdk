@@ -370,7 +370,8 @@ class ConstantEvaluationEngine {
           VariableElementImpl variableElement =
               element.variable as VariableElementImpl;
           elementAnnotation.evaluationResult = variableElement.evaluationResult;
-        } else if (element is ConstructorElementImpl && element.isConst &&
+        } else if (element is ConstructorElementImpl &&
+            element.isConst &&
             constNode.arguments != null) {
           RecordingErrorListener errorListener = new RecordingErrorListener();
           CompilationUnit sourceCompilationUnit =
@@ -940,8 +941,8 @@ class ConstantEvaluationTarget_Annotation implements ConstantEvaluationTarget {
       this.context, this.source, this.librarySource, this.annotation);
 
   @override
-  int get hashCode => JenkinsSmiHash.hash4(context.hashCode, source.hashCode,
-      librarySource.hashCode, annotation.hashCode);
+  int get hashCode => JenkinsSmiHash.hash3(
+      source.hashCode, librarySource.hashCode, annotation.hashCode);
 
   @override
   bool operator ==(other) {

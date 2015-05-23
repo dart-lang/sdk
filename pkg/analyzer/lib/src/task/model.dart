@@ -37,6 +37,11 @@ class ListResultDescriptorImpl<E> extends ResultDescriptorImpl<List<E>>
  * A concrete implementation of a [ResultDescriptor].
  */
 class ResultDescriptorImpl<V> implements ResultDescriptor<V> {
+  static int _NEXT_HASH = 0;
+
+  @override
+  final hashCode = _NEXT_HASH++;
+
   /**
    * The name of the result, used for debugging.
    */
@@ -59,6 +64,11 @@ class ResultDescriptorImpl<V> implements ResultDescriptor<V> {
    */
   ResultDescriptorImpl(this.name, this.defaultValue,
       {this.cachingPolicy: DEFAULT_CACHING_POLICY});
+
+  @override
+  bool operator ==(Object other) {
+    return other is ResultDescriptorImpl && other.hashCode == hashCode;
+  }
 
   @override
   TaskInput<V> of(AnalysisTarget target) =>
