@@ -220,7 +220,7 @@ abstract class AnalysisTask {
         contextName = 'unnamed';
       }
       AnalysisEngine.instance.instrumentationService.logAnalysisTask(
-          contextName, description);
+          contextName, this);
       //
       // Gather statistics on the performance of the task.
       //
