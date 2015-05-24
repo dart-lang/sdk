@@ -14,7 +14,6 @@
  */
 library analysis_server.plugin.analyzed_files;
 
-import 'package:analysis_server/edit/assist/assist_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:plugin/plugin.dart';
