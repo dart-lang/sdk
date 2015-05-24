@@ -1162,6 +1162,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  bool shouldErrorsBeAnalyzed(Source source, Object entry) {
+    CacheEntry entry = analysisCache.get(source);
+    if (source.isInSystemLibrary) {
+      return _options.generateSdkErrors;
+    } else if (!entry.explicitlyAdded) {
+      return _options.generateImplicitErrors;
+    } else {
+      return true;
+    }
+  }
+
+  @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
     // TODO(brianwilkerson) Figure out where this is used and adjust the call
@@ -1484,7 +1496,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         } else if (state == CacheState.ERROR) {
           return;
         }
-        if (_shouldErrorsBeAnalyzed(source, unitEntry)) {
+        if (shouldErrorsBeAnalyzed(source, unitEntry)) {
           state = unitEntry.getState(VERIFY_ERRORS);
           if (state == CacheState.INVALID ||
               (isPriority && state == CacheState.FLUSHED)) {
@@ -1617,20 +1629,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     if (newOrder.length < count) {
       analysisPriorityOrder = newOrder;
-    }
-  }
-
-  /**
-   * Return `true` if errors should be produced for the given [source]. The
-   * [entry] associated with the source is passed in for efficiency.
-   */
-  bool _shouldErrorsBeAnalyzed(Source source, CacheEntry entry) {
-    if (source.isInSystemLibrary) {
-      return _options.generateSdkErrors;
-    } else if (!entry.explicitlyAdded) {
-      return _options.generateImplicitErrors;
-    } else {
-      return true;
     }
   }
 

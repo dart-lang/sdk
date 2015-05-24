@@ -506,6 +506,7 @@ class DartWorkManagerTest {
 
   void test_resultsComputed_sourceKind_isLibrary() {
     manager.unknownSourceQueue.addAll([source1, source2, source3]);
+    when(context.shouldErrorsBeAnalyzed(source2, null)).thenReturn(true);
     manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.LIBRARY});
     expect_librarySourceQueue([source2]);
     expect_unknownSourceQueue([source1, source3]);

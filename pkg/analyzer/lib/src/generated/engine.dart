@@ -2505,6 +2505,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  bool shouldErrorsBeAnalyzed(Source source, DartEntry dartEntry) {
+    if (source.isInSystemLibrary) {
+      return _generateSdkErrors;
+    } else if (!dartEntry.explicitlyAdded) {
+      return _generateImplicitErrors;
+    } else {
+      return true;
+    }
+  }
+
+  @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
     bool hintsEnabled = _options.hint;
@@ -3637,7 +3648,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             return new AnalysisContextImpl_TaskData(
                 new ResolveDartLibraryTask(this, source, librarySource), false);
           }
-          if (_shouldErrorsBeAnalyzed(source, dartEntry)) {
+          if (shouldErrorsBeAnalyzed(source, dartEntry)) {
             CacheState verificationErrorsState = dartEntry.getStateInLibrary(
                 DartEntry.VERIFICATION_ERRORS, librarySource);
             if (verificationErrorsState == CacheState.INVALID ||
@@ -3819,7 +3830,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               return;
             }
           }
-          if (_shouldErrorsBeAnalyzed(source, dartEntry)) {
+          if (shouldErrorsBeAnalyzed(source, dartEntry)) {
             CacheState verificationErrorsState = dartEntry.getStateInLibrary(
                 DartEntry.VERIFICATION_ERRORS, librarySource);
             if (verificationErrorsState == CacheState.INVALID ||
@@ -3993,47 +4004,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  /**
-   * Given that the given [source] (with the corresponding [sourceEntry]) has
-   * been invalidated, invalidate all of the libraries that depend on it.
-   */
-  void _propagateInvalidation(Source source, SourceEntry sourceEntry) {
-    if (sourceEntry is HtmlEntry) {
-      HtmlEntry htmlEntry = sourceEntry;
-      htmlEntry.modificationTime = getModificationStamp(source);
-      htmlEntry.invalidateAllInformation();
-      _cache.removedAst(source);
-      _workManager.add(source, SourcePriority.HTML);
-    } else if (sourceEntry is DartEntry) {
-      List<Source> containingLibraries = getLibrariesContaining(source);
-      List<Source> dependentLibraries = getLibrariesDependingOn(source);
-      HashSet<Source> librariesToInvalidate = new HashSet<Source>();
-      for (Source containingLibrary in containingLibraries) {
-        _computeAllLibrariesDependingOn(
-            containingLibrary, librariesToInvalidate);
-      }
-      for (Source dependentLibrary in dependentLibraries) {
-        _computeAllLibrariesDependingOn(
-            dependentLibrary, librariesToInvalidate);
-      }
-      for (Source library in librariesToInvalidate) {
-        _invalidateLibraryResolution(library);
-      }
-      DartEntry dartEntry = _cache.get(source);
-      _removeFromParts(source, dartEntry);
-      dartEntry.modificationTime = getModificationStamp(source);
-      dartEntry.invalidateAllInformation();
-      _cache.removedAst(source);
-      _workManager.add(source, SourcePriority.UNKNOWN);
-    }
-    // reset unit in the notification, it is out of date now
-    ChangeNoticeImpl notice = _pendingNotices[source];
-    if (notice != null) {
-      notice.resolvedDartUnit = null;
-      notice.resolvedHtmlUnit = null;
-    }
-  }
-
 //  /**
 //   * Notify all of the analysis listeners that the given source is no longer included in the set of
 //   * sources that are being analyzed.
@@ -4111,6 +4081,47 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
+
+  /**
+   * Given that the given [source] (with the corresponding [sourceEntry]) has
+   * been invalidated, invalidate all of the libraries that depend on it.
+   */
+  void _propagateInvalidation(Source source, SourceEntry sourceEntry) {
+    if (sourceEntry is HtmlEntry) {
+      HtmlEntry htmlEntry = sourceEntry;
+      htmlEntry.modificationTime = getModificationStamp(source);
+      htmlEntry.invalidateAllInformation();
+      _cache.removedAst(source);
+      _workManager.add(source, SourcePriority.HTML);
+    } else if (sourceEntry is DartEntry) {
+      List<Source> containingLibraries = getLibrariesContaining(source);
+      List<Source> dependentLibraries = getLibrariesDependingOn(source);
+      HashSet<Source> librariesToInvalidate = new HashSet<Source>();
+      for (Source containingLibrary in containingLibraries) {
+        _computeAllLibrariesDependingOn(
+            containingLibrary, librariesToInvalidate);
+      }
+      for (Source dependentLibrary in dependentLibraries) {
+        _computeAllLibrariesDependingOn(
+            dependentLibrary, librariesToInvalidate);
+      }
+      for (Source library in librariesToInvalidate) {
+        _invalidateLibraryResolution(library);
+      }
+      DartEntry dartEntry = _cache.get(source);
+      _removeFromParts(source, dartEntry);
+      dartEntry.modificationTime = getModificationStamp(source);
+      dartEntry.invalidateAllInformation();
+      _cache.removedAst(source);
+      _workManager.add(source, SourcePriority.UNKNOWN);
+    }
+    // reset unit in the notification, it is out of date now
+    ChangeNoticeImpl notice = _pendingNotices[source];
+    if (notice != null) {
+      notice.resolvedDartUnit = null;
+      notice.resolvedHtmlUnit = null;
+    }
+  }
 
   /**
    * Record the results produced by performing a [task] and return the cache
@@ -4507,20 +4518,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     if (newOrder.length < count) {
       analysisPriorityOrder = newOrder;
-    }
-  }
-
-  /**
-   * Return `true` if errors should be produced for the given [source]. The
-   * [dartEntry] associated with the source is passed in for efficiency.
-   */
-  bool _shouldErrorsBeAnalyzed(Source source, DartEntry dartEntry) {
-    if (source.isInSystemLibrary) {
-      return _generateSdkErrors;
-    } else if (!dartEntry.explicitlyAdded) {
-      return _generateImplicitErrors;
-    } else {
-      return true;
     }
   }
 
@@ -9166,6 +9163,15 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * record those mappings.
    */
   void recordLibraryElements(Map<Source, LibraryElement> elementMap);
+
+  /**
+   * Return `true` if errors should be produced for the given [source].
+   * The [entry] associated with the source is passed in for efficiency.
+   *
+   * TODO(scheglov) remove [entry] after migration to the new task model.
+   * It is not used there anyway.
+   */
+  bool shouldErrorsBeAnalyzed(Source source, Object entry);
 
   /**
    * Call the given callback function for eache cache item in the context.

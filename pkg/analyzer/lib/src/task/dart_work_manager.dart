@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisEngine,
         AnalysisErrorInfo,
         AnalysisErrorInfoImpl,
+        AnalysisOptions,
         CacheState,
         InternalAnalysisContext;
 import 'package:analyzer/src/generated/error.dart';
@@ -254,7 +255,8 @@ class DartWorkManager implements WorkManager {
       SourceKind kind = outputs[SOURCE_KIND];
       if (kind != null) {
         unknownSourceQueue.remove(target);
-        if (kind == SourceKind.LIBRARY) {
+        if (kind == SourceKind.LIBRARY &&
+            context.shouldErrorsBeAnalyzed(target, null)) {
           librarySourceQueue.add(target);
         }
       }

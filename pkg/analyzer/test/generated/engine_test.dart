@@ -5798,6 +5798,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  bool shouldErrorsBeAnalyzed(Source source, Object entry) {
+    fail("Unexpected invocation of shouldErrorsBeAnalyzed");
+    return false;
+  }
+  @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
     fail("Unexpected invocation of visitCacheItems");
