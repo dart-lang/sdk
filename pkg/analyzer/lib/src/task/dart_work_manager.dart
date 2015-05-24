@@ -284,7 +284,7 @@ class DartWorkManager implements WorkManager {
           context.getNotice(target).parsedDartUnit = value;
           shouldSetErrors = true;
         }
-        if (_isErrorResult(descriptor)) {
+        if (descriptor == DART_ERRORS) {
           shouldSetErrors = true;
         }
       });
@@ -299,9 +299,6 @@ class DartWorkManager implements WorkManager {
       outputs.forEach((ResultDescriptor descriptor, value) {
         if (descriptor == RESOLVED_UNIT && value != null) {
           context.getNotice(source).resolvedDartUnit = value;
-          shouldSetErrors = true;
-        }
-        if (_isErrorResult(descriptor)) {
           shouldSetErrors = true;
         }
       });
@@ -339,10 +336,5 @@ class DartWorkManager implements WorkManager {
 
   static bool _isDartSource(AnalysisTarget target) {
     return target is Source && AnalysisEngine.isDartFileName(target.fullName);
-  }
-
-  static bool _isErrorResult(ResultDescriptor descriptor) {
-    return _SOURCE_ERRORS.contains(descriptor) ||
-        _UNIT_ERRORS.contains(descriptor);
   }
 }

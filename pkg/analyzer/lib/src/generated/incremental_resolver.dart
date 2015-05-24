@@ -22,7 +22,7 @@ import 'package:analyzer/src/task/dart.dart'
         USED_LOCAL_ELEMENTS,
         VERIFY_ERRORS;
 import 'package:analyzer/task/dart.dart'
-    show LibrarySpecificUnit, PARSED_UNIT, TOKEN_STREAM;
+    show DART_ERRORS, LibrarySpecificUnit, PARSED_UNIT, TOKEN_STREAM;
 import 'package:analyzer/task/general.dart' show CONTENT;
 import 'package:analyzer/task/model.dart' show ResultDescriptor;
 
@@ -1544,6 +1544,7 @@ class PoorMansIncrementalResolver {
   }
 
   void _updateEntry_NEW() {
+    _newSourceEntry.setState(DART_ERRORS, CacheState.INVALID);
     // scan results
     _newSourceEntry.setState(SCAN_ERRORS, CacheState.INVALID);
     List<TargetedResult> scanDeps =

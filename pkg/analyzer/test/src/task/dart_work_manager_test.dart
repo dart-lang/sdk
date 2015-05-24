@@ -415,8 +415,9 @@ class DartWorkManagerTest {
     AnalysisTarget unitTarget = new LibrarySpecificUnit(source2, source1);
     context.getCacheEntry(unitTarget).setValue(
         VERIFY_ERRORS, <AnalysisError>[error2], []);
-    // notify about LibrarySpecificUnit specific errors
-    manager.resultsComputed(unitTarget, {VERIFY_ERRORS: []});
+    // RESOLVED_UNIT is ready, set errors
+    manager.resultsComputed(
+        unitTarget, {RESOLVED_UNIT: AstFactory.compilationUnit()});
     // all of the errors are included
     ChangeNoticeImpl notice = context.getNotice(source1);
     expect(notice.errors, unorderedEquals([error1, error2]));
@@ -432,11 +433,10 @@ class DartWorkManagerTest {
     LineInfo lineInfo = new LineInfo([0]);
     entry1.setValue(LINE_INFO, lineInfo, []);
     entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
-    AnalysisTarget unitTarget = new LibrarySpecificUnit(source2, source1);
-    context.getCacheEntry(unitTarget).setValue(
-        VERIFY_ERRORS, <AnalysisError>[error2], []);
-    // notify about Source specific errors
-    manager.resultsComputed(source1, {SCAN_ERRORS: []});
+    entry1.setValue(PARSE_ERRORS, <AnalysisError>[error2], []);
+    // PARSED_UNIT is ready, set errors
+    manager.resultsComputed(
+        source1, {PARSED_UNIT: AstFactory.compilationUnit()});
     // all of the errors are included
     ChangeNoticeImpl notice = context.getNotice(source1);
     expect(notice.errors, unorderedEquals([error1, error2]));
