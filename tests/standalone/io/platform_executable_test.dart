@@ -8,6 +8,8 @@ library PlatformExecutableTest;
 
 import "dart:io";
 
+const _SCRIPT_KEY = '_test_script';
+
 void expectEquals(a, b) {
   if (a != b) {
     throw 'Expected: $a\n'
@@ -16,7 +18,7 @@ void expectEquals(a, b) {
 }
 
 void verify(String exePath, {String altPath}) {
-  var env = {'SCRIPT': 'yes'};
+  var env = {_SCRIPT_KEY: 'yes'};
   if (altPath != null) {
     env['PATH'] = altPath;
   }
@@ -44,13 +46,16 @@ void testDartExecShouldNotBeInCurrentDir() {
 void testShouldFailOutsidePath() {
   var threw = false;
   try {
-    Process.runSync(platformExeName, [scriptPath], 
-      includeParentEnvironment: false, environment: {'SCRIPT': 'yes'});
+    Process.runSync(platformExeName, [platformExeName], 
+      includeParentEnvironment: false, environment: {_SCRIPT_KEY: 'yes'});
   } catch (_) {
     threw = true;
   }
 
-  expectEquals(true, threw);
+  if (!threw) {
+    throw 'Expected running the dart executable – "$platformExeName" without'
+          ' the parent environment or path to fail.';
+  }
 }
 
 void testShouldSucceedWithSourcePlatformExecutable() {
@@ -131,7 +136,7 @@ String get platformExeName {
 String get scriptPath => Platform.script.toFilePath();
 
 void main() {
-  if (Platform.environment.containsKey('SCRIPT')) {
+  if (Platform.environment.containsKey(_SCRIPT_KEY)) {
     print(Platform.executable);
     return;
   }
