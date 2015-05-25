@@ -1615,7 +1615,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
           checkAssignable(expression, expressionType, expectedReturnType);
         }
       }
-
+    } else if (currentAsyncMarker == AsyncMarker.ASYNC) {
+      // `return;` is allowed.
     } else if (!types.isAssignable(expectedReturnType, const VoidType())) {
       // Let f be the function immediately enclosing a return statement of the
       // form 'return;' It is a static warning if both of the following
