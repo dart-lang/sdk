@@ -23,6 +23,9 @@ io/platform_executable_test/02: RuntimeError # Issue 16994
 io/platform_executable_test/04: RuntimeError # Issue 16994
 io/platform_executable_test/05: RuntimeError # Issue 16994
 
+[ $runtime == vm && $system == windows ]
+io/platform_executable_test/06: RuntimeError # NEEDS TRIAGE (kevmoo)
+
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
