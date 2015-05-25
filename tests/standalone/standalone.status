@@ -16,6 +16,8 @@ javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude o
 [ $runtime == vm ]
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
+
+[ $runtime == vm && ($system == macos || $system == windows) ]
 io/platform_executable_test/01: RuntimeError # Issue 16994
 io/platform_executable_test/02: RuntimeError # Issue 16994
 io/platform_executable_test/04: RuntimeError # Issue 16994

@@ -128,7 +128,7 @@ String get platformExeName {
   return raw.pathSegments.last;
 }
 
-String get scriptPath => Platform.script.toString();
+String get scriptPath => Platform.script.toFilePath();
 
 void main() {
   if (Platform.environment.containsKey('SCRIPT')) {
@@ -137,11 +137,11 @@ void main() {
   }
 
   testDartExecShouldNotBeInCurrentDir();
-  testShouldFailOutsidePath();
   testShouldSucceedWithSourcePlatformExecutable(); /// 00: ok
   withTempDir(testExeSymLinked); /// 01: ok
   withTempDir(testExeDirSymLinked); /// 02: ok
   testPathToSDKDir(); /// 03: ok
   withTempDir(testPathPointsToSymLinkedSDKPath); /// 04: ok
   withTempDir(testPathToDirWithExeSymLinked); /// 05: ok
+  testShouldFailOutsidePath(); /// 06: ok
 }
