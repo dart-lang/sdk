@@ -2,12 +2,14 @@
 
 ### Core library changes
 
-* In dart:html, appendHtml and insertAdjacentHtml now take validator
-  and treeSanitizer parameters, and the inputs are consistently sanitized.
+* In `dart:html`, `appendHtml` and `insertAdjacentHtml` now take `nodeValidator`
+  and `treeSanitizer` parameters, and the inputs are consistently
+  sanitized. See [45818 announcement]
+  [45818 announcement](https://groups.google.com/a/dartlang.org/forum/#!topic/announce/GVO7EAcPi6A)
 * List iterators may not throw ConcurrentModificationError as eagerly in
   release mode. In checked mode, the modification check is still as eager
   as possible.
-  [r45198](https://code.google.com/p/dart/source/detail?r=45198),
+  [r45198](https://code.google.com/p/dart/source/detail?r=45198)
 * `dart:core`
   * Add `unmodifiable` constructor to `List` -
     [r45334](https://code.google.com/p/dart/source/detail?r=45334)
