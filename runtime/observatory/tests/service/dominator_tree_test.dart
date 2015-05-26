@@ -1,55 +1,86 @@
-// Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
 
-import 'package:observatory/dominator_tree.dart';
+import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
+import 'test_helper.dart';
+import 'dart:async';
 
-void main() {
-  test('small example from [Lenguaer & Tarjan 1979]', smallTest);
-  test('non-flowgraph', nonFlowgraph);
+// small example from [Lenguaer & Tarjan 1979]
+class R { var x; var y; var z; }
+class A { var x; }
+class B { var x; var y; var z; }
+class C { var x; var y; }
+class D { var x; }
+class E { var x; }
+class F { var x; }
+class G { var x; var y; }
+class H { var x; var y; }
+class I { var x; }
+class J { var x; }
+class K { var x; var y; }
+class L { var x; }
+
+var r;
+
+buildGraph() {
+  r = new R();
+  var a = new A();
+  var b = new B();
+  var c = new C();
+  var d = new D();
+  var e = new E();
+  var f = new F();
+  var g = new G();
+  var h = new H();
+  var i = new I();
+  var j = new J();
+  var k = new K();
+  var l = new L();
+
+  r.x = a; r.y = b; r.z = c;
+  a.x = d;
+  b.x = a; b.y = d; b.z = e;
+  c.x = f; c.y = g;
+  d.x = l;
+  e.x = h;
+  f.x = i;
+  g.x = i; g.y = j;
+  h.x = e; h.y = k;
+  i.x = k;
+  j.x = i;
+  k.x = i; k.y = r;
+  l.x = h;
 }
 
-void smallTest() {
-  var g = {
-    'R': ['A', 'B', 'C'],
-    'A': ['D'],
-    'B': ['A', 'D', 'E'],
-    'C': ['F', 'G'],
-    'D': ['L'],
-    'E': ['H'],
-    'F': ['I'],
-    'G': ['I', 'J'],
-    'H': ['E', 'K'],
-    'I': ['K'],
-    'J': ['I'],
-    'K': ['I', 'R'],
-    'L': ['H'],
-  };
-  var d = new Dominator();
-  for (String u in g.keys) {
-    d.addEdges(u, g[u]);
+var tests = [
+(Isolate isolate) async {
+  var rootLib = await isolate.rootLibrary.load();
+  var snapshot = await isolate.fetchHeapSnapshot().last;
+
+  node(String className) {
+    var cls = rootLib.classes.singleWhere((cls) => cls.name == className);
+    return snapshot.graph.vertices.singleWhere((v) => v.vmCid == cls.vmCid);
   }
-  d.computeDominatorTree('R');
-  expect(d.dominator('I'), equals('R'));
-  expect(d.dominator('K'), equals('R'));
-  expect(d.dominator('C'), equals('R'));
-  expect(d.dominator('H'), equals('R'));
-  expect(d.dominator('E'), equals('R'));
-  expect(d.dominator('A'), equals('R'));
-  expect(d.dominator('D'), equals('R'));
-  expect(d.dominator('B'), equals('R'));
 
-  expect(d.dominator('F'), equals('C'));
-  expect(d.dominator('G'), equals('C'));
-  expect(d.dominator('J'), equals('G'));
-  expect(d.dominator('L'), equals('D'));
-  expect(d.dominator('R'), isNull);
-}
+  expect(node('I').dominator, equals(node('R')));
+  expect(node('K').dominator, equals(node('R')));
+  expect(node('C').dominator, equals(node('R')));
+  expect(node('H').dominator, equals(node('R')));
+  expect(node('E').dominator, equals(node('R')));
+  expect(node('A').dominator, equals(node('R')));
+  expect(node('D').dominator, equals(node('R')));
+  expect(node('B').dominator, equals(node('R')));
 
-void nonFlowgraph() {
-  var d = new Dominator();
-  d.addEdges('A', ['B']);
-  expect(() => d.computeDominatorTree('B'), throwsStateError);
-}
+  expect(node('F').dominator, equals(node('C')));
+  expect(node('G').dominator, equals(node('C')));
+  expect(node('J').dominator, equals(node('G')));
+  expect(node('L').dominator, equals(node('D')));
+
+  expect(node('R'), isNotNull);  // The field.
+},
+];
+
+main(args) => runIsolateTests(args, tests, testeeBefore: buildGraph);

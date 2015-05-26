@@ -446,10 +446,11 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
 };
 
 
-void ObjectGraph::Serialize(WriteStream* stream) {
+intptr_t ObjectGraph::Serialize(WriteStream* stream) {
   // Current encoding assumes objects do not move, so promote everything to old.
   isolate()->heap()->new_space()->Evacuate();
   WriteGraphVisitor visitor(isolate(), stream);
+  stream->WriteUnsigned(kObjectAlignment);
   stream->WriteUnsigned(0);
   stream->WriteUnsigned(0);
   stream->WriteUnsigned(0);
@@ -459,6 +460,7 @@ void ObjectGraph::Serialize(WriteStream* stream) {
   }
   stream->WriteUnsigned(0);
   IterateObjects(&visitor);
+  return visitor.count() + 1;  // + root
 }
 
 }  // namespace dart

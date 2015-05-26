@@ -2309,21 +2309,39 @@ void Service::SendGraphEvent(Isolate* isolate) {
   uint8_t* buffer = NULL;
   WriteStream stream(&buffer, &allocator, 1 * MB);
   ObjectGraph graph(isolate);
-  graph.Serialize(&stream);
-  JSONStream js;
-  {
-    JSONObject jsobj(&js);
+  intptr_t node_count = graph.Serialize(&stream);
+
+  // Chrome crashes receiving a single tens-of-megabytes blob, so send the
+  // snapshot in megabyte-sized chunks instead.
+  const intptr_t kChunkSize = 1 * MB;
+  intptr_t num_chunks =
+      (stream.bytes_written() + (kChunkSize - 1)) / kChunkSize;
+  for (intptr_t i = 0; i < num_chunks; i++) {
+    JSONStream js;
     {
-      JSONObject event(&jsobj, "event");
-      event.AddProperty("type", "ServiceEvent");
-      event.AddProperty("eventType", "_Graph");
-      event.AddProperty("isolate", isolate);
+      JSONObject jsobj(&js);
+      {
+        JSONObject event(&jsobj, "event");
+        event.AddProperty("type", "ServiceEvent");
+        event.AddProperty("eventType", "_Graph");
+        event.AddProperty("isolate", isolate);
+
+        event.AddProperty("chunkIndex", i);
+        event.AddProperty("chunkCount", num_chunks);
+        event.AddProperty("nodeCount", node_count);
+      }
+      jsobj.AddProperty("streamId", "_Graph");
     }
-    jsobj.AddProperty("streamId", "_Graph");
+
+    const String& message = String::Handle(String::New(js.ToCString()));
+
+    uint8_t* chunk_start = buffer + (i * kChunkSize);
+    intptr_t chunk_size = (i + 1 == num_chunks)
+        ? stream.bytes_written() - (i * kChunkSize)
+        : kChunkSize;
+
+    SendEventWithData("_Graph", "_Graph", message, chunk_start, chunk_size);
   }
-  const String& message = String::Handle(String::New(js.ToCString()));
-  SendEventWithData("_Graph", "_Graph", message,
-                    buffer, stream.bytes_written());
 }
 
 

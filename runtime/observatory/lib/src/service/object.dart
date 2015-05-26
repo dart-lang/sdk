@@ -827,10 +827,9 @@ class HeapSnapshot {
   final DateTime timeStamp;
   final Isolate isolate;
 
-  HeapSnapshot(this.isolate, ByteData data) :
-      graph = new ObjectGraph(new ReadStream(data)),
-      timeStamp = new DateTime.now() {
-  }
+  HeapSnapshot(this.isolate, chunks, nodeCount) :
+      graph = new ObjectGraph(chunks, nodeCount),
+      timeStamp = new DateTime.now();
 
   List<Future<ServiceObject>> getMostRetained({int classId, int limit}) {
     var result = [];
@@ -843,8 +842,6 @@ class HeapSnapshot {
     }
     return result;
   }
-
-
 }
 
 /// State for a running isolate.
@@ -905,6 +902,20 @@ class Isolate extends ServiceObjectOwner with Coverage {
         .then(_buildClassHierarchy);
   }
 
+  Future<List<Class>> getClassRefs() async {
+    ServiceMap classList = await invokeRpc('getClassList', {});
+    assert(classList.type == 'ClassList');
+    var classRefs = [];
+    for (var cls in classList['classes']) {
+      // Skip over non-class classes.
+      if (cls is Class) {
+        _classesByCid[cls.vmCid] = cls;
+        classRefs.add(cls);
+      }
+    }
+    return classRefs;
+  }
+
   /// Given the class list, loads each class.
   Future<List<Class>> _loadClasses(ServiceMap classList) {
     assert(classList.type == 'ClassList');
@@ -912,6 +923,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     for (var cls in classList['classes']) {
       // Skip over non-class classes.
       if (cls is Class) {
+        _classesByCid[cls.vmCid] = cls;
         futureClasses.add(cls.load());
       }
     }
@@ -933,6 +945,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
     assert(objectClass != null);
     return new Future.value(objectClass);
   }
+
+  Class getClassByCid(int cid) => _classesByCid[cid];
 
   ServiceObject getFromMap(ObservableMap map) {
     if (map == null) {
@@ -986,6 +1000,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   @observable Class objectClass;
   @observable final rootClasses = new ObservableList<Class>();
+  Map<int, Class> _classesByCid = new Map<int, Class>();
 
   @observable Library rootLibrary;
   @observable ObservableList<Library> libraries =
@@ -1006,21 +1021,51 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   @observable DartError error;
   @observable HeapSnapshot latestSnapshot;
-  Completer<HeapSnapshot> _snapshotFetch;
+  StreamController _snapshotFetch;
+
+  List<ByteData> _chunksInProgress;
 
   void _loadHeapSnapshot(ServiceEvent event) {
-    latestSnapshot = new HeapSnapshot(this, event.data);
+    if (_snapshotFetch == null || _snapshotFetch.isClosed) {
+      // No outstanding snapshot request. Presumably another client asked for a
+      // snapshot.
+      Logger.root.info("Dropping unsolicited heap snapshot chunk");
+      return;
+    }
+
+    // Occasionally these actually arrive out of order.
+    var chunkIndex = event.chunkIndex;
+    var chunkCount = event.chunkCount;
+    if (_chunksInProgress == null) {
+      _chunksInProgress = new List(chunkCount);
+    }
+    _chunksInProgress[chunkIndex] = event.data;
+    _snapshotFetch.add("Receiving snapshot chunk ${chunkIndex + 1}"
+                       " of $chunkCount...");
+
+    for (var i = 0; i < chunkCount; i++) {
+      if (_chunksInProgress[i] == null) return;
+    }
+
+    var loadedChunks = _chunksInProgress;
+    _chunksInProgress = null;
+
+    latestSnapshot = new HeapSnapshot(this, loadedChunks, event.nodeCount);
     if (_snapshotFetch != null) {
-      _snapshotFetch.complete(latestSnapshot);
+      latestSnapshot.graph.process(_snapshotFetch).then((graph) {
+        _snapshotFetch.add(latestSnapshot);
+        _snapshotFetch.close();
+      });
     }
   }
 
-  Future<HeapSnapshot> fetchHeapSnapshot() {
-    if (_snapshotFetch == null || _snapshotFetch.isCompleted) {
-      _snapshotFetch = new Completer<HeapSnapshot>();
+  Stream fetchHeapSnapshot() {
+    if (_snapshotFetch == null || _snapshotFetch.isClosed) {
+      _snapshotFetch = new StreamController();
+      isolate.vm.streamListen('_Graph');
       isolate.invokeRpcNoUpgrade('requestHeapSnapshot', {});
     }
-    return _snapshotFetch.future;
+    return _snapshotFetch.stream;
   }
 
   void updateHeapsFromMap(ObservableMap map) {
@@ -1458,6 +1503,7 @@ class ServiceEvent extends ServiceObject {
   @observable ByteData data;
   @observable int count;
   @observable String reason;
+  int chunkIndex, chunkCount, nodeCount;
 
   @observable bool get isPauseEvent {
     return (eventType == kPauseStart ||
@@ -1489,6 +1535,15 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['_data'] != null) {
       data = map['_data'];
+    }
+    if (map['chunkIndex'] != null) {
+      chunkIndex = map['chunkIndex'];
+    }
+    if (map['chunkCount'] != null) {
+      chunkCount = map['chunkCount'];
+    }
+    if (map['nodeCount'] != null) {
+      nodeCount = map['nodeCount'];
     }
     if (map['count'] != null) {
       count = map['count'];

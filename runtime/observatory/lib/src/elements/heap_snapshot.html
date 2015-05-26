@@ -1,0 +1,201 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="class_ref.html">
+<link rel="import" href="observatory_element.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="view_footer.html">
+
+<polymer-element name="heap-snapshot" extends="observatory-element">
+<template>
+  <link rel="stylesheet" href="css/shared.css">
+  <nav-bar>
+    <top-nav-menu></top-nav-menu>
+    <vm-nav-menu vm="{{ isolate.vm }}"></vm-nav-menu>
+    <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+    <nav-menu link="{{ makeLink('/heap-snapshot', isolate) }}" anchor="heap snapshot" last="{{ true }}"></nav-menu>
+    <nav-refresh callback="{{ refresh }}"></nav-refresh>
+  </nav-bar>
+  <style>
+      /* general */
+      .well {
+        background-color: #ECECEC;
+        padding: 0.2em;
+      }
+      .center {
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* status messages */
+      .statusMessage {
+        font-size: 150%;
+        font-weight: bold;
+      }
+      .statusBox {
+        height: 100%;
+        padding: 1em;
+      }
+
+      /* tables */
+      .table {
+        border-collapse: collapse!important;
+        table-layout: fixed;
+        height: 100%;
+      }
+      .th, .td {
+        padding: 8px;
+        vertical-align: top;
+      }
+      .table thead > tr > th {
+        vertical-align: bottom;
+        text-align: left;
+        border-bottom:2px solid #ddd;
+      }
+      .spacer {
+        width: 16px;
+      }
+      .left-border-spacer {
+        width: 16px;
+        border-left: 1px solid;
+      }
+      .clickable {
+        color: #0489c3;
+        text-decoration: none;
+        cursor: pointer;
+        min-width: 8em;
+      }
+      .clickable:hover {
+        text-decoration: underline;
+        cursor: pointer;
+      }
+      tr:hover:not(.focused) > td {
+        background-color: #FAFAFA;
+      }
+      .focused {
+        background-color: #F4C7C3;
+      }
+      .scroll {
+        overflow: scroll;
+      }
+      .outlined {
+        -webkit-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
+        -moz-box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
+        box-shadow: 0px 0px 2px 1px rgba(0,0,0,0.75);
+        margin: 4px;
+      }
+      .centered {
+        margin-left: auto;
+        margin-right: auto;
+        justify-content: center;
+      }
+      .full-height {
+        height: 100%;
+      }
+      .mostly-full-height {
+        height: 80%;
+      }
+      .full-width {
+        width: 100%;
+      }
+      .focused-function-label {
+        flex: 0 1 auto;
+        margin-left: auto;
+        margin-right: auto;
+        justify-content: center;
+      }
+      .call-table {
+        flex: 1 1 auto;
+      }
+
+      .tree {
+        border-spacing: 0px;
+        width: 100%;
+        margin-bottom: 20px
+        vertical-align: middle;
+      }
+
+      .tree tbody tr {
+        animation: fadeIn 0.5s;
+        -moz-animation: fadeIn 0.5s;
+        -webkit-animation: fadeIn 0.5s;
+      }
+
+      .tree tbody tr:hover {
+        background-color: #FAFAFA;
+      }
+
+      .tree tr td:first-child,
+      .tree tr th:first-child {
+        width: 100%;
+      }
+
+      .tree thead > tr > th {
+        padding: 8px;
+        vertical-align: bottom;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+      }
+  </style>
+  <div class="content-centered-big">
+    <h1>Heap Snapshot (Experimental)</h1>
+    <hr>
+    <template if="{{ state != 'Loaded' }}">
+      <div class="statusBox shadow center">
+        <div class="statusMessage">{{state}}</div>
+      </div>
+    </template>
+    <template if="{{ state == 'Loaded' }}">
+      <div class="memberList">
+        <div class="memberItem">
+          <div class="memberName">Refreshed at </div>
+          <div class="memberValue">{{ snapshot.timeStamp }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Objects </div>
+          <div class="memberValue">{{ snapshot.graph.vertexCount }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">References </div>
+          <div class="memberValue">{{ snapshot.graph.edgeCount }}</div>
+        </div>
+        <div class="memberItem">
+          <div class="memberName">Size </div>
+          <div class="memberValue">{{ snapshot.graph.size | formatSize }}</div>
+        </div>
+        <div class="memberItem">
+           <div class="memberName">Analysis </div>
+           <div class="memberValue">
+             <select value="{{analysisSelector}}">
+               <option value="DominatorTree">Dominator tree</option>
+               <option value="MergeByClass">Group by class</option>
+             </select>
+           </div>
+        </div>
+      </div>
+      <template if="{{analysisSelector == 'DominatorTree'}}"><p>In a heap dominator tree, an object X is a parent of object Y if every path from the root to Y goes through X. This allows you to find "choke points" that are holding onto a lot memory. If an object becomes garbage, all its children in the dominator tree become garbage as well. The retained size of an object is the sum of the retained sizes of its children in the dominator tree plus its own shallow size, and is the amount of memory that would be freed if the object became garbage.</p></template>
+    </template>
+  </div>
+  <br>
+  <div class="content-centered-big">
+    <div class="tableWell shadow">
+      <table class="full-width tree">
+        <thead id="treeHeader">
+        <tr>
+          <th>
+            <template if="{{analysisSelector == 'DominatorTree'}}">Object</template>
+            <template if="{{analysisSelector == 'MergeByClass'}}">Class</template>
+          </th>
+          <th style="white-space: nowrap">
+            <template if="{{analysisSelector == 'DominatorTree'}}">Retained Size</template>
+            <template if="{{analysisSelector == 'MergeByClass'}}">Shallow Size</template>
+          </th>
+        </tr>
+        </thead>
+          <tbody id="treeBody"></tbody>
+      </table>
+    </div>
+  </div>
+  <view-footer></view-footer>
+</template>
+</polymer-element>
+
+<script type="application/dart" src="heap_snapshot.dart"></script>

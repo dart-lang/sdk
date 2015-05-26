@@ -23,6 +23,7 @@ export 'package:observatory/src/elements/function_view.dart';
 export 'package:observatory/src/elements/general_error.dart';
 export 'package:observatory/src/elements/heap_map.dart';
 export 'package:observatory/src/elements/heap_profile.dart';
+export 'package:observatory/src/elements/heap_snapshot.dart';
 export 'package:observatory/src/elements/instance_ref.dart';
 export 'package:observatory/src/elements/instance_view.dart';
 export 'package:observatory/src/elements/io_view.dart';
