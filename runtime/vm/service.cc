@@ -2127,7 +2127,6 @@ static const MethodParameter* get_tag_profile_params[] = {
 static bool GetTagProfile(Isolate* isolate, JSONStream* js) {
   JSONObject miniProfile(js);
   miniProfile.AddProperty("type", "TagProfile");
-  miniProfile.AddProperty("id", "profile/tag");
   isolate->vm_tag_counters()->PrintToJSONObject(&miniProfile);
   return true;
 }
@@ -2243,7 +2242,6 @@ static bool RequestHeapSnapshot(Isolate* isolate, JSONStream* js) {
   // TODO(koda): Provide some id that ties this request to async response(s).
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "OK");
-  jsobj.AddProperty("id", "ok");
   return true;
 }
 

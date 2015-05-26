@@ -50,7 +50,7 @@ TEST_CASE(Coverage_Empty) {
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd  "\\/scripts\\/test-lib\","
+      "\"fixedId\":true,\"id\":\"libraries\\/%" Pd  "\\/scripts\\/test-lib\","
       "\"uri\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":[]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
@@ -87,7 +87,7 @@ TEST_CASE(Coverage_MainWithClass) {
   // Data for the actual class Foo.
   OS::SNPrint(buf, sizeof(buf),
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+      "\"fixedId\":true,\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"uri\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":[3,1,5,4,6,3]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
@@ -95,7 +95,7 @@ TEST_CASE(Coverage_MainWithClass) {
   // Data for the fake class containing main().
   OS::SNPrint(buf, sizeof(buf),
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd  "\\/scripts\\/test-lib\","
+      "\"fixedId\":true,\"id\":\"libraries\\/%" Pd  "\\/scripts\\/test-lib\","
       "\"uri\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":[10,1,11,1]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
@@ -133,7 +133,7 @@ TEST_CASE(Coverage_FilterFunction) {
   char buf[1024];
   OS::SNPrint(buf, sizeof(buf),
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
-      "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
+      "\"fixedId\":true,\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"uri\":\"test-lib\","
       "\"kind\":\"script\"},\"hits\":[6,0]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());

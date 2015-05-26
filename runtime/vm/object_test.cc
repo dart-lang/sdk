@@ -4314,7 +4314,7 @@ TEST_CASE(PrintJSONPrimitives) {
     cls.PrintJSON(&js, true);
     elideSubstring("classes", js.ToCString(), buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"}",
+        "{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\",\"name\":\"bool\"}",
         buffer);
   }
   // Function reference
@@ -4327,8 +4327,10 @@ TEST_CASE(PrintJSONPrimitives) {
     func.PrintJSON(&js, true);
     elideSubstring("classes", js.ToCString(), buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Function\",\"id\":\"\",\"name\":\"toString\","
-        "\"owner\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
+        "{\"type\":\"@Function\",\"fixedId\":true,"
+        "\"id\":\"\",\"name\":\"toString\","
+        "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"bool\"},"
         "\"kind\":\"RegularFunction\"}",
         buffer);
   }
@@ -4339,8 +4341,8 @@ TEST_CASE(PrintJSONPrimitives) {
     lib.PrintJSON(&js, true);
     elideSubstring("libraries", js.ToCString(), buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Library\",\"id\":\"\",\"name\":\"dart.core\","
-        "\"uri\":\"dart:core\"}",
+        "{\"type\":\"@Library\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"dart.core\",\"uri\":\"dart:core\"}",
         buffer);
   }
   // Bool reference
@@ -4350,7 +4352,8 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("classes", js.ToCString(), buffer);
     EXPECT_STREQ(
         "{\"type\":\"@bool\","
-        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"bool\"},\"fixedId\":true,"
         "\"id\":\"objects\\/bool-true\",\"valueAsString\":\"true\"}",
         buffer);
   }
@@ -4363,8 +4366,9 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("_Smi@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@int\",\"_vmType\":\"@Smi\","
-        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Smi\","
-        "\"_vmName\":\"\"},"
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"_Smi\","
+        "\"_vmName\":\"\"},\"fixedId\":true,"
         "\"id\":\"objects\\/int-7\",\"valueAsString\":\"7\"}",
         buffer);
   }
@@ -4378,8 +4382,8 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("_Mint@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@int\",\"_vmType\":\"@Mint\","
-        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Mint\","
-        "\"_vmName\":\"\"},"
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"_Mint\",\"_vmName\":\"\"},"
         "\"id\":\"\",\"valueAsString\":\"-9223372036854775808\"}",
         buffer);
   }
@@ -4395,8 +4399,8 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("_Bigint@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@int\",\"_vmType\":\"@Bigint\","
-        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Bigint\","
-        "\"_vmName\":\"\"},"
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"_Bigint\",\"_vmName\":\"\"},"
         "\"id\":\"\",\"valueAsString\":\"44444444444444444444444444444444\"}",
         buffer);
   }
@@ -4410,8 +4414,8 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("_Double@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@double\","
-        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Double\","
-        "\"_vmName\":\"\"},"
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"_Double\",\"_vmName\":\"\"},"
         "\"id\":\"\",\"valueAsString\":\"0.1234\"}",
         buffer);
   }
@@ -4425,7 +4429,7 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("_OneByteString@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@String\","
-        "\"class\":{\"type\":\"@Class\",\"id\":\"\","
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_OneByteString\",\"_vmName\":\"\"},"
         "\"id\":\"\",\"valueAsString\":\"dw\"}",
         buffer);
@@ -4440,8 +4444,8 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("_List@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@List\",\"_vmType\":\"@Array\","
-        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_List\","
-        "\"_vmName\":\"\"},"
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"_List\",\"_vmName\":\"\"},"
         "\"id\":\"\",\"length\":0}",
         buffer);
   }
@@ -4456,7 +4460,8 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("_GrowableList@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@List\",\"_vmType\":\"@GrowableObjectArray\","
-        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_GrowableList\","
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"_GrowableList\","
         "\"_vmName\":\"\"},\"id\":\"\",\"length\":0}",
         buffer);
   }
@@ -4470,7 +4475,7 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("_InternalLinkedHashMap@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"@LinkedHashMap\","
-        "\"class\":{\"type\":\"@Class\",\"id\":\"\","
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_InternalLinkedHashMap\",\"_vmName\":\"\"},\"id\":\"\"}",
         buffer);
   }
@@ -4484,8 +4489,8 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("_UserTag@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Instance\",\"_vmType\":\"@UserTag\","
-        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_UserTag\","
-        "\"_vmName\":\"\"},"
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"_UserTag\",\"_vmName\":\"\"},"
         "\"id\":\"\"}",
         buffer);
   }
@@ -4500,10 +4505,10 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("_Type@", buffer, buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Type\","
-        "\"class\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"_Type\","
-        "\"_vmName\":\"\"},\"id\":\"\","
-        "\"typeClass\":{\"type\":\"@Class\",\"id\":\"\",\"name\":\"bool\"},"
-        "\"name\":\"bool\"}",
+        "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"_Type\",\"_vmName\":\"\"},\"fixedId\":true,\"id\":\"\","
+        "\"typeClass\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"bool\"},\"name\":\"bool\"}",
         buffer);
   }
   // Null reference
@@ -4511,7 +4516,8 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Object::null_object().PrintJSON(&js, true);
     EXPECT_STREQ(
-        "{\"type\":\"@null\",\"id\":\"objects\\/null\","
+        "{\"type\":\"@null\",\"fixedId\":true,"
+        "\"id\":\"objects\\/null\","
         "\"valueAsString\":\"null\"}",
         js.ToCString());
   }
@@ -4520,7 +4526,8 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Object::sentinel().PrintJSON(&js, true);
     EXPECT_STREQ(
-        "{\"type\":\"Sentinel\",\"id\":\"objects\\/not-initialized\","
+        "{\"type\":\"Sentinel\",\"fixedId\":true,"
+        "\"id\":\"objects\\/not-initialized\","
         "\"valueAsString\":\"<not initialized>\"}",
         js.ToCString());
   }
@@ -4529,7 +4536,8 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Object::transition_sentinel().PrintJSON(&js, true);
     EXPECT_STREQ(
-        "{\"type\":\"Sentinel\",\"id\":\"objects\\/being-initialized\","
+        "{\"type\":\"Sentinel\",\"fixedId\":true,"
+        "\"id\":\"objects\\/being-initialized\","
         "\"valueAsString\":\"<being initialized>\"}",
         js.ToCString());
   }

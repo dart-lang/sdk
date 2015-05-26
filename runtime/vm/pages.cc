@@ -635,7 +635,6 @@ void PageSpace::PrintToJSONObject(JSONObject* object) {
   ASSERT(isolate != NULL);
   JSONObject space(object, "old");
   space.AddProperty("type", "HeapSpace");
-  space.AddProperty("id", "heaps/old");
   space.AddProperty("name", "old");
   space.AddProperty("vmName", "PageSpace");
   space.AddProperty("collections", collections());

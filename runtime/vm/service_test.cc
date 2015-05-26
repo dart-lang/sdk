@@ -209,7 +209,8 @@ TEST_CASE(Service_Code) {
     const intptr_t kBufferSize = 512;
     char buffer[kBufferSize];
     OS::SNPrint(buffer, kBufferSize-1,
-                "{\"type\":\"Code\",\"id\":\"code\\/%" Px64 "-%" Px "\",",
+                "{\"type\":\"Code\",\"fixedId\":true,"
+                "\"id\":\"code\\/%" Px64 "-%" Px "\",",
                 compile_timestamp,
                 entry);
     EXPECT_SUBSTRING(buffer, handler.msg());
@@ -244,7 +245,8 @@ TEST_CASE(Service_Code) {
                       address);
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_SUBSTRING("{\"type\":\"null\",\"id\":\"objects\\/null\","
+  EXPECT_SUBSTRING("{\"type\":\"null\",\"fixedId\":true,"
+                   "\"id\":\"objects\\/null\","
                    "\"valueAsString\":\"null\"",
                    handler.msg());
 

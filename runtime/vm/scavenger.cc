@@ -872,7 +872,6 @@ void Scavenger::PrintToJSONObject(JSONObject* object) {
   ASSERT(isolate != NULL);
   JSONObject space(object, "new");
   space.AddProperty("type", "HeapSpace");
-  space.AddProperty("id", "heaps/new");
   space.AddProperty("name", "new");
   space.AddProperty("vmName", "Scavenger");
   space.AddProperty("collections", collections());

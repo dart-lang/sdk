@@ -122,7 +122,7 @@ class JSONStream : ValueObject {
   void PrintValue(Isolate* isolate, bool ref = true);
   bool PrintValueStr(const String& s, intptr_t limit);
 
-  void PrintServiceId(const char* name, const Object& o);
+  void PrintServiceId(const Object& o);
   void PrintPropertyBool(const char* name, bool b);
   void PrintProperty(const char* name, intptr_t i);
   void PrintProperty64(const char* name, int64_t i);
@@ -181,9 +181,11 @@ class JSONObject : public ValueObject {
     stream_->CloseObject();
   }
 
-  void AddServiceId(const char* name, const Object& o) const {
-    stream_->PrintServiceId(name, o);
+  void AddServiceId(const Object& o) const {
+    stream_->PrintServiceId(o);
   }
+
+  void AddFixedServiceId(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
 
   void AddProperty(const char* name, bool b) const {
     stream_->PrintPropertyBool(name, b);

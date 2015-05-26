@@ -1491,8 +1491,8 @@ void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
-  jsobj.AddPropertyF("id", "isolates/%" Pd "",
-                     static_cast<intptr_t>(main_port()));
+  jsobj.AddFixedServiceId("isolates/%" Pd "",
+                          static_cast<intptr_t>(main_port()));
 
   jsobj.AddProperty("name", debugger_name());
   jsobj.AddPropertyF("number", "%" Pd "",

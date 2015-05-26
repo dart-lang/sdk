@@ -264,16 +264,17 @@ may sometimes be returned with two different values for _id_.
 The _id_ property should be treated as an opaque string by the client:
 it is not meant to be parsed.
 
-An id can be either _temporary_ or _permanent_:
+An id can be either _temporary_ or _fixed_:
 
 * A _temporary_ id can expire over time.  The VM allocates certain ids
   in a ring which evicts old ids over time.
 
-* A _permanent_ id will never expire, but the object it refers to may
-  be collected.  The VM uses permanent ids for objects like scripts,
+* A _fixed_ id will never expire, but the object it refers to may
+  be collected.  The VM uses fixed ids for objects like scripts,
   libraries, and classes.
 
-TODO: Describe how to distinguish temporary/permanent
+If an id is fixed, the _fixedId_ property will be true. If an id is temporary
+the _fixedId_ property will be omitted.
 
 Sometimes a temporary id may expire.  In this case, some RPCs may return
 an _Expired_ [Sentinel](#sentinel) to indicate this.
@@ -730,7 +731,7 @@ _Instance_.
 If the field is uninitialized, the _value_ will be the
 _NotInitialized_ [Sentinel](#sentinel).
 
-If the field is being initialized, the _value_ will be the 
+If the field is being initialized, the _value_ will be the
 _BeingInitialized_ [Sentinel](#sentinel).
 
 ### BoundVariable
@@ -843,7 +844,7 @@ class ClassList extends Response {
 class @Code extends @Object {
   // A name for this code object.
   string name;
-  
+
   // What kind of code object is this?
   CodeKind kind;
 }
@@ -855,7 +856,7 @@ _@Code_ is a reference to a _Code_ object.
 class @Code extends @Object {
   // A name for this code object.
   string name;
-  
+
   // What kind of code object is this?
   CodeKind kind;
 }
@@ -1507,16 +1508,16 @@ they do not represent a problematic condition.  They are normal.
 enum SentinelType {
   // Indicates that the object referred to has been collected by the GC.
   Collected,
-  
+
   // Indicates that an object id has expired.
   Expired,
-  
+
   // Indicates that a variable or field has not been initialized.
   NotInitialized,
-  
+
   // Indicates that a variable or field is in the process of being initialized.
   BeingInitialized,
-  
+
   // Indicates that a variable has been eliminated by the optimizing compiler.
   OptimizedOut
 }
@@ -1703,7 +1704,7 @@ _@TypeArguments_ is a reference to a _TypeArguments_ object.
 class TypeArguments extends Object {
   // A name for this type argument list.
   string name;
-  
+
   // A list of types.
   @Type[] types;
 }
