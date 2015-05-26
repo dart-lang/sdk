@@ -479,27 +479,32 @@ suite('instanceOf', () => {
 
     // Method send
     assert.equal(dart.dsend(o, 'm', 3, 4), 3);
+    assert.equal(dart.dsend(o, 'm', null, 4), null);
     assert.throws(() => dart.dsend(o, 'm', 3));
     assert.throws(() => dart.dsend(o, 'm', "hello", "world"));
     assert.throws(() => dart.dsend(o, 'q', 3));
 
     // Method send through a field
     assert.equal(dart.dsend(o, 'f', 3), 3);
+    assert.equal(dart.dsend(o, 'f', null), null);
     assert.throws(() => dart.dsend(o, 'f', "hello"));
     assert.throws(() => dart.dsend(o, 'f', 3, 4));
 
     // Static method call
     assert.equal(dart.dcall(Tester.s, "hello"), "hello");
+    assert.equal(dart.dcall(Tester.s, null), null);
     assert.throws(() => dart.dcall(Tester.s, "hello", "world"));
     assert.throws(() => dart.dcall(Tester.s, 0, 1));
 
     // Calling an object with a call method
     assert.equal(dart.dcall(o, 3), 3);
+    assert.equal(dart.dcall(o, null), null);
     assert.throws(() => dart.dcall(o, "hello"));
     assert.throws(() => dart.dcall(o, 3, 4));
 
     // Calling through a field containing an object with a call method
     assert.equal(dart.dsend(o, 'me', 3), 3);
+    assert.equal(dart.dsend(o, 'me', null), null);
     assert.throws(() => dart.dsend(o, 'me', "hello"));
     assert.throws(() => dart.dsend(o, 'me', 3, 4));
   });

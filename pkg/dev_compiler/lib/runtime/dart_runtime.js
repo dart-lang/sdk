@@ -240,6 +240,10 @@ var dart, _js_helper, _js_primitives;
   }
   dart.is = instanceOf;
 
+  function instanceOfOrNull(obj, type) {
+    return (obj == null) || instanceOf(obj, type);
+  }
+
   /**
    * Computes the canonical type.
    * This maps JS types onto their corresponding Dart Type.
@@ -465,17 +469,15 @@ var dart, _js_helper, _js_primitives;
       if (actuals.length < this.args.length) return false;
       var index = 0;
       for(let i = 0; i < this.args.length; ++i) {
-        let t = realRuntimeType(actuals[i]);
-        if (!isSubtype(t, this.args[i])) return false;
+        if (!instanceOfOrNull(actuals[i], this.args[i])) return false;
         ++index;
       }
       if (actuals.length == this.args.length) return true;
       let extras = actuals.length - this.args.length;
       if (this.optionals.length > 0) {
         if (extras > this.optionals.length) return false;
-        for(let i = 0; i < extras; ++i) {
-          let t = realRuntimeType(actuals[index + i]);
-          if (!isSubtype(t, this.optionals[i])) return false;
+        for(let i = 0, j=index; i < extras; ++i, ++j) {
+          if (!instanceOfOrNull(actuals[j], this.optionals[i])) return false;
         }
         return true;
       }
@@ -493,8 +495,7 @@ var dart, _js_helper, _js_primitives;
         if (!(Object.prototype.hasOwnProperty.call(this.named, name))) {
           return false;
         }
-        let t = realRuntimeType(opts[name]);
-        if (!isSubtype(t, this.named[name])) return false;
+        if (!instanceOfOrNull(opts[name], this.named[name])) return false;
       }
       return true;
     }
