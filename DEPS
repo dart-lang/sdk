@@ -17,6 +17,8 @@ vars = {
   # If you do not know, use the full path while defining your new deps entry.
   "googlecode_url": "http://%s.googlecode.com/svn",
 
+  "dart_github": "https://github.com/dart-lang/%s.git",
+
   "gyp_rev": "@1752",
   "co19_rev": "@801",
   "chromium_url": "http://src.chromium.org/svn",
@@ -152,109 +154,110 @@ deps = {
       Var("observatory_pub_packages_rev"),
 
   Var("dart_root") + "/third_party/dart-services":
-      "https://github.com/dart-lang/dart-services.git" +
+      (Var("dart_github") % "dart-services") +
       Var("dart_services_rev"),
 
   Var("dart_root") + "/third_party/pkg_tested/analyzer_cli":
-      "https://github.com/dart-lang/analyzer_cli.git" + Var("analyzer_cli_tag"),
+      (Var("dart_github") % "analyzer_cli") + Var("analyzer_cli_tag"),
   Var("dart_root") + "/third_party/pkg/args":
-      "https://github.com/dart-lang/args.git" + Var("args_tag"),
+      (Var("dart_github") % "args") + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async_await":
-      "https://github.com/dart-lang/async_await.git" + Var("async_await_rev"),
+      (Var("dart_github") % "async_await") + Var("async_await_rev"),
   Var("dart_root") + "/third_party/pkg/barback":
-      "https://github.com/dart-lang/barback.git" + Var("barback_rev"),
+      (Var("dart_github") % "barback") + Var("barback_rev"),
   Var("dart_root") + "/third_party/pkg/collection":
-      "https://github.com/dart-lang/collection.git" + Var("collection_rev"),
+      (Var("dart_github") % "collection") + Var("collection_rev"),
   Var("dart_root") + "/third_party/pkg/crypto":
-      "https://github.com/dart-lang/crypto.git" + Var("crypto_rev"),
+      (Var("dart_github") % "crypto") + Var("crypto_rev"),
   Var("dart_root") + "/third_party/pkg/csslib":
-      "https://github.com/dart-lang/csslib.git" + Var("csslib_tag"),
+      (Var("dart_github") % "csslib") + Var("csslib_tag"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
-      "https://github.com/dart-lang/dart_style.git" + Var("dart_style_tag"),
+      (Var("dart_github") % "dart_style") + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/glob":
-      "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
+      (Var("dart_github") % "glob") + Var("glob_rev"),
   Var("dart_root") + "/third_party/pkg/html":
-      "https://github.com/dart-lang/html.git" + Var("html_tag"),
+      (Var("dart_github") % "html") + Var("html_tag"),
   Var("dart_root") + "/third_party/pkg/http":
-      "https://github.com/dart-lang/http.git" + Var("http_rev"),
+      (Var("dart_github") % "http") + Var("http_rev"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
-      "https://github.com/dart-lang/http_multi_server.git" +
+      (Var("dart_github") % "http_multi_server") +
       Var("http_multi_server_tag"),
   Var("dart_root") + "/third_party/pkg/http_parser":
-      "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
+      (Var("dart_github") % "http_parser") + Var("http_parser_rev"),
   Var("dart_root") + "/third_party/pkg/http_throttle":
-      "https://github.com/dart-lang/http_throttle.git" +
+      (Var("dart_github") % "http_throttle") +
       Var("http_throttle_rev"),
   Var("dart_root") + "/third_party/pkg/intl":
-      "https://github.com/dart-lang/intl.git" + Var("intl_rev"),
+      (Var("dart_github") % "intl") + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
-      "https://github.com/dart-lang/json_rpc_2.git" + Var("json_rpc_2_rev"),
+      (Var("dart_github") % "json_rpc_2") + Var("json_rpc_2_rev"),
   Var("dart_root") + "/third_party/pkg/linter":
-      "https://github.com/dart-lang/linter.git" + Var("linter_tag"),
+      (Var("dart_github") % "linter") + Var("linter_tag"),
   Var("dart_root") + "/third_party/pkg/logging":
-      "https://github.com/dart-lang/logging.git" + Var("logging_rev"),
+      (Var("dart_github") % "logging") + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
       "https://github.com/dpeek/dart-markdown.git" + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/matcher":
-      "https://github.com/dart-lang/matcher.git" + Var("matcher_tag"),
+      (Var("dart_github") % "matcher") + Var("matcher_tag"),
   Var("dart_root") + "/third_party/pkg/metatest":
-      "https://github.com/dart-lang/metatest.git" + Var("metatest_rev"),
+      (Var("dart_github") % "metatest") + Var("metatest_rev"),
   Var("dart_root") + "/third_party/pkg/mime":
-      "https://github.com/dart-lang/mime.git" + Var("mime_rev"),
+      (Var("dart_github") % "mime") + Var("mime_rev"),
   Var("dart_root") + "/third_party/pkg/oauth2":
-      "https://github.com/dart-lang/oauth2.git" + Var("oauth2_rev"),
+      (Var("dart_github") % "oauth2") + Var("oauth2_rev"),
   Var("dart_root") + "/third_party/pkg/observe":
-      "https://github.com/dart-lang/observe.git" + Var("observe_rev"),
+      (Var("dart_github") % "observe") + Var("observe_rev"),
   Var("dart_root") + "/third_party/pkg/package_config":
-      "https://github.com/dart-lang/package_config.git" +
+      (Var("dart_github") % "package_config") +
       Var("package_config_rev"),
   Var("dart_root") + "/third_party/pkg/path":
-      "https://github.com/dart-lang/path.git" + Var("path_rev"),
+      (Var("dart_github") % "path") + Var("path_rev"),
   Var("dart_root") + "/third_party/pkg/plugin":
-      "https://github.com/dart-lang/plugin.git" + Var("plugin_tag"),
+      (Var("dart_github") % "plugin") + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
-      "https://github.com/dart-lang/pool.git" + Var("pool_rev"),
+      (Var("dart_github") % "pool") + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
-      "https://github.com/dart-lang/pub_semver.git" + Var("pub_semver_tag"),
+      (Var("dart_github") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
-      "https://github.com/dart-lang/scheduled_test.git" +
+      (Var("dart_github") % "scheduled_test") +
       Var("scheduled_test_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
-      "https://github.com/dart-lang/shelf.git" + Var("shelf_rev"),
+      (Var("dart_github") % "shelf") + Var("shelf_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
-      "https://github.com/dart-lang/shelf_web_socket.git" +
+      (Var("dart_github") % "shelf_web_socket") +
       Var("shelf_web_socket_rev"),
   Var("dart_root") + "/third_party/pkg/smoke":
-      "https://github.com/dart-lang/smoke.git" + Var("smoke_rev"),
+      (Var("dart_github") % "smoke") + Var("smoke_rev"),
   Var("dart_root") + "/third_party/pkg/source_maps":
-      "https://github.com/dart-lang/source_maps.git" + Var("source_maps_rev"),
+      (Var("dart_github") % "source_maps") + Var("source_maps_rev"),
   Var("dart_root") + "/third_party/pkg/source_span":
-      "https://github.com/dart-lang/source_span.git" + Var("source_span_rev"),
+      (Var("dart_github") % "source_span") + Var("source_span_rev"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
-      "https://github.com/dart-lang/stack_trace.git" + Var("stack_trace_tag"),
+      (Var("dart_github") % "stack_trace") + Var("stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/string_scanner":
-      "https://github.com/dart-lang/string_scanner.git" +
+      (Var("dart_github") % "string_scanner") +
       Var("string_scanner_rev"),
   Var("dart_root") + "/third_party/sunflower":
-      "https://github.com/dart-lang/sample-sunflower.git" +
+      (Var("dart_github") % "sample-sunflower") +
       Var("sunflower_rev"),
   Var("dart_root") + "/third_party/pkg/test":
-      "https://github.com/dart-lang/test.git" + Var("test_tag"),
+      (Var("dart_github") % "test") + Var("test_tag"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
-      "https://github.com/dart-lang/test_reflective_loader.git" + Var("test_reflective_loader_tag"),
+      (Var("dart_github") % "test_reflective_loader") + 
+      Var("test_reflective_loader_tag"),
   Var("dart_root") + "/third_party/pkg/unittest":
-      "https://github.com/dart-lang/test.git" + Var("unittest_tag"),
+      (Var("dart_github") % "test") + Var("unittest_tag"),
   Var("dart_root") + "/third_party/pkg/usage":
-      "https://github.com/dart-lang/usage.git" + Var("usage_rev"),
+      (Var("dart_github") % "usage") + Var("usage_rev"),
   Var("dart_root") + "/third_party/pkg/utf":
-      "https://github.com/dart-lang/utf.git" + Var("utf_rev"),
+      (Var("dart_github") % "utf") + Var("utf_rev"),
   Var("dart_root") + "/third_party/pkg/watcher":
-      "https://github.com/dart-lang/watcher.git" + Var("watcher_tag"),
+      (Var("dart_github") % "watcher") + Var("watcher_tag"),
   Var("dart_root") + "/third_party/pkg/web_components":
-      "https://github.com/dart-lang/web-components.git" +
+      (Var("dart_github") % "web-components") +
       Var("web_components_rev"),
   Var("dart_root") + "/third_party/pkg/yaml":
-      "https://github.com/dart-lang/yaml.git" + Var("yaml_rev"),
+      (Var("dart_github") % "yaml") + Var("yaml_rev"),
 
   # These specific versions of barback and source_maps are used for testing and
   # should be pulled from bleeding_edge even on channels.
