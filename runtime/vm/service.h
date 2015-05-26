@@ -67,7 +67,14 @@ class Service : public AllStatic {
   // Handles a message which is directed to a particular isolate.
   static void HandleIsolateMessage(Isolate* isolate, const Array& message);
 
-  static bool NeedsEvents();
+  static bool NeedsIsolateEvents() { return needs_isolate_events_; }
+  static bool NeedsDebugEvents() { return needs_debug_events_; }
+  static bool NeedsGCEvents() { return needs_gc_events_; }
+  static bool NeedsEchoEvents() { return needs_echo_events_; }
+  static bool NeedsGraphEvents() { return needs_graph_events_; }
+
+  static void ListenStream(const char* stream_id);
+  static void CancelStream(const char* stream_id);
 
   static void HandleEvent(ServiceEvent* event);
 
@@ -94,15 +101,24 @@ class Service : public AllStatic {
   static EmbedderServiceHandler* FindIsolateEmbedderHandler(const char* name);
   static EmbedderServiceHandler* FindRootEmbedderHandler(const char* name);
 
-  static void SendEvent(intptr_t eventType,
+  static void SendEvent(const char* stream_id,
+                        const char* event_type,
                         const Object& eventMessage);
   // Does not take ownership of 'data'.
-  static void SendEvent(const String& meta,
-                        const uint8_t* data,
-                        intptr_t size);
+  static void SendEventWithData(const char* stream_id,
+                                const char* event_type,
+                                const String& meta,
+                                const uint8_t* data,
+                                intptr_t size);
 
   static EmbedderServiceHandler* isolate_service_handler_head_;
   static EmbedderServiceHandler* root_service_handler_head_;
+
+  static bool needs_isolate_events_;
+  static bool needs_debug_events_;
+  static bool needs_gc_events_;
+  static bool needs_echo_events_;
+  static bool needs_graph_events_;
 };
 
 }  // namespace dart

@@ -5,18 +5,19 @@
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
+import 'dart:async';
 import 'test_helper.dart';
 
-printSync() {  // Line 10
+printSync() {  // Line 11
   print('sync');
 }
-printAsync() async {  // Line 13
+printAsync() async {  // Line 14
   print('async');
 }
-printAsyncStar() async* {  // Line 16
+printAsyncStar() async* {  // Line 17
   print('async*');
 }
-printSyncStar() sync* {  // Line 19
+printSyncStar() sync* {  // Line 20
   print('sync*');
 }
 
@@ -34,7 +35,7 @@ testeeDo() {
   var stream = printAsyncStar();
   var iterator = printSyncStar();
 
-  print('middle');  // Line 37.
+  print('middle');  // Line 38
 
   future.then((v) => print(v));
   stream.toList();
@@ -45,41 +46,45 @@ testAsync(Isolate isolate) async {
   await isolate.rootLibrary.load();
   var script = isolate.rootLibrary.scripts[0];
 
-  var bp1 = await isolate.addBreakpoint(script, 10);
+  var bp1 = await isolate.addBreakpoint(script, 11);
   expect(bp1, isNotNull);
   expect(bp1 is Breakpoint, isTrue);
-  var bp2 = await isolate.addBreakpoint(script, 13);
+  var bp2 = await isolate.addBreakpoint(script, 14);
   expect(bp2, isNotNull);
   expect(bp2 is Breakpoint, isTrue);
-  var bp3 = await isolate.addBreakpoint(script, 16);
+  var bp3 = await isolate.addBreakpoint(script, 17);
   expect(bp3, isNotNull);
   expect(bp3 is Breakpoint, isTrue);
-  var bp4 = await isolate.addBreakpoint(script, 19);
+  var bp4 = await isolate.addBreakpoint(script, 20);
   expect(bp4, isNotNull);
   expect(bp4 is Breakpoint, isTrue);
-  var bp5 = await isolate.addBreakpoint(script, 37);
+  var bp5 = await isolate.addBreakpoint(script, 38);
   print("BP5 - $bp5");
   expect(bp5, isNotNull);
   expect(bp5 is Breakpoint, isTrue);
 
   var hits = [];
 
-  isolate.rootLibrary.evaluate('testerReady = true;')
-      .then((Instance result) {
-        expect(result.valueAsString, equals('true'));
-      });
-
-  await for (ServiceEvent event in isolate.vm.events.stream) {
+  Completer completer = new Completer();
+  isolate.vm.debugEvents.listen((ServiceEvent event) {
     if (event.eventType == ServiceEvent.kPauseBreakpoint) {
       var bp = event.breakpoint;
       print('Hit $bp');
       hits.add(bp);
       isolate.resume();
 
-      if (hits.length == 5) break;
+      if (hits.length == 5) {
+        completer.complete();
+      }
     }
-  }
+  });
 
+  isolate.rootLibrary.evaluate('testerReady = true;')
+      .then((Instance result) {
+        expect(result.valueAsString, equals('true'));
+      });
+
+  await completer.future;
   expect(hits, equals([bp1, bp5, bp4, bp2, bp3]));
 }
 

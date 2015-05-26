@@ -34,11 +34,16 @@ enum JSONRpcErrorCode {
   kInvalidParams  = -32602,
   kInternalError  = -32603,
 
-  kVMMustBePaused    = 100,
-  kNoBreakAtLine     = 101,
-  kNoBreakAtFunction = 102,
+  // These must be kept in sync with vm/service/vmservice.dart.
+  kInvalidStream           = 100,
+  kStreamAlreadySubscribed = 101,
+  kStreamNotSubscribed     = 102,
 
-  kProfilingDisabled = 200,
+  kVMMustBePaused    = 200,
+  kNoBreakAtLine     = 201,
+  kNoBreakAtFunction = 202,
+
+  kProfilingDisabled = 300,
 };
 
 

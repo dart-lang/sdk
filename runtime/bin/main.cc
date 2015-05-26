@@ -834,8 +834,8 @@ class DartScope {
 };
 
 
-static const char* ServiceRequestHandler(
-    const char* name,
+static const char* ServiceGetIOHandler(
+    const char* method,
     const char** param_keys,
     const char** param_values,
     intptr_t num_params,
@@ -952,7 +952,7 @@ void main(int argc, char** argv) {
   }
 
   Dart_RegisterIsolateServiceRequestCallback(
-        "io", &ServiceRequestHandler, NULL);
+        "getIO", &ServiceGetIOHandler, NULL);
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.

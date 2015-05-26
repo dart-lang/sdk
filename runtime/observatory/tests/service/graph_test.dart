@@ -39,7 +39,7 @@ var tests = [
 
 (Isolate isolate) {
   Completer completer = new Completer();
-  isolate.vm.events.stream.listen((ServiceEvent event) {
+  isolate.vm.getEventStream('_Graph').listen((ServiceEvent event) {
     if (event.eventType == ServiceEvent.kGraph) {
       ReadStream reader = new ReadStream(event.data);
       ObjectGraph graph = new ObjectGraph(reader);

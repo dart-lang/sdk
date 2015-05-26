@@ -7,7 +7,6 @@ library debugger_page_element;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
-import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
 import 'package:observatory/service.dart';
@@ -879,8 +878,11 @@ class ObservatoryDebugger extends Debugger {
           }
         }
         Future.wait(pending).then((_) {
-          if (_subscription == null) {
-            _subscription = vm.events.stream.listen(_onEvent);
+          if (_isolateSubscription == null) {
+            _isolateSubscription = vm.isolateEvents.listen(_onEvent);
+          }
+          if (_debugSubscription == null) {
+            _debugSubscription = vm.debugEvents.listen(_onEvent);
           }
           _refreshStack(isolate.pauseEvent).then((_) {
             reportStatus();
@@ -906,7 +908,8 @@ class ObservatoryDebugger extends Debugger {
   }
   Isolate get isolate => _isolate;
   Isolate _isolate;
-  var _subscription;
+  var _isolateSubscription;
+  var _debugSubscription;
 
   void init() {
     console.newline();
@@ -1173,7 +1176,6 @@ class ObservatoryDebugger extends Debugger {
 
 @CustomTag('debugger-page')
 class DebuggerPageElement extends ObservatoryElement {
-  @published ObservatoryApplication app;
   @published Isolate isolate;
 
   isolateChanged(oldValue) {
