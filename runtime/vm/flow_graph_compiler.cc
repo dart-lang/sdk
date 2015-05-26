@@ -1241,6 +1241,7 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   if (PP != kNoRegister) {
     blocked_registers[PP] = true;
   }
+  blocked_registers[THR] = true;
 
   // Block all non-free registers.
   for (intptr_t i = 0; i < kFirstFreeCpuRegister; i++) {

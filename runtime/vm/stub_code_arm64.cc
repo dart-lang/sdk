@@ -770,7 +770,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 //   R0 : entrypoint of the Dart function to call.
 //   R1 : arguments descriptor array.
 //   R2 : arguments array.
-//   R3 : new context containing the current isolate pointer.
+//   R3 : current thread.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
 
@@ -799,6 +799,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // set up.
   __ LoadPoolPointer(PP);
 
+  // Set up THR, which caches the current thread in Dart code.
+  if (THR != R3) {
+    __ mov(THR, R3);
+  }
   // Load Isolate pointer into temporary register R5.
   __ LoadIsolate(R5, PP);
 
@@ -1983,6 +1987,8 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ mov(FP, R2);  // Frame_pointer.
   __ mov(R0, R3);  // Exception object.
   __ mov(R1, R4);  // StackTrace object.
+  // TODO(koda): Pass thread instead of isolate.
+  __ LoadFromOffset(THR, R5, Isolate::mutator_thread_offset(), kNoPP);
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId, kNoPP);
   __ StoreToOffset(R2, R5, Isolate::vm_tag_offset(), kNoPP);

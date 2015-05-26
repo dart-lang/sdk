@@ -3553,18 +3553,22 @@ ASSEMBLER_TEST_RUN(ReciprocalSqrt, test) {
 // R0: context.
 // R1: value.
 // R2: growable array.
+// R3: current thread.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ SetupDartSP(kTestStackSpace);
   __ TagAndPushPP();
   __ LoadPoolPointer(PP);
+  __ Push(THR);
   __ Push(CTX);
   __ Push(LR);
   __ mov(CTX, R0);
+  __ mov(THR, R3);
   __ StoreIntoObject(R2,
                      FieldAddress(R2, GrowableObjectArray::data_offset()),
                      R1);
   __ Pop(LR);
   __ Pop(CTX);
+  __ Pop(THR);
   __ PopAndUntagPP();
   __ mov(CSP, SP);
   __ ret();

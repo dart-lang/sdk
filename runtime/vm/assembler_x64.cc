@@ -2810,7 +2810,7 @@ void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
 
 
 void Assembler::LoadIsolate(Register dst) {
-  movq(dst, Immediate(reinterpret_cast<uword>(Isolate::Current())));
+  movq(dst, Address(THR, Thread::isolate_offset()));
 }
 
 

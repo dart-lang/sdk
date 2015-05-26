@@ -56,6 +56,9 @@ class Thread {
 
   // The isolate that this thread is operating on, or NULL if none.
   Isolate* isolate() const { return isolate_; }
+  static intptr_t isolate_offset() {
+    return OFFSET_OF(Thread, isolate_);
+  }
 
   // The (topmost) CHA for the compilation in the isolate of this thread.
   // TODO(23153): Move this out of Isolate/Thread.

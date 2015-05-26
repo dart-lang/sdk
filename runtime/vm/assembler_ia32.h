@@ -853,6 +853,7 @@ class Assembler : public ValueObject {
   //   pushl immediate(0)
   //   .....
   void EnterStubFrame();
+  static const intptr_t kEnterStubFramePushedWords = 2;
 
   // Instruction pattern from entrypoint is used in dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the

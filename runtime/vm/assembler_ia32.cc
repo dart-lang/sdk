@@ -2125,7 +2125,7 @@ void Assembler::Drop(intptr_t stack_elements) {
 
 
 void Assembler::LoadIsolate(Register dst) {
-  movl(dst, Immediate(reinterpret_cast<uword>(Isolate::Current())));
+  movl(dst, Address(THR, Thread::isolate_offset()));
 }
 
 

@@ -2086,18 +2086,21 @@ ASSEMBLER_TEST_RUN(Cop1CvtSD, test) {
 // A0: context.
 // A1: value.
 // A2: growable array.
+// A3: current thread.
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
-  __ addiu(SP, SP, Immediate(-2 * kWordSize));
+  __ addiu(SP, SP, Immediate(-3 * kWordSize));
+  __ sw(THR, Address(SP, 2 * kWordSize));
   __ sw(CTX, Address(SP, 1 * kWordSize));
   __ sw(RA, Address(SP, 0 * kWordSize));
-
   __ mov(CTX, A0);
+  __ mov(THR, A3);
   __ StoreIntoObject(A2,
                      FieldAddress(A2, GrowableObjectArray::data_offset()),
                      A1);
   __ lw(RA, Address(SP, 0 * kWordSize));
   __ lw(CTX, Address(SP, 1 * kWordSize));
-  __ addiu(SP, SP, Immediate(2 * kWordSize));
+  __ lw(THR, Address(SP, 2 * kWordSize));
+  __ addiu(SP, SP, Immediate(3 * kWordSize));
   __ Ret();
 }
 

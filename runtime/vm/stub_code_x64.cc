@@ -701,7 +701,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 //   RDI : entrypoint of the Dart function to call.
 //   RSI : arguments descriptor array.
 //   RDX : arguments array.
-//   RCX : new context containing the current isolate pointer.
+//   RCX : current thread.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
   __ EnterFrame(0);
@@ -709,6 +709,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   const Register kEntryPointReg = CallingConventions::kArg1Reg;
   const Register kArgDescReg    = CallingConventions::kArg2Reg;
   const Register kArgsReg       = CallingConventions::kArg3Reg;
+  const Register kThreadReg     = CallingConventions::kArg4Reg;
 
   // At this point, the stack looks like:
   // | saved RBP                                      | <-- RBP
@@ -731,6 +732,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // If any additional (or fewer) values are pushed, the offsets in
   // kExitLinkSlotFromEntryFp will need to be changed.
 
+  // Set up THR, which caches the current thread in Dart code.
+  if (THR != kThreadReg) {
+    __ movq(THR, kThreadReg);
+  }
   // Load Isolate pointer into kIsolateReg.
   const Register kIsolateReg = RBX;
   __ LoadIsolate(kIsolateReg);
@@ -1305,9 +1310,9 @@ static void EmitFastSmiOp(Assembler* assembler,
     // Update counter.
     __ movq(R8, Address(R12, count_offset));
     __ addq(R8, Immediate(Smi::RawValue(1)));
-    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ cmovnoq(R9, R8);
-    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+    __ movq(R13, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R13, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R13);
   }
 
   __ ret();
@@ -1471,9 +1476,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ Comment("Update caller's counter");
     __ movq(R8, Address(R12, count_offset));
     __ addq(R8, Immediate(Smi::RawValue(1)));
-    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ cmovnoq(R9, R8);
-    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+    __ movq(R13, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R13, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R13);
   }
 
   __ Comment("Call target");
@@ -1485,12 +1490,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   if (range_collection_mode == kCollectRanges) {
     __ movq(R8, Address(RSP, + 1 * kWordSize));
     if (num_args == 2) {
-      __ movq(R9, Address(RSP, + 2 * kWordSize));
+      __ movq(R13, Address(RSP, + 2 * kWordSize));
     }
     __ EnterStubFrame();
     __ pushq(RBX);
     if (num_args == 2) {
-      __ pushq(R9);
+      __ pushq(R13);
     }
     __ pushq(R8);
     __ call(RCX);
@@ -1689,9 +1694,9 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
     // Increment count for this call.
     __ movq(R8, Address(R12, count_offset));
     __ addq(R8, Immediate(Smi::RawValue(1)));
-    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ cmovnoq(R9, R8);
-    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+    __ movq(R13, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R13, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R13);
   }
 
   // Load arguments descriptor into R10.
@@ -1973,7 +1978,8 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   Register stacktrace_reg = CallingConventions::kArg5Reg;
   Register isolate_reg = CallingConventions::kArg6Reg;
 #endif
-
+  // TODO(koda): Pass thread instead of isolate.
+  __ movq(THR, Address(isolate_reg, Isolate::mutator_thread_offset()));
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
   __ movq(kStackTraceObjectReg, stacktrace_reg);

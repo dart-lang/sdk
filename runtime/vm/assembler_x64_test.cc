@@ -3308,6 +3308,8 @@ ASSEMBLER_TEST_RUN(SquareRootDouble, test) {
 ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
   __ pushq(PP);  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
+  __ pushq(THR);
+  __ movq(THR, CallingConventions::kArg4Reg);
   __ pushq(CTX);
   __ movq(CTX, CallingConventions::kArg1Reg);
   __ StoreIntoObject(CallingConventions::kArg3Reg,
@@ -3315,6 +3317,7 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
                                   GrowableObjectArray::data_offset()),
                      CallingConventions::kArg2Reg);
   __ popq(CTX);
+  __ popq(THR);
   __ popq(PP);  // Restore caller's pool pointer.
   __ ret();
 }

@@ -15,17 +15,18 @@ ASSEMBLER_TEST_EXTERN(StoreIntoObject);
 
 ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
 #if defined(USING_SIMULATOR)
-#define test_code(ctx, value, growable_array)                                  \
+#define test_code(ctx, value, growable_array, thread)                          \
   Simulator::Current()->Call(                                                  \
       bit_cast<intptr_t, uword>(test->entry()),                                \
       reinterpret_cast<intptr_t>(ctx),                                         \
       reinterpret_cast<intptr_t>(value),                                       \
       reinterpret_cast<intptr_t>(growable_array),                              \
-      0)
+      reinterpret_cast<intptr_t>(thread))
 #else
   typedef void (*StoreData)(RawContext* ctx,
                             RawObject* value,
-                            RawObject* growable_array);
+                            RawObject* growable_array,
+                            Thread* thread);
   StoreData test_code = reinterpret_cast<StoreData>(test->entry());
 #endif
 
@@ -37,6 +38,7 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
       GrowableObjectArray::New(old_array, Heap::kNew));
   Smi& smi = Smi::Handle();
   const Context& ctx = Context::Handle(Context::New(0));
+  Thread* thread = Thread::Current();
 
   EXPECT(old_array.raw() == grow_old_array.data());
   EXPECT(!Isolate::Current()->store_buffer()->Contains(grow_old_array.raw()));
@@ -46,28 +48,28 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
   // Store Smis into the old object.
   for (int i = -128; i < 128; i++) {
     smi = Smi::New(i);
-    test_code(ctx.raw(), smi.raw(), grow_old_array.raw());
+    test_code(ctx.raw(), smi.raw(), grow_old_array.raw(), thread);
     EXPECT(reinterpret_cast<RawArray*>(smi.raw()) == grow_old_array.data());
     EXPECT(!Isolate::Current()->store_buffer()->Contains(grow_old_array.raw()));
   }
 
   // Store an old object into the old object.
-  test_code(ctx.raw(), old_array.raw(), grow_old_array.raw());
+  test_code(ctx.raw(), old_array.raw(), grow_old_array.raw(), thread);
   EXPECT(old_array.raw() == grow_old_array.data());
   EXPECT(!Isolate::Current()->store_buffer()->Contains(grow_old_array.raw()));
 
   // Store a new object into the old object.
-  test_code(ctx.raw(), new_array.raw(), grow_old_array.raw());
+  test_code(ctx.raw(), new_array.raw(), grow_old_array.raw(), thread);
   EXPECT(new_array.raw() == grow_old_array.data());
   EXPECT(Isolate::Current()->store_buffer()->Contains(grow_old_array.raw()));
 
   // Store a new object into the new object.
-  test_code(ctx.raw(), new_array.raw(), grow_new_array.raw());
+  test_code(ctx.raw(), new_array.raw(), grow_new_array.raw(), thread);
   EXPECT(new_array.raw() == grow_new_array.data());
   EXPECT(!Isolate::Current()->store_buffer()->Contains(grow_new_array.raw()));
 
   // Store an old object into the new object.
-  test_code(ctx.raw(), old_array.raw(), grow_new_array.raw());
+  test_code(ctx.raw(), old_array.raw(), grow_new_array.raw(), thread);
   EXPECT(old_array.raw() == grow_new_array.data());
   EXPECT(!Isolate::Current()->store_buffer()->Contains(grow_new_array.raw()));
 }

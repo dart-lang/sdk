@@ -118,6 +118,7 @@ FlowGraphAllocator::FlowGraphAllocator(const FlowGraph& flow_graph,
   }
   blocked_cpu_registers_[SPREG] = true;
   blocked_cpu_registers_[FPREG] = true;
+  blocked_cpu_registers_[THR] = true;
 
   // FpuTMP is used as scratch by optimized code and parallel move resolver.
   blocked_fpu_registers_[FpuTMP] = true;
