@@ -655,7 +655,7 @@ class ClassElementY extends TypeDeclarationElementY
   lookupMember(String memberName) => unsupported('lookupMember');
 
   @override
-  lookupSelector(selector) => unsupported('lookupSelector');
+  lookupByName(dart2js.Name  memberName) => unsupported('lookupByName');
 
   @override
   lookupSuperMember(String memberName) => unsupported('lookupSuperMember');
@@ -666,7 +666,8 @@ class ClassElementY extends TypeDeclarationElementY
   }
 
   @override
-  lookupSuperSelector(selector) => unsupported('lookupSuperSelector');
+  lookupSuperByName(dart2js.Name memberName) =>
+      unsupported('lookupSuperByName');
 
   @override
   String get nativeTagInfo => unsupported('nativeTagInfo');
