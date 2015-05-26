@@ -55,9 +55,9 @@ var tests = [
     Field field = lib.variables.singleWhere((v) => v.name == 'cleanBlock');
     return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);
-      expect(block.closureCtxt.isContext, isTrue);
-      expect(block.closureCtxt.length, equals(0));
-      return block.closureCtxt.load().then((Context ctxt) {
+      expect(block.context.isContext, isTrue);
+      expect(block.context.length, equals(0));
+      return block.context.load().then((Context ctxt) {
         expect(ctxt.parentContext.isNull, isTrue);
       });
     });
@@ -68,9 +68,9 @@ var tests = [
     Field field = lib.variables.singleWhere((v) => v.name == 'copyingBlock');
     return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);
-      expect(block.closureCtxt.isContext, isTrue);
-      expect(block.closureCtxt.length, equals(1));
-      return block.closureCtxt.load().then((Context ctxt) {
+      expect(block.context.isContext, isTrue);
+      expect(block.context.length, equals(1));
+      return block.context.load().then((Context ctxt) {
         expect(ctxt.variables.single['value'].isString, isTrue);
         expect(ctxt.variables.single['value'].valueAsString, equals('I could be copied into the block'));
         expect(ctxt.parentContext.isContext, isTrue);
@@ -87,9 +87,9 @@ var tests = [
     Field field = lib.variables.singleWhere((v) => v.name == 'fullBlock');
     return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);
-      expect(block.closureCtxt.isContext, isTrue);
-      expect(block.closureCtxt.length, equals(1));
-      return block.closureCtxt.load().then((ctxt) {
+      expect(block.context.isContext, isTrue);
+      expect(block.context.length, equals(1));
+      return block.context.load().then((ctxt) {
         expect(ctxt.variables.single['value'].isInt, isTrue);
         expect(ctxt.variables.single['value'].valueAsString, equals('43'));
         expect(ctxt.parentContext.isContext, isTrue);
@@ -106,9 +106,9 @@ var tests = [
     Field field = lib.variables.singleWhere((v) => v.name == 'fullBlockWithChain');
     return field.value.load().then((Instance block) {
       expect(block.isClosure, isTrue);
-      expect(block.closureCtxt.isContext, isTrue);
-      expect(block.closureCtxt.length, equals(1));
-      return block.closureCtxt.load().then((Context ctxt) {
+      expect(block.context.isContext, isTrue);
+      expect(block.context.length, equals(1));
+      return block.context.load().then((Context ctxt) {
         expect(ctxt.variables.single['value'].isInt, isTrue);
         expect(ctxt.variables.single['value'].valueAsString, equals('4201'));
         expect(ctxt.parentContext.isContext, isTrue);

@@ -1794,8 +1794,8 @@ class Instance extends ServiceObject {
   @observable int retainedSize;
   @observable String valueAsString;  // If primitive.
   @observable bool valueAsStringIsTruncated;
-  @observable ServiceFunction closureFunc;  // If a closure.
-  @observable Context closureCtxt;  // If a closure.
+  @observable ServiceFunction function;  // If a closure.
+  @observable Context context;  // If a closure.
   @observable String name;  // If a Type.
   @observable int length; // If a List.
 
@@ -1808,7 +1808,7 @@ class Instance extends ServiceObject {
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
 
-  bool get isClosure => closureFunc != null;
+  bool get isClosure => function != null;
 
   Instance._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1821,8 +1821,8 @@ class Instance extends ServiceObject {
     valueAsString = map['valueAsString'];
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
-    closureFunc = map['closureFunc'];
-    closureCtxt = map['closureCtxt'];
+    function = map['function'];
+    context = map['context'];
     name = map['name'];
     length = map['length'];
 
@@ -1845,7 +1845,7 @@ class Instance extends ServiceObject {
 
   String get shortName {
     if (isClosure) {
-      return closureFunc.qualifiedName;
+      return function.qualifiedName;
     }
     if (valueAsString != null) {
       return valueAsString;

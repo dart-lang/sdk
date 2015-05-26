@@ -14145,10 +14145,8 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddServiceId("id", *this);
   if (IsClosure()) {
-    const Function& closureFunc = Function::Handle(Closure::function(*this));
-    jsobj.AddProperty("closureFunc", closureFunc);
-    const Context& closureCtxt = Context::Handle(Closure::context(*this));
-    jsobj.AddProperty("closureCtxt", closureCtxt);
+    jsobj.AddProperty("function", Function::Handle(Closure::function(*this)));
+    jsobj.AddProperty("context", Context::Handle(Closure::context(*this)));
   }
   if (ref) {
     return;
