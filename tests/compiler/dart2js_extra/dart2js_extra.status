@@ -82,6 +82,7 @@ bound_closure_interceptor_type_test: Crash # Instance of 'TypeOperator': type ch
 checked_accessor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
 code_motion_exception_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_send_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 constant_javascript_semantics2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 constant_javascript_semantics3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred/deferred_class_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
@@ -97,6 +98,7 @@ do_test: Timeout # Please triage this failure.
 for_test: Timeout # Please triage this failure.
 generics_factories_test: Crash # Please triage this failure.
 generics_is_check1_test: Crash # Instance of 'TypeOperator': type check unimplemented for Hest<int>.
+if_null_test: Crash # Please triage this failure.
 inference_nsm_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_is_int_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 interface_type_optimization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

@@ -219,6 +219,10 @@ io/issue_22637_test: Crash #  cannot handle async/sync*/async* functions
 io/link_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/link_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/observatory_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/platform_executable_test/01: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_executable_test/02: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_executable_test/04: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_executable_test/05: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
 io/platform_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/process_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/process_run_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.

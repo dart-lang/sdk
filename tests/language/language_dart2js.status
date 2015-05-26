@@ -423,6 +423,55 @@ closures_initializer2_test: Crash # Please triage this failure.
 closures_initializer_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 compile_time_constant_a_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 compile_time_constant_b_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_method_invocation_test/01: RuntimeError # Please triage this failure.
+conditional_method_invocation_test/02: RuntimeError # Please triage this failure.
+conditional_method_invocation_test/03: RuntimeError # Please triage this failure.
+conditional_method_invocation_test/04: RuntimeError # Please triage this failure.
+conditional_method_invocation_test/05: RuntimeError # Please triage this failure.
+conditional_method_invocation_test/06: RuntimeError # Please triage this failure.
+conditional_method_invocation_test/07: RuntimeError # Please triage this failure.
+conditional_method_invocation_test/08: RuntimeError # Please triage this failure.
+conditional_method_invocation_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_method_invocation_test/10: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_method_invocation_test/11: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_method_invocation_test/12: RuntimeError # Please triage this failure.
+conditional_method_invocation_test/13: RuntimeError # Please triage this failure.
+conditional_method_invocation_test/none: RuntimeError # Please triage this failure.
+conditional_property_access_test/01: RuntimeError # Please triage this failure.
+conditional_property_access_test/02: RuntimeError # Please triage this failure.
+conditional_property_access_test/03: RuntimeError # Please triage this failure.
+conditional_property_access_test/04: RuntimeError # Please triage this failure.
+conditional_property_access_test/05: RuntimeError # Please triage this failure.
+conditional_property_access_test/06: RuntimeError # Please triage this failure.
+conditional_property_access_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_access_test/08: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_access_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_access_test/10: RuntimeError # Please triage this failure.
+conditional_property_access_test/11: RuntimeError # Please triage this failure.
+conditional_property_access_test/none: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/01: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/02: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/03: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/04: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/05: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/06: Crash # Instance of 'TypeOperator': type casts not implemented.
+conditional_property_assignment_test/07: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/08: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/09: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/10: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/11: Crash # Instance of 'TypeOperator': type casts not implemented.
+conditional_property_assignment_test/12: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/13: RuntimeError # Please triage this failure.
+conditional_property_assignment_test/14: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_assignment_test/15: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_assignment_test/16: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_assignment_test/17: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_assignment_test/18: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_assignment_test/19: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_assignment_test/20: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_assignment_test/21: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_assignment_test/22: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_property_assignment_test/none: RuntimeError # Please triage this failure.
 const_evaluation_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 const_nested_test: Crash # Please triage this failure.
 const_objects_are_immutable_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -547,7 +596,7 @@ factory_return_type_checked_test: Crash # Instance of 'TypeOperator': type check
 factory_type_parameter2_test: Crash # Please triage this failure.
 factory_type_parameter_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<List>.
 fast_method_extraction_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
-final_super_field_set_test/01: RuntimeError # Issue 23509
+final_super_field_set_test/01: RuntimeError # Please triage this failure.
 finally_test: Crash # (try {i=12;}finally {Expect.equals(12,i);executedFinally=true;}): try/finally
 first_class_types_literals_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 first_class_types_literals_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -658,6 +707,105 @@ generic_native_test: Crash # Instance of 'TypeOperator': type check unimplemente
 generic_object_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 generic_parameterized_extends_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<Object>.
 generic_test: Crash # Instance of 'TypeOperator': type check unimplemented for B<AA>.
+if_null_assignment_behavior_test/01: Crash # Please triage this failure.
+if_null_assignment_behavior_test/02: Crash # Please triage this failure.
+if_null_assignment_behavior_test/03: Crash # Please triage this failure.
+if_null_assignment_behavior_test/04: Crash # Please triage this failure.
+if_null_assignment_behavior_test/05: Crash # Please triage this failure.
+if_null_assignment_behavior_test/06: Crash # Please triage this failure.
+if_null_assignment_behavior_test/07: Crash # Please triage this failure.
+if_null_assignment_behavior_test/08: Crash # Please triage this failure.
+if_null_assignment_behavior_test/09: Crash # Please triage this failure.
+if_null_assignment_behavior_test/10: Crash # Please triage this failure.
+if_null_assignment_behavior_test/11: Crash # Please triage this failure.
+if_null_assignment_behavior_test/12: Crash # Please triage this failure.
+if_null_assignment_behavior_test/15: Crash # Please triage this failure.
+if_null_assignment_behavior_test/16: Crash # Please triage this failure.
+if_null_assignment_behavior_test/17: Crash # Please triage this failure.
+if_null_assignment_behavior_test/18: Crash # Please triage this failure.
+if_null_assignment_behavior_test/19: Crash # Please triage this failure.
+if_null_assignment_behavior_test/20: Crash # Please triage this failure.
+if_null_assignment_behavior_test/21: Crash # Please triage this failure.
+if_null_assignment_behavior_test/22: Crash # Please triage this failure.
+if_null_assignment_behavior_test/23: Crash # Please triage this failure.
+if_null_assignment_behavior_test/24: Crash # Please triage this failure.
+if_null_assignment_behavior_test/25: Crash # Please triage this failure.
+if_null_assignment_behavior_test/26: Crash # Please triage this failure.
+if_null_assignment_behavior_test/27: Crash # Please triage this failure.
+if_null_assignment_behavior_test/28: Crash # Please triage this failure.
+if_null_assignment_behavior_test/none: Crash # Please triage this failure.
+if_null_assignment_static_test/01: Crash # Please triage this failure.
+if_null_assignment_static_test/02: Crash # Please triage this failure.
+if_null_assignment_static_test/03: Crash # Please triage this failure.
+if_null_assignment_static_test/04: Crash # Please triage this failure.
+if_null_assignment_static_test/05: Crash # Please triage this failure.
+if_null_assignment_static_test/06: Crash # Please triage this failure.
+if_null_assignment_static_test/07: Crash # Please triage this failure.
+if_null_assignment_static_test/08: Crash # Please triage this failure.
+if_null_assignment_static_test/09: Crash # Please triage this failure.
+if_null_assignment_static_test/10: Crash # Please triage this failure.
+if_null_assignment_static_test/11: Crash # Please triage this failure.
+if_null_assignment_static_test/12: Crash # Please triage this failure.
+if_null_assignment_static_test/13: Crash # Please triage this failure.
+if_null_assignment_static_test/14: Crash # Please triage this failure.
+if_null_assignment_static_test/15: Crash # Please triage this failure.
+if_null_assignment_static_test/16: Crash # Please triage this failure.
+if_null_assignment_static_test/17: Crash # Please triage this failure.
+if_null_assignment_static_test/18: Crash # Please triage this failure.
+if_null_assignment_static_test/19: Crash # Please triage this failure.
+if_null_assignment_static_test/20: Crash # Please triage this failure.
+if_null_assignment_static_test/21: Crash # Please triage this failure.
+if_null_assignment_static_test/22: Crash # Please triage this failure.
+if_null_assignment_static_test/23: Crash # Please triage this failure.
+if_null_assignment_static_test/24: Crash # Please triage this failure.
+if_null_assignment_static_test/25: Crash # Please triage this failure.
+if_null_assignment_static_test/26: Crash # Please triage this failure.
+if_null_assignment_static_test/27: Crash # Please triage this failure.
+if_null_assignment_static_test/28: Crash # Please triage this failure.
+if_null_assignment_static_test/29: Crash # Please triage this failure.
+if_null_assignment_static_test/30: Crash # Please triage this failure.
+if_null_assignment_static_test/31: Crash # Please triage this failure.
+if_null_assignment_static_test/32: Crash # Please triage this failure.
+if_null_assignment_static_test/33: Crash # Please triage this failure.
+if_null_assignment_static_test/34: Crash # Please triage this failure.
+if_null_assignment_static_test/35: Crash # Please triage this failure.
+if_null_assignment_static_test/36: Crash # Please triage this failure.
+if_null_assignment_static_test/37: Crash # Please triage this failure.
+if_null_assignment_static_test/38: Crash # Please triage this failure.
+if_null_assignment_static_test/39: Crash # Please triage this failure.
+if_null_assignment_static_test/40: Crash # Please triage this failure.
+if_null_assignment_static_test/41: Crash # Please triage this failure.
+if_null_assignment_static_test/42: Crash # Please triage this failure.
+if_null_assignment_static_test/none: Crash # Please triage this failure.
+if_null_behavior_test/01: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/02: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/03: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/04: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/05: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/06: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/07: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/08: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/09: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/10: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/11: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/12: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/13: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/14: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/15: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/16: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_behavior_test/none: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_evaluation_order_test/01: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_evaluation_order_test/02: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_evaluation_order_test/none: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_precedence_test/01: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_precedence_test/02: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_precedence_test/03: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_precedence_test/04: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_precedence_test/05: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_precedence_test/06: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_precedence_test/07: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_precedence_test/08: Crash # (null??null): If-null not yet implemented in cps_ir
+if_null_precedence_test/none: Crash # (null??null): If-null not yet implemented in cps_ir
 implicit_super_constructor_call_test: Crash # Please triage this failure.
 import_self_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inference_captured_variable2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -1036,32 +1184,3 @@ value_range2_test: Crash # Instance of 'TypeOperator': type check unimplemented 
 value_range3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 value_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 void_type_test: Crash #  Unhandled node
-
-# Null-aware operators aren't implemented in the CPS IR yet.
-if_null_evaluation_order_test: Crash
-if_null_precedence_test: Crash
-if_null_behavior_test: Crash
-if_null_assignment_behavior_test: Crash
-if_null_assignment_static_test: Crash
-conditional_property_assignment_test: Fail
-conditional_property_assignment_test/06: Crash
-conditional_property_assignment_test/11: Crash
-conditional_property_assignment_test/14: Crash
-conditional_property_assignment_test/15: Crash
-conditional_property_assignment_test/16: Crash
-conditional_property_assignment_test/17: Crash
-conditional_property_assignment_test/18: Crash
-conditional_property_assignment_test/19: Crash
-conditional_property_assignment_test/20: Crash
-conditional_property_assignment_test/21: Crash
-conditional_property_assignment_test/22: Crash
-
-conditional_property_access_test: Fail
-conditional_property_access_test/07: Crash
-conditional_property_access_test/08: Crash
-conditional_property_access_test/09: Crash
-conditional_method_invocation_test: Fail
-conditional_method_invocation_test/none: Pass
-conditional_method_invocation_test/09: Crash
-conditional_method_invocation_test/10: Crash
-conditional_method_invocation_test/11: Crash
