@@ -26,10 +26,8 @@ var tests = [
     expect(result['libraries'].length, isPositive);
     expect(result['libraries'][0]['type'], equals('@Library'));
     expect(result['breakpoints'].length, isZero);
-    expect(result['features'].length, isPositive);
-    expect(result['features'][0], new isInstanceOf<String>());
-    expect(result['heaps']['new']['type'], equals('HeapSpace'));
-    expect(result['heaps']['old']['type'], equals('HeapSpace'));
+    expect(result['_heaps']['new']['type'], equals('HeapSpace'));
+    expect(result['_heaps']['old']['type'], equals('HeapSpace'));
   },
 ];
 

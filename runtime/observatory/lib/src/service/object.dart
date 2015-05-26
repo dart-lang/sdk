@@ -1039,12 +1039,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
     loading = false;
 
     _upgradeCollection(map, isolate);
-    if (map['rootLib'] == null ||
-        map['timers'] == null ||
-        map['heaps'] == null) {
-      Logger.root.severe("Malformed 'Isolate' response: $map");
-      return;
-    }
     rootLibrary = map['rootLib'];
     if (map['entry'] != null) {
       entry = map['entry'];
@@ -1052,7 +1046,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     var startTimeInMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeInMillis);
     notifyPropertyChange(#upTime, 0, 1);
-    var countersMap = map['tagCounters'];
+    var countersMap = map['_tagCounters'];
     if (countersMap != null) {
       var names = countersMap['names'];
       var counts = countersMap['counters'];
@@ -1087,17 +1081,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
                       timerMap['time_bootstrap']);
     timers['dart'] = timerMap['time_dart_execution'];
 
-    updateHeapsFromMap(map['heaps']);
+    updateHeapsFromMap(map['_heaps']);
     _updateBreakpoints(map['breakpoints']);
 
-    List features = map['features'];
-    if (features != null) {
-      for (var feature in features) {
-        if (feature == 'io') {
-          ioEnabled = true;
-        }
-      }
-    }
     pauseEvent = map['pauseEvent'];
     _updateRunState();
     error = map['error'];

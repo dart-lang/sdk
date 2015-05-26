@@ -1516,7 +1516,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     }
   }
   {
-    JSONObject jsheap(&jsobj, "heaps");
+    JSONObject jsheap(&jsobj, "_heaps");
     heap()->PrintToJSONObject(Heap::kNew, &jsheap);
     heap()->PrintToJSONObject(Heap::kOld, &jsheap);
   }
@@ -1552,7 +1552,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
 
   timer_list().PrintTimersToJSONProperty(&jsobj);
   {
-    JSONObject tagCounters(&jsobj, "tagCounters");
+    JSONObject tagCounters(&jsobj, "_tagCounters");
     vm_tag_counters()->PrintToJSONObject(&tagCounters);
   }
   if (object_store()->sticky_error() != Object::null()) {
@@ -1561,21 +1561,15 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     jsobj.AddProperty("error", error, false);
   }
 
-  bool is_io_enabled = false;
   {
     const GrowableObjectArray& libs =
         GrowableObjectArray::Handle(object_store()->libraries());
     intptr_t num_libs = libs.Length();
     Library& lib = Library::Handle();
-    String& name = String::Handle();
 
     JSONArray lib_array(&jsobj, "libraries");
     for (intptr_t i = 0; i < num_libs; i++) {
       lib ^= libs.At(i);
-      name = lib.name();
-      if (name.Equals(Symbols::DartIOLibName())) {
-        is_io_enabled = true;
-      }
       ASSERT(!lib.IsNull());
       lib_array.AddValue(lib);
     }
@@ -1583,12 +1577,6 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   {
     JSONArray breakpoints(&jsobj, "breakpoints");
     debugger()->PrintBreakpointsToJSONArray(&breakpoints);
-  }
-  {
-    JSONArray features_array(&jsobj, "features");
-    if (is_io_enabled) {
-      features_array.AddValue("io");
-    }
   }
 }
 
