@@ -165,6 +165,10 @@ Future<api.CompilationResult> compile(List<String> argv) {
         out = currentDirectory.resolve('out.dart');
         sourceMapOut = currentDirectory.resolve('out.dart.map');
       }
+      diagnosticHandler(null, null, null,
+          "--output-type=dart is deprecated. It will remain available "
+          "in Dart 1.11, but will be removed in Dart 1.12.",
+          api.Diagnostic.WARNING);
     }
     passThrough(argument);
   }
