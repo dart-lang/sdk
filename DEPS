@@ -29,6 +29,7 @@ vars = {
   "analyzer_cli_tag" : "@1.0.1",
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
+  "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "clang_rev" : "@28450",
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
@@ -165,6 +166,8 @@ deps = {
       (Var("dart_github") % "async_await") + Var("async_await_rev"),
   Var("dart_root") + "/third_party/pkg/barback":
       (Var("dart_github") % "barback") + Var("barback_rev"),
+  Var("dart_root") + "/third_party/pkg/charcode":
+      (Var("dart_github") % "charcode") + Var("charcode_tag"),     
   Var("dart_root") + "/third_party/pkg/collection":
       (Var("dart_github") % "collection") + Var("collection_rev"),
   Var("dart_root") + "/third_party/pkg/crypto":
