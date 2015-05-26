@@ -116,7 +116,9 @@ abstract class BaseResolvedVisitor<R> extends Visitor<R>
     } else if (Elements.isClosureSend(node, element)) {
       return visitor.visitClosureSend(node);
     } else {
-      if (Elements.isUnresolved(element)) {
+      if (node.isConditional) {
+        return visitor.visitDynamicSend(node);
+      } else if (Elements.isUnresolved(element)) {
         if (element == null) {
           // Example: f() with 'f' unbound.
           // This can only happen inside an instance method.
