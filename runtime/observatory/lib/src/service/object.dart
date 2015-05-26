@@ -1583,7 +1583,7 @@ class Breakpoint extends ServiceObject {
 }
 
 class Library extends ServiceObject with Coverage {
-  @observable String url;
+  @observable String uri;
   @reflectable final imports = new ObservableList<Library>();
   @reflectable final scripts = new ObservableList<Script>();
   @reflectable final classes = new ObservableList<Class>();
@@ -1596,16 +1596,16 @@ class Library extends ServiceObject with Coverage {
   Library._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   void _update(ObservableMap map, bool mapIsRef) {
-    url = map['url'];
-    var shortUrl = url;
-    if (url.startsWith('file://') ||
-        url.startsWith('http://')) {
-      shortUrl = url.substring(url.lastIndexOf('/') + 1);
+    uri = map['uri'];
+    var shortUri = uri;
+    if (uri.startsWith('file://') ||
+        uri.startsWith('http://')) {
+      shortUri = uri.substring(uri.lastIndexOf('/') + 1);
     }
     name = map['name'];
     if (name.isEmpty) {
-      // When there is no name for a library, use the shortUrl.
-      name = shortUrl;
+      // When there is no name for a library, use the shortUri.
+      name = shortUri;
     }
     vmName = (map.containsKey('vmName') ? map['vmName'] : name);
     if (mapIsRef) {
@@ -1632,7 +1632,7 @@ class Library extends ServiceObject with Coverage {
     return isolate._eval(this, expression);
   }
 
-  String toString() => "Library($url)";
+  String toString() => "Library($uri)";
 }
 
 class AllocationCount extends Observable {
@@ -2217,6 +2217,7 @@ class Script extends ServiceObject with Coverage {
   Set<CallSite> callSites = new Set<CallSite>();
   final lines = new ObservableList<ScriptLine>();
   final _hits = new Map<int, int>();
+  @observable String uri;
   @observable String kind;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
@@ -2226,8 +2227,7 @@ class Script extends ServiceObject with Coverage {
   bool get canCache => true;
   bool get immutable => true;
 
-  String _shortUrl;
-  String _url;
+  String _shortUri;
 
   Script._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2247,11 +2247,11 @@ class Script extends ServiceObject with Coverage {
 
   void _update(ObservableMap map, bool mapIsRef) {
     _upgradeCollection(map, isolate);
+    uri = map['uri'];
     kind = map['kind'];
-    _url = map['name'];
-    _shortUrl = _url.substring(_url.lastIndexOf('/') + 1);
-    name = _shortUrl;
-    vmName = _url;
+    _shortUri = uri.substring(uri.lastIndexOf('/') + 1);
+    name = _shortUri;
+    vmName = uri;
     if (mapIsRef) {
       return;
     }
@@ -2337,7 +2337,7 @@ class Script extends ServiceObject with Coverage {
       return;
     }
     lines.clear();
-    Logger.root.info('Adding ${sourceLines.length} source lines for ${_url}');
+    Logger.root.info('Adding ${sourceLines.length} source lines for ${uri}');
     for (var i = 0; i < sourceLines.length; i++) {
       lines.add(new ScriptLine(this, i + lineOffset + 1, sourceLines[i]));
     }

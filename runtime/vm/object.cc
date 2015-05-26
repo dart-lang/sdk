@@ -8544,15 +8544,16 @@ RawLibrary* Script::FindLibrary() const {
 void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddTypeProperties(&jsobj, "Script", JSONType(), ref);
-  const String& name = String::Handle(url());
-  ASSERT(!name.IsNull());
-  const String& encoded_url = String::Handle(String::EncodeIRI(name));
-  ASSERT(!encoded_url.IsNull());
+  const String& uri = String::Handle(url());
+  ASSERT(!uri.IsNull());
+  const String& encoded_uri = String::Handle(String::EncodeIRI(uri));
+  ASSERT(!encoded_uri.IsNull());
   const Library& lib = Library::Handle(FindLibrary());
+  // TODO(rmacnak): This can fail for eval scripts. Use a ring-id for those.
   intptr_t lib_index = (lib.IsNull()) ? -1 : lib.index();
   jsobj.AddPropertyF("id", "libraries/%" Pd "/scripts/%s",
-      lib_index, encoded_url.ToCString());
-  jsobj.AddPropertyStr("name", name);
+      lib_index, encoded_uri.ToCString());
+  jsobj.AddPropertyStr("uri", uri);
   jsobj.AddProperty("kind", GetKindAsCString());
   if (ref) {
     return;
@@ -9897,7 +9898,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("id", "libraries/%" Pd "", id);
   jsobj.AddProperty("name", library_name);
   const String& library_url = String::Handle(url());
-  jsobj.AddPropertyStr("url", library_url);
+  jsobj.AddPropertyStr("uri", library_url);
   if (ref) {
     return;
   }

@@ -4340,7 +4340,7 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("libraries", js.ToCString(), buffer);
     EXPECT_STREQ(
         "{\"type\":\"@Library\",\"id\":\"\",\"name\":\"dart.core\","
-        "\"url\":\"dart:core\"}",
+        "\"uri\":\"dart:core\"}",
         buffer);
   }
   // Bool reference

@@ -1350,8 +1350,8 @@ class @Library extends @Object {
   // The name of this library.
   string name;
 
-  // The url of this library.
-  string url;
+  // The uri of this library.
+  string uri;
 }
 ```
 
@@ -1362,8 +1362,8 @@ class Library extends Object {
   // The name of this library.
   string name;
 
-  // The url of this library.
-  string url;
+  // The uri of this library.
+  string uri;
 
   // A list of the imports for this library.
   @Library[] imports;
@@ -1528,8 +1528,8 @@ A _SentinelType_ is used to distinguish different kinds of _Sentinel_ objects.
 
 ```
 class @Script extends @Object {
-  // A name for this script.
-  string name;
+  // The uri from which this script was loaded.
+  string uri;
 
   // What kind of script is this?
   string kind;
@@ -1540,8 +1540,8 @@ _@Script_ is a reference to a _Script_.
 
 ```
 class Script extends Object {
-  // A name for this script.
-  string name;
+  // The uri from which this script was loaded.
+  string uri;
 
   // What kind of script is this?
   ScriptKind kind;
