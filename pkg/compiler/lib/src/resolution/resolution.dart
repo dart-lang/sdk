@@ -11,7 +11,7 @@ import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
-import '../dart2jslib.dart';
+import '../dart2jslib.dart' hide DynamicAccess;
 import '../tree/tree.dart';
 import '../scanner/scannerlib.dart';
 import '../elements/elements.dart';
@@ -49,8 +49,10 @@ import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
 import '../util/util.dart';
 import '../universe/universe.dart' show CallStructure;
 
+import 'access_semantics.dart';
 import 'class_members.dart' show MembersCreator;
 import 'enum_creator.dart';
+import 'operators.dart';
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
 import 'send_structure.dart';
 

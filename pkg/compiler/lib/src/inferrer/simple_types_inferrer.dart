@@ -1408,6 +1408,18 @@ class SimpleTypeInferrerVisitor<T>
       MethodElement method,
       ast.Node argument,
       _) {
+    // TODO(johnniwinther): Special case ==.
+    return handleSuperMethodInvoke(
+        node, method, analyzeArguments(node.arguments));
+  }
+
+  @override
+  T visitSuperNotEquals(
+      ast.Send node,
+      MethodElement method,
+      ast.Node argument,
+      _) {
+    // TODO(johnniwinther): Special case !=.
     return handleSuperMethodInvoke(
         node, method, analyzeArguments(node.arguments));
   }

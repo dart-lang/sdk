@@ -2666,13 +2666,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
       // TODO(johnniwinther): Ensure correct behavior if currentClass is a
       // patch.
-      target = currentClass.lookupSuperSelector(selector);
+      target = currentClass.lookupSuperByName(selector.memberName);
       // [target] may be null which means invoking noSuchMethod on
       // super.
       if (target == null) {
         target = reportAndCreateErroneousElement(
             node, name, MessageKind.NO_SUCH_SUPER_MEMBER,
-            {'className': currentClass, 'memberName': name});
+            {'className': currentClass.name, 'memberName': name});
         // We still need to register the invocation, because we might
         // call [:super.noSuchMethod:] which calls
         // [JSInvocationMirror._invokeOn].
@@ -2877,15 +2877,348 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
+  /// Check that access to `super` is currently allowed.
+  bool checkSuperAccess(Node node) {
+    if (!inInstanceContext) {
+      compiler.reportError(node, MessageKind.NO_SUPER_AVAILABLE);
+      return false;
+    }
+    if (currentClass.supertype == null) {
+      // This is just to guard against internal errors, so no need
+      // for a real error message.
+      compiler.reportError(node, MessageKind.GENERIC,
+            {'text': "Object has no superclass"});
+      return false;
+    }
+    registry.registerSuperUse(node);
+    return true;
+  }
+
+  /// Compute the [AccessSemantics] corresponding to a super access of [target].
+  AccessSemantics computeSuperAccess(Spannable node, Element target) {
+    if (target.isErroneous) {
+      return new StaticAccess.unresolvedSuper(target);
+    } else if (target.isGetter) {
+      return new StaticAccess.superGetter(target);
+    } else if (target.isSetter) {
+      return new StaticAccess.superSetter(target);
+    } else if (target.isField) {
+      return new StaticAccess.superField(target);
+    } else {
+      assert(invariant(node, target.isFunction,
+          message: "Unexpected super target '$target'."));
+      return new StaticAccess.superMethod(target);
+    }
+  }
+
+  AccessSemantics computeSuperSemantics(Spannable node,
+                                        Selector selector,
+                                        {Name alternateName}) {
+    Name name = selector.memberName;
+    // TODO(johnniwinther): Ensure correct behavior if currentClass is a
+    // patch.
+    Element target = currentClass.lookupSuperByName(name);
+    // [target] may be null which means invoking noSuchMethod on super.
+    if (target == null) {
+      Element error = reportAndCreateErroneousElement(
+          node, name.text, MessageKind.NO_SUCH_SUPER_MEMBER,
+          {'className': currentClass.name, 'memberName': name});
+      if (alternateName != null) {
+        target = currentClass.lookupSuperByName(alternateName);
+      }
+      if (target == null) {
+        // If a setter wasn't resolved, use the [ErroneousElement].
+        target = error;
+      }
+      // We still need to register the invocation, because we might
+      // call [:super.noSuchMethod:] which calls [JSInvocationMirror._invokeOn].
+      registry.registerDynamicInvocation(selector);
+      registry.registerSuperNoSuchMethod();
+    }
+    return computeSuperAccess(node, target);
+  }
+
+  ResolutionResult visitExpression(Node node) {
+    bool oldSendIsMemberAccess = sendIsMemberAccess;
+    sendIsMemberAccess = false;
+    ResolutionResult result = visit(node);
+    sendIsMemberAccess = oldSendIsMemberAccess;
+    return result;
+  }
+
+  ResolutionResult handleIs(Send node) {
+    Node expression = node.receiver;
+    visitExpression(expression);
+
+    // TODO(johnniwinther): Use seen type tests to avoid registration of
+    // mutation/access to unpromoted variables.
+
+    Send notTypeNode = node.arguments.head.asSend();
+    DartType type;
+    SendStructure sendStructure;
+    if (notTypeNode != null) {
+      // `e is! T`.
+      Node typeNode = notTypeNode.receiver;
+      type = resolveTypeAnnotation(typeNode);
+      sendStructure = new IsNotStructure(type);
+    } else {
+      // `e is T`.
+      Node typeNode = node.arguments.head;
+      type = resolveTypeAnnotation(typeNode);
+      sendStructure = new IsStructure(type);
+    }
+    registry.registerIsCheck(type);
+    registry.registerSendStructure(node, sendStructure);
+    return null;
+  }
+
+  ResolutionResult handleAs(Send node) {
+    Node expression = node.receiver;
+    visitExpression(expression);
+
+    Node typeNode = node.arguments.head;
+    DartType type = resolveTypeAnnotation(typeNode);
+    registry.registerAsCheck(type);
+    registry.registerSendStructure(node, new AsStructure(type));
+    return null;
+  }
+
+  ResolutionResult handleUnresolvedUnary(Send node, String text) {
+    Node expression = node.receiver;
+    if (node.isSuperCall) {
+      checkSuperAccess(node);
+    } else {
+      visitExpression(expression);
+    }
+
+    registry.registerSendStructure(node, const InvalidUnaryStructure());
+    return null;
+  }
+
+  ResolutionResult handleUserDefinableUnary(Send node, UnaryOperator operator) {
+    Node expression = node.receiver;
+    Selector selector = operator.selector;
+    // TODO(johnniwinther): Remove this when all information goes through the
+    // [SendStructure].
+    registry.setSelector(node, selector);
+
+    AccessSemantics semantics;
+    if (node.isSuperCall) {
+      if (checkSuperAccess(node)) {
+        semantics = computeSuperSemantics(node, selector);
+        // TODO(johnniwinther): Add information to [AccessSemantics] about
+        // whether it is erroneous.
+        if (semantics.kind == AccessKind.SUPER_METHOD) {
+          registry.registerStaticUse(semantics.element.declaration);
+        }
+        // TODO(johnniwinther): Remove this when all information goes through
+        // the [SendStructure].
+        registry.useElement(node, semantics.element);
+      }
+    } else {
+      visitExpression(expression);
+      semantics = new DynamicAccess.dynamicProperty(expression);
+      registry.registerDynamicInvocation(selector);
+    }
+    if (semantics != null) {
+      // TODO(johnniwinther): Support invalid super access as an
+      // [AccessSemantics].
+      registry.registerSendStructure(node,
+          new UnaryStructure(semantics, operator));
+    }
+    return null;
+  }
+
+  ResolutionResult handleNot(Send node, UnaryOperator operator) {
+    assert(invariant(node, operator.kind == UnaryOperatorKind.NOT));
+
+    Node expression = node.receiver;
+    visitExpression(expression);
+    registry.registerSendStructure(node,
+        new NotStructure(new DynamicAccess.dynamicProperty(expression)));
+    return null;
+  }
+
+  ResolutionResult handleLogicalAnd(Send node) {
+    Node left = node.receiver;
+    Node right = node.arguments.head;
+    doInPromotionScope(left, () => visitExpression(left));
+    doInPromotionScope(right, () => visitExpression(right));
+    registry.registerSendStructure(node, const LogicalAndStructure());
+    return null;
+  }
+
+  ResolutionResult handleLogicalOr(Send node) {
+    Node left = node.receiver;
+    Node right = node.arguments.head;
+    visitExpression(left);
+    visitExpression(right);
+    registry.registerSendStructure(node, const LogicalOrStructure());
+    return null;
+  }
+
+  ResolutionResult handleIfNull(Send node) {
+    Node left = node.receiver;
+    Node right = node.arguments.head;
+    visitExpression(left);
+    visitExpression(right);
+    registry.registerSendStructure(node, const IfNullStructure());
+    return null;
+  }
+
+  ResolutionResult handleUnresolvedBinary(Send node, String text) {
+    Node left = node.receiver;
+    Node right = node.arguments.head;
+    if (node.isSuperCall) {
+      checkSuperAccess(node);
+    } else {
+      visitExpression(left);
+    }
+    visitExpression(right);
+    registry.registerSendStructure(node, const InvalidBinaryStructure());
+    return null;
+  }
+
+  ResolutionResult handleUserDefinableBinary(Send node,
+                                             BinaryOperator operator) {
+    Node left = node.receiver;
+    Node right = node.arguments.head;
+    AccessSemantics semantics;
+    Selector selector;
+    if (operator.kind == BinaryOperatorKind.INDEX) {
+      selector = new Selector.index();
+    } else {
+      selector = new Selector.binaryOperator(operator.selectorName);
+    }
+    // TODO(johnniwinther): Remove this when all information goes through the
+    // [SendStructure].
+    registry.setSelector(node, selector);
+
+    if (node.isSuperCall) {
+      if (checkSuperAccess(node)) {
+        semantics = computeSuperSemantics(node, selector);
+        // TODO(johnniwinther): Add information to [AccessSemantics] about
+        // whether it is erroneous.
+        if (semantics.kind == AccessKind.SUPER_METHOD) {
+          registry.registerStaticUse(semantics.element.declaration);
+        }
+        // TODO(johnniwinther): Remove this when all information goes through
+        // the [SendStructure].
+        registry.useElement(node, semantics.element);
+
+      }
+    } else {
+      visitExpression(left);
+      registry.registerDynamicInvocation(selector);
+      semantics = new DynamicAccess.dynamicProperty(left);
+    }
+    visitExpression(right);
+
+    if (semantics != null) {
+      // TODO(johnniwinther): Support invalid super access as an
+      // [AccessSemantics].
+      SendStructure sendStructure;
+      switch (operator.kind) {
+        case BinaryOperatorKind.EQ:
+          sendStructure = new EqualsStructure(semantics);
+          break;
+        case BinaryOperatorKind.NOT_EQ:
+          sendStructure = new NotEqualsStructure(semantics);
+          break;
+        case BinaryOperatorKind.INDEX:
+          sendStructure = new IndexStructure(semantics);
+          break;
+        case BinaryOperatorKind.ADD:
+        case BinaryOperatorKind.SUB:
+        case BinaryOperatorKind.MUL:
+        case BinaryOperatorKind.DIV:
+        case BinaryOperatorKind.IDIV:
+        case BinaryOperatorKind.MOD:
+        case BinaryOperatorKind.SHL:
+        case BinaryOperatorKind.SHR:
+        case BinaryOperatorKind.GTEQ:
+        case BinaryOperatorKind.GT:
+        case BinaryOperatorKind.LTEQ:
+        case BinaryOperatorKind.LT:
+        case BinaryOperatorKind.AND:
+        case BinaryOperatorKind.OR:
+        case BinaryOperatorKind.XOR:
+          sendStructure = new BinaryStructure(semantics, operator);
+          break;
+        case BinaryOperatorKind.LOGICAL_AND:
+        case BinaryOperatorKind.LOGICAL_OR:
+        case BinaryOperatorKind.IF_NULL:
+          internalError(node, "Unexpected binary operator '${operator}'.");
+          break;
+      }
+      registry.registerSendStructure(node, sendStructure);
+    }
+    return null;
+  }
+
   ResolutionResult visitSend(Send node) {
+    if (node.isOperator) {
+      String operatorText = node.selector.asOperator().source;
+      if (operatorText == 'is') {
+        return handleIs(node);
+      } else if (operatorText  == 'as') {
+        return handleAs(node);
+      } else if (node.arguments.isEmpty) {
+        UnaryOperator operator = UnaryOperator.parse(operatorText);
+        if (operator == null) {
+          return handleUnresolvedUnary(node, operatorText);
+        } else {
+          switch (operator.kind) {
+            case UnaryOperatorKind.NOT:
+              return handleNot(node, operator);
+            case UnaryOperatorKind.COMPLEMENT:
+            case UnaryOperatorKind.NEGATE:
+              assert(invariant(node, operator.isUserDefinable,
+                  message: "Unexpected unary operator '${operator}'."));
+              return handleUserDefinableUnary(node, operator);
+          }
+          return handleUserDefinableUnary(node, operator);
+        }
+      } else {
+        BinaryOperator operator = BinaryOperator.parse(operatorText);
+        if (operator == null) {
+          return handleUnresolvedBinary(node, operatorText);
+        } else {
+          switch (operator.kind) {
+            case BinaryOperatorKind.LOGICAL_AND:
+              return handleLogicalAnd(node);
+            case BinaryOperatorKind.LOGICAL_OR:
+              return handleLogicalOr(node);
+            case BinaryOperatorKind.IF_NULL:
+              return handleIfNull(node);
+            case BinaryOperatorKind.EQ:
+            case BinaryOperatorKind.NOT_EQ:
+            case BinaryOperatorKind.INDEX:
+            case BinaryOperatorKind.ADD:
+            case BinaryOperatorKind.SUB:
+            case BinaryOperatorKind.MUL:
+            case BinaryOperatorKind.DIV:
+            case BinaryOperatorKind.IDIV:
+            case BinaryOperatorKind.MOD:
+            case BinaryOperatorKind.SHL:
+            case BinaryOperatorKind.SHR:
+            case BinaryOperatorKind.GTEQ:
+            case BinaryOperatorKind.GT:
+            case BinaryOperatorKind.LTEQ:
+            case BinaryOperatorKind.LT:
+            case BinaryOperatorKind.AND:
+            case BinaryOperatorKind.OR:
+            case BinaryOperatorKind.XOR:
+              return handleUserDefinableBinary(node, operator);
+          }
+        }
+      }
+    }
+
     bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = node.isPropertyAccess || node.isCall;
-    ResolutionResult result;
-    if (node.isLogicalAnd) {
-      result = doInPromotionScope(node.receiver, () => resolveSend(node));
-    } else {
-      result = resolveSend(node);
-    }
+
+    ResolutionResult result = resolveSend(node);
     sendIsMemberAccess = oldSendIsMemberAccess;
 
     Element target = result != null ? result.element : null;
@@ -2936,45 +3269,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
 
     bool resolvedArguments = false;
-    if (node.isOperator) {
-      String operatorString = node.selector.asOperator().source;
-      SendStructure sendStructure;
-      if (operatorString == 'is') {
-        // TODO(johnniwinther): Use seen type tests to avoid registration of
-        // mutation/access to unpromoted variables.
-        DartType type =
-            resolveTypeAnnotation(node.typeAnnotationFromIsCheckOrCast);
-        if (type != null) {
-          sendStructure = node.isIsNotCheck
-              ? new IsNotStructure(type) : new IsStructure(type);
-          registry.registerIsCheck(type);
-        }
-        resolvedArguments = true;
-      } else if (identical(operatorString, 'as')) {
-        DartType type = resolveTypeAnnotation(node.arguments.head);
-        if (type != null) {
-          sendStructure = new AsStructure(type);
-          registry.registerAsCheck(type);
-        }
-        resolvedArguments = true;
-      } else if (identical(operatorString, '&&')) {
-        doInPromotionScope(node.arguments.head,
-            () => resolveArguments(node.argumentsNode));
-        sendStructure = const LogicalAndStructure();
-        resolvedArguments = true;
-      } else if (operatorString == '||') {
-        sendStructure = const LogicalOrStructure();
-      } else if (operatorString == '??') {
-        sendStructure = const IfNullStructure();
-      }
-      if (sendStructure != null) {
-        registry.registerSendStructure(node, sendStructure);
-      }
-    }
-
-    if (!resolvedArguments) {
-      resolveArguments(node.argumentsNode);
-    }
+    resolveArguments(node.argumentsNode);
 
     // If the selector is null, it means that we will not be generating
     // code for this as a send.
@@ -3151,11 +3446,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registerSend(getterSelector, getter);
       registry.setGetterSelectorInComplexSendSet(node, getterSelector);
       if (node.isSuperCall) {
-        getter = currentClass.lookupSuperSelector(getterSelector);
+        getter = currentClass.lookupSuperByName(getterSelector.memberName);
         if (getter == null) {
           target = reportAndCreateErroneousElement(
               node, selector.name, MessageKind.NO_SUCH_SUPER_MEMBER,
-              {'className': currentClass, 'memberName': selector.name});
+              {'className': currentClass.name, 'memberName': selector.name});
           registry.registerSuperNoSuchMethod();
         }
       }

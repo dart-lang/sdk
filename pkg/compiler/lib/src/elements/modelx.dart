@@ -2476,7 +2476,7 @@ abstract class BaseClassElementX extends ElementX
   }
 
   /**
-   * Find the first member in the class chain with the given [selector].
+   * Find the first member in the class chain with the given [memberName].
    *
    * This method is NOT to be used for resolving
    * unqualified sends because it does not implement the scoping
@@ -2485,19 +2485,18 @@ abstract class BaseClassElementX extends ElementX
    * When called on the implementation element both members declared in the
    * origin and the patch class are returned.
    */
-  Element lookupSelector(Selector selector) {
-    return internalLookupSelector(selector, false);
+  Element lookupByName(Name memberName) {
+    return internalLookupByName(memberName, isSuperLookup: false);
   }
 
-  Element lookupSuperSelector(Selector selector) {
-    return internalLookupSelector(selector, true);
+  Element lookupSuperByName(Name memberName) {
+    return internalLookupByName(memberName, isSuperLookup: true);
   }
 
-  Element internalLookupSelector(Selector selector,
-                                 bool isSuperLookup) {
-    String name = selector.name;
-    bool isPrivate = isPrivateName(name);
-    LibraryElement library = selector.library;
+  Element internalLookupByName(Name memberName, {bool isSuperLookup}) {
+    String name = memberName.text;
+    bool isPrivate = memberName.isPrivate;
+    LibraryElement library = memberName.library;
     for (ClassElement current = isSuperLookup ? superclass : this;
          current != null;
          current = current.superclass) {
@@ -2519,12 +2518,15 @@ abstract class BaseClassElementX extends ElementX
         AbstractFieldElement field = member;
         FunctionElement getter = field.getter;
         FunctionElement setter = field.setter;
-        if (selector.isSetter) {
+        if (memberName.isSetter) {
           // Abstract members can be defined in a super class.
-          if (setter != null && !setter.isAbstract) return setter;
+          if (setter != null && !setter.isAbstract) {
+            return setter;
+          }
         } else {
-          assert(selector.isGetter || selector.isCall);
-          if (getter != null && !getter.isAbstract) return getter;
+          if (getter != null && !getter.isAbstract) {
+            return getter;
+          }
         }
       // Abstract members can be defined in a super class.
       } else if (!member.isAbstract) {

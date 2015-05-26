@@ -1403,8 +1403,8 @@ abstract class ClassElement extends TypeDeclarationElement
   void reverseBackendMembers();
 
   Element lookupMember(String memberName);
-  Element lookupSelector(Selector selector);
-  Element lookupSuperSelector(Selector selector);
+  Element lookupByName(Name memberName);
+  Element lookupSuperByName(Name memberName);
 
   Element lookupLocalMember(String memberName);
   Element lookupBackendMember(String memberName);

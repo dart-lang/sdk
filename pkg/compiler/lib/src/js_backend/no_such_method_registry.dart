@@ -140,7 +140,7 @@ class NoSuchMethodRegistry {
       // If the implementation is 'noSuchMethod(x) => super.noSuchMethod(x);'
       // then it is in the same category as the super call.
       Element superCall = element.enclosingClass
-          .lookupSuperSelector(_compiler.noSuchMethodSelector);
+          .lookupSuperByName(_compiler.noSuchMethodSelector.memberName);
       NsmCategory category = _categorizeImpl(superCall);
       switch(category) {
         case NsmCategory.DEFAULT:

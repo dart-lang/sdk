@@ -804,10 +804,7 @@ class NotStructure<R, A> implements SendStructure<R, A> {
   /// The target of the negation.
   final AccessSemantics semantics;
 
-  // TODO(johnniwinther): Should we store this?
-  final Selector selector;
-
-  NotStructure(this.semantics, this.selector);
+  NotStructure(this.semantics);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -823,7 +820,7 @@ class NotStructure<R, A> implements SendStructure<R, A> {
     throw new SpannableAssertionFailure(node, "Invalid setter: ${semantics}");
   }
 
-  String toString() => 'not($selector,$semantics)';
+  String toString() => 'not($semantics)';
 }
 
 /// The structure for a [Send] that is an invocation of a user definable unary
@@ -835,11 +832,7 @@ class UnaryStructure<R, A> implements SendStructure<R, A> {
   /// The user definable unary operator.
   final UnaryOperator operator;
 
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the unary operator invocation.
-  final Selector selector;
-
-  UnaryStructure(this.semantics, this.operator, this.selector);
+  UnaryStructure(this.semantics, this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -894,11 +887,7 @@ class IndexStructure<R, A> implements SendStructure<R, A> {
   /// The target of the left operand.
   final AccessSemantics semantics;
 
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `[]` invocation.
-  final Selector selector;
-
-  IndexStructure(this.semantics, this.selector);
+  IndexStructure(this.semantics);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -934,11 +923,7 @@ class EqualsStructure<R, A> implements SendStructure<R, A> {
   /// The target of the left operand.
   final AccessSemantics semantics;
 
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the `==` invocation.
-  final Selector selector;
-
-  EqualsStructure(this.semantics, this.selector);
+  EqualsStructure(this.semantics);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -970,11 +955,7 @@ class NotEqualsStructure<R, A> implements SendStructure<R, A> {
   /// The target of the left operand.
   final AccessSemantics semantics;
 
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the underlying `==` invocation.
-  final Selector selector;
-
-  NotEqualsStructure(this.semantics, this.selector);
+  NotEqualsStructure(this.semantics);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -1010,11 +991,7 @@ class BinaryStructure<R, A> implements SendStructure<R, A> {
   /// The user definable binary operator.
   final BinaryOperator operator;
 
-  // TODO(johnniwinther): Should we store this?
-  /// The [Selector] for the binary operator invocation.
-  final Selector selector;
-
-  BinaryStructure(this.semantics, this.operator, this.selector);
+  BinaryStructure(this.semantics, this.operator);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {

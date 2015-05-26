@@ -167,6 +167,9 @@ main() => new A().m();
   static const MessageKind NO_INSTANCE_AVAILABLE = const MessageKind(
       "'#{name}' is only available in instance methods.");
 
+  static const MessageKind NO_SUPER_AVAILABLE = const MessageKind(
+      "'super' is only available in instance methods.");
+
   static const MessageKind PRIVATE_ACCESS = const MessageKind(
       "'#{name}' is declared private within library "
       "'#{libraryName}'.");

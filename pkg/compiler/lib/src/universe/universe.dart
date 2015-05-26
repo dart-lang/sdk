@@ -626,7 +626,7 @@ class Selector {
 
   factory Selector.getterFrom(Selector selector)
       => new Selector(SelectorKind.GETTER,
-                      selector.memberName,
+                      selector.memberName.getter,
                       CallStructure.NO_ARGS);
 
   factory Selector.setter(String name, LibraryElement library)

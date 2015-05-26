@@ -42,8 +42,6 @@ Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: fail # Issue 21092 a
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t15: CompileTimeError # Issue 21092
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: fail # Issue 21134 and co19 issue 714
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: fail # Issue 21134 and co19 issue 714
-Language/12_Expressions/22_Equality_A01_t01: fail # Issue 21137
-Language/12_Expressions/22_Equality_A05_t01: fail # Issue 21137
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # Issue 21154
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: MissingCompileTimeError # Issue 21050
 Language/13_Statements/04_Local_Function_Declaration_A04_t03: MissingCompileTimeError # Issue 21050
@@ -4216,7 +4214,7 @@ WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t02: RuntimeErro
 WebPlatformTest/html/dom/elements/global-attributes/dataset-delete_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/elements/global-attributes/dataset-get_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/elements/global-attributes/dataset-set_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: Pass, RuntimeError # Fails on 7.1. Please triage this failure 
+WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: Pass, RuntimeError # Fails on 7.1. Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/error-codes/error_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLElement/HTMLTrackElement/src_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: Skip # Times out. Please triage this failure

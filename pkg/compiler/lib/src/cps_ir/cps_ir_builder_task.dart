@@ -1002,10 +1002,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitUnary(ast.Send node,
                           op.UnaryOperator operator, ast.Node expression, _) {
     // TODO(johnniwinther): Clean up the creation of selectors.
-    Selector selector = new Selector(
-        SelectorKind.OPERATOR,
-        new PublicName(operator.selectorName),
-        CallStructure.NO_ARGS);
+    Selector selector = operator.selector;
     ir.Primitive receiver = translateReceiver(expression);
     return irBuilder.buildDynamicInvocation(receiver, selector, const []);
   }

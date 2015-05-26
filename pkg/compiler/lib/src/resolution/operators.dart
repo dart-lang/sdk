@@ -5,6 +5,7 @@
 library dart2js.operators;
 
 import '../elements/elements.dart';
+import '../universe/universe.dart';
 
 enum UnaryOperatorKind {
   NOT,
@@ -20,6 +21,11 @@ class UnaryOperator {
   const UnaryOperator(this.kind, this.name, this.selectorName);
 
   bool get isUserDefinable => selectorName != null;
+
+  Selector get selector => new Selector(
+      SelectorKind.OPERATOR,
+      new PublicName(selectorName),
+      CallStructure.NO_ARGS);
 
   String toString() => name;
 

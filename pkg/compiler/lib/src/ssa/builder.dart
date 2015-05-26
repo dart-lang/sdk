@@ -4568,6 +4568,16 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
+  void visitSuperNotEquals(
+      ast.Send node,
+      MethodElement method,
+      ast.Node argument,
+      _) {
+    handleSuperMethodInvoke(node, method);
+    pushWithPosition(new HNot(popBoolified(), backend.boolType), node.selector);
+  }
+
+  @override
   void visitSuperUnary(
       ast.Send node,
       UnaryOperator operator,

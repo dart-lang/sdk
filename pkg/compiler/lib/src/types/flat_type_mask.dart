@@ -480,7 +480,7 @@ class FlatTypeMask implements TypeMask {
                              Selector selector) {
     // Use the [:implementation] of [cls] in case the found [element]
     // is in the patch class.
-    return cls.implementation.lookupSelector(selector);
+    return cls.implementation.lookupByName(selector.memberName);
   }
 
   /**

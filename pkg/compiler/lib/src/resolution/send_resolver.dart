@@ -222,7 +222,6 @@ abstract class SendResolverMixin {
         return internalError(node, "Unexpected is test.");
       } else if (operatorText == 'as') {
         return internalError(node, "Unexpected as cast.");
-        return new AsStructure(elements.getType(node.arguments.single));
       } else if (operatorText == '&&') {
         return internalError(node, "Unexpected logical and.");
       } else if (operatorText == '||') {
@@ -358,18 +357,17 @@ abstract class SendResolverMixin {
         }
         return new InvokeStructure(semantics, selector);
       case SendStructureKind.UNARY:
-        return new UnaryStructure(semantics, unaryOperator, selector);
+        return internalError(node, "Unexpected unary.");
       case SendStructureKind.NOT:
-        assert(selector == null);
-        return new NotStructure(semantics, selector);
+        return internalError(node, "Unexpected not.");
       case SendStructureKind.BINARY:
-        return new BinaryStructure(semantics, binaryOperator, selector);
+        return internalError(node, "Unexpected binary.");
       case SendStructureKind.INDEX:
-        return new IndexStructure(semantics, selector);
+        return internalError(node, "Unexpected index.");
       case SendStructureKind.EQ:
-        return new EqualsStructure(semantics, selector);
+        return internalError(node, "Unexpected equals.");
       case SendStructureKind.NOT_EQ:
-        return new NotEqualsStructure(semantics, selector);
+        return internalError(node, "Unexpected not equals.");
       case SendStructureKind.COMPOUND:
         Selector getterSelector =
             elements.getGetterSelectorInComplexSendSet(node);

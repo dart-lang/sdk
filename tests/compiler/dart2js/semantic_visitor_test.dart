@@ -1876,8 +1876,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_NOT_EQUALS,
                     left: '2', right: '3')),
-    // TODO(johnniwinther): Enable this. Resolution does not store the element.
-    /*const Test.clazz(
+    const Test.clazz(
         '''
         class B {
           operator ==(_) => null;
@@ -1888,7 +1887,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_NOT_EQUALS,
                     element: 'function(B#==)',
-                    right: '42')),*/
+                    right: '42')),
   ],
   'Unary expression': const [
     // Unary expression
@@ -4269,7 +4268,6 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
   VisitKind.VISIT_SUPER_METHOD_SETTER_COMPOUND,
   VisitKind.VISIT_SUPER_METHOD_SETTER_PREFIX,
   VisitKind.VISIT_SUPER_METHOD_SETTER_POSTFIX,
-  VisitKind.VISIT_SUPER_NOT_EQUALS,
   VisitKind.VISIT_CLASS_TYPE_LITERAL_SET,
   VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET,
   VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET,
