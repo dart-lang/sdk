@@ -56,7 +56,16 @@ import 'operators.dart';
 import 'secret_tree_element.dart' show getTreeElement, setTreeElement;
 import 'send_structure.dart';
 
+part 'class_hierarchy.dart';
+part 'constructors.dart';
+part 'label_scope.dart';
 part 'members.dart';
 part 'registry.dart';
+part 'resolution_common.dart';
+part 'resolution_result.dart';
 part 'scope.dart';
 part 'signatures.dart';
+part 'tree_elements.dart';
+part 'typedefs.dart';
+part 'type_resolver.dart';
+part 'variables.dart';
