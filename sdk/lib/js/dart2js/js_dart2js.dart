@@ -141,6 +141,39 @@ class JsObject {
     if (arguments == null) {
       return _wrapToDart(JS('', 'new #()', constr));
     }
+
+    if (JS('bool', '# instanceof Array', arguments)) {
+      int argumentCount = JS('int', '#.length', arguments);
+      switch (argumentCount) {
+        case 0:
+          return _wrapToDart(JS('', 'new #()', constr));
+
+        case 1:
+          var arg0 = _convertToJS(JS('', '#[0]', arguments));
+          return _wrapToDart(JS('', 'new #(#)', constr, arg0));
+
+        case 2:
+          var arg0 = _convertToJS(JS('', '#[0]', arguments));
+          var arg1 = _convertToJS(JS('', '#[1]', arguments));
+          return _wrapToDart(JS('', 'new #(#, #)', constr, arg0, arg1));
+
+        case 3:
+          var arg0 = _convertToJS(JS('', '#[0]', arguments));
+          var arg1 = _convertToJS(JS('', '#[1]', arguments));
+          var arg2 = _convertToJS(JS('', '#[2]', arguments));
+          return _wrapToDart(
+              JS('', 'new #(#, #, #)', constr, arg0, arg1, arg2));
+
+        case 4:
+          var arg0 = _convertToJS(JS('', '#[0]', arguments));
+          var arg1 = _convertToJS(JS('', '#[1]', arguments));
+          var arg2 = _convertToJS(JS('', '#[2]', arguments));
+          var arg3 = _convertToJS(JS('', '#[3]', arguments));
+          return _wrapToDart(
+              JS('', 'new #(#, #, #, #)', constr, arg0, arg1, arg2, arg3));
+      }
+    }
+
     // The following code solves the problem of invoking a JavaScript
     // constructor with an unknown number arguments.
     // First bind the constructor to the argument list using bind.apply().
@@ -154,9 +187,16 @@ class JsObject {
     JS('String', 'String(#)', factoryFunction);
     // This could return an UnknownJavaScriptObject, or a native
     // object for which there is an interceptor
-    var jsObj = JS('JavaScriptObject', 'new #()', factoryFunction);
+    var jsObj = JS('', 'new #()', factoryFunction);
 
     return _wrapToDart(jsObj);
+
+    // TODO(sra): Investigate:
+    //
+    //     var jsObj = JS('', 'Object.create(#.prototype)', constr);
+    //     JS('', '#.apply(#, #)', constr, jsObj,
+    //         []..addAll(arguments.map(_convertToJS)));
+    //     return _wrapToDart(jsObj);
   }
 
   /**
@@ -510,25 +550,28 @@ dynamic _convertToJS(dynamic o) {
   // `undefined` in Javascprit). See dartbug.com/20305 for details.
   if (o == null || o is String || o is num || o is bool) {
     return o;
-  } else if (o is Blob || o is Event || o is KeyRange || o is ImageData
-      || o is Node || o is TypedData || o is Window) {
-    return o;
-  } else if (o is DateTime) {
-    return Primitives.lazyAsJsDate(o);
-  } else if (o is JsObject) {
+  }
+  if (o is JsObject) {
     return o._jsObject;
-  } else if (o is Function) {
+  }
+  if (o is Blob || o is Event || o is KeyRange || o is ImageData || o is Node ||
+      o is TypedData || o is Window) {
+    return o;
+  }
+  if (o is DateTime) {
+    return Primitives.lazyAsJsDate(o);
+  }
+  if (o is Function) {
     return _getJsProxy(o, _JS_FUNCTION_PROPERTY_NAME, (o) {
       var jsFunction = _convertDartFunction(o);
       // set a property on the JS closure referencing the Dart closure
       _defineProperty(jsFunction, _DART_CLOSURE_PROPERTY_NAME, o);
       return jsFunction;
     });
-  } else {
-    var ctor = _dartProxyCtor;
-    return _getJsProxy(o, _JS_OBJECT_PROPERTY_NAME,
-        (o) => JS('', 'new #(#)', ctor, o));
   }
+  var ctor = _dartProxyCtor;
+  return _getJsProxy(o, _JS_OBJECT_PROPERTY_NAME,
+      (o) => JS('', 'new #(#)', ctor, o));
 }
 
 Object _getJsProxy(o, String propertyName, createProxy(o)) {
@@ -567,13 +610,13 @@ JsObject _wrapToDart(o) {
   if (JS('bool', 'typeof # == "function"', o)) {
     return _getDartProxy(o, _DART_CLOSURE_PROPERTY_NAME,
         (o) => new JsFunction._fromJs(o));
-  } else if (JS('bool', '# instanceof Array', o)) {
+  }
+  if (JS('bool', '# instanceof Array', o)) {
     return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
         (o) => new JsArray._fromJs(o));
-  } else {
-    return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
-        (o) => new JsObject._fromJs(o));
   }
+  return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
+      (o) => new JsObject._fromJs(o));
 }
 
 Object _getDartProxy(o, String propertyName, createProxy(o)) {
