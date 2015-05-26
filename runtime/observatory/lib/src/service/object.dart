@@ -432,53 +432,10 @@ abstract class VM extends ServiceObjectOwner {
     update(toObservable({'id':'vm', 'type':'@VM'}));
   }
 
-  Future streamListen(String streamId) {
-    return invokeRpc('streamListen', {'streamId': streamId});
-  }
+  final StreamController<ServiceEvent> events =
+      new StreamController.broadcast();
 
-  Future streamCancel(String streamId) {
-    return invokeRpc('streamCancel', {'streamId': streamId});
-  }
-
-  static const kIsolateEventStreamId = 'Isolate';
-  static const kDebugEventStreamId = 'Debug';
-  static const kGCEventStreamId = 'GC';
-
-  Map<String,StreamController> _streamControllers = {};
-
-  void _streamListenHandleError(String streamId) {
-    streamListen(streamId).catchError((e, st) {
-      _getEventStreamController(streamId).addError(e, st);
-    });
-  }
-
-  void _streamCancelHandleError(String streamId) {
-    // TODO(turnidge): Consider removing the controller from the map here.
-    streamCancel(streamId).catchError((e, st) {
-      _getEventStreamController(streamId).addError(e, st);
-    });
-  }
-
-  StreamController _getEventStreamController(String streamId) {
-    var controller = _streamControllers.putIfAbsent(
-        streamId, () {
-          return new StreamController.broadcast(
-            onListen: () => _streamListenHandleError(streamId),
-            onCancel: () => _streamCancelHandleError(streamId));
-        });
-    return controller;
-  }
-
-  Stream getEventStream(String streamId) {
-    return _getEventStreamController(streamId).stream;
-  }
-
-  Stream get isolateEvents => getEventStream(kIsolateEventStreamId);
-  Stream get debugEvents => getEventStream(kDebugEventStreamId);
-  Stream get gcEvents => getEventStream(kGCEventStreamId);
-
-  void postServiceEvent(String streamId, Map response, ByteData data) {
-    assert(streamId != null);
+  void postServiceEvent(Map response, ByteData data) {
     var map = toObservable(response);
     assert(!map.containsKey('_data'));
     if (data != null) {
@@ -491,21 +448,19 @@ abstract class VM extends ServiceObjectOwner {
     }
 
     var eventIsolate = map['isolate'];
-    var event;
     if (eventIsolate == null) {
-      event = new ServiceObject._fromMap(vm, map);
+      var event = new ServiceObject._fromMap(vm, map);
+      events.add(event);
     } else {
       // getFromMap creates the Isolate if it hasn't been seen already.
       var isolate = getFromMap(map['isolate']);
-      event = new ServiceObject._fromMap(isolate, map);
+      var event = new ServiceObject._fromMap(isolate, map);
       if (event.eventType == ServiceEvent.kIsolateExit) {
         _removeIsolate(isolate.id);
       }
-      // Give the isolate a chance to process the event first before
-      // dispatching it to others.
       isolate._onEvent(event);
+      events.add(event);
     }
-    _getEventStreamController(streamId).add(event);
   }
 
   void _removeIsolate(String isolateId) {
@@ -1062,7 +1017,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   Stream fetchHeapSnapshot() {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       _snapshotFetch = new StreamController();
-      isolate.vm.streamListen('_Graph');
+      // isolate.vm.streamListen('_Graph');
       isolate.invokeRpcNoUpgrade('requestHeapSnapshot', {});
     }
     return _snapshotFetch.stream;

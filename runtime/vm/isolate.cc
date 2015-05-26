@@ -450,24 +450,20 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
 
 void IsolateMessageHandler::NotifyPauseOnStart() {
-  if (Service::NeedsDebugEvents()) {
-    StartIsolateScope start_isolate(isolate());
-    StackZone zone(I);
-    HandleScope handle_scope(I);
-    ServiceEvent pause_event(isolate(), ServiceEvent::kPauseStart);
-    Service::HandleEvent(&pause_event);
-  }
+  StartIsolateScope start_isolate(isolate());
+  StackZone zone(I);
+  HandleScope handle_scope(I);
+  ServiceEvent pause_event(isolate(), ServiceEvent::kPauseStart);
+  Service::HandleEvent(&pause_event);
 }
 
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
-  if (Service::NeedsDebugEvents()) {
-    StartIsolateScope start_isolate(isolate());
-    StackZone zone(I);
-    HandleScope handle_scope(I);
-    ServiceEvent pause_event(isolate(), ServiceEvent::kPauseExit);
-    Service::HandleEvent(&pause_event);
-  }
+  StartIsolateScope start_isolate(isolate());
+  StackZone zone(I);
+  HandleScope handle_scope(I);
+  ServiceEvent pause_event(isolate(), ServiceEvent::kPauseExit);
+  Service::HandleEvent(&pause_event);
 }
 
 

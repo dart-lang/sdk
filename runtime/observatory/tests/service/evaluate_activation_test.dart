@@ -79,7 +79,7 @@ testMethod(Isolate isolate) async {
 
   bool hitBreakpoint = false;
   var sub;
-  sub = isolate.vm.debugEvents.listen((ServiceEvent event) async {
+  sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.eventType == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;
@@ -127,7 +127,7 @@ testMethod2(Isolate isolate) async {
 
   bool hitBreakpoint = false;
   var sub;
-  sub = isolate.vm.debugEvents.listen((ServiceEvent event) async {
+  sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.eventType == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;
@@ -175,7 +175,7 @@ testMethod3(Isolate isolate) async {
 
   bool hitBreakpoint = false;
   var sub;
-  sub = isolate.vm.debugEvents.listen((ServiceEvent event) async {
+  sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.eventType == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;
@@ -216,7 +216,7 @@ testMethod4(Isolate isolate) async {
 
   bool hitBreakpoint = false;
   var sub;
-  sub = isolate.vm.debugEvents.listen((ServiceEvent event) async {
+  sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.eventType == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;

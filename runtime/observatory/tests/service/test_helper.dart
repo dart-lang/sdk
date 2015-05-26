@@ -138,12 +138,10 @@ typedef void ServiceEventHandler(ServiceEvent event,
                                  StreamSubscription subscription,
                                  Completer completer);
 
-Future processServiceEvents(VM vm,
-                            String streamId,
-                            ServiceEventHandler handler) {
+Future processServiceEvents(VM vm, ServiceEventHandler handler) {
   Completer completer = new Completer();
   var subscription;
-  subscription = vm.getEventStream(streamId).listen((ServiceEvent event) {
+  subscription = vm.events.stream.listen((ServiceEvent event) {
     handler(event, subscription, completer);
   });
   return completer.future;
@@ -161,7 +159,7 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
   var subscription;
-  subscription = isolate.vm.debugEvents.listen((ServiceEvent event) {
+  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
     if (event.eventType == ServiceEvent.kPauseBreakpoint) {
       print('Breakpoint reached');
       subscription.cancel();

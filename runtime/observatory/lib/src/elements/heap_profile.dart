@@ -93,7 +93,7 @@ class HeapProfileElement extends ObservatoryElement {
     _oldPieChart = new Chart('PieChart',
         shadowRoot.querySelector('#oldPieChart'));
     _classTableBody = shadowRoot.querySelector('#classTableBody');
-    _subscription = app.vm.gcEvents.where(
+    _subscription = app.vm.events.stream.where(
         (event) => event.isolate == isolate).listen(_onEvent);
   }
 

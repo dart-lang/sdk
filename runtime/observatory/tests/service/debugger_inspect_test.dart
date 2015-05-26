@@ -23,7 +23,7 @@ var tests = [
 (Isolate isolate) async {
   Completer completer = new Completer();
   var subscription;
-  subscription = isolate.vm.debugEvents.listen((ServiceEvent event) {
+  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
     print(event);
     if (event.eventType == ServiceEvent.kInspect) {
       expect((event.inspectee as Instance).clazz.name, equals('Point'));

@@ -9,7 +9,6 @@ class Message {
   bool get completed => _completer.isCompleted;
   /// Future of response.
   Future<String> get response => _completer.future;
-  Client client;
 
   // Client-side identifier for this message.
   final serial;
@@ -34,7 +33,7 @@ class Message {
     });
   }
 
-  Message.fromJsonRpc(this.client, Map map)
+  Message.fromJsonRpc(Map map)
       : serial = map['id'], method = map['method'] {
     params.addAll(map['params']);
   }
@@ -49,12 +48,12 @@ class Message {
     return uri.pathSegments[0];
   }
 
-  Message.fromUri(this.client, Uri uri)
+  Message.fromUri(Uri uri)
       : method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
   }
 
-  Message.forIsolate(this.client, Uri uri, RunningIsolate isolate)
+  Message.forIsolate(Uri uri, RunningIsolate isolate)
       : method = _methodNameFromUri(uri) {
     params.addAll(uri.queryParameters);
     params['isolateId'] = isolate.serviceId;

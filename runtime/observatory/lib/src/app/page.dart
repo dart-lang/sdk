@@ -191,6 +191,7 @@ class DebuggerPage extends SimplePage {
       if (element != null) {
         /// Update the page.
         DebuggerPageElement page = element;
+        page.app = app;
         page.isolate = isolate;
       }
     });

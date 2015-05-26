@@ -53,8 +53,7 @@ class ObservatoryApplication extends Observable {
                 new ServiceEvent.connectionClosed(reason)));
       });
 
-      vm.isolateEvents.listen(_onEvent);
-      vm.debugEvents.listen(_onEvent);
+      vm.events.stream.listen(_onEvent);
     }
     _vm = vm;
   }
@@ -89,9 +88,11 @@ class ObservatoryApplication extends Observable {
     switch(event.eventType) {
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kIsolateUpdate:
+      case ServiceEvent.kGraph:
       case ServiceEvent.kBreakpointAdded:
       case ServiceEvent.kBreakpointResolved:
       case ServiceEvent.kBreakpointRemoved:
+      case ServiceEvent.kGC:
         // Ignore for now.
         break;
 
@@ -115,7 +116,7 @@ class ObservatoryApplication extends Observable {
 
       default:
         // Ignore unrecognized events.
-        Logger.root.severe('Ignoring unexpected event: $event');
+        Logger.root.severe('Unrecognized event: $event');
         break;
     }
   }

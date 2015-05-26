@@ -2817,36 +2817,35 @@ typedef const char* (*Dart_ServiceRequestCallback)(
     void* user_data);
 
 /**
- * Register a Dart_ServiceRequestCallback to be called to handle
- * requests for the named rpc on a specific isolate. The callback will
- * be invoked with the current isolate set to the request target.
+ * Register a Dart_ServiceRequestCallback to be called to handle requests
+ * with name on a specific isolate. The callback will be invoked with the
+ * current isolate set to the request target.
  *
- * \param method The name of the method that this callback is responsible for.
+ * \param name The name of the command that this callback is responsible for.
  * \param callback The callback to invoke.
  * \param user_data The user data passed to the callback.
  *
- * NOTE: If multiple callbacks with the same name are registered, only
- * the last callback registered will be remembered.
+ * NOTE: If multiple callbacks with the same name are registered, only the
+ * last callback registered will be remembered.
  */
 DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
-    const char* method,
+    const char* name,
     Dart_ServiceRequestCallback callback,
     void* user_data);
 
 /**
- * Register a Dart_ServiceRequestCallback to be called to handle
- * requests for the named rpc. The callback will be invoked without a
- * current isolate.
+ * Register a Dart_ServiceRequestCallback to be called to handle requests
+ * with name. The callback will be invoked without a current isolate.
  *
- * \param method The name of the command that this callback is responsible for.
+ * \param name The name of the command that this callback is responsible for.
  * \param callback The callback to invoke.
  * \param user_data The user data passed to the callback.
  *
- * NOTE: If multiple callbacks with the same name are registered, only
- * the last callback registered will be remembered.
+ * NOTE: If multiple callbacks with the same name are registered, only the
+ * last callback registered will be remembered.
  */
 DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
-    const char* method,
+    const char* name,
     Dart_ServiceRequestCallback callback,
     void* user_data);
 
