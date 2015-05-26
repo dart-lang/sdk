@@ -41,7 +41,7 @@ DECLARE_FLAG(bool, support_debugger);
 //   EDX : number of arguments to the call.
 // Must preserve callee saved registers EDI and EBX.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -75,7 +75,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call runtime.
-  __ movl(Address(ESP, isolate_offset), EDI);  // Set isolate in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);  // Set thread in NativeArgs.
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
@@ -127,8 +127,8 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset =
       NativeEntry::kNumCallWrapperArguments * kWordSize;
-  const intptr_t isolate_offset =
-      NativeArguments::isolate_offset() + native_args_struct_offset;
+  const intptr_t thread_offset =
+      NativeArguments::thread_offset() + native_args_struct_offset;
   const intptr_t argc_tag_offset =
       NativeArguments::argc_tag_offset() + native_args_struct_offset;
   const intptr_t argv_offset =
@@ -168,7 +168,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movl(Address(ESP, isolate_offset), EDI);  // Set isolate in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);  // Set thread in NativeArgs.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
   __ leal(EAX, Address(EBP, 2 * kWordSize));  // Compute return value addr.
@@ -200,8 +200,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 // Uses EDI.
 void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = kWordSize;
-  const intptr_t isolate_offset =
-      NativeArguments::isolate_offset() + native_args_struct_offset;
+  const intptr_t thread_offset =
+      NativeArguments::thread_offset() + native_args_struct_offset;
   const intptr_t argc_tag_offset =
       NativeArguments::argc_tag_offset() + native_args_struct_offset;
   const intptr_t argv_offset =
@@ -240,7 +240,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movl(Address(ESP, isolate_offset), EDI);  // Set isolate in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);  // Set thread in NativeArgs.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
   __ leal(EAX, Address(EBP, 2 * kWordSize));  // Compute return value addr.
@@ -1912,19 +1912,19 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // TOS + 3: frame_pointer
 // TOS + 4: exception object
 // TOS + 5: stacktrace object
-// TOS + 6: isolate
+// TOS + 6: thread
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == EAX);
   ASSERT(kStackTraceObjectReg == EDX);
-  __ movl(EDI, Address(ESP, 6 * kWordSize));  // Load target isolate.
+  __ movl(THR, Address(ESP, 6 * kWordSize));  // Load target thread.
   __ movl(kStackTraceObjectReg, Address(ESP, 5 * kWordSize));
   __ movl(kExceptionObjectReg, Address(ESP, 4 * kWordSize));
   __ movl(EBP, Address(ESP, 3 * kWordSize));  // Load target frame_pointer.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
   __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.
   // TODO(koda): Pass thread instead of isolate.
-  __ movl(THR, Address(EDI, Isolate::mutator_thread_offset()));
+  __ LoadIsolate(EDI);
   // Set tag.
   __ movl(Address(EDI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));

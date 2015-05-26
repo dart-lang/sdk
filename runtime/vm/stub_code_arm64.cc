@@ -36,7 +36,7 @@ DECLARE_FLAG(bool, support_debugger);
 //   R5 : address of the runtime function to call.
 //   R4 : number of arguments to the call.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -77,9 +77,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Pass NativeArguments structure by value and call runtime.
   // Registers R0, R1, R2, and R3 are used.
 
-  ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs.
-  __ mov(R0, R28);
+  ASSERT(thread_offset == 0 * kWordSize);
+  // Set thread in NativeArgs.
+  __ mov(R0, THR);
 
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -95,7 +95,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
     ASSERT(retval_offset == 3 * kWordSize);
   __ AddImmediate(R3, R2, kWordSize, kNoPP);
 
-  __ StoreToOffset(R0, SP, isolate_offset, kNoPP);
+  __ StoreToOffset(R0, SP, thread_offset, kNoPP);
   __ StoreToOffset(R1, SP, argc_tag_offset, kNoPP);
   __ StoreToOffset(R2, SP, argv_offset, kNoPP);
   __ StoreToOffset(R3, SP, retval_offset, kNoPP);
@@ -139,7 +139,7 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -175,9 +175,9 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Initialize NativeArguments structure and call native function.
   // Registers R0, R1, R2, and R3 are used.
 
-  ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs.
-  __ mov(R0, R28);
+  ASSERT(thread_offset == 0 * kWordSize);
+  // Set thread in NativeArgs.
+  __ mov(R0, THR);
 
   // There are no native calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -194,7 +194,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Passing the structure by value as in runtime calls would require changing
   // Dart API for native functions.
   // For now, space is reserved on the stack and we pass a pointer to it.
-  __ StoreToOffset(R0, SP, isolate_offset, kNoPP);
+  __ StoreToOffset(R0, SP, thread_offset, kNoPP);
   __ StoreToOffset(R1, SP, argc_tag_offset, kNoPP);
   __ StoreToOffset(R2, SP, argv_offset, kNoPP);
   __ StoreToOffset(R3, SP, retval_offset, kNoPP);
@@ -241,7 +241,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -277,9 +277,9 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Initialize NativeArguments structure and call native function.
   // Registers R0, R1, R2, and R3 are used.
 
-  ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs.
-  __ mov(R0, R28);
+  ASSERT(thread_offset == 0 * kWordSize);
+  // Set thread in NativeArgs.
+  __ mov(R0, THR);
 
   // There are no native calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -296,7 +296,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Passing the structure by value as in runtime calls would require changing
   // Dart API for native functions.
   // For now, space is reserved on the stack and we pass a pointer to it.
-  __ StoreToOffset(R0, SP, isolate_offset, kNoPP);
+  __ StoreToOffset(R0, SP, thread_offset, kNoPP);
   __ StoreToOffset(R1, SP, argc_tag_offset, kNoPP);
   __ StoreToOffset(R2, SP, argv_offset, kNoPP);
   __ StoreToOffset(R3, SP, retval_offset, kNoPP);
@@ -1977,7 +1977,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // R2: frame_pointer.
 // R3: error object.
 // R4: address of stacktrace object.
-// R5: isolate.
+// R5: thread.
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
@@ -1987,8 +1987,8 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ mov(FP, R2);  // Frame_pointer.
   __ mov(R0, R3);  // Exception object.
   __ mov(R1, R4);  // StackTrace object.
-  // TODO(koda): Pass thread instead of isolate.
-  __ LoadFromOffset(THR, R5, Isolate::mutator_thread_offset(), kNoPP);
+  __ mov(THR, R5);
+  __ LoadIsolate(R5, kNoPP);
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId, kNoPP);
   __ StoreToOffset(R2, R5, Isolate::vm_tag_offset(), kNoPP);

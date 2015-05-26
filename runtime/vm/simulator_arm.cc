@@ -1526,7 +1526,7 @@ void Simulator::SupervisorCall(Instr* instr) {
         if (redirection->call_kind() == kRuntimeCall) {
           NativeArguments arguments;
           ASSERT(sizeof(NativeArguments) == 4*kWordSize);
-          arguments.isolate_ = reinterpret_cast<Isolate*>(get_register(R0));
+          arguments.thread_ = reinterpret_cast<Thread*>(get_register(R0));
           arguments.argc_tag_ = get_register(R1);
           arguments.argv_ = reinterpret_cast<RawObject*(*)[]>(get_register(R2));
           arguments.retval_ = reinterpret_cast<RawObject**>(get_register(R3));
@@ -3846,7 +3846,7 @@ void Simulator::Longjmp(uword pc,
                         uword fp,
                         RawObject* raw_exception,
                         RawObject* raw_stacktrace,
-                        Isolate* isolate) {
+                        Thread* thread) {
   // Walk over all setjmp buffers (simulated --> C++ transitions)
   // and try to find the setjmp associated with the simulated stack pointer.
   SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
@@ -3858,12 +3858,14 @@ void Simulator::Longjmp(uword pc,
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
+  Isolate* isolate = thread->isolate();
   StackResource::Unwind(isolate);
 
   // Unwind the C++ stack and continue simulation in the target frame.
   set_register(PC, static_cast<int32_t>(pc));
   set_register(SP, static_cast<int32_t>(sp));
   set_register(FP, static_cast<int32_t>(fp));
+  set_register(THR, reinterpret_cast<uword>(thread));
   // Set the tag.
   isolate->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.

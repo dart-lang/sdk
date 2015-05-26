@@ -125,7 +125,7 @@ class Simulator {
                uword fp,
                RawObject* raw_exception,
                RawObject* raw_stacktrace,
-               Isolate* isolate);
+               Thread* thread);
 
  private:
   // Known bad pc value to ensure that the simulator does not execute

@@ -38,7 +38,7 @@ DECLARE_FLAG(bool, support_debugger);
 //   R10 : number of arguments to the call.
 // Must preserve callee saved registers R12 and R13.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -74,7 +74,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call runtime.
-  __ movq(Address(RSP, isolate_offset), R12);  // Set isolate in NativeArgs.
+  __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
@@ -131,8 +131,8 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   R10 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = 0;
-  const intptr_t isolate_offset =
-      NativeArguments::isolate_offset() + native_args_struct_offset;
+  const intptr_t thread_offset =
+      NativeArguments::thread_offset() + native_args_struct_offset;
   const intptr_t argc_tag_offset =
       NativeArguments::argc_tag_offset() + native_args_struct_offset;
   const intptr_t argv_offset =
@@ -173,7 +173,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movq(Address(RSP, isolate_offset), R12);  // Set isolate in NativeArgs.
+  __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ leaq(RAX, Address(RBP, 2 * kWordSize));  // Compute return value addr.
@@ -205,8 +205,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 //   R10 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = 0;
-  const intptr_t isolate_offset =
-      NativeArguments::isolate_offset() + native_args_struct_offset;
+  const intptr_t thread_offset =
+      NativeArguments::thread_offset() + native_args_struct_offset;
   const intptr_t argc_tag_offset =
       NativeArguments::argc_tag_offset() + native_args_struct_offset;
   const intptr_t argv_offset =
@@ -247,7 +247,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movq(Address(RSP, isolate_offset), R12);  // Set isolate in NativeArgs.
+  __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ leaq(RAX, Address(RBP, 2 * kWordSize));  // Compute return value addr.
@@ -1961,7 +1961,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // Arg3: frame_pointer
 // Arg4: exception object
 // Arg5: stacktrace object
-// Arg6: isolate
+// Arg6: thread
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == RAX);
@@ -1972,14 +1972,14 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 #if defined(_WIN64)
   Register stacktrace_reg = RBX;
   __ movq(stacktrace_reg, Address(RSP, 5 * kWordSize));
+  __ movq(THR, Address(RSP, 6 * kWordSize));
   Register isolate_reg = RDI;
-  __ movq(isolate_reg, Address(RSP, 6 * kWordSize));
 #else
   Register stacktrace_reg = CallingConventions::kArg5Reg;
+  __ movq(THR, CallingConventions::kArg6Reg);
   Register isolate_reg = CallingConventions::kArg6Reg;
 #endif
-  // TODO(koda): Pass thread instead of isolate.
-  __ movq(THR, Address(isolate_reg, Isolate::mutator_thread_offset()));
+  __ LoadIsolate(isolate_reg);
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
   __ movq(kStackTraceObjectReg, stacktrace_reg);

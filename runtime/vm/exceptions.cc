@@ -194,7 +194,7 @@ static void FindErrorHandler(uword* handler_pc,
 }
 
 
-static void JumpToExceptionHandler(Isolate* isolate,
+static void JumpToExceptionHandler(Thread* thread,
                                    uword program_counter,
                                    uword stack_pointer,
                                    uword frame_pointer,
@@ -216,17 +216,17 @@ static void JumpToExceptionHandler(Isolate* isolate,
   // object (may be raw null) in the kStackTraceObjectReg register.
 
   Simulator::Current()->Longjmp(program_counter, stack_pointer, frame_pointer,
-                                raw_exception, raw_stacktrace, isolate);
+                                raw_exception, raw_stacktrace, thread);
 #else
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous frames.
-  StackResource::Unwind(isolate);
+  StackResource::Unwind(thread->isolate());
 
   // Call a stub to set up the exception object in kExceptionObjectReg,
   // to set up the stacktrace object in kStackTraceObjectReg, and to
   // continue execution at the given pc in the given frame.
   typedef void (*ExcpHandler)(uword, uword, uword, RawObject*, RawObject*,
-                              Isolate*);
+                              Thread*);
   ExcpHandler func = reinterpret_cast<ExcpHandler>(
       StubCode::JumpToExceptionHandlerEntryPoint());
 
@@ -236,7 +236,7 @@ static void JumpToExceptionHandler(Isolate* isolate,
                 stack_pointer - current_sp);
 
   func(program_counter, stack_pointer, frame_pointer,
-       raw_exception, raw_stacktrace, isolate);
+       raw_exception, raw_stacktrace, thread);
 #endif
   UNREACHABLE();
 }
@@ -288,10 +288,11 @@ RawStacktrace* Exceptions::CurrentStacktrace() {
 }
 
 
-static void ThrowExceptionHelper(Isolate* isolate,
+static void ThrowExceptionHelper(Thread* thread,
                                  const Instance& incoming_exception,
                                  const Instance& existing_stacktrace,
                                  const bool is_rethrow) {
+  Isolate* isolate = thread->isolate();
   bool use_preallocated_stacktrace = false;
   Instance& exception = Instance::Handle(isolate, incoming_exception.raw());
   if (exception.IsNull()) {
@@ -363,7 +364,7 @@ static void ThrowExceptionHelper(Isolate* isolate,
   }
   if (handler_exists) {
     // Found a dart handler for the exception, jump to it.
-    JumpToExceptionHandler(isolate,
+    JumpToExceptionHandler(thread,
                            handler_pc,
                            handler_sp,
                            handler_fp,
@@ -380,7 +381,7 @@ static void ThrowExceptionHelper(Isolate* isolate,
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
         isolate, UnhandledException::New(exception, stacktrace));
     stacktrace = Stacktrace::null();
-    JumpToExceptionHandler(isolate,
+    JumpToExceptionHandler(thread,
                            handler_pc,
                            handler_sp,
                            handler_fp,
@@ -474,29 +475,30 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
 }
 
 
-void Exceptions::Throw(Isolate* isolate, const Instance& exception) {
+void Exceptions::Throw(Thread* thread, const Instance& exception) {
   // Do not notify debugger on stack overflow and out of memory exceptions.
   // The VM would crash when the debugger calls back into the VM to
   // get values of variables.
+  Isolate* isolate = thread->isolate();
   if (exception.raw() != isolate->object_store()->out_of_memory() &&
       exception.raw() != isolate->object_store()->stack_overflow()) {
     isolate->debugger()->SignalExceptionThrown(exception);
   }
   // Null object is a valid exception object.
-  ThrowExceptionHelper(isolate, exception, Stacktrace::Handle(isolate), false);
+  ThrowExceptionHelper(thread, exception, Stacktrace::Handle(isolate), false);
 }
 
-
-void Exceptions::ReThrow(Isolate* isolate,
+void Exceptions::ReThrow(Thread* thread,
                          const Instance& exception,
                          const Instance& stacktrace) {
   // Null object is a valid exception object.
-  ThrowExceptionHelper(isolate, exception, stacktrace, true);
+  ThrowExceptionHelper(thread, exception, stacktrace, true);
 }
 
 
 void Exceptions::PropagateError(const Error& error) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate->top_exit_frame_info() != 0);
   if (error.IsUnhandledException()) {
     // If the error object represents an unhandled exception, then
@@ -504,7 +506,7 @@ void Exceptions::PropagateError(const Error& error) {
     const UnhandledException& uhe = UnhandledException::Cast(error);
     const Instance& exc = Instance::Handle(isolate, uhe.exception());
     const Instance& stk = Instance::Handle(isolate, uhe.stacktrace());
-    Exceptions::ReThrow(isolate, exc, stk);
+    Exceptions::ReThrow(thread, exc, stk);
   } else {
     // Return to the invocation stub and return this error object.  The
     // C++ code which invoked this dart sequence can check and do the
@@ -513,7 +515,7 @@ void Exceptions::PropagateError(const Error& error) {
     uword handler_sp = 0;
     uword handler_fp = 0;
     FindErrorHandler(&handler_pc, &handler_sp, &handler_fp);
-    JumpToExceptionHandler(isolate, handler_pc, handler_sp, handler_fp, error,
+    JumpToExceptionHandler(thread, handler_pc, handler_sp, handler_fp, error,
                            Stacktrace::Handle(isolate));  // Null stacktrace.
   }
   UNREACHABLE();
@@ -521,7 +523,8 @@ void Exceptions::PropagateError(const Error& error) {
 
 
 void Exceptions::ThrowByType(ExceptionType type, const Array& arguments) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   const Object& result = Object::Handle(isolate, Create(type, arguments));
   if (result.IsError()) {
     // We got an error while constructing the exception object.
@@ -529,24 +532,26 @@ void Exceptions::ThrowByType(ExceptionType type, const Array& arguments) {
     PropagateError(Error::Cast(result));
   } else {
     ASSERT(result.IsInstance());
-    Throw(isolate, Instance::Cast(result));
+    Throw(thread, Instance::Cast(result));
   }
 }
 
 
 void Exceptions::ThrowOOM() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   const Instance& oom = Instance::Handle(
       isolate, isolate->object_store()->out_of_memory());
-  Throw(isolate, oom);
+  Throw(thread, oom);
 }
 
 
 void Exceptions::ThrowStackOverflow() {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   const Instance& stack_overflow = Instance::Handle(
       isolate, isolate->object_store()->stack_overflow());
-  Throw(isolate, stack_overflow);
+  Throw(thread, stack_overflow);
 }
 
 

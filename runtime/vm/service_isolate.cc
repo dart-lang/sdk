@@ -219,7 +219,7 @@ class ServiceIsolateNatives : public AllStatic {
  public:
   static void SendIsolateServiceMessage(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->isolate();
+    Isolate* isolate = arguments->thread()->isolate();
     StackZone stack_zone(isolate);
     Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
     HANDLESCOPE(isolate);
@@ -243,7 +243,7 @@ class ServiceIsolateNatives : public AllStatic {
 
   static void SendRootServiceMessage(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->isolate();
+    Isolate* isolate = arguments->thread()->isolate();
     StackZone stack_zone(isolate);
     Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
     HANDLESCOPE(isolate);
@@ -253,7 +253,7 @@ class ServiceIsolateNatives : public AllStatic {
 
   static void OnStart(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->isolate();
+    Isolate* isolate = arguments->thread()->isolate();
     StackZone zone(isolate);
     HANDLESCOPE(isolate);
     {
@@ -287,7 +287,7 @@ class ServiceIsolateNatives : public AllStatic {
 
   static void OnExit(Dart_NativeArguments args) {
     NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-    Isolate* isolate = arguments->isolate();
+    Isolate* isolate = arguments->thread()->isolate();
     StackZone zone(isolate);
     HANDLESCOPE(isolate);
     {

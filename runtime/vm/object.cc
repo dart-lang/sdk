@@ -1687,7 +1687,8 @@ RawObject* Object::Allocate(intptr_t cls_id,
                             intptr_t size,
                             Heap::Space space) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   ASSERT(isolate->no_callback_scope_depth() == 0);
   Heap* heap = isolate->heap();
 
@@ -1697,7 +1698,7 @@ RawObject* Object::Allocate(intptr_t cls_id,
     // into dart code or allocating any code.
     const Instance& exception =
         Instance::Handle(isolate->object_store()->out_of_memory());
-    Exceptions::Throw(isolate, exception);
+    Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
   if (space == Heap::kNew) {
@@ -17299,11 +17300,7 @@ const char* Bigint::ToDecCString(uword (*allocator)(intptr_t size)) const {
   const intptr_t kMaxUsed =
       kIntptrMax / kBitsPerDigit / kLog2Dividend * kLog2Divisor;
   if (used > kMaxUsed) {
-    // Throw out of memory exception.
-    Isolate* isolate = Isolate::Current();
-    const Instance& exception =
-        Instance::Handle(isolate->object_store()->out_of_memory());
-    Exceptions::Throw(isolate, exception);
+    Exceptions::ThrowOOM();
     UNREACHABLE();
   }
   const int64_t bit_len = used * kBitsPerDigit;
@@ -17381,11 +17378,7 @@ const char* Bigint::ToHexCString(uword (*allocator)(intptr_t size)) const {
   const int kHexDigitsPerDigit = 8;
   const intptr_t kMaxUsed = (kIntptrMax - 4) / kHexDigitsPerDigit;
   if (used > kMaxUsed) {
-    // Throw out of memory exception.
-    Isolate* isolate = Isolate::Current();
-    const Instance& exception =
-        Instance::Handle(isolate->object_store()->out_of_memory());
-    Exceptions::Throw(isolate, exception);
+    Exceptions::ThrowOOM();
     UNREACHABLE();
   }
   intptr_t hex_len = (used - 1) * kHexDigitsPerDigit;
@@ -18158,10 +18151,7 @@ RawString* String::ConcatAllRange(const Array& strings,
     str ^= strings.At(i);
     const intptr_t str_len = str.Length();
     if ((kMaxElements - result_len) < str_len) {
-      Isolate* isolate = Isolate::Current();
-      const Instance& exception =
-          Instance::Handle(isolate->object_store()->out_of_memory());
-      Exceptions::Throw(isolate, exception);
+      Exceptions::ThrowOOM();
       UNREACHABLE();
     }
     result_len += str_len;
@@ -19425,12 +19415,7 @@ void GrowableObjectArray::Add(const Object& value, Heap::Space space) const {
     // TODO(Issue 2500): Need a better growth strategy.
     intptr_t new_capacity = (Capacity() == 0) ? 4 : Capacity() * 2;
     if (new_capacity <= Capacity()) {
-      // Use the preallocated out of memory exception to avoid calling
-      // into dart code or allocating any code.
-      Isolate* isolate = Isolate::Current();
-      const Instance& exception =
-          Instance::Handle(isolate->object_store()->out_of_memory());
-      Exceptions::Throw(isolate, exception);
+      Exceptions::ThrowOOM();
       UNREACHABLE();
     }
     Grow(new_capacity, space);

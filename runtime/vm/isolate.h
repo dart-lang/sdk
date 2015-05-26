@@ -172,10 +172,6 @@ class Isolate : public BaseIsolate {
     DEBUG_ASSERT(mutator_thread_ == NULL || IsIsolateOf(mutator_thread_));
     return mutator_thread_;
   }
-  // TODO(koda): Remove after pivoting to thread in JumpToExceptionHandler.
-  static intptr_t mutator_thread_offset() {
-    return OFFSET_OF(Isolate, mutator_thread_);
-  }
 #if defined(DEBUG)
   bool IsIsolateOf(Thread* thread);
 #endif  // DEBUG

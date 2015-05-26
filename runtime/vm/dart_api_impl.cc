@@ -120,7 +120,7 @@ static bool GetNativeStringArgument(NativeArguments* arguments,
     *str = NULL;
     return true;
   }
-  Isolate* isolate = arguments->isolate();
+  Isolate* isolate = arguments->thread()->isolate();
   ASSERT(isolate == Isolate::Current());
   *peer = NULL;
   REUSABLE_OBJECT_HANDLESCOPE(isolate);
@@ -147,7 +147,7 @@ static bool GetNativeIntegerArgument(NativeArguments* arguments,
   if (Api::GetNativeIntegerArgument(arguments, arg_index, value)) {
     return true;
   }
-  Isolate* isolate = arguments->isolate();
+  Isolate* isolate = arguments->thread()->isolate();
   ASSERT(isolate == Isolate::Current());
   REUSABLE_OBJECT_HANDLESCOPE(isolate);
   Object& obj = isolate->ObjectHandle();
@@ -173,7 +173,7 @@ static bool GetNativeUnsignedIntegerArgument(NativeArguments* arguments,
     *value = static_cast<uint64_t>(arg_value);
     return true;
   }
-  Isolate* isolate = arguments->isolate();
+  Isolate* isolate = arguments->thread()->isolate();
   ASSERT(isolate == Isolate::Current());
   REUSABLE_OBJECT_HANDLESCOPE(isolate);
   Object& obj = isolate->ObjectHandle();
@@ -197,7 +197,7 @@ static bool GetNativeDoubleArgument(NativeArguments* arguments,
   if (Api::GetNativeDoubleArgument(arguments, arg_index, value)) {
     return true;
   }
-  Isolate* isolate = arguments->isolate();
+  Isolate* isolate = arguments->thread()->isolate();
   ASSERT(isolate == Isolate::Current());
   REUSABLE_OBJECT_HANDLESCOPE(isolate);
   Object& obj = isolate->ObjectHandle();
@@ -223,7 +223,7 @@ static Dart_Handle GetNativeFieldsOfArgument(NativeArguments* arguments,
                                      field_values)) {
     return Api::Success();
   }
-  Isolate* isolate = arguments->isolate();
+  Isolate* isolate = arguments->thread()->isolate();
   ASSERT(isolate == Isolate::Current());
   REUSABLE_OBJECT_HANDLESCOPE(isolate);
   Object& obj = isolate->ObjectHandle();
@@ -488,7 +488,7 @@ bool Api::StringGetPeerHelper(NativeArguments* arguments,
     return true;
   }
   if (cid == kOneByteStringCid || cid == kTwoByteStringCid) {
-    Isolate* isolate = arguments->isolate();
+    Isolate* isolate = arguments->thread()->isolate();
     *peer = isolate->heap()->GetPeer(raw_obj);
     return (*peer != 0);
   }
@@ -2707,7 +2707,8 @@ static RawObject* ResolveConstructor(const char* current_func,
 
 
 static RawObject* ThrowArgumentError(const char* exception_message) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   // Lookup the class ArgumentError in dart:core.
   const String& lib_url = String::Handle(String::New("dart:core"));
   const String& class_name = String::Handle(String::New("ArgumentError"));
@@ -2765,7 +2766,7 @@ static RawObject* ThrowArgumentError(const char* exception_message) {
     state->UnwindScopes(isolate->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
   }
-  Exceptions::Throw(isolate, *saved_exception);
+  Exceptions::Throw(thread, *saved_exception);
   const String& message = String::Handle(
           String::New("Exception was not thrown, internal error"));
   return ApiError::New(message);
@@ -4437,7 +4438,8 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
 // --- Exceptions ----
 
 DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   CHECK_CALLBACK_STATE(isolate);
   {
@@ -4464,14 +4466,15 @@ DART_EXPORT Dart_Handle Dart_ThrowException(Dart_Handle exception) {
     state->UnwindScopes(isolate->top_exit_frame_info());
     saved_exception = &Instance::Handle(raw_exception);
   }
-  Exceptions::Throw(isolate, *saved_exception);
+  Exceptions::Throw(thread, *saved_exception);
   return Api::NewError("Exception was not thrown, internal error");
 }
 
 
 DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
                                               Dart_Handle stacktrace) {
-  Isolate* isolate = Isolate::Current();
+  Thread* thread = Thread::Current();
+  Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
   CHECK_CALLBACK_STATE(isolate);
   {
@@ -4506,7 +4509,7 @@ DART_EXPORT Dart_Handle Dart_ReThrowException(Dart_Handle exception,
     saved_exception = &Instance::Handle(raw_exception);
     saved_stacktrace = &Stacktrace::Handle(raw_stacktrace);
   }
-  Exceptions::ReThrow(isolate, *saved_exception, *saved_stacktrace);
+  Exceptions::ReThrow(thread, *saved_exception, *saved_stacktrace);
   return Api::NewError("Exception was not re thrown, internal error");
 }
 
@@ -4598,7 +4601,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
 
 DART_EXPORT void* Dart_GetNativeIsolateData(Dart_NativeArguments args) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  Isolate* isolate = arguments->isolate();
+  Isolate* isolate = arguments->thread()->isolate();
   ASSERT(isolate == Isolate::Current());
   return isolate->init_callback_data();
 }
@@ -4610,7 +4613,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
     const Dart_NativeArgument_Descriptor* argument_descriptors,
     Dart_NativeArgument_Value* arg_values) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  ASSERT(arguments->isolate() == Isolate::Current());
+  ASSERT(arguments->thread()->isolate() == Isolate::Current());
   if (arg_values == NULL) {
     RETURN_NULL_ERROR(arg_values);
   }
@@ -4720,7 +4723,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
       }
 
       case Dart_NativeArgument_kInstance: {
-        Isolate* isolate = arguments->isolate();
+        Isolate* isolate = arguments->thread()->isolate();
         ASSERT(isolate == Isolate::Current());
         ASSERT(isolate->api_state() &&
                isolate->api_state()->top_scope() != NULL);
@@ -4747,7 +4750,8 @@ DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
         "%s: argument 'index' out of range. Expected 0..%d but saw %d.",
         CURRENT_FUNC, arguments->NativeArgCount() - 1, index);
   }
-  return Api::NewHandle(arguments->isolate(), arguments->NativeArgAt(index));
+  return Api::NewHandle(arguments->thread()->isolate(),
+                        arguments->NativeArgAt(index));
 }
 
 
@@ -4783,7 +4787,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeFieldsOfArgument(
 DART_EXPORT Dart_Handle Dart_GetNativeReceiver(Dart_NativeArguments args,
                                                intptr_t* value) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  ASSERT(arguments->isolate() == Isolate::Current());
+  ASSERT(arguments->thread()->isolate() == Isolate::Current());
   if (value == NULL) {
     RETURN_NULL_ERROR(value);
   }
@@ -4865,7 +4869,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
 DART_EXPORT void Dart_SetReturnValue(Dart_NativeArguments args,
                                      Dart_Handle retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  ASSERT(arguments->isolate() == Isolate::Current());
+  ASSERT(arguments->thread()->isolate() == Isolate::Current());
   if ((retval != Api::Null()) && (!Api::IsInstance(retval))) {
     const Object& ret_obj = Object::Handle(Api::UnwrapHandle(retval));
     FATAL1("Return value check failed: saw '%s' expected a dart Instance.",
@@ -4880,7 +4884,7 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
                                                Dart_WeakPersistentHandle rval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
 #if defined(DEBUG)
-  Isolate* isolate = arguments->isolate();
+  Isolate* isolate = arguments->thread()->isolate();
   ASSERT(isolate == Isolate::Current());
   ASSERT(isolate->api_state() != NULL &&
          (isolate->api_state()->IsValidWeakPersistentHandle(rval) ||
@@ -4944,12 +4948,12 @@ DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
 DART_EXPORT void Dart_SetIntegerReturnValue(Dart_NativeArguments args,
                                             int64_t retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
-  ASSERT(arguments->isolate() == Isolate::Current());
+  ASSERT(arguments->thread()->isolate() == Isolate::Current());
   if (Smi::IsValid(retval)) {
     Api::SetSmiReturnValue(arguments, static_cast<intptr_t>(retval));
   } else {
     // Slow path for Mints and Bigints.
-    ASSERT_CALLBACK_STATE(arguments->isolate());
+    ASSERT_CALLBACK_STATE(arguments->thread()->isolate());
     Api::SetIntegerReturnValue(arguments, retval);
   }
 }
@@ -4959,7 +4963,7 @@ DART_EXPORT void Dart_SetDoubleReturnValue(Dart_NativeArguments args,
                                            double retval) {
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
 #if defined(DEBUG)
-  Isolate* isolate = arguments->isolate();
+  Isolate* isolate = arguments->thread()->isolate();
   ASSERT(isolate == Isolate::Current());
   ASSERT_CALLBACK_STATE(isolate);
 #endif

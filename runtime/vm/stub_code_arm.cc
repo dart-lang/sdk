@@ -37,7 +37,7 @@ DECLARE_FLAG(bool, support_debugger);
 //   R5 : address of the runtime function to call.
 //   R4 : number of arguments to the call.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -76,9 +76,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Pass NativeArguments structure by value and call runtime.
   // Registers R0, R1, R2, and R3 are used.
 
-  ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs.
-  __ mov(R0, Operand(R9));
+  ASSERT(thread_offset == 0 * kWordSize);
+  // Set thread in NativeArgs.
+  __ mov(R0, Operand(THR));
 
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -137,7 +137,7 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -175,9 +175,9 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Initialize NativeArguments structure and call native function.
   // Registers R0, R1, R2, and R3 are used.
 
-  ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs.
-  __ mov(R0, Operand(R9));
+  ASSERT(thread_offset == 0 * kWordSize);
+  // Set thread in NativeArgs.
+  __ mov(R0, Operand(THR));
 
   // There are no native calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -230,7 +230,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -268,9 +268,9 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Initialize NativeArguments structure and call native function.
   // Registers R0, R1, R2, and R3 are used.
 
-  ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs.
-  __ mov(R0, Operand(R9));
+  ASSERT(thread_offset == 0 * kWordSize);
+  // Set thread in NativeArgs.
+  __ mov(R0, Operand(THR));
 
   // There are no native calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -1916,7 +1916,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // R2: frame_pointer.
 // R3: error object.
 // SP + 0: address of stacktrace object.
-// SP + 4: isolate
+// SP + 4: thread.
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
@@ -1925,11 +1925,10 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ mov(LR, Operand(R0));  // Program counter.
   __ mov(R0, Operand(R3));  // Exception object.
   __ ldr(R1, Address(SP, 0));  // StackTrace object.
-  __ ldr(R3, Address(SP, 4));  // Isolate.
+  __ ldr(THR, Address(SP, 4));  // Thread.
   __ mov(FP, Operand(R2));  // Frame_pointer.
   __ mov(SP, Operand(IP));  // Set Stack pointer.
-  // TODO(koda): Pass thread instead of isolate.
-  __ LoadFromOffset(kWord, THR, R3, Isolate::mutator_thread_offset());
+  __ LoadIsolate(R3);
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(kWord, R2, R3, Isolate::vm_tag_offset());
