@@ -491,7 +491,6 @@ constructor_call_wrong_argument_count_negative_test: Crash # Please triage this 
 constructor_initializer_test/01: Crash # Please triage this failure.
 constructor_with_mixin_test: Crash # Please triage this failure.
 continue_test: Crash # (switch (0){case 0:i=22;continue;default:i=25;break;}): Unhandled node
-core_type_check_test: RuntimeError # Please triage this failure.
 crash_12118_test: Crash # Please triage this failure.
 crash_6725_test/01: Crash # Please triage this failure.
 custom_await_stack_trace_test: Crash #  cannot handle async/sync*/async* functions
@@ -830,7 +829,6 @@ instanceof4_test/01: Crash # Instance of 'TypeOperator': type check unimplemente
 instanceof4_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for List<T>.
 integer_division_by_zero_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 interceptor6_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-interceptor9_test: RuntimeError # Please triage this failure.
 interceptor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 internal_library_test/01: Crash # (JS('int','0')): handleStaticFunctionInvoke: foreign: function(JS)
 invocation_mirror_invoke_on2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -844,10 +842,8 @@ is_malformed_type_test/98: Crash # Instance of 'TypeOperator': type casts not im
 is_malformed_type_test/99: Crash # Instance of 'TypeOperator': type check unimplemented for Undefined.
 is_nan_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 is_not_class2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-is_object_test: RuntimeError # Please triage this failure.
 isnot_malformed_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue10581_test: Crash #  Unhandled node
-issue10721_test: RuntimeError # Please triage this failure.
 issue10747_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue10783_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue11724_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -958,7 +954,6 @@ not_enough_positional_arguments_test/03: Crash # Please triage this failure.
 null2_test: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
 null_inline_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 null_is2_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
-null_is_test: RuntimeError # Please triage this failure.
 null_no_such_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 null_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
 null_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
@@ -1104,7 +1099,6 @@ type_argument_in_super_type_test: Crash # Instance of 'TypeOperator': type check
 type_argument_substitution_test: Crash # Instance of 'TypeOperator': type check unimplemented for X<A<String>>.
 type_check_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 type_error_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-type_guard_conversion_test: RuntimeError # Please triage this failure.
 type_literal_prefix_call_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_parameter_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for Set<int>.
 type_parameter_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for Set<int>.
@@ -1184,3 +1178,5 @@ value_range2_test: Crash # Instance of 'TypeOperator': type check unimplemented 
 value_range3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 value_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 void_type_test: Crash #  Unhandled node
+map_literal8_test : Crash # Instance of 'TypeOperator': type check unimplemented for Map<A, int>.
+map_literal7_test : Crash # Instance of 'TypeOperator': type check unimplemented for Map<String, int>.

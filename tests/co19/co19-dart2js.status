@@ -9636,7 +9636,6 @@ Language/07_Classes/6_Constructors/2_Factories_A09_t01: Crash # Please triage th
 Language/07_Classes/6_Constructors/2_Factories_A09_t02: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A09_t03: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A09_t04: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A14_t03: RuntimeError # Please triage this failure.
 Language/10_Generics/09_Generics_A04_t03: Crash # Instance of 'TypeOperator': type check unimplemented for S.
 Language/10_Generics/10_Generics_A05_t01: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 Language/10_Generics/10_Generics_A05_t03: Crash # Instance of 'TypeOperator': type check unimplemented for T.
@@ -9738,8 +9737,6 @@ Language/13_Statements/14_Continue_A03_t05: Crash #  Unhandled node
 Language/13_Statements/14_Continue_A03_t06: Crash #  try/finally
 Language/13_Statements/14_Continue_A03_t07: Crash #  try/finally
 Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Crash # Instance of 'TypeOperator': type check unimplemented for _td.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t16: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t17: RuntimeError # Please triage this failure.
 Language/14_Libraries_and_Scripts/1_Imports_A02_t26: Crash # Instance of 'TypeOperator': type check unimplemented for prefix.
 Language/14_Libraries_and_Scripts/1_Imports_A02_t27: Crash # Instance of 'TypeOperator': type check unimplemented for bar.
 Language/14_Libraries_and_Scripts/1_Imports_A02_t28: Crash # Instance of 'TypeOperator': type check unimplemented for bar.
@@ -9756,8 +9753,6 @@ Language/14_Libraries_and_Scripts/1_Imports_A03_t64: Crash # Instance of 'TypeOp
 Language/14_Libraries_and_Scripts/1_Imports_A03_t65: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/14_Libraries_and_Scripts/2_Exports_A04_t03: Crash # Instance of 'TypeOperator': type check unimplemented for foo.
 Language/14_Libraries_and_Scripts/2_Exports_A06_t02: Crash # Instance of 'TypeOperator': type check unimplemented for foo.
-Language/14_Libraries_and_Scripts/3_Parts_A02_t03: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/3_Parts_A03_t01: RuntimeError # Please triage this failure.
 Language/15_Types/1_Static_Types_A03_t01: Crash # Instance of 'TypeOperator': type check unimplemented for UnknownType.
 Language/15_Types/3_Type_Declarations/1_Typedef_A01_t03: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/15_Types/3_Type_Declarations/1_Typedef_A02_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f_t.
@@ -9921,36 +9916,20 @@ LayoutTests/fast/xsl/default-html_t01: Crash # Instance of 'TypeOperator': type 
 LayoutTests/fast/xsl/extra-lf-at-end_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # (lazy.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
 LibTest/async/Stream/Stream.periodic_A01_t01: Crash # Please triage this failure.
-LibTest/async/Stream/asBroadcastStream_A01_t01: RuntimeError # Please triage this failure.
 LibTest/async/Stream/drain_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/Stream/drain_A02_t01: Crash # Please triage this failure.
 LibTest/async/Stream/elementAt_A02_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/expand_A01_t01: RuntimeError # Please triage this failure.
-LibTest/async/Stream/forEach_A01_t01: RuntimeError # Please triage this failure.
 LibTest/async/Stream/handleError_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/handleError_A02_t01: RuntimeError # Please triage this failure.
 LibTest/async/Stream/handleError_A03_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/listen_A01_t01: RuntimeError # Please triage this failure.
 LibTest/async/Stream/listen_A03_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/Stream/listen_A04_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/map_A01_t01: RuntimeError # Please triage this failure.
 LibTest/async/Stream/take_A01_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/async/StreamController/StreamController.broadcast_A01_t01: RuntimeError # Please triage this failure.
-LibTest/async/StreamController/StreamController_A03_t01: RuntimeError # Please triage this failure.
 LibTest/async/Zone/registerBinaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneBinaryCallback.
 LibTest/async/Zone/registerCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneCallback.
 LibTest/async/Zone/registerUnaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneUnaryCallback.
-LibTest/collection/DoubleLinkedQueue/forEachEntry_A01_t04: RuntimeError # Please triage this failure.
-LibTest/collection/DoubleLinkedQueue/forEach_A01_t04: RuntimeError # Please triage this failure.
 LibTest/collection/DoubleLinkedQueue/iterator_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for Iterator<int>.
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Please triage this failure.
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Please triage this failure.
-LibTest/convert/JsonCodec/decode_A01_t01: RuntimeError # Please triage this failure.
-LibTest/convert/JsonCodec/decode_A02_t01: RuntimeError # Please triage this failure.
-LibTest/convert/JsonDecoder/convert_A01_t01: RuntimeError # Please triage this failure.
-LibTest/convert/JsonDecoder/convert_A02_t01: RuntimeError # Please triage this failure.
-LibTest/convert/JsonEncoder/fuse_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/FallThroughError/toString_A01_t02: Crash #  Unhandled node
 LibTest/core/Invocation/isAccessor_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/isGetter_A01_t02: RuntimeError # Please triage this failure.
@@ -9965,7 +9944,6 @@ LibTest/core/Object/toString_A01_t01: Crash # Instance of 'TypeOperator': type c
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Crash #  Unhandled node
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Crash #  Unhandled node
 LibTest/core/Set/add_A01_t03: RuntimeError # Please triage this failure.
-LibTest/core/String/String_class_A03_t01: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
@@ -9985,108 +9963,9 @@ LibTest/html/Window/moveTo_A01_t01: Crash #  try/finally
 LibTest/html/Window/moveTo_A02_t01: Crash #  try/finally
 LibTest/html/Window/resizeBy_A01_t01: Crash #  try/finally
 LibTest/html/Window/resizeTo_A01_t01: Crash #  try/finally
-LibTest/isolate/ReceivePort/asBroadcastStream_A01_t01: RuntimeError # Please triage this failure.
 LibTest/isolate/ReceivePort/drain_A02_t01: Crash # Please triage this failure.
-LibTest/isolate/ReceivePort/expand_A01_t01: RuntimeError # Please triage this failure.
-LibTest/isolate/ReceivePort/forEach_A01_t01: RuntimeError # Please triage this failure.
-LibTest/isolate/ReceivePort/listen_A01_t01: RuntimeError # Please triage this failure.
-LibTest/isolate/ReceivePort/map_A01_t01: RuntimeError # Please triage this failure.
-LibTest/isolate/ReceivePort/skip_A01_t01: RuntimeError # Please triage this failure.
-LibTest/isolate/ReceivePort/take_A01_t01: RuntimeError # Please triage this failure.
 LibTest/isolate/ReceivePort/take_A01_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/isolate/ReceivePort/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/ByteData.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setInt16_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setInt32_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setInt8_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setUint16_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setUint32_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setUint8_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/Float32List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/Float32List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/Float32List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/Float32List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/Float64List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/Float64List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/Float64List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/Float64List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/Int16List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/Int16List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/Int16List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/Int16List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/Int32List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/Int32List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/Int32List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/Int32List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/Int8List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/Int8List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/Int8List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/Uint16List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/Uint16List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/Uint16List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/Uint16List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/Uint32List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/Uint32List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/Uint32List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/Uint32List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/Uint8ClampedList.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/Uint8ClampedList.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/Uint8ClampedList.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/Uint8ClampedList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/Uint8List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/Uint8List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/Uint8List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/Uint8List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/toList_A01_t01: RuntimeError # Please triage this failure.
 Utils/tests/Expect/approxEquals_A04_t01: RuntimeError # Please triage this failure.
-Utils/tests/Expect/equals_A01_t04: RuntimeError # Please triage this failure.
-Utils/tests/Expect/listEquals_A01_t01: RuntimeError # Please triage this failure.
-Utils/tests/Expect/listEquals_A02_t01: RuntimeError # Please triage this failure.
 Utils/tests/Expect/stringEquals_A02_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: Crash #  Unhandled node
 WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: Crash #  Unhandled node
@@ -10099,3 +9978,9 @@ WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: Crash #  Unha
 WebPlatformTest/html/semantics/forms/the-input-element/datetime_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 WebPlatformTest/html/semantics/forms/the-input-element/valueMode_t01: Crash #  Unhandled node
 WebPlatformTest/html/semantics/tabular-data/the-table-element/table-rows_t01: Crash # Instance of 'TypeOperator': type check unimplemented for List<TableRowElement>.
+Language/15_Types/2_Dynamic_Type_System_A01_t02 : Crash # Instance of 'TypeOperator': type check unimplemented for C<double>.
+Language/15_Types/8_Parameterized_Types_A03_t07 : Crash # Instance of 'TypeOperator': type check unimplemented for C<String>.
+Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t15 : RuntimeError
+Language/12_Expressions/06_Lists_A05_t01 : Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
+Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t13 : RuntimeError
+Language/12_Expressions/07_Maps_A04_t01 : Crash # Instance of 'TypeOperator': type check unimplemented for Map<String, int>.

@@ -15,8 +15,6 @@ import '../../constants/values.dart';
 import '../../dart2jslib.dart';
 import '../../dart_types.dart';
 
-part 'type_test_emitter.dart';
-
 class CodegenBailout {
   final tree_ir.Node node;
   final String reason;
@@ -27,8 +25,7 @@ class CodegenBailout {
 }
 
 class CodeGenerator extends tree_ir.StatementVisitor
-                    with tree_ir.ExpressionVisitor<js.Expression>,
-                         TypeTestEmitter {
+                    with tree_ir.ExpressionVisitor<js.Expression> {
   final CodegenRegistry registry;
 
   final Glue glue;
@@ -360,7 +357,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     if (type is InterfaceType && type.isRaw) {
       glue.registerIsCheck(type, registry);
       js.Expression value = visitExpression(node.receiver);
-      return emitSubtypeTest(node, value, type);
+      return js.js('!!#.#', [value, glue.getTypeTestTag(type)]);
     }
     return giveup(node, 'type check unimplemented for $type.');
   }

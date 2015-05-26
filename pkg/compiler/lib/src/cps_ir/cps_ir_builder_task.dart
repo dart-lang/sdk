@@ -2306,6 +2306,8 @@ class GlobalProgramInformation {
   bool requiresRuntimeTypesFor(ClassElement cls) {
     return cls.typeVariables.isNotEmpty && _backend.classNeedsRti(cls);
   }
+
+  Set<ClassElement> get interceptedClasses => _backend.interceptedClasses;
 }
 
 /// IR builder specific to the JavaScript backend, coupled to the [JsIrBuilder].
@@ -2329,6 +2331,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
                      Compiler compiler,
                      SourceInformationBuilder sourceInformationBuilder)
       : super(elements, compiler, sourceInformationBuilder);
+
 
   /// Builds the IR for creating an instance of the closure class corresponding
   /// to the given nested function.

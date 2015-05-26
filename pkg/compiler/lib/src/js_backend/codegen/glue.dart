@@ -199,25 +199,10 @@ class Glue {
     return representation;
   }
 
-  bool isNativePrimitiveType(DartType type) {
-    if (type is! InterfaceType) return false;
-    return _backend.isNativePrimitiveType(type.element);
-  }
-
   void registerIsCheck(DartType type, Registry registry) {
     _enqueuer.registerIsCheck(type, registry);
     _backend.registerIsCheckForCodegen(type, _enqueuer, registry);
   }
-
-  bool isIntClass(ClassElement cls) => cls == _compiler.intClass;
-
-  bool isStringClass(ClassElement cls) => cls == _compiler.stringClass;
-
-  bool isBoolClass(ClassElement cls) => cls == _compiler.boolClass;
-
-  bool isNumClass(ClassElement cls) => cls == _compiler.numClass;
-
-  bool isDoubleClass(ClassElement cls) => cls == _compiler.doubleClass;
 
   String getTypeTestTag(DartType type) {
     return _backend.namer.operatorIsType(type);
@@ -226,6 +211,4 @@ class Glue {
   bool operatorEqHandlesNullArgument(FunctionElement element) {
     return _backend.operatorEqHandlesNullArgument(element);
   }
-
-  bool isListClass(ClassElement cls) => cls == _compiler.listClass;
 }

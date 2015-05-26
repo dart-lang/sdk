@@ -219,16 +219,11 @@ const_list_set_range_test: Crash # Instance of 'TypeOperator': type check unimpl
 core_runtime_types_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 date_time_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 double_ceil2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-double_ceil_test: RuntimeError # Please triage this failure.
 double_floor2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-double_floor_test: RuntimeError # Please triage this failure.
 double_parse_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 double_parse_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 double_round2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-double_round4_test: RuntimeError # Please triage this failure.
-double_round_test: RuntimeError # Please triage this failure.
 double_truncate2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-double_truncate_test: RuntimeError # Please triage this failure.
 duration2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 duration_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 error_stack_trace1_test: Pass # Please triage this failure.
@@ -245,7 +240,6 @@ int_from_environment_test: RuntimeError # Please triage this failure.
 int_parse_radix_test/01: Crash # Please triage this failure.
 int_parse_radix_test/02: Crash # Please triage this failure.
 int_parse_radix_test/none: Crash # Please triage this failure.
-is_operator_basic_types_test: RuntimeError # Please triage this failure.
 iterable_element_at_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 iterable_empty_test: Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<int>.
 iterable_expand_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -255,7 +249,6 @@ iterable_fold_test: Crash # Instance of 'TypeOperator': type check unimplemented
 iterable_generate_test: Crash # Instance of 'TypeOperator': type check unimplemented for Iterable<int>.
 iterable_last_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 iterable_last_where_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-iterable_mapping_test: RuntimeError # Please triage this failure.
 iterable_reduce_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 iterable_return_type_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, int>.
 iterable_return_type_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, int>.

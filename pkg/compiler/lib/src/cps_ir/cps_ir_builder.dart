@@ -466,6 +466,10 @@ abstract class IrBuilder {
   /// closure fields in order to access the receiver from the enclosing method.
   ir.Primitive buildThis();
 
+  /// In JS-mode, gets an interceptor for [value].
+  /// In Dart-mode, simply returns [value].
+  ir.Primitive buildGetInterceptor(ir.Primitive value);
+
   // TODO(johnniwinther): Make these field final and remove the default values
   // when [IrBuilder] is a property of [IrBuilderVisitor] instead of a mixin.
 
@@ -1797,6 +1801,7 @@ abstract class IrBuilder {
     // handler parameter.
     ir.Parameter exceptionParameter =
         new ir.Parameter(catchClauseInfos.first.exceptionVariable);
+    ir.Primitive exceptionInterceptor = new ir.Parameter(null);
     LocalVariableElement traceVariable;
     CatchClauseInfo catchAll;
     for (int i = 0; i < catchClauseInfos.length; ++i) {
@@ -1852,13 +1857,15 @@ abstract class IrBuilder {
                             elseContinuation));
       catchBody =
           new ir.LetCont(checkType,
-              new ir.TypeOperator(exceptionParameter, clause.type, checkType,
+              new ir.TypeOperator(exceptionInterceptor, clause.type, checkType,
                                   isTypeTest: true));
     }
 
     List<ir.Parameter> catchParameters =
         <ir.Parameter>[exceptionParameter, traceParameter];
     ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
+    catchBuilder.buildGetInterceptor(exceptionParameter)
+                .substituteFor(exceptionInterceptor);
     catchBuilder.add(catchBody);
     catchContinuation.body = catchBuilder._root;
 
@@ -2014,14 +2021,7 @@ abstract class IrBuilder {
   ir.Primitive buildTypeOperator(ir.Primitive receiver,
                                  DartType type,
                                  {bool isTypeTest: false,
-                                  bool isNotCheck: false}) {
-    assert(isOpen);
-    assert(isTypeTest != null);
-    assert(!isNotCheck || isTypeTest);
-    ir.Primitive check = _continueWithExpression(
-        (k) => new ir.TypeOperator(receiver, type, k, isTypeTest: isTypeTest));
-    return isNotCheck ? buildNegation(check) : check;
-  }
+                                  bool isNotCheck: false});
 
   /// Create a lazy and/or expression. [leftValue] is the value of the left
   /// operand and [buildRightValue] is called to process the value of the right
@@ -2291,6 +2291,8 @@ class DartIrBuilder extends IrBuilder {
     return state.enclosingMethodThisParameter;
   }
 
+  ir.Primitive buildGetInterceptor(ir.Primitive value) => value;
+
   @override
   ir.Primitive buildConstructorInvocation(ConstructorElement element,
                                           CallStructure callStructure,
@@ -2307,6 +2309,19 @@ class DartIrBuilder extends IrBuilder {
   @override
   ir.Primitive buildReifyTypeVariable(TypeVariableType variable) {
     return addPrimitive(new ir.ReifyTypeVar(variable.element));
+  }
+
+  @override
+  ir.Primitive buildTypeOperator(ir.Primitive receiver,
+                                 DartType type,
+                                 {bool isTypeTest: false,
+                                  bool isNotCheck: false}) {
+    assert(isOpen);
+    assert(isTypeTest != null);
+    assert(!isNotCheck || isTypeTest);
+    ir.Primitive check = _continueWithExpression(
+            (k) => new ir.TypeOperator(receiver, type, k, isTypeTest: isTypeTest));
+    return isNotCheck ? buildNegation(check) : check;
   }
 }
 
@@ -2543,6 +2558,10 @@ class JsIrBuilder extends IrBuilder {
     return state.thisParameter;
   }
 
+  ir.Primitive buildGetInterceptor(ir.Primitive value) {
+    return addPrimitive(new ir.Interceptor(value, program.interceptedClasses));
+  }
+
   @override
   ir.Primitive buildSuperFieldGet(FieldElement target) {
     return addPrimitive(new ir.GetField(buildThis(), target));
@@ -2659,6 +2678,23 @@ class JsIrBuilder extends IrBuilder {
                                      List<ir.Primitive> arguments) {
     return addPrimitive(new ir.CreateInvocationMirror(selector, arguments));
   }
+
+  @override
+  ir.Primitive buildTypeOperator(ir.Primitive receiver,
+                                 DartType type,
+                                 {bool isTypeTest: false,
+                                  bool isNotCheck: false}) {
+    assert(isOpen);
+    assert(isTypeTest != null);
+    assert(!isNotCheck || isTypeTest);
+    ir.Primitive interceptor =
+        addPrimitive(new ir.Interceptor(receiver, program.interceptedClasses));
+    ir.Primitive check = _continueWithExpression(
+            (k) => new ir.TypeOperator(interceptor, type, k,
+                                       isTypeTest: isTypeTest));
+    return isNotCheck ? buildNegation(check) : check;
+  }
+
 }
 
 

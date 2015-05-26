@@ -41,6 +41,7 @@ abstract class Definition<T extends Definition<T>> extends Node {
   bool get hasMultipleUses  => !hasAtMostOneUse;
 
   void substituteFor(Definition<T> other) {
+    if (other == this) return;
     if (other.hasNoUses) return;
     Reference<T> previous, current = other.firstRef;
     do {
@@ -401,7 +402,7 @@ class InvokeConstructor extends Expression implements Invoke {
 // But then we need to special-case for is-checks with an erroneous .type as
 // these will throw.
 class TypeOperator extends Expression {
-  final Reference<Primitive> receiver;
+  Reference<Primitive> receiver;
   final DartType type;
   final Reference<Continuation> continuation;
   // TODO(johnniwinther): Use `Operator` class to encapsule the operator type.

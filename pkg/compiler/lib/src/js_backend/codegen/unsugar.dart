@@ -292,4 +292,8 @@ class UnsugarVisitor extends RecursiveVisitor {
     node.falseContinuation.unlink();
     parent.body = newNode;
   }
+
+  processInterceptor(Interceptor node) {
+    _glue.registerSpecializedGetInterceptor(node.interceptedClasses);
+  }
 }

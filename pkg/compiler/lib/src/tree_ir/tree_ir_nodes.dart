@@ -330,6 +330,7 @@ class LiteralMap extends Expression {
   }
 }
 
+/// Given the interceptor for a value, test the value against a type.
 class TypeOperator extends Expression {
   Expression receiver;
   final DartType type;
