@@ -716,6 +716,109 @@ class FileTest {
     Expect.isFalse(file.existsSync());
   }
 
+  static void testReadInto() async {
+    asyncTestStarted();
+    File file = new File(tempDirectory.path + "/out_read_into");
+
+    var openedFile = await file.open(mode: WRITE);
+    await openedFile.writeFrom(const [1, 2, 3]);
+
+    await openedFile.setPosition(0);
+    var list = [null, null, null];
+    Expect.equals(3, await openedFile.readInto(list));
+    Expect.listEquals([1, 2, 3], list);
+
+    read(start, end, length, expected) async {
+      var list = [null, null, null];
+      await openedFile.setPosition(0);
+      Expect.equals(length, await openedFile.readInto(list, start, end));
+      Expect.listEquals(expected, list);
+      return list;
+    }
+
+    await read(0, 3, 3, [1, 2, 3]);
+    await read(0, 2, 2, [1, 2, null]);
+    await read(1, 2, 1, [null, 1, null]);
+    await read(1, 3, 2, [null, 1, 2]);
+    await read(2, 3, 1, [null, null, 1]);
+
+    asyncTestDone("testReadInto");
+  }
+
+  static void testReadIntoSync() {
+    File file = new File(tempDirectory.path + "/out_read_into_sync");
+
+    var openedFile = file.openSync(mode: WRITE);
+    openedFile.writeFromSync(const [1, 2, 3]);
+
+    openedFile.setPositionSync(0);
+    var list = [null, null, null];
+    Expect.equals(3, openedFile.readIntoSync(list));
+    Expect.listEquals([1, 2, 3], list);
+
+    read(start, end, length, expected) {
+      var list = [null, null, null];
+      openedFile.setPositionSync(0);
+      Expect.equals(length, openedFile.readIntoSync(list, start, end));
+      Expect.listEquals(expected, list);
+      return list;
+    }
+
+    read(0, 3, 3, [1, 2, 3]);
+    read(0, 2, 2, [1, 2, null]);
+    read(1, 2, 1, [null, 1, null]);
+    read(1, 3, 2, [null, 1, 2]);
+    read(2, 3, 1, [null, null, 1]);
+  }
+
+  static void testWriteFrom() async {
+    asyncTestStarted();
+    File file = new File(tempDirectory.path + "/out_write_from");
+
+    var buffer = const [1, 2, 3];
+    var openedFile = await file.open(mode: WRITE);
+
+    await openedFile.writeFrom(buffer);
+    var result = []..addAll(buffer);;
+
+    write([start, end]) async {
+      await openedFile.writeFrom(buffer, start, end);
+      result.addAll(buffer.sublist(start, end));
+    }
+    await write(0, 3);
+    await write(0, 2);
+    await write(1, 2);
+    await write(1, 3);
+    await write(2, 3);
+
+    var bytesFromFile = await file.readAsBytes();
+    Expect.listEquals(result, bytesFromFile);
+    asyncTestDone("testWriteFrom");
+  }
+
+  static void testWriteFromSync() {
+    File file = new File(tempDirectory.path + "/out_write_from_sync");
+
+    var buffer = const [1, 2, 3];
+    var openedFile = file.openSync(mode: WRITE);
+
+    openedFile.writeFromSync(buffer);
+    var result = []..addAll(buffer);;
+
+    write([start, end]) {
+      openedFile.writeFromSync(buffer, start, end);
+      result.addAll(buffer.sublist(start, end));
+    }
+    write(0, 3);
+    write(0, 2);
+    write(1, 2);
+    write(1, 3);
+    write(2, 3);
+
+    var bytesFromFile = file.readAsBytesSync();
+    Expect.listEquals(result, bytesFromFile);
+  }
+
   // Tests exception handling after file was closed.
   static void testCloseException() {
     bool exceptionCaught = false;
@@ -1327,6 +1430,10 @@ class FileTest {
       testPosition();
       testTruncate();
       testTruncateSync();
+      testReadInto();
+      testReadIntoSync();
+      testWriteFrom();
+      testWriteFromSync();
       testCloseException();
       testCloseExceptionStream();
       testBufferOutOfBoundsException();

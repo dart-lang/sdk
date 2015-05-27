@@ -347,23 +347,25 @@ class _File extends FileSystemEntity implements File {
         mode != FileMode.APPEND) {
       return new Future.error(new ArgumentError());
     }
-    return _IOService._dispatch(_FILE_OPEN, [path, mode._mode]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response, "Cannot open file", path);
-      }
-      return new _RandomAccessFile(response, path);
-    });
+    return _IOService._dispatch(_FILE_OPEN, [path, mode._mode])
+        .then((response) {
+          if (_isErrorResponse(response)) {
+            throw _exceptionFromResponse(response, "Cannot open file", path);
+          }
+          return new _RandomAccessFile(response, path);
+        });
   }
 
   Future<int> length() {
-    return _IOService._dispatch(_FILE_LENGTH_FROM_PATH, [path]).then((response) {
-      if (_isErrorResponse(response)) {
-        throw _exceptionFromResponse(response,
-                                     "Cannot retrieve length of file",
-                                     path);
-      }
-      return response;
-    });
+    return _IOService._dispatch(_FILE_LENGTH_FROM_PATH, [path])
+        .then((response) {
+          if (_isErrorResponse(response)) {
+            throw _exceptionFromResponse(response,
+                                         "Cannot retrieve length of file",
+                                         path);
+          }
+          return response;
+        });
   }
 
 
@@ -688,14 +690,14 @@ class _RandomAccessFile
     return result;
   }
 
-  Future<int> readInto(List<int> buffer, [int start, int end]) {
+  Future<int> readInto(List<int> buffer, [int start = 0, int end]) {
     if (buffer is !List ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
       throw new ArgumentError();
     }
-    if (start == null) start = 0;
-    if (end == null) end = buffer.length;
+    end = RangeError.checkValidRange(start, end, buffer.length);
+    if (end == start) return 0;
     int length = end - start;
     return _dispatch(_FILE_READ_INTO, [_id, length]).then((response) {
       if (_isErrorResponse(response)) {
@@ -710,23 +712,17 @@ class _RandomAccessFile
     });
   }
 
-  static void _checkReadWriteListArguments(int length, int start, int end) {
-    RangeError.checkValidRange(start, end, length);
-  }
-
   external static _readInto(int id, List<int> buffer, int start, int end);
 
-  int readIntoSync(List<int> buffer, [int start, int end]) {
+  int readIntoSync(List<int> buffer, [int start = 0, int end]) {
     _checkAvailable();
     if (buffer is !List ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
       throw new ArgumentError();
     }
-    if (start == null) start = 0;
-    if (end == null) end = buffer.length;
+    end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) return 0;
-    _checkReadWriteListArguments(buffer.length, start, end);
     var result = _readInto(_id, buffer, start, end);
     if (result is OSError) {
       throw new FileSystemException("readInto failed", path, result);
@@ -766,13 +762,15 @@ class _RandomAccessFile
     return result;
   }
 
-  Future<RandomAccessFile> writeFrom(List<int> buffer, [int start, int end]) {
-    if ((buffer is !List && buffer is !ByteData) ||
+  Future<RandomAccessFile> writeFrom(
+      List<int> buffer, [int start = 0, int end]) {
+    if ((buffer is !List) ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
       throw new ArgumentError("Invalid arguments to writeFrom");
     }
-
+    end = RangeError.checkValidRange(start, end, buffer.length);
+    if (end == start) return;
     _BufferAndStart result;
     try {
       result = _ensureFastAndSerializableByteData(buffer, start, end);
@@ -797,17 +795,15 @@ class _RandomAccessFile
 
   external static _writeFrom(int id, List<int> buffer, int start, int end);
 
-  void writeFromSync(List<int> buffer, [int start, int end]) {
+  void writeFromSync(List<int> buffer, [int start = 0, int end]) {
     _checkAvailable();
     if (buffer is !List ||
         (start != null && start is !int) ||
         (end != null && end is !int)) {
       throw new ArgumentError("Invalid arguments to writeFromSync");
     }
-    if (start == null) start = 0;
-    if (end == null) end = buffer.length;
+    end = RangeError.checkValidRange(start, end, buffer.length);
     if (end == start) return;
-    _checkReadWriteListArguments(buffer.length, start, end);
     _BufferAndStart bufferAndStart =
         _ensureFastAndSerializableByteData(buffer, start, end);
     var result = _writeFrom(_id,

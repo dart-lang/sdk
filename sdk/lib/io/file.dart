@@ -573,7 +573,7 @@ abstract class RandomAccessFile {
    *
    * Returns a [:Future<int>:] that completes with the number of bytes read.
    */
-  Future<int> readInto(List<int> buffer, [int start, int end]);
+  Future<int> readInto(List<int> buffer, [int start = 0, int end]);
 
   /**
    * Synchronously reads into an existing List<int> from the file. If [start] is
@@ -584,7 +584,7 @@ abstract class RandomAccessFile {
    *
    * Throws a [FileSystemException] if the operation fails.
    */
-  int readIntoSync(List<int> buffer, [int start, int end]);
+  int readIntoSync(List<int> buffer, [int start = 0, int end]);
 
   /**
    * Writes a single byte to the file. Returns a
@@ -609,7 +609,8 @@ abstract class RandomAccessFile {
    * Returns a [:Future<RandomAccessFile>:] that completes with this
    * [RandomAccessFile] when the write completes.
    */
-  Future<RandomAccessFile> writeFrom(List<int> buffer, [int start, int end]);
+  Future<RandomAccessFile> writeFrom(
+      List<int> buffer, [int start = 0, int end]);
 
   /**
    * Synchronously writes from a [List<int>] to the file. It will read the
@@ -619,7 +620,7 @@ abstract class RandomAccessFile {
    *
    * Throws a [FileSystemException] if the operation fails.
    */
-  void writeFromSync(List<int> buffer, [int start, int end]);
+  void writeFromSync(List<int> buffer, [int start = 0, int end]);
 
   /**
    * Writes a string to the file using the given [Encoding]. Returns a
