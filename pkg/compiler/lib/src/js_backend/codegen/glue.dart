@@ -171,6 +171,10 @@ class Glue {
     return _backend.getSetRuntimeTypeInfo();
   }
 
+  FunctionElement getCheckSubtype() {
+    return _backend.getCheckSubtype();
+  }
+
   js.Expression getRuntimeTypeName(ClassElement cls) {
     return js.string(_namer.runtimeTypeName(cls));
   }
@@ -208,7 +212,15 @@ class Glue {
     return _backend.namer.operatorIsType(type);
   }
 
+  String getTypeSubstitutionTag(ClassElement element) {
+    return _backend.namer.substitutionName(element);
+  }
+
   bool operatorEqHandlesNullArgument(FunctionElement element) {
     return _backend.operatorEqHandlesNullArgument(element);
+  }
+
+  bool hasStrictSubtype(ClassElement element) {
+    return _compiler.world.hasAnyStrictSubtype(element);
   }
 }

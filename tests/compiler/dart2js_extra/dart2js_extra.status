@@ -97,7 +97,6 @@ deferred_fail_and_retry_worker_test: Crash # (lib.loadLibrary()): handleStaticGe
 do_test: Timeout # Please triage this failure.
 for_test: Timeout # Please triage this failure.
 generics_factories_test: Crash # Please triage this failure.
-generics_is_check1_test: Crash # Instance of 'TypeOperator': type check unimplemented for Hest<int>.
 if_null_test: Crash # Please triage this failure.
 inference_nsm_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_is_int_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -120,16 +119,12 @@ regress/4492_test: Crash # Instance of 'TypeOperator': type check unimplemented 
 regress/4515_1_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 regress/4515_2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 regress/4740_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-runtime_type_test: Crash # Please triage this failure.
 super_constructor1_test: RuntimeError # Please triage this failure.
 switch_test/01: Crash #  Unhandled node
 switch_test/02: Crash #  Unhandled node
 switch_test/none: Crash # (switch (val){}): Unhandled node
 this_phi_elimination_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-type_argument_factory_crash_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
-type_argument_factory_nocrash_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 type_constant_switch_test/none: Crash # (switch (v){}): Unhandled node
 typevariable_factory_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<T>.
-typevariable_substitution_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<T>.
 while_test: Timeout # Please triage this failure.
 16407_test : Pass
