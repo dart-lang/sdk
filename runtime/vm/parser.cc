@@ -9270,7 +9270,7 @@ SequenceNode* Parser::ParseCatchClauses(
         LocalVariable* async_saved_try_ctx =
             LookupAsyncSavedTryContextVar(scope->parent(),
                                           try_block->try_index());
-        current_block_->statements->Add(
+        async_code->Add(
             new (Z) StoreLocalNode(
                 Scanner::kNoSourcePos,
                 saved_try_ctx,
