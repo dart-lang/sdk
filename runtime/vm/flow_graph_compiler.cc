@@ -1190,6 +1190,17 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
 }
 
 
+#define REG_MASK_BIT(reg) ((reg) != kNoRegister) ? (1 << (reg)) : 0
+// Mask of globally reserved registers. Some other registers are only reserved
+// in particular code (e.g., ARGS_DESC_REG in intrinsics).
+static const uword kReservedCpuRegisters = REG_MASK_BIT(SPREG)
+                                         | REG_MASK_BIT(FPREG)
+                                         | REG_MASK_BIT(TMP)
+                                         | REG_MASK_BIT(TMP2)
+                                         | REG_MASK_BIT(PP)
+                                         | REG_MASK_BIT(THR);
+
+
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
 
@@ -1202,6 +1213,13 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   // Mark all available registers free.
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
     blocked_registers[i] = false;
+  }
+
+  // Block all registers globally reserved by the assembler, etc.
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    if ((kReservedCpuRegisters & (1 << i)) != 0) {
+      blocked_registers[i] = true;
+    }
   }
 
   // Mark all fixed input, temp and output registers as used.
@@ -1228,20 +1246,6 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     // temps and inputs.
     blocked_registers[locs->out(0).reg()] = true;
   }
-
-  // Do not allocate known registers.
-  blocked_registers[SPREG] = true;
-  blocked_registers[FPREG] = true;
-  if (TMP != kNoRegister) {
-    blocked_registers[TMP] = true;
-  }
-  if (TMP2 != kNoRegister) {
-    blocked_registers[TMP2] = true;
-  }
-  if (PP != kNoRegister) {
-    blocked_registers[PP] = true;
-  }
-  blocked_registers[THR] = true;
 
   // Block all non-free registers.
   for (intptr_t i = 0; i < kFirstFreeCpuRegister; i++) {
@@ -1496,25 +1500,15 @@ ParallelMoveResolver::ScratchFpuRegisterScope::~ScratchFpuRegisterScope() {
 }
 
 
-static inline intptr_t MaskBit(Register reg) {
-  return (reg != kNoRegister) ? (1 << reg) : 0;
-}
-
-
 ParallelMoveResolver::ScratchRegisterScope::ScratchRegisterScope(
     ParallelMoveResolver* resolver, Register blocked)
     : resolver_(resolver),
       reg_(kNoRegister),
       spilled_(false) {
-  uword blocked_mask = MaskBit(blocked)
-                     | MaskBit(SPREG)
-                     | MaskBit(FPREG)
-                     | MaskBit(TMP)
-                     | MaskBit(TMP2)
-                     | MaskBit(PP);
+  uword blocked_mask = REG_MASK_BIT(blocked) | kReservedCpuRegisters;
   if (resolver->compiler_->intrinsic_mode()) {
     // Block additional registers that must be preserved for intrinsics.
-    blocked_mask |= MaskBit(ARGS_DESC_REG);
+    blocked_mask |= REG_MASK_BIT(ARGS_DESC_REG);
   }
   reg_ = static_cast<Register>(
       resolver_->AllocateScratchRegister(Location::kRegister,
