@@ -1362,6 +1362,11 @@ class SsaBuilder extends NewResolvedVisitor {
       return true;
     }
 
+    bool doesNotContainCode() {
+      // A function with size 1 does not contain any code.
+      return InlineWeeder.canBeInlined(function, 1, true);
+    }
+
     bool reductiveHeuristic() {
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
@@ -1375,12 +1380,7 @@ class SsaBuilder extends NewResolvedVisitor {
       // that usually means the factory constructor is left unused and not
       // emitted.
       // We at least inline bodies that are empty (and thus have a size of 1).
-      return InlineWeeder.canBeInlined(function, 1, true);
-    }
-
-    bool doesNotContainCode() {
-      // A function with size 1 does not contain any code.
-      return InlineWeeder.canBeInlined(function, 1, true);
+      return doesNotContainCode();
     }
 
     bool heuristicSayGoodToGo() {
