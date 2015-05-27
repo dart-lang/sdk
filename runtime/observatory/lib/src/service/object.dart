@@ -1206,6 +1206,11 @@ class Isolate extends ServiceObjectOwner with Coverage {
                      { 'functionId': function.id });
   }
 
+  Future<ServiceObject> addBreakOnActivation(Instance closure) {
+    return invokeRpc('_addBreakpointAtActivation',
+                     { 'objectId': closure.id });
+  }
+
   Future removeBreakpoint(Breakpoint bpt) {
     return invokeRpc('removeBreakpoint',
                      { 'breakpointId': bpt.id });
