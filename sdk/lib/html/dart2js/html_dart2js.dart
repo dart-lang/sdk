@@ -40877,7 +40877,7 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
   void sanitizeNode(Node node, Node parent) {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
-        _sanitizeUntrustedElement(node, parent); 
+        _sanitizeUntrustedElement(node, parent);
         break;
       case Node.COMMENT_NODE:
       case Node.DOCUMENT_FRAGMENT_NODE:
