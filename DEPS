@@ -32,6 +32,7 @@ vars = {
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
   "clang_rev" : "@28450",
+  "cli_util_tag" : "@0.0.1+2",
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
@@ -86,6 +87,8 @@ vars = {
   "unittest_tag": "@0.11.6",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
   "watcher_tag": "@0.9.5",
+  "when_tag": "@0.2.0+1",
+  "which_tag": "@0.1.3+1",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
   "WebCore_rev" : "@44061",
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
@@ -167,7 +170,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg/barback":
       (Var("dart_github") % "barback") + Var("barback_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
-      (Var("dart_github") % "charcode") + Var("charcode_tag"),     
+      (Var("dart_github") % "charcode") + Var("charcode_tag"),
+  Var("dart_root") + "/third_party/pkg/cli_util":
+      "https://github.com/dart-lang/cli_util.git" + Var("cli_util_tag"),        
   Var("dart_root") + "/third_party/pkg/collection":
       (Var("dart_github") % "collection") + Var("collection_rev"),
   Var("dart_root") + "/third_party/pkg/crypto":
@@ -259,6 +264,10 @@ deps = {
   Var("dart_root") + "/third_party/pkg/web_components":
       (Var("dart_github") % "web-components") +
       Var("web_components_rev"),
+  Var("dart_root") + "/third_party/pkg/when":
+      "https://github.com/dart-lang/when.git" + Var("when_tag"),    
+  Var("dart_root") + "/third_party/pkg/which":
+      "https://github.com/dart-lang/which.git"+ Var("which_tag"),    
   Var("dart_root") + "/third_party/pkg/yaml":
       (Var("dart_github") % "yaml") + Var("yaml_rev"),
 
