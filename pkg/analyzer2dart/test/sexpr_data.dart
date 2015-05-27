@@ -1066,7 +1066,7 @@ main(a) {
 (FunctionDefinition main () (a) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
-    (TypeOperator is a String () k0)))
+    (TypeOperator is a String k0)))
 '''),
 
     const TestSpec('''
@@ -1077,7 +1077,7 @@ main(a) {
 (FunctionDefinition main () (a) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
-    (TypeOperator is a List<String> () k0)))
+    (TypeOperator is a List<String> k0)))
 '''),
 
     const TestSpec('''
@@ -1088,7 +1088,7 @@ main(a) {
 (FunctionDefinition main () (a) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
-    (TypeOperator is a Comparator<String> () k0)))
+    (TypeOperator is a Comparator<String> k0)))
 '''),
 
   const TestSpec('''
@@ -1107,7 +1107,7 @@ main(a) {
             (LetPrim (v3 (Constant (Bool true)))
               (InvokeContinuation k1 (v3)))))
           (Branch (IsTrue v0) k2 k3)))))
-    (TypeOperator is a String () k0)))
+    (TypeOperator is a String k0)))
 '''),
 
 const TestSpec('''
@@ -1118,7 +1118,7 @@ main(a) {
 (FunctionDefinition main () (a) return
   (LetCont ((k0 (v0)
       (InvokeContinuation return (v0))))
-    (TypeOperator as a String () k0)))
+    (TypeOperator as a String k0)))
 '''),
   ]),
 

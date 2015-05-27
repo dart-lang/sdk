@@ -301,8 +301,7 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
   void visitTypeOperator(TypeOperator node) {
     Continuation cont = node.continuation.definition;
     LetPrim letPrim = constifyExpression(node, cont, () {
-      node.value.unlink();
-      node.typeArguments.forEach((Reference ref) => ref.unlink());
+      node.receiver.unlink();
       node.continuation.unlink();
     });
 
@@ -708,10 +707,9 @@ class _TypePropagationVisitor<T> implements Visitor {
     if (node.isTypeCast) {
       // TODO(jgruber): Add support for `as` casts.
       setValues(nonConstant());
-      return;
     }
 
-    _AbstractValue<T> cell = getValue(node.value.definition);
+    _AbstractValue<T> cell = getValue(node.receiver.definition);
     if (cell.isNothing) {
       return;  // And come back later.
     } else if (cell.isConstant && node.type.kind == types.TypeKind.INTERFACE) {

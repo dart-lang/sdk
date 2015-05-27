@@ -564,14 +564,11 @@ class SExpressionUnstringifier {
 
     dart_types.DartType type = new DummyNamedType(tokens.read());
 
-    List<ir.Primitive> typeArguments = parsePrimitiveList();
-
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
 
     tokens.consumeEnd();
-    return new TypeOperator(recv, type, typeArguments, cont,
-                            isTypeTest: operator == 'is');
+    return new TypeOperator(recv, type, cont, isTypeTest: operator == 'is');
   }
 
   /// (SetStatic field value body)

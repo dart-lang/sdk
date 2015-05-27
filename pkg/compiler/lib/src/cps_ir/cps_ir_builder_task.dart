@@ -877,17 +877,21 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node expression,
       DartType type,
       _) {
-    ir.Primitive value = visit(expression);
-    return irBuilder.buildTypeOperator(value, type, isTypeTest: true);
+    ir.Primitive receiver = visit(expression);
+    return irBuilder.buildTypeOperator(
+        receiver, type,
+        isTypeTest: true,
+        isNotCheck: false);
   }
 
   @override
   ir.Primitive visitIsNot(ast.Send node,
                           ast.Node expression, DartType type, _) {
-    ir.Primitive value = visit(expression);
-    ir.Primitive check = irBuilder.buildTypeOperator(
-        value, type, isTypeTest: true);
-    return irBuilder.buildNegation(check);
+    ir.Primitive receiver = visit(expression);
+    return irBuilder.buildTypeOperator(
+        receiver, type,
+        isTypeTest: true,
+        isNotCheck: true);
   }
 
   ir.Primitive translateBinary(ast.Node left,
@@ -2303,7 +2307,7 @@ class GlobalProgramInformation {
     return cls.typeVariables.isNotEmpty && _backend.classNeedsRti(cls);
   }
 
-  ClassElement get nullClass => _compiler.nullClass;
+  Set<ClassElement> get interceptedClasses => _backend.interceptedClasses;
 }
 
 /// IR builder specific to the JavaScript backend, coupled to the [JsIrBuilder].

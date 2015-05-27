@@ -208,6 +208,7 @@ io/http_headers_state_test: Crash # Instance of 'TypeOperator': type check unimp
 io/http_headers_test: Crash #  Unhandled node
 io/http_parser_test: Crash #  Unhandled node
 io/http_proxy_test: Crash # Please triage this failure.
+io/http_server_early_client_close_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 io/http_server_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/https_bad_certificate_test: Crash #  cannot handle async/sync*/async* functions
 io/https_server_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -224,6 +225,7 @@ io/platform_executable_test/04: Crash # (try {test(tempDir);}finally {tempDir.de
 io/platform_executable_test/05: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
 io/platform_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/process_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/process_run_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 io/raw_datagram_socket_test: Crash #  Unhandled node
 io/raw_secure_server_closing_test: Crash # Please triage this failure.
 io/raw_secure_server_socket_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

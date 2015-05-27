@@ -247,9 +247,7 @@ class BodyRewriter extends ExpressionVisitor<Expression> {
   }
 
   Expression visitTypeOperator(TypeOperator node) {
-    node.value = visitExpression(node.value);
-    if (seenImpure) return node;
-    rewriteList(node.typeArguments);
+    node.receiver = visitExpression(node.receiver);
     if (!node.isTypeTest) seenImpure = true; // Type cast can throw.
     return node;
   }

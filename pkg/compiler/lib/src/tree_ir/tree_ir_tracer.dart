@@ -456,9 +456,9 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   }
 
   String visitTypeOperator(TypeOperator node) {
-    String value = visitExpression(node.value);
+    String receiver = visitExpression(node.receiver);
     String type = "${node.type}";
-    return "TypeOperator $value ${node.operator} $type";
+    return "TypeOperator $receiver ${node.operator} $type";
   }
 
   String visitNot(Not node) {

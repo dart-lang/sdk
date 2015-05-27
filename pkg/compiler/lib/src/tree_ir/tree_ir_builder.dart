@@ -511,11 +511,9 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Statement visitTypeOperator(cps_ir.TypeOperator node) {
-    Expression value = getVariableUse(node.value);
-    List<Expression> typeArgs = translateArguments(node.typeArguments);
+    Expression receiver = getVariableUse(node.receiver);
     Expression concat =
-        new TypeOperator(value, node.type, typeArgs,
-                         isTypeTest: node.isTypeTest);
+        new TypeOperator(receiver, node.type, isTypeTest: node.isTypeTest);
     return continueWithExpression(node.continuation, concat);
   }
 

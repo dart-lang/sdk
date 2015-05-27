@@ -738,7 +738,7 @@ class ASTEmitter
   @override
   Expression visitTypeOperator(tree.TypeOperator exp,
                                BuilderContext<Statement> context) {
-    return new TypeOperator(visitExpression(exp.value, context),
+    return new TypeOperator(visitExpression(exp.receiver, context),
                             exp.operator,
                             TypeGenerator.createType(exp.type));
   }

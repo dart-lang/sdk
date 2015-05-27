@@ -585,9 +585,8 @@ class ParentVisitor extends RecursiveVisitor {
   }
 
   processTypeOperator(TypeOperator node) {
-    node.typeArguments.forEach((Reference ref) => ref.parent = node);
     node.continuation.parent = node;
-    node.value.parent = node;
+    node.receiver.parent = node;
   }
 
   processSetMutableVariable(SetMutableVariable node) {

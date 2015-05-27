@@ -402,22 +402,17 @@ class InvokeConstructor extends Expression implements Invoke {
 // But then we need to special-case for is-checks with an erroneous .type as
 // these will throw.
 class TypeOperator extends Expression {
-  Reference<Primitive> value;
+  Reference<Primitive> receiver;
   final DartType type;
-  /// Type arguments to [type]. Since [type] may reference type variables in the
-  /// enclosing class, these are not constant.
-  final List<Reference<Primitive>> typeArguments;
   final Reference<Continuation> continuation;
   // TODO(johnniwinther): Use `Operator` class to encapsule the operator type.
   final bool isTypeTest;
 
-  TypeOperator(Primitive value,
+  TypeOperator(Primitive receiver,
                this.type,
-               List<Primitive> typeArguments,
                Continuation cont,
                {bool this.isTypeTest})
-      : this.value = new Reference<Primitive>(value),
-        this.typeArguments = _referenceList(typeArguments),
+      : this.receiver = new Reference<Primitive>(receiver),
         this.continuation = new Reference<Continuation>(cont) {
     assert(isTypeTest != null);
   }
@@ -1249,8 +1244,7 @@ class RecursiveVisitor implements Visitor {
   visitTypeOperator(TypeOperator node) {
     processTypeOperator(node);
     processReference(node.continuation);
-    processReference(node.value);
-    node.typeArguments.forEach(processReference);
+    processReference(node.receiver);
   }
 
   processSetMutableVariable(SetMutableVariable node) {}
