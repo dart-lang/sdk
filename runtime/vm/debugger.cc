@@ -2809,7 +2809,7 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
 
     if (curr_loc->breakpoints() == NULL) {
       if (prev_loc == NULL) {
-        breakpoint_locations_ = breakpoint_locations_->next();
+        breakpoint_locations_ = curr_loc->next();
       } else {
         prev_loc->set_next(curr_loc->next());
       }
@@ -2817,11 +2817,13 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
       // Remove references from code breakpoints to this source breakpoint,
       // and disable the code breakpoints.
       UnlinkCodeBreakpoints(curr_loc);
+      BreakpointLocation* next_loc = curr_loc->next();
       delete curr_loc;
+      curr_loc = next_loc;
+    } else {
+      prev_loc = curr_loc;
+      curr_loc = curr_loc->next();
     }
-
-    prev_loc = curr_loc;
-    curr_loc = curr_loc->next();
   }
   // bpt is not a registered breakpoint, nothing to do.
 }
