@@ -1876,13 +1876,14 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     PushArgumentInstr* push_right = PushArgument(for_right_value.value());
     arguments->Add(push_right);
 
+    const intptr_t kNumArgsChecked = 2;
     Definition* result = new(Z) InstanceCallInstr(
         node->token_pos(),
         Symbols::EqualOperator(),
         Token::kEQ,  // Result is negated later for kNE.
         arguments,
         Object::null_array(),
-        2,
+        kNumArgsChecked,
         owner()->ic_data_array());
     if (node->kind() == Token::kNE) {
       if (Isolate::Current()->TypeChecksEnabled() ||
@@ -3093,12 +3094,13 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   BuildInstanceSetterArguments(node, arguments, kResultNotNeeded);
   const String& name =
       String::ZoneHandle(Z, Field::SetterSymbol(node->field_name()));
+  const intptr_t kNumArgsChecked = 1;  // Do not check value type.
   InstanceCallInstr* call = new(Z) InstanceCallInstr(node->token_pos(),
                                                      name,
                                                      Token::kSET,
                                                      arguments,
                                                      Object::null_array(),
-                                                     2,  // Checked arg count.
+                                                     kNumArgsChecked,
                                                      owner()->ic_data_array());
   ReturnDefinition(call);
 }
@@ -3110,12 +3112,13 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   BuildInstanceSetterArguments(node, arguments, kResultNeeded);
   const String& name =
       String::ZoneHandle(Z, Field::SetterSymbol(node->field_name()));
+  const intptr_t kNumArgsChecked = 1;  // Do not check value type.
   Do(new(Z) InstanceCallInstr(node->token_pos(),
                               name,
                               Token::kSET,
                               arguments,
                               Object::null_array(),
-                              2,  // Checked argument count.
+                              kNumArgsChecked,
                               owner()->ic_data_array()));
   ReturnDefinition(BuildLoadExprTemp());
 }
@@ -3738,7 +3741,7 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
     }
   } else {
     // Generate dynamic call to operator []=.
-    const intptr_t checked_argument_count = 3;
+    const intptr_t checked_argument_count = 2;  // Do not check for value type.
     const String& name =
         String::ZoneHandle(Z, Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
     InstanceCallInstr* store =

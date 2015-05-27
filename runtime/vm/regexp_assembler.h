@@ -400,7 +400,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
         case Token::kINDEX: return InstanceCallDescriptor(
                 Symbols::IndexToken(), token_kind, 2);
         case Token::kASSIGN_INDEX: return InstanceCallDescriptor(
-                Symbols::AssignIndexToken(), token_kind, 3);
+                Symbols::AssignIndexToken(), token_kind, 2);
         default:
           UNREACHABLE();
       }

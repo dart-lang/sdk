@@ -3579,24 +3579,15 @@ class ICData : public Object {
     V(BinaryMintOp)                                                            \
     V(DoubleToSmi)                                                             \
     V(Unknown)                                                                 \
-    V(InstanceGetter)                                                          \
     V(PolymorphicInstanceCallTestFail)                                         \
-    V(InstanceCallNoICData)                                                    \
-    V(IntegerToDouble)                                                         \
     V(UnaryMintOp)                                                             \
     V(BinaryDoubleOp)                                                          \
-    V(InstanceSetter)                                                          \
-    V(Equality)                                                                \
-    V(RelationalOp)                                                            \
-    V(EqualityClassCheck)                                                      \
-    V(NoTypeFeedback)                                                          \
     V(UnaryOp)                                                                 \
     V(UnboxInteger)                                                            \
     V(CheckClass)                                                              \
     V(CheckSmi)                                                                \
     V(CheckArrayBound)                                                         \
     V(AtCall)                                                                  \
-    V(Int32Load)                                                               \
     V(Uint32Load)                                                              \
     V(GuardField)                                                              \
     V(TestCids)                                                                \
@@ -3715,6 +3706,8 @@ class ICData : public Object {
   RawICData* AsUnaryClassChecks() const {
     return AsUnaryClassChecksForArgNr(0);
   }
+  RawICData* AsUnaryClassChecksForCid(
+      intptr_t cid, const Function& target) const;
 
   // Consider only used entries.
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
@@ -3727,6 +3720,7 @@ class ICData : public Object {
                         const Array& arguments_descriptor,
                         intptr_t deopt_id,
                         intptr_t num_args_tested);
+  static RawICData* NewFrom(const ICData& from, intptr_t num_args_tested);
 
   static intptr_t TestEntryLengthFor(intptr_t num_args);
 

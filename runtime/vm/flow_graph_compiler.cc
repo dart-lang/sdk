@@ -1037,10 +1037,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
       case 2:
         label_address = stub_code->TwoArgsOptimizedCheckInlineCacheEntryPoint();
         break;
-      case 3:
-        label_address =
-            stub_code->ThreeArgsOptimizedCheckInlineCacheEntryPoint();
-        break;
       default:
         UNIMPLEMENTED();
     }
@@ -1067,9 +1063,6 @@ void FlowGraphCompiler::GenerateInstanceCall(
       break;
     case 2:
       label_address = stub_code->TwoArgsCheckInlineCacheEntryPoint();
-      break;
-    case 3:
-      label_address = stub_code->ThreeArgsCheckInlineCacheEntryPoint();
       break;
     default:
       UNIMPLEMENTED();

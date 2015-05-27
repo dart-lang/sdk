@@ -2941,7 +2941,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
     const Array& arguments_descriptor =
         Array::Handle(zone, ArgumentsDescriptor::New(ArgumentCount(),
-                                                        argument_names()));
+                                                     argument_names()));
     call_ic_data = compiler->GetOrAddInstanceCallICData(
         deopt_id(), function_name(), arguments_descriptor,
         checked_argument_count());

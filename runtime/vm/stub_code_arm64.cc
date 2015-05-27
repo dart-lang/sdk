@@ -1608,14 +1608,6 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, R6);
-  GenerateNArgsCheckInlineCacheStub(assembler, 3,
-      kInlineCacheMissHandlerThreeArgsRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges);
-}
-
-
 void StubCode::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
@@ -1674,15 +1666,6 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges);
-}
-
-
-void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
-    Assembler* assembler) {
-  GenerateOptimizedUsageCounterIncrement(assembler);
-  GenerateNArgsCheckInlineCacheStub(assembler, 3,
-      kInlineCacheMissHandlerThreeArgsRuntimeEntry, Token::kILLEGAL,
       kIgnoreRanges);
 }
 

@@ -11734,6 +11734,18 @@ RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
 }
 
 
+RawICData* ICData::AsUnaryClassChecksForCid(
+    intptr_t cid, const Function& target) const {
+  ASSERT(!IsNull());
+  const intptr_t kNumArgsTested = 1;
+  ICData& result = ICData::Handle(ICData::NewFrom(*this, kNumArgsTested));
+
+  // Copy count so that we copy the state "count == 0" vs "count > 0".
+  result.AddReceiverCheck(cid, target, GetCountAt(0));
+  return result.raw();
+}
+
+
 RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
   ASSERT(!IsNull());
   ASSERT(NumArgsTested() > arg_nr);
@@ -11742,12 +11754,7 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
     return raw();
   }
   const intptr_t kNumArgsTested = 1;
-  ICData& result = ICData::Handle(ICData::New(
-      Function::Handle(owner()),
-      String::Handle(target_name()),
-      Array::Handle(arguments_descriptor()),
-      deopt_id(),
-      kNumArgsTested));
+  ICData& result = ICData::Handle(ICData::NewFrom(*this, kNumArgsTested));
   const intptr_t len = NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     const intptr_t class_id = GetClassIdAt(i, arg_nr);
@@ -11775,8 +11782,6 @@ RawICData* ICData::AsUnaryClassChecksForArgNr(intptr_t arg_nr) const {
                               count);
     }
   }
-  // Copy deoptimization reasons.
-  result.SetDeoptReasons(DeoptReasons());
 
   return result.raw();
 }
@@ -11895,6 +11900,19 @@ RawICData* ICData::New(const Function& owner,
   const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
   result.set_ic_data(ic_data);
   result.WriteSentinel(ic_data);
+  return result.raw();
+}
+
+
+RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
+  const ICData& result = ICData::Handle(ICData::New(
+      Function::Handle(from.owner()),
+      String::Handle(from.target_name()),
+      Array::Handle(from.arguments_descriptor()),
+      from.deopt_id(),
+      num_args_tested));
+  // Copy deoptimization reasons.
+  result.SetDeoptReasons(from.DeoptReasons());
   return result.raw();
 }
 
