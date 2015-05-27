@@ -697,7 +697,7 @@ class _RandomAccessFile
       throw new ArgumentError();
     }
     end = RangeError.checkValidRange(start, end, buffer.length);
-    if (end == start) return 0;
+    if (end == start) return new Future.value(0);
     int length = end - start;
     return _dispatch(_FILE_READ_INTO, [_id, length]).then((response) {
       if (_isErrorResponse(response)) {
@@ -770,7 +770,7 @@ class _RandomAccessFile
       throw new ArgumentError("Invalid arguments to writeFrom");
     }
     end = RangeError.checkValidRange(start, end, buffer.length);
-    if (end == start) return;
+    if (end == start) return new Future.value(this);
     _BufferAndStart result;
     try {
       result = _ensureFastAndSerializableByteData(buffer, start, end);

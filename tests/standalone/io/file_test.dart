@@ -716,7 +716,7 @@ class FileTest {
     Expect.isFalse(file.existsSync());
   }
 
-  static void testReadInto() async {
+  static testReadInto() async {
     asyncTestStarted();
     File file = new File(tempDirectory.path + "/out_read_into");
 
@@ -741,6 +741,7 @@ class FileTest {
     await read(1, 2, 1, [null, 1, null]);
     await read(1, 3, 2, [null, 1, 2]);
     await read(2, 3, 1, [null, null, 1]);
+    await read(0, 0, 0, [null, null, null]);
 
     asyncTestDone("testReadInto");
   }
@@ -769,9 +770,10 @@ class FileTest {
     read(1, 2, 1, [null, 1, null]);
     read(1, 3, 2, [null, 1, 2]);
     read(2, 3, 1, [null, null, 1]);
+    read(0, 0, 0, [null, null, null]);
   }
 
-  static void testWriteFrom() async {
+  static testWriteFrom() async {
     asyncTestStarted();
     File file = new File(tempDirectory.path + "/out_write_from");
 
@@ -782,7 +784,8 @@ class FileTest {
     var result = []..addAll(buffer);;
 
     write([start, end]) async {
-      await openedFile.writeFrom(buffer, start, end);
+      var returnValue = await openedFile.writeFrom(buffer, start, end);
+      Expect.identical(openedFile, returnValue);
       result.addAll(buffer.sublist(start, end));
     }
     await write(0, 3);
@@ -790,6 +793,7 @@ class FileTest {
     await write(1, 2);
     await write(1, 3);
     await write(2, 3);
+    await write(0, 0);
 
     var bytesFromFile = await file.readAsBytes();
     Expect.listEquals(result, bytesFromFile);
@@ -806,7 +810,7 @@ class FileTest {
     var result = []..addAll(buffer);;
 
     write([start, end]) {
-      openedFile.writeFromSync(buffer, start, end);
+      var returnValue = openedFile.writeFromSync(buffer, start, end);
       result.addAll(buffer.sublist(start, end));
     }
     write(0, 3);
