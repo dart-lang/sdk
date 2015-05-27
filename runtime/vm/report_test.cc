@@ -32,7 +32,7 @@ TEST_CASE(TraceJSWarning) {
                        "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
                        "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
                        "\"uri\":\"Plug\","
-                       "\"kind\":\"script\"},\"tokenPos\":0,"
+                       "\"_kind\":\"script\"},\"tokenPos\":0,"
                        "\"message\":{\"type\":\"@String\"",
                        js.ToCString());
       // Skip private _OneByteString.
@@ -50,7 +50,7 @@ TEST_CASE(TraceJSWarning) {
                    "\"@Script\",\"fixedId\":true,"
                    "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
                    "\"uri\":\"Plug\","
-                   "\"kind\":\"script\"},\"tokenPos\":0,"
+                   "\"_kind\":\"script\"},\"tokenPos\":0,"
                    "\"message\":{\"type\":\"@String\"",
                    trace_buffer->At(0)->message);
   // Skip private _OneByteString.
@@ -61,7 +61,7 @@ TEST_CASE(TraceJSWarning) {
                    "\"@Script\",\"fixedId\":true,"
                    "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
                    "\"uri\":\"Plug\","
-                   "\"kind\":\"script\"},\"tokenPos\":1,"
+                   "\"_kind\":\"script\"},\"tokenPos\":1,"
                    "\"message\":{\"type\":\"@String\"",
                    trace_buffer->At(1)->message);
   // Skip private _OneByteString.

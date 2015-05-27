@@ -1531,9 +1531,6 @@ A _SentinelType_ is used to distinguish different kinds of _Sentinel_ objects.
 class @Script extends @Object {
   // The uri from which this script was loaded.
   string uri;
-
-  // What kind of script is this?
-  string kind;
 }
 ```
 
@@ -1543,9 +1540,6 @@ _@Script_ is a reference to a _Script_.
 class Script extends Object {
   // The uri from which this script was loaded.
   string uri;
-
-  // What kind of script is this?
-  ScriptKind kind;
 
   // The library which owns this script.
   @Library library;
@@ -1577,21 +1571,6 @@ tokenPos | line | column
 100 | 1 | 5
 101 | 1 | 8
 102 | 2 | 7
-
-### ScriptKind
-
-```
-enum ScriptKind {
-  script,
-  library,
-  source,
-  patch
-}
-```
-
-A _ScriptKind_ is used to classify a _Script_.
-
-TODO: We need to explain what this is about or find a way to hide it.
 
 ### Stack
 

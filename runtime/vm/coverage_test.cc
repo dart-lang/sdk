@@ -52,7 +52,7 @@ TEST_CASE(Coverage_Empty) {
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"libraries\\/%" Pd  "\\/scripts\\/test-lib\","
       "\"uri\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[]}", lib.index());
+      "\"_kind\":\"script\"},\"hits\":[]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
 }
 
@@ -89,7 +89,7 @@ TEST_CASE(Coverage_MainWithClass) {
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"uri\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[3,1,5,4,6,3]}", lib.index());
+      "\"_kind\":\"script\"},\"hits\":[3,1,5,4,6,3]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
 
   // Data for the fake class containing main().
@@ -97,7 +97,7 @@ TEST_CASE(Coverage_MainWithClass) {
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"libraries\\/%" Pd  "\\/scripts\\/test-lib\","
       "\"uri\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[10,1,11,1]}", lib.index());
+      "\"_kind\":\"script\"},\"hits\":[10,1,11,1]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
 }
 
@@ -135,7 +135,7 @@ TEST_CASE(Coverage_FilterFunction) {
       "{\"source\":\"test-lib\",\"script\":{\"type\":\"@Script\","
       "\"fixedId\":true,\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
       "\"uri\":\"test-lib\","
-      "\"kind\":\"script\"},\"hits\":[6,0]}", lib.index());
+      "\"_kind\":\"script\"},\"hits\":[6,0]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
 }
 

@@ -2248,7 +2248,7 @@ class Script extends ServiceObject with Coverage {
   void _update(ObservableMap map, bool mapIsRef) {
     _upgradeCollection(map, isolate);
     uri = map['uri'];
-    kind = map['kind'];
+    kind = map['_kind'];
     _shortUri = uri.substring(uri.lastIndexOf('/') + 1);
     name = _shortUri;
     vmName = uri;

@@ -75,14 +75,14 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
         "\"uri\":\"test-lib\","
-        "\"kind\":\"script\"},\"tokenPos\":14}},"
+        "\"_kind\":\"script\"},\"tokenPos\":14}},"
         "{\"type\":\"Breakpoint\",\"fixedId\":true,\"id\":\"breakpoints\\/1\","
         "\"breakpointNumber\":1,\"resolved\":false,"
         "\"location\":{\"type\":\"Location\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
         "\"uri\":\"test-lib\","
-        "\"kind\":\"script\"},\"tokenPos\":5}}]",
+        "\"_kind\":\"script\"},\"tokenPos\":5}}]",
         vmlib.index(), vmlib.index());
   }
 }

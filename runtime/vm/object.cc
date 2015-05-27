@@ -8555,7 +8555,7 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s",
       lib_index, encoded_uri.ToCString());
   jsobj.AddPropertyStr("uri", uri);
-  jsobj.AddProperty("kind", GetKindAsCString());
+  jsobj.AddProperty("_kind", GetKindAsCString());
   if (ref) {
     return;
   }
