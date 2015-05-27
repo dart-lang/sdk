@@ -20,7 +20,7 @@ vars = {
   "dart_github": "https://github.com/dart-lang/%s.git",
 
   "gyp_rev": "@1752",
-  "co19_rev": "@f95f109fea67127a220958794ef5200a63cb454c",
+  "co19_rev": "@801",
   "chromium_url": "http://src.chromium.org/svn",
   "chromium_git": "https://chromium.googlesource.com",
 
@@ -105,8 +105,8 @@ deps = {
   Var("dart_root") + "/third_party/gyp":
       (Var("googlecode_url") % "gyp") + "/trunk" + Var("gyp_rev"),
 
-  Var("dart_root") + "/tests/co19/src":
-      "https://github.com/dart-lang/co19.git" + Var("co19_rev"),
+  Var("dart_root") + "/tests/co19/src": ((Var("googlecode_url") % "co19") +
+      "/trunk/co19/tests/co19/src" + Var("co19_rev")),
 
   Var("dart_root") + "/third_party/nss":
       Var("chromium_git") + "/chromium/deps/nss.git" + Var("nss_rev"),
