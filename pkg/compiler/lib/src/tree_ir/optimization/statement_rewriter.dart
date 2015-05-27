@@ -572,7 +572,8 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitTypeOperator(TypeOperator node) {
-    node.receiver = visitExpression(node.receiver);
+    _rewriteList(node.typeArguments);
+    node.value = visitExpression(node.value);
     return node;
   }
 

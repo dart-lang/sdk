@@ -236,8 +236,9 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String dummy = names.name(node);
     String operator = node.isTypeTest ? 'is' : 'as';
     List<String> entries = new List<String>();
-    String receiver = formatReference(node.receiver);
-    printStmt(dummy, "TypeOperator ($operator $receiver ${node.type})");
+    String value = formatReference(node.value);
+    String kont = formatReference(node.continuation);
+    printStmt(dummy, "TypeOperator ($operator $value ${node.type}) $kont");
   }
 
   visitInvokeContinuation(cps_ir.InvokeContinuation node) {

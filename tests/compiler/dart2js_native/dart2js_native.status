@@ -126,4 +126,3 @@ subclassing_type_test: Crash # Instance of 'TypeOperator': type check unimplemen
 super_call_test: Crash # unsupported element kind: makeD:function
 super_property_test: Crash # unsupported element kind: makeB:function
 undefined_bailout_test: Crash # (JS('','void 0')): handleStaticFunctionInvoke: foreign: function(JS)
-uninstantiated_type_parameter_test: Crash # Instance of 'TypeOperator': type check unimplemented for C<int>.

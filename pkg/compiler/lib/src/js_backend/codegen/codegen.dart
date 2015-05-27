@@ -350,14 +350,40 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitTypeOperator(tree_ir.TypeOperator node) {
+    js.Expression value = visitExpression(node.value);
+    List<js.Expression> typeArguments =
+        node.typeArguments.map(visitExpression).toList();
     if (!node.isTypeTest) {
       giveup(node, 'type casts not implemented.');
     }
     DartType type = node.type;
-    if (type is InterfaceType && type.isRaw) {
+    // Note that the trivial (but special) cases of Object, dynamic, and Null
+    // are handled at build-time and must not occur in a TypeOperator.
+    assert(!type.isObject && !type.isDynamic);
+    if (type is InterfaceType) {
       glue.registerIsCheck(type, registry);
-      js.Expression value = visitExpression(node.receiver);
-      return js.js('!!#.#', [value, glue.getTypeTestTag(type)]);
+      ClassElement clazz = type.element;
+
+      // We use the helper:
+      //
+      //     checkSubtype(value, $isT, typeArgs, $asT)
+      //
+      // Any of the last two arguments may be null if there are no type
+      // arguments, and/or if no substitution is required.
+
+      js.Expression isT = js.string(glue.getTypeTestTag(type));
+
+      js.Expression typeArgumentArray = typeArguments.isNotEmpty
+          ? new js.ArrayInitializer(typeArguments)
+          : new js.LiteralNull();
+
+      js.Expression asT = glue.hasStrictSubtype(clazz)
+          ? js.string(glue.getTypeSubstitutionTag(clazz))
+          : new js.LiteralNull();
+
+      return buildStaticHelperInvocation(
+          glue.getCheckSubtype(),
+          [value, isT, typeArgumentArray, asT]);
     }
     return giveup(node, 'type check unimplemented for $type.');
   }

@@ -330,13 +330,14 @@ class LiteralMap extends Expression {
   }
 }
 
-/// Given the interceptor for a value, test the value against a type.
 class TypeOperator extends Expression {
-  Expression receiver;
+  Expression value;
   final DartType type;
+  final List<Expression> typeArguments;
   final bool isTypeTest;
 
-  TypeOperator(this.receiver, this.type, {bool this.isTypeTest});
+  TypeOperator(this.value, this.type, this.typeArguments,
+               {bool this.isTypeTest});
 
   accept(ExpressionVisitor visitor) => visitor.visitTypeOperator(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -1157,7 +1158,8 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   }
 
   visitTypeOperator(TypeOperator node) {
-    visitExpression(node.receiver);
+    visitExpression(node.value);
+    node.typeArguments.forEach(visitExpression);
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -1349,7 +1351,8 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitTypeOperator(TypeOperator node) {
-    node.receiver = visitExpression(node.receiver);
+    node.value = visitExpression(node.value);
+    _replaceExpressions(node.typeArguments);
     return node;
   }
 

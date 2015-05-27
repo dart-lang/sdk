@@ -616,7 +616,6 @@ mirrors/synthetic_accessor_properties_test: Crash # Instance of 'TypeOperator': 
 mirrors/to_string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/top_level_accessors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/type_argument_is_type_variable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/type_mirror_for_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for C<Type>.
 mirrors/type_variable_is_static_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/type_variable_owner_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
 mirrors/type_variable_owner_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -631,13 +630,11 @@ profiler/metrics_num_test: Crash # Instance of 'TypeOperator': type check unimpl
 profiler/metrics_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 profiler/user_tags_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 typed_data/constructor_checks_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/float32x4_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<Float32x4>.
 typed_data/float32x4_shuffle_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 typed_data/float32x4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/int32x4_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<Int32x4>.
 typed_data/int32x4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 typed_data/typed_data_hierarchy_int64_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
-typed_data/typed_data_hierarchy_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<double>.
 typed_data/typed_data_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 typed_data/typed_data_sublist_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 typed_data/typed_list_iterable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+convert/json_toEncodable_reviver_test : RuntimeError

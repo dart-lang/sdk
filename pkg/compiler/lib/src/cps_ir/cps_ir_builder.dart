@@ -466,9 +466,10 @@ abstract class IrBuilder {
   /// closure fields in order to access the receiver from the enclosing method.
   ir.Primitive buildThis();
 
-  /// In JS-mode, gets an interceptor for [value].
-  /// In Dart-mode, simply returns [value].
-  ir.Primitive buildGetInterceptor(ir.Primitive value);
+  /// Creates a type test or type cast of [value] against [type].
+  ir.Primitive buildTypeOperator(ir.Primitive value,
+                                 DartType type,
+                                 {bool isTypeTest});
 
   // TODO(johnniwinther): Make these field final and remove the default values
   // when [IrBuilder] is a property of [IrBuilderVisitor] instead of a mixin.
@@ -1801,7 +1802,6 @@ abstract class IrBuilder {
     // handler parameter.
     ir.Parameter exceptionParameter =
         new ir.Parameter(catchClauseInfos.first.exceptionVariable);
-    ir.Primitive exceptionInterceptor = new ir.Parameter(null);
     LocalVariableElement traceVariable;
     CatchClauseInfo catchAll;
     for (int i = 0; i < catchClauseInfos.length; ++i) {
@@ -1848,24 +1848,23 @@ abstract class IrBuilder {
       ir.Continuation elseContinuation = new ir.Continuation([]);
       elseContinuation.body = catchBody;
 
-      ir.Parameter typeMatches = new ir.Parameter(null);
-      ir.Continuation checkType = new ir.Continuation([typeMatches]);
-      checkType.body =
-          new ir.LetCont.many([thenContinuation, elseContinuation],
-              new ir.Branch(new ir.IsTrue(typeMatches),
-                            thenContinuation,
-                            elseContinuation));
-      catchBody =
-          new ir.LetCont(checkType,
-              new ir.TypeOperator(exceptionInterceptor, clause.type, checkType,
-                                  isTypeTest: true));
+      // Build the type test guarding this clause. We can share the environment
+      // with the nested builder because this part cannot mutate it.
+      IrBuilder checkBuilder = catchBuilder.makeDelimitedBuilder(environment);
+      ir.Primitive typeMatches =
+          checkBuilder.buildTypeOperator(exceptionParameter,
+                                         clause.type,
+                                         isTypeTest: true);
+      checkBuilder.add(new ir.LetCont.many([thenContinuation, elseContinuation],
+                           new ir.Branch(new ir.IsTrue(typeMatches),
+                                         thenContinuation,
+                                         elseContinuation)));
+      catchBody = checkBuilder._root;
     }
 
     List<ir.Parameter> catchParameters =
         <ir.Parameter>[exceptionParameter, traceParameter];
     ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
-    catchBuilder.buildGetInterceptor(exceptionParameter)
-                .substituteFor(exceptionInterceptor);
     catchBuilder.add(catchBody);
     catchContinuation.body = catchBuilder._root;
 
@@ -2013,15 +2012,6 @@ abstract class IrBuilder {
                             elseContinuation))));
     return resultParameter;
   }
-
-  /// Creates a type test or type cast of [receiver] against [type].
-  ///
-  /// Set [isTypeTest] to `true` to create a type test and furthermore set
-  /// [isNotCheck] to `true` to create a negated type test.
-  ir.Primitive buildTypeOperator(ir.Primitive receiver,
-                                 DartType type,
-                                 {bool isTypeTest: false,
-                                  bool isNotCheck: false});
 
   /// Create a lazy and/or expression. [leftValue] is the value of the left
   /// operand and [buildRightValue] is called to process the value of the right
@@ -2291,8 +2281,6 @@ class DartIrBuilder extends IrBuilder {
     return state.enclosingMethodThisParameter;
   }
 
-  ir.Primitive buildGetInterceptor(ir.Primitive value) => value;
-
   @override
   ir.Primitive buildConstructorInvocation(ConstructorElement element,
                                           CallStructure callStructure,
@@ -2312,16 +2300,15 @@ class DartIrBuilder extends IrBuilder {
   }
 
   @override
-  ir.Primitive buildTypeOperator(ir.Primitive receiver,
+  ir.Primitive buildTypeOperator(ir.Primitive value,
                                  DartType type,
-                                 {bool isTypeTest: false,
-                                  bool isNotCheck: false}) {
+                                 {bool isTypeTest}) {
     assert(isOpen);
     assert(isTypeTest != null);
-    assert(!isNotCheck || isTypeTest);
     ir.Primitive check = _continueWithExpression(
-            (k) => new ir.TypeOperator(receiver, type, k, isTypeTest: isTypeTest));
-    return isNotCheck ? buildNegation(check) : check;
+            (k) => new ir.TypeOperator(value, type,
+                       const <ir.Primitive>[], k, isTypeTest: isTypeTest));
+    return check;
   }
 }
 
@@ -2558,10 +2545,6 @@ class JsIrBuilder extends IrBuilder {
     return state.thisParameter;
   }
 
-  ir.Primitive buildGetInterceptor(ir.Primitive value) {
-    return addPrimitive(new ir.Interceptor(value, program.interceptedClasses));
-  }
-
   @override
   ir.Primitive buildSuperFieldGet(FieldElement target) {
     return addPrimitive(new ir.GetField(buildThis(), target));
@@ -2636,6 +2619,8 @@ class JsIrBuilder extends IrBuilder {
         arguments.add(value);
       });
       return addPrimitive(new ir.TypeExpression(type, arguments));
+    } else if (type is DynamicType) {
+      return buildNullConstant();
     } else {
       // TypedefType can reach here, and possibly other things.
       throw 'unimplemented translation of type expression $type';
@@ -2680,21 +2665,33 @@ class JsIrBuilder extends IrBuilder {
   }
 
   @override
-  ir.Primitive buildTypeOperator(ir.Primitive receiver,
+  ir.Primitive buildTypeOperator(ir.Primitive value,
                                  DartType type,
-                                 {bool isTypeTest: false,
-                                  bool isNotCheck: false}) {
+                                 {bool isTypeTest}) {
     assert(isOpen);
     assert(isTypeTest != null);
-    assert(!isNotCheck || isTypeTest);
-    ir.Primitive interceptor =
-        addPrimitive(new ir.Interceptor(receiver, program.interceptedClasses));
+    if (isTypeTest) {
+      // The TypeOperator node does not allow the Object, dynamic, and Null types,
+      // because the null value satisfies them. These must be handled here.
+      if (type.isObject || type.isDynamic) {
+        // `x is Object` and `x is dynamic` are always true, even if x is null.
+        return buildBooleanConstant(true);
+      }
+      if (type is InterfaceType && type.element == program.nullClass) {
+        // `x is Null` is true if and only if x is null.
+        return addPrimitive(new ir.Identical(value, buildNullConstant()));
+      }
+    }
+    // Null cannot not satisfy the check. Use a standard subtype check.
+    List<ir.Primitive> typeArguments = const <ir.Primitive>[];
+    if (type is GenericType && type.typeArguments.isNotEmpty) {
+      typeArguments = type.typeArguments.map(buildTypeExpression).toList();
+    }
     ir.Primitive check = _continueWithExpression(
-            (k) => new ir.TypeOperator(interceptor, type, k,
-                                       isTypeTest: isTypeTest));
-    return isNotCheck ? buildNegation(check) : check;
+            (k) => new ir.TypeOperator(value,
+                       type, typeArguments, k, isTypeTest: isTypeTest));
+    return check;
   }
-
 }
 
 
