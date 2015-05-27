@@ -535,11 +535,13 @@ TEST_CASE(Service_EmbedderRootHandler) {
   service_msg = Eval(lib, "[0, port, '0', 'alpha', [], []]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"result\":alpha, \"id\":\"0\"}", handler.msg());
+  EXPECT_STREQ("{\"json-rpc\":\"2.0\", \"result\":alpha, \"id\":\"0\"}",
+               handler.msg());
   service_msg = Eval(lib, "[0, port, '0', 'beta', [], []]");
   Service::HandleRootMessage(service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"result\":beta, \"id\":\"0\"}", handler.msg());
+  EXPECT_STREQ("{\"json-rpc\":\"2.0\", \"result\":beta, \"id\":\"0\"}",
+               handler.msg());
 }
 
 
@@ -573,11 +575,13 @@ TEST_CASE(Service_EmbedderIsolateHandler) {
   service_msg = Eval(lib, "[0, port, '0', 'alpha', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"result\":alpha, \"id\":\"0\"}", handler.msg());
+  EXPECT_STREQ("{\"json-rpc\":\"2.0\", \"result\":alpha, \"id\":\"0\"}",
+               handler.msg());
   service_msg = Eval(lib, "[0, port, '0', 'beta', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
-  EXPECT_STREQ("{\"result\":beta, \"id\":\"0\"}", handler.msg());
+  EXPECT_STREQ("{\"json-rpc\":\"2.0\", \"result\":beta, \"id\":\"0\"}",
+               handler.msg());
 }
 
 // TODO(zra): Remove when tests are ready to enable.

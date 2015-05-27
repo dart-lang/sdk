@@ -73,13 +73,13 @@ void JSONStream::Setup(Zone* zone,
               isolate_name, method_);
     setup_time_micros_ = OS::GetCurrentTimeMicros();
   }
-  buffer_.Printf("{\"result\":");
+  buffer_.Printf("{\"json-rpc\":\"2.0\", \"result\":");
 }
 
 
 void JSONStream::SetupError() {
   buffer_.Clear();
-  buffer_.Printf("{\"error\":");
+  buffer_.Printf("{\"json-rpc\":\"2.0\", \"error\":");
 }
 
 
