@@ -46,8 +46,9 @@ void testDartExecShouldNotBeInCurrentDir() {
 void testShouldFailOutsidePath() {
   var threw = false;
   try {
-    Process.runSync(platformExeName, [platformExeName], 
-      includeParentEnvironment: false, environment: {_SCRIPT_KEY: 'yes'});
+    Process.runSync(platformExeName, ['--version'],
+                    includeParentEnvironment: false,
+                    environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
   } catch (_) {
     threw = true;
   }
