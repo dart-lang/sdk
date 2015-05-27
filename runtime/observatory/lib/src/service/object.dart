@@ -1018,7 +1018,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       _snapshotFetch = new StreamController();
       // isolate.vm.streamListen('_Graph');
-      isolate.invokeRpcNoUpgrade('requestHeapSnapshot', {});
+      isolate.invokeRpcNoUpgrade('_requestHeapSnapshot', {});
     }
     return _snapshotFetch.stream;
   }
@@ -1094,7 +1094,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future<TagProfile> updateTagProfile() {
-    return isolate.invokeRpcNoUpgrade('getTagProfile', {}).then(
+    return isolate.invokeRpcNoUpgrade('_getTagProfile', {}).then(
       (ObservableMap map) {
         var seconds = new DateTime.now().millisecondsSinceEpoch / 1000.0;
         tagProfile._processTagProfile(seconds, map);
@@ -1289,7 +1289,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     Map params = {
       'onlyWithInstantiations': onlyWithInstantiations,
     };
-    return invokeRpc('getTypeArgumentsList', params);
+    return invokeRpc('_getTypeArgumentsList', params);
   }
 
   Future<ServiceObject> getInstances(Class cls, var limit) {
@@ -1305,7 +1305,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'address': address,
       'ref': ref,
     };
-    return invokeRpc('getObjectByAddress', params);
+    return invokeRpc('_getObjectByAddress', params);
   }
 
   final ObservableMap<String, ServiceMetric> dartMetrics =
@@ -1317,7 +1317,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   Future<ObservableMap<String, ServiceMetric>> _refreshMetrics(
       String metricType,
       ObservableMap<String, ServiceMetric> metricsMap) {
-    return invokeRpc('getIsolateMetricList',
+    return invokeRpc('_getIsolateMetricList',
                      { 'type': metricType }).then((result) {
       // Clear metrics map.
       metricsMap.clear();
@@ -3049,7 +3049,7 @@ class ServiceMetric extends ServiceObject {
 
   Future<ObservableMap> _fetchDirect() {
     assert(owner is Isolate);
-    return isolate.invokeRpcNoUpgrade('getIsolateMetric', { 'metricId': id });
+    return isolate.invokeRpcNoUpgrade('_getIsolateMetric', { 'metricId': id });
   }
 
 

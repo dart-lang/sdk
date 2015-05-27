@@ -12,7 +12,7 @@ var tests = [
   (Isolate isolate) async {
     var params = {
     };
-    var result = await isolate.invokeRpcNoUpgrade('getHeapMap', params);
+    var result = await isolate.invokeRpcNoUpgrade('_getHeapMap', params);
     expect(result['type'], equals('HeapMap'));
     expect(result['freeClassId'], isPositive);
     expect(result['unitSizeBytes'], isPositive);

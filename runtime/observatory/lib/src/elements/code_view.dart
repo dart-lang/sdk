@@ -67,7 +67,7 @@ class CodeViewElement extends ObservatoryElement {
 
   Future refreshTicks() {
     var isolate = code.isolate;
-    return isolate.invokeRpc('getCpuProfile', { 'tags': 'None' })
+    return isolate.invokeRpc('_getCpuProfile', { 'tags': 'None' })
         .then((ServiceMap response) {
             var cpuProfile = new CpuProfile();
             cpuProfile.load(isolate, response);

@@ -224,7 +224,7 @@ class HeapMapElement extends ObservatoryElement {
       fragmentation = null;
       return;
     }
-    isolate.invokeRpc('getHeapMap', {}).then((ServiceMap response) {
+    isolate.invokeRpc('_getHeapMap', {}).then((ServiceMap response) {
       assert(response['type'] == 'HeapMap');
       fragmentation = response;
     }).catchError((e, st) {
@@ -236,7 +236,7 @@ class HeapMapElement extends ObservatoryElement {
     if (isolate == null) {
       return new Future.value(null);
     }
-    return isolate.invokeRpc('getHeapMap', {}).then((ServiceMap response) {
+    return isolate.invokeRpc('_getHeapMap', {}).then((ServiceMap response) {
       assert(response['type'] == 'HeapMap');
       fragmentation = response;
     });

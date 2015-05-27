@@ -459,9 +459,9 @@ TEST_CASE(Service_Address) {
     bool ref = offset % 2 == 0;
     OS::SNPrint(buf, sizeof(buf),
                 (ref
-                 ? "[0, port, '0', 'getObjectByAddress', "
+                 ? "[0, port, '0', '_getObjectByAddress', "
                    "['address', 'ref'], ['%" Px "', 'true']]"
-                 : "[0, port, '0', 'getObjectByAddress', "
+                 : "[0, port, '0', '_getObjectByAddress', "
                    "['address'], ['%" Px "']]"),
                 addr);
     service_msg = Eval(lib, buf);
@@ -473,7 +473,7 @@ TEST_CASE(Service_Address) {
     EXPECT_SUBSTRING("foobar", handler.msg());
   }
   // Expect null when no object is found.
-  service_msg = Eval(lib, "[0, port, '0', 'getObjectByAddress', "
+  service_msg = Eval(lib, "[0, port, '0', '_getObjectByAddress', "
                      "['address'], ['7']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
@@ -611,21 +611,21 @@ TEST_CASE(Service_Profile) {
   EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
 
   Array& service_msg = Array::Handle();
-  service_msg = Eval(lib, "[0, port, '0', 'getCpuProfile', [], []]");
+  service_msg = Eval(lib, "[0, port, '0', '_getCpuProfile', [], []]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect error (tags required).
   EXPECT_SUBSTRING("\"error\"", handler.msg());
 
   service_msg =
-      Eval(lib, "[0, port, '0', 'getCpuProfile', ['tags'], ['None']]");
+      Eval(lib, "[0, port, '0', '_getCpuProfile', ['tags'], ['None']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect profile
   EXPECT_SUBSTRING("\"type\":\"_CpuProfile\"", handler.msg());
 
   service_msg =
-      Eval(lib, "[0, port, '0', 'getCpuProfile', ['tags'], ['Bogus']]");
+      Eval(lib, "[0, port, '0', '_getCpuProfile', ['tags'], ['Bogus']]");
   Service::HandleIsolateMessage(isolate, service_msg);
   handler.HandleNextMessage();
   // Expect error.

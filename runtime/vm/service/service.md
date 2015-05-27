@@ -28,7 +28,6 @@ apparently outside the scope of the JSON-RPC specification.
 	- [addBreakpointAtEntry](#addbreakpointatentry)
 	- [evaluate](#evaluate)
 	- [evaluateInFrame](#evaluateinframe)
-	- [getCoverage](#getcoverage)
 	- [getFlagList](#getflaglist)
 	- [getIsolate](#getisolate)
 	- [getObject](#getobject)
@@ -49,7 +48,6 @@ apparently outside the scope of the JSON-RPC specification.
 	- [Class](#class)
 	- [ClassList](#classlist)
 	- [Code](#code)
-	- [CodeCoverage](#codecoverage)
 	- [CodeKind](#codekind)
 	- [Double](#double)
 	- [Error](#error)
@@ -435,21 +433,6 @@ reference will be returned.
 
 If the expression is evaluated successfully, an [@Instance](#instance)
 reference will be returned.
-
-### getCoverage
-
-```
-CodeCoverage getCoverage(string isolateId,
-                         string targetId)
-```
-
-The _getCoverage_ RPC is used to retrieve current code coverage
-information for some target.
-
-_targetId_ may refer to a [Script](#script), [Library](#library),
-[Class](#class), or [Function](#function).
-
-See [Coverage](#coverage).
 
 ### getFlagList
 
@@ -863,10 +846,6 @@ class @Code extends @Object {
 ```
 
 A _Code_ object represents compiled code in the Dart VM.
-
-### CodeCoverage
-
-TODO
 
 ### CodeKind
 
