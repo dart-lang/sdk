@@ -3298,7 +3298,7 @@ class SsaBuilder extends NewResolvedVisitor {
           argumentNodes: const Link<ast.Node>());
     } else {
       // This happens when [element] has parse errors.
-      assert(invariant(node, element.isErroneous));
+      assert(invariant(node, element == null || element.isErroneous));
       // TODO(ahe): Do something like the above, that is, emit a runtime
       // error.
       stack.add(graph.addConstantNull(compiler));
