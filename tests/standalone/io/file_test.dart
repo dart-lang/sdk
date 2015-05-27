@@ -743,6 +743,8 @@ class FileTest {
     await read(2, 3, 1, [null, null, 1]);
     await read(0, 0, 0, [null, null, null]);
 
+    await openedFile.close();
+
     asyncTestDone("testReadInto");
   }
 
@@ -771,6 +773,8 @@ class FileTest {
     read(1, 3, 2, [null, 1, 2]);
     read(2, 3, 1, [null, null, 1]);
     read(0, 0, 0, [null, null, null]);
+
+    openedFile.closeSync();
   }
 
   static testWriteFrom() async {
@@ -797,6 +801,9 @@ class FileTest {
 
     var bytesFromFile = await file.readAsBytes();
     Expect.listEquals(result, bytesFromFile);
+
+    await openedFile.close();
+
     asyncTestDone("testWriteFrom");
   }
 
@@ -821,6 +828,8 @@ class FileTest {
 
     var bytesFromFile = file.readAsBytesSync();
     Expect.listEquals(result, bytesFromFile);
+
+    openedFile.closeSync();
   }
 
   // Tests exception handling after file was closed.
