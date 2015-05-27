@@ -38,4 +38,18 @@ main() {
   var a = extendedJson.decode(extendedJson.encode(new A(499)));
   Expect.isTrue(a is A);
   Expect.equals(499, a.x);
+
+  testInvalidMap();
+}
+
+
+void testInvalidMap() {
+  var map = {"a" : 42, "b": 42, 37: 42};  // Non-string key.
+  var enc = new JsonEncoder((_) => "fixed");
+  var res = enc.convert(map);
+  Expect.equals('"fixed"', res);
+
+  enc = new JsonEncoder.withIndent(" ", (_) => "fixed");
+  res = enc.convert(map);
+  Expect.equals('"fixed"', res);
 }
