@@ -111,6 +111,8 @@ class Environment {
     }
     return true;
   }
+
+  bool contains(Local local) => variable2index.containsKey(local);
 }
 
 /// The abstract base class of objects that emit jumps to a continuation and
@@ -2634,23 +2636,26 @@ class JsIrBuilder extends IrBuilder {
   /// corresponding type argument (field initializers are evaluated before the
   /// receiver object is created).
   ir.Primitive buildTypeVariableAccess(TypeVariableType variable) {
-    ir.Parameter accessTypeArgumentParameter() {
-      for (int i = 0; i < environment.length; i++) {
-        Local local = environment.index2variable[i];
-        if (local is TypeInformationParameter &&
-            local.variable == variable.element) {
-          return environment.index2value[i];
-        }
-      }
-      throw 'unable to find constructor parameter for type variable $variable.';
+    // If the local exists in the environment, use that.
+    // This is put here when we are inside a constructor or field initializer,
+    // (or possibly a closure inside one of these).
+    Local local = new TypeVariableLocal(variable, state.currentElement);
+    if (environment.contains(local)) {
+      return environment.lookup(local);
     }
 
-    if (jsState.inInitializers) {
-      return accessTypeArgumentParameter();
-    } else {
-      ir.Primitive target = buildThis();
-      return addPrimitive(new ir.ReadTypeVariable(variable, target));
-    }
+    // If the type variable is not in a local, read its value from the
+    // receiver object.
+    ir.Primitive target = buildThis();
+    return addPrimitive(new ir.ReadTypeVariable(variable, target));
+  }
+
+  /// Make the given type variable accessible through the local environment
+  /// with the value of [binding].
+  void declareTypeVariable(TypeVariableType variable, DartType binding) {
+    environment.extend(
+        new TypeVariableLocal(variable, state.currentElement),
+        buildTypeExpression(binding));
   }
 
   @override
@@ -2766,13 +2771,4 @@ class CatchClauseInfo {
                    this.exceptionVariable,
                    this.stackTraceVariable,
                    this.buildCatchBlock});
-}
-
-/// Synthetic parameter to a JavaScript factory method that takes the type
-/// argument given for the type variable [variable].
-class TypeInformationParameter implements Local {
-  final TypeVariableElement variable;
-  final ExecutableElement executableContext;
-  TypeInformationParameter(this.variable, this.executableContext);
-  String get name => variable.name;
 }

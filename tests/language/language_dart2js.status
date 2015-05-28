@@ -130,8 +130,6 @@ mixin_mixin_bound2_test: RuntimeError # Issue 12605
 
 [ $compiler == dart2js ]
 malformed_test/none: Fail # Expect failure in lib/_internal/compiler/js_lib/preambles/d8.js
-generic_field_mixin4_test: Crash # Issue 18651
-generic_field_mixin5_test: Crash # Issue 18651
 
 type_variable_conflict2_test/01: RuntimeError # Issue 19725
 
@@ -217,6 +215,8 @@ cha_deopt*: Pass,RuntimeError # Issue 17458
 regress_22443_test: Pass,RuntimeError # Issue 17458
 
 [ $compiler == dart2js && $cps_ir == false ]
+generic_field_mixin4_test: Crash # Issue 18651
+generic_field_mixin5_test: Crash # Issue 18651
 mixin_mixin7_test: RuntimeError # Issue 13109.
 
 [ $compiler == dart2js && $cps_ir ]
@@ -421,8 +421,6 @@ closure_in_constructor_test: Crash # Instance of 'TypeOperator': type check unim
 closure_internals_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 closure_self_reference_test: Crash # (try {return inner(value-1);}finally {counter++ ;}): try/finally
 closure_type_variables_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<int>.
-closures_initializer2_test: Crash # Please triage this failure.
-closures_initializer_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 compile_time_constant_a_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 compile_time_constant_b_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 conditional_method_invocation_test/01: RuntimeError # Please triage this failure.
@@ -671,9 +669,7 @@ generic_closure_test: Crash # Instance of 'TypeOperator': type check unimplement
 generic_constructor_mixin2_test: Crash # Please triage this failure.
 generic_constructor_mixin3_test: Crash # Please triage this failure.
 generic_constructor_mixin_test: Crash # Please triage this failure.
-generic_field_mixin2_test: Crash # Please triage this failure.
-generic_field_mixin3_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<T>.
-generic_field_mixin_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<int>.
+generic_field_mixin3_test : RuntimeError
 generic_instanceof2_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo<int, num>.
 generic_list_checked_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 generic_test: Crash # Instance of 'TypeOperator': type check unimplemented for B<AA>.
@@ -1075,10 +1071,7 @@ type_variable_conflict2_test/04: Crash # Instance of 'TypeOperator': type check 
 type_variable_conflict2_test/05: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_variable_conflict2_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_variable_conflict2_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-type_variable_field_initializer_closure_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
-type_variable_field_initializer_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 type_variable_function_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for Func<S>.
-type_variable_initializer_test: Crash # Instance of 'TypeOperator': type check unimplemented for Map<int, int>.
 type_variable_typedef_test: Crash # Please triage this failure.
 typed_equality_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 typedef_is_test: Crash # Instance of 'TypeOperator': type check unimplemented for Func1.
@@ -1090,4 +1083,8 @@ value_range2_test: Crash # Instance of 'TypeOperator': type check unimplemented 
 value_range3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 value_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 void_type_test: Crash #  Unhandled node
-generic_field_mixin4_test : RuntimeError
+issue10721_test : RuntimeError
+cast2_test/01 : Crash # Instance of 'TypeOperator': type casts not implemented.
+cast2_test/none : Crash # Instance of 'TypeOperator': type casts not implemented.
+malformed_inheritance_test/02 : Crash # unimplemented translation of type expression Unresolved
+malformed_inheritance_test/04 : Crash # unimplemented translation of type expression Unresolved

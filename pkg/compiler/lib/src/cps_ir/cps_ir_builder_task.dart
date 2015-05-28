@@ -2497,10 +2497,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
   /// Builds the IR for a given constructor.
   ///
-  /// 1. Evaluates all own or inherited field initializers.
-  /// 2. Creates the object and assigns its fields.
-  /// 3. Calls constructor body and super constructor bodies.
-  /// 4. Returns the created object.
+  /// 1. Computes the type held in all own or "inherited" type variables.
+  /// 2. Evaluates all own or inherited field initializers.
+  /// 3. Creates the object and assigns its fields and runtime type.
+  /// 4. Calls constructor body and super constructor bodies.
+  /// 5. Returns the created object.
   ir.FunctionDefinition buildConstructor(ConstructorElement constructor) {
     // TODO(asgerf): Optimization: If constructor is redirecting, then just
     //               evaluate arguments and call the target constructor.
@@ -2525,8 +2526,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       if (requiresTypeInformation) {
         firstTypeArgumentParameterIndex = parameters.length;
         classElement.typeVariables.forEach((TypeVariableType variable) {
-          parameters.add(
-              new TypeInformationParameter(variable.element, constructor));
+          parameters.add(new TypeVariableLocal(variable, constructor));
+        });
+      } else {
+        classElement.typeVariables.forEach((TypeVariableType variable) {
+          irBuilder.declareTypeVariable(variable, const DynamicType());
         });
       }
 
@@ -2542,7 +2546,14 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         typeInformation = const <ir.Primitive>[];
       }
 
-      // -- Step 1: evaluate field initializers ---
+      // -- Load values for type variables declared on super classes --
+      // Field initializers for super classes can reference these, so they
+      // must be available before evaluating field initializers.
+      // This could be interleaved with field initialization, but we choose do
+      // get it out of the way here to avoid complications with mixins.
+      loadTypeVariablesForSuperClasses(classElement);
+
+      // -- Evaluate field initializers ---
       // Evaluate field initializers in constructor and super constructors.
       irBuilder.enterInitializers();
       List<ConstructorElement> constructorList = <ConstructorElement>[];
@@ -2553,7 +2564,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       // BoxLocals for captured parameters are also in the environment.
       // The initial value of all fields are now bound in [fieldValues].
 
-      // --- Step 2: create the object ---
+      // --- Create the object ---
       // Get the initial field values in the canonical order.
       List<ir.Primitive> instanceArguments = <ir.Primitive>[];
       classElement.forEachInstanceField((ClassElement c, FieldElement field) {
@@ -2571,7 +2582,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           typeInformation);
       irBuilder.add(new ir.LetPrim(instance));
 
-      // --- Step 3: call constructor bodies ---
+      // --- Call constructor bodies ---
       for (ConstructorElement target in constructorList) {
         ConstructorBodyElement bodyElement = getConstructorBody(target);
         if (bodyElement == null) continue; // Skip if constructor has no body.
@@ -2673,12 +2684,44 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     supers.add(constructor);
   }
 
+  /// Loads the type variables for all super classes of [superClass] into the
+  /// IR builder's environment with their corresponding values.
+  ///
+  /// The type variables for [currentClass] must already be in the IR builder's
+  /// environment.
+  ///
+  /// Type variables are stored as [TypeVariableLocal] in the environment.
+  ///
+  /// This ensures that access to type variables mentioned inside the
+  /// constructors and initializers will happen through the local environment
+  /// instead of using 'this'.
+  void loadTypeVariablesForSuperClasses(ClassElement currentClass) {
+    if (currentClass.isObject) return;
+    loadTypeVariablesForType(currentClass.supertype);
+    if (currentClass is MixinApplicationElement) {
+      loadTypeVariablesForType(currentClass.mixinType);
+    }
+  }
+
+  /// Loads all type variables for [type] and all of its super classes into
+  /// the environment. All type variables mentioned in [type] must already
+  /// be in the environment.
+  void loadTypeVariablesForType(InterfaceType type) {
+    ClassElement clazz = type.element;
+    assert(clazz.typeVariables.length == type.typeArguments.length);
+    for (int i = 0; i < clazz.typeVariables.length; ++i) {
+      irBuilder.declareTypeVariable(clazz.typeVariables[i],
+                                    type.typeArguments[i]);
+    }
+    loadTypeVariablesForSuperClasses(clazz);
+  }
+
   /// In preparation of inlining (part of) [target], the [arguments] are moved
   /// into the environment bindings for the corresponding parameters.
   ///
   /// Defaults for optional arguments are evaluated in order to ensure
   /// all parameters are available in the environment.
-  void loadArguments(FunctionElement target,
+  void loadArguments(ConstructorElement target,
                      Selector selector,
                      List<ir.Primitive> arguments) {
     target = target.implementation;
