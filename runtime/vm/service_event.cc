@@ -102,6 +102,8 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   if (top_frame() != NULL) {
     JSONObject jsFrame(&jsobj, "topFrame");
     top_frame()->PrintToJSONObject(&jsFrame);
+    intptr_t index = 0;  // Avoid ambiguity in call to AddProperty.
+    jsFrame.AddProperty("index", index);
   }
   if (exception() != NULL) {
     jsobj.AddProperty("exception", *(exception()));

@@ -4126,11 +4126,11 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (!err.IsNull()) {
     jsobj.AddProperty("error", err);
   }
-  jsobj.AddProperty("implemented", is_implemented());
   jsobj.AddProperty("abstract", is_abstract());
-  jsobj.AddProperty("patch", is_patch());
-  jsobj.AddProperty("finalized", is_finalized());
   jsobj.AddProperty("const", is_const());
+  jsobj.AddProperty("_finalized", is_finalized());
+  jsobj.AddProperty("_implemented", is_implemented());
+  jsobj.AddProperty("_patch", is_patch());
   const Class& superClass = Class::Handle(SuperClass());
   if (!superClass.IsNull()) {
     jsobj.AddProperty("super", superClass);
@@ -4193,7 +4193,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
     ClassTable* class_table = Isolate::Current()->class_table();
     const ClassHeapStats* stats = class_table->StatsWithUpdatedSize(id());
     if (stats != NULL) {
-      JSONObject allocation_stats(&jsobj, "allocationStats");
+      JSONObject allocation_stats(&jsobj, "_allocationStats");
       stats->PrintToJSONObject(*this, &allocation_stats);
     }
   }
@@ -6891,12 +6891,12 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 
   const char* kind_string = Function::KindToCString(kind());
-  jsobj.AddProperty("kind", kind_string);
+  jsobj.AddProperty("_kind", kind_string);
+  jsobj.AddProperty("static", is_static());
+  jsobj.AddProperty("const", is_const());
   if (ref) {
     return;
   }
-  jsobj.AddProperty("static", is_static());
-  jsobj.AddProperty("const", is_const());
   Code& code = Code::Handle(CurrentCode());
   if (!code.IsNull()) {
     jsobj.AddProperty("code", code);
@@ -7230,11 +7230,6 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& user_name = String::Handle(PrettyName());
   const String& vm_name = String::Handle(name());
   AddNameProperties(&jsobj, user_name, vm_name);
-  if (is_static()) {
-    const Instance& valueObj = Instance::Handle(value());
-    jsobj.AddProperty("value", valueObj);
-  }
-
   if (cls.IsTopLevel()) {
     const Library& library = Library::Handle(cls.library());
     jsobj.AddProperty("owner", library);
@@ -7250,6 +7245,11 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  if (is_static()) {
+    const Instance& valueObj = Instance::Handle(value());
+    jsobj.AddProperty("staticValue", valueObj);
+  }
+
   jsobj.AddProperty("_guardNullable", is_nullable());
   if (guarded_cid() == kIllegalCid) {
     jsobj.AddProperty("_guardClass", "unknown");
@@ -14128,7 +14128,7 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
   }
 
   if (NumNativeFields() > 0) {
-    JSONArray jsarr(jsobj, "nativeFields");
+    JSONArray jsarr(jsobj, "_nativeFields");
     for (intptr_t i = 0; i < NumNativeFields(); i++) {
       intptr_t value = GetNativeField(i);
       JSONObject jsfield(&jsarr);

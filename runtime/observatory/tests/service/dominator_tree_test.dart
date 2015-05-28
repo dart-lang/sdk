@@ -6,7 +6,6 @@
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
-import 'dart:async';
 
 // small example from [Lenguaer & Tarjan 1979]
 class R { var x; var y; var z; }

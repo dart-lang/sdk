@@ -1230,7 +1230,7 @@ class DebuggerStackElement extends ObservatoryElement {
     DebuggerFrameElement frameElement = new Element.tag('debugger-frame');
     frameElement.frame = frameInfo;
 
-    if (frameInfo['depth'] == currentFrame) {
+    if (frameInfo['index'] == currentFrame) {
       frameElement.setCurrent(true);
     } else {
       frameElement.setCurrent(false);
@@ -1347,7 +1347,7 @@ class DebuggerStackElement extends ObservatoryElement {
     List frameElements = $['frameList'].children;
     for (var frameElement in frameElements) {
       var dbgFrameElement = frameElement.children[0];
-      if (dbgFrameElement.frame['depth'] == currentFrame) {
+      if (dbgFrameElement.frame['index'] == currentFrame) {
         dbgFrameElement.setCurrent(true);
       } else {
         dbgFrameElement.setCurrent(false);
@@ -1429,7 +1429,7 @@ class DebuggerFrameElement extends ObservatoryElement {
 
   void updateFrame(ObservableMap newFrame) {
     assert(matchFrame(newFrame));
-    frame['depth'] = newFrame['depth'];
+    frame['index'] = newFrame['index'];
     frame['tokenPos'] = newFrame['tokenPos'];
     frame['vars'] = newFrame['vars'];
   }
@@ -1503,7 +1503,7 @@ class DebuggerMessageElement extends ObservatoryElement {
   void updateMessage(ServiceMap newMessage) {
     bool messageChanged =
         (message['messageObjectId'] != newMessage['messageObjectId']);
-    message['depth'] = newMessage['depth'];
+    message['index'] = newMessage['index'];
     message['handlerFunction'] = newMessage['handlerFunction'];
     message['messageObjectId'] = newMessage['messageObjectId'];
     if (messageChanged) {

@@ -4331,7 +4331,8 @@ TEST_CASE(PrintJSONPrimitives) {
         "\"id\":\"\",\"name\":\"toString\","
         "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"bool\"},"
-        "\"kind\":\"RegularFunction\"}",
+        "\"_kind\":\"RegularFunction\","
+        "\"static\":false,\"const\":false}",
         buffer);
   }
   // Library reference

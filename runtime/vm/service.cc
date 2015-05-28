@@ -733,9 +733,7 @@ static bool GetStack(Isolate* isolate, JSONStream* js) {
       ActivationFrame* frame = stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
       frame->PrintToJSONObject(&jsobj, full);
-      // TODO(turnidge): Implement depth differently -- differentiate
-      // inlined frames.
-      jsobj.AddProperty("depth", i);
+      jsobj.AddProperty("index", i);
     }
   }
 
@@ -1556,7 +1554,7 @@ static bool Evaluate(Isolate* isolate, JSONStream* js) {
 
 static const MethodParameter* evaluate_in_frame_params[] = {
   ISOLATE_PARAMETER,
-  new UIntParameter("frame", true),
+  new UIntParameter("frameIndex", true),
   new MethodParameter("expression", true),
   NULL,
 };
@@ -1564,9 +1562,9 @@ static const MethodParameter* evaluate_in_frame_params[] = {
 
 static bool EvaluateInFrame(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
-  intptr_t framePos = UIntParameter::Parse(js->LookupParam("frame"));
+  intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (framePos > stack->Length()) {
-    PrintInvalidParamError(js, "frame");
+    PrintInvalidParamError(js, "frameIndex");
     return true;
   }
   ActivationFrame* frame = stack->FrameAt(framePos);

@@ -1253,10 +1253,10 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('evaluate', params);
   }
 
-  Future<ServiceObject> evalFrame(int framePos,
+  Future<ServiceObject> evalFrame(int frameIndex,
                                   String expression) {
     Map params = {
-      'frame': framePos,
+      'frameIndex': frameIndex,
       'expression': expression,
     };
     return invokeRpc('evaluateInFrame', params);
@@ -1412,17 +1412,15 @@ class ServiceMap extends ServiceObject implements ObservableMap {
 class DartError extends ServiceObject {
   DartError._empty(ServiceObject owner) : super._empty(owner);
 
-  @observable String kind;
   @observable String message;
   @observable Instance exception;
   @observable Instance stacktrace;
 
   void _update(ObservableMap map, bool mapIsRef) {
-    kind = map['kind'];
     message = map['message'];
     exception = new ServiceObject._fromMap(owner, map['exception']);
     stacktrace = new ServiceObject._fromMap(owner, map['stacktrace']);
-    name = 'DartError $kind';
+    name = 'DartError($message)';
     vmName = name;
   }
 
@@ -1738,9 +1736,9 @@ class Class extends ServiceObject with Coverage {
 
     isAbstract = map['abstract'];
     isConst = map['const'];
-    isFinalized = map['finalized'];
-    isPatch = map['patch'];
-    isImplemented = map['implemented'];
+    isFinalized = map['_finalized'];
+    isPatch = map['_patch'];
+    isImplemented = map['_implemented'];
 
     tokenPos = map['tokenPos'];
     endTokenPos = map['endTokenPos'];
@@ -1768,7 +1766,7 @@ class Class extends ServiceObject with Coverage {
     }
     error = map['error'];
 
-    var allocationStats = map['allocationStats'];
+    var allocationStats = map['_allocationStats'];
     if (allocationStats != null) {
       newSpace.update(allocationStats['new']);
       oldSpace.update(allocationStats['old']);
@@ -1835,7 +1833,7 @@ class Instance extends ServiceObject {
       return;
     }
 
-    nativeFields = map['nativeFields'];
+    nativeFields = map['_nativeFields'];
     fields = map['fields'];
     elements = map['elements'];
     typeClass = map['type_class'];
@@ -1984,7 +1982,7 @@ class ServiceFunction extends ServiceObject with Coverage {
     _upgradeCollection(map, isolate);
 
     dartOwner = map['owner'];
-    kind = FunctionKind.fromJSON(map['kind']);
+    kind = FunctionKind.fromJSON(map['_kind']);
     isDart = !kind.isSynthetic();
 
     if (dartOwner is ServiceFunction) {
@@ -2030,7 +2028,7 @@ class Field extends ServiceObject {
   @observable bool isStatic;
   @observable bool isFinal;
   @observable bool isConst;
-  @observable Instance value;
+  @observable Instance staticValue;
   @observable String name;
   @observable String vmName;
 
@@ -2053,7 +2051,7 @@ class Field extends ServiceObject {
     isStatic = map['static'];
     isFinal = map['final'];
     isConst = map['const'];
-    value = map['value'];
+    staticValue = map['staticValue'];
 
     if (dartOwner is Class) {
       Class ownerClass = dartOwner;

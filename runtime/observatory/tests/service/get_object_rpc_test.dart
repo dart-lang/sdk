@@ -212,9 +212,9 @@ var tests = [
     expect(result['_vmName'], startsWith('_DummyClass@'));
     expect(result['abstract'], equals(false));
     expect(result['const'], equals(false));
-    expect(result['finalized'], equals(true));
-    expect(result['implemented'], equals(false));
-    expect(result['patch'], equals(false));
+    expect(result['_finalized'], equals(true));
+    expect(result['_implemented'], equals(false));
+    expect(result['_patch'], equals(false));
     expect(result['library']['type'], equals('@Library'));
     expect(result['script']['type'], equals('@Script'));
     expect(result['super']['type'], equals('@Class'));
@@ -296,7 +296,7 @@ var tests = [
     expect(result['type'], equals('Function'));
     expect(result['id'], equals(id));
     expect(result['name'], equals('dummyFunction'));
-    expect(result['kind'], equals('RegularFunction'));
+    expect(result['_kind'], equals('RegularFunction'));
     expect(result['static'], equals(false));
     expect(result['const'], equals(false));
     expect(result['script']['type'], equals('@Script'));
@@ -342,12 +342,12 @@ var tests = [
     expect(result['type'], equals('Field'));
     expect(result['id'], equals(id));
     expect(result['name'], equals('dummyVar'));
-    expect(result['value']['valueAsString'], equals('11'));
     expect(result['const'], equals(false));
     expect(result['static'], equals(true));
     expect(result['final'], equals(false));
     expect(result['script']['type'], equals('@Script'));
     expect(result['tokenPos'], isPositive);
+    expect(result['staticValue']['valueAsString'], equals('11'));
     expect(result['_guardNullable'], isNotNull);
     expect(result['_guardClass'], isNotNull);
     expect(result['_guardLength'], isNotNull);

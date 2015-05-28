@@ -59,7 +59,6 @@ apparently outside the scope of the JSON-RPC specification.
 	- [FlagType](#flagtype)
 	- [Frame](#frame)
 	- [Function](#function)
-	- [FunctionKind](#functionkind)
 	- [Instance](#instance)
 	- [Int](#int)
 	- [Isolate](#isolate)
@@ -72,7 +71,6 @@ apparently outside the scope of the JSON-RPC specification.
 	- [Sentinel](#sentinel)
 	- [SentinelType](#sentineltype)
 	- [Script](#script)
-	- [ScriptKind](#scriptkind)
 	- [Stack](#stack)
 	- [StepOption](#stepoption)
 	- [String](#string)
@@ -420,13 +418,14 @@ reference will be returned.
 
 ```
 @Instance|@Error evaluateInFrame(string isolateId,
-                                 int frame,
+                                 int frameIndex,
                                  string expression)
 ```
 
-The _evaluateInFrame_ RPC is used to evaluate an expression in the context of
-a particular stack frame.  _frame_ is the index of the desired [Frame](#frame),
-with an index of _0_ indicating the top (most recent) frame.
+The _evaluateInFrame_ RPC is used to evaluate an expression in the
+context of a particular stack frame.  _frameIndex_ is the index of the
+desired [Frame](#frame), with an index of _0_ indicating the top (most
+recent) frame.
 
 If an error occurs while evaluating the expression, an [@Error](#error)
 reference will be returned.
@@ -1031,9 +1030,6 @@ class @Field extends @Object {
 
   // Is this field static?
   bool static;
-
-  // The value of this field, if the field is static.
-  @Instance value [optional];
 }
 ```
 
@@ -1061,7 +1057,7 @@ class Field extends Object {
   bool static;
 
   // The value of this field, if the field is static.
-  @Instance value [optional];
+  @Instance staticValue [optional];
 
   // The script containing this feild.
   @Script script [optional];
@@ -1148,8 +1144,12 @@ class @Function extends @Object {
   // Function.
   @Library|@Class|@Function owner;
 
-  // What kind of function is this?
-  FunctionKind kind;
+  // Is this function static?
+  bool static
+
+  // Is this function const?
+  bool const;
+
 }
 ```
 
@@ -1166,15 +1166,6 @@ class Function extends Object {
   // Function.
   @Library|@Class|@Function owner;
 
-  // What kind of function is this?
-  FunctionKind kind;
-
-  // Is this function static?
-  bool static
-
-  // Is this function const?
-  bool const;
-
   // The script containing this function.
   @Script script [optional];
 
@@ -1190,32 +1181,6 @@ class Function extends Object {
 ```
 
 A _Function_ represents a Dart language function.
-
-### FunctionKind
-
-```
-enum FunctionKind {
-  RegularFunction,
-  ClosureFunction,
-  GetterFunction,
-  SetterFunction,
-  Constructor,
-  ImplicitGetter,
-  ImplicitSetter,
-  ImplicitStaticFinalGetter,
-  IrregexpFunction,
-  StaticInitializer,
-  MethodExtractor,
-  NoSuchMethodDispatcher,
-  InvokeFieldDispatcher,
-  Collected,
-  Native,
-  Stub,
-  Tag
-}
-```
-
-TODO: Do we need to expose all of this?
 
 ### Instance
 
@@ -1405,7 +1370,6 @@ class Message {
   string name;
   string messageObjectId;
   int size;
-  int priority;
   @Function handlerFunction [optional];
   @Script handleScript [optional];
   int handlerTokenPos [optional];

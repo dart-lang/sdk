@@ -64,12 +64,15 @@ var tests = [
     }
   });
 
-  valueOfField(String name) {
-    return rootLib.variables.singleWhere((v) => v.name == name).value;
+  valueOfField(String name) async {
+    var field = rootLib.variables.singleWhere((v) => v.name == name);
+    await field.load();
+    return field.staticValue;
+
   }
-  var r1Ref = valueOfField('r1');
-  var r2Ref = valueOfField('r2');
-  var r3Ref = valueOfField('r3');
+  var r1Ref = await valueOfField('r1');
+  var r2Ref = await valueOfField('r2');
+  var r3Ref = await valueOfField('r3');
 
   var bpt1 = await isolate.addBreakOnActivation(r1Ref);
   print("Added breakpoint $bpt1");
@@ -104,12 +107,14 @@ var tests = [
     }
   });
 
-  valueOfField(String name) {
-    return rootLib.variables.singleWhere((v) => v.name == name).value;
+  valueOfField(String name) async {
+    var field = rootLib.variables.singleWhere((v) => v.name == name);
+    await field.load();
+    return field.staticValue;
   }
-  var r1Ref = valueOfField('r1_named');
-  var r2Ref = valueOfField('r2_named');
-  var r3Ref = valueOfField('r3_named');
+  var r1Ref = await valueOfField('r1_named');
+  var r2Ref = await valueOfField('r2_named');
+  var r3Ref = await valueOfField('r3_named');
 
   var bpt1 = await isolate.addBreakOnActivation(r1Ref);
   print("Added breakpoint $bpt1");
@@ -144,12 +149,14 @@ var tests = [
     }
   });
 
-  valueOfField(String name) {
-    return rootLib.variables.singleWhere((v) => v.name == name).value;
+  valueOfField(String name) async {
+    var field = rootLib.variables.singleWhere((v) => v.name == name);
+    await field.load();
+    return field.staticValue;
   }
-  var r1Ref = valueOfField('r1');
-  var r2Ref = valueOfField('r2');
-  var r3Ref = valueOfField('r3');
+  var r1Ref = await valueOfField('r1');
+  var r2Ref = await valueOfField('r2');
+  var r3Ref = await valueOfField('r3');
 
   var bpt1 = await isolate.addBreakOnActivation(r1Ref);
   print("Added breakpoint $bpt1");

@@ -230,10 +230,12 @@ class FieldDeclarationAnnotation extends DeclarationAnnotation {
       details.append(r);
 
       if (field.isStatic) {
-        r = row();
-        r.append(cell("Value"));
-        r.append(cell(serviceRef(field.value)));
-        details.append(r);
+        if (field.loaded) {
+          r = row();
+          r.append(cell("Value"));
+          r.append(cell(serviceRef(field.staticValue)));
+          details.append(r);
+        }
       } else {
         r = row();
         r.append(cell("Nullable"));
