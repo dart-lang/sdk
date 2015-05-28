@@ -1293,7 +1293,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    RangeCollectionMode range_collection_mode) {
+    RangeCollectionMode range_collection_mode,
+    bool optimized) {
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
@@ -1310,7 +1311,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 #endif  // DEBUG
 
   Label stepping, done_stepping;
-  if (FLAG_support_debugger) {
+  if (FLAG_support_debugger && !optimized) {
     __ Comment("Check single stepping");
     uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
         Isolate::single_step_offset();
@@ -1468,7 +1469,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ jmp(EBX);
   }
 
-  if (FLAG_support_debugger) {
+  if (FLAG_support_debugger && !optimized) {
     __ Bind(&stepping);
     __ EnterStubFrame();
     __ pushl(ECX);
@@ -1572,7 +1573,8 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
       kInlineCacheMissHandlerOneArgRuntimeEntry,
       Token::kILLEGAL,
-      kIgnoreRanges);
+      kIgnoreRanges,
+      true /* optimized */);
 }
 
 
@@ -1582,7 +1584,8 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
      Token::kILLEGAL,
-     kIgnoreRanges);
+     kIgnoreRanges,
+     true /* optimized */);
 }
 
 
