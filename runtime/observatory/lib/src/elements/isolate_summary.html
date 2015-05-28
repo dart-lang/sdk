@@ -65,21 +65,21 @@
 <polymer-element name="isolate-location" extends="observatory-element">
   <template>
     <template if="{{ isolate.pauseEvent != null }}">
-      <template if="{{ isolate.pauseEvent.eventType == 'PauseStart' }}">
+      <template if="{{ isolate.pauseEvent.kind == 'PauseStart' }}">
         at isolate start
       </template>
 
-      <template if="{{ isolate.pauseEvent.eventType == 'PauseExit' }}">
+      <template if="{{ isolate.pauseEvent.kind == 'PauseExit' }}">
         at isolate exit
       </template>
 
-      <template if="{{ isolate.pauseEvent.eventType == 'PauseInterrupted' ||
-                       isolate.pauseEvent.eventType == 'PauseBreakpoint' ||
-                       isolate.pauseEvent.eventType == 'PauseException' }}">
+      <template if="{{ isolate.pauseEvent.kind == 'PauseInterrupted' ||
+                       isolate.pauseEvent.kind == 'PauseBreakpoint' ||
+                       isolate.pauseEvent.kind == 'PauseException' }}">
         <template if="{{ isolate.pauseEvent.breakpoint != null }}">
           by breakpoint
         </template>
-        <template if="{{ isolate.pauseEvent.eventType == 'PauseException' }}">
+        <template if="{{ isolate.pauseEvent.kind == 'PauseException' }}">
           by exception
         </template>
         at

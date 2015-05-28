@@ -57,7 +57,7 @@ var tests = [
 
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print("Hit breakpoint ${event.breakpoint}");
       breaksHit++;
       isolate.resume();
@@ -100,7 +100,7 @@ var tests = [
 
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print("Hit breakpoint ${event.breakpoint}");
       breaksHit++;
       isolate.resume();
@@ -142,7 +142,7 @@ var tests = [
 
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print("Hit breakpoint ${event.breakpoint}");
       breaksHit++;
       isolate.resume();

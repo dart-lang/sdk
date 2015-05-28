@@ -288,11 +288,11 @@ class NextCommand extends DebuggerCommand {
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
       var event = debugger.isolate.pauseEvent;
-      if (event.eventType == ServiceEvent.kPauseStart) {
+      if (event.kind == ServiceEvent.kPauseStart) {
         debugger.console.print("Type 'continue' to start the isolate");
         return new Future.value(null);
       }
-      if (event.eventType == ServiceEvent.kPauseExit) {
+      if (event.kind == ServiceEvent.kPauseExit) {
         debugger.console.print("Type 'continue' to exit the isolate");
         return new Future.value(null);
       }
@@ -320,11 +320,11 @@ class StepCommand extends DebuggerCommand {
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
       var event = debugger.isolate.pauseEvent;
-      if (event.eventType == ServiceEvent.kPauseStart) {
+      if (event.kind == ServiceEvent.kPauseStart) {
         debugger.console.print("Type 'continue' to start the isolate");
         return new Future.value(null);
       }
-      if (event.eventType == ServiceEvent.kPauseExit) {
+      if (event.kind == ServiceEvent.kPauseExit) {
         debugger.console.print("Type 'continue' to exit the isolate");
         return new Future.value(null);
       }
@@ -932,7 +932,7 @@ class ObservatoryDebugger extends Debugger {
     // debugger, this could introduce a race.
     return (isolate != null &&
             isolate.pauseEvent != null &&
-            isolate.pauseEvent.eventType != ServiceEvent.kResume);
+            isolate.pauseEvent.kind != ServiceEvent.kResume);
   }
 
   void warnOutOfDate() {
@@ -974,10 +974,10 @@ class ObservatoryDebugger extends Debugger {
   }
 
   void _reportPause(ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseStart) {
+    if (event.kind == ServiceEvent.kPauseStart) {
       console.print(
           "Paused at isolate start (type 'continue' to start the isolate')");
-    } else if (event.eventType == ServiceEvent.kPauseExit) {
+    } else if (event.kind == ServiceEvent.kPauseExit) {
       console.print(
           "Paused at isolate exit (type 'continue' to exit the isolate')");
     }
@@ -1005,7 +1005,7 @@ class ObservatoryDebugger extends Debugger {
   Future _reportBreakpointEvent(ServiceEvent event) {
     var bpt = event.breakpoint;
     var verb = null;
-    switch (event.eventType) {
+    switch (event.kind) {
       case ServiceEvent.kBreakpointAdded:
         verb = 'added';
         break;
@@ -1035,7 +1035,7 @@ class ObservatoryDebugger extends Debugger {
   }
 
   void _onEvent(ServiceEvent event) {
-    switch(event.eventType) {
+    switch(event.kind) {
       case ServiceEvent.kIsolateStart:
         {
           var iso = event.owner;

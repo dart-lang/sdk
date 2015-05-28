@@ -25,7 +25,7 @@ var tests = [
 (Isolate isolate) {
   Completer completer = new Completer();
   isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == '_Echo') {
+    if (event.kind == '_Echo') {
       expect(event.data.lengthInBytes, equals(3));
       expect(event.data.getUint8(0), equals(0));
       expect(event.data.getUint8(1), equals(128));

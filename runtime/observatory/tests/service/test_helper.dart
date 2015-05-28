@@ -153,7 +153,7 @@ Future processServiceEvents(VM vm, ServiceEventHandler handler) {
 
 Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
   if ((isolate.pauseEvent != null) &&
-      (isolate.pauseEvent.eventType == ServiceEvent.kPauseBreakpoint)) {
+      (isolate.pauseEvent.kind == ServiceEvent.kPauseBreakpoint)) {
     // Already waiting at a breakpoint.
     print('Breakpoint reached');
     return new Future.value(isolate);
@@ -163,7 +163,7 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print('Breakpoint reached');
       subscription.cancel();
       completer.complete(isolate);

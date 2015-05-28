@@ -763,7 +763,7 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
     {
       JSONObject event(&jsobj, "event");
       event.AddProperty("type", "Event");
-      event.AddProperty("eventType", "_Echo");
+      event.AddProperty("kind", "_Echo");
       event.AddProperty("isolate", isolate);
       if (text != NULL) {
         event.AddProperty("text", text);
@@ -851,10 +851,6 @@ static RawObject* LookupObjectId(Isolate* isolate,
     return Bool::False().raw();
   } else if (strcmp(arg, "null") == 0) {
     return Object::null();
-  } else if (strcmp(arg, "not-initialized") == 0) {
-    return Object::sentinel().raw();
-  } else if (strcmp(arg, "being-initialized") == 0) {
-    return Object::transition_sentinel().raw();
   }
 
   ObjectIdRing* ring = isolate->object_id_ring();
@@ -1883,7 +1879,6 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
   const char* bpt_id = js->LookupParam("breakpointId");
   Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id);
   if (bpt == NULL) {
-    fprintf(stderr, "ERROR1");
     PrintInvalidParamError(js, "breakpointId");
     return true;
   }
@@ -2288,7 +2283,7 @@ void Service::SendGraphEvent(Isolate* isolate) {
       {
         JSONObject event(&jsobj, "event");
         event.AddProperty("type", "Event");
-        event.AddProperty("eventType", "_Graph");
+        event.AddProperty("kind", "_Graph");
         event.AddProperty("isolate", isolate);
 
         event.AddProperty("chunkIndex", i);

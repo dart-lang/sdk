@@ -70,7 +70,7 @@ testAsync(Isolate isolate) async {
       });
 
   await for (ServiceEvent event in isolate.vm.events.stream) {
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       var bp = event.breakpoint;
       print('Hit $bp');
       hits.add(bp);

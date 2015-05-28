@@ -52,7 +52,7 @@ apparently outside the scope of the JSON-RPC specification.
 	- [Double](#double)
 	- [Error](#error)
 	- [Event](#event)
-	- [EventType](#eventtype)
+	- [EventKind](#eventkind)
 	- [Field](#field)
 	- [Flag](#flag)
 	- [FlagList](#flaglist)
@@ -68,7 +68,7 @@ apparently outside the scope of the JSON-RPC specification.
 	- [Null](#null)
 	- [Object](#object)
 	- [Sentinel](#sentinel)
-	- [SentinelType](#sentineltype)
+	- [SentinelKind](#sentinelkind)
 	- [Script](#script)
 	- [Stack](#stack)
 	- [StepOption](#stepoption)
@@ -192,7 +192,7 @@ _streamId_ and _event_ properties:
 {
   "event": {
     "type": "Event",
-    "eventType": "IsolateExit",
+    "kind": "IsolateExit",
     "isolate": {
       "type": "@Isolate",
       "id": "isolates/33",
@@ -922,14 +922,14 @@ An error may occur when:
 ```
 class Event extends Response {
   // What kind of event is this?
-  EventType eventType;
+  EventKind kind;
 
   // The isolate with which this event is associated.
   @Isolate isolate;
 
   // The breakpoint associated with this event, if applicable.
   //
-  // This is provided for the events:
+  // This is provided for the event kinds:
   //   PauseBreakpoint
   //   BreakpointAdded
   //   BreakpointRemoved
@@ -938,7 +938,7 @@ class Event extends Response {
 
   // The top stack frame associated with this event, if applicable.
   //
-  // This is provided for the events:
+  // This is provided for the event kinds:
   //   PauseBreakpoint
   //   PauseInterrupted
   //   PauseException
@@ -960,10 +960,10 @@ only when the client has subscribed to an event stream using the
 
 For more information, see [events](#events).
 
-### EventType
+### EventKind
 
 ```
-enum EventType {
+enum EventKind {
   // Notification that a new isolate has started.
   IsolateStart,
 
@@ -1006,6 +1006,9 @@ enum EventType {
   GC
 }
 ```
+
+Adding new values to _EventKind_ is considered a backwards compatible
+change.  Clients should ignore unrecognized events.
 
 ### Field
 
@@ -1416,7 +1419,7 @@ An _Object_ is a  persistent object that is owned by some isolate.
 ```
 class Sentinel extends Response {
   // What kind of sentinel is this?
-  SentinelType sentinelType;
+  SentinelKind kind;
 
   // A reasonable string representation of this sentinel.
   string valueAsString;
@@ -1428,10 +1431,10 @@ A _Sentinel_ is used to indicate that the normal response is not available.
 We use a _Sentinel_ instead of an [error](#errors) for these cases because
 they do not represent a problematic condition.  They are normal.
 
-### SentinelType
+### SentinelKind
 
 ```
-enum SentinelType {
+enum SentinelKind {
   // Indicates that the object referred to has been collected by the GC.
   Collected,
 
@@ -1445,11 +1448,17 @@ enum SentinelType {
   BeingInitialized,
 
   // Indicates that a variable has been eliminated by the optimizing compiler.
-  OptimizedOut
+  OptimizedOut,
+
+  // Reserved for future use.
+  Free,
 }
 ```
 
-A _SentinelType_ is used to distinguish different kinds of _Sentinel_ objects.
+A _SentinelKind_ is used to distinguish different kinds of _Sentinel_ objects.
+
+Adding new values to _SentinelKind_ is considered a backwards
+compatible change.  Clients must handle this gracefully.
 
 ### Script
 

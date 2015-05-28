@@ -39,7 +39,7 @@ var tests = [
   await script.load();
   await hasStoppedAtBreakpoint(isolate);
   // Sanity check.
-  expect(isolate.pauseEvent.eventType, equals(ServiceEvent.kPauseBreakpoint));
+  expect(isolate.pauseEvent.kind, equals(ServiceEvent.kPauseBreakpoint));
 },
 
 // Get stack

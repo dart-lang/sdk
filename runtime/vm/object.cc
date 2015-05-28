@@ -14146,12 +14146,12 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   // Handle certain special instance values.
   if (raw() == Object::sentinel().raw()) {
     jsobj.AddProperty("type", "Sentinel");
-    jsobj.AddFixedServiceId("objects/not-initialized");
+    jsobj.AddProperty("kind", "NotInitialized");
     jsobj.AddProperty("valueAsString", "<not initialized>");
     return;
   } else if (raw() == Object::transition_sentinel().raw()) {
     jsobj.AddProperty("type", "Sentinel");
-    jsobj.AddFixedServiceId("objects/being-initialized");
+    jsobj.AddProperty("kind", "BeingInitialized");
     jsobj.AddProperty("valueAsString", "<being initialized>");
     return;
   }
@@ -18267,7 +18267,7 @@ void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
     // special string in their program.  Fixing this involves updating
     // the debugging api a bit.
     jsobj.AddProperty("type", "Sentinel");
-    jsobj.AddFixedServiceId("objects/optimized-out");
+    jsobj.AddProperty("kind", "OptimizedOut");
     jsobj.AddProperty("valueAsString", "<optimized out>");
     return;
   }

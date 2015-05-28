@@ -455,7 +455,7 @@ abstract class VM extends ServiceObjectOwner {
       // getFromMap creates the Isolate if it hasn't been seen already.
       var isolate = getFromMap(map['isolate']);
       var event = new ServiceObject._fromMap(isolate, map);
-      if (event.eventType == ServiceEvent.kIsolateExit) {
+      if (event.kind == ServiceEvent.kIsolateExit) {
         _removeIsolate(isolate.id);
       }
       isolate._onEvent(event);
@@ -813,7 +813,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   void _updateRunState() {
     topFrame = (pauseEvent != null ? pauseEvent.topFrame : null);
     paused = (pauseEvent != null &&
-              pauseEvent.eventType != ServiceEvent.kResume);
+              pauseEvent.kind != ServiceEvent.kResume);
     running = (!paused && topFrame != null);
     idle = (!paused && topFrame == null);
     notifyPropertyChange(#topFrame, 0, 1);
@@ -1132,7 +1132,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   void _onEvent(ServiceEvent event) {
-    switch(event.eventType) {
+    switch(event.kind) {
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kIsolateExit:
       case ServiceEvent.kInspect:
@@ -1429,7 +1429,7 @@ class DartError extends ServiceObject {
 
 /// A [ServiceEvent] is an asynchronous event notification from the vm.
 class ServiceEvent extends ServiceObject {
-  /// The possible 'eventType' values.
+  /// The possible 'kind' values.
   static const kIsolateStart       = 'IsolateStart';
   static const kIsolateExit        = 'IsolateExit';
   static const kIsolateUpdate      = 'IsolateUpdate';
@@ -1450,10 +1450,10 @@ class ServiceEvent extends ServiceObject {
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   ServiceEvent.connectionClosed(this.reason) : super._empty(null) {
-    eventType = kConnectionClosed;
+    kind = kConnectionClosed;
   }
 
-  @observable String eventType;
+  @observable String kind;
   @observable Breakpoint breakpoint;
   @observable ServiceMap topFrame;
   @observable ServiceMap exception;
@@ -1464,20 +1464,20 @@ class ServiceEvent extends ServiceObject {
   int chunkIndex, chunkCount, nodeCount;
 
   @observable bool get isPauseEvent {
-    return (eventType == kPauseStart ||
-            eventType == kPauseExit ||
-            eventType == kPauseBreakpoint ||
-            eventType == kPauseInterrupted ||
-            eventType == kPauseException);
+    return (kind == kPauseStart ||
+            kind == kPauseExit ||
+            kind == kPauseBreakpoint ||
+            kind == kPauseInterrupted ||
+            kind == kPauseException);
   }
 
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
     _upgradeCollection(map, owner);
     assert(map['isolate'] == null || owner == map['isolate']);
-    eventType = map['eventType'];
+    kind = map['kind'];
     notifyPropertyChange(#isPauseEvent, 0, 1);
-    name = 'ServiceEvent $eventType';
+    name = 'ServiceEvent $kind';
     vmName = name;
     if (map['breakpoint'] != null) {
       breakpoint = map['breakpoint'];
@@ -1510,9 +1510,9 @@ class ServiceEvent extends ServiceObject {
 
   String toString() {
     if (data == null) {
-      return "ServiceEvent(owner='${owner.id}', type='${eventType}')";
+      return "ServiceEvent(owner='${owner.id}', kind='${kind}')";
     } else {
-      return "ServiceEvent(owner='${owner.id}', type='${eventType}', "
+      return "ServiceEvent(owner='${owner.id}', kind='${kind}', "
           "data.lengthInBytes=${data.lengthInBytes})";
     }
   }

@@ -108,7 +108,7 @@ class HeapProfileElement extends ObservatoryElement {
   bool refreshAutoQueued = false;
 
   void _onEvent(ServiceEvent event) {
-    if (autoRefresh && event.eventType == 'GC') {
+    if (autoRefresh && event.kind == 'GC') {
       if (!refreshAutoPending) {
         refreshAuto();
       } else {

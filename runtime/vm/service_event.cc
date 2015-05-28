@@ -94,7 +94,7 @@ const char* ServiceEvent::EventTypeToCString(EventType type) {
 void ServiceEvent::PrintJSON(JSONStream* js) const {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Event");
-  jsobj.AddProperty("eventType", EventTypeToCString(type()));
+  jsobj.AddProperty("kind", EventTypeToCString(type()));
   jsobj.AddProperty("isolate", isolate());
   if (breakpoint() != NULL) {
     jsobj.AddProperty("breakpoint", breakpoint());

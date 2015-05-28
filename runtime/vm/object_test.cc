@@ -4528,8 +4528,8 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Object::sentinel().PrintJSON(&js, true);
     EXPECT_STREQ(
-        "{\"type\":\"Sentinel\",\"fixedId\":true,"
-        "\"id\":\"objects\\/not-initialized\","
+        "{\"type\":\"Sentinel\","
+        "\"kind\":\"NotInitialized\","
         "\"valueAsString\":\"<not initialized>\"}",
         js.ToCString());
   }
@@ -4538,8 +4538,8 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Object::transition_sentinel().PrintJSON(&js, true);
     EXPECT_STREQ(
-        "{\"type\":\"Sentinel\",\"fixedId\":true,"
-        "\"id\":\"objects\\/being-initialized\","
+        "{\"type\":\"Sentinel\","
+        "\"kind\":\"BeingInitialized\","
         "\"valueAsString\":\"<being initialized>\"}",
         js.ToCString());
   }
