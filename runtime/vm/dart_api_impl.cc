@@ -43,6 +43,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
 #if defined(DART_NO_SNAPSHOT)
@@ -1429,6 +1430,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
     intptr_t* vm_isolate_snapshot_size,
     uint8_t** isolate_snapshot_buffer,
     intptr_t* isolate_snapshot_size) {
+  ASSERT(FLAG_load_deferred_eagerly);
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_creating_snapshot);

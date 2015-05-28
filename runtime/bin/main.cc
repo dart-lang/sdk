@@ -872,7 +872,8 @@ static const char* ServiceRequestHandler(
 
 void main(int argc, char** argv) {
   char* script_name;
-  CommandLineOptions vm_options(argc);
+  const int EXTRA_VM_ARGUMENTS = 2;
+  CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
   CommandLineOptions dart_options(argc);
   bool print_flags_seen = false;
   bool verbose_debug_seen = false;
@@ -919,6 +920,10 @@ void main(int argc, char** argv) {
     fprintf(stderr, "Error determining current directory: %s\n", err.message());
     fflush(stderr);
     exit(kErrorExitCode);
+  }
+
+  if (generate_script_snapshot) {
+    vm_options.AddArgument("--load_deferred_eagerly");
   }
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());

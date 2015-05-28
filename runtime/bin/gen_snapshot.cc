@@ -516,7 +516,8 @@ static void SetupForGenericSnapshotCreation() {
 
 
 int main(int argc, char** argv) {
-  CommandLineOptions vm_options(argc);
+  const int EXTRA_VM_ARGUMENTS = 1;
+  CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
 
   // Initialize the URL mapping array.
   CommandLineOptions url_mapping_array(argc);
@@ -533,6 +534,8 @@ int main(int argc, char** argv) {
 
   Thread::InitOnce();
   DartUtils::SetOriginalWorkingDirectory();
+
+  vm_options.AddArgument("--load_deferred_eagerly");
 
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
