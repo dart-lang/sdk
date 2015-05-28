@@ -200,9 +200,6 @@ class CompilationUnitElementHandle extends ElementHandle
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
   @override
-  CompilationUnit get node => actualElement.node;
-
-  @override
   Source get source => actualElement.source;
 
   @override
@@ -220,6 +217,9 @@ class CompilationUnitElementHandle extends ElementHandle
 
   @override
   int get uriOffset => actualElement.uriOffset;
+
+  @override
+  CompilationUnit computeNode() => actualElement.computeNode();
 
   @override
   Element getElementAt(int offset) {
@@ -269,14 +269,14 @@ class ConstructorElementHandle extends ExecutableElementHandle
   int get nameEnd => actualElement.nameEnd;
 
   @override
-  ConstructorDeclaration get node => actualElement.node;
-
-  @override
   int get periodOffset => actualElement.periodOffset;
 
   @override
   ConstructorElement get redirectedConstructor =>
       actualElement.redirectedConstructor;
+
+  @override
+  ConstructorDeclaration computeNode() => actualElement.computeNode();
 }
 
 /**
@@ -375,8 +375,9 @@ abstract class ElementHandle implements Element {
   @override
   int get nameOffset => actualElement.nameOffset;
 
+  @deprecated
   @override
-  AstNode get node => actualElement.node;
+  AstNode get node => computeNode();
 
   @override
   Source get source => actualElement.source;
@@ -394,6 +395,9 @@ abstract class ElementHandle implements Element {
   @override
   String computeDocumentationComment() =>
       actualElement.computeDocumentationComment();
+
+  @override
+  AstNode computeNode() => actualElement.computeNode();
 
   @override
   Element getAncestor(Predicate<Element> predicate) =>
@@ -605,7 +609,7 @@ class FieldElementHandle extends PropertyInducingElementHandle
   ElementKind get kind => ElementKind.FIELD;
 
   @override
-  VariableDeclaration get node => actualElement.node;
+  VariableDeclaration computeNode() => actualElement.computeNode();
 }
 
 /**
@@ -631,10 +635,10 @@ class FunctionElementHandle extends ExecutableElementHandle
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
-  FunctionDeclaration get node => actualElement.node;
+  SourceRange get visibleRange => actualElement.visibleRange;
 
   @override
-  SourceRange get visibleRange => actualElement.visibleRange;
+  FunctionDeclaration computeNode() => actualElement.computeNode();
 }
 
 /**
@@ -663,9 +667,6 @@ class FunctionTypeAliasElementHandle extends ElementHandle
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
 
   @override
-  FunctionTypeAlias get node => actualElement.node;
-
-  @override
   List<ParameterElement> get parameters => actualElement.parameters;
 
   @override
@@ -676,6 +677,9 @@ class FunctionTypeAliasElementHandle extends ElementHandle
 
   @override
   List<TypeParameterElement> get typeParameters => actualElement.typeParameters;
+
+  @override
+  FunctionTypeAlias computeNode() => actualElement.computeNode();
 }
 
 /**
@@ -845,10 +849,10 @@ class LocalVariableElementHandle extends VariableElementHandle
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   @override
-  VariableDeclaration get node => actualElement.node;
+  SourceRange get visibleRange => actualElement.visibleRange;
 
   @override
-  SourceRange get visibleRange => actualElement.visibleRange;
+  VariableDeclaration computeNode() => actualElement.computeNode();
 }
 
 /**
@@ -876,7 +880,7 @@ class MethodElementHandle extends ExecutableElementHandle
   ElementKind get kind => ElementKind.METHOD;
 
   @override
-  MethodDeclaration get node => actualElement.node;
+  MethodDeclaration computeNode() => actualElement.computeNode();
 }
 
 /**

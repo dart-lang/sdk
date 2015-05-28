@@ -8076,7 +8076,7 @@ void main() {
     // Verify that both the getter and setter for "x" in "new C().x" refer to
     // the accessors defined in M2.
     FunctionDeclaration main =
-        library.definingCompilationUnit.functions[0].node;
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement stmt = body.block.statements[0];
     AssignmentExpression assignment = stmt.expression;
@@ -8217,7 +8217,7 @@ class A {
     AssignmentExpression assignment;
     {
       FunctionElement mainElement = unit.functions[0];
-      FunctionBody mainBody = mainElement.node.functionExpression.body;
+      FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
           statement as ExpressionStatement;
@@ -8253,7 +8253,7 @@ class B {
     AssignmentExpression assignment;
     {
       FunctionElement mainElement = unit.functions[0];
-      FunctionBody mainBody = mainElement.node.functionExpression.body;
+      FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
           statement as ExpressionStatement;
@@ -8286,7 +8286,7 @@ class A {
     AssignmentExpression assignment;
     {
       FunctionElement mainElement = unit.functions[0];
-      FunctionBody mainBody = mainElement.node.functionExpression.body;
+      FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
           statement as ExpressionStatement;
@@ -8321,7 +8321,7 @@ class B {
     AssignmentExpression assignment;
     {
       FunctionElement mainElement = unit.functions[0];
-      FunctionBody mainBody = mainElement.node.functionExpression.body;
+      FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
           statement as ExpressionStatement;
@@ -8797,7 +8797,7 @@ class C extends B with M1, M2 {
     // Verify that both the getter and setter for "x" in C.f() refer to the
     // accessors defined in M2.
     ClassElement classC = library.definingCompilationUnit.types[3];
-    MethodDeclaration f = classC.getMethod('f').node;
+    MethodDeclaration f = classC.getMethod('f').computeNode();
     BlockFunctionBody body = f.body;
     ExpressionStatement stmt = body.block.statements[0];
     AssignmentExpression assignment = stmt.expression;
@@ -8828,7 +8828,7 @@ class C extends B with M1, M2 {
     // Verify that the getter for "x" in C.f() refers to the getter defined in
     // M2.
     ClassElement classC = library.definingCompilationUnit.types[3];
-    MethodDeclaration f = classC.getMethod('f').node;
+    MethodDeclaration f = classC.getMethod('f').computeNode();
     BlockFunctionBody body = f.body;
     ReturnStatement stmt = body.block.statements[0];
     SimpleIdentifier x = stmt.expression;
@@ -8855,7 +8855,7 @@ void main() {
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
     FunctionDeclaration main =
-        library.definingCompilationUnit.functions[0].node;
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     VariableDeclarationStatement stmt = body.block.statements[0];
     PropertyAccess propertyAccess = stmt.variables.variables[0].initializer;
@@ -9367,7 +9367,7 @@ void main() {
     verify([source]);
     // Verify that the "f" in "new C().f()" refers to the "f" defined in M2.
     FunctionDeclaration main =
-        library.definingCompilationUnit.functions[0].node;
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement stmt = body.block.statements[0];
     MethodInvocation expr = stmt.expression;
@@ -9394,7 +9394,7 @@ class C extends B with M1, M2 {
     verify([source]);
     // Verify that the call to f() in C.g() refers to the method defined in M2.
     ClassElement classC = library.definingCompilationUnit.types[3];
-    MethodDeclaration g = classC.getMethod('g').node;
+    MethodDeclaration g = classC.getMethod('g').computeNode();
     BlockFunctionBody body = g.body;
     ExpressionStatement stmt = body.block.statements[0];
     MethodInvocation invocation = stmt.expression;
@@ -9422,7 +9422,7 @@ void main() {
     // Verify that the call to f() in "new C().f()" refers to the method
     // defined in M2.
     FunctionDeclaration main =
-        library.definingCompilationUnit.functions[0].node;
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement stmt = body.block.statements[0];
     MethodInvocation invocation = stmt.expression;
@@ -9511,7 +9511,7 @@ class C extends B with M1, M2 {
     // Verify that the setter for "x" in C.f() refers to the setter defined in
     // M2.
     ClassElement classC = library.definingCompilationUnit.types[3];
-    MethodDeclaration f = classC.getMethod('f').node;
+    MethodDeclaration f = classC.getMethod('f').computeNode();
     BlockFunctionBody body = f.body;
     ExpressionStatement stmt = body.block.statements[0];
     AssignmentExpression assignment = stmt.expression;
@@ -9539,7 +9539,7 @@ void main() {
     // Verify that the setter for "x" in "new C().x" refers to the setter
     // defined in M2.
     FunctionDeclaration main =
-        library.definingCompilationUnit.functions[0].node;
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement stmt = body.block.statements[0];
     AssignmentExpression assignment = stmt.expression;

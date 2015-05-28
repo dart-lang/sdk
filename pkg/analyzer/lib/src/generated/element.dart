@@ -232,16 +232,6 @@ abstract class ClassElement implements Element {
   List<InterfaceType> get mixins;
 
   /**
-   * Return the resolved [ClassDeclaration] or [EnumDeclaration] node that
-   * declares this [ClassElement].
-   *
-   * This method is expensive, because resolved AST might be evicted from cache,
-   * so parsing and resolving will be performed.
-   */
-  @override
-  NamedCompilationUnitMember get node;
-
-  /**
    * Return the superclass of this class, or `null` if the class represents the
    * class 'Object'. All other classes will have a non-`null` superclass. If the
    * superclass was not explicitly declared then the implicit superclass
@@ -274,6 +264,16 @@ abstract class ClassElement implements Element {
    * constructor for the class.
    */
   ConstructorElement get unnamedConstructor;
+
+  /**
+   * Return the resolved [ClassDeclaration] or [EnumDeclaration] node that
+   * declares this [ClassElement].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache,
+   * so parsing and resolving will be performed.
+   */
+  @override
+  NamedCompilationUnitMember computeNode();
 
   /**
    * Return the field (synthetic or explicit) defined in this class that has the
@@ -723,16 +723,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     setModifier(Modifier.MIXIN_ERRORS_REPORTED, value);
   }
 
-  @override
-  NamedCompilationUnitMember get node {
-    if (isEnum) {
-      return getNodeMatching((node) => node is EnumDeclaration);
-    } else {
-      return getNodeMatching(
-          (node) => node is ClassDeclaration || node is ClassTypeAlias);
-    }
-  }
-
   /**
    * Set whether this class is defined by a typedef construct.
    */
@@ -793,6 +783,16 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         (_typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
       }
       buffer.write(">");
+    }
+  }
+
+  @override
+  NamedCompilationUnitMember computeNode() {
+    if (isEnum) {
+      return getNodeMatching((node) => node is EnumDeclaration);
+    } else {
+      return getNodeMatching(
+          (node) => node is ClassDeclaration || node is ClassTypeAlias);
     }
   }
 
@@ -1220,15 +1220,6 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
   bool get hasLoadLibraryFunction;
 
   /**
-   * Return the resolved [CompilationUnit] node that declares this element.
-   *
-   * This method is expensive, because resolved AST might be evicted from cache,
-   * so parsing and resolving will be performed.
-   */
-  @override
-  CompilationUnit get node;
-
-  /**
    * Return a list containing all of the top-level variables contained in this
    * compilation unit.
    */
@@ -1239,6 +1230,15 @@ abstract class CompilationUnitElement implements Element, UriReferencedElement {
    * unit.
    */
   List<ClassElement> get types;
+
+  /**
+   * Return the resolved [CompilationUnit] node that declares this element.
+   *
+   * This method is expensive, because resolved AST might be evicted from cache,
+   * so parsing and resolving will be performed.
+   */
+  @override
+  CompilationUnit computeNode();
 
   /**
    * Return the element at the given [offset], maybe `null` if no such element.
@@ -1399,9 +1399,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   ElementKind get kind => ElementKind.COMPILATION_UNIT;
 
   @override
-  CompilationUnit get node => unit;
-
-  @override
   List<TopLevelVariableElement> get topLevelVariables => _variables;
 
   /**
@@ -1461,6 +1458,9 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       buffer.write(source.fullName);
     }
   }
+
+  @override
+  CompilationUnit computeNode() => unit;
 
   @override
   ElementImpl getChild(String identifier) {
@@ -1667,16 +1667,6 @@ abstract class ConstructorElement
   int get nameEnd;
 
   /**
-   * Return the resolved [ConstructorDeclaration] node that declares this
-   * [ConstructorElement] .
-   *
-   * This method is expensive, because resolved AST might be evicted from cache,
-   * so parsing and resolving will be performed.
-   */
-  @override
-  ConstructorDeclaration get node;
-
-  /**
    * Return the offset of the `.` before this constructor name, or `null` if
    * not named.
    */
@@ -1688,6 +1678,16 @@ abstract class ConstructorElement
    * library containing this constructor has not yet been resolved.
    */
   ConstructorElement get redirectedConstructor;
+
+  /**
+   * Return the resolved [ConstructorDeclaration] node that declares this
+   * [ConstructorElement] .
+   *
+   * This method is expensive, because resolved AST might be evicted from cache,
+   * so parsing and resolving will be performed.
+   */
+  @override
+  ConstructorDeclaration computeNode();
 }
 
 /**
@@ -1788,10 +1788,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   ElementKind get kind => ElementKind.CONSTRUCTOR;
 
   @override
-  ConstructorDeclaration get node =>
-      getNodeMatching((node) => node is ConstructorDeclaration);
-
-  @override
   accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);
 
   @override
@@ -1817,6 +1813,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
     }
     super.appendTo(buffer);
   }
+
+  @override
+  ConstructorDeclaration computeNode() =>
+      getNodeMatching((node) => node is ConstructorDeclaration);
 }
 
 /**
@@ -1853,9 +1853,6 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
   int get nameEnd => baseElement.nameEnd;
 
   @override
-  ConstructorDeclaration get node => baseElement.node;
-
-  @override
   int get periodOffset => baseElement.periodOffset;
 
   @override
@@ -1864,6 +1861,9 @@ class ConstructorMember extends ExecutableMember implements ConstructorElement {
 
   @override
   accept(ElementVisitor visitor) => visitor.visitConstructorElement(this);
+
+  @override
+  ConstructorDeclaration computeNode() => baseElement.computeNode();
 
   @override
   String toString() {
@@ -2133,7 +2133,7 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   }
 
   @override
-  DefaultFormalParameter get node =>
+  DefaultFormalParameter computeNode() =>
       getNodeMatching((node) => node is DefaultFormalParameter);
 }
 
@@ -2382,6 +2382,7 @@ abstract class Element implements AnalysisTarget {
    *
    * <b>Note:</b> This method cannot be used in an async environment.
    */
+  @deprecated
   AstNode get node;
 
   /**
@@ -2416,6 +2417,18 @@ abstract class Element implements AnalysisTarget {
    * determined because the analysis could not be performed
    */
   String computeDocumentationComment();
+
+  /**
+   * Return the resolved [AstNode] node that declares this element, or `null` if
+   * this element is synthetic or isn't contained in a compilation unit, such as
+   * a [LibraryElement].
+   *
+   * This method is expensive, because resolved AST might be evicted from cache,
+   * so parsing and resolving will be performed.
+   *
+   * <b>Note:</b> This method cannot be used in an async environment.
+   */
+  AstNode computeNode();
 
   /**
    * Return the most immediate ancestor of this element for which the
@@ -2767,8 +2780,9 @@ abstract class ElementImpl implements Element {
     _cachedLocation = null;
   }
 
+  @deprecated
   @override
-  AstNode get node => getNodeMatching((node) => node is AstNode);
+  AstNode get node => computeNode();
 
   @override
   Source get source {
@@ -2821,6 +2835,9 @@ abstract class ElementImpl implements Element {
     }
     return context.computeDocumentationComment(this);
   }
+
+  @override
+  AstNode computeNode() => getNodeMatching((node) => node is AstNode);
 
   /**
    * Set this element as the enclosing element for given [element].
@@ -3885,7 +3902,7 @@ abstract class FieldElement
    * so parsing and resolving will be performed.
    */
   @override
-  AstNode get node;
+  AstNode computeNode();
 }
 
 /**
@@ -3923,15 +3940,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   ElementKind get kind => ElementKind.FIELD;
 
-  @override
-  AstNode get node {
-    if (isEnumConstant) {
-      return getNodeMatching((node) => node is EnumConstantDeclaration);
-    } else {
-      return getNodeMatching((node) => node is VariableDeclaration);
-    }
-  }
-
   /**
    * Set whether this field is static.
    */
@@ -3941,6 +3949,15 @@ class FieldElementImpl extends PropertyInducingElementImpl
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+
+  @override
+  AstNode computeNode() {
+    if (isEnumConstant) {
+      return getNodeMatching((node) => node is EnumConstantDeclaration);
+    } else {
+      return getNodeMatching((node) => node is VariableDeclaration);
+    }
+  }
 }
 
 /**
@@ -4038,9 +4055,6 @@ class FieldMember extends VariableMember implements FieldElement {
   bool get isStatic => baseElement.isStatic;
 
   @override
-  VariableDeclaration get node => baseElement.node;
-
-  @override
   DartType get propagatedType => substituteFor(baseElement.propagatedType);
 
   @override
@@ -4049,6 +4063,9 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   accept(ElementVisitor visitor) => visitor.visitFieldElement(this);
+
+  @override
+  VariableDeclaration computeNode() => baseElement.computeNode();
 
   @override
   String toString() => '$type $displayName';
@@ -4149,7 +4166,7 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
    * so parsing and resolving will be performed.
    */
   @override
-  FunctionDeclaration get node;
+  FunctionDeclaration computeNode();
 }
 
 /**
@@ -4212,10 +4229,6 @@ class FunctionElementImpl extends ExecutableElementImpl
   ElementKind get kind => ElementKind.FUNCTION;
 
   @override
-  FunctionDeclaration get node =>
-      getNodeMatching((node) => node is FunctionDeclaration);
-
-  @override
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
       return null;
@@ -4234,6 +4247,10 @@ class FunctionElementImpl extends ExecutableElementImpl
     }
     super.appendTo(buffer);
   }
+
+  @override
+  FunctionDeclaration computeNode() =>
+      getNodeMatching((node) => node is FunctionDeclaration);
 
   /**
    * Set the visible range for this element to the range starting at the given
@@ -4387,15 +4404,6 @@ abstract class FunctionTypeAliasElement implements Element {
   CompilationUnitElement get enclosingElement;
 
   /**
-   * Return the resolved function type alias node that declares this element.
-   *
-   * This method is expensive, because resolved AST might be evicted from cache,
-   * so parsing and resolving will be performed.
-   */
-  @override
-  FunctionTypeAlias get node;
-
-  /**
    * Return a list containing all of the parameters defined by this type alias.
    */
   List<ParameterElement> get parameters;
@@ -4414,6 +4422,15 @@ abstract class FunctionTypeAliasElement implements Element {
    * Return a list containing all of the type parameters defined for this type.
    */
   List<TypeParameterElement> get typeParameters;
+
+  /**
+   * Return the resolved function type alias node that declares this element.
+   *
+   * This method is expensive, because resolved AST might be evicted from cache,
+   * so parsing and resolving will be performed.
+   */
+  @override
+  FunctionTypeAlias computeNode();
 }
 
 /**
@@ -4469,10 +4486,6 @@ class FunctionTypeAliasElementImpl extends ElementImpl
 
   @override
   ElementKind get kind => ElementKind.FUNCTION_TYPE_ALIAS;
-
-  @override
-  FunctionTypeAlias get node =>
-      getNodeMatching((node) => node is FunctionTypeAlias);
 
   @override
   List<ParameterElement> get parameters => _parameters;
@@ -4538,6 +4551,10 @@ class FunctionTypeAliasElementImpl extends ElementImpl
       buffer.write(returnType);
     }
   }
+
+  @override
+  FunctionTypeAlias computeNode() =>
+      getNodeMatching((node) => node is FunctionTypeAlias);
 
   @override
   ElementImpl getChild(String identifier) {
@@ -7505,7 +7522,7 @@ abstract class LocalVariableElement implements LocalElement, VariableElement {
    * so parsing and resolving will be performed.
    */
   @override
-  VariableDeclaration get node;
+  VariableDeclaration computeNode();
 }
 
 /**
@@ -7562,10 +7579,6 @@ class LocalVariableElementImpl extends VariableElementImpl
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
 
   @override
-  VariableDeclaration get node =>
-      getNodeMatching((node) => node is VariableDeclaration);
-
-  @override
   SourceRange get visibleRange {
     if (_visibleRangeLength < 0) {
       return null;
@@ -7582,6 +7595,10 @@ class LocalVariableElementImpl extends VariableElementImpl
     buffer.write(" ");
     buffer.write(displayName);
   }
+
+  @override
+  VariableDeclaration computeNode() =>
+      getNodeMatching((node) => node is VariableDeclaration);
 
   /**
    * Specifies that this variable is potentially mutated somewhere in closure.
@@ -7679,8 +7696,9 @@ abstract class Member implements Element {
   @override
   int get nameOffset => _baseElement.nameOffset;
 
+  @deprecated
   @override
-  AstNode get node => _baseElement.node;
+  AstNode get node => computeNode();
 
   @override
   Source get source => _baseElement.source;
@@ -7691,6 +7709,9 @@ abstract class Member implements Element {
   @override
   String computeDocumentationComment() =>
       _baseElement.computeDocumentationComment();
+
+  @override
+  AstNode computeNode() => _baseElement.computeNode();
 
   @override
   Element getAncestor(Predicate<Element> predicate) =>
@@ -7776,7 +7797,7 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
    * so parsing and resolving will be performed.
    */
   @override
-  MethodDeclaration get node;
+  MethodDeclaration computeNode();
 }
 
 /**
@@ -7849,10 +7870,6 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     return super.name;
   }
 
-  @override
-  MethodDeclaration get node =>
-      getNodeMatching((node) => node is MethodDeclaration);
-
   /**
    * Set whether this method is static.
    */
@@ -7868,6 +7885,10 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
     buffer.write(displayName);
     super.appendTo(buffer);
   }
+
+  @override
+  MethodDeclaration computeNode() =>
+      getNodeMatching((node) => node is MethodDeclaration);
 }
 
 /**
@@ -7889,10 +7910,10 @@ class MethodMember extends ExecutableMember implements MethodElement {
   ClassElement get enclosingElement => baseElement.enclosingElement;
 
   @override
-  MethodDeclaration get node => baseElement.node;
+  accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitMethodElement(this);
+  MethodDeclaration computeNode() => baseElement.computeNode();
 
   @override
   String toString() {
@@ -8189,6 +8210,7 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   int get nameOffset => -1;
 
+  @deprecated
   @override
   AstNode get node => null;
 
@@ -8206,6 +8228,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   String computeDocumentationComment() => null;
+
+  @override
+  AstNode computeNode() => null;
 
   @override
   Element getAncestor(Predicate<Element> predicate) => null;
@@ -8396,9 +8421,6 @@ abstract class ParameterElement
    */
   bool get isInitializingFormal;
 
-  @override
-  FormalParameter get node;
-
   /**
    * Return the kind of this parameter.
    */
@@ -8410,6 +8432,9 @@ abstract class ParameterElement
    * parameter.
    */
   List<ParameterElement> get parameters;
+
+  @override
+  FormalParameter computeNode();
 }
 
 /**
@@ -8487,10 +8512,6 @@ class ParameterElementImpl extends VariableElementImpl
   ElementKind get kind => ElementKind.PARAMETER;
 
   @override
-  FormalParameter get node =>
-      getNodeMatching((node) => node is FormalParameter);
-
-  @override
   List<ParameterElement> get parameters => _parameters;
 
   /**
@@ -8551,6 +8572,10 @@ class ParameterElementImpl extends VariableElementImpl
       buffer.write(_defaultValueCode);
     }
   }
+
+  @override
+  FormalParameter computeNode() =>
+      getNodeMatching((node) => node is FormalParameter);
 
   @override
   ElementImpl getChild(String identifier) {
@@ -8637,9 +8662,6 @@ class ParameterMember extends VariableMember implements ParameterElement {
   bool get isInitializingFormal => baseElement.isInitializingFormal;
 
   @override
-  FormalParameter get node => baseElement.node;
-
-  @override
   ParameterKind get parameterKind => baseElement.parameterKind;
 
   @override
@@ -8663,6 +8685,9 @@ class ParameterMember extends VariableMember implements ParameterElement {
 
   @override
   accept(ElementVisitor visitor) => visitor.visitParameterElement(this);
+
+  @override
+  FormalParameter computeNode() => baseElement.computeNode();
 
   @override
   Element getAncestor(Predicate<Element> predicate) {
@@ -8999,20 +9024,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     return super.name;
   }
 
-  @override
-  AstNode get node {
-    if (isSynthetic) {
-      return null;
-    }
-    if (enclosingElement is ClassElement) {
-      return getNodeMatching((node) => node is MethodDeclaration);
-    }
-    if (enclosingElement is CompilationUnitElement) {
-      return getNodeMatching((node) => node is FunctionDeclaration);
-    }
-    return null;
-  }
-
   /**
    * Set whether this accessor is a setter.
    */
@@ -9039,6 +9050,20 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
     buffer.write(isGetter ? "get " : "set ");
     buffer.write(variable.displayName);
     super.appendTo(buffer);
+  }
+
+  @override
+  AstNode computeNode() {
+    if (isSynthetic) {
+      return null;
+    }
+    if (enclosingElement is ClassElement) {
+      return getNodeMatching((node) => node is MethodDeclaration);
+    }
+    if (enclosingElement is CompilationUnitElement) {
+      return getNodeMatching((node) => node is FunctionDeclaration);
+    }
+    return null;
   }
 }
 
@@ -9568,7 +9593,7 @@ abstract class TopLevelVariableElement implements PropertyInducingElement {
       const <TopLevelVariableElement>[];
 
   @override
-  VariableDeclaration get node;
+  VariableDeclaration computeNode();
 }
 
 /**
@@ -9602,11 +9627,11 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
 
   @override
-  VariableDeclaration get node =>
-      getNodeMatching((node) => node is VariableDeclaration);
+  accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
 
   @override
-  accept(ElementVisitor visitor) => visitor.visitTopLevelVariableElement(this);
+  VariableDeclaration computeNode() =>
+      getNodeMatching((node) => node is VariableDeclaration);
 }
 
 /**
