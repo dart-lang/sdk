@@ -38,6 +38,7 @@ apparently outside the scope of the JSON-RPC specification.
 	- [removeBreakpoint](#removebreakpoint)
 	- [resume](#resume)
 	- [setName](#setname)
+	- [setLibraryDebuggable](#setlibrarydebuggable)
 	- [streamCancel](#streamcancel)
 	- [streamListen](#streamlisten)
 - [Public Types](#public-types)
@@ -62,6 +63,7 @@ apparently outside the scope of the JSON-RPC specification.
 	- [Int](#int)
 	- [Isolate](#isolate)
 	- [Library](#library)
+	- [LibraryDependency](#librarydependency)
 	- [List](#list)
 	- [ListElement](#listelement)
 	- [Message](#message)
@@ -560,6 +562,19 @@ Success setName(string isolateId,
 ```
 
 The _setName_ RPC is used to change the debugging name for an isolate.
+
+See [Success](#success).
+
+### setLibraryDebuggable
+
+```
+Success setLibraryDebuggable(string isolateId,
+                             string libraryId,
+                             bool isDebuggable)
+```
+
+The _setLibraryDebuggable_ RPC is used to enable or disable whether
+breakpoints and stepping work for a given library.
 
 See [Success](#success).
 
@@ -1296,6 +1311,9 @@ class Library extends Object {
   // The uri of this library.
   string uri;
 
+  // Is this library debuggable?  Default true.
+  bool debuggable;
+
   // A list of the imports for this library.
   LibraryDependency[] dependencies;
 
@@ -1314,6 +1332,10 @@ class Library extends Object {
 ```
 
 A _Library_ provides information about a Dart language library.
+
+See [setLibraryDebuggable](#setlibrarydebuggable).
+
+### LibraryDependency
 
 ```
 class LibraryDependency {

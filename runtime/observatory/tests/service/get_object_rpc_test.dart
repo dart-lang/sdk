@@ -125,6 +125,7 @@ var tests = [
     expect(result['name'], equals('get_object_rpc_test'));
     expect(result['uri'], startsWith('file:'));
     expect(result['uri'], endsWith('get_object_rpc_test.dart'));
+    expect(result['debuggable'], equals(true));
     expect(result['dependencies'].length, isPositive);
     expect(result['dependencies'][0]['target']['type'], equals('@Library'));
     expect(result['scripts'].length, isPositive);

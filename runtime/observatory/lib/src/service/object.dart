@@ -560,7 +560,6 @@ abstract class VM extends ServiceObjectOwner {
   }
 
   Future<ObservableMap> _fetchDirect() {
-    print("FETCH DIRECT VM");
     return invokeRpcNoUpgrade('getVM', {});
   }
 

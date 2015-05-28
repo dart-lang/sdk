@@ -9903,6 +9903,7 @@ void Library::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  jsobj.AddProperty("debuggable", IsDebuggable());
   {
     JSONArray jsarr(&jsobj, "classes");
     ClassDictionaryIterator class_iter(*this);
