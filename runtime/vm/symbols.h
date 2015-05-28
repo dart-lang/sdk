@@ -287,7 +287,6 @@ class ObjectPointerVisitor;
   V(DotWithType, "._withType")                                                 \
   V(_get, "_get")                                                              \
   V(RangeError, "RangeError")                                                  \
-  V(DotRange, ".range")                                                        \
   V(ArgumentError, "ArgumentError")                                            \
   V(FormatException, "FormatException")                                        \
   V(UnsupportedError, "UnsupportedError")                                      \

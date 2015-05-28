@@ -487,9 +487,14 @@ abstract class _TypedListBase {
 
   void setRange(int start, int end, Iterable from, [int skipCount = 0]) {
     // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length);  // Always throws.
-      assert(false);
+    if ((start < 0) || (start > length)) {
+      throw _newRangeError(start, length + 1);
+    }
+    if ((end < 0) || (end > length)) {
+      throw _newRangeError(end, length + 1);
+    }
+    if (start > end) {
+      throw _newRangeError(start, end + 1);
     }
     if (skipCount < 0) {
       throw new ArgumentError(skipCount);
@@ -937,14 +942,14 @@ class _Int8Array extends _TypedList with _IntListMixin implements Int8List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getInt8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setInt8(index, _toInt8(value));
   }
@@ -978,14 +983,14 @@ class _Uint8Array extends _TypedList with _IntListMixin implements Uint8List {
   // Methods implementing List interface.
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setUint8(index, _toUint8(value));
   }
@@ -1018,14 +1023,14 @@ class _Uint8ClampedArray extends _TypedList with _IntListMixin implements Uint8C
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setUint8(index, _toClampedUint8(value));
   }
@@ -1060,14 +1065,14 @@ class _Int16Array extends _TypedList with _IntListMixin implements Int16List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedInt16(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedInt16(index, _toInt16(value));
   }
@@ -1120,14 +1125,14 @@ class _Uint16Array extends _TypedList with _IntListMixin implements Uint16List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedUint16(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedUint16(index, _toUint16(value));
   }
@@ -1180,14 +1185,14 @@ class _Int32Array extends _TypedList with _IntListMixin implements Int32List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedInt32(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedInt32(index, _toInt32(value));
   }
@@ -1230,14 +1235,14 @@ class _Uint32Array extends _TypedList with _IntListMixin implements Uint32List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedUint32(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedUint32(index, _toUint32(value));
   }
@@ -1280,14 +1285,14 @@ class _Int64Array extends _TypedList with _IntListMixin implements Int64List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedInt64(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedInt64(index, _toInt64(value));
   }
@@ -1330,14 +1335,14 @@ class _Uint64Array extends _TypedList with _IntListMixin implements Uint64List {
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedUint64(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedUint64(index, _toUint64(value));
   }
@@ -1380,14 +1385,14 @@ class _Float32Array extends _TypedList with _DoubleListMixin implements Float32L
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedFloat32(index);
   }
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedFloat32(index, value);
   }
@@ -1430,14 +1435,14 @@ class _Float64Array extends _TypedList with _DoubleListMixin implements Float64L
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedFloat64(index);
   }
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedFloat64(index, value);
   }
@@ -1478,14 +1483,14 @@ class _Float32x4Array extends _TypedList with _Float32x4ListMixin implements Flo
 
   Float32x4 operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedFloat32x4(index);
   }
 
   void operator[]=(int index, Float32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedFloat32x4(index, value);
   }
@@ -1526,14 +1531,14 @@ class _Int32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4
 
   Int32x4 operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedInt32x4(index);
   }
 
   void operator[]=(int index, Int32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedInt32x4(index, value);
   }
@@ -1574,14 +1579,14 @@ class _Float64x2Array extends _TypedList with _Float64x2ListMixin implements Flo
 
   Float64x2 operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedFloat64x2(index);
   }
 
   void operator[]=(int index, Float64x2 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedFloat64x2(index, value);
   }
@@ -1623,14 +1628,14 @@ class _ExternalInt8Array extends _TypedList with _IntListMixin implements Int8Li
   // Method(s) implementing the List interface.
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getInt8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setInt8(index, value);
   }
@@ -1666,14 +1671,14 @@ class _ExternalUint8Array extends _TypedList with _IntListMixin implements Uint8
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setUint8(index, _toUint8(value));
   }
@@ -1708,14 +1713,14 @@ class _ExternalUint8ClampedArray extends _TypedList with _IntListMixin implement
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getUint8(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setUint8(index, _toClampedUint8(value));
   }
@@ -1751,14 +1756,14 @@ class _ExternalInt16Array extends _TypedList with _IntListMixin implements Int16
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedInt16(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedInt16(index, _toInt16(value));
   }
@@ -1802,14 +1807,14 @@ class _ExternalUint16Array extends _TypedList with _IntListMixin implements Uint
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedUint16(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedUint16(index, _toUint16(value));
   }
@@ -1853,14 +1858,14 @@ class _ExternalInt32Array extends _TypedList with _IntListMixin implements Int32
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedInt32(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedInt32(index, _toInt32(value));
   }
@@ -1904,14 +1909,14 @@ class _ExternalUint32Array extends _TypedList with _IntListMixin implements Uint
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedUint32(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedUint32(index, _toUint32(value));
   }
@@ -1955,14 +1960,14 @@ class _ExternalInt64Array extends _TypedList with _IntListMixin implements Int64
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedInt64(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedInt64(index, _toInt64(value));
   }
@@ -2006,14 +2011,14 @@ class _ExternalUint64Array extends _TypedList with _IntListMixin implements Uint
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedUint64(index);
   }
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedUint64(index, _toUint64(value));
   }
@@ -2057,14 +2062,14 @@ class _ExternalFloat32Array extends _TypedList with _DoubleListMixin implements 
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedFloat32(index);
   }
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedFloat32(index, value);
   }
@@ -2108,14 +2113,14 @@ class _ExternalFloat64Array extends _TypedList with _DoubleListMixin implements 
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedFloat64(index);
   }
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedFloat64(index, value);
   }
@@ -2159,14 +2164,14 @@ class _ExternalFloat32x4Array extends _TypedList with _Float32x4ListMixin implem
 
   Float32x4 operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedFloat32x4(index);
   }
 
   void operator[]=(int index, Float32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedFloat32x4(index, value);
   }
@@ -2210,14 +2215,14 @@ class _ExternalInt32x4Array extends _TypedList with _Int32x4ListMixin implements
 
   Int32x4 operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedInt32x4(index);
   }
 
   void operator[]=(int index, Int32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedInt32x4(index, value);
   }
@@ -2261,14 +2266,14 @@ class _ExternalFloat64x2Array extends _TypedList with _Float64x2ListMixin implem
 
   Float64x2 operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _getIndexedFloat64x2(index);
   }
 
   void operator[]=(int index, Float64x2 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _setIndexedFloat64x2(index, value);
   }
@@ -2589,7 +2594,7 @@ class _Int8ArrayView extends _TypedListView with _IntListMixin implements Int8Li
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getInt8(offsetInBytes +
                                (index * Int8List.BYTES_PER_ELEMENT));
@@ -2597,7 +2602,7 @@ class _Int8ArrayView extends _TypedListView with _IntListMixin implements Int8Li
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setInt8(offsetInBytes + (index * Int8List.BYTES_PER_ELEMENT),
                         _toInt8(value));
@@ -2636,7 +2641,7 @@ class _Uint8ArrayView extends _TypedListView with _IntListMixin implements Uint8
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getUint8(offsetInBytes +
                                 (index * Uint8List.BYTES_PER_ELEMENT));
@@ -2644,7 +2649,7 @@ class _Uint8ArrayView extends _TypedListView with _IntListMixin implements Uint8
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setUint8(offsetInBytes + (index * Uint8List.BYTES_PER_ELEMENT),
                          _toUint8(value));
@@ -2684,7 +2689,7 @@ class _Uint8ClampedArrayView extends _TypedListView with _IntListMixin implement
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getUint8(offsetInBytes +
                                 (index * Uint8List.BYTES_PER_ELEMENT));
@@ -2692,7 +2697,7 @@ class _Uint8ClampedArrayView extends _TypedListView with _IntListMixin implement
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setUint8(offsetInBytes + (index * Uint8List.BYTES_PER_ELEMENT),
                          _toClampedUint8(value));
@@ -2732,7 +2737,7 @@ class _Int16ArrayView extends _TypedListView with _IntListMixin implements Int16
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getInt16(offsetInBytes +
                                 (index * Int16List.BYTES_PER_ELEMENT));
@@ -2740,7 +2745,7 @@ class _Int16ArrayView extends _TypedListView with _IntListMixin implements Int16
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setInt16(offsetInBytes + (index * Int16List.BYTES_PER_ELEMENT),
                          _toInt16(value));
@@ -2790,7 +2795,7 @@ class _Uint16ArrayView extends _TypedListView with _IntListMixin implements Uint
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getUint16(offsetInBytes +
                                  (index * Uint16List.BYTES_PER_ELEMENT));
@@ -2798,7 +2803,7 @@ class _Uint16ArrayView extends _TypedListView with _IntListMixin implements Uint
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setUint16(offsetInBytes + (index * Uint16List.BYTES_PER_ELEMENT),
                           _toUint16(value));
@@ -2847,7 +2852,7 @@ class _Int32ArrayView extends _TypedListView with _IntListMixin implements Int32
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getInt32(offsetInBytes +
                                 (index * Int32List.BYTES_PER_ELEMENT));
@@ -2855,7 +2860,7 @@ class _Int32ArrayView extends _TypedListView with _IntListMixin implements Int32
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setInt32(offsetInBytes + (index * Int32List.BYTES_PER_ELEMENT),
                          _toInt32(value));
@@ -2895,7 +2900,7 @@ class _Uint32ArrayView extends _TypedListView with _IntListMixin implements Uint
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getUint32(offsetInBytes +
                                  (index * Uint32List.BYTES_PER_ELEMENT));
@@ -2903,7 +2908,7 @@ class _Uint32ArrayView extends _TypedListView with _IntListMixin implements Uint
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setUint32(offsetInBytes + (index * Uint32List.BYTES_PER_ELEMENT),
                           _toUint32(value));
@@ -2943,7 +2948,7 @@ class _Int64ArrayView extends _TypedListView with _IntListMixin implements Int64
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getInt64(offsetInBytes +
                                 (index * Int64List.BYTES_PER_ELEMENT));
@@ -2951,7 +2956,7 @@ class _Int64ArrayView extends _TypedListView with _IntListMixin implements Int64
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setInt64(offsetInBytes + (index * Int64List.BYTES_PER_ELEMENT),
                          _toInt64(value));
@@ -2991,7 +2996,7 @@ class _Uint64ArrayView extends _TypedListView with _IntListMixin implements Uint
 
   int operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getUint64(offsetInBytes +
                                  (index * Uint64List.BYTES_PER_ELEMENT));
@@ -2999,7 +3004,7 @@ class _Uint64ArrayView extends _TypedListView with _IntListMixin implements Uint
 
   void operator[]=(int index, int value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setUint64(offsetInBytes + (index * Uint64List.BYTES_PER_ELEMENT),
                           _toUint64(value));
@@ -3039,7 +3044,7 @@ class _Float32ArrayView extends _TypedListView with _DoubleListMixin implements 
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getFloat32(offsetInBytes +
                                   (index * Float32List.BYTES_PER_ELEMENT));
@@ -3047,7 +3052,7 @@ class _Float32ArrayView extends _TypedListView with _DoubleListMixin implements 
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setFloat32(offsetInBytes +
                            (index * Float32List.BYTES_PER_ELEMENT), value);
@@ -3087,7 +3092,7 @@ class _Float64ArrayView extends _TypedListView with _DoubleListMixin implements 
 
   double operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getFloat64(offsetInBytes +
                                   (index * Float64List.BYTES_PER_ELEMENT));
@@ -3095,7 +3100,7 @@ class _Float64ArrayView extends _TypedListView with _DoubleListMixin implements 
 
   void operator[]=(int index, double value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setFloat64(offsetInBytes +
                           (index * Float64List.BYTES_PER_ELEMENT), value);
@@ -3135,7 +3140,7 @@ class _Float32x4ArrayView extends _TypedListView with _Float32x4ListMixin implem
 
   Float32x4 operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getFloat32x4(offsetInBytes +
                                   (index * Float32x4List.BYTES_PER_ELEMENT));
@@ -3143,7 +3148,7 @@ class _Float32x4ArrayView extends _TypedListView with _Float32x4ListMixin implem
 
   void operator[]=(int index, Float32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setFloat32x4(offsetInBytes +
                              (index * Float32x4List.BYTES_PER_ELEMENT), value);
@@ -3183,7 +3188,7 @@ class _Int32x4ArrayView extends _TypedListView with _Int32x4ListMixin implements
 
   Int32x4 operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getInt32x4(offsetInBytes +
                                    (index * Int32x4List.BYTES_PER_ELEMENT));
@@ -3191,7 +3196,7 @@ class _Int32x4ArrayView extends _TypedListView with _Int32x4ListMixin implements
 
   void operator[]=(int index, Int32x4 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setInt32x4(offsetInBytes +
                             (index * Int32x4List.BYTES_PER_ELEMENT), value);
@@ -3231,7 +3236,7 @@ class _Float64x2ArrayView extends _TypedListView with _Float64x2ListMixin implem
 
   Float64x2 operator[](int index) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     return _typedData._getFloat64x2(offsetInBytes +
                                     (index * Float64x2List.BYTES_PER_ELEMENT));
@@ -3239,7 +3244,7 @@ class _Float64x2ArrayView extends _TypedListView with _Float64x2ListMixin implem
 
   void operator[]=(int index, Float64x2 value) {
     if (index < 0 || index >= length) {
-      throw new RangeError.index(index, this, "index");
+      throw _newRangeError(index, length);
     }
     _typedData._setFloat64x2(offsetInBytes +
                              (index * Float64x2List.BYTES_PER_ELEMENT), value);
@@ -3292,33 +3297,33 @@ class _ByteDataView implements ByteData {
 
   int getInt8(int byteOffset) {
     if (byteOffset < 0 || byteOffset >= length) {
-      throw new RangeError.index(byteOffset, this, "byteOffset");
+      throw _newRangeError(byteOffset, length);
     }
     return _typedData._getInt8(_offset + byteOffset);
   }
   void setInt8(int byteOffset, int value) {
     if (byteOffset < 0 || byteOffset >= length) {
-      throw new RangeError.index(byteOffset, this, "byteOffset");
+      throw _newRangeError(byteOffset, length);
     }
     _typedData._setInt8(_offset + byteOffset, value);
   }
 
   int getUint8(int byteOffset) {
     if (byteOffset < 0 || byteOffset >= length) {
-      throw new RangeError.index(byteOffset, this, "byteOffset");
+      throw _newRangeError(byteOffset, length);
     }
     return _typedData._getUint8(_offset + byteOffset);
   }
   void setUint8(int byteOffset, int value) {
     if (byteOffset < 0 || byteOffset >= length) {
-      throw new RangeError.index(byteOffset, this, "byteOffset");
+      throw _newRangeError(byteOffset, length);
     }
     _typedData._setUint8(_offset + byteOffset, value);
   }
 
   int getInt16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
+      throw _newRangeError(byteOffset + 1, length);
     }
     var result = _typedData._getInt16(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
@@ -3330,7 +3335,7 @@ class _ByteDataView implements ByteData {
                 int value,
                 [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
+      throw _newRangeError(byteOffset + 1, length);
     }
     _typedData._setInt16(_offset + byteOffset,
         identical(endian, Endianness.HOST_ENDIAN) ? value : _byteSwap16(value));
@@ -3338,7 +3343,7 @@ class _ByteDataView implements ByteData {
 
   int getUint16(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
+      throw _newRangeError(byteOffset + 1, length);
     }
     var result = _typedData._getUint16(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
@@ -3350,7 +3355,7 @@ class _ByteDataView implements ByteData {
                  int value,
                  [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 1 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 2, "byteOffset");
+      throw _newRangeError(byteOffset + 1, length);
     }
     _typedData._setUint16(_offset + byteOffset,
         identical(endian, Endianness.HOST_ENDIAN) ? value : _byteSwap16(value));
@@ -3358,7 +3363,7 @@ class _ByteDataView implements ByteData {
 
   int getInt32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
+      throw _newRangeError(byteOffset + 3, length);
     }
     var result = _typedData._getInt32(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
@@ -3370,7 +3375,7 @@ class _ByteDataView implements ByteData {
                 int value,
                 [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
+      throw _newRangeError(byteOffset + 3, length);
     }
     _typedData._setInt32(_offset + byteOffset,
         identical(endian, Endianness.HOST_ENDIAN) ? value : _byteSwap32(value));
@@ -3378,7 +3383,7 @@ class _ByteDataView implements ByteData {
 
   int getUint32(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
+      throw _newRangeError(byteOffset + 3, length);
     }
     var result = _typedData._getUint32(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
@@ -3390,7 +3395,7 @@ class _ByteDataView implements ByteData {
                  int value,
                  [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
+      throw _newRangeError(byteOffset + 3, length);
     }
     _typedData._setUint32(_offset + byteOffset,
         identical(endian, Endianness.HOST_ENDIAN) ? value : _byteSwap32(value));
@@ -3398,7 +3403,7 @@ class _ByteDataView implements ByteData {
 
   int getInt64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
+      throw _newRangeError(byteOffset + 7, length);
     }
     var result = _typedData._getInt64(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
@@ -3410,7 +3415,7 @@ class _ByteDataView implements ByteData {
                 int value,
                 [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
+      throw _newRangeError(byteOffset + 7, length);
     }
     _typedData._setInt64(_offset + byteOffset,
         identical(endian, Endianness.HOST_ENDIAN) ? value : _byteSwap64(value));
@@ -3418,7 +3423,7 @@ class _ByteDataView implements ByteData {
 
   int getUint64(int byteOffset, [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
+      throw _newRangeError(byteOffset + 7, length);
     }
     var result = _typedData._getUint64(_offset + byteOffset);
     if (identical(endian, Endianness.HOST_ENDIAN)) {
@@ -3430,7 +3435,7 @@ class _ByteDataView implements ByteData {
                  int value,
                  [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
+      throw _newRangeError(byteOffset + 7, length);
     }
     _typedData._setUint64(_offset + byteOffset,
         identical(endian, Endianness.HOST_ENDIAN) ? value : _byteSwap64(value));
@@ -3439,7 +3444,7 @@ class _ByteDataView implements ByteData {
   double getFloat32(int byteOffset,
                     [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
+      throw _newRangeError(byteOffset + 3, length);
     }
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       return _typedData._getFloat32(_offset + byteOffset);
@@ -3451,7 +3456,7 @@ class _ByteDataView implements ByteData {
                   double value,
                   [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
+      throw _newRangeError(byteOffset + 3, length);
     }
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       _typedData._setFloat32(_offset + byteOffset, value);
@@ -3464,7 +3469,7 @@ class _ByteDataView implements ByteData {
   double getFloat64(int byteOffset,
                     [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
+      throw _newRangeError(byteOffset + 7, length);
     }
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       return _typedData._getFloat64(_offset + byteOffset);
@@ -3476,7 +3481,7 @@ class _ByteDataView implements ByteData {
                   double value,
                   [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 7 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 8, "byteOffset");
+      throw _newRangeError(byteOffset + 7, length);
     }
     if (identical(endian, Endianness.HOST_ENDIAN)) {
       _typedData._setFloat64(_offset + byteOffset, value);
@@ -3489,7 +3494,7 @@ class _ByteDataView implements ByteData {
   Float32x4 getFloat32x4(int byteOffset,
                          [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
+      throw _newRangeError(byteOffset + 3, length);
     }
     // TODO(johnmccutchan) : Need to resolve this for endianity.
     return _typedData._getFloat32x4(_offset + byteOffset);
@@ -3498,7 +3503,7 @@ class _ByteDataView implements ByteData {
                     Float32x4 value,
                     [Endianness endian = Endianness.BIG_ENDIAN]) {
     if (byteOffset < 0 || byteOffset + 3 >= length) {
-      throw new RangeError.range(byteOffset, 0, length - 4, "byteOffset");
+      throw _newRangeError(byteOffset + 3, length);
     }
     // TODO(johnmccutchan) : Need to resolve this for endianity.
     _typedData._setFloat32x4(_offset + byteOffset, value);
@@ -3615,4 +3620,10 @@ int _defaultIfNull(object, value) {
     return value;
   }
   return object;
+}
+
+
+_newRangeError(int index, int length) {
+  String message = "$index must be in the range [0..$length)";
+  return new RangeError(message);
 }
