@@ -46,14 +46,14 @@
     <hr>
 
     <div class="content">
-      <template if="{{ library.imports.isNotEmpty }}">
-        imports ({{ library.imports.length }})
-        <curly-block expand="{{ library.imports.length <= 8 }}">
+      <template if="{{ library.dependencies.isNotEmpty }}">
+        dependencies ({{ library.dependencies.length }})
+        <curly-block expand="{{ library.dependencies.length <= 8 }}">
           <div class="memberList">
-            <template repeat="{{ imp in library.imports }}">
+            <template repeat="{{ dep in library.dependencies }}">
               <div class="memberItem">
                 <div class="memberValue">
-                  <library-ref ref="{{ imp }}"></library-ref>
+                  <library-ref ref="{{ dep.target }}"></library-ref>
                 </div>
               </div>
             </template>

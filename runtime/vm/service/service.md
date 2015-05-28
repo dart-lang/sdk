@@ -1297,7 +1297,7 @@ class Library extends Object {
   string uri;
 
   // A list of the imports for this library.
-  @Library[] imports;
+  LibraryDependency[] dependencies;
 
   // A list of the scripts which constitute this library.
   @Script[] scripts;
@@ -1314,6 +1314,24 @@ class Library extends Object {
 ```
 
 A _Library_ provides information about a Dart language library.
+
+```
+class LibraryDependency {
+  // Is this dependency an import (rather than an export)?
+  bool isImport;
+
+  // Is this dependency deferred?
+  bool isDeferred;
+
+  // The prefix of an 'as' import, or null.
+  String prefix;
+
+  // The library being imported or exported.
+  @Library target;
+}
+```
+
+A _LibraryDependency_ provides information about an import or export.
 
 ### List
 

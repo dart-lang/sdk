@@ -1585,9 +1585,27 @@ class Breakpoint extends ServiceObject {
   }
 }
 
+
+class LibraryDependency {
+  @reflectable final bool isImport;
+  @reflectable final bool isDeferred;
+  @reflectable final String prefix;
+  @reflectable final Library target;
+
+  bool get isExport => !isImport;
+
+  LibraryDependency._(this.isImport, this.isDeferred, this.prefix, this.target);
+
+  static _fromMap(map) => new LibraryDependency._(map["isImport"],
+                                                  map["isDeferred"],
+                                                  map["prefix"],
+                                                  map["target"]);
+}
+
+
 class Library extends ServiceObject with Coverage {
   @observable String uri;
-  @reflectable final imports = new ObservableList<Library>();
+  @reflectable final dependencies = new ObservableList<LibraryDependency>();
   @reflectable final scripts = new ObservableList<Script>();
   @reflectable final classes = new ObservableList<Class>();
   @reflectable final variables = new ObservableList<Field>();
@@ -1616,8 +1634,8 @@ class Library extends ServiceObject with Coverage {
     }
     _loaded = true;
     _upgradeCollection(map, isolate);
-    imports.clear();
-    imports.addAll(removeDuplicatesAndSortLexical(map['imports']));
+    dependencies.clear();
+    dependencies.addAll(map["dependencies"].map(LibraryDependency._fromMap));
     scripts.clear();
     scripts.addAll(removeDuplicatesAndSortLexical(map['scripts']));
     classes.clear();
