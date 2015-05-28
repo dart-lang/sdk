@@ -81,6 +81,22 @@ class Compiler : public AllStatic {
   //
   // Returns Error::null() if there is no compilation error.
   static RawError* CompileAllFunctions(const Class& cls);
+
+  // The following global flags are changed by --noopt handler;
+  // the flags are changed when generating best unoptimized code (no runtime
+  // feedback, no deoptimization).
+
+  // Default: false.
+  static bool always_optimize() { return always_optimize_; }
+  static void set_always_optimize(bool value) { always_optimize_ = value; }
+
+  // Default: true.
+  static bool guess_other_cid() { return guess_other_cid_; }
+  static void set_guess_other_cid(bool value) { guess_other_cid_ = value; }
+
+ private:
+  static bool always_optimize_;
+  static bool guess_other_cid_;
 };
 
 }  // namespace dart

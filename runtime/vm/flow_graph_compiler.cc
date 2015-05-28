@@ -8,6 +8,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/cha.h"
+#include "vm/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
@@ -41,12 +42,15 @@ DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
 DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
 DECLARE_FLAG(bool, code_comments);
-DECLARE_FLAG(int, deoptimize_every);
+DECLARE_FLAG(bool, deoptimize_alot);
+DECLARE_FLAG(bool, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
+DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
+DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(int, regexp_optimization_counter_threshold);
@@ -54,11 +58,11 @@ DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(bool, support_debugger);
-DECLARE_FLAG(bool, use_cha);
 DECLARE_FLAG(bool, use_field_guards);
+DECLARE_FLAG(bool, use_cha);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-DECLARE_FLAG(bool, ic_range_profiling);
+
 
 static void NooptModeHandler(bool value) {
   if (value) {
@@ -70,6 +74,15 @@ static void NooptModeHandler(bool value) {
     FLAG_support_debugger = false;
     FLAG_ic_range_profiling = false;
     FLAG_collect_code = false;
+    FLAG_load_deferred_eagerly = true;
+    FLAG_deoptimize_alot = false;  // Used in some tests.
+    FLAG_deoptimize_every = 0;  // Used in some tests.
+    FLAG_collect_code = false;
+    Compiler::set_always_optimize(true);
+    Compiler::set_guess_other_cid(false);
+    // TODO(srdjan): Enable CHA when eager class finalization is
+    // implemented, either with precompilation or as a special pass.
+    FLAG_use_cha = false;
   }
 }
 
@@ -206,7 +219,6 @@ void FlowGraphCompiler::InitCompiler() {
         const ICData* ic_data = NULL;
         if (current->IsInstanceCall()) {
           ic_data = current->AsInstanceCall()->ic_data();
-          ASSERT(ic_data != NULL);
         }
         if ((ic_data != NULL) && (ic_data->NumberOfUsedChecks() == 0)) {
           may_reoptimize_ = true;
@@ -846,6 +858,8 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
     return &intrinsic_slow_path_label_;
   }
 
+  // No deoptimization allowed when 'always_optimize' is set.
+  ASSERT(!Compiler::always_optimize());
   ASSERT(is_optimizing_);
   CompilerDeoptInfoWithStub* stub =
       new CompilerDeoptInfoWithStub(deopt_id,
@@ -881,6 +895,10 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 
 RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
+  // No deopt information if we 'always_optimize' (no deoptimization allowed).
+  if (Compiler::always_optimize()) {
+    return Array::empty_array().raw();
+  }
   // For functions with optional arguments, all incoming arguments are copied
   // to spill slots. The deoptimization environment does not track them.
   const Function& function = parsed_function().function();

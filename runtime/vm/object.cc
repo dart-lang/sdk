@@ -6722,7 +6722,7 @@ void Function::RestoreICDataMap(
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const {
   Zone* zone = Thread::Current()->zone();
   const Array& saved_icd = Array::Handle(zone, ic_data_array());
-  if (saved_icd.Length() == 0) {
+  if (saved_icd.IsNull() || (saved_icd.Length() == 0)) {
     deopt_id_to_ic_data->Clear();
     return;
   }

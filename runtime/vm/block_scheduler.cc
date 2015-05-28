@@ -80,6 +80,9 @@ static void SetEdgeWeight(Instruction* instruction,
 
 
 void BlockScheduler::AssignEdgeWeights() const {
+  if (!FLAG_emit_edge_counters) {
+    return;
+  }
   const Code& unoptimized_code = flow_graph()->parsed_function().code();
   ASSERT(!unoptimized_code.IsNull());
 

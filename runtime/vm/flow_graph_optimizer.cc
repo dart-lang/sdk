@@ -6,6 +6,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/cha.h"
+#include "vm/compiler.h"
 #include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
@@ -87,6 +88,33 @@ void FlowGraphOptimizer::ApplyICData() {
 }
 
 
+void FlowGraphOptimizer::PopulateWithICData() {
+  ASSERT(current_iterator_ == NULL);
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    BlockEntryInstr* entry = block_order_[i];
+    ForwardInstructionIterator it(entry);
+    for (; !it.Done(); it.Advance()) {
+      Instruction* instr = it.Current();
+      if (instr->IsInstanceCall()) {
+        InstanceCallInstr* call = instr->AsInstanceCall();
+        if (!call->HasICData()) {
+          const Array& arguments_descriptor =
+              Array::Handle(zone(),
+                  ArgumentsDescriptor::New(call->ArgumentCount(),
+                                           call->argument_names()));
+          const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
+              function(), call->function_name(),
+              arguments_descriptor, call->deopt_id(),
+              call->checked_argument_count()));
+          call->set_ic_data(&ic_data);
+        }
+      }
+    }
+    current_iterator_ = NULL;
+  }
+}
+
+
 // Optimize instance calls using cid.  This is called after optimizer
 // converted instance calls to instructions. Any remaining
 // instance calls are either megamorphic calls, cannot be optimized or
@@ -162,12 +190,14 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       Token::IsBinaryOperator(op_kind)) {
     // Guess cid: if one of the inputs is a number assume that the other
     // is a number of same type.
-    const intptr_t cid_0 = class_ids[0];
-    const intptr_t cid_1 = class_ids[1];
-    if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
-      class_ids[0] = cid_1;
-    } else if (IsNumberCid(cid_0) && (cid_1 == kDynamicCid)) {
-      class_ids[1] = cid_0;
+    if (Compiler::guess_other_cid()) {
+      const intptr_t cid_0 = class_ids[0];
+      const intptr_t cid_1 = class_ids[1];
+      if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
+        class_ids[0] = cid_1;
+      } else if (IsNumberCid(cid_0) && (cid_1 == kDynamicCid)) {
+        class_ids[1] = cid_0;
+      }
     }
   }
 
@@ -2263,7 +2293,8 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
 }
 
 
-void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
+bool FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
+                                                      bool allow_check) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.HasOneTarget());
@@ -2279,6 +2310,9 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(!field.IsNull());
 
   if (InstanceCallNeedsClassCheck(call, RawFunction::kImplicitGetter)) {
+    if (!allow_check) {
+      return false;
+    }
     AddReceiverCheck(call);
   }
   LoadFieldInstr* load = new(Z) LoadFieldInstr(
@@ -2307,6 +2341,7 @@ void FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       it.Current()->SetReachingType(NULL);
     }
   }
+  return true;
 }
 
 
@@ -2584,7 +2619,9 @@ bool FlowGraphOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
 
 
 // Only unique implicit instance getters can be currently handled.
-bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
+// Returns false if 'allow_check' is false and a check is needed.
+bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call,
+                                                 bool allow_check) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
   if (ic_data.NumberOfUsedChecks() == 0) {
@@ -2604,8 +2641,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
     // inlining in FlowGraphInliner.
     return false;
   }
-  InlineImplicitInstanceGetter(call);
-  return true;
+  return InlineImplicitInstanceGetter(call, allow_check);
 }
 
 
@@ -3126,6 +3162,10 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
+  if (Compiler::always_optimize()) {
+    // Cannot handle unboxed instructions.
+    return false;
+  }
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -3169,6 +3209,10 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
 bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
+  if (Compiler::always_optimize()) {
+    // Cannot handle unboxed instructions.
+    return false;
+  }
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -3204,6 +3248,10 @@ bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
 bool FlowGraphOptimizer::TryInlineInt32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
+  if (Compiler::always_optimize()) {
+    // Cannot handle unboxed instructions.
+    return false;
+  }
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -4152,6 +4200,15 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   }
 
   const Token::Kind op_kind = instr->token_kind();
+  if (Compiler::always_optimize()) {
+    // TODO(srdjan): Investigate other attempts, as they are not allowed to
+    // deoptimize.
+    if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr, false)) {
+      return;
+    }
+    return;
+  }
+
   // Type test is special as it always gets converted into inlined code.
   if (Token::IsTypeTestOperator(op_kind)) {
     ReplaceWithInstanceOf(instr);
@@ -4275,11 +4332,15 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
       break;
   }
   if (unary_kind != MathUnaryInstr::kIllegal) {
-    MathUnaryInstr* math_unary =
-        new(Z) MathUnaryInstr(unary_kind,
-                              new(Z) Value(call->ArgumentAt(0)),
-                              call->deopt_id());
-    ReplaceCall(call, math_unary);
+    if (Compiler::always_optimize()) {
+      // TODO(srdjan): Adapt MathUnaryInstr to allow tagged inputs as well.
+    } else {
+      MathUnaryInstr* math_unary =
+          new(Z) MathUnaryInstr(unary_kind,
+                                new(Z) Value(call->ArgumentAt(0)),
+                                call->deopt_id());
+      ReplaceCall(call, math_unary);
+    }
   } else if ((recognized_kind == MethodRecognizer::kFloat32x4Zero) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Splat) ||
              (recognized_kind == MethodRecognizer::kFloat32x4Constructor) ||
@@ -4340,6 +4401,10 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
       }
     }
   } else if (recognized_kind == MethodRecognizer::kMathDoublePow) {
+    if (Compiler::always_optimize()) {
+      // No UnboxDouble instructons allowed.
+      return;
+    }
     // We know that first argument is double, the second is num.
     // InvokeMathCFunctionInstr requires unboxed doubles. UnboxDouble
     // instructions contain type checks and conversions to double.

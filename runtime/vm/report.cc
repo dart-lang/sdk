@@ -21,6 +21,7 @@ DEFINE_FLAG(bool, warn_on_javascript_compatibility, false,
             "Warn on incompatibilities between vm and dart2js.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 
+DECLARE_FLAG(bool, always_megamorphic_calls);
 
 RawString* Report::PrependSnippet(Kind kind,
                                   const Script& script,
@@ -178,8 +179,13 @@ void Report::JSWarningFromNative(bool is_static_native, const char* msg) {
     // Assume an unoptimized static call. Optimization was prevented.
     CodePatcher::GetUnoptimizedStaticCallAt(caller_pc, caller_code, &ic_data);
   } else {
-    // Assume an instance call.
-    CodePatcher::GetInstanceCallAt(caller_pc, caller_code, &ic_data);
+    if (FLAG_always_megamorphic_calls) {
+      Report::JSWarningFromFrame(caller_frame, msg);
+      return;
+    } else {
+      // Assume an instance call.
+      CodePatcher::GetInstanceCallAt(caller_pc, caller_code, &ic_data);
+    }
   }
   ASSERT(!ic_data.IsNull());
   // Report warning only if not already reported at this location.

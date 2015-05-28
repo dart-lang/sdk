@@ -15,6 +15,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, prune_dead_locals, true, "optimize dead locals away");
+DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, reorder_basic_blocks);
 DECLARE_FLAG(bool, trace_optimization);
 DECLARE_FLAG(bool, verify_compiler);
@@ -83,7 +84,8 @@ void FlowGraph::AddToDeferredPrefixes(
 
 bool FlowGraph::ShouldReorderBlocks(const Function& function,
                                     bool is_optimized) {
-  return is_optimized && FLAG_reorder_basic_blocks && !function.is_intrinsic();
+  return is_optimized && FLAG_reorder_basic_blocks &&
+      FLAG_emit_edge_counters && !function.is_intrinsic();
 }
 
 
