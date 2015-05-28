@@ -96,10 +96,16 @@ var dart, _js_helper, _js_primitives;
       ftype = _getFunctionType(f);
     }
 
-    // TODO(leafp): Allow JS objects to go through?
-    if (!ftype) throw "Unable to find a type for applicand";
+    if (!ftype) {
+      // TODO(leafp): Allow JS objects to go through?
+      // This includes the DOM.
+      return f.apply(obj, args);
+    }
 
-    if (ftype.checkApply(args)) return f.apply(obj, args);
+    if (ftype.checkApply(args)) {
+      return f.apply(obj, args);
+    }
+
     // TODO(leafp): throw a type error (rather than NSM)
     // if the arity matches but the types are wrong.
     throwNoSuchMethod(obj, name, args, f);

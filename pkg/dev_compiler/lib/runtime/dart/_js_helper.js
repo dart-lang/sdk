@@ -1893,7 +1893,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     static parseInt(source, radix, handleError) {
       if (handleError == null)
-        handleError = dart.as(Primitives._throwFormatException, __CastType0);
+        handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.int), core.int, [core.Object]);
       checkString(source);
       let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
       let digitsIndex = 1;
@@ -1945,7 +1945,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     static parseDouble(source, handleError) {
       checkString(source);
       if (handleError == null)
-        handleError = dart.as(Primitives._throwFormatException, __CastType2);
+        handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.double), core.double, [core.Object]);
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source)) {
         return handleError(source);
       }
@@ -4154,8 +4154,6 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     throw new MainError("'main' expects too many parameters.");
   }
   dart.fn(mainHasTooManyParameters, dart.void, []);
-  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [core.String]));
-  let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.double, [core.String]));
   // Exports:
   exports.NoSideEffects = NoSideEffects;
   exports.NoThrows = NoThrows;

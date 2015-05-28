@@ -589,7 +589,9 @@ class Primitives {
   static int parseInt(String source,
                       int radix,
                       int handleError(String source)) {
-    if (handleError == null) handleError = _throwFormatException;
+    // TODO(vsm): Make _throwFormatException generic and use directly
+    // to avoid closure allocation.
+    if (handleError == null) handleError = (s) => _throwFormatException(s);
 
     checkString(source);
     var match = JS('JSExtendableArray|Null',
@@ -657,7 +659,9 @@ class Primitives {
 
   static double parseDouble(String source, double handleError(String source)) {
     checkString(source);
-    if (handleError == null) handleError = _throwFormatException;
+    // TODO(vsm): Make _throwFormatException generic and use directly
+    // to avoid closure allocation.
+    if (handleError == null) handleError = (s) => _throwFormatException(s);
     // Notice that JS parseFloat accepts garbage at the end of the string.
     // Accept only:
     // - [+/-]NaN

@@ -439,73 +439,67 @@ warning: line 246, column 52 of dart:_js_helper: [DownCastImplicit] memberName (
 warning: line 474, column 14 of dart:_js_helper: [DownCastComposite] JS('', '#[2 * # + # + # + 1]', data, parameter, optionalParameterCount, FIRST_DEFAULT_ARGUMENT) (dynamic) will need runtime check to cast to type List<int>
       return JS('', '#[2 * # + # + # + 1]', data, parameter,
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 592, column 44 of dart:_js_helper: [DownCastComposite] _throwFormatException ((String) → dynamic) will need runtime check to cast to type (String) → int
-    if (handleError == null) handleError = _throwFormatException;
-                                           ^^^^^^^^^^^^^^^^^^^^^
-warning: line 607, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 16)', source) (num) will need runtime check to cast to type int
+warning: line 609, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 16)', source) (num) will need runtime check to cast to type int
           return JS('num', r'parseInt(#, 16)', source);
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 611, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
+warning: line 613, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
           return JS('num', r'parseInt(#, 10)', source);
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 623, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
+warning: line 625, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
           return JS('num', r'parseInt(#, 10)', source);
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 655, column 12 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, #)', source, radix) (num) will need runtime check to cast to type int
+warning: line 657, column 12 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, #)', source, radix) (num) will need runtime check to cast to type int
     return JS('num', r'parseInt(#, #)', source, radix);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 660, column 44 of dart:_js_helper: [DownCastComposite] _throwFormatException ((String) → dynamic) will need runtime check to cast to type (String) → double
-    if (handleError == null) handleError = _throwFormatException;
-                                           ^^^^^^^^^^^^^^^^^^^^^
-warning: line 677, column 16 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
+warning: line 681, column 16 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
         return result;
                ^^^^^^
-warning: line 681, column 12 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
+warning: line 685, column 12 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
     return result;
            ^^^^^^
-warning: line 830, column 15 of dart:_js_helper: [DownCastImplicit] 0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)) (num) will need runtime check to cast to type int
+warning: line 834, column 15 of dart:_js_helper: [DownCastImplicit] 0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)) (num) will need runtime check to cast to type int
         a.add(0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)));
               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 831, column 15 of dart:_js_helper: [DownCastImplicit] 0xdc00 + (i & 0x3ff) (num) will need runtime check to cast to type int
+warning: line 835, column 15 of dart:_js_helper: [DownCastImplicit] 0xdc00 + (i & 0x3ff) (num) will need runtime check to cast to type int
         a.add(0xdc00 + (i & 0x3ff));
               ^^^^^^^^^^^^^^^^^^^^
-warning: line 845, column 31 of dart:_js_helper: [DownCastComposite] charCodes (dynamic) will need runtime check to cast to type List<int>
+warning: line 849, column 31 of dart:_js_helper: [DownCastComposite] charCodes (dynamic) will need runtime check to cast to type List<int>
     return _fromCharCodeApply(charCodes);
                               ^^^^^^^^^
-warning: line 1501, column 9 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message) (dynamic) will need runtime check to cast to type List<String>
+warning: line 1505, column 9 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message) (dynamic) will need runtime check to cast to type List<String>
         JS('JSExtendableArray|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message);
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3059, column 7 of dart:_js_helper: [DownCastComposite] parameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
+warning: line 3063, column 7 of dart:_js_helper: [DownCastComposite] parameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
       parameterTypes,
       ^^^^^^^^^^^^^^
-warning: line 3060, column 7 of dart:_js_helper: [DownCastComposite] optionalParameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
+warning: line 3064, column 7 of dart:_js_helper: [DownCastComposite] optionalParameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
       optionalParameterTypes,
       ^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3069, column 7 of dart:_js_helper: [DownCastComposite] parameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
+warning: line 3073, column 7 of dart:_js_helper: [DownCastComposite] parameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
       parameterTypes,
       ^^^^^^^^^^^^^^
-warning: line 3079, column 39 of dart:_js_helper: [DownCastComposite] typeArguments (dynamic) will need runtime check to cast to type List<RuntimeType>
+warning: line 3083, column 39 of dart:_js_helper: [DownCastComposite] typeArguments (dynamic) will need runtime check to cast to type List<RuntimeType>
   return new RuntimeTypeGeneric(name, typeArguments, null);
                                       ^^^^^^^^^^^^^
-warning: line 3140, column 41 of dart:_js_helper: [DownCastComposite] arguments (List<dynamic>) will need runtime check to cast to type List<RuntimeType>
+warning: line 3144, column 41 of dart:_js_helper: [DownCastComposite] arguments (List<dynamic>) will need runtime check to cast to type List<RuntimeType>
     return new RuntimeTypeGeneric(name, arguments, rti);
                                         ^^^^^^^^^
-warning: line 3325, column 23 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', '#[#]', urisMap, loadId) (dynamic) will need runtime check to cast to type List<String>
+warning: line 3329, column 23 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', '#[#]', urisMap, loadId) (dynamic) will need runtime check to cast to type List<String>
   List<String> uris = JS('JSExtendableArray|Null', '#[#]', urisMap, loadId);
                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3327, column 25 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId) (dynamic) will need runtime check to cast to type List<String>
+warning: line 3331, column 25 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId) (dynamic) will need runtime check to cast to type List<String>
   List<String> hashes = JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId);
                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3337, column 10 of dart:_js_helper: [DownCastComposite] Future.wait(indicesToLoad.map((int i) => _loadHunk(uris[i]))).then((_) {List<int> indicesToInitialize = indices.where((int i) => !JS('bool', '#(#)', isHunkInitialized, hashes[i])).toList(); for (int i in indicesToInitialize) {var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK); JS('void', '#(#)', initializer, hashes[i]);} bool updated = _loadedLibraries.add(loadId); if (updated && deferredLoadHook != null) {deferredLoadHook();}}) (Future<dynamic>) will need runtime check to cast to type Future<Null>
+warning: line 3341, column 10 of dart:_js_helper: [DownCastComposite] Future.wait(indicesToLoad.map((int i) => _loadHunk(uris[i]))).then((_) {List<int> indicesToInitialize = indices.where((int i) => !JS('bool', '#(#)', isHunkInitialized, hashes[i])).toList(); for (int i in indicesToInitialize) {var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK); JS('void', '#(#)', initializer, hashes[i]);} bool updated = _loadedLibraries.add(loadId); if (updated && deferredLoadHook != null) {deferredLoadHook();}}) (Future<dynamic>) will need runtime check to cast to type Future<Null>
   return Future.wait(indicesToLoad
          ^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3337, column 22 of dart:_js_helper: [DownCastComposite] indicesToLoad.map((int i) => _loadHunk(uris[i])) (Iterable<dynamic>) will need runtime check to cast to type Iterable<Future<dynamic>>
+warning: line 3341, column 22 of dart:_js_helper: [DownCastComposite] indicesToLoad.map((int i) => _loadHunk(uris[i])) (Iterable<dynamic>) will need runtime check to cast to type Iterable<Future<dynamic>>
   return Future.wait(indicesToLoad
                      ^^^^^^^^^^^^^^
-warning: line 3360, column 12 of dart:_js_helper: [DownCastComposite] future.then((_) => null) (Future<dynamic>) will need runtime check to cast to type Future<Null>
+warning: line 3364, column 12 of dart:_js_helper: [DownCastComposite] future.then((_) => null) (Future<dynamic>) will need runtime check to cast to type Future<Null>
     return future.then((_) => null);
            ^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3386, column 36 of dart:_js_helper: [DownCastComposite] completer.future.whenComplete(() {leaveJsAsync();}) (Future<dynamic>) will need runtime check to cast to type Future<Null>
+warning: line 3390, column 36 of dart:_js_helper: [DownCastComposite] completer.future.whenComplete(() {leaveJsAsync();}) (Future<dynamic>) will need runtime check to cast to type Future<Null>
       Future<Null> leavingFuture = completer.future.whenComplete(() {
                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 warning: line 20, column 41 of dart:_js_helper/constant_map.dart: [DownCastComposite] _throwUnmodifiable() (dynamic) will need runtime check to cast to type V
