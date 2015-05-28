@@ -424,7 +424,6 @@ class CacheEntry {
    */
   /*<V>*/ void setValue(ResultDescriptor /*<V>*/ descriptor, dynamic /*V*/
       value, List<TargetedResult> dependedOn) {
-//    print('  setValue: $descriptor for $target dependedOn=$dependedOn');
     _validateStateChange(descriptor, CacheState.VALID);
     TargetedResult thisResult = new TargetedResult(target, descriptor);
     if (_partition != null) {
@@ -465,7 +464,6 @@ class CacheEntry {
    */
   void _invalidate(ResultDescriptor descriptor) {
     ResultData thisData = _resultMap.remove(descriptor);
-//    print('invalidate: $descriptor for $target');
     if (thisData == null) {
       return;
     }
