@@ -91,9 +91,10 @@ bool _isWindows = false;
 // A class wrapping the load error message in an Error object.
 class _LoadError extends Error {
   final String message;
-  _LoadError(this.message);
+  final String uri;
+  _LoadError(this.uri, this.message);
 
-  String toString() => 'Load Error: $message';
+  String toString() => 'Load Error for "$uri": $message';
 }
 
 // Class collecting all of the information about a particular load request.
@@ -280,13 +281,13 @@ void _handleLoaderReply(msg) {
       _loadScript(req, dataOrError);
     } else {
       assert(dataOrError is String);
-      var error = new _LoadError(dataOrError.toString());
+      var error = new _LoadError(req._uri, dataOrError.toString());
       _asyncLoadError(req, error);
     }
   } catch(e, s) {
     // Wrap inside a _LoadError unless we are already propagating a
     // previous _LoadError.
-    var error = (e is _LoadError) ? e : new _LoadError(e.toString());
+    var error = (e is _LoadError) ? e : new _LoadError(req._uri, e.toString());
     assert(req != null);
     _asyncLoadError(req, error);
   }
