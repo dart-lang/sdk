@@ -338,12 +338,13 @@ void _asyncLoadError(_LoadRequest req, _LoadError error) {
   if (_traceLoading) {
     _print("_asyncLoadError(${req._uri}), error: $error");
   }
+  var libraryUri = req._libraryUri;
   if (req._tag == Dart_kImportTag) {
     // When importing a library, the libraryUri is the imported
     // uri.
-    req._libraryUri = req._uri;
+    libraryUri = req._uri;
   }
-  _asyncLoadErrorCallback(req._uri, req._libraryUri, error);
+  _asyncLoadErrorCallback(req._uri, libraryUri, error);
   _finishLoadRequest(req);
 }
 
