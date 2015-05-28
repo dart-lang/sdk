@@ -13,8 +13,16 @@ if [[ -d lib/runtime/dart ]] ; then
 fi
 
 # TODO(jmesserly): for now we're suppressing errors in SDK compilation
-dart -c bin/devc.dart --no-source-maps --sdk-check --force-compile -l shout \
-    --dart-sdk test/generated_sdk -o lib/runtime/ dart:core || true
+dart -c bin/devc.dart --no-source-maps --sdk-check --force-compile -l warning \
+    --dart-sdk test/generated_sdk -o lib/runtime/ dart:core \
+    > test/generated_sdk/sdk_errors.txt || true
+
+if ! diff tool/sdk_expected_errors.txt test/generated_sdk/sdk_errors.txt ; then
+    echo
+    echo 'SDK errors have changed.  To update expectations, run:'
+    echo '$ cp test/generated_sdk/sdk_errors.txt tool/sdk_expected_errors.txt'
+    exit 1
+fi
 
 if [[ ! -f lib/runtime/dart/core.js ]] ; then
     echo 'core.js not found, assuming build failed.'
