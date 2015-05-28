@@ -560,21 +560,8 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     }
   }
 
-  List<DartType> _sealedTypes = null;
-
   bool _isSealed(DartType t) {
-    if (_sealedTypes == null) {
-      // TODO(vsm): Use the analyzer's list - see dartbug.com/23125.
-      _sealedTypes = <DartType>[
-        _typeProvider.nullType,
-        _typeProvider.numType,
-        _typeProvider.intType,
-        _typeProvider.doubleType,
-        _typeProvider.boolType,
-        _typeProvider.stringType
-      ];
-    }
-    return _sealedTypes.contains(t);
+    return _typeProvider.nonSubtypableTypes.contains(t);
   }
 
   @override // to propagate types to identifiers
