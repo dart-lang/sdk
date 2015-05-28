@@ -30,6 +30,21 @@ def BuildAPIDocs():
     Run([sys.executable, './tools/build.py', '--mode=release',
          '--arch=ia32', 'dartdocgen'])
 
+def CreateUploadVersionFile():
+  file_path = os.path.join(bot_utils.DART_DIR,
+                           utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
+                           'VERSION')
+  with open(file_path, 'w') as fd:
+    fd.write(utils.GetVersionFileContent())
+  DartArchiveUploadVersionFile(file_path)
+
+def DartArchiveUploadVersionFile(version_file):
+  namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
+  revision = utils.GetSVNRevision()
+  for revision in [revision, 'latest']:
+    destination = namer.version_filepath(revision)
+    DartArchiveFile(version_file, destination, checksum_files=False)
+
 def CreateUploadSDKZips():
   with bot.BuildStep('Create and upload sdk zips'):
     sdk32_path = os.path.join(bot_utils.DART_DIR,
@@ -174,4 +189,5 @@ def Run(command):
 if __name__ == '__main__':
   CreateUploadSDK()
   if BUILD_OS == 'linux':
+    CreateUploadVersionFile()
     CreateUploadAPIDocs()

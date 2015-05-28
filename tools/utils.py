@@ -6,6 +6,8 @@
 # scripts.
 
 import commands
+import datetime
+import json
 import os
 import platform
 import re
@@ -318,6 +320,21 @@ def GetEclipseVersionQualifier():
 def GetVersion():
   return GetSemanticSDKVersion()
 
+
+# The editor used to produce the VERSION file put on gcs. We now produce this
+# in the bots archiving the sdk.
+# The content looks like this:
+#{
+#  "date": "2015-05-28",
+#  "version": "1.11.0-edge.131653",
+#  "revision": "535394c2657ede445142d8a92486d3899bbf49b5"
+#}
+def GetVersionFileContent():
+  result = {"date": str(datetime.date.today()),
+            "version": GetVersion(),
+            "revision": GetGitRevision()}
+  return json.dumps(result, indent=2)
+
 def GetChannel():
   version = ReadVersionFile()
   return version.channel
@@ -387,6 +404,19 @@ def GetArchiveVersion():
   if version.channel == 'be':
     return GetGitNumber()
   return GetSemanticSDKVersion()
+
+
+def GetGitRevision():
+  p = subprocess.Popen(['git', 'log', '-n', '1', '--pretty=format:%H'],
+                       stdout = subprocess.PIPE,
+                       stderr = subprocess.STDOUT, shell=IsWindows(),
+                       cwd = DART_DIR)
+  output, _ = p.communicate()
+  # We expect a full git hash
+  if len(output) != 40:
+    print "Warning: could not parse git commit, output was %s" % output
+    return None
+  return output
 
 # To eliminate clashing with older archived builds on bleding edge we add
 # a base number bigger the largest svn revision (this also gives us an easy
@@ -507,7 +537,8 @@ def Main():
   print "GuessCpus() -> ", GuessCpus()
   print "IsWindows() -> ", IsWindows()
   print "GuessVisualStudioPath() -> ", GuessVisualStudioPath()
-
+  print "GetGitRevision() -> ", GetGitRevision()
+  print "GetVersionFileContent() -> ", GetVersionFileContent()
 
 class Error(Exception):
   pass
