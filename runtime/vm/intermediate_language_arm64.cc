@@ -3310,6 +3310,17 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiUntag(out, value);
   } else if (value_cid == kMintCid) {
     __ LoadFieldFromOffset(out, value, Mint::value_offset(), PP);
+  } else if (!CanDeoptimize()) {
+    // Type information is not conclusive, but range analysis found
+    // the value to be in int64 range. Therefore it must be a smi
+    // or mint value.
+    ASSERT(is_truncating());
+    Label done;
+    __ SmiUntag(out, value);
+    __ TestImmediate(value, kSmiTagMask, PP);
+    __ b(&done, EQ);
+    __ LoadFieldFromOffset(out, value, Mint::value_offset(), PP);
+    __ Bind(&done);
   } else {
     Label done;
     __ SmiUntag(out, value);
