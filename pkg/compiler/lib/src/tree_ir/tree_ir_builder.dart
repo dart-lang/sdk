@@ -82,7 +82,6 @@ class Builder implements cps_ir.Visitor<Node> {
   Variable phiTempVar;
 
   Variable addMutableVariable(cps_ir.MutableVariable irVariable) {
-    assert(irVariable.host == currentElement);
     assert(!mutable2variable.containsKey(irVariable));
     Variable variable = new Variable(currentElement, irVariable.hint);
     mutable2variable[irVariable] = variable;
@@ -90,7 +89,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Variable getMutableVariable(cps_ir.MutableVariable mutableVariable) {
-    if (mutableVariable.host != currentElement) {
+    if (!mutable2variable.containsKey(mutableVariable)) {
       return parent.getMutableVariable(mutableVariable)..isCaptured = true;
     }
     return mutable2variable[mutableVariable];
@@ -512,9 +511,11 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Statement visitTypeOperator(cps_ir.TypeOperator node) {
-    Expression receiver = getVariableUse(node.receiver);
+    Expression value = getVariableUse(node.value);
+    List<Expression> typeArgs = translateArguments(node.typeArguments);
     Expression concat =
-        new TypeOperator(receiver, node.type, isTypeTest: node.isTypeTest);
+        new TypeOperator(value, node.type, typeArgs,
+                         isTypeTest: node.isTypeTest);
     return continueWithExpression(node.continuation, concat);
   }
 
@@ -665,6 +666,13 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Expression visitGetStatic(cps_ir.GetStatic node) {
     return new GetStatic(node.element, node.sourceInformation);
+  }
+
+  Statement visitGetLazyStatic(cps_ir.GetLazyStatic node) {
+    // In the tree IR, GetStatic handles lazy fields because tree
+    // expressions are allowed to have side effects.
+    GetStatic value = new GetStatic(node.element, node.sourceInformation);
+    return continueWithExpression(node.continuation, value);
   }
 
   Statement visitSetStatic(cps_ir.SetStatic node) {

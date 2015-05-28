@@ -140,27 +140,20 @@ class Emitter implements emitterTask.Emitter {
         return js.js.expressionTemplateYielding(
             typeAccess(_compiler.objectClass));
 
-      case JsBuiltin.classNameFromIsCheckProperty:
+      case JsBuiltin.isCheckPropertyToJsConstructorName:
         int isPrefixLength = namer.operatorIsPrefix.length;
         return js.js.expressionTemplateFor('#.substring($isPrefixLength)');
 
       case JsBuiltin.isFunctionType:
         return _backend.rti.representationGenerator.templateForIsFunctionType;
 
-      case JsBuiltin.isFunctionTypeLiteral:
-        String functionClassName =
-            _backend.namer.runtimeTypeName(_compiler.functionClass);
-
-        return js.js.expressionTemplateFor(
-            '#.$typeNameProperty === "$functionClassName"');
-
-      case JsBuiltin.typeName:
+      case JsBuiltin.rawRtiToJsConstructorName:
         return js.js.expressionTemplateFor("#.$typeNameProperty");
 
       case JsBuiltin.rawRuntimeType:
         return js.js.expressionTemplateFor("#.constructor");
 
-      case JsBuiltin.createFunctionType:
+      case JsBuiltin.createFunctionTypeRti:
         return _backend.rti.representationGenerator
             .templateForCreateFunctionType;
 
@@ -169,6 +162,24 @@ class Emitter implements emitterTask.Emitter {
         // built.
         String isPrefix = namer.operatorIsPrefix;
         return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
+
+      case JsBuiltin.isFunctionTypeRti:
+        String functionClassName =
+            _backend.namer.runtimeTypeName(_compiler.functionClass);
+        return js.js.expressionTemplateFor(
+            '#.$typeNameProperty === "$functionClassName"');
+
+      case JsBuiltin.isNullTypeRti:
+        String nullClassName =
+            _backend.namer.runtimeTypeName(_compiler.nullClass);
+        return js.js.expressionTemplateFor(
+            '#.$typeNameProperty === "$nullClassName"');
+
+      case JsBuiltin.isDartObjectTypeRti:
+        String dartObjectClassName =
+            _backend.namer.runtimeTypeName(_compiler.objectClass);
+        return js.js.expressionTemplateFor(
+            '#.$typeNameProperty === "$dartObjectClassName"');
 
       case JsBuiltin.getMetadata:
         return _emitter.templateForReadMetadata;

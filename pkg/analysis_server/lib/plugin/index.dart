@@ -13,9 +13,8 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:plugin/plugin.dart';
 
 /**
- * The identifier of the extension point that allows plugins to register new
- * index contributors with the server. The object used as an extension must be
- * an [IndexContributor].
+ * The identifier of the extension point that allows plugins to register index
+ * contributors. The object used as an extension must be an [IndexContributor].
  */
 final String INDEX_CONTRIBUTOR_EXTENSION_POINT_ID = Plugin.join(
     ServerPlugin.UNIQUE_IDENTIFIER,

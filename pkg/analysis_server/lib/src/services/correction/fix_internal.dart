@@ -143,6 +143,9 @@ class FixProcessor {
         CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_IMPLICIT) {
       _addFix_createConstructorSuperImplicit();
     }
+    if (errorCode == CompileTimeErrorCode.PART_OF_NON_PART) {
+      _addFix_addPartOfDirective();
+    }
     if (errorCode ==
         CompileTimeErrorCode.UNDEFINED_CONSTRUCTOR_IN_INITIALIZER_DEFAULT) {
       _addFix_createConstructorSuperExplicit();
@@ -344,6 +347,24 @@ class FixProcessor {
     return false;
   }
 
+  void _addFix_addPartOfDirective() {
+    if (node is SimpleStringLiteral && node.parent is PartDirective) {
+      PartDirective directive = node.parent;
+      Source partSource = directive.source;
+      CompilationUnit partUnit =
+          context.getResolvedCompilationUnit2(partSource, unitSource);
+      if (partUnit != null) {
+        CorrectionUtils partUtils = new CorrectionUtils(partUnit);
+        CorrectionUtils_InsertDesc desc = partUtils.getInsertDescTop();
+        String libraryName = unitLibraryElement.name;
+        _addInsertEdit(desc.offset,
+            '${desc.prefix}part of $libraryName;$eol${desc.suffix}',
+            partUnit.element);
+        _addFix(DartFixKind.ADD_PART_OF, []);
+      }
+    }
+  }
+
   void _addFix_boolInsteadOfBoolean() {
     SourceRange range = rf.rangeError(error);
     _addReplaceEdit(range, 'bool');
@@ -351,37 +372,41 @@ class FixProcessor {
   }
 
   void _addFix_createClass() {
-    if (_mayBeTypeIdentifier(node)) {
-      String name = (node as SimpleIdentifier).name;
-      // prepare environment
-      CompilationUnitMember enclosingMember =
-          node.getAncestor((node) => node is CompilationUnitMember);
-      int offset = enclosingMember.end;
-      String prefix = '';
-      // prepare source
-      SourceBuilder sb = new SourceBuilder(file, offset);
-      {
-        sb.append('$eol$eol');
-        sb.append(prefix);
-        // "class"
-        sb.append('class ');
-        // append name
-        {
-          sb.startPosition('NAME');
-          sb.append(name);
-          sb.endPosition();
-        }
-        // no members
-        sb.append(' {');
-        sb.append(eol);
-        sb.append('}');
-      }
-      // insert source
-      _insertBuilder(sb, unitElement);
-      _addLinkedPosition('NAME', sb, rf.rangeNode(node));
-      // add proposal
-      _addFix(DartFixKind.CREATE_CLASS, [name]);
+    if (!_mayBeTypeIdentifier(node)) {
+      return;
     }
+    String name = (node as SimpleIdentifier).name;
+    // prepare environment
+    CompilationUnitMember enclosingMember =
+        node.getAncestor((node) => node.parent is CompilationUnit);
+    if (enclosingMember == null) {
+      return;
+    }
+    int offset = enclosingMember.end;
+    String prefix = '';
+    // prepare source
+    SourceBuilder sb = new SourceBuilder(file, offset);
+    {
+      sb.append('$eol$eol');
+      sb.append(prefix);
+      // "class"
+      sb.append('class ');
+      // append name
+      {
+        sb.startPosition('NAME');
+        sb.append(name);
+        sb.endPosition();
+      }
+      // no members
+      sb.append(' {');
+      sb.append(eol);
+      sb.append('}');
+    }
+    // insert source
+    _insertBuilder(sb, unitElement);
+    _addLinkedPosition('NAME', sb, rf.rangeNode(node));
+    // add proposal
+    _addFix(DartFixKind.CREATE_CLASS, [name]);
   }
 
   /**
@@ -923,8 +948,8 @@ class FixProcessor {
           libName = libName.replaceAll('_', '.');
           SourceEdit edit = new SourceEdit(0, 0, 'library $libName;$eol$eol');
           doSourceChange_addSourceEdit(change, context, source, edit);
+          _addFix(DartFixKind.CREATE_FILE, [source.shortName]);
         }
-        _addFix(DartFixKind.CREATE_FILE, [file]);
       }
     }
   }
@@ -1123,11 +1148,10 @@ class FixProcessor {
       PartDirective partDirective = node.parent;
       Source source = partDirective.source;
       if (source != null) {
-        String file = source.fullName;
         String libName = unitLibraryElement.name;
         SourceEdit edit = new SourceEdit(0, 0, 'part of $libName;$eol$eol');
         doSourceChange_addSourceEdit(change, context, source, edit);
-        _addFix(DartFixKind.CREATE_FILE, [file]);
+        _addFix(DartFixKind.CREATE_FILE, [source.shortName]);
       }
     }
   }

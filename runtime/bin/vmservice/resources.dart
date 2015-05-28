@@ -40,9 +40,21 @@ class Resource {
   static final Map<String, Resource> resources = new Map<String, Resource>();
 }
 
+ZLibCodec _zlib;
 
-void _addResource(String name, List<int> data) {
+void _addResource(String name, List<int> data, bool compressed) {
   var mimeType = detectMimeType(name);
+  if (compressed) {
+    if (_zlib == null) {
+      _zlib = new ZLibCodec();
+    }
+    try {
+      data = _zlib.decode(data);
+    } catch(e) {
+      print('error decompressing service isolate resource: $name');
+      return;
+    }
+  }
   Resource resource = new Resource(name, mimeType, data);
   Resource.resources[name] = resource;
 }

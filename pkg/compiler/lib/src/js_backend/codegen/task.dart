@@ -13,7 +13,6 @@ import '../js_backend.dart';
 import '../../constants/constant_system.dart';
 import '../../dart2jslib.dart';
 import '../../cps_ir/cps_ir_nodes.dart' as cps;
-import '../../cps_ir/cps_ir_builder.dart';
 import '../../cps_ir/cps_ir_integrity.dart';
 import '../../cps_ir/cps_ir_builder_task.dart';
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
@@ -23,7 +22,6 @@ import '../../elements/elements.dart';
 import '../../js/js.dart' as js;
 import '../../io/source_information.dart' show SourceInformationFactory;
 import '../../tree_ir/tree_ir_builder.dart' as tree_builder;
-import '../../dart_backend/backend_ast_emitter.dart' as backend_ast_emitter;
 import '../../cps_ir/optimizers.dart';
 import '../../cps_ir/optimizers.dart' as cps_opt;
 import '../../tracer.dart';
@@ -104,8 +102,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   cps.FunctionDefinition compileToCpsIR(AstElement element) {
     // TODO(sigurdm): Support these constructs.
-    if (element.isNative ||
-        element.isField) {
+    if (element.isNative) {
       giveUp('unsupported element kind: ${element.name}:${element.kind}');
     }
 

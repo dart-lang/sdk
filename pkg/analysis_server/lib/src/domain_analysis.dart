@@ -221,6 +221,11 @@ class AnalysisDomainHandler implements RequestHandler {
         options.hint = newOptions.generateHints;
       });
     }
+    if (newOptions.generateLints != null) {
+      updaters.add((engine.AnalysisOptionsImpl options) {
+        options.lint = newOptions.generateLints;
+      });
+    }
     server.updateOptions(updaters);
     return new AnalysisUpdateOptionsResult().toResponse(request.id);
   }

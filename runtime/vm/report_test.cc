@@ -29,10 +29,10 @@ TEST_CASE(TraceJSWarning) {
                        js.ToCString());
       // Skip time.
       EXPECT_SUBSTRING("\"message\":{\"type\":\"JSCompatibilityWarning\","
-                       "\"script\":{\"type\":\"@Script\",\"id\":"
-                       "\"libraries\\/-1\\/scripts\\/Plug\","
-                       "\"name\":\"Plug\","
-                       "\"kind\":\"script\"},\"tokenPos\":0,"
+                       "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
+                       "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
+                       "\"uri\":\"Plug\","
+                       "\"_kind\":\"script\"},\"tokenPos\":0,"
                        "\"message\":{\"type\":\"@String\"",
                        js.ToCString());
       // Skip private _OneByteString.
@@ -47,9 +47,10 @@ TEST_CASE(TraceJSWarning) {
   }
   EXPECT_EQ(2, trace_buffer->Length());
   EXPECT_SUBSTRING("{\"type\":\"JSCompatibilityWarning\",\"script\":{\"type\":"
-                   "\"@Script\",\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
-                   "\"name\":\"Plug\","
-                   "\"kind\":\"script\"},\"tokenPos\":0,"
+                   "\"@Script\",\"fixedId\":true,"
+                   "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
+                   "\"uri\":\"Plug\","
+                   "\"_kind\":\"script\"},\"tokenPos\":0,"
                    "\"message\":{\"type\":\"@String\"",
                    trace_buffer->At(0)->message);
   // Skip private _OneByteString.
@@ -57,9 +58,10 @@ TEST_CASE(TraceJSWarning) {
                    trace_buffer->At(0)->message);
 
   EXPECT_SUBSTRING("{\"type\":\"JSCompatibilityWarning\",\"script\":{\"type\":"
-                   "\"@Script\",\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
-                   "\"name\":\"Plug\","
-                   "\"kind\":\"script\"},\"tokenPos\":1,"
+                   "\"@Script\",\"fixedId\":true,"
+                   "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
+                   "\"uri\":\"Plug\","
+                   "\"_kind\":\"script\"},\"tokenPos\":1,"
                    "\"message\":{\"type\":\"@String\"",
                    trace_buffer->At(1)->message);
   // Skip private _OneByteString.

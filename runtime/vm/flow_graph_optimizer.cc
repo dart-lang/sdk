@@ -1403,9 +1403,6 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     // Recognized []= operators.
     case MethodRecognizer::kObjectArraySetIndexed:
     case MethodRecognizer::kGrowableArraySetIndexed:
-      if (ArgIsAlways(kSmiCid, ic_data, 2)) {
-        value_check = ic_data.AsUnaryClassChecksForArgNr(2);
-      }
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               value_check, entry, last);
     case MethodRecognizer::kInt8ArraySetIndexed:
@@ -1415,22 +1412,19 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kExternalUint8ClampedArraySetIndexed:
     case MethodRecognizer::kInt16ArraySetIndexed:
     case MethodRecognizer::kUint16ArraySetIndexed:
-      if (!ArgIsAlways(kSmiCid, ic_data, 2)) {
-        return false;
-      }
-      value_check = ic_data.AsUnaryClassChecksForArgNr(2);
+      // Optimistically assume Smi.
+      // TODO(srdjan): Check deopt reason to prevent repeated deoptimizations.
+      value_check = ic_data.AsUnaryClassChecksForCid(kSmiCid, target);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               value_check, entry, last);
     case MethodRecognizer::kInt32ArraySetIndexed:
-    case MethodRecognizer::kUint32ArraySetIndexed:
-      // Check that value is always smi or mint. We use Int32/Uint32 unboxing
-      // which can only deal unbox these values.
-      value_check = ic_data.AsUnaryClassChecksForArgNr(2);
-      if (!HasOnlySmiOrMint(value_check)) {
-        return false;
-      }
+    case MethodRecognizer::kUint32ArraySetIndexed: {
+      // Value check not needed for Int32 and Uint32 arrays because they
+      // implicitly contain unboxing instructions which check for right type.
+      ICData& value_check = ICData::Handle();
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               value_check, entry, last);
+    }
     case MethodRecognizer::kInt64ArraySetIndexed:
       if (!ShouldInlineInt64ArrayOps()) {
         return false;
@@ -1442,33 +1436,22 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
       if (!CanUnboxDouble()) {
         return false;
       }
-      // Check that value is always double.
-      if (!ArgIsAlways(kDoubleCid, ic_data, 2)) {
-        return false;
-      }
-      value_check = ic_data.AsUnaryClassChecksForArgNr(2);
+      value_check = ic_data.AsUnaryClassChecksForCid(kDoubleCid, target);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               value_check, entry, last);
     case MethodRecognizer::kFloat32x4ArraySetIndexed:
       if (!ShouldInlineSimd()) {
         return false;
       }
-      // Check that value is always a Float32x4.
-      if (!ArgIsAlways(kFloat32x4Cid, ic_data, 2)) {
-        return false;
-      }
-      value_check = ic_data.AsUnaryClassChecksForArgNr(2);
+      value_check = ic_data.AsUnaryClassChecksForCid(kFloat32x4Cid, target);
+
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               value_check, entry, last);
     case MethodRecognizer::kFloat64x2ArraySetIndexed:
       if (!ShouldInlineSimd()) {
         return false;
       }
-      // Check that value is always a Float32x4.
-      if (!ArgIsAlways(kFloat64x2Cid, ic_data, 2)) {
-        return false;
-      }
-      value_check = ic_data.AsUnaryClassChecksForArgNr(2);
+      value_check = ic_data.AsUnaryClassChecksForCid(kFloat64x2Cid, target);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               value_check, entry, last);
     case MethodRecognizer::kByteArrayBaseGetInt8:
@@ -4534,18 +4517,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   if (InstanceCallNeedsClassCheck(instr, RawFunction::kImplicitSetter)) {
     AddReceiverCheck(instr);
   }
-  StoreBarrierType needs_store_barrier = kEmitStoreBarrier;
-  if (ArgIsAlways(kSmiCid, *instr->ic_data(), 1)) {
-    InsertBefore(instr,
-                 new(Z) CheckSmiInstr(
-                     new(Z) Value(instr->ArgumentAt(1)),
-                     instr->deopt_id(),
-                     instr->token_pos()),
-                 instr->env(),
-                 FlowGraph::kEffect);
-    needs_store_barrier = kNoStoreBarrier;
-  }
-
   if (field.guarded_cid() != kDynamicCid) {
     InsertBefore(instr,
                  new(Z) GuardFieldClassInstr(
@@ -4571,7 +4542,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       field,
       new(Z) Value(instr->ArgumentAt(0)),
       new(Z) Value(instr->ArgumentAt(1)),
-      needs_store_barrier,
+      kEmitStoreBarrier,
       instr->token_pos());
 
   if (store->IsUnboxedStore()) {

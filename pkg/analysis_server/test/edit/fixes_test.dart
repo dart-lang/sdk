@@ -8,7 +8,6 @@ import 'dart:async';
 
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
-import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -29,9 +28,8 @@ class FixesTest extends AbstractAnalysisTest {
     super.setUp();
     createProject();
     ExtensionManager manager = new ExtensionManager();
-    ServerPlugin plugin = new ServerPlugin();
-    manager.processPlugins([plugin]);
-    handler = new EditDomainHandler(server, plugin);
+    manager.processPlugins([server.serverPlugin]);
+    handler = new EditDomainHandler(server);
   }
 
   Future test_fixUndefinedClass() async {

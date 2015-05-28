@@ -1257,6 +1257,18 @@ bool UnboxInt32Instr::CanDeoptimize() const {
 }
 
 
+bool UnboxUint32Instr::CanDeoptimize() const {
+  ASSERT(is_truncating());
+  if ((value()->Type()->ToCid() == kSmiCid) ||
+      (value()->Type()->ToCid() == kMintCid)) {
+    return false;
+  }
+  // Check input value's range.
+  Range* value_range = value()->definition()->range();
+  return !RangeUtils::Fits(value_range, RangeBoundary::kRangeBoundaryInt64);
+}
+
+
 bool BinaryInt32OpInstr::CanDeoptimize() const {
   switch (op_kind()) {
     case Token::kBIT_AND:
@@ -2941,7 +2953,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
     const Array& arguments_descriptor =
         Array::Handle(zone, ArgumentsDescriptor::New(ArgumentCount(),
-                                                        argument_names()));
+                                                     argument_names()));
     call_ic_data = compiler->GetOrAddInstanceCallICData(
         deopt_id(), function_name(), arguments_descriptor,
         checked_argument_count());

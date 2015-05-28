@@ -789,6 +789,11 @@ class Assembler : public ValueObject {
   void Bind(Label* label);
   void Jump(Label* label) { jmp(label); }
 
+  // Address of code at offset.
+  uword CodeAddress(intptr_t offset) {
+    return buffer_.Address(offset);
+  }
+
   intptr_t CodeSize() const { return buffer_.Size(); }
   intptr_t prologue_offset() const { return prologue_offset_; }
 
@@ -848,6 +853,7 @@ class Assembler : public ValueObject {
   //   pushl immediate(0)
   //   .....
   void EnterStubFrame();
+  static const intptr_t kEnterStubFramePushedWords = 2;
 
   // Instruction pattern from entrypoint is used in dart frame prologs
   // to set up the frame and save a PC which can be used to figure out the

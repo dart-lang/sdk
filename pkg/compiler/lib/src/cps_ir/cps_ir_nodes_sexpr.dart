@@ -290,10 +290,12 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String visitTypeOperator(TypeOperator node) {
-    String receiver = access(node.receiver);
+    String value = access(node.value);
     String cont = access(node.continuation);
     String operator = node.isTypeTest ? 'is' : 'as';
-    return '$indentation(TypeOperator $operator $receiver ${node.type} $cont)';
+    String typeArguments = node.typeArguments.map(access).join(' ');
+    return '$indentation(TypeOperator $operator $value ${node.type} '
+           '($typeArguments) $cont)';
   }
 
   String visitLiteralList(LiteralList node) {
@@ -345,6 +347,12 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String value = access(node.value);
     String body = indentBlock(() => visit(node.body));
     return '$indentation(SetStatic $element $value\n$body)';
+  }
+
+  String visitGetLazyStatic(GetLazyStatic node) {
+    String element = node.element.name;
+    String cont = access(node.continuation);
+    return '$indentation(GetLazyStatic $element $cont)';
   }
 
   String visitCreateBox(CreateBox node) {

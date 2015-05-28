@@ -167,7 +167,7 @@ class Isolate : public BaseIsolate {
 
   // A thread that operates on this isolate and may execute Dart code.
   // No other threads operating on this isolate may execute Dart code.
-  // TODO(koda): Remove after caching current thread in generated code.
+  // TODO(koda): Remove after pivoting to thread in NativeArguments.
   Thread* mutator_thread() {
     DEBUG_ASSERT(mutator_thread_ == NULL || IsIsolateOf(mutator_thread_));
     return mutator_thread_;

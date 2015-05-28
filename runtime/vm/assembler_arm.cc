@@ -1559,7 +1559,7 @@ void Assembler::LoadPoolPointer() {
 
 
 void Assembler::LoadIsolate(Register rd) {
-  LoadImmediate(rd, reinterpret_cast<uword>(Isolate::Current()));
+  ldr(rd, Address(THR, Thread::isolate_offset()));
 }
 
 

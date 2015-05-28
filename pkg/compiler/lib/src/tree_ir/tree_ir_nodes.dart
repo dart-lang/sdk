@@ -331,11 +331,13 @@ class LiteralMap extends Expression {
 }
 
 class TypeOperator extends Expression {
-  Expression receiver;
+  Expression value;
   final DartType type;
+  final List<Expression> typeArguments;
   final bool isTypeTest;
 
-  TypeOperator(this.receiver, this.type, {bool this.isTypeTest});
+  TypeOperator(this.value, this.type, this.typeArguments,
+               {bool this.isTypeTest});
 
   accept(ExpressionVisitor visitor) => visitor.visitTypeOperator(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -391,9 +393,7 @@ class Not extends Expression {
 class FunctionExpression extends Expression implements DartSpecificNode {
   final FunctionDefinition definition;
 
-  FunctionExpression(this.definition) {
-    assert(definition.element.type.returnType.treatAsDynamic);
-  }
+  FunctionExpression(this.definition);
 
   accept(ExpressionVisitor visitor) => visitor.visitFunctionExpression(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -706,7 +706,7 @@ class FieldDefinition extends RootNode implements DartSpecificNode {
 }
 
 class FunctionDefinition extends RootNode {
-  final FunctionElement element;
+  final ExecutableElement element;
   final List<Variable> parameters;
   Statement body;
   final List<ConstDeclaration> localConstants;
@@ -873,6 +873,8 @@ class SetField extends Expression implements JsSpecificNode {
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
 }
 
+/// Read the value of a field, possibly provoking its initializer to evaluate,
+/// or tear off a static method.
 class GetStatic extends Expression {
   Element element;
   SourceInformation sourceInformation;
@@ -882,7 +884,6 @@ class GetStatic extends Expression {
   accept(ExpressionVisitor visitor) => visitor.visitGetStatic(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitGetStatic(this, arg);
 }
-
 
 class SetStatic extends Expression {
   Element element;
@@ -1157,7 +1158,8 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   }
 
   visitTypeOperator(TypeOperator node) {
-    visitExpression(node.receiver);
+    visitExpression(node.value);
+    node.typeArguments.forEach(visitExpression);
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -1349,7 +1351,8 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitTypeOperator(TypeOperator node) {
-    node.receiver = visitExpression(node.receiver);
+    node.value = visitExpression(node.value);
+    _replaceExpressions(node.typeArguments);
     return node;
   }
 

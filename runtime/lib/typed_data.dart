@@ -1266,7 +1266,7 @@ class _Uint32Array extends _TypedList with _IntListMixin implements Uint32List {
   }
 
   void _setIndexedUint32(int index, int value) {
-    _setInt32(index * Uint32List.BYTES_PER_ELEMENT, value);
+    _setUint32(index * Uint32List.BYTES_PER_ELEMENT, value);
   }
 
   static _Uint32Array _new(int length) native "TypedData_Uint32Array_new";
@@ -1940,7 +1940,7 @@ class _ExternalUint32Array extends _TypedList with _IntListMixin implements Uint
   }
 
   void _setIndexedUint32(int index, int value) {
-    _setInt32(index * Uint32List.BYTES_PER_ELEMENT, value);
+    _setUint32(index * Uint32List.BYTES_PER_ELEMENT, value);
   }
 
   static _ExternalUint32Array _new(int length) native

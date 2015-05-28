@@ -137,12 +137,15 @@ class ApiMessageReader : public BaseReader {
   }
 
   Dart_CObject* CreateDartCObjectString(RawObject* raw);
+  Dart_CObject* GetCanonicalMintObject(Dart_CObject_Type type,
+                                       int64_t value64);
 
   // Allocation of the structures for the decoded message happens
   // either in the supplied zone or using the supplied allocation
   // function.
   ReAlloc alloc_;
   ApiGrowableArray<BackRefNode*> backward_references_;
+  ApiGrowableArray<Dart_CObject*> vm_isolate_references_;
   Dart_CObject** vm_symbol_references_;
   intptr_t max_vm_isolate_object_id_;
 

@@ -90,8 +90,9 @@ class ObjectGraph : public StackResource {
   intptr_t InboundReferences(Object* obj, const Array& references);
 
   // Write the isolate's object graph to 'stream'. Smis and nulls are omitted.
+  // Returns the number of nodes in the stream, including the root.
   // TODO(koda): Document format; support streaming/chunking.
-  void Serialize(WriteStream* stream);
+  intptr_t Serialize(WriteStream* stream);
 
  private:
   DISALLOW_IMPLICIT_CONSTRUCTORS(ObjectGraph);

@@ -5,6 +5,8 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_MACOS)
 
+#include <mach-o/dyld.h>
+
 #include "bin/platform.h"
 
 #include <crt_externs.h>  // NOLINT
@@ -73,6 +75,23 @@ char** Platform::Environment(intptr_t* count) {
 
 void Platform::FreeEnvironment(char** env, intptr_t count) {
   delete[] env;
+}
+
+
+char* Platform::ResolveExecutablePath() {
+  // Get the required length of the buffer.
+  uint32_t path_size = 0;
+  char* path = NULL;
+  if (_NSGetExecutablePath(path, &path_size) == 0) {
+    return NULL;
+  }
+  // Allocate buffer and get executable path.
+  path = reinterpret_cast<char*>(malloc(path_size));
+  if (_NSGetExecutablePath(path, &path_size) != 0) {
+    free(path);
+    return NULL;
+  }
+  return path;
 }
 
 }  // namespace bin

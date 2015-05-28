@@ -34,14 +34,14 @@ bool test(compiler, String name1, String name2, {bool expect}) {
     type1 = signature1.type.returnType;
   } else {
     // Otherwise use the first argument type.
-    type1 = signature1.requiredParameters.head.computeType(compiler);
+    type1 = signature1.requiredParameters.first.type;
   }
   if (signature2.requiredParameterCount == 0) {
     // If parameters is empty, use return type.
     type2 = signature2.type.returnType;
   } else {
     // Otherwise use the first argument type.
-    type2 = signature2.requiredParameters.head.computeType(compiler);
+    type2 = signature2.requiredParameters.first.type;
   }
   if (expect) {
     Expect.equals(type1, type2, "$type1 != $type2");

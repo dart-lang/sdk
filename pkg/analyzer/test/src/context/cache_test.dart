@@ -67,6 +67,33 @@ class AnalysisCacheTest extends AbstractCacheTest {
     expect(cache.getContextFor(target), context);
   }
 
+  void test_getSourcesWithFullName() {
+    String filePath = '/foo/lib/file.dart';
+    // no sources
+    expect(cache.getSourcesWithFullName(filePath), isEmpty);
+    // add source1
+    TestSourceWithUri source1 =
+        new TestSourceWithUri(filePath, Uri.parse('file://$filePath'));
+    cache.put(new CacheEntry(source1));
+    expect(cache.getSourcesWithFullName(filePath), unorderedEquals([source1]));
+    // add source2
+    TestSourceWithUri source2 =
+        new TestSourceWithUri(filePath, Uri.parse('package:foo/file.dart'));
+    cache.put(new CacheEntry(source2));
+    expect(cache.getSourcesWithFullName(filePath),
+        unorderedEquals([source1, source2]));
+    // remove source1
+    cache.remove(source1);
+    expect(cache.getSourcesWithFullName(filePath), unorderedEquals([source2]));
+    // remove source2
+    cache.remove(source2);
+    expect(cache.getSourcesWithFullName(filePath), isEmpty);
+    // ignored
+    cache.remove(source1);
+    cache.remove(source2);
+    expect(cache.getSourcesWithFullName(filePath), isEmpty);
+  }
+
   void test_getState_hasEntry_flushed() {
     ResultDescriptor result = new ResultDescriptor('result', -1);
     AnalysisTarget target = new TestSource();
@@ -182,6 +209,29 @@ class AnalysisCacheTest extends AbstractCacheTest {
       cache.put(new CacheEntry(target));
     }
     expect(cache.size(), size);
+  }
+
+  void test_sources() {
+    AnalysisTarget source1 = new TestSource('1.dart');
+    AnalysisTarget source2 = new TestSource('2.dart');
+    AnalysisTarget target1 = new _TestAnalysisTarget();
+    // no entries
+    expect(cache.sources, isEmpty);
+    // add source1
+    cache.put(new CacheEntry(source1));
+    expect(cache.sources, unorderedEquals([source1]));
+    // add target1
+    cache.put(new CacheEntry(target1));
+    expect(cache.sources, unorderedEquals([source1]));
+    // add source2
+    cache.put(new CacheEntry(source2));
+    expect(cache.sources, unorderedEquals([source1, source2]));
+    // remove source1
+    cache.remove(source1);
+    expect(cache.sources, unorderedEquals([source2]));
+    // remove source2
+    cache.remove(source2);
+    expect(cache.sources, isEmpty);
   }
 }
 
@@ -574,6 +624,35 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(entry.getValue(result2), 222);
   }
 
+  test_setValueIncremental() {
+    AnalysisTarget target = new TestSource();
+    CacheEntry entry = new CacheEntry(target);
+    cache.put(entry);
+    ResultDescriptor result1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor result2 = new ResultDescriptor('result2', -2);
+    ResultDescriptor result3 = new ResultDescriptor('result3', -3);
+    // set results, all of them are VALID
+    entry.setValue(result1, 111, TargetedResult.EMPTY_LIST);
+    entry.setValue(result2, 222, [new TargetedResult(target, result1)]);
+    entry.setValue(result3, 333, [new TargetedResult(target, result2)]);
+    expect(entry.getState(result1), CacheState.VALID);
+    expect(entry.getState(result2), CacheState.VALID);
+    expect(entry.getState(result3), CacheState.VALID);
+    expect(entry.getValue(result1), 111);
+    expect(entry.getValue(result2), 222);
+    expect(entry.getValue(result3), 333);
+    // replace result1, keep "dependedOn", invalidate result3
+    entry.setValueIncremental(result2, 2222);
+    expect(entry.getState(result1), CacheState.VALID);
+    expect(entry.getState(result2), CacheState.VALID);
+    expect(entry.getState(result3), CacheState.INVALID);
+    expect(entry.getValue(result1), 111);
+    expect(entry.getValue(result2), 2222);
+    expect(entry.getValue(result3), -3);
+    expect(entry.getResultData(result2).dependedOnResults,
+        unorderedEquals([new TargetedResult(target, result1)]));
+  }
+
   test_toString_empty() {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
@@ -648,6 +727,24 @@ class CacheFlushManagerTest {
     expect(manager.recentlyUsed, orderedEquals([result1, result3, result2]));
   }
 
+  test_resultAccessed_negativeMaxSize() {
+    manager = new CacheFlushManager(new SimpleResultCachingPolicy(-1, -1),
+        (AnalysisTarget target) => false);
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
+    AnalysisTarget target = new TestSource();
+    TargetedResult result1 = new TargetedResult(target, descriptor1);
+    TargetedResult result2 = new TargetedResult(target, descriptor2);
+    manager.resultStored(result1, null);
+    manager.resultStored(result2, null);
+    expect(manager.currentSize, 0);
+    expect(manager.recentlyUsed, isEmpty);
+    // access result2
+    manager.resultAccessed(result2);
+    expect(manager.currentSize, 0);
+    expect(manager.recentlyUsed, isEmpty);
+  }
+
   test_resultAccessed_noSuchResult() {
     ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
     ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
@@ -696,6 +793,20 @@ class CacheFlushManagerTest {
       expect(manager.recentlyUsed, orderedEquals([result3, result2, result4]));
       expect(manager.resultSizeMap, {result3: 1, result2: 1, result4: 1});
     }
+  }
+
+  test_resultStored_negativeMaxSize() {
+    manager = new CacheFlushManager(new SimpleResultCachingPolicy(-1, -1),
+        (AnalysisTarget target) => false);
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', null);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', null);
+    AnalysisTarget target = new TestSource();
+    TargetedResult result1 = new TargetedResult(target, descriptor1);
+    TargetedResult result2 = new TargetedResult(target, descriptor2);
+    manager.resultStored(result1, null);
+    manager.resultStored(result2, null);
+    expect(manager.currentSize, 0);
+    expect(manager.recentlyUsed, isEmpty);
   }
 
   test_targetRemoved() {
@@ -841,4 +952,9 @@ class UniversalCachePartitionTest extends CachePartitionTest {
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _TestAnalysisTarget implements AnalysisTarget {
+  @override
+  Source get source => null;
 }

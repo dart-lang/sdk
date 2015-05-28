@@ -332,7 +332,6 @@ class ProgramBuilder {
       assert(invariant(element, element == enclosing));
 
       if (Elements.isNonAbstractInstanceMember(member)) {
-        js.Expression code = backend.generatedCode[member];
         // TODO(herhut): Remove once _buildMethod can no longer return null.
         Method method = _buildMethod(member);
         if (method != null) methods.add(method);

@@ -34,7 +34,7 @@ import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
-import 'package:path/src/context.dart';
+import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -2506,7 +2506,8 @@ const b = 3;''');
   }
 
   NonExistingSource _dummySource() {
-    return new NonExistingSource("foo.dart", UriKind.FILE_URI);
+    String path = '/test.dart';
+    return new NonExistingSource(path, toUri(path), UriKind.FILE_URI);
   }
 
   DartObjectImpl _evaluateConstant(CompilationUnit compilationUnit, String name,
@@ -6629,8 +6630,8 @@ class ErrorReporterTest extends EngineTestCase {
     ImportElementImpl element =
         ElementFactory.importFor(ElementFactory.library(null, ''), null);
     GatheringErrorListener listener = new GatheringErrorListener();
-    ErrorReporter reporter = new ErrorReporter(
-        listener, new NonExistingSource("/test.dart", UriKind.FILE_URI));
+    ErrorReporter reporter = new ErrorReporter(listener, new NonExistingSource(
+        '/test.dart', toUri('/test.dart'), UriKind.FILE_URI));
     reporter.reportErrorForElement(
         StaticWarningCode.CONFLICTING_INSTANCE_GETTER_AND_SUPERCLASS_MEMBER,
         element, ['A']);

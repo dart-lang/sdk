@@ -5,6 +5,7 @@
 library dart2js.operators;
 
 import '../elements/elements.dart';
+import '../universe/universe.dart';
 
 enum UnaryOperatorKind {
   NOT,
@@ -20,6 +21,11 @@ class UnaryOperator {
   const UnaryOperator(this.kind, this.name, this.selectorName);
 
   bool get isUserDefinable => selectorName != null;
+
+  Selector get selector => new Selector(
+      SelectorKind.OPERATOR,
+      new PublicName(selectorName),
+      CallStructure.NO_ARGS);
 
   String toString() => name;
 
@@ -66,6 +72,7 @@ enum BinaryOperatorKind {
   XOR,
   LOGICAL_AND,
   LOGICAL_OR,
+  IF_NULL,
 }
 
 class BinaryOperator {
@@ -161,6 +168,10 @@ class BinaryOperator {
   static const BinaryOperator LOGICAL_OR =
       const _LogicalOperator(BinaryOperatorKind.LOGICAL_OR, '||');
 
+  /// The if-null ?? operator.
+  static const BinaryOperator IF_NULL =
+      const _LogicalOperator(BinaryOperatorKind.IF_NULL, '??');
+
   static BinaryOperator parse(String value) {
     switch (value) {
       case '==': return EQ;
@@ -183,6 +194,7 @@ class BinaryOperator {
       case '|': return OR;
       case '&&': return LOGICAL_AND;
       case '||': return LOGICAL_OR;
+      case '??': return IF_NULL;
       default: return null;
     }
   }
@@ -211,6 +223,7 @@ class _LogicalOperator extends BinaryOperator {
 
 enum AssignmentOperatorKind {
   ASSIGN,
+  IF_NULL,
   ADD,
   SUB,
   MUL,
@@ -243,6 +256,12 @@ class AssignmentOperator {
   static const AssignmentOperator ASSIGN =
       const AssignmentOperator._(AssignmentOperatorKind.ASSIGN, '=',
                                  null, isUserDefinable: false);
+
+  /// The ??= operator.
+  static const AssignmentOperator IF_NULL =
+      const AssignmentOperator._(AssignmentOperatorKind.IF_NULL, '??=',
+                                 BinaryOperator.IF_NULL,
+                                 isUserDefinable: false);
 
   /// The += assignment operator.
   static const AssignmentOperator ADD =
@@ -302,6 +321,7 @@ class AssignmentOperator {
   static AssignmentOperator parse(String value) {
     switch (value) {
       case '=': return ASSIGN;
+      case '??=': return IF_NULL;
       case '*=': return MUL;
       case '/=': return DIV;
       case '%=': return MOD;

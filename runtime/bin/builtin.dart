@@ -4,6 +4,7 @@
 
 library builtin;
 // NOTE: Do not import 'dart:io' in builtin.
+import 'dart:collection';
 import 'dart:isolate';
 import 'dart:typed_data';
 
@@ -59,9 +60,17 @@ bool _traceLoading = false;
 
 // A port for communicating with the service isolate for I/O.
 SendPort _loadPort;
-// Maintain a number of outstanding load requests. Current loading request is
-// finished once there are no outstanding requests.
-int _numOutstandingLoadRequests = 0;
+// The receive port for a load request. Multiple sources can be fetched in
+// a single load request.
+RawReceivePort _receivePort;
+SendPort _sendPort;
+// A request id valid only for the current load cycle (while the number of
+// outstanding load requests is greater than 0). Can be reset when loading is
+// completed.
+int _reqId = 0;
+// An unordered hash map mapping from request id to a particular load request.
+// Once there are no outstanding load requests the current load has finished.
+HashMap _reqMap = new HashMap();
 
 // The current working directory when the embedder was launched.
 Uri _workingDirectory;
@@ -80,11 +89,22 @@ bool _isWindows = false;
 
 
 // A class wrapping the load error message in an Error object.
-class LoadError extends Error {
+class _LoadError extends Error {
   final String message;
-  LoadError(this.message);
+  final String uri;
+  _LoadError(this.uri, this.message);
 
-  String toString() => 'Load Error: $message';
+  String toString() => 'Load Error for "$uri": $message';
+}
+
+// Class collecting all of the information about a particular load request.
+class _LoadRequest {
+  final int _id;
+  final int _tag;
+  final String _uri;
+  final String _libraryUri;
+
+  _LoadRequest(this._id, this._tag, this._uri, this._libraryUri);
 }
 
 
@@ -229,49 +249,104 @@ Uri _resolveScriptUri(String scriptName) {
 }
 
 
-void _finishLoadRequest(String uri) {
-  assert(_numOutstandingLoadRequests > 0);
-  _numOutstandingLoadRequests--;
+void _finishLoadRequest(_LoadRequest req) {
+  // Now that we are done with loading remove the request from the map.
+  var tmp = _reqMap.remove(req._id);
+  assert(tmp == req);
   if (_traceLoading) {
-    _print("Loading of $uri finished, "
-           "${_numOutstandingLoadRequests} requests remaining");
+    _print("Loading of ${req._uri} finished, "
+    "${_reqMap.length} requests remaining");
   }
-  if (_numOutstandingLoadRequests == 0) {
+
+  if (_reqMap.isEmpty) {
+    if (_traceLoading) {
+      _print("Closing loading port.");
+    }
+    _receivePort.close();
+    _receivePort = null;
+    _sendPort = null;
+    _reqId = 0;
     _signalDoneLoading();
   }
 }
 
 
-void _startLoadRequest(String uri, Uri resourceUri) {
-  assert(_numOutstandingLoadRequests >= 0);
-  _numOutstandingLoadRequests++;
-  if (_traceLoading) {
-    _print("Loading of $resourceUri for $uri started, "
-           "${_numOutstandingLoadRequests} requests outstanding");
+void _handleLoaderReply(msg) {
+  int id = msg[0];
+  var dataOrError = msg[1];
+  assert((id >= 0) && (id < _reqId));
+  var req = _reqMap[id];
+  try {
+    if (dataOrError is Uint8List) {
+      _loadScript(req, dataOrError);
+    } else {
+      assert(dataOrError is String);
+      var error = new _LoadError(req._uri, dataOrError.toString());
+      _asyncLoadError(req, error);
+    }
+  } catch(e, s) {
+    // Wrap inside a _LoadError unless we are already propagating a
+    // previous _LoadError.
+    var error = (e is _LoadError) ? e : new _LoadError(req._uri, e.toString());
+    assert(req != null);
+    _asyncLoadError(req, error);
   }
 }
 
 
-void _loadScript(int tag, String uri, String libraryUri, Uint8List data) {
+void _startLoadRequest(int tag,
+                       String uri,
+                       String libraryUri,
+                       Uri resourceUri) {
+  if (_reqMap.isEmpty) {
+    if (_traceLoading) {
+      _print("Initializing load port.");
+    }
+    assert(_receivePort == null);
+    assert(_sendPort == null);
+    _receivePort = new RawReceivePort(_handleLoaderReply);
+    _sendPort = _receivePort.sendPort;
+  }
+  // Register the load request and send it to the VM service isolate.
+  var curId = _reqId++;
+
+  assert(_reqMap[curId] == null);
+  _reqMap[curId] = new _LoadRequest(curId, tag, uri, libraryUri);
+
+  var msg = new List(3);
+  msg[0] = _sendPort;
+  msg[1] = curId;
+  msg[2] = resourceUri.toString();
+  _loadPort.send(msg);
+
+  if (_traceLoading) {
+    _print("Loading of $resourceUri for $uri started with id: $curId, "
+           "${_reqMap.length} requests outstanding");
+  }
+}
+
+
+void _loadScript(_LoadRequest req, Uint8List data) {
   // TODO: Currently a compilation error while loading the script is
   // fatal for the isolate. _loadScriptCallback() does not return and
-  // the _numOutstandingLoadRequests counter remains out of sync.
-  _loadScriptCallback(tag, uri, libraryUri, data);
-  _finishLoadRequest(uri);
+  // the number of requests remains out of sync.
+  _loadScriptCallback(req._tag, req._uri, req._libraryUri, data);
+  _finishLoadRequest(req);
 }
 
 
-void _asyncLoadError(int tag, String uri, String libraryUri, LoadError error) {
+void _asyncLoadError(_LoadRequest req, _LoadError error) {
   if (_traceLoading) {
-    _print("_asyncLoadError($uri), error: $error");
+    _print("_asyncLoadError(${req._uri}), error: $error");
   }
-  if (tag == Dart_kImportTag) {
+  var libraryUri = req._libraryUri;
+  if (req._tag == Dart_kImportTag) {
     // When importing a library, the libraryUri is the imported
     // uri.
-    libraryUri = uri;
+    libraryUri = req._uri;
   }
-  _asyncLoadErrorCallback(uri, libraryUri, error);
-  _finishLoadRequest(uri);
+  _asyncLoadErrorCallback(req._uri, libraryUri, error);
+  _finishLoadRequest(req);
 }
 
 
@@ -279,37 +354,16 @@ _loadDataFromLoadPort(int tag,
                       String uri,
                       String libraryUri,
                       Uri resourceUri) {
-  var receivePort = new ReceivePort();
-  receivePort.first.then((dataOrError) {
-    receivePort.close();
-    if (dataOrError is Uint8List) {
-      _loadScript(tag, uri, libraryUri, dataOrError);
-    } else {
-      assert(dataOrError is String);
-      var error = new LoadError(dataOrError.toString());
-      _asyncLoadError(tag, uri, libraryUri, error);
-    }
-  }).catchError((e) {
-    receivePort.close();
-    // Wrap inside a LoadError unless we are already propagating a previously
-    // seen LoadError.
-    var error = (e is LoadError) ? e : new LoadError(e.toString);
-    _asyncLoadError(tag, uri, libraryUri, error);
-  });
-
   try {
-    var msg = [receivePort.sendPort, resourceUri.toString()];
-    _loadPort.send(msg);
-    _startLoadRequest(uri, resourceUri);
+    _startLoadRequest(tag, uri, libraryUri, resourceUri);
   } catch (e) {
     if (_traceLoading) {
       _print("Exception when communicating with service isolate: $e");
     }
-    // Wrap inside a LoadError unless we are already propagating a previously
-    // seen LoadError.
-    var error = (e is LoadError) ? e : new LoadError(e.toString);
+    // Wrap inside a _LoadError unless we are already propagating a previously
+    // seen _LoadError.
+    var error = (e is _LoadError) ? e : new _LoadError(e.toString());
     _asyncLoadError(tag, uri, libraryUri, error);
-    receivePort.close();
   }
 }
 

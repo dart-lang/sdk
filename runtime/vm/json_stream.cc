@@ -73,13 +73,13 @@ void JSONStream::Setup(Zone* zone,
               isolate_name, method_);
     setup_time_micros_ = OS::GetCurrentTimeMicros();
   }
-  buffer_.Printf("{\"result\":");
+  buffer_.Printf("{\"json-rpc\":\"2.0\", \"result\":");
 }
 
 
 void JSONStream::SetupError() {
   buffer_.Clear();
-  buffer_.Printf("{\"error\":");
+  buffer_.Printf("{\"json-rpc\":\"2.0\", \"error\":");
 }
 
 
@@ -327,7 +327,7 @@ void JSONStream::PrintValue(const Object& o, bool ref) {
 }
 
 
-void JSONStream::PrintValue(SourceBreakpoint* bpt) {
+void JSONStream::PrintValue(Breakpoint* bpt) {
   PrintCommaIfNeeded();
   bpt->PrintJSON(this);
 }
@@ -357,9 +357,9 @@ void JSONStream::PrintValue(Isolate* isolate, bool ref) {
 }
 
 
-void JSONStream::PrintServiceId(const char* name, const Object& o) {
+void JSONStream::PrintServiceId(const Object& o) {
   ASSERT(id_zone_ != NULL);
-  PrintProperty(name, id_zone_->GetServiceId(o));
+  PrintProperty("id", id_zone_->GetServiceId(o));
 }
 
 
@@ -415,7 +415,7 @@ void JSONStream::PrintProperty(const char* name, const ServiceEvent* event) {
 }
 
 
-void JSONStream::PrintProperty(const char* name, SourceBreakpoint* bpt) {
+void JSONStream::PrintProperty(const char* name, Breakpoint* bpt) {
   PrintPropertyName(name);
   PrintValue(bpt);
 }
@@ -555,6 +555,27 @@ bool JSONStream::AddDartString(const String& s, intptr_t limit) {
 
 JSONObject::JSONObject(const JSONArray* arr) : stream_(arr->stream_) {
   stream_->OpenObject();
+}
+
+
+void JSONObject::AddFixedServiceId(const char* format, ...) const {
+  // Mark that this id is fixed.
+  AddProperty("fixedId", true);
+  // Add the id property.
+  stream_->PrintPropertyName("id");
+  va_list args;
+  va_start(args, format);
+  intptr_t len = OS::VSNPrint(NULL, 0, format, args);
+  va_end(args);
+  char* p = reinterpret_cast<char*>(malloc(len+1));
+  va_start(args, format);
+  intptr_t len2 = OS::VSNPrint(p, len+1, format, args);
+  va_end(args);
+  ASSERT(len == len2);
+  stream_->buffer_.AddChar('"');
+  stream_->AddEscapedUTF8String(p);
+  stream_->buffer_.AddChar('"');
+  free(p);
 }
 
 

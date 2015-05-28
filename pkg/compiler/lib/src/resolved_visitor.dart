@@ -116,7 +116,9 @@ abstract class BaseResolvedVisitor<R> extends Visitor<R>
     } else if (Elements.isClosureSend(node, element)) {
       return visitor.visitClosureSend(node);
     } else {
-      if (Elements.isUnresolved(element)) {
+      if (node.isConditional) {
+        return visitor.visitDynamicSend(node);
+      } else if (Elements.isUnresolved(element)) {
         if (element == null) {
           // Example: f() with 'f' unbound.
           // This can only happen inside an instance method.
@@ -394,7 +396,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorLocalFunctionPostfix(
+  R visitLocalFunctionPostfix(
       Send node,
       LocalFunctionElement function,
       op.IncDecOperator operator,
@@ -403,7 +405,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorLocalFunctionPrefix(
+  R visitLocalFunctionPrefix(
       Send node,
       LocalFunctionElement function,
       op.IncDecOperator operator,
@@ -412,7 +414,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorStaticSetterGet(
+  R visitStaticSetterGet(
       Send node,
       FunctionElement setter,
       ResolvedKindVisitor<R> visitor) {
@@ -420,7 +422,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorStaticSetterInvoke(
+  R visitStaticSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
@@ -430,7 +432,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorSuperSetterGet(
+  R visitSuperSetterGet(
       Send node,
       FunctionElement setter,
       ResolvedKindVisitor<R> visitor) {
@@ -438,7 +440,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorSuperSetterInvoke(
+  R visitSuperSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
@@ -448,7 +450,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorTopLevelSetterGet(
+  R visitTopLevelSetterGet(
       Send node,
       FunctionElement setter,
       ResolvedKindVisitor<R> visitor) {
@@ -456,7 +458,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorTopLevelSetterInvoke(
+  R visitTopLevelSetterInvoke(
       Send node,
       FunctionElement setter,
       NodeList arguments,
@@ -503,7 +505,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorUnresolvedPostfix(
+  R visitUnresolvedPostfix(
       Send node,
       Element element,
       op.IncDecOperator operator,
@@ -512,7 +514,7 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
-  R errorUnresolvedPrefix(
+  R visitUnresolvedPrefix(
       Send node,
       Element element,
       op.IncDecOperator operator,
@@ -575,6 +577,15 @@ class ResolvedSemanticDispatcher<R> extends Object
   }
 
   @override
+  R visitIfNull(
+      Send node,
+      Node left,
+      Node right,
+      ResolvedKindVisitor<R> visitor) {
+    return visitor.visitOperatorSend(node);
+  }
+
+  @override
   R visitLogicalAnd(
       Send node,
       Node left,
@@ -620,6 +631,16 @@ class ResolvedSemanticDispatcher<R> extends Object
 
   @override
   R visitDynamicPropertyInvoke(
+      Send node,
+      Node receiver,
+      NodeList arguments,
+      Selector selector,
+      ResolvedKindVisitor<R> visitor) {
+    return visitor.visitDynamicSend(node);
+  }
+
+  @override
+  R visitIfNotNullDynamicPropertyInvoke(
       Send node,
       Node receiver,
       NodeList arguments,

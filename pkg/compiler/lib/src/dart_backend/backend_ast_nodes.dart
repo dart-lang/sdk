@@ -1047,7 +1047,6 @@ class Unparser {
 
   void writeParameters(Parameters params) {
     write('(');
-    bool first = true;
     writeEach(',', params.requiredParameters, (Parameter p) {
       if (p.type != null) {
         writeType(p.type);

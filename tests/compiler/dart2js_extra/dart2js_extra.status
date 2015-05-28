@@ -65,24 +65,24 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 10216a_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 10216b_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 12320_test: Crash #  Unhandled node
-16407_test: Crash # unsupported element kind: foo:field
 17094_test: RuntimeError # Please triage this failure.
-17645_test: Crash # unsupported element kind: log:field
-21166_test: Crash # unsupported element kind: a:field
 21666_test: Crash # Instance of 'TypeOperator': type check unimplemented for fInt.
 22868_test: Crash #  cannot handle async/sync*/async* functions
 22895_test: Crash #  cannot handle async/sync*/async* functions
 22917_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 23264_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+23486_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+23486_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+23486_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 LayoutTests_fast_mediastream_getusermedia_t01_test/01: Crash # Please triage this failure.
 async_stacktrace_test/asyncStar: Crash #  cannot handle async/sync*/async* functions
 async_stacktrace_test/none: Crash #  cannot handle async/sync*/async* functions
 bailout8_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-bound_closure_interceptor_methods_test: Crash # unsupported element kind: getter2:field
-bound_closure_interceptor_type_test: Crash # unsupported element kind: checkers:field
+bound_closure_interceptor_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for IntToT<String>.
 checked_accessor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
 code_motion_exception_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+conditional_send_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 constant_javascript_semantics2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 constant_javascript_semantics3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred/deferred_class_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
@@ -97,13 +97,11 @@ deferred_fail_and_retry_worker_test: Crash # (lib.loadLibrary()): handleStaticGe
 do_test: Timeout # Please triage this failure.
 for_test: Timeout # Please triage this failure.
 generics_factories_test: Crash # Please triage this failure.
-generics_is_check1_test: Crash # Instance of 'TypeOperator': type check unimplemented for Hest<int>.
-hash_code_test: Crash # unsupported element kind: hash:field
+if_null_test: Crash # Please triage this failure.
 inference_nsm_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_is_int_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 interface_type_optimization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 is_check_instanceof_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
-mirror_enqueuer_regression_test: Crash # unsupported element kind: foo:field
 mirror_invalid_field_access2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirror_invalid_field_access3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirror_invalid_field_access4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -115,24 +113,18 @@ mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _N
 mirrors_declarations_filtering_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors_used_closure_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors_used_native_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors_used_warning2_test: Crash # unsupported element kind: lines:field
-mirrors_used_warning_test/minif: Crash # unsupported element kind: lines:field
-mirrors_used_warning_test/none: Crash # unsupported element kind: lines:field
 no_such_method_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 reflect_native_types_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 regress/4492_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 regress/4515_1_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 regress/4515_2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 regress/4740_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-runtime_type_test: Crash # Please triage this failure.
 super_constructor1_test: RuntimeError # Please triage this failure.
 switch_test/01: Crash #  Unhandled node
 switch_test/02: Crash #  Unhandled node
 switch_test/none: Crash # (switch (val){}): Unhandled node
 this_phi_elimination_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-type_argument_factory_crash_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
-type_argument_factory_nocrash_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 type_constant_switch_test/none: Crash # (switch (v){}): Unhandled node
 typevariable_factory_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<T>.
-typevariable_substitution_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<T>.
 while_test: Timeout # Please triage this failure.
+16407_test : Pass

@@ -9,6 +9,7 @@ import 'dart:collection';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/model.dart';
 
 /**
@@ -116,6 +117,14 @@ abstract class AnalysisTask {
   CaughtException caughtException;
 
   /**
+   * If a dependency cycle was found while computing the inputs for the task,
+   * the set of [WorkItem]s contained in the cycle (if there are overlapping
+   * cycles, this is the set of all [WorkItem]s in the entire strongly
+   * connected component).  Otherwise, `null`.
+   */
+  List<WorkItem> dependencyCycle;
+
+  /**
    * Initialize a newly created task to perform analysis within the given
    * [context] in order to produce results for the given [target].
    */
@@ -130,6 +139,14 @@ abstract class AnalysisTask {
    * Return the descriptor that describes this task.
    */
   TaskDescriptor get descriptor;
+
+  /**
+   * Indicates whether the task is capable of handling dependency cycles.  A
+   * task that overrides this getter to return `true` must be prepared for the
+   * possibility that it will be invoked with a non-`null` value of
+   * [dependencyCycle], and with not all of its inputs computed.
+   */
+  bool get handlesDependencyCycles => false;
 
   /**
    * Return the value of the input with the given [name]. Throw an exception if
@@ -203,7 +220,7 @@ abstract class AnalysisTask {
         contextName = 'unnamed';
       }
       AnalysisEngine.instance.instrumentationService.logAnalysisTask(
-          contextName, description);
+          contextName, this);
       //
       // Gather statistics on the performance of the task.
       //
@@ -219,6 +236,9 @@ abstract class AnalysisTask {
       // Actually perform the task.
       //
       try {
+        if (dependencyCycle != null && !handlesDependencyCycles) {
+          throw new InfiniteTaskLoopException(this, dependencyCycle);
+        }
         internalPerform();
       } finally {
         stopwatch.stop();
@@ -461,8 +481,19 @@ abstract class TaskInputBuilder<V> {
    *
    * Throws a [StateError] if [moveNext] has not been invoked or if the last
    * invocation of [moveNext] returned `true`.
+   *
+   * Returns `null` if no value could be computed due to a circular dependency.
    */
   V get inputValue;
+
+  /**
+   * Record that no value is available for the current result, due to a
+   * circular dependency.
+   *
+   * Throws a [StateError] if [moveNext] has not been invoked or if the last
+   * invocation of [moveNext] returned `false`.
+   */
+  void currentValueNotAvailable();
 
   /**
    * Move to the next result that needs to be computed in order to build the

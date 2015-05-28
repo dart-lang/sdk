@@ -2810,7 +2810,7 @@ void Assembler::LoadWordFromPoolOffset(Register dst, Register pp,
 
 
 void Assembler::LoadIsolate(Register dst) {
-  movq(dst, Immediate(reinterpret_cast<uword>(Isolate::Current())));
+  movq(dst, Address(THR, Thread::isolate_offset()));
 }
 
 
@@ -3224,9 +3224,17 @@ void Assembler::Bind(Label* label) {
 void Assembler::EnterFrame(intptr_t frame_size) {
   if (prologue_offset_ == -1) {
     prologue_offset_ = CodeSize();
+    Comment("PrologueOffset = %" Pd "", CodeSize());
   }
+#ifdef DEBUG
+  intptr_t check_offset = CodeSize();
+#endif
   pushq(RBP);
   movq(RBP, RSP);
+#ifdef DEBUG
+  ProloguePattern pp(CodeAddress(check_offset));
+  ASSERT(pp.IsValid());
+#endif
   if (frame_size != 0) {
     Immediate frame_space(frame_size);
     subq(RSP, frame_space);
@@ -3406,6 +3414,10 @@ void Assembler::LeaveDartFrame() {
 void Assembler::EnterOsrFrame(intptr_t extra_size,
                               Register new_pp,
                               Register pc_marker_override) {
+  if (prologue_offset_ == -1) {
+    Comment("PrologueOffset = %" Pd "", CodeSize());
+    prologue_offset_ = CodeSize();
+  }
   movq(Address(RBP, kPcMarkerSlotFromFp * kWordSize), pc_marker_override);
   movq(PP, new_pp);
   if (extra_size != 0) {

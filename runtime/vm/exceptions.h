@@ -26,13 +26,14 @@ class Script;
 class StackFrame;
 class Stacktrace;
 class String;
+class Thread;
 
 class Exceptions : AllStatic {
  public:
   static const char* kCastErrorDstName;
 
-  static void Throw(Isolate* isolate, const Instance& exception);
-  static void ReThrow(Isolate* isolate,
+  static void Throw(Thread* thread, const Instance& exception);
+  static void ReThrow(Thread* thread,
                       const Instance& exception,
                       const Instance& stacktrace);
   static void PropagateError(const Error& error);
@@ -70,6 +71,8 @@ class Exceptions : AllStatic {
   };
 
   static void ThrowByType(ExceptionType type, const Array& arguments);
+  // Uses the preallocated out of memory exception to avoid calling
+  // into Dart code or allocating any code.
   static void ThrowOOM();
   static void ThrowStackOverflow();
   static void ThrowArgumentError(const Instance& arg);

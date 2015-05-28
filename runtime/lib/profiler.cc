@@ -15,7 +15,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, trace_intrinsified_natives);
 
-// dart:profiler.
+// Native implementations of the profiler parts of the dart:developer library.
 
 DEFINE_NATIVE_ENTRY(UserTag_new, 2) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());

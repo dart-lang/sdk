@@ -41,23 +41,23 @@ DECLARE_FLAG(bool, support_debugger);
 //   EDX : number of arguments to the call.
 // Must preserve callee saved registers EDI and EBX.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
   __ EnterFrame(0);
 
-  __ LoadIsolate(ESI);
+  __ LoadIsolate(EDI);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), ESP);
+  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), EBP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Address(ESI, Isolate::vm_tag_offset()),
+    __ cmpl(Address(EDI, Isolate::vm_tag_offset()),
             Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -66,7 +66,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing VM code.
-  __ movl(Address(ESI, Isolate::vm_tag_offset()), ECX);
+  __ movl(Address(EDI, Isolate::vm_tag_offset()), ECX);
 
   // Reserve space for arguments and align frame before entering C++ world.
   __ AddImmediate(ESP, Immediate(-INT32_SIZEOF(NativeArguments)));
@@ -75,7 +75,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call runtime.
-  __ movl(Address(ESP, isolate_offset), ESI);  // Set isolate in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);  // Set thread in NativeArgs.
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
@@ -85,12 +85,12 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ movl(Address(ESP, retval_offset), EAX);  // Set retval in NativeArguments.
   __ call(ECX);
 
-  // Mark that the isolate is executing Dart code. ESI is callee saved.
-  __ movl(Address(ESI, Isolate::vm_tag_offset()),
+  // Mark that the isolate is executing Dart code. EDI is callee saved.
+  __ movl(Address(EDI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -127,8 +127,8 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset =
       NativeEntry::kNumCallWrapperArguments * kWordSize;
-  const intptr_t isolate_offset =
-      NativeArguments::isolate_offset() + native_args_struct_offset;
+  const intptr_t thread_offset =
+      NativeArguments::thread_offset() + native_args_struct_offset;
   const intptr_t argc_tag_offset =
       NativeArguments::argc_tag_offset() + native_args_struct_offset;
   const intptr_t argv_offset =
@@ -138,16 +138,16 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  __ LoadIsolate(ESI);
+  __ LoadIsolate(EDI);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to dart VM code.
-  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), ESP);
+  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), EBP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Address(ESI, Isolate::vm_tag_offset()),
+    __ cmpl(Address(EDI, Isolate::vm_tag_offset()),
             Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -156,7 +156,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ movl(Address(ESI, Isolate::vm_tag_offset()), ECX);
+  __ movl(Address(EDI, Isolate::vm_tag_offset()), ECX);
 
   // Reserve space for the native arguments structure, the outgoing parameters
   // (pointer to the native arguments structure, the C function entry point)
@@ -168,7 +168,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movl(Address(ESP, isolate_offset), ESI);  // Set isolate in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);  // Set thread in NativeArgs.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
   __ leal(EAX, Address(EBP, 2 * kWordSize));  // Compute return value addr.
@@ -179,12 +179,12 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ movl(Address(ESP, kWordSize), ECX);  // Function to call.
   __ call(&NativeEntry::NativeCallWrapperLabel());
 
-  // Mark that the isolate is executing Dart code. ESI is callee saved.
-  __ movl(Address(ESI, Isolate::vm_tag_offset()),
+  // Mark that the isolate is executing Dart code. EDI is callee saved.
+  __ movl(Address(EDI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -200,8 +200,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 // Uses EDI.
 void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = kWordSize;
-  const intptr_t isolate_offset =
-      NativeArguments::isolate_offset() + native_args_struct_offset;
+  const intptr_t thread_offset =
+      NativeArguments::thread_offset() + native_args_struct_offset;
   const intptr_t argc_tag_offset =
       NativeArguments::argc_tag_offset() + native_args_struct_offset;
   const intptr_t argv_offset =
@@ -211,16 +211,16 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ EnterFrame(0);
 
-  __ LoadIsolate(ESI);
+  __ LoadIsolate(EDI);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to dart VM code.
-  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), ESP);
+  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), EBP);
 
 #if defined(DEBUG)
   { Label ok;
     // Check that we are always entering from Dart code.
-    __ cmpl(Address(ESI, Isolate::vm_tag_offset()),
+    __ cmpl(Address(EDI, Isolate::vm_tag_offset()),
             Immediate(VMTag::kDartTagId));
     __ j(EQUAL, &ok, Assembler::kNearJump);
     __ Stop("Not coming from Dart code.");
@@ -229,7 +229,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 #endif
 
   // Mark that the isolate is executing Native code.
-  __ movl(Address(ESI, Isolate::vm_tag_offset()), ECX);
+  __ movl(Address(EDI, Isolate::vm_tag_offset()), ECX);
 
   // Reserve space for the native arguments structure, the outgoing parameter
   // (pointer to the native arguments structure) and align frame before
@@ -240,7 +240,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movl(Address(ESP, isolate_offset), ESI);  // Set isolate in NativeArgs.
+  __ movl(Address(ESP, thread_offset), THR);  // Set thread in NativeArgs.
   __ movl(Address(ESP, argc_tag_offset), EDX);  // Set argc in NativeArguments.
   __ movl(Address(ESP, argv_offset), EAX);  // Set argv in NativeArguments.
   __ leal(EAX, Address(EBP, 2 * kWordSize));  // Compute return value addr.
@@ -249,12 +249,12 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ movl(Address(ESP, 0), EAX);  // Pass the pointer to the NativeArguments.
   __ call(ECX);
 
-  // Mark that the isolate is executing Dart code. ESI is callee saved.
-  __ movl(Address(ESI, Isolate::vm_tag_offset()),
+  // Mark that the isolate is executing Dart code. EDI is callee saved.
+  __ movl(Address(EDI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -690,11 +690,13 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 //   ESP + 4 : entrypoint of the dart function to call.
 //   ESP + 8 : arguments descriptor array.
 //   ESP + 12 : arguments array.
+//   ESP + 16 : current thread.
 // Uses EAX, EDX, ECX, EDI as temporary registers.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   const intptr_t kEntryPointOffset = 2 * kWordSize;
   const intptr_t kArgumentsDescOffset = 3 * kWordSize;
   const intptr_t kArgumentsOffset = 4 * kWordSize;
+  const intptr_t kThreadOffset = 5 * kWordSize;
 
   // Save frame pointer coming in.
   __ EnterFrame(0);
@@ -704,27 +706,29 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ pushl(ESI);
   __ pushl(EDI);
 
-  __ LoadIsolate(ESI);
+  // Set up THR, which caches the current thread in Dart code.
+  __ movl(THR, Address(EBP, kThreadOffset));
+  __ LoadIsolate(EDI);
 
   // Save the current VMTag on the stack.
-  __ movl(ECX, Address(ESI, Isolate::vm_tag_offset()));
+  __ movl(ECX, Address(EDI, Isolate::vm_tag_offset()));
   __ pushl(ECX);
 
   // Mark that the isolate is executing Dart code.
-  __ movl(Address(ESI, Isolate::vm_tag_offset()),
+  __ movl(Address(EDI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
 
   // Save top resource and top exit frame info. Use EDX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ movl(EDX, Address(ESI, Isolate::top_resource_offset()));
+  __ movl(EDX, Address(EDI, Isolate::top_resource_offset()));
   __ pushl(EDX);
-  __ movl(Address(ESI, Isolate::top_resource_offset()), Immediate(0));
+  __ movl(Address(EDI, Isolate::top_resource_offset()), Immediate(0));
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
   ASSERT(kExitLinkSlotFromEntryFp == -6);
-  __ movl(EDX, Address(ESI, Isolate::top_exit_frame_info_offset()));
+  __ movl(EDX, Address(EDI, Isolate::top_exit_frame_info_offset()));
   __ pushl(EDX);
-  __ movl(Address(ESI, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
   // Load arguments descriptor array into EDX.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
@@ -767,12 +771,12 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure.
-  __ LoadIsolate(ESI);
-  __ popl(Address(ESI, Isolate::top_exit_frame_info_offset()));
-  __ popl(Address(ESI, Isolate::top_resource_offset()));
+  __ LoadIsolate(EDI);
+  __ popl(Address(EDI, Isolate::top_exit_frame_info_offset()));
+  __ popl(Address(EDI, Isolate::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
-  __ popl(Address(ESI, Isolate::vm_tag_offset()));
+  __ popl(Address(EDI, Isolate::vm_tag_offset()));
 
   // Restore C++ ABI callee-saved registers.
   __ popl(EDI);
@@ -1320,11 +1324,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     ASSERT((num_args == 1) || (num_args == 2));
     if (num_args == 2) {
       __ movl(EAX, Address(ESP, + 2 * kWordSize));
-      __ UpdateRangeFeedback(EAX, 0, ECX, EBX, EDI, ESI, &not_smi_or_overflow);
+      __ UpdateRangeFeedback(EAX, 0, ECX, EBX, EDI, EDX, &not_smi_or_overflow);
     }
 
     __ movl(EAX, Address(ESP, + 1 * kWordSize));
-    __ UpdateRangeFeedback(EAX, (num_args - 1), ECX, EBX, EDI, ESI,
+    __ UpdateRangeFeedback(EAX, (num_args - 1), ECX, EBX, EDI, EDX,
                            &not_smi_or_overflow);
   }
   if (kind != Token::kILLEGAL) {
@@ -1443,21 +1447,20 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
   if (range_collection_mode == kCollectRanges) {
-    __ movl(EDI, Address(ESP, + 1 * kWordSize));
-    if (num_args == 2) {
-      __ movl(ESI, Address(ESP, + 2 * kWordSize));
-    }
     __ EnterStubFrame();
     __ pushl(ECX);
-    if (num_args == 2) {
-      __ pushl(ESI);
+    const intptr_t arg_offset_words = num_args +
+                                      Assembler::kEnterStubFramePushedWords +
+                                      1;  // ECX
+    for (intptr_t i = 0; i < num_args; i++) {
+      __ movl(EDI, Address(ESP, arg_offset_words * kWordSize));
+      __ pushl(EDI);
     }
-    __ pushl(EDI);
     __ call(EBX);
 
     __ movl(ECX, Address(EBP, kFirstLocalSlotFromFp * kWordSize));
     Label done;
-    __ UpdateRangeFeedback(EAX, 2, ECX, EBX, EDI, ESI, &done);
+    __ UpdateRangeFeedback(EAX, 2, ECX, EBX, EDI, EDX, &done);
     __ Bind(&done);
     __ LeaveFrame();
     __ ret();
@@ -1500,15 +1503,6 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, EBX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
-}
-
-
-void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, EBX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 3,
-      kInlineCacheMissHandlerThreeArgsRuntimeEntry,
       Token::kILLEGAL,
       kIgnoreRanges);
 }
@@ -1589,16 +1583,6 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
      Token::kILLEGAL,
      kIgnoreRanges);
-}
-
-
-void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
-    Assembler* assembler) {
-  GenerateOptimizedUsageCounterIncrement(assembler);
-  GenerateNArgsCheckInlineCacheStub(assembler, 3,
-      kInlineCacheMissHandlerThreeArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
 }
 
 
@@ -1909,17 +1893,19 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // TOS + 3: frame_pointer
 // TOS + 4: exception object
 // TOS + 5: stacktrace object
-// TOS + 6: isolate
+// TOS + 6: thread
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == EAX);
   ASSERT(kStackTraceObjectReg == EDX);
-  __ movl(EDI, Address(ESP, 6 * kWordSize));  // Load target isolate.
+  __ movl(THR, Address(ESP, 6 * kWordSize));  // Load target thread.
   __ movl(kStackTraceObjectReg, Address(ESP, 5 * kWordSize));
   __ movl(kExceptionObjectReg, Address(ESP, 4 * kWordSize));
   __ movl(EBP, Address(ESP, 3 * kWordSize));  // Load target frame_pointer.
   __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
   __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.
+  // TODO(koda): Pass thread instead of isolate.
+  __ LoadIsolate(EDI);
   // Set tag.
   __ movl(Address(EDI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));

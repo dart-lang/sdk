@@ -485,7 +485,7 @@ class CpuProfileElement extends ObservatoryElement {
     if (isolate == null) {
       return new Future.value(null);
     }
-    return isolate.invokeRpc('clearCpuProfile', { })
+    return isolate.invokeRpc('_clearCpuProfile', { })
         .then((ServiceMap response) {
           _updateView();
         });
@@ -535,7 +535,7 @@ class CpuProfileElement extends ObservatoryElement {
     _onFetchStarted();
     try {
       var params = { 'tags': tagSelector };
-      var response = await isolate.invokeRpc('getCpuProfile', params);
+      var response = await isolate.invokeRpc('_getCpuProfile', params);
       _onFetchFinished();
       await _onLoadStarted();
       profile.load(isolate, response);
@@ -850,7 +850,7 @@ class CpuProfileTableElement extends ObservatoryElement {
     if (isolate == null) {
       return new Future.value(null);
     }
-    return isolate.invokeRpc('clearCpuProfile', { })
+    return isolate.invokeRpc('_clearCpuProfile', { })
     .then((ServiceMap response) {
       _updateView();
     });
@@ -865,7 +865,7 @@ class CpuProfileTableElement extends ObservatoryElement {
     _onFetchStarted();
     try {
       var params = { 'tags': 'None' };
-      var response = await isolate.invokeRpc('getCpuProfile', params);
+      var response = await isolate.invokeRpc('_getCpuProfile', params);
       _onFetchFinished();
       _onLoadStarted();
       profile.load(isolate, response);

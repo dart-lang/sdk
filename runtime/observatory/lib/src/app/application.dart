@@ -131,6 +131,7 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new TableCpuProfilerPage(this));
     _pageRegistry.add(new AllocationProfilerPage(this));
     _pageRegistry.add(new HeapMapPage(this));
+    _pageRegistry.add(new HeapSnapshotPage(this));
     _pageRegistry.add(new VMConnectPage(this));
     _pageRegistry.add(new IsolateReconnectPage(this));
     _pageRegistry.add(new ErrorViewPage(this));

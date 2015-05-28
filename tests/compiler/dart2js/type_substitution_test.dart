@@ -30,7 +30,7 @@ DartType getType(compiler, String name) {
     return signature.type.returnType;
   } else {
     // Otherwise use the first argument type.
-    return signature.requiredParameters.head.computeType(compiler);
+    return signature.requiredParameters.first.type;
   }
 }
 

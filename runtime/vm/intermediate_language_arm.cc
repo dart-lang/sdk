@@ -2316,7 +2316,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
                       R0,  // instance
                       R3,  // end address
                       R6,
-                      R8);
+                      R9);
   // R0: new object start as a tagged pointer.
   // R3: new object end address.
 
@@ -2333,7 +2333,7 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
   // Initialize all array elements to raw_null.
   // R0: new object start as a tagged pointer.
   // R3: new object end address.
-  // R8: iterator which initially points to the start of the variable
+  // R9: iterator which initially points to the start of the variable
   // data area to be initialized.
   // R6: null
   if (num_elements > 0) {
@@ -2347,12 +2347,12 @@ static void InlineArrayAllocation(FlowGraphCompiler* compiler,
       __ LoadImmediate(R7, 0x1);
 #endif  // DEBUG
     }
-    __ AddImmediate(R8, R0, sizeof(RawArray) - kHeapObjectTag);
+    __ AddImmediate(R9, R0, sizeof(RawArray) - kHeapObjectTag);
     if (array_size < (kInlineArraySize * kWordSize)) {
-      __ InitializeFieldsNoBarrierUnrolled(R0, R8, 0, num_elements * kWordSize,
+      __ InitializeFieldsNoBarrierUnrolled(R0, R9, 0, num_elements * kWordSize,
                                            R6, R7);
     } else {
-      __ InitializeFieldsNoBarrier(R0, R8, R3, R6, R7);
+      __ InitializeFieldsNoBarrier(R0, R9, R3, R6, R7);
     }
   }
   __ b(done);

@@ -94,7 +94,7 @@ var tests = [
 
       List tests = [];
       // Function
-      tests.add(isolate.invokeRpcNoUpgrade('getCoverage',
+      tests.add(isolate.invokeRpcNoUpgrade('_getCoverage',
                                            { 'targetId': func.id })
                 .then((Map coverage) {
                     expect(coverage['type'], equals('CodeCoverage'));
@@ -103,7 +103,7 @@ var tests = [
                            equals([15, 1, 16, 1, 17, 0, 19, 1]));
                 }));
       // Class
-      tests.add(isolate.invokeRpcNoUpgrade('getCoverage',
+      tests.add(isolate.invokeRpcNoUpgrade('_getCoverage',
                                            { 'targetId': cls.id })
                 .then((Map coverage) {
                     expect(coverage['type'], equals('CodeCoverage'));
@@ -113,7 +113,7 @@ var tests = [
                                    24, 1, 25, 1, 27, 0]));
                 }));
       // Library
-      tests.add(isolate.invokeRpcNoUpgrade('getCoverage',
+      tests.add(isolate.invokeRpcNoUpgrade('_getCoverage',
                                            { 'targetId': lib.id })
                 .then((Map coverage) {
                     expect(coverage['type'], equals('CodeCoverage'));
@@ -126,7 +126,7 @@ var tests = [
                 }));
       // Script
       tests.add(cls.load().then((_) {
-            return isolate.invokeRpcNoUpgrade('getCoverage',
+            return isolate.invokeRpcNoUpgrade('_getCoverage',
                                               { 'targetId': cls.script.id })
                 .then((Map coverage) {
                     expect(coverage['type'], equals('CodeCoverage'));
@@ -140,7 +140,7 @@ var tests = [
           }));
       // Isolate
       tests.add(cls.load().then((_) {
-            return isolate.invokeRpcNoUpgrade('getCoverage', {})
+            return isolate.invokeRpcNoUpgrade('_getCoverage', {})
                 .then((Map coverage) {
                     expect(coverage['type'], equals('CodeCoverage'));
                     expect(coverage['coverage'].length, greaterThan(100));

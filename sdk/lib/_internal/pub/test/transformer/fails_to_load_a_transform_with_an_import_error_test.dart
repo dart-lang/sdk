@@ -31,7 +31,7 @@ main() {
       var pub = startPubServe();
       pub.stderr.expect("Unhandled exception:");
       pub.stderr.expect(
-          startsWith("Uncaught Error: Load Error: Failure getting "));
+          startsWith("Load Error for "));
       pub.shouldExit(1);
     });
   });

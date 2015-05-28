@@ -92,8 +92,6 @@ class ElementToJsonVisitor
   ElementToJsonVisitor(this.compiler);
 
   void run() {
-    Backend backend = compiler.backend;
-
     dart2jsVersion = compiler.hasBuildId ? compiler.buildId : null;
 
     for (LibraryElement library in compiler.libraryLoader.libraries.toList()) {
@@ -296,7 +294,6 @@ class ElementToJsonVisitor
     String inferredReturnType = null;
     String returnType = null;
     String sideEffects = null;
-    String code = "";
 
     StringBuffer emittedCode = compiler.dumpInfoTask.codeOf(element);
     int size = compiler.dumpInfoTask.sizeOf(element);
@@ -559,7 +556,8 @@ class DumpInfoTask extends CompilerTask {
 
   void dumpInfoJson(StringSink buffer) {
     JsonEncoder encoder = const JsonEncoder.withIndent('  ');
-    DateTime startToJsonTime = new DateTime.now();
+    Stopwatch stopwatch = new Stopwatch();
+    stopwatch.start();
 
     Map<String, List<Map<String, String>>> holding =
         <String, List<Map<String, String>>>{};
@@ -628,14 +626,12 @@ class DumpInfoTask extends CompilerTask {
       'dump_minor_version': '2'
     };
 
-    Duration toJsonDuration = new DateTime.now().difference(startToJsonTime);
-
     Map<String, dynamic> generalProgramInfo = <String, dynamic> {
       'size': _programSize,
       'dart2jsVersion': infoCollector.dart2jsVersion,
       'compilationMoment': new DateTime.now().toString(),
       'compilationDuration': compiler.totalCompileTime.elapsed.toString(),
-      'toJsonDuration': 0,
+      'toJsonDuration': stopwatch.elapsedMilliseconds,
       'dumpInfoDuration': this.timing.toString(),
       'noSuchMethodEnabled': backend.enabledNoSuchMethod,
       'minified': compiler.enableMinification

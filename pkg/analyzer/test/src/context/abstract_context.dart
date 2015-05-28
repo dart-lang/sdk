@@ -6,27 +6,25 @@ library test.src.task.abstract_context_test;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    hide AnalysisContextImpl, AnalysisTask;
+    hide AnalysisCache, AnalysisContextImpl, AnalysisTask;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/plugin/engine_plugin.dart';
-import 'package:plugin/manager.dart';
+import 'package:analyzer/src/task/driver.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
-import 'package:analyzer/src/task/driver.dart';
 
 class AbstractContextTest {
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
 
-  ExtensionManager extensionManager = new ExtensionManager();
-
   DartSdk sdk = new MockSdk();
   SourceFactory sourceFactory;
   AnalysisContextImpl context;
+  AnalysisCache analysisCache;
   AnalysisDriver analysisDriver;
 
   Source addSource(String path, String contents) {
@@ -85,13 +83,6 @@ class AbstractContextTest {
   }
 
   void setUp() {
-    // configure TaskManager
-    {
-      EnginePlugin plugin = AnalysisEngine.instance.enginePlugin;
-      if (plugin.taskExtensionPoint == null) {
-        extensionManager.processPlugins([plugin]);
-      }
-    }
     // prepare AnalysisContext
     sourceFactory = new SourceFactory(<UriResolver>[
       new DartUriResolver(sdk),
@@ -99,6 +90,7 @@ class AbstractContextTest {
     ]);
     context = createAnalysisContext();
     context.sourceFactory = sourceFactory;
+    analysisCache = context.analysisCache;
     analysisDriver = context.driver;
   }
 

@@ -825,7 +825,6 @@ class ImportScope {
 
     if (existing != element) {
       Import existingImport = importers.getImport(existing);
-      Element newElement;
       if (existing.library.isPlatformLibrary &&
           !element.library.isPlatformLibrary) {
         // [existing] is implicitly hidden.
@@ -1749,8 +1748,8 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
 // [FunctionType].
 // TODO(karlklose): all these lists should have element type [FormalElement].
 class FunctionSignatureX implements FunctionSignature {
-  final Link<Element> requiredParameters;
-  final Link<Element> optionalParameters;
+  final List<Element> requiredParameters;
+  final List<Element> optionalParameters;
   final int requiredParameterCount;
   final int optionalParameterCount;
   final bool optionalParametersAreNamed;
@@ -1758,9 +1757,9 @@ class FunctionSignatureX implements FunctionSignature {
   final FunctionType type;
   final bool hasOptionalParameters;
 
-  FunctionSignatureX({this.requiredParameters: const Link<Element>(),
+  FunctionSignatureX({this.requiredParameters: const <Element>[],
                       this.requiredParameterCount: 0,
-                      Link<Element> optionalParameters: const Link<Element>(),
+                      List<Element> optionalParameters: const <Element>[],
                       this.optionalParameterCount: 0,
                       this.optionalParametersAreNamed: false,
                       this.orderedOptionalParameters: const <Element>[],
@@ -1769,22 +1768,14 @@ class FunctionSignatureX implements FunctionSignature {
         hasOptionalParameters = !optionalParameters.isEmpty;
 
   void forEachRequiredParameter(void function(Element parameter)) {
-    for (Link<Element> link = requiredParameters;
-         !link.isEmpty;
-         link = link.tail) {
-      function(link.head);
-    }
+    requiredParameters.forEach(function);
   }
 
   void forEachOptionalParameter(void function(Element parameter)) {
-    for (Link<Element> link = optionalParameters;
-         !link.isEmpty;
-         link = link.tail) {
-      function(link.head);
-    }
+    optionalParameters.forEach(function);
   }
 
-  Element get firstOptionalParameter => optionalParameters.head;
+  Element get firstOptionalParameter => optionalParameters.first;
 
   void forEachParameter(void function(Element parameter)) {
     forEachRequiredParameter(function);
@@ -1814,8 +1805,8 @@ class FunctionSignatureX implements FunctionSignature {
       if (requiredParameterCount != signature.requiredParameterCount) {
         return false;
       }
-      Set<String> names = optionalParameters.mapToSet(
-          (Element element) => element.name);
+      Set<String> names = optionalParameters.map(
+          (Element element) => element.name).toSet();
       for (Element namedParameter in signature.optionalParameters) {
         if (!names.contains(namedParameter.name)) {
           return false;
@@ -2485,7 +2476,7 @@ abstract class BaseClassElementX extends ElementX
   }
 
   /**
-   * Find the first member in the class chain with the given [selector].
+   * Find the first member in the class chain with the given [memberName].
    *
    * This method is NOT to be used for resolving
    * unqualified sends because it does not implement the scoping
@@ -2494,19 +2485,18 @@ abstract class BaseClassElementX extends ElementX
    * When called on the implementation element both members declared in the
    * origin and the patch class are returned.
    */
-  Element lookupSelector(Selector selector) {
-    return internalLookupSelector(selector, false);
+  Element lookupByName(Name memberName) {
+    return internalLookupByName(memberName, isSuperLookup: false);
   }
 
-  Element lookupSuperSelector(Selector selector) {
-    return internalLookupSelector(selector, true);
+  Element lookupSuperByName(Name memberName) {
+    return internalLookupByName(memberName, isSuperLookup: true);
   }
 
-  Element internalLookupSelector(Selector selector,
-                                 bool isSuperLookup) {
-    String name = selector.name;
-    bool isPrivate = isPrivateName(name);
-    LibraryElement library = selector.library;
+  Element internalLookupByName(Name memberName, {bool isSuperLookup}) {
+    String name = memberName.text;
+    bool isPrivate = memberName.isPrivate;
+    LibraryElement library = memberName.library;
     for (ClassElement current = isSuperLookup ? superclass : this;
          current != null;
          current = current.superclass) {
@@ -2528,12 +2518,15 @@ abstract class BaseClassElementX extends ElementX
         AbstractFieldElement field = member;
         FunctionElement getter = field.getter;
         FunctionElement setter = field.setter;
-        if (selector.isSetter) {
+        if (memberName.isSetter) {
           // Abstract members can be defined in a super class.
-          if (setter != null && !setter.isAbstract) return setter;
+          if (setter != null && !setter.isAbstract) {
+            return setter;
+          }
         } else {
-          assert(selector.isGetter || selector.isCall);
-          if (getter != null && !getter.isAbstract) return getter;
+          if (getter != null && !getter.isAbstract) {
+            return getter;
+          }
         }
       // Abstract members can be defined in a super class.
       } else if (!member.isAbstract) {

@@ -8,6 +8,8 @@
   'sources': [
     'developer.cc',
     'developer.dart',
+    'profiler.cc',
+    'profiler.dart',
   ],
 }
 

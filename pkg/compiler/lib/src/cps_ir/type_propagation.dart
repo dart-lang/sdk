@@ -301,7 +301,8 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
   void visitTypeOperator(TypeOperator node) {
     Continuation cont = node.continuation.definition;
     LetPrim letPrim = constifyExpression(node, cont, () {
-      node.receiver.unlink();
+      node.value.unlink();
+      node.typeArguments.forEach((Reference ref) => ref.unlink());
       node.continuation.unlink();
     });
 
@@ -707,19 +708,17 @@ class _TypePropagationVisitor<T> implements Visitor {
     if (node.isTypeCast) {
       // TODO(jgruber): Add support for `as` casts.
       setValues(nonConstant());
+      return;
     }
 
-    _AbstractValue<T> cell = getValue(node.receiver.definition);
+    _AbstractValue<T> cell = getValue(node.value.definition);
     if (cell.isNothing) {
       return;  // And come back later.
-    } else if (cell.isNonConst) {
-      setValues(nonConstant(cell.type));
-    } else if (node.type.kind == types.TypeKind.INTERFACE) {
+    } else if (cell.isConstant && node.type.kind == types.TypeKind.INTERFACE) {
       // Receiver is a constant, perform is-checks at compile-time.
 
       types.InterfaceType checkedType = node.type;
       ConstantValue constant = cell.constant;
-      // TODO(karlklose): remove call to computeType.
       types.DartType constantType = constant.getType(_dartTypes.coreTypes);
 
       T type = typeSystem.boolType;
@@ -738,6 +737,8 @@ class _TypePropagationVisitor<T> implements Visitor {
             type);
       }
       setValues(result);
+    } else {
+      setValues(nonConstant(typeSystem.boolType));
     }
   }
 
@@ -829,6 +830,23 @@ class _TypePropagationVisitor<T> implements Visitor {
     }
   }
 
+  void visitGetStatic(GetStatic node) {
+    setValue(node, nonConstant());
+  }
+
+  void visitSetStatic(SetStatic node) {
+    setReachable(node.body);
+  }
+
+  void visitGetLazyStatic(GetLazyStatic node) {
+    Continuation cont = node.continuation.definition;
+    setReachable(cont);
+
+    assert(cont.parameters.length == 1);
+    Parameter returnValue = cont.parameters[0];
+    setValue(returnValue, nonConstant());
+  }
+
   // Conditions.
 
   void visitIsTrue(IsTrue node) {
@@ -869,14 +887,6 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitSetField(SetField node) {
-    setReachable(node.body);
-  }
-
-  void visitGetStatic(GetStatic node) {
-    setValue(node, nonConstant());
-  }
-
-  void visitSetStatic(SetStatic node) {
     setReachable(node.body);
   }
 

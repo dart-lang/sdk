@@ -20,6 +20,7 @@ class B {}
 class C extends B {
   f(callback()) => callback();
   int g(int callback()) => callback();
+  static void staticMethod() {}
 }
 
 C nullC() => null;

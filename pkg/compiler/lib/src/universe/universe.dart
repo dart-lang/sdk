@@ -452,7 +452,8 @@ class CallStructure {
     // TODO(ngeoffray): Should the resolver do it instead?
     List<String> namedParameters;
     if (signature.optionalParametersAreNamed) {
-      namedParameters = signature.optionalParameters.mapToList((e) => e.name);
+      namedParameters =
+          signature.optionalParameters.map((e) => e.name).toList();
     }
     CallStructure callStructure =
         new CallStructure(signature.parameterCount, namedParameters);
@@ -543,11 +544,13 @@ class Selector {
            (memberName != INDEX_NAME && memberName != INDEX_SET_NAME));
     assert(kind == SelectorKind.OPERATOR ||
            kind == SelectorKind.INDEX ||
-           !Elements.isOperatorName(memberName.text));
+           !Elements.isOperatorName(memberName.text) ||
+           identical(memberName.text, '??'));
     assert(kind == SelectorKind.CALL ||
            kind == SelectorKind.GETTER ||
            kind == SelectorKind.SETTER ||
-           Elements.isOperatorName(memberName.text));
+           Elements.isOperatorName(memberName.text) ||
+           identical(memberName.text, '??'));
   }
 
   // TODO(johnniwinther): Extract caching.
@@ -623,7 +626,7 @@ class Selector {
 
   factory Selector.getterFrom(Selector selector)
       => new Selector(SelectorKind.GETTER,
-                      selector.memberName,
+                      selector.memberName.getter,
                       CallStructure.NO_ARGS);
 
   factory Selector.setter(String name, LibraryElement library)

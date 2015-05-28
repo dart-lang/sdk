@@ -7,6 +7,7 @@
 #include "vm/dart.h"
 #include "vm/lockers.h"
 #include "vm/port.h"
+#include "vm/thread_interrupter.h"
 
 namespace dart {
 
@@ -144,6 +145,10 @@ bool MessageHandler::HandleMessages(bool allow_normal_messages,
                                     bool allow_multiple_normal_messages) {
   // If isolate() returns NULL StartIsolateScope does nothing.
   StartIsolateScope start_isolate(isolate());
+
+  // ThreadInterrupter may have gone to sleep waiting while waiting for
+  // an isolate to start handling messages.
+  ThreadInterrupter::WakeUp();
 
   // TODO(turnidge): Add assert that monitor_ is held here.
   bool result = true;

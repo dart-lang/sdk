@@ -104,16 +104,16 @@ enum JsBuiltin {
   ///       ...
   dartObjectConstructor,
 
-  /// Returns the class name given an [isCheckProperty].
+  /// Returns the JavaScript-constructor name given an [isCheckProperty].
   ///
   /// This relies on a deterministic encoding of is-check properties (for
   /// example `$isFoo` for a class `Foo`). In minified code the returned
   /// classname is the minified name of the class.
   ///
   ///     JS_BUILTIN('returns:String;depends:none;effects:none',
-  ///                JsBuiltin.classNameFromIsCheckProperty,
+  ///                JsBuiltin.isCheckPropertyToJsConstructorName,
   ///                isCheckProperty);
-  classNameFromIsCheckProperty,
+  isCheckPropertyToJsConstructorName,
 
   /// Returns true if the given type is a function type. Returns false for
   /// the one `Function` type singleton. (See [isFunctionTypeSingleton]).
@@ -121,21 +121,15 @@ enum JsBuiltin {
   ///     JS_BUILTIN('bool', JsBuiltin.isFunctionType, o)
   isFunctionType,
 
-  /// Returns true if the given type is the `Function` type literal.
-  ///
-  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
-  ///                JsBuiltin.isFunctionTypeLiteral, type);
-  isFunctionTypeLiteral,
-
   /// Returns a new function type object.
   ///
   ///     JS_BUILTIN('=Object', JsBuiltin.createFunctionType)
-  createFunctionType,
+  createFunctionTypeRti,
 
-  /// Returns the class name of the given type.
+  /// Returns the JavaScript-constructor name given an rti encoding.
   ///
-  ///     JS_BUILTIN('String', JsBuiltin.typeName, type)
-  typeName,
+  ///     JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti)
+  rawRtiToJsConstructorName,
 
   /// Returns the raw runtime type of the given object. The given argument
   /// [o] should be the interceptor (for non-Dart objects).
@@ -153,6 +147,26 @@ enum JsBuiltin {
   ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
   ///                JsBuiltin.isSubtype, other, type);
   isSubtype,
+
+  /// Returns true if the given type is _the_ `Function` type.
+  /// That is, it returns true if the given [type] is exactly the `Function`
+  /// type rti-encoding.
+  ///
+  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
+  ///                JsBuiltin.isFunctionTypeLiteral, type);
+  isFunctionTypeRti,
+
+  /// Returns whether the given type is _the_ null-type..
+  ///
+  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
+  ///                JsBuiltin.isNullType, type);
+  isNullTypeRti,
+
+  /// Returns whether the given type is _the_ Dart Object type.
+  ///
+  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
+  ///                JsBuiltin.isDartObjectType, type);
+  isDartObjectTypeRti,
 
   /// Returns the metadata of the given [index].
   ///

@@ -532,7 +532,9 @@ class Elements {
   static bool isInstanceSend(Send send, TreeElements elements) {
     Element element = elements[send];
     if (element == null) return !isClosureSend(send, element);
-    return isInstanceMethod(element) || isInstanceField(element);
+    return isInstanceMethod(element) ||
+           isInstanceField(element) ||
+           send.isConditional;
   }
 
   static bool isClosureSend(Send send, Element element) {
@@ -640,7 +642,7 @@ class Elements {
   static String constructOperatorNameOrNull(String op, bool isUnary) {
     if (isMinusOperator(op)) {
       return isUnary ? 'unary-' : op;
-    } else if (isUserDefinableOperator(op)) {
+    } else if (isUserDefinableOperator(op) || op == '??') {
       return op;
     } else {
       return null;
@@ -666,6 +668,7 @@ class Elements {
     if (identical(op, '&=')) return '&';
     if (identical(op, '^=')) return '^';
     if (identical(op, '|=')) return '|';
+    if (identical(op, '??=')) return '??';
 
     return null;
   }
@@ -973,7 +976,8 @@ abstract class MemberElement extends Element implements ExecutableElement {
 }
 
 /// A function, variable or parameter defined in an executable context.
-abstract class LocalElement extends Element implements TypedElement, Local {
+abstract class LocalElement extends Element
+    implements AstElement, TypedElement, Local {
 }
 
 /// A top level, static or instance field, a formal parameter or local variable.
@@ -1087,8 +1091,8 @@ abstract class AbstractFieldElement extends Element {
 
 abstract class FunctionSignature {
   FunctionType get type;
-  Link<FormalElement> get requiredParameters;
-  Link<FormalElement> get optionalParameters;
+  List<FormalElement> get requiredParameters;
+  List<FormalElement> get optionalParameters;
 
   int get requiredParameterCount;
   int get optionalParameterCount;
@@ -1399,8 +1403,8 @@ abstract class ClassElement extends TypeDeclarationElement
   void reverseBackendMembers();
 
   Element lookupMember(String memberName);
-  Element lookupSelector(Selector selector);
-  Element lookupSuperSelector(Selector selector);
+  Element lookupByName(Name memberName);
+  Element lookupSuperByName(Name memberName);
 
   Element lookupLocalMember(String memberName);
   Element lookupBackendMember(String memberName);

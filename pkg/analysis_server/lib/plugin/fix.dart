@@ -13,9 +13,8 @@ import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:plugin/plugin.dart';
 
 /**
- * The identifier of the extension point that allows plugins to register new
- * fix contributors with the server. The object used as an extension must be a
- * [FixContributor].
+ * The identifier of the extension point that allows plugins to register fix
+ * contributors. The object used as an extension must be a [FixContributor].
  */
 final String FIX_CONTRIBUTOR_EXTENSION_POINT_ID = Plugin.join(
     ServerPlugin.UNIQUE_IDENTIFIER,

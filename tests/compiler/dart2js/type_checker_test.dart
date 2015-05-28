@@ -2038,7 +2038,7 @@ testAsyncReturn(MockCompiler compiler) {
     return analyzeTopLevel(code, expectedWarnings);
   }
   return Future.wait([
-    check("Future<int> foo() async { return; }", MessageKind.RETURN_NOTHING),
+    check("Future<int> foo() async { return; }"),
     check("Future<int> foo() async { return null; }"),
     check("Future<int> foo() async { return 0; }"),
     check("Future<int> foo() async { return ''; }", NOT_ASSIGNABLE),
@@ -2053,7 +2053,7 @@ testAsyncReturn(MockCompiler compiler) {
     check("void foo() async { return 0; }", MessageKind.RETURN_VALUE_IN_VOID),
     check("void foo() async { return new Future.value(); }",
           MessageKind.RETURN_VALUE_IN_VOID),
-    check("int foo() async { return; }", MessageKind.RETURN_NOTHING),
+    check("int foo() async { return; }"),
     check("int foo() async { return 0; }", NOT_ASSIGNABLE),
     check("int foo() async { return new Future<int>.value(); }",
           NOT_ASSIGNABLE),

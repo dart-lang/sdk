@@ -144,6 +144,32 @@ void testConditionalExpression() {
   conditional = node.expression;
   Expect.isNotNull(conditional.thenExpression.asSendSet());
   Expect.isNotNull(conditional.elseExpression.asSendSet());
+
+  node = parseStatement("a ?? b ? c : d;");
+  // Should parse as: (a ?? b) ? c : d;
+  conditional = node.expression;
+  Expect.isNotNull(conditional.condition.asSend());
+  Expect.isTrue(conditional.condition.asSend().isIfNull);
+  Expect.isNotNull(conditional.thenExpression.asSend());
+  Expect.isNotNull(conditional.elseExpression.asSend());
+}
+
+void testNullOperators() {
+  Expression node = parseStatement("a ?? b;").expression;
+  Expect.isNotNull(node.asSend());
+  Expect.isTrue(node.asSend().isIfNull);
+
+  node = parseStatement("a ??= b;").expression;
+  Expect.isNotNull(node.asSendSet());
+  Expect.isTrue(node.asSendSet().isIfNullAssignment);
+
+  node = parseStatement("a?.b;").expression;
+  Expect.isNotNull(node.asSend());
+  Expect.isTrue(node.asSend().isConditional);
+
+  node = parseStatement("a?.m();").expression;
+  Expect.isNotNull(node.asSend());
+  Expect.isTrue(node.asSend().isConditional);
 }
 
 void testAssignment() {
@@ -338,6 +364,7 @@ void main() {
   testDoStatement();
   testWhileStatement();
   testConditionalExpression();
+  testNullOperators();
   testAssignment();
   testIndex();
   testPostfix();

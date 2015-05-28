@@ -24,7 +24,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
       'print',
       (compiler, printElement) {
         var parameter =
-          printElement.computeSignature(compiler).requiredParameters.head;
+          printElement.computeSignature(compiler).requiredParameters.first;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
@@ -34,7 +34,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
       'print',
       (compiler, printElement) {
         var parameter =
-          printElement.computeSignature(compiler).requiredParameters.head;
+          printElement.computeSignature(compiler).requiredParameters.first;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
@@ -44,7 +44,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
       'print',
       (compiler, printElement) {
         var parameter =
-          printElement.computeSignature(compiler).requiredParameters.head;
+          printElement.computeSignature(compiler).requiredParameters.first;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
         checkType(compiler, type);
       }));
@@ -85,11 +85,11 @@ void testOptionalParameters() {
       'fisk',
       (compiler, fiskElement) {
         var firstParameter =
-          fiskElement.computeSignature(compiler).requiredParameters.head;
+          fiskElement.computeSignature(compiler).requiredParameters[0];
         var secondParameter =
-          fiskElement.computeSignature(compiler).optionalParameters.head;
+          fiskElement.computeSignature(compiler).optionalParameters[0];
         var thirdParameter =
-          fiskElement.computeSignature(compiler).optionalParameters.tail.head;
+          fiskElement.computeSignature(compiler).optionalParameters[1];
         var typesTask = compiler.typesTask;
         var inferrer = typesTask.typesInferrer;
         Expect.identical(

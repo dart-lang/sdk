@@ -371,6 +371,7 @@ class ConstantEvaluationEngine {
               element.variable as VariableElementImpl;
           elementAnnotation.evaluationResult = variableElement.evaluationResult;
         } else if (element is ConstructorElementImpl &&
+            element.isConst &&
             constNode.arguments != null) {
           RecordingErrorListener errorListener = new RecordingErrorListener();
           CompilationUnit sourceCompilationUnit =
@@ -427,6 +428,15 @@ class ConstantEvaluationEngine {
             ConstantEvaluationEngine._getConstructorBase(redirectedConstructor);
         callback(redirectedConstructorBase);
         return;
+      } else if (constant.isFactory) {
+        // Factory constructor, but getConstRedirectedConstructor returned
+        // null.  This can happen if we're visiting one of the special external
+        // const factory constructors in the SDK, or if the code contains
+        // errors (such as delegating to a non-const constructor, or delegating
+        // to a constructor that can't be resolved).  In any of these cases,
+        // we'll evaluate calls to this constructor without having to refer to
+        // any other constants.  So we don't need to report any dependencies.
+        return;
       }
       bool superInvocationFound = false;
       List<ConstructorInitializer> initializers = constant.constantInitializers;
@@ -476,8 +486,6 @@ class ConstantEvaluationEngine {
         } else if (element is ConstructorElementImpl && element.isConst) {
           // The annotation is a constructor invocation, so it depends on the
           // constructor.
-          // TODO(paulberry): make sure the right thing happens if the
-          // constructor is non-const.
           callback(element);
         } else {
           // This could happen in the event of invalid code.  The error will be
@@ -826,6 +834,37 @@ class ConstantEvaluationEngine {
   }
 
   /**
+   * Generate an error indicating that the given [constant] is not a valid
+   * compile-time constant because it references at least one of the constants
+   * in the given [cycle], each of which directly or indirectly references the
+   * constant.
+   */
+  void generateCycleError(Iterable<ConstantEvaluationTarget> cycle,
+      ConstantEvaluationTarget constant) {
+    if (constant is VariableElement) {
+      RecordingErrorListener errorListener = new RecordingErrorListener();
+      ErrorReporter errorReporter =
+          new ErrorReporter(errorListener, constant.source);
+      // TODO(paulberry): It would be really nice if we could extract enough
+      // information from the 'cycle' argument to provide the user with a
+      // description of the cycle.
+      errorReporter.reportErrorForElement(
+          CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, constant, []);
+      (constant as VariableElementImpl).evaluationResult =
+          new EvaluationResultImpl(null, errorListener.errors);
+    } else if (constant is ConstructorElement) {
+      // We don't report cycle errors on constructor declarations since there
+      // is nowhere to put the error information.
+    } else {
+      // Should not happen.  Formal parameter defaults and annotations should
+      // never appear as part of a cycle because they can't be referred to.
+      assert(false);
+      AnalysisEngine.instance.logger.logError(
+          "Constant value computer trying to report a cycle error for a node of type ${constant.runtimeType}");
+    }
+  }
+
+  /**
    * If [constructor] redirects to another const constructor, return the
    * const constructor it redirects to.  Otherwise return `null`.
    */
@@ -902,8 +941,8 @@ class ConstantEvaluationTarget_Annotation implements ConstantEvaluationTarget {
       this.context, this.source, this.librarySource, this.annotation);
 
   @override
-  int get hashCode => JenkinsSmiHash.hash4(context.hashCode, source.hashCode,
-      librarySource.hashCode, annotation.hashCode);
+  int get hashCode => JenkinsSmiHash.hash3(
+      source.hashCode, librarySource.hashCode, annotation.hashCode);
 
   @override
   bool operator ==(other) {
@@ -1233,11 +1272,14 @@ class ConstantValueComputer {
         referenceGraph.computeTopologicalSort();
     for (List<ConstantEvaluationTarget> constantsInCycle in topologicalSort) {
       if (constantsInCycle.length == 1) {
-        _computeValueFor(constantsInCycle[0]);
-      } else {
-        for (ConstantEvaluationTarget constant in constantsInCycle) {
-          _generateCycleError(constantsInCycle, constant);
+        ConstantEvaluationTarget constant = constantsInCycle[0];
+        if (!referenceGraph.getTails(constant).contains(constant)) {
+          _computeValueFor(constant);
+          continue;
         }
+      }
+      for (ConstantEvaluationTarget constant in constantsInCycle) {
+        evaluationEngine.generateCycleError(constantsInCycle, constant);
       }
     }
   }
@@ -1256,37 +1298,6 @@ class ConstantValueComputer {
       return;
     }
     evaluationEngine.computeConstantValue(constant);
-  }
-
-  /**
-   * Generate an error indicating that the given [constant] is not a valid
-   * compile-time constant because it references at least one of the constants
-   * in the given [cycle], each of which directly or indirectly references the
-   * constant.
-   */
-  void _generateCycleError(
-      List<ConstantEvaluationTarget> cycle, ConstantEvaluationTarget constant) {
-    if (constant is VariableElement) {
-      RecordingErrorListener errorListener = new RecordingErrorListener();
-      ErrorReporter errorReporter =
-          new ErrorReporter(errorListener, constant.source);
-      // TODO(paulberry): It would be really nice if we could extract enough
-      // information from the 'cycle' argument to provide the user with a
-      // description of the cycle.
-      errorReporter.reportErrorForElement(
-          CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, constant, []);
-      (constant as VariableElementImpl).evaluationResult =
-          new EvaluationResultImpl(null, errorListener.errors);
-    } else if (constant is ConstructorElement) {
-      // We don't report cycle errors on constructor declarations since there
-      // is nowhere to put the error information.
-    } else {
-      // Should not happen.  Formal parameter defaults and annotations should
-      // never appear as part of a cycle because they can't be referred to.
-      assert(false);
-      AnalysisEngine.instance.logger.logError(
-          "Constant value computer trying to report a cycle error for a node of type ${constant.runtimeType}");
-    }
   }
 }
 

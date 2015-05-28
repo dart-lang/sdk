@@ -314,8 +314,6 @@ class NativeEmitter {
     // must be turned into a JS call to:
     //   foo(null, y).
 
-    ClassElement classElement = member.enclosingClass;
-
     List<jsAst.Statement> statements = <jsAst.Statement>[];
     potentiallyConvertDartClosuresToJs(statements, member, stubParameters);
 

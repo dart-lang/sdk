@@ -721,13 +721,13 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         const Array& intervals = graph_compiler.inlined_code_intervals();
         INC_STAT(isolate, total_code_size,
                  intervals.Length() * sizeof(uword));
-        code.set_inlined_intervals(intervals);
+        code.SetInlinedIntervals(intervals);
 
         const Array& inlined_id_array =
             Array::Handle(isolate, graph_compiler.InliningIdToFunction());
         INC_STAT(isolate, total_code_size,
                  inlined_id_array.Length() * sizeof(uword));
-        code.set_inlined_id_to_function(inlined_id_array);
+        code.SetInlinedIdToFunction(inlined_id_array);
 
         graph_compiler.FinalizePcDescriptors(code);
         code.set_deopt_info_array(deopt_info_array);

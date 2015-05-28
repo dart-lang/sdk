@@ -295,6 +295,11 @@ abstract class ContextManager {
   }
 
   /**
+   * Return `true` if the given [file] should be analyzed.
+   */
+  bool shouldFileBeAnalyzed(File file);
+
+  /**
    * Called when the package map for a context has changed.
    */
   void updateContextPackageUriResolver(
@@ -321,7 +326,7 @@ abstract class ContextManager {
       // add files, recurse into folders
       if (child is File) {
         // ignore if should not be analyzed at all
-        if (!_shouldFileBeAnalyzed(child)) {
+        if (!shouldFileBeAnalyzed(child)) {
           continue;
         }
         // ignore if was not excluded
@@ -366,7 +371,7 @@ abstract class ContextManager {
       }
       // add files, recurse into folders
       if (child is File) {
-        if (_shouldFileBeAnalyzed(child)) {
+        if (shouldFileBeAnalyzed(child)) {
           Source source = createSourceInContext(info.context, child);
           changeSet.addedSource(source);
           info.sources[path] = source;
@@ -580,7 +585,7 @@ abstract class ContextManager {
         // that case don't add it.
         if (resource is File) {
           File file = resource;
-          if (_shouldFileBeAnalyzed(file)) {
+          if (shouldFileBeAnalyzed(file)) {
             ChangeSet changeSet = new ChangeSet();
             Source source = createSourceInContext(info.context, file);
             changeSet.addedSource(source);
@@ -705,19 +710,6 @@ abstract class ContextManager {
     }
     Uri uri = context.sourceFactory.restoreUri(source);
     return file.createSource(uri);
-  }
-
-  static bool _shouldFileBeAnalyzed(File file) {
-    if (!(AnalysisEngine.isDartFileName(file.path) ||
-        AnalysisEngine.isHtmlFileName(file.path))) {
-      return false;
-    }
-    // Emacs creates dummy links to track the fact that a file is open for
-    // editing and has unsaved changes (e.g. having unsaved changes to
-    // 'foo.dart' causes a link '.#foo.dart' to be created, which points to the
-    // non-existent file 'username@hostname.pid'.  To avoid these dummy links
-    // causing the analyzer to thrash, just ignore links to non-existent files.
-    return file.exists;
   }
 }
 

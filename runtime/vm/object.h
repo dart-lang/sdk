@@ -3579,24 +3579,15 @@ class ICData : public Object {
     V(BinaryMintOp)                                                            \
     V(DoubleToSmi)                                                             \
     V(Unknown)                                                                 \
-    V(InstanceGetter)                                                          \
     V(PolymorphicInstanceCallTestFail)                                         \
-    V(InstanceCallNoICData)                                                    \
-    V(IntegerToDouble)                                                         \
     V(UnaryMintOp)                                                             \
     V(BinaryDoubleOp)                                                          \
-    V(InstanceSetter)                                                          \
-    V(Equality)                                                                \
-    V(RelationalOp)                                                            \
-    V(EqualityClassCheck)                                                      \
-    V(NoTypeFeedback)                                                          \
     V(UnaryOp)                                                                 \
     V(UnboxInteger)                                                            \
     V(CheckClass)                                                              \
     V(CheckSmi)                                                                \
     V(CheckArrayBound)                                                         \
     V(AtCall)                                                                  \
-    V(Int32Load)                                                               \
     V(Uint32Load)                                                              \
     V(GuardField)                                                              \
     V(TestCids)                                                                \
@@ -3715,6 +3706,8 @@ class ICData : public Object {
   RawICData* AsUnaryClassChecks() const {
     return AsUnaryClassChecksForArgNr(0);
   }
+  RawICData* AsUnaryClassChecksForCid(
+      intptr_t cid, const Function& target) const;
 
   // Consider only used entries.
   bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
@@ -3727,6 +3720,7 @@ class ICData : public Object {
                         const Array& arguments_descriptor,
                         intptr_t deopt_id,
                         intptr_t num_args_tested);
+  static RawICData* NewFrom(const ICData& from, intptr_t num_args_tested);
 
   static intptr_t TestEntryLengthFor(intptr_t num_args);
 
@@ -3983,6 +3977,14 @@ class Code : public Object {
   const Comments& comments() const;
   void set_comments(const Comments& comments) const;
 
+  RawObject* return_address_metadata() const {
+    return raw_ptr()->return_address_metadata_;
+  }
+  // Sets |return_address_metadata|.
+  void SetPrologueOffset(intptr_t offset) const;
+  // Returns -1 if no prologue offset is available.
+  intptr_t GetPrologueOffset() const;
+
   enum InlinedIntervalEntries {
     kInlIntStart = 0,
     kInlIntInliningId = 1,
@@ -3990,15 +3992,11 @@ class Code : public Object {
     kInlIntNumEntries = 3,
   };
 
-  RawArray* inlined_intervals() const {
-    return raw_ptr()->inlined_intervals_;
-  }
-  void set_inlined_intervals(const Array& value) const;
+  RawArray* GetInlinedIntervals() const;
+  void SetInlinedIntervals(const Array& value) const;
 
-  RawArray* inlined_id_to_function() const {
-    return raw_ptr()->inlined_id_to_function_;
-  }
-  void set_inlined_id_to_function(const Array& value) const;
+  RawArray* GetInlinedIdToFunction() const;
+  void SetInlinedIdToFunction(const Array& value) const;
 
   void GetInlinedFunctionsAt(
       intptr_t offset, GrowableArray<Function*>* fs) const;

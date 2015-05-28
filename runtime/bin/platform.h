@@ -39,11 +39,21 @@ class Platform {
   static char** Environment(intptr_t* count);
   static void FreeEnvironment(char** env, intptr_t count);
 
-  // Stores and gets the executable name.
+  static char* ResolveExecutablePath();
+
+  // Stores the executable name.
   static void SetExecutableName(const char* executable_name) {
     executable_name_ = executable_name;
   }
   static const char* GetExecutableName() {
+    if (!executable_name_resolved_) {
+      // Try to resolve the executable path using platform specific APIs.
+      char* path = Platform::ResolveExecutablePath();
+      if (path != NULL) {
+        executable_name_ = path;
+      }
+      executable_name_resolved_ = true;
+    }
     return executable_name_;
   }
 
@@ -68,7 +78,11 @@ class Platform {
   }
 
  private:
+  // The path to the executable.
   static const char* executable_name_;
+  // State to indicate whether the executable name has been resolved.
+  static bool executable_name_resolved_;
+
   static const char* package_root_;
   static int script_index_;
   static char** argv_;  // VM flags are argv_[1 ... script_index_ - 1]

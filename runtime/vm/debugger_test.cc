@@ -69,20 +69,20 @@ TEST_CASE(Debugger_PrintBreakpointsToJSONArray) {
     }
     ExpectSubstringF(
         js.ToCString(),
-        "[{\"type\":\"Breakpoint\",\"id\":\"breakpoints\\/2\","
+        "[{\"type\":\"Breakpoint\",\"fixedId\":true,\"id\":\"breakpoints\\/2\","
         "\"breakpointNumber\":2,\"resolved\":false,"
         "\"location\":{\"type\":\"Location\","
-        "\"script\":{\"type\":\"@Script\","
+        "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-        "\"name\":\"test-lib\","
-        "\"kind\":\"script\"},\"tokenPos\":14}},"
-        "{\"type\":\"Breakpoint\",\"id\":\"breakpoints\\/1\","
+        "\"uri\":\"test-lib\","
+        "\"_kind\":\"script\"},\"tokenPos\":14}},"
+        "{\"type\":\"Breakpoint\",\"fixedId\":true,\"id\":\"breakpoints\\/1\","
         "\"breakpointNumber\":1,\"resolved\":false,"
         "\"location\":{\"type\":\"Location\","
-        "\"script\":{\"type\":\"@Script\","
+        "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
         "\"id\":\"libraries\\/%" Pd "\\/scripts\\/test-lib\","
-        "\"name\":\"test-lib\","
-        "\"kind\":\"script\"},\"tokenPos\":5}}]",
+        "\"uri\":\"test-lib\","
+        "\"_kind\":\"script\"},\"tokenPos\":5}}]",
         vmlib.index(), vmlib.index());
   }
 }

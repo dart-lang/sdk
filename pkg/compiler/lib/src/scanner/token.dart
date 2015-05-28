@@ -75,6 +75,9 @@ const int GT_GT_TOKEN = PERCENT_EQ_TOKEN + 1;
 const int CARET_EQ_TOKEN = GT_GT_TOKEN + 1;
 const int COMMENT_TOKEN = CARET_EQ_TOKEN + 1;
 const int STRING_INTERPOLATION_IDENTIFIER_TOKEN = COMMENT_TOKEN + 1;
+const int QUESTION_PERIOD_TOKEN = STRING_INTERPOLATION_IDENTIFIER_TOKEN + 1;
+const int QUESTION_QUESTION_TOKEN = QUESTION_PERIOD_TOKEN + 1;
+const int QUESTION_QUESTION_EQ_TOKEN = QUESTION_QUESTION_TOKEN + 1;
 
 /**
  * A token that doubles as a linked list.
@@ -257,6 +260,21 @@ class BadInputToken extends ErrorToken {
   String get assertionMessage {
     return 'Character U+${character.toRadixString(16)} not allowed here.';
   }
+}
+
+// TODO(sigmund): delete once we enable null-aware-operators by default.
+class UnsupportedNullAwareToken extends ErrorToken {
+  final String operator;
+
+  UnsupportedNullAwareToken(this.operator, int charOffset)
+      : super(charOffset);
+
+  String toString() => "UnsupportedNullAwareToken($operator)";
+
+  String get assertionMessage => "'$operator' isn't supported without "
+      "the --enable-null-aware-operators flag.";
+
+  int get charCount => operator.length;
 }
 
 class UnterminatedToken extends ErrorToken {
@@ -589,27 +607,33 @@ const PrecedenceInfo STAR_EQ_INFO =
 const PrecedenceInfo TILDE_SLASH_EQ_INFO =
   const PrecedenceInfo('~/=',
                        ASSIGNMENT_PRECEDENCE, TILDE_SLASH_EQ_TOKEN);
+const PrecedenceInfo QUESTION_QUESTION_EQ_INFO =
+  const PrecedenceInfo('??=',
+                       ASSIGNMENT_PRECEDENCE, QUESTION_QUESTION_EQ_TOKEN);
 
 const PrecedenceInfo QUESTION_INFO =
   const PrecedenceInfo('?', 3, QUESTION_TOKEN);
 
+const PrecedenceInfo QUESTION_QUESTION_INFO =
+  const PrecedenceInfo('??', 4, QUESTION_QUESTION_TOKEN);
+
 const PrecedenceInfo BAR_BAR_INFO =
-  const PrecedenceInfo('||', 4, BAR_BAR_TOKEN);
+  const PrecedenceInfo('||', 5, BAR_BAR_TOKEN);
 
 const PrecedenceInfo AMPERSAND_AMPERSAND_INFO =
-  const PrecedenceInfo('&&', 5, AMPERSAND_AMPERSAND_TOKEN);
+  const PrecedenceInfo('&&', 6, AMPERSAND_AMPERSAND_TOKEN);
 
 const PrecedenceInfo BAR_INFO =
-  const PrecedenceInfo('|', 8, BAR_TOKEN);
+  const PrecedenceInfo('|', 9, BAR_TOKEN);
 
 const PrecedenceInfo CARET_INFO =
-  const PrecedenceInfo('^', 9, CARET_TOKEN);
+  const PrecedenceInfo('^', 10, CARET_TOKEN);
 
 const PrecedenceInfo AMPERSAND_INFO =
-  const PrecedenceInfo('&', 10, AMPERSAND_TOKEN);
+  const PrecedenceInfo('&', 11, AMPERSAND_TOKEN);
 
 // Equality operators.
-const int EQUALITY_PRECEDENCE = 6;
+const int EQUALITY_PRECEDENCE = 7;
 const PrecedenceInfo BANG_EQ_EQ_INFO =
   const PrecedenceInfo('!==',
                        EQUALITY_PRECEDENCE, BANG_EQ_EQ_TOKEN);
@@ -624,7 +648,7 @@ const PrecedenceInfo EQ_EQ_INFO =
                        EQUALITY_PRECEDENCE, EQ_EQ_TOKEN);
 
 // Relational operators.
-const int RELATIONAL_PRECEDENCE = 7;
+const int RELATIONAL_PRECEDENCE = 8;
 const PrecedenceInfo GT_EQ_INFO =
   const PrecedenceInfo('>=',
                        RELATIONAL_PRECEDENCE, GT_EQ_TOKEN);
@@ -646,30 +670,33 @@ const PrecedenceInfo LT_INFO =
 
 // Shift operators.
 const PrecedenceInfo GT_GT_INFO =
-  const PrecedenceInfo('>>', 11, GT_GT_TOKEN);
+  const PrecedenceInfo('>>', 12, GT_GT_TOKEN);
 const PrecedenceInfo LT_LT_INFO =
-  const PrecedenceInfo('<<', 11, LT_LT_TOKEN);
+  const PrecedenceInfo('<<', 12, LT_LT_TOKEN);
 
 // Additive operators.
 const PrecedenceInfo MINUS_INFO =
-  const PrecedenceInfo('-', 12, MINUS_TOKEN);
+  const PrecedenceInfo('-', 13, MINUS_TOKEN);
 const PrecedenceInfo PLUS_INFO =
-  const PrecedenceInfo('+', 12, PLUS_TOKEN);
+  const PrecedenceInfo('+', 13, PLUS_TOKEN);
 
 // Multiplicative operators.
 const PrecedenceInfo PERCENT_INFO =
-  const PrecedenceInfo('%', 13, PERCENT_TOKEN);
+  const PrecedenceInfo('%', 14, PERCENT_TOKEN);
 const PrecedenceInfo SLASH_INFO =
-  const PrecedenceInfo('/', 13, SLASH_TOKEN);
+  const PrecedenceInfo('/', 14, SLASH_TOKEN);
 const PrecedenceInfo STAR_INFO =
-  const PrecedenceInfo('*', 13, STAR_TOKEN);
+  const PrecedenceInfo('*', 14, STAR_TOKEN);
 const PrecedenceInfo TILDE_SLASH_INFO =
-  const PrecedenceInfo('~/', 13, TILDE_SLASH_TOKEN);
+  const PrecedenceInfo('~/', 14, TILDE_SLASH_TOKEN);
 
-const int POSTFIX_PRECEDENCE = 14;
+const int POSTFIX_PRECEDENCE = 15;
 const PrecedenceInfo PERIOD_INFO =
   const PrecedenceInfo('.', POSTFIX_PRECEDENCE,
                        PERIOD_TOKEN);
+const PrecedenceInfo QUESTION_PERIOD_INFO =
+  const PrecedenceInfo('?.', POSTFIX_PRECEDENCE,
+                       QUESTION_PERIOD_TOKEN);
 
 const PrecedenceInfo KEYWORD_INFO =
   const PrecedenceInfo('keyword', 0, KEYWORD_TOKEN);

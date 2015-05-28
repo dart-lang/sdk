@@ -25,6 +25,15 @@ test() {
   var environment = Platform.environment;
   Expect.isTrue(environment is Map<String, String>);
   Expect.isTrue(Platform.executable.contains('dart'));
+  if (!Platform.isWindows) {
+    Expect.isTrue(Platform.executable.startsWith('/'));
+  } else {
+    // This assumes that tests (both locally and on the bots) are
+    // running off a location referred to by a drive letter. If a UNC
+    // location is used or long names ("\\?\" prefix) is used this
+    // needs to be fixed.
+    Expect.equals(Platform.executable.substring(1, 3), ':\\');
+  }
   // Move directory to be sure script is correct.
   var oldDir = Directory.current;
   Directory.current = Directory.current.parent;

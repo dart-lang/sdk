@@ -69,9 +69,10 @@ class Utf8BytesScanner extends ArrayBasedScanner {
    * array whose last element is '0' to signal the end of the file. If this
    * is not the case, the entire array is copied before scanning.
    */
-  Utf8BytesScanner(SourceFile file, {bool includeComments: false})
+  Utf8BytesScanner(SourceFile file, {bool includeComments: false,
+                                     bool enableNullAwareOperators: false})
       : bytes = file.slowUtf8ZeroTerminatedBytes(),
-        super(file, includeComments) {
+        super(file, includeComments, enableNullAwareOperators) {
     assert(bytes.last == 0);
     // Skip a leading BOM.
     if (_containsBomAt(0)) byteOffset += 3;
@@ -85,9 +86,10 @@ class Utf8BytesScanner extends ArrayBasedScanner {
    * scanning.
    */
   Utf8BytesScanner.fromBytes(List<int> zeroTerminatedBytes,
-                             {bool includeComments: false})
+                             {bool includeComments: false,
+                              bool enableNullAwareOperators: false})
       : this.bytes = zeroTerminatedBytes,
-        super(null, includeComments) {
+        super(null, includeComments, enableNullAwareOperators) {
     assert(bytes.last == 0);
   }
 

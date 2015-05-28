@@ -3506,7 +3506,7 @@ void Simulator::Longjmp(uword pc,
                         uword fp,
                         RawObject* raw_exception,
                         RawObject* raw_stacktrace,
-                        Isolate* isolate) {
+                        Thread* thread) {
   // Walk over all setjmp buffers (simulated --> C++ transitions)
   // and try to find the setjmp associated with the simulated stack pointer.
   SimulatorSetjmpBuffer* buf = last_setjmp_buffer();
@@ -3518,12 +3518,14 @@ void Simulator::Longjmp(uword pc,
   // The C++ caller has not cleaned up the stack memory of C++ frames.
   // Prepare for unwinding frames by destroying all the stack resources
   // in the previous C++ frames.
+  Isolate* isolate = thread->isolate();
   StackResource::Unwind(isolate);
 
   // Unwind the C++ stack and continue simulation in the target frame.
   set_pc(static_cast<int64_t>(pc));
   set_register(NULL, SP, static_cast<int64_t>(sp));
   set_register(NULL, FP, static_cast<int64_t>(fp));
+  set_register(NULL, THR, reinterpret_cast<int64_t>(thread));
   // Set the tag.
   isolate->set_vm_tag(VMTag::kDartTagId);
   // Clear top exit frame.

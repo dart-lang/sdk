@@ -130,10 +130,12 @@ class PubCommandRunner extends CommandRunner {
       if (options['trace']) {
         log.dumpTranscript();
       } else if (!isUserFacingException(error)) {
+        // TODO(23505): Implement proper shell escaping, not a partial hack.
+        protectArgument(String x) => x.contains(' ') ? '"$x"' : x;
         log.error("""
 This is an unexpected error. Please run
 
-    pub --trace ${options.arguments.map((arg) => "'$arg'").join(' ')}
+    pub --trace ${options.arguments.map(protectArgument).join(' ')}
 
 and include the results in a bug report on http://dartbug.com/new.
 """);

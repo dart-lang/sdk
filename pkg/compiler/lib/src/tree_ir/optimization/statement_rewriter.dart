@@ -343,41 +343,38 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Expression visitInvokeStatic(InvokeStatic node) {
-    // Process arguments right-to-left, the opposite of evaluation order.
-    for (int i = node.arguments.length - 1; i >= 0; --i) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
+  /// Process nodes right-to-left, the opposite of evaluation order in the case
+  /// of argument lists..
+  void _rewriteList(List<Node> nodes) {
+    for (int i = nodes.length - 1; i >= 0; --i) {
+      nodes[i] = visitExpression(nodes[i]);
     }
+  }
+
+  Expression visitInvokeStatic(InvokeStatic node) {
+    _rewriteList(node.arguments);
     return node;
   }
 
   Expression visitInvokeMethod(InvokeMethod node) {
-    for (int i = node.arguments.length - 1; i >= 0; --i) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
+    _rewriteList(node.arguments);
     node.receiver = visitExpression(node.receiver);
     return node;
   }
 
   Expression visitInvokeMethodDirectly(InvokeMethodDirectly node) {
-    for (int i = node.arguments.length - 1; i >= 0; --i) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
+    _rewriteList(node.arguments);
     node.receiver = visitExpression(node.receiver);
     return node;
   }
 
   Expression visitInvokeConstructor(InvokeConstructor node) {
-    for (int i = node.arguments.length - 1; i >= 0; --i) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
+    _rewriteList(node.arguments);
     return node;
   }
 
   Expression visitConcatenateStrings(ConcatenateStrings node) {
-    for (int i = node.arguments.length - 1; i >= 0; --i) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
+    _rewriteList(node.arguments);
     return node;
   }
 
@@ -561,10 +558,7 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitLiteralList(LiteralList node) {
-    // Process values right-to-left, the opposite of evaluation order.
-    for (int i = node.values.length - 1; i >= 0; --i) {
-      node.values[i] = visitExpression(node.values[i]);
-    }
+    _rewriteList(node.values);
     return node;
   }
 
@@ -578,7 +572,8 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitTypeOperator(TypeOperator node) {
-    node.receiver = visitExpression(node.receiver);
+    _rewriteList(node.typeArguments);
+    node.value = visitExpression(node.value);
     return node;
   }
 
@@ -607,9 +602,7 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitCreateInstance(CreateInstance node) {
-    for (int i = node.arguments.length - 1; i >= 0; --i) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
+    _rewriteList(node.arguments);
     return node;
   }
 
@@ -624,16 +617,12 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitTypeExpression(TypeExpression node) {
-    for (int i = node.arguments.length - 1; i >= 0; --i) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
+    _rewriteList(node.arguments);
     return node;
   }
 
   Expression visitCreateInvocationMirror(CreateInvocationMirror node) {
-    for (int i = node.arguments.length - 1; i >= 0; --i) {
-      node.arguments[i] = visitExpression(node.arguments[i]);
-    }
+    _rewriteList(node.arguments);
     return node;
   }
 

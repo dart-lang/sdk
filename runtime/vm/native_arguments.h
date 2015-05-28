@@ -20,10 +20,10 @@ DECLARE_FLAG(bool, verify_on_transition);
 
 // Forward declarations.
 class BootstrapNatives;
-class Isolate;
 class Object;
 class RawObject;
 class Simulator;
+class Thread;
 
 #if defined(TESTING) || defined(DEBUG)
 
@@ -85,7 +85,7 @@ class Simulator;
 // subclass of ValueObject.
 class NativeArguments {
  public:
-  Isolate* isolate() const { return isolate_; }
+  Thread* thread() const { return thread_; }
   int ArgCount() const { return ArgcBits::decode(argc_tag_); }
 
   RawObject* ArgAt(int index) const {
@@ -127,8 +127,8 @@ class NativeArguments {
     *retval_ = value.raw();
   }
 
-  static intptr_t isolate_offset() {
-    return OFFSET_OF(NativeArguments, isolate_);
+  static intptr_t thread_offset() {
+    return OFFSET_OF(NativeArguments, thread_);
   }
   static intptr_t argc_tag_offset() {
     return OFFSET_OF(NativeArguments, argc_tag_);
@@ -221,7 +221,7 @@ class NativeArguments {
     return 0;
   }
 
-  Isolate* isolate_;  // Current isolate pointer.
+  Thread* thread_;  // Current thread pointer.
   int argc_tag_;  // Encodes argument count and invoked native call type.
   RawObject*(*argv_)[];  // Pointer to an array of arguments to runtime call.
   RawObject** retval_;  // Pointer to the return value area.

@@ -7,6 +7,7 @@ library analyzer.src.context.context;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -21,6 +22,7 @@ import 'package:analyzer/src/generated/engine.dart'
         WorkManager;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/html.dart' as ht;
+import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
@@ -55,6 +57,16 @@ typedef T PendingFutureComputer<T>(CacheEntry entry);
  * An [AnalysisContext] in which analysis can be performed.
  */
 class AnalysisContextImpl implements InternalAnalysisContext {
+  /**
+   * The next context identifier.
+   */
+  static int _NEXT_ID = 0;
+
+  /**
+   * The unique identifier of this context.
+   */
+  final int _id = _NEXT_ID++;
+
   /**
    * A client-provided name used to identify this context, or `null` if the
    * client has not provided a name.
@@ -291,16 +303,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> get launchableClientLibrarySources {
-    List<Source> sources = new List<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      AnalysisTarget target = iterator.key;
-      CacheEntry entry = iterator.value;
-      if (target is Source &&
-          entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
-          !target.isInSystemLibrary &&
-          isClientLibrary(target)) {
-        sources.add(target);
+    List<Source> sources = <Source>[];
+    for (Source source in _cache.sources) {
+      CacheEntry entry = _cache.get(source);
+      if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
+          !source.isInSystemLibrary &&
+          isClientLibrary(source)) {
+        sources.add(source);
       }
     }
     return sources;
@@ -308,16 +317,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> get launchableServerLibrarySources {
-    List<Source> sources = new List<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      AnalysisTarget target = iterator.key;
-      CacheEntry entry = iterator.value;
-      if (target is Source &&
+    List<Source> sources = <Source>[];
+    for (Source source in _cache.sources) {
+      CacheEntry entry = _cache.get(source);
+      if (source is Source &&
           entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY &&
-          !target.isInSystemLibrary &&
-          isServerLibrary(target)) {
-        sources.add(target);
+          !source.isInSystemLibrary &&
+          isServerLibrary(source)) {
+        sources.add(source);
       }
     }
     return sources;
@@ -364,15 +371,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> get sources {
-    List<Source> sources = new List<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      AnalysisTarget target = iterator.key;
-      if (target is Source) {
-        sources.add(target);
-      }
-    }
-    return sources;
+    return _cache.sources.toList();
   }
 
   /**
@@ -692,6 +691,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     CacheEntry entry = _cache.get(target);
     if (entry == null) {
       entry = new CacheEntry(target);
+      if (target is Source) {
+        entry.modificationTime = getModificationStamp(target);
+      }
       _cache.put(entry);
     }
     return entry;
@@ -769,30 +771,28 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sourceKind == null) {
       return Source.EMPTY_LIST;
     }
-    List<Source> htmlSources = new List<Source>();
+    List<Source> htmlSources = <Source>[];
     while (true) {
       if (sourceKind == SourceKind.PART) {
         List<Source> librarySources = getLibrariesContaining(source);
-        MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-        while (iterator.moveNext()) {
-          CacheEntry entry = iterator.value;
+        for (Source source in _cache.sources) {
+          CacheEntry entry = _cache.get(source);
           if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
             List<Source> referencedLibraries =
                 (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
             if (_containsAny(referencedLibraries, librarySources)) {
-              htmlSources.add(iterator.key);
+              htmlSources.add(source);
             }
           }
         }
       } else {
-        MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-        while (iterator.moveNext()) {
-          CacheEntry entry = iterator.value;
+        for (Source source in _cache.sources) {
+          CacheEntry entry = _cache.get(source);
           if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
             List<Source> referencedLibraries =
                 (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
             if (_contains(referencedLibraries, source)) {
-              htmlSources.add(iterator.key);
+              htmlSources.add(source);
             }
           }
         }
@@ -822,36 +822,22 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (kind == SourceKind.LIBRARY) {
       return <Source>[source];
     } else if (kind == SourceKind.PART) {
-      List<Source> libraries = <Source>[];
-      MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-      while (iterator.moveNext()) {
-        AnalysisTarget target = iterator.key;
-        if (target is Source && getKindOf(target) == SourceKind.LIBRARY) {
-          List<Source> parts = _cache.getValue(target, INCLUDED_PARTS);
-          if (parts.contains(source)) {
-            libraries.add(target);
-          }
-        }
-      }
-      if (libraries.isNotEmpty) {
-        return libraries;
-      }
+      return dartWorkManager.getLibrariesContainingPart(source);
     }
     return Source.EMPTY_ARRAY;
   }
 
   @override
   List<Source> getLibrariesDependingOn(Source librarySource) {
-    List<Source> dependentLibraries = new List<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      CacheEntry entry = iterator.value;
+    List<Source> dependentLibraries = <Source>[];
+    for (Source source in _cache.sources) {
+      CacheEntry entry = _cache.get(source);
       if (entry.getValue(SOURCE_KIND) == SourceKind.LIBRARY) {
         if (_contains(entry.getValue(EXPORTED_LIBRARIES), librarySource)) {
-          dependentLibraries.add(iterator.key);
+          dependentLibraries.add(source);
         }
         if (_contains(entry.getValue(IMPORTED_LIBRARIES), librarySource)) {
-          dependentLibraries.add(iterator.key);
+          dependentLibraries.add(source);
         }
       }
     }
@@ -952,15 +938,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> getSourcesWithFullName(String path) {
-    List<Source> sources = <Source>[];
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      AnalysisTarget target = iterator.key;
-      if (target is Source && target.fullName == path) {
-        sources.add(target);
-      }
-    }
-    return sources;
+    return analysisCache.getSourcesWithFullName(path);
   }
 
   @override
@@ -1010,6 +988,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           .add(new SourcesChangedEvent.changedContent(source, newContents));
     }
     return changed;
+  }
+
+  @override
+  void invalidateLibraryHints(Source librarySource) {
+    List<Source> sources = _cache.getValue(librarySource, UNITS);
+    if (sources != null) {
+      for (Source source in sources) {
+        getCacheEntry(source).setState(HINTS, CacheState.INVALID);
+      }
+    }
   }
 
   @override
@@ -1174,6 +1162,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  bool shouldErrorsBeAnalyzed(Source source, Object entry) {
+    CacheEntry entry = analysisCache.get(source);
+    if (source.isInSystemLibrary) {
+      return _options.generateSdkErrors;
+    } else if (!entry.explicitlyAdded) {
+      return _options.generateImplicitErrors;
+    } else {
+      return true;
+    }
+  }
+
+  @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
     // TODO(brianwilkerson) Figure out where this is used and adjust the call
@@ -1250,9 +1250,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * given list of [sources].
    */
   void _addSourcesInContainer(List<Source> sources, SourceContainer container) {
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      Source source = iterator.key;
+    for (Source source in _cache.sources) {
       if (container.contains(source)) {
         sources.add(source);
       }
@@ -1420,12 +1418,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * the given [kind].
    */
   List<Source> _getSources(SourceKind kind) {
-    List<Source> sources = new List<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      if (iterator.value.getValue(SOURCE_KIND) == kind &&
-          iterator.key is Source) {
-        sources.add(iterator.key);
+    List<Source> sources = <Source>[];
+    for (Source source in _cache.sources) {
+      CacheEntry entry = _cache.get(source);
+      if (entry.getValue(SOURCE_KIND) == kind) {
+        sources.add(source);
       }
     }
     return sources;
@@ -1499,7 +1496,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         } else if (state == CacheState.ERROR) {
           return;
         }
-        if (_shouldErrorsBeAnalyzed(source, unitEntry)) {
+        if (shouldErrorsBeAnalyzed(source, unitEntry)) {
           state = unitEntry.getState(VERIFY_ERRORS);
           if (state == CacheState.INVALID ||
               (isPriority && state == CacheState.FLUSHED)) {
@@ -1624,7 +1621,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   void _removeFromPriorityOrder(Source source) {
     int count = _priorityOrder.length;
-    List<Source> newOrder = new List<Source>();
+    List<Source> newOrder = <Source>[];
     for (int i = 0; i < count; i++) {
       if (_priorityOrder[i] != source) {
         newOrder.add(_priorityOrder[i]);
@@ -1632,20 +1629,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     if (newOrder.length < count) {
       analysisPriorityOrder = newOrder;
-    }
-  }
-
-  /**
-   * Return `true` if errors should be produced for the given [source]. The
-   * [entry] associated with the source is passed in for efficiency.
-   */
-  bool _shouldErrorsBeAnalyzed(Source source, CacheEntry entry) {
-    if (source.isInSystemLibrary) {
-      return _options.generateSdkErrors;
-    } else if (!entry.explicitlyAdded) {
-      return _options.generateImplicitErrors;
-    } else {
-      return true;
     }
   }
 
@@ -1738,64 +1721,69 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * TODO(scheglov) A hackish, limited incremental resolution implementation.
    */
   bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
-    // TODO(brianwilkerson) Implement this.
-    return false;
-//    return PerformanceStatistics.incrementalAnalysis.makeCurrentWhile(() {
-//      incrementalResolutionValidation_lastUnitSource = null;
-//      incrementalResolutionValidation_lastLibrarySource = null;
-//      incrementalResolutionValidation_lastUnit = null;
-//      // prepare the entry
-//      cache.CacheEntry entry = _cache.get(unitSource);
-//      if (entry == null) {
-//        return false;
-//      }
-//      // prepare the (only) library source
-//      List<Source> librarySources = getLibrariesContaining(unitSource);
-//      if (librarySources.length != 1) {
-//        return false;
-//      }
-//      Source librarySource = librarySources[0];
-//      // prepare the library element
-//      LibraryElement libraryElement = getLibraryElement(librarySource);
-//      if (libraryElement == null) {
-//        return false;
-//      }
-//      // prepare the existing unit
-//      CompilationUnit oldUnit =
-//          getResolvedCompilationUnit2(unitSource, librarySource);
-//      if (oldUnit == null) {
-//        return false;
-//      }
-//      // do resolution
-//      Stopwatch perfCounter = new Stopwatch()..start();
-//      PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
-//          typeProvider, unitSource, entry, oldUnit,
-//          analysisOptions.incrementalApi, analysisOptions);
-//      bool success = resolver.resolve(newCode);
-//      AnalysisEngine.instance.instrumentationService.logPerformance(
-//          AnalysisPerformanceKind.INCREMENTAL, perfCounter,
-//          'success=$success,context_id=$_id,code_length=${newCode.length}');
-//      if (!success) {
-//        return false;
-//      }
-//      // if validation, remember the result, but throw it away
-//      if (analysisOptions.incrementalValidation) {
-//        incrementalResolutionValidation_lastUnitSource = oldUnit.element.source;
-//        incrementalResolutionValidation_lastLibrarySource =
-//            oldUnit.element.library.source;
-//        incrementalResolutionValidation_lastUnit = oldUnit;
-//        return false;
-//      }
-//      // prepare notice
-//      {
-//        LineInfo lineInfo = getLineInfo(unitSource);
-//        ChangeNoticeImpl notice = _getNotice(unitSource);
-//        notice.resolvedDartUnit = oldUnit;
-//        notice.setErrors(entry.allErrors, lineInfo);
-//      }
-//      // OK
-//      return true;
-//    });
+    return PerformanceStatistics.incrementalAnalysis.makeCurrentWhile(() {
+      incrementalResolutionValidation_lastUnitSource = null;
+      incrementalResolutionValidation_lastLibrarySource = null;
+      incrementalResolutionValidation_lastUnit = null;
+      // prepare the entry
+      CacheEntry sourceEntry = _cache.get(unitSource);
+      if (sourceEntry == null) {
+        return false;
+      }
+      // prepare the (only) library source
+      List<Source> librarySources = getLibrariesContaining(unitSource);
+      if (librarySources.length != 1) {
+        return false;
+      }
+      Source librarySource = librarySources[0];
+      CacheEntry unitEntry =
+          _cache.get(new LibrarySpecificUnit(librarySource, unitSource));
+      if (unitEntry == null) {
+        return false;
+      }
+      // prepare the library element
+      LibraryElement libraryElement = getLibraryElement(librarySource);
+      if (libraryElement == null) {
+        return false;
+      }
+      // prepare the existing unit
+      CompilationUnit oldUnit =
+          getResolvedCompilationUnit2(unitSource, librarySource);
+      if (oldUnit == null) {
+        return false;
+      }
+      // do resolution
+      Stopwatch perfCounter = new Stopwatch()..start();
+      PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
+          typeProvider, unitSource, null, sourceEntry, unitEntry, oldUnit,
+          analysisOptions.incrementalApi, analysisOptions);
+      bool success = resolver.resolve(newCode);
+      AnalysisEngine.instance.instrumentationService.logPerformance(
+          AnalysisPerformanceKind.INCREMENTAL, perfCounter,
+          'success=$success,context_id=$_id,code_length=${newCode.length}');
+      if (!success) {
+        return false;
+      }
+      // if validation, remember the result, but throw it away
+      if (analysisOptions.incrementalValidation) {
+        incrementalResolutionValidation_lastUnitSource = oldUnit.element.source;
+        incrementalResolutionValidation_lastLibrarySource =
+            oldUnit.element.library.source;
+        incrementalResolutionValidation_lastUnit = oldUnit;
+        return false;
+      }
+      // prepare notice
+      {
+        ChangeNoticeImpl notice = getNotice(unitSource);
+        notice.resolvedDartUnit = oldUnit;
+        AnalysisErrorInfo errorInfo = getErrors(unitSource);
+        notice.setErrors(errorInfo.errors, errorInfo.lineInfo);
+      }
+      // schedule
+      dartWorkManager.unitIncrementallyResolved(librarySource, unitSource);
+      // OK
+      return true;
+    });
   }
 
   /**
@@ -1808,19 +1796,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     int consistencyCheckStart = JavaSystem.nanoTime();
     HashSet<Source> changedSources = new HashSet<Source>();
     HashSet<Source> missingSources = new HashSet<Source>();
-    MapIterator<AnalysisTarget, CacheEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      AnalysisTarget target = iterator.key;
-      if (target is Source) {
-        CacheEntry entry = iterator.value;
-        int sourceTime = getModificationStamp(target);
-        if (sourceTime != entry.modificationTime) {
-          changedSources.add(target);
-        }
-        if (entry.exception != null) {
-          if (!exists(target)) {
-            missingSources.add(target);
-          }
+    for (Source source in _cache.sources) {
+      CacheEntry entry = _cache.get(source);
+      int sourceTime = getModificationStamp(source);
+      if (sourceTime != entry.modificationTime) {
+        changedSources.add(source);
+      }
+      if (entry.exception != null) {
+        if (!exists(source)) {
+          missingSources.add(source);
         }
       }
     }

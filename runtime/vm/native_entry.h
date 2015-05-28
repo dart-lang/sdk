@@ -51,10 +51,9 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
     ASSERT(arguments->NativeArgCount() == argument_count);                     \
     TRACE_NATIVE_CALL("%s", ""#name);                                          \
     {                                                                          \
-      Isolate* isolate = arguments->isolate();                                 \
-      /* TODO(koda): Pivot from Isolate to Thread in NativeArguments. */       \
-      Thread* thread = isolate->mutator_thread();                              \
+      Thread* thread = arguments->thread();                                    \
       ASSERT(thread == Thread::Current());                                     \
+      Isolate* isolate = thread->isolate();                                    \
       StackZone zone(isolate);                                                 \
       SET_NATIVE_RETVAL(arguments,                                             \
                         DN_Helper##name(isolate,                               \

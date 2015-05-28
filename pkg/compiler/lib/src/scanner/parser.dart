@@ -399,7 +399,6 @@ class Parser {
   }
 
   Token parseTypeOpt(Token token) {
-    String value = token.stringValue;
     Token peek = peekAfterIfType(token);
     if (peek != null && (peek.isIdentifier() || optional('this', peek))) {
       return parseType(token);
@@ -939,7 +938,6 @@ class Parser {
   ///     ['(', '*', 'operator']
   ///
   Link<Token> findMemberName(Token token) {
-    Token start = token;
     Link<Token> identifiers = const Link<Token>();
 
     // `true` if 'get' has been seen.
@@ -1162,7 +1160,6 @@ class Parser {
 
   Token parseMember(Token token) {
     token = parseMetadataStar(token);
-    String value = token.stringValue;
     if (isFactoryDeclaration(token)) {
       return parseFactoryMethod(token);
     }
@@ -1339,8 +1336,6 @@ class Parser {
     token = token.next; // Skip 'factory'.
     token = parseConstructorReference(token);
     token = parseFormalParameters(token);
-    bool previousYieldIsKeyword = yieldIsKeyword;
-    bool previousAwaitIsKeyword = awaitIsKeyword;
     token = parseAsyncModifier(token);
     if (optional('=', token)) {
       token = parseRedirectingFactoryBody(token);
@@ -1789,7 +1784,8 @@ class Parser {
           token = parsePrecedenceExpression(token.next, level, allowCascades);
           listener.handleAssignmentExpression(operator);
         } else if (identical(tokenLevel, POSTFIX_PRECEDENCE)) {
-          if (identical(info, PERIOD_INFO)) {
+          if (identical(info, PERIOD_INFO) ||
+              identical(info, QUESTION_PERIOD_INFO)) {
             // Left associative, so we recurse at the next higher
             // precedence level. However, POSTFIX_PRECEDENCE is the
             // highest level, so we just call parseUnaryExpression

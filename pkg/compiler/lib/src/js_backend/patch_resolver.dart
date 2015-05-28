@@ -34,11 +34,13 @@ class PatchResolverTask extends CompilerTask {
   }
 
   void checkMatchingPatchParameters(FunctionElement origin,
-                                    Link<Element> originParameters,
-                                    Link<Element> patchParameters) {
-    while (!originParameters.isEmpty) {
-      ParameterElementX originParameter = originParameters.head;
-      ParameterElementX patchParameter = patchParameters.head;
+                                    List<Element> originParameters,
+                                    List<Element> patchParameters) {
+
+    assert(originParameters.length == patchParameters.length);
+    for (int index = 0; index < originParameters.length; index++) {
+      ParameterElementX originParameter = originParameters[index];
+      ParameterElementX patchParameter = patchParameters[index];
       // TODO(johnniwinther): Remove the conditional patching when we never
       // resolve the same method twice.
       if (!originParameter.isPatched) {
@@ -86,16 +88,12 @@ class PatchResolverTask extends CompilerTask {
               {'parameterName': patchParameter.name});
         }
       }
-
-      originParameters = originParameters.tail;
-      patchParameters = patchParameters.tail;
     }
   }
 
   void checkMatchingPatchSignatures(FunctionElement origin,
                                     FunctionElement patch) {
     // TODO(johnniwinther): Show both origin and patch locations on errors.
-    FunctionExpression originTree = origin.node;
     FunctionSignature originSignature = origin.functionSignature;
     FunctionExpression patchTree = patch.node;
     FunctionSignature patchSignature = patch.functionSignature;

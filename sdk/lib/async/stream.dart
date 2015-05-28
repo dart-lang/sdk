@@ -48,7 +48,7 @@ part of dart.async;
  * use [asBroadcastStream] to create a broadcast stream on top of the
  * non-broadcast stream.
  *
- * On either kind of stream, stream transformationss, such as [where] and
+ * On either kind of stream, stream transformations, such as [where] and
  * [skip], return the same type of stream as the one the method was called on,
  * unless otherwise noted.
  *

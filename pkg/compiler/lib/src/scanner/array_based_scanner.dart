@@ -5,8 +5,9 @@
 part of scanner;
 
 abstract class ArrayBasedScanner extends AbstractScanner {
-  ArrayBasedScanner(SourceFile file, bool includeComments)
-      : super(file, includeComments);
+  ArrayBasedScanner(SourceFile file, bool includeComments,
+                    bool enableNullAwareOperators)
+      : super(file, includeComments, enableNullAwareOperators);
 
   /**
    * The stack of open groups, e.g [: { ... ( .. :]

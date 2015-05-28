@@ -7,10 +7,12 @@ library analyzer.src.task.dart;
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
+import 'package:analyzer/src/generated/engine.dart'
+    hide AnalysisCache, AnalysisTask;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -19,6 +21,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/dart.dart';
@@ -29,7 +32,7 @@ import 'package:analyzer/task/model.dart';
  * The [ResultCachingPolicy] for ASTs.
  */
 const ResultCachingPolicy AST_CACHING_POLICY =
-    const SimpleResultCachingPolicy(1024, 512);
+    const SimpleResultCachingPolicy(8192, 8192);
 
 /**
  * The errors produced while resolving a library directives.
@@ -498,20 +501,22 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
    * given [classElement].
    */
   static Map<String, TaskInput> buildInputs(ClassElement classElement) {
-    // TODO(scheglov) Here we implicitly depend on LIBRARY_ELEMENT5, i.e. that
-    // "supertype" for the "classElement" is set.
-    // We need to make it an explicit dependency.
+    Source librarySource = classElement.library.source;
     DartType superType = classElement.supertype;
     if (superType is InterfaceType) {
       if (classElement.isTypedef || classElement.mixins.isNotEmpty) {
         ClassElement superElement = superType.element;
         return <String, TaskInput>{
+          'libraryDep': LIBRARY_ELEMENT5.of(librarySource),
           SUPER_CONSTRUCTORS: CONSTRUCTORS.of(superElement)
         };
       }
     }
-    // No implicit constructors, no inputs required.
-    return <String, TaskInput>{};
+    // No implicit constructors.
+    // Depend on LIBRARY_ELEMENT5 for invalidation.
+    return <String, TaskInput>{
+      'libraryDep': LIBRARY_ELEMENT5.of(librarySource)
+    };
   }
 
   /**
@@ -667,12 +672,23 @@ class BuildCompilationUnitElementTask extends SourceBasedAnalysisTask {
     Source source = getRequiredSource();
     CompilationUnit unit = getRequiredInput(PARSED_UNIT_INPUT_NAME);
     //
-    // Process inputs.
+    // Build or reuse CompilationUnitElement.
     //
     unit = AstCloner.clone(unit);
-    CompilationUnitBuilder builder = new CompilationUnitBuilder();
+    AnalysisCache analysisCache =
+        (context as InternalAnalysisContext).analysisCache;
     CompilationUnitElement element =
-        builder.buildCompilationUnit(source, unit, librarySpecificUnit.library);
+        analysisCache.getValue(target, COMPILATION_UNIT_ELEMENT);
+    if (element == null) {
+      CompilationUnitBuilder builder = new CompilationUnitBuilder();
+      element = builder.buildCompilationUnit(
+          source, unit, librarySpecificUnit.library);
+    } else {
+      new DeclarationResolver().resolve(unit, element);
+    }
+    //
+    // Prepare constants.
+    //
     ConstantFinder constantFinder =
         new ConstantFinder(context, source, librarySpecificUnit.library);
     unit.accept(constantFinder);
@@ -1785,6 +1801,9 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
   TaskDescriptor get descriptor => DESCRIPTOR;
 
   @override
+  bool get handlesDependencyCycles => true;
+
+  @override
   void internalPerform() {
     //
     // Prepare inputs.
@@ -1796,10 +1815,24 @@ class ComputeConstantValueTask extends ConstantEvaluationAnalysisTask {
     AnalysisContext context = constant.context;
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
-    // Compute the value of the constant.
+    // Compute the value of the constant, or report an error if there was a
+    // cycle.
     //
-    new ConstantEvaluationEngine(typeProvider, context.declaredVariables)
-        .computeConstantValue(constant);
+    ConstantEvaluationEngine constantEvaluationEngine =
+        new ConstantEvaluationEngine(typeProvider, context.declaredVariables);
+    if (dependencyCycle == null) {
+      constantEvaluationEngine.computeConstantValue(constant);
+    } else {
+      List<ConstantEvaluationTarget> constantsInCycle =
+          <ConstantEvaluationTarget>[];
+      for (WorkItem workItem in dependencyCycle) {
+        if (workItem.descriptor == DESCRIPTOR) {
+          constantsInCycle.add(workItem.target);
+        }
+      }
+      assert(constantsInCycle.isNotEmpty);
+      constantEvaluationEngine.generateCycleError(constantsInCycle, constant);
+    }
     //
     // Record outputs.
     //
@@ -3244,11 +3277,6 @@ class _ExportSourceClosureTaskInput implements TaskInput<List<Source>> {
 }
 
 /**
- * The kind of the source closure to build.
- */
-enum _SourceClosureKind { IMPORT, EXPORT, IMPORT_EXPORT }
-
-/**
  * A [TaskInput] whose value is a list of library sources imported or exported,
  * directly or indirectly by the target [Source].
  */
@@ -3276,6 +3304,11 @@ class _ImportSourceClosureTaskInput implements TaskInput<List<Source>> {
   TaskInputBuilder<List<Source>> createBuilder() =>
       new _SourceClosureTaskInputBuilder(target, _SourceClosureKind.IMPORT);
 }
+
+/**
+ * The kind of the source closure to build.
+ */
+enum _SourceClosureKind { IMPORT, EXPORT, IMPORT_EXPORT }
 
 /**
  * A [TaskInputBuilder] to build values for [_ImportSourceClosureTaskInput].
@@ -3317,6 +3350,12 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
   @override
   List<Source> get inputValue {
     return _libraries.map((LibraryElement library) => library.source).toList();
+  }
+
+  @override
+  void currentValueNotAvailable() {
+    // Nothing needs to be done.  moveNext() will simply go on to the next new
+    // source.
   }
 
   @override

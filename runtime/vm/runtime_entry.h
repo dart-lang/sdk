@@ -77,9 +77,9 @@ class RuntimeEntry : public ValueObject {
     ASSERT(arguments.ArgCount() == argument_count);                            \
     if (FLAG_trace_runtime_calls) OS::Print("Runtime call: %s\n", ""#name);    \
     {                                                                          \
-      Isolate* isolate = arguments.isolate();                                  \
-      Thread* thread = isolate->mutator_thread();                              \
+      Thread* thread = arguments.thread();                                     \
       ASSERT(thread == Thread::Current());                                     \
+      Isolate* isolate = thread->isolate();                                    \
       StackZone zone(isolate);                                                 \
       HANDLESCOPE(isolate);                                                    \
       DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \

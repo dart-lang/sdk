@@ -281,10 +281,13 @@ abstract class ServiceObject extends Observable {
   Future<ServiceObject> reload() {
     // TODO(turnidge): Checking for a null id should be part of the
     // "immmutable" check.
-    if (id == null || id == '') {
-      return new Future.value(this);
-    }
-    if (loaded && immutable) {
+    bool hasId = (id != null) && (id != '');
+    bool isVM = this is VM;
+    // We should always reload the VM.
+    // We can't reload objects without an id.
+    // We shouldn't reload an immutable and already loaded object.
+    bool skipLoad = !isVM && (!hasId || (immutable && loaded));
+    if (skipLoad) {
       return new Future.value(this);
     }
     if (_inProgressReload == null) {
@@ -779,10 +782,9 @@ class HeapSnapshot {
   final DateTime timeStamp;
   final Isolate isolate;
 
-  HeapSnapshot(this.isolate, ByteData data) :
-      graph = new ObjectGraph(new ReadStream(data)),
-      timeStamp = new DateTime.now() {
-  }
+  HeapSnapshot(this.isolate, chunks, nodeCount) :
+      graph = new ObjectGraph(chunks, nodeCount),
+      timeStamp = new DateTime.now();
 
   List<Future<ServiceObject>> getMostRetained({int classId, int limit}) {
     var result = [];
@@ -795,8 +797,6 @@ class HeapSnapshot {
     }
     return result;
   }
-
-
 }
 
 /// State for a running isolate.
@@ -857,6 +857,20 @@ class Isolate extends ServiceObjectOwner with Coverage {
         .then(_buildClassHierarchy);
   }
 
+  Future<List<Class>> getClassRefs() async {
+    ServiceMap classList = await invokeRpc('getClassList', {});
+    assert(classList.type == 'ClassList');
+    var classRefs = [];
+    for (var cls in classList['classes']) {
+      // Skip over non-class classes.
+      if (cls is Class) {
+        _classesByCid[cls.vmCid] = cls;
+        classRefs.add(cls);
+      }
+    }
+    return classRefs;
+  }
+
   /// Given the class list, loads each class.
   Future<List<Class>> _loadClasses(ServiceMap classList) {
     assert(classList.type == 'ClassList');
@@ -864,6 +878,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     for (var cls in classList['classes']) {
       // Skip over non-class classes.
       if (cls is Class) {
+        _classesByCid[cls.vmCid] = cls;
         futureClasses.add(cls.load());
       }
     }
@@ -885,6 +900,8 @@ class Isolate extends ServiceObjectOwner with Coverage {
     assert(objectClass != null);
     return new Future.value(objectClass);
   }
+
+  Class getClassByCid(int cid) => _classesByCid[cid];
 
   ServiceObject getFromMap(ObservableMap map) {
     if (map == null) {
@@ -938,6 +955,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   @observable Class objectClass;
   @observable final rootClasses = new ObservableList<Class>();
+  Map<int, Class> _classesByCid = new Map<int, Class>();
 
   @observable Library rootLibrary;
   @observable ObservableList<Library> libraries =
@@ -958,21 +976,51 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   @observable DartError error;
   @observable HeapSnapshot latestSnapshot;
-  Completer<HeapSnapshot> _snapshotFetch;
+  StreamController _snapshotFetch;
+
+  List<ByteData> _chunksInProgress;
 
   void _loadHeapSnapshot(ServiceEvent event) {
-    latestSnapshot = new HeapSnapshot(this, event.data);
+    if (_snapshotFetch == null || _snapshotFetch.isClosed) {
+      // No outstanding snapshot request. Presumably another client asked for a
+      // snapshot.
+      Logger.root.info("Dropping unsolicited heap snapshot chunk");
+      return;
+    }
+
+    // Occasionally these actually arrive out of order.
+    var chunkIndex = event.chunkIndex;
+    var chunkCount = event.chunkCount;
+    if (_chunksInProgress == null) {
+      _chunksInProgress = new List(chunkCount);
+    }
+    _chunksInProgress[chunkIndex] = event.data;
+    _snapshotFetch.add("Receiving snapshot chunk ${chunkIndex + 1}"
+                       " of $chunkCount...");
+
+    for (var i = 0; i < chunkCount; i++) {
+      if (_chunksInProgress[i] == null) return;
+    }
+
+    var loadedChunks = _chunksInProgress;
+    _chunksInProgress = null;
+
+    latestSnapshot = new HeapSnapshot(this, loadedChunks, event.nodeCount);
     if (_snapshotFetch != null) {
-      _snapshotFetch.complete(latestSnapshot);
+      latestSnapshot.graph.process(_snapshotFetch).then((graph) {
+        _snapshotFetch.add(latestSnapshot);
+        _snapshotFetch.close();
+      });
     }
   }
 
-  Future<HeapSnapshot> fetchHeapSnapshot() {
-    if (_snapshotFetch == null || _snapshotFetch.isCompleted) {
-      _snapshotFetch = new Completer<HeapSnapshot>();
-      isolate.invokeRpcNoUpgrade('requestHeapSnapshot', {});
+  Stream fetchHeapSnapshot() {
+    if (_snapshotFetch == null || _snapshotFetch.isClosed) {
+      _snapshotFetch = new StreamController();
+      // isolate.vm.streamListen('_Graph');
+      isolate.invokeRpcNoUpgrade('_requestHeapSnapshot', {});
     }
-    return _snapshotFetch.future;
+    return _snapshotFetch.stream;
   }
 
   void updateHeapsFromMap(ObservableMap map) {
@@ -991,12 +1039,6 @@ class Isolate extends ServiceObjectOwner with Coverage {
     loading = false;
 
     _upgradeCollection(map, isolate);
-    if (map['rootLib'] == null ||
-        map['timers'] == null ||
-        map['heaps'] == null) {
-      Logger.root.severe("Malformed 'Isolate' response: $map");
-      return;
-    }
     rootLibrary = map['rootLib'];
     if (map['entry'] != null) {
       entry = map['entry'];
@@ -1004,7 +1046,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     var startTimeInMillis = map['startTime'];
     startTime = new DateTime.fromMillisecondsSinceEpoch(startTimeInMillis);
     notifyPropertyChange(#upTime, 0, 1);
-    var countersMap = map['tagCounters'];
+    var countersMap = map['_tagCounters'];
     if (countersMap != null) {
       var names = countersMap['names'];
       var counts = countersMap['counters'];
@@ -1039,17 +1081,9 @@ class Isolate extends ServiceObjectOwner with Coverage {
                       timerMap['time_bootstrap']);
     timers['dart'] = timerMap['time_dart_execution'];
 
-    updateHeapsFromMap(map['heaps']);
+    updateHeapsFromMap(map['_heaps']);
     _updateBreakpoints(map['breakpoints']);
 
-    List features = map['features'];
-    if (features != null) {
-      for (var feature in features) {
-        if (feature == 'io') {
-          ioEnabled = true;
-        }
-      }
-    }
     pauseEvent = map['pauseEvent'];
     _updateRunState();
     error = map['error'];
@@ -1060,7 +1094,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future<TagProfile> updateTagProfile() {
-    return isolate.invokeRpcNoUpgrade('getTagProfile', {}).then(
+    return isolate.invokeRpcNoUpgrade('_getTagProfile', {}).then(
       (ObservableMap map) {
         var seconds = new DateTime.now().millisecondsSinceEpoch / 1000.0;
         tagProfile._processTagProfile(seconds, map);
@@ -1172,6 +1206,11 @@ class Isolate extends ServiceObjectOwner with Coverage {
                      { 'functionId': function.id });
   }
 
+  Future<ServiceObject> addBreakOnActivation(Instance closure) {
+    return invokeRpc('_addBreakpointAtActivation',
+                     { 'objectId': closure.id });
+  }
+
   Future removeBreakpoint(Breakpoint bpt) {
     return invokeRpc('removeBreakpoint',
                      { 'breakpointId': bpt.id });
@@ -1250,7 +1289,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     Map params = {
       'onlyWithInstantiations': onlyWithInstantiations,
     };
-    return invokeRpc('getTypeArgumentsList', params);
+    return invokeRpc('_getTypeArgumentsList', params);
   }
 
   Future<ServiceObject> getInstances(Class cls, var limit) {
@@ -1266,7 +1305,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       'address': address,
       'ref': ref,
     };
-    return invokeRpc('getObjectByAddress', params);
+    return invokeRpc('_getObjectByAddress', params);
   }
 
   final ObservableMap<String, ServiceMetric> dartMetrics =
@@ -1278,7 +1317,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   Future<ObservableMap<String, ServiceMetric>> _refreshMetrics(
       String metricType,
       ObservableMap<String, ServiceMetric> metricsMap) {
-    return invokeRpc('getIsolateMetricList',
+    return invokeRpc('_getIsolateMetricList',
                      { 'type': metricType }).then((result) {
       // Clear metrics map.
       metricsMap.clear();
@@ -1424,6 +1463,7 @@ class ServiceEvent extends ServiceObject {
   @observable ByteData data;
   @observable int count;
   @observable String reason;
+  int chunkIndex, chunkCount, nodeCount;
 
   @observable bool get isPauseEvent {
     return (eventType == kPauseStart ||
@@ -1455,6 +1495,15 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['_data'] != null) {
       data = map['_data'];
+    }
+    if (map['chunkIndex'] != null) {
+      chunkIndex = map['chunkIndex'];
+    }
+    if (map['chunkCount'] != null) {
+      chunkCount = map['chunkCount'];
+    }
+    if (map['nodeCount'] != null) {
+      nodeCount = map['nodeCount'];
     }
     if (map['count'] != null) {
       count = map['count'];
@@ -1539,7 +1588,7 @@ class Breakpoint extends ServiceObject {
 }
 
 class Library extends ServiceObject with Coverage {
-  @observable String url;
+  @observable String uri;
   @reflectable final imports = new ObservableList<Library>();
   @reflectable final scripts = new ObservableList<Script>();
   @reflectable final classes = new ObservableList<Class>();
@@ -1552,16 +1601,16 @@ class Library extends ServiceObject with Coverage {
   Library._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   void _update(ObservableMap map, bool mapIsRef) {
-    url = map['url'];
-    var shortUrl = url;
-    if (url.startsWith('file://') ||
-        url.startsWith('http://')) {
-      shortUrl = url.substring(url.lastIndexOf('/') + 1);
+    uri = map['uri'];
+    var shortUri = uri;
+    if (uri.startsWith('file://') ||
+        uri.startsWith('http://')) {
+      shortUri = uri.substring(uri.lastIndexOf('/') + 1);
     }
     name = map['name'];
     if (name.isEmpty) {
-      // When there is no name for a library, use the shortUrl.
-      name = shortUrl;
+      // When there is no name for a library, use the shortUri.
+      name = shortUri;
     }
     vmName = (map.containsKey('vmName') ? map['vmName'] : name);
     if (mapIsRef) {
@@ -1588,7 +1637,7 @@ class Library extends ServiceObject with Coverage {
     return isolate._eval(this, expression);
   }
 
-  String toString() => "Library($url)";
+  String toString() => "Library($uri)";
 }
 
 class AllocationCount extends Observable {
@@ -1750,8 +1799,8 @@ class Instance extends ServiceObject {
   @observable int retainedSize;
   @observable String valueAsString;  // If primitive.
   @observable bool valueAsStringIsTruncated;
-  @observable ServiceFunction closureFunc;  // If a closure.
-  @observable Context closureCtxt;  // If a closure.
+  @observable ServiceFunction function;  // If a closure.
+  @observable Context context;  // If a closure.
   @observable String name;  // If a Type.
   @observable int length; // If a List.
 
@@ -1764,7 +1813,7 @@ class Instance extends ServiceObject {
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
 
-  bool get isClosure => closureFunc != null;
+  bool get isClosure => function != null;
 
   Instance._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1777,8 +1826,8 @@ class Instance extends ServiceObject {
     valueAsString = map['valueAsString'];
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
-    closureFunc = map['closureFunc'];
-    closureCtxt = map['closureCtxt'];
+    function = map['function'];
+    context = map['context'];
     name = map['name'];
     length = map['length'];
 
@@ -1801,7 +1850,7 @@ class Instance extends ServiceObject {
 
   String get shortName {
     if (isClosure) {
-      return closureFunc.qualifiedName;
+      return function.qualifiedName;
     }
     if (valueAsString != null) {
       return valueAsString;
@@ -2173,6 +2222,7 @@ class Script extends ServiceObject with Coverage {
   Set<CallSite> callSites = new Set<CallSite>();
   final lines = new ObservableList<ScriptLine>();
   final _hits = new Map<int, int>();
+  @observable String uri;
   @observable String kind;
   @observable int firstTokenPos;
   @observable int lastTokenPos;
@@ -2182,8 +2232,7 @@ class Script extends ServiceObject with Coverage {
   bool get canCache => true;
   bool get immutable => true;
 
-  String _shortUrl;
-  String _url;
+  String _shortUri;
 
   Script._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2203,11 +2252,11 @@ class Script extends ServiceObject with Coverage {
 
   void _update(ObservableMap map, bool mapIsRef) {
     _upgradeCollection(map, isolate);
-    kind = map['kind'];
-    _url = map['name'];
-    _shortUrl = _url.substring(_url.lastIndexOf('/') + 1);
-    name = _shortUrl;
-    vmName = _url;
+    uri = map['uri'];
+    kind = map['_kind'];
+    _shortUri = uri.substring(uri.lastIndexOf('/') + 1);
+    name = _shortUri;
+    vmName = uri;
     if (mapIsRef) {
       return;
     }
@@ -2293,7 +2342,7 @@ class Script extends ServiceObject with Coverage {
       return;
     }
     lines.clear();
-    Logger.root.info('Adding ${sourceLines.length} source lines for ${_url}');
+    Logger.root.info('Adding ${sourceLines.length} source lines for ${uri}');
     for (var i = 0; i < sourceLines.length; i++) {
       lines.add(new ScriptLine(this, i + lineOffset + 1, sourceLines[i]));
     }
@@ -2369,7 +2418,7 @@ class Script extends ServiceObject with Coverage {
     if (lastLine == null) {
       return r;
     }
-    
+
     final lastColumn = tokenToCol(endTokenPos);
     if (lastColumn == null) {
       return r;
@@ -3000,7 +3049,7 @@ class ServiceMetric extends ServiceObject {
 
   Future<ObservableMap> _fetchDirect() {
     assert(owner is Isolate);
-    return isolate.invokeRpcNoUpgrade('getIsolateMetric', { 'metricId': id });
+    return isolate.invokeRpcNoUpgrade('_getIsolateMetric', { 'metricId': id });
   }
 
 

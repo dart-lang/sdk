@@ -550,15 +550,24 @@ class RuntimeTypes {
     }
   }
 
-  String getTypeRepresentationWithHashes(DartType type,
-                                         OnVariableCallback onVariable) {
+  /**
+   * Returns a [jsAst.Expression] representing the given [type]. Type
+   * variables are replaced by placeholders in the ast.
+   *
+   * [firstPlaceholderIndex] is the index to use for the first placeholder.
+   * This is useful if the returned [jsAst.Expression] is only part of a
+   * larger template. By default, indexing starts with 0.
+   */
+  jsAst.Expression getTypeRepresentationWithPlaceholders(DartType type,
+      OnVariableCallback onVariable, {int firstPlaceholderIndex : 0}) {
     // Create a type representation.  For type variables call the original
     // callback for side effects and return a template placeholder.
+    int positions = firstPlaceholderIndex;
     jsAst.Expression representation = getTypeRepresentation(type, (variable) {
       onVariable(variable);
-      return new jsAst.LiteralString('#');
+      return new jsAst.InterpolatedExpression(positions++);
     });
-    return jsAst.prettyPrint(representation, compiler).buffer.toString();
+    return representation;
   }
 
   jsAst.Expression getTypeRepresentation(
@@ -655,11 +664,9 @@ class TypeRepresentationGenerator implements DartTypeVisitor {
   }
 
   jsAst.Expression visitList(List<DartType> types, {jsAst.Expression head}) {
-    int index = 0;
     List<jsAst.Expression> elements = <jsAst.Expression>[];
     if (head != null) {
       elements.add(head);
-      index++;
     }
     for (DartType type in types) {
       jsAst.Expression element = visit(type);

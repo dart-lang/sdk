@@ -102,12 +102,12 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
-element_animate_test/omit_timing: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
-element_animate_test/timing_dict: Skip # Timing out inexplicably. Temporarily suppressing (alanknight)
 
-[ $runtime == chrome && ($system == windows || $system == macos) ]
-# New failure on Chrome 42.  Linux bots are not yet updated.
-element_animate_test/simple_timing: RuntimeError # Please triage this failure
+[ $runtime == chrome && $system == macos ]
+element_animate_test/omit_timing: Skip # Timing out on MacOS. Issue 23507
+element_animate_test/timing_dict: Skip # Timing out on MacOS. Issue 23507
+transition_event_test/functional: Skip # Times out. Issue 22167
+request_animation_frame_test: Skip # Times out. Issue 22167
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid || $runtime == ContentShellOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
@@ -138,8 +138,6 @@ notification_test/supported_notification: Fail # Notification not supported on I
 event_test: RuntimeError # Issue 23437. Only three failures, but hard to break them out.
 wheelevent_test: RuntimeError # Issue 23437
 text_event_test: RuntimeError # Issue 23437
-
-[$runtime == ie10 || $runtime == ie11 || ($runtime == chrome && $system == macos)]
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 
@@ -299,7 +297,6 @@ indexeddb_1_test/functional: Skip # Times out. Issue 21433
 indexeddb_2_test: RuntimeError # Issue 21433
 indexeddb_4_test: RuntimeError # Issue 21433
 indexeddb_5_test: RuntimeError # Issue 21433
-js_test: RuntimeError # Issue 21434
 
 [ $runtime == opera ]
 blob_constructor_test: Fail
@@ -416,51 +413,50 @@ webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
 
 [ $compiler == dart2js && $cps_ir ]
-async_spawnuri_test: Crash # unsupported element kind: _defaultEnvironment:field
-async_test: Crash # unsupported element kind: _defaultEnvironment:field
+async_spawnuri_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+async_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 audiobuffersourcenode_test: Crash #  try/finally
 audiocontext_test: Crash #  try/finally
-audioelement_test: Crash # unsupported element kind: _escapeRegExp:field
-b_element_test: Crash # unsupported element kind: _defaultEnvironment:field
-blob_constructor_test: Crash # unsupported element kind: _escapeRegExp:field
+audioelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+b_element_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+blob_constructor_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 cache_test: Crash #  try/finally
-callbacks_test: Crash # unsupported element kind: _defaultEnvironment:field
+callbacks_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 canvas_pixel_array_type_alias_test: Crash #  try/finally
-canvas_test: Crash # unsupported element kind: _escapeRegExp:field
+canvas_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 canvasrenderingcontext2d_test: Crash #  try/finally
-cdata_test: Crash # unsupported element kind: _escapeRegExp:field
-client_rect_test: Crash # unsupported element kind: _escapeRegExp:field
+cdata_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+client_rect_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<Rectangle>.
 cross_domain_iframe_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 crypto_test: Crash #  try/finally
-css_rule_list_test: Crash # unsupported element kind: _escapeRegExp:field
+css_rule_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<CssRule>.
 css_test: Crash #  try/finally
-cssstyledeclaration_test: Crash # unsupported element kind: _escapeRegExp:field
+cssstyledeclaration_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 custom/attribute_changed_callback_test: Crash #  try/finally
-custom/constructor_calls_created_synchronously_test: Crash # unsupported element kind: _escapeRegExp:field
-custom/created_callback_test: Crash # unsupported element kind: _escapeRegExp:field
-custom/document_register_basic_test: Crash # unsupported element kind: _escapeRegExp:field
+custom/constructor_calls_created_synchronously_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+custom/created_callback_test: Crash # (try {test();}catch (e){rethrow;}finally {js.context['testExpectsGlobalError']=false;}): try/finally
+custom/document_register_basic_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 custom/document_register_type_extensions_test: Crash #  try/finally
-custom/element_upgrade_test: Crash # unsupported element kind: _escapeRegExp:field
+custom/element_upgrade_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 custom/entered_left_view_test: Crash #  try/finally
-custom/js_custom_test: Crash # unsupported element kind: _escapeRegExp:field
-custom/mirrors_test: Crash # unsupported element kind: _escapeRegExp:field
-custom/regress_194523002_test: Crash # unsupported element kind: _defaultEnvironment:field
+custom/js_custom_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+custom/mirrors_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 custom_element_method_clash_test: Crash #  try/finally
 custom_element_name_clash_test: Crash #  try/finally
 custom_elements_23127_test: Crash #  try/finally
 custom_elements_test: Crash #  try/finally
-custom_tags_test: Crash # unsupported element kind: _escapeRegExp:field
-dart_object_local_storage_test: Crash # unsupported element kind: _escapeRegExp:field
-datalistelement_test: Crash # unsupported element kind: _escapeRegExp:field
+custom_tags_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+dart_object_local_storage_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+datalistelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 document_test: Crash #  try/finally
-documentfragment_test: Crash # unsupported element kind: _escapeRegExp:field
-dom_constructors_test: Crash # unsupported element kind: _escapeRegExp:field
-domparser_test: Crash # unsupported element kind: _escapeRegExp:field
+documentfragment_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+dom_constructors_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+domparser_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 element_add_test: Crash #  try/finally
 element_animate_test: Crash #  try/finally
-element_classes_svg_test: Crash # unsupported element kind: _escapeRegExp:field
-element_classes_test: Crash # unsupported element kind: _escapeRegExp:field
-element_constructor_1_test: Crash # unsupported element kind: _escapeRegExp:field
+element_classes_svg_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+element_classes_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+element_constructor_1_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 element_dimensions_test: Crash #  try/finally
 element_offset_test: Crash #  try/finally
 element_test: Crash #  try/finally
@@ -471,92 +467,92 @@ element_types_constructors4_test: Crash #  try/finally
 element_types_constructors5_test: Crash #  try/finally
 element_types_constructors6_test: Crash #  try/finally
 element_types_test: Crash #  try/finally
-event_customevent_test: Crash # unsupported element kind: _escapeRegExp:field
-event_test: Crash # unsupported element kind: _escapeRegExp:field
-events_test: Crash # unsupported element kind: _defaultEnvironment:field
-exceptions_test: Crash # unsupported element kind: _escapeRegExp:field
+event_customevent_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+event_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+events_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+exceptions_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 fileapi_test: Crash #  try/finally
 filereader_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-fontface_loaded_test: Crash # unsupported element kind: _escapeRegExp:field
-fontface_test: Crash # unsupported element kind: _escapeRegExp:field
+fontface_loaded_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+fontface_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 form_data_test: Crash #  try/finally
-form_element_test: Crash # unsupported element kind: _escapeRegExp:field
-geolocation_test: Crash # unsupported element kind: _escapeRegExp:field
-hidden_dom_1_test: Crash # unsupported element kind: _escapeRegExp:field
-hidden_dom_2_test: Crash # unsupported element kind: _escapeRegExp:field
+form_element_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+geolocation_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+hidden_dom_1_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+hidden_dom_2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 history_test: Crash #  try/finally
-htmlcollection_test: Crash # unsupported element kind: _escapeRegExp:field
-htmlelement_test: Crash # unsupported element kind: _escapeRegExp:field
-htmloptionscollection_test: Crash # unsupported element kind: _escapeRegExp:field
+htmlcollection_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+htmlelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+htmloptionscollection_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 indexeddb_1_test: Crash #  try/finally
 indexeddb_2_test: Crash # Please triage this failure.
-indexeddb_3_test: Crash # unsupported element kind: _escapeRegExp:field
-indexeddb_4_test: Crash # unsupported element kind: _escapeRegExp:field
-indexeddb_5_test: Crash # unsupported element kind: _escapeRegExp:field
+indexeddb_3_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+indexeddb_4_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+indexeddb_5_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 input_element_test: Crash #  try/finally
 instance_of_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-isolates_test: Crash # unsupported element kind: _defaultEnvironment:field
+isolates_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 js_interop_1_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 js_test: Crash #  try/finally
-keyboard_event_test: Crash # unsupported element kind: _defaultEnvironment:field
+keyboard_event_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 localstorage_test: Crash # (try {fn();}finally {window.localStorage.clear();}): try/finally
-location_test: Crash # unsupported element kind: _escapeRegExp:field
+location_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 media_stream_test: Crash #  try/finally
 mediasource_test: Crash #  try/finally
-messageevent_test: Crash # unsupported element kind: _escapeRegExp:field
-mouse_event_test: Crash # unsupported element kind: _escapeRegExp:field
+messageevent_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+mouse_event_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 mutationobserver_test: Crash #  try/finally
 native_gc_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-navigator_test: Crash # unsupported element kind: _escapeRegExp:field
+navigator_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 node_test: Crash #  try/finally
 node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash #  try/finally
-non_instantiated_is_test: Crash # unsupported element kind: _escapeRegExp:field
+non_instantiated_is_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 notification_test: Crash #  try/finally
 performance_api_test: Crash #  try/finally
 postmessage_structured_test: Crash #  try/finally
-query_test: Crash # unsupported element kind: _escapeRegExp:field
-queryall_test: Crash # unsupported element kind: _escapeRegExp:field
+query_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+queryall_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 range_test: Crash #  try/finally
 request_animation_frame_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 rtc_test: Crash #  try/finally
-selectelement_test: Crash # unsupported element kind: _escapeRegExp:field
-serialized_script_value_test: Crash # unsupported element kind: _escapeRegExp:field
+selectelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+serialized_script_value_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 shadow_dom_test: Crash #  try/finally
-shadowroot_test: Crash # unsupported element kind: _escapeRegExp:field
+shadowroot_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 speechrecognition_test: Crash #  try/finally
-storage_quota_test/missingenumcheck: Crash # unsupported element kind: _escapeRegExp:field
-storage_quota_test/none: Crash # unsupported element kind: _escapeRegExp:field
-storage_test: Crash # unsupported element kind: _escapeRegExp:field
-streams_test: Crash # unsupported element kind: _escapeRegExp:field
+storage_quota_test/missingenumcheck: Crash # Instance of 'TypeOperator': type casts not implemented.
+storage_quota_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
+storage_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+streams_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 svg_test: Crash #  try/finally
 svgelement_test: Crash #  try/finally
-table_test: Crash # unsupported element kind: _escapeRegExp:field
-text_event_test: Crash # unsupported element kind: _escapeRegExp:field
+table_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+text_event_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 touchevent_test: Crash #  try/finally
-track_element_constructor_test: Crash # unsupported element kind: _defaultEnvironment:field
-transferables_test: Crash # unsupported element kind: _escapeRegExp:field
+track_element_constructor_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+transferables_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 transition_event_test: Crash #  try/finally
 typed_arrays_1_test: Crash #  try/finally
-typed_arrays_2_test: Crash # unsupported element kind: _escapeRegExp:field
-typed_arrays_3_test: Crash # unsupported element kind: _escapeRegExp:field
-typed_arrays_4_test: Crash # unsupported element kind: _escapeRegExp:field
-typed_arrays_5_test: Crash # unsupported element kind: _escapeRegExp:field
-typed_arrays_arraybuffer_test: Crash # unsupported element kind: _escapeRegExp:field
-typed_arrays_dataview_test: Crash # unsupported element kind: _escapeRegExp:field
-typed_arrays_range_checks_test: Crash # unsupported element kind: _escapeRegExp:field
-typed_arrays_simd_test: Crash # unsupported element kind: _escapeRegExp:field
-typing_test: Crash # unsupported element kind: _escapeRegExp:field
-unknownelement_test: Crash # unsupported element kind: _escapeRegExp:field
-uri_test: Crash # unsupported element kind: _escapeRegExp:field
+typed_arrays_2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+typed_arrays_3_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+typed_arrays_4_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+typed_arrays_5_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+typed_arrays_arraybuffer_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+typed_arrays_dataview_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+typed_arrays_range_checks_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+typed_arrays_simd_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+typing_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<StyleSheet>.
+unknownelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+uri_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 url_test: Crash #  try/finally
 webgl_1_test: Crash #  try/finally
 websocket_test: Crash #  try/finally
 websql_test: Crash #  try/finally
 wheelevent_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-window_eq_test: Crash # unsupported element kind: _escapeRegExp:field
-window_mangling_test: Crash # unsupported element kind: _escapeRegExp:field
-window_nosuchmethod_test: Crash # unsupported element kind: _escapeRegExp:field
-window_test: Crash # unsupported element kind: _escapeRegExp:field
+window_eq_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+window_mangling_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+window_nosuchmethod_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+window_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 worker_api_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 worker_test: Crash #  try/finally
 xhr_cross_origin_test: Crash #  try/finally

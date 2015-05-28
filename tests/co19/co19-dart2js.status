@@ -42,8 +42,6 @@ Language/12_Expressions/12_Instance_Creation/1_New_A02_t07: fail # Issue 21092 a
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t15: CompileTimeError # Issue 21092
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t01: fail # Issue 21134 and co19 issue 714
 Language/12_Expressions/12_Instance_Creation/2_Const_A11_t03: fail # Issue 21134 and co19 issue 714
-Language/12_Expressions/22_Equality_A01_t01: fail # Issue 21137
-Language/12_Expressions/22_Equality_A05_t01: fail # Issue 21137
 Language/12_Expressions/30_Identifier_Reference_A02_t01: fail # Issue 21154
 Language/13_Statements/04_Local_Function_Declaration_A04_t01: MissingCompileTimeError # Issue 21050
 Language/13_Statements/04_Local_Function_Declaration_A04_t03: MissingCompileTimeError # Issue 21050
@@ -1464,11 +1462,21 @@ WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeEr
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-001_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == chrome && ($system == windows || $system == macos) ]
-# New failures on Chrome 42, linux bots are not yet at that version.
+# New failures on Chrome 43, linux bots are not yet at that version.
+LayoutTests/fast/css/content-language-case-insensitivity_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/content-language-dynamically-removed_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/content-language-dynamically-added_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/content-language-no-content_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/content-language-multiple_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/content-language-mapped-to-webkit-locale_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/getComputedStyle/computed-style-properties_t01: RuntimeError # Issue 23506
+LayoutTests/fast/css/nested-at-rules_t01: RuntimeError # Issue 23506
 LayoutTests/fast/css/getComputedStyle/counterIncrement-without-counter_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/image-set-setting_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/css/parsing-text-rendering_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/css/cssText-shorthand_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/background-shorthand-csstext_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/innerHTML/javascript-url_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLElement/HTMLMediaElement/addTextTrack_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/textfieldselection/selection_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/forms/the-input-element/url_t01: RuntimeError # Please triage this failure
@@ -2719,7 +2727,6 @@ LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-xml-text-responsetype
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-abort_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-arraybuffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open-sync-request_t01: Pass, RuntimeError # Issue 23479. Unsuppress once bots are all updated.
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/cz_20030217_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/namespace-nodes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t01: RuntimeError # Please triage this failure
@@ -2788,7 +2795,6 @@ LibTest/html/HttpRequest/overrideMimeType_A01_t01: RuntimeError # Please triage 
 LibTest/html/HttpRequest/request_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/responseText_A01_t02: Skip # Times out. Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t01: RuntimeError # Please triage this failure
-LibTest/html/HttpRequest/responseType_A01_t02: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/setRequestHeader_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/statusText_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/status_A01_t01: RuntimeError # Please triage this failure
@@ -3126,6 +3132,8 @@ LayoutTests/fast/css/parsing-object-fit_t01: RuntimeError # Please triage this f
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-options-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-options-character-data_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
+LibTest/html/HttpRequest/responseType_A01_t02: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == safari ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
@@ -4206,7 +4214,7 @@ WebPlatformTest/html/dom/documents/dom-tree-accessors/nameditem_t02: RuntimeErro
 WebPlatformTest/html/dom/elements/global-attributes/dataset-delete_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/elements/global-attributes/dataset-get_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/dom/elements/global-attributes/dataset-set_t01: RuntimeError # Please triage this failure
-WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: Pass, RuntimeError # Fails on 7.1. Please triage this failure 
+WebPlatformTest/html/semantics/document-metadata/styling/LinkStyle_t01: Pass, RuntimeError # Fails on 7.1. Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/error-codes/error_t01: Skip # Times out. Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/HTMLElement/HTMLTrackElement/src_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: Skip # Times out. Please triage this failure
@@ -7835,6 +7843,7 @@ LayoutTests/fast/canvas/canvas-scale-shadowBlur_t01: Pass, RuntimeError # Please
 LayoutTests/fast/canvas/canvas-scale-strokePath-shadow_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-set-properties-with-non-invertible-ctm_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-setTransform_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/canvas/canvas-strokePath-alpha-shadow_t01: Skip # Issue 23508
 LayoutTests/fast/canvas/canvas-to-canvas_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-toDataURL-crash_t01: Pass, RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/canvas-transforms-fillRect-shadow_t01: Pass, RuntimeError # Please triage this failure
@@ -9609,18 +9618,10 @@ Language/03_Overview/1_Scoping_A01_t34: Crash # Instance of 'TypeOperator': type
 Language/03_Overview/1_Scoping_A01_t39: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/03_Overview/1_Scoping_A02_t19: Crash # (switch (1){case 1:var x;break;case 2:var x;break;}): Unhandled node
 Language/03_Overview/2_Privacy_A01_t06: Crash # Instance of 'TypeOperator': type check unimplemented for _inaccessibleFuncType.
-Language/05_Variables/05_Variables_A04_t01: Crash # unsupported element kind: foo:field
-Language/05_Variables/05_Variables_A14_t07: Crash # unsupported element kind: z2:field
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t01: Crash # unsupported element kind: c:field
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t02: Crash # unsupported element kind: sFinalTyped:field
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t03: Crash # unsupported element kind: sFinalTyped:field
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t04: RuntimeError # Please triage this failure.
-Language/05_Variables/1_Evaluation_of_Implicit_Variable_Getters_A01_t05: RuntimeError # Please triage this failure.
 Language/07_Classes/07_Classes_A02_t17: Crash # Please triage this failure.
 Language/07_Classes/07_Classes_A02_t18: Crash # Please triage this failure.
 Language/07_Classes/07_Classes_A02_t19: Crash # Please triage this failure.
 Language/07_Classes/1_Instance_Methods/2_Operators_A02_t06: Crash # Please triage this failure.
-Language/07_Classes/1_Instance_Methods/2_Operators_A02_t20: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t02: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t03: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t05: Crash # Please triage this failure.
@@ -9634,26 +9635,9 @@ Language/07_Classes/6_Constructors/2_Factories_A09_t01: Crash # Please triage th
 Language/07_Classes/6_Constructors/2_Factories_A09_t02: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A09_t03: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A09_t04: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A14_t03: RuntimeError # Please triage this failure.
-Language/07_Classes/7_Static_Methods_A01_t02: RuntimeError # Please triage this failure.
 Language/10_Generics/09_Generics_A04_t03: Crash # Instance of 'TypeOperator': type check unimplemented for S.
 Language/10_Generics/10_Generics_A05_t01: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 Language/10_Generics/10_Generics_A05_t03: Crash # Instance of 'TypeOperator': type check unimplemented for T.
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A01_t01: Crash # unsupported element kind: notNil:field
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A01_t02: Crash # unsupported element kind: false2:field
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t01: Crash # unsupported element kind: o2:field
-Language/12_Expressions/00_Object_Identity/1_Object_Identity_A07_t01: Crash # unsupported element kind: n7:field
-Language/12_Expressions/01_Constants_A01_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/01_Constants_A02_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/01_Constants_A04_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/01_Constants_A07_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/01_Constants_A08_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/01_Constants_A09_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/01_Constants_A10_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/01_Constants_A13_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/01_Constants_A14_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/06_Lists_A08_t04: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
-Language/12_Expressions/07_Maps_A07_t04: Crash # Instance of 'TypeOperator': type check unimplemented for Map<String, int>.
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t07: RuntimeError # Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t08: Crash # Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t09: RuntimeError # Please triage this failure.
@@ -9663,30 +9647,14 @@ Language/12_Expressions/12_Instance_Creation/1_New_A06_t14: Crash # Please triag
 Language/12_Expressions/13_Property_Extraction_A03_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/13_Property_Extraction_A03_t02: RuntimeError # Please triage this failure.
 Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Please triage this failure.
-Language/12_Expressions/13_Spawning_an_Isolate_A01_t01: Crash # unsupported element kind: _completer:field
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t05: Crash # unsupported element kind: f:field
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t13: Crash # unsupported element kind: test4:field
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t14: Crash # unsupported element kind: test4:field
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: RuntimeError # Please triage this failure.
 Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t09: Crash # unsupported element kind: x:field
-Language/12_Expressions/20_Logical_Boolean_Expressions_A06_t10: Crash # unsupported element kind: x:field
 Language/12_Expressions/22_Equality_A03_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/30_Identifier_Reference_A08_t01: Crash # unsupported element kind: tlFinalTyped:field
-Language/12_Expressions/30_Identifier_Reference_A08_t02: Crash # unsupported element kind: tlFinalTyped:field
-Language/12_Expressions/30_Identifier_Reference_A08_t03: Crash # unsupported element kind: tlFinalTyped:field
 Language/12_Expressions/30_Identifier_Reference_A09_t03: Crash # (i=0): For-loop variable captured in loop header
-Language/12_Expressions/30_Identifier_Reference_A13_t01: Crash # unsupported element kind: x4:field
-Language/12_Expressions/32_Type_Test_A02_t01: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
 Language/12_Expressions/32_Type_Test_A02_t03: Crash # Instance of 'TypeOperator': type check unimplemented for Undeclared.
 Language/12_Expressions/32_Type_Test_A02_t04: Crash # Instance of 'TypeOperator': type check unimplemented for G<int, bool>.
-Language/12_Expressions/32_Type_Test_A02_t05: Crash # Instance of 'TypeOperator': type check unimplemented for G<int, bool>.
-Language/12_Expressions/32_Type_Test_A02_t06: Crash # Instance of 'TypeOperator': type check unimplemented for G<int, bool>.
 Language/12_Expressions/32_Type_Test_A02_t07: Crash # Instance of 'TypeOperator': type check unimplemented for G<Unknown>.
-Language/12_Expressions/32_Type_Test_A03_t01: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
-Language/12_Expressions/32_Type_Test_A07_t01: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
-Language/12_Expressions/32_Type_Test_A07_t02: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
 Language/12_Expressions/33_Type_Cast_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/33_Type_Cast_A01_t04: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/33_Type_Cast_A02_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -9702,8 +9670,6 @@ Language/12_Expressions/33_Type_Cast_A04_t01: Crash # Instance of 'TypeOperator'
 Language/12_Expressions/33_Type_Cast_A04_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/Expressions_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/Expressions_A01_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/13_Statements/03_Variable_Declaration_A01_t14: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
-Language/13_Statements/03_Variable_Declaration_A01_t15: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
 Language/13_Statements/06_For_A01_t07: Crash # Please triage this failure.
 Language/13_Statements/09_Switch_A01_t01: Crash # (switch (1){case 0:case 1:}): Unhandled node
 Language/13_Statements/09_Switch_A01_t02: Crash # (switch (1){l1:l2:l3:case (1):}): Unhandled node
@@ -9728,7 +9694,7 @@ Language/13_Statements/11_Try_A01_t01: Crash # (try {throw "";}on int catch (ok)
 Language/13_Statements/11_Try_A03_t01: Crash # Instance of 'TypeOperator': type check unimplemented for Unavailable.
 Language/13_Statements/11_Try_A03_t02: Crash # Instance of 'TypeOperator': type check unimplemented for Unavailable.
 Language/13_Statements/11_Try_A03_t03: Crash # Instance of 'TypeOperator': type check unimplemented for Foo.
-Language/13_Statements/11_Try_A03_t04: Crash # unsupported element kind: error:field
+Language/13_Statements/11_Try_A03_t04: Crash # Instance of 'TypeOperator': type check unimplemented for Unavailable.
 Language/13_Statements/11_Try_A07_t02: Crash # (try {throw ex;}on int catch (i){}on bool catch (b){}finally {isFinallyExecuted=true;}): try/finally
 Language/13_Statements/11_Try_A08_t01: Crash #  try/finally
 Language/13_Statements/11_Try_A09_t01: Crash #  try/finally
@@ -9760,20 +9726,6 @@ Language/13_Statements/14_Continue_A03_t05: Crash #  Unhandled node
 Language/13_Statements/14_Continue_A03_t06: Crash #  try/finally
 Language/13_Statements/14_Continue_A03_t07: Crash #  try/finally
 Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Crash # Instance of 'TypeOperator': type check unimplemented for _td.
-Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A06_t01: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A01_t39: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A01_t40: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A01_t49: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t01: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t02: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t11: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t14: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t16: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t17: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t18: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t20: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t21: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t22: RuntimeError # Please triage this failure.
 Language/14_Libraries_and_Scripts/1_Imports_A02_t26: Crash # Instance of 'TypeOperator': type check unimplemented for prefix.
 Language/14_Libraries_and_Scripts/1_Imports_A02_t27: Crash # Instance of 'TypeOperator': type check unimplemented for bar.
 Language/14_Libraries_and_Scripts/1_Imports_A02_t28: Crash # Instance of 'TypeOperator': type check unimplemented for bar.
@@ -9788,18 +9740,8 @@ Language/14_Libraries_and_Scripts/1_Imports_A03_t44: Crash # Instance of 'TypeOp
 Language/14_Libraries_and_Scripts/1_Imports_A03_t45: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/14_Libraries_and_Scripts/1_Imports_A03_t64: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/14_Libraries_and_Scripts/1_Imports_A03_t65: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/1_Imports_A06_t01: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/1_Imports_A06_t02: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/2_Exports_A03_t01: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/2_Exports_A03_t02: RuntimeError # Please triage this failure.
 Language/14_Libraries_and_Scripts/2_Exports_A04_t03: Crash # Instance of 'TypeOperator': type check unimplemented for foo.
 Language/14_Libraries_and_Scripts/2_Exports_A06_t02: Crash # Instance of 'TypeOperator': type check unimplemented for foo.
-Language/14_Libraries_and_Scripts/2_Exports_A08_t01: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/3_Parts_A02_t03: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/3_Parts_A02_t04: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/3_Parts_A03_t01: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/3_Parts_A03_t11: RuntimeError # Please triage this failure.
-Language/14_Libraries_and_Scripts/3_Parts_A04_t01: RuntimeError # Please triage this failure.
 Language/15_Types/1_Static_Types_A03_t01: Crash # Instance of 'TypeOperator': type check unimplemented for UnknownType.
 Language/15_Types/3_Type_Declarations/1_Typedef_A01_t03: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/15_Types/3_Type_Declarations/1_Typedef_A02_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f_t.
@@ -9811,31 +9753,14 @@ Language/15_Types/3_Type_Declarations/1_Typedef_A04_t02: Crash # Instance of 'Ty
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t05: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t06: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t07: Crash # Instance of 'TypeOperator': type check unimplemented for f.
-Language/15_Types/4_Interface_Types_A05_t02: Crash # Instance of 'TypeOperator': type check unimplemented for A<int>.
-Language/15_Types/4_Interface_Types_A05_t03: Crash # Instance of 'TypeOperator': type check unimplemented for A<int, double, A>.
 Language/15_Types/4_Interface_Types_A05_t04: Crash # Please triage this failure.
-Language/15_Types/4_Interface_Types_A06_t02: Crash # Instance of 'TypeOperator': type check unimplemented for List<double>.
-Language/15_Types/4_Interface_Types_A07_t01: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
-Language/15_Types/4_Interface_Types_A07_t02: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
 Language/15_Types/4_Interface_Types_A08_t01: Crash # Instance of 'TypeOperator': type check unimplemented for S.
-Language/15_Types/4_Interface_Types_A08_t04: Crash # Instance of 'TypeOperator': type check unimplemented for G<int>.
-Language/15_Types/4_Interface_Types_A08_t05: Crash # Instance of 'TypeOperator': type check unimplemented for G<int>.
-Language/15_Types/4_Interface_Types_A08_t06: Crash # Instance of 'TypeOperator': type check unimplemented for IManyArgs<int, G, G, G, double>.
-Language/15_Types/4_Interface_Types_A10_t01: Crash # Instance of 'TypeOperator': type check unimplemented for List<String>.
-Language/15_Types/4_Interface_Types_A10_t02: Crash # Instance of 'TypeOperator': type check unimplemented for Checker_Object<Object>.
-Language/15_Types/4_Interface_Types_A10_t03: Crash # Instance of 'TypeOperator': type check unimplemented for Checker_I<I>.
 Language/15_Types/4_Interface_Types_A10_t04: Crash # Please triage this failure.
 Language/15_Types/4_Interface_Types_A10_t06: Crash # Please triage this failure.
 Language/15_Types/4_Interface_Types_A10_t07: Crash # Please triage this failure.
 Language/15_Types/4_Interface_Types_A10_t08: Crash # Please triage this failure.
 Language/15_Types/4_Interface_Types_A10_t09: Crash # Please triage this failure.
-Language/15_Types/4_Interface_Types_A11_t03: Crash # Instance of 'TypeOperator': type check unimplemented for I<num>.
 Language/15_Types/4_Interface_Types_A11_t04: Crash # Instance of 'TypeOperator': type check unimplemented for S<int>.
-Language/15_Types/4_Interface_Types_A12_t09: Crash # Instance of 'TypeOperator': type check unimplemented for List<String>.
-Language/15_Types/4_Interface_Types_A12_t12: Crash # Instance of 'TypeOperator': type check unimplemented for G<B, B, B, B>.
-Language/15_Types/4_Interface_Types_A12_t13: Crash # Instance of 'TypeOperator': type check unimplemented for G<C>.
-Language/15_Types/4_Interface_Types_A12_t14: Crash # Instance of 'TypeOperator': type check unimplemented for A<double>.
-Language/15_Types/4_Interface_Types_A12_t16: Crash # Instance of 'TypeOperator': type check unimplemented for A<int, int, double, int>.
 Language/15_Types/4_Interface_Types_A12_t18: Crash # Instance of 'TypeOperator': type check unimplemented for F1.
 Language/15_Types/5_Function_Types_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for check_t.
 Language/15_Types/5_Function_Types_A01_t02: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
@@ -9874,481 +9799,35 @@ Language/15_Types/5_Function_Types_A03_t13: Crash # Instance of 'TypeOperator': 
 Language/15_Types/5_Function_Types_A06_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/15_Types/6_Type_dynamic_A02_t01: Crash # Instance of 'TypeOperator': type check unimplemented for S.
 Language/15_Types/8_Parameterized_Types_A03_t06: Crash # Instance of 'TypeOperator': type check unimplemented for T1.
-Language/16_Reference/1_Lexical_Rules_A01_t10: Crash # unsupported element kind: characters:field
-LayoutTests/fast/animation/request-animation-frame-cancel2_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/animation/request-animation-frame-cancel_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/animation/request-animation-frame-prefix_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/animation/request-animation-frame-timestamps-advance_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/animation/request-animation-frame-timestamps_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/animation/request-animation-frame-within-callback_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/backgrounds/001_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/backgrounds/animated-gif-as-background_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/backgrounds/multiple-backgrounds-assert_t01: Crash # unsupported element kind: _asyncCounter:field
 LayoutTests/fast/backgrounds/multiple-backgrounds-computed-style_t01: Crash #  Unhandled node
-LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.gradient_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.negative_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.veryLarge_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/2d.text.draw.fill.maxWidth.verySmall_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/DrawImageSinglePixelStretch_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-as-image-incremental-repaint_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-before-css_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-clipping_t01: Crash # unsupported element kind: nonSeparateBlendModes:field
-LayoutTests/fast/canvas/canvas-blending-color-over-color_t01: Crash # unsupported element kind: nonSeparateBlendModes:field
-LayoutTests/fast/canvas/canvas-blending-color-over-gradient_t01: Crash # unsupported element kind: nonSeparateBlendModes:field
-LayoutTests/fast/canvas/canvas-blending-color-over-image_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-color-over-pattern_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-fill-style_t01: Crash # unsupported element kind: nonSeparateBlendModes:field
-LayoutTests/fast/canvas/canvas-blending-global-alpha_t01: Crash # unsupported element kind: nonSeparateBlendModes:field
-LayoutTests/fast/canvas/canvas-blending-gradient-over-color_t01: Crash # unsupported element kind: nonSeparateBlendModes:field
-LayoutTests/fast/canvas/canvas-blending-gradient-over-gradient_t01: Crash # unsupported element kind: nonSeparateBlendModes:field
-LayoutTests/fast/canvas/canvas-blending-gradient-over-image_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-gradient-over-pattern_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-image-over-color_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-image-over-gradient_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-image-over-image_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-image-over-pattern_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-pattern-over-color_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-pattern-over-gradient_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-pattern-over-image_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-pattern-over-pattern_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-blending-shadow_t01: Crash # unsupported element kind: nonSeparateBlendModes:field
-LayoutTests/fast/canvas/canvas-blending-text_t01: Crash # unsupported element kind: nonSeparateBlendModes:field
-LayoutTests/fast/canvas/canvas-blending-transforms_t01: Crash # unsupported element kind: nonSeparateBlendModes:field
-LayoutTests/fast/canvas/canvas-composite-alpha_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-composite-canvas_t01: Crash # unsupported element kind: compositeTypes:field
-LayoutTests/fast/canvas/canvas-composite-image_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-composite-stroke-alpha_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-css-crazy_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-imageSmoothingEnabled-repaint_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-lose-restore-googol-size_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/canvas/canvas-lose-restore-max-int-size_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/canvas/canvas-resize-after-paint_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/canvas-scale-drawImage-shadow_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/drawImage-with-broken-image_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/drawImage-with-valid-image_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/setWidthResetAfterForcedRender_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/WebGLContextEvent_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/attrib-location-length-limits_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/bad-arguments-test_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/canvas-2d-webgl-texture_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/canvas/webgl/canvas-resize-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/canvas/webgl/canvas-test_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/canvas-zero-size_t01: Crash # unsupported element kind: error:field
 LayoutTests/fast/canvas/webgl/compressed-tex-image_t01: Crash # Please triage this failure.
-LayoutTests/fast/canvas/webgl/context-destroyed-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/context-lost_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/css-webkit-canvas-repaint_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/canvas/webgl/drawingbuffer-test_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/framebuffer-bindings-unaffected-on-resize_t01: Crash # unsupported element kind: requestAnimFrame:field
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: Crash # Please triage this failure.
-LayoutTests/fast/canvas/webgl/functions-returning-strings_t01: Crash # Instance of 'TypeOperator': type check unimplemented for List<String>.
-LayoutTests/fast/canvas/webgl/gl-enable-enum-test_t01: Crash # unsupported element kind: desktopGL:field
-LayoutTests/fast/canvas/webgl/gl-enum-tests_t01: Crash # unsupported element kind: desktopGL:field
-LayoutTests/fast/canvas/webgl/gl-teximage_t01: Crash # unsupported element kind: _asyncCounter:field
 LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: Crash #  Unhandled node
-LayoutTests/fast/canvas/webgl/gl-vertex-attrib-zero-issues_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/glsl-conformance_t01: Crash # unsupported element kind: error:field
 LayoutTests/fast/canvas/webgl/index-validation_t01: Crash #  Unhandled node
-LayoutTests/fast/canvas/webgl/invalid-passed-params_t01: Crash # unsupported element kind: desktopGL:field
-LayoutTests/fast/canvas/webgl/null-object-behaviour_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/object-deletion-behaviour_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/premultiplyalpha-test_t01: Crash # unsupported element kind: _completer:field
+LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Crash #  Unhandled node
 LayoutTests/fast/canvas/webgl/read-pixels-pack-alignment_t01: Crash #  Unhandled node
-LayoutTests/fast/canvas/webgl/read-pixels-test_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: Crash #  Unhandled node
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgb565_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgba4444_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas-rgba5551_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-canvas_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgb565_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgba4444_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data-rgba5551_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-data_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgb565_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba4444_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image-rgba5551_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-image_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgb565_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba4444_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video-rgba5551_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-video_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/tex-image-webgl_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/tex-sub-image-2d_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/tex-sub-image-cube-maps_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/texture-bindings-uneffected-on-resize_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/texture-color-profile_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/canvas/webgl/texture-npot_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/texture-transparent-pixels-initialized_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/uniform-location-length-limits_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/webgl-composite-modes-repaint_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/webgl-composite-modes_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/webgl-depth-texture_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/webgl-large-texture_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/webgl-layer-update_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/webgl-specific_t01: Crash # unsupported element kind: error:field
-LayoutTests/fast/canvas/webgl/webgl-texture-binding-preserved_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/canvas/webgl/webgl-viewport-parameters-preserved_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-generated-content/bug91547_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-generated-content/float-first-letter-siblings-convert-to-inline_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-generated-content/inline-splitting-with-after-float-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-generated-content/pseudo-animation-before-onload_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-generated-content/pseudo-animation-display_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-generated-content/pseudo-animation_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-generated-content/pseudo-element-events_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-generated-content/pseudo-transition-event_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-generated-content/pseudo-transition_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-grid-layout/auto-content-resolution-rows_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/breadth-size-resolution-grid_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/calc-resolution-grid-item_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/display-grid-set-get_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/flex-and-minmax-content-resolution-rows_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/flex-content-resolution-columns_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/flex-content-resolution-rows_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-auto-columns-rows-get-set_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-auto-flow-get-set_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-auto-flow-update_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-grid-layout/grid-container-change-explicit-grid-recompute-child_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-grid-layout/grid-element-bad-cast-addchild_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-element-border-grid-item_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-element-border-padding-grid-item_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-element-empty-row-column_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-element-min-max-height_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-element-padding-grid-item_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-element-padding-margin_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-element-remove-svg-child_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-element-shrink-to-fit_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-item-area-get-set_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-item-bad-named-area-auto-placement_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-item-bad-resolution-double-span_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-item-change-order-auto-flow_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-grid-layout/grid-item-display_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-item-margin-auto-columns-rows-horiz-bt_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-item-margin-auto-columns-rows-vert-lr_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-item-margin-auto-columns-rows-vert-rl_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-item-margin-auto-columns-rows_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-item-margin-resolution_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-item-order-auto-flow-resolution_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-strict-ordering-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/grid-template-areas-get-set_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/implicit-rows-auto-resolution_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/justify-self-cell_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/minmax-fixed-logical-height-only_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/minmax-fixed-logical-width-only_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/percent-grid-item-in-percent-grid-track-in-percent-grid_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/percent-grid-item-in-percent-grid-track-update_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-grid-layout/percent-grid-item-in-percent-grid-track_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/percent-padding-margin-resolution-grid-item-update_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css-grid-layout/percent-padding-margin-resolution-grid-item_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/percent-resolution-grid-item_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-grid-layout/place-cell-by-index_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-intrinsic-dimensions/css-tables_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-intrinsic-dimensions/intrinsic-sized-absolutes_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-intrinsic-dimensions/intrinsic-sized-blocks_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-intrinsic-dimensions/intrinsic-sized-column-flex-items_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-intrinsic-dimensions/intrinsic-sized-flex-items_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-intrinsic-dimensions/intrinsic-sized-replaced-absolutes_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-intrinsic-dimensions/multicol_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-intrinsic-dimensions/tables_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css-intrinsic-dimensions/width-shrinks-avoid-floats_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/attribute-selector-begin-dynamic-no-elementstyle_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/cached-sheet-restore-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/comment-before-charset-external_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/comment-before-charset_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/content/content-none_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/content/content-normal_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/content/content-quotes-01_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/content/content-quotes-02_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/content/content-quotes-03_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/content/content-quotes-04_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/content/content-quotes-05_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/content/content-quotes-06_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/counters/asterisk-counter-update-after-layout-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/counters/complex-before_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/counters/counter-before-selector-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/counters/counter-reparent-table-children-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/counters/counter-reset-subtree-insert-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/counters/counter-ruby-text-cleared_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/counters/counter-traverse-object-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/crash-on-incomplete-not_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/css-keyframe-style-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/device-aspect-ratio_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/first-letter-inline-flow-split-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/first-letter-inline-flow-split-table-crash_t01: Crash # unsupported element kind: _completer:field
+LayoutTests/fast/css/css-keyframe-style-crash_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/first-line-parent-style-different_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/focus-display-block-inline_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/font-face-cache-bug_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/font-face-insert-link_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/font-face-svg-decoding-error_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/font-face-unicode-range-load_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/font-face-unicode-range-overlap-load_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/font-face-used-after-retired_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/fontfaceset-download-error_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/fontfaceset-events_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/fontfaceset-loadingdone_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/implicit-attach-marking_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/link-alternate-stylesheet-1_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/link-alternate-stylesheet-2_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/link-alternate-stylesheet-3_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/link-alternate-stylesheet-4_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/link-alternate-stylesheet-5_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/link-disabled-attr-parser_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/max-device-aspect-ratio_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/css/media-rule-dyn_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/min-device-aspect-ratio_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/nested-at-rules_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/parsing-css-comment_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/parsing-css-escapes_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/parsing-css-nonascii_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/parsing-css-nth-child_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/parsing-css-surrogate-pairs_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/percent-min-width-img-src-change_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/percent-width-img-src-change_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/positioned-in-relative-position-inline-crash_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/css/pseudo-out-of-range_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/pseudo-target-indirect-sibling-001_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/pseudo-target-indirect-sibling-002_t01: Crash # unsupported element kind: _asyncCounter:field
 LayoutTests/fast/css/pseudo-valid-dynamic_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/readonly-pseudoclass-opera-005_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/relative-position-replaced-in-table-display-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/relative-positioned-block-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/remove-fixed-resizer-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/shadow-current-color_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/sheet-collection-link_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/sheet-title_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/space-before-charset-external_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/space-before-charset_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/sticky/remove-inline-sticky-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/sticky/remove-sticky-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/sticky/sticky-table-col-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/style-element-process-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/style-scoped/style-scoped-shadow-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/css/stylesheet-enable-first-alternate-link_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-link_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/stylesheet-enable-first-alternate-on-load-sheet_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/stylesheet-enable-second-alternate-link_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/stylesheet-parentStyleSheet_t01: Crash # unsupported element kind: _asyncCounter:field
 LayoutTests/fast/css/visited-link-hang_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/webkit-keyframes-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/css/webkit-marquee-speed-unit-in-quirksmode_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/Document/CaretRangeFromPoint/caretRangeFromPoint-in-zoom-and-scroll_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLAnchorElement/remove-href-from-focused-anchor_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLDialogElement/submit-dialog-close-event_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLDocument/active-element-gets-unforcusable_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLDocument/set-focus-on-valid-element_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLFormElement/move-option-between-documents_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLImageElement/image-loading-gc_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLImageElement/image-natural-width-height_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLImageElement/image-src-absolute-url_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLLinkElement/link-and-subresource-test-nonexistent_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLLinkElement/link-and-subresource-test_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLLinkElement/link-beforeload-recursive_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-existent-and-non-existent-import_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLLinkElement/link-onerror-stylesheet-with-non-existent-import_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLLinkElement/link-onerror_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLLinkElement/link-onload-before-page-load_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLLinkElement/link-onload-stylesheet-with-import_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLLinkElement/link-onload2_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLLinkElement/link-onload_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLLinkElement/onload-completion-test_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLLinkElement/prefetch-onerror_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLLinkElement/prefetch-onload_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLLinkElement/prefetch_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLObjectElement/beforeload-set-text-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLObjectElement/children-changed_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLObjectElement/set-type-to-null-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLProgressElement/progress-element-with-style-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLScriptElement/async-false-inside-async-false-load_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLScriptElement/async-onbeforeload_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLScriptElement/defer-onbeforeload_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLScriptElement/defer-script-invalid-url_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLScriptElement/dont-load-unknown-type_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLScriptElement/isURLAttribute_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLScriptElement/remove-in-beforeload_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLScriptElement/remove-source_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLScriptElement/script-for-attribute-unexpected-execution_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLScriptElement/script-load-events_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLScriptElement/script-reexecution_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLScriptElement/script-set-src_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/HTMLStyleElement/programmatically-add-style-with-onerror-handler_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLStyleElement/programmatically-add-style-with-onload-handler_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLStyleElement/style-onerror-with-existent-and-non-existent-import_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLStyleElement/style-onerror_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLStyleElement/style-onload-before-page-load_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLStyleElement/style-onload2_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLStyleElement/style-onload_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/HTMLTemplateElement/innerHTML-inert_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/MutationObserver/callback-arguments_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/clear-transient-without-delivery_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/create-during-delivery_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/cross-document_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/database-callback-delivery_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/delivery-order_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/disconnect-cancel-pending_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/document-fragment-insertion_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/mutate-during-delivery_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/observe-characterdata_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/observe-childList_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/observe-subtree_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/observer-wrapper-dropoff-transient_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/MutationObserver/observer-wrapper-dropoff_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/MutationObserver/takeRecords_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/MutationObserver/transient-gc-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/SelectorAPI/bug-17313_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/StyleSheet/detached-style-2_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/StyleSheet/detached-style_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/StyleSheet/discarded-sheet-owner-null_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: Crash # Please triage this failure.
-LayoutTests/fast/dom/Window/getMatchedCSSRules-nested-rules_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/Window/getMatchedCSSRules-parent-stylesheets_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/css-cached-import-rule_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/css-delete-doc_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/css-insert-import-rule-twice_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/css-insert-import-rule_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/css-mediarule-deleteRule-update_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/css-mediarule-insertRule-update_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/cssTarget-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/custom/attribute-changed-callback_t01: Crash # unsupported element kind: attributeChangedCallback:field
-LayoutTests/fast/dom/custom/constructor-calls-created-synchronously_t01: Crash # unsupported element kind: attributeChangedCallback:field
-LayoutTests/fast/dom/custom/created-callback_t01: Crash # unsupported element kind: createdCallback:field
-LayoutTests/fast/dom/custom/document-register-on-create-callback_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/custom/element-type_t01: Crash # unsupported element kind: createdCallback:field
-LayoutTests/fast/dom/custom/element-upgrade_t01: Crash # unsupported element kind: createdCallback:field
-LayoutTests/fast/dom/document-set-title-mutations_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/domtimestamp-is-number_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/empty-hash-and-search_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/gc-image-element-2_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/gc-image-element_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/horizontal-scrollbar-in-rtl-doesnt-fire-onscroll_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/horizontal-scrollbar-in-rtl_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/horizontal-scrollbar-when-dir-change_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/icon-url-change_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/icon-url-list_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/id-attribute-with-namespace-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/image-object_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/inner-text_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/location-hash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/non-styled-element-id-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/onerror-img_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/partial-layout-non-overlay-scrollbars_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/partial-layout-overlay-scrollbars_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/remove-body-during-body-replacement_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/content-pseudo-element-dynamic-attribute-change_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/insertion-point-list-menu-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/insertion-point-video-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/link-in-shadow-tree_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/nested-reprojection-inconsistent_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/no-renderers-for-light-children_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/pseudoclass-update-checked-option_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/pseudoclass-update-disabled-optgroup_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/pseudoclass-update-disabled-option_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/pseudoclass-update-enabled-optgroup_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/pseudoclass-update-enabled-option_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/remove-and-insert-style_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/shadowhost-keyframes_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shadow/shadowroot-keyframes_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/shared-inline-style-after-node-removal_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/subtree-modified-attributes_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/dom/text-node-attach-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/vertical-scrollbar-in-rtl-doesnt-fire-onscroll_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dom/vertical-scrollbar-when-dir-change_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/dynamic/continuation-detach-crash_t01: Crash # unsupported element kind: _completer:field
+LayoutTests/fast/dom/location-hash_t01: Crash #  Unhandled node
 LayoutTests/fast/dynamic/inline-to-block-crash_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/dynamic/jQuery-animation-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/encoding/css-charset-dom_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/events/add-event-without-document_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/change-overflow-on-overflow-change_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/clipboard-clearData_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/events/clipboard-dataTransferItemList_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/defaultprevented_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/events/dispatch-event-being-dispatched_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/events/dispatch-event-no-document_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/document-elementFromPoint_t01: Crash # unsupported element kind: _completer:field
+LayoutTests/fast/encoding/css-charset-dom_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/events/event-attributes-after-exception_t01: Crash #  try/finally
-LayoutTests/fast/events/event-on-xhr-document_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/fire-scroll-event-element_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/fire-scroll-event_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/nested-event-remove-node-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/events/no-window-load_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/onerror-bubbling_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/onerror-img-after-gc_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/overflowchanged-event-raf-timing_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/scroll-during-zoom-change_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/scroll-event-does-not-bubble_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/scroll-event-phase_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/tabindex-removal-from-focused-element_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/window-load-capture_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/events/xhr-onclick-crash_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/eventsource/eventsource-constructor_t01: Crash # Please triage this failure.
-LayoutTests/fast/files/blob-close-read_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/files/blob-close-revoke_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/files/blob-parts-slice-test_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/files/blob-slice-test_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/files/file-reader-abort-in-last-progress_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/files/file-reader-done-reading-abort_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/files/file-reader-fffd_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/files/file-reader-immediate-abort_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/files/file-reader-methods-illegal-arguments_t01: Crash #  Unhandled node
-LayoutTests/fast/files/file-reader-readystate_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/files/file-reader-result-twice_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/files/read-blob-as-array-buffer_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/files/workers/inline-worker-via-blob-url_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/files/xhr-response-blob_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/async-operations_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/directory-entry-to-uri_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-after-reload-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-entry-to-uri_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-from-file-entry_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-metadata-after-write_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-writer-abort-continue_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-writer-abort-depth_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-writer-abort_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-writer-empty-blob_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-writer-events_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-writer-gc-blob_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-writer-truncate-extend_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/file-writer-write-overlapped_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/filesystem-reference_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/filesystem-unserializable_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/op-copy_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/op-get-entry_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/op-get-metadata_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/op-get-parent_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/op-move_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/op-read-directory_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/op-remove_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/op-restricted-chars_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/op-restricted-names_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/op-restricted-unicode_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/read-directory-many_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/read-directory_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/simple-readonly-file-object_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/simple-readonly_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/simple-required-arguments-getdirectory_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/simple-required-arguments-getfile_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/simple-temporary_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/filesystem/snapshot-file-with-gc_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/flexbox/crash-flexbox-no-layout-child_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/flexbox/layoutHorizontalBox-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/flexbox/overhanging-floats-not-removed-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/HTMLOptionElement_selected_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/activate-and-disabled-elements_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/autofocus-focus-only-once_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/autofocus-input-css-style-change_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/autofocus-opera-004_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/autofocus-opera-005_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/autofocus-opera-007_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/autofocus-readonly-attribute_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/button-click-DOM_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/button/button-disabled-blur_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/checkbox-onchange_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/dangling-form-element-crash_t01: Crash # unsupported element kind: _completer:field
+LayoutTests/fast/forms/autofocus-focus-only-once_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/forms/datalist/datalist-child-validation_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/forms/datalist/datalist_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -10356,109 +9835,36 @@ LayoutTests/fast/forms/date/date-pseudo-classes_t01: Crash # Instance of 'TypeOp
 LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-required_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/forms/datetimelocal/datetimelocal-pseudo-classes_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/forms/fieldset/fieldset-elements_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/forms/focus-style-pending_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/form-added-to-table_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/form-associated-element-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/form-submission-create-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/image/image-error-event-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/image/image-error-event-modifies-type-crash_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/input-type-change_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/input-width-height-attributes-without-renderer-loaded-image_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/input-width-height-attributes-without-renderer_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/interactive-validation-assertion-by-validate-twice_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/interactive-validation-attach-assertion_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/interactive-validation-select-crash_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/listbox-scroll-after-options-removed_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/menulist-disabled-selected-option_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/menulist-submit-without-selection_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/search-placeholder-value-changed_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/forms/search-popup-crasher_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/forms/select-change-listbox-to-popup-roundtrip_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/select-change-popup-to-listbox-in-event-handler_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/select-change-popup-to-listbox-roundtrip_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/select-generated-content_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/textarea-placeholder-relayout-assertion_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/forms/textarea-scrollbar-height_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/forms/textfield-focus-out_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/html/details-add-child-1_t01: Crash # unsupported element kind: createNewElement:field
-LayoutTests/fast/html/details-add-child-2_t01: Crash # unsupported element kind: createNewElement:field
-LayoutTests/fast/html/details-add-details-child-1_t01: Crash # unsupported element kind: createNewElement:field
-LayoutTests/fast/html/details-add-details-child-2_t01: Crash # unsupported element kind: createNewElement:field
-LayoutTests/fast/html/imports/import-element-removed-flag_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/innerHTML/innerHTML-special-elements_t01: Crash # unsupported element kind: outerTests:field
-LayoutTests/fast/loader/about-blank-hash-change_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/loader/about-blank-hash-kept_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/loader/hashchange-event-async_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/loader/hashchange-event-properties_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/loader/local-css-allowed-in-strict-mode_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/loader/onhashchange-attribute-listeners_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/loader/onload-policy-ignore-for-frame_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/loader/scroll-position-restored-on-back_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/loader/scroll-position-restored-on-reload-at-load-event_t01: Crash # unsupported element kind: _completer:field
+LayoutTests/fast/loader/hashchange-event-properties_t01: Crash #  Unhandled node
 LayoutTests/fast/media/media-query-list-syntax_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/mediastream/RTCPeerConnection-AddRemoveStream_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/mediastream/getusermedia_t01: Crash # unsupported element kind: navigator:field
-LayoutTests/fast/multicol/columns-shorthand-parsing_t02: Crash # unsupported element kind: tests:field
-LayoutTests/fast/multicol/float-truncation_t01: Crash # unsupported element kind: tests:field
+LayoutTests/fast/mediastream/getusermedia_t01: Crash # Please triage this failure.
 LayoutTests/fast/multicol/hit-test-above-or-below_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/multicol/image-inside-nested-blocks-with-border_t01: Crash # unsupported element kind: tests:field
-LayoutTests/fast/multicol/vertical-lr/float-truncation_t01: Crash # unsupported element kind: tests:field
-LayoutTests/fast/multicol/vertical-lr/image-inside-nested-blocks-with-border_t01: Crash # unsupported element kind: tests:field
-LayoutTests/fast/multicol/vertical-rl/float-truncation_t01: Crash # unsupported element kind: tests:field
-LayoutTests/fast/multicol/vertical-rl/image-inside-nested-blocks-with-border_t01: Crash # unsupported element kind: tests:field
-LayoutTests/fast/overflow/scroll-vertical-not-horizontal_t01: Crash # unsupported element kind: _asyncCounter:field
 LayoutTests/fast/parser/parse-wbr_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-anonymous-table-cell_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/replaced/iframe-with-percentage-height-within-table-with-table-cell-ignore-height_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/replaced/table-percent-height-text-controls_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/replaced/table-percent-height_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/replaced/table-percent-width_t01: Crash # unsupported element kind: _completer:field
 LayoutTests/fast/replaced/table-replaced-element_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/scrolling/scroll-element-into-view_t01: Crash # unsupported element kind: container:field
 LayoutTests/fast/selectors/style-sharing-last-child_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01: Crash # unsupported element kind: invalidShapeLengths:field
-LayoutTests/fast/shapes/parsing/parsing-shape-outside_t01: Crash # unsupported element kind: invalidShapeValues:field
-LayoutTests/fast/speechsynthesis/speech-synthesis-boundary-events_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/speechsynthesis/speech-synthesis-cancel_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/speechsynthesis/speech-synthesis-pause-resume_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/speechsynthesis/speech-synthesis-speak_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/speechsynthesis/speech-synthesis-utterance-uses-voice_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/storage/storage-disallowed-in-data-url_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/sub-pixel/float-list-inside_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/svg/getbbox_t01: Crash # unsupported element kind: epsilon:field
+LayoutTests/fast/svg/getbbox_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/svg/tabindex-focus_t01: Crash #  try/finally
 LayoutTests/fast/svg/whitespace-angle_t01: Crash #  try/finally
 LayoutTests/fast/svg/whitespace-integer_t01: Crash #  try/finally
-LayoutTests/fast/svg/whitespace-length-invalid_t01: Crash # unsupported element kind: EPSILON:field
-LayoutTests/fast/svg/whitespace-length_t01: Crash # unsupported element kind: EPSILON:field
-LayoutTests/fast/svg/whitespace-number_t01: Crash # unsupported element kind: EPSILON:field
+LayoutTests/fast/svg/whitespace-length-invalid_t01: Crash #  try/finally
+LayoutTests/fast/svg/whitespace-length_t01: Crash #  try/finally
+LayoutTests/fast/svg/whitespace-number_t01: Crash #  try/finally
 LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: Crash #  Unhandled node
 LayoutTests/fast/table/hittest-tablecell-right-edge_t01: Crash #  Unhandled node
 LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: Crash #  Unhandled node
 LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Crash #  Unhandled node
 LayoutTests/fast/table/incorrect-colgroup-span-values_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/table/min-width-css-block-table_t01: Crash # unsupported element kind: logicalWidthsCombinations:field
-LayoutTests/fast/table/min-width-css-inline-table_t01: Crash # unsupported element kind: logicalWidthsCombinations:field
-LayoutTests/fast/table/min-width-html-block-table_t01: Crash # unsupported element kind: logicalWidthsCombinations:field
-LayoutTests/fast/table/min-width-html-inline-table_t01: Crash # unsupported element kind: logicalWidthsCombinations:field
-LayoutTests/fast/table/prepend-in-anonymous-table_t01: Crash # unsupported element kind: childTypes:field
 LayoutTests/fast/table/rowindex-comment-nodes_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/text/find-backwards_t01: Crash # unsupported element kind: selection:field
-LayoutTests/fast/text/find-quotes_t01: Crash # unsupported element kind: rightDoubleQuotationMark:field
 LayoutTests/fast/text/font-ligature-letter-spacing_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/text/ipa-tone-letters_t01: Crash # unsupported element kind: testStrings:field
-LayoutTests/fast/text/line-breaks-after-hyphen-before-number_t01: Crash # unsupported element kind: expected:field
-LayoutTests/fast/tokenizer/entities_t01: Crash # unsupported element kind: characters:field
-LayoutTests/fast/tokenizer/entities_t02: Crash # unsupported element kind: characters:field
-LayoutTests/fast/tokenizer/entities_t03: Crash # unsupported element kind: characters:field
-LayoutTests/fast/url/anchor_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/file-http-base_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/file_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/host-lowercase-per-scheme_t01: Crash # unsupported element kind: urlExpectationsUppercase:field
-LayoutTests/fast/url/host_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/idna2003_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/idna2008_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/invalid-urls-utf8_t01: Crash # unsupported element kind: testSet:field
+LayoutTests/fast/url/anchor_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/file-http-base_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/file_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/host-lowercase-per-scheme_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/host_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/idna2003_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/idna2008_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/invalid-urls-utf8_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/ipv4_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/ipv6_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/mailto_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -10469,300 +9875,31 @@ LayoutTests/fast/url/query_t01: Crash # Instance of 'TypeOperator': type casts n
 LayoutTests/fast/url/relative-unix_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/relative-win_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/relative_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/safari-extension_t01: Crash # unsupported element kind: safariExtensionTestSet:field
+LayoutTests/fast/url/safari-extension_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/scheme_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/segments-from-data-url_t01: Crash # unsupported element kind: cases:field
-LayoutTests/fast/url/segments_t01: Crash # unsupported element kind: cases:field
+LayoutTests/fast/url/segments-from-data-url_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LayoutTests/fast/url/segments_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/standard-url_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/trivial-segments_t01: Crash # unsupported element kind: cases:field
+LayoutTests/fast/url/trivial-segments_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/url/trivial_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/writing-mode/broken-ideographic-font_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/writing-mode/percentage-margins-absolute_t01: Crash # unsupported element kind: expectedProperties:field
-LayoutTests/fast/writing-mode/vertical-font-vmtx-units-per-em_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/xmlhttprequest/null-document-xmlhttprequest-open_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-get_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-html-response-encoding_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-html-document-responsetype-quirks_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-html-no-responsetype_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-invalid-xml_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-xml-document-responsetype_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-xml-text-responsetype_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-abort_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-arraybuffer_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-document_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-set-at-headers-received_t01: Crash # unsupported element kind: _completer:field
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-text_t01: Crash # unsupported element kind: _asyncCounter:field
-LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t01: Crash # unsupported element kind: LCHILD2:field
-LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t02: Crash # unsupported element kind: CHILD1:field
-LayoutTests/fast/xpath/4XPath/Core/test_location_path_t01: Crash # unsupported element kind: LCHILDREN:field
-LayoutTests/fast/xpath/4XPath/Core/test_node_test_t01: Crash # unsupported element kind: PI2:field
-LayoutTests/fast/xpath/4XPath/Core/test_node_test_t02: Crash # unsupported element kind: CHILD3:field
-LayoutTests/fast/xpath/4XPath/Core/test_nodeset_expr_t01: Crash # unsupported element kind: CHILD1:field
-LayoutTests/fast/xpath/4XPath/Core/test_numeric_expr_t01: Crash # unsupported element kind: CHILD1:field
-LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: Crash # unsupported element kind: ROOT:field
-LayoutTests/fast/xpath/4XPath/Core/test_predicate_list_t01: Crash # unsupported element kind: ROOT:field
-LayoutTests/fast/xpath/4XPath/Core/test_step_t01: Crash # unsupported element kind: GCHILD11:field
 LayoutTests/fast/xpath/name-null-namespace_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/xsl/default-html_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/xsl/extra-lf-at-end_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/xsl/xslt-bad-import-uri_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Completer/completeError_A01_t01: Crash # unsupported element kind: futures:field
-LibTest/async/Completer/completeError_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Completer/completeError_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Completer/completeError_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/async/Completer/complete_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Completer/complete_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Completer/complete_A01_t03: Crash # unsupported element kind: _asyncCounter:field
-LibTest/async/Completer/complete_A01_t04: Crash # unsupported element kind: futures:field
-LibTest/async/Completer/complete_A01_t05: Crash # unsupported element kind: _completer:field
-LibTest/async/Completer/complete_A01_t06: Crash # unsupported element kind: _completer:field
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # (lazy.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-LibTest/async/Future/Future.delayed_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.delayed_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.delayed_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.delayed_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.error_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.error_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.microtask_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.microtask_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.microtask_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.sync_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.sync_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.sync_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.value_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future.value_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/Future_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/asStream_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/asStream_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/asStream_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/asStream_A02_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/catchError_A01_t02: Crash # unsupported element kind: _asyncCounter:field
-LibTest/async/Future/catchError_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/catchError_A03_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/async/Future/catchError_A03_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/catchError_A03_t03: Crash # unsupported element kind: _asyncCounter:field
-LibTest/async/Future/catchError_A03_t04: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/catchError_A03_t05: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/forEach_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/forEach_A02_t01: Crash # unsupported element kind: N:field
-LibTest/async/Future/forEach_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/then_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/then_A01_t02: Crash # unsupported element kind: _asyncCounter:field
-LibTest/async/Future/then_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/then_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/then_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/then_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/then_A03_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/then_A04_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/then_A05_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/then_A05_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/then_A05_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/wait_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/wait_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/wait_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/wait_A01_t05: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/wait_A01_t06: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/wait_A01_t07: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/wait_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/wait_A02_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/whenComplete_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/whenComplete_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/whenComplete_A03_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/async/Future/whenComplete_A04_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Future/whenComplete_A04_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/Stream.eventTransformed_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/Stream.eventTransformed_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/Stream.fromFuture_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/Stream.fromFuture_A02_t02: Crash # unsupported element kind: error:field
-LibTest/async/Stream/Stream.fromIterable_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/Stream.fromIterable_A02_t01: Crash # unsupported element kind: _completer:field
 LibTest/async/Stream/Stream.periodic_A01_t01: Crash # Please triage this failure.
-LibTest/async/Stream/Stream.periodic_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/Stream.periodic_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/any_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/any_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/any_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/asBroadcastStream_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/asBroadcastStream_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/asBroadcastStream_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/asBroadcastStream_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/asBroadcastStream_A03_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/asBroadcastStream_A03_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/asBroadcastStream_A04_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/asBroadcastStream_A04_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/asBroadcastStream_A04_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/contains_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/contains_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/contains_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/distinct_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/distinct_A01_t02: Crash # unsupported element kind: _completer:field
 LibTest/async/Stream/drain_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/Stream/drain_A02_t01: Crash # Please triage this failure.
-LibTest/async/Stream/drain_A02_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/elementAt_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/elementAt_A01_t02: Crash # unsupported element kind: _asyncCounter:field
 LibTest/async/Stream/elementAt_A02_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/elementAt_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/every_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/every_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/expand_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/firstWhere_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/firstWhere_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/firstWhere_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/firstWhere_A03_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/first_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/first_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/first_A02_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/first_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/fold_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/fold_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/forEach_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/forEach_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/forEach_A02_t02: Crash # unsupported element kind: _completer:field
 LibTest/async/Stream/handleError_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/handleError_A02_t01: Crash # unsupported element kind: _completer:field
 LibTest/async/Stream/handleError_A03_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/handleError_A04_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/handleError_A04_t02: Crash # unsupported element kind: _asyncCounter:field
-LibTest/async/Stream/handleError_A04_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/isEmpty_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/join_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/join_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/join_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/join_A02_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/lastWhere_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/lastWhere_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/lastWhere_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/lastWhere_A04_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/last_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/last_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/last_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/length_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/listen_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/listen_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/listen_A03_t01: Crash # unsupported element kind: _completer:field
+LibTest/async/Stream/listen_A03_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/Stream/listen_A04_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/listen_A05_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/listen_A05_t02: Crash # unsupported element kind: _asyncCounter:field
-LibTest/async/Stream/listen_A05_t03: Crash # unsupported element kind: _asyncCounter:field
-LibTest/async/Stream/listen_A06_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/map_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/pipe_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/reduce_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/reduce_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/reduce_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/singleWhere_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/singleWhere_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/single_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/single_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/skipWhile_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/skip_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/takeWhile_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/take_A01_t01: Crash # unsupported element kind: _completer:field
 LibTest/async/Stream/take_A01_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/take_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/toList_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/toSet_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/transform_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/transform_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/where_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Stream/where_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController.broadcast_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController.broadcast_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController.broadcast_A04_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController.broadcast_A05_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController.broadcast_A06_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController.broadcast_A07_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController.broadcast_A07_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController.broadcast_A08_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController_A05_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController_A06_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/StreamController_A06_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/addError_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/addError_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/addStream_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/addStream_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/addStream_A02_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/addStream_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/addStream_A03_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/add_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/close_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamController/done_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamIterator/cancel_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamIterator/moveNext_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamIterator/moveNext_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamSink/addError_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamSink/addStream_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamSink/addStream_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamSink/addStream_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamSink/addStream_A01_t05: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamSink/add_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamSink/close_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamSink/done_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamTransformer/StreamTransformer.fromHandlers_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamTransformer/StreamTransformer.fromHandlers_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamTransformer/StreamTransformer.fromHandlers_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamTransformer/StreamTransformer.fromHandlers_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamTransformer/StreamTransformer_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamTransformer/StreamTransformer_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamTransformer/StreamTransformer_A02_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamTransformer/StreamTransformer_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamTransformer/StreamTransformer_A03_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/StreamTransformer/bind_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Timer/Timer.periodic_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Timer/Timer.periodic_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Timer/Timer_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Timer/Timer_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Timer/cancel_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Timer/isActive_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Timer/isActive_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Timer/run_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Timer/run_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Zone/createPeriodicTimer_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Zone/createTimer_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Zone/current_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/async/Zone/handleUncaughtError_A01_t03: Crash # unsupported element kind: stackTraces:field
-LibTest/async/Zone/handleUncaughtError_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/async/Zone/inSameErrorZone_A01_t02: Crash # unsupported element kind: _asyncCounter:field
-LibTest/async/Zone/inSameErrorZone_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/async/Zone/inSameErrorZone_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/async/Zone/inSameErrorZone_A01_t05: Crash # unsupported element kind: _completer:field
 LibTest/async/Zone/registerBinaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneBinaryCallback.
 LibTest/async/Zone/registerCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneCallback.
 LibTest/async/Zone/registerUnaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneUnaryCallback.
-LibTest/async/Zone/scheduleMicrotask_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/async/Zone/scheduleMicrotask_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/collection/DoubleLinkedQueue/elementAt_A02_t01: Crash # unsupported element kind: queue:field
-LibTest/collection/DoubleLinkedQueue/forEachEntry_A01_t04: RuntimeError # Please triage this failure.
-LibTest/collection/DoubleLinkedQueue/forEach_A01_t04: RuntimeError # Please triage this failure.
-LibTest/collection/DoubleLinkedQueue/iterator_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for Iterator<int>.
-LibTest/collection/DoubleLinkedQueue/map_A03_t01: Crash # unsupported element kind: visited:field
-LibTest/collection/DoubleLinkedQueue/toList_A01_t03: Crash # unsupported element kind: failures:field
-LibTest/collection/LinkedList/forEach_A02_t01: Crash # unsupported element kind: list:field
-LibTest/collection/LinkedList/lastWhere_A02_t01: Crash # unsupported element kind: noneMatches:field
-LibTest/collection/LinkedList/map_A03_t01: Crash # unsupported element kind: visited:field
-LibTest/collection/LinkedList/toList_A01_t03: Crash # unsupported element kind: failures:field
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Please triage this failure.
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Please triage this failure.
-LibTest/convert/JsonCodec/decode_A01_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonCodec/decode_A02_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonCodec/decode_A03_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonCodec/encode_A01_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonCodec/encode_A01_t02: Crash # unsupported element kind: table:field
-LibTest/convert/JsonCodec/encode_A02_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonCodec/encode_A02_t03: Crash # unsupported element kind: table:field
-LibTest/convert/JsonCodec/encode_A03_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonDecoder/convert_A01_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonDecoder/convert_A02_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonDecoder/convert_A03_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonDecoder/fuse_A01_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonEncoder/convert_A01_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonEncoder/convert_A02_t01: Crash # unsupported element kind: table:field
-LibTest/convert/JsonEncoder/fuse_A01_t01: Crash # unsupported element kind: table:field
 LibTest/core/FallThroughError/toString_A01_t02: Crash #  Unhandled node
 LibTest/core/Invocation/isAccessor_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/isGetter_A01_t02: RuntimeError # Please triage this failure.
@@ -10770,561 +9907,35 @@ LibTest/core/Invocation/isMethod_A01_t02: RuntimeError # Please triage this fail
 LibTest/core/Invocation/isSetter_A01_t01: Crash # Please triage this failure.
 LibTest/core/Invocation/memberName_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/List/List.from_A01_t03: Crash # unsupported element kind: failures:field
-LibTest/core/List/List.generate_A01_t03: Crash # unsupported element kind: failures:field
-LibTest/core/List/List_A01_t03: Crash # unsupported element kind: failures:field
 LibTest/core/List/List_class_A01_t02: Crash # Please triage this failure.
 LibTest/core/Map/Map_A01_t01: Crash # Please triage this failure.
-LibTest/core/Object/operator_equality_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/core/Object/toString_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LibTest/core/Object/operator_equality_A01_t01 : Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Crash #  Unhandled node
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Crash #  Unhandled node
 LibTest/core/Set/add_A01_t03: RuntimeError # Please triage this failure.
-LibTest/core/Stopwatch/elapsedInMs_A01_t01: Crash # unsupported element kind: delay:field
-LibTest/core/Stopwatch/elapsedInUs_A01_t01: Crash # unsupported element kind: delay:field
-LibTest/core/Stopwatch/elapsedTicks_A01_t01: Crash # unsupported element kind: delay:field
-LibTest/core/Stopwatch/elapsedTicks_A01_t02: Crash # unsupported element kind: delay:field
-LibTest/core/Stopwatch/elapsedTicks_A01_t03: Crash # unsupported element kind: delay:field
-LibTest/core/Stopwatch/elapsed_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/core/Stopwatch/elapsed_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/core/Stopwatch/elapsed_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/core/Stopwatch/start_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/core/Stopwatch/start_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/core/Stopwatch/start_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/core/Stopwatch/stop_A01_t01: Crash # unsupported element kind: delay:field
-LibTest/core/String/String_class_A03_t01: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
-LibTest/core/Uri/encodeFull_A01_t02: Crash # unsupported element kind: canBeNotEncoded:field
-LibTest/core/Uri/parse_A02_t01: Crash # unsupported element kind: r:field
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Pass # Please triage this failure.
-LibTest/core/double/operator_GE_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_GE_A01_t03: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_GE_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_GT_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_GT_A01_t03: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_GT_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_LE_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_LE_A01_t03: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_LE_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_LT_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_LT_A01_t03: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_LT_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_addition_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_addition_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_addition_A01_t03: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_addition_A01_t04: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_addition_A01_t07: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_addition_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_division_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_division_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_division_A01_t03: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_division_A01_t04: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_division_A01_t05: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_division_A01_t07: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_division_A01_t08: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_division_A01_t11: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_division_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_multiplication_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_multiplication_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_multiplication_A01_t03: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_multiplication_A01_t04: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_multiplication_A01_t06: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_multiplication_A01_t08: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_multiplication_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_remainder_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_remainder_A01_t04: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_remainder_A01_t05: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_remainder_A01_t06: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_remainder_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_subtraction_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_subtraction_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_subtraction_A01_t03: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_subtraction_A01_t04: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_subtraction_A01_t07: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_subtraction_A01_t08: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_subtraction_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_truncating_division_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_truncating_division_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_truncating_division_A01_t03: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_truncating_division_A01_t05: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_truncating_division_A01_t08: RuntimeError # Please triage this failure.
-LibTest/core/double/operator_truncating_division_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/remainder_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/double/remainder_A01_t04: RuntimeError # Please triage this failure.
-LibTest/core/double/remainder_A01_t05: RuntimeError # Please triage this failure.
-LibTest/core/double/remainder_A01_t06: RuntimeError # Please triage this failure.
-LibTest/core/double/remainder_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/double/toStringAsFixed_A02_t01: RuntimeError # Please triage this failure.
-LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t05: Crash # unsupported element kind: _completer:field
-LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: Crash # unsupported element kind: _completer:field
-LibTest/html/Document/addEventListener_A01_t01: Crash # unsupported element kind: _completer:field
 LibTest/html/Document/childNodes_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for DocumentType.
-LibTest/html/Document/dispatchEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Document/on_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Document/on_A01_t02: Crash # unsupported element kind: _completer:field
 LibTest/html/Document/securityPolicy_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for SecurityPolicy.
-LibTest/html/Element/Element.tag_A01_t01: Crash # unsupported element kind: Html5Elements:field
-LibTest/html/Element/abortEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/addEventListener_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/addEventListener_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/addEventListener_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/addEventListener_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/addEventListener_A01_t05: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/addEventListener_A01_t06: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/attributeChanged_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/Element/beforeCopyEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/beforeCutEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/beforePasteEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/blurEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/blur_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/changeEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/clickEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/click_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/contextMenuEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/copyEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/cutEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/doubleClickEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/dragEndEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/dragEnterEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/dragEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/dragLeaveEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/dragOverEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/dragStartEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/dropEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/enteredView_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/Element/errorEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/focusEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/focus_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/fullscreenChangeEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/fullscreenErrorEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/inputEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/invalidEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/isTagSupported_A01_t01: Crash # unsupported element kind: Html5Elements:field
-LibTest/html/Element/keyDownEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/keyPressEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/keyUpEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/leftView_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/Element/loadEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/mouseDownEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/mouseEnterEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/mouseLeaveEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/mouseMoveEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/mouseOutEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/mouseOverEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/mouseUpEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/mouseWheelEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onAbort_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onBeforeCopy_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onBeforeCut_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onBeforePaste_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onBlur_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onChange_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onClick_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onContextMenu_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onCopy_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onCut_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onDoubleClick_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onDragEnd_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onDragEnter_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onDragLeave_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onDragOver_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onDragStart_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onDrag_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onDrop_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onError_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onFocus_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onFullscreenChange_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onFullscreenError_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onInput_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onInvalid_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onKeyDown_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onKeyPress_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onKeyUp_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onLoad_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onMouseDown_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onMouseEnter_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onMouseLeave_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onMouseMove_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onMouseOut_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onMouseOver_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onMouseUp_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onMouseWheel_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onPaste_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onReset_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onScroll_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onSearch_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onSelectStart_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onSelect_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onSubmit_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onTouchCancel_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onTouchEnd_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onTouchEnter_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onTouchLeave_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onTouchMove_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onTouchStart_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/onTransitionEnd_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/on_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/pasteEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/removeEventListener_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/Element/removeEventListener_A01_t02: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/Element/resetEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/scrollEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/searchEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/selectEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/selectStartEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/submitEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/tagName_A01_t01: Crash # unsupported element kind: Html5Elements:field
-LibTest/html/Element/touchCancelEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/touchEndEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/touchEnterEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/touchLeaveEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/touchMoveEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/touchStartEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Element/transitionEndEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Event/Event_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Event/Event_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/html/Event/currentTarget_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/Event/defaultPrevented_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/Event/eventPhase_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/Event/matchingTarget_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/Event/matchingTarget_A01_t02: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/Event/stopImmediatePropagation_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Event/stopImmediatePropagation_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/html/Event/stopPropagation_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Event/target_A01_t01: Crash # unsupported element kind: _asyncCounter:field
 LibTest/html/HttpRequest/abort_A01_t01: Crash #  Unhandled node
-LibTest/html/HttpRequest/addEventListener_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/HttpRequest/dispatchEvent_A01_t01: Crash # unsupported element kind: _completer:field
 LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: Crash #  Unhandled node
 LibTest/html/HttpRequest/getResponseHeader_A01_t01: Crash #  Unhandled node
-LibTest/html/HttpRequest/getString_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/HttpRequest/onAbort_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/HttpRequest/onError_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/html/HttpRequest/onLoadEnd_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/HttpRequest/onLoadStart_A01_t01: Crash # unsupported element kind: _completer:field
 LibTest/html/HttpRequest/onLoad_A01_t01: Crash #  Unhandled node
-LibTest/html/HttpRequest/onReadyStateChange_A01_t01: Crash # unsupported element kind: _completer:field
 LibTest/html/HttpRequest/overrideMimeType_A01_t01: Crash #  Unhandled node
 LibTest/html/HttpRequest/readyStateChangeEvent_A01_t01: Crash #  Unhandled node
-LibTest/html/HttpRequest/request_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/HttpRequest/responseText_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/HttpRequest/responseText_A01_t02: Crash # unsupported element kind: _completer:field
 LibTest/html/HttpRequest/setRequestHeader_A01_t01: Crash #  Unhandled node
-LibTest/html/HttpRequest/statusText_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/HttpRequest/status_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/HttpRequestUpload/onAbort_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/HttpRequestUpload/onError_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/html/HttpRequestUpload/onLoadEnd_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/HttpRequestUpload/onLoadStart_A01_t01: Crash # unsupported element kind: _completer:field
 LibTest/html/HttpRequestUpload/onLoad_A01_t01: Crash #  Unhandled node
-LibTest/html/IFrameElement/addEventListener_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/addEventListener_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/addEventListener_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/addEventListener_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/addEventListener_A01_t05: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/addEventListener_A01_t06: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/attributeChanged_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/IFrameElement/blur_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/click_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/contentWindow_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/dispatchEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/enteredView_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/IFrameElement/focus_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/leftView_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/IFrameElement/onAbort_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onBeforeCopy_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onBeforeCut_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onBeforePaste_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onBlur_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onChange_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onClick_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onContextMenu_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onCopy_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onCut_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onDoubleClick_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onDragEnd_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onDragEnter_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onDragLeave_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onDragOver_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onDragStart_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onDrag_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onDrop_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onError_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onFocus_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onFullscreenChange_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onFullscreenError_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onInput_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onInvalid_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onKeyDown_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onKeyPress_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onKeyUp_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onLoad_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onMouseDown_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onMouseEnter_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onMouseLeave_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onMouseMove_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onMouseOut_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onMouseOver_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onMouseUp_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onMouseWheel_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onPaste_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onReset_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onScroll_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onSearch_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onSelectStart_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onSelect_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onSubmit_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onTouchCancel_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onTouchEnd_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onTouchEnter_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onTouchLeave_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onTouchMove_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onTouchStart_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/onTransitionEnd_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/on_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/removeEventListener_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/IFrameElement/removeEventListener_A01_t02: Crash # unsupported element kind: _asyncCounter:field
-LibTest/html/IFrameElement/resetEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/scrollEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/searchEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/selectEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/IFrameElement/selectStartEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Node/addEventListener_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Node/addEventListener_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/html/Node/addEventListener_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/html/Node/addEventListener_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/html/Node/addEventListener_A01_t05: Crash # unsupported element kind: _completer:field
-LibTest/html/Node/dispatchEvent_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Node/on_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Node/ownerDocument_A01_t01: Crash # unsupported element kind: d:field
-LibTest/html/Node/removeEventListener_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Node/removeEventListener_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/html/Window/addEventListener_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Window/animationFrame_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Window/dispatchEvent_A01_t01: Crash # unsupported element kind: _completer:field
 LibTest/html/Window/moveBy_A01_t01: Crash #  try/finally
 LibTest/html/Window/moveTo_A01_t01: Crash #  try/finally
 LibTest/html/Window/moveTo_A02_t01: Crash #  try/finally
-LibTest/html/Window/postMessage_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Window/postMessage_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/html/Window/requestFileSystem_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/html/Window/requestFileSystem_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/html/Window/requestFileSystem_A02_t01: Crash # unsupported element kind: _completer:field
 LibTest/html/Window/resizeBy_A01_t01: Crash #  try/finally
 LibTest/html/Window/resizeTo_A01_t01: Crash #  try/finally
-LibTest/isolate/Isolate/spawnUri_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawnUri_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawnUri_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawnUri_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawnUri_A01_t05: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawnUri_A02_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawnUri_A02_t03: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawnUri_A02_t04: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawn_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawn_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawn_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawn_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/isolate/Isolate/spawn_A01_t05: Crash # unsupported element kind: _completer:field
-LibTest/isolate/RawReceivePort/RawReceivePort_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/RawReceivePort/RawReceivePort_A01_t02: Crash # unsupported element kind: receivePort:field
-LibTest/isolate/RawReceivePort/close_A01_t01: Crash # unsupported element kind: receivePort:field
-LibTest/isolate/RawReceivePort/handler_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/isolate/RawReceivePort/sendPort_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-LibTest/isolate/ReceivePort/any_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/any_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/asBroadcastStream_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/asBroadcastStream_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/asBroadcastStream_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/asBroadcastStream_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/asBroadcastStream_A03_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/asBroadcastStream_A03_t03: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/asBroadcastStream_A04_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/asBroadcastStream_A04_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/asBroadcastStream_A04_t03: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/close_A01_t01: Crash # unsupported element kind: receivePort:field
-LibTest/isolate/ReceivePort/close_A02_t01: Crash # unsupported element kind: receivePort:field
-LibTest/isolate/ReceivePort/contains_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/distinct_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/distinct_A01_t02: Crash # unsupported element kind: _completer:field
 LibTest/isolate/ReceivePort/drain_A02_t01: Crash # Please triage this failure.
-LibTest/isolate/ReceivePort/drain_A02_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/elementAt_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/elementAt_A03_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/every_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/expand_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/firstWhere_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/firstWhere_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/firstWhere_A03_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/first_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/first_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/first_A02_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/fold_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/fold_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/forEach_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/isEmpty_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/join_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/join_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/lastWhere_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/lastWhere_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/lastWhere_A04_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/last_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/last_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/length_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/listen_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/map_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/pipe_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/reduce_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/reduce_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/reduce_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/sendPort_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/singleWhere_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/singleWhere_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/single_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/single_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/skipWhile_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/skip_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/takeWhile_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/take_A01_t01: Crash # unsupported element kind: _completer:field
 LibTest/isolate/ReceivePort/take_A01_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/isolate/ReceivePort/take_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/toList_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/toSet_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/transform_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/transform_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/where_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/ReceivePort/where_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/SendPort/send_A01_t01: Crash # unsupported element kind: _completer:field
-LibTest/isolate/SendPort/send_A01_t02: Crash # unsupported element kind: _completer:field
-LibTest/isolate/SendPort/send_A01_t03: Crash # unsupported element kind: _completer:field
-LibTest/isolate/SendPort/send_A01_t04: Crash # unsupported element kind: _completer:field
-LibTest/isolate/SendPort/send_A02_t01: Crash # unsupported element kind: _completer:field
-LibTest/math/MutableRectangle/MutableRectangle.fromPoints_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/MutableRectangle/MutableRectangle_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/MutableRectangle/boundingBox_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/MutableRectangle/boundingBox_A01_t02: Crash # unsupported element kind: rand:field
-LibTest/math/MutableRectangle/operator_equality_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/Point/distanceTo_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/Point/operator_addition_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/Point/operator_equality_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/Point/operator_mult_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/Point/operator_subtraction_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/Point/squaredDistanceTo_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/Rectangle/Rectangle.fromPoints_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/Rectangle/Rectangle_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/Rectangle/boundingBox_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/math/Rectangle/boundingBox_A01_t02: Crash # unsupported element kind: rand:field
-LibTest/math/Rectangle/operator_equality_A01_t01: Crash # unsupported element kind: rand:field
-LibTest/typed_data/ByteData/ByteData.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setInt16_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setInt32_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setInt8_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setUint16_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setUint32_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/ByteData/setUint8_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/Float32List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/Float32List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/Float32List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/Float32List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float32List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/Float64List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/Float64List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/Float64List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/Float64List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Float64List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/Int16List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/Int16List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/Int16List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/Int16List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int16List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/Int32List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/Int32List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/Int32List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/Int32List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int32List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/Int8List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/Int8List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/Int8List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/Int8List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Int8List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/Uint16List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/Uint16List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/Uint16List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/Uint16List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint16List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/Uint32List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/Uint32List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/Uint32List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/Uint32List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint32List/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/Uint8ClampedList.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/Uint8ClampedList.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/Uint8ClampedList.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/Uint8ClampedList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8ClampedList/toList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/Uint8List.fromList_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/Uint8List.fromList_A01_t02: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/Uint8List.view_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/Uint8List_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/setAll_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/setRange_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/setRange_A02_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/sort_A01_t01: RuntimeError # Please triage this failure.
-LibTest/typed_data/Uint8List/toList_A01_t01: RuntimeError # Please triage this failure.
 Utils/tests/Expect/approxEquals_A04_t01: RuntimeError # Please triage this failure.
-Utils/tests/Expect/equals_A01_t04: RuntimeError # Please triage this failure.
-Utils/tests/Expect/listEquals_A01_t01: RuntimeError # Please triage this failure.
-Utils/tests/Expect/listEquals_A02_t01: RuntimeError # Please triage this failure.
 Utils/tests/Expect/stringEquals_A02_t01: RuntimeError # Please triage this failure.
-WebPlatformTest/DOMEvents/approved/EventListener.eventHandler_t01: Crash # unsupported element kind: _asyncCounter:field
-WebPlatformTest/DOMEvents/approved/ProcessingInstruction.DOMCharacterDataModified_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/DOMEvents/approved/domnodeinserted_t01: Crash # unsupported element kind: _asyncCounter:field
-WebPlatformTest/Utils/test/asyncTestFail_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/Utils/test/asyncTestFail_t02: Crash # unsupported element kind: _completer:field
-WebPlatformTest/Utils/test/asyncTestPass_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/Utils/test/asyncTestTimeout_t01: Crash # unsupported element kind: _asyncCounter:field
-WebPlatformTest/custom-elements/concepts/type_A04_t01: Crash # unsupported element kind: EXTENDER_CHARS:field
-WebPlatformTest/custom-elements/concepts/type_A05_t01: Crash # unsupported element kind: COMBINING_CHARS:field
-WebPlatformTest/custom-elements/concepts/type_A06_t01: Crash # unsupported element kind: BASE_CHARS_SINGLE:field
-WebPlatformTest/custom-elements/concepts/type_A07_t01: Crash # unsupported element kind: IDEOGRAPHIC_CHARS_SINGLE:field
-WebPlatformTest/custom-elements/concepts/type_A08_t01: Crash # unsupported element kind: DIGIT_CHARS_RANGES:field
 WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: Crash #  Unhandled node
 WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: Crash #  Unhandled node
 WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: Crash #  Unhandled node
@@ -11333,72 +9944,7 @@ WebPlatformTest/custom-elements/instantiating/createElement_A03_t01: Crash #  Un
 WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: Crash #  Unhandled node
 WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: Crash #  Unhandled node
 WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: Crash #  Unhandled node
-WebPlatformTest/custom-elements/instantiating/isAttribute_A02_t01: Crash # unsupported element kind: HTML5_TABLE_ELEMENTS:field
-WebPlatformTest/dom/EventTarget/dispatchEvent_A01_t01: Crash # unsupported element kind: _asyncCounter:field
-WebPlatformTest/dom/EventTarget/dispatchEvent_A02_t01: Crash # unsupported element kind: _asyncCounter:field
-WebPlatformTest/dom/EventTarget/dispatchEvent_A03_t01: Crash # unsupported element kind: _asyncCounter:field
-WebPlatformTest/dom/EventTarget/dispatchEvent_A04_t01: Crash # unsupported element kind: _asyncCounter:field
-WebPlatformTest/dom/nodes/Comment-constructor_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/dom/nodes/DOMImplementation-createDocumentType_t01: Crash # unsupported element kind: tests:field
-WebPlatformTest/dom/nodes/DOMImplementation-createDocument_t01: Crash # unsupported element kind: tests:field
-WebPlatformTest/dom/nodes/DOMImplementation-hasFeature_t01: Crash # unsupported element kind: badTests:field
-WebPlatformTest/dom/nodes/Document-createElementNS_t01: Crash # unsupported element kind: invalidNSQNameCombinations:field
-WebPlatformTest/dom/nodes/Node-isEqualNode_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/dom/nodes/Node-parentNode_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/html-imports/link-import_t02: Crash # unsupported element kind: _completer:field
-WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: Crash # unsupported element kind: HTML5_VOID_ELEMENTS:field
-WebPlatformTest/html-templates/template-element/template-content_t01: Crash # unsupported element kind: HTML5_VOID_ELEMENTS:field
-WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: Crash # unsupported element kind: _asyncCounter:field
-WebPlatformTest/html/browsers/browsing-the-web/read-text/load-text-plain_t01: Crash # unsupported element kind: _asyncCounter:field
-WebPlatformTest/html/semantics/embedded-content/media-elements/error-codes/error_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/html/semantics/embedded-content/media-elements/interfaces/TextTrack/cues_t01: Crash # unsupported element kind: _completer:field
 WebPlatformTest/html/semantics/forms/the-input-element/datetime_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 WebPlatformTest/html/semantics/forms/the-input-element/valueMode_t01: Crash #  Unhandled node
-WebPlatformTest/html/semantics/interactive-elements/the-details-element/toggleEvent_t01: Crash # unsupported element kind: asyncCompleted:field
-WebPlatformTest/html/semantics/tabular-data/the-table-element/table-rows_t01: Crash # Instance of 'TypeOperator': type check unimplemented for List<TableRowElement>.
-WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/elements-001_t01: Crash # unsupported element kind: HTML5_ELEMENT_NAMES:field
-WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-event-interface/event-path-001_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/event-dispatch/test-001_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/event-dispatch/test-002_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/event-dispatch/test-003_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/event-retargeting/test-001_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/event-retargeting/test-002_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/event-retargeting/test-003_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/event-retargeting/test-004_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-001_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-002_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-003_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-004_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-005_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-006_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-007_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-008_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/events-that-are-always-stopped/test-009_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t02: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t05: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t06: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-001_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/events/retargeting-relatedtarget/test-002_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-001_t01: Crash # unsupported element kind: HTML5_FORM_ASSOCIATED_ELEMENTS:field
-WebPlatformTest/shadow-dom/html-elements-in-shadow-trees/html-forms/test-002_t01: Crash # unsupported element kind: HTML5_FORM_ASSOCIATED_ELEMENTS:field
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-002_t01: Crash # unsupported element kind: HTML5_ELEMENT_NAMES:field
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-005_t01: Crash # unsupported element kind: HTML5_FORM_ASSOCIATED_ELEMENTS:field
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-007_t01: Crash # unsupported element kind: HTML5_FORM_ASSOCIATED_ELEMENTS:field
-WebPlatformTest/webstorage/event_constructor_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_constructor_t02: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_local_key_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_local_newvalue_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_local_oldvalue_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_local_storagearea_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_local_storageeventinit_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_local_url_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_session_key_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_session_newvalue_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_session_oldvalue_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_session_storagearea_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_session_storageeventinit_t01: Crash # unsupported element kind: _completer:field
-WebPlatformTest/webstorage/event_session_url_t01: Crash # unsupported element kind: _completer:field
+Utils/tests/Expect/equals_A01_t04 : RuntimeError
+LibTest/core/Object/toString_A01_t01 : Crash # Instance of 'TypeOperator': type casts not implemented.

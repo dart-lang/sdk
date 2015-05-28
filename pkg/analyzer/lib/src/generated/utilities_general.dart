@@ -28,6 +28,8 @@ class JenkinsSmiHash {
 
   static int hash2(a, b) => finish(combine(combine(0, a), b));
 
+  static int hash3(a, b, c) => finish(combine(combine(combine(0, a), b), c));
+
   static int hash4(a, b, c, d) =>
       finish(combine(combine(combine(combine(0, a), b), c), d));
 }

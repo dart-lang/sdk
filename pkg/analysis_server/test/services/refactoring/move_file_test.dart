@@ -105,8 +105,8 @@ import '22/new_name.dart';
     };
     context.sourceFactory = new SourceFactory([
       AbstractContextTest.SDK_RESOLVER,
-      resourceResolver,
-      new PackageMapUriResolver(provider, packageMap)
+      new PackageMapUriResolver(provider, packageMap),
+      resourceResolver
     ]);
     // do testing
     String pathA = '/project/bin/a.dart';

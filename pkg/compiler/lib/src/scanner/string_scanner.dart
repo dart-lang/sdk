@@ -15,14 +15,16 @@ class StringScanner extends ArrayBasedScanner {
   /** The current offset in [string]. */
   int scanOffset = -1;
 
-  StringScanner(SourceFile file, {bool includeComments: false})
+  StringScanner(SourceFile file, {bool includeComments: false,
+                                  bool enableNullAwareOperators: false})
       : string = file.slowText(),
-        super(file, includeComments) {
+        super(file, includeComments, enableNullAwareOperators) {
     ensureZeroTermination();
   }
 
-  StringScanner.fromString(this.string, {bool includeComments: false})
-      : super(null, includeComments) {
+  StringScanner.fromString(this.string, {bool includeComments: false,
+                                         bool enableNullAwareOperators: false})
+      : super(null, includeComments, enableNullAwareOperators) {
     ensureZeroTermination();
   }
 

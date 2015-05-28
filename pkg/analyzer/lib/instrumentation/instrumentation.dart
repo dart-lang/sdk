@@ -6,6 +6,8 @@ library instrumentation;
 
 import 'dart:convert';
 
+import 'package:analyzer/task/model.dart';
+
 /**
  * A container with analysis performance constants.
  */
@@ -98,11 +100,15 @@ class InstrumentationService {
   String get _timestamp => new DateTime.now().millisecondsSinceEpoch.toString();
 
   /**
-   * Log that an analysis task is being performed in the given [context]. The
-   * task has the given [description].
+   * Log that the given analysis [task] is being performed in the given
+   * [context].
    */
-  void logAnalysisTask(String context, String description) {
+  void logAnalysisTask(String context, dynamic task) {
+    // TODO(brianwilkerson) When the old task model is removed, change the
+    // parameter type to AnalysisTask.
     if (_instrumentationServer != null) {
+      String description =
+          (task is AnalysisTask) ? task.description : task.toString();
       _instrumentationServer
           .log(_join([TAG_ANALYSIS_TASK, context, description]));
     }

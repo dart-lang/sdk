@@ -143,8 +143,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
          BaseImplementationOfLocalsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfDynamicsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfConstantsMixin<ir.Primitive, dynamic>,
-         BaseImplementationOfSuperIncDecsMixin<ir.Primitive, dynamic>,
-         BaseImplementationOfNewMixin<ir.Primitive, dynamic>
+         BaseImplementationOfNewMixin<ir.Primitive, dynamic>,
+         BaseImplementationOfCompoundsMixin<ir.Primitive, dynamic>,
+         BaseImplementationOfIndexCompoundsMixin<ir.Primitive, dynamic>
     implements SemanticSendVisitor<ir.Primitive, dynamic> {
   final TreeElements elements;
   final Compiler compiler;
@@ -221,6 +222,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   List<ir.Primitive> normalizeDynamicArguments(
       CallStructure callStructure,
       List<ir.Primitive> arguments);
+
+  /// Read the value of [field].
+  ir.Primitive buildStaticFieldGet(FieldElement field, SourceInformation src);
 
   /// Creates a [TypedSelector] variant of [newSelector] using the type of
   /// [oldSelector], if available.
@@ -755,14 +759,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive handleStaticFieldGet(ast.Send node, FieldElement field, _) {
-    return field.isConst
-        ? irBuilder.buildConstant(getConstantForVariable(field))
-        : irBuilder.buildStaticFieldGet(field,
-              sourceInformation: sourceInformationBuilder.buildGet(node));
-  }
-
-  @override
   ir.Primitive handleStaticFunctionGet(
       ast.Send node,
       MethodElement function,
@@ -848,6 +844,12 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive visitIfNull(
+      ast.Send node, ast.Node left, ast.Node right, _) {
+    internalError(node, "If-null not yet implemented in cps_ir");
+  }
+
+  @override
   ir.Primitive visitLogicalAnd(
       ast.Send node, ast.Node left, ast.Node right, _) {
     return translateLogicalOperator(left, right, isLazyOr: false);
@@ -875,21 +877,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node expression,
       DartType type,
       _) {
-    ir.Primitive receiver = visit(expression);
-    return irBuilder.buildTypeOperator(
-        receiver, type,
-        isTypeTest: true,
-        isNotCheck: false);
+    ir.Primitive value = visit(expression);
+    return irBuilder.buildTypeOperator(value, type, isTypeTest: true);
   }
 
   @override
   ir.Primitive visitIsNot(ast.Send node,
                           ast.Node expression, DartType type, _) {
-    ir.Primitive receiver = visit(expression);
-    return irBuilder.buildTypeOperator(
-        receiver, type,
-        isTypeTest: true,
-        isNotCheck: true);
+    ir.Primitive value = visit(expression);
+    ir.Primitive check = irBuilder.buildTypeOperator(
+        value, type, isTypeTest: true);
+    return irBuilder.buildNegation(check);
   }
 
   ir.Primitive translateBinary(ast.Node left,
@@ -1000,10 +998,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitUnary(ast.Send node,
                           op.UnaryOperator operator, ast.Node expression, _) {
     // TODO(johnniwinther): Clean up the creation of selectors.
-    Selector selector = new Selector(
-        SelectorKind.OPERATOR,
-        new PublicName(operator.selectorName),
-        CallStructure.NO_ARGS);
+    Selector selector = operator.selector;
     ir.Primitive receiver = translateReceiver(expression);
     return irBuilder.buildDynamicInvocation(receiver, selector, const []);
   }
@@ -1088,13 +1083,19 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive handleStaticFieldGet(ast.Send node, FieldElement field, _) {
+    return buildStaticFieldGet(field, sourceInformationBuilder.buildGet(node));
+  }
+
+  @override
   ir.Primitive handleStaticFieldInvoke(
       ast.Send node,
       FieldElement field,
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    ir.Primitive target = irBuilder.buildStaticFieldGet(field);
+    SourceInformation src = sourceInformationBuilder.buildGet(node);
+    ir.Primitive target = buildStaticFieldGet(field, src);
     return irBuilder.buildCallInvocation(target,
         callStructure,
         translateDynamicArguments(arguments, callStructure));
@@ -1245,123 +1246,26 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildSuperIndexSet(function, visit(index), visit(rhs));
   }
 
-  @override
-  ir.Primitive visitCompoundIndexSet(
-      ast.SendSet node,
-      ast.Node receiver,
-      ast.Node index,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      _) {
-    ir.Primitive target = visit(receiver);
-    ir.Primitive indexValue = visit(index);
-    return translateCompound(
-        getValue: () {
-          Selector selector = new Selector.index();
-          List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
-          arguments =
-              normalizeDynamicArguments(selector.callStructure, arguments);
-          return irBuilder.buildDynamicInvocation(target, selector, arguments);
-        },
-        operator: operator,
-        rhs: rhs,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildDynamicIndexSet(target, indexValue, result);
-        });
-  }
-
-  @override
-  ir.Primitive visitSuperCompoundIndexSet(
-      ast.SendSet node,
-      FunctionElement getter,
-      FunctionElement setter,
-      ast.Node index,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      _) {
-    ir.Primitive indexValue = visit(index);
-    return translateCompound(
-        getValue: () {
-          return irBuilder.buildSuperIndex(getter, indexValue);
-        },
-        operator: operator,
-        rhs: rhs,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildSuperIndexSet(setter, indexValue, result);
-        });
-  }
-
-  ir.Primitive translatePrefixPostfix(
+  ir.Primitive translateCompounds(
       {ir.Primitive getValue(),
-       op.IncDecOperator operator,
-       void setValue(ir.Primitive value),
-       bool isPrefix}) {
-    ir.Primitive value = getValue();
-    Selector operatorSelector =
-        new Selector.binaryOperator(operator.selectorName);
-    List<ir.Primitive> arguments =
-        <ir.Primitive>[irBuilder.buildIntegerConstant(1)];
-    arguments = normalizeDynamicArguments(
-        operatorSelector.callStructure, arguments);
-    ir.Primitive result =
-        irBuilder.buildDynamicInvocation(value, operatorSelector, arguments);
-    setValue(result);
-    return isPrefix ? result : value;
-  }
-
-  ir.Primitive translateCompound(
-      {ir.Primitive getValue(),
-       op.AssignmentOperator operator,
-       ast.Node rhs,
+       CompoundRhs rhs,
        void setValue(ir.Primitive value)}) {
     ir.Primitive value = getValue();
     Selector operatorSelector =
-        new Selector.binaryOperator(operator.selectorName);
-    List<ir.Primitive> arguments = <ir.Primitive>[visit(rhs)];
+        new Selector.binaryOperator(rhs.operator.selectorName);
+    ir.Primitive rhsValue;
+    if (rhs.kind == CompoundKind.ASSIGNMENT) {
+      rhsValue = visit(rhs.rhs);
+    } else {
+      rhsValue = irBuilder.buildIntegerConstant(1);
+    }
+    List<ir.Primitive> arguments = <ir.Primitive>[rhsValue];
     arguments = normalizeDynamicArguments(
         operatorSelector.callStructure, arguments);
     ir.Primitive result =
         irBuilder.buildDynamicInvocation(value, operatorSelector, arguments);
     setValue(result);
-    return result;
-  }
-
-  @override
-  ir.Primitive handleDynamicCompound(
-      ast.Send node,
-      ast.Node receiver,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      Selector getterSelector,
-      Selector setterSelector,
-      _) {
-    ir.Primitive target = translateReceiver(receiver);
-    return translateCompound(
-        getValue: () => irBuilder.buildDynamicGet(target, getterSelector),
-        operator: operator,
-        rhs: rhs,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildDynamicSet(target, setterSelector, result);
-        });
-  }
-
-  @override
-  ir.Primitive handleDynamicPostfixPrefix(
-      ast.Send node,
-      ast.Node receiver,
-      op.IncDecOperator operator,
-      Selector getterSelector,
-      Selector setterSelector,
-      arg,
-      {bool isPrefix}) {
-    ir.Primitive target = translateReceiver(receiver);
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildDynamicGet(target, getterSelector),
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildDynamicSet(target, setterSelector, result);
-        },
-        isPrefix: isPrefix);
+    return rhs.kind == CompoundKind.POSTFIX ? value : result;
   }
 
   @override
@@ -1378,76 +1282,12 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive handleLocalCompound(
-      ast.Send node,
-      LocalElement element,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildLocalVariableGet(element),
-        operator: operator,
-        rhs: rhs,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildLocalVariableSet(element, result);
-        });
-  }
-
-  @override
-  ir.Primitive handleLocalPostfixPrefix(
-      ast.Send node,
-      LocalElement element,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildLocalVariableGet(element),
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildLocalVariableSet(element, result);
-        },
-        isPrefix: isPrefix);
-  }
-
-  @override
   ir.Primitive handleLocalSet(
       ast.SendSet node,
       LocalElement element,
       ast.Node rhs,
       _) {
     return irBuilder.buildLocalVariableSet(element, visit(rhs));
-  }
-
-  @override
-  ir.Primitive handleStaticFieldCompound(
-      ast.Send node,
-      FieldElement field,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildStaticFieldGet(field),
-        operator: operator,
-        rhs: rhs,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildStaticFieldSet(field, result);
-        });
-  }
-
-  @override
-  ir.Primitive handleStaticFieldPostfixPrefix(
-      ast.Send node,
-      FieldElement field,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildStaticFieldGet(field),
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildStaticFieldSet(field, result);
-        },
-        isPrefix: isPrefix);
   }
 
   @override
@@ -1478,243 +1318,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive handleStaticGetterSetterCompound(
-      ast.Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildStaticGetterGet(getter),
-        operator: operator,
-        rhs: rhs,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildStaticSetterSet(setter, result);
-        });
-  }
-
-  @override
-  ir.Primitive handleSuperFieldFieldPostfixPrefix(
-      ast.Send node,
-      FieldElement readField,
-      FieldElement writtenField,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperFieldGet(readField),
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildSuperFieldSet(writtenField, result);
-        },
-        isPrefix: isPrefix);
-  }
-
-  @override
-  ir.Primitive handleSuperFieldSetterPostfixPrefix(
-      ast.Send node,
-      FieldElement field,
-      FunctionElement setter,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperFieldGet(field),
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSetterSet(setter, result);
-        },
-        isPrefix: isPrefix);
-  }
-
-  @override
-  ir.Primitive handleSuperGetterFieldPostfixPrefix(
-      ast.Send node,
-      FunctionElement getter,
-      FieldElement field,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperGetterGet(getter),
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildSuperFieldSet(field, result);
-        },
-        isPrefix: isPrefix);
-  }
-
-  @override
-  ir.Primitive handleSuperGetterSetterPostfixPrefix(
-      ast.Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperGetterGet(getter),
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSetterSet(setter, result);
-        },
-        isPrefix: isPrefix);
-  }
-
-  @override
-  ir.Primitive handleSuperMethodSetterPostfixPrefix(
-      ast.Send node,
-      FunctionElement method,
-      FunctionElement setter,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperMethodGet(method),
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSetterSet(setter, result);
-        },
-        isPrefix: isPrefix);
-  }
-
-  @override
-  ir.Primitive handleStaticGetterSetterPostfixPrefix(
-      ast.Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildStaticGetterGet(getter),
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildStaticSetterSet(setter, result);
-        },
-        isPrefix: isPrefix);
-  }
-
-  @override
-  ir.Primitive handleStaticMethodSetterCompound(
-      ast.Send node,
-      FunctionElement method,
-      FunctionElement setter,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildStaticFunctionGet(method),
-        operator: operator,
-        rhs: rhs,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildStaticSetterSet(setter, result);
-        });
-  }
-
-  @override
-  ir.Primitive handleStaticMethodSetterPostfixPrefix(
-      ast.Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildStaticFunctionGet(getter),
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildStaticSetterSet(setter, result);
-        },
-        isPrefix: isPrefix);
-  }
-
-  @override
-  ir.Primitive handleDynamicIndexPostfixPrefix(
-      ast.Send node,
-      ast.Node receiver,
-      ast.Node index,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    ir.Primitive target = visit(receiver);
-    ir.Primitive indexValue = visit(index);
-    return translatePrefixPostfix(
-        getValue: () {
-          Selector selector = new Selector.index();
-          List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
-          arguments =
-              normalizeDynamicArguments(selector.callStructure, arguments);
-          return irBuilder.buildDynamicInvocation(target, selector, arguments);
-        },
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          Selector selector = new Selector.indexSet();
-          List<ir.Primitive> arguments = <ir.Primitive>[indexValue, result];
-          arguments =
-              normalizeDynamicArguments(selector.callStructure, arguments);
-          irBuilder.buildDynamicInvocation(target, selector, arguments);
-        },
-        isPrefix: isPrefix);
-  }
-
-  @override
-  ir.Primitive handleSuperIndexPostfixPrefix(
-      ast.Send node,
-      FunctionElement indexFunction,
-      FunctionElement indexSetFunction,
-      ast.Node index,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    ir.Primitive indexValue = visit(index);
-    return translatePrefixPostfix(
-        getValue: () {
-          return irBuilder.buildSuperIndex(indexFunction, indexValue);
-        },
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildSuperIndexSet(indexSetFunction, indexValue, result);
-        },
-        isPrefix: isPrefix);
-  }
-
-  @override
-  ir.Primitive handleUnresolvedSuperGetterIndexPostfixPrefix(
-      ast.Send node,
-      Element element,
-      ast.Node index,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    return giveup(node, 'handleSuperUnresolvedGetterIndexPostfixPrefix');
-  }
-
-  @override
-  ir.Primitive handleUnresolvedSuperSetterIndexPostfixPrefix(
-      ast.Send node,
-      FunctionElement indexFunction,
-      Element element,
-      ast.Node index,
-      op.IncDecOperator operator,
-      arg,
-      {bool isPrefix}) {
-    return giveup(node, 'handleSuperUnresolvedGetterIndexPostfixPrefix');
-  }
-
-  @override
-  ir.Primitive visitUnresolvedSuperGetterCompoundIndexSet(
-      ast.Send node,
-      Element element,
-      ast.Node index,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      arg) {
-    return giveup(node, 'visitUnresolvedSuperGetterCompoundIndexSet');
-  }
-
-  @override
   ir.Primitive visitUnresolvedSuperIndexSet(
       ast.Send node,
       Element element,
@@ -1722,18 +1325,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node rhs,
       arg) {
     return giveup(node, 'visitUnresolvedSuperIndexSet');
-  }
-
-  @override
-  ir.Primitive visitUnresolvedSuperSetterCompoundIndexSet(
-      ast.Send node,
-      MethodElement getter,
-      Element element,
-      ast.Node index,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      arg) {
-    return giveup(node, 'visitUnresolvedSuperSetterCompoundIndexSet');
   }
 
   @override
@@ -1746,118 +1337,225 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive visitSuperFieldCompound(
-      ast.Send node,
-      FieldElement field,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildSuperFieldGet(field),
-        operator: operator,
+  ir.Primitive handleTypeLiteralConstantCompounds(
+      ast.SendSet node,
+      ConstantExpression constant,
+      CompoundRhs rhs,
+      arg) {
+    return translateCompounds(
+        getValue: () => irBuilder.buildConstant(constant),
         rhs: rhs,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildSuperFieldSet(field, result);
-        });
+        setValue: (value) {}); // The binary operator will throw before this.
   }
 
   @override
-  ir.Primitive visitSuperFieldFieldPostfix(
+  ir.Primitive handleDynamicCompounds(
       ast.Send node,
-      FieldElement readField,
-      FieldElement writtenField,
-      op.IncDecOperator operator,
-      _) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperFieldGet(readField),
-        operator: operator,
+      ast.Node receiver,
+      CompoundRhs rhs,
+      Selector getterSelector,
+      Selector setterSelector,
+      arg) {
+    ir.Primitive target = translateReceiver(receiver);
+    return translateCompounds(
+        getValue: () => irBuilder.buildDynamicGet(target, getterSelector),
+        rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperFieldSet(writtenField, result);
+          irBuilder.buildDynamicSet(target, setterSelector, result);
+        });
+  }
+
+  ir.Primitive buildLocalNoSuchSetter(Local local, ir.Primitive value) {
+    Selector selector = new Selector.setter(local.name, null);
+    return buildStaticNoSuchMethod(selector, [value]);
+  }
+
+  @override
+  ir.Primitive handleLocalCompounds(
+      ast.SendSet node,
+      LocalElement local,
+      CompoundRhs rhs,
+      arg,
+      {bool isSetterValid}) {
+    return translateCompounds(
+        getValue: () {
+          if (local.isFunction) {
+            return irBuilder.buildLocalFunctionGet(local);
+          } else {
+            return irBuilder.buildLocalVariableGet(local);
+          }
         },
-        isPrefix: false);
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          if (isSetterValid) {
+            irBuilder.buildLocalVariableSet(local, result);
+          } else {
+            return buildLocalNoSuchSetter(local, result);
+          }
+        });
+  }
+
+  ir.Primitive buildStaticNoSuchGetter(Element element) {
+    return buildStaticNoSuchMethod(
+        new Selector.getter(element.name, element.library),
+        const <ir.Primitive>[]);
+  }
+
+  ir.Primitive buildStaticNoSuchSetter(Element element, ir.Primitive value) {
+    return buildStaticNoSuchMethod(
+        new Selector.setter(element.name, element.library),
+        <ir.Primitive>[value]);
   }
 
   @override
-  ir.Primitive visitSuperFieldFieldPrefix(
-      ast.Send node,
-      FieldElement readField,
-      FieldElement writtenField,
-      op.IncDecOperator operator,
-      _) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildSuperFieldGet(readField),
-        operator: operator,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildSuperFieldSet(writtenField, result);
+  ir.Primitive handleStaticCompounds(
+      ast.SendSet node,
+      Element getter,
+      CompoundGetter getterKind,
+      Element setter,
+      CompoundSetter setterKind,
+      CompoundRhs rhs,
+      arg) {
+    return translateCompounds(
+        getValue: () {
+          switch (getterKind) {
+            case CompoundGetter.FIELD:
+              SourceInformation src = sourceInformationBuilder.buildGet(node);
+              return irBuilder.buildStaticFieldGet(getter, src);
+            case CompoundGetter.GETTER:
+              return irBuilder.buildStaticGetterGet(getter);
+            case CompoundGetter.METHOD:
+              return irBuilder.buildStaticFunctionGet(getter);
+            case CompoundGetter.UNRESOLVED:
+              return buildStaticNoSuchGetter(getter);
+          }
         },
-        isPrefix: true);
+        rhs: rhs,
+        setValue: (ir.Primitive result) {
+          switch (setterKind) {
+            case CompoundSetter.FIELD:
+              return irBuilder.buildStaticFieldSet(setter, result);
+            case CompoundSetter.SETTER:
+              return irBuilder.buildStaticSetterSet(setter, result);
+            case CompoundSetter.INVALID:
+              // TODO(johnniwinther): Ensure [setter] is non null.
+              return buildStaticNoSuchSetter(
+                  setter != null ? setter : getter, result);
+          }
+        });
+  }
+
+  ir.Primitive buildSuperNoSuchGetter(Element element) {
+    return buildInstanceNoSuchMethod(
+        new Selector.getter(element.name, element.library),
+        const <ir.Primitive>[]);
+  }
+
+  ir.Primitive buildSuperNoSuchSetter(Element element, ir.Primitive value) {
+    return buildInstanceNoSuchMethod(
+        new Selector.setter(element.name, element.library),
+        <ir.Primitive>[value]);
   }
 
   @override
-  ir.Primitive visitSuperFieldSetterCompound(
-      ast.Send node,
-      FieldElement field,
-      FunctionElement setter,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildSuperFieldGet(field),
-        operator: operator,
+  ir.Primitive handleSuperCompounds(
+      ast.SendSet node,
+      Element getter,
+      CompoundGetter getterKind,
+      Element setter,
+      CompoundSetter setterKind,
+      CompoundRhs rhs,
+      arg) {
+    return translateCompounds(
+        getValue: () {
+          switch (getterKind) {
+            case CompoundGetter.FIELD:
+              return irBuilder.buildSuperFieldGet(getter);
+            case CompoundGetter.GETTER:
+              return irBuilder.buildSuperGetterGet(getter);
+            case CompoundGetter.METHOD:
+              return irBuilder.buildSuperMethodGet(getter);
+            case CompoundGetter.UNRESOLVED:
+              // TODO(johnniwinther): Ensure [getter] is not null.
+              return buildSuperNoSuchGetter(getter != null ? getter : setter);
+          }
+        },
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSetterSet(setter, result);
+          switch (setterKind) {
+            case CompoundSetter.FIELD:
+              return irBuilder.buildSuperFieldSet(setter, result);
+            case CompoundSetter.SETTER:
+              return irBuilder.buildSuperSetterSet(setter, result);
+            case CompoundSetter.INVALID:
+              return buildSuperNoSuchSetter(setter, result);
+          }
         });
   }
 
   @override
-  ir.Primitive visitSuperGetterFieldCompound(
-      ast.Send node,
-      FunctionElement getter,
-      FieldElement field,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildSuperGetterGet(getter),
-        operator: operator,
+  ir.Primitive handleTypeVariableTypeLiteralCompounds(
+      ast.SendSet node,
+      TypeVariableElement typeVariable,
+      CompoundRhs rhs,
+      arg) {
+    return translateCompounds(
+        getValue: () => irBuilder.buildReifyTypeVariable(typeVariable.type),
+        rhs: rhs,
+        setValue: (value) {}); // The binary operator will throw before this.
+  }
+
+  @override
+  ir.Primitive handleIndexCompounds(
+      ast.SendSet node,
+      ast.Node receiver,
+      ast.Node index,
+      CompoundRhs rhs,
+      arg) {
+    ir.Primitive target = visit(receiver);
+    ir.Primitive indexValue = visit(index);
+    return translateCompounds(
+        getValue: () {
+          Selector selector = new Selector.index();
+          List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
+          arguments =
+              normalizeDynamicArguments(selector.callStructure, arguments);
+          return irBuilder.buildDynamicInvocation(target, selector, arguments);
+        },
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperFieldSet(field, result);
+          irBuilder.buildDynamicIndexSet(target, indexValue, result);
         });
   }
 
   @override
-  ir.Primitive visitSuperGetterSetterCompound(
-      ast.Send node,
-      FunctionElement getter,
-      FunctionElement setter,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildSuperGetterGet(getter),
-        operator: operator,
+  ir.Primitive handleSuperIndexCompounds(
+      ast.SendSet node,
+      Element indexFunction,
+      Element indexSetFunction,
+      ast.Node index,
+      CompoundRhs rhs,
+      arg,
+      {bool isGetterValid,
+       bool isSetterValid}) {
+    ir.Primitive indexValue = visit(index);
+    return translateCompounds(
+        getValue: () {
+          if (isGetterValid) {
+            return irBuilder.buildSuperIndex(indexFunction, indexValue);
+          } else {
+            return buildInstanceNoSuchMethod(
+                new Selector.index(), <ir.Primitive>[indexValue]);
+          }
+        },
         rhs: rhs,
         setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSetterSet(setter, result);
-        });
-  }
-
-  @override
-  ir.Primitive visitSuperMethodSetterCompound(
-      ast.Send node,
-      FunctionElement method,
-      FunctionElement setter,
-      op.AssignmentOperator operator,
-      ast.Node rhs,
-      _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildSuperMethodGet(method),
-        operator: operator,
-        rhs: rhs,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildSuperSetterSet(setter, result);
+          if (isSetterValid) {
+            irBuilder.buildSuperIndexSet(indexSetFunction, indexValue, result);
+          } else {
+            buildInstanceNoSuchMethod(
+                new Selector.indexSet(), <ir.Primitive>[indexValue, result]);
+          }
         });
   }
 
@@ -1917,7 +1615,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorUnresolvedCompound(
+  ir.Primitive visitUnresolvedCompound(
       ast.Send node,
       Element element,
       op.AssignmentOperator operator,
@@ -1954,7 +1652,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive errorNonConstantConstructorInvoke(
       ast.NewExpression node,
       Element element,
-      InterfaceType type,
+      DartType type,
       ast.NodeList arguments,
       CallStructure callStructure, _) {
     assert(compiler.compilationFailed);
@@ -1979,24 +1677,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorUnresolvedPostfix(
-      ast.Send node,
-      Element element,
-      op.IncDecOperator operator, _) {
-    // TODO(asgerf): Which ones are missing? The getter and/or the setter?
-    return buildStaticNoSuchMethod(elements.getSelector(node), []);
-  }
-
-  @override
-  ir.Primitive errorUnresolvedPrefix(
-      ast.Send node,
-      Element element,
-      op.IncDecOperator operator, _) {
-    // TODO(asgerf): Which ones are missing? The getter and/or the setter?
-    return buildStaticNoSuchMethod(elements.getSelector(node), []);
-  }
-
-  @override
   ir.Primitive visitUnresolvedRedirectingFactoryConstructorInvoke(
        ast.NewExpression node,
        ConstructorElement constructor,
@@ -2011,23 +1691,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorUnresolvedSet(
+  ir.Primitive visitUnresolvedSet(
       ast.Send node,
       Element element,
       ast.Node rhs, _) {
     return buildStaticNoSuchMethod(elements.getSelector(node), [visit(rhs)]);
-  }
-
-  @override
-  ir.Primitive errorUnresolvedSuperCompoundIndexSet(
-      ast.SendSet node,
-      Element element,
-      ast.Node index,
-      op.AssignmentOperator operator,
-      ast.Node rhs, _) {
-    // Assume the index getter is missing.
-    Selector selector = useSelectorTypeOfNode(new Selector.index(), node);
-    return buildInstanceNoSuchMethod(selector, [visit(index)]);
   }
 
   @override
@@ -2038,40 +1706,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     // Assume the index getter is missing.
     Selector selector = useSelectorTypeOfNode(new Selector.index(), node);
     return buildInstanceNoSuchMethod(selector, [visit(index)]);
-  }
-
-  @override
-  ir.Primitive errorUnresolvedSuperIndexPostfix(
-      ast.Send node,
-      Element function,
-      ast.Node index,
-      op.IncDecOperator operator, _) {
-    // Assume the index getter is missing.
-    Selector selector = useSelectorTypeOfNode(new Selector.index(), node);
-    return buildInstanceNoSuchMethod(selector, [visit(index)]);
-  }
-
-  @override
-  ir.Primitive errorUnresolvedSuperIndexPrefix(
-      ast.Send node,
-      Element function,
-      ast.Node index,
-      op.IncDecOperator operator, _) {
-    // Assume the index getter is missing.
-    Selector selector = useSelectorTypeOfNode(new Selector.index(), node);
-    return buildInstanceNoSuchMethod(selector, [visit(index)]);
-  }
-
-  @override
-  ir.Primitive errorUnresolvedSuperIndexSet(
-      ast.SendSet node,
-      Element element,
-      ast.Node index,
-      ast.Node rhs, _) {
-    Selector selector = useSelectorTypeOfNode(new Selector.index(), node);
-    return buildInstanceNoSuchMethod(
-        selector,
-        [visit(index), visit(rhs)]);
   }
 
   @override
@@ -2113,45 +1747,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorTopLevelFunctionSet(
-      ast.Send node,
-      MethodElement function,
-      ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
-        new Selector.setter(function.name, function.library),
-        [visit(rhs)]);
-  }
-
-  @override
-  ir.Primitive errorTopLevelSetterGet(
-      ast.Send node,
-      FunctionElement setter, _) {
-    return buildStaticNoSuchMethod(
-        new Selector.getter(setter.name, setter.library), []);
-  }
-
-  @override
-  ir.Primitive errorTopLevelGetterSet(
-      ast.SendSet node,
-      FunctionElement getter,
-      ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
-        new Selector.setter(getter.name, getter.library),
-        [visit(rhs)]);
-  }
-
-  @override
-  ir.Primitive errorTopLevelSetterInvoke(
-      ast.Send node,
-      FunctionElement setter,
-      ast.NodeList arguments,
-      CallStructure callStructure, _) {
-    return buildStaticNoSuchMethod(
-        new Selector.getter(setter.name, setter.library), []);
-  }
-
-  @override
-  ir.Primitive errorClassTypeLiteralSet(
+  ir.Primitive visitClassTypeLiteralSet(
       ast.SendSet node,
       TypeConstantExpression constant,
       ast.Node rhs, _) {
@@ -2162,7 +1758,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorTypedefTypeLiteralSet(
+  ir.Primitive visitTypedefTypeLiteralSet(
       ast.SendSet node,
       TypeConstantExpression constant,
       ast.Node rhs, _) {
@@ -2173,7 +1769,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorTypeVariableTypeLiteralSet(
+  ir.Primitive visitTypeVariableTypeLiteralSet(
       ast.SendSet node,
       TypeVariableElement element,
       ast.Node rhs, _) {
@@ -2182,7 +1778,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorDynamicTypeLiteralSet(
+  ir.Primitive visitDynamicTypeLiteralSet(
       ast.SendSet node,
       ConstantExpression constant,
       ast.Node rhs, _) {
@@ -2201,168 +1797,18 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorClassTypeLiteralCompound(
-      ast.Send node,
-      ConstantExpression constant,
-      op.AssignmentOperator operator,
-      ast.Node rhs, _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildConstant(constant),
-        operator: operator,
-        rhs: rhs,
-        setValue: (value) {}); // The binary operator will throw before this.
-  }
-
-  @override
-  ir.Primitive errorClassTypeLiteralPostfix(
-      ast.Send node,
-      ConstantExpression constant,
-      op.IncDecOperator operator, _) {
-    return translatePrefixPostfix(
-      getValue: () => irBuilder.buildConstant(constant),
-      operator: operator,
-      setValue: (value) {}, // The binary operator will throw before this.
-      isPrefix: false);
-  }
-
-  @override
-  ir.Primitive errorClassTypeLiteralPrefix(
-      ast.Send node,
-      ConstantExpression constant,
-      op.IncDecOperator operator, _) {
-    return translatePrefixPostfix(
-      getValue: () => irBuilder.buildConstant(constant),
-      operator: operator,
-      setValue: (value) {}, // The binary operator will throw before this.
-      isPrefix: true);
-  }
-
-  @override
-  ir.Primitive errorDynamicTypeLiteralCompound(
-      ast.Send node,
-      ConstantExpression constant,
-      op.AssignmentOperator operator,
-      ast.Node rhs, _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildConstant(constant),
-        operator: operator,
-        rhs: rhs,
-        setValue: (value) {}); // The binary operator will throw before this.
-  }
-
-  @override
-  ir.Primitive errorDynamicTypeLiteralPostfix(
-      ast.Send node,
-      ConstantExpression constant,
-      op.IncDecOperator operator, _) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildConstant(constant),
-        operator: operator,
-        setValue: (value) {}, // The binary operator will throw before this.
-        isPrefix: false);
-  }
-
-  @override
-  ir.Primitive errorDynamicTypeLiteralPrefix(
-      ast.Send node,
-      ConstantExpression constant,
-      op.IncDecOperator operator, _) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildConstant(constant),
-        operator: operator,
-        setValue: (value) {}, // The binary operator will throw before this.
-        isPrefix: true);
-  }
-
-  @override
-  ir.Primitive errorFinalLocalVariableCompound(
-      ast.Send node,
-      LocalVariableElement variable,
-      op.AssignmentOperator operator,
-      ast.Node rhs, _) {
-    Selector selector = new Selector.setter(variable.name, null);
-    return translateCompound(
-        getValue: () => irBuilder.buildLocalVariableGet(variable),
-        operator: operator,
-        rhs: rhs,
-        setValue: (value) => buildStaticNoSuchMethod(selector, [value]));
-  }
-
-  @override
-  ir.Primitive errorFinalLocalVariableSet(
-      ast.SendSet node,
-      LocalVariableElement variable,
-      ast.Node rhs, _) {
-    Selector selector = new Selector.setter(variable.name, null);
-    return buildStaticNoSuchMethod(selector, [visit(rhs)]);
-  }
-
-  @override
-  ir.Primitive errorFinalParameterCompound(
-      ast.Send node,
-      ParameterElement parameter,
-      op.AssignmentOperator operator,
-      ast.Node rhs, _) {
-    Selector selector = new Selector.setter(parameter.name, null);
-    return translateCompound(
-        getValue: () => irBuilder.buildLocalVariableGet(parameter),
-        operator: operator,
-        rhs: rhs,
-        setValue: (value) => buildStaticNoSuchMethod(selector, [value]));
-  }
-
-  @override
-  ir.Primitive errorFinalParameterSet(
-      ast.SendSet node,
-      ParameterElement parameter,
-      ast.Node rhs, _) {
-    Selector selector = new Selector.setter(parameter.name, null);
-    return buildStaticNoSuchMethod(selector, [visit(rhs)]);
-  }
-
-  @override
-  ir.Primitive errorFinalStaticFieldCompound(
-      ast.Send node,
-      FieldElement field,
-      op.AssignmentOperator operator,
-      ast.Node rhs, _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildStaticFieldGet(field),
-        operator: operator,
-        rhs: rhs,
-        setValue: (value) => buildStaticNoSuchMethod(
-            new Selector.setter(field.name, field.library), [value]));
-  }
-
-  @override
-  ir.Primitive errorFinalStaticFieldSet(
+  ir.Primitive handleFinalStaticFieldSet(
       ast.SendSet node,
       FieldElement field,
       ast.Node rhs, _) {
-    // TODO(asgerf): Include class name somehow?
+    // TODO(asgerf): Include class name somehow for static class members?
     return buildStaticNoSuchMethod(
         new Selector.setter(field.name, field.library),
         [visit(rhs)]);
   }
 
   @override
-  ir.Primitive errorFinalSuperFieldCompound(
-      ast.Send node,
-      FieldElement field,
-      op.AssignmentOperator operator,
-      ast.Node rhs, _) {
-    Selector selector = useSelectorTypeOfNode(
-        new Selector.setter(field.name, field.library),
-        node);
-    return translateCompound(
-        getValue: () => irBuilder.buildSuperFieldGet(field),
-        operator: operator,
-        rhs: rhs,
-        setValue: (value) => buildInstanceNoSuchMethod(selector, [value]));
-  }
-
-  @override
-  ir.Primitive errorFinalSuperFieldSet(
+  ir.Primitive visitFinalSuperFieldSet(
       ast.SendSet node,
       FieldElement field,
       ast.Node rhs, _) {
@@ -2373,80 +1819,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorFinalTopLevelFieldCompound(
-      ast.Send node,
-      FieldElement field,
-      op.AssignmentOperator operator,
-      ast.Node rhs, _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildStaticFieldGet(field),
-        operator: operator,
-        rhs: rhs,
-        setValue: (value) => buildStaticNoSuchMethod(
-            new Selector.setter(field.name, field.library), [value]));
-  }
-
-  @override
-  ir.Primitive errorFinalTopLevelFieldSet(
+  ir.Primitive handleImmutableLocalSet(
       ast.SendSet node,
-      FieldElement field,
+      LocalElement local,
       ast.Node rhs, _) {
     return buildStaticNoSuchMethod(
-        new Selector.setter(field.name, field.library),
+        new Selector.setter(local.name, null),
         [visit(rhs)]);
   }
 
   @override
-  ir.Primitive errorLocalFunctionCompound(
-      ast.Send node,
-      LocalFunctionElement function,
-      op.AssignmentOperator operator,
-      ast.Node rhs, _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildLocalFunctionGet(function),
-        operator: operator,
-        rhs: rhs,
-        setValue: (value) {}); // Binary operator will throw before this.
-  }
-
-  @override
-  ir.Primitive errorLocalFunctionPostfix(
-      ast.Send node,
-      LocalFunctionElement function,
-      op.IncDecOperator operator,
-      _) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildLocalFunctionGet(function),
-        operator: operator,
-        setValue: (value) {}, // Binary operator will throw before this.
-        isPrefix: false);
-  }
-
-  @override
-  ir.Primitive errorLocalFunctionPrefix(
-      ast.Send node,
-      LocalFunctionElement function,
-      op.IncDecOperator operator,
-      _) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildLocalFunctionGet(function),
-        operator: operator,
-        setValue: (value) {}, // Binary operator will throw before this.
-        isPrefix: true);
-  }
-
-  @override
-  ir.Primitive errorLocalFunctionSet(
-      ast.SendSet node,
-      LocalFunctionElement function,
-      ast.Node rhs, _) {
-    return buildStaticNoSuchMethod(
-        new Selector.setter(function.name, null),
-        [visit(rhs)]);
-  }
-
-  @override
-  ir.Primitive errorStaticFunctionSet(
+  ir.Primitive handleStaticFunctionSet(
       ast.Send node,
       MethodElement function,
       ast.Node rhs,
@@ -2457,7 +1840,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorStaticGetterSet(
+  ir.Primitive handleStaticGetterSet(
       ast.SendSet node,
       FunctionElement getter,
       ast.Node rhs,
@@ -2468,7 +1851,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorStaticSetterGet(
+  ir.Primitive handleStaticSetterGet(
       ast.Send node,
       FunctionElement setter,
       _) {
@@ -2478,7 +1861,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorStaticSetterInvoke(
+  ir.Primitive handleStaticSetterInvoke(
       ast.Send node,
       FunctionElement setter,
       ast.NodeList arguments,
@@ -2492,7 +1875,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorSuperGetterSet(
+  ir.Primitive visitSuperGetterSet(
       ast.SendSet node,
       FunctionElement getter,
       ast.Node rhs,
@@ -2504,7 +1887,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorSuperMethodSet(
+  ir.Primitive visitSuperMethodSet(
       ast.Send node,
       MethodElement method,
       ast.Node rhs,
@@ -2516,7 +1899,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorSuperSetterGet(
+  ir.Primitive visitSuperSetterGet(
       ast.Send node,
       FunctionElement setter, _) {
     Selector selector = useSelectorTypeOfNode(
@@ -2526,7 +1909,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
-  ir.Primitive errorSuperSetterInvoke(
+  ir.Primitive visitSuperSetterInvoke(
       ast.Send node,
       FunctionElement setter,
       ast.NodeList arguments,
@@ -2538,80 +1921,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         new Selector(SelectorKind.CALL, name, callStructure),
         node);
     return buildInstanceNoSuchMethod(selector, args);
-  }
-
-  @override
-  ir.Primitive errorTypeVariableTypeLiteralCompound(
-      ast.Send node,
-      TypeVariableElement element,
-      op.AssignmentOperator operator,
-      ast.Node rhs, _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildReifyTypeVariable(element.type),
-        operator: operator,
-        rhs: rhs,
-        setValue: (value) {}); // The binary operator will throw before this.
-  }
-
-  @override
-  ir.Primitive errorTypeVariableTypeLiteralPostfix(
-      ast.Send node,
-      TypeVariableElement element,
-      op.IncDecOperator operator, _) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildReifyTypeVariable(element.type),
-        operator: operator,
-        setValue: (value) {}, // The binary operator will throw before this.
-        isPrefix: false);
-  }
-
-  @override
-  ir.Primitive errorTypeVariableTypeLiteralPrefix(
-      ast.Send node,
-      TypeVariableElement element,
-      op.IncDecOperator operator, _) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildReifyTypeVariable(element.type),
-        operator: operator,
-        setValue: (value) {}, // The binary operator will throw before this.
-        isPrefix: true);
-  }
-
-  @override
-  ir.Primitive errorTypedefTypeLiteralCompound(
-      ast.Send node,
-      ConstantExpression constant,
-      op.AssignmentOperator operator,
-      ast.Node rhs, _) {
-    return translateCompound(
-        getValue: () => irBuilder.buildConstant(constant),
-        operator: operator,
-        rhs: rhs,
-        setValue: (value) {}); // The binary operator will throw before this.
-  }
-
-  @override
-  ir.Primitive errorTypedefTypeLiteralPostfix(
-      ast.Send node,
-      ConstantExpression constant,
-      op.IncDecOperator operator, _) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildConstant(constant),
-        operator: operator,
-        setValue: (value) {}, // The binary operator will throw before this.
-        isPrefix: false);
-  }
-
-  @override
-  ir.Primitive errorTypedefTypeLiteralPrefix(
-      ast.Send node,
-      TypeConstantExpression constant,
-      op.IncDecOperator operator, _) {
-    return translatePrefixPostfix(
-        getValue: () => irBuilder.buildConstant(constant),
-        operator: operator,
-        setValue: (value) {}, // The binary operator will throw before this.
-        isPrefix: true);
   }
 
   ir.RootNode nullIfGiveup(ir.RootNode action()) {
@@ -2974,6 +2283,10 @@ class DartIrBuilderVisitor extends IrBuilderVisitor {
   ir.Primitive buildAbstractClassInstantiationError(ClassElement element) {
     return giveup(null, 'Abstract class instantiation: ${element.name}');
   }
+
+  ir.Primitive buildStaticFieldGet(FieldElement field, SourceInformation src) {
+    return irBuilder.buildStaticFieldLazyGet(field, src);
+  }
 }
 
 /// The [IrBuilder]s view on the information about the program that has been
@@ -2989,6 +2302,8 @@ class GlobalProgramInformation {
   bool requiresRuntimeTypesFor(ClassElement cls) {
     return cls.typeVariables.isNotEmpty && _backend.classNeedsRti(cls);
   }
+
+  ClassElement get nullClass => _compiler.nullClass;
 }
 
 /// IR builder specific to the JavaScript backend, coupled to the [JsIrBuilder].
@@ -3012,6 +2327,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
                      Compiler compiler,
                      SourceInformationBuilder sourceInformationBuilder)
       : super(elements, compiler, sourceInformationBuilder);
+
 
   /// Builds the IR for creating an instance of the closure class corresponding
   /// to the given nested function.
@@ -3112,11 +2428,39 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           root = buildFunction(element);
           break;
 
+        case ElementKind.FIELD:
+          if (Elements.isStaticOrTopLevel(element)) {
+            root = buildStaticFieldInitializer(element);
+          } else {
+            // Instance field initializers are inlined in the constructor,
+            // so we shouldn't need to build anything here.
+            // TODO(asgerf): But what should we return?
+            return null;
+          }
+          break;
+
         default:
           compiler.internalError(element, "Unexpected element type $element");
       }
       new CleanupPass().visit(root);
       return root;
+    });
+  }
+
+  ir.FunctionDefinition buildStaticFieldInitializer(FieldElement element) {
+    if (!backend.constants.lazyStatics.contains(element)) {
+      return null; // Nothing to do.
+    }
+    closureClassMap =
+        compiler.closureToClassMapper.computeClosureToClassMapping(
+            element,
+            element.node,
+            elements);
+    IrBuilder builder = getBuilderFor(element);
+    return withBuilder(builder, () {
+      ir.Primitive initialValue = visit(element.initializer);
+      irBuilder.buildReturn(initialValue);
+      return irBuilder.makeLazyFieldInitializer();
     });
   }
 
@@ -3158,6 +2502,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// 3. Calls constructor body and super constructor bodies.
   /// 4. Returns the created object.
   ir.FunctionDefinition buildConstructor(ConstructorElement constructor) {
+    // TODO(asgerf): Optimization: If constructor is redirecting, then just
+    //               evaluate arguments and call the target constructor.
     constructor = constructor.implementation;
     ClassElement classElement = constructor.enclosingClass.implementation;
 
@@ -3258,21 +2604,25 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// All constructors will be added to [supers], with superconstructors first.
   void evaluateConstructorFieldInitializers(ConstructorElement constructor,
                                             List<ConstructorElement> supers) {
-    // Evaluate declaration-site field initializers.
     ClassElement enclosingClass = constructor.enclosingClass.implementation;
-    enclosingClass.forEachInstanceField((ClassElement c, FieldElement field) {
-      if (field.initializer != null) {
-        fieldValues[field] = inlineExpression(field, field.initializer);
-      } else {
-        if (Elements.isNativeOrExtendsNative(c)) {
-          // Native field is initialized elsewhere.
+    // Evaluate declaration-site field initializers, unless this constructor
+    // redirects to another using a `this()` initializer. In that case, these
+    // will be initialized by the effective target constructor.
+    if (!constructor.isRedirectingGenerative) {
+      enclosingClass.forEachInstanceField((ClassElement c, FieldElement field) {
+        if (field.initializer != null) {
+          fieldValues[field] = inlineExpression(field, field.initializer);
         } else {
-          // Fields without an initializer default to null.
-          // This value will be overwritten below if an initializer is found.
-          fieldValues[field] = irBuilder.buildNullConstant();
+          if (Elements.isNativeOrExtendsNative(c)) {
+            // Native field is initialized elsewhere.
+          } else {
+            // Fields without an initializer default to null.
+            // This value will be overwritten below if an initializer is found.
+            fieldValues[field] = irBuilder.buildNullConstant();
+          }
         }
-      }
-    });
+      });
+    }
     // Evaluate initializing parameters, e.g. `Foo(this.x)`.
     constructor.functionSignature.orderedForEachParameter(
         (ParameterElement parameter) {
@@ -3296,7 +2646,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           // Super or this initializer.
           ConstructorElement target = elements[initializer].implementation;
           Selector selector = elements.getSelector(initializer);
-          List<ir.Primitive> arguments = initializer.arguments.mapToList(visit);
+          ir.Primitive evaluateArgument(ast.Node arg) {
+            return inlineExpression(constructor, arg);
+          }
+          List<ir.Primitive> arguments =
+              initializer.arguments.mapToList(evaluateArgument);
           loadArguments(target, selector, arguments);
           evaluateConstructorFieldInitializers(target, supers);
           hasConstructorCall = true;
@@ -3590,10 +2944,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       _) {
     List<ir.Primitive> arguments =
         node.send.arguments.mapToList(visit, growable:false);
-    arguments = normalizeStaticArguments(
-        callStructure, constructor, arguments);
+    // Use default values from the effective target, not the immediate target.
+    ConstructorElement target = constructor.effectiveTarget;
+    arguments = normalizeStaticArguments(callStructure, target, arguments);
     return irBuilder.buildConstructorInvocation(
-        constructor.effectiveTarget,
+        target,
         callStructure,
         constructor.computeEffectiveTargetType(type),
         arguments);
@@ -3636,6 +2991,24 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         backend.getThrowAbstractClassInstantiationError(),
         new CallStructure.unnamed(1),
         [irBuilder.buildStringConstant(element.name)]);
+  }
+
+  @override
+  ir.Primitive handleStaticFieldGet(ast.Send node, FieldElement field, _) {
+    SourceInformation src = sourceInformationBuilder.buildGet(node);
+    return buildStaticFieldGet(field, src);
+  }
+
+  ir.Primitive buildStaticFieldGet(FieldElement field, SourceInformation src) {
+    ConstantExpression constant =
+        backend.constants.getConstantForVariable(field);
+    if (constant != null && !field.isAssignable) {
+      return irBuilder.buildConstant(constant);
+    } else if (backend.constants.lazyStatics.contains(field)) {
+      return irBuilder.buildStaticFieldLazyGet(field, src);
+    } else {
+      return irBuilder.buildStaticFieldGet(field, src);
+    }
   }
 }
 

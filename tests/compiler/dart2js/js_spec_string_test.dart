@@ -20,7 +20,7 @@ class Listener implements DiagnosticListener {
     errorMessage = message;
     throw "error";
   }
-  reportError(spannable, kind, arguments) {
+  reportError(spannable, kind, [arguments]) {
     errorMessage = '$arguments';  // E.g.  "{text: Duplicate tag 'new'.}"
     throw "error";
   }

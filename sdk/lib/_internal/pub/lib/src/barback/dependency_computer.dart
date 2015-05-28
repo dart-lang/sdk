@@ -254,6 +254,9 @@ class _PackageDependencyComputer {
           String packageName)
       : _dependencyComputer = dependencyComputer,
         _package = dependencyComputer._graph.packages[packageName] {
+    var isRootPackage =
+        packageName == _dependencyComputer._graph.entrypoint.root.name;
+
     // If [_package] uses its own transformers, there will be fewer transformers
     // running on [_package] while its own transformers are loading than there
     // will be once all its transformers are finished loading. To handle this,
@@ -262,6 +265,9 @@ class _PackageDependencyComputer {
     // smaller.
     for (var phase in _package.pubspec.transformers) {
       for (var config in phase) {
+        // Ignore non-root transformers on non-public files.
+        if (!isRootPackage && !config.canTransformPublicFiles) continue;
+
         var id = config.id;
         try {
           if (id.package != _package.name) {

@@ -149,7 +149,7 @@ class AnalysisDriver {
     }
     try {
       TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
-      WorkItem workItem = new WorkItem(context, target, taskDescriptor);
+      WorkItem workItem = new WorkItem(context, target, taskDescriptor, result);
       return new WorkOrder(taskManager, workItem);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
@@ -348,10 +348,12 @@ abstract class CycleAwareDependencyWalker<Node> {
    * it.  The client is expected to evaluate this component before calling
    * [getNextStronglyConnectedComponent] again.
    */
-  List<Node> getNextStronglyConnectedComponent() {
+  StronglyConnectedComponent<Node> getNextStronglyConnectedComponent() {
     while (_currentIndices.isNotEmpty) {
       Node nextUnevaluatedInput = getNextInput(_path[_currentIndices.last],
           _provisionalDependencies[_currentIndices.last]);
+      assert(!_provisionalDependencies[_currentIndices.last]
+          .contains(nextUnevaluatedInput));
       if (nextUnevaluatedInput != null) {
         // TODO(paulberry): the call to _path.indexOf makes the algorithm
         // O(n^2) in the depth of the dependency graph.  If this becomes a
@@ -392,11 +394,17 @@ abstract class CycleAwareDependencyWalker<Node> {
           // No more nodes in the current strongly connected component need to
           // have their indices examined.  We can now yield this component to
           // the caller.
-          List<Node> component = _path.sublist(_contractedPath.last);
+          List<Node> nodes = _path.sublist(_contractedPath.last);
+          bool containsCycle = nodes.length > 1;
+          if (!containsCycle) {
+            if (_provisionalDependencies.last.isNotEmpty) {
+              containsCycle = true;
+            }
+          }
           _path.length = _contractedPath.last;
           _provisionalDependencies.length = _contractedPath.last;
           _contractedPath.removeLast();
-          return component;
+          return new StronglyConnectedComponent<Node>(nodes, containsCycle);
         } else {
           // At least one node in the current strongly connected component
           // still needs to have its inputs examined.  So loop and allow the
@@ -428,11 +436,40 @@ abstract class ExtendedAnalysisContext implements InternalAnalysisContext {
  */
 class InfiniteTaskLoopException extends AnalysisException {
   /**
-   * Initialize a newly created exception to represent an attempt to perform
-   * the task for the target represented by the given [item].
+   * If a dependency cycle was found while computing the inputs for the task,
+   * the set of [WorkItem]s contained in the cycle (if there are overlapping
+   * cycles, this is the set of all [WorkItem]s in the entire strongly
+   * connected component).  Otherwise, `null`.
    */
-  InfiniteTaskLoopException(WorkItem item) : super(
-          'Infinite loop while performing task ${item.descriptor.name} for ${item.target}');
+  final List<WorkItem> dependencyCycle;
+
+  /**
+   * Initialize a newly created exception to represent a failed attempt to
+   * perform the given [task] due to the given [dependencyCycle].
+   */
+  InfiniteTaskLoopException(AnalysisTask task, this.dependencyCycle) : super(
+          'Infinite loop while performing task ${task.descriptor.name} for ${task.target}');
+}
+
+/**
+ * Object used by CycleAwareDependencyWalker to report a single strongly
+ * connected component of nodes.
+ */
+class StronglyConnectedComponent<Node> {
+  /**
+   * The nodes contained in the strongly connected component.
+   */
+  final List<Node> nodes;
+
+  /**
+   * Indicates whether the strongly component contains any cycles.  Note that
+   * if [nodes] has multiple elements, this will always be `true`.  However, if
+   * [nodes] has exactly one element, this may be either `true` or `false`
+   * depending on whether the node has a dependency on itself.
+   */
+  final bool containsCycle;
+
+  StronglyConnectedComponent(this.nodes, this.containsCycle);
 }
 
 /**
@@ -454,6 +491,11 @@ class WorkItem {
    * A description of the task to be performed.
    */
   final TaskDescriptor descriptor;
+
+  /**
+   * The [ResultDescriptor] which was led to this work item being spawned.
+   */
+  final ResultDescriptor spawningResult;
 
   /**
    * An iterator used to iterate over the descriptors of the inputs to the task,
@@ -482,10 +524,18 @@ class WorkItem {
   CaughtException exception = null;
 
   /**
+   * If a dependency cycle was found while computing the inputs for the task,
+   * the set of [WorkItem]s contained in the cycle (if there are overlapping
+   * cycles, this is the set of all [WorkItem]s in the entire strongly
+   * connected component).  Otherwise, `null`.
+   */
+  List<WorkItem> dependencyCycle;
+
+  /**
    * Initialize a newly created work item to compute the inputs for the task
    * described by the given descriptor.
    */
-  WorkItem(this.context, this.target, this.descriptor) {
+  WorkItem(this.context, this.target, this.descriptor, this.spawningResult) {
     AnalysisTarget actualTarget = identical(
             target, AnalysisContextTarget.request)
         ? new AnalysisContextTarget(context)
@@ -519,7 +569,9 @@ class WorkItem {
     if (builder != null) {
       throw new StateError("some inputs have not been computed");
     }
-    return descriptor.createTask(context, target, inputs);
+    AnalysisTask task = descriptor.createTask(context, target, inputs);
+    task.dependencyCycle = dependencyCycle;
+    return task;
   }
 
   /**
@@ -538,14 +590,19 @@ class WorkItem {
    * if the field is non-`null` then the task cannot be performed and all of the
    * tasks' results should be marked as being in ERROR.
    */
-  WorkItem gatherInputs(TaskManager taskManager) {
+  WorkItem gatherInputs(TaskManager taskManager, List<WorkItem> skipInputs) {
     while (builder != null) {
       AnalysisTarget inputTarget = builder.currentTarget;
       ResultDescriptor inputResult = builder.currentResult;
       inputTargetedResults.add(new TargetedResult(inputTarget, inputResult));
       CacheEntry inputEntry = context.getCacheEntry(inputTarget);
       CacheState inputState = inputEntry.getState(inputResult);
-      if (inputState == CacheState.ERROR) {
+      if (skipInputs.any((WorkItem item) =>
+          item.target == inputTarget && item.spawningResult == inputResult)) {
+        // This input is being skipped due to a circular dependency.  Tell the
+        // builder that it's not available so we can move on to other inputs.
+        builder.currentValueNotAvailable();
+      } else if (inputState == CacheState.ERROR) {
         exception = inputEntry.exception;
         return null;
       } else if (inputState == CacheState.IN_PROCESS) {
@@ -560,17 +617,19 @@ class WorkItem {
         // IN_PROCESS is CONTENT, I don't know that it's worth the extra effort
         // to implement the general solution at this point.
         //
+        throw new UnimplementedError();
       } else if (inputState != CacheState.VALID) {
         try {
           TaskDescriptor descriptor =
               taskManager.findTask(inputTarget, inputResult);
-          return new WorkItem(context, inputTarget, descriptor);
+          return new WorkItem(context, inputTarget, descriptor, inputResult);
         } on AnalysisException catch (exception, stackTrace) {
           this.exception = new CaughtException(exception, stackTrace);
           return null;
         }
+      } else {
+        builder.currentValue = inputEntry.getValue(inputResult);
       }
-      builder.currentValue = inputEntry.getValue(inputResult);
       if (!builder.moveNext()) {
         inputs = builder.inputValue;
         builder = null;
@@ -581,31 +640,6 @@ class WorkItem {
 
   @override
   String toString() => 'Run $descriptor on $target';
-}
-
-/**
- * The priorities of work orders returned by [WorkManager]s.
- */
-enum WorkOrderPriority {
-  /**
-   * Responding to an user's action.
-   */
-  INTERACTIVE,
-
-  /**
-   * Computing information for priority sources.
-   */
-  PRIORITY,
-
-  /**
-   * A work should be done, but without any special urgency.
-   */
-  NORMAL,
-
-  /**
-   * Nothing to do.
-   */
-  NONE
 }
 
 /**
@@ -688,18 +722,17 @@ class WorkOrder implements Iterator<WorkItem> {
       return true;
     } else {
       // Get a new strongly connected component.
-      currentItems = _dependencyWalker.getNextStronglyConnectedComponent();
-      if (currentItems == null) {
+      StronglyConnectedComponent<WorkItem> nextStronglyConnectedComponent =
+          _dependencyWalker.getNextStronglyConnectedComponent();
+      if (nextStronglyConnectedComponent == null) {
+        currentItems = null;
         return false;
       }
-      if (currentItems.length > 1) {
+      currentItems = nextStronglyConnectedComponent.nodes;
+      if (nextStronglyConnectedComponent.containsCycle) {
         // A cycle has been found.
         for (WorkItem item in currentItems) {
-          try {
-            throw new InfiniteTaskLoopException(item);
-          } on InfiniteTaskLoopException catch (exception, stackTrace) {
-            item.exception = new CaughtException(exception, stackTrace);
-          }
+          item.dependencyCycle = currentItems.toList();
         }
       } else {
         assert(currentItems.length == 1);
@@ -707,6 +740,31 @@ class WorkOrder implements Iterator<WorkItem> {
       return true;
     }
   }
+}
+
+/**
+ * The priorities of work orders returned by [WorkManager]s.
+ */
+enum WorkOrderPriority {
+  /**
+   * Responding to an user's action.
+   */
+  INTERACTIVE,
+
+  /**
+   * Computing information for priority sources.
+   */
+  PRIORITY,
+
+  /**
+   * A work should be done, but without any special urgency.
+   */
+  NORMAL,
+
+  /**
+   * Nothing to do.
+   */
+  NONE
 }
 
 /**
@@ -723,11 +781,6 @@ class _WorkOrderDependencyWalker extends CycleAwareDependencyWalker<WorkItem> {
 
   @override
   WorkItem getNextInput(WorkItem node, List<WorkItem> skipInputs) {
-    if (skipInputs.isNotEmpty) {
-      // TODO(paulberry): this is a hack.  We assume that an analysis loop has
-      // been found, so we don't try to compute anything else.
-      return null;
-    }
-    return node.gatherInputs(taskManager);
+    return node.gatherInputs(taskManager, skipInputs);
   }
 }

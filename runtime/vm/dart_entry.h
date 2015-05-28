@@ -102,7 +102,8 @@ class DartEntry : public AllStatic {
   // On success, returns a RawInstance.  On failure, a RawError.
   typedef RawObject* (*invokestub)(uword entry_point,
                                    const Array& arguments_descriptor,
-                                   const Array& arguments);
+                                   const Array& arguments,
+                                   Thread* thread);
 
   // Invokes the specified instance function or static function.
   // The first argument of an instance function is the receiver.

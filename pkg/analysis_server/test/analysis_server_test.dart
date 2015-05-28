@@ -10,6 +10,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
 import 'package:analysis_server/src/operation/operation.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -18,6 +19,7 @@ import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
@@ -115,8 +117,11 @@ import "../foo/foo.dart";
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
+    ExtensionManager manager = new ExtensionManager();
+    ServerPlugin serverPlugin = new ServerPlugin();
+    manager.processPlugins([serverPlugin]);
     server = new AnalysisServer(channel, resourceProvider, packageMapProvider,
-        null, new AnalysisServerOptions(), new MockSdk(),
+        null, serverPlugin, new AnalysisServerOptions(), new MockSdk(),
         InstrumentationService.NULL_SERVICE, rethrowExceptions: true);
   }
 

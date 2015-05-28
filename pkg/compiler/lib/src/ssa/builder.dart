@@ -1362,6 +1362,11 @@ class SsaBuilder extends NewResolvedVisitor {
       return true;
     }
 
+    bool doesNotContainCode() {
+      // A function with size 1 does not contain any code.
+      return InlineWeeder.canBeInlined(function, 1, true);
+    }
+
     bool reductiveHeuristic() {
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
@@ -1375,12 +1380,7 @@ class SsaBuilder extends NewResolvedVisitor {
       // that usually means the factory constructor is left unused and not
       // emitted.
       // We at least inline bodies that are empty (and thus have a size of 1).
-      return InlineWeeder.canBeInlined(function, 1, true);
-    }
-
-    bool doesNotContainCode() {
-      // A function with size 1 does not contain any code.
-      return InlineWeeder.canBeInlined(function, 1, true);
+      return doesNotContainCode();
     }
 
     bool heuristicSayGoodToGo() {
@@ -1827,7 +1827,7 @@ class SsaBuilder extends NewResolvedVisitor {
    *
    * Invariant: [constructors] must contain only implementation elements.
    */
-  void inlineSuperOrRedirect(FunctionElement callee,
+  void inlineSuperOrRedirect(ConstructorElement callee,
                              List<HInstruction> compiledArguments,
                              List<FunctionElement> constructors,
                              Map<Element, HInstruction> fieldValues,
@@ -1869,9 +1869,9 @@ class SsaBuilder extends NewResolvedVisitor {
         }
       }
 
-      // For redirecting constructors, the fields have already been
-      // initialized by the caller.
-      if (callee.enclosingClass != caller.enclosingClass) {
+      // For redirecting constructors, the fields will be initialized later
+      // by the effective target.
+      if (!callee.isRedirectingGenerative) {
         inlinedFrom(callee, () {
           buildFieldInitializers(callee.enclosingElement.implementation,
                                fieldValues);
@@ -2074,7 +2074,7 @@ class SsaBuilder extends NewResolvedVisitor {
    *  - Call the constructor bodies, starting from the constructor(s) in the
    *    super class(es).
    */
-  HGraph buildFactory(FunctionElement functionElement) {
+  HGraph buildFactory(ConstructorElement functionElement) {
     functionElement = functionElement.implementation;
     ClassElement classElement =
         functionElement.enclosingClass.implementation;
@@ -2093,8 +2093,11 @@ class SsaBuilder extends NewResolvedVisitor {
     Map<Element, HInstruction> fieldValues = new Map<Element, HInstruction>();
 
     // Compile the possible initialization code for local fields and
-    // super fields.
-    buildFieldInitializers(classElement, fieldValues);
+    // super fields, unless this is a redirecting constructor, in which case
+    // the effective target will initialize these.
+    if (!functionElement.isRedirectingGenerative) {
+      buildFieldInitializers(classElement, fieldValues);
+    }
 
     // Compile field-parameters such as [:this.x:].
     FunctionSignature params = functionElement.functionSignature;
@@ -3139,6 +3142,12 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
+  void visitIfNull(ast.Send node, ast.Node left, ast.Node right, _) {
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+    brancher.handleIfNull(() => visit(left), () => visit(right));
+  }
+
+  @override
   void visitLogicalAnd(ast.Send node, ast.Node left, ast.Node right, _) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
     branchBuilder.handleLogicalAndOrWithLeftNode(
@@ -3289,7 +3298,7 @@ class SsaBuilder extends NewResolvedVisitor {
           argumentNodes: const Link<ast.Node>());
     } else {
       // This happens when [element] has parse errors.
-      assert(invariant(node, element.isErroneous));
+      assert(invariant(node, element == null || element.isErroneous));
       // TODO(ahe): Do something like the above, that is, emit a runtime
       // error.
       stack.add(graph.addConstantNull(compiler));
@@ -3395,6 +3404,36 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
+  void visitIfNotNullDynamicPropertyGet(
+      ast.Send node,
+      ast.Node receiver,
+      Selector selector,
+      _) {
+    // exp?.x compiled as:
+    //   t1 = exp;
+    //   result = t1 == null ? t1 : t1.x;
+    // This is equivalent to t1 == null ? null : t1.x, but in the current form
+    // we will be able to later compress it as:
+    //   t1 || t1.x
+    HInstruction expression;
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+    brancher.handleConditional(
+        () {
+          expression = visitAndPop(receiver);
+          pushCheckNull(expression);
+        },
+        () => stack.add(expression),
+        () => generateInstanceGetterWithCompiledReceiver(
+            node, elements.getSelector(node), expression));
+  }
+
+  /// Pushes a boolean checking [expression] against null.
+  pushCheckNull(HInstruction expression) {
+    push(new HIdentity(expression, graph.addConstantNull(compiler),
+          null, backend.boolType));
+  }
+
+  @override
   void visitLocalVariableGet(ast.Send node, LocalVariableElement variable, _) {
     handleLocalGet(variable);
   }
@@ -3463,6 +3502,37 @@ class SsaBuilder extends NewResolvedVisitor {
       FunctionElement getter,
       _) {
     generateStaticGetterGet(node, getter);
+  }
+
+  void generatePossiblyConditionalInstanceSetter(ast.Send send,
+                                                 HInstruction pushReceiver(),
+                                                 HInstruction pushValue(),
+                                                 {Selector selector,
+                                                  ast.Node location}) {
+    if (send.isConditional) {
+      SsaBranchBuilder brancher = new SsaBranchBuilder(this, send);
+      // compile e?.x = e2 to:
+      //
+      // t1 = e
+      // if (t1 == null)
+      //   result = t1 // same as result = null
+      // else
+      //   result = e.x = e2
+      HInstruction receiver;
+      brancher.handleConditional(
+          () {
+            receiver = pushReceiver();
+            pushCheckNull(receiver);
+          },
+          () => stack.add(receiver),
+          () => generateInstanceSetterWithCompiledReceiver(
+                    send, receiver, pushValue(),
+                    selector: selector, location: location));
+    } else {
+      generateInstanceSetterWithCompiledReceiver(
+          send, pushReceiver(), pushValue(),
+          selector: selector, location: location);
+    }
   }
 
   void generateInstanceSetterWithCompiledReceiver(ast.Send send,
@@ -3556,17 +3626,17 @@ class SsaBuilder extends NewResolvedVisitor {
       InterfaceType interface = type;
       List<HInstruction> inputs = <HInstruction>[];
       bool first = true;
-      List<String> templates = <String>[];
+      List<js.Expression> templates = <js.Expression>[];
       for (DartType argument in interface.typeArguments) {
-        templates.add(rti.getTypeRepresentationWithHashes(argument, (variable) {
+        templates.add(rti.getTypeRepresentationWithPlaceholders(argument, (variable) {
           HInstruction runtimeType = addTypeVariableReference(variable);
           inputs.add(runtimeType);
-        }));
+        }, firstPlaceholderIndex : inputs.length));
       }
-      String template = '[${templates.join(', ')}]';
       // TODO(sra): This is a fresh template each time.  We can't let the
       // template manager build them.
-      js.Template code = js.js.uncachedExpressionTemplate(template);
+      js.Template code = new js.Template(null,
+                                         new js.ArrayInitializer(templates));
       HInstruction representation =
           new HForeignCode(code, backend.readableArrayType, inputs,
               nativeBehavior: native.NativeBehavior.PURE_ALLOCATION);
@@ -3727,10 +3797,14 @@ class SsaBuilder extends NewResolvedVisitor {
 
   /// Generate a dynamic method, getter or setter invocation.
   void generateDynamicSend(ast.Send node) {
+    HInstruction receiver = generateInstanceSendReceiver(node);
+    _generateDynamicSend(node, receiver);
+  }
+
+  void _generateDynamicSend(ast.Send node, HInstruction receiver) {
     Selector selector = elements.getSelector(node);
 
     List<HInstruction> inputs = <HInstruction>[];
-    HInstruction receiver = generateInstanceSendReceiver(node);
     inputs.add(receiver);
     addDynamicSendArgumentsToList(node, inputs);
 
@@ -3749,6 +3823,25 @@ class SsaBuilder extends NewResolvedVisitor {
       Selector selector,
       _) {
     generateDynamicSend(node);
+  }
+
+  @override
+  visitIfNotNullDynamicPropertyInvoke(
+      ast.Send node,
+      ast.Node receiver,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    /// Desugar `exp?.m()` to `(t1 = exp) == null ? t1 : t1.m()`
+    HInstruction receiver;
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+    brancher.handleConditional(
+        () {
+          receiver = generateInstanceSendReceiver(node);
+          pushCheckNull(receiver);
+        },
+        () => stack.add(receiver),
+        () => _generateDynamicSend(node, receiver));
   }
 
   @override
@@ -4165,14 +4258,6 @@ class SsaBuilder extends NewResolvedVisitor {
       handleForeignRawFunctionRef(node, 'RAW_DART_FUNCTION_REF');
     } else if (name == 'JS_SET_CURRENT_ISOLATE') {
       handleForeignSetCurrentIsolate(node);
-    } else if (name == 'JS_OBJECT_CLASS_NAME') {
-      // TODO(floitsch): this should be a JS_NAME.
-      String name = backend.namer.runtimeTypeName(compiler.objectClass);
-      stack.add(addConstantString(name));
-    } else if (name == 'JS_NULL_CLASS_NAME') {
-      // TODO(floitsch): this should be a JS_NAME.
-      String name = backend.namer.runtimeTypeName(compiler.nullClass);
-      stack.add(addConstantString(name));
     } else if (name == 'JS_OPERATOR_AS_PREFIX') {
       // TODO(floitsch): this should be a JS_NAME.
       stack.add(addConstantString(backend.namer.operatorAsPrefix));
@@ -4483,6 +4568,16 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
+  void visitSuperNotEquals(
+      ast.Send node,
+      MethodElement method,
+      ast.Node argument,
+      _) {
+    handleSuperMethodInvoke(node, method);
+    pushWithPosition(new HNot(popBoolified(), backend.boolType), node.selector);
+  }
+
+  @override
   void visitSuperUnary(
       ast.Send node,
       UnaryOperator operator,
@@ -4623,11 +4718,12 @@ class SsaBuilder extends NewResolvedVisitor {
 
     List<HInstruction> inputs = <HInstruction>[];
 
-    String template = rti.getTypeRepresentationWithHashes(argument, (variable) {
-      inputs.add(addTypeVariableReference(variable));
-    });
+    js.Expression template =
+        rti.getTypeRepresentationWithPlaceholders(argument, (variable) {
+            inputs.add(addTypeVariableReference(variable));
+        });
 
-    js.Template code = js.js.uncachedExpressionTemplate(template);
+    js.Template code = new js.Template(null, template);
     HInstruction result = new HForeignCode(code, backend.stringType, inputs,
         nativeBehavior: native.NativeBehavior.PURE);
     add(result);
@@ -5509,11 +5605,22 @@ class SsaBuilder extends NewResolvedVisitor {
     }
     ast.Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
-      HInstruction result;
       List<HInstruction> setterInputs = <HInstruction>[];
+      void generateSuperSendSet() {
+        Selector setterSelector = elements.getSelector(node);
+        if (Elements.isUnresolved(element)
+            || !setterSelector.applies(element, compiler.world)) {
+          generateSuperNoSuchMethodSend(
+              node, setterSelector, setterInputs);
+          pop();
+        } else {
+          add(buildInvokeSuper(setterSelector, element, setterInputs));
+        }
+      }
       if (identical(node.assignmentOperator.source, '=')) {
         addDynamicSendArgumentsToList(node, setterInputs);
-        result = setterInputs.last;
+        generateSuperSendSet();
+        stack.add(setterInputs.last);
       } else {
         Element getter = elements[node.selector];
         List<HInstruction> getterInputs = <HInstruction>[];
@@ -5543,25 +5650,22 @@ class SsaBuilder extends NewResolvedVisitor {
               getterSelector, getter, getterInputs);
           add(getterInstruction);
         }
-        handleComplexOperatorSend(node, getterInstruction, arguments);
-        setterInputs.add(pop());
 
-        if (node.isPostfix) {
-          result = getterInstruction;
+        if (node.isIfNullAssignment) {
+          SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+          brancher.handleIfNull(() => stack.add(getterInstruction),
+              () {
+                addDynamicSendArgumentsToList(node, setterInputs);
+                generateSuperSendSet();
+                stack.add(setterInputs.last);
+              });
         } else {
-          result = setterInputs.last;
+          handleComplexOperatorSend(node, getterInstruction, arguments);
+          setterInputs.add(pop());
+          generateSuperSendSet();
+          stack.add(node.isPostfix ? getterInstruction : setterInputs.last);
         }
       }
-      Selector setterSelector = elements.getSelector(node);
-      if (Elements.isUnresolved(element)
-          || !setterSelector.applies(element, compiler.world)) {
-        generateSuperNoSuchMethodSend(
-            node, setterSelector, setterInputs);
-        pop();
-      } else {
-        add(buildInvokeSuper(setterSelector, element, setterInputs));
-      }
-      stack.add(result);
     } else if (node.isIndex) {
       if ("=" == op.source) {
         generateDynamicSend(node);
@@ -5581,27 +5685,42 @@ class SsaBuilder extends NewResolvedVisitor {
             elements.getGetterSelectorInComplexSendSet(node),
             [receiver, index]);
         HInstruction getterInstruction = pop();
-
-        handleComplexOperatorSend(node, getterInstruction, arguments);
-        HInstruction value = pop();
-
-        pushInvokeDynamic(
-            node, elements.getSelector(node), [receiver, index, value]);
-        pop();
-
-        if (node.isPostfix) {
-          stack.add(getterInstruction);
+        if (node.isIfNullAssignment) {
+          // Compile x[i] ??= e as:
+          //   t1 = x[i]
+          //   if (t1 == null)
+          //      t1 = x[i] = e;
+          //   result = t1
+          SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+          brancher.handleIfNull(() => stack.add(getterInstruction),
+              () {
+                visit(arguments.head);
+                HInstruction value = pop();
+                pushInvokeDynamic(
+                    node, elements.getSelector(node), [receiver, index, value]);
+                pop();
+                stack.add(value);
+              });
         } else {
-          stack.add(value);
+          handleComplexOperatorSend(node, getterInstruction, arguments);
+          HInstruction value = pop();
+          pushInvokeDynamic(
+              node, elements.getSelector(node), [receiver, index, value]);
+          pop();
+          if (node.isPostfix) {
+            stack.add(getterInstruction);
+          } else {
+            stack.add(value);
+          }
         }
       }
     } else if ("=" == op.source) {
       Link<ast.Node> link = node.arguments;
       assert(!link.isEmpty && link.tail.isEmpty);
       if (Elements.isInstanceSend(node, elements)) {
-        HInstruction receiver = generateInstanceSendReceiver(node);
-        visit(link.head);
-        generateInstanceSetterWithCompiledReceiver(node, receiver, pop());
+        generatePossiblyConditionalInstanceSetter(node,
+            () => generateInstanceSendReceiver(node),
+            () => visitAndPop(link.head));
       } else {
         visit(link.head);
         generateNonInstanceSetter(node, element, pop());
@@ -5612,20 +5731,64 @@ class SsaBuilder extends NewResolvedVisitor {
       assert("++" == op.source || "--" == op.source ||
              node.assignmentOperator.source.endsWith("="));
 
-      // [receiver] is only used if the node is an instance send.
-      HInstruction receiver = null;
       Element getter = elements[node.selector];
 
       if (!Elements.isUnresolved(getter) && getter.impliesType) {
-        ast.Identifier selector = node.selector;
-        generateThrowNoSuchMethod(node, selector.source,
-                                  argumentNodes: node.arguments);
+        if (node.isIfNullAssignment) {
+          // C ??= x is compiled just as C.
+          stack.add(addConstant(node.selector));
+        } else {
+          ast.Identifier selector = node.selector;
+          generateThrowNoSuchMethod(node, selector.source,
+                                    argumentNodes: node.arguments);
+        }
         return;
-      } else if (Elements.isInstanceSend(node, elements)) {
-        receiver = generateInstanceSendReceiver(node);
-        generateInstanceGetterWithCompiledReceiver(
-            node, elements.getGetterSelectorInComplexSendSet(node), receiver);
-      } else if (getter.isErroneous) {
+      }
+
+      if (Elements.isInstanceSend(node, elements)) {
+        void generateAssignment(HInstruction receiver) {
+          // desugars `e.x op= e2` to `e.x = e.x op e2`
+          generateInstanceGetterWithCompiledReceiver(
+              node, elements.getGetterSelectorInComplexSendSet(node), receiver);
+          HInstruction getterInstruction = pop();
+          if (node.isIfNullAssignment) {
+            SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+            brancher.handleIfNull(() => stack.add(getterInstruction),
+                () {
+                  visit(node.arguments.head);
+                  generateInstanceSetterWithCompiledReceiver(
+                      node, receiver, pop());
+                });
+          } else {
+            handleComplexOperatorSend(node, getterInstruction, node.arguments);
+            HInstruction value = pop();
+            generateInstanceSetterWithCompiledReceiver(node, receiver, value);
+          }
+          if (node.isPostfix) {
+            pop();
+            stack.add(getterInstruction);
+          }
+        }
+        if (node.isConditional) {
+          // generate `e?.x op= e2` as:
+          //   t1 = e
+          //   t1 == null ? t1 : (t1.x = t1.x op e2);
+          HInstruction receiver;
+          SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+          brancher.handleConditional(
+              () {
+                receiver = generateInstanceSendReceiver(node);
+                pushCheckNull(receiver);
+              },
+              () => stack.add(receiver),
+              () => generateAssignment(receiver));
+        } else {
+          generateAssignment(generateInstanceSendReceiver(node));
+        }
+        return;
+      }
+
+      if (getter.isErroneous) {
         generateStaticUnresolvedGet(node, getter);
       } else if (getter.isField) {
         generateStaticFieldGet(node, getter);
@@ -5639,14 +5802,16 @@ class SsaBuilder extends NewResolvedVisitor {
         internalError(node, "Unexpected getter: $getter");
       }
       HInstruction getterInstruction = pop();
-      handleComplexOperatorSend(node, getterInstruction, node.arguments);
-      HInstruction value = pop();
-      assert(value != null);
-      if (Elements.isInstanceSend(node, elements)) {
-        assert(receiver != null);
-        generateInstanceSetterWithCompiledReceiver(node, receiver, value);
+      if (node.isIfNullAssignment) {
+        SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+        brancher.handleIfNull(() => stack.add(getterInstruction),
+            () {
+              visit(node.arguments.head);
+              generateNonInstanceSetter(node, element, pop());
+            });
       } else {
-        assert(receiver == null);
+        handleComplexOperatorSend(node, getterInstruction, node.arguments);
+        HInstruction value = pop();
         generateNonInstanceSetter(node, element, value);
       }
       if (node.isPostfix) {
@@ -7455,6 +7620,19 @@ class SsaBranchBuilder {
     _handleDiamondBranch(visitCondition, visitThen, visitElse, true);
   }
 
+  handleIfNull(void left(), void right()) {
+    // x ?? y is transformed into: x == null ? y : x
+    HInstruction leftExpression;
+    handleConditional(
+        () {
+          left();
+          leftExpression = builder.pop();
+          builder.pushCheckNull(leftExpression);
+        },
+        right,
+        () => builder.stack.add(leftExpression));
+  }
+
   void handleLogicalAndOr(void left(), void right(), {bool isAnd}) {
     // x && y is transformed into:
     //   t0 = boolify(x);
@@ -7558,8 +7736,6 @@ class SsaBranchBuilder {
       builder.stack.add(phi);
     }
 
-    HBasicBlock thenBlock = thenBranch.block;
-    HBasicBlock elseBlock = elseBranch.block;
     HBasicBlock joinBlock;
     // If at least one branch did not abort, open the joinBranch.
     if (!joinBranch.block.predecessors.isEmpty) {

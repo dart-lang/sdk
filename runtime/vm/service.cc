@@ -1196,7 +1196,7 @@ static void PrintSentinel(JSONStream* js, SentinelType sentinel_type) {
 }
 
 
-static SourceBreakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
+static Breakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
   size_t end_pos = strcspn(id, "/");
   if (end_pos == strlen(id)) {
     return NULL;
@@ -1204,7 +1204,7 @@ static SourceBreakpoint* LookupBreakpoint(Isolate* isolate, const char* id) {
   const char* rest = id + end_pos + 1;  // +1 for '/'.
   if (strncmp("breakpoints", id, end_pos) == 0) {
     intptr_t bpt_id = 0;
-    SourceBreakpoint* bpt = NULL;
+    Breakpoint* bpt = NULL;
     if (GetIntegerId(rest, &bpt_id)) {
       bpt = isolate->debugger()->GetBreakpointById(bpt_id);
     }
@@ -1808,7 +1808,7 @@ static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
   }
   const Script& script = Script::Cast(obj);
   const String& script_url = String::Handle(script.url());
-  SourceBreakpoint* bpt =
+  Breakpoint* bpt =
       isolate->debugger()->SetBreakpointAtLine(script_url, line);
   if (bpt == NULL) {
     js->PrintError(kNoBreakAtLine, NULL);
@@ -1834,8 +1834,34 @@ static bool AddBreakpointAtEntry(Isolate* isolate, JSONStream* js) {
     return true;
   }
   const Function& function = Function::Cast(obj);
-  SourceBreakpoint* bpt =
-      isolate->debugger()->SetBreakpointAtEntry(function);
+  Breakpoint* bpt =
+      isolate->debugger()->SetBreakpointAtEntry(function, false);
+  if (bpt == NULL) {
+    js->PrintError(kNoBreakAtFunction, NULL);
+    return true;
+  }
+  bpt->PrintJSON(js);
+  return true;
+}
+
+
+static const MethodParameter* add_breakpoint_at_activation_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("objectId", true),
+  NULL,
+};
+
+
+static bool AddBreakpointAtActivation(Isolate* isolate, JSONStream* js) {
+  const char* object_id = js->LookupParam("objectId");
+  Object& obj = Object::Handle(LookupHeapObject(isolate, object_id, NULL));
+  if (obj.raw() == Object::sentinel().raw() || !obj.IsInstance()) {
+    PrintInvalidParamError(js, "objectId");
+    return true;
+  }
+  const Instance& closure = Instance::Cast(obj);
+  Breakpoint* bpt =
+      isolate->debugger()->SetBreakpointAtActivation(closure);
   if (bpt == NULL) {
     js->PrintError(kNoBreakAtFunction, NULL);
     return true;
@@ -1857,7 +1883,7 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
     return true;
   }
   const char* bpt_id = js->LookupParam("breakpointId");
-  SourceBreakpoint* bpt = LookupBreakpoint(isolate, bpt_id);
+  Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id);
   if (bpt == NULL) {
     fprintf(stderr, "ERROR1");
     PrintInvalidParamError(js, "breakpointId");
@@ -1874,7 +1900,7 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
 
 static RawClass* GetMetricsClass(Isolate* isolate) {
   const Library& prof_lib =
-      Library::Handle(isolate, Library::ProfilerLibrary());
+      Library::Handle(isolate, Library::DeveloperLibrary());
   ASSERT(!prof_lib.IsNull());
   const String& metrics_cls_name =
       String::Handle(isolate, String::New("Metrics"));
@@ -2127,7 +2153,6 @@ static const MethodParameter* get_tag_profile_params[] = {
 static bool GetTagProfile(Isolate* isolate, JSONStream* js) {
   JSONObject miniProfile(js);
   miniProfile.AddProperty("type", "TagProfile");
-  miniProfile.AddProperty("id", "profile/tag");
   isolate->vm_tag_counters()->PrintToJSONObject(&miniProfile);
   return true;
 }
@@ -2243,7 +2268,6 @@ static bool RequestHeapSnapshot(Isolate* isolate, JSONStream* js) {
   // TODO(koda): Provide some id that ties this request to async response(s).
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "OK");
-  jsobj.AddProperty("id", "ok");
   return true;
 }
 
@@ -2252,19 +2276,39 @@ void Service::SendGraphEvent(Isolate* isolate) {
   uint8_t* buffer = NULL;
   WriteStream stream(&buffer, &allocator, 1 * MB);
   ObjectGraph graph(isolate);
-  graph.Serialize(&stream);
-  JSONStream js;
-  {
-    JSONObject jsobj(&js);
+  intptr_t node_count = graph.Serialize(&stream);
+
+  // Chrome crashes receiving a single tens-of-megabytes blob, so send the
+  // snapshot in megabyte-sized chunks instead.
+  const intptr_t kChunkSize = 1 * MB;
+  intptr_t num_chunks =
+      (stream.bytes_written() + (kChunkSize - 1)) / kChunkSize;
+  for (intptr_t i = 0; i < num_chunks; i++) {
+    JSONStream js;
     {
-      JSONObject event(&jsobj, "event");
-      event.AddProperty("type", "ServiceEvent");
-      event.AddProperty("eventType", "_Graph");
-      event.AddProperty("isolate", isolate);
+      JSONObject jsobj(&js);
+      {
+        JSONObject event(&jsobj, "event");
+        event.AddProperty("type", "ServiceEvent");
+        event.AddProperty("eventType", "_Graph");
+        event.AddProperty("isolate", isolate);
+
+        event.AddProperty("chunkIndex", i);
+        event.AddProperty("chunkCount", num_chunks);
+        event.AddProperty("nodeCount", node_count);
+      }
+      jsobj.AddProperty("streamId", "_Graph");
     }
+
+    const String& message = String::Handle(String::New(js.ToCString()));
+
+    uint8_t* chunk_start = buffer + (i * kChunkSize);
+    intptr_t chunk_size = (i + 1 == num_chunks)
+        ? stream.bytes_written() - (i * kChunkSize)
+        : kChunkSize;
+
+    SendEvent(message, chunk_start, chunk_size);
   }
-  const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(message, buffer, stream.bytes_written());
 }
 
 
@@ -2384,7 +2428,7 @@ static bool GetObject(Isolate* isolate, JSONStream* js) {
   }
 
   // Handle non-heap objects.
-  SourceBreakpoint* bpt = LookupBreakpoint(isolate, id);
+  Breakpoint* bpt = LookupBreakpoint(isolate, id);
   if (bpt != NULL) {
     bpt->PrintJSON(js);
     return true;
@@ -2574,7 +2618,9 @@ static ServiceMethodDescriptor service_methods_[] = {
     add_breakpoint_params },
   { "addBreakpointAtEntry", AddBreakpointAtEntry,
     add_breakpoint_at_entry_params },
-  { "clearCpuProfile", ClearCpuProfile,
+  { "_addBreakpointAtActivation", AddBreakpointAtActivation,
+    add_breakpoint_at_activation_params },
+  { "_clearCpuProfile", ClearCpuProfile,
     clear_cpu_profile_params },
   { "evaluate", Evaluate,
     evaluate_params },
@@ -2586,13 +2632,13 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_call_site_data_params },
   { "getClassList", GetClassList,
     get_class_list_params },
-  { "getCoverage", GetCoverage,
+  { "_getCoverage", GetCoverage,
     get_coverage_params },
-  { "getCpuProfile", GetCpuProfile,
+  { "_getCpuProfile", GetCpuProfile,
     get_cpu_profile_params },
   { "getFlagList", GetFlagList ,
     get_flag_list_params },
-  { "getHeapMap", GetHeapMap,
+  { "_getHeapMap", GetHeapMap,
     get_heap_map_params },
   { "_getInboundReferences", GetInboundReferences,
     get_inbound_references_params },
@@ -2600,13 +2646,13 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_instances_params },
   { "getIsolate", GetIsolate,
     get_isolate_params },
-  { "getIsolateMetric", GetIsolateMetric,
+  { "_getIsolateMetric", GetIsolateMetric,
     get_isolate_metric_params },
-  { "getIsolateMetricList", GetIsolateMetricList,
+  { "_getIsolateMetricList", GetIsolateMetricList,
     get_isolate_metric_list_params },
   { "getObject", GetObject,
     get_object_params },
-  { "getObjectByAddress", GetObjectByAddress,
+  { "_getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
   { "_getRetainedSize", GetRetainedSize,
     get_retained_size_params },
@@ -2614,15 +2660,15 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_retaining_path_params },
   { "getStack", GetStack,
     get_stack_params },
-  { "getTagProfile", GetTagProfile,
+  { "_getTagProfile", GetTagProfile,
     get_tag_profile_params },
-  { "getTypeArgumentsList", GetTypeArgumentsList,
+  { "_getTypeArgumentsList", GetTypeArgumentsList,
     get_type_arguments_list_params },
   { "getVM", GetVM,
     get_vm_params },
-  { "getVMMetric", GetVMMetric,
+  { "_getVMMetric", GetVMMetric,
     get_vm_metric_params },
-  { "getVMMetricList", GetVMMetricList,
+  { "_getVMMetricList", GetVMMetricList,
     get_vm_metric_list_params },
   { "pause", Pause,
     pause_params },
@@ -2630,9 +2676,9 @@ static ServiceMethodDescriptor service_methods_[] = {
     remove_breakpoint_params },
   { "resume", Resume,
     resume_params },
-  { "requestHeapSnapshot", RequestHeapSnapshot,
+  { "_requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
-  { "setFlag", SetFlag,
+  { "_setFlag", SetFlag,
     set_flags_params },
   { "setName", SetName,
     set_name_params },

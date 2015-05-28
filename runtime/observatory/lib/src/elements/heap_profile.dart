@@ -26,7 +26,6 @@ class ClassSortedTable extends SortedTable {
   }
 }
 
-/// Displays an Error response.
 @CustomTag('heap-profile')
 class HeapProfileElement extends ObservatoryElement {
   @observable String lastServiceGC = '---';
@@ -103,11 +102,11 @@ class HeapProfileElement extends ObservatoryElement {
     _subscription.cancel();
     super.detached();
   }
-  
+
   // Keep at most one outstanding auto-refresh RPC.
   bool refreshAutoPending = false;
   bool refreshAutoQueued = false;
-  
+
   void _onEvent(ServiceEvent event) {
     if (autoRefresh && event.eventType == 'GC') {
       if (!refreshAutoPending) {
@@ -232,6 +231,9 @@ class HeapProfileElement extends ObservatoryElement {
       var cell = tr.children[i];
       cell.title = row.values[i].toString();
       cell.text = classTable.getFormattedValue(rowIndex, i);
+      if (i > 1) {  // Numbers.
+        cell.style.textAlign = 'right';
+      }
     }
   }
 

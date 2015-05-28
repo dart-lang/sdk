@@ -193,7 +193,7 @@ class PatchParserTask extends CompilerTask {
       try {
         Token token = parser.parseTopLevelDeclaration(cls.beginToken);
         assert(identical(token, cls.endToken.next));
-      } on ParserError catch (e, s) {
+      } on ParserError catch (e) {
         // No need to recover from a parser error in platform libraries, user
         // will never see this if the libraries are tested correctly.
         compiler.internalError(

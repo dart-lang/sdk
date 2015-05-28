@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/engine.dart'
         AnalysisEngine,
         AnalysisErrorInfo,
         AnalysisErrorInfoImpl,
+        AnalysisOptions,
         CacheState,
         InternalAnalysisContext;
 import 'package:analyzer/src/generated/error.dart';
@@ -67,6 +68,18 @@ class DartWorkManager implements WorkManager {
   final LinkedHashSet<Source> librarySourceQueue = new LinkedHashSet<Source>();
 
   /**
+   * A table mapping library sources to the part sources they include.
+   */
+  final HashMap<Source, List<Source>> libraryPartsMap =
+      new HashMap<Source, List<Source>>();
+
+  /**
+   * A table mapping part sources to the library sources that include them.
+   */
+  final HashMap<Source, List<Source>> partLibrariesMap =
+      new HashMap<Source, List<Source>>();
+
+  /**
    * Initialize a newly created manager.
    */
   DartWorkManager(this.context);
@@ -99,6 +112,14 @@ class DartWorkManager implements WorkManager {
     // library queue
     librarySourceQueue.removeAll(changedSources);
     librarySourceQueue.removeAll(removedSources);
+    // parts in libraries
+    for (Source changedSource in changedSources) {
+      _onLibrarySourceChangedOrRemoved(changedSource);
+    }
+    for (Source removedSource in removedSources) {
+      partLibrariesMap.remove(removedSource);
+      _onLibrarySourceChangedOrRemoved(removedSource);
+    }
     // Some of the libraries might have been invalidated, reschedule them.
     {
       MapIterator<AnalysisTarget, CacheEntry> iterator =
@@ -163,6 +184,15 @@ class DartWorkManager implements WorkManager {
     return new AnalysisErrorInfoImpl(errors, lineInfo);
   }
 
+  /**
+   * Returns libraries containing the given [part].
+   * Maybe empty, but not null.
+   */
+  List<Source> getLibrariesContainingPart(Source part) {
+    List<Source> libraries = partLibrariesMap[part];
+    return libraries != null ? libraries : Source.EMPTY_LIST;
+  }
+
   @override
   TargetedResult getNextResult() {
     // Try to find a priority result to compute.
@@ -213,6 +243,10 @@ class DartWorkManager implements WorkManager {
     return WorkOrderPriority.NONE;
   }
 
+  void unitIncrementallyResolved(Source librarySource, Source unitSource) {
+    librarySourceQueue.add(librarySource);
+  }
+
   @override
   void resultsComputed(
       AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs) {
@@ -221,8 +255,24 @@ class DartWorkManager implements WorkManager {
       SourceKind kind = outputs[SOURCE_KIND];
       if (kind != null) {
         unknownSourceQueue.remove(target);
-        if (kind == SourceKind.LIBRARY) {
+        if (kind == SourceKind.LIBRARY &&
+            context.shouldErrorsBeAnalyzed(target, null)) {
           librarySourceQueue.add(target);
+        }
+      }
+    }
+    // Update parts in libraries.
+    if (_isDartSource(target)) {
+      Source library = target;
+      List<Source> includedParts = outputs[INCLUDED_PARTS];
+      if (includedParts != null) {
+        libraryPartsMap[library] = includedParts;
+        for (Source part in includedParts) {
+          List<Source> libraries =
+              partLibrariesMap.putIfAbsent(part, () => <Source>[]);
+          if (!libraries.contains(library)) {
+            libraries.add(library);
+          }
         }
       }
     }
@@ -234,7 +284,7 @@ class DartWorkManager implements WorkManager {
           context.getNotice(target).parsedDartUnit = value;
           shouldSetErrors = true;
         }
-        if (_isErrorResult(descriptor)) {
+        if (descriptor == DART_ERRORS) {
           shouldSetErrors = true;
         }
       });
@@ -249,9 +299,6 @@ class DartWorkManager implements WorkManager {
       outputs.forEach((ResultDescriptor descriptor, value) {
         if (descriptor == RESOLVED_UNIT && value != null) {
           context.getNotice(source).resolvedDartUnit = value;
-          shouldSetErrors = true;
-        }
-        if (_isErrorResult(descriptor)) {
           shouldSetErrors = true;
         }
       });
@@ -271,12 +318,23 @@ class DartWorkManager implements WorkManager {
     return state != CacheState.VALID && state != CacheState.ERROR;
   }
 
-  static bool _isDartSource(AnalysisTarget target) {
-    return target is Source && AnalysisEngine.isDartFileName(target.fullName);
+  /**
+   * The given [library] source was changed or removed.
+   * Update [libraryPartsMap] and [partLibrariesMap].
+   */
+  void _onLibrarySourceChangedOrRemoved(Source library) {
+    List<Source> parts = libraryPartsMap.remove(library);
+    if (parts != null) {
+      for (Source part in parts) {
+        List<Source> libraries = partLibrariesMap[part];
+        if (libraries != null) {
+          libraries.remove(library);
+        }
+      }
+    }
   }
 
-  static bool _isErrorResult(ResultDescriptor descriptor) {
-    return _SOURCE_ERRORS.contains(descriptor) ||
-        _UNIT_ERRORS.contains(descriptor);
+  static bool _isDartSource(AnalysisTarget target) {
+    return target is Source && AnalysisEngine.isDartFileName(target.fullName);
   }
 }

@@ -50,10 +50,10 @@ class ServiceEvent {
 
   EventType type() const { return type_; }
 
-  SourceBreakpoint* breakpoint() const {
+  Breakpoint* breakpoint() const {
     return breakpoint_;
   }
-  void set_breakpoint(SourceBreakpoint* bpt) {
+  void set_breakpoint(Breakpoint* bpt) {
     ASSERT(type() == kPauseBreakpoint ||
            type() == kBreakpointAdded ||
            type() == kBreakpointResolved ||
@@ -103,7 +103,7 @@ class ServiceEvent {
  private:
   Isolate* isolate_;
   EventType type_;
-  SourceBreakpoint* breakpoint_;
+  Breakpoint* breakpoint_;
   ActivationFrame* top_frame_;
   const Object* exception_;
   const Object* inspectee_;

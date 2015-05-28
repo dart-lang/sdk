@@ -132,6 +132,85 @@ class DartWorkManagerTest {
     expect_librarySourceQueue([source1, source3]);
   }
 
+  void test_applyChange_updatePartsLibraries_changeLibrary() {
+    Source part1 = new TestSource('part1.dart');
+    Source part2 = new TestSource('part2.dart');
+    Source part3 = new TestSource('part3.dart');
+    Source library1 = new TestSource('library1.dart');
+    Source library2 = new TestSource('library2.dart');
+    manager.partLibrariesMap[part1] = [library1, library2];
+    manager.partLibrariesMap[part2] = [library2];
+    manager.partLibrariesMap[part3] = [library1];
+    manager.libraryPartsMap[library1] = [part1, part3];
+    manager.libraryPartsMap[library2] = [part1, part2];
+    // change library1
+    manager.applyChange([], [library1], []);
+    expect(manager.partLibrariesMap[part1], unorderedEquals([library2]));
+    expect(manager.partLibrariesMap[part2], unorderedEquals([library2]));
+    expect(manager.partLibrariesMap[part3], unorderedEquals([]));
+    expect(manager.libraryPartsMap[library1], isNull);
+    expect(manager.libraryPartsMap[library2], [part1, part2]);
+  }
+
+  void test_applyChange_updatePartsLibraries_changePart() {
+    Source part1 = new TestSource('part1.dart');
+    Source part2 = new TestSource('part2.dart');
+    Source part3 = new TestSource('part3.dart');
+    Source library1 = new TestSource('library1.dart');
+    Source library2 = new TestSource('library2.dart');
+    manager.partLibrariesMap[part1] = [library1, library2];
+    manager.partLibrariesMap[part2] = [library2];
+    manager.partLibrariesMap[part3] = [library1];
+    manager.libraryPartsMap[library1] = [part1, part3];
+    manager.libraryPartsMap[library2] = [part1, part2];
+    // change part1
+    manager.applyChange([], [part1], []);
+    expect(manager.partLibrariesMap[part2], unorderedEquals([library2]));
+    expect(manager.partLibrariesMap[part3], unorderedEquals([library1]));
+    expect(manager.libraryPartsMap[library1], [part1, part3]);
+    expect(manager.libraryPartsMap[library2], [part1, part2]);
+  }
+
+  void test_applyChange_updatePartsLibraries_removeLibrary() {
+    Source part1 = new TestSource('part1.dart');
+    Source part2 = new TestSource('part2.dart');
+    Source part3 = new TestSource('part3.dart');
+    Source library1 = new TestSource('library1.dart');
+    Source library2 = new TestSource('library2.dart');
+    manager.partLibrariesMap[part1] = [library1, library2];
+    manager.partLibrariesMap[part2] = [library2];
+    manager.partLibrariesMap[part3] = [library1];
+    manager.libraryPartsMap[library1] = [part1, part3];
+    manager.libraryPartsMap[library2] = [part1, part2];
+    // remove library1
+    manager.applyChange([], [], [library1]);
+    expect(manager.partLibrariesMap[part1], unorderedEquals([library2]));
+    expect(manager.partLibrariesMap[part2], unorderedEquals([library2]));
+    expect(manager.partLibrariesMap[part3], unorderedEquals([]));
+    expect(manager.libraryPartsMap[library1], isNull);
+    expect(manager.libraryPartsMap[library2], [part1, part2]);
+  }
+
+  void test_applyChange_updatePartsLibraries_removePart() {
+    Source part1 = new TestSource('part1.dart');
+    Source part2 = new TestSource('part2.dart');
+    Source part3 = new TestSource('part3.dart');
+    Source library1 = new TestSource('library1.dart');
+    Source library2 = new TestSource('library2.dart');
+    manager.partLibrariesMap[part1] = [library1, library2];
+    manager.partLibrariesMap[part2] = [library2];
+    manager.partLibrariesMap[part3] = [library1];
+    manager.libraryPartsMap[library1] = [part1, part3];
+    manager.libraryPartsMap[library2] = [part1, part2];
+    // remove part1
+    manager.applyChange([], [], [part1]);
+    expect(manager.partLibrariesMap[part1], isNull);
+    expect(manager.partLibrariesMap[part2], unorderedEquals([library2]));
+    expect(manager.partLibrariesMap[part3], unorderedEquals([library1]));
+    expect(manager.libraryPartsMap[library1], [part1, part3]);
+    expect(manager.libraryPartsMap[library2], [part1, part2]);
+  }
+
   void test_applyPriorityTargets_library() {
     entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     entry2.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
@@ -184,6 +263,24 @@ class DartWorkManagerTest {
     AnalysisErrorInfo errorInfo = manager.getErrors(source1);
     expect(errorInfo.errors, unorderedEquals([error1, error2]));
     expect(errorInfo.lineInfo, lineInfo);
+  }
+
+  void test_getLibrariesContainingPart() {
+    Source part1 = new TestSource('part1.dart');
+    Source part2 = new TestSource('part2.dart');
+    Source part3 = new TestSource('part3.dart');
+    Source library1 = new TestSource('library1.dart');
+    Source library2 = new TestSource('library2.dart');
+    manager.partLibrariesMap[part1] = [library1, library2];
+    manager.partLibrariesMap[part2] = [library2];
+    manager.libraryPartsMap[library1] = [part1];
+    manager.libraryPartsMap[library2] = [part1, part2];
+    // getLibrariesContainingPart
+    expect(manager.getLibrariesContainingPart(part1),
+        unorderedEquals([library1, library2]));
+    expect(
+        manager.getLibrariesContainingPart(part2), unorderedEquals([library2]));
+    expect(manager.getLibrariesContainingPart(part3), isEmpty);
   }
 
   void test_getNextResult_hasLibraries_firstIsError() {
@@ -318,8 +415,9 @@ class DartWorkManagerTest {
     AnalysisTarget unitTarget = new LibrarySpecificUnit(source2, source1);
     context.getCacheEntry(unitTarget).setValue(
         VERIFY_ERRORS, <AnalysisError>[error2], []);
-    // notify about LibrarySpecificUnit specific errors
-    manager.resultsComputed(unitTarget, {VERIFY_ERRORS: []});
+    // RESOLVED_UNIT is ready, set errors
+    manager.resultsComputed(
+        unitTarget, {RESOLVED_UNIT: AstFactory.compilationUnit()});
     // all of the errors are included
     ChangeNoticeImpl notice = context.getNotice(source1);
     expect(notice.errors, unorderedEquals([error1, error2]));
@@ -335,15 +433,36 @@ class DartWorkManagerTest {
     LineInfo lineInfo = new LineInfo([0]);
     entry1.setValue(LINE_INFO, lineInfo, []);
     entry1.setValue(SCAN_ERRORS, <AnalysisError>[error1], []);
-    AnalysisTarget unitTarget = new LibrarySpecificUnit(source2, source1);
-    context.getCacheEntry(unitTarget).setValue(
-        VERIFY_ERRORS, <AnalysisError>[error2], []);
-    // notify about Source specific errors
-    manager.resultsComputed(source1, {SCAN_ERRORS: []});
+    entry1.setValue(PARSE_ERRORS, <AnalysisError>[error2], []);
+    // PARSED_UNIT is ready, set errors
+    manager.resultsComputed(
+        source1, {PARSED_UNIT: AstFactory.compilationUnit()});
     // all of the errors are included
     ChangeNoticeImpl notice = context.getNotice(source1);
     expect(notice.errors, unorderedEquals([error1, error2]));
     expect(notice.lineInfo, lineInfo);
+  }
+
+  void test_resultsComputed_includedParts() {
+    Source part1 = new TestSource('part1.dart');
+    Source part2 = new TestSource('part2.dart');
+    Source part3 = new TestSource('part3.dart');
+    Source library1 = new TestSource('library1.dart');
+    Source library2 = new TestSource('library2.dart');
+    // library1 parts
+    manager.resultsComputed(library1, {INCLUDED_PARTS: [part1, part2]});
+    expect(manager.partLibrariesMap[part1], [library1]);
+    expect(manager.partLibrariesMap[part2], [library1]);
+    expect(manager.partLibrariesMap[part3], isNull);
+    expect(manager.libraryPartsMap[library1], [part1, part2]);
+    expect(manager.libraryPartsMap[library2], isNull);
+    // library2 parts
+    manager.resultsComputed(library2, {INCLUDED_PARTS: [part2, part3]});
+    expect(manager.partLibrariesMap[part1], [library1]);
+    expect(manager.partLibrariesMap[part2], [library1, library2]);
+    expect(manager.partLibrariesMap[part3], [library2]);
+    expect(manager.libraryPartsMap[library1], [part1, part2]);
+    expect(manager.libraryPartsMap[library2], [part2, part3]);
   }
 
   void test_resultsComputed_noSourceKind() {
@@ -387,6 +506,7 @@ class DartWorkManagerTest {
 
   void test_resultsComputed_sourceKind_isLibrary() {
     manager.unknownSourceQueue.addAll([source1, source2, source3]);
+    when(context.shouldErrorsBeAnalyzed(source2, null)).thenReturn(true);
     manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.LIBRARY});
     expect_librarySourceQueue([source2]);
     expect_unknownSourceQueue([source1, source3]);

@@ -781,6 +781,10 @@ abstract class Compiler implements DiagnosticListener {
   /// If `true` native extension syntax is supported by the frontend.
   final bool allowNativeExtensions;
 
+  /// Temporary flag to enable `?.`, `??`, and `??=` until it becomes part of
+  /// the spec.
+  final bool enableNullAwareOperators;
+
   /// Output provider from user of Compiler API.
   api.CompilerOutputProvider userOutputProvider;
 
@@ -909,7 +913,7 @@ abstract class Compiler implements DiagnosticListener {
       }
       hasCrashed = true;
       rethrow;
-    } on StackOverflowError catch (ex) {
+    } on StackOverflowError {
       // We cannot report anything useful in this case, because we
       // do not have enough stack space.
       rethrow;
@@ -1044,6 +1048,7 @@ abstract class Compiler implements DiagnosticListener {
             bool hasIncrementalSupport: false,
             this.enableExperimentalMirrors: false,
             this.allowNativeExtensions: false,
+            this.enableNullAwareOperators: false,
             this.generateCodeWithCompileTimeErrors: false,
             api.CompilerOutputProvider outputProvider,
             List<String> strips: const []})
@@ -1763,9 +1768,7 @@ abstract class Compiler implements DiagnosticListener {
         resolved.remove(e);
       }
       if (identical(e.kind, ElementKind.GENERATIVE_CONSTRUCTOR)) {
-        ClassElement enclosingClass = e.enclosingClass;
         resolved.remove(e);
-
       }
       if (backend.isBackendLibrary(e.library)) {
         resolved.remove(e);
@@ -1901,7 +1904,6 @@ abstract class Compiler implements DiagnosticListener {
   void reportAssertionFailure(SpannableAssertionFailure ex) {
     String message = (ex.message != null) ? tryToString(ex.message)
                                           : tryToString(ex);
-    SourceSpan span = spanFromSpannable(ex.node);
     reportDiagnosticInternal(
         ex.node, MessageKind.GENERIC, {'text': message}, api.Diagnostic.CRASH);
   }

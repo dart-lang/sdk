@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_execution.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
@@ -16,20 +17,13 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:plugin/manager.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
 import 'mocks.dart';
 import 'operation/operation_queue_test.dart';
-
-/**
- * Return a matcher that will match an [ExecutableFile] if it has the given
- * [source] and [kind].
- */
-Matcher isExecutableFile(Source source, ExecutableKind kind) {
-  return new IsExecutableFile(source.fullName, kind);
-}
 
 main() {
   group('ExecutionDomainHandler', () {
@@ -38,9 +32,13 @@ main() {
     ExecutionDomainHandler handler;
 
     setUp(() {
+      ExtensionManager manager = new ExtensionManager();
+      ServerPlugin serverPlugin = new ServerPlugin();
+      manager.processPlugins([serverPlugin]);
       server = new AnalysisServer(new MockServerChannel(), provider,
-          new MockPackageMapProvider(), null, new AnalysisServerOptions(),
-          new MockSdk(), InstrumentationService.NULL_SERVICE);
+          new MockPackageMapProvider(), null, serverPlugin,
+          new AnalysisServerOptions(), new MockSdk(),
+          InstrumentationService.NULL_SERVICE);
       handler = new ExecutionDomainHandler(server);
     });
 
@@ -244,8 +242,8 @@ main() {
         source4.fullName,
         source5.fullName
       ];
-      when(server.sendNotification(anyObject)).thenInvoke(
-          (Notification notification) {
+      when(server.sendNotification(anyObject))
+          .thenInvoke((Notification notification) {
         ExecutionLaunchDataParams params =
             new ExecutionLaunchDataParams.fromNotification(notification);
 
@@ -279,6 +277,14 @@ main() {
       expect(unsentNotifications, isEmpty);
     });
   });
+}
+
+/**
+ * Return a matcher that will match an [ExecutableFile] if it has the given
+ * [source] and [kind].
+ */
+Matcher isExecutableFile(Source source, ExecutableKind kind) {
+  return new IsExecutableFile(source.fullName, kind);
 }
 
 /**

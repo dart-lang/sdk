@@ -17,6 +17,15 @@ javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude o
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
 
+[ $runtime == vm && ($system == macos || $system == windows) ]
+io/platform_executable_test/01: RuntimeError # Issue 16994
+io/platform_executable_test/02: RuntimeError # Issue 16994
+io/platform_executable_test/04: RuntimeError # Issue 16994
+io/platform_executable_test/05: RuntimeError # Issue 16994
+
+[ $runtime == vm && $system == windows ]
+io/platform_executable_test/06: RuntimeError # NEEDS TRIAGE (kevmoo)
+
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
@@ -169,11 +178,8 @@ io/http_client_stays_alive_test: Skip  # Timeout.
 [ $compiler == dart2js && $cps_ir ]
 array_bounds_check_generalization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 constant_left_shift_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-coverage_test: Crash # unsupported element kind: context:field
 io/addlatexhash_test: Crash # (try {test(tempDir.path);}finally {tempDir.delete(recursive:true);}): try/finally
-io/async_catch_errors_test: Crash # unsupported element kind: events:field
-io/create_recursive_test: Crash # unsupported element kind: context:field
-io/dependency_graph_test: Crash # unsupported element kind: UnableToRun:field
+io/create_recursive_test: Crash #  try/finally
 io/directory_chdir_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/directory_error_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/directory_fuzz_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -185,12 +191,10 @@ io/directory_uri_test: Crash # Instance of 'TypeOperator': type check unimplemen
 io/file_copy_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_error_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_lock_test: Crash # unsupported element kind: context:field
 io/file_read_encoded_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_stat_test: Crash # unsupported element kind: context:field
 io/file_system_delete_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_system_links_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_system_watcher_test: Crash # unsupported element kind: context:field
+io/file_system_watcher_test: Crash #  Unhandled node
 io/file_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_typed_data_test: Crash # Please triage this failure.
 io/file_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -204,7 +208,6 @@ io/http_headers_state_test: Crash # Instance of 'TypeOperator': type check unimp
 io/http_headers_test: Crash #  Unhandled node
 io/http_parser_test: Crash #  Unhandled node
 io/http_proxy_test: Crash # Please triage this failure.
-io/http_server_early_client_close_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 io/http_server_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/https_bad_certificate_test: Crash #  cannot handle async/sync*/async* functions
 io/https_server_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -212,14 +215,15 @@ io/internet_address_invalid_arguments_test: Crash # Instance of 'TypeOperator': 
 io/internet_address_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/issue_22636_test: Crash #  cannot handle async/sync*/async* functions
 io/issue_22637_test: Crash #  cannot handle async/sync*/async* functions
-io/link_async_test: Crash # unsupported element kind: context:field
-io/link_test: Crash # unsupported element kind: context:field
+io/link_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/link_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/observatory_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/parent_test: Crash # unsupported element kind: context:field
+io/platform_executable_test/01: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_executable_test/02: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_executable_test/04: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_executable_test/05: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
 io/platform_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/process_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/process_run_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 io/raw_datagram_socket_test: Crash #  Unhandled node
 io/raw_secure_server_closing_test: Crash # Please triage this failure.
 io/raw_secure_server_socket_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -231,14 +235,13 @@ io/raw_socket_cross_process_test: Crash #  Unhandled node
 io/raw_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/raw_socket_typed_data_test: Crash # Please triage this failure.
 io/regress_21160_test: Crash #  Unhandled node
-io/resolve_symbolic_links_test: Crash # unsupported element kind: context:field
 io/secure_client_raw_server_test: Crash #  Unhandled node
 io/secure_server_closing_test: Crash # Please triage this failure.
 io/secure_server_socket_test: Crash # Please triage this failure.
 io/secure_socket_alpn_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 io/secure_socket_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/secure_socket_bad_data_test: Crash #  Unhandled node
-io/skipping_dart2js_compilations_test: Crash # unsupported element kind: currentWorkingDirectory:field
+io/skipping_dart2js_compilations_test: Crash #  Unhandled node
 io/sleep_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/socket_bind_test: Crash #  cannot handle async/sync*/async* functions
 io/socket_close_test: Crash #  Unhandled node
@@ -246,17 +249,13 @@ io/socket_exception_test: Crash # Please triage this failure.
 io/socket_source_address_test: Crash #  cannot handle async/sync*/async* functions
 io/socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/socket_upgrade_to_secure_test: Crash # Please triage this failure.
-io/status_file_parser_test: Crash # unsupported element kind: IssueNumberPattern:field
 io/stdout_stderr_terminal_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/test_extension_fail_test: Crash # unsupported element kind: context:field
-io/test_extension_test: Crash # unsupported element kind: context:field
+io/test_extension_fail_test: Crash #  Unhandled node
+io/test_extension_test: Crash #  Unhandled node
 io/test_runner_test: Crash #  Unhandled node
 io/uri_platform_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/web_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/windows_environment_test: Crash # unsupported element kind: context:field
 io/windows_file_system_links_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/zlib_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 priority_queue_stress_test: RuntimeError # Please triage this failure.
-status_expression_test: Crash # unsupported element kind: regexp:field
-typed_array_test: Crash # unsupported element kind: float64:field
-verified_mem_test: Crash # unsupported element kind: a:field
+status_expression_test: RuntimeError # Please triage this failure.

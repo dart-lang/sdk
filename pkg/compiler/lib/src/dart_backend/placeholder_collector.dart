@@ -503,7 +503,7 @@ class PlaceholderCollector extends Visitor {
       // }
       // Do not forget to rename them as well.
       FunctionElement constructorFunction = constructor;
-      Link<Element> optionalParameters =
+      List<Element> optionalParameters =
           constructorFunction.functionSignature.optionalParameters;
       for (final argument in send.argumentsNode) {
         NamedArgument named = argument.asNamedArgument();

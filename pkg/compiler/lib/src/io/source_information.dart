@@ -5,7 +5,9 @@
 library dart2js.source_information;
 
 import '../dart2jslib.dart' show SourceSpan, MessageKind;
-import '../elements/elements.dart' show AstElement;
+import '../elements/elements.dart' show
+    AstElement,
+    LocalElement;
 import '../scanner/scannerlib.dart' show Token;
 import '../tree/tree.dart' show Node;
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
@@ -103,7 +105,7 @@ class StartEndSourceInformation extends SourceInformation {
 
     AstElement implementation = element.implementation;
     SourceFile sourceFile = implementation.compilationUnit.script.file;
-    String name = element.name;
+    String name = computeElementNameForSourceMaps(element);
     Node node = implementation.node;
     Token beginToken;
     Token endToken;
@@ -156,7 +158,7 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
 
   StartEndSourceInformationBuilder(AstElement element)
       : sourceFile = element.compilationUnit.script.file,
-        name = element.name;
+        name = computeElementNameForSourceMaps(element);
 
   SourceInformation buildDeclaration(AstElement element) {
     return StartEndSourceInformation.computeSourceInformation(element);
@@ -339,7 +341,7 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
 
   PositionSourceInformationBuilder(AstElement element)
       : sourceFile = element.implementation.compilationUnit.script.file,
-        name = element.name;
+        name = computeElementNameForSourceMaps(element);
 
   SourceInformation buildDeclaration(AstElement element) {
     if (element.isSynthesized) {
@@ -377,5 +379,34 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   @override
   SourceInformationBuilder forContext(AstElement element) {
     return new PositionSourceInformationBuilder(element);
+  }
+}
+
+/// Compute the source map name for [element].
+String computeElementNameForSourceMaps(AstElement element) {
+  if (element.isClosure) {
+    return computeElementNameForSourceMaps(element.enclosingElement);
+  } else if (element.isClass) {
+    return element.name;
+  } else if (element.isConstructor || element.isGenerativeConstructorBody) {
+    String className = element.enclosingClass.name;
+    if (element.name == '') {
+      return className;
+    }
+    return '$className.${element.name}';
+  } else if (element.isLocal) {
+    LocalElement local = element;
+    String name = local.name;
+    if (name == '') {
+      name = '<anonymous function>';
+    }
+    return '${computeElementNameForSourceMaps(local.executableContext)}.$name';
+  } else if (element.enclosingClass != null) {
+    if (element.enclosingClass.isClosure) {
+      return computeElementNameForSourceMaps(element.enclosingClass);
+    }
+    return '${element.enclosingClass.name}.${element.name}';
+  } else {
+    return element.name;
   }
 }

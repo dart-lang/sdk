@@ -155,7 +155,8 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return type != selector.mask;
   }
 
-  TypeMask refineReceiver(Selector selector, TypeMask receiverType) {
+  TypeMask refineReceiver(Selector selector, TypeMask receiverType,
+      bool isConditional) {
     TypeMask newType = compiler.world.allFunctions.receiverType(selector);
     return receiverType.intersection(newType, classWorld);
   }
@@ -1007,8 +1008,19 @@ class SimpleTypeInferrerVisitor<T>
   @override
   T visitSuperCompoundIndexSet(
       ast.SendSet node,
-      FunctionElement getter,
-      FunctionElement setter,
+      MethodElement getter,
+      MethodElement setter,
+      ast.Node index,
+      op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return handleSuperCompoundIndexSet(node, index, rhs);
+  }
+
+  @override
+  T visitUnresolvedSuperCompoundIndexSet(
+      ast.Send node,
+      Element element,
       ast.Node index,
       op.AssignmentOperator operator,
       ast.Node rhs,
@@ -1020,6 +1032,7 @@ class SimpleTypeInferrerVisitor<T>
   T visitUnresolvedSuperGetterCompoundIndexSet(
       ast.SendSet node,
       Element element,
+      MethodElement setter,
       ast.Node index,
       op.AssignmentOperator operator,
       ast.Node rhs,
@@ -1030,7 +1043,7 @@ class SimpleTypeInferrerVisitor<T>
   @override
   T visitUnresolvedSuperSetterCompoundIndexSet(
       ast.SendSet node,
-      FunctionElement getter,
+      MethodElement getter,
       Element element,
       ast.Node index,
       op.AssignmentOperator operator,
@@ -1040,9 +1053,21 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitUnresolvedSuperIndexPrefix(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, superType, indexType);
+  }
+
+  @override
   T visitUnresolvedSuperGetterIndexPrefix(
       ast.SendSet node,
       Element element,
+      MethodElement setter,
       ast.Node index,
       op.IncDecOperator operator,
       _) {
@@ -1053,7 +1078,18 @@ class SimpleTypeInferrerVisitor<T>
   @override
   T visitUnresolvedSuperSetterIndexPrefix(
       ast.SendSet node,
-      FunctionElement getter,
+      MethodElement getter,
+      Element element,
+      ast.Node index,
+      op.IncDecOperator operator,
+      _) {
+    T indexType = visit(index);
+    return handleCompoundPrefixPostfix(node, superType, indexType);
+  }
+
+  @override
+  T visitUnresolvedSuperIndexPostfix(
+      ast.Send node,
       Element element,
       ast.Node index,
       op.IncDecOperator operator,
@@ -1066,6 +1102,7 @@ class SimpleTypeInferrerVisitor<T>
   T visitUnresolvedSuperGetterIndexPostfix(
       ast.SendSet node,
       Element element,
+      MethodElement setter,
       ast.Node index,
       op.IncDecOperator operator,
       _) {
@@ -1076,7 +1113,7 @@ class SimpleTypeInferrerVisitor<T>
   @override
   T visitUnresolvedSuperSetterIndexPostfix(
       ast.SendSet node,
-      FunctionElement getter,
+      MethodElement getter,
       Element element,
       ast.Node index,
       op.IncDecOperator operator,
@@ -1371,6 +1408,18 @@ class SimpleTypeInferrerVisitor<T>
       MethodElement method,
       ast.Node argument,
       _) {
+    // TODO(johnniwinther): Special case ==.
+    return handleSuperMethodInvoke(
+        node, method, analyzeArguments(node.arguments));
+  }
+
+  @override
+  T visitSuperNotEquals(
+      ast.Send node,
+      MethodElement method,
+      ast.Node argument,
+      _) {
+    // TODO(johnniwinther): Special case !=.
     return handleSuperMethodInvoke(
         node, method, analyzeArguments(node.arguments));
   }
@@ -1656,10 +1705,7 @@ class SimpleTypeInferrerVisitor<T>
           compiler.enqueuer.resolution.nativeEnqueuer.getNativeBehaviorOf(node);
       sideEffects.add(nativeBehavior.sideEffects);
       return inferrer.typeOfNativeBehavior(nativeBehavior);
-    } else if (name == 'JS_NULL_CLASS_NAME'
-               || name == 'JS_OBJECT_CLASS_NAME'
-               || name == 'JS_OPERATOR_AS_PREFIX'
-               || name == 'JS_STRING_CONCAT') {
+    } else if (name == 'JS_OPERATOR_AS_PREFIX' || name == 'JS_STRING_CONCAT') {
       return types.stringType;
     } else {
       sideEffects.setAllSideEffects();
@@ -1718,6 +1764,15 @@ class SimpleTypeInferrerVisitor<T>
 
   @override
   T visitDynamicPropertyGet(
+      ast.Send node,
+      ast.Node receiver,
+      Selector selector,
+      _) {
+    return handleDynamicGet(node);
+  }
+
+  @override
+  T visitIfNotNullDynamicPropertyGet(
       ast.Send node,
       ast.Node receiver,
       Selector selector,
@@ -1910,12 +1965,14 @@ class SimpleTypeInferrerVisitor<T>
     // If the receiver of the call is a local, we may know more about
     // its type by refining it with the potential targets of the
     // calls.
-    if (node.asSend() != null) {
-      ast.Node receiver = node.asSend().receiver;
+    ast.Send send = node.asSend();
+    if (send != null) {
+      ast.Node receiver = send.receiver;
       if (receiver != null) {
         Element element = elements[receiver];
         if (Elements.isLocal(element) && !capturedVariables.contains(element)) {
-          T refinedType = types.refineReceiver(selector, receiverType);
+          T refinedType = types.refineReceiver(selector, receiverType,
+              send.isConditional);
           locals.update(element, refinedType, node);
         }
       }

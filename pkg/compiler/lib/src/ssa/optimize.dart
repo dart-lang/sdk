@@ -264,8 +264,17 @@ class SsaInstructionSimplifier extends HBaseVisitor
       }
       Element element = backend.jsIndexableLength;
       bool isFixed = isFixedLength(actualReceiver.instructionType, compiler);
+      TypeMask actualType = node.instructionType;
+      ClassWorld classWorld = compiler.world;
+      TypeMask resultType = backend.positiveIntType;
+      // If we already have computed a more specific type, keep that type.
+      if (actualType.satisfies(backend.jsUInt31Class, classWorld)) {
+        resultType = backend.uint31Type;
+      } else if (actualType.satisfies(backend.jsUInt32Class, classWorld)) {
+        resultType = backend.uint32Type;
+      }
       HFieldGet result = new HFieldGet(
-          element, actualReceiver, backend.positiveIntType,
+          element, actualReceiver, resultType,
           isAssignable: !isFixed);
       return result;
     } else if (actualReceiver.isConstantMap()) {

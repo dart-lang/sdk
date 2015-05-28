@@ -2,24 +2,35 @@
 
 ### Core library changes
 
-* In dart:html, appendHtml and insertAdjacentHtml now take validator
-  and treeSanitizer parameters, and the inputs are consistently sanitized.
+* In `dart:html`, `appendHtml` and `insertAdjacentHtml` now take `nodeValidator`
+  and `treeSanitizer` parameters, and the inputs are consistently
+  sanitized. See [45818 announcement]
+  [45818 announcement](https://groups.google.com/a/dartlang.org/forum/#!topic/announce/GVO7EAcPi6A)
 * List iterators may not throw ConcurrentModificationError as eagerly in
   release mode. In checked mode, the modification check is still as eager
   as possible.
-  [r45198](https://code.google.com/p/dart/source/detail?r=45198),
-* Update experimental Isolate API:
-  - Make priority parameters of `Isolate.ping` and `Isolate.kill` methods
+  [r45198](https://code.google.com/p/dart/source/detail?r=45198)
 * `dart:core`
   * Add `unmodifiable` constructor to `List` -
     [r45334](https://code.google.com/p/dart/source/detail?r=45334)
-* `dart:isolate` *Experimental*
-  * Make the `priority` parameter of `Isolate.ping` and `Isolate.kill` methods
-    a named parameter.
+  * Add `unmodifiable` constructor to `Map` -
+    [r45733](https://code.google.com/p/dart/source/detail?r=45733)
+  * Add `empty` constructor to `Iterable` -
+    [dcf0286f](https://github.com/dart-lang/sdk/commit/dcf0286f5385187a68ce9e66318d3bf19abf454b)
+* `dart:isolate`:
+  * Make the priority parameter of `Isolate.ping` and `Isolate.kill` methods
+    a named parameter named `priority`.
   * Remove the `Isolate.AS_EVENT` priority.
   * Add extra `response` parameter to `Isolate.ping` and
     `Isolate.addOnExitListener` -
     [r45092](https://code.google.com/p/dart/source/detail?r=45092)
+  * Remove the experimental state of the API.
+
+### Tool changes
+
+* This is the last release that ships the (unsupported)
+  dart2dart (aka `dart2js --output-type=dart`) utility as part
+  of dart2js
 
 ## 1.10.0 – 2015-04-29
 

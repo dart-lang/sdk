@@ -57,8 +57,6 @@ import 'dart:_foreign_helper' show
     JS_GET_NAME,
     JS_HAS_EQUALS,
     JS_IS_INDEXABLE_FIELD_NAME,
-    JS_NULL_CLASS_NAME,
-    JS_OBJECT_CLASS_NAME,
     JS_OPERATOR_AS_PREFIX,
     JS_SIGNATURE_NAME,
     JS_STRING_CONCAT,
@@ -89,12 +87,12 @@ part 'linked_hash_map.dart';
 abstract class InternalMap {
 }
 
-/// Extracts the classname from the isCheckProperty.
+/// Extracts the JavaScript-constructor name from the given isCheckProperty.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
-String classNameFromIsCheckProperty(String isCheckProperty) {
+String isCheckPropertyToJsConstructorName(String isCheckProperty) {
   return JS_BUILTIN('returns:String;depends:none;effects:none',
-                    JsBuiltin.classNameFromIsCheckProperty,
+                    JsBuiltin.isCheckPropertyToJsConstructorName,
                     isCheckProperty);
 }
 
@@ -110,25 +108,24 @@ bool isDartFunctionType(Object type) {
 /// Creates a function type object.
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
-createDartFunctionType() {
+createDartFunctionTypeRti() {
   return JS_BUILTIN('returns:=Object;effects:none;depends:none',
-                    JsBuiltin.createFunctionType);
-}
-
-/// Returns true if the given [type] is _the_ `Function` type.
-// TODO(floitsch): move this to foreign_helper.dart or similar.
-@ForceInline()
-bool isDartFunctionTypeLiteral(Object type) {
-  return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isFunctionTypeLiteral, type);
+                    JsBuiltin.createFunctionTypeRti);
 }
 
 /// Retrieves the class name from type information stored on the constructor of
 /// [type].
 // TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
-String getDartTypeName(Object type) {
-  return JS_BUILTIN('String', JsBuiltin.typeName, type);
+String rawRtiToJsConstructorName(Object rti) {
+  return JS_BUILTIN('String', JsBuiltin.rawRtiToJsConstructorName, rti);
+}
+
+/// Returns the rti from the given [constructorName].
+// TODO(floitsch): make this a builtin.
+jsConstructorNameToRti(String constructorName) {
+  var getTypeFromName = JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
+  return JS('', '#(#)', getTypeFromName, constructorName);
 }
 
 /// Returns the raw runtime type of the given object [o].
@@ -147,12 +144,38 @@ Object getRawRuntimeType(Object o) {
 ///
 /// The argument [other] is the name of the other type, as computed by
 /// [runtimeTypeToString].
+@ForceInline()
 bool builtinIsSubtype(type, String other) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
                     JsBuiltin.isSubtype, other, type);
 }
 
+/// Returns true if the given [type] is _the_ `Function` type.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isDartFunctionTypeRti(Object type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+                    JsBuiltin.isFunctionTypeRti, type);
+}
+
+/// Returns whether the given type is _the_ Dart Object type.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isDartObjectTypeRti(type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+                    JsBuiltin.isDartObjectTypeRti, type);
+}
+
+/// Returns whether the given type is _the_ null type.
+// TODO(floitsch): move this to foreign_helper.dart or similar.
+@ForceInline()
+bool isNullTypeRti(type) {
+  return JS_BUILTIN('returns:bool;effects:none;depends:none',
+                    JsBuiltin.isNullTypeRti, type);
+}
+
 /// Returns the metadata of the given [index].
+// TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 getMetadata(int index) {
   return JS_BUILTIN('returns:var;effects:none;depends:none',
@@ -160,6 +183,7 @@ getMetadata(int index) {
 }
 
 /// Returns the type of the given [index].
+// TODO(floitsch): move this to foreign_helper.dart or similar.
 @ForceInline()
 getType(int index) {
   return JS_BUILTIN('returns:var;effects:none;depends:none',
@@ -776,6 +800,9 @@ class Primitives {
   /// with the given type arguments.
   ///
   /// In minified mode, uses the unminified names if available.
+  ///
+  /// The given [className] string generally contains the name of the JavaScript
+  /// constructor of the given class.
   static String formatType(String className, List typeArguments) {
     return unmangleAllIdentifiersIfPreservedAnyways
         ('$className${joinArguments(typeArguments, 0)}');
@@ -806,7 +833,7 @@ class Primitives {
   }
 
   /// In minified mode, uses the unminified names if available.
-  static String objectToString(Object object) {
+  static String objectToHumanReadableString(Object object) {
     String name = objectTypeName(object);
     return "Instance of '$name'";
   }
@@ -1328,10 +1355,6 @@ class Primitives {
     }
     positionalArguments.addAll(defaultArguments.values);
     return JS('', '#.apply(#, #)', jsFunction, function, positionalArguments);
-  }
-
-  static _mangledNameMatchesType(String mangledName, TypeImpl type) {
-    return JS('bool', '# == #', mangledName, type._typeName);
   }
 
   static bool identicalImplementation(a, b) {
@@ -1957,29 +1980,17 @@ unwrapException(ex) {
     var match;
     // Using JS to give type hints to the compiler to help tree-shaking.
     // TODO(ahe): That should be unnecessary due to type inference.
-    var nsme =
-        JS('TypeErrorDecoder', '#', TypeErrorDecoder.noSuchMethodPattern);
-    var notClosure =
-        JS('TypeErrorDecoder', '#', TypeErrorDecoder.notClosurePattern);
-    var nullCall =
-        JS('TypeErrorDecoder', '#', TypeErrorDecoder.nullCallPattern);
-    var nullLiteralCall =
-        JS('TypeErrorDecoder', '#', TypeErrorDecoder.nullLiteralCallPattern);
-    var undefCall =
-        JS('TypeErrorDecoder', '#', TypeErrorDecoder.undefinedCallPattern);
-    var undefLiteralCall =
-        JS('TypeErrorDecoder', '#',
-           TypeErrorDecoder.undefinedLiteralCallPattern);
-    var nullProperty =
-        JS('TypeErrorDecoder', '#', TypeErrorDecoder.nullPropertyPattern);
-    var nullLiteralProperty =
-        JS('TypeErrorDecoder', '#',
-           TypeErrorDecoder.nullLiteralPropertyPattern);
-    var undefProperty =
-        JS('TypeErrorDecoder', '#', TypeErrorDecoder.undefinedPropertyPattern);
+    var nsme = TypeErrorDecoder.noSuchMethodPattern;
+    var notClosure = TypeErrorDecoder.notClosurePattern;
+    var nullCall = TypeErrorDecoder.nullCallPattern;
+    var nullLiteralCall = TypeErrorDecoder.nullLiteralCallPattern;
+    var undefCall = TypeErrorDecoder.undefinedCallPattern;
+    var undefLiteralCall = TypeErrorDecoder.undefinedLiteralCallPattern;
+    var nullProperty = TypeErrorDecoder.nullPropertyPattern;
+    var nullLiteralProperty = TypeErrorDecoder.nullLiteralPropertyPattern;
+    var undefProperty = TypeErrorDecoder.undefinedPropertyPattern;
     var undefLiteralProperty =
-        JS('TypeErrorDecoder', '#',
-           TypeErrorDecoder.undefinedLiteralPropertyPattern);
+        TypeErrorDecoder.undefinedLiteralPropertyPattern;
     if ((match = nsme.matchTypeError(message)) != null) {
       return saveStackTrace(new JsNoSuchMethodError(message, match));
     } else if ((match = notClosure.matchTypeError(message)) != null) {
@@ -2201,6 +2212,9 @@ abstract class Closure implements Function {
     String callName = JS('String|Null', '#[#]', function,
         JS_GET_NAME(JsGetName.CALL_NAME_PROPERTY));
 
+    // This variable holds either an index into the types-table, or a function
+    // that can compute a function-rti. (The latter is necessary if the type
+    // is dependent on generic arguments).
     var functionType;
     if (reflectionInfo is List) {
       JS('', '#.\$reflectionInfo = #', function, reflectionInfo);
@@ -2635,7 +2649,7 @@ class BoundClosure extends TearOffClosure {
 
   toString() {
     var receiver = _receiver == null ? _self : _receiver;
-    return "Closure '$_name' of ${Primitives.objectToString(receiver)}";
+    return "Closure '$_name' of ${Primitives.objectToHumanReadableString(receiver)}";
   }
 
   @NoInline()
@@ -2853,7 +2867,7 @@ intTypeCast(value) {
 }
 
 void propertyTypeError(value, property) {
-  String name = classNameFromIsCheckProperty(property);
+  String name = isCheckPropertyToJsConstructorName(property);
   throw new TypeErrorImplementation(value, name);
 }
 
@@ -3213,7 +3227,7 @@ class RuntimeFunctionType extends RuntimeType {
   }
 
   toRti() {
-    var result = createDartFunctionType();
+    var result = createDartFunctionTypeRti();
     if (isVoid) {
       JS('', '#[#] = true', result, JS_FUNCTION_TYPE_VOID_RETURN_TAG());
     } else {
@@ -3319,11 +3333,11 @@ RuntimeFunctionType buildNamedFunctionType(returnType,
 }
 
 RuntimeType buildInterfaceType(rti, typeArguments) {
-  String name = JS('String', r'#.name', rti);
+  String jsConstructorName = rawRtiToJsConstructorName(rti);
   if (typeArguments == null || typeArguments.isEmpty) {
-    return new RuntimeTypePlain(name);
+    return new RuntimeTypePlain(jsConstructorName);
   }
-  return new RuntimeTypeGeneric(name, typeArguments, null);
+  return new RuntimeTypeGeneric(jsConstructorName, typeArguments, null);
 }
 
 class DynamicRuntimeType extends RuntimeType {
@@ -3395,41 +3409,41 @@ RuntimeType convertRtiToRuntimeType(rti) {
 }
 
 class RuntimeTypePlain extends RuntimeType {
-  final String name;
+  /// The constructor name of this raw type.
+  final String _jsConstructorName;
 
-  RuntimeTypePlain(this.name);
+  RuntimeTypePlain(this._jsConstructorName);
 
   toRti() {
-    var getTypeFromName = JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
-    var rti = JS('', '#(#)', getTypeFromName, name);
-    if (rti == null) throw "no type for '$name'";
+    var rti = jsConstructorNameToRti(_jsConstructorName);
+    if (rti == null) throw "no type for '$_jsConstructorName'";
     return rti;
   }
 
-  String toString() => name;
+  String toString() => _jsConstructorName;
 }
 
 class RuntimeTypeGeneric extends RuntimeType {
-  final String name;
+  /// The constructor name of the raw type for this generic type.
+  final String _jsConstructorName;
   final List<RuntimeType> arguments;
   var rti;
 
-  RuntimeTypeGeneric(this.name, this.arguments, this.rti);
+  RuntimeTypeGeneric(this._jsConstructorName, this.arguments, this.rti);
 
   toRti() {
     if (rti != null) return rti;
-    var getTypeFromName = JS_EMBEDDED_GLOBAL('', GET_TYPE_FROM_NAME);
-    var result = JS('JSExtendableArray', '[#(#)]', getTypeFromName, name);
+    var result = [jsConstructorNameToRti(_jsConstructorName)];
     if (result[0] == null) {
-      throw "no type for '$name<...>'";
+      throw "no type for '$_jsConstructorName<...>'";
     }
     for (RuntimeType argument in arguments) {
-      JS('', '#.push(#)', result, argument.toRti());
+      result.add(argument.toRti());
     }
     return rti = result;
   }
 
-  String toString() => '$name<${arguments.join(", ")}>';
+  String toString() => '$_jsConstructorName<${arguments.join(", ")}>';
 }
 
 class FunctionTypeInfoDecoderRing {
@@ -3460,6 +3474,7 @@ class FunctionTypeInfoDecoderRing {
   String _convert(type) {
     String result = runtimeTypeToString(type);
     if (result != null) return result;
+    // Currently the [runtimeTypeToString] method doesn't handle function rtis.
     if (JS('bool', '"func" in #', type)) {
       return new FunctionTypeInfoDecoderRing(type).toString();
     } else {

@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:path/path.dart';
 
 /**
  * The class `ElementFactory` defines utility methods used to create elements for testing
@@ -84,7 +85,8 @@ class ElementFactory {
 
   static CompilationUnitElementImpl compilationUnit(String fileName,
       [Source librarySource]) {
-    Source source = new NonExistingSource(fileName, UriKind.FILE_URI);
+    Source source =
+        new NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
     CompilationUnitElementImpl unit = new CompilationUnitElementImpl(fileName);
     unit.source = source;
     if (librarySource == null) {
@@ -362,7 +364,8 @@ class ElementFactory {
   }
 
   static HtmlElementImpl htmlUnit(AnalysisContext context, String fileName) {
-    Source source = new NonExistingSource(fileName, UriKind.FILE_URI);
+    Source source =
+        new NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
     HtmlElementImpl unit = new HtmlElementImpl(context, fileName);
     unit.source = source;
     return unit;

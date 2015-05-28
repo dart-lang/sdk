@@ -38,7 +38,7 @@ DECLARE_FLAG(bool, support_debugger);
 //   R10 : number of arguments to the call.
 // Must preserve callee saved registers R12 and R13.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -51,7 +51,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RSP);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -74,7 +74,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call runtime.
-  __ movq(Address(RSP, isolate_offset), R12);  // Set isolate in NativeArgs.
+  __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
@@ -131,8 +131,8 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   R10 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = 0;
-  const intptr_t isolate_offset =
-      NativeArguments::isolate_offset() + native_args_struct_offset;
+  const intptr_t thread_offset =
+      NativeArguments::thread_offset() + native_args_struct_offset;
   const intptr_t argc_tag_offset =
       NativeArguments::argc_tag_offset() + native_args_struct_offset;
   const intptr_t argv_offset =
@@ -148,7 +148,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RSP);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -173,7 +173,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movq(Address(RSP, isolate_offset), R12);  // Set isolate in NativeArgs.
+  __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ leaq(RAX, Address(RBP, 2 * kWordSize));  // Compute return value addr.
@@ -205,8 +205,8 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 //   R10 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t native_args_struct_offset = 0;
-  const intptr_t isolate_offset =
-      NativeArguments::isolate_offset() + native_args_struct_offset;
+  const intptr_t thread_offset =
+      NativeArguments::thread_offset() + native_args_struct_offset;
   const intptr_t argc_tag_offset =
       NativeArguments::argc_tag_offset() + native_args_struct_offset;
   const intptr_t argv_offset =
@@ -222,7 +222,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RSP);
+  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -247,7 +247,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   }
 
   // Pass NativeArguments structure by value and call native function.
-  __ movq(Address(RSP, isolate_offset), R12);  // Set isolate in NativeArgs.
+  __ movq(Address(RSP, thread_offset), THR);  // Set thread in NativeArgs.
   __ movq(Address(RSP, argc_tag_offset), R10);  // Set argc in NativeArguments.
   __ movq(Address(RSP, argv_offset), RAX);  // Set argv in NativeArguments.
   __ leaq(RAX, Address(RBP, 2 * kWordSize));  // Compute return value addr.
@@ -701,7 +701,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 //   RDI : entrypoint of the Dart function to call.
 //   RSI : arguments descriptor array.
 //   RDX : arguments array.
-//   RCX : new context containing the current isolate pointer.
+//   RCX : current thread.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
   __ EnterFrame(0);
@@ -709,6 +709,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   const Register kEntryPointReg = CallingConventions::kArg1Reg;
   const Register kArgDescReg    = CallingConventions::kArg2Reg;
   const Register kArgsReg       = CallingConventions::kArg3Reg;
+  const Register kThreadReg     = CallingConventions::kArg4Reg;
 
   // At this point, the stack looks like:
   // | saved RBP                                      | <-- RBP
@@ -731,6 +732,10 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // If any additional (or fewer) values are pushed, the offsets in
   // kExitLinkSlotFromEntryFp will need to be changed.
 
+  // Set up THR, which caches the current thread in Dart code.
+  if (THR != kThreadReg) {
+    __ movq(THR, kThreadReg);
+  }
   // Load Isolate pointer into kIsolateReg.
   const Register kIsolateReg = RBX;
   __ LoadIsolate(kIsolateReg);
@@ -1305,9 +1310,9 @@ static void EmitFastSmiOp(Assembler* assembler,
     // Update counter.
     __ movq(R8, Address(R12, count_offset));
     __ addq(R8, Immediate(Smi::RawValue(1)));
-    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ cmovnoq(R9, R8);
-    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+    __ movq(R13, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R13, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R13);
   }
 
   __ ret();
@@ -1471,9 +1476,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ Comment("Update caller's counter");
     __ movq(R8, Address(R12, count_offset));
     __ addq(R8, Immediate(Smi::RawValue(1)));
-    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ cmovnoq(R9, R8);
-    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+    __ movq(R13, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R13, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R13);
   }
 
   __ Comment("Call target");
@@ -1485,12 +1490,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   if (range_collection_mode == kCollectRanges) {
     __ movq(R8, Address(RSP, + 1 * kWordSize));
     if (num_args == 2) {
-      __ movq(R9, Address(RSP, + 2 * kWordSize));
+      __ movq(R13, Address(RSP, + 2 * kWordSize));
     }
     __ EnterStubFrame();
     __ pushq(RBX);
     if (num_args == 2) {
-      __ pushq(R9);
+      __ pushq(R13);
     }
     __ pushq(R8);
     __ call(RCX);
@@ -1541,15 +1546,6 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, RCX);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
-}
-
-
-void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, RCX);
-  GenerateNArgsCheckInlineCacheStub(assembler, 3,
-      kInlineCacheMissHandlerThreeArgsRuntimeEntry,
       Token::kILLEGAL,
       kIgnoreRanges);
 }
@@ -1633,16 +1629,6 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
 }
 
 
-void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
-    Assembler* assembler) {
-  GenerateOptimizedUsageCounterIncrement(assembler);
-  GenerateNArgsCheckInlineCacheStub(assembler, 3,
-      kInlineCacheMissHandlerThreeArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
-}
-
-
 // Intermediary stub between a static call and its target. ICData contains
 // the target function and the call count.
 // RBX: ICData
@@ -1689,9 +1675,9 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
     // Increment count for this call.
     __ movq(R8, Address(R12, count_offset));
     __ addq(R8, Immediate(Smi::RawValue(1)));
-    __ movq(R9, Immediate(Smi::RawValue(Smi::kMaxValue)));
-    __ cmovnoq(R9, R8);
-    __ StoreIntoSmiField(Address(R12, count_offset), R9);
+    __ movq(R13, Immediate(Smi::RawValue(Smi::kMaxValue)));
+    __ cmovnoq(R13, R8);
+    __ StoreIntoSmiField(Address(R12, count_offset), R13);
   }
 
   // Load arguments descriptor into R10.
@@ -1956,7 +1942,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // Arg3: frame_pointer
 // Arg4: exception object
 // Arg5: stacktrace object
-// Arg6: isolate
+// Arg6: thread
 // No Result.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == RAX);
@@ -1967,13 +1953,14 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
 #if defined(_WIN64)
   Register stacktrace_reg = RBX;
   __ movq(stacktrace_reg, Address(RSP, 5 * kWordSize));
+  __ movq(THR, Address(RSP, 6 * kWordSize));
   Register isolate_reg = RDI;
-  __ movq(isolate_reg, Address(RSP, 6 * kWordSize));
 #else
   Register stacktrace_reg = CallingConventions::kArg5Reg;
+  __ movq(THR, CallingConventions::kArg6Reg);
   Register isolate_reg = CallingConventions::kArg6Reg;
 #endif
-
+  __ LoadIsolate(isolate_reg);
   __ movq(RBP, CallingConventions::kArg3Reg);
   __ movq(RSP, CallingConventions::kArg2Reg);
   __ movq(kStackTraceObjectReg, stacktrace_reg);

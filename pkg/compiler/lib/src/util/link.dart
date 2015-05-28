@@ -56,16 +56,6 @@ class Link<T> {
     return result;
   }
 
-  /// Invokes `fn` for every item in the linked list and returns the results
-  /// in a [Set].
-  Set mapToSet(dynamic fn(T item)) {
-    Set result = new Set();
-    for (Link<T> link = this; !link.isEmpty; link = link.tail) {
-      result.add(fn(link.head));
-    }
-    return result;
-  }
-
   bool get isEmpty => true;
 
   Link<T> reverse() => this;

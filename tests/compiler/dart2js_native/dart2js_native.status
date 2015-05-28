@@ -28,7 +28,7 @@ browser_compat_1_prepatched_test: Crash # unsupported element kind: getTagCallCo
 browser_compat_1_unpatched_test: Crash # unsupported element kind: getTagCallCount:function
 browser_compat_2_test: Crash # unsupported element kind: getTagCallCount:function
 catch_javascript_null_stack_trace_test: Crash # (JS('','(function () {throw null;})()')): handleStaticFunctionInvoke: foreign: function(JS)
-core_type_check_native_test: Crash # unsupported element kind: inscrutable:field
+core_type_check_native_test: Crash # unsupported element kind: makeD:function
 downcast_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 event_loop_test: Crash # unsupported element kind: foo:function
 fake_thing_2_test: Crash # unsupported element kind: make3:function
@@ -126,4 +126,3 @@ subclassing_type_test: Crash # Instance of 'TypeOperator': type check unimplemen
 super_call_test: Crash # unsupported element kind: makeD:function
 super_property_test: Crash # unsupported element kind: makeB:function
 undefined_bailout_test: Crash # (JS('','void 0')): handleStaticFunctionInvoke: foreign: function(JS)
-uninstantiated_type_parameter_test: Crash # Instance of 'TypeOperator': type check unimplemented for C<int>.

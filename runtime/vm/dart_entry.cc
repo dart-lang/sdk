@@ -105,19 +105,20 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
         static_cast<int64_t>(code.EntryPoint()),
         reinterpret_cast<int64_t>(&arguments_descriptor),
         reinterpret_cast<int64_t>(&arguments),
-        0));
+        reinterpret_cast<int64_t>(thread)));
 #else
     return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
         reinterpret_cast<int32_t>(entrypoint),
         static_cast<int32_t>(code.EntryPoint()),
         reinterpret_cast<int32_t>(&arguments_descriptor),
         reinterpret_cast<int32_t>(&arguments),
-        0));
+        reinterpret_cast<int32_t>(thread)));
 #endif
 #else
     return entrypoint(code.EntryPoint(),
                       arguments_descriptor,
-                      arguments);
+                      arguments,
+                      thread);
 #endif
 }
 

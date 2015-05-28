@@ -13,9 +13,7 @@ import 'package:compiler/src/dart2jslib.dart' as dart2js
     show MessageKind;
 import 'package:compiler/src/dart_types.dart' as dart_types
     show DartType;
-import 'package:compiler/src/elements/elements.dart'
-   show Entity, Element, Elements, Local, TypeVariableElement, ErroneousElement,
-         TypeDeclarationElement, ExecutableElement, PublicName;
+import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/modelx.dart'
     show ErroneousElementX, TypeVariableElementX;
 import 'package:compiler/src/tree/tree.dart' show LiteralDartString;
@@ -48,12 +46,14 @@ class DummyLocal extends DummyEntity implements Local {
 /// classes, and erroneous elements conveniently also skip several assertion
 /// checks in CPS IR nodes that are irrelevant to us.
 class DummyElement extends ErroneousElementX
-    implements TypeVariableElement {
+    implements TypeVariableElement, FieldElement {
   DummyElement(String name)
       : super(dart2js.MessageKind.GENERIC, {}, name, null);
 
   final dart_types.DartType bound = null;
   final TypeDeclarationElement typeDeclaration = null;
+
+  noSuchMethod(inv) => super.noSuchMethod(inv);
 }
 
 /// Used whenever a node constructed by [SExpressionUnstringifier] requires
@@ -137,6 +137,7 @@ class SExpressionUnstringifier {
   static const String SET_MUTABLE_VARIABLE = "SetMutableVariable";
   static const String TYPE_OPERATOR = "TypeOperator";
   static const String SET_STATIC = "SetStatic";
+  static const String GET_LAZY_STATIC = "GetLazyStatic";
 
   // Primitives
   static const String CONSTANT = "Constant";
@@ -250,6 +251,8 @@ class SExpressionUnstringifier {
         return parseTypeOperator();
       case SET_STATIC:
         return parseSetStatic();
+      case GET_LAZY_STATIC:
+        return parseGetLazyStatic();
       default:
         assert(false);
     }
@@ -561,25 +564,39 @@ class SExpressionUnstringifier {
 
     dart_types.DartType type = new DummyNamedType(tokens.read());
 
+    List<ir.Primitive> typeArguments = parsePrimitiveList();
+
     Continuation cont = name2variable[tokens.read()];
     assert(cont != null);
 
     tokens.consumeEnd();
-    return new TypeOperator(recv, type, cont, isTypeTest: operator == 'is');
+    return new TypeOperator(recv, type, typeArguments, cont,
+                            isTypeTest: operator == 'is');
   }
 
   /// (SetStatic field value body)
   SetStatic parseSetStatic() {
     tokens.consumeStart(SET_STATIC);
-    Element fieldElement = new DummyElement(tokens.read());
 
+    Element fieldElement = new DummyElement(tokens.read());
     Primitive value = name2variable[tokens.read()];
     assert(value != null);
-
     Expression body = parseExpression();
 
     tokens.consumeEnd();
-    return new SetStatic(fieldElement, value, null).plug(body);
+    return new SetStatic(fieldElement, value, null)..plug(body);
+  }
+
+  /// (GetLazyStatic field cont)
+  GetLazyStatic parseGetLazyStatic() {
+    tokens.consumeStart(GET_LAZY_STATIC);
+
+    Element fieldElement = new DummyElement(tokens.read());
+    Continuation cont = name2variable[tokens.read()];
+    assert(cont != null);
+
+    tokens.consumeEnd();
+    return new GetLazyStatic(fieldElement, cont, null);
   }
 
   /// (LetPrim (name primitive) body)
@@ -698,8 +715,7 @@ class SExpressionUnstringifier {
 
   MutableVariable addMutableVariable(String name) {
     assert(!name2variable.containsKey(name));
-    MutableVariable variable =
-        new MutableVariable(new DummyElement(""), new DummyElement(name));
+    MutableVariable variable = new MutableVariable(new DummyElement(name));
     name2variable[name] = variable;
     return variable;
   }

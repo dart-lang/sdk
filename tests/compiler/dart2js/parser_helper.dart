@@ -64,7 +64,9 @@ class LoggerCanceler implements DiagnosticListener {
   withCurrentElement(Element element, f()) => f();
 }
 
-Token scan(String text) => new StringScanner.fromString(text).tokenize();
+Token scan(String text) =>
+    new StringScanner.fromString(text, enableNullAwareOperators: true)
+    .tokenize();
 
 Node parseBodyCode(String text, Function parseMethod,
                    {DiagnosticListener diagnosticHandler}) {

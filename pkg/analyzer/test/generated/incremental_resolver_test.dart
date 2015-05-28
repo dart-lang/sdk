@@ -2758,6 +2758,7 @@ class B {
     int updateEndOld = updateOffset + edit.length;
     int updateOldNew = updateOffset + edit.replacement.length;
     IncrementalResolver resolver = new IncrementalResolver(
+        analysisContext2.getReadableSourceEntryOrNull(source), null, null,
         unit.element, updateOffset, updateEndOld, updateOldNew);
     bool success = resolver.resolve(newNode);
     expect(success, isTrue);

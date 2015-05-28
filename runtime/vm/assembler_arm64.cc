@@ -461,7 +461,7 @@ void Assembler::LoadExternalLabelFixed(Register dst,
 
 
 void Assembler::LoadIsolate(Register dst, Register pp) {
-  LoadImmediate(dst, reinterpret_cast<uword>(Isolate::Current()), pp);
+  ldr(dst, Address(THR, Thread::isolate_offset()));
 }
 
 

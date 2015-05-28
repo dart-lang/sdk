@@ -92,7 +92,8 @@ class MoveFileRefactoringImpl extends RefactoringImpl
     String refDir = pathContext.dirname(reference.file);
     // try to keep package: URI
     if (_isPackageReference(reference)) {
-      Source newSource = new NonExistingSource(newFile, UriKind.FILE_URI);
+      Source newSource = new NonExistingSource(
+          newFile, pathos.toUri(newFile), UriKind.FILE_URI);
       Uri restoredUri = context.sourceFactory.restoreUri(newSource);
       if (restoredUri != null) {
         return restoredUri.toString();

@@ -162,6 +162,36 @@ class Test {
 ''');
   }
 
+  void test_addPartOfDirective() {
+    String partCode = r'''
+// Comment first.
+// Comment second.
+
+class A {}
+''';
+    addSource('/part.dart', partCode);
+    resolveTestUnit('''
+library my.lib;
+part 'part.dart';
+''');
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(DartFixKind.ADD_PART_OF, error);
+    change = fix.change;
+    // apply to "file"
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/part.dart');
+    expect(SourceEdit.applySequence(partCode, fileEdit.edits), r'''
+// Comment first.
+// Comment second.
+
+part of my.lib;
+
+class A {}
+''');
+  }
+
   void test_addSync_BAD_nullFunctionBody() {
     resolveTestUnit('''
 var F = await;
@@ -351,6 +381,27 @@ main() {
     assertHasFix(DartFixKind.CREATE_CLASS, '''
 main() {
   Test v = null;
+}
+
+class Test {
+}
+''');
+    _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
+  }
+
+  void test_createClass_innerLocalFunction() {
+    resolveTestUnit('''
+f() {
+  g() {
+    Test v = null;
+  }
+}
+''');
+    assertHasFix(DartFixKind.CREATE_CLASS, '''
+f() {
+  g() {
+    Test v = null;
+  }
 }
 
 class Test {
@@ -1073,6 +1124,35 @@ part 'my_part.dart';
     expect(fileEdits, hasLength(1));
     SourceFileEdit fileEdit = change.edits[0];
     expect(fileEdit.file, '/my/project/bin/my_part.dart');
+    expect(fileEdit.fileStamp, -1);
+    expect(fileEdit.edits, hasLength(1));
+    expect(fileEdit.edits[0].replacement, contains('part of my.lib;'));
+  }
+
+  void test_createFile_forPart_inPackageLib() {
+    provider.newFile('/my/pubspec.yaml', r'''
+name: my_test
+''');
+    testFile = '/my/lib/test.dart';
+    addTestSource('''
+library my.lib;
+part 'my_part.dart';
+''', Uri.parse('package:my/test.dart'));
+    // configure SourceFactory
+    UriResolver pkgResolver = new PackageMapUriResolver(
+        provider, {'my': [provider.getResource('/my/lib')],});
+    context.sourceFactory = new SourceFactory(
+        [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
+    // prepare fix
+    testUnit = resolveLibraryUnit(testSource);
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(DartFixKind.CREATE_FILE, error);
+    change = fix.change;
+    // validate change
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/my/lib/my_part.dart');
     expect(fileEdit.fileStamp, -1);
     expect(fileEdit.edits, hasLength(1));
     expect(fileEdit.edits[0].replacement, contains('part of my.lib;'));

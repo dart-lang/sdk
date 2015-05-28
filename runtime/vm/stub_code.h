@@ -50,7 +50,6 @@ class RawCode;
   V(UpdateStoreBuffer)                                                         \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
-  V(ThreeArgsCheckInlineCache)                                                 \
   V(SmiAddInlineCache)                                                         \
   V(SmiSubInlineCache)                                                         \
   V(SmiEqualInlineCache)                                                       \
@@ -58,7 +57,6 @@ class RawCode;
   V(BinaryRangeCollectingInlineCache)                                          \
   V(OneArgOptimizedCheckInlineCache)                                           \
   V(TwoArgsOptimizedCheckInlineCache)                                          \
-  V(ThreeArgsOptimizedCheckInlineCache)                                        \
   V(ZeroArgsUnoptimizedStaticCall)                                             \
   V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \

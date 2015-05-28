@@ -48,7 +48,6 @@ class StringValidator {
     // String has at least one quote. Check it if has three.
     // If it only has two, the string must be an empty string literal,
     // and end after the second quote.
-    bool multiline = false;
     if (source.moveNext() && source.current == quoteChar && source.moveNext()) {
       int code = source.current;
       assert(code == quoteChar);  // If not, there is a bug in the parser.
@@ -155,7 +154,6 @@ class StringValidator {
           // A two-byte hex escape can't generate an invalid value.
           continue;
         } else if (code == $u) {
-          int escapeStart = index - 1;
           index++;
           code = iter.hasNext ? iter.next() : 0;
           int value = 0;

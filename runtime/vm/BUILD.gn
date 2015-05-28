@@ -64,6 +64,26 @@ static_library("libdart_vm") {
 }
 
 
+static_library("libdart_vm_nosnapshot") {
+  configs += ["..:dart_config"]
+  public_configs = [":libdart_vm_config"]
+  deps = [ ":generate_service_cc_file", ]
+  defines = [ "DART_NO_SNAPSHOT" ]
+  vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
+                                [rebase_path("vm_sources.gypi")],
+                                "scope",
+                                ["vm_sources.gypi"])
+
+  set_sources_assignment_filter(["*_test.cc", "*_test.h"])
+  sources = vm_sources_list.sources
+            + ["$target_gen_dir/service_gen.cc",]
+            - ["vtune.cc", "vtune.h"]
+  include_dirs = [
+    "..",
+  ]
+}
+
+
 template("generate_library_source") {
   assert(defined(invoker.libname), "Need libname in $target_name")
   assert(defined(invoker.filename), "Need a filename in $target_name")
@@ -115,7 +135,7 @@ template("generate_library_source") {
 #
 # The template iterates over the list, and generates generate_library_source
 # actions for each. After that, it generates targets to compile the generated
-# sources to make libdart_lib_withcore and libdart_lib.
+# sources to make libdart_lib_nosnapshot and libdart_lib.
 template("generate_core_libraries") {
   assert(defined(invoker.sources), "Need sources in $target_name")
   liboutputs = []
@@ -148,7 +168,7 @@ template("generate_core_libraries") {
                 ":generate_${filename}_patch_cc_file"]
   }
 
-  static_library("libdart_lib_withcore") {
+  static_library("libdart_lib_nosnapshot") {
     configs += ["..:dart_config"]
     deps = libdeps
     sources = libsources + ["bootstrap.cc"] + liboutputs
@@ -172,7 +192,7 @@ generate_core_libraries("core_libraries") {
     ["core", "core"],
     ["collection", "collection"],
     ["convert", "convert"],
-    ["debugger", "debugger"],
+    ["developer", "developer"],
     ["_internal", "internal"],
     ["isolate", "isolate"],
     ["math", "math"],

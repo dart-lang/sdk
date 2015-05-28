@@ -13264,7 +13264,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *
    * Those attributes are: attributes, lastChild, children, previousNode and tagName.
    */
-  bool get _hasCorruptedAttributes {
+  static bool _hasCorruptedAttributes(Element element) {
      return JS('bool', r'''
        (function(element) {
          if (!(element.attributes instanceof NamedNodeMap)) {
@@ -13282,7 +13282,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 	   }
 	 }
 	 return false;
-          })(#)''', this);
+          })(#)''', element);
   }
 
   @DomName('Element.offsetHeight')
@@ -40785,60 +40785,99 @@ class _ValidatingTreeSanitizer implements NodeTreeSanitizer {
 
   /// Aggressively try to remove node.
   void _removeNode(Node node, Node parent) {
-    // If we have the parent, it's presumably already passed more sanitization or
-    // is the fragment, so ask it to remove the child. And if that fails try to
-    // set the outer html.
+    // If we have the parent, it's presumably already passed more sanitization
+    // or is the fragment, so ask it to remove the child. And if that fails
+    // try to set the outer html.
     if (parent == null) {
       node.remove();
     } else {
       parent._removeChild(node);
     }
   }
-  
+
+  /// Sanitize the element, assuming we can't trust anything about it.
+  void _sanitizeUntrustedElement(Element element, Node parent) {
+    // If the _hasCorruptedAttributes does not successfully return false,
+    // then we consider it corrupted and remove.
+    // TODO(alanknight): This is a workaround because on Firefox
+    // embed/object
+    // tags typeof is "function", not "object". We don't recognize them, and
+    // can't call methods. This does mean that you can't explicitly allow an
+    // embed tag. The only thing that will let it through is a null
+    // sanitizer that doesn't traverse the tree at all. But sanitizing while
+    // allowing embeds seems quite unlikely.
+    var corrupted = true;
+    var attrs;
+    var isAttr;
+    try {
+      // If getting/indexing attributes throws, count that as corrupt.
+      attrs = element.attributes;
+      isAttr = attrs['is'];
+      corrupted = Element._hasCorruptedAttributes(element);
+    } catch(e) {}
+     var elementText = 'element unprintable';
+    try {
+      elementText = element.toString();
+    } catch(e) {}
+    var elementTagName = 'element tag unavailable';
+    try {
+      elementTagName = element.tagName;
+    } catch(e) {}
+    _sanitizeElement(element, parent, corrupted, elementText, elementTagName,
+        attrs, isAttr);
+  }
+
+  /// Having done basic sanity checking on the element, and computed the
+  /// important attributes we want to check, remove it if it's not valid
+  /// or not allowed, either as a whole or particular attributes.
+  void _sanitizeElement(Element element, Node parent, bool corrupted,
+      String text, String tag, Map attrs, String isAttr) {
+    if (false != corrupted) {
+      window.console.warn(
+          'Removing element due to corrupted attributes on <$text>');
+       _removeNode(element, parent);
+       return;
+    }
+    if (!validator.allowsElement(element)) {
+      window.console.warn(
+          'Removing disallowed element <$tag>');
+      _removeNode(element, parent);
+      return;
+    }
+
+    if (isAttr != null) {
+      if (!validator.allowsAttribute(element, 'is', isAttr)) {
+        window.console.warn('Removing disallowed type extension '
+            '<$tag is="$isAttr">');
+        _removeNode(element, parent);
+        return;
+      }
+    }
+
+    // TODO(blois): Need to be able to get all attributes, irrespective of
+    // XMLNS.
+    var keys = attrs.keys.toList();
+    for (var i = attrs.length - 1; i >= 0; --i) {
+      var name = keys[i];
+      if (!validator.allowsAttribute(element, name.toLowerCase(),
+          attrs[name])) {
+        window.console.warn('Removing disallowed attribute '
+            '<$tag $name="${attrs[name]}">');
+        attrs.remove(name);
+      }
+    }
+
+    if (element is TemplateElement) {
+      TemplateElement template = element;
+      sanitizeTree(template.content);
+     }
+  }
+
+  /// Sanitize the node and its children recursively.
   void sanitizeNode(Node node, Node parent) {
     switch (node.nodeType) {
       case Node.ELEMENT_NODE:
-        Element element = node;
-        if (element._hasCorruptedAttributes) {
-          window.console.warn('Removing element due to corrupted attributes on <${element}>');
-          _removeNode(node, parent);
-          break;
-        }
-        var attrs = element.attributes;
-        if (!validator.allowsElement(element)) {
-          window.console.warn(
-              'Removing disallowed element <${element.tagName}>');
-          _removeNode(node, parent);
-          break;
-        }
-
-        var isAttr = attrs['is'];
-        if (isAttr != null) {
-          if (!validator.allowsAttribute(element, 'is', isAttr)) {
-            window.console.warn('Removing disallowed type extension '
-                '<${element.tagName} is="$isAttr">');
-            _removeNode(node, parent);
-            break;
-          }
-        }
-
-        // TODO(blois): Need to be able to get all attributes, irrespective of
-        // XMLNS.
-        var keys = attrs.keys.toList();
-        for (var i = attrs.length - 1; i >= 0; --i) {
-          var name = keys[i];
-          if (!validator.allowsAttribute(element, name.toLowerCase(),
-              attrs[name])) {
-            window.console.warn('Removing disallowed attribute '
-                '<${element.tagName} $name="${attrs[name]}">');
-            attrs.remove(name);
-          }
-        }
-
-        if (element is TemplateElement) {
-          TemplateElement template = element;
-          sanitizeTree(template.content);
-        }
+        _sanitizeUntrustedElement(node, parent);
         break;
       case Node.COMMENT_NODE:
       case Node.DOCUMENT_FRAGMENT_NODE:

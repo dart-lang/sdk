@@ -7,11 +7,14 @@ part of scanner;
 abstract class Scanner {
   Token tokenize();
 
-  factory Scanner(SourceFile file, {bool includeComments: false}) {
+  factory Scanner(SourceFile file,
+      {bool includeComments: false, bool enableNullAwareOperators: false}) {
     if (file is Utf8BytesSourceFile) {
-      return new Utf8BytesScanner(file, includeComments: includeComments);
+      return new Utf8BytesScanner(file, includeComments: includeComments,
+          enableNullAwareOperators: enableNullAwareOperators);
     } else {
-      return new StringScanner(file, includeComments: includeComments);
+      return new StringScanner(file, includeComments: includeComments,
+          enableNullAwareOperators: enableNullAwareOperators);
     }
   }
 }
@@ -20,6 +23,7 @@ abstract class AbstractScanner implements Scanner {
   // TODO(ahe): Move this class to implementation.
 
   final bool includeComments;
+  final bool enableNullAwareOperators;
 
   /**
    * The string offset for the next token that will be created.
@@ -53,7 +57,8 @@ abstract class AbstractScanner implements Scanner {
 
   final List<int> lineStarts = <int>[0];
 
-  AbstractScanner(this.file, this.includeComments) {
+  AbstractScanner(
+      this.file, this.includeComments, this.enableNullAwareOperators) {
     this.tail = this.tokens;
   }
 
@@ -330,8 +335,7 @@ abstract class AbstractScanner implements Scanner {
     }
 
     if (identical(next, $QUESTION)) {
-      appendPrecedenceToken(QUESTION_INFO);
-      return advance();
+      return tokenizeQuestion(next);
     }
 
     if (identical(next, $CLOSE_SQUARE_BRACKET)) {
@@ -448,6 +452,38 @@ abstract class AbstractScanner implements Scanner {
   int tokenizeCaret(int next) {
     // ^ ^=
     return select($EQ, CARET_EQ_INFO, CARET_INFO);
+  }
+
+  int tokenizeQuestion(int next) {
+    // ? ?. ?? ??=
+    next = advance();
+    if (identical(next, $QUESTION)) {
+      if (enableNullAwareOperators) {
+        return select($EQ, QUESTION_QUESTION_EQ_INFO, QUESTION_QUESTION_INFO);
+      } else {
+        next = advance();
+        PrecedenceInfo info;
+        if (identical(next, $EQ)) {
+          info = QUESTION_QUESTION_EQ_INFO;
+          next = advance();
+        } else {
+          info = QUESTION_QUESTION_INFO;
+        }
+        appendErrorToken(new UnsupportedNullAwareToken(info.value, tokenStart));
+        return next;
+      }
+    } else if (identical(next, $PERIOD)) {
+      if (enableNullAwareOperators) {
+        appendPrecedenceToken(QUESTION_PERIOD_INFO);
+      } else {
+        appendErrorToken(new UnsupportedNullAwareToken(
+            QUESTION_PERIOD_INFO.value, tokenStart));
+      }
+      return advance();
+    } else {
+      appendPrecedenceToken(QUESTION_INFO);
+      return next;
+    }
   }
 
   int tokenizeBar(int next) {

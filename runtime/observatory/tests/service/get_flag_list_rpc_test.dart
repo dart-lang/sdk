@@ -22,7 +22,7 @@ var tests = [
       'name' : 'does_not_really_exist',
       'value' : 'true',
     };
-    var result = await vm.invokeRpcNoUpgrade('setFlag', params);
+    var result = await vm.invokeRpcNoUpgrade('_setFlag', params);
     expect(result['type'], equals('Error'));
     expect(result['message'], equals('Cannot set flag: flag not found'));
   },
@@ -34,7 +34,7 @@ var tests = [
       'name' : 'trace_isolates',
       'value' : '123',
     };
-    var result = await vm.invokeRpcNoUpgrade('setFlag', params);
+    var result = await vm.invokeRpcNoUpgrade('_setFlag', params);
     expect(result['type'], equals('Error'));
     expect(result['message'], equals('Cannot set flag: invalid value'));
   },

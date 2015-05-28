@@ -1156,8 +1156,12 @@ class OrderedSet<T> {
 // separate pass because JS vars are lifted to the top of the function.
 class VarCollector extends BaseVisitor {
   bool nested;
+  bool enableRenaming = true;
   final OrderedSet<String> vars;
   final OrderedSet<String> params;
+
+  static final String disableVariableMinificationPattern = "::norenaming::";
+  static final String enableVariableMinificationPattern = "::dorenaming::";
 
   VarCollector() : nested = false,
                    vars = new OrderedSet<String>(),
@@ -1195,8 +1199,16 @@ class VarCollector extends BaseVisitor {
 
   void visitThis(This node) {}
 
+  void visitComment(Comment node) {
+    if (node.comment.contains(disableVariableMinificationPattern)) {
+      enableRenaming = false;
+    } else if (node.comment.contains(enableVariableMinificationPattern)) {
+      enableRenaming = true;
+    }
+  }
+
   void visitVariableDeclaration(VariableDeclaration decl) {
-    if (decl.allowRename) vars.add(decl.name);
+    if (enableRenaming && decl.allowRename) vars.add(decl.name);
   }
 }
 

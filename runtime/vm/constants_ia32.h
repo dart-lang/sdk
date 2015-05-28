@@ -68,6 +68,7 @@ const Register SPREG = ESP;  // Stack pointer register.
 const Register FPREG = EBP;  // Frame pointer register.
 const Register ICREG = ECX;  // IC data register.
 const Register ARGS_DESC_REG = EDX;  // Arguments descriptor register.
+const Register THR = ESI;  // Caches current thread in generated code.
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.

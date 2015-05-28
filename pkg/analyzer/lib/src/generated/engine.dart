@@ -7,9 +7,9 @@
 
 library engine;
 
-import "dart:math" as math;
 import 'dart:async';
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' as cache;
@@ -21,6 +21,7 @@ import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:plugin/manager.dart';
 
 import '../../instrumentation/instrumentation.dart';
 import 'ast.dart';
@@ -709,6 +710,11 @@ abstract class AnalysisContext {
    * is equal to the given [path].
    */
   List<Source> getSourcesWithFullName(String path);
+
+  /**
+   * Invalidates hints in the given [librarySource] and included parts.
+   */
+  void invalidateLibraryHints(Source librarySource);
 
   /**
    * Return `true` if the given [librarySource] is known to be the defining
@@ -2153,9 +2159,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changed;
   }
 
-  /**
-   * Invalidates hints in the given [librarySource] and included parts.
-   */
+  @override
   void invalidateLibraryHints(Source librarySource) {
     SourceEntry sourceEntry = _cache.get(librarySource);
     if (sourceEntry is! DartEntry) {
@@ -2498,6 +2502,17 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void setContents(Source source, String contents) {
     _contentsChanged(source, contents, true);
+  }
+
+  @override
+  bool shouldErrorsBeAnalyzed(Source source, DartEntry dartEntry) {
+    if (source.isInSystemLibrary) {
+      return _generateSdkErrors;
+    } else if (!dartEntry.explicitlyAdded) {
+      return _generateImplicitErrors;
+    } else {
+      return true;
+    }
   }
 
   @override
@@ -3633,7 +3648,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             return new AnalysisContextImpl_TaskData(
                 new ResolveDartLibraryTask(this, source, librarySource), false);
           }
-          if (_shouldErrorsBeAnalyzed(source, dartEntry)) {
+          if (shouldErrorsBeAnalyzed(source, dartEntry)) {
             CacheState verificationErrorsState = dartEntry.getStateInLibrary(
                 DartEntry.VERIFICATION_ERRORS, librarySource);
             if (verificationErrorsState == CacheState.INVALID ||
@@ -3815,7 +3830,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               return;
             }
           }
-          if (_shouldErrorsBeAnalyzed(source, dartEntry)) {
+          if (shouldErrorsBeAnalyzed(source, dartEntry)) {
             CacheState verificationErrorsState = dartEntry.getStateInLibrary(
                 DartEntry.VERIFICATION_ERRORS, librarySource);
             if (verificationErrorsState == CacheState.INVALID ||
@@ -3989,47 +4004,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  /**
-   * Given that the given [source] (with the corresponding [sourceEntry]) has
-   * been invalidated, invalidate all of the libraries that depend on it.
-   */
-  void _propagateInvalidation(Source source, SourceEntry sourceEntry) {
-    if (sourceEntry is HtmlEntry) {
-      HtmlEntry htmlEntry = sourceEntry;
-      htmlEntry.modificationTime = getModificationStamp(source);
-      htmlEntry.invalidateAllInformation();
-      _cache.removedAst(source);
-      _workManager.add(source, SourcePriority.HTML);
-    } else if (sourceEntry is DartEntry) {
-      List<Source> containingLibraries = getLibrariesContaining(source);
-      List<Source> dependentLibraries = getLibrariesDependingOn(source);
-      HashSet<Source> librariesToInvalidate = new HashSet<Source>();
-      for (Source containingLibrary in containingLibraries) {
-        _computeAllLibrariesDependingOn(
-            containingLibrary, librariesToInvalidate);
-      }
-      for (Source dependentLibrary in dependentLibraries) {
-        _computeAllLibrariesDependingOn(
-            dependentLibrary, librariesToInvalidate);
-      }
-      for (Source library in librariesToInvalidate) {
-        _invalidateLibraryResolution(library);
-      }
-      DartEntry dartEntry = _cache.get(source);
-      _removeFromParts(source, dartEntry);
-      dartEntry.modificationTime = getModificationStamp(source);
-      dartEntry.invalidateAllInformation();
-      _cache.removedAst(source);
-      _workManager.add(source, SourcePriority.UNKNOWN);
-    }
-    // reset unit in the notification, it is out of date now
-    ChangeNoticeImpl notice = _pendingNotices[source];
-    if (notice != null) {
-      notice.resolvedDartUnit = null;
-      notice.resolvedHtmlUnit = null;
-    }
-  }
-
 //  /**
 //   * Notify all of the analysis listeners that the given source is no longer included in the set of
 //   * sources that are being analyzed.
@@ -4107,6 +4081,47 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
+
+  /**
+   * Given that the given [source] (with the corresponding [sourceEntry]) has
+   * been invalidated, invalidate all of the libraries that depend on it.
+   */
+  void _propagateInvalidation(Source source, SourceEntry sourceEntry) {
+    if (sourceEntry is HtmlEntry) {
+      HtmlEntry htmlEntry = sourceEntry;
+      htmlEntry.modificationTime = getModificationStamp(source);
+      htmlEntry.invalidateAllInformation();
+      _cache.removedAst(source);
+      _workManager.add(source, SourcePriority.HTML);
+    } else if (sourceEntry is DartEntry) {
+      List<Source> containingLibraries = getLibrariesContaining(source);
+      List<Source> dependentLibraries = getLibrariesDependingOn(source);
+      HashSet<Source> librariesToInvalidate = new HashSet<Source>();
+      for (Source containingLibrary in containingLibraries) {
+        _computeAllLibrariesDependingOn(
+            containingLibrary, librariesToInvalidate);
+      }
+      for (Source dependentLibrary in dependentLibraries) {
+        _computeAllLibrariesDependingOn(
+            dependentLibrary, librariesToInvalidate);
+      }
+      for (Source library in librariesToInvalidate) {
+        _invalidateLibraryResolution(library);
+      }
+      DartEntry dartEntry = _cache.get(source);
+      _removeFromParts(source, dartEntry);
+      dartEntry.modificationTime = getModificationStamp(source);
+      dartEntry.invalidateAllInformation();
+      _cache.removedAst(source);
+      _workManager.add(source, SourcePriority.UNKNOWN);
+    }
+    // reset unit in the notification, it is out of date now
+    ChangeNoticeImpl notice = _pendingNotices[source];
+    if (notice != null) {
+      notice.resolvedDartUnit = null;
+      notice.resolvedHtmlUnit = null;
+    }
+  }
 
   /**
    * Record the results produced by performing a [task] and return the cache
@@ -4507,20 +4522,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return `true` if errors should be produced for the given [source]. The
-   * [dartEntry] associated with the source is passed in for efficiency.
-   */
-  bool _shouldErrorsBeAnalyzed(Source source, DartEntry dartEntry) {
-    if (source.isInSystemLibrary) {
-      return _generateSdkErrors;
-    } else if (!dartEntry.explicitlyAdded) {
-      return _generateImplicitErrors;
-    } else {
-      return true;
-    }
-  }
-
-  /**
    * Create an entry for the newly added [source] and invalidate any sources
    * that referenced the source before it existed.
    */
@@ -4651,8 +4652,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // do resolution
       Stopwatch perfCounter = new Stopwatch()..start();
       PoorMansIncrementalResolver resolver = new PoorMansIncrementalResolver(
-          typeProvider, unitSource, dartEntry, oldUnit,
-          analysisOptions.incrementalApi, analysisOptions);
+          typeProvider, unitSource, getReadableSourceEntryOrNull(unitSource),
+          null, null, oldUnit, analysisOptions.incrementalApi, analysisOptions);
       bool success = resolver.resolve(newCode);
       AnalysisEngine.instance.instrumentationService.logPerformance(
           AnalysisPerformanceKind.INCREMENTAL, perfCounter,
@@ -5769,6 +5770,10 @@ class AnalysisEngine {
    */
   TaskManager get taskManager {
     if (_taskManager == null) {
+      if (enginePlugin.taskExtensionPoint == null) {
+        // The plugin wasn't used, so tasks are not registered.
+        new ExtensionManager().processPlugins([enginePlugin]);
+      }
       _taskManager = new TaskManager();
       _taskManager.addTaskDescriptors(enginePlugin.taskDescriptors);
       // TODO(brianwilkerson) Create a way to associate different results with
@@ -9001,8 +9006,8 @@ class IncrementalAnalysisTask extends AnalysisTask {
       if (element != null) {
         LibraryElement library = element.library;
         if (library != null) {
-          IncrementalResolver resolver = new IncrementalResolver(
-              element, cache.offset, cache.oldLength, cache.newLength);
+          IncrementalResolver resolver = new IncrementalResolver(null, null,
+              null, element, cache.offset, cache.oldLength, cache.newLength);
           resolver.resolve(parser.updatedNode);
         }
       }
@@ -9158,6 +9163,15 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * record those mappings.
    */
   void recordLibraryElements(Map<Source, LibraryElement> elementMap);
+
+  /**
+   * Return `true` if errors should be produced for the given [source].
+   * The [entry] associated with the source is passed in for efficiency.
+   *
+   * TODO(scheglov) remove [entry] after migration to the new task model.
+   * It is not used there anyway.
+   */
+  bool shouldErrorsBeAnalyzed(Source source, Object entry);
 
   /**
    * Call the given callback function for eache cache item in the context.

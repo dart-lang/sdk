@@ -42,7 +42,7 @@ class Object {
 
 
   @patch
-  String toString() => Primitives.objectToString(this);
+  String toString() => Primitives.objectToHumanReadableString(this);
 
   @patch
   dynamic noSuchMethod(Invocation invocation) {
@@ -154,7 +154,7 @@ class Error {
   static String _objectToString(Object object) {
     // Closures all have useful and safe toString methods.
     if (object is Closure) return object.toString();
-    return Primitives.objectToString(object);
+    return Primitives.objectToHumanReadableString(object);
   }
 
   @patch

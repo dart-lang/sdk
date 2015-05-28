@@ -37,7 +37,7 @@ DECLARE_FLAG(bool, support_debugger);
 //   R5 : address of the runtime function to call.
 //   R4 : number of arguments to the call.
 void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -52,7 +52,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ StoreToOffset(kWord, SP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;
@@ -76,9 +76,9 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Pass NativeArguments structure by value and call runtime.
   // Registers R0, R1, R2, and R3 are used.
 
-  ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs.
-  __ mov(R0, Operand(R9));
+  ASSERT(thread_offset == 0 * kWordSize);
+  // Set thread in NativeArgs.
+  __ mov(R0, Operand(THR));
 
   // There are no runtime calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -137,7 +137,7 @@ void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -151,7 +151,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(kWord, SP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;
@@ -175,9 +175,9 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Initialize NativeArguments structure and call native function.
   // Registers R0, R1, R2, and R3 are used.
 
-  ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs.
-  __ mov(R0, Operand(R9));
+  ASSERT(thread_offset == 0 * kWordSize);
+  // Set thread in NativeArgs.
+  __ mov(R0, Operand(THR));
 
   // There are no native calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -230,7 +230,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 //   R2 : address of first argument in argument array.
 //   R1 : argc_tag including number of arguments and function kind.
 void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
-  const intptr_t isolate_offset = NativeArguments::isolate_offset();
+  const intptr_t thread_offset = NativeArguments::thread_offset();
   const intptr_t argc_tag_offset = NativeArguments::argc_tag_offset();
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
@@ -244,7 +244,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(kWord, SP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;
@@ -268,9 +268,9 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Initialize NativeArguments structure and call native function.
   // Registers R0, R1, R2, and R3 are used.
 
-  ASSERT(isolate_offset == 0 * kWordSize);
-  // Set isolate in NativeArgs.
-  __ mov(R0, Operand(R9));
+  ASSERT(thread_offset == 0 * kWordSize);
+  // Set thread in NativeArgs.
+  __ mov(R0, Operand(THR));
 
   // There are no native calls to closures, so we do not need to set the tag
   // bits kClosureFunctionBit and kInstanceFunctionBit in argc_tag_.
@@ -629,12 +629,12 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ b(&slow_case, GT);
 
   const intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
-  __ LoadImmediate(R8, fixed_size);
-  __ add(R8, R8, Operand(R3, LSL, 1));  // R3 is  a Smi.
+  __ LoadImmediate(R9, fixed_size);
+  __ add(R9, R9, Operand(R3, LSL, 1));  // R3 is  a Smi.
   ASSERT(kSmiTagShift == 1);
-  __ bic(R8, R8, Operand(kObjectAlignment - 1));
+  __ bic(R9, R9, Operand(kObjectAlignment - 1));
 
-  // R8: Allocation size.
+  // R9: Allocation size.
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
@@ -642,13 +642,13 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   Heap::Space space = heap->SpaceForAllocation(cid);
   __ LoadImmediate(R6, heap->TopAddress(space));
   __ ldr(R0, Address(R6, 0));  // Potential new object start.
-  __ adds(R7, R0, Operand(R8));  // Potential next object start.
+  __ adds(R7, R0, Operand(R9));  // Potential next object start.
   __ b(&slow_case, CS);  // Branch if unsigned overflow.
 
   // Check if the allocation fits into the remaining space.
   // R0: potential new object start.
   // R7: potential next object start.
-  // R8: allocation size.
+  // R9: allocation size.
   __ LoadImmediate(R3, heap->EndAddress(space));
   __ ldr(R3, Address(R3, 0));
   __ cmp(R7, Operand(R3));
@@ -664,12 +664,12 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // R0: new object start as a tagged pointer.
   // R3: allocation stats address.
   // R7: new object end address.
-  // R8: allocation size.
+  // R9: allocation size.
   {
     const intptr_t shift = RawObject::kSizeTagPos - kObjectAlignmentLog2;
 
-    __ CompareImmediate(R8, RawObject::SizeTag::kMaxSizeTag);
-    __ mov(R6, Operand(R8, LSL, shift), LS);
+    __ CompareImmediate(R9, RawObject::SizeTag::kMaxSizeTag);
+    __ mov(R6, Operand(R9, LSL, shift), LS);
     __ mov(R6, Operand(0), HI);
 
     // Get the class index and insert it into the tags.
@@ -698,13 +698,13 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // R6: iterator which initially points to the start of the variable
   // data area to be initialized.
   // R7: new object end address.
-  // R8: allocation size.
+  // R9: allocation size.
 
   __ LoadImmediate(R4, reinterpret_cast<intptr_t>(Object::null()));
   __ mov(R5, Operand(R4));
   __ AddImmediate(R6, R0, sizeof(RawArray) - kHeapObjectTag);
   __ InitializeFieldsNoBarrier(R0, R6, R7, R4, R5);
-  __ IncrementAllocationStatsWithSize(R3, R8, cid, space);
+  __ IncrementAllocationStatsWithSize(R3, R9, cid, space);
   __ Ret();  // Returns the newly allocated object in R0.
   // Unable to allocate the array using the fast inline code, just call
   // into the runtime.
@@ -735,7 +735,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 //   R0 : entrypoint of the Dart function to call.
 //   R1 : arguments descriptor array.
 //   R2 : arguments array.
-//   R3 : new context containing the current isolate pointer.
+//   R3 : current thread.
 void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Save frame pointer coming in.
   __ EnterFrame((1 << FP) | (1 << LR), 0);
@@ -757,23 +757,27 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // set up.
   __ LoadPoolPointer();
 
-  __ LoadIsolate(R8);
+  // Set up THR, which caches the current thread in Dart code.
+  if (THR != R3) {
+    __ mov(THR, Operand(R3));
+  }
+  __ LoadIsolate(R9);
 
   // Save the current VMTag on the stack.
-  __ LoadFromOffset(kWord, R5, R8, Isolate::vm_tag_offset());
+  __ LoadFromOffset(kWord, R5, R9, Isolate::vm_tag_offset());
   __ Push(R5);
 
   // Mark that the isolate is executing Dart code.
   __ LoadImmediate(R5, VMTag::kDartTagId);
-  __ StoreToOffset(kWord, R5, R8, Isolate::vm_tag_offset());
+  __ StoreToOffset(kWord, R5, R9, Isolate::vm_tag_offset());
 
   // Save top resource and top exit frame info. Use R4-6 as temporary registers.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ LoadFromOffset(kWord, R5, R8, Isolate::top_exit_frame_info_offset());
-  __ LoadFromOffset(kWord, R4, R8, Isolate::top_resource_offset());
+  __ LoadFromOffset(kWord, R5, R9, Isolate::top_exit_frame_info_offset());
+  __ LoadFromOffset(kWord, R4, R9, Isolate::top_resource_offset());
   __ LoadImmediate(R6, 0);
-  __ StoreToOffset(kWord, R6, R8, Isolate::top_resource_offset());
-  __ StoreToOffset(kWord, R6, R8, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R6, R9, Isolate::top_resource_offset());
+  __ StoreToOffset(kWord, R6, R9, Isolate::top_exit_frame_info_offset());
 
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
   __ Push(R4);
@@ -812,17 +816,17 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kExitLinkSlotFromEntryFp * kWordSize);
 
-  __ LoadIsolate(R8);
+  __ LoadIsolate(R9);
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure. Uses R5 as a temporary register for this.
   __ Pop(R5);
-  __ StoreToOffset(kWord, R5, R8, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R5, R9, Isolate::top_exit_frame_info_offset());
   __ Pop(R5);
-  __ StoreToOffset(kWord, R5, R8, Isolate::top_resource_offset());
+  __ StoreToOffset(kWord, R5, R9, Isolate::top_resource_offset());
 
   // Restore the current VMTag from the stack.
   __ Pop(R4);
-  __ StoreToOffset(kWord, R4, R8, Isolate::vm_tag_offset());
+  __ StoreToOffset(kWord, R4, R9, Isolate::vm_tag_offset());
 
   // Restore C++ ABI callee-saved registers.
   if (TargetCPUFeatures::vfp_supported()) {
@@ -1545,16 +1549,6 @@ void StubCode::GenerateTwoArgsCheckInlineCacheStub(Assembler* assembler) {
 }
 
 
-void StubCode::GenerateThreeArgsCheckInlineCacheStub(Assembler* assembler) {
-  GenerateUsageCounterIncrement(assembler, R6);
-  GenerateNArgsCheckInlineCacheStub(assembler,
-      3,
-      kInlineCacheMissHandlerThreeArgsRuntimeEntry,
-      Token::kILLEGAL,
-      kIgnoreRanges);
-}
-
-
 void StubCode::GenerateSmiAddInlineCacheStub(Assembler* assembler) {
   GenerateUsageCounterIncrement(assembler, R6);
   GenerateNArgsCheckInlineCacheStub(assembler,
@@ -1615,15 +1609,6 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
   GenerateOptimizedUsageCounterIncrement(assembler);
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry, Token::kILLEGAL,
-      kIgnoreRanges);
-}
-
-
-void StubCode::GenerateThreeArgsOptimizedCheckInlineCacheStub(
-    Assembler* assembler) {
-  GenerateOptimizedUsageCounterIncrement(assembler);
-  GenerateNArgsCheckInlineCacheStub(assembler, 3,
-      kInlineCacheMissHandlerThreeArgsRuntimeEntry, Token::kILLEGAL,
       kIgnoreRanges);
 }
 
@@ -1912,7 +1897,7 @@ void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
 // R2: frame_pointer.
 // R3: error object.
 // SP + 0: address of stacktrace object.
-// SP + 4: isolate
+// SP + 4: thread.
 // Does not return.
 void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   ASSERT(kExceptionObjectReg == R0);
@@ -1921,9 +1906,10 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ mov(LR, Operand(R0));  // Program counter.
   __ mov(R0, Operand(R3));  // Exception object.
   __ ldr(R1, Address(SP, 0));  // StackTrace object.
-  __ ldr(R3, Address(SP, 4));  // Isolate.
+  __ ldr(THR, Address(SP, 4));  // Thread.
   __ mov(FP, Operand(R2));  // Frame_pointer.
   __ mov(SP, Operand(IP));  // Set Stack pointer.
+  __ LoadIsolate(R3);
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId);
   __ StoreToOffset(kWord, R2, R3, Isolate::vm_tag_offset());

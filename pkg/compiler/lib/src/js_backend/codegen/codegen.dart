@@ -15,8 +15,6 @@ import '../../constants/values.dart';
 import '../../dart2jslib.dart';
 import '../../dart_types.dart';
 
-part 'type_test_emitter.dart';
-
 class CodegenBailout {
   final tree_ir.Node node;
   final String reason;
@@ -27,8 +25,7 @@ class CodegenBailout {
 }
 
 class CodeGenerator extends tree_ir.StatementVisitor
-                    with tree_ir.ExpressionVisitor<js.Expression>,
-                         TypeTestEmitter {
+                    with tree_ir.ExpressionVisitor<js.Expression> {
   final CodegenRegistry registry;
 
   final Glue glue;
@@ -306,7 +303,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitLiteralList(tree_ir.LiteralList node) {
     registry.registerInstantiatedClass(glue.listClass);
-    int length = node.values.length;
     List<js.Expression> entries = node.values.map(visitExpression).toList();
     return new js.ArrayInitializer(entries);
   }
@@ -354,14 +350,40 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitTypeOperator(tree_ir.TypeOperator node) {
+    js.Expression value = visitExpression(node.value);
+    List<js.Expression> typeArguments =
+        node.typeArguments.map(visitExpression).toList();
     if (!node.isTypeTest) {
       giveup(node, 'type casts not implemented.');
     }
     DartType type = node.type;
-    if (type is InterfaceType && type.isRaw) {
+    // Note that the trivial (but special) cases of Object, dynamic, and Null
+    // are handled at build-time and must not occur in a TypeOperator.
+    assert(!type.isObject && !type.isDynamic);
+    if (type is InterfaceType) {
       glue.registerIsCheck(type, registry);
-      js.Expression value = visitExpression(node.receiver);
-      return emitSubtypeTest(node, value, type);
+      ClassElement clazz = type.element;
+
+      // We use the helper:
+      //
+      //     checkSubtype(value, $isT, typeArgs, $asT)
+      //
+      // Any of the last two arguments may be null if there are no type
+      // arguments, and/or if no substitution is required.
+
+      js.Expression isT = js.string(glue.getTypeTestTag(type));
+
+      js.Expression typeArgumentArray = typeArguments.isNotEmpty
+          ? new js.ArrayInitializer(typeArguments)
+          : new js.LiteralNull();
+
+      js.Expression asT = glue.hasStrictSubtype(clazz)
+          ? js.string(glue.getTypeSubstitutionTag(clazz))
+          : new js.LiteralNull();
+
+      return buildStaticHelperInvocation(
+          glue.getCheckSubtype(),
+          [value, isT, typeArgumentArray, asT]);
     }
     return giveup(node, 'type check unimplemented for $type.');
   }
@@ -590,13 +612,20 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitGetStatic(tree_ir.GetStatic node) {
     assert(node.element is FieldElement || node.element is FunctionElement);
-    if (node.element is FieldElement) {
-      registry.registerStaticUse(node.element.declaration);
-      return glue.staticFieldAccess(node.element);
-    } else {
+    if (node.element is FunctionElement) {
+      // Tear off a method.
       registry.registerGetOfStaticFunction(node.element.declaration);
       return glue.isolateStaticClosureAccess(node.element);
     }
+    if (glue.isLazilyInitialized(node.element)) {
+      // Read a lazily initialized field.
+      registry.registerStaticUse(node.element.declaration);
+      js.Expression getter = glue.isolateLazyInitializerAccess(node.element);
+      return new js.Call(getter, [], sourceInformation: node.sourceInformation);
+    }
+    // Read an eagerly initialized field.
+    registry.registerStaticUse(node.element.declaration);
+    return glue.staticFieldAccess(node.element);
   }
 
   @override
@@ -629,10 +658,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
     ClassElement context = node.variable.element.enclosingClass;
     js.Expression index = js.number(glue.getTypeVariableIndex(node.variable));
     if (glue.needsSubstitutionForTypeVariableAccess(context)) {
-      js.Expression substitution = glue.getSubstitutionName(context);
+      js.Expression typeName = glue.getRuntimeTypeName(context);
       return buildStaticHelperInvocation(
-          glue.getTypeArgumentWithSubstitution(),
-          [visitExpression(node.target), substitution, index]);
+          glue.getRuntimeTypeArgument(),
+          [visitExpression(node.target), typeName, index]);
     } else {
       return buildStaticHelperInvocation(
           glue.getTypeArgumentByIndex(),

@@ -4907,11 +4907,7 @@ class UnboxUint32Instr : public UnboxInteger32Instr {
     ASSERT(is_truncating());
   }
 
-  virtual bool CanDeoptimize() const {
-    ASSERT(is_truncating());
-    return (value()->Type()->ToCid() != kSmiCid)
-        && (value()->Type()->ToCid() != kMintCid);
-  }
+  virtual bool CanDeoptimize() const;
 
   virtual void InferRange(RangeAnalysis* analysis, Range* range);
 
@@ -6228,7 +6224,7 @@ class Int32x4ConstructorInstr : public TemplateDefinition<4, NoThrow, Pure> {
 
   virtual Representation RequiredInputRepresentation(intptr_t idx) const {
     ASSERT((idx >= 0) && (idx < 4));
-    return kUnboxedUint32;
+    return kUnboxedInt32;
   }
 
   virtual intptr_t DeoptimizationTarget() const {

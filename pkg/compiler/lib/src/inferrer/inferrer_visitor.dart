@@ -115,8 +115,12 @@ abstract class TypeSystem<T> {
   /**
    * Returns a new receiver type for this [selector] applied to
    * [receiverType].
+   *
+   * The option [isConditional] is true when [selector] was seen in a
+   * conditional send (e.g.  `a?.selector`), in which case the returned type may
+   * be null.
    */
-  T refineReceiver(Selector selector, T receiverType);
+  T refineReceiver(Selector selector, T receiverType, bool isConditional);
 
   /**
    * Returns the internal inferrer representation for [mask].
@@ -441,6 +445,13 @@ class LocalsHandler<T> {
     }
     updateLocal() {
       T currentType = locals[local];
+
+      SendSet send = node != null ? node.asSendSet() : null;
+      if (send != null && send.isIfNullAssignment && currentType != null) {
+        // If-null assignments may return either the new or the original value.
+        type = types.addPhiInput(
+            local, types.allocatePhi(locals.block, local, currentType), type);
+      }
       locals[local] = type;
       if (currentType != type) {
         inferrer.recordLocalUpdate(local, type);
@@ -988,12 +999,29 @@ abstract class InferrerVisitor
   }
 
   @override
+  T visitIfNotNullDynamicPropertyInvoke(
+      Send node,
+      Node receiver,
+      NodeList arguments,
+      Selector selector,
+      _) {
+    return handleDynamicInvoke(node);
+  }
+
+  @override
   T visitThisPropertyInvoke(
       Send node,
       NodeList arguments,
       Selector selector,
       _) {
     return handleDynamicInvoke(node);
+  }
+
+  @override
+  T visitIfNull(Send node, Node left, Node right, _) {
+    T firstType = visit(left);
+    T secondType = visit(right);
+    return types.allocateDiamondPhi(firstType, secondType);
   }
 
   @override

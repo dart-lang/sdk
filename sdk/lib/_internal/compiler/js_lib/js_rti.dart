@@ -51,7 +51,8 @@ class TypeImpl implements Type {
 
   String toString() {
     if (_unmangledName != null) return _unmangledName;
-    String unmangledName = unmangleAllIdentifiersIfPreservedAnyways(_typeName);
+    String unmangledName =
+        unmangleAllIdentifiersIfPreservedAnyways(_typeName);
     return _unmangledName = unmangledName;
   }
 
@@ -80,14 +81,14 @@ class TypeVariable {
 getMangledTypeName(TypeImpl type) => type._typeName;
 
 /**
- * Sets the runtime type information on [target]. [typeInfo] is a type
+ * Sets the runtime type information on [target]. [rti] is a type
  * representation of type 4 or 5, that is, either a JavaScript array or
  * `null`.
  */
-Object setRuntimeTypeInfo(Object target, var typeInfo) {
-  assert(typeInfo == null || isJsArray(typeInfo));
+Object setRuntimeTypeInfo(Object target, var rti) {
+  assert(rti == null || isJsArray(rti));
   // We have to check for null because factories may return null.
-  if (target != null) JS('var', r'#.$builtinTypeInfo = #', target, typeInfo);
+  if (target != null) JS('var', r'#.$builtinTypeInfo = #', target, rti);
   return target;
 }
 
@@ -134,38 +135,37 @@ void copyTypeArguments(Object source, Object target) {
  * of [object].
  */
 String getClassName(var object) {
-  return getDartTypeName(getRawRuntimeType(getInterceptor(object)));
+  return rawRtiToJsConstructorName(getRawRuntimeType(getInterceptor(object)));
 }
 
 /**
- * Creates the string representation for the type representation [runtimeType]
+ * Creates the string representation for the type representation [rti]
  * of type 4, the JavaScript array, where the first element represents the class
  * and the remaining elements represent the type arguments.
  */
-String getRuntimeTypeAsString(var runtimeType, {String onTypeVariable(int i)}) {
-  assert(isJsArray(runtimeType));
-  String className = getDartTypeName(getIndex(runtimeType, 0));
-  return '$className'
-         '${joinArguments(runtimeType, 1, onTypeVariable: onTypeVariable)}';
+String getRuntimeTypeAsString(var rti, {String onTypeVariable(int i)}) {
+  assert(isJsArray(rti));
+  String className = rawRtiToJsConstructorName(getIndex(rti, 0));
+  return '$className${joinArguments(rti, 1, onTypeVariable: onTypeVariable)}';
 }
 
 /**
- * Returns a human-readable representation of the type representation [type].
+ * Returns a human-readable representation of the type representation [rti].
  */
-String runtimeTypeToString(var type, {String onTypeVariable(int i)}) {
-  if (type == null) {
+String runtimeTypeToString(var rti, {String onTypeVariable(int i)}) {
+  if (rti == null) {
     return 'dynamic';
-  } else if (isJsArray(type)) {
+  } else if (isJsArray(rti)) {
     // A list representing a type with arguments.
-    return getRuntimeTypeAsString(type, onTypeVariable: onTypeVariable);
-  } else if (isJsFunction(type)) {
+    return getRuntimeTypeAsString(rti, onTypeVariable: onTypeVariable);
+  } else if (isJsFunction(rti)) {
     // A reference to the constructor.
-    return getDartTypeName(type);
-  } else if (type is int) {
+    return rawRtiToJsConstructorName(rti);
+  } else if (rti is int) {
     if (onTypeVariable == null) {
-      return type.toString();
+      return rti.toString();
     } else {
-      return onTypeVariable(type);
+      return onTypeVariable(rti);
     }
   } else {
     // TODO(ahe): Handle function types, and be sure to always return a string.
@@ -208,8 +208,8 @@ String joinArguments(var types, int startIndex,
 String getRuntimeTypeString(var object) {
   String className = getClassName(object);
   if (object == null) return className;
-  var typeInfo = JS('var', r'#.$builtinTypeInfo', object);
-  return "$className${joinArguments(typeInfo, 0)}";
+  var rti = JS('var', r'#.$builtinTypeInfo', object);
+  return "$className${joinArguments(rti, 0)}";
 }
 
 Type getRuntimeType(var object) {
@@ -273,7 +273,7 @@ bool checkSubtype(Object object, String isField, List checks, String asField) {
 String computeTypeName(String isField, List arguments) {
   // Extract the class name from the is field and append the textual
   // representation of the type arguments.
-  return Primitives.formatType(classNameFromIsCheckProperty(isField),
+  return Primitives.formatType(isCheckPropertyToJsConstructorName(isField),
                                arguments);
 }
 
@@ -364,8 +364,7 @@ computeSignature(var signature, var context, var contextName) {
  */
 bool isSupertypeOfNull(var type) {
   // `null` means `dynamic`.
-  return type == null || getDartTypeName(type) == JS_OBJECT_CLASS_NAME()
-                      || getDartTypeName(type) == JS_NULL_CLASS_NAME();
+  return type == null || isDartObjectTypeRti(type) || isNullTypeRti(type);
 }
 
 /**
@@ -444,7 +443,7 @@ bool isSubtype(var s, var t) {
   }
   // Check function types against the Function class.
   if (isDartFunctionType(s)) {
-    return isDartFunctionTypeLiteral(t);
+    return isDartFunctionTypeRti(t);
   }
 
   // Get the object describing the class and check for the subtyping flag

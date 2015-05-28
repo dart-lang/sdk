@@ -265,6 +265,21 @@ class HeapMapPage extends SimplePage {
   }
 }
 
+class HeapSnapshotPage extends SimplePage {
+  HeapSnapshotPage(app) : super('heap-snapshot', 'heap-snapshot', app);
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
+      if (element != null) {
+        /// Update the page.
+        HeapSnapshotElement page = element;
+        page.isolate = isolate;
+      }
+    });
+  }
+}
+
 class ErrorViewPage extends Page {
   ErrorViewPage(app) : super(app);
 

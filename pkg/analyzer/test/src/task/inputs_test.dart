@@ -95,6 +95,14 @@ class ListToListTaskInputBuilderTest extends EngineTestCase {
     expect(builder.currentResult, null);
   }
 
+  test_currentResult_afterCurrentValueNotAvailable() {
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+    builder.moveNext();
+    expect(builder.currentResult, null);
+  }
+
   test_currentResult_afterOneMoveNext() {
     ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     builder.moveNext();
@@ -110,6 +118,14 @@ class ListToListTaskInputBuilderTest extends EngineTestCase {
     ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = [];
+    builder.moveNext();
+    expect(builder.currentTarget, null);
+  }
+
+  test_currentTarget_afterCurrentValueNotAvailable() {
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
     builder.moveNext();
     expect(builder.currentTarget, null);
   }
@@ -138,6 +154,19 @@ class ListToListTaskInputBuilderTest extends EngineTestCase {
     }, throwsStateError);
   }
 
+  test_currentValueNotAvailable_afterOneMoveNext() {
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+  }
+
+  test_currentValueNotAvailable_beforeMoveNext() {
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
+    expect(() {
+      builder.currentValueNotAvailable();
+    }, throwsStateError);
+  }
+
   test_inputValue_afterComplete() {
     AnalysisTarget target2 = new TestSource();
     AnalysisTarget target3 = new TestSource();
@@ -157,6 +186,35 @@ class ListToListTaskInputBuilderTest extends EngineTestCase {
     expect(list.length, 2);
     expect(list[0], value2);
     expect(list[1], value3);
+  }
+
+  test_inputValue_afterFirstValueNotAvailable() {
+    AnalysisTarget target2 = new TestSource();
+    AnalysisTarget target3 = new TestSource();
+    String value3 = 'value3';
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
+    builder.moveNext(); // Advance to requesting the list
+    builder.currentValue = [target2, target3];
+    builder.moveNext(); // Advance to requesting result2 for target2
+    builder.currentValueNotAvailable();
+    builder.moveNext(); // Advance to requesting result2 for target3
+    builder.currentValue = value3;
+    builder.moveNext(); // Advance to the end
+    var inputValue = builder.inputValue;
+    expect(inputValue, new isInstanceOf<List>());
+    List list = inputValue;
+    expect(list, orderedEquals([value3]));
+  }
+
+  test_inputValue_afterListNotAvailable() {
+    ListToListTaskInputBuilder builder = new ListToListTaskInputBuilder(input);
+    builder.moveNext(); // Advance to requesting the list
+    builder.currentValueNotAvailable();
+    builder.moveNext(); // Advance to the end
+    var inputValue = builder.inputValue;
+    expect(inputValue, new isInstanceOf<List>());
+    List list = inputValue;
+    expect(list, isEmpty);
   }
 
   test_inputValue_afterOneMoveNext() {
@@ -232,6 +290,14 @@ class ListToMapTaskInputBuilderTest extends EngineTestCase {
     expect(builder.currentResult, null);
   }
 
+  test_currentResult_afterCurrentValueNotAvailable() {
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+    builder.moveNext();
+    expect(builder.currentResult, null);
+  }
+
   test_currentResult_afterOneMoveNext() {
     ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     builder.moveNext();
@@ -247,6 +313,14 @@ class ListToMapTaskInputBuilderTest extends EngineTestCase {
     ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = [];
+    builder.moveNext();
+    expect(builder.currentTarget, null);
+  }
+
+  test_currentTarget_afterCurrentValueNotAvailable() {
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
     builder.moveNext();
     expect(builder.currentTarget, null);
   }
@@ -275,6 +349,19 @@ class ListToMapTaskInputBuilderTest extends EngineTestCase {
     }, throwsStateError);
   }
 
+  test_currentValueNotAvailable_afterOneMoveNext() {
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+  }
+
+  test_currentValueNotAvailable_beforeMoveNext() {
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
+    expect(() {
+      builder.currentValueNotAvailable();
+    }, throwsStateError);
+  }
+
   test_inputValue_afterComplete() {
     AnalysisTarget target2 = new TestSource('target2');
     AnalysisTarget target3 = new TestSource('target3');
@@ -293,6 +380,34 @@ class ListToMapTaskInputBuilderTest extends EngineTestCase {
     expect(inputValue.length, 2);
     expect(inputValue, containsPair(target2, value2));
     expect(inputValue, containsPair(target3, value3));
+  }
+
+  test_inputValue_afterFirstValueNotAvailable() {
+    AnalysisTarget target2 = new TestSource('target2');
+    AnalysisTarget target3 = new TestSource('target3');
+    String value3 = 'value3';
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
+    builder.moveNext(); // Advance to requesting the list
+    builder.currentValue = [target2, target3];
+    builder.moveNext(); // Advance to requesting result2 for target2
+    builder.currentValueNotAvailable();
+    builder.moveNext(); // Advance to requesting result2 for target3
+    builder.currentValue = value3;
+    builder.moveNext(); // Advance to the end
+    var inputValue = builder.inputValue;
+    expect(inputValue, new isInstanceOf<Map>());
+    expect(inputValue, hasLength(1));
+    expect(inputValue, containsPair(target3, value3));
+  }
+
+  test_inputValue_afterListNotAvailable() {
+    ListToMapTaskInputBuilder builder = new ListToMapTaskInputBuilder(input);
+    builder.moveNext(); // Advance to requesting the list
+    builder.currentValueNotAvailable();
+    builder.moveNext(); // Advance to the end
+    var inputValue = builder.inputValue;
+    expect(inputValue, new isInstanceOf<Map>());
+    expect(inputValue, isEmpty);
   }
 
   test_inputValue_afterOneMoveNext() {
@@ -365,6 +480,14 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
     expect(builder.currentResult, null);
   }
 
+  test_currentResult_afterCurrentValueNotAvailable() {
+    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+    builder.moveNext();
+    expect(builder.currentResult, null);
+  }
+
   test_currentResult_afterOneMoveNext() {
     SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
@@ -380,6 +503,14 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
     SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
     builder.currentValue = 'value';
+    builder.moveNext();
+    expect(builder.currentTarget, null);
+  }
+
+  test_currentTarget_afterCurrentValueNotAvailable() {
+    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
     builder.moveNext();
     expect(builder.currentTarget, null);
   }
@@ -408,6 +539,19 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
     }, throwsStateError);
   }
 
+  test_currentValueNotAvailable_afterOneMoveNext() {
+    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+  }
+
+  test_currentValueNotAvailable_beforeMoveNext() {
+    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
+    expect(() {
+      builder.currentValueNotAvailable();
+    }, throwsStateError);
+  }
+
   test_inputValue_afterComplete() {
     SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
@@ -415,6 +559,15 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
     builder.currentValue = value;
     builder.moveNext();
     expect(builder.inputValue, value);
+  }
+
+  test_inputValue_afterCurrentValueNotAvailable() {
+    SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
+    builder.moveNext();
+    String value = 'value';
+    builder.currentValueNotAvailable();
+    builder.moveNext();
+    expect(builder.inputValue, isNull);
   }
 
   test_inputValue_afterOneMoveNext() {
@@ -490,6 +643,16 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
     expect(builder.currentResult, null);
   }
 
+  test_currentResult_afterCurrentValueNotAvailable() {
+    Map<String, TaskInput> inputDescriptors = {'one': input1};
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+    builder.moveNext();
+    expect(builder.currentResult, null);
+  }
+
   test_currentResult_afterOneMoveNext() {
     Map<String, TaskInput> inputDescriptors = {'one': input1, 'two': input2};
     TopLevelTaskInputBuilder builder =
@@ -511,6 +674,16 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
         new TopLevelTaskInputBuilder(inputDescriptors);
     builder.moveNext();
     builder.currentValue = 'value1';
+    builder.moveNext();
+    expect(builder.currentTarget, null);
+  }
+
+  test_currentTarget_afterCurrentValueNotAvailable() {
+    Map<String, TaskInput> inputDescriptors = {'one': input1};
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
     builder.moveNext();
     expect(builder.currentTarget, null);
   }
@@ -547,6 +720,23 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
     }, throwsStateError);
   }
 
+  test_currentValueNotAvailable_afterOneMoveNext() {
+    Map<String, TaskInput> inputDescriptors = {'one': input1};
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
+    builder.moveNext();
+    builder.currentValueNotAvailable();
+  }
+
+  test_currentValueNotAvailable_beforeMoveNext() {
+    Map<String, TaskInput> inputDescriptors = {'one': input1};
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
+    expect(() {
+      builder.currentValueNotAvailable();
+    }, throwsStateError);
+  }
+
   test_inputValue_afterComplete() {
     String key1 = 'one';
     String key2 = 'two';
@@ -574,6 +764,25 @@ class TopLevelTaskInputBuilderTest extends EngineTestCase {
         new TopLevelTaskInputBuilder(inputDescriptors);
     builder.moveNext();
     expect(() => builder.inputValue, throwsStateError);
+  }
+
+  test_inputValue_afterOneValueNotAvailable() {
+    String key1 = 'one';
+    String key2 = 'two';
+    String value2 = 'value2';
+    Map<String, TaskInput> inputDescriptors = {key1: input1, key2: input2};
+    TopLevelTaskInputBuilder builder =
+        new TopLevelTaskInputBuilder(inputDescriptors);
+    builder.moveNext(); // Advance to requesting result1 for target
+    builder.currentValueNotAvailable();
+    builder.moveNext(); // Advance to requesting result2 for target
+    builder.currentValue = value2;
+    builder.moveNext(); // Advance to the end
+    var inputValue = builder.inputValue;
+    expect(inputValue, new isInstanceOf<Map>());
+    Map inputs = inputValue;
+    expect(inputs, hasLength(1));
+    expect(inputs, containsPair(key2, value2));
   }
 
   test_inputValue_beforeMoveNext() {

@@ -7,9 +7,11 @@ library test.domain.server;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/domain_server.dart';
+import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
@@ -22,9 +24,13 @@ main() {
   setUp(() {
     var serverChannel = new MockServerChannel();
     var resourceProvider = new MemoryResourceProvider();
+    ExtensionManager manager = new ExtensionManager();
+    ServerPlugin serverPlugin = new ServerPlugin();
+    manager.processPlugins([serverPlugin]);
     server = new AnalysisServer(serverChannel, resourceProvider,
-        new MockPackageMapProvider(), null, new AnalysisServerOptions(),
-        new MockSdk(), InstrumentationService.NULL_SERVICE);
+        new MockPackageMapProvider(), null, serverPlugin,
+        new AnalysisServerOptions(), new MockSdk(),
+        InstrumentationService.NULL_SERVICE);
     handler = new ServerDomainHandler(server);
   });
 

@@ -21,7 +21,7 @@ var tests = [
 
 (Isolate isolate) =>
   isolate.rootLibrary.load().then((Library lib) {
-    expect(lib.url.endsWith('allocations_test.dart'), isTrue);
+    expect(lib.uri.endsWith('allocations_test.dart'), isTrue);
     expect(lib.classes.length, equals(1));
     return lib.classes.first.load().then((Class fooClass) {
       expect(fooClass.name, equals('Foo'));

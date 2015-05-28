@@ -357,14 +357,21 @@ class Send extends Expression with StoredTreeElementMixin {
   final Node receiver;
   final Node selector;
   final NodeList argumentsNode;
+
+  /// Whether this is a conditinal send of the form `a?.b`.
+  final bool isConditional;
+
   Link<Node> get arguments => argumentsNode.nodes;
 
-  Send([this.receiver, this.selector, this.argumentsNode]);
-  Send.postfix(this.receiver, this.selector, [Node argument = null])
+  Send([this.receiver, this.selector, this.argumentsNode,
+      this.isConditional = false]);
+  Send.postfix(this.receiver, this.selector,
+      [Node argument = null, this.isConditional = false])
       : argumentsNode = (argument == null)
         ? new Postfix()
         : new Postfix.singleton(argument);
-  Send.prefix(this.receiver, this.selector, [Node argument = null])
+  Send.prefix(this.receiver, this.selector,
+      [Node argument = null, this.isConditional = false])
       : argumentsNode = (argument == null)
         ? new Prefix()
         : new Prefix.singleton(argument);
@@ -398,6 +405,8 @@ class Send extends Expression with StoredTreeElementMixin {
       isOperator && identical(selector.asOperator().source, '&&');
   bool get isLogicalOr =>
       isOperator && identical(selector.asOperator().source, '||');
+  bool get isIfNull =>
+      isOperator && identical(selector.asOperator().source, '??');
 
   bool get isTypeCast {
     return isOperator
@@ -441,9 +450,9 @@ class Send extends Expression with StoredTreeElementMixin {
     return getBeginToken();
   }
 
-  Send copyWithReceiver(Node newReceiver) {
+  Send copyWithReceiver(Node newReceiver, bool isConditional) {
     assert(receiver == null);
-    return new Send(newReceiver, selector, argumentsNode);
+    return new Send(newReceiver, selector, argumentsNode, isConditional);
   }
 }
 
@@ -459,32 +468,37 @@ class Prefix extends NodeList {
 
 class SendSet extends Send {
   final Operator assignmentOperator;
-  SendSet(receiver, selector, this.assignmentOperator, argumentsNode)
-    : super(receiver, selector, argumentsNode);
+  SendSet(receiver, selector, this.assignmentOperator, argumentsNode,
+      [bool isConditional = false])
+    : super(receiver, selector, argumentsNode, isConditional);
   SendSet.postfix(receiver,
                   selector,
                   this.assignmentOperator,
-                  [Node argument = null])
-      : super.postfix(receiver, selector, argument);
+                  [Node argument = null, bool isConditional = false])
+      : super.postfix(receiver, selector, argument, isConditional);
   SendSet.prefix(receiver,
                  selector,
                  this.assignmentOperator,
-                 [Node argument = null])
-      : super.prefix(receiver, selector, argument);
+                 [Node argument = null, bool isConditional = false])
+      : super.prefix(receiver, selector, argument, isConditional);
 
   SendSet asSendSet() => this;
 
   accept(Visitor visitor) => visitor.visitSendSet(this);
+
+  /// Whether this is an if-null assignment of the form `a ??= b`.
+  bool get isIfNullAssignment =>
+      identical(assignmentOperator.source, '??=');
 
   visitChildren(Visitor visitor) {
     super.visitChildren(visitor);
     if (assignmentOperator != null) assignmentOperator.accept(visitor);
   }
 
-  Send copyWithReceiver(Node newReceiver) {
+  Send copyWithReceiver(Node newReceiver, bool isConditional) {
     assert(receiver == null);
     return new SendSet(newReceiver, selector, assignmentOperator,
-                       argumentsNode);
+                       argumentsNode, isConditional);
   }
 
   Token getBeginToken() {
@@ -1047,7 +1061,7 @@ class Identifier extends Expression with StoredTreeElementMixin {
 class Operator extends Identifier {
   static const COMPLEX_OPERATORS =
       const ["--", "++", '+=', "-=", "*=", "/=", "%=", "&=", "|=", "~/=", "^=",
-             ">>=", "<<="];
+             ">>=", "<<=", "??="];
 
   static const INCREMENT_OPERATORS = const <String>["++", "--"];
 
@@ -2250,6 +2264,7 @@ class Initializers {
     return (node.receiver == null && node.selector.isSuper()) ||
            (node.receiver != null &&
             node.receiver.isSuper() &&
+            !node.isConditional &&
             node.selector.asIdentifier() != null);
   }
 
@@ -2257,6 +2272,7 @@ class Initializers {
     return (node.receiver == null && node.selector.isThis()) ||
            (node.receiver != null &&
             node.receiver.isThis() &&
+            !node.isConditional &&
             node.selector.asIdentifier() != null);
   }
 }

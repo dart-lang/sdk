@@ -19,6 +19,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, load_deferred_eagerly);
 
 // Check if serialized and deserialized objects are equal.
 static bool Equals(const Object& expected, const Object& actual) {
@@ -1232,6 +1233,9 @@ UNIT_TEST_CASE(ScriptSnapshot) {
   intptr_t expected_num_libs;
   intptr_t actual_num_libs;
 
+  bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
+  FLAG_load_deferred_eagerly = true;
+
   {
     // Start an Isolate, and create a full snapshot of it.
     TestIsolateScope __test_isolate__;
@@ -1248,6 +1252,7 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     Dart_ExitScope();
   }
 
+  FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
   {
     // Create an Isolate using the full snapshot, load a script and create
     // a script snapshot of the script.
@@ -1328,6 +1333,8 @@ UNIT_TEST_CASE(ScriptSnapshot1) {
   uint8_t* full_snapshot = NULL;
   uint8_t* script_snapshot = NULL;
 
+  bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
+  FLAG_load_deferred_eagerly = true;
   {
     // Start an Isolate, and create a full snapshot of it.
     TestIsolateScope __test_isolate__;
@@ -1373,6 +1380,8 @@ UNIT_TEST_CASE(ScriptSnapshot1) {
     result = Dart_LoadScriptFromSnapshot(script_snapshot, size);
     EXPECT_VALID(result);
   }
+
+  FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
   Dart_ShutdownIsolate();
   free(full_snapshot);
   free(script_snapshot);
@@ -1412,8 +1421,10 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
   uint8_t* script_snapshot = NULL;
 
   // Force creation of snapshot in production mode.
-  bool saved_mode = FLAG_enable_type_checks;
+  bool saved_enable_type_checks_mode = FLAG_enable_type_checks;
   FLAG_enable_type_checks = false;
+  bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
+  FLAG_load_deferred_eagerly = true;
 
   {
     // Start an Isolate, and create a full snapshot of it.
@@ -1461,7 +1472,8 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
   }
 
   // Continue in originally saved mode.
-  FLAG_enable_type_checks = saved_mode;
+  FLAG_enable_type_checks = saved_enable_type_checks_mode;
+  FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
 
   {
     // Now Create an Isolate using the full snapshot and load the
@@ -1476,15 +1488,15 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
 
     // Invoke the test_s function.
     result = Dart_Invoke(lib, NewString("test_s"), 0, NULL);
-    EXPECT(Dart_IsError(result) == saved_mode);
+    EXPECT(Dart_IsError(result) == saved_enable_type_checks_mode);
 
     // Invoke the test_i function.
     result = Dart_Invoke(lib, NewString("test_i"), 0, NULL);
-    EXPECT(Dart_IsError(result) == saved_mode);
+    EXPECT(Dart_IsError(result) == saved_enable_type_checks_mode);
 
     // Invoke the test_b function.
     result = Dart_Invoke(lib, NewString("test_b"), 0, NULL);
-    EXPECT(Dart_IsError(result) == saved_mode);
+    EXPECT(Dart_IsError(result) == saved_enable_type_checks_mode);
   }
   Dart_ShutdownIsolate();
   free(full_snapshot);

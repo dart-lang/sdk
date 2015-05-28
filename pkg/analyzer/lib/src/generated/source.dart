@@ -7,12 +7,13 @@
 
 library engine.source;
 
-import "dart:math" as math;
 import 'dart:collection';
+import "dart:math" as math;
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:path/path.dart' as pathos;
 
 import 'engine.dart';
 import 'java_core.dart';
@@ -323,45 +324,42 @@ class LocalSourcePredicate_TRUE implements LocalSourcePredicate {
  * An implementation of an non-existing [Source].
  */
 class NonExistingSource extends Source {
-  final String _name;
+  @override
+  final String fullName;
+
+  @override
+  final Uri uri;
 
   final UriKind uriKind;
 
-  NonExistingSource(this._name, this.uriKind);
+  NonExistingSource(this.fullName, this.uri, this.uriKind);
 
   @override
   TimestampedData<String> get contents {
-    throw new UnsupportedOperationException("${_name}does not exist.");
+    throw new UnsupportedOperationException('$fullName does not exist.');
   }
 
   @override
   String get encoding {
-    throw new UnsupportedOperationException("${_name}does not exist.");
+    throw new UnsupportedOperationException('$fullName does not exist.');
   }
 
   @override
-  String get fullName => _name;
-
-  @override
-  int get hashCode => _name.hashCode;
+  int get hashCode => fullName.hashCode;
 
   @override
   bool get isInSystemLibrary => false;
 
   @override
-  int get modificationStamp => 0;
+  int get modificationStamp => -1;
 
   @override
-  String get shortName => _name;
+  String get shortName => pathos.basename(fullName);
 
   @override
-  Uri get uri => null;
-
-  @override
-  bool operator ==(Object obj) {
-    if (obj is NonExistingSource) {
-      NonExistingSource other = obj;
-      return other.uriKind == uriKind && (other._name == _name);
+  bool operator ==(Object other) {
+    if (other is NonExistingSource) {
+      return other.uriKind == uriKind && other.fullName == fullName;
     }
     return false;
   }
@@ -371,7 +369,7 @@ class NonExistingSource extends Source {
 
   @override
   Uri resolveRelativeUri(Uri relativeUri) {
-    throw new UnsupportedOperationException("${_name}does not exist.");
+    throw new UnsupportedOperationException('$fullName does not exist.');
   }
 }
 

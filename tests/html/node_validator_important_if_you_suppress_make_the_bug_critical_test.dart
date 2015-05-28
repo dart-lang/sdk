@@ -154,7 +154,12 @@ main() {
       expect(fragment.childNodes.length, 1);
       expect(fragment.childNodes[0].id, "bad");
       expect(fragment.childNodes[0].childNodes.length, 0);
-    });    
+    });
+
+    testHtml("sanitizes embed",
+      validator,
+      "<div><embed src='' type='application/x-shockwave-flash'></embed></div>",
+      "<div></div>");
   });
 
   group('URI_sanitization', () {
@@ -524,14 +529,33 @@ main() {
     "<input id='bad' onmouseover='alert(1)'>",
     "");
 
-    testHtml('tagName makes containing form invalid',
-    validator,
-    "<form onmouseover='alert(2)'><input name='tagName'>",
-    "");
+    test('tagName makes containing form invalid', () {
+      var fragment = document.body.createFragment(
+          "<form onmouseover='alert(2)'><input name='tagName'>",
+          validator: validator);
+      var form = fragment.lastChild;
+      // If the tagName was clobbered, the sanitizer should have removed
+      // the whole thing and form is null.
+      // If the tagName was not clobbered, then there will be content,
+      // but the tagName should be the normal value. IE11 has started
+      // doing this.
+      if (form != null) {
+        expect(form.tagName, 'FORM');
+      }
+    });
 
-    testHtml('tagName without mouseover',
-    validator,
-    "<form><input name='tagName'>",
-    "");
+    test('tagName without mouseover', () {
+      var fragment = document.body.createFragment(
+          "<form><input name='tagName'>",
+          validator: validator);
+      var form = fragment.lastChild;
+      // If the tagName was clobbered, the sanitizer should have removed
+      // the whole thing and form is null.
+      // If the tagName was not clobbered, then there will be content,
+      // but the tagName should be the normal value.
+      if (form != null) {
+        expect(form.tagName, 'FORM');
+      }
+    });
   });
 }

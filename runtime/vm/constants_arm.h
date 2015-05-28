@@ -238,6 +238,7 @@ const Register FPREG = FP;  // Frame pointer register.
 const Register LRREG = LR;  // Link register.
 const Register ICREG = R5;  // IC data register.
 const Register ARGS_DESC_REG = R4;
+const Register THR = R8;  // Caches current thread in generated code.
 
 // R15 encodes APSR in the vmrs instruction.
 const Register APSR = R15;

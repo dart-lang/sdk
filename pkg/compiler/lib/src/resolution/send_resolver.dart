@@ -28,28 +28,125 @@ abstract class SendResolverMixin {
 
   internalError(Spannable spannable, String message);
 
-  AccessSemantics handleStaticallyResolvedAccess(Send node,
-                                                 Element element,
-                                                 Element getter) {
+  AccessSemantics handleCompoundErroneousSetterAccess(
+      Send node,
+      Element setter,
+      Element getter) {
+    assert(invariant(node, Elements.isUnresolved(setter),
+        message: "Unexpected erreneous compound setter: $setter."));
+    if (getter.isStatic) {
+      if (getter.isGetter) {
+        return new CompoundAccessSemantics(
+            CompoundAccessKind.UNRESOLVED_STATIC_SETTER, getter, setter);
+      } else if (getter.isField) {
+        // TODO(johnniwinther): Handle const field separately.
+        assert(invariant(node, getter.isFinal || getter.isConst,
+            message: "Field expected to be final or const."));
+        return new StaticAccess.finalStaticField(getter);
+      } else if (getter.isFunction) {
+        return new StaticAccess.staticMethod(getter);
+      } else {
+        return internalError(node,
+            "Unexpected erroneous static compound: getter=$getter");
+      }
+    } else if (getter.isTopLevel) {
+      if (getter.isGetter) {
+        return new CompoundAccessSemantics(
+            CompoundAccessKind.UNRESOLVED_TOPLEVEL_SETTER, getter, setter);
+      } else if (getter.isField) {
+        // TODO(johnniwinther): Handle const field separately.
+        assert(invariant(node, getter.isFinal || getter.isConst,
+            message: "Field expected to be final or const."));
+        return new StaticAccess.finalTopLevelField(getter);
+      } else if (getter.isFunction) {
+        return new StaticAccess.topLevelMethod(getter);
+      } else {
+        return internalError(node,
+            "Unexpected erroneous top level compound: getter=$getter");
+      }
+    } else if (getter.isParameter) {
+      assert(invariant(node, getter.isFinal,
+          message: "Parameter expected to be final."));
+      return new StaticAccess.finalParameter(getter);
+    } else if (getter.isLocal) {
+      if (getter.isVariable) {
+        // TODO(johnniwinther): Handle const variable separately.
+        assert(invariant(node, getter.isFinal || getter.isConst,
+            message: "Variable expected to be final or const."));
+        return new StaticAccess.finalLocalVariable(getter);
+      } else if (getter.isFunction) {
+        return new StaticAccess.localFunction(getter);
+      } else {
+        return internalError(node,
+            "Unexpected erroneous local compound: getter=$getter");
+      }
+    } else if (getter.isErroneous) {
+      return new StaticAccess.unresolved(getter);
+    } else {
+      return internalError(node,
+          "Unexpected erroneous compound: getter=$getter");
+    }
+  }
+
+  AccessSemantics handleStaticallyResolvedAccess(
+      Send node,
+      Element element,
+      Element getter,
+      {bool isCompound}) {
+    if (element == null) {
+      assert(invariant(node, isCompound, message:
+        "Non-compound static access without element."));
+      assert(invariant(node, getter != null, message:
+        "Compound static access without element."));
+      return handleCompoundErroneousSetterAccess(node, element, getter);
+    }
     if (element.isErroneous) {
+      if (isCompound) {
+        return handleCompoundErroneousSetterAccess(node, element, getter);
+      }
       return new StaticAccess.unresolved(element);
     } else if (element.isParameter) {
-      return new StaticAccess.parameter(element);
+      if (element.isFinal) {
+        return new StaticAccess.finalParameter(element);
+      } else {
+        return new StaticAccess.parameter(element);
+      }
     } else if (element.isLocal) {
       if (element.isFunction) {
         return new StaticAccess.localFunction(element);
+      } else if (element.isFinal || element.isConst) {
+        return new StaticAccess.finalLocalVariable(element);
       } else {
         return new StaticAccess.localVariable(element);
       }
     } else if (element.isStatic) {
       if (element.isField) {
+        if (element.isFinal || element.isConst) {
+          // TODO(johnniwinther): Handle const field separately.
+          return new StaticAccess.finalStaticField(element);
+        }
         return new StaticAccess.staticField(element);
       } else if (element.isGetter) {
+        if (isCompound) {
+          return new CompoundAccessSemantics(
+              CompoundAccessKind.UNRESOLVED_STATIC_SETTER, element, null);
+        }
         return new StaticAccess.staticGetter(element);
       } else if (element.isSetter) {
         if (getter != null) {
           CompoundAccessKind accessKind;
-          if (getter.isGetter) {
+          if (getter.isErroneous) {
+            accessKind = CompoundAccessKind.UNRESOLVED_STATIC_GETTER;
+          } else if (getter.isAbstractField) {
+            AbstractFieldElement abstractField = getter;
+            if (abstractField.getter == null) {
+              accessKind = CompoundAccessKind.UNRESOLVED_STATIC_GETTER;
+            } else {
+              // TODO(johnniwinther): This might be dead code.
+              getter = abstractField.getter;
+              accessKind = CompoundAccessKind.STATIC_GETTER_SETTER;
+            }
+          } else if (getter.isGetter) {
             accessKind = CompoundAccessKind.STATIC_GETTER_SETTER;
           } else {
             accessKind = CompoundAccessKind.STATIC_METHOD_SETTER;
@@ -64,13 +161,28 @@ abstract class SendResolverMixin {
       }
     } else if (element.isTopLevel) {
       if (element.isField) {
+        if (element.isFinal || element.isConst) {
+          // TODO(johnniwinther): Handle const field separately.
+          return new StaticAccess.finalTopLevelField(element);
+        }
         return new StaticAccess.topLevelField(element);
       } else if (element.isGetter) {
         return new StaticAccess.topLevelGetter(element);
       } else if (element.isSetter) {
         if (getter != null) {
           CompoundAccessKind accessKind;
-          if (getter.isGetter) {
+          if (getter.isErroneous) {
+            accessKind = CompoundAccessKind.UNRESOLVED_TOPLEVEL_GETTER;
+          } else if (getter.isAbstractField) {
+            AbstractFieldElement abstractField = getter;
+            if (abstractField.getter == null) {
+              accessKind = CompoundAccessKind.UNRESOLVED_TOPLEVEL_GETTER;
+            } else {
+              // TODO(johnniwinther): This might be dead code.
+              getter = abstractField.getter;
+              accessKind = CompoundAccessKind.TOPLEVEL_GETTER_SETTER;
+            }
+          } else if (getter.isGetter) {
             accessKind = CompoundAccessKind.TOPLEVEL_GETTER_SETTER;
           } else {
             accessKind = CompoundAccessKind.TOPLEVEL_METHOD_SETTER;
@@ -90,12 +202,13 @@ abstract class SendResolverMixin {
   }
 
   SendStructure computeSendStructure(Send node) {
+    SendStructure sendStructure = elements.getSendStructure(node);
+    if (sendStructure != null) {
+      return sendStructure;
+    }
+
     if (elements.isAssert(node)) {
-      if (!node.arguments.isEmpty && node.arguments.tail.isEmpty) {
-        return const AssertStructure();
-      } else {
-        return const InvalidAssertStructure();
-      }
+      return internalError(node, "Unexpected assert.");
     }
 
     AssignmentOperator assignmentOperator;
@@ -106,18 +219,15 @@ abstract class SendResolverMixin {
     if (node.isOperator) {
       String operatorText = node.selector.asOperator().source;
       if (operatorText == 'is') {
-        if (node.isIsNotCheck) {
-          return new IsNotStructure(
-              elements.getType(node.arguments.single.asSend().receiver));
-        } else {
-          return new IsStructure(elements.getType(node.arguments.single));
-        }
+        return internalError(node, "Unexpected is test.");
       } else if (operatorText == 'as') {
-        return new AsStructure(elements.getType(node.arguments.single));
+        return internalError(node, "Unexpected as cast.");
       } else if (operatorText == '&&') {
-        return const LogicalAndStructure();
+        return internalError(node, "Unexpected logical and.");
       } else if (operatorText == '||') {
-        return const LogicalOrStructure();
+        return internalError(node, "Unexpected logical or.");
+      } else if (operatorText == '??') {
+        return internalError(node, "Unexpected if-null.");
       }
     }
 
@@ -215,8 +325,7 @@ abstract class SendResolverMixin {
     }
     AccessSemantics semantics = computeAccessSemantics(
         node,
-        isGetOrSet: kind == SendStructureKind.GET ||
-                    kind == SendStructureKind.SET,
+        isSet: kind == SendStructureKind.SET,
         isInvoke: kind == SendStructureKind.INVOKE,
         isCompound: kind == SendStructureKind.COMPOUND ||
                     kind == SendStructureKind.COMPOUND_INDEX_SET ||
@@ -248,18 +357,17 @@ abstract class SendResolverMixin {
         }
         return new InvokeStructure(semantics, selector);
       case SendStructureKind.UNARY:
-        return new UnaryStructure(semantics, unaryOperator, selector);
+        return internalError(node, "Unexpected unary.");
       case SendStructureKind.NOT:
-        assert(selector == null);
-        return new NotStructure(semantics, selector);
+        return internalError(node, "Unexpected not.");
       case SendStructureKind.BINARY:
-        return new BinaryStructure(semantics, binaryOperator, selector);
+        return internalError(node, "Unexpected binary.");
       case SendStructureKind.INDEX:
-        return new IndexStructure(semantics, selector);
+        return internalError(node, "Unexpected index.");
       case SendStructureKind.EQ:
-        return new EqualsStructure(semantics, selector);
+        return internalError(node, "Unexpected equals.");
       case SendStructureKind.NOT_EQ:
-        return new NotEqualsStructure(semantics, selector);
+        return internalError(node, "Unexpected not equals.");
       case SendStructureKind.COMPOUND:
         Selector getterSelector =
             elements.getGetterSelectorInComplexSendSet(node);
@@ -314,7 +422,7 @@ abstract class SendResolverMixin {
   }
 
   AccessSemantics computeAccessSemantics(Send node,
-                                         {bool isGetOrSet: false,
+                                         {bool isSet: false,
                                           bool isInvoke: false,
                                           bool isCompound: false}) {
     Element element = elements[node];
@@ -325,7 +433,7 @@ abstract class SendResolverMixin {
       // but not compile-time constants and should have their own
       // [DeferredConstantExpression] class.
       ConstantExpression constant = elements.getConstant(
-          isInvoke ? node.selector : node);
+          isInvoke || isSet || isCompound ? node.selector : node);
       switch (dartType.kind) {
         case TypeKind.INTERFACE:
           return new ConstantAccess.classTypeLiteral(constant);
@@ -344,8 +452,18 @@ abstract class SendResolverMixin {
           if (Elements.isUnresolved(getter)) {
             // TODO(johnniwinther): Ensure that [getter] is not null. This
             // happens in the case of missing super getter.
-            return new CompoundAccessSemantics(
-                CompoundAccessKind.UNRESOLVED_SUPER_GETTER, getter, element);
+            return new StaticAccess.unresolvedSuper(element);
+          } else if (getter.isField) {
+            assert(invariant(node, getter.isFinal,
+                message: "Super field expected to be final."));
+            return new StaticAccess.superFinalField(getter);
+          } else if (getter.isFunction) {
+            if (node.isIndex) {
+              return new CompoundAccessSemantics(
+                  CompoundAccessKind.UNRESOLVED_SUPER_SETTER, getter, element);
+            } else {
+              return new StaticAccess.superMethod(getter);
+            }
           } else {
             return new CompoundAccessSemantics(
                 CompoundAccessKind.UNRESOLVED_SUPER_SETTER, getter, element);
@@ -370,6 +488,8 @@ abstract class SendResolverMixin {
                "Unsupported super call: $node : $element/$getter.");
           }
           return new CompoundAccessSemantics(accessKind, getter, element);
+        } else if (element.isFinal) {
+          return new StaticAccess.superFinalField(element);
         }
         return new StaticAccess.superField(element);
       } else if (element.isGetter) {
@@ -393,7 +513,11 @@ abstract class SendResolverMixin {
       } else {
         return new StaticAccess.superMethod(element);
       }
-    } else if (node.isOperator) {
+    } else if (node.isOperator || node.isConditional) {
+      // Conditional sends (e?.x) are treated as dynamic property reads because
+      // they are equivalent to do ((a) => a == null ? null : a.x)(e). If `e` is
+      // a type `A`, this is equivalent to write `(A).x`.
+      // TODO(johnniwinther): maybe add DynamicAccess.conditionalDynamicProperty
       return new DynamicAccess.dynamicProperty(node.receiver);
     } else if (Elements.isClosureSend(node, element)) {
       if (element == null) {
@@ -405,32 +529,38 @@ abstract class SendResolverMixin {
       } else if (Elements.isErroneous(element)) {
         return new StaticAccess.unresolved(element);
       } else {
-        return handleStaticallyResolvedAccess(node, element, getter);
+        return handleStaticallyResolvedAccess(
+            node, element, getter, isCompound: isCompound);
       }
     } else {
-      if (Elements.isErroneous(element)) {
-        return new StaticAccess.unresolved(element);
-      } else if (isCompound && Elements.isErroneous(getter)) {
-        return new StaticAccess.unresolved(getter);
-      } else if (element == null || element.isInstanceMember) {
+      bool isDynamicAccess(Element e) => e == null || e.isInstanceMember;
+
+      if (isDynamicAccess(element) &&
+           (!isCompound || isDynamicAccess(getter))) {
         if (node.receiver == null || node.receiver.isThis()) {
           return new AccessSemantics.thisProperty();
         } else {
           return new DynamicAccess.dynamicProperty(node.receiver);
         }
-      } else if (element.impliesType) {
+      } else if (element != null && element.impliesType) {
         // TODO(johnniwinther): Provide an [ErroneousElement].
         // This happens for code like `C.this`.
         return new StaticAccess.unresolved(null);
       } else {
-        return handleStaticallyResolvedAccess(node, element, getter);
+        return handleStaticallyResolvedAccess(
+            node, element, getter, isCompound: isCompound);
       }
     }
   }
 
   ConstructorAccessSemantics computeConstructorAccessSemantics(
         ConstructorElement constructor,
-        DartType type) {
+        DartType type,
+        {bool mustBeConstant: false}) {
+    if (mustBeConstant && !constructor.isConst) {
+      return new ConstructorAccessSemantics(
+          ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR, constructor, type);
+    }
     if (constructor.isErroneous) {
       if (constructor is ErroneousElement) {
         ErroneousElement error = constructor;
@@ -444,7 +574,8 @@ abstract class SendResolverMixin {
     } else if (constructor.isRedirectingFactory) {
       ConstructorElement effectiveTarget = constructor.effectiveTarget;
       if (effectiveTarget == constructor ||
-          effectiveTarget.isErroneous) {
+          effectiveTarget.isErroneous ||
+          (mustBeConstant && !effectiveTarget.isConst)) {
         return new ConstructorAccessSemantics(
             ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY,
             constructor,
@@ -486,26 +617,24 @@ abstract class SendResolverMixin {
   }
 
   NewStructure computeNewStructure(NewExpression node) {
-    if (node.isConst) {
-      ConstantExpression constant = elements.getConstant(node);
-      if (constant is ConstructedConstantExpression) {
-        return new ConstInvokeStructure(constant);
-      }
-    }
-
     Element element = elements[node.send];
     Selector selector = elements.getSelector(node.send);
     DartType type = elements.getType(node);
 
-    ConstructorAccessSemantics constructorAccessSemantics;
+    ConstructorAccessSemantics constructorAccessSemantics =
+        computeConstructorAccessSemantics(
+            element, type, mustBeConstant: node.isConst);
     if (node.isConst) {
-      // This is a non-constant constant constructor invocation, like
-      // `const Const(method())`.
-      constructorAccessSemantics = new ConstructorAccessSemantics(
-          ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR, element, type);
-    } else {
-      constructorAccessSemantics =
-          computeConstructorAccessSemantics(element, type);
+      ConstantExpression constant = elements.getConstant(node);
+      if (constructorAccessSemantics.isErroneous ||
+          constant is! ConstructedConstantExpression) {
+        // This is a non-constant constant constructor invocation, like
+        // `const Const(method())`.
+        constructorAccessSemantics = new ConstructorAccessSemantics(
+            ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR, element, type);
+      } else {
+        return new ConstInvokeStructure(constant);
+      }
     }
     return new NewInvokeStructure(constructorAccessSemantics, selector);
   }

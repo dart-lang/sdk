@@ -236,8 +236,9 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String dummy = names.name(node);
     String operator = node.isTypeTest ? 'is' : 'as';
     List<String> entries = new List<String>();
-    String receiver = formatReference(node.receiver);
-    printStmt(dummy, "TypeOperator ($operator $receiver ${node.type})");
+    String value = formatReference(node.value);
+    String kont = formatReference(node.continuation);
+    printStmt(dummy, "TypeOperator ($operator $value ${node.type}) $kont");
   }
 
   visitInvokeContinuation(cps_ir.InvokeContinuation node) {
@@ -327,6 +328,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String value = formatReference(node.value);
     printStmt(dummy, 'SetStatic $element = $value');
     visit(node.body);
+  }
+
+  visitGetLazyStatic(cps_ir.GetLazyStatic node) {
+    String dummy = names.name(node);
+    String kont = formatReference(node.continuation);
+    printStmt(dummy, "GetLazyStatic $kont");
   }
 
   visitCreateBox(cps_ir.CreateBox node) {
@@ -554,6 +561,10 @@ class BlockCollector implements cps_ir.Visitor {
 
   visitSetStatic(cps_ir.SetStatic exp) {
     visit(exp.body);
+  }
+
+  visitGetLazyStatic(cps_ir.GetLazyStatic exp) {
+    addEdgeToContinuation(exp.continuation);
   }
 
   visitDeclareFunction(cps_ir.DeclareFunction exp) {

@@ -29,7 +29,8 @@ class ScannerTask extends CompilerTask {
   void scanElements(CompilationUnitElement compilationUnit) {
     Script script = compilationUnit.script;
     Token tokens = new Scanner(script.file,
-        includeComments: compiler.preserveComments).tokenize();
+        includeComments: compiler.preserveComments,
+        enableNullAwareOperators: compiler.enableNullAwareOperators).tokenize();
     if (compiler.preserveComments) {
       tokens = compiler.processAndStripComments(tokens);
     }
@@ -63,7 +64,7 @@ class DietParserTask extends CompilerTask {
       PartialParser parser = new PartialParser(listener);
       try {
         parser.parseUnit(tokens);
-      } on ParserError catch (e) {
+      } on ParserError catch(_) {
         assert(invariant(compilationUnit, compiler.compilationFailed));
       }
     });

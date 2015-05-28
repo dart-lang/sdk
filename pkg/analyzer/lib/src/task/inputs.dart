@@ -236,6 +236,15 @@ class MapToFlattenListTaskInputBuilder<K, V, E>
   }
 
   @override
+  void currentValueNotAvailable() {
+    if (currentBuilder == null) {
+      throw new StateError(
+          'Cannot set the result value when there is no current result');
+    }
+    currentBuilder.currentValueNotAvailable();
+  }
+
+  @override
   bool moveNext() {
     // Prepare base Map.
     if (baseMap == null) {
@@ -243,6 +252,11 @@ class MapToFlattenListTaskInputBuilder<K, V, E>
         return true;
       }
       baseMap = currentBuilder.inputValue;
+      if (baseMap == null) {
+        // No base map could be computed due to a circular dependency.  Use an
+        // empty map so that no further results will be computed.
+        baseMap = {};
+      }
       keyIterator = baseMap.keys.iterator;
       // Done with this builder.
       currentBuilder = null;
@@ -254,7 +268,9 @@ class MapToFlattenListTaskInputBuilder<K, V, E>
       }
       // Add the result value for the current Map key/value.
       E resultValue = currentBuilder.inputValue;
-      inputValue.add(resultValue);
+      if (resultValue != null) {
+        inputValue.add(resultValue);
+      }
       // Done with this builder.
       currentBuilder = null;
     }
@@ -329,7 +345,8 @@ class SimpleTaskInputBuilder<V> implements TaskInputBuilder<V> {
   final SimpleTaskInput<V> input;
 
   /**
-   * The value of the input being built.
+   * The value of the input being built.  `null` if the value hasn't been set
+   * yet, or if no result is available ([currentValueNotAvailable] was called).
    */
   V _resultValue = null;
 
@@ -371,6 +388,16 @@ class SimpleTaskInputBuilder<V> implements TaskInputBuilder<V> {
       throw new StateError('Result value has not been created');
     }
     return _resultValue;
+  }
+
+  @override
+  void currentValueNotAvailable() {
+    if (_state != _AT) {
+      throw new StateError(
+          'Cannot set the result value when there is no current result');
+    }
+    _resultValue = null;
+    _resultSet = true;
   }
 
   @override
@@ -470,6 +497,15 @@ class TopLevelTaskInputBuilder
   String get _currentName => inputNames[nameIndex];
 
   @override
+  void currentValueNotAvailable() {
+    if (currentBuilder == null) {
+      throw new StateError(
+          'Cannot set the result value when there is no current result');
+    }
+    currentBuilder.currentValueNotAvailable();
+  }
+
+  @override
   bool moveNext() {
     if (nameIndex >= inputNames.length) {
       // We have already computed all of the results, so just return false.
@@ -485,7 +521,9 @@ class TopLevelTaskInputBuilder
         // current name.
         return true;
       }
-      inputs[_currentName] = currentBuilder.inputValue;
+      if (currentBuilder.inputValue != null) {
+        inputs[_currentName] = currentBuilder.inputValue;
+      }
       nameIndex++;
     }
     if (nameIndex >= inputNames.length) {
@@ -605,6 +643,15 @@ abstract class _ListToCollectionTaskInputBuilder<B, E, C>
   C get _resultValue;
 
   @override
+  void currentValueNotAvailable() {
+    if (currentBuilder == null) {
+      throw new StateError(
+          'Cannot set the result value when there is no current result');
+    }
+    currentBuilder.currentValueNotAvailable();
+  }
+
+  @override
   bool moveNext() {
     if (currentBuilder == null) {
       if (_resultValue == null) {
@@ -624,11 +671,18 @@ abstract class _ListToCollectionTaskInputBuilder<B, E, C>
       // We have finished computing the list of values from which the results
       // will be derived.
       _baseList = currentBuilder.inputValue;
+      if (_baseList == null) {
+        // No base list could be computed due to a circular dependency.  Use an
+        // empty list so that no further results will be computed.
+        _baseList = [];
+      }
       _baseListIndex = 0;
       _initResultValue();
     } else {
       // We have finished computing one of the elements in the result list.
-      _addResultElement(_baseListElement, currentBuilder.inputValue);
+      if (currentBuilder.inputValue != null) {
+        _addResultElement(_baseListElement, currentBuilder.inputValue);
+      }
       _baseListIndex++;
     }
     if (_baseListIndex >= _baseList.length) {

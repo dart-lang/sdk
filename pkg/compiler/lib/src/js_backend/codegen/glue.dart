@@ -60,6 +60,14 @@ class Glue {
     return _backend.emitter.staticFieldAccess(element);
   }
 
+  js.Expression isolateLazyInitializerAccess(FieldElement element) {
+    return _backend.emitter.isolateLazyInitializerAccess(element);
+  }
+
+  bool isLazilyInitialized(FieldElement element) {
+    return _backend.constants.lazyStatics.contains(element);
+  }
+
   String safeVariableName(String name) {
     return _namer.safeVariableName(name);
   }
@@ -151,7 +159,7 @@ class Glue {
     return _backend.getRuntimeTypeToString();
   }
 
-  FunctionElement getTypeArgumentWithSubstitution() {
+  FunctionElement getRuntimeTypeArgument() {
     return _backend.getGetRuntimeTypeArgument();
   }
 
@@ -163,8 +171,12 @@ class Glue {
     return _backend.getSetRuntimeTypeInfo();
   }
 
-  js.Expression getSubstitutionName(ClassElement cls) {
-    return js.string(_namer.substitutionName(cls));
+  FunctionElement getCheckSubtype() {
+    return _backend.getCheckSubtype();
+  }
+
+  js.Expression getRuntimeTypeName(ClassElement cls) {
+    return js.string(_namer.runtimeTypeName(cls));
   }
 
   int getTypeVariableIndex(TypeVariableType variable) {
@@ -191,33 +203,24 @@ class Glue {
     return representation;
   }
 
-  bool isNativePrimitiveType(DartType type) {
-    if (type is! InterfaceType) return false;
-    return _backend.isNativePrimitiveType(type.element);
-  }
-
   void registerIsCheck(DartType type, Registry registry) {
     _enqueuer.registerIsCheck(type, registry);
     _backend.registerIsCheckForCodegen(type, _enqueuer, registry);
   }
 
-  bool isIntClass(ClassElement cls) => cls == _compiler.intClass;
-
-  bool isStringClass(ClassElement cls) => cls == _compiler.stringClass;
-
-  bool isBoolClass(ClassElement cls) => cls == _compiler.boolClass;
-
-  bool isNumClass(ClassElement cls) => cls == _compiler.numClass;
-
-  bool isDoubleClass(ClassElement cls) => cls == _compiler.doubleClass;
-
   String getTypeTestTag(DartType type) {
     return _backend.namer.operatorIsType(type);
+  }
+
+  String getTypeSubstitutionTag(ClassElement element) {
+    return _backend.namer.substitutionName(element);
   }
 
   bool operatorEqHandlesNullArgument(FunctionElement element) {
     return _backend.operatorEqHandlesNullArgument(element);
   }
 
-  bool isListClass(ClassElement cls) => cls == _compiler.listClass;
+  bool hasStrictSubtype(ClassElement element) {
+    return _compiler.world.hasAnyStrictSubtype(element);
+  }
 }

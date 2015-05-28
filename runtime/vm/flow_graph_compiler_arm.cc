@@ -764,13 +764,13 @@ void FlowGraphCompiler::CopyParameters() {
   const int min_num_pos_args = num_fixed_params;
   const int max_num_pos_args = num_fixed_params + num_opt_pos_params;
 
-  __ ldr(R8, FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
+  __ ldr(R9, FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
   // Check that min_num_pos_args <= num_pos_args.
   Label wrong_num_arguments;
-  __ CompareImmediate(R8, Smi::RawValue(min_num_pos_args));
+  __ CompareImmediate(R9, Smi::RawValue(min_num_pos_args));
   __ b(&wrong_num_arguments, LT);
   // Check that num_pos_args <= max_num_pos_args.
-  __ CompareImmediate(R8, Smi::RawValue(max_num_pos_args));
+  __ CompareImmediate(R9, Smi::RawValue(max_num_pos_args));
   __ b(&wrong_num_arguments, GT);
 
   // Copy positional arguments.
@@ -778,30 +778,30 @@ void FlowGraphCompiler::CopyParameters() {
   // to fp[kFirstLocalSlotFromFp - i].
 
   __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-  // Since R7 and R8 are Smi, use LSL 1 instead of LSL 2.
+  // Since R7 and R9 are Smi, use LSL 1 instead of LSL 2.
   // Let R7 point to the last passed positional argument, i.e. to
   // fp[kParamEndSlotFromFp + num_args - (num_pos_args - 1)].
-  __ sub(R7, R7, Operand(R8));
+  __ sub(R7, R7, Operand(R9));
   __ add(R7, FP, Operand(R7, LSL, 1));
   __ add(R7, R7, Operand((kParamEndSlotFromFp + 1) * kWordSize));
 
   // Let R6 point to the last copied positional argument, i.e. to
   // fp[kFirstLocalSlotFromFp - (num_pos_args - 1)].
   __ AddImmediate(R6, FP, (kFirstLocalSlotFromFp + 1) * kWordSize);
-  __ sub(R6, R6, Operand(R8, LSL, 1));  // R8 is a Smi.
-  __ SmiUntag(R8);
+  __ sub(R6, R6, Operand(R9, LSL, 1));  // R9 is a Smi.
+  __ SmiUntag(R9);
   Label loop, loop_condition;
   __ b(&loop_condition);
   // We do not use the final allocation index of the variable here, i.e.
   // scope->VariableAt(i)->index(), because captured variables still need
   // to be copied to the context that is not yet allocated.
-  const Address argument_addr(R7, R8, LSL, 2);
-  const Address copy_addr(R6, R8, LSL, 2);
+  const Address argument_addr(R7, R9, LSL, 2);
+  const Address copy_addr(R6, R9, LSL, 2);
   __ Bind(&loop);
   __ ldr(IP, argument_addr);
   __ str(IP, copy_addr);
   __ Bind(&loop_condition);
-  __ subs(R8, R8, Operand(1));
+  __ subs(R9, R9, Operand(1));
   __ b(&loop, PL);
 
   // Copy or initialize optional named arguments.
@@ -832,9 +832,9 @@ void FlowGraphCompiler::CopyParameters() {
     }
     // Generate code handling each optional parameter in alphabetical order.
     __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-    __ ldr(R8,
+    __ ldr(R9,
            FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
-    __ SmiUntag(R8);
+    __ SmiUntag(R9);
     // Let R7 point to the first passed argument, i.e. to
     // fp[kParamEndSlotFromFp + num_args - 0]; num_args (R7) is Smi.
     __ add(R7, FP, Operand(R7, LSL, 1));
@@ -887,16 +887,16 @@ void FlowGraphCompiler::CopyParameters() {
     }
   } else {
     ASSERT(num_opt_pos_params > 0);
-    __ ldr(R8,
+    __ ldr(R9,
            FieldAddress(R4, ArgumentsDescriptor::positional_count_offset()));
-    __ SmiUntag(R8);
+    __ SmiUntag(R9);
     for (int i = 0; i < num_opt_pos_params; i++) {
       Label next_parameter;
       // Handle this optional positional parameter only if k or fewer positional
       // arguments have been passed, where k is param_pos, the position of this
       // optional parameter in the formal parameter list.
       const int param_pos = num_fixed_params + i;
-      __ CompareImmediate(R8, param_pos);
+      __ CompareImmediate(R9, param_pos);
       __ b(&next_parameter, GT);
       // Load R5 with default argument.
       const Object& value = Object::ZoneHandle(
@@ -914,8 +914,8 @@ void FlowGraphCompiler::CopyParameters() {
     if (check_correct_named_args) {
       __ ldr(R7, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
       __ SmiUntag(R7);
-      // Check that R8 equals R7, i.e. no named arguments passed.
-      __ cmp(R8, Operand(R7));
+      // Check that R9 equals R7, i.e. no named arguments passed.
+      __ cmp(R9, Operand(R7));
       __ b(&all_arguments_processed, EQ);
     }
   }
@@ -937,17 +937,17 @@ void FlowGraphCompiler::CopyParameters() {
   // an issue anymore.
 
   // R4 : arguments descriptor array.
-  __ ldr(R8, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
-  __ SmiUntag(R8);
+  __ ldr(R9, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  __ SmiUntag(R9);
   __ add(R7, FP, Operand((kParamEndSlotFromFp + 1) * kWordSize));
-  const Address original_argument_addr(R7, R8, LSL, 2);
+  const Address original_argument_addr(R7, R9, LSL, 2);
   __ LoadImmediate(IP, reinterpret_cast<intptr_t>(Object::null()));
   Label null_args_loop, null_args_loop_condition;
   __ b(&null_args_loop_condition);
   __ Bind(&null_args_loop);
   __ str(IP, original_argument_addr);
   __ Bind(&null_args_loop_condition);
-  __ subs(R8, R8, Operand(1));
+  __ subs(R9, R9, Operand(1));
   __ b(&null_args_loop, PL);
 }
 

@@ -56,7 +56,7 @@ DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 1) {
 DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 1) {
   ASSERT(TypeArguments::CheckedHandle(arguments->NativeArgAt(0)).IsNull());
   Dart_Port port_id =
-      PortMap::CreatePort(arguments->isolate()->message_handler());
+      PortMap::CreatePort(isolate->message_handler());
   return ReceivePort::New(port_id, false /* not control port */);
 }
 
@@ -255,8 +255,8 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 6) {
   char* error = NULL;
   char* canonical_uri = NULL;
   const Library& root_lib =
-      Library::Handle(arguments->isolate()->object_store()->root_library());
-  if (!CanonicalizeUri(arguments->isolate(), root_lib, uri,
+      Library::Handle(isolate->object_store()->root_library());
+  if (!CanonicalizeUri(isolate, root_lib, uri,
                        &canonical_uri, &error)) {
     const String& msg = String::Handle(String::New(error));
     ThrowIsolateSpawnException(msg);

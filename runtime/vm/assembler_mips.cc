@@ -626,7 +626,7 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
 
 
 void Assembler::LoadIsolate(Register result) {
-  LoadImmediate(result, reinterpret_cast<uword>(Isolate::Current()));
+  lw(result, Address(THR, Thread::isolate_offset()));
 }
 
 

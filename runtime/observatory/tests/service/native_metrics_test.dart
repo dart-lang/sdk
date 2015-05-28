@@ -29,7 +29,7 @@ var tests = [
   (Isolate isolate) async {
     var params = { 'metricId': 'metrics/native/heap.old.used' };
     ServiceMetric counter =
-      await isolate.invokeRpc('getIsolateMetric', params);
+      await isolate.invokeRpc('_getIsolateMetric', params);
     expect(counter.type, equals('Counter'));
     expect(counter.name, equals('heap.old.used'));
   },
@@ -37,14 +37,14 @@ var tests = [
   (Isolate isolate) async {
     bool caughtException;
     try {
-      await isolate.invokeRpc('getIsolateMetric',
+      await isolate.invokeRpc('_getIsolateMetric',
                               { 'metricId': 'metrics/native/doesnotexist' });
       expect(false, isTrue, reason:'Unreachable');
     } on ServerRpcException catch (e) {
       caughtException = true;
       expect(e.code, equals(ServerRpcException.kInvalidParams));
       expect(e.message,
-             "getIsolateMetric: invalid 'metricId' "
+             "_getIsolateMetric: invalid 'metricId' "
              "parameter: metrics/native/doesnotexist");
     }
     expect(caughtException, isTrue);

@@ -1655,18 +1655,6 @@ class JavaScriptBackend extends Backend {
         element == jsUnmodifiableArrayClass;
   }
 
-  /// Return [true] if the class is represented by a native JavaSCript type in
-  /// the generated code.
-  bool isNativePrimitiveType(ClassElement cls ) {
-    // TODO(karlklose): cleanup/merge with hasDirectCheck, when the rest of the
-    // checks are implemented in the CPS IR.
-    return cls == compiler.intClass ||
-        cls == compiler.numClass ||
-        cls == compiler.doubleClass ||
-        cls == compiler.boolClass ||
-        cls == compiler.stringClass;
-  }
-
   bool mayGenerateInstanceofCheck(DartType type) {
     // We can use an instanceof check for raw types that have no subclass that
     // is mixed-in or in an implements clause.

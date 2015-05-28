@@ -693,9 +693,10 @@ abstract class _JsonStringifier {
       return true;
     } else if (object is Map) {
       _checkCycle(object);
-      writeMap(object);
+      // writeMap can fail if keys are not all strings.
+      var success = writeMap(object);
       _removeSeen(object);
-      return true;
+      return success;
     } else {
       return false;
     }
@@ -715,17 +716,33 @@ abstract class _JsonStringifier {
   }
 
   /** Serializes a [Map]. */
-  void writeMap(Map<String, Object> map) {
+  bool writeMap(Map<String, Object> map) {
+    if (map.isEmpty) {
+      writeString("{}");
+      return true;
+    }
+    List keyValueList = new List(map.length * 2);
+    int i = 0;
+    bool allStringKeys = true;
+    map.forEach((key, value) {
+      if (key is! String) {
+        allStringKeys = false;
+      }
+      keyValueList[i++] = key;
+      keyValueList[i++] = value;
+    });
+    if (!allStringKeys) return false;
     writeString('{');
     String separator = '"';
-    map.forEach((String key, value) {
+    for (int i = 0; i < keyValueList.length; i += 2) {
       writeString(separator);
       separator = ',"';
-      writeStringContent(key);
+      writeStringContent(keyValueList[i]);
       writeString('":');
-      writeObject(value);
-    });
+      writeObject(keyValueList[i + 1]);
+    }
     writeString('}');
+    return true;
   }
 }
 
@@ -763,29 +780,39 @@ abstract class _JsonPrettyPrintMixin implements _JsonStringifier {
     }
   }
 
-  void writeMap(Map map) {
+  bool writeMap(Map map) {
     if (map.isEmpty) {
-      writeString('{}');
-    } else {
-      writeString('{\n');
-      _indentLevel++;
-      bool first = true;
-      map.forEach((String key, Object value) {
-        if (!first) {
-          writeString(",\n");
-        }
-        writeIndentation(_indentLevel);
-        writeString('"');
-        writeStringContent(key);
-        writeString('": ');
-        writeObject(value);
-        first = false;
-      });
-      writeString('\n');
-      _indentLevel--;
-      writeIndentation(_indentLevel);
-      writeString('}');
+      writeString("{}");
+      return true;
     }
+    List keyValueList = new List(map.length * 2);
+    int i = 0;
+    bool allStringKeys = true;
+    map.forEach((key, value) {
+      if (key is! String) {
+        allStringKeys = false;
+      }
+      keyValueList[i++] = key;
+      keyValueList[i++] = value;
+    });
+    if (!allStringKeys) return false;
+    writeString('{\n');
+    _indentLevel++;
+    String separator = "";
+    for (int i = 0; i < keyValueList.length; i += 2) {
+      writeString(separator);
+      separator = ",\n";
+      writeIndentation(_indentLevel);
+      writeString('"');
+      writeStringContent(keyValueList[i]);
+      writeString('": ');
+      writeObject(keyValueList[i + 1]);
+    }
+    writeString('\n');
+    _indentLevel--;
+    writeIndentation(_indentLevel);
+    writeString('}');
+    return true;
   }
 }
 

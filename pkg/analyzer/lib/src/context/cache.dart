@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
 
 /**
@@ -60,6 +61,15 @@ class AnalysisCache {
 //  }
 
   /**
+   * Return an iterator returning all of the [Source] targets.
+   */
+  Iterable<Source> get sources {
+    return _partitions
+        .map((CachePartition partition) => partition._sources)
+        .expand((Iterable<Source> sources) => sources);
+  }
+
+  /**
    * Return the entry associated with the given [target].
    */
   CacheEntry get(AnalysisTarget target) {
@@ -99,6 +109,19 @@ class AnalysisCache {
         'Could not find context for $target',
         new CaughtException(new AnalysisException(), null));
     return null;
+  }
+
+  /**
+   * Return [Source]s whose full path is equal to the given [path].
+   * Maybe empty, but not `null`.
+   */
+  List<Source> getSourcesWithFullName(String path) {
+    List<Source> sources = <Source>[];
+    for (CachePartition partition in _partitions) {
+      List<Source> partitionSources = partition.getSourcesWithFullName(path);
+      sources.addAll(partitionSources);
+    }
+    return sources;
   }
 
   /**
@@ -279,6 +302,14 @@ class CacheEntry {
   }
 
   /**
+   * Look up the [ResultData] of [descriptor], or add a new one if it isn't
+   * there.
+   */
+  ResultData getResultData(ResultDescriptor descriptor) {
+    return _resultMap.putIfAbsent(descriptor, () => new ResultData(descriptor));
+  }
+
+  /**
    * Return the state of the result represented by the given [descriptor].
    */
   CacheState getState(ResultDescriptor descriptor) {
@@ -375,7 +406,7 @@ class CacheEntry {
         _invalidate(descriptor);
       }
     } else {
-      ResultData data = _getResultData(descriptor);
+      ResultData data = getResultData(descriptor);
       data.state = state;
       if (state != CacheState.IN_PROCESS) {
         //
@@ -393,16 +424,26 @@ class CacheEntry {
    */
   /*<V>*/ void setValue(ResultDescriptor /*<V>*/ descriptor, dynamic /*V*/
       value, List<TargetedResult> dependedOn) {
-//    print('  setValue: $descriptor for $target dependedOn=$dependedOn');
     _validateStateChange(descriptor, CacheState.VALID);
     TargetedResult thisResult = new TargetedResult(target, descriptor);
     if (_partition != null) {
       _partition.resultStored(thisResult, value);
     }
-    ResultData data = _getResultData(descriptor);
+    ResultData data = getResultData(descriptor);
     _setDependedOnResults(data, thisResult, dependedOn);
     data.state = CacheState.VALID;
     data.value = value == null ? descriptor.defaultValue : value;
+  }
+
+  /**
+   * Set the value of the result represented by the given [descriptor] to the
+   * given [value], keep its dependency, invalidate all the dependent result.
+   */
+  void setValueIncremental(ResultDescriptor descriptor, dynamic value) {
+    ResultData data = getResultData(descriptor);
+    List<TargetedResult> dependedOn = data.dependedOnResults;
+    _invalidate(descriptor);
+    setValue(descriptor, value, dependedOn);
   }
 
   @override
@@ -418,20 +459,11 @@ class CacheEntry {
   bool _getFlag(int index) => BooleanArray.get(_flags, index);
 
   /**
-   * Look up the [ResultData] of [descriptor], or add a new one if it isn't
-   * there.
-   */
-  ResultData _getResultData(ResultDescriptor descriptor) {
-    return _resultMap.putIfAbsent(descriptor, () => new ResultData(descriptor));
-  }
-
-  /**
    * Invalidate the result represented by the given [descriptor] and propagate
    * invalidation to other results that depend on it.
    */
   void _invalidate(ResultDescriptor descriptor) {
     ResultData thisData = _resultMap.remove(descriptor);
-//    print('invalidate: $descriptor for $target');
     if (thisData == null) {
       return;
     }
@@ -444,8 +476,8 @@ class CacheEntry {
       }
     });
     // Invalidate results that depend on this result.
-    List<TargetedResult> dependentResults = thisData.dependentResults;
-    thisData.dependentResults = <TargetedResult>[];
+    Set<TargetedResult> dependentResults = thisData.dependentResults;
+    thisData.dependentResults = new Set<TargetedResult>();
     dependentResults.forEach((TargetedResult dependentResult) {
       CacheEntry entry = _partition.get(dependentResult.target);
       if (entry != null) {
@@ -455,6 +487,7 @@ class CacheEntry {
     // If empty, remove the entry altogether.
     if (_resultMap.isEmpty) {
       _partition._targetMap.remove(target);
+      _partition._removeIfSource(target);
     }
   }
 
@@ -493,7 +526,7 @@ class CacheEntry {
    * their values to the corresponding default values
    */
   void _setErrorState(ResultDescriptor descriptor, CaughtException exception) {
-    ResultData thisData = _getResultData(descriptor);
+    ResultData thisData = getResultData(descriptor);
     // Set the error state.
     _exception = exception;
     thisData.state = CacheState.ERROR;
@@ -606,7 +639,7 @@ class CacheFlushManager<T> {
    */
   List<TargetedResult> flushToSize() {
     // If still under the cap, done.
-    if (maxSize == -1 || currentSize <= maxSize) {
+    if (currentSize <= maxSize) {
       return TargetedResult.EMPTY_LIST;
     }
     // Flush results until we are under the cap.
@@ -707,6 +740,16 @@ abstract class CachePartition {
       new HashMap<AnalysisTarget, CacheEntry>();
 
   /**
+   * A set of the [Source] targets.
+   */
+  final HashSet<Source> _sources = new HashSet<Source>();
+
+  /**
+   * A table mapping full paths to lists of [Source]s with these full paths.
+   */
+  final Map<String, List<Source>> _pathToSources = <String, List<Source>>{};
+
+  /**
    * Initialize a newly created cache partition, belonging to the given
    * [context].
    */
@@ -725,6 +768,15 @@ abstract class CachePartition {
    * Return the entry associated with the given [target].
    */
   CacheEntry get(AnalysisTarget target) => _targetMap[target];
+
+  /**
+   * Return [Source]s whose full path is equal to the given [path].
+   * Maybe empty, but not `null`.
+   */
+  List<Source> getSourcesWithFullName(String path) {
+    List<Source> sources = _pathToSources[path];
+    return sources != null ? sources : Source.EMPTY_LIST;
+  }
 
   /**
    * Return `true` if this partition is responsible for the given [target].
@@ -750,6 +802,7 @@ abstract class CachePartition {
     entry._partition = this;
     entry.fixExceptionState();
     _targetMap[target] = entry;
+    _addIfSource(target);
   }
 
   /**
@@ -763,6 +816,7 @@ abstract class CachePartition {
     if (entry != null) {
       entry._invalidateAll();
     }
+    _removeIfSource(target);
   }
 
   /**
@@ -798,12 +852,25 @@ abstract class CachePartition {
    */
   int size() => _targetMap.length;
 
+  /**
+   * If the given [target] is a [Source], adds it to [_sources].
+   */
+  void _addIfSource(AnalysisTarget target) {
+    if (target is Source) {
+      _sources.add(target);
+      {
+        String fullName = target.fullName;
+        _pathToSources.putIfAbsent(fullName, () => <Source>[]).add(target);
+      }
+    }
+  }
+
   ResultData _getDataFor(TargetedResult result, {bool orNull: false}) {
     CacheEntry entry = context.analysisCache.get(result.target);
     if (orNull) {
       return entry != null ? entry._resultMap[result.result] : null;
     } else {
-      return entry._getResultData(result.result);
+      return entry.getResultData(result.result);
     }
   }
 
@@ -812,12 +879,38 @@ abstract class CachePartition {
    */
   CacheFlushManager _getFlushManager(ResultDescriptor descriptor) {
     ResultCachingPolicy policy = descriptor.cachingPolicy;
-    return _flushManagerMap.putIfAbsent(
-        policy, () => new CacheFlushManager(policy, _isPriorityAnalysisTarget));
+    if (identical(policy, DEFAULT_CACHING_POLICY)) {
+      return UnlimitedCacheFlushManager.INSTANCE;
+    }
+    CacheFlushManager manager = _flushManagerMap[policy];
+    if (manager == null) {
+      manager = new CacheFlushManager(policy, _isPriorityAnalysisTarget);
+      _flushManagerMap[policy] = manager;
+    }
+    return manager;
   }
 
   bool _isPriorityAnalysisTarget(AnalysisTarget target) {
     return context.priorityTargets.contains(target);
+  }
+
+  /**
+   * If the given [target] is a [Source], removes it from [_sources].
+   */
+  void _removeIfSource(AnalysisTarget target) {
+    if (target is Source) {
+      _sources.remove(target);
+      {
+        String fullName = target.fullName;
+        List<Source> sources = _pathToSources[fullName];
+        if (sources != null) {
+          sources.remove(target);
+          if (sources.isEmpty) {
+            _pathToSources.remove(fullName);
+          }
+        }
+      }
+    }
   }
 }
 
@@ -851,7 +944,7 @@ class ResultData {
   /**
    * A list of the results that depend on this result.
    */
-  List<TargetedResult> dependentResults = <TargetedResult>[];
+  Set<TargetedResult> dependentResults = new Set<TargetedResult>();
 
   /**
    * Initialize a newly created result holder to represent the value of data
@@ -943,4 +1036,24 @@ class UniversalCachePartition extends CachePartition {
 
   @override
   bool isResponsibleFor(AnalysisTarget target) => true;
+}
+
+/**
+ * [CacheFlushManager] that does nothing, results are never flushed.
+ */
+class UnlimitedCacheFlushManager extends CacheFlushManager {
+  static final CacheFlushManager INSTANCE = new UnlimitedCacheFlushManager();
+
+  UnlimitedCacheFlushManager() : super(DEFAULT_CACHING_POLICY, (_) => false);
+
+  @override
+  void resultAccessed(TargetedResult result) {}
+
+  @override
+  List<TargetedResult> resultStored(TargetedResult newResult, newValue) {
+    return TargetedResult.EMPTY_LIST;
+  }
+
+  @override
+  void targetRemoved(AnalysisTarget target) {}
 }

@@ -3437,6 +3437,17 @@ void UnboxInteger32Instr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ SmiUntag(value);
   } else if (value_cid == kMintCid) {
     __ movq(value, FieldAddress(value, Mint::value_offset()));
+  } else if (!CanDeoptimize()) {
+    // Type information is not conclusive, but range analysis found
+    // the value to be in int64 range. Therefore it must be a smi
+    // or mint value.
+    ASSERT(is_truncating());
+    Label done;
+    __ SmiUntag(value);
+    __ j(NOT_CARRY, &done, Assembler::kNearJump);
+    __ movq(value, Address(value, TIMES_2, Mint::value_offset()));
+    __ Bind(&done);
+    return;
   } else {
     Label done;
     // Optimistically untag value.

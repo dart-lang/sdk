@@ -193,7 +193,7 @@ class UnsugarVisitor extends RecursiveVisitor {
       if (stackTraceParameter.hasAtLeastOneUse) {
         Parameter stackTraceValue = new Parameter(null);
         stackTraceValue.substituteFor(stackTraceParameter);
-        insertStaticCall(_glue.getTraceFromException(), [exceptionValue],
+        insertStaticCall(_glue.getTraceFromException(), [_exceptionParameter],
             stackTraceValue, body);
       }
     }
@@ -291,5 +291,9 @@ class UnsugarVisitor extends RecursiveVisitor {
     node.trueContinuation.unlink();
     node.falseContinuation.unlink();
     parent.body = newNode;
+  }
+
+  processInterceptor(Interceptor node) {
+    _glue.registerSpecializedGetInterceptor(node.interceptedClasses);
   }
 }

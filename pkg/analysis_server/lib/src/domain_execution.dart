@@ -154,11 +154,19 @@ class ExecutionDomainHandler implements RequestHandler {
     ServerPerformanceStatistics.executionNotifications.makeCurrentWhile(() {
       Source source = notice.source;
       String filePath = source.fullName;
+      // check files
+      bool isDartFile = notice.resolvedDartUnit != null;
+      bool isHtmlFile = notice.resolvedHtmlUnit != null;
+      if (!isDartFile && !isHtmlFile) {
+        return;
+      }
+      // prepare context
       AnalysisContext context = server.getContainingContext(filePath);
       if (context == null) {
         return;
       }
-      if (AnalysisEngine.isDartFileName(filePath)) {
+      // analyze the file
+      if (isDartFile) {
         ExecutableKind kind = ExecutableKind.NOT_EXECUTABLE;
         if (context.isClientLibrary(source)) {
           kind = ExecutableKind.CLIENT;
@@ -171,7 +179,7 @@ class ExecutionDomainHandler implements RequestHandler {
         server.sendNotification(
             new ExecutionLaunchDataParams(filePath, kind: kind)
                 .toNotification());
-      } else if (AnalysisEngine.isHtmlFileName(filePath)) {
+      } else if (isHtmlFile) {
         List<Source> libraries = context.getLibrariesReferencedFromHtml(source);
         server.sendNotification(new ExecutionLaunchDataParams(filePath,
             referencedFiles: _getFullNames(libraries)).toNotification());

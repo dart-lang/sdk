@@ -296,11 +296,11 @@ class ConstantEmitter
         backend.classNeedsRti(type.element)) {
       InterfaceType interface = type;
       RuntimeTypes rti = backend.rti;
-      Iterable<String> arguments = interface.typeArguments
+      Iterable<jsAst.Expression> arguments = interface.typeArguments
           .map((DartType type) =>
-              rti.getTypeRepresentationWithHashes(type, (_){}));
+              rti.getTypeRepresentationWithPlaceholders(type, (_){}));
       jsAst.Expression argumentList =
-          new jsAst.LiteralString('[${arguments.join(', ')}]');
+          new jsAst.ArrayInitializer(arguments.toList());
       return new jsAst.Call(getHelperProperty(backend.getSetRuntimeTypeInfo()),
                             [value, argumentList]);
     }

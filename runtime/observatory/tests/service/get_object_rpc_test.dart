@@ -123,8 +123,8 @@ var tests = [
     expect(result['type'], equals('Library'));
     expect(result['id'], startsWith('libraries/'));
     expect(result['name'], equals('get_object_rpc_test'));
-    expect(result['url'], startsWith('file:'));
-    expect(result['url'], endsWith('get_object_rpc_test.dart'));
+    expect(result['uri'], startsWith('file:'));
+    expect(result['uri'], endsWith('get_object_rpc_test.dart'));
     expect(result['imports'].length, isPositive);
     expect(result['imports'][0]['type'], equals('@Library'));
     expect(result['scripts'].length, isPositive);
@@ -169,9 +169,9 @@ var tests = [
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
     expect(result['type'], equals('Script'));
     expect(result['id'], startsWith('libraries/'));
-    expect(result['name'], startsWith('file:'));
-    expect(result['name'], endsWith('get_object_rpc_test.dart'));
-    expect(result['kind'], equals('script'));
+    expect(result['uri'], startsWith('file:'));
+    expect(result['uri'], endsWith('get_object_rpc_test.dart'));
+    expect(result['_kind'], equals('script'));
     expect(result['library']['type'], equals('@Library'));
     expect(result['source'], startsWith('// Copyright (c)'));
     expect(result['tokenPosTable'].length, isPositive);

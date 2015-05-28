@@ -41,6 +41,7 @@ abstract class Definition<T extends Definition<T>> extends Node {
   bool get hasMultipleUses  => !hasAtMostOneUse;
 
   void substituteFor(Definition<T> other) {
+    if (other == this) return;
     if (other.hasNoUses) return;
     Reference<T> previous, current = other.firstRef;
     do {
@@ -401,17 +402,22 @@ class InvokeConstructor extends Expression implements Invoke {
 // But then we need to special-case for is-checks with an erroneous .type as
 // these will throw.
 class TypeOperator extends Expression {
-  final Reference<Primitive> receiver;
+  Reference<Primitive> value;
   final DartType type;
+  /// Type arguments to [type]. Since [type] may reference type variables in the
+  /// enclosing class, these are not constant.
+  final List<Reference<Primitive>> typeArguments;
   final Reference<Continuation> continuation;
   // TODO(johnniwinther): Use `Operator` class to encapsule the operator type.
   final bool isTypeTest;
 
-  TypeOperator(Primitive receiver,
+  TypeOperator(Primitive value,
                this.type,
+               List<Primitive> typeArguments,
                Continuation cont,
                {bool this.isTypeTest})
-      : this.receiver = new Reference<Primitive>(receiver),
+      : this.value = new Reference<Primitive>(value),
+        this.typeArguments = _referenceList(typeArguments),
         this.continuation = new Reference<Continuation>(cont) {
     assert(isTypeTest != null);
   }
@@ -652,6 +658,25 @@ class SetStatic extends Expression implements InteriorNode {
   accept(Visitor visitor) => visitor.visitSetStatic(this);
 }
 
+/// Reads the value of a lazily initialized static field.
+///
+/// If the field has not yet been initialized, its initializer is evaluated
+/// and assigned to the field.
+///
+/// [continuation] is then invoked with the value of the field as argument.
+class GetLazyStatic extends Expression {
+  final FieldElement element;
+  final Reference<Continuation> continuation;
+  final SourceInformation sourceInformation;
+
+  GetLazyStatic(this.element,
+                Continuation cont,
+                this.sourceInformation)
+      : continuation = new Reference<Continuation>(cont);
+
+  accept(Visitor visitor) => visitor.visitGetLazyStatic(this);
+}
+
 /// Creates an object for holding boxed variables captured by a closure.
 class CreateBox extends Primitive implements JsSpecificNode {
   accept(Visitor visitor) => visitor.visitCreateBox(this);
@@ -844,11 +869,9 @@ class FieldDefinition extends RootNode implements DartSpecificNode {
 
 /// Identifies a mutable variable.
 class MutableVariable extends Definition {
-  /// Body of source code that declares this mutable variable.
-  ExecutableElement host;
   Entity hint;
 
-  MutableVariable(this.host, this.hint);
+  MutableVariable(this.hint);
 
   accept(Visitor v) => v.visitMutableVariable(this);
 }
@@ -863,7 +886,7 @@ class Body extends InteriorNode {
 /// A function definition, consisting of parameters and a body.  The parameters
 /// include a distinguished continuation parameter (held by the body).
 class FunctionDefinition extends RootNode {
-  final FunctionElement element;
+  final ExecutableElement element;
   final Parameter thisParameter;
   /// Mixed list of [Parameter]s and [MutableVariable]s.
   final List<Definition> parameters;
@@ -1034,6 +1057,7 @@ abstract class Visitor<T> {
   T visitSetMutableVariable(SetMutableVariable node);
   T visitDeclareFunction(DeclareFunction node);
   T visitSetStatic(SetStatic node);
+  T visitGetLazyStatic(GetLazyStatic node);
 
   // Definitions.
   T visitLiteralList(LiteralList node);
@@ -1225,7 +1249,8 @@ class RecursiveVisitor implements Visitor {
   visitTypeOperator(TypeOperator node) {
     processTypeOperator(node);
     processReference(node.continuation);
-    processReference(node.receiver);
+    processReference(node.value);
+    node.typeArguments.forEach(processReference);
   }
 
   processSetMutableVariable(SetMutableVariable node) {}
@@ -1242,6 +1267,12 @@ class RecursiveVisitor implements Visitor {
     visit(node.variable);
     visit(node.definition);
     visit(node.body);
+  }
+
+  processGetLazyStatic(GetLazyStatic node) {}
+  visitGetLazyStatic(GetLazyStatic node) {
+    processGetLazyStatic(node);
+    processReference(node.continuation);
   }
 
   // Definitions.

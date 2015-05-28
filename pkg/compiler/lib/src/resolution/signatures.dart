@@ -13,7 +13,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
   final Scope scope;
   final MessageKind defaultValuesError;
   final bool createRealParameters;
-  Link<Element> optionalParameters = const Link<Element>();
+  List<Element> optionalParameters = const <Element>[];
   int optionalParameterCount = 0;
   bool isOptionalParameter = false;
   bool optionalParametersAreNamed = false;
@@ -42,7 +42,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     isOptionalParameter = true;
     LinkBuilder<Element> elements = analyzeNodes(node.nodes);
     optionalParameterCount = elements.length;
-    optionalParameters = elements.toLink();
+    optionalParameters = elements.toList();
   }
 
   FormalElementX visitVariableDefinitions(VariableDefinitions node) {
@@ -274,7 +274,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
     SignatureResolver visitor = new SignatureResolver(compiler, element,
         registry, defaultValuesError: defaultValuesError,
         createRealParameters: createRealParameters);
-    Link<Element> parameters = const Link<Element>();
+    List<Element> parameters = const <Element>[];
     int requiredParameterCount = 0;
     if (formalParameters == null) {
       if (!element.isGetter) {
@@ -300,7 +300,7 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
       LinkBuilder<Element> parametersBuilder =
         visitor.analyzeNodes(formalParameters.nodes);
       requiredParameterCount  = parametersBuilder.length;
-      parameters = parametersBuilder.toLink();
+      parameters = parametersBuilder.toList();
     }
     DartType returnType;
     if (element.isFactoryConstructor) {

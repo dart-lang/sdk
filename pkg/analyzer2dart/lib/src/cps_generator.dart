@@ -412,7 +412,7 @@ class CpsGeneratingVisitor extends SemanticVisitor<ir.Node>
     // [TreeShaker] and shared with the [CpsGeneratingVisitor].
     assert(invariant(node, target.isTopLevel || target.isStatic,
                      '$target expected to be top-level or static.'));
-    return irBuilder.buildStaticFieldGet(target);
+    return irBuilder.buildStaticFieldLazyGet(target, null);
   }
 
   ir.Primitive handleBinaryExpression(BinaryExpression node,

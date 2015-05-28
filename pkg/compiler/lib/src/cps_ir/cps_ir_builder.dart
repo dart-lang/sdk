@@ -466,6 +466,11 @@ abstract class IrBuilder {
   /// closure fields in order to access the receiver from the enclosing method.
   ir.Primitive buildThis();
 
+  /// Creates a type test or type cast of [value] against [type].
+  ir.Primitive buildTypeOperator(ir.Primitive value,
+                                 DartType type,
+                                 {bool isTypeTest});
+
   // TODO(johnniwinther): Make these field final and remove the default values
   // when [IrBuilder] is a property of [IrBuilderVisitor] instead of a mixin.
 
@@ -491,15 +496,8 @@ abstract class IrBuilder {
   }
 
   /// Creates a [ir.MutableVariable] for the given local.
-  void makeMutableVariable(Local local, [ClosureClassMap closureMap]) {
-    ExecutableElement owner;
-    if (closureMap == null || closureMap.closureClassElement == null) {
-      owner = local.executableContext;
-    } else {
-      assert(local.executableContext == closureMap.closureElement);
-      owner = closureMap.callElement;
-    }
-    mutableVariables[local] = new ir.MutableVariable(owner, local);
+  void makeMutableVariable(Local local) {
+    mutableVariables[local] = new ir.MutableVariable(local);
   }
 
   /// Remove an [ir.MutableVariable] for a local.
@@ -909,6 +907,12 @@ abstract class IrBuilder {
         state.localConstants, defaults);
   }
 
+  ir.FunctionDefinition makeLazyFieldInitializer() {
+    ir.Body body = makeBody();
+    FieldElement element = state.currentElement;
+    return new ir.FunctionDefinition(element, null, [], body, [], []);
+  }
+
   /// Create a invocation of the [method] on the super class where the call
   /// structure is defined [callStructure] and the argument values are defined
   /// by [arguments].
@@ -1084,8 +1088,16 @@ abstract class IrBuilder {
 
   /// Create a read access of the static [field].
   ir.Primitive buildStaticFieldGet(FieldElement field,
-                                   {SourceInformation sourceInformation}) {
+                                   SourceInformation sourceInformation) {
     return addPrimitive(new ir.GetStatic(field, sourceInformation));
+  }
+
+  /// Create a read access of a static [field] that might not have been
+  /// initialized yet.
+  ir.Primitive buildStaticFieldLazyGet(FieldElement field,
+                                       SourceInformation sourceInformation) {
+    return _continueWithExpression(
+        (k) => new ir.GetLazyStatic(field, k, sourceInformation));
   }
 
   /// Create a getter invocation of the static [getter].
@@ -1106,7 +1118,7 @@ abstract class IrBuilder {
   /// Create a write access to the static [field] with the [value].
   ir.Primitive buildStaticFieldSet(FieldElement field,
                                    ir.Primitive value,
-                                   {SourceInformation sourceInformation}) {
+                                   [SourceInformation sourceInformation]) {
     add(new ir.SetStatic(field, value, sourceInformation));
     return value;
   }
@@ -1751,7 +1763,7 @@ abstract class IrBuilder {
     for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
       assert(!tryCatchBuilder.isInMutableVariable(variable));
       ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
-      tryCatchBuilder.makeMutableVariable(variable, closureClassMap);
+      tryCatchBuilder.makeMutableVariable(variable);
       tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
     }
 
@@ -1836,23 +1848,25 @@ abstract class IrBuilder {
       ir.Continuation elseContinuation = new ir.Continuation([]);
       elseContinuation.body = catchBody;
 
-      ir.Parameter typeMatches = new ir.Parameter(null);
-      ir.Continuation checkType = new ir.Continuation([typeMatches]);
-      checkType.body =
-          new ir.LetCont.many([thenContinuation, elseContinuation],
-              new ir.Branch(new ir.IsTrue(typeMatches),
-                            thenContinuation,
-                            elseContinuation));
-      catchBody =
-          new ir.LetCont(checkType,
-              new ir.TypeOperator(exceptionParameter, clause.type, checkType,
-                                  isTypeTest: true));
+      // Build the type test guarding this clause. We can share the environment
+      // with the nested builder because this part cannot mutate it.
+      IrBuilder checkBuilder = catchBuilder.makeDelimitedBuilder(environment);
+      ir.Primitive typeMatches =
+          checkBuilder.buildTypeOperator(exceptionParameter,
+                                         clause.type,
+                                         isTypeTest: true);
+      checkBuilder.add(new ir.LetCont.many([thenContinuation, elseContinuation],
+                           new ir.Branch(new ir.IsTrue(typeMatches),
+                                         thenContinuation,
+                                         elseContinuation)));
+      catchBody = checkBuilder._root;
     }
 
     List<ir.Parameter> catchParameters =
         <ir.Parameter>[exceptionParameter, traceParameter];
     ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
-    catchContinuation.body = catchBody;
+    catchBuilder.add(catchBody);
+    catchContinuation.body = catchBuilder._root;
 
     tryCatchBuilder.add(
         new ir.LetHandler(catchContinuation, tryBuilder._root));
@@ -1997,22 +2011,6 @@ abstract class IrBuilder {
                             thenContinuation,
                             elseContinuation))));
     return resultParameter;
-  }
-
-  /// Creates a type test or type cast of [receiver] against [type].
-  ///
-  /// Set [isTypeTest] to `true` to create a type test and furthermore set
-  /// [isNotCheck] to `true` to create a negated type test.
-  ir.Primitive buildTypeOperator(ir.Primitive receiver,
-                                 DartType type,
-                                 {bool isTypeTest: false,
-                                  bool isNotCheck: false}) {
-    assert(isOpen);
-    assert(isTypeTest != null);
-    assert(!isNotCheck || isTypeTest);
-    ir.Primitive check = _continueWithExpression(
-        (k) => new ir.TypeOperator(receiver, type, k, isTypeTest: isTypeTest));
-    return isNotCheck ? buildNegation(check) : check;
   }
 
   /// Create a lazy and/or expression. [leftValue] is the value of the left
@@ -2300,6 +2298,18 @@ class DartIrBuilder extends IrBuilder {
   ir.Primitive buildReifyTypeVariable(TypeVariableType variable) {
     return addPrimitive(new ir.ReifyTypeVar(variable.element));
   }
+
+  @override
+  ir.Primitive buildTypeOperator(ir.Primitive value,
+                                 DartType type,
+                                 {bool isTypeTest}) {
+    assert(isOpen);
+    assert(isTypeTest != null);
+    ir.Primitive check = _continueWithExpression(
+            (k) => new ir.TypeOperator(value, type,
+                       const <ir.Primitive>[], k, isTypeTest: isTypeTest));
+    return check;
+  }
 }
 
 /// State shared between JsIrBuilders within the same function.
@@ -2468,6 +2478,8 @@ class JsIrBuilder extends IrBuilder {
                                             location.field);
       result.useElementAsHint(local);
       return addPrimitive(result);
+    } else if (isInMutableVariable(local)) {
+      return addPrimitive(new ir.GetMutableVariable(getMutableVariable(local)));
     } else {
       return environment.lookup(local);
     }
@@ -2483,6 +2495,8 @@ class JsIrBuilder extends IrBuilder {
       add(new ir.SetField(environment.lookup(location.box),
                           location.field,
                           value));
+    } else if (isInMutableVariable(local)) {
+      add(new ir.SetMutableVariable(getMutableVariable(local), value));
     } else {
       value.useElementAsHint(local);
       environment.update(local, value);
@@ -2605,6 +2619,8 @@ class JsIrBuilder extends IrBuilder {
         arguments.add(value);
       });
       return addPrimitive(new ir.TypeExpression(type, arguments));
+    } else if (type is DynamicType) {
+      return buildNullConstant();
     } else {
       // TypedefType can reach here, and possibly other things.
       throw 'unimplemented translation of type expression $type';
@@ -2646,6 +2662,35 @@ class JsIrBuilder extends IrBuilder {
   ir.Primitive buildInvocationMirror(Selector selector,
                                      List<ir.Primitive> arguments) {
     return addPrimitive(new ir.CreateInvocationMirror(selector, arguments));
+  }
+
+  @override
+  ir.Primitive buildTypeOperator(ir.Primitive value,
+                                 DartType type,
+                                 {bool isTypeTest}) {
+    assert(isOpen);
+    assert(isTypeTest != null);
+    if (isTypeTest) {
+      // The TypeOperator node does not allow the Object, dynamic, and Null types,
+      // because the null value satisfies them. These must be handled here.
+      if (type.isObject || type.isDynamic) {
+        // `x is Object` and `x is dynamic` are always true, even if x is null.
+        return buildBooleanConstant(true);
+      }
+      if (type is InterfaceType && type.element == program.nullClass) {
+        // `x is Null` is true if and only if x is null.
+        return addPrimitive(new ir.Identical(value, buildNullConstant()));
+      }
+    }
+    // Null cannot not satisfy the check. Use a standard subtype check.
+    List<ir.Primitive> typeArguments = const <ir.Primitive>[];
+    if (type is GenericType && type.typeArguments.isNotEmpty) {
+      typeArguments = type.typeArguments.map(buildTypeExpression).toList();
+    }
+    ir.Primitive check = _continueWithExpression(
+            (k) => new ir.TypeOperator(value,
+                       type, typeArguments, k, isTypeTest: isTypeTest));
+    return check;
   }
 }
 

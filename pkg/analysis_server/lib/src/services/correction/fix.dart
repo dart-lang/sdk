@@ -45,6 +45,8 @@ class DartFixKind {
       'ADD_FIELD_FORMAL_PARAMETERS', 30, "Add final field formal parameters");
   static const ADD_PACKAGE_DEPENDENCY = const FixKind(
       'ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
+  static const ADD_PART_OF =
+      const FixKind('ADD_PART_OF', 50, "Add 'part of' directive");
   static const ADD_SUPER_CONSTRUCTOR_INVOCATION = const FixKind(
       'ADD_SUPER_CONSTRUCTOR_INVOCATION', 50,
       "Add super constructor {0} invocation");
