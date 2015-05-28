@@ -373,6 +373,7 @@
       ],
       'defines': [
         'DART_SHARED_LIB',
+        'DART_NO_SNAPSHOT',
       ],
     },
     {
