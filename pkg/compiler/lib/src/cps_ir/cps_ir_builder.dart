@@ -2671,8 +2671,10 @@ class JsIrBuilder extends IrBuilder {
     assert(isOpen);
     assert(isTypeTest != null);
     if (isTypeTest) {
-      // The TypeOperator node does not allow the Object, dynamic, and Null types,
-      // because the null value satisfies them. These must be handled here.
+      // For type tests, we must treat specially the rare cases where `null`
+      // satisfies the test (which otherwise never satisfies a type test).
+      // This is not an optimization: the TypeOperator assumes that `null`
+      // cannot satisfy the type test.
       if (type.isObject || type.isDynamic) {
         // `x is Object` and `x is dynamic` are always true, even if x is null.
         return buildBooleanConstant(true);
@@ -2682,10 +2684,11 @@ class JsIrBuilder extends IrBuilder {
         return addPrimitive(new ir.Identical(value, buildNullConstant()));
       }
     }
-    // Null cannot not satisfy the check. Use a standard subtype check.
     List<ir.Primitive> typeArguments = const <ir.Primitive>[];
     if (type is GenericType && type.typeArguments.isNotEmpty) {
       typeArguments = type.typeArguments.map(buildTypeExpression).toList();
+    } else if (type is TypeVariableType) {
+      typeArguments = <ir.Primitive>[buildTypeVariableAccess(type)];
     }
     ir.Primitive check = _continueWithExpression(
             (k) => new ir.TypeOperator(value,

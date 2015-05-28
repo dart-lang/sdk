@@ -171,8 +171,14 @@ class Glue {
     return _backend.getSetRuntimeTypeInfo();
   }
 
+  /// checkSubtype(value, $isT, typeArgs, $asT)
   FunctionElement getCheckSubtype() {
     return _backend.getCheckSubtype();
+  }
+
+  /// checkSubtypeOfRuntime(value, runtimeType)
+  FunctionElement getCheckSubtypeOfRuntime() {
+    return _backend.getCheckSubtypeOfRuntimeType();
   }
 
   js.Expression getRuntimeTypeName(ClassElement cls) {

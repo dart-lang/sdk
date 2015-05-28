@@ -383,7 +383,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
       return buildStaticHelperInvocation(
           glue.getCheckSubtype(),
-          [value, isT, typeArgumentArray, asT]);
+          <js.Expression>[value, isT, typeArgumentArray, asT]);
+    } else if (type is TypeVariableType) {
+      glue.registerIsCheck(type, registry);
+      // The only type argument is the type held in the type variable.
+      js.Expression typeValue = typeArguments.single;
+      return buildStaticHelperInvocation(
+          glue.getCheckSubtypeOfRuntime(),
+          <js.Expression>[value, typeValue]);
     }
     return giveup(node, 'type check unimplemented for $type.');
   }

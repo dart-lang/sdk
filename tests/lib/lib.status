@@ -638,6 +638,5 @@ typed_data/float32x4_test: Crash # Instance of 'TypeOperator': type check unimpl
 typed_data/int32x4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 typed_data/typed_data_hierarchy_int64_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 typed_data/typed_data_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/typed_data_sublist_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 typed_data/typed_list_iterable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/json_toEncodable_reviver_test : RuntimeError

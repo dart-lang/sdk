@@ -404,8 +404,15 @@ class InvokeConstructor extends Expression implements Invoke {
 class TypeOperator extends Expression {
   Reference<Primitive> value;
   final DartType type;
-  /// Type arguments to [type]. Since [type] may reference type variables in the
-  /// enclosing class, these are not constant.
+
+  /// If [type] is a [GenericType], this holds the internal representation of
+  /// the type arguments to [type]. Since these may reference type variables
+  /// from the enclosing class, they are not constant.
+  ///
+  /// If [type] is a [TypeVariableType], this is a singleton list with
+  /// the internal representation of the type held in that type variable.
+  ///
+  /// Otherwise the list is empty.
   final List<Reference<Primitive>> typeArguments;
   final Reference<Continuation> continuation;
   // TODO(johnniwinther): Use `Operator` class to encapsule the operator type.

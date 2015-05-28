@@ -101,7 +101,6 @@ if_null_test: Crash # Please triage this failure.
 inference_nsm_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_is_int_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 interface_type_optimization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-is_check_instanceof_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 mirror_invalid_field_access2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirror_invalid_field_access3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirror_invalid_field_access4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
