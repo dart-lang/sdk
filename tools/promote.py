@@ -103,7 +103,7 @@ def _PromoteDartArchiveBuild(channel, revision):
 
   def promote(to_revision):
     def safety_check_on_gs_path(gs_path, revision, channel):
-      if not ((revision == 'latest' or int(revision) > 0)
+      if not (revision != None
               and len(channel) > 0
               and ('%s' % revision) in gs_path
               and channel in gs_path):
@@ -137,12 +137,6 @@ def _PromoteDartArchiveBuild(channel, revision):
     remove_gs_directory(to_loc)
     Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
 
-    # Copy eclipse update directory.
-    from_loc = raw_namer.editor_eclipse_update_directory(revision)
-    to_loc = release_namer.editor_eclipse_update_directory(to_revision)
-    remove_gs_directory(to_loc)
-    Gsutil(['-m', 'cp', '-a', 'public-read', '-R', from_loc, to_loc])
-
     # Copy api-docs zipfile.
     from_loc = raw_namer.apidocs_zipfilepath(revision)
     to_loc = release_namer.apidocs_zipfilepath(to_revision)
@@ -165,7 +159,6 @@ def _PromoteDartArchiveBuild(channel, revision):
     from_loc = raw_namer.version_filepath(revision)
     to_loc = release_namer.version_filepath(to_revision)
     Gsutil(['cp', '-a', 'public-read', from_loc, to_loc])
-
 
   promote(revision)
   promote('latest')
