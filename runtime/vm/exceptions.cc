@@ -566,16 +566,12 @@ void Exceptions::ThrowRangeError(const char* argument_name,
                                  const Integer& argument_value,
                                  intptr_t expected_from,
                                  intptr_t expected_to) {
-  const String& error = String::Handle(String::NewFormatted(
-      "%s (%s) must be in the range [%" Pd "..%" Pd ")",
-      argument_name,
-      argument_value.ToCString(),
-      expected_from,
-      expected_to));
-
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, error);
-  Exceptions::ThrowByType(Exceptions::kRange, args);
+  const Array& args = Array::Handle(Array::New(4));
+  args.SetAt(0, argument_value);
+  args.SetAt(1, Integer::Handle(Integer::New(expected_from)));
+  args.SetAt(2, Integer::Handle(Integer::New(expected_to)));
+  args.SetAt(3, String::Handle(String::New(argument_name)));
+  Exceptions::ThrowByType(Exceptions::kRangeRange, args);
 }
 
 
@@ -592,6 +588,11 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kRange:
       library = Library::CoreLibrary();
       class_name = &Symbols::RangeError();
+      break;
+    case kRangeRange:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::RangeError();
+      constructor_name = &Symbols::DotRange();
       break;
     case kArgument:
       library = Library::CoreLibrary();
