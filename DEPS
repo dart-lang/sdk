@@ -76,7 +76,7 @@ vars = {
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "observatory_pub_packages_rev": "@45565",
-  "package_config_rev": "@286f9cf48448c4563e735a142c6f9442ab57674e",
+  "package_config_tag": "@0.0.2",
   "path_rev": "@93b3e2aa1db0ac0c8bab9d341588d77acda60320",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
@@ -229,7 +229,7 @@ deps = {
       (Var("github_mirror") % "observe") + Var("observe_rev"),
   Var("dart_root") + "/third_party/pkg/package_config":
       (Var("github_mirror") % "package_config") +
-      Var("package_config_rev"),
+      Var("package_config_tag"),
   Var("dart_root") + "/third_party/pkg/path":
       (Var("github_mirror") % "path") + Var("path_rev"),
   Var("dart_root") + "/third_party/pkg/plugin":
