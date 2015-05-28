@@ -916,11 +916,7 @@ patch class LinkedHashMap<K, V> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          if (_useInternalCached) {
-            return new _InternalLinkedHashMap<K, V>();
-          } else {
-            return new _CompactLinkedHashMap<K, V>();
-          }
+          return new _InternalLinkedHashMap<K, V>();
         }
         hashCode = _defaultHashCode;
       } else {
@@ -945,9 +941,6 @@ patch class LinkedHashMap<K, V> {
 
   /* patch */ factory LinkedHashMap.identity() =
       _CompactLinkedIdentityHashMap<K, V>;
-
-  static final bool _useInternalCached = _useInternal;
-  static bool get _useInternal native "LinkedHashMap_useInternal";
 }
 
 patch class LinkedHashSet<E> {

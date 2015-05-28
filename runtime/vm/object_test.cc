@@ -4469,7 +4469,8 @@ TEST_CASE(PrintJSONPrimitives) {
   // LinkedHashMap reference
   {
     JSONStream js;
-    const LinkedHashMap& array = LinkedHashMap::Handle(LinkedHashMap::New());
+    const LinkedHashMap& array =
+        LinkedHashMap::Handle(LinkedHashMap::NewDefault());
     array.PrintJSON(&js, true);
     elideSubstring("classes", js.ToCString(), buffer);
     elideSubstring("objects", buffer, buffer);
@@ -4606,6 +4607,73 @@ TEST_CASE(HashCode) {
   Integer& expected = Integer::Handle();
   expected ^= foo.HashCode();
   EXPECT(result.IsIdenticalTo(expected));
+}
+
+
+static void CheckIdenticalHashStructure(const Instance& a, const Instance& b) {
+  const char* kScript =
+      "(a, b) {\n"
+      "  if (a._usedData != b._usedData ||\n"
+      "      a._deletedKeys != b._deletedKeys ||\n"
+      "      a._hashMask != b._hashMask ||\n"
+      "      a._index.length != b._index.length ||\n"
+      "      a._data.length != b._data.length) {\n"
+      "    return false;\n"
+      "  }\n"
+      "  for (var i = 0; i < a._index.length; ++i) {\n"
+      "    if (a._index[i] != b._index[i]) {\n"
+      "      return false;\n"
+      "    }\n"
+      "  }\n"
+      "  for (var i = 0; i < a._data.length; ++i) {\n"
+      "    var ad = a._data[i];\n"
+      "    var bd = b._data[i];\n"
+      "    if (!identical(ad, bd) && !(ad == a && bd == b)) {\n"
+      "      return false;\n"
+      "    }\n"
+      "  }\n"
+      "  return true;\n"
+      "}(a, b)";
+  String& name = String::Handle();
+  Array& param_names = Array::Handle(Array::New(2));
+  name = String::New("a");
+  param_names.SetAt(0, name);
+  name = String::New("b");
+  param_names.SetAt(1, name);
+  Array& param_values = Array::Handle(Array::New(2));
+  param_values.SetAt(0, a);
+  param_values.SetAt(1, b);
+  name = String::New(kScript);
+  Library& lib = Library::Handle(Library::CollectionLibrary());
+  EXPECT(lib.Evaluate(name, param_names, param_values) == Bool::True().raw());
+}
+
+
+TEST_CASE(LinkedHashMap) {
+  // Check that initial index size and hash mask match in Dart vs. C++.
+  // 1. Create an empty custom linked hash map in Dart.
+  const char* kScript =
+      "import 'dart:collection';\n"
+      "makeMap() {\n"
+      "  Function eq = (a, b) => true;\n"
+      "  Function hc = (a) => 42;\n"
+      "  return new LinkedHashMap(equals: eq, hashCode: hc);\n"
+      "}";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
+  EXPECT_VALID(h_result);
+
+  // 2. Create an empty internalized LinkedHashMap in C++.
+  Instance& dart_map = Instance::Handle();
+  dart_map ^= Api::UnwrapHandle(h_result);
+  LinkedHashMap& cc_map = LinkedHashMap::Handle(LinkedHashMap::NewDefault());
+
+  // 3. Expect them to have identical structure.
+  CheckIdenticalHashStructure(dart_map, cc_map);
 }
 
 }  // namespace dart

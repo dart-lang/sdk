@@ -13,85 +13,98 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, use_internal_hash_map, false, "Use internal hash map.");
-
-
 DEFINE_NATIVE_ENTRY(LinkedHashMap_allocate, 1) {
   const TypeArguments& type_arguments =
       TypeArguments::CheckedHandle(arguments->NativeArgAt(0));
   const LinkedHashMap& map =
-    LinkedHashMap::Handle(LinkedHashMap::New());
+    LinkedHashMap::Handle(LinkedHashMap::NewDefault());
   map.SetTypeArguments(type_arguments);
   return map.raw();
 }
 
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_getLength, 1) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_getIndex, 1) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
-  return Smi::New(map.Length());
+  return map.index();
 }
 
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_lookUp, 2) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_setIndex, 2) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, key, arguments->NativeArgAt(1));
-  return map.LookUp(key);
-}
-
-
-DEFINE_NATIVE_ENTRY(LinkedHashMap_containsKey, 2) {
-  const LinkedHashMap& map =
-      LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, key, arguments->NativeArgAt(1));
-  return Bool::Get(map.Contains(key)).raw();
-}
-
-
-DEFINE_NATIVE_ENTRY(LinkedHashMap_insertOrUpdate, 3) {
-  LinkedHashMap& map =
-      LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, key, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(2));
-  map.InsertOrUpdate(key, value);
+  const TypedData& index =
+      TypedData::CheckedHandle(arguments->NativeArgAt(1));
+  map.SetIndex(index);
   return Object::null();
 }
 
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_remove, 2) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_getData, 1) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Instance, key, arguments->NativeArgAt(1));
-  return map.Remove(key);
+  return map.data();
 }
 
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_clear, 1) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_setData, 2) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
-  map.Clear();
+  const Array& data =
+      Array::CheckedHandle(arguments->NativeArgAt(1));
+  map.SetData(data);
   return Object::null();
 }
 
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_toArray, 1) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_getHashMask, 1) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
-  return map.ToArray();
+  return map.hash_mask();
 }
 
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_getModMark, 2) {
+DEFINE_NATIVE_ENTRY(LinkedHashMap_setHashMask, 2) {
   const LinkedHashMap& map =
       LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, create, arguments->NativeArgAt(1));
-  return map.GetModificationMark(create.value());
+  const Smi& hashMask =
+      Smi::CheckedHandle(arguments->NativeArgAt(1));
+  map.SetHashMask(hashMask.Value());
+  return Object::null();
 }
 
 
-DEFINE_NATIVE_ENTRY(LinkedHashMap_useInternal, 0) {
-  return Bool::Get(FLAG_use_internal_hash_map).raw();
+DEFINE_NATIVE_ENTRY(LinkedHashMap_getDeletedKeys, 1) {
+  const LinkedHashMap& map =
+      LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
+  return map.deleted_keys();
+}
+
+
+DEFINE_NATIVE_ENTRY(LinkedHashMap_setDeletedKeys, 2) {
+  const LinkedHashMap& map =
+      LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
+  const Smi& deletedKeys =
+      Smi::CheckedHandle(arguments->NativeArgAt(1));
+  map.SetDeletedKeys(deletedKeys.Value());
+  return Object::null();
+}
+
+
+DEFINE_NATIVE_ENTRY(LinkedHashMap_getUsedData, 1) {
+  const LinkedHashMap& map =
+      LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
+  return map.used_data();
+}
+
+
+DEFINE_NATIVE_ENTRY(LinkedHashMap_setUsedData, 2) {
+  const LinkedHashMap& map =
+      LinkedHashMap::CheckedHandle(arguments->NativeArgAt(0));
+  const Smi& usedData =
+      Smi::CheckedHandle(arguments->NativeArgAt(1));
+  map.SetUsedData(usedData.Value());
+  return Object::null();
 }
 
 }  // namespace dart

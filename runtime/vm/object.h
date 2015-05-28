@@ -2297,7 +2297,7 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
     kKindTagPos = 0,
     kKindTagSize = 4,
     kRecognizedTagPos = kKindTagPos + kKindTagSize,
-    kRecognizedTagSize = 8,
+    kRecognizedTagSize = 9,
     kModifierPos = kRecognizedTagPos + kRecognizedTagSize,
     kModifierSize = 2,
     kLastModifierBitPos = kModifierPos + (kModifierSize - 1),
@@ -6678,53 +6678,6 @@ class GrowableObjectArray : public Instance {
 };
 
 
-// Corresponds to
-// - "new Map()",
-// - non-const map literals, and
-// - the default constructor of LinkedHashMap in dart:collection.
-class LinkedHashMap : public Instance {
- public:
-  intptr_t Length() const;
-  RawObject* LookUp(const Object& key) const;
-  void InsertOrUpdate(const Object& key, const Object& value) const;
-  bool Contains(const Object& key) const;
-  RawObject* Remove(const Object& key) const;
-  void Clear() const;
-  // List of key, value pairs in iteration (i.e., key insertion) order.
-  RawArray* ToArray() const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawLinkedHashMap));
-  }
-
-  static RawLinkedHashMap* New(Heap::Space space = Heap::kNew);
-
-  virtual RawTypeArguments* GetTypeArguments() const {
-    return raw_ptr()->type_arguments_;
-  }
-  virtual void SetTypeArguments(const TypeArguments& value) const {
-    ASSERT(value.IsNull() || ((value.Length() >= 2) && value.IsInstantiated()));
-    StorePointer(&raw_ptr()->type_arguments_, value.raw());
-  }
-  static intptr_t type_arguments_offset() {
-    return OFFSET_OF(RawLinkedHashMap, type_arguments_);
-  }
-
-  // Called whenever the set of keys changes.
-  void SetModified() const;
-  RawInstance* GetModificationMark(bool create) const;
-
- private:
-  RawArray* data() const { return raw_ptr()->data_; }
-  void SetData(const Array& value) const {
-    StorePointer(&raw_ptr()->data_, value.raw());
-  }
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, Instance);
-  friend class Class;
-};
-
-
 class Float32x4 : public Instance {
  public:
   static RawFloat32x4* New(float value0, float value1, float value2,
@@ -7192,6 +7145,97 @@ class ByteBuffer : public AllStatic {
   enum {
     kDataOffset = 1,
   };
+};
+
+
+// Corresponds to
+// - "new Map()",
+// - non-const map literals, and
+// - the default constructor of LinkedHashMap in dart:collection.
+class LinkedHashMap : public Instance {
+ public:
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawLinkedHashMap));
+  }
+
+  // Allocates a map with some default capacity, just like "new Map()".
+  static RawLinkedHashMap* NewDefault(Heap::Space space = Heap::kNew);
+  static RawLinkedHashMap* New(const Array& data,
+                               const TypedData& index,
+                               intptr_t hash_mask,
+                               intptr_t used_data,
+                               intptr_t deleted_keys,
+                               Heap::Space space = Heap::kNew);
+
+  virtual RawTypeArguments* GetTypeArguments() const {
+    return raw_ptr()->type_arguments_;
+  }
+  virtual void SetTypeArguments(const TypeArguments& value) const {
+    ASSERT(value.IsNull() || ((value.Length() >= 2) && value.IsInstantiated()));
+    StorePointer(&raw_ptr()->type_arguments_, value.raw());
+  }
+  static intptr_t type_arguments_offset() {
+    return OFFSET_OF(RawLinkedHashMap, type_arguments_);
+  }
+
+  RawTypedData* index() const {
+    return raw_ptr()->index_;
+  }
+  void SetIndex(const TypedData& value) const {
+    StorePointer(&raw_ptr()->index_, value.raw());
+  }
+  static intptr_t index_offset() {
+    return OFFSET_OF(RawLinkedHashMap, index_);
+  }
+
+  RawArray* data() const {
+    return raw_ptr()->data_;
+  }
+  void SetData(const Array& value) const {
+    StorePointer(&raw_ptr()->data_, value.raw());
+  }
+  static intptr_t data_offset() {
+    return OFFSET_OF(RawLinkedHashMap, data_);
+  }
+
+  RawSmi* hash_mask() const {
+    return raw_ptr()->hash_mask_;
+  }
+  void SetHashMask(intptr_t value) const {
+    StoreSmi(&raw_ptr()->hash_mask_, Smi::New(value));
+  }
+  static intptr_t hash_mask_offset() {
+    return OFFSET_OF(RawLinkedHashMap, hash_mask_);
+  }
+
+  RawSmi* used_data() const {
+    return raw_ptr()->used_data_;
+  }
+  void SetUsedData(intptr_t value) const {
+    StoreSmi(&raw_ptr()->used_data_, Smi::New(value));
+  }
+  static intptr_t used_data_offset() {
+    return OFFSET_OF(RawLinkedHashMap, used_data_);
+  }
+
+  RawSmi* deleted_keys() const {
+    return raw_ptr()->deleted_keys_;
+  }
+  void SetDeletedKeys(intptr_t value) const {
+    StoreSmi(&raw_ptr()->deleted_keys_, Smi::New(value));
+  }
+  static intptr_t deleted_keys_offset() {
+    return OFFSET_OF(RawLinkedHashMap, deleted_keys_);
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, Instance);
+
+  // Allocate a map, but leave all fields set to null.
+  // Used during deserialization (since map might contain itself as key/value).
+  static RawLinkedHashMap* NewUninitialized(Heap::Space space = Heap::kNew);
+
+  friend class Class;
 };
 
 

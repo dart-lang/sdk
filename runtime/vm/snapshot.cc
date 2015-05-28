@@ -188,6 +188,7 @@ SnapshotReader::SnapshotReader(
       tokens_(Array::Handle(isolate)),
       stream_(TokenStream::Handle(isolate)),
       data_(ExternalTypedData::Handle(isolate)),
+      typed_data_(TypedData::Handle(isolate)),
       error_(UnhandledException::Handle(isolate)),
       max_vm_isolate_object_id_(
           Object::vm_isolate_snapshot_object_table().Length()),

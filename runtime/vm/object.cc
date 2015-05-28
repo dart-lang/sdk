@@ -965,10 +965,11 @@ RawError* Object::Init(Isolate* isolate) {
   cls = Class::New<Array>();
   object_store->set_array_class(cls);
 
-  // Array and ImmutableArray are the only VM classes that are parameterized.
-  // Since they are pre-finalized, CalculateFieldOffsets() is not called, so we
-  // need to set the offset of their type_arguments_ field, which is explicitly
-  // declared in RawArray.
+  // VM classes that are parameterized (Array, ImmutableArray,
+  // GrowableObjectArray, and LinkedHashMap) are also pre-finalized,
+  // so CalculateFieldOffsets() is not called, so we need to set the
+  // offset of their type_arguments_ field, which is explicitly
+  // declared in their respective Raw* classes.
   cls.set_type_arguments_field_offset(Array::type_arguments_offset());
   cls.set_num_type_arguments(1);
 
@@ -1225,7 +1226,6 @@ RawError* Object::Init(Isolate* isolate) {
   }
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::CollectionLibrary());
-
   cls = Class::New<LinkedHashMap>();
   object_store->set_linked_hash_map_class(cls);
   cls.set_type_arguments_field_offset(LinkedHashMap::type_arguments_offset());
@@ -10482,6 +10482,7 @@ void Library::CheckFunctionFingerprints() {
 
   all_libs.Add(&Library::ZoneHandle(Library::MathLibrary()));
   all_libs.Add(&Library::ZoneHandle(Library::TypedDataLibrary()));
+  all_libs.Add(&Library::ZoneHandle(Library::CollectionLibrary()));
   OTHER_RECOGNIZED_LIST(CHECK_FINGERPRINTS);
   INLINE_WHITE_LIST(CHECK_FINGERPRINTS);
   INLINE_BLACK_LIST(CHECK_FINGERPRINTS);
@@ -19593,103 +19594,45 @@ class DefaultHashTraits {
 typedef EnumIndexHashMap<DefaultHashTraits> EnumIndexDefaultMap;
 
 
-intptr_t LinkedHashMap::Length() const {
-  EnumIndexDefaultMap map(data());
-  intptr_t result = map.NumOccupied();
-  ASSERT(map.Release().raw() == data());
-  return result;
+RawLinkedHashMap* LinkedHashMap::NewDefault(Heap::Space space) {
+  // Keep this in sync with Dart implementation (lib/compact_hash.dart).
+  static const intptr_t kInitialIndexBits = 3;
+  static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
+  const Array& data = Array::Handle(Array::New(kInitialIndexSize, space));
+  const TypedData& index = TypedData::Handle(TypedData::New(
+      kTypedDataUint32ArrayCid, kInitialIndexSize, space));
+  static const intptr_t kInitialHashMask =
+#if defined(ARCH_IS_64_BIT)
+      (1 << (32 - kInitialIndexBits)) - 1;
+#else
+      (1 << (30 - kInitialIndexBits)) - 1;
+#endif
+  return LinkedHashMap::New(data, index, kInitialHashMask, 0, 0, space);
 }
 
 
-void LinkedHashMap::InsertOrUpdate(const Object& key,
-                                     const Object& value) const {
-  ASSERT(!IsNull());
-  EnumIndexDefaultMap map(data());
-  if (!map.UpdateOrInsert(key, value)) {
-    SetModified();
-  }
-  StorePointer(&raw_ptr()->data_, map.Release().raw());
-}
-
-
-RawObject* LinkedHashMap::LookUp(const Object& key) const {
-  ASSERT(!IsNull());
-  EnumIndexDefaultMap map(data());
-  {
-    NoSafepointScope no_safepoint;
-    RawObject* result = map.GetOrNull(key);
-    ASSERT(map.Release().raw() == data());
-    return result;
-  }
-}
-
-
-bool LinkedHashMap::Contains(const Object& key) const {
-  ASSERT(!IsNull());
-  EnumIndexDefaultMap map(data());
-  bool result = map.ContainsKey(key);
-  ASSERT(map.Release().raw() == data());
-  return result;
-}
-
-
-RawObject* LinkedHashMap::Remove(const Object& key) const {
-  ASSERT(!IsNull());
-  EnumIndexDefaultMap map(data());
-  // TODO(koda): Make 'Remove' also return the old value.
-  const PassiveObject& result = PassiveObject::Handle(map.GetOrNull(key));
-  if (map.Remove(key)) {
-    SetModified();
-  }
-  StorePointer(&raw_ptr()->data_, map.Release().raw());
-  return result.raw();
-}
-
-
-void LinkedHashMap::Clear() const {
-  ASSERT(!IsNull());
-  if (Length() != 0) {
-    EnumIndexDefaultMap map(data());
-    map.Initialize();
-    SetModified();
-    StorePointer(&raw_ptr()->data_, map.Release().raw());
-  }
-}
-
-
-RawArray* LinkedHashMap::ToArray() const {
-  EnumIndexDefaultMap map(data());
-  const Array& result = Array::Handle(HashTables::ToArray(map, true));
-  ASSERT(map.Release().raw() == data());
-  return result.raw();
-}
-
-
-void LinkedHashMap::SetModified() const {
-  StorePointer(&raw_ptr()->cme_mark_, Instance::null());
-}
-
-
-RawInstance* LinkedHashMap::GetModificationMark(bool create) const {
-  if (create && raw_ptr()->cme_mark_ == Instance::null()) {
-    Isolate* isolate = Isolate::Current();
-    const Class& object_class =
-        Class::Handle(isolate, isolate->object_store()->object_class());
-    const Instance& current =
-        Instance::Handle(isolate, Instance::New(object_class));
-    StorePointer(&raw_ptr()->cme_mark_, current.raw());
-  }
-  return raw_ptr()->cme_mark_;
-}
-
-
-RawLinkedHashMap* LinkedHashMap::New(Heap::Space space) {
+RawLinkedHashMap* LinkedHashMap::New(const Array& data,
+                                     const TypedData& index,
+                                     intptr_t hash_mask,
+                                     intptr_t used_data,
+                                     intptr_t deleted_keys,
+                                     Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->linked_hash_map_class()
          != Class::null());
-  static const intptr_t kInitialCapacity = 4;
-  const Array& data =
-      Array::Handle(HashTables::New<EnumIndexDefaultMap>(kInitialCapacity,
-                                                         space));
+  LinkedHashMap& result = LinkedHashMap::Handle(
+      LinkedHashMap::NewUninitialized(space));
+  result.SetData(data);
+  result.SetIndex(index);
+  result.SetHashMask(hash_mask);
+  result.SetUsedData(used_data);
+  result.SetDeletedKeys(deleted_keys);
+  return result.raw();
+}
+
+
+RawLinkedHashMap* LinkedHashMap::NewUninitialized(Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->linked_hash_map_class()
+         != Class::null());
   LinkedHashMap& result = LinkedHashMap::Handle();
   {
     RawObject* raw = Object::Allocate(LinkedHashMap::kClassId,
@@ -19697,8 +19640,6 @@ RawLinkedHashMap* LinkedHashMap::New(Heap::Space space) {
                                       space);
     NoSafepointScope no_safepoint;
     result ^= raw;
-    result.SetData(data);
-    result.SetModified();
   }
   return result.raw();
 }

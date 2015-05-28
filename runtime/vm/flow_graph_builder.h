@@ -342,6 +342,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
       intptr_t offset,
       const Type& type,
       intptr_t class_id);
+  // Assumes setter parameter is named 'value'. Returns null constant.
+  ConstantInstr* DoNativeSetterStoreValue(
+      NativeBodyNode* node,
+      intptr_t offset,
+      StoreBarrierType emit_store_barrier);
 
   // Helpers for translating parts of the AST.
   void BuildPushArguments(const ArgumentListNode& node,

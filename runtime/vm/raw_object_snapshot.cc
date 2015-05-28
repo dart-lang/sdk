@@ -2218,13 +2218,19 @@ RawLinkedHashMap* LinkedHashMap::ReadFrom(SnapshotReader* reader,
     // we don't reach this.
     UNREACHABLE();
   } else {
-    map = LinkedHashMap::New(HEAP_SPACE(kind));
+    // Since the map might contain itself as a key or value, allocate first.
+    map = LinkedHashMap::NewUninitialized(HEAP_SPACE(kind));
   }
   reader->AddBackRef(object_id, &map, kIsDeserialized);
-  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl();
-  map.SetData(*(reader->ArrayHandle()));
-  *(reader->TypeArgumentsHandle()) = reader->ArrayHandle()->GetTypeArguments();
-  map.SetTypeArguments(*(reader->TypeArgumentsHandle()));
+  // Set the object tags.
+  map.set_tags(tags);
+  // Read and set the fields.
+  intptr_t num_flds = (map.raw()->to() - map.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    (*reader->PassiveObjectHandle()) = reader->ReadObjectRef();
+    map.StorePointer((map.raw()->from() + i),
+                     reader->PassiveObjectHandle()->raw());
+  }
   return map.raw();
 }
 
@@ -2246,10 +2252,12 @@ void RawLinkedHashMap::WriteTo(SnapshotWriter* writer,
   writer->WriteIndexedObject(kLinkedHashMapCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
-  // Write out the backing array.
-  // TODO(koda): Serialize as pairs (like ToArray) instead, to reduce space and
-  // support per-isolate salted hash codes.
-  writer->WriteObjectImpl(ptr()->data_);
+  // Write out all the object pointer fields.
+  // TODO(koda): Serialize only used parts of data_ (after compaction), to
+  // reduce space and support per-isolate salted hash codes. All allowed keys
+  // have types for which we can rehash without running Dart code.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
 }
 
 

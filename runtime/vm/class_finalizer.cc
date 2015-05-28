@@ -219,6 +219,8 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT(ImmutableArray::InstanceSize() == cls.instance_size());
   cls = object_store->weak_property_class();
   ASSERT(WeakProperty::InstanceSize() == cls.instance_size());
+  cls = object_store->linked_hash_map_class();
+  ASSERT(LinkedHashMap::InstanceSize() == cls.instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.

@@ -147,6 +147,17 @@ namespace dart {
   V(_Bigint, get:_neg, Bigint_getNeg, 1151633263)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 1308648707)                            \
   V(_Bigint, get:_digits, Bigint_getDigits, 1408181836)                        \
+  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 1431607529)               \
+  V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 2007926178)               \
+  V(_HashVMBase, get:_data, LinkedHashMap_getData, 958070909)                  \
+  V(_HashVMBase, set:_data, LinkedHashMap_setData, 1134236592)                 \
+  V(_HashVMBase, get:_usedData, LinkedHashMap_getUsedData, 421669312)          \
+  V(_HashVMBase, set:_usedData, LinkedHashMap_setUsedData, 1152062737)         \
+  V(_HashVMBase, get:_hashMask, LinkedHashMap_getHashMask, 969476186)          \
+  V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 1781420082)         \
+  V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 63633039)     \
+  V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 2079107858)   \
+
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).
@@ -397,6 +408,17 @@ namespace dart {
   V(_Bigint, get:_neg, Bigint_getNeg, 1151633263)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 1308648707)                            \
   V(_Bigint, get:_digits, Bigint_getDigits, 1408181836)                        \
+  V(_HashVMBase, get:_index, LinkedHashMap_getIndex, 1431607529)               \
+  V(_HashVMBase, set:_index, LinkedHashMap_setIndex, 2007926178)               \
+  V(_HashVMBase, get:_data, LinkedHashMap_getData, 958070909)                  \
+  V(_HashVMBase, set:_data, LinkedHashMap_setData, 1134236592)                 \
+  V(_HashVMBase, get:_usedData, LinkedHashMap_getUsedData, 421669312)          \
+  V(_HashVMBase, set:_usedData, LinkedHashMap_setUsedData, 1152062737)         \
+  V(_HashVMBase, get:_hashMask, LinkedHashMap_getHashMask, 969476186)          \
+  V(_HashVMBase, set:_hashMask, LinkedHashMap_setHashMask, 1781420082)         \
+  V(_HashVMBase, get:_deletedKeys, LinkedHashMap_getDeletedKeys, 63633039)     \
+  V(_HashVMBase, set:_deletedKeys, LinkedHashMap_setDeletedKeys, 2079107858)   \
+
 
 // A list of core function that should never be inlined.
 #define INLINE_BLACK_LIST(V)                                                   \

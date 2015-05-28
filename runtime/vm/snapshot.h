@@ -77,6 +77,7 @@ class RawUnresolvedClass;
 class String;
 class TokenStream;
 class TypeArguments;
+class TypedData;
 class UnhandledException;
 
 // Serialized object header encoding is as follows:
@@ -275,6 +276,7 @@ class SnapshotReader : public BaseReader {
   Array* TokensHandle() { return &tokens_; }
   TokenStream* StreamHandle() { return &stream_; }
   ExternalTypedData* DataHandle() { return &data_; }
+  TypedData* TypedDataHandle() { return &typed_data_; }
   Snapshot::Kind kind() const { return kind_; }
 
   // Reads an object.
@@ -400,6 +402,7 @@ class SnapshotReader : public BaseReader {
   Array& tokens_;  // Temporary tokens handle.
   TokenStream& stream_;  // Temporary token stream handle.
   ExternalTypedData& data_;  // Temporary stream data handle.
+  TypedData& typed_data_;  // Temporary typed data handle.
   UnhandledException& error_;  // Error handle.
   intptr_t max_vm_isolate_object_id_;
   ZoneGrowableArray<BackRefNode>* backward_references_;

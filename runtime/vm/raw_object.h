@@ -1698,11 +1698,15 @@ class RawLinkedHashMap : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
   }
   RawTypeArguments* type_arguments_;
-  RawInstance* cme_mark_;
+  RawTypedData* index_;
+  RawSmi* hash_mask_;
   RawArray* data_;
+  RawSmi* used_data_;
+  RawSmi* deleted_keys_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
+    return reinterpret_cast<RawObject**>(&ptr()->deleted_keys_);
   }
+
 
   friend class SnapshotReader;
 };
