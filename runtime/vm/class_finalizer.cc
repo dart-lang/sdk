@@ -1165,7 +1165,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
       AbstractType::Handle(FinalizeType(cls, type, kCanonicalize));
   // The result type may be malformed or malbounded.
   if (type.raw() != finalized_type.raw()) {
-    function.set_result_type(type);
+    function.set_result_type(finalized_type);
   }
   // Resolve formal parameter types.
   const intptr_t num_parameters = function.NumParameters();
@@ -1174,7 +1174,7 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
     finalized_type = FinalizeType(cls, type, kCanonicalize);
     // The parameter type may be malformed or malbounded.
     if (type.raw() != finalized_type.raw()) {
-      function.SetParameterTypeAt(i, type);
+      function.SetParameterTypeAt(i, finalized_type);
     }
   }
 }
