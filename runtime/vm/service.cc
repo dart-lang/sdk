@@ -762,7 +762,7 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
     JSONObject jsobj(&js);
     {
       JSONObject event(&jsobj, "event");
-      event.AddProperty("type", "ServiceEvent");
+      event.AddProperty("type", "Event");
       event.AddProperty("eventType", "_Echo");
       event.AddProperty("isolate", isolate);
       if (text != NULL) {
@@ -2105,11 +2105,11 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
   }
   if (isolate->debugger()->PauseEvent() != NULL) {
     if (step_param != NULL) {
-      if (strcmp(step_param, "into") == 0) {
+      if (strcmp(step_param, "Into") == 0) {
         isolate->debugger()->SetSingleStep();
-      } else if (strcmp(step_param, "over") == 0) {
+      } else if (strcmp(step_param, "Over") == 0) {
         isolate->debugger()->SetStepOver();
-      } else if (strcmp(step_param, "out") == 0) {
+      } else if (strcmp(step_param, "Out") == 0) {
         isolate->debugger()->SetStepOut();
       } else {
         PrintInvalidParamError(js, "step");
@@ -2287,7 +2287,7 @@ void Service::SendGraphEvent(Isolate* isolate) {
       JSONObject jsobj(&js);
       {
         JSONObject event(&jsobj, "event");
-        event.AddProperty("type", "ServiceEvent");
+        event.AddProperty("type", "Event");
         event.AddProperty("eventType", "_Graph");
         event.AddProperty("isolate", isolate);
 

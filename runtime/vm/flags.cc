@@ -429,23 +429,23 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
   jsflag.AddProperty("comment", flag->comment_);
   switch (flag->type_) {
     case Flag::kBoolean: {
-      jsflag.AddProperty("flagType", "bool");
+      jsflag.AddProperty("_flagType", "Bool");
       jsflag.AddProperty("valueAsString",
                          (*flag->bool_ptr_ ? "true" : "false"));
       break;
     }
     case Flag::kInteger: {
-      jsflag.AddProperty("flagType", "int");
+      jsflag.AddProperty("_flagType", "Int");
       jsflag.AddPropertyF("valueAsString", "%d", *flag->int_ptr_);
       break;
     }
     case Flag::kUint64: {
-      jsflag.AddProperty("flagType", "uint64_t");
+      jsflag.AddProperty("_flagType", "UInt64");
       jsflag.AddPropertyF("valueAsString", "%" Pu64, *flag->uint64_ptr_);
       break;
     }
     case Flag::kString: {
-      jsflag.AddProperty("flagType", "string");
+      jsflag.AddProperty("_flagType", "String");
       if (flag->charp_ptr_ != NULL) {
         jsflag.AddPropertyF("valueAsString", "%s", *flag->charp_ptr_);
       } else {

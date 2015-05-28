@@ -234,7 +234,7 @@ abstract class ServiceObject extends Observable {
             break;
         }
         break;
-      case 'ServiceEvent':
+      case 'Event':
         obj = new ServiceEvent._empty(owner);
         break;
       case 'Script':
@@ -441,9 +441,9 @@ abstract class VM extends ServiceObjectOwner {
     if (data != null) {
       map['_data'] = data;
     }
-    if (map['type'] != 'ServiceEvent') {
+    if (map['type'] != 'Event') {
       Logger.root.severe(
-          "Expected 'ServiceEvent' but found '${map['type']}'");
+          "Expected 'Event' but found '${map['type']}'");
       return;
     }
 
@@ -1225,15 +1225,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future stepInto() {
-    return invokeRpc('resume', {'step': 'into'});
+    return invokeRpc('resume', {'step': 'Into'});
   }
 
   Future stepOver() {
-    return invokeRpc('resume', {'step': 'over'});
+    return invokeRpc('resume', {'step': 'Over'});
   }
 
   Future stepOut() {
-    return invokeRpc('resume', {'step': 'out'});
+    return invokeRpc('resume', {'step': 'Out'});
   }
 
   Future setName(String newName) {

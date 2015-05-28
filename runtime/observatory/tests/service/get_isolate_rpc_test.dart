@@ -20,7 +20,7 @@ var tests = [
     expect(result['startTime'], isPositive);
     expect(result['livePorts'], isPositive);
     expect(result['pauseOnExit'], isFalse);
-    expect(result['pauseEvent']['type'], equals('ServiceEvent'));
+    expect(result['pauseEvent']['type'], equals('Event'));
     expect(result['error'], isNull);
     expect(result['rootLib']['type'], equals('@Library'));
     expect(result['libraries'].length, isPositive);

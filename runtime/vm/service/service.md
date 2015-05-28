@@ -56,7 +56,6 @@ apparently outside the scope of the JSON-RPC specification.
 	- [Field](#field)
 	- [Flag](#flag)
 	- [FlagList](#flaglist)
-	- [FlagType](#flagtype)
 	- [Frame](#frame)
 	- [Function](#function)
 	- [Instance](#instance)
@@ -547,9 +546,9 @@ single-stepping to use.
 
 step | meaning
 ---- | -------
-into | Single step, entering function calls
-over | Single step, skipping over function calls
-out | Single step until the current function exits
+Into | Single step, entering function calls
+Over | Single step, skipping over function calls
+Out | Single step until the current function exits
 
 See [Success](#success), [StepOption](#StepOption).
 
@@ -1081,9 +1080,6 @@ class Flag {
   // A description of the flag.
   string comment;
 
-  // The type of the flag.
-  FlagType flagType;
-
   // The value of this flag as a string.
   //
   // If this property is absent, then the value of the flag was NULL.
@@ -1106,19 +1102,6 @@ class FlagList extends Response {
 ```
 
 A _FlagList_ represents the complete set of VM command line flags.
-
-### FlagType
-
-```
-enum FlagType {
-  bool,
-  int,
-  uint64_t,
-  string
-}
-```
-
-A _FlagType_ indicates the type of a VM command line flag.
 
 ### Frame
 
@@ -1528,9 +1511,9 @@ class Stack {
 
 ```
 enum StepOption {
-  into,
-  over,
-  out
+  Into,
+  Over,
+  Out
 }
 ```
 
