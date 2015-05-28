@@ -32,7 +32,7 @@ vars = {
       "https://chromium.googlesource.com/external/github.com/dart-lang/%s.git",
 
   "gyp_rev": "@1752",
-  "co19_rev": "@20c5a7306a7bcee037cc3988a84e5486c6e1a78e",
+  "co19_rev": "@f95f109fea67127a220958794ef5200a63cb454c",
   "chromium_url": "http://src.chromium.org/svn",
   "chromium_git": "https://chromium.googlesource.com",
 
