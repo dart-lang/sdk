@@ -1035,10 +1035,9 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
 }
 
 
-const uint8_t kSafepointKind =
-    RawPcDescriptors::kIcCall |  RawPcDescriptors::kOptStaticCall |
-    RawPcDescriptors::kUnoptStaticCall | RawPcDescriptors::kClosureCall |
-    RawPcDescriptors::kRuntimeCall;
+const uint8_t kSafepointKind = RawPcDescriptors::kIcCall
+                             | RawPcDescriptors::kUnoptStaticCall
+                             | RawPcDescriptors::kRuntimeCall;
 
 
 CodeBreakpoint::CodeBreakpoint(const Code& code,

@@ -37,12 +37,6 @@ void CodeBreakpoint::PatchCode() {
             pc_, code, isolate->stub_code()->ICCallBreakpointEntryPoint());
         break;
       }
-      case RawPcDescriptors::kClosureCall: {
-        saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
-        CodePatcher::PatchStaticCallAt(
-            pc_, code, isolate->stub_code()->ClosureCallBreakpointEntryPoint());
-        break;
-      }
       case RawPcDescriptors::kRuntimeCall: {
         saved_value_ = CodePatcher::GetStaticCallTargetAt(pc_, code);
         CodePatcher::PatchStaticCallAt(
@@ -66,7 +60,6 @@ void CodeBreakpoint::RestoreCode() {
     switch (breakpoint_kind_) {
       case RawPcDescriptors::kIcCall:
       case RawPcDescriptors::kUnoptStaticCall:
-      case RawPcDescriptors::kClosureCall:
       case RawPcDescriptors::kRuntimeCall: {
         CodePatcher::PatchStaticCallAt(pc_, code, saved_value_);
         break;

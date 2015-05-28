@@ -1712,28 +1712,6 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
 }
 
 
-// ECX: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
-// stub).
-// EDX: Contains an arguments descriptor.
-void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  // Save arguments to original stub.
-  __ pushl(ECX);
-  __ pushl(EDX);
-  // Room for result. Debugger stub returns address of the
-  // unpatched runtime stub.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ pushl(raw_null);  // Room for result.
-  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
-  __ popl(EAX);  // Address of original stub.
-  __ popl(EDX);  // Restore arguments to original stub.
-  __ popl(ECX);
-  __ LeaveFrame();
-  __ jmp(EAX);   // Jump to original stub.
-}
-
-
 void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Room for result. Debugger stub returns address of the

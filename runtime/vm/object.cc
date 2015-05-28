@@ -10637,9 +10637,7 @@ const char* PcDescriptors::KindAsStr(RawPcDescriptors::Kind kind) {
   switch (kind) {
     case RawPcDescriptors::kDeopt:           return "deopt        ";
     case RawPcDescriptors::kIcCall:          return "ic-call      ";
-    case RawPcDescriptors::kOptStaticCall:   return "opt-call     ";
     case RawPcDescriptors::kUnoptStaticCall: return "unopt-call   ";
-    case RawPcDescriptors::kClosureCall:     return "closure-call ";
     case RawPcDescriptors::kRuntimeCall:     return "runtime-call ";
     case RawPcDescriptors::kOsrEntry:        return "osr-entry    ";
     case RawPcDescriptors::kOther:           return "other        ";

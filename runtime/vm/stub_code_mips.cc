@@ -1887,29 +1887,6 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
 }
 
 
-// S5: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
-// stub).
-// S4: Contains an arguments descriptor.
-void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
-  __ Comment("ClosureCallBreakpoint stub");
-  __ EnterStubFrame();
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(S5, Address(SP, 2 * kWordSize));
-  __ sw(S4, Address(SP, 1 * kWordSize));
-  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
-  __ sw(TMP, Address(SP, 0 * kWordSize));
-
-  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
-
-  __ lw(S5, Address(SP, 2 * kWordSize));
-  __ lw(S4, Address(SP, 1 * kWordSize));
-  __ lw(T0, Address(SP, 0 * kWordSize));
-  __ addiu(SP, SP, Immediate(3 * kWordSize));
-  __ LeaveStubFrame();
-  __ jr(T0);
-}
-
-
 void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ Comment("RuntimeCallBreakpoint stub");
   __ EnterStubFrame();

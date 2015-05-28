@@ -68,7 +68,6 @@ class RawCode;
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \
   V(ICCallBreakpoint)                                                          \
-  V(ClosureCallBreakpoint)                                                     \
   V(RuntimeCallBreakpoint)                                                     \
   V(UnoptimizedIdenticalWithNumberCheck)                                       \
   V(OptimizedIdenticalWithNumberCheck)                                         \

@@ -1762,28 +1762,6 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
 }
 
 
-// RBX: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
-// stub).
-// R10: Contains an arguments descriptor.
-// TOS(0): return address (Dart code).
-void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  // Preserve runtime args.
-  __ pushq(RBX);
-  __ pushq(R10);
-  // Room for result. Debugger stub returns address of the
-  // unpatched runtime stub.
-  __ LoadObject(R12, Object::null_object(), PP);
-  __ pushq(R12);  // Room for result.
-  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
-  __ popq(RAX);  // Address of original.
-  __ popq(R10);  // Restore arguments.
-  __ popq(RBX);
-  __ LeaveStubFrame();
-  __ jmp(RAX);   // Jump to original stub.
-}
-
-
 //  TOS(0): return address (Dart code).
 void StubCode::GenerateRuntimeCallBreakpointStub(Assembler* assembler) {
   __ EnterStubFrame();
