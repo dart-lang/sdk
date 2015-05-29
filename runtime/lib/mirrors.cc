@@ -18,7 +18,7 @@
 
 namespace dart {
 
-#define PROPOGATE_IF_MALFOMRED(type)                                           \
+#define PROPAGATE_IF_MALFORMED(type)                                           \
   if (type.IsMalformed()) {                                                    \
     Exceptions::PropagateError(Error::Handle(type.error()));                   \
   }                                                                            \
@@ -210,7 +210,7 @@ static RawInstance* CreateTypeVariableList(const Class& cls) {
   for (intptr_t i = 0; i < args.Length(); i++) {
     type ^= args.TypeAt(i);
     ASSERT(type.IsTypeParameter());
-    PROPOGATE_IF_MALFOMRED(type);
+    PROPAGATE_IF_MALFORMED(type);
     ASSERT(type.IsFinalized());
     name ^= type.name();
     result.SetAt(2 * i, name);
@@ -516,7 +516,8 @@ static RawInstance* CreateTypeMirror(const AbstractType& type) {
     return CreateTypeMirror(ref_type);
   }
   ASSERT(type.IsFinalized());
-  PROPOGATE_IF_MALFOMRED(type);
+  PROPAGATE_IF_MALFORMED(type);
+  ASSERT(type.IsCanonical() || type.IsTypeParameter() || type.IsBoundedType());
 
   if (type.HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type.type_class());
@@ -762,7 +763,8 @@ static RawInstance* InvokeInstanceGetter(const Class& klass,
 static RawAbstractType* InstantiateType(const AbstractType& type,
                                         const AbstractType& instantiator) {
   ASSERT(type.IsFinalized());
-  PROPOGATE_IF_MALFOMRED(type);
+  PROPAGATE_IF_MALFORMED(type);
+  ASSERT(type.IsCanonical() || type.IsTypeParameter() || type.IsBoundedType());
 
   if (type.IsInstantiated() || instantiator.IsNull()) {
     return type.Canonicalize();
@@ -770,7 +772,7 @@ static RawAbstractType* InstantiateType(const AbstractType& type,
 
   ASSERT(!instantiator.IsNull());
   ASSERT(instantiator.IsFinalized());
-  PROPOGATE_IF_MALFOMRED(instantiator);
+  PROPAGATE_IF_MALFORMED(instantiator);
 
   const TypeArguments& type_args =
       TypeArguments::Handle(instantiator.arguments());
@@ -816,7 +818,7 @@ DEFINE_NATIVE_ENTRY(MirrorSystem_isolate, 0) {
 
 DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPOGATE_IF_MALFOMRED(type);
+  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   ASSERT(type.HasResolvedTypeClass());
   const Class& cls = Class::Handle(type.type_class());
@@ -941,7 +943,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_libraryUri, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPOGATE_IF_MALFOMRED(type);
+  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);
@@ -956,7 +958,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPOGATE_IF_MALFOMRED(type);
+  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);
@@ -970,7 +972,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_supertype_instantiated, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPOGATE_IF_MALFOMRED(type);
+  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);
@@ -987,7 +989,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_interfaces_instantiated, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPOGATE_IF_MALFOMRED(type);
+  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);
@@ -1015,7 +1017,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_interfaces_instantiated, 1) {
 
 DEFINE_NATIVE_ENTRY(ClassMirror_mixin, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  PROPOGATE_IF_MALFOMRED(type);
+  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);
@@ -1033,7 +1035,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_mixin_instantiated, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType,
                                instantiator,
                                arguments->NativeArgAt(1));
-  PROPOGATE_IF_MALFOMRED(type);
+  PROPAGATE_IF_MALFORMED(type);
   ASSERT(type.IsFinalized());
   if (!type.HasResolvedTypeClass()) {
     Exceptions::ThrowArgumentError(type);

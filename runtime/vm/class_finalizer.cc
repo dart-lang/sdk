@@ -2236,6 +2236,12 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     super_type = FinalizeType(cls, super_type, kCanonicalizeWellFormed);
     cls.set_super_type(super_type);
   }
+  // Finalize mixin type.
+  Type& mixin_type = Type::Handle(cls.mixin());
+  if (!mixin_type.IsNull()) {
+    mixin_type ^= FinalizeType(cls, mixin_type, kCanonicalizeWellFormed);
+    cls.set_mixin(mixin_type);
+  }
   if (cls.IsSignatureClass()) {
     // Check for illegal self references.
     GrowableArray<intptr_t> visited_aliases;
