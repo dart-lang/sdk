@@ -800,11 +800,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       compiler.reportError(node, MessageKind.NO_THIS_AVAILABLE);
       return false;
     }
-    if (node.isConditional) {
-      // `this?.foo` is not allowed.
-      compiler.reportError(node, MessageKind.INVALID_USE_OF_THIS);
-      return false;
-    }
     return true;
   }
 

@@ -598,9 +598,6 @@ main() => new C<String>();
   static const MessageKind INVALID_USE_OF_SUPER = const MessageKind(
       "'super' not allowed here.");
 
-  static const MessageKind INVALID_USE_OF_THIS = const MessageKind(
-      "'this' not allowed here.");
-
   static const MessageKind INVALID_CASE_DEFAULT = const MessageKind(
       "'default' only allowed on last case of a switch.");
 
