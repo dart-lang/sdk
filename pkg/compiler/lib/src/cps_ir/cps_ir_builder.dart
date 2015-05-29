@@ -366,6 +366,11 @@ abstract class IrBuilderMixin<N> {
     return (IrBuilder builder) => withBuilder(builder, () => build(node));
   }
 
+  /// Returns a closure that takes an [IrBuilder] and runs [f] in its context.
+  SubbuildFunction nested(f()) {
+    return (IrBuilder builder) => withBuilder(builder, f);
+  }
+
   /// Returns a closure that takes an [IrBuilder] and builds the sequence of
   /// [nodes] in its context using [build].
   // TODO(johnniwinther): Type [nodes] as `Iterable<N>` when `NodeList` uses
@@ -912,6 +917,19 @@ abstract class IrBuilder {
                                       List<ir.Primitive> arguments) {
     return _buildInvokeDynamic(receiver, selector, arguments);
   }
+
+  /// Create an if-null expression. This is equivalent to a conditional
+  /// expression whose result is either [value] if [value] is not null, or
+  /// `right` if [value] is null. Only when [value] is null, [buildRight] is
+  /// evaluated to produce the `right` value.
+  ir.Primitive buildIfNull(ir.Primitive value,
+                           ir.Primitive buildRight(IrBuilder builder));
+
+  /// Create a conditional send. This is equivalent to a conditional expression
+  /// that checks if [receiver] is null, if so, it returns null, otherwise it
+  /// evaluates the [buildSend] expression.
+  ir.Primitive buildIfNotNullSend(ir.Primitive receiver,
+                                  ir.Primitive buildSend(IrBuilder builder));
 
   /// Create a dynamic getter invocation on [receiver] where the getter name is
   /// defined by [selector].
@@ -2406,6 +2424,27 @@ class JsIrBuilder extends IrBuilder {
             (k) => new ir.TypeOperator(value,
                        type, typeArguments, k, isTypeTest: isTypeTest));
     return check;
+  }
+
+  @override
+  ir.Primitive buildIfNull(ir.Primitive value,
+                           ir.Primitive buildRight(IrBuilder builder)) {
+    ir.Primitive condition = _buildCheckNull(value);
+    return buildConditional(condition, buildRight, (_) => value);
+  }
+
+  @override
+  ir.Primitive buildIfNotNullSend(ir.Primitive receiver,
+                                  ir.Primitive buildSend(IrBuilder builder)) {
+    ir.Primitive condition = _buildCheckNull(receiver);
+    return buildConditional(condition, (_) => receiver, buildSend);
+  }
+
+  /// Creates a type test checking whether [value] is null.
+  ir.Primitive _buildCheckNull(ir.Primitive value) {
+    assert(isOpen);
+    ir.Primitive right = buildNullConstant();
+    return addPrimitive(new ir.Identical(value, right));
   }
 }
 

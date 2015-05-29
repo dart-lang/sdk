@@ -98,7 +98,6 @@ deferred_fail_and_retry_worker_test: Crash # (lib.loadLibrary()): handleStaticGe
 do_test: Timeout # Please triage this failure.
 for_test: Timeout # Please triage this failure.
 generics_factories_test: Crash # Please triage this failure.
-if_null_test: Crash # Please triage this failure.
 inference_nsm_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_is_int_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 interface_type_optimization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

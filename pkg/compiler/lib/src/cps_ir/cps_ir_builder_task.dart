@@ -598,6 +598,18 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive visitIfNotNullDynamicPropertyGet(
+      ast.Send node,
+      ast.Node receiver,
+      Selector selector,
+      _) {
+    ir.Primitive target = visit(receiver);
+    return irBuilder.buildIfNotNullSend(
+        target,
+        nested(() => irBuilder.buildDynamicGet(target, selector)));
+  }
+
+  @override
   ir.Primitive visitDynamicTypeLiteralGet(
       ast.Send node,
       ConstantExpression constant,
@@ -719,7 +731,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   @override
   ir.Primitive visitIfNull(
       ast.Send node, ast.Node left, ast.Node right, _) {
-    internalError(node, "If-null not yet implemented in cps_ir");
+    return irBuilder.buildIfNull(build(left), subbuild(right));
   }
 
   @override
@@ -934,6 +946,21 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         translateDynamicArguments(arguments, selector.callStructure));
   }
 
+  @override
+  ir.Primitive visitIfNotNullDynamicPropertyInvoke(
+      ast.Send node,
+      ast.Node receiver,
+      ast.NodeList arguments,
+      Selector selector,
+      _) {
+    ir.Primitive target = visit(receiver);
+    return irBuilder.buildIfNotNullSend(
+        target,
+        nested(() => irBuilder.buildDynamicInvocation(
+            target, selector,
+            translateDynamicArguments(arguments, selector.callStructure))));
+  }
+
   ir.Primitive handleLocalInvoke(
       ast.Send node,
       LocalElement element,
@@ -1124,8 +1151,19 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
        CompoundRhs rhs,
        void setValue(ir.Primitive value)}) {
     ir.Primitive value = getValue();
+    op.BinaryOperator operator = rhs.operator;
+    if (operator.kind == op.BinaryOperatorKind.IF_NULL) {
+      // Unlike other compound operators if-null conditionally will not do the
+      // assignment operation.
+      return irBuilder.buildIfNull(value, nested(() {
+        ir.Primitive newValue = build(rhs.rhs);
+        setValue(newValue);
+        return newValue;
+      }));
+    }
+
     Selector operatorSelector =
-        new Selector.binaryOperator(rhs.operator.selectorName);
+        new Selector.binaryOperator(operator.selectorName);
     ir.Primitive rhsValue;
     if (rhs.kind == CompoundKind.ASSIGNMENT) {
       rhsValue = visit(rhs.rhs);
@@ -1152,6 +1190,19 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         translateReceiver(receiver),
         selector,
         visit(rhs));
+  }
+
+  @override
+  ir.Primitive visitIfNotNullDynamicPropertySet(
+      ast.SendSet node,
+      ast.Node receiver,
+      Selector selector,
+      ast.Node rhs,
+      _) {
+    ir.Primitive target = visit(receiver);
+    return irBuilder.buildIfNotNullSend(
+        target,
+        nested(() => irBuilder.buildDynamicSet(target, selector, visit(rhs))));
   }
 
   @override
@@ -1230,12 +1281,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       Selector setterSelector,
       arg) {
     ir.Primitive target = translateReceiver(receiver);
-    return translateCompounds(
-        getValue: () => irBuilder.buildDynamicGet(target, getterSelector),
-        rhs: rhs,
-        setValue: (ir.Primitive result) {
-          irBuilder.buildDynamicSet(target, setterSelector, result);
-        });
+    ir.Primitive helper() {
+      return translateCompounds(
+          getValue: () => irBuilder.buildDynamicGet(target, getterSelector),
+          rhs: rhs,
+          setValue: (ir.Primitive result) {
+            irBuilder.buildDynamicSet(target, setterSelector, result);
+          });
+    }
+    return node.isConditional
+        ? irBuilder.buildIfNotNullSend(target, nested(helper))
+        : helper();
   }
 
   ir.Primitive buildLocalNoSuchSetter(Local local, ir.Primitive value) {
