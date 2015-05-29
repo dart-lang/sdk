@@ -116,8 +116,6 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     SnapshotWriterVisitor visitor(writer);
     visitor.VisitPointers(from(), to());
   } else {
-    // Until we have maps implemented as internal VM objects we will use
-    // the collections library qualifier to allow maps to be sent across.
     if (writer->can_send_any_object() ||
         writer->AllowObjectsInDartLibrary(ptr()->library_)) {
       writer->WriteClassId(this);
