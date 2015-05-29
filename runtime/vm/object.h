@@ -1121,6 +1121,8 @@ class Class : public Object {
   // Check if this is the top level class.
   bool IsTopLevel() const;
 
+  bool IsPrivate() const;
+
   RawArray* fields() const { return raw_ptr()->fields_; }
   void SetFields(const Array& value) const;
   void AddField(const Field& field) const;

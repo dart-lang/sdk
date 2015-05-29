@@ -3791,6 +3791,11 @@ bool Class::IsTopLevel() const {
 }
 
 
+bool Class::IsPrivate() const {
+  return Library::IsPrivate(String::Handle(Name()));
+}
+
+
 RawFunction* Class::LookupDynamicFunction(const String& name) const {
   return LookupFunction(name, kInstance);
 }

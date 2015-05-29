@@ -89,7 +89,9 @@ TEST_CASE(ClassHierarchyAnalysis) {
   EXPECT(cha.HasSubclasses(class_a));
   EXPECT(cha.HasSubclasses(class_b));
   EXPECT(!cha.HasSubclasses(class_c));
+  cha.AddToLeafClasses(class_c);
   EXPECT(!cha.HasSubclasses(class_d));
+  cha.AddToLeafClasses(class_d);
 
   EXPECT(!ContainsCid(cha.leaf_classes(), class_a.id()));
   EXPECT(!ContainsCid(cha.leaf_classes(), class_b.id()));

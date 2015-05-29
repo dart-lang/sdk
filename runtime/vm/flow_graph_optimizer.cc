@@ -40,7 +40,8 @@ DEFINE_FLAG(bool, trace_load_optimization, false,
 DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DEFINE_FLAG(bool, truncating_left_shift, true,
     "Optimize left shift to truncate if possible");
-DEFINE_FLAG(bool, use_cha, true, "Use class hierarchy analysis.");
+DEFINE_FLAG(bool, use_cha_deopt, true,
+    "Use class hierarchy analysis even if it can cause deoptimization.");
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
 DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 #endif
@@ -2276,7 +2277,11 @@ static RawField* GetField(intptr_t class_id, const String& field_name) {
 // callee functions, then no class check is needed.
 bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
     InstanceCallInstr* call, RawFunction::Kind kind) const {
-  if (!FLAG_use_cha) return true;
+  if (!FLAG_use_cha_deopt) {
+    // Even if class or function are private, lazy class finalization
+    // may later add overriding methods.
+    return true;
+  }
   Definition* callee_receiver = call->ArgumentAt(0);
   ASSERT(callee_receiver != NULL);
   const Function& function = flow_graph_->function();
@@ -2286,8 +2291,11 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
     const String& name = (kind == RawFunction::kMethodExtractor)
         ? String::Handle(Z, Field::NameFromGetter(call->function_name()))
         : call->function_name();
-    return thread()->cha()->HasOverride(Class::Handle(Z, function.Owner()),
-                                        name);
+    const Class& cls = Class::Handle(Z, function.Owner());
+    if (!thread()->cha()->HasOverride(cls, name)) {
+      thread()->cha()->AddToLeafClasses(cls);
+      return false;
+    }
   }
   return true;
 }
@@ -3965,7 +3973,6 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
 bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   // Requires CHA.
-  if (!FLAG_use_cha) return false;
   if (!type.IsInstantiated()) return false;
   const Class& type_class = Class::Handle(type.type_class());
   // Signature classes have different type checking rules.
@@ -3973,7 +3980,18 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   // Could be an interface check?
   if (thread()->cha()->IsImplemented(type_class)) return false;
   // Check if there are subclasses.
-  if (thread()->cha()->HasSubclasses(type_class)) return false;
+  if (thread()->cha()->HasSubclasses(type_class)) {
+    return false;
+  }
+
+  // Private classes cannot be subclassed by later loaded libs.
+  if (!type_class.IsPrivate()) {
+    if (FLAG_use_cha_deopt) {
+      thread()->cha()->AddToLeafClasses(type_class);
+    } else {
+      return false;
+    }
+  }
   const intptr_t num_type_args = type_class.NumTypeArguments();
   if (num_type_args > 0) {
     // Only raw types can be directly compared, thus disregarding type

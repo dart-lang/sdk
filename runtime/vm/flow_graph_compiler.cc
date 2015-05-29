@@ -59,7 +59,7 @@ DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
 DECLARE_FLAG(bool, support_debugger);
 DECLARE_FLAG(bool, use_field_guards);
-DECLARE_FLAG(bool, use_cha);
+DECLARE_FLAG(bool, use_cha_deopt);
 DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
@@ -80,9 +80,9 @@ static void NooptModeHandler(bool value) {
     FLAG_collect_code = false;
     Compiler::set_always_optimize(true);
     Compiler::set_guess_other_cid(false);
-    // TODO(srdjan): Enable CHA when eager class finalization is
+    // TODO(srdjan): Enable CHA deoptimization when eager class finalization is
     // implemented, either with precompilation or as a special pass.
-    FLAG_use_cha = false;
+    FLAG_use_cha_deopt = false;
   }
 }
 

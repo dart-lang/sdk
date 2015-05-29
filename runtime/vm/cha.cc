@@ -37,12 +37,7 @@ bool CHA::HasSubclasses(const Class& cls) {
   }
   const GrowableObjectArray& direct_subclasses =
       GrowableObjectArray::Handle(thread_->zone(), cls.direct_subclasses());
-  bool result =
-      !direct_subclasses.IsNull() && (direct_subclasses.Length() > 0);
-  if (!result) {
-    AddToLeafClasses(cls);
-  }
-  return result;
+  return !direct_subclasses.IsNull() && (direct_subclasses.Length() > 0);
 }
 
 
@@ -62,11 +57,7 @@ bool CHA::IsImplemented(const Class& cls) {
   // classes.
   if (cls.InVMHeap()) return true;
 
-  bool result = cls.is_implemented();
-  if (!result) {
-    AddToLeafClasses(cls);
-  }
-  return result;
+  return cls.is_implemented();
 }
 
 
@@ -80,7 +71,6 @@ bool CHA::HasOverride(const Class& cls, const String& function_name) {
   }
 
   if (cls_direct_subclasses.IsNull()) {
-    AddToLeafClasses(cls);
     return false;
   }
   Class& direct_subclass = Class::Handle(thread_->zone());
@@ -97,7 +87,6 @@ bool CHA::HasOverride(const Class& cls, const String& function_name) {
       return true;
     }
   }
-  AddToLeafClasses(cls);
   return false;
 }
 

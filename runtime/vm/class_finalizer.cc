@@ -22,7 +22,7 @@ DEFINE_FLAG(bool, error_on_bad_type, false,
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
-DECLARE_FLAG(bool, use_cha);
+DECLARE_FLAG(bool, use_cha_deopt);
 
 
 bool ClassFinalizer::AllClassesFinalized() {
@@ -33,13 +33,13 @@ bool ClassFinalizer::AllClassesFinalized() {
 }
 
 
-// Removes optimized code once we load more classes, since --use_cha based
+// Removes optimized code once we load more classes, since CHA based
 // optimizations may have become invalid.
 // Only methods which owner classes where subclasses can be invalid.
 // TODO(srdjan): Be even more precise by recording the exact CHA optimization.
 static void RemoveCHAOptimizedCode(
     const GrowableArray<intptr_t>& added_subclass_to_cids) {
-  ASSERT(FLAG_use_cha);
+  ASSERT(FLAG_use_cha_deopt);
   if (added_subclass_to_cids.is_empty()) return;
   // Switch all functions' code to unoptimized.
   const ClassTable& class_table = *Isolate::Current()->class_table();
@@ -2374,7 +2374,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (cls.is_const()) {
     CheckForLegalConstClass(cls);
   }
-  if (FLAG_use_cha) {
+  if (FLAG_use_cha_deopt) {
     GrowableArray<intptr_t> cids;
     CollectFinalizedSuperClasses(cls, &cids);
     CollectImmediateSuperInterfaces(cls, &cids);
