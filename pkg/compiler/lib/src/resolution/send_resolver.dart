@@ -269,33 +269,17 @@ abstract class SendResolverMixin {
     if (node.isOperator) {
       String operatorText = node.selector.asOperator().source;
       if (node.arguments.isEmpty) {
-        unaryOperator = UnaryOperator.parse(operatorText);
-        if (unaryOperator != null) {
-          switch (unaryOperator.kind) {
-            case UnaryOperatorKind.NOT:
-              kind = SendStructureKind.NOT;
-              break;
-            default:
-              kind = SendStructureKind.UNARY;
-              break;
-          }
-        } else {
-          return const InvalidUnaryStructure();
-        }
+        return internalError(node, "Unexpected unary $operatorText.");
       } else {
         binaryOperator = BinaryOperator.parse(operatorText);
         if (binaryOperator != null) {
           switch (binaryOperator.kind) {
             case BinaryOperatorKind.EQ:
               kind = SendStructureKind.EQ;
-              break;
+              return internalError(node, "Unexpected binary $kind.");
             case BinaryOperatorKind.NOT_EQ:
-              if (node.isSuperCall) {
-                // `super != foo` is a compile-time error.
-                return const InvalidBinaryStructure();
-              }
               kind = SendStructureKind.NOT_EQ;
-              break;
+              return internalError(node, "Unexpected binary $kind.");
             case BinaryOperatorKind.INDEX:
               if (node.isPrefix) {
                 kind = SendStructureKind.INDEX_PREFIX;
@@ -304,6 +288,7 @@ abstract class SendResolverMixin {
               } else if (node.arguments.tail.isEmpty) {
                 // a[b]
                 kind = SendStructureKind.INDEX;
+                return internalError(node, "Unexpected binary $kind.");
               } else {
                 if (kind == SendStructureKind.COMPOUND) {
                   // a[b] += c
@@ -316,10 +301,11 @@ abstract class SendResolverMixin {
               break;
             default:
               kind = SendStructureKind.BINARY;
-              break;
+              return internalError(node, "Unexpected binary $kind.");
           }
         } else {
-          return const InvalidBinaryStructure();
+          return internalError(
+              node, "Unexpected invalid binary $operatorText.");
         }
       }
     }

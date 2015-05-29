@@ -696,7 +696,8 @@ Future resolveConstructor(
                 new CollectingTreeElements(element)));
     new InitializerResolver(visitor).resolveInitializers(element, tree);
     visitor.visit(tree.body);
-    Expect.equals(expectedElementCount, map(visitor).length);
+    Expect.equals(expectedElementCount, map(visitor).length,
+        "${map(visitor).values} for '$statement' in context of `$script`");
 
     compareWarningKinds(script, expectedWarnings, compiler.warnings);
     compareWarningKinds(script, expectedErrors, compiler.errors);

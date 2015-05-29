@@ -4476,6 +4476,14 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
+  void visitSuperSetterGet(
+      ast.Send node,
+      MethodElement setter,
+      _) {
+    handleUnresolvedSuperInvoke(node);
+  }
+
+  @override
   void visitUnresolvedSuperInvoke(
       ast.Send node,
       Element element,

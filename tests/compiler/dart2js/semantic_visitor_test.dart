@@ -1234,7 +1234,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_SUPER_GETTER_GET,
                     element: 'getter(B#o)')),
-    // TODO(johnniwinther): Expect [VISIT_SUPER_SETTER_GET] instead.
     const Test.clazz(
         '''
         class B {
@@ -1244,7 +1243,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => super.o;
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_GET)),
+        const Visit(VisitKind.VISIT_SUPER_SETTER_GET,
+                    element: 'setter(B#o)')),
     // TODO(johnniwinther): Expect [VISIT_SUPER_GETTER_SET] instead.
     const Test.clazz(
         '''
@@ -1282,7 +1282,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_SUPER_GETTER_INVOKE,
                     element: 'getter(B#o)',
                     arguments: '(null,42)')),
-    // TODO(johnniwinther): Expect [VISIT_SUPER_SETTER_INVOKE] instead.
     const Test.clazz(
         '''
         class B {
@@ -1292,7 +1291,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { super.o(null, 42); }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_INVOKE,
+        const Visit(VisitKind.VISIT_SUPER_SETTER_INVOKE,
+                    element: 'setter(B#o)',
                     arguments: '(null,42)')),
   ],
   'Super methods': const [
@@ -4305,8 +4305,6 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
   VisitKind.VISIT_TOP_LEVEL_FUNCTION_SET,
   VisitKind.VISIT_FINAL_SUPER_FIELD_SET,
   VisitKind.VISIT_SUPER_GETTER_SET,
-  VisitKind.VISIT_SUPER_SETTER_GET,
-  VisitKind.VISIT_SUPER_SETTER_INVOKE,
   VisitKind.VISIT_SUPER_METHOD_SET,
 ];
 

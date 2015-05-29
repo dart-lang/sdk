@@ -187,6 +187,44 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return new ErroneousElementX(kind, arguments, name, enclosingElement);
   }
 
+  /// Report a warning or error on an unresolved access in non-instance context.
+  ///
+  /// The [ErroneousElement] corresponding to the message is returned.
+  ErroneousElement reportCannotResolve(Node node, String name) {
+    assert(invariant(node, !inInstanceContext,
+        message: "ResolverVisitor.reportCannotResolve must not be called in "
+                 "instance context."));
+
+    // We report an error within initializers because `this` is implicitly
+    // accessed when unqualified identifiers are not resolved.  For
+    // details, see section 16.14.3 of the spec (2nd edition):
+    //   An unqualified invocation `i` of the form `id(a1, ...)`
+    //   ...
+    //   If `i` does not occur inside a top level or static function, `i`
+    //   is equivalent to `this.id(a1 , ...)`.
+    bool inInitializer =
+        enclosingElement.isGenerativeConstructor ||
+        (enclosingElement.isInstanceMember && enclosingElement.isField);
+    MessageKind kind;
+    Map arguments = {'name': name};
+    if (inInitializer) {
+      kind = MessageKind.CANNOT_RESOLVE_IN_INITIALIZER;
+    } else if (name == 'await') {
+      var functionName = enclosingElement.name;
+      if (functionName == '') {
+        kind = MessageKind.CANNOT_RESOLVE_AWAIT_IN_CLOSURE;
+      } else {
+        kind = MessageKind.CANNOT_RESOLVE_AWAIT;
+        arguments['functionName'] = functionName;
+      }
+    } else {
+      kind = MessageKind.CANNOT_RESOLVE;
+    }
+    registry.registerThrowNoSuchMethod();
+    return reportAndCreateErroneousElement(
+        node, name, kind, arguments, isError: inInitializer);
+  }
+
   ResolutionResult visitIdentifier(Identifier node) {
     if (node.isThis()) {
       if (!inInstanceContext) {
@@ -211,36 +249,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // Set the type to be `dynamic` to mark that this is a type literal.
         registry.setType(node, const DynamicType());
       }
-      element = reportLookupErrorIfAny(element, node, node.source);
+      element = reportLookupErrorIfAny(element, node, name);
       if (element == null) {
         if (!inInstanceContext) {
-          // We report an error within initializers because `this` is implicitly
-          // accessed when unqualified identifiers are not resolved.  For
-          // details, see section 16.14.3 of the spec (2nd edition):
-          //   An unqualified invocation `i` of the form `id(a1, ...)`
-          //   ...
-          //   If `i` does not occur inside a top level or static function, `i`
-          //   is equivalent to `this.id(a1 , ...)`.
-          bool inInitializer = enclosingElement.isGenerativeConstructor ||
-              (enclosingElement.isInstanceMember && enclosingElement.isField);
-          MessageKind kind;
-          Map arguments = {'name': name};
-          if (inInitializer) {
-            kind = MessageKind.CANNOT_RESOLVE_IN_INITIALIZER;
-          } else if (name == 'await') {
-            var functionName = enclosingElement.name;
-            if (functionName == '') {
-              kind = MessageKind.CANNOT_RESOLVE_AWAIT_IN_CLOSURE;
-            } else {
-              kind = MessageKind.CANNOT_RESOLVE_AWAIT;
-              arguments['functionName'] = functionName;
-            }
-          } else {
-            kind = MessageKind.CANNOT_RESOLVE;
-          }
-          element = reportAndCreateErroneousElement(node, name, kind,
-              arguments, isError: inInitializer);
-          registry.registerThrowNoSuchMethod();
+          element = reportCannotResolve(node, name);
         }
       } else if (element.isErroneous) {
         // Use the erroneous element.
@@ -485,21 +497,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // If this send is of the form "assert(expr);", then
       // this is an assertion.
       if (selector.isAssert) {
-        SendStructure sendStructure = const AssertStructure();
-        if (selector.argumentCount != 1) {
-          error(node.selector,
-                MessageKind.WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT,
-                {'argumentCount': selector.argumentCount});
-          sendStructure = const InvalidAssertStructure();
-        } else if (selector.namedArgumentCount != 0) {
-          error(node.selector,
-                MessageKind.ASSERT_IS_GIVEN_NAMED_ARGUMENTS,
-                {'argumentCount': selector.namedArgumentCount});
-          sendStructure = const InvalidAssertStructure();
-        }
-        registry.registerAssert(node);
-        registry.registerSendStructure(node, sendStructure);
-        return const AssertResult();
+        internalError(node, "Unexpected assert: $node");
       }
 
       return node.selector.accept(this);
@@ -709,17 +707,20 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return selector;
   }
 
-  void resolveArguments(NodeList list) {
-    if (list == null) return;
+  CallStructure resolveArguments(NodeList list) {
+    if (list == null) return null;
     bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = false;
     Map<String, Node> seenNamedArguments = new Map<String, Node>();
+    int argumentCount = 0;
+    List<String> namedArguments = <String>[];
     for (Link<Node> link = list.nodes; !link.isEmpty; link = link.tail) {
       Expression argument = link.head;
       visit(argument);
       NamedArgument namedArgument = argument.asNamedArgument();
       if (namedArgument != null) {
         String source = namedArgument.name.source;
+        namedArguments.add(source);
         if (seenNamedArguments.containsKey(source)) {
           reportDuplicateDefinition(
               source,
@@ -731,8 +732,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else if (!seenNamedArguments.isEmpty) {
         error(argument, MessageKind.INVALID_ARGUMENT_AFTER_NAMED);
       }
+      argumentCount++;
     }
     sendIsMemberAccess = oldSendIsMemberAccess;
+    return new CallStructure(argumentCount, namedArguments);
   }
 
   void registerTypeLiteralAccess(Send node, Element target) {
@@ -770,9 +773,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   /// Check that access to `super` is currently allowed.
-  bool checkSuperAccess(Node node) {
+  bool checkSuperAccess(Send node) {
     if (!inInstanceContext) {
-      compiler.reportError(node, MessageKind.NO_SUPER_AVAILABLE);
+      compiler.reportError(node, MessageKind.NO_SUPER_IN_STATIC);
+      return false;
+    }
+    if (node.isConditional) {
+      // `super?.foo` is not allowed.
+      compiler.reportError(node, MessageKind.INVALID_USE_OF_SUPER);
       return false;
     }
     if (currentClass.supertype == null) {
@@ -783,6 +791,20 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return false;
     }
     registry.registerSuperUse(node);
+    return true;
+  }
+
+  /// Check that access to `this` is currently allowed.
+  bool checkThisAccess(Send node) {
+    if (!inInstanceContext) {
+      compiler.reportError(node, MessageKind.NO_THIS_AVAILABLE);
+      return false;
+    }
+    if (node.isConditional) {
+      // `this?.foo` is not allowed.
+      compiler.reportError(node, MessageKind.INVALID_USE_OF_THIS);
+      return false;
+    }
     return true;
   }
 
@@ -803,6 +825,22 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
+  /// Compute the [AccessSemantics] for accessing the name of [selector] on the
+  /// super class.
+  ///
+  /// If no matching super member is found and error is reported and
+  /// `noSuchMethod` on `super` is registered. Furthermore, if [alternateName]
+  /// is provided, the [AccessSemantics] corresponding to the alternate name is
+  /// returned. For instance, the access of a super setter for an unresolved
+  /// getter:
+  ///
+  ///     class Super {
+  ///       set name(_) {}
+  ///     }
+  ///     class Sub extends Super {
+  ///       foo => super.name; // Access to the setter.
+  ///     }
+  ///
   AccessSemantics computeSuperSemantics(Spannable node,
                                         Selector selector,
                                         {Name alternateName}) {
@@ -830,6 +868,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return computeSuperAccess(node, target);
   }
 
+  /// Resolve [node] as subexpression that is _not_ the prefix of a member
+  /// access. For instance `a` in `a + b`, as opposed to `a` in `a.b`.
   ResolutionResult visitExpression(Node node) {
     bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = false;
@@ -838,6 +878,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return result;
   }
 
+  /// Handle a type test expression, like `a is T` and `a is! T`.
   ResolutionResult handleIs(Send node) {
     Node expression = node.receiver;
     visitExpression(expression);
@@ -864,6 +905,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return null;
   }
 
+  /// Handle a type cast expression, like `a as T`.
   ResolutionResult handleAs(Send node) {
     Node expression = node.receiver;
     visitExpression(expression);
@@ -875,6 +917,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return null;
   }
 
+  /// Handle the unary expression of an unresolved unary operator [text], like
+  /// the no longer supported `+a`.
   ResolutionResult handleUnresolvedUnary(Send node, String text) {
     Node expression = node.receiver;
     if (node.isSuperCall) {
@@ -887,6 +931,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return null;
   }
 
+  /// Handle the unary expression of a user definable unary [operator], like
+  /// `-a`, and `-super`.
   ResolutionResult handleUserDefinableUnary(Send node, UnaryOperator operator) {
     Node expression = node.receiver;
     Selector selector = operator.selector;
@@ -921,6 +967,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return null;
   }
 
+  /// Handle a not expression, like `!a`.
   ResolutionResult handleNot(Send node, UnaryOperator operator) {
     assert(invariant(node, operator.kind == UnaryOperatorKind.NOT));
 
@@ -931,6 +978,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return null;
   }
 
+  /// Handle a logical and expression, like `a && b`.
   ResolutionResult handleLogicalAnd(Send node) {
     Node left = node.receiver;
     Node right = node.arguments.head;
@@ -940,6 +988,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return null;
   }
 
+  /// Handle a logical or expression, like `a || b`.
   ResolutionResult handleLogicalOr(Send node) {
     Node left = node.receiver;
     Node right = node.arguments.head;
@@ -949,6 +998,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return null;
   }
 
+  /// Handle an if-null expression, like `a ?? b`.
   ResolutionResult handleIfNull(Send node) {
     Node left = node.receiver;
     Node right = node.arguments.head;
@@ -958,6 +1008,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return null;
   }
 
+  /// Handle the binary expression of an unresolved binary operator [text], like
+  /// the no longer supported `a === b`.
   ResolutionResult handleUnresolvedBinary(Send node, String text) {
     Node left = node.receiver;
     Node right = node.arguments.head;
@@ -971,6 +1023,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return null;
   }
 
+  /// Handle the binary expression of a user definable binary [operator], like
+  /// `a + b`, `super + b`, `a == b` and `a != b`.
   ResolutionResult handleUserDefinableBinary(Send node,
                                              BinaryOperator operator) {
     Node left = node.receiver;
@@ -997,7 +1051,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // TODO(johnniwinther): Remove this when all information goes through
         // the [SendStructure].
         registry.useElement(node, semantics.element);
-
       }
     } else {
       visitExpression(left);
@@ -1048,65 +1101,333 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     return null;
   }
 
-  ResolutionResult visitSend(Send node) {
-    if (node.isOperator) {
-      String operatorText = node.selector.asOperator().source;
-      if (operatorText == 'is') {
-        return handleIs(node);
-      } else if (operatorText  == 'as') {
-        return handleAs(node);
-      } else if (node.arguments.isEmpty) {
-        UnaryOperator operator = UnaryOperator.parse(operatorText);
-        if (operator == null) {
-          return handleUnresolvedUnary(node, operatorText);
-        } else {
-          switch (operator.kind) {
-            case UnaryOperatorKind.NOT:
-              return handleNot(node, operator);
-            case UnaryOperatorKind.COMPLEMENT:
-            case UnaryOperatorKind.NEGATE:
-              assert(invariant(node, operator.isUserDefinable,
-                  message: "Unexpected unary operator '${operator}'."));
-              return handleUserDefinableUnary(node, operator);
-          }
-          return handleUserDefinableUnary(node, operator);
+  /// Handle an invocation of an expression, like `(){}()` or `(foo)()`.
+  ResolutionResult handleExpressionInvoke(Send node) {
+    assert(invariant(node, node.isCall,
+        message: "Unexpected expression: $node"));
+    Node expression = node.selector;
+    visitExpression(expression);
+    CallStructure callStructure = resolveArguments(node.argumentsNode);
+    Selector selector = callStructure.callSelector;
+    // TODO(johnniwinther): Remove this when all information goes through the
+    // [SendStructure].
+    registry.setSelector(node, selector);
+    registry.registerDynamicInvocation(selector);
+    registry.registerSendStructure(node,
+        new InvokeStructure(new AccessSemantics.expression(), selector));
+    return null;
+  }
+
+  /// Handle a, possibly invalid, assertion, like `assert(cond)` or `assert()`.
+  ResolutionResult handleAssert(Send node) {
+    assert(invariant(node, node.isCall,
+        message: "Unexpected assert: $node"));
+    // If this send is of the form "assert(expr);", then
+    // this is an assertion.
+
+    CallStructure callStructure = resolveArguments(node.argumentsNode);
+    SendStructure sendStructure = const AssertStructure();
+    if (callStructure.argumentCount != 1) {
+      compiler.reportError(
+          node.selector,
+          MessageKind.WRONG_NUMBER_OF_ARGUMENTS_FOR_ASSERT,
+          {'argumentCount': callStructure.argumentCount});
+      sendStructure = const InvalidAssertStructure();
+    } else if (callStructure.namedArgumentCount != 0) {
+      compiler.reportError(
+          node.selector,
+          MessageKind.ASSERT_IS_GIVEN_NAMED_ARGUMENTS,
+          {'argumentCount': callStructure.namedArgumentCount});
+      sendStructure = const InvalidAssertStructure();
+    }
+    registry.registerAssert(node);
+    registry.registerSendStructure(node, sendStructure);
+    return const AssertResult();
+  }
+
+  /// Handle access of a property of [name] on `this`, like `this.name` and
+  /// `this.name()`, or `name` and `name()` in instance context.
+  ResolutionResult handleThisPropertyAccess(Send node, Name name) {
+    AccessSemantics accessSemantics = new AccessSemantics.thisProperty();
+    SendStructure sendStructure;
+    Selector selector;
+    if (node.isCall) {
+      CallStructure callStructure = resolveArguments(node.argumentsNode);
+      selector = new Selector(SelectorKind.CALL, name, callStructure);
+      registry.registerDynamicInvocation(selector);
+      sendStructure = new InvokeStructure(accessSemantics, selector);
+    } else {
+      assert(invariant(node, node.isPropertyAccess));
+      selector = new Selector(
+          SelectorKind.GETTER, name, CallStructure.NO_ARGS);
+      registry.registerDynamicGetter(selector);
+      sendStructure = new GetStructure(accessSemantics, selector);
+    }
+    registry.registerSendStructure(node, sendStructure);
+    // TODO(johnniwinther): Remove this when all information goes through
+    // the [SendStructure].
+    registry.setSelector(node, selector);
+    return null;
+  }
+
+  /// Handle access on `this`, like `this()` and `this` when it is parsed as a
+  /// [Send] node.
+  ResolutionResult handleThisAccess(Send node) {
+    AccessSemantics accessSemantics = new AccessSemantics.thisAccess();
+    if (node.isCall) {
+      CallStructure callStructure = resolveArguments(node.argumentsNode);
+      Selector selector = callStructure.callSelector;
+      // TODO(johnniwinther): Handle invalid this access as an
+      // [AccessSemantics].
+      if (checkThisAccess(node)) {
+        registry.registerDynamicInvocation(selector);
+        registry.registerSendStructure(node,
+            new InvokeStructure(accessSemantics, selector));
+      }
+      // TODO(johnniwinther): Remove this when all information goes through
+      // the [SendStructure].
+      registry.setSelector(node, selector);
+    } else {
+      // TODO(johnniwinther): Handle get of `this` when it is a [Send] node.
+      internalError(node, "Unexpected node '$node'.");
+    }
+    return null;
+  }
+
+  /// Handle access of a super property, like `super.foo` and `super.foo()`.
+  ResolutionResult handleSuperPropertyAccess(Send node, Name name) {
+    Element target;
+    Selector selector;
+    CallStructure callStructure = CallStructure.NO_ARGS;
+    if (node.isCall) {
+      callStructure = resolveArguments(node.argumentsNode);
+      selector = new Selector(SelectorKind.CALL, name, callStructure);
+    } else {
+      selector = new Selector(SelectorKind.GETTER, name, callStructure);
+    }
+    if (checkSuperAccess(node)) {
+      AccessSemantics semantics = computeSuperSemantics(
+          node, selector, alternateName: name.setter);
+      if (node.isCall) {
+        bool isIncompatibleInvoke = false;
+        switch (semantics.kind) {
+          case AccessKind.SUPER_METHOD:
+            MethodElementX superMethod = semantics.element;
+            superMethod.computeSignature(compiler);
+            if (!callStructure.signatureApplies(superMethod)) {
+              registry.registerThrowNoSuchMethod();
+              registry.registerDynamicInvocation(selector);
+              registry.registerSuperNoSuchMethod();
+              isIncompatibleInvoke = true;
+            } else {
+              registry.registerStaticInvocation(semantics.element);
+            }
+            break;
+          case AccessKind.SUPER_FIELD:
+          case AccessKind.SUPER_GETTER:
+            registry.registerStaticUse(semantics.element);
+            selector = callStructure.callSelector;
+            registry.registerDynamicInvocation(selector);
+            break;
+          case AccessKind.SUPER_SETTER:
+          case AccessKind.UNRESOLVED_SUPER:
+            // NoSuchMethod registered in [computeSuperSemantics].
+            break;
+          default:
+            internalError(node, "Unexpected super property access $semantics.");
+            break;
         }
+        registry.registerSendStructure(node,
+            isIncompatibleInvoke
+                ? new IncompatibleInvokeStructure(semantics, selector)
+                : new InvokeStructure(semantics, selector));
       } else {
-        BinaryOperator operator = BinaryOperator.parse(operatorText);
-        if (operator == null) {
-          return handleUnresolvedBinary(node, operatorText);
-        } else {
-          switch (operator.kind) {
-            case BinaryOperatorKind.LOGICAL_AND:
-              return handleLogicalAnd(node);
-            case BinaryOperatorKind.LOGICAL_OR:
-              return handleLogicalOr(node);
-            case BinaryOperatorKind.IF_NULL:
-              return handleIfNull(node);
-            case BinaryOperatorKind.EQ:
-            case BinaryOperatorKind.NOT_EQ:
-            case BinaryOperatorKind.INDEX:
-            case BinaryOperatorKind.ADD:
-            case BinaryOperatorKind.SUB:
-            case BinaryOperatorKind.MUL:
-            case BinaryOperatorKind.DIV:
-            case BinaryOperatorKind.IDIV:
-            case BinaryOperatorKind.MOD:
-            case BinaryOperatorKind.SHL:
-            case BinaryOperatorKind.SHR:
-            case BinaryOperatorKind.GTEQ:
-            case BinaryOperatorKind.GT:
-            case BinaryOperatorKind.LTEQ:
-            case BinaryOperatorKind.LT:
-            case BinaryOperatorKind.AND:
-            case BinaryOperatorKind.OR:
-            case BinaryOperatorKind.XOR:
-              return handleUserDefinableBinary(node, operator);
-          }
+        switch (semantics.kind) {
+          case AccessKind.SUPER_METHOD:
+            // TODO(johnniwinther): Method this should be registered as a
+            // closurization.
+            registry.registerStaticUse(semantics.element);
+            break;
+          case AccessKind.SUPER_FIELD:
+          case AccessKind.SUPER_GETTER:
+            registry.registerStaticUse(semantics.element);
+            break;
+          case AccessKind.SUPER_SETTER:
+          case AccessKind.UNRESOLVED_SUPER:
+            // NoSuchMethod registered in [computeSuperSemantics].
+            break;
+          default:
+            internalError(node, "Unexpected super property access $semantics.");
+            break;
+        }
+        registry.registerSendStructure(node,
+            new GetStructure(semantics, selector));
+      }
+      target = semantics.element;
+    }
+
+    // TODO(johnniwinther): Remove these when all information goes through
+    // the [SendStructure].
+    registry.useElement(node, target);
+    registry.setSelector(node, selector);
+    return null;
+  }
+
+  /// Handle a [Send] whose selector is an [Operator], like `a && b`, `a is T`,
+  /// `a + b`, and `~a`.
+  ResolutionResult handleOperatorSend(Send node) {
+    String operatorText = node.selector.asOperator().source;
+    if (operatorText == 'is') {
+      return handleIs(node);
+    } else if (operatorText  == 'as') {
+      return handleAs(node);
+    } else if (node.arguments.isEmpty) {
+      UnaryOperator operator = UnaryOperator.parse(operatorText);
+      if (operator == null) {
+        return handleUnresolvedUnary(node, operatorText);
+      } else {
+        switch (operator.kind) {
+          case UnaryOperatorKind.NOT:
+            return handleNot(node, operator);
+          case UnaryOperatorKind.COMPLEMENT:
+          case UnaryOperatorKind.NEGATE:
+            assert(invariant(node, operator.isUserDefinable,
+                message: "Unexpected unary operator '${operator}'."));
+            return handleUserDefinableUnary(node, operator);
+        }
+        return handleUserDefinableUnary(node, operator);
+      }
+    } else {
+      BinaryOperator operator = BinaryOperator.parse(operatorText);
+      if (operator == null) {
+        return handleUnresolvedBinary(node, operatorText);
+      } else {
+        switch (operator.kind) {
+          case BinaryOperatorKind.LOGICAL_AND:
+            return handleLogicalAnd(node);
+          case BinaryOperatorKind.LOGICAL_OR:
+            return handleLogicalOr(node);
+          case BinaryOperatorKind.IF_NULL:
+            return handleIfNull(node);
+          case BinaryOperatorKind.EQ:
+          case BinaryOperatorKind.NOT_EQ:
+          case BinaryOperatorKind.INDEX:
+          case BinaryOperatorKind.ADD:
+          case BinaryOperatorKind.SUB:
+          case BinaryOperatorKind.MUL:
+          case BinaryOperatorKind.DIV:
+          case BinaryOperatorKind.IDIV:
+          case BinaryOperatorKind.MOD:
+          case BinaryOperatorKind.SHL:
+          case BinaryOperatorKind.SHR:
+          case BinaryOperatorKind.GTEQ:
+          case BinaryOperatorKind.GT:
+          case BinaryOperatorKind.LTEQ:
+          case BinaryOperatorKind.LT:
+          case BinaryOperatorKind.AND:
+          case BinaryOperatorKind.OR:
+          case BinaryOperatorKind.XOR:
+            return handleUserDefinableBinary(node, operator);
         }
       }
     }
+  }
 
+  /// Handle a qualified [Send], that is where the receiver is non-null, like
+  /// `a.b`, `a.b()`, `this.a()` and `super.a()`.
+  ResolutionResult handleQualifiedSend(Send node) {
+    Identifier selector = node.selector.asIdentifier();
+    Name name = new Name(selector.source, enclosingElement.library);
+    if (node.isSuperCall) {
+      return handleSuperPropertyAccess(node, name);
+    } else if (node.receiver.isThis()) {
+      if (checkThisAccess(node)) {
+        return handleThisPropertyAccess(node, name);
+      }
+      // TODO(johnniwinther): Handle invalid this access as an
+      // [AccessSemantics].
+      return null;
+    }
+    // TODO(johnniwinther): Handle remaining qualified sends.
+    return oldVisitSend(node);
+  }
+
+  /// Handle access unresolved access to [name] in a non-instance context.
+  ResolutionResult handleUnresolvedAccess(
+        Send node, Name name, Element element) {
+    // TODO(johnniwinther): Support unresolved top level access as an
+    // [AccessSemantics].
+    AccessSemantics accessSemantics = new StaticAccess.unresolved(element);
+    SendStructure sendStructure;
+    Selector selector;
+    if (node.isCall) {
+      CallStructure callStructure = resolveArguments(node.argumentsNode);
+      selector = new Selector(SelectorKind.CALL, name, callStructure);
+      registry.registerDynamicInvocation(selector);
+      sendStructure = new InvokeStructure(accessSemantics, selector);
+    } else {
+      assert(invariant(node, node.isPropertyAccess));
+      selector = new Selector(
+          SelectorKind.GETTER, name, CallStructure.NO_ARGS);
+      registry.registerDynamicGetter(selector);
+      sendStructure = new GetStructure(accessSemantics, selector);
+    }
+    // TODO(johnniwinther): Remove this when all information goes through
+    // the [SendStructure].
+    registry.setSelector(node, selector);
+    registry.useElement(node, element);
+    registry.registerSendStructure(node, sendStructure);
+    return null;
+  }
+
+  /// Handle an unqualified [Send], that is where the `node.receiver` is null,
+  /// like `a`, `a()`, `this()`, `assert()`, and `(){}()`.
+  ResolutionResult handleUnqualifiedSend(Send node) {
+    Identifier selector = node.selector.asIdentifier();
+    if (selector == null) {
+      // `(){}()` and `(foo)()`.
+      return handleExpressionInvoke(node);
+    }
+    String text = selector.source;
+    if (text == 'assert') {
+      // `assert()`.
+      return handleAssert(node);
+    } else if (text == 'this') {
+      // `this()`.
+      return handleThisAccess(node);
+    } else if (text == 'dynamic') {
+      // `dynamic` || `dynamic()`.
+      // TODO(johnniwinther): Handle dynamic type literal access.
+      return oldVisitSend(node);
+    }
+    // `name` or `name()`
+    Name name = new Name(text, enclosingElement.library);
+    Element element = lookupInScope(compiler, node, scope, text);
+    if (element == null) {
+      if (inInstanceContext) {
+        // Implicitly `this.name`.
+        return handleThisPropertyAccess(node, name);
+      } else {
+        // Create [ErroneousElement] for unresolved access.
+        ErroneousElement error = reportCannotResolve(node, text);
+        return handleUnresolvedAccess(node, name, error);
+      }
+    }
+    return oldVisitSend(node);
+  }
+
+  ResolutionResult visitSend(Send node) {
+    if (node.isOperator) {
+      return handleOperatorSend(node);
+    } else if (node.receiver != null) {
+      return handleQualifiedSend(node);
+    } else {
+      return handleUnqualifiedSend(node);
+    }
+    return oldVisitSend(node);
+  }
+
+  ResolutionResult oldVisitSend(Send node) {
     bool oldSendIsMemberAccess = sendIsMemberAccess;
     sendIsMemberAccess = node.isPropertyAccess || node.isCall;
 
@@ -1190,12 +1511,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         if (!selector.applies(target, compiler.world)) {
           registry.registerThrowNoSuchMethod();
           if (node.isSuperCall) {
-            // Similar to what we do when we can't find super via selector
-            // in [resolveSend] above, we still need to register the invocation,
-            // because we might call [:super.noSuchMethod:] which calls
-            // [JSInvocationMirror._invokeOn].
-            registry.registerDynamicInvocation(selector);
-            registry.registerSuperNoSuchMethod();
+            internalError(node, "Unexpected super call $node");
           }
         }
       }
@@ -1229,8 +1545,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   /// Callback for native enqueuer to parse a type.  Returns [:null:] on error.
   DartType resolveTypeFromString(Node node, String typeName) {
-    Element element = lookupInScope(compiler, node,
-                                    scope, typeName);
+    Element element = lookupInScope(compiler, node, scope, typeName);
     if (element == null) return null;
     if (element is! ClassElement) return null;
     ClassElement cls = element;

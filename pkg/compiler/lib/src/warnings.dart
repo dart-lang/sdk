@@ -167,8 +167,8 @@ main() => new A().m();
   static const MessageKind NO_INSTANCE_AVAILABLE = const MessageKind(
       "'#{name}' is only available in instance methods.");
 
-  static const MessageKind NO_SUPER_AVAILABLE = const MessageKind(
-      "'super' is only available in instance methods.");
+  static const MessageKind NO_THIS_AVAILABLE = const MessageKind(
+      "'this' is only available in instance methods.");
 
   static const MessageKind PRIVATE_ACCESS = const MessageKind(
       "'#{name}' is declared private within library "
@@ -597,6 +597,9 @@ main() => new C<String>();
 
   static const MessageKind INVALID_USE_OF_SUPER = const MessageKind(
       "'super' not allowed here.");
+
+  static const MessageKind INVALID_USE_OF_THIS = const MessageKind(
+      "'this' not allowed here.");
 
   static const MessageKind INVALID_CASE_DEFAULT = const MessageKind(
       "'default' only allowed on last case of a switch.");
