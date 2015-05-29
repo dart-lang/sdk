@@ -618,12 +618,13 @@ class Parser : public ValueObject {
                                   LocalVariable* rethrow_stack_trace_var,
                                   const GrowableObjectArray& handler_types,
                                   bool* needs_stack_trace);
-  // Parse finally block and create an AST for it.
-  SequenceNode* ParseFinallyBlock(bool is_async,
-                                  LocalVariable* exception_var,
-                                  LocalVariable* stack_trace_var,
-                                  LocalVariable* rethrow_exception_var,
-                                  LocalVariable* rethrow_stack_trace_var);
+  // Parse or generate a finally clause.
+  SequenceNode* EnsureFinallyClause(bool parse,
+                                    bool is_async,
+                                    LocalVariable* exception_var,
+                                    LocalVariable* stack_trace_var,
+                                    LocalVariable* rethrow_exception_var,
+                                    LocalVariable* rethrow_stack_trace_var);
   // Push try block onto the stack of try blocks in scope.
   void PushTry(Block* try_block);
   // Pop the inner most try block from the stack.
@@ -637,10 +638,10 @@ class Parser : public ValueObject {
   // Add specified node to try block list so that it can be patched with
   // inlined finally code if needed.
   void AddNodeForFinallyInlining(AstNode* node);
-  // Add the inlined finally block to the specified node.
-  void AddFinallyBlockToNode(bool is_async,
-                             AstNode* node,
-                             InlinedFinallyNode* finally_node);
+  // Add the inlined finally clause to the specified node.
+  void AddFinallyClauseToNode(bool is_async,
+                              AstNode* node,
+                              InlinedFinallyNode* finally_clause);
   AstNode* ParseTryStatement(String* label_name);
   RawAbstractType* ParseConstFinalVarOrType(
       ClassFinalizer::FinalizationKind finalization);

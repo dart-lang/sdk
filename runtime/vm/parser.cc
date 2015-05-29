@@ -6188,7 +6188,7 @@ SequenceNode* Parser::CloseAsyncGeneratorTryBlock(SequenceNode *body) {
                                     // No outer try statement
                                     CatchClauseNode::kInvalidTryIndex);
       finally_clause = NULL;
-      AddFinallyBlockToNode(true, node_to_inline, node);
+      AddFinallyClauseToNode(true, node_to_inline, node);
       node_index++;
     }
   } while (finally_clause == NULL);
@@ -8609,7 +8609,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
                                     context_var,
                                     outer_try_index);
       finally_clause = NULL;
-      AddFinallyBlockToNode(true, node_to_inline, node);
+      AddFinallyClauseToNode(true, node_to_inline, node);
       node_index++;
     }
   } while (finally_clause == NULL);
@@ -8973,15 +8973,19 @@ void Parser::SaveExceptionAndStacktrace(SequenceNode* statements,
 }
 
 
-SequenceNode* Parser::ParseFinallyBlock(
+SequenceNode* Parser::EnsureFinallyClause(
+    bool parse,
     bool is_async,
     LocalVariable* exception_var,
     LocalVariable* stack_trace_var,
     LocalVariable* rethrow_exception_var,
     LocalVariable* rethrow_stack_trace_var) {
-  TRACE_PARSER("ParseFinallyBlock");
+  TRACE_PARSER("EnsureFinallyClause");
+  ASSERT(parse || (is_async && (try_stack_ != NULL)));
   OpenBlock();
-  ExpectToken(Token::kLBRACE);
+  if (parse) {
+    ExpectToken(Token::kLBRACE);
+  }
 
   if (try_stack_ != NULL) {
     try_stack_->enter_finally();
@@ -9017,13 +9021,15 @@ SequenceNode* Parser::ParseFinallyBlock(
                                rethrow_stack_trace_var);
   }
 
-  ParseStatementSequence();
-  ExpectToken(Token::kRBRACE);
-  SequenceNode* finally_block = CloseBlock();
+  if (parse) {
+    ParseStatementSequence();
+    ExpectToken(Token::kRBRACE);
+  }
+  SequenceNode* finally_clause = CloseBlock();
   if (try_stack_ != NULL) {
     try_stack_->exit_finally();
   }
-  return finally_block;
+  return finally_clause;
 }
 
 
@@ -9067,19 +9073,19 @@ void Parser::AddNodeForFinallyInlining(AstNode* node) {
 }
 
 
-// Add the inlined finally block to the specified node.
-void Parser::AddFinallyBlockToNode(bool is_async,
-                                   AstNode* node,
-                                   InlinedFinallyNode* finally_node) {
+// Add the inlined finally clause to the specified node.
+void Parser::AddFinallyClauseToNode(bool is_async,
+                                    AstNode* node,
+                                    InlinedFinallyNode* finally_clause) {
   ReturnNode* return_node = node->AsReturnNode();
   if (return_node != NULL) {
     parsed_function()->EnsureFinallyReturnTemp(is_async);
-    return_node->AddInlinedFinallyNode(finally_node);
+    return_node->AddInlinedFinallyNode(finally_clause);
     return;
   }
   JumpNode* jump_node = node->AsJumpNode();
   ASSERT(jump_node != NULL);
-  jump_node->AddInlinedFinallyNode(finally_node);
+  jump_node->AddInlinedFinallyNode(finally_clause);
 }
 
 
@@ -9464,31 +9470,39 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   const intptr_t outer_try_index = (outer_try != NULL) ?
       outer_try->try_index() : CatchClauseNode::kInvalidTryIndex;
 
-  // Finally parse the 'finally' block.
-  SequenceNode* finally_block = NULL;
-  if (CurrentToken() == Token::kFINALLY) {
-    ConsumeToken();  // Consume the 'finally'.
+  // Finally, parse or generate the 'finally' clause.
+  // A finally clause is required in async code to restore the saved try context
+  // of an existing outer try. Generate a finally clause to this purpose if it
+  // is not declared.
+  SequenceNode* finally_clause = NULL;
+  const bool parse = CurrentToken() == Token::kFINALLY;
+  if (parse || (is_async && (try_stack_ != NULL))) {
+    if (parse) {
+      ConsumeToken();  // Consume the 'finally'.
+    }
     const intptr_t finally_pos = TokenPos();
     // Add the finally block to the exit points recorded so far.
     intptr_t node_index = 0;
     AstNode* node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
     while (node_to_inline != NULL) {
-      finally_block = ParseFinallyBlock(
+      finally_clause = EnsureFinallyClause(
+          parse,
           is_async,
           exception_var,
           stack_trace_var,
           is_async ? saved_exception_var : exception_var,
           is_async ? saved_stack_trace_var : stack_trace_var);
       InlinedFinallyNode* node = new(Z) InlinedFinallyNode(finally_pos,
-                                                           finally_block,
+                                                           finally_clause,
                                                            context_var,
                                                            outer_try_index);
-      AddFinallyBlockToNode(is_async, node_to_inline, node);
+      AddFinallyClauseToNode(is_async, node_to_inline, node);
       node_index += 1;
       node_to_inline = try_statement->GetNodeToInlineFinally(node_index);
       tokens_iterator_.SetCurrentPosition(finally_pos);
     }
-    finally_block = ParseFinallyBlock(
+    finally_clause = EnsureFinallyClause(
+        parse,
         is_async,
         exception_var,
         stack_trace_var,
@@ -9505,7 +9519,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       stack_trace_var,
       is_async ? saved_exception_var : exception_var,
       is_async ? saved_stack_trace_var : stack_trace_var,
-      (finally_block != NULL) ?
+      (finally_clause != NULL) ?
           AllocateTryIndex() : CatchClauseNode::kInvalidTryIndex,
       needs_stack_trace);
 
@@ -9513,7 +9527,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   // on the try/catch, close the block that's embedding the try statement
   // and attach the label to it.
   AstNode* try_catch_node = new(Z) TryCatchNode(
-      try_pos, try_block, context_var, catch_clause, finally_block, try_index);
+      try_pos, try_block, context_var, catch_clause, finally_clause, try_index);
 
   if (try_label != NULL) {
     current_block_->statements->Add(try_catch_node);
