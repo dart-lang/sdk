@@ -101,58 +101,24 @@ abstract class ServiceObject extends Observable {
   @reflectable String get vmType => _vmType;
   String _vmType;
 
-  static bool _isInstanceType(String type) {
-    switch (type) {
-      case 'BoundedType':
-      case 'Instance':
-      case 'List':
-      case 'String':
-      case 'Type':
-      case 'TypeParameter':
-      case 'TypeRef':
-      case 'bool':
-      case 'double':
-      case 'int':
-      case 'null':
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  static bool _isTypeType(String type) {
-    switch (type) {
-      case 'BoundedType':
-      case 'Type':
-      case 'TypeParameter':
-      case 'TypeRef':
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  bool get isAbstractType => _isTypeType(type);
-  bool get isBool => type == 'bool';
   bool get isContext => type == 'Context';
-  bool get isDouble => type == 'double';
   bool get isError => type == 'Error';
-  bool get isInstance => _isInstanceType(type);
-  bool get isInt => type == 'int';
-  bool get isList => type == 'List';
-  bool get isNull => type == 'null';
+  bool get isInstance => type == 'Instance';
   bool get isSentinel => type == 'Sentinel';
-  bool get isString => type == 'String';
   bool get isMessage => type == 'Message';
 
   // Kinds of Instance.
-  bool get isMirrorReference => vmType == 'MirrorReference';
-  bool get isWeakProperty => vmType == 'WeakProperty';
+  bool get isAbstractType => false;
+  bool get isNull => false;
+  bool get isBool => false;
+  bool get isDouble => false;
+  bool get isString => false;
+  bool get isInt => false;
+  bool get isList => false;
+  bool get isMirrorReference => false;
+  bool get isWeakProperty => false;
   bool get isClosure => false;
-  bool get isPlainInstance {
-    return (type == 'Instance' &&
-            !isMirrorReference && !isWeakProperty && !isClosure);
-  }
+  bool get isPlainInstance => false;
 
   /// Has this object been fully loaded?
   bool get loaded => _loaded;
@@ -184,7 +150,7 @@ abstract class ServiceObject extends Observable {
     }
     assert(_isServiceMap(map));
     var type = _stripRef(map['type']);
-    var vmType = map['_vmType'] != null ? _stripRef(map['_vmType']) : type;
+    var vmType = map['_vmType'] != null ? map['_vmType'] : type;
     var obj = null;
     assert(type != 'VM');
     switch (type) {
@@ -243,11 +209,11 @@ abstract class ServiceObject extends Observable {
       case 'Socket':
         obj = new Socket._empty(owner);
         break;
+      case 'Instance':
+      case 'Sentinel':  // TODO(rmacnak): Separate this out.
+        obj = new Instance._empty(owner);
+        break;
       default:
-        if (_isInstanceType(type) ||
-            type == 'Sentinel') {  // TODO(rmacnak): Separate this out.
-          obj = new Instance._empty(owner);
-        }
         break;
     }
     if (obj == null) {
@@ -1809,6 +1775,7 @@ class Class extends ServiceObject with Coverage {
 }
 
 class Instance extends ServiceObject {
+  @observable String kind;
   @observable Class clazz;
   @observable int size;
   @observable int retainedSize;
@@ -1823,12 +1790,27 @@ class Instance extends ServiceObject {
   @observable var fields;
   @observable var nativeFields;
   @observable var elements;
-  @observable var userName;
   @observable var referent;  // If a MirrorReference.
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
 
-  bool get isClosure => function != null;
+  bool get isAbstractType {
+    return (kind == 'Type' || kind == 'TypeRef' ||
+            kind == 'TypeParameter' || kind == 'BoundedType');
+  }
+  bool get isNull => kind == 'Null';
+  bool get isBool => kind == 'Bool';
+  bool get isDouble => kind == 'Double';
+  bool get isString => kind == 'String';
+  bool get isInt => kind == 'Int';
+  bool get isList => kind == 'List';
+  bool get isMirrorReference => kind == 'MirrorReference';
+  bool get isWeakProperty => kind == 'WeakProperty';
+  bool get isClosure => kind == 'Closure';
+
+  // TODO(turnidge): Is this properly backwards compatible when new
+  // instance kinds are added?
+  bool get isPlainInstance => kind == 'PlainInstance';
 
   Instance._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1836,13 +1818,14 @@ class Instance extends ServiceObject {
     // Extract full properties.
     _upgradeCollection(map, isolate);
 
+    kind = map['kind'];
     clazz = map['class'];
     size = map['size'];
     valueAsString = map['valueAsString'];
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
-    function = map['function'];
-    context = map['context'];
+    function = map['closureFunction'];
+    context = map['closureContext'];
     name = map['name'];
     length = map['length'];
 
@@ -1853,11 +1836,10 @@ class Instance extends ServiceObject {
     nativeFields = map['_nativeFields'];
     fields = map['fields'];
     elements = map['elements'];
-    typeClass = map['type_class'];
-    userName = map['user_name'];
-    referent = map['referent'];
-    key = map['key'];
-    value = map['value'];
+    typeClass = map['typeClass'];
+    referent = map['mirrorReferent'];
+    key = map['propertyKey'];
+    value = map['propertyValue'];
 
     // We are fully loaded.
     _loaded = true;

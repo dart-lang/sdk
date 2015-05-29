@@ -42,7 +42,6 @@ apparently outside the scope of the JSON-RPC specification.
 	- [streamCancel](#streamcancel)
 	- [streamListen](#streamlisten)
 - [Public Types](#public-types)
-	- [Bool](#bool)
 	- [BoundField](#boundfield)
 	- [BoundVariable](#boundvariable)
 	- [Breakpoint](#breakpoint)
@@ -50,7 +49,6 @@ apparently outside the scope of the JSON-RPC specification.
 	- [ClassList](#classlist)
 	- [Code](#code)
 	- [CodeKind](#codekind)
-	- [Double](#double)
 	- [Error](#error)
 	- [Event](#event)
 	- [EventKind](#eventkind)
@@ -60,11 +58,9 @@ apparently outside the scope of the JSON-RPC specification.
 	- [Frame](#frame)
 	- [Function](#function)
 	- [Instance](#instance)
-	- [Int](#int)
 	- [Isolate](#isolate)
 	- [Library](#library)
 	- [LibraryDependency](#librarydependency)
-	- [List](#list)
 	- [ListElement](#listelement)
 	- [Message](#message)
 	- [Null](#null)
@@ -74,9 +70,7 @@ apparently outside the scope of the JSON-RPC specification.
 	- [Script](#script)
 	- [Stack](#stack)
 	- [StepOption](#stepoption)
-	- [String](#string)
 	- [Success](#success)
-	- [Type](#type)
 	- [TypeArguments](#typearguments)
 	- [Response](#response)
 	- [Version](#version)
@@ -305,6 +299,13 @@ change is removing a non-optional property from a result.
 The minor version number is incremented when the protocol is changed
 in a _backwards compatible_ way.  An example of a backwards compatible
 change is adding a property to a result.
+
+Certain changes that would normally not be backwards compatible are
+considered backwards compatible for the purposes of versioning.
+Specifically, additions can be made to the [EventKind](#eventkind) and
+[InstanceKind](#instancekind) enumerated types and the client must
+handle this gracefully.  See the notes on these enumerated types for more
+information.
 
 ## Private RPCs, Types, and Properties
 
@@ -692,26 +693,6 @@ enum PermittedValues {
 This means that _PermittedValues_ is a _string_ with two potential values,
 _Value1_ and _Value2_.
 
-### Bool
-
-```
-class @Bool extends @Instance {
-  // The value of this bool as a string, either 'true' or 'false'.
-  string valueAsString;
-}
-```
-
-_@Bool_ is a reference to a _Bool_.
-
-```
-class Bool extends Instance {
-  // The value of this bool as a string, either 'true' or 'false'.
-  string valueAsString;
-}
-```
-
-An _Bool_ represents an instance of the Dart language class _bool_.
-
 ### BoundField
 
 ```
@@ -872,29 +853,24 @@ enum CodeKind {
 }
 ```
 
-### Double
+### Context
 
 ```
-class @Double extends @Instance {
-  // The value of this double as a string.
-  //
-  // Suitable for passing to double.parse().
-  string valueAsString;
+class @Context {
+  // The number of variables in this context.
+  int length;
 }
 ```
 
-_@Double_ is a reference to a _Double_.
-
 ```
-class Double extends Instance {
-  // The value of this double as a string.
-  //
-  // Suitable for passing to double.parse().
-  string valueAsString;
+class Context {
+  // The number of variables in this context.
+  int length;
+
+  // The variables in this context object.
+  ListElement[] variables;
 }
 ```
-
-A _Double_ represents an instance of the Dart language class _double_.
 
 ### Error
 
@@ -1187,8 +1163,49 @@ A _Function_ represents a Dart language function.
 
 ```
 class @Instance extends @Object {
+  // What kind of instance is this?
+  InstanceKind kind;
+
   // Instance references include their class.
   @Class class;
+
+  // The value of this instance as a string.
+  //
+  // Provided for the instance kinds:
+  //   Null (null)
+  //   Bool (true or false)
+  //   Double (suitable for passing to Double.parse())
+  //   Int (suitable for passing to int.parse())
+  //   String (value may be truncated)
+  string valueAsString [optional];
+
+  // The valueAsString for String references may be truncated.  If so,
+  // this property is added with the value 'true'.
+  bool valueAsStringIsTruncated [optional];
+
+  // The length of a List instance.
+  //
+  // Provided for instance kinds:
+  //   List
+  int length [optional];
+
+  // The name of a Type instance.
+  //
+  // Provided for instance kinds:
+  //   Type
+  string name [optional];
+
+  // The corresponding Class if this Type is canonical.
+  //
+  // Provided for instance kinds:
+  //   Type
+  @Class typeClass [optional];
+
+  // The parameterized class of a type parameter:
+  //
+  // Provided for instance kinds:
+  //   TypeParameter
+  @Class parameterizedClass [optional];
 }
 ```
 
@@ -1196,35 +1213,183 @@ _@Instance_ is a reference to an _Instance_.
 
 ```
 class Instance extends Object {
+  // What kind of instance is this?
+  InstanceKind kind;
+
+  // Instance references include their class.
+  @Class class;
+
+  // The value of this instance as a string.
+  //
+  // Provided for the instance kinds:
+  //   Bool (true or false)
+  //   Double (suitable for passing to Double.parse())
+  //   Int (suitable for passing to int.parse())
+  //   String (value may be truncated)
+  string valueAsString [optional];
+
+  // The valueAsString for String references may be truncated.  If so,
+  // this property is added with the value 'true'.
+  bool valueAsStringIsTruncated [optional];
+
+  // The length of a List instance.
+  //
+  // Provided for instance kinds:
+  //   List
+  int length [optional];
+
+  // The name of a Type instance.
+  //
+  // Provided for instance kinds:
+  //   Type
+  string name [optional];
+
+  // The corresponding Class if this Type is canonical.
+  //
+  // Provided for instance kinds:
+  //   Type
+  @Class typeClass [optional];
+
+  // The parameterized class of a type parameter:
+  //
+  // Provided for instance kinds:
+  //   TypeParameter
+  @Class parameterizedClass [optional];
+
+  // The fields of this Instance.
   BoundField fields [optional];
+
+  // The elements of a List instance.
+  //
+  // Provided for instance kinds:
+  //   List
+  ListElement[] elements [optional];
+
+  // The function associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Function closureFunction [optional];
+
+  // The context associated with a Closure instance.
+  //
+  // Provided for instance kinds:
+  //   Closure
+  @Function closureContext [optional];
+
+  // The referent of a MirrorReference instance.
+  //
+  // Provided for instance kinds:
+  //   MirrorReference
+  @Instance mirrorReferent [optional];
+  
+  // The key for a WeakProperty instance.
+  //
+  // Provided for instance kinds:
+  //   WeakProperty
+  @Instance propertyKey [optional];
+  
+  // The key for a WeakProperty instance.
+  //
+  // Provided for instance kinds:
+  //   WeakProperty
+  @Instance propertyValue [optional];
+
+  // The type arguments for this type.
+  //
+  // Provided for instance kinds:
+  //   Type
+  @TypeArguments typeArguments [optional];
+
+  // The index of a TypeParameter instance.
+  //
+  // Provided for instance kinds:
+  //   TypeParameter
+  int parameterIndex [optional];
+
+  // The type bounded by a BoundedType instance
+  // or
+  // The referent of a TypeRef instance.
+  //
+  // The value will always be one of:
+  // Type, TypeRef, TypeParameter, BoundedType.
+  //
+  // Provided for instance kinds:
+  //   BoundedType
+  //   TypeRef
+  @Instance type [optional];
+
+  // The bound of a TypeParameter or BoundedType.
+  //
+  // The value will always be one of:
+  // Type, TypeRef, TypeParameter, BoundedType.
+  //
+  // Provided for instance kinds:
+  //   BoundedType
+  //   TypeParameter
+  @Instance bound [optional];
 }
 ```
 
 An _Instance_ represents an instance of the Dart language class _Object_.
 
-### Int
+### InstanceKind
 
 ```
-class @Int extends @Instance {
-  // The value of this int as a string.
-  //
-  // Suitable for passing to int.parse().
-  string valueAsString;
+enum {
+  // A general instance of the Dart class Object.
+  PlainInstance,
+
+  // null instance.
+  Null,
+
+  // true or false.
+  Bool,
+
+  // An instance of the Dart class double.
+  Double,
+
+  // An instance of the Dart class int.
+  Int,
+
+  // An instance of the Dart class String.
+  String,
+
+  // An instance of the built-in VM List implementation.  User-defined
+  // Lists will be PlainInstance.
+  List,
+
+  // An instance of the built-in VM Map implementation.  User-defined
+  // Lists will be PlainInstance.
+  Map,
+
+  // An instance of the built-in VM Closure implementation.  User-defined
+  // Closures will be PlainInstance.
+  Closure,
+
+  // An instance of the Dart class MirrorReference.
+  MirrorReference,
+
+  // An instance of the Dart class WeakProperty.
+  WeakProperty,
+
+  // An instance of the Dart class Type
+  Type,
+
+  // An instance of the Dart class TypeParamer
+  TypeParameter,
+
+  // An instance of the Dart class TypeRef
+  TypeRef,
+
+  // An instance of the Dart class BoundedType
+  BoundedType,
 }
 ```
 
-_@Int_ is a reference to an _Int_.
-
-```
-class Int extends Instance {
-  // The value of this int as a string.
-  //
-  // Suitable for passing to int.parse().
-  string valueAsString;
-}
-```
-
-An _Int_ represents an instance of the Dart language class _int_.
+Adding new values to _InstanceKind_ is considered a backwards
+compatible change.  Clients should treat unrecognized instance kinds
+as _PlainInstance_.
 
 ### Isolate
 
@@ -1354,30 +1519,6 @@ class LibraryDependency {
 ```
 
 A _LibraryDependency_ provides information about an import or export.
-
-### List
-
-```
-class @List extends @Instance {
-  // The length of this list.
-  int length;
-}
-```
-
-_@List_ is a reference to a _List_.
-
-```
-class List extends Instance {
-  // The length of this list.
-  int length;
-
-  // The elements of this list.
-  ListElement[] elements;
-}
-```
-
-A _List_ represents an built-in instance of the Dart class _List_.
-User-defined lists will be represented as _Instance_.
 
 ### ListElement
 
@@ -1568,43 +1709,6 @@ enum StepOption {
 
 A _StepOption_ indicates which form of stepping is requested in a [resume](#resume) RPC.
 
-### String
-
-```
-class @String extends @Instance {
-  // The value of this double as a string.
-  //
-  // Note that this may be truncated.
-  //
-  // Suitable for passing to double.parse().
-  string valueAsString;
-
-  // The valueAsString for String references may be truncated.  If so,
-  // this property is added with the value 'true'.
-  bool valueAsStringIsTruncated [optional];
-}
-```
-
-_@String_ is a reference to a _String_.
-
-```
-class String extends Instance {
-  // The value of this double as a string.
-  //
-  // Note that this will never be truncated.
-  //
-  // Suitable for passing to double.parse().
-  string valueAsString;
-}
-```
-
-An _String_ represents an instance of the Dart language class _String_.
-
-The _valueAsString_ property for an _@String_ may be truncated.  To get
-the untruncated _valueAsString_, call the [getObject](#getobject) RPC
-on the String's _id_.  A _String_ object never truncates the
-_valueAsString_.
-
 ### Success
 
 ```
@@ -1613,35 +1717,6 @@ class Success extends Response {
 ```
 
 The _Success_ type is used to indicate that an operation completed successfully.
-
-### Type
-
-```
-class @Type extends @Instance {
-  // The name of this type.
-  string name;
-
-  // The corresponding Class if this Type is canonical.
-  @Class typeClass [optional];
-}
-```
-
-_@Type_ is a reference to a _Type_.
-
-```
-class Type extends Instance {
-  // The name of this type.
-  string name;
-
-  // The corresponding Class if this Type is canonical.
-  @Class typeClass [optional];
-
-  // The type arguments for this type.
-  @TypeArguments typeArgs [optional];
-}
-```
-
-An _Type_ represents an instance of the Dart language class _Type_.
 
 ### TypeArguments
 

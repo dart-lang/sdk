@@ -299,10 +299,17 @@ TEST_CASE(JSON_JSONStream_DartObject) {
     JSONObject jsobj(&jsarr);
     jsobj.AddProperty("object_key", Object::Handle(Object::null()));
   }
-  EXPECT_STREQ("[{\"type\":\"@null\",\"fixedId\":true,"
+  EXPECT_STREQ("[{\"type\":\"@Instance\","
+               "\"_vmType\":\"null\","
+               "\"kind\":\"Null\","
+               "\"fixedId\":true,"
                "\"id\":\"objects\\/null\","
                "\"valueAsString\":\"null\"},"
-               "{\"object_key\":{\"type\":\"@null\",\"fixedId\":true,"
+               "{\"object_key\":"
+               "{\"type\":\"@Instance\","
+               "\"_vmType\":\"null\","
+               "\"kind\":\"Null\","
+               "\"fixedId\":true,"
                "\"id\":\"objects\\/null\","
                "\"valueAsString\":\"null\"}}]",
                js.ToCString());

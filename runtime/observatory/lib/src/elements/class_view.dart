@@ -45,6 +45,8 @@ class ClassViewElement extends ObservatoryElement {
   }
 
   Future refresh() {
+    // TODO(turnidge): Reload all static fields as well, so we can detect
+    // changes to their values.
     instances = null;
     retainedBytes = null;
     mostRetained = null;

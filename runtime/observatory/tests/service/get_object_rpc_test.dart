@@ -40,7 +40,8 @@ var tests = [
       'objectId': 'objects/null',
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('null'));
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Null'));
     expect(result['id'], equals('objects/null'));
     expect(result['valueAsString'], equals('null'));
     expect(result['class']['type'], equals('@Class'));
@@ -54,7 +55,8 @@ var tests = [
       'objectId': 'objects/bool-true',
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('bool'));
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Bool'));
     expect(result['id'], equals('objects/bool-true'));
     expect(result['valueAsString'], equals('true'));
     expect(result['class']['type'], equals('@Class'));
@@ -69,7 +71,8 @@ var tests = [
       'objectId': 'objects/int-123',
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('int'));
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Int'));
     expect(result['_vmType'], equals('Smi'));
     expect(result['id'], equals('objects/int-123'));
     expect(result['valueAsString'], equals('123'));
@@ -79,7 +82,7 @@ var tests = [
     expect(result['fields'], isEmpty);
   },
 
-  // A general Dart object.
+  // A built-in List.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
     var evalResult = await eval(isolate, '[3, 2, 1]');
@@ -87,7 +90,8 @@ var tests = [
       'objectId': evalResult['id'],
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('List'));
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('List'));
     expect(result['_vmType'], equals('GrowableObjectArray'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
@@ -97,7 +101,8 @@ var tests = [
     expect(result['fields'], isEmpty);
     expect(result['elements'].length, equals(3));
     expect(result['elements'][0]['index'], equals(0));
-    expect(result['elements'][0]['value']['type'], equals('@int'));
+    expect(result['elements'][0]['value']['type'], equals('@Instance'));
+    expect(result['elements'][0]['value']['kind'], equals('Int'));
     expect(result['elements'][0]['value']['valueAsString'], equals('3'));
   },
 
@@ -255,7 +260,8 @@ var tests = [
       'objectId': id,
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('Type'));
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Type'));
     expect(result['id'], equals(id));
     expect(result['class']['type'], equals('@Class'));
     expect(result['class']['name'], equals('_Type'));
