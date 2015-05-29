@@ -2537,46 +2537,76 @@ class ConstantVariableStructure<R, A>
   }
 }
 
-abstract class InitializerStructure<R, A> {
-  R dispatch(SemanticDeclarationVisitor<R, A> visitor, Send node, A arg);
+class InitializersStructure<R, A> {
+  final List<InitializerStructure<R, A>> initializers;
 
-  bool get isSuperConstructorInvoke => false;
+  InitializersStructure(this.initializers);
+}
+
+abstract class InitializerStructure<R, A> {
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, A arg);
+
+  bool get isConstructorInvoke => false;
 }
 
 class FieldInitializerStructure<R, A> extends InitializerStructure<R, A> {
+  final Send node;
   final FieldElement field;
 
-  FieldInitializerStructure(this.field);
+  FieldInitializerStructure(this.node, this.field);
 
-  R dispatch(SemanticDeclarationVisitor<R, A> visitor, Send node, A arg) {
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, A arg) {
     return visitor.visitFieldInitializer(
         node, field, node.arguments.single, arg);
   }
 }
 
 class SuperConstructorInvokeStructure<R, A> extends InitializerStructure<R, A> {
+  final Send node;
   final ConstructorElement constructor;
   final InterfaceType type;
-  final Selector selector;
+  final CallStructure callStructure;
 
-  SuperConstructorInvokeStructure(this.constructor, this.type, this.selector);
+  SuperConstructorInvokeStructure(
+      this.node, this.constructor, this.type, this.callStructure);
 
-  R dispatch(SemanticDeclarationVisitor<R, A> visitor, Send node, A arg) {
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, A arg) {
     return visitor.visitSuperConstructorInvoke(
-        node, constructor, type, node.argumentsNode, selector, arg);
+        node, constructor, type, node.argumentsNode, callStructure, arg);
   }
 
-  bool get isSuperConstructorInvoke => true;
+  bool get isConstructorInvoke => true;
+}
+
+class ImplicitSuperConstructorInvokeStructure<R, A>
+    extends InitializerStructure<R, A> {
+  final FunctionExpression node;
+  final ConstructorElement constructor;
+  final InterfaceType type;
+
+  ImplicitSuperConstructorInvokeStructure(
+      this.node, this.constructor, this.type);
+
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, A arg) {
+    return visitor.visitImplicitSuperConstructorInvoke(
+        node, constructor, type, arg);
+  }
+
+  bool get isConstructorInvoke => true;
 }
 
 class ThisConstructorInvokeStructure<R, A> extends InitializerStructure<R, A> {
+  final Send node;
   final ConstructorElement constructor;
-  final Selector selector;
+  final CallStructure callStructure;
 
-  ThisConstructorInvokeStructure(this.constructor, this.selector);
+  ThisConstructorInvokeStructure(
+      this.node, this.constructor, this.callStructure);
 
-  R dispatch(SemanticDeclarationVisitor<R, A> visitor, Send node, A arg) {
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, A arg) {
     return visitor.visitThisConstructorInvoke(
-        node, constructor, node.argumentsNode, selector, arg);
+        node, constructor, node.argumentsNode, callStructure, arg);
   }
+
+  bool get isConstructorInvoke => true;
 }

@@ -854,18 +854,48 @@ abstract class DeclarationResolverMixin {
     }
   }
 
+  InitializersStructure computeInitializersStructure(FunctionExpression node) {
+    List<InitializerStructure> initializers = <InitializerStructure>[];
+    NodeList list = node.initializers;
+    bool constructorInvocationSeen = false;
+    if (list != null) {
+      for (Node initializer in list) {
+        InitializerStructure structure =
+            computeInitializerStructure(initializer);
+        if (structure.isConstructorInvoke) {
+          constructorInvocationSeen = true;
+        }
+        initializers.add(structure);
+      }
+    }
+    if (!constructorInvocationSeen) {
+      ConstructorElement currentConstructor = elements[node];
+      ClassElement currentClass = currentConstructor.enclosingClass;
+      InterfaceType supertype = currentClass.supertype;
+      if (supertype != null) {
+        ClassElement superclass = supertype.element;
+        ConstructorElement superConstructor =
+            superclass.lookupDefaultConstructor();
+        initializers.add(new ImplicitSuperConstructorInvokeStructure(
+            node, superConstructor, supertype));
+      }
+    }
+    return new InitializersStructure(initializers);
+  }
+
   InitializerStructure computeInitializerStructure(Send node) {
     Element element = elements[node];
     if (node.asSendSet() != null) {
-      return new FieldInitializerStructure(element);
+      return new FieldInitializerStructure(node, element);
     } else if (Initializers.isConstructorRedirect(node)) {
       return new ThisConstructorInvokeStructure(
-          element, elements.getSelector(node));
+          node, element, elements.getSelector(node).callStructure);
     } else if (Initializers.isSuperConstructorCall(node)) {
       return new SuperConstructorInvokeStructure(
+          node,
           element,
           elements.analyzedElement.enclosingClass.supertype,
-          elements.getSelector(node));
+          elements.getSelector(node).callStructure);
     }
     return internalError(node, "Unhandled initializer.");
   }

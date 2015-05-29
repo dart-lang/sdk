@@ -3753,6 +3753,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
           const Visit(VisitKind.VISIT_REQUIRED_PARAMETER_DECL,
               element: 'parameter(#b)',
               index: 1),
+          const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
+              element: 'generative_constructor(Object#)',
+              type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -3773,6 +3776,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
           const Visit(VisitKind.VISIT_REQUIRED_INITIALIZING_FORMAL_DECL,
               element: 'initializing_formal(#b)',
               index: 1),
+          const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
+              element: 'generative_constructor(Object#)',
+              type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -3794,6 +3800,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
               element: 'initializing_formal(#b)',
               constant: 42,
               index: 1),
+          const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
+              element: 'generative_constructor(Object#)',
+              type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -3814,6 +3823,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
           const Visit(VisitKind.VISIT_NAMED_INITIALIZING_FORMAL_DECL,
               element: 'initializing_formal(#b)',
               constant: 42),
+          const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
+              element: 'generative_constructor(Object#)',
+              type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -3837,7 +3849,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
               element: 'generative_constructor(Object#)',
               type: 'Object',
               arguments: '()',
-              selector: 'Selector(call, super, arity=0)'),
+              selector: 'CallStructure(arity=0)'),
         ],
         method: ''),
     const Test.clazz(
@@ -3861,6 +3873,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
           const Visit(VisitKind.VISIT_FIELD_INITIALIZER,
               element: 'field(C#field)',
               rhs: 'a'),
+          const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
+              element: 'generative_constructor(Object#)',
+              type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -3888,6 +3903,9 @@ const Map<String, List<Test>> DECL_TESTS = const {
           const Visit(VisitKind.VISIT_FIELD_INITIALIZER,
               element: 'field(C#field2)',
               rhs: 'b'),
+          const Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
+              element: 'generative_constructor(Object#)',
+              type: 'Object'),
         ],
         method: ''),
     const Test.clazz(
@@ -3911,7 +3929,7 @@ const Map<String, List<Test>> DECL_TESTS = const {
           const Visit(VisitKind.VISIT_THIS_CONSTRUCTOR_INVOKE,
               element: 'generative_constructor(C#_)',
               arguments: '(a,b)',
-              selector: 'Selector(call, _, arity=2)'),
+              selector: 'CallStructure(arity=2)'),
         ],
         method: ''),
     const Test.clazz(
@@ -7236,7 +7254,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
     visits.add(new Visit(VisitKind.VISIT_GENERATIVE_CONSTRUCTOR_DECL,
         element: constructor, parameters: parameters, body: body));
     applyParameters(parameters, arg);
-    applyInitializers(initializers, arg);
+    applyInitializers(node, arg);
     apply(body, arg);
   }
 
@@ -7296,7 +7314,7 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
         parameters: parameters,
         initializers: initializers));
     applyParameters(parameters, arg);
-    applyInitializers(initializers, arg);
+    applyInitializers(node, arg);
   }
 
   @override
@@ -7318,12 +7336,25 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       ConstructorElement superConstructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_SUPER_CONSTRUCTOR_INVOKE,
         element: superConstructor, type: type,
-        arguments: arguments, selector: selector));
-    apply(arguments, arg);
+        arguments: arguments, selector: callStructure));
+    super.visitSuperConstructorInvoke(
+        node, superConstructor, type, arguments, callStructure, arg);
+  }
+
+  @override
+  visitImplicitSuperConstructorInvoke(
+      FunctionExpression node,
+      ConstructorElement superConstructor,
+      InterfaceType type,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
+        element: superConstructor, type: type));
+    super.visitImplicitSuperConstructorInvoke(
+        node, superConstructor, type, arg);
   }
 
   @override
@@ -7331,11 +7362,13 @@ class SemanticDeclarationTestVisitor extends SemanticTestVisitor {
       Send node,
       ConstructorElement thisConstructor,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_THIS_CONSTRUCTOR_INVOKE,
-        element: thisConstructor, arguments: arguments, selector: selector));
-    apply(arguments, arg);
+        element: thisConstructor,
+        arguments: arguments, selector: callStructure));
+    super.visitThisConstructorInvoke(
+        node, thisConstructor, arguments, callStructure, arg);
   }
 
   @override
@@ -8041,6 +8074,7 @@ enum VisitKind {
   VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
 
   VISIT_SUPER_CONSTRUCTOR_INVOKE,
+  VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
   VISIT_THIS_CONSTRUCTOR_INVOKE,
   VISIT_FIELD_INITIALIZER,
 

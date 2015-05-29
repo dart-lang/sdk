@@ -91,16 +91,10 @@ abstract class SemanticDeclarationResolvedMixin<R, A>
     }
   }
 
-  visitInitializers(NodeList initializers, A arg) {
-    if (initializers != null) {
-      for (Node node in initializers) {
-        InitializerStructure structure = computeInitializerStructure(node);
-        if (structure == null) {
-          internalError(node, 'No structure for $node');
-        } else {
-          structure.dispatch(declVisitor, node, arg);
-        }
-      }
+  visitInitializers(FunctionExpression function, A arg) {
+    InitializersStructure initializers = computeInitializersStructure(function);
+    for (InitializerStructure structure in initializers.initializers) {
+      structure.dispatch(declVisitor, arg);
     }
   }
 
@@ -4009,8 +4003,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   /// Apply this visitor to the [parameters].
   applyParameters(NodeList parameters, A arg);
 
-  /// Apply this visitor to the constructor [initializers].
-  applyInitializers(NodeList initializers, A arg);
+  /// Apply this visitor to the initializers of [constructor].
+  applyInitializers(FunctionExpression constructor, A arg);
 
   /// A declaration of a top level [getter].
   ///
@@ -4395,6 +4389,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       C(a) : this.a = a, super();
   ///     }
   ///
+  // TODO(johnniwinther): Replace [initializers] with a structure like
+  // [InitializersStructure] when computed in resolution.
   R visitGenerativeConstructorDeclaration(
       FunctionExpression node,
       ConstructorElement constructor,
@@ -4412,6 +4408,8 @@ abstract class SemanticDeclarationVisitor<R, A> {
   ///       C._();
   ///     }
   ///
+  // TODO(johnniwinther): Replace [initializers] with a single
+  // [ThisConstructorInvokeStructure] when computed in resolution.
   R visitRedirectingGenerativeConstructorDeclaration(
       FunctionExpression node,
       ConstructorElement constructor,
@@ -4499,7 +4497,24 @@ abstract class SemanticDeclarationVisitor<R, A> {
       ConstructorElement superConstructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
+      A arg);
+
+  /// An implicit super constructor invocation of [superConstructor] from
+  /// generative constructor initializers.
+  ///
+  /// For instance `super(42)` in
+  ///     class B {
+  ///       B();
+  ///     }
+  ///     class C extends B {
+  ///       C(); // Implicit super call of B().
+  ///     }
+  ///
+  R visitImplicitSuperConstructorInvoke(
+      FunctionExpression node,
+      ConstructorElement superConstructor,
+      InterfaceType type,
       A arg);
 
   /// An super constructor invocation of an unresolved with [arguments] as
@@ -4533,7 +4548,7 @@ abstract class SemanticDeclarationVisitor<R, A> {
       Send node,
       ConstructorElement thisConstructor,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg);
 
   /// An this constructor invocation of an unresolved constructor with
