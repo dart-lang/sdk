@@ -150,6 +150,24 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (entity == node.constructorName) {
+      // no keywords in 'new ^' expression
+    } else {
+      super.visitInstanceCreationExpression(node);
+    }
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    if (entity == node.methodName) {
+      // no keywords in '.' expression
+    } else {
+      super.visitMethodInvocation(node);
+    }
+  }
+
+  @override
   visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);

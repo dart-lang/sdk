@@ -939,6 +939,30 @@ class A {
     assertSuggestKeywords([]);
   }
 
+  test_newInstance() {
+    addTestSource('class A { foo() {new ^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_newInstance2() {
+    addTestSource('class A { foo() {new ^ print("foo");}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_newInstance_prefixed() {
+    addTestSource('class A { foo() {new A.^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_newInstance_prefixed2() {
+    addTestSource('class A { foo() {new A.^ print("foo");}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
   test_part_of() {
     addTestSource('part of foo;^');
     expect(computeFast(), isTrue);
@@ -958,6 +982,30 @@ class A {
     expect(computeFast(), isTrue);
     assertSuggestKeywords(DIRECTIVE_AND_DECLARATION_KEYWORDS,
         relevance: DART_RELEVANCE_HIGH);
+  }
+
+  test_prefixed_field() {
+    addTestSource('class A { int x; foo() {x.^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_prefixed_field2() {
+    addTestSource('class A { int x; foo() {x.^ print("foo");}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_prefixed_local() {
+    addTestSource('class A { foo() {int x; x.^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_prefixed_local2() {
+    addTestSource('class A { foo() {int x; x.^ print("foo");}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
   }
 
   test_switch_expression() {
