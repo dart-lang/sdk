@@ -142,7 +142,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         return new (_ConstantMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this[_keys], dart.fn((key => dart.as(this[_fetch](key), V)).bind(this), V, [core.Object]));
+        return _internal.MappedIterable$(K, V).new(this[_keys], dart.fn((key => dart.as(this[_fetch](key), V)).bind(this), V, [core.Object]));
       }
     }
     ConstantStringMap[dart.implements] = () => [_internal.EfficientLength];
@@ -215,7 +215,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       }
       [_getMap]() {
         if (!this.$map) {
-          let backingMap = new (collection.LinkedHashMap$(K, V))();
+          let backingMap = collection.LinkedHashMap$(K, V).new();
           this.$map = fillLiteralMap(this[_jsData], backingMap);
         }
         return dart.as(this.$map, core.Map$(K, V));
@@ -784,7 +784,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return this.pattern;
     }
     groups(groups_) {
-      let result = new (core.List$(core.String))();
+      let result = core.List$(core.String).new();
       for (let g of groups_) {
         result[core.$add](this.group(g));
       }
@@ -801,7 +801,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     })
   });
   function allMatchesInStringUnchecked(needle, haystack, startIndex) {
-    let result = new (core.List$(core.Match))();
+    let result = core.List$(core.Match).new();
     let length = haystack.length;
     let patternLength = needle.length;
     while (true) {
@@ -1577,7 +1577,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       let namedArgumentsStartIndex = dart.notNull(this[_arguments][core.$length]) - dart.notNull(namedArgumentCount);
       if (namedArgumentCount == 0)
         return dart.map();
-      let map = new (core.Map$(core.Symbol, core.Object))();
+      let map = core.Map$(core.Symbol, core.Object).new();
       for (let i = 0; dart.notNull(i) < dart.notNull(namedArgumentCount); i = dart.notNull(i) + 1) {
         map.set(new _internal.Symbol.unvalidated(dart.as(this[_namedArgumentNames][core.$get](i), core.String)), this[_arguments][core.$get](dart.notNull(namedArgumentsStartIndex) + dart.notNull(i)));
       }
@@ -1667,7 +1667,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       let receiver = victim;
       if (!dart.notNull(this.isIntercepted)) {
         if (!dart.is(arguments$, _interceptors.JSArray))
-          arguments$ = new core.List.from(arguments$);
+          arguments$ = core.List.from(arguments$);
       } else {
         let _ = [victim];
         _[core.$addAll](arguments$);
@@ -1684,7 +1684,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   });
   class CachedCatchAllInvocation extends CachedInvocation {
     CachedCatchAllInvocation(name, jsFunction, isIntercepted, cachedInterceptor) {
-      this.info = new ReflectionInfo(jsFunction);
+      this.info = ReflectionInfo.new(jsFunction);
       super.CachedInvocation(name, jsFunction, isIntercepted, cachedInterceptor);
     }
     get isGetterStub() {
@@ -1698,10 +1698,10 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         if (dart.is(arguments$, _interceptors.JSArray)) {
           providedArgumentCount = arguments$[core.$length];
           if (dart.notNull(providedArgumentCount) < dart.notNull(fullParameterCount)) {
-            arguments$ = new core.List.from(arguments$);
+            arguments$ = core.List.from(arguments$);
           }
         } else {
-          arguments$ = new core.List.from(arguments$);
+          arguments$ = core.List.from(arguments$);
           providedArgumentCount = arguments$[core.$length];
         }
       } else {
@@ -1758,7 +1758,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       this.functionType = functionType;
       this.cachedSortedIndices = null;
     }
-    ReflectionInfo(jsFunction) {
+    static new(jsFunction) {
       let data = dart.as(jsFunction.$reflectionInfo, core.List);
       if (data == null)
         return null;
@@ -1814,7 +1814,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
     sortedIndex(unsortedIndex) {
       if (this.cachedSortedIndices == null) {
-        this.cachedSortedIndices = new core.List(this.optionalParameterCount);
+        this.cachedSortedIndices = core.List.new(this.optionalParameterCount);
         let positions = dart.map();
         for (let i = 0; dart.notNull(i) < dart.notNull(this.optionalParameterCount); i = dart.notNull(i) + 1) {
           let index = dart.notNull(this.requiredParameterCount) + dart.notNull(i);
@@ -1854,7 +1854,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   dart.setSignature(ReflectionInfo, {
     constructors: () => ({
       internal: [ReflectionInfo, [core.Object, core.List, core.bool, core.int, core.int, core.bool, core.Object]],
-      ReflectionInfo: [ReflectionInfo, [core.Object]]
+      new: [ReflectionInfo, [core.Object]]
     }),
     methods: () => ({
       parameterName: [core.String, [core.int]],
@@ -2202,7 +2202,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         if (positionalArguments instanceof Array) {
           arguments$ = positionalArguments;
         } else {
-          arguments$ = new core.List.from(positionalArguments);
+          arguments$ = core.List.from(positionalArguments);
         }
         argumentCount = arguments$.length;
       } else {
@@ -2224,19 +2224,19 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       if (jsFunction == null) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
-      let info = new ReflectionInfo(jsFunction);
+      let info = ReflectionInfo.new(jsFunction);
       if (dart.notNull(info == null) || !dart.notNull(info.areOptionalParametersNamed)) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
       if (positionalArguments != null) {
-        positionalArguments = new core.List.from(positionalArguments);
+        positionalArguments = core.List.from(positionalArguments);
       } else {
         positionalArguments = [];
       }
       if (info.requiredParameterCount != positionalArguments[core.$length]) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
-      let defaultArguments = new core.Map();
+      let defaultArguments = core.Map.new();
       for (let i = 0; dart.notNull(i) < dart.notNull(info.optionalParameterCount); i = dart.notNull(i) + 1) {
         let index = dart.notNull(i) + dart.notNull(info.requiredParameterCount);
         let parameterName = info.parameterNameInOrder(index);
@@ -2813,7 +2813,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     } else if (numberOfArguments == 4) {
       return _foreign_helper.JS_CALL_IN_ISOLATE(isolate, dart.fn(() => dart.dcall(closure, arg1, arg2, arg3, arg4)));
     } else {
-      throw new core.Exception('Unsupported number of arguments for wrapped closure');
+      throw core.Exception.new('Unsupported number of arguments for wrapped closure');
     }
   }
   dart.fn(invokeClosure, core.Object, [core.Function, core.Object, core.int, core.Object, core.Object, core.Object, core.Object]);
@@ -2833,7 +2833,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       let name = dart.as(func.$stubName, core.String);
       let callName = dart.as(func.$callName, core.String);
       func.$reflectionInfo = reflectionInfo;
-      let info = new ReflectionInfo(func);
+      let info = ReflectionInfo.new(func);
       let functionType = info.functionType;
       let prototype = isStatic ? Object.create(new TearOffClosure().constructor.prototype) : Object.create(new BoundClosure(null, null, null, null).constructor.prototype);
       prototype.$initialize = prototype.constructor;
@@ -3550,7 +3550,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   dart.fn(assertHelper, dart.void, [core.Object]);
   function throwNoSuchMethod(obj, name, arguments$, expectedArgumentNames) {
     let memberName = new _internal.Symbol.unvalidated(dart.as(name, core.String));
-    throw new core.NoSuchMethodError(obj, memberName, dart.as(arguments$, core.List), new (core.Map$(core.Symbol, core.Object))(), dart.as(expectedArgumentNames, core.List));
+    throw new core.NoSuchMethodError(obj, memberName, dart.as(arguments$, core.List), core.Map$(core.Symbol, core.Object).new(), dart.as(expectedArgumentNames, core.List));
   }
   dart.fn(throwNoSuchMethod, dart.void, [core.Object, core.Object, core.Object, core.Object]);
   function throwCyclicInit(staticName) {
@@ -4029,7 +4029,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return dart.map();
     },
     get _loadedLibraries() {
-      return new (core.Set$(core.String))();
+      return core.Set$(core.String).new();
     }
   });
   let DeferredLoadCallback = dart.typedef('DeferredLoadCallback', () => dart.functionType(dart.void, []));
@@ -4040,8 +4040,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let hashesMap = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.DEFERRED_LIBRARY_HASHES);
     let hashes = dart.as(hashesMap[loadId], core.List$(core.String));
     if (uris == null)
-      return new (async.Future$(core.Null)).value(null);
-    let indices = new (core.List$(core.int)).generate(uris[core.$length], dart.fn(i => dart.as(i, core.int), core.int, [core.Object]));
+      return async.Future$(core.Null).value(null);
+    let indices = core.List$(core.int).generate(uris[core.$length], dart.fn(i => dart.as(i, core.int), core.int, [core.Object]));
     let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_LOADED);
     let isHunkInitialized = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_INITIALIZED);
     let indicesToLoad = indices[core.$where](dart.fn(i => !isHunkLoaded(hashes[core.$get](i)), core.bool, [core.int]))[core.$toList]();
@@ -4067,7 +4067,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let index = uri.lastIndexOf('/');
     uri = `${uri.substring(0, dart.notNull(index) + 1)}${hunkName}`;
     if (dart.notNull(Primitives.isJsshell) || dart.notNull(Primitives.isD8)) {
-      return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(dart.fn(() => {
+      return exports._loadingLibraries.set(hunkName, async.Future$(core.Null).new(dart.fn(() => {
         try {
           new Function(`load("${uri}")`)();
         } catch (error) {
@@ -4078,8 +4078,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         return null;
       })));
     } else if (_isolate_helper.isWorker()) {
-      return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(dart.fn(() => {
-        let completer = new (async.Completer$(core.Null))();
+      return exports._loadingLibraries.set(hunkName, async.Future$(core.Null).new(dart.fn(() => {
+        let completer = async.Completer$(core.Null).new();
         _isolate_helper.enterJsAsync();
         let leavingFuture = dart.as(completer.future.whenComplete(dart.fn(() => {
           _isolate_helper.leaveJsAsync();
@@ -4113,8 +4113,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         return leavingFuture;
       })));
     }
-    return exports._loadingLibraries.set(hunkName, new (async.Future$(core.Null))(dart.fn(() => {
-      let completer = new (async.Completer$(core.Null))();
+    return exports._loadingLibraries.set(hunkName, async.Future$(core.Null).new(dart.fn(() => {
+      let completer = async.Completer$(core.Null).new();
       let script = document.createElement("script");
       script.type = "text/javascript";
       script.src = uri;

@@ -985,7 +985,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   function _symbolMapToStringMap(map) {
     if (map == null)
       return null;
-    let result = new (core.Map$(core.String, core.Object))();
+    let result = core.Map$(core.String, core.Object).new();
     map.forEach(dart.fn((key, value) => {
       result.set(_symbolToString(key), value);
     }, core.Object, [core.Symbol, core.Object]));

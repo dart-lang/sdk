@@ -219,10 +219,10 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
         if (growable) {
-          result = new (core.List$(E))();
+          result = core.List$(E).new();
           result[core.$length] = this[core.$length];
         } else {
-          result = new (core.List$(E))(this[core.$length]);
+          result = core.List$(E).new(this[core.$length]);
         }
         for (let i = 0; dart.notNull(i) < dart.notNull(this[core.$length]); i = dart.notNull(i) + 1) {
           result[core.$set](i, this[core.$elementAt](i));
@@ -230,7 +230,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         return result;
       }
       [core.$toSet]() {
-        let result = new (core.Set$(E))();
+        let result = core.Set$(E).new();
         for (let i = 0; dart.notNull(i) < dart.notNull(this[core.$length]); i = dart.notNull(i) + 1) {
           result.add(this[core.$elementAt](i));
         }
@@ -306,7 +306,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       [core.$elementAt](index) {
         let realIndex = dart.notNull(this[_startIndex]) + dart.notNull(index);
         if (dart.notNull(index) < 0 || dart.notNull(realIndex) >= dart.notNull(this[_endIndex])) {
-          throw new core.RangeError.index(index, this, "index");
+          throw core.RangeError.index(index, this, "index");
         }
         return this[_iterable][core.$elementAt](realIndex);
       }
@@ -339,10 +339,10 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         if (dart.notNull(length) < 0)
           length = 0;
         let result = growable ? (() => {
-          let _ = new (core.List$(E))();
+          let _ = core.List$(E).new();
           _[core.$length] = length;
           return _;
-        })() : new (core.List$(E))(length);
+        })() : core.List$(E).new(length);
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           result[core.$set](i, this[_iterable][core.$elementAt](dart.notNull(start) + dart.notNull(i)));
           if (dart.notNull(this[_iterable][core.$length]) < dart.notNull(end))
@@ -407,7 +407,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   let _f = dart.JsSymbol('_f');
   let MappedIterable$ = dart.generic(function(S, T) {
     class MappedIterable extends collection.IterableBase$(T) {
-      MappedIterable(iterable, func) {
+      static new(iterable, func) {
         if (dart.is(iterable, EfficientLength)) {
           return new (EfficientLengthMappedIterable$(S, T))(iterable, func);
         }
@@ -443,7 +443,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     dart.defineNamedConstructor(MappedIterable, '_');
     dart.setSignature(MappedIterable, {
       constructors: () => ({
-        MappedIterable: [MappedIterable$(S, T), [core.Iterable, dart.functionType(T, [S])]],
+        new: [MappedIterable$(S, T), [core.Iterable, dart.functionType(T, [S])]],
         _: [MappedIterable$(S, T), [core.Iterable$(S), dart.functionType(T, [S])]]
       }),
       methods: () => ({[core.$elementAt]: [T, [core.int]]})
@@ -627,7 +627,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   let _takeCount = dart.JsSymbol('_takeCount');
   let TakeIterable$ = dart.generic(function(E) {
     class TakeIterable extends collection.IterableBase$(E) {
-      TakeIterable(iterable, takeCount) {
+      static new(iterable, takeCount) {
         if (!(typeof takeCount == 'number') || dart.notNull(takeCount) < 0) {
           throw new core.ArgumentError(takeCount);
         }
@@ -648,7 +648,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     dart.defineNamedConstructor(TakeIterable, '_');
     dart.setSignature(TakeIterable, {
       constructors: () => ({
-        TakeIterable: [TakeIterable$(E), [core.Iterable$(E), core.int]],
+        new: [TakeIterable$(E), [core.Iterable$(E), core.int]],
         _: [TakeIterable$(E), [core.Iterable$(E), core.int]]
       })
     });
@@ -753,7 +753,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   let _skipCount = dart.JsSymbol('_skipCount');
   let SkipIterable$ = dart.generic(function(E) {
     class SkipIterable extends collection.IterableBase$(E) {
-      SkipIterable(iterable, count) {
+      static new(iterable, count) {
         if (dart.is(iterable, EfficientLength)) {
           return new (EfficientLengthSkipIterable$(E))(iterable, count);
         }
@@ -782,7 +782,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     dart.defineNamedConstructor(SkipIterable, '_');
     dart.setSignature(SkipIterable, {
       constructors: () => ({
-        SkipIterable: [SkipIterable$(E), [core.Iterable$(E), core.int]],
+        new: [SkipIterable$(E), [core.Iterable$(E), core.int]],
         _: [SkipIterable$(E), [core.Iterable$(E), core.int]]
       }),
       methods: () => ({[core.$skip]: [core.Iterable$(E), [core.int]]})
@@ -982,10 +982,10 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
       [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        return growable ? dart.setType([], core.List$(E)) : new (core.List$(E))(0);
+        return growable ? dart.setType([], core.List$(E)) : core.List$(E).new(0);
       }
       [core.$toSet]() {
-        return new (core.Set$(E))();
+        return core.Set$(E).new();
       }
     }
     EmptyIterable[dart.implements] = () => [EfficientLength];
@@ -1205,7 +1205,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
             return element;
           elementIndex = dart.notNull(elementIndex) + 1;
         }
-        throw new core.RangeError.index(index, iterable, "index", null, elementIndex);
+        throw core.RangeError.index(index, iterable, "index", null, elementIndex);
       }
       static join(iterable, separator) {
         if (separator === void 0)
@@ -1241,7 +1241,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
       static map(iterable, f) {
         dart.as(f, dart.functionType(core.Object, [dart.bottom]));
-        return new MappedIterable(iterable, f);
+        return MappedIterable.new(iterable, f);
       }
       static mapList(list, f) {
         dart.as(f, dart.functionType(core.Object, [dart.bottom]));
@@ -1276,7 +1276,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
       static shuffleList(list, random) {
         if (random == null)
-          random = new math.Random();
+          random = math.Random.new();
         let length = list[core.$length];
         while (dart.notNull(length) > 1) {
           let pos = random.nextInt(length);
@@ -2272,10 +2272,10 @@ var _js_primitives = dart.lazyImport(_js_primitives);
   let POWERS_OF_TEN = dart.const([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
   dart.defineLazyProperties(Symbol, {
     get publicSymbolPattern() {
-      return new core.RegExp(`^(?:${Symbol.operatorRE}$|${Symbol.publicIdentifierRE}(?:=?$|[.](?!$)))+?$`);
+      return core.RegExp.new(`^(?:${Symbol.operatorRE}$|${Symbol.publicIdentifierRE}(?:=?$|[.](?!$)))+?$`);
     },
     get symbolPattern() {
-      return new core.RegExp(`^(?:${Symbol.operatorRE}$|${Symbol.identifierRE}(?:=?$|[.](?!$)))+?$`);
+      return core.RegExp.new(`^(?:${Symbol.operatorRE}$|${Symbol.identifierRE}(?:=?$|[.](?!$)))+?$`);
     }
   });
   // Exports:

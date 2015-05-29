@@ -94,7 +94,7 @@ var convert = dart.lazyImport(convert);
   });
   let proxy = dart.const(new _Proxy());
   class bool extends Object {
-    fromEnvironment(name, opts) {
+    static fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : false;
       throw new UnsupportedError('bool.fromEnvironment can only be used as a const constructor');
     }
@@ -102,7 +102,6 @@ var convert = dart.lazyImport(convert);
       return this ? "true" : "false";
     }
   }
-  dart.defineNamedConstructor(bool, 'fromEnvironment');
   dart.setSignature(bool, {
     constructors: () => ({fromEnvironment: [bool, [String], {defaultValue: bool}]})
   });
@@ -159,7 +158,7 @@ var convert = dart.lazyImport(convert);
       this._now();
     }
     static parse(formattedString) {
-      let re = new RegExp('^([+-]?\\d{4,6})-?(\\d\\d)-?(\\d\\d)' + '(?:[ T](\\d\\d)(?::?(\\d\\d)(?::?(\\d\\d)(.\\d{1,6})?)?)?' + '( ?[zZ]| ?([-+])(\\d\\d)(?::?(\\d\\d))?)?)?$');
+      let re = RegExp.new('^([+-]?\\d{4,6})-?(\\d\\d)-?(\\d\\d)' + '(?:[ T](\\d\\d)(?::?(\\d\\d)(?::?(\\d\\d)(.\\d{1,6})?)?)?' + '( ?[zZ]| ?([-+])(\\d\\d)(?::?(\\d\\d))?)?)?$');
       let match = re.firstMatch(formattedString);
       if (match != null) {
         let parseIntOrZero = matched => {
@@ -748,7 +747,7 @@ var convert = dart.lazyImport(convert);
       this.end = maxValue;
       super.value(invalidValue, name, message != null ? message : "Invalid value");
     }
-    index(index, indexable, name, message, length) {
+    static index(index, indexable, name, message, length) {
       return new IndexError(index, indexable, name, message, length);
     }
     static checkValueInInterval(value, minValue, maxValue, name, message) {
@@ -772,7 +771,7 @@ var convert = dart.lazyImport(convert);
       if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
         if (name == null)
           name = "index";
-        throw new RangeError.index(index, indexable, name, message, length);
+        throw RangeError.index(index, indexable, name, message, length);
       }
     }
     static checkValidRange(start, end, length, startName, endName, message) {
@@ -824,7 +823,6 @@ var convert = dart.lazyImport(convert);
   }
   dart.defineNamedConstructor(RangeError, 'value');
   dart.defineNamedConstructor(RangeError, 'range');
-  dart.defineNamedConstructor(RangeError, 'index');
   dart.setSignature(RangeError, {
     constructors: () => ({
       RangeError: [RangeError, [Object]],
@@ -1051,14 +1049,14 @@ var convert = dart.lazyImport(convert);
     constructors: () => ({CyclicInitializationError: [CyclicInitializationError, [], [String]]})
   });
   class Exception extends Object {
-    Exception(message) {
+    static new(message) {
       if (message === void 0)
         message = null;
       return new _ExceptionImplementation(message);
     }
   }
   dart.setSignature(Exception, {
-    constructors: () => ({Exception: [Exception, [], [Object]]})
+    constructors: () => ({new: [Exception, [], [Object]]})
   });
   class _ExceptionImplementation extends Object {
     _ExceptionImplementation(message) {
@@ -1260,7 +1258,7 @@ var convert = dart.lazyImport(convert);
   }
   dart.fn(identityHashCode, () => dart.functionType(int, [Object]));
   class int extends num {
-    fromEnvironment(name, opts) {
+    static fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
       throw new UnsupportedError('int.fromEnvironment can only be used as a const constructor');
     }
@@ -1270,7 +1268,6 @@ var convert = dart.lazyImport(convert);
       return _js_helper.Primitives.parseInt(source, radix, onError);
     }
   }
-  dart.defineNamedConstructor(int, 'fromEnvironment');
   dart.setSignature(int, {
     constructors: () => ({fromEnvironment: [int, [String], {defaultValue: int}]}),
     statics: () => ({parse: [int, [String], {radix: int, onError: dart.functionType(int, [String])}]}),
@@ -1287,7 +1284,7 @@ var convert = dart.lazyImport(convert);
     class Iterable extends Object {
       Iterable() {
       }
-      generate(count, generator) {
+      static generate(count, generator) {
         if (generator === void 0)
           generator = null;
         if (dart.notNull(count) <= 0)
@@ -1305,7 +1302,6 @@ var convert = dart.lazyImport(convert);
         return dart.toString(buffer);
       }
     }
-    dart.defineNamedConstructor(Iterable, 'generate');
     dart.setSignature(Iterable, {
       constructors: () => ({
         Iterable: [Iterable$(E), []],
@@ -1480,7 +1476,7 @@ var convert = dart.lazyImport(convert);
   let $asMap = dart.JsSymbol('$asMap');
   let List$ = dart.generic(function(E) {
     class List extends Object {
-      List(length) {
+      static new(length) {
         if (length === void 0)
           length = null;
         let list = null;
@@ -1496,8 +1492,8 @@ var convert = dart.lazyImport(convert);
         dart.setType(list, List$(E));
         return dart.as(list, List$(E));
       }
-      filled(length, fill) {
-        let result = new (List$(E))(length);
+      static filled(length, fill) {
+        let result = List$(E).new(length);
         if (length != 0 && dart.notNull(fill != null)) {
           for (let i = 0; dart.notNull(i) < dart.notNull(result[$length]); i = dart.notNull(i) + 1) {
             result[$set](i, fill);
@@ -1505,9 +1501,9 @@ var convert = dart.lazyImport(convert);
         }
         return result;
       }
-      from(elements, opts) {
+      static from(elements, opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        let list = new (List$(E))();
+        let list = List$(E).new();
         for (let e of elements) {
           list[$add](dart.as(e, E));
         }
@@ -1515,14 +1511,14 @@ var convert = dart.lazyImport(convert);
           return list;
         return dart.as(_internal.makeListFixedLength(list), List$(E));
       }
-      generate(length, generator, opts) {
+      static generate(length, generator, opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
         if (growable) {
           result = dart.setType([], List$(E));
           result[$length] = length;
         } else {
-          result = new (List$(E))(length);
+          result = List$(E).new(length);
         }
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           result[$set](i, generator(i));
@@ -1556,7 +1552,7 @@ var convert = dart.lazyImport(convert);
       [$join](separator) {
         if (separator === void 0)
           separator = "";
-        let list = new (List$())(this[$length]);
+        let list = List$().new(this[$length]);
         for (let i = 0; dart.notNull(i) < dart.notNull(this[$length]); i = dart.notNull(i) + 1) {
           list[$set](i, `${this[$get](i)}`);
         }
@@ -1649,7 +1645,7 @@ var convert = dart.lazyImport(convert);
         return dart.as(dart.setType(this.slice(), core.List$(E)), List$(E));
       }
       [$toSet]() {
-        return new (exports.Set$(E)).from(this);
+        return exports.Set$(E).from(this);
       }
       get [$iterator]() {
         return new (_internal.ListIterator$(E))(this);
@@ -1798,7 +1794,7 @@ var convert = dart.lazyImport(convert);
         }
         if (start == end)
           return dart.setType([], List$(E));
-        return new (_interceptors.JSArray$(E)).markGrowable(this.slice(start, end));
+        return _interceptors.JSArray$(E).markGrowable(this.slice(start, end));
       }
       [$getRange](start, end) {
         return new (_internal.IterableMixinWorkaround$(E))().getRangeList(this, start, end);
@@ -1840,12 +1836,9 @@ var convert = dart.lazyImport(convert);
     }
     dart.setBaseClass(List, dart.global.Array);
     List[dart.implements] = () => [Iterable$(E), _internal.EfficientLength];
-    dart.defineNamedConstructor(List, 'filled');
-    dart.defineNamedConstructor(List, 'from');
-    dart.defineNamedConstructor(List, 'generate');
     dart.setSignature(List, {
       constructors: () => ({
-        List: [List$(E), [], [int]],
+        new: [List$(E), [], [int]],
         filled: [List$(E), [int, E]],
         from: [List$(E), [Iterable], {growable: bool}],
         generate: [List$(E), [int, dart.functionType(E, [int])], {growable: bool}]
@@ -1905,29 +1898,25 @@ var convert = dart.lazyImport(convert);
   dart.registerExtension(dart.global.Array, List);
   let Map$ = dart.generic(function(K, V) {
     class Map extends Object {
-      Map() {
-        return new (collection.LinkedHashMap$(K, V))();
+      static new() {
+        return collection.LinkedHashMap$(K, V).new();
       }
-      from(other) {
-        return new (collection.LinkedHashMap$(K, V)).from(other);
+      static from(other) {
+        return collection.LinkedHashMap$(K, V).from(other);
       }
-      identity() {
-        return new (collection.LinkedHashMap$(K, V)).identity();
+      static identity() {
+        return collection.LinkedHashMap$(K, V).identity();
       }
-      fromIterable(iterable, opts) {
-        return new (collection.LinkedHashMap$(K, V)).fromIterable(iterable, opts);
+      static fromIterable(iterable, opts) {
+        return collection.LinkedHashMap$(K, V).fromIterable(iterable, opts);
       }
-      fromIterables(keys, values) {
-        return new (collection.LinkedHashMap$(K, V)).fromIterables(keys, values);
+      static fromIterables(keys, values) {
+        return collection.LinkedHashMap$(K, V).fromIterables(keys, values);
       }
     }
-    dart.defineNamedConstructor(Map, 'from');
-    dart.defineNamedConstructor(Map, 'identity');
-    dart.defineNamedConstructor(Map, 'fromIterable');
-    dart.defineNamedConstructor(Map, 'fromIterables');
     dart.setSignature(Map, {
       constructors: () => ({
-        Map: [Map$(K, V), []],
+        new: [Map$(K, V), []],
         from: [Map$(K, V), [Map$()]],
         identity: [Map$(K, V), []],
         fromIterable: [Map$(K, V), [Iterable], {key: dart.functionType(K, [dart.bottom]), value: dart.functionType(V, [dart.bottom])}],
@@ -1938,14 +1927,13 @@ var convert = dart.lazyImport(convert);
   });
   let Map = Map$();
   class Null extends Object {
-    _uninstantiable() {
+    static _uninstantiable() {
       throw new UnsupportedError('class Null cannot be instantiated');
     }
     toString() {
       return "null";
     }
   }
-  dart.defineNamedConstructor(Null, '_uninstantiable');
   dart.setSignature(Null, {
     constructors: () => ({_uninstantiable: [Null, []]})
   });
@@ -1962,7 +1950,7 @@ var convert = dart.lazyImport(convert);
   dart.fn(print, dart.void, [Object]);
   class Match extends Object {}
   class RegExp extends Object {
-    RegExp(source, opts) {
+    static new(source, opts) {
       let multiLine = opts && 'multiLine' in opts ? opts.multiLine : false;
       let caseSensitive = opts && 'caseSensitive' in opts ? opts.caseSensitive : true;
       return new _js_helper.JSSyntaxRegExp(source, {multiLine: multiLine, caseSensitive: caseSensitive});
@@ -1970,26 +1958,24 @@ var convert = dart.lazyImport(convert);
   }
   RegExp[dart.implements] = () => [Pattern];
   dart.setSignature(RegExp, {
-    constructors: () => ({RegExp: [RegExp, [String], {multiLine: bool, caseSensitive: bool}]})
+    constructors: () => ({new: [RegExp, [String], {multiLine: bool, caseSensitive: bool}]})
   });
   let Set$ = dart.generic(function(E) {
     class Set extends collection.IterableBase$(E) {
-      Set() {
-        return new (collection.LinkedHashSet$(E))();
+      static new() {
+        return collection.LinkedHashSet$(E).new();
       }
-      identity() {
-        return new (collection.LinkedHashSet$(E)).identity();
+      static identity() {
+        return collection.LinkedHashSet$(E).identity();
       }
-      from(elements) {
-        return new (collection.LinkedHashSet$(E)).from(elements);
+      static from(elements) {
+        return collection.LinkedHashSet$(E).from(elements);
       }
     }
     Set[dart.implements] = () => [_internal.EfficientLength];
-    dart.defineNamedConstructor(Set, 'identity');
-    dart.defineNamedConstructor(Set, 'from');
     dart.setSignature(Set, {
       constructors: () => ({
-        Set: [exports.Set$(E), []],
+        new: [exports.Set$(E), []],
         identity: [exports.Set$(E), []],
         from: [exports.Set$(E), [Iterable]]
       })
@@ -2077,7 +2063,7 @@ var convert = dart.lazyImport(convert);
   });
   Stopwatch._frequency = null;
   class String extends Object {
-    fromCharCodes(charCodes, start, end) {
+    static fromCharCodes(charCodes, start, end) {
       if (start === void 0)
         start = 0;
       if (end === void 0)
@@ -2100,10 +2086,10 @@ var convert = dart.lazyImport(convert);
       }
       return _js_helper.Primitives.stringFromCharCodes(list);
     }
-    fromCharCode(charCode) {
+    static fromCharCode(charCode) {
       return _js_helper.Primitives.stringFromCharCode(charCode);
     }
-    fromEnvironment(name, opts) {
+    static fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
       throw new UnsupportedError('String.fromEnvironment can only be used as a const constructor');
     }
@@ -2135,9 +2121,6 @@ var convert = dart.lazyImport(convert);
     }
   }
   String[dart.implements] = () => [Comparable$(String), Pattern];
-  dart.defineNamedConstructor(String, 'fromCharCodes');
-  dart.defineNamedConstructor(String, 'fromCharCode');
-  dart.defineNamedConstructor(String, 'fromEnvironment');
   dart.setSignature(String, {
     constructors: () => ({
       fromCharCodes: [String, [Iterable$(int)], [int, int]],
@@ -2319,7 +2302,7 @@ var convert = dart.lazyImport(convert);
       this[_writeString](`${obj}`);
     }
     writeCharCode(charCode) {
-      this[_writeString](new String.fromCharCode(charCode));
+      this[_writeString](String.fromCharCode(charCode));
     }
     writeAll(objects, separator) {
       if (separator === void 0)
@@ -2369,12 +2352,12 @@ var convert = dart.lazyImport(convert);
   });
   class StringSink extends Object {}
   class Symbol extends Object {
-    Symbol(name) {
+    static new(name) {
       return new _internal.Symbol(name);
     }
   }
   dart.setSignature(Symbol, {
-    constructors: () => ({Symbol: [Symbol, [String]]})
+    constructors: () => ({new: [Symbol, [String]]})
   });
   class Type extends Object {}
   let _writeAuthority = dart.JsSymbol('_writeAuthority');
@@ -2610,7 +2593,7 @@ var convert = dart.lazyImport(convert);
       this[_pathSegments] = null;
       this[_queryParameters] = null;
     }
-    Uri(opts) {
+    static new(opts) {
       let scheme = opts && 'scheme' in opts ? opts.scheme : "";
       let userInfo = opts && 'userInfo' in opts ? opts.userInfo : "";
       let host = opts && 'host' in opts ? opts.host : null;
@@ -2636,12 +2619,12 @@ var convert = dart.lazyImport(convert);
       path = Uri._makePath(path, 0, Uri._stringOrNullLength(path), pathSegments, ensureLeadingSlash, isFile);
       return new Uri._internal(scheme, userInfo, host, port, path, query, fragment);
     }
-    http(authority, unencodedPath, queryParameters) {
+    static http(authority, unencodedPath, queryParameters) {
       if (queryParameters === void 0)
         queryParameters = null;
       return Uri._makeHttpUri("http", authority, unencodedPath, queryParameters);
     }
-    https(authority, unencodedPath, queryParameters) {
+    static https(authority, unencodedPath, queryParameters) {
       if (queryParameters === void 0)
         queryParameters = null;
       return Uri._makeHttpUri("https", authority, unencodedPath, queryParameters);
@@ -2687,9 +2670,9 @@ var convert = dart.lazyImport(convert);
         }
         host = authority.substring(hostStart, hostEnd);
       }
-      return new Uri({scheme: scheme, userInfo: userInfo, host: dart.as(host, String), port: dart.as(port, int), pathSegments: unencodedPath.split("/"), queryParameters: queryParameters});
+      return Uri.new({scheme: scheme, userInfo: userInfo, host: dart.as(host, String), port: dart.as(port, int), pathSegments: unencodedPath.split("/"), queryParameters: queryParameters});
     }
-    file(path, opts) {
+    static file(path, opts) {
       let windows = opts && 'windows' in opts ? opts.windows : null;
       windows = windows == null ? Uri._isWindows : windows;
       return windows ? dart.as(Uri._makeWindowsFileUrl(path), Uri) : dart.as(Uri._makeFileUri(path), Uri);
@@ -2718,7 +2701,7 @@ var convert = dart.lazyImport(convert);
       if (firstSegment === void 0)
         firstSegment = 0;
       segments[$skip](firstSegment)[$forEach](dart.fn(segment => {
-        if (dart.dsend(segment, 'contains', new RegExp('["*/:<>?\\\\|]'))) {
+        if (dart.dsend(segment, 'contains', RegExp.new('["*/:<>?\\\\|]'))) {
           if (argumentError) {
             throw new ArgumentError("Illegal character in path");
           } else {
@@ -2732,17 +2715,17 @@ var convert = dart.lazyImport(convert);
         return;
       }
       if (argumentError) {
-        throw new ArgumentError("Illegal drive letter " + dart.notNull(new String.fromCharCode(charCode)));
+        throw new ArgumentError("Illegal drive letter " + dart.notNull(String.fromCharCode(charCode)));
       } else {
-        throw new UnsupportedError("Illegal drive letter " + dart.notNull(new String.fromCharCode(charCode)));
+        throw new UnsupportedError("Illegal drive letter " + dart.notNull(String.fromCharCode(charCode)));
       }
     }
     static _makeFileUri(path) {
       let sep = "/";
       if (path.startsWith(sep)) {
-        return new Uri({scheme: "file", pathSegments: path.split(sep)});
+        return Uri.new({scheme: "file", pathSegments: path.split(sep)});
       } else {
-        return new Uri({pathSegments: path.split(sep)});
+        return Uri.new({pathSegments: path.split(sep)});
       }
     }
     static _makeWindowsFileUrl(path) {
@@ -2766,7 +2749,7 @@ var convert = dart.lazyImport(convert);
         }
         let pathSegments = path.split(sep);
         Uri._checkWindowsPathReservedCharacters(pathSegments, true, 1);
-        return new Uri({scheme: "file", pathSegments: pathSegments});
+        return Uri.new({scheme: "file", pathSegments: pathSegments});
       }
       if (dart.notNull(path.length) > 0 && path.get(0) == sep) {
         if (dart.notNull(path.length) > 1 && path.get(1) == sep) {
@@ -2775,16 +2758,16 @@ var convert = dart.lazyImport(convert);
           let pathPart = pathStart == -1 ? "" : path.substring(dart.notNull(pathStart) + 1);
           let pathSegments = pathPart.split(sep);
           Uri._checkWindowsPathReservedCharacters(pathSegments, true);
-          return new Uri({scheme: "file", host: hostPart, pathSegments: pathSegments});
+          return Uri.new({scheme: "file", host: hostPart, pathSegments: pathSegments});
         } else {
           let pathSegments = path.split(sep);
           Uri._checkWindowsPathReservedCharacters(pathSegments, true);
-          return new Uri({scheme: "file", pathSegments: pathSegments});
+          return Uri.new({scheme: "file", pathSegments: pathSegments});
         }
       } else {
         let pathSegments = path.split(sep);
         Uri._checkWindowsPathReservedCharacters(pathSegments, true);
-        return new Uri({pathSegments: pathSegments});
+        return Uri.new({pathSegments: pathSegments});
       }
     }
     replace(opts) {
@@ -2849,7 +2832,7 @@ var convert = dart.lazyImport(convert);
     get pathSegments() {
       if (this[_pathSegments] == null) {
         let pathToSplit = !dart.notNull(this.path.isEmpty) && this.path.codeUnitAt(0) == Uri._SLASH ? this.path.substring(1) : this.path;
-        this[_pathSegments] = new (collection.UnmodifiableListView$(String))(pathToSplit == "" ? dart.const(dart.setType([], List$(String))) : new (List$(String)).from(pathToSplit.split("/")[$map](Uri.decodeComponent), {growable: false}));
+        this[_pathSegments] = new (collection.UnmodifiableListView$(String))(pathToSplit == "" ? dart.const(dart.setType([], List$(String))) : List$(String).from(pathToSplit.split("/")[$map](Uri.decodeComponent), {growable: false}));
       }
       return this[_pathSegments];
     }
@@ -3068,7 +3051,7 @@ var convert = dart.lazyImport(convert);
         if (dart.notNull(lowerCase) && dart.notNull(Uri._UPPER_CASE_A) <= dart.notNull(value) && dart.notNull(Uri._UPPER_CASE_Z) >= dart.notNull(value)) {
           value = dart.notNull(value) | 32;
         }
-        return new String.fromCharCode(value);
+        return String.fromCharCode(value);
       }
       if (dart.notNull(firstDigit) >= dart.notNull(Uri._LOWER_CASE_A) || dart.notNull(secondDigit) >= dart.notNull(Uri._LOWER_CASE_A)) {
         return source.substring(index, dart.notNull(index) + 3).toUpperCase();
@@ -3083,7 +3066,7 @@ var convert = dart.lazyImport(convert);
       let hexDigits = "0123456789ABCDEF";
       let codeUnits = null;
       if (dart.dsend(char, '<', 128)) {
-        codeUnits = new List(3);
+        codeUnits = List.new(3);
         codeUnits[$set](0, Uri._PERCENT);
         codeUnits[$set](1, hexDigits.codeUnitAt(dart.as(dart.dsend(char, '>>', 4), int)));
         codeUnits[$set](2, hexDigits.codeUnitAt(dart.as(dart.dsend(char, '&', 15), int)));
@@ -3098,7 +3081,7 @@ var convert = dart.lazyImport(convert);
             flag = 240;
           }
         }
-        codeUnits = new List(3 * dart.notNull(encodedBytes));
+        codeUnits = List.new(3 * dart.notNull(encodedBytes));
         let index = 0;
         while ((encodedBytes = dart.notNull(encodedBytes) - 1) >= 0) {
           let byte = dart.as(dart.dsend(dart.dsend(dart.dsend(char, '>>', 6 * dart.notNull(encodedBytes)), '&', 63), '|', flag), int);
@@ -3109,7 +3092,7 @@ var convert = dart.lazyImport(convert);
           flag = 128;
         }
       }
-      return new String.fromCharCodes(dart.as(codeUnits, Iterable$(int)));
+      return String.fromCharCodes(dart.as(codeUnits, Iterable$(int)));
     }
     static _normalize(component, start, end, charTable) {
       let buffer = null;
@@ -3538,7 +3521,7 @@ var convert = dart.lazyImport(convert);
       } else if (parts[$length] != 8) {
         error('an address without a wildcard must contain exactly 8 parts');
       }
-      let bytes = new (List$(int))(16);
+      let bytes = List$(int).new(16);
       for (let i = 0, index = 0; dart.notNull(i) < dart.notNull(parts[$length]); i = dart.notNull(i) + 1) {
         let value = parts[$get](i);
         if (value == -1) {
@@ -3613,7 +3596,7 @@ var convert = dart.lazyImport(convert);
           bytes = text.codeUnits;
         }
       } else {
-        bytes = new (List$(int))();
+        bytes = List$(int).new();
         for (let i = 0; dart.notNull(i) < dart.notNull(text.length); i = dart.notNull(i) + 1) {
           let codeUnit = text.codeUnitAt(i);
           if (dart.notNull(codeUnit) > 127) {
@@ -3639,13 +3622,10 @@ var convert = dart.lazyImport(convert);
     }
   }
   dart.defineNamedConstructor(Uri, '_internal');
-  dart.defineNamedConstructor(Uri, 'http');
-  dart.defineNamedConstructor(Uri, 'https');
-  dart.defineNamedConstructor(Uri, 'file');
   dart.setSignature(Uri, {
     constructors: () => ({
       _internal: [Uri, [String, String, String, num, String, String, String]],
-      Uri: [Uri, [], {scheme: String, userInfo: String, host: String, port: int, path: String, pathSegments: Iterable$(String), query: String, queryParameters: Map$(String, String), fragment: String}],
+      new: [Uri, [], {scheme: String, userInfo: String, host: String, port: int, path: String, pathSegments: Iterable$(String), query: String, queryParameters: Map$(String, String), fragment: String}],
       http: [Uri, [String, String], [Map$(String, String)]],
       https: [Uri, [String, String], [Map$(String, String)]],
       file: [Uri, [String], {windows: bool}]
@@ -3751,7 +3731,7 @@ var convert = dart.lazyImport(convert);
   function _symbolMapToStringMap(map) {
     if (map == null)
       return null;
-    let result = new (Map$(String, Object))();
+    let result = Map$(String, Object).new();
     map.forEach(dart.fn((key, value) => {
       result.set(_symbolToString(key), value);
     }, Object, [Symbol, Object]));

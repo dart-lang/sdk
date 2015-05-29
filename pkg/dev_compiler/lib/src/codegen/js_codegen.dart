@@ -467,13 +467,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var element = node.element;
     var type = element.type;
     var isObject = type.isObject;
-    var name = node.name.name;
 
     // Iff no constructor is specified for a class C, it implicitly has a
     // default constructor `C() : super() {}`, unless C is class Object.
     var jsMethods = <JS.Method>[];
     if (ctors.isEmpty && !isObject) {
-      jsMethods.add(_emitImplicitConstructor(node, name, fields));
+      jsMethods.add(_emitImplicitConstructor(node, fields));
     }
 
     bool hasJsPeer = getAnnotationValue(node, _isJsPeerInterface) != null;
@@ -481,7 +480,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     bool hasIterator = false;
     for (var m in node.members) {
       if (m is ConstructorDeclaration) {
-        jsMethods.add(_emitConstructor(m, name, fields, isObject));
+        jsMethods.add(_emitConstructor(m, type, fields, isObject));
       } else if (m is MethodDeclaration) {
         jsMethods.add(_emitMethodDeclaration(type, m));
 
@@ -564,7 +563,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
     // Named constructors
     for (ConstructorDeclaration member in ctors) {
-      if (member.name != null) {
+      if (member.name != null && member.factoryKeyword == null) {
         body.add(js.statement('dart.defineNamedConstructor(#, #);', [
           name,
           _emitMemberName(member.name.name, isStatic: true)
@@ -611,7 +610,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       }
       var tCtors = [];
       for (ConstructorDeclaration node in ctors) {
-        var memberName = _constructorName(classElem.name, node.name);
+        var memberName = _constructorName(node.element);
         var element = node.element;
         var parts =
             _emitFunctionTypeParts(element.type, dynamicIsBottom: false);
@@ -657,24 +656,50 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Generates the implicit default constructor for class C of the form
   /// `C() : super() {}`.
   JS.Method _emitImplicitConstructor(
-      ClassDeclaration node, String name, List<FieldDeclaration> fields) {
+      ClassDeclaration node, List<FieldDeclaration> fields) {
     assert(_hasUnnamedConstructor(node.element) == fields.isNotEmpty);
 
     // If we don't have a method body, skip this.
-    var superCall = _superConstructorCall(node);
+    var superCall = _superConstructorCall(node.element);
     if (fields.isEmpty && superCall == null) return null;
 
     dynamic body = _initializeFields(node, fields);
     if (superCall != null) body = [[body, superCall]];
-    return new JS.Method(
-        _propertyName(name), js.call('function() { #; }', body));
+    var name = _constructorName(node.element.unnamedConstructor);
+    return new JS.Method(name, js.call('function() { #; }', body));
   }
 
-  JS.Method _emitConstructor(ConstructorDeclaration node, String className,
+  JS.Method _emitConstructor(ConstructorDeclaration node, InterfaceType type,
       List<FieldDeclaration> fields, bool isObject) {
     if (_externalOrNative(node)) return null;
 
-    var name = _constructorName(className, node.name);
+    var name = _constructorName(node.element);
+
+    // Wacky factory redirecting constructors: factory Foo.q(x, y) = Bar.baz;
+    var redirect = node.redirectedConstructor;
+    if (redirect != null) {
+      var newKeyword = redirect.staticElement.isFactory ? '' : 'new';
+      // Pass along all arguments verbatim, and let the callee handle them.
+      // TODO(jmesserly): we'll need something different once we have
+      // rest/spread support, but this should work for now.
+      var params = _visit(node.parameters);
+      var fun = js.call('function(#) { return $newKeyword #(#); }', [
+        params,
+        _visit(redirect),
+        params,
+      ]);
+      return new JS.Method(name, fun, isStatic: true)..sourceInformation = node;
+    }
+
+    // Factory constructors are essentially static methods.
+    if (node.factoryKeyword != null) {
+      var body = <JS.Statement>[];
+      var init = _emitArgumentInitializers(node, constructor: true);
+      if (init != null) body.add(init);
+      body.add(_visit(node.body));
+      var fun = new JS.Fun(_visit(node.parameters), new JS.Block(body));
+      return new JS.Method(name, fun, isStatic: true)..sourceInformation = node;
+    }
 
     // Code generation for Object's constructor.
     JS.Block body;
@@ -714,21 +739,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       ..sourceInformation = node;
   }
 
-  JS.Expression _constructorName(String className, SimpleIdentifier name) {
-    if (name == null) return _propertyName(className);
-    return _emitMemberName(name.name, isStatic: true);
+  JS.Expression _constructorName(ConstructorElement ctor) {
+    var name = ctor.name;
+    if (name != '') {
+      return _emitMemberName(name, isStatic: true);
+    }
+
+    // Factory default constructors use `new` as their name, for readability
+    // Other default constructors use the class name, as they aren't called
+    // from call sites, but rather from Object's constructor.
+    // TODO(jmesserly): revisit in the context of Dart metaclasses, and cleaning
+    // up constructors to integrate more closely with ES6.
+    return _propertyName(ctor.isFactory ? 'new' : ctor.enclosingElement.name);
   }
 
   JS.Block _emitConstructorBody(
       ConstructorDeclaration node, List<FieldDeclaration> fields) {
-    // Wacky factory redirecting constructors: factory Foo.q(x, y) = Bar.baz;
-    if (node.redirectedConstructor != null) {
-      return js.statement('{ return new #(#); }', [
-        _visit(node.redirectedConstructor),
-        _visit(node.parameters)
-      ]);
-    }
-
     var body = <JS.Statement>[];
 
     // Generate optional/named argument value assignment. These can not have
@@ -752,23 +778,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       return new JS.Block(body);
     }
 
-    // Initializers only run for non-factory constructors.
-    if (node.factoryKeyword == null) {
-      // Generate field initializers.
-      // These are expanded into each non-redirecting constructor.
-      // In the future we may want to create an initializer function if we have
-      // multiple constructors, but it needs to be balanced against readability.
-      body.add(_initializeFields(node.parent, fields, node));
+    // Generate field initializers.
+    // These are expanded into each non-redirecting constructor.
+    // In the future we may want to create an initializer function if we have
+    // multiple constructors, but it needs to be balanced against readability.
+    body.add(_initializeFields(node.parent, fields, node));
 
-      var superCall = node.initializers.firstWhere(
-          (i) => i is SuperConstructorInvocation, orElse: () => null);
+    var superCall = node.initializers.firstWhere(
+        (i) => i is SuperConstructorInvocation, orElse: () => null);
 
-      // If no superinitializer is provided, an implicit superinitializer of the
-      // form `super()` is added at the end of the initializer list, unless the
-      // enclosing class is class Object.
-      var jsSuper = _superConstructorCall(node.parent, superCall);
-      if (jsSuper != null) body.add(jsSuper);
-    }
+    // If no superinitializer is provided, an implicit superinitializer of the
+    // form `super()` is added at the end of the initializer list, unless the
+    // enclosing class is class Object.
+    var jsSuper = _superConstructorCall(cls.element, superCall);
+    if (jsSuper != null) body.add(jsSuper);
 
     body.add(_visit(node.body));
     return new JS.Block(body)..sourceInformation = node;
@@ -777,25 +800,33 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   JS.Statement visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    ClassDeclaration classDecl = node.parent.parent;
-    var className = classDecl.name.name;
-
-    var name = _constructorName(className, node.constructorName);
+    var name = _constructorName(node.staticElement);
     return js.statement('this.#(#);', [name, _visit(node.argumentList)]);
   }
 
-  JS.Statement _superConstructorCall(ClassDeclaration clazz,
+  JS.Statement _superConstructorCall(ClassElement element,
       [SuperConstructorInvocation node]) {
-    var superCtorName = node != null ? node.constructorName : null;
 
-    var element = clazz.element;
-    if (superCtorName == null && !_shouldCallUnnamedSuperCtor(element)) {
+    ConstructorElement superCtor;
+    if (node != null) {
+      superCtor = node.staticElement;
+    } else {
+      // Get the supertype's unnamed constructor.
+      superCtor = element.supertype.element.unnamedConstructor;
+      if (superCtor == null) {
+        // This will only happen if the code has errors:
+        // we're trying to generate an implicit constructor for a type where
+        // we don't have a default constructor in the supertype.
+        assert(options.forceCompile);
+        return null;
+      }
+    }
+
+    if (superCtor.name == '' && !_shouldCallUnnamedSuperCtor(element)) {
       return null;
     }
 
-    var supertypeName = element.supertype.name;
-    var name = _constructorName(supertypeName, superCtorName);
-
+    var name = _constructorName(superCtor);
     var args = node != null ? _visit(node.argumentList) : [];
     return js.statement('super.#(#);', [name, args])..sourceInformation = node;
   }
@@ -1636,17 +1667,21 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   visitConstructorName(ConstructorName node) {
     var typeName = _visit(node.type);
-    if (node.name != null) {
-      return js.call(
-          '#.#', [typeName, _emitMemberName(node.name.name, isStatic: true)]);
+    if (node.name != null || node.staticElement.isFactory) {
+      var namedCtor = _constructorName(node.staticElement);
+      return new JS.PropertyAccess(typeName, namedCtor);
     }
     return typeName;
   }
 
   @override
   visitInstanceCreationExpression(InstanceCreationExpression node) {
-    emitNew() => js.call(
-        'new #(#)', [_visit(node.constructorName), _visit(node.argumentList)]);
+    emitNew() {
+      var ctor = _visit(node.constructorName);
+      var args = _visit(node.argumentList);
+      var isFactory = node.staticElement.isFactory;
+      return isFactory ? new JS.Call(ctor, args) : new JS.New(ctor, args);
+    }
     if (node.isConst) return _emitConst(node, emitNew);
     return emitNew();
   }

@@ -12,9 +12,10 @@ packages
 .pub/
 node_modules
 
-# Or our test output folder
+# Or our test outputs
 test/codegen/actual/
 test/dart_codegen/actual/
+test/generated_sdk/sdk_errors.txt
 
 # Include when developing application packages.
 pubspec.lock

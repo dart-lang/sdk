@@ -45,7 +45,7 @@ var math = dart.lazyImport(math);
   let _Hasher = _Hasher$();
   let HashMap$ = dart.generic(function(K, V) {
     class HashMap extends core.Object {
-      HashMap(opts) {
+      static new(opts) {
         let equals = opts && 'equals' in opts ? opts.equals : null;
         let hashCode = opts && 'hashCode' in opts ? opts.hashCode : null;
         let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
@@ -73,37 +73,33 @@ var math = dart.lazyImport(math);
         }
         return new (_CustomHashMap$(K, V))(equals, hashCode, isValidKey);
       }
-      identity() {
+      static identity() {
         return new (_IdentityHashMap$(K, V))();
       }
-      from(other) {
-        let result = new (HashMap$(K, V))();
+      static from(other) {
+        let result = HashMap$(K, V).new();
         other.forEach(dart.fn((k, v) => {
           result.set(k, dart.as(v, V));
         }));
         return result;
       }
-      fromIterable(iterable, opts) {
+      static fromIterable(iterable, opts) {
         let key = opts && 'key' in opts ? opts.key : null;
         let value = opts && 'value' in opts ? opts.value : null;
-        let map = new (HashMap$(K, V))();
+        let map = HashMap$(K, V).new();
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
       }
-      fromIterables(keys, values) {
-        let map = new (HashMap$(K, V))();
+      static fromIterables(keys, values) {
+        let map = HashMap$(K, V).new();
         Maps._fillMapWithIterables(map, keys, values);
         return map;
       }
     }
     HashMap[dart.implements] = () => [core.Map$(K, V)];
-    dart.defineNamedConstructor(HashMap, 'identity');
-    dart.defineNamedConstructor(HashMap, 'from');
-    dart.defineNamedConstructor(HashMap, 'fromIterable');
-    dart.defineNamedConstructor(HashMap, 'fromIterables');
     dart.setSignature(HashMap, {
       constructors: () => ({
-        HashMap: [HashMap$(K, V), [], {equals: dart.functionType(core.bool, [K, K]), hashCode: dart.functionType(core.int, [K]), isValidKey: dart.functionType(core.bool, [core.Object])}],
+        new: [HashMap$(K, V), [], {equals: dart.functionType(core.bool, [K, K]), hashCode: dart.functionType(core.int, [K]), isValidKey: dart.functionType(core.bool, [core.Object])}],
         identity: [HashMap$(K, V), []],
         from: [HashMap$(K, V), [core.Map]],
         fromIterable: [HashMap$(K, V), [core.Iterable], {key: dart.functionType(K, [dart.bottom]), value: dart.functionType(V, [dart.bottom])}],
@@ -193,10 +189,10 @@ var math = dart.lazyImport(math);
       [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = growable ? (() => {
-          let _ = new (core.List$(E))();
+          let _ = core.List$(E).new();
           _[core.$length] = this[core.$length];
           return _;
-        }).bind(this)() : new (core.List$(E))(this[core.$length]);
+        }).bind(this)() : core.List$(E).new(this[core.$length]);
         let i = 0;
         for (let element of this)
           result[core.$set]((() => {
@@ -291,14 +287,14 @@ var math = dart.lazyImport(math);
         return false;
       }
       [core.$take](n) {
-        return new (_internal.TakeIterable$(E))(this, n);
+        return _internal.TakeIterable$(E).new(this, n);
       }
       [core.$takeWhile](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
       [core.$skip](n) {
-        return new (_internal.SkipIterable$(E))(this, n);
+        return _internal.SkipIterable$(E).new(this, n);
       }
       [core.$skipWhile](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
@@ -379,7 +375,7 @@ var math = dart.lazyImport(math);
             return element;
           elementIndex = dart.notNull(elementIndex) + 1;
         }
-        throw new core.RangeError.index(index, this, "index", null, elementIndex);
+        throw core.RangeError.index(index, this, "index", null, elementIndex);
       }
     }
     SetMixin[dart.implements] = () => [core.Set$(E)];
@@ -470,7 +466,7 @@ var math = dart.lazyImport(math);
   let _HashSetBase = _HashSetBase$();
   let HashSet$ = dart.generic(function(E) {
     class HashSet extends core.Object {
-      HashSet(opts) {
+      static new(opts) {
         let equals = opts && 'equals' in opts ? opts.equals : null;
         let hashCode = opts && 'hashCode' in opts ? opts.hashCode : null;
         let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
@@ -498,11 +494,11 @@ var math = dart.lazyImport(math);
         }
         return new (_CustomHashSet$(E))(equals, hashCode, isValidKey);
       }
-      identity() {
+      static identity() {
         return new (_IdentityHashSet$(E))();
       }
-      from(elements) {
-        let result = new (HashSet$(E))();
+      static from(elements) {
+        let result = HashSet$(E).new();
         for (let e of dart.as(elements, core.Iterable$(E)))
           result.add(e);
         return result;
@@ -512,11 +508,9 @@ var math = dart.lazyImport(math);
       }
     }
     HashSet[dart.implements] = () => [core.Set$(E)];
-    dart.defineNamedConstructor(HashSet, 'identity');
-    dart.defineNamedConstructor(HashSet, 'from');
     dart.setSignature(HashSet, {
       constructors: () => ({
-        HashSet: [HashSet$(E), [], {equals: dart.functionType(core.bool, [E, E]), hashCode: dart.functionType(core.int, [E]), isValidKey: dart.functionType(core.bool, [core.Object])}],
+        new: [HashSet$(E), [], {equals: dart.functionType(core.bool, [E, E]), hashCode: dart.functionType(core.int, [E]), isValidKey: dart.functionType(core.bool, [core.Object])}],
         identity: [HashSet$(E), []],
         from: [HashSet$(E), [core.Iterable]]
       })
@@ -528,7 +522,7 @@ var math = dart.lazyImport(math);
     class IterableMixin extends core.Object {
       [core.$map](f) {
         dart.as(f, dart.functionType(core.Object, [E]));
-        return new (_internal.MappedIterable$(E, core.Object))(this, f);
+        return _internal.MappedIterable$(E, core.Object).new(this, f);
       }
       [core.$where](f) {
         dart.as(f, dart.functionType(core.bool, [E]));
@@ -607,10 +601,10 @@ var math = dart.lazyImport(math);
       }
       [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        return new (core.List$(E)).from(this, {growable: growable});
+        return core.List$(E).from(this, {growable: growable});
       }
       [core.$toSet]() {
-        return new (core.Set$(E)).from(this);
+        return core.Set$(E).from(this);
       }
       get [core.$length]() {
         dart.assert(!dart.is(this, _internal.EfficientLength));
@@ -628,14 +622,14 @@ var math = dart.lazyImport(math);
         return !dart.notNull(this[core.$isEmpty]);
       }
       [core.$take](n) {
-        return new (_internal.TakeIterable$(E))(this, n);
+        return _internal.TakeIterable$(E).new(this, n);
       }
       [core.$takeWhile](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
       [core.$skip](n) {
-        return new (_internal.SkipIterable$(E))(this, n);
+        return _internal.SkipIterable$(E).new(this, n);
       }
       [core.$skipWhile](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
@@ -725,7 +719,7 @@ var math = dart.lazyImport(math);
             return element;
           elementIndex = dart.notNull(elementIndex) + 1;
         }
-        throw new core.RangeError.index(index, this, "index", null, elementIndex);
+        throw core.RangeError.index(index, this, "index", null, elementIndex);
       }
       toString() {
         return IterableBase.iterableToShortString(this, '(', ')');
@@ -768,7 +762,7 @@ var math = dart.lazyImport(math);
       }
       [core.$map](f) {
         dart.as(f, dart.functionType(core.Object, [E]));
-        return new (_internal.MappedIterable$(E, core.Object))(this, f);
+        return _internal.MappedIterable$(E, core.Object).new(this, f);
       }
       [core.$where](f) {
         dart.as(f, dart.functionType(core.bool, [E]));
@@ -847,10 +841,10 @@ var math = dart.lazyImport(math);
       }
       [core.$toList](opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        return new (core.List$(E)).from(this, {growable: growable});
+        return core.List$(E).from(this, {growable: growable});
       }
       [core.$toSet]() {
-        return new (core.Set$(E)).from(this);
+        return core.Set$(E).from(this);
       }
       get [core.$length]() {
         dart.assert(!dart.is(this, _internal.EfficientLength));
@@ -868,14 +862,14 @@ var math = dart.lazyImport(math);
         return !dart.notNull(this[core.$isEmpty]);
       }
       [core.$take](n) {
-        return new (_internal.TakeIterable$(E))(this, n);
+        return _internal.TakeIterable$(E).new(this, n);
       }
       [core.$takeWhile](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
         return new (_internal.TakeWhileIterable$(E))(this, test);
       }
       [core.$skip](n) {
-        return new (_internal.SkipIterable$(E))(this, n);
+        return _internal.SkipIterable$(E).new(this, n);
       }
       [core.$skipWhile](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
@@ -965,7 +959,7 @@ var math = dart.lazyImport(math);
             return element;
           elementIndex = dart.notNull(elementIndex) + 1;
         }
-        throw new core.RangeError.index(index, this, "index", null, elementIndex);
+        throw core.RangeError.index(index, this, "index", null, elementIndex);
       }
       toString() {
         return IterableBase$().iterableToShortString(this, '(', ')');
@@ -1190,7 +1184,7 @@ var math = dart.lazyImport(math);
   HasNextIterator._NOT_MOVED_YET = 2;
   let LinkedHashMap$ = dart.generic(function(K, V) {
     class LinkedHashMap extends core.Object {
-      LinkedHashMap(opts) {
+      static new(opts) {
         let equals = opts && 'equals' in opts ? opts.equals : null;
         let hashCode = opts && 'hashCode' in opts ? opts.hashCode : null;
         let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
@@ -1218,45 +1212,39 @@ var math = dart.lazyImport(math);
         }
         return new (_LinkedCustomHashMap$(K, V))(equals, hashCode, isValidKey);
       }
-      identity() {
+      static identity() {
         return new (_LinkedIdentityHashMap$(K, V))();
       }
-      from(other) {
-        let result = new (LinkedHashMap$(K, V))();
+      static from(other) {
+        let result = LinkedHashMap$(K, V).new();
         other.forEach(dart.fn((k, v) => {
           result.set(k, dart.as(v, V));
         }));
         return result;
       }
-      fromIterable(iterable, opts) {
+      static fromIterable(iterable, opts) {
         let key = opts && 'key' in opts ? opts.key : null;
         let value = opts && 'value' in opts ? opts.value : null;
-        let map = new (LinkedHashMap$(K, V))();
+        let map = LinkedHashMap$(K, V).new();
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
       }
-      fromIterables(keys, values) {
-        let map = new (LinkedHashMap$(K, V))();
+      static fromIterables(keys, values) {
+        let map = LinkedHashMap$(K, V).new();
         Maps._fillMapWithIterables(map, keys, values);
         return map;
       }
-      _literal(keyValuePairs) {
+      static _literal(keyValuePairs) {
         return dart.as(_js_helper.fillLiteralMap(keyValuePairs, new (_LinkedHashMap$(K, V))()), LinkedHashMap$(K, V));
       }
-      _empty() {
+      static _empty() {
         return new (_LinkedHashMap$(K, V))();
       }
     }
     LinkedHashMap[dart.implements] = () => [HashMap$(K, V)];
-    dart.defineNamedConstructor(LinkedHashMap, 'identity');
-    dart.defineNamedConstructor(LinkedHashMap, 'from');
-    dart.defineNamedConstructor(LinkedHashMap, 'fromIterable');
-    dart.defineNamedConstructor(LinkedHashMap, 'fromIterables');
-    dart.defineNamedConstructor(LinkedHashMap, '_literal');
-    dart.defineNamedConstructor(LinkedHashMap, '_empty');
     dart.setSignature(LinkedHashMap, {
       constructors: () => ({
-        LinkedHashMap: [LinkedHashMap$(K, V), [], {equals: dart.functionType(core.bool, [K, K]), hashCode: dart.functionType(core.int, [K]), isValidKey: dart.functionType(core.bool, [core.Object])}],
+        new: [LinkedHashMap$(K, V), [], {equals: dart.functionType(core.bool, [K, K]), hashCode: dart.functionType(core.int, [K]), isValidKey: dart.functionType(core.bool, [core.Object])}],
         identity: [LinkedHashMap$(K, V), []],
         from: [LinkedHashMap$(K, V), [core.Map]],
         fromIterable: [LinkedHashMap$(K, V), [core.Iterable], {key: dart.functionType(K, [dart.bottom]), value: dart.functionType(V, [dart.bottom])}],
@@ -1270,7 +1258,7 @@ var math = dart.lazyImport(math);
   let LinkedHashMap = LinkedHashMap$();
   let LinkedHashSet$ = dart.generic(function(E) {
     class LinkedHashSet extends core.Object {
-      LinkedHashSet(opts) {
+      static new(opts) {
         let equals = opts && 'equals' in opts ? opts.equals : null;
         let hashCode = opts && 'hashCode' in opts ? opts.hashCode : null;
         let isValidKey = opts && 'isValidKey' in opts ? opts.isValidKey : null;
@@ -1298,11 +1286,11 @@ var math = dart.lazyImport(math);
         }
         return new (_LinkedCustomHashSet$(E))(equals, hashCode, isValidKey);
       }
-      identity() {
+      static identity() {
         return new (_LinkedIdentityHashSet$(E))();
       }
-      from(elements) {
-        let result = new (LinkedHashSet$(E))();
+      static from(elements) {
+        let result = LinkedHashSet$(E).new();
         for (let element of elements) {
           result.add(element);
         }
@@ -1313,11 +1301,9 @@ var math = dart.lazyImport(math);
       }
     }
     LinkedHashSet[dart.implements] = () => [HashSet$(E)];
-    dart.defineNamedConstructor(LinkedHashSet, 'identity');
-    dart.defineNamedConstructor(LinkedHashSet, 'from');
     dart.setSignature(LinkedHashSet, {
       constructors: () => ({
-        LinkedHashSet: [LinkedHashSet$(E), [], {equals: dart.functionType(core.bool, [E, E]), hashCode: dart.functionType(core.int, [E]), isValidKey: dart.functionType(core.bool, [core.Object])}],
+        new: [LinkedHashSet$(E), [], {equals: dart.functionType(core.bool, [E, E]), hashCode: dart.functionType(core.int, [E]), isValidKey: dart.functionType(core.bool, [core.Object])}],
         identity: [LinkedHashSet$(E), []],
         from: [LinkedHashSet$(E), [core.Iterable$(E)]]
       })
@@ -1738,10 +1724,10 @@ var math = dart.lazyImport(math);
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
         if (growable) {
-          result = new (core.List$(E))();
+          result = core.List$(E).new();
           result[core.$length] = this[core.$length];
         } else {
-          result = new (core.List$(E))(this[core.$length]);
+          result = core.List$(E).new(this[core.$length]);
         }
         for (let i = 0; dart.notNull(i) < dart.notNull(this[core.$length]); i = dart.notNull(i) + 1) {
           result[core.$set](i, this[core.$get](i));
@@ -1749,7 +1735,7 @@ var math = dart.lazyImport(math);
         return result;
       }
       [core.$toSet]() {
-        let result = new (core.Set$(E))();
+        let result = core.Set$(E).new();
         for (let i = 0; dart.notNull(i) < dart.notNull(this[core.$length]); i = dart.notNull(i) + 1) {
           result.add(this[core.$get](i));
         }
@@ -1830,7 +1816,7 @@ var math = dart.lazyImport(math);
         if (random === void 0)
           random = null;
         if (random == null)
-          random = new math.Random();
+          random = math.Random.new();
         let length = this[core.$length];
         while (dart.notNull(length) > 1) {
           let pos = random.nextInt(length);
@@ -1851,7 +1837,7 @@ var math = dart.lazyImport(math);
           end = listLength;
         core.RangeError.checkValidRange(start, end, listLength);
         let length = dart.notNull(end) - dart.notNull(start);
-        let result = new (core.List$(E))();
+        let result = core.List$(E).new();
         result[core.$length] = length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           result[core.$set](i, this[core.$get](dart.notNull(start) + dart.notNull(i)));
@@ -2456,21 +2442,20 @@ var math = dart.lazyImport(math);
   });
   let Queue$ = dart.generic(function(E) {
     class Queue extends core.Object {
-      Queue() {
+      static new() {
         return new (ListQueue$(E))();
       }
-      from(elements) {
-        return new (ListQueue$(E)).from(elements);
+      static from(elements) {
+        return ListQueue$(E).from(elements);
       }
       [Symbol.iterator]() {
         return new dart.JsIterator(this[core.$iterator]);
       }
     }
     Queue[dart.implements] = () => [core.Iterable$(E), _internal.EfficientLength];
-    dart.defineNamedConstructor(Queue, 'from');
     dart.setSignature(Queue, {
       constructors: () => ({
-        Queue: [Queue$(E), []],
+        new: [Queue$(E), []],
         from: [Queue$(E), [core.Iterable]]
       })
     });
@@ -2583,7 +2568,7 @@ var math = dart.lazyImport(math);
         super.IterableBase();
         this[_sentinel] = new (_DoubleLinkedQueueEntrySentinel$(E))();
       }
-      from(elements) {
+      static from(elements) {
         let list = new (DoubleLinkedQueue$(E))();
         for (let e of dart.as(elements, core.Iterable$(E))) {
           list.addLast(e);
@@ -2700,7 +2685,6 @@ var math = dart.lazyImport(math);
       }
     }
     DoubleLinkedQueue[dart.implements] = () => [Queue$(E)];
-    dart.defineNamedConstructor(DoubleLinkedQueue, 'from');
     dart.setSignature(DoubleLinkedQueue, {
       constructors: () => ({
         DoubleLinkedQueue: [DoubleLinkedQueue$(E), []],
@@ -2782,9 +2766,9 @@ var math = dart.lazyImport(math);
           initialCapacity = ListQueue$()._nextPowerOf2(initialCapacity);
         }
         dart.assert(ListQueue$()._isPowerOf2(initialCapacity));
-        this[_table] = new (core.List$(E))(initialCapacity);
+        this[_table] = core.List$(E).new(initialCapacity);
       }
-      from(elements) {
+      static from(elements) {
         if (dart.is(elements, core.List)) {
           let length = elements[core.$length];
           let queue = new (ListQueue$(E))(dart.notNull(length) + 1);
@@ -2847,10 +2831,10 @@ var math = dart.lazyImport(math);
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let list = null;
         if (growable) {
-          list = new (core.List$(E))();
+          list = core.List$(E).new();
           list[core.$length] = this[core.$length];
         } else {
-          list = new (core.List$(E))(this[core.$length]);
+          list = core.List$(E).new(this[core.$length]);
         }
         this[_writeToList](list);
         return list;
@@ -3018,7 +3002,7 @@ var math = dart.lazyImport(math);
         }
       }
       [_grow]() {
-        let newTable = new (core.List$(E))(dart.notNull(this[_table][core.$length]) * 2);
+        let newTable = core.List$(E).new(dart.notNull(this[_table][core.$length]) * 2);
         let split = dart.notNull(this[_table][core.$length]) - dart.notNull(this[_head]);
         newTable[core.$setRange](0, split, this[_table], this[_head]);
         newTable[core.$setRange](split, dart.notNull(split) + dart.notNull(this[_head]), this[_table], 0);
@@ -3044,14 +3028,13 @@ var math = dart.lazyImport(math);
         dart.assert(dart.notNull(newElementCount) >= dart.notNull(this[core.$length]));
         newElementCount = dart.notNull(newElementCount) + (dart.notNull(newElementCount) >> 1);
         let newCapacity = ListQueue$()._nextPowerOf2(newElementCount);
-        let newTable = new (core.List$(E))(newCapacity);
+        let newTable = core.List$(E).new(newCapacity);
         this[_tail] = this[_writeToList](newTable);
         this[_table] = newTable;
         this[_head] = 0;
       }
     }
     ListQueue[dart.implements] = () => [Queue$(E)];
-    dart.defineNamedConstructor(ListQueue, 'from');
     dart.setSignature(ListQueue, {
       constructors: () => ({
         ListQueue: [ListQueue$(E), [], [core.int]],
@@ -3334,7 +3317,7 @@ var math = dart.lazyImport(math);
         this[_validKey] = isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, K), core.bool, [core.Object]);
         super._SplayTree();
       }
-      from(other, compare, isValidKey) {
+      static from(other, compare, isValidKey) {
         if (compare === void 0)
           compare = null;
         if (isValidKey === void 0)
@@ -3345,7 +3328,7 @@ var math = dart.lazyImport(math);
         }));
         return result;
       }
-      fromIterable(iterable, opts) {
+      static fromIterable(iterable, opts) {
         let key = opts && 'key' in opts ? opts.key : null;
         let value = opts && 'value' in opts ? opts.value : null;
         let compare = opts && 'compare' in opts ? opts.compare : null;
@@ -3354,7 +3337,7 @@ var math = dart.lazyImport(math);
         Maps._fillMapWithMappedIterable(map, iterable, key, value);
         return map;
       }
-      fromIterables(keys, values, compare, isValidKey) {
+      static fromIterables(keys, values, compare, isValidKey) {
         if (compare === void 0)
           compare = null;
         if (isValidKey === void 0)
@@ -3536,9 +3519,6 @@ var math = dart.lazyImport(math);
       }
     }
     SplayTreeMap[dart.implements] = () => [core.Map$(K, V)];
-    dart.defineNamedConstructor(SplayTreeMap, 'from');
-    dart.defineNamedConstructor(SplayTreeMap, 'fromIterable');
-    dart.defineNamedConstructor(SplayTreeMap, 'fromIterables');
     dart.defineNamedConstructor(SplayTreeMap, '_internal');
     dart.setSignature(SplayTreeMap, {
       constructors: () => ({
@@ -3776,7 +3756,7 @@ var math = dart.lazyImport(math);
         this[_validKey] = isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, E), core.bool, [core.Object]);
         super._SplayTree();
       }
-      from(elements, compare, isValidKey) {
+      static from(elements, compare, isValidKey) {
         if (compare === void 0)
           compare = null;
         if (isValidKey === void 0)
@@ -3923,7 +3903,6 @@ var math = dart.lazyImport(math);
         return IterableBase.iterableToFullString(this, '{', '}');
       }
     }
-    dart.defineNamedConstructor(SplayTreeSet, 'from');
     dart.setSignature(SplayTreeSet, {
       constructors: () => ({
         SplayTreeSet: [SplayTreeSet$(E), [], [dart.functionType(core.int, [E, E]), dart.functionType(core.bool, [core.Object])]],
@@ -3987,7 +3966,7 @@ var math = dart.lazyImport(math);
         return new (HashMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this.keys, dart.fn((each => this.get(each)).bind(this), V, [core.Object]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn((each => this.get(each)).bind(this), V, [core.Object]));
       }
       containsKey(key) {
         if (_HashMap$()._isStringKey(key)) {
@@ -4127,7 +4106,7 @@ var math = dart.lazyImport(math);
       [_computeKeys]() {
         if (this[_keys] != null)
           return this[_keys];
-        let result = new core.List(this[_length]);
+        let result = core.List.new(this[_length]);
         let index = 0;
         let strings = this[_strings];
         if (strings != null) {
@@ -4456,7 +4435,7 @@ var math = dart.lazyImport(math);
         return new (LinkedHashMapKeyIterable$(K))(this);
       }
       get values() {
-        return new (_internal.MappedIterable$(K, V))(this.keys, dart.fn((each => this.get(each)).bind(this), V, [core.Object]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn((each => this.get(each)).bind(this), V, [core.Object]));
       }
       containsKey(key) {
         if (_LinkedHashMap$()._isStringKey(key)) {
@@ -5044,7 +5023,7 @@ var math = dart.lazyImport(math);
       [_computeElements]() {
         if (this[_elements] != null)
           return this[_elements];
-        let result = new core.List(this[_length]);
+        let result = core.List.new(this[_length]);
         let index = 0;
         let strings = this[_strings];
         if (strings != null) {

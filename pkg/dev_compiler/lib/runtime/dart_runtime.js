@@ -151,12 +151,12 @@ var dart, _js_helper, _js_primitives;
     if (obj instanceof Array && realRuntimeType(index) == core.int) {
       return obj[index];
     }
-    return checkAndCall(obj.get, obj, [index], '[]');
+    return checkAndCall(obj.get, void 0, obj, [index], '[]');
   }
   dart.dindex = dindex;
 
   function dsetindex(obj, index, value) {
-    return checkAndCall(obj.set, obj, [index, value], '[]=');
+    return checkAndCall(obj.set, void 0, obj, [index, value], '[]=');
   }
   dart.dsetindex = dsetindex;
 
@@ -910,7 +910,7 @@ var dart, _js_helper, _js_primitives;
    */
   // TODO(jmesserly): this could be faster
   function map(values) {
-    let map = new collection.LinkedHashMap();
+    let map = collection.LinkedHashMap.new();
     if (Array.isArray(values)) {
       for (let i = 0, end = values.length - 1; i < end; i += 2) {
         let key = values[i];

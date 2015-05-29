@@ -88,14 +88,14 @@ var _js_helper = dart.lazyImport(_js_helper);
   });
   let Point = Point$();
   class Random extends core.Object {
-    Random(seed) {
+    static new(seed) {
       if (seed === void 0)
         seed = null;
       return seed == null ? dart.const(new _JSRandom()) : new _Random(seed);
     }
   }
   dart.setSignature(Random, {
-    constructors: () => ({Random: [Random, [], [core.int]]})
+    constructors: () => ({new: [Random, [], [core.int]]})
   });
   let _RectangleBase$ = dart.generic(function(T) {
     class _RectangleBase extends core.Object {
@@ -183,7 +183,7 @@ var _js_helper = dart.lazyImport(_js_helper);
         this.height = dart.as(height['<'](0) ? dart.notNull(height['unary-']()) * 0 : height, T);
         super._RectangleBase();
       }
-      fromPoints(a, b) {
+      static fromPoints(a, b) {
         let left = dart.as(min(a.x, b.x), T);
         let width = dart.as(max(a.x, b.x)['-'](left), T);
         let top = dart.as(min(a.y, b.y), T);
@@ -191,7 +191,6 @@ var _js_helper = dart.lazyImport(_js_helper);
         return new (Rectangle$(T))(left, top, width, height);
       }
     }
-    dart.defineNamedConstructor(Rectangle, 'fromPoints');
     dart.setSignature(Rectangle, {
       constructors: () => ({
         Rectangle: [Rectangle$(T), [T, T, T, T]],
@@ -212,7 +211,7 @@ var _js_helper = dart.lazyImport(_js_helper);
         this[_height] = dart.as(height['<'](0) ? _clampToZero(height) : height, T);
         super._RectangleBase();
       }
-      fromPoints(a, b) {
+      static fromPoints(a, b) {
         let left = dart.as(min(a.x, b.x), T);
         let width = dart.as(max(a.x, b.x)['-'](left), T);
         let top = dart.as(min(a.y, b.y), T);
@@ -239,7 +238,6 @@ var _js_helper = dart.lazyImport(_js_helper);
       }
     }
     MutableRectangle[dart.implements] = () => [Rectangle$(T)];
-    dart.defineNamedConstructor(MutableRectangle, 'fromPoints');
     dart.setSignature(MutableRectangle, {
       constructors: () => ({
         MutableRectangle: [MutableRectangle$(T), [T, T, T, T]],

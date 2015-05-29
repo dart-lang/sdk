@@ -107,7 +107,7 @@ var collection = dart.import(collection);
       }
       bind(source) {
         dart.as(source, async.Stream$(S));
-        return new (async.Stream$(T)).eventTransformed(source, dart.fn((sink => new _ConverterStreamEventSink(this, sink)).bind(this), _ConverterStreamEventSink, [async.EventSink]));
+        return async.Stream$(T).eventTransformed(source, dart.fn((sink => new _ConverterStreamEventSink(this, sink)).bind(this), _ConverterStreamEventSink, [async.EventSink]));
       }
     }
     Converter[dart.implements] = () => [async.StreamTransformer$(S, T)];
@@ -138,7 +138,7 @@ var collection = dart.import(collection);
       if (end == null)
         end = stringLength;
       let length = dart.notNull(end) - dart.notNull(start);
-      let result = new typed_data.Uint8List(length);
+      let result = typed_data.Uint8List.new(length);
       for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
         let codeUnit = string.codeUnitAt(dart.notNull(start) + dart.notNull(i));
         if ((dart.notNull(codeUnit) & ~dart.notNull(this[_subsetMask])) != 0) {
@@ -150,7 +150,7 @@ var collection = dart.import(collection);
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, ByteConversionSink)) {
-        sink = new ByteConversionSink.from(sink);
+        sink = ByteConversionSink.from(sink);
       }
       return new _UnicodeSubsetEncoderSink(this[_subsetMask], dart.as(sink, ByteConversionSink));
     }
@@ -250,7 +250,7 @@ var collection = dart.import(collection);
           return this[_convertInvalid](bytes, start, end);
         }
       }
-      return new core.String.fromCharCodes(bytes, start, end);
+      return core.String.fromCharCodes(bytes, start, end);
     }
     [_convertInvalid](bytes, start, end) {
       let buffer = new core.StringBuffer();
@@ -284,7 +284,7 @@ var collection = dart.import(collection);
       if (dart.is(sink, StringConversionSink)) {
         stringSink = sink;
       } else {
-        stringSink = new StringConversionSink.from(sink);
+        stringSink = StringConversionSink.from(sink);
       }
       if (this[_allowInvalid]) {
         return new _ErrorHandlingAsciiDecoderSink(stringSink.asUtf8Sink(false));
@@ -301,12 +301,11 @@ var collection = dart.import(collection);
     class ChunkedConversionSink extends core.Object {
       ChunkedConversionSink() {
       }
-      withCallback(callback) {
+      static withCallback(callback) {
         return new _SimpleCallbackSink(callback);
       }
     }
     ChunkedConversionSink[dart.implements] = () => [core.Sink$(T)];
-    dart.defineNamedConstructor(ChunkedConversionSink, 'withCallback');
     dart.setSignature(ChunkedConversionSink, {
       constructors: () => ({
         ChunkedConversionSink: [ChunkedConversionSink$(T), []],
@@ -320,15 +319,13 @@ var collection = dart.import(collection);
     ByteConversionSink() {
       super.ChunkedConversionSink();
     }
-    withCallback(callback) {
+    static withCallback(callback) {
       return new _ByteCallbackSink(callback);
     }
-    from(sink) {
+    static from(sink) {
       return new _ByteAdapterSink(sink);
     }
   }
-  dart.defineNamedConstructor(ByteConversionSink, 'withCallback');
-  dart.defineNamedConstructor(ByteConversionSink, 'from');
   dart.setSignature(ByteConversionSink, {
     constructors: () => ({
       ByteConversionSink: [ByteConversionSink, []],
@@ -397,7 +394,7 @@ var collection = dart.import(collection);
           throw new core.FormatException("Source contains non-ASCII bytes.");
         }
       }
-      this[_sink].add(new core.String.fromCharCodes(source));
+      this[_sink].add(core.String.fromCharCodes(source));
     }
     addSlice(source, start, end, isLast) {
       let length = source[core.$length];
@@ -442,7 +439,7 @@ var collection = dart.import(collection);
   let _bufferIndex = Symbol('_bufferIndex');
   class _ByteCallbackSink extends ByteConversionSinkBase {
     _ByteCallbackSink(callback) {
-      this[_buffer] = new typed_data.Uint8List(_ByteCallbackSink._INITIAL_BUFFER_SIZE);
+      this[_buffer] = typed_data.Uint8List.new(_ByteCallbackSink._INITIAL_BUFFER_SIZE);
       this[_callback] = callback;
       this[_bufferIndex] = 0;
     }
@@ -451,7 +448,7 @@ var collection = dart.import(collection);
       if (dart.notNull(chunk[core.$length]) > dart.notNull(freeCount)) {
         let oldLength = this[_buffer][core.$length];
         let newLength = dart.notNull(_ByteCallbackSink._roundToPowerOf2(dart.notNull(chunk[core.$length]) + dart.notNull(oldLength))) * 2;
-        let grown = new typed_data.Uint8List(newLength);
+        let grown = typed_data.Uint8List.new(newLength);
         grown[core.$setRange](0, this[_buffer][core.$length], this[_buffer]);
         this[_buffer] = grown;
       }
@@ -737,7 +734,7 @@ var collection = dart.import(collection);
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, StringConversionSink)) {
-        sink = new StringConversionSink.from(sink);
+        sink = StringConversionSink.from(sink);
       }
       return new _HtmlEscapeSink(this, dart.as(sink, StringConversionSink));
     }
@@ -883,7 +880,7 @@ var collection = dart.import(collection);
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, StringConversionSink)) {
-        sink = new StringConversionSink.from(sink);
+        sink = StringConversionSink.from(sink);
       } else if (dart.is(sink, _Utf8EncoderSink)) {
         return new _JsonUtf8EncoderSink(sink[_sink], this[_toEncodable$], JsonUtf8Encoder._utf8Encode(this.indent), JsonUtf8Encoder.DEFAULT_BUFFER_SIZE);
       }
@@ -931,7 +928,7 @@ var collection = dart.import(collection);
       if (string == null)
         return null;
       if (string.isEmpty)
-        return new typed_data.Uint8List(0);
+        return typed_data.Uint8List.new(0);
       checkAscii: {
         for (let i = 0; dart.notNull(i) < dart.notNull(string.length); i = dart.notNull(i) + 1) {
           if (dart.notNull(string.codeUnitAt(i)) >= 128)
@@ -946,7 +943,7 @@ var collection = dart.import(collection);
       let addChunk = (chunk, start, end) => {
         if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(chunk[core.$length])) {
           let length = dart.notNull(end) - dart.notNull(start);
-          chunk = new typed_data.Uint8List.view(chunk.buffer, dart.notNull(chunk.offsetInBytes) + dart.notNull(start), length);
+          chunk = typed_data.Uint8List.view(chunk.buffer, dart.notNull(chunk.offsetInBytes) + dart.notNull(start), length);
         }
         bytes[core.$add](chunk);
       };
@@ -958,7 +955,7 @@ var collection = dart.import(collection);
       for (let i = 0; dart.notNull(i) < dart.notNull(bytes[core.$length]); i = dart.notNull(i) + 1) {
         length = dart.notNull(length) + dart.notNull(bytes[core.$get](i)[core.$length]);
       }
-      let result = new typed_data.Uint8List(length);
+      let result = typed_data.Uint8List.new(length);
       for (let i = 0, offset = 0; dart.notNull(i) < dart.notNull(bytes[core.$length]); i = dart.notNull(i) + 1) {
         let byteList = bytes[core.$get](i);
         let end = dart.notNull(offset) + dart.notNull(byteList[core.$length]);
@@ -972,7 +969,7 @@ var collection = dart.import(collection);
       if (dart.is(sink, ByteConversionSink)) {
         byteSink = sink;
       } else {
-        byteSink = new ByteConversionSink.from(sink);
+        byteSink = ByteConversionSink.from(sink);
       }
       return new _JsonUtf8EncoderSink(byteSink, this[_toEncodable$], this[_indent], this[_bufferSize]);
     }
@@ -1109,7 +1106,7 @@ var collection = dart.import(collection);
   let _removeSeen = Symbol('_removeSeen');
   class _JsonStringifier extends core.Object {
     _JsonStringifier(_toEncodable) {
-      this[_seen] = new core.List();
+      this[_seen] = core.List.new();
       this[_toEncodable$] = _toEncodable != null ? _toEncodable : _defaultToEncodable;
     }
     static hexDigit(x) {
@@ -1411,7 +1408,7 @@ var collection = dart.import(collection);
     _JsonUtf8Stringifier(toEncodable, bufferSize, addChunk) {
       this.addChunk = addChunk;
       this.bufferSize = bufferSize;
-      this.buffer = new typed_data.Uint8List(bufferSize);
+      this.buffer = typed_data.Uint8List.new(bufferSize);
       this.index = 0;
       super._JsonStringifier(dart.as(toEncodable, dart.functionType(core.Object, [core.Object])));
     }
@@ -1496,7 +1493,7 @@ var collection = dart.import(collection);
       dart.assert(dart.notNull(byte) <= 255);
       if (this.index == this.buffer[core.$length]) {
         dart.dcall(this.addChunk, this.buffer, 0, this.index);
-        this.buffer = new typed_data.Uint8List(this.bufferSize);
+        this.buffer = typed_data.Uint8List.new(this.bufferSize);
         this.index = 0;
       }
       this.buffer[core.$set]((() => {
@@ -1609,7 +1606,7 @@ var collection = dart.import(collection);
       if (dart.is(sink, StringConversionSink)) {
         stringSink = sink;
       } else {
-        stringSink = new StringConversionSink.from(sink);
+        stringSink = StringConversionSink.from(sink);
       }
       if (!dart.notNull(this[_allowInvalid]))
         return new _Latin1DecoderSink(stringSink);
@@ -1632,7 +1629,7 @@ var collection = dart.import(collection);
       this.addSlice(source, 0, source[core.$length], false);
     }
     [_addSliceToSink](source, start, end, isLast) {
-      this[_sink].add(new core.String.fromCharCodes(source, start, end));
+      this[_sink].add(core.String.fromCharCodes(source, start, end));
       if (isLast)
         this.close();
     }
@@ -1691,13 +1688,13 @@ var collection = dart.import(collection);
       super.Converter();
     }
     convert(data) {
-      let lines = new (core.List$(core.String))();
+      let lines = core.List$(core.String).new();
       _LineSplitterSink._addSlice(data, 0, data.length, true, dart.bind(lines, core.$add));
       return lines;
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, StringConversionSink)) {
-        sink = new StringConversionSink.from(dart.as(sink, core.Sink$(core.String)));
+        sink = StringConversionSink.from(dart.as(sink, core.Sink$(core.String)));
       }
       return new _LineSplitterSink(dart.as(sink, StringConversionSink));
     }
@@ -1779,19 +1776,16 @@ var collection = dart.import(collection);
     StringConversionSink() {
       super.ChunkedConversionSink();
     }
-    withCallback(callback) {
+    static withCallback(callback) {
       return new _StringCallbackSink(callback);
     }
-    from(sink) {
+    static from(sink) {
       return new _StringAdapterSink(sink);
     }
-    fromStringSink(sink) {
+    static fromStringSink(sink) {
       return new _StringSinkConversionSink(sink);
     }
   }
-  dart.defineNamedConstructor(StringConversionSink, 'withCallback');
-  dart.defineNamedConstructor(StringConversionSink, 'from');
-  dart.defineNamedConstructor(StringConversionSink, 'fromStringSink');
   dart.setSignature(StringConversionSink, {
     constructors: () => ({
       StringConversionSink: [StringConversionSink, []],
@@ -1801,11 +1795,10 @@ var collection = dart.import(collection);
     })
   });
   class ClosableStringSink extends core.StringSink {
-    fromStringSink(sink, onClose) {
+    static fromStringSink(sink, onClose) {
       return new _ClosableStringSink(sink, onClose);
     }
   }
-  dart.defineNamedConstructor(ClosableStringSink, 'fromStringSink');
   dart.setSignature(ClosableStringSink, {
     constructors: () => ({fromStringSink: [ClosableStringSink, [core.StringSink, dart.functionType(dart.void, [])]]})
   });
@@ -1938,7 +1931,7 @@ var collection = dart.import(collection);
       return new _Utf8StringSinkAdapter(this, this[_stringSink], allowMalformed);
     }
     asStringSink() {
-      return new ClosableStringSink.fromStringSink(this[_stringSink], dart.bind(this, 'close'));
+      return ClosableStringSink.fromStringSink(this[_stringSink], dart.bind(this, 'close'));
     }
   }
   dart.setSignature(_StringSinkConversionSink, {
@@ -2116,7 +2109,7 @@ var collection = dart.import(collection);
         end = stringLength;
       let length = dart.notNull(end) - dart.notNull(start);
       if (length == 0)
-        return new typed_data.Uint8List(0);
+        return typed_data.Uint8List.new(0);
       let encoder = new _Utf8Encoder.withBufferSize(dart.notNull(length) * 3);
       let endPosition = encoder[_fillBuffer](string, start, end);
       dart.assert(dart.notNull(endPosition) >= dart.notNull(end) - 1);
@@ -2130,7 +2123,7 @@ var collection = dart.import(collection);
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, ByteConversionSink)) {
-        sink = new ByteConversionSink.from(sink);
+        sink = ByteConversionSink.from(sink);
       }
       return new _Utf8EncoderSink(dart.as(sink, ByteConversionSink));
     }
@@ -2156,7 +2149,7 @@ var collection = dart.import(collection);
       this[_bufferIndex] = 0;
     }
     static _createBuffer(size) {
-      return new typed_data.Uint8List(size);
+      return typed_data.Uint8List.new(size);
     }
     [_writeSurrogate](leadingSurrogate, nextCodeUnit) {
       if (_isTailSurrogate(nextCodeUnit)) {
@@ -2363,7 +2356,7 @@ var collection = dart.import(collection);
       if (dart.is(sink, StringConversionSink)) {
         stringSink = sink;
       } else {
-        stringSink = new StringConversionSink.from(sink);
+        stringSink = StringConversionSink.from(sink);
       }
       return stringSink.asUtf8Sink(this[_allowMalformed]);
     }
@@ -2459,7 +2452,7 @@ var collection = dart.import(collection);
       let addSingleBytes = ((from, to) => {
         dart.assert(dart.notNull(from) >= dart.notNull(startIndex) && dart.notNull(from) <= dart.notNull(endIndex));
         dart.assert(dart.notNull(to) >= dart.notNull(startIndex) && dart.notNull(to) <= dart.notNull(endIndex));
-        this[_stringSink].write(new core.String.fromCharCodes(codeUnits, from, to));
+        this[_stringSink].write(core.String.fromCharCodes(codeUnits, from, to));
       }).bind(this);
       dart.fn(addSingleBytes, dart.void, [core.int, core.int]);
       let i = startIndex;
@@ -2654,7 +2647,7 @@ var collection = dart.import(collection);
     get values() {
       if (this[_isUpgraded])
         return this[_upgradedMap].values;
-      return new _internal.MappedIterable(this[_computeKeys](), dart.fn((each => this.get(each)).bind(this)));
+      return _internal.MappedIterable.new(this[_computeKeys](), dart.fn((each => this.get(each)).bind(this)));
     }
     set(key, value) {
       if (this[_isUpgraded]) {

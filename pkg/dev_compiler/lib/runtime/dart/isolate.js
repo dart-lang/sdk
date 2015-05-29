@@ -5,12 +5,12 @@ var async = dart.import(async);
 (function(exports, core, _isolate_helper, async) {
   'use strict';
   class Capability extends core.Object {
-    Capability() {
+    static new() {
       return new _isolate_helper.CapabilityImpl();
     }
   }
   dart.setSignature(Capability, {
-    constructors: () => ({Capability: [Capability, []]})
+    constructors: () => ({new: [Capability, []]})
   });
   class IsolateSpawnException extends core.Object {
     IsolateSpawnException(message) {
@@ -42,7 +42,7 @@ var async = dart.import(async);
         return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [core.Object])), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
-        return new (async.Future$(Isolate)).error(e, st);
+        return async.Future$(Isolate).error(e, st);
       }
 
     }
@@ -64,7 +64,7 @@ var async = dart.import(async);
         return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [core.Object])), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
-        return new (async.Future$(Isolate)).error(e, st);
+        return async.Future$(Isolate).error(e, st);
       }
 
     }
@@ -72,37 +72,37 @@ var async = dart.import(async);
       if (resumeCapability === void 0)
         resumeCapability = null;
       if (resumeCapability == null)
-        resumeCapability = new Capability();
+        resumeCapability = Capability.new();
       this[_pause](resumeCapability);
       return resumeCapability;
     }
     [_pause](resumeCapability) {
-      let message = new core.List(3);
+      let message = core.List.new(3);
       message[core.$set](0, "pause");
       message[core.$set](1, this.pauseCapability);
       message[core.$set](2, resumeCapability);
       this.controlPort.send(message);
     }
     resume(resumeCapability) {
-      let message = new core.List(2);
+      let message = core.List.new(2);
       message[core.$set](0, "resume");
       message[core.$set](1, resumeCapability);
       this.controlPort.send(message);
     }
     addOnExitListener(responsePort) {
-      let message = new core.List(2);
+      let message = core.List.new(2);
       message[core.$set](0, "add-ondone");
       message[core.$set](1, responsePort);
       this.controlPort.send(message);
     }
     removeOnExitListener(responsePort) {
-      let message = new core.List(2);
+      let message = core.List.new(2);
       message[core.$set](0, "remove-ondone");
       message[core.$set](1, responsePort);
       this.controlPort.send(message);
     }
     setErrorsFatal(errorsAreFatal) {
-      let message = new core.List(3);
+      let message = core.List.new(3);
       message[core.$set](0, "set-errors-fatal");
       message[core.$set](1, this.terminateCapability);
       message[core.$set](2, errorsAreFatal);
@@ -116,20 +116,20 @@ var async = dart.import(async);
     ping(responsePort, pingType) {
       if (pingType === void 0)
         pingType = Isolate.IMMEDIATE;
-      let message = new core.List(3);
+      let message = core.List.new(3);
       message[core.$set](0, "ping");
       message[core.$set](1, responsePort);
       message[core.$set](2, pingType);
       this.controlPort.send(message);
     }
     addErrorListener(port) {
-      let message = new core.List(2);
+      let message = core.List.new(2);
       message[core.$set](0, "getErrors");
       message[core.$set](1, port);
       this.controlPort.send(message);
     }
     removeErrorListener(port) {
-      let message = new core.List(2);
+      let message = core.List.new(2);
       message[core.$set](0, "stopErrors");
       message[core.$set](1, port);
       this.controlPort.send(message);
@@ -144,8 +144,8 @@ var async = dart.import(async);
         controller.addError(error, error.stackTrace);
       };
       dart.fn(handleError, dart.void, [core.Object]);
-      controller = new async.StreamController.broadcast({sync: true, onListen: dart.fn((() => {
-          port = new RawReceivePort(handleError);
+      controller = async.StreamController.broadcast({sync: true, onListen: dart.fn((() => {
+          port = RawReceivePort.new(handleError);
           this.addErrorListener(port.sendPort);
         }).bind(this)), onCancel: dart.fn((() => {
           this.removeErrorListener(port.sendPort);
@@ -186,30 +186,29 @@ var async = dart.import(async);
   class SendPort extends core.Object {}
   SendPort[dart.implements] = () => [Capability];
   class ReceivePort extends core.Object {
-    ReceivePort() {
+    static new() {
       return new _isolate_helper.ReceivePortImpl();
     }
-    fromRawReceivePort(rawPort) {
+    static fromRawReceivePort(rawPort) {
       return new _isolate_helper.ReceivePortImpl.fromRawReceivePort(rawPort);
     }
   }
   ReceivePort[dart.implements] = () => [async.Stream];
-  dart.defineNamedConstructor(ReceivePort, 'fromRawReceivePort');
   dart.setSignature(ReceivePort, {
     constructors: () => ({
-      ReceivePort: [ReceivePort, []],
+      new: [ReceivePort, []],
       fromRawReceivePort: [ReceivePort, [RawReceivePort]]
     })
   });
   class RawReceivePort extends core.Object {
-    RawReceivePort(handler) {
+    static new(handler) {
       if (handler === void 0)
         handler = null;
       return new _isolate_helper.RawReceivePortImpl(handler);
     }
   }
   dart.setSignature(RawReceivePort, {
-    constructors: () => ({RawReceivePort: [RawReceivePort, [], [dart.functionType(dart.void, [dart.bottom])]]})
+    constructors: () => ({new: [RawReceivePort, [], [dart.functionType(dart.void, [dart.bottom])]]})
   });
   class _IsolateUnhandledException extends core.Object {
     _IsolateUnhandledException(message, source, stackTrace) {

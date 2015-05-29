@@ -60,7 +60,7 @@ var _js_helper = dart.lazyImport(_js_helper);
       }
       return result;
     }(victim, Object.prototype.hasOwnProperty);
-    return new _interceptors.JSArray.markFixed(result);
+    return _interceptors.JSArray.markFixed(result);
   }
   dart.fn(extractKeys, core.List, [core.Object]);
   function unmangleGlobalNameIfPreservedAnyways(name) {
