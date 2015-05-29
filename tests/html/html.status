@@ -426,10 +426,10 @@ canvas_pixel_array_type_alias_test: Crash #  try/finally
 canvas_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 canvasrenderingcontext2d_test: Crash #  try/finally
 cdata_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-client_rect_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<Rectangle>.
+client_rect_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 cross_domain_iframe_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 crypto_test: Crash #  try/finally
-css_rule_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<CssRule>.
+css_rule_list_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 css_test: Crash #  try/finally
 cssstyledeclaration_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 custom/attribute_changed_callback_test: Crash #  try/finally
@@ -485,7 +485,7 @@ htmlcollection_test: Crash # Instance of 'TypeOperator': type casts not implemen
 htmlelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 htmloptionscollection_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 indexeddb_1_test: Crash #  try/finally
-indexeddb_2_test: Crash # Please triage this failure.
+indexeddb_2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 indexeddb_3_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 indexeddb_4_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 indexeddb_5_test: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -541,7 +541,7 @@ typed_arrays_arraybuffer_test: Crash # Instance of 'TypeOperator': type casts no
 typed_arrays_dataview_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 typed_arrays_range_checks_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 typed_arrays_simd_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-typing_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<StyleSheet>.
+typing_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 unknownelement_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 uri_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 url_test: Crash #  try/finally

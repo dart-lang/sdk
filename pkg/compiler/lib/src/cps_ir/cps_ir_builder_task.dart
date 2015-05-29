@@ -2303,6 +2303,8 @@ class GlobalProgramInformation {
     return cls.typeVariables.isNotEmpty && _backend.classNeedsRti(cls);
   }
 
+  FunctionElement get throwTypeErrorHelper => _backend.getThrowTypeError();
+
   ClassElement get nullClass => _compiler.nullClass;
 }
 

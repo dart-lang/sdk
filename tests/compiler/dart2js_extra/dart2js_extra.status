@@ -65,6 +65,7 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 10216a_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 10216b_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 12320_test: Crash #  Unhandled node
+16407_test: Pass # Please triage this failure.
 17094_test: RuntimeError # Please triage this failure.
 21666_test: Crash # Instance of 'TypeOperator': type check unimplemented for fInt.
 22868_test: Crash #  cannot handle async/sync*/async* functions
@@ -124,6 +125,5 @@ switch_test/02: Crash #  Unhandled node
 switch_test/none: Crash # (switch (val){}): Unhandled node
 this_phi_elimination_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_constant_switch_test/none: Crash # (switch (v){}): Unhandled node
-typevariable_factory_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<T>.
+typevariable_factory_test: Crash # Please triage this failure.
 while_test: Timeout # Please triage this failure.
-16407_test : Pass

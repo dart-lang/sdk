@@ -2621,11 +2621,11 @@ class JsIrBuilder extends IrBuilder {
         arguments.add(value);
       });
       return addPrimitive(new ir.TypeExpression(type, arguments));
-    } else if (type is DynamicType) {
+    } else if (type.treatAsDynamic) {
       return buildNullConstant();
     } else {
       // TypedefType can reach here, and possibly other things.
-      throw 'unimplemented translation of type expression $type';
+      throw 'unimplemented translation of type expression $type (${type.kind})';
     }
   }
 
@@ -2675,6 +2675,17 @@ class JsIrBuilder extends IrBuilder {
                                  {bool isTypeTest}) {
     assert(isOpen);
     assert(isTypeTest != null);
+
+    if (type.isMalformed) {
+      FunctionElement helper = program.throwTypeErrorHelper;
+      ErroneousElement element = type.element;
+      ir.Primitive message = buildStringConstant(element.message);
+      return buildStaticFunctionInvocation(
+          helper,
+          CallStructure.ONE_ARG,
+          <ir.Primitive>[message]);
+    }
+
     if (isTypeTest) {
       // For type tests, we must treat specially the rare cases where `null`
       // satisfies the test (which otherwise never satisfies a type test).

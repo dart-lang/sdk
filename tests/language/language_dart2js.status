@@ -417,10 +417,10 @@ class_literal_test/25: Crash # Instance of 'TypeOperator': type check unimplemen
 class_override_test/00: Crash # (try {instance.foo();}on NoSuchMethodError catch (error){}finally {}): try/finally
 class_override_test/none: Crash # (try {instance.foo();}finally {}): try/finally
 closure3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-closure_in_constructor_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
+closure_in_constructor_test: Crash # Please triage this failure.
 closure_internals_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 closure_self_reference_test: Crash # (try {return inner(value-1);}finally {counter++ ;}): try/finally
-closure_type_variables_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<int>.
+closure_type_variables_test: Crash # Please triage this failure.
 compile_time_constant_a_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 compile_time_constant_b_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 conditional_method_invocation_test/01: RuntimeError # Please triage this failure.
@@ -484,7 +484,7 @@ const_switch_test/04: Crash #  Unhandled node
 constructor10_test/01: Crash # Please triage this failure.
 constructor10_test/02: Crash # Please triage this failure.
 constructor11_test: Crash # Please triage this failure.
-constructor12_test: RuntimeError
+constructor12_test: RuntimeError # Please triage this failure.
 constructor3_negative_test: Crash # Please triage this failure.
 constructor5_test: Crash # Please triage this failure.
 constructor_call_wrong_argument_count_negative_test: Crash # Please triage this failure.
@@ -555,7 +555,7 @@ double_to_string_as_exponential2_test: Crash # Instance of 'TypeOperator': type 
 double_to_string_as_fixed2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 double_to_string_as_precision2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 dynamic_prefix_core_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-dynamic_test: Crash # Instance of 'TypeOperator': type check unimplemented for Iface<dynamic, num>.
+dynamic_test: Crash # Instance of 'TypeOperator': type check unimplemented for F1<int>.
 empty_block_case_test: Crash # (switch (1){case 1:{}case 2:Expect.equals(true,false);}): Unhandled node
 enum_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 enum_private_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -574,13 +574,12 @@ execute_finally7_test: Crash #  try/finally
 execute_finally8_test: Crash # (try {sum+= 1;return 'hi';}finally {sum+= 1;throw 'ball';sum+= 1;}): try/finally
 execute_finally9_test: Crash #  try/finally
 factory_redirection3_cyclic_test/01: Crash # Please triage this failure.
-factory_redirection_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for A<List>.
-factory_redirection_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for A<List>.
-factory_redirection_test/05: MissingRuntimeError
-factory_redirection_test/06: MissingRuntimeError
+factory_redirection_test/04: Crash # Please triage this failure.
+factory_redirection_test/05: MissingRuntimeError # Please triage this failure.
+factory_redirection_test/06: MissingRuntimeError # Please triage this failure.
 factory_return_type_checked_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 factory_type_parameter2_test: Crash # Please triage this failure.
-factory_type_parameter_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<List>.
+factory_type_parameter_test: Crash # Please triage this failure.
 final_super_field_set_test/01: RuntimeError # Please triage this failure.
 finally_test: Crash # (try {i=12;}finally {Expect.equals(12,i);executedFinally=true;}): try/finally
 first_class_types_literals_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -610,7 +609,7 @@ for2_test: Crash # Please triage this failure.
 for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
 function_propagation_test: Crash # Instance of 'TypeOperator': type check unimplemented for F.
 function_subtype0_test: Crash # Instance of 'TypeOperator': type check unimplemented for t__.
-function_subtype1_test: Crash # Please triage this failure.
+function_subtype1_test: Crash # type expression int_ (typedef)
 function_subtype2_test: Crash # Instance of 'TypeOperator': type check unimplemented for T1.
 function_subtype_bound_closure0_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo.
 function_subtype_bound_closure1_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo<bool>.
@@ -631,7 +630,7 @@ function_subtype_cast3_test: Crash # Instance of 'TypeOperator': type casts not 
 function_subtype_checked0_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 function_subtype_closure0_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 function_subtype_closure1_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-function_subtype_factory0_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo<T>.
+function_subtype_factory0_test: Crash # Please triage this failure.
 function_subtype_inline0_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo.
 function_subtype_local0_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo.
 function_subtype_local1_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo<bool>.
@@ -640,24 +639,24 @@ function_subtype_local3_test: Crash # Instance of 'TypeOperator': type check uni
 function_subtype_local4_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo.
 function_subtype_local5_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo<T>.
 function_subtype_named1_test: Crash # Instance of 'TypeOperator': type check unimplemented for t_void_.
-function_subtype_named2_test: Crash # Please triage this failure.
+function_subtype_named2_test: Crash # type expression void___a_int (typedef)
 function_subtype_not0_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo.
 function_subtype_not1_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo.
 function_subtype_not2_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo<T>.
 function_subtype_not3_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo<T>.
 function_subtype_optional1_test: Crash # Instance of 'TypeOperator': type check unimplemented for t_void_.
-function_subtype_optional2_test: Crash # Please triage this failure.
+function_subtype_optional2_test: Crash # type expression void___int (typedef)
 function_subtype_setter0_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 function_subtype_simple0_test: Crash # Instance of 'TypeOperator': type check unimplemented for Args0.
 function_subtype_simple1_test: Crash # Instance of 'TypeOperator': type check unimplemented for Args0.
 function_subtype_simple2_test: Crash # Instance of 'TypeOperator': type check unimplemented for Args0.
 function_subtype_top_level0_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo.
 function_subtype_top_level1_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo<T>.
-function_subtype_typearg0_test: Crash # Please triage this failure.
-function_subtype_typearg1_test: Crash # Please triage this failure.
-function_subtype_typearg2_test: Crash # Please triage this failure.
-function_subtype_typearg3_test: Crash # Please triage this failure.
-function_subtype_typearg4_test: Crash # Please triage this failure.
+function_subtype_typearg0_test: Crash # type expression Foo (typedef)
+function_subtype_typearg1_test: Crash # type expression f2 (typedef)
+function_subtype_typearg2_test: Crash # type expression f1 (typedef)
+function_subtype_typearg3_test: Crash # type expression f1 (typedef)
+function_subtype_typearg4_test: Crash # type expression f1 (typedef)
 function_type3_test: Crash # Instance of 'TypeOperator': type check unimplemented for F.
 function_type_alias2_test: Crash # Instance of 'TypeOperator': type check unimplemented for f1.
 function_type_alias3_test: Crash # Instance of 'TypeOperator': type check unimplemented for F.
@@ -669,10 +668,9 @@ generic_closure_test: Crash # Instance of 'TypeOperator': type check unimplement
 generic_constructor_mixin2_test: Crash # Please triage this failure.
 generic_constructor_mixin3_test: Crash # Please triage this failure.
 generic_constructor_mixin_test: Crash # Please triage this failure.
-generic_field_mixin3_test : RuntimeError
-generic_instanceof2_test: Crash # Instance of 'TypeOperator': type check unimplemented for Foo<int, num>.
+generic_field_mixin3_test: RuntimeError # Please triage this failure.
+generic_instanceof2_test: Crash # Please triage this failure.
 generic_list_checked_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-generic_test: Crash # Instance of 'TypeOperator': type check unimplemented for B<AA>.
 if_null_assignment_behavior_test/01: Crash # Please triage this failure.
 if_null_assignment_behavior_test/02: Crash # Please triage this failure.
 if_null_assignment_behavior_test/03: Crash # Please triage this failure.
@@ -790,8 +788,7 @@ inferrer_this_access_test: Crash # Instance of 'TypeOperator': type check unimpl
 infinite_switch_label_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inlined_throw_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 instance_creation_in_function_annotation_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-instanceof3_test: Crash # Instance of 'TypeOperator': type check unimplemented for UndeclaredType.
-instanceof4_test/01 : RuntimeError
+instanceof4_test/01: RuntimeError # Please triage this failure.
 integer_division_by_zero_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 interceptor6_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 interceptor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -799,17 +796,11 @@ internal_library_test/01: Crash # (JS('int','0')): handleStaticFunctionInvoke: f
 invocation_mirror_invoke_on2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 invocation_mirror_invoke_on_test: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-is_malformed_type_test/94: Crash # Instance of 'TypeOperator': type casts not implemented.
-is_malformed_type_test/95: Crash # Instance of 'TypeOperator': type check unimplemented for Undefined.
-is_malformed_type_test/96: Crash # Instance of 'TypeOperator': type casts not implemented.
-is_malformed_type_test/97: Crash # Instance of 'TypeOperator': type check unimplemented for Undefined.
-is_malformed_type_test/98: Crash # Instance of 'TypeOperator': type casts not implemented.
-is_malformed_type_test/99: Crash # Instance of 'TypeOperator': type check unimplemented for Undefined.
 is_nan_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 is_not_class2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 isnot_malformed_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue10581_test: Crash #  Unhandled node
-issue10721_test: RuntimeError
+issue10721_test: RuntimeError # Please triage this failure.
 issue10747_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue10783_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue11724_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -817,30 +808,29 @@ issue12023_test: Crash #  Unhandled node
 issue12284_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue12336_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 issue13474_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-issue14014_3_test: Crash # Please triage this failure.
+issue14014_3_test: Crash # Instance of 'TypeOperator': type check unimplemented for foo<T>.
 issue20476_test: Crash # (try {try {return 1;}catch (e1){}finally {return 3;}}catch (e2){}finally {return 5;}): try/finally
 issue7525_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 issue_1751477_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
 label_test: Crash # (switch (i){case 111:while(doAgain()){break L;}default:i-- ;}): Unhandled node
 large_class_declaration_test: Crash # Please triage this failure.
 lazy_static3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-library_ambiguous_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for bax.
 licm2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 licm3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 list_double_index_in_loop2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 list_double_index_in_loop_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 list_length_tracer_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 list_literal3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<A>.
+list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 malbounded_type_cast2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 malbounded_type_cast_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-malbounded_type_test2_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<T>.
-malformed2_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for List<Unresolved>.
+malbounded_type_test2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+malformed2_test/00: Crash # Instance of 'TypeOperator': type casts not implemented.
 malformed_inheritance_test/03: Crash # Please triage this failure.
 malformed_inheritance_test/09: Crash # Please triage this failure.
 malformed_inheritance_test/10: Crash # Please triage this failure.
-malformed_test/06: Crash # Please triage this failure.
-malformed_test/none: Crash # Please triage this failure.
+malformed_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+malformed_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 many_overridden_no_such_method_test: RuntimeError # Please triage this failure.
 megamorphic_no_such_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 method_override4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -877,12 +867,12 @@ mixin_super_constructor_named_test/none: Crash # Please triage this failure.
 mixin_super_constructor_positionals_test/01: Crash # Please triage this failure.
 mixin_super_constructor_positionals_test/none: Crash # Please triage this failure.
 mixin_super_constructor_test: Crash # Please triage this failure.
-mixin_type_parameter2_test: Crash # Instance of 'TypeOperator': type check unimplemented for Mixin1<num>.
-mixin_type_parameter3_test: Crash # Instance of 'TypeOperator': type check unimplemented for Mixin1<num>.
-mixin_type_parameters_mixin_extends_test: Crash # Instance of 'TypeOperator': type check unimplemented for M<int>.
-mixin_type_parameters_mixin_test: Crash # Instance of 'TypeOperator': type check unimplemented for M<int>.
-mixin_type_parameters_super_extends_test: Crash # Instance of 'TypeOperator': type check unimplemented for S<int>.
-mixin_type_parameters_super_test: Crash # Instance of 'TypeOperator': type check unimplemented for S<int>.
+mixin_type_parameter2_test: Crash # Please triage this failure.
+mixin_type_parameter3_test: Crash # Please triage this failure.
+mixin_type_parameters_mixin_extends_test: Crash # Please triage this failure.
+mixin_type_parameters_mixin_test: Crash # Please triage this failure.
+mixin_type_parameters_super_extends_test: Crash # Please triage this failure.
+mixin_type_parameters_super_test: Crash # Please triage this failure.
 mixin_typedef_constructor_test: Crash # Please triage this failure.
 mixin_with_two_implicit_constructors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 modulo_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -901,10 +891,10 @@ not_enough_positional_arguments_test/00: MissingRuntimeError # Please triage thi
 not_enough_positional_arguments_test/03: Crash # Please triage this failure.
 null_inline_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 null_no_such_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-null_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
-null_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
-null_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
-null_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for dynamic.
+null_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
+null_test/02: Crash # Instance of 'TypeOperator': type casts not implemented.
+null_test/03: Crash # Instance of 'TypeOperator': type casts not implemented.
+null_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
 number_identifier_test/05: Crash # Instance of 'TypeOperator': type casts not implemented.
 number_identifier_test/08: Crash # Instance of 'TypeOperator': type casts not implemented.
 number_identifier_test/09: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -941,7 +931,7 @@ refine_receiver_null_test: Crash # Instance of 'TypeOperator': type check unimpl
 reg_exp_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 regress_12561_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 regress_18435_test: Crash # Please triage this failure.
-regress_18535_test: Crash # Instance of 'TypeOperator': type check unimplemented for V.
+regress_18535_test: Crash # Please triage this failure.
 regress_21795_test: Crash # (try {foo(t);}finally {if(t==0){try {}catch (err,st){}}}): try/finally
 regress_22438_test: Crash #  cannot handle async/sync*/async* functions
 regress_22443_test: Crash # (D.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
@@ -1031,23 +1021,21 @@ truncdiv_test: Crash # Instance of 'TypeOperator': type check unimplemented for 
 try_catch3_test: Crash #  try/finally
 try_catch4_test: Crash #  try/finally
 try_catch5_test: Crash # (try {try {a=8;return;}finally {b=8==a;entered=true;continue;}}finally {continue;}): try/finally
-try_catch_on_syntax_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for UndefinedClass.
 try_catch_optimized2_test: Crash # (try {bar();}finally {}): try/finally
 try_catch_osr_test: Crash # (try {if(x==null)throw 42;return 99;}finally {}): try/finally
-try_catch_syntax_test/08: Crash # Instance of 'TypeOperator': type check unimplemented for MammaMia.
 try_catch_test/01: Crash # Please triage this failure.
 try_catch_test/none: Crash # Please triage this failure.
 type_argument_in_super_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_check_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 type_error_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 type_literal_prefix_call_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-type_parameter_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for Set<int>.
-type_parameter_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for Set<int>.
-type_parameter_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for Set<int>.
-type_parameter_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for Set<int>.
-type_parameter_test/05: Crash # Instance of 'TypeOperator': type check unimplemented for Set<int>.
-type_parameter_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for Set<int>.
-type_parameter_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for Set<int>.
+type_parameter_test/01: Crash # Please triage this failure.
+type_parameter_test/02: Crash # Please triage this failure.
+type_parameter_test/03: Crash # Please triage this failure.
+type_parameter_test/04: Crash # Please triage this failure.
+type_parameter_test/05: Crash # Please triage this failure.
+type_parameter_test/06: Crash # Please triage this failure.
+type_parameter_test/none: Crash # Please triage this failure.
 type_promotion_functions_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for FuncDynToDyn.
 type_promotion_functions_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for FuncDynToDyn.
 type_promotion_functions_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for FuncDynToDyn.
@@ -1064,7 +1052,7 @@ type_promotion_functions_test/13: Crash # Instance of 'TypeOperator': type check
 type_promotion_functions_test/14: Crash # Instance of 'TypeOperator': type check unimplemented for FuncDynToDyn.
 type_promotion_functions_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for FuncDynToDyn.
 type_propagation_in_for_update_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-type_variable_closure2_test: RuntimeError
+type_variable_closure2_test: RuntimeError # Please triage this failure.
 type_variable_closure_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_variable_conflict2_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_variable_conflict2_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -1072,7 +1060,7 @@ type_variable_conflict2_test/05: Crash # Instance of 'TypeOperator': type check 
 type_variable_conflict2_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_variable_conflict2_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_variable_function_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for Func<S>.
-type_variable_typedef_test: Crash # Please triage this failure.
+type_variable_typedef_test: Crash # type expression Foo<T> (typedef)
 typed_equality_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 typedef_is_test: Crash # Instance of 'TypeOperator': type check unimplemented for Func1.
 typevariable_substitution2_test/01: Crash # Please triage this failure.
@@ -1083,8 +1071,3 @@ value_range2_test: Crash # Instance of 'TypeOperator': type check unimplemented 
 value_range3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 value_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 void_type_test: Crash #  Unhandled node
-issue10721_test : RuntimeError
-cast2_test/01 : Crash # Instance of 'TypeOperator': type casts not implemented.
-cast2_test/none : Crash # Instance of 'TypeOperator': type casts not implemented.
-malformed_inheritance_test/02 : Crash # unimplemented translation of type expression Unresolved
-malformed_inheritance_test/04 : Crash # unimplemented translation of type expression Unresolved
