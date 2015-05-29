@@ -192,8 +192,10 @@ class InitializerResolver {
         visitor.compiler.reportError(diagnosticNode, kind);
       } else if (caller.isConst
                  && !lookedupConstructor.isConst) {
-        visitor.compiler.reportError(
-            diagnosticNode, MessageKind.CONST_CALLS_NON_CONST);
+        MessageKind kind = isImplicitSuperCall
+                           ? MessageKind.CONST_CALLS_NON_CONST_FOR_IMPLICIT
+                           : MessageKind.CONST_CALLS_NON_CONST;
+        visitor.compiler.reportError(diagnosticNode, kind);
       }
     }
   }

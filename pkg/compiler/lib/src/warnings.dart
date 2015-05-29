@@ -481,6 +481,22 @@ main() => new C();"""]);
   static const MessageKind CONST_CALLS_NON_CONST = const MessageKind(
       "'const' constructor cannot call a non-const constructor.");
 
+  static const MessageKind CONST_CALLS_NON_CONST_FOR_IMPLICIT =
+      const MessageKind(
+          "'const' constructor cannot call a non-const constructor. "
+          "This constructor has an implicit call to a "
+          "super non-const constructor.",
+          howToFix: "Try making the super constructor const.",
+          examples: const ["""
+class C {
+  C(); // missing const
+}
+class D extends C {
+  final d;
+  const D(this.d);
+}
+main() => new D(0);"""]);
+
   static const MessageKind CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS =
       const MessageKind(
           "Can't declare constructor 'const' on class #{className} "
