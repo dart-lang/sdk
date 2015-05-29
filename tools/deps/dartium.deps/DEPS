@@ -34,6 +34,7 @@ vars.update({
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
+  "pub_rev": "@6f2a1b90b8210a85a38aab1af479c047681c29e6",
   "pub_semver_tag": "@1.2.0",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
@@ -108,6 +109,8 @@ deps.update({
       "https://github.com/dart-lang/plugin.git" + Var("plugin_tag"),
   "src/dart/third_party/pkg/pool":
       "https://github.com/dart-lang/pool.git" + Var("pool_rev"),
+  "src/dart/third_party/pkg_tested/pub":
+      "https://github.com/dart-lang/pub.git" + Var("pub_rev"),
   "src/dart/third_party/pkg/pub_semver":
       "https://github.com/dart-lang/pub_semver.git" + Var("pub_semver_tag"),
   "src/dart/third_party/pkg/shelf":
