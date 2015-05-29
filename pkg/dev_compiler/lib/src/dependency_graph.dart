@@ -154,8 +154,8 @@ class HtmlSourceNode extends SourceNode {
   /// Libraries referred to via script tags.
   Set<DartSourceNode> scripts = new Set<DartSourceNode>();
 
-  /// Link-rel stylesheets and images.
-  Set<ResourceSourceNode> resources = new Set<ResourceSourceNode>();
+  /// Link-rel stylesheets, images, and other specified files.
+  Set<SourceNode> resources = new Set<SourceNode>();
 
   @override
   Iterable<SourceNode> get allDeps =>
@@ -199,7 +199,7 @@ class HtmlSourceNode extends SourceNode {
         scripts = newScripts;
       }
 
-      var newResources = new Set<ResourceSourceNode>();
+      var newResources = new Set<SourceNode>();
       for (var resource in graph.resources) {
         newResources.add(graph.nodeFromUri(uri.resolve(resource)));
       }

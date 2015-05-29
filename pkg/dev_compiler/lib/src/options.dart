@@ -311,7 +311,10 @@ CompilerOptions parseOptions(List<String> argv) {
       useMultiPackage: args['use-multi-package'],
       packageRoot: args['package-root'],
       packagePaths: args['package-paths'].split(','),
-      resources: args['resources'].split(','),
+      resources: args['resources']
+          .split(',')
+          .where((s) => s.isNotEmpty)
+          .toList(),
       inferDownwards: args['infer-downwards'],
       inferFromOverrides: args['infer-from-overrides'],
       inferTransitively: args['infer-transitively'],
