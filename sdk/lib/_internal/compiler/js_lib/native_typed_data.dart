@@ -1763,7 +1763,7 @@ class NativeInt32x4 implements Int32x4 {
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
   Int32x4 shuffle(int mask) {
     if ((mask < 0) || (mask > 255)) {
-      throw new RangeError.range(m, 0, 255, "mask");
+      throw new RangeError.range(mask, 0, 255, "mask");
     }
     _list[0] = x;
     _list[1] = y;
@@ -1781,7 +1781,7 @@ class NativeInt32x4 implements Int32x4 {
   /// Uses the same [mask] as [shuffle].
   Int32x4 shuffleMix(Int32x4 other, int mask) {
     if ((mask < 0) || (mask > 255)) {
-      throw new RangeError.range(m, 0, 255, "mask");
+      throw new RangeError.range(mask, 0, 255, "mask");
     }
     _list[0] = x;
     _list[1] = y;
