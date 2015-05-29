@@ -118,32 +118,32 @@ namespace dart {
   V(_Int32x4, withFlagY, Int32x4WithFlagY, 1903359978)                         \
   V(_Int32x4, withFlagZ, Int32x4WithFlagZ, 862460960)                          \
   V(_Int32x4, withFlagW, Int32x4WithFlagW, 1095242907)                         \
-  V(_Float32Array, [], Float32ArrayGetIndexed, 275040752)                      \
-  V(_Float32Array, []=, Float32ArraySetIndexed, 157872912)                     \
-  V(_Int8Array, [], Int8ArrayGetIndexed, 1025829142)                           \
-  V(_Int8Array, []=, Int8ArraySetIndexed, 1696011449)                          \
-  V(_Uint8ClampedArray, [], Uint8ClampedArrayGetIndexed, 1787928039)           \
-  V(_Uint8ClampedArray, []=, Uint8ClampedArraySetIndexed, 1339679592)          \
+  V(_Float32Array, [], Float32ArrayGetIndexed, 321832479)                      \
+  V(_Float32Array, []=, Float32ArraySetIndexed, 979306169)                     \
+  V(_Int8Array, [], Int8ArrayGetIndexed, 1390782783)                           \
+  V(_Int8Array, []=, Int8ArraySetIndexed, 1774152196)                          \
+  V(_Uint8ClampedArray, [], Uint8ClampedArrayGetIndexed, 1297457028)           \
+  V(_Uint8ClampedArray, []=, Uint8ClampedArraySetIndexed, 2018722539)          \
   V(_ExternalUint8ClampedArray, [],                                            \
-      ExternalUint8ClampedArrayGetIndexed, 114948407)                          \
+      ExternalUint8ClampedArrayGetIndexed, 1871828532)                         \
   V(_ExternalUint8ClampedArray, []=,                                           \
-      ExternalUint8ClampedArraySetIndexed, 1455109614)                         \
-  V(_Int16Array, [], Int16ArrayGetIndexed, 747531885)                          \
-  V(_Int16Array, []=, Int16ArraySetIndexed, 1537264797)                        \
-  V(_Uint16Array, [], Uint16ArrayGetIndexed, 1977340041)                       \
-  V(_Uint16Array, []=, Uint16ArraySetIndexed, 1199796786)                      \
-  V(_Int32Array, [], Int32ArrayGetIndexed, 445698866)                          \
-  V(_Int32Array, []=, Int32ArraySetIndexed, 1911096077)                        \
-  V(_Uint32Array, [], Uint32ArrayGetIndexed, 2138962134)                       \
-  V(_Uint32Array, []=, Uint32ArraySetIndexed, 1903916835)                      \
-  V(_Int64Array, [], Int64ArrayGetIndexed, 1010752424)                         \
-  V(_Int64Array, []=, Int64ArraySetIndexed, 1007378595)                        \
-  V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 31307067)                   \
-  V(_Float32x4Array, []=, Float32x4ArraySetIndexed, 525088372)                 \
-  V(_Int32x4Array, [], Int32x4ArrayGetIndexed, 2007476980)                     \
-  V(_Int32x4Array, []=, Int32x4ArraySetIndexed, 431354302)                     \
-  V(_Float64x2Array, [], Float64x2ArrayGetIndexed, 1295393472)                 \
-  V(_Float64x2Array, []=, Float64x2ArraySetIndexed, 808434270)                 \
+      ExternalUint8ClampedArraySetIndexed, 1746834469)                         \
+  V(_Int16Array, [], Int16ArrayGetIndexed, 1699340532)                         \
+  V(_Int16Array, []=, Int16ArraySetIndexed, 799870496)                         \
+  V(_Uint16Array, [], Uint16ArrayGetIndexed, 452576118)                        \
+  V(_Uint16Array, []=, Uint16ArraySetIndexed, 1594961463)                      \
+  V(_Int32Array, [], Int32ArrayGetIndexed, 2052925823)                         \
+  V(_Int32Array, []=, Int32ArraySetIndexed, 504626978)                         \
+  V(_Uint32Array, [], Uint32ArrayGetIndexed, 1034114777)                       \
+  V(_Uint32Array, []=, Uint32ArraySetIndexed, 918159348)                       \
+  V(_Int64Array, [], Int64ArrayGetIndexed, 297668331)                          \
+  V(_Int64Array, []=, Int64ArraySetIndexed, 36465128)                          \
+  V(_Float32x4Array, [], Float32x4ArrayGetIndexed, 35821240)                   \
+  V(_Float32x4Array, []=, Float32x4ArraySetIndexed, 428758949)                 \
+  V(_Int32x4Array, [], Int32x4ArrayGetIndexed, 1830534333)                     \
+  V(_Int32x4Array, []=, Int32x4ArraySetIndexed, 1631676655)                    \
+  V(_Float64x2Array, [], Float64x2ArrayGetIndexed, 1860837505)                 \
+  V(_Float64x2Array, []=, Float64x2ArraySetIndexed, 821269609)                 \
   V(_Bigint, get:_neg, Bigint_getNeg, 1151633263)                              \
   V(_Bigint, get:_used, Bigint_getUsed, 1308648707)                            \
   V(_Bigint, get:_digits, Bigint_getDigits, 1408181836)                        \
@@ -277,12 +277,12 @@ namespace dart {
   V(_Float64x2Array, ., TypedData_Float64x2Array_factory, 1699696799)          \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V) \
-  V(_Uint8Array, [], Uint8ArrayGetIndexed, 1821875314)                         \
-  V(_Uint8Array, []=, Uint8ArraySetIndexed, 914362419)                         \
-  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 1824504903)         \
-  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 1186933547)        \
-  V(_Float64Array, []=, Float64ArraySetIndexed, 931916848)                     \
-  V(_Float64Array, [], Float64ArrayGetIndexed, 70640323)                       \
+  V(_Uint8Array, [], Uint8ArrayGetIndexed, 579862489)                          \
+  V(_Uint8Array, []=, Uint8ArraySetIndexed, 447309008)                         \
+  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 1293647140)         \
+  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 1593599192)        \
+  V(_Float64Array, []=, Float64ArraySetIndexed, 887301703)                     \
+  V(_Float64Array, [], Float64ArrayGetIndexed, 1959896670)                     \
   V(_TypedList, get:length, TypedDataLength, 522684521)                        \
 
 #define GRAPH_CORE_INTRINSICS_LIST(V)                                          \
@@ -349,48 +349,48 @@ namespace dart {
   V(_ImmutableList, [], ImmutableArrayGetIndexed, 886511484)                   \
   V(_GrowableList, [], GrowableArrayGetIndexed, 1962926024)                    \
   V(_GrowableList, []=, GrowableArraySetIndexed, 457344024)                    \
-  V(_Float32Array, [], Float32ArrayGetIndexed, 275040752)                      \
-  V(_Float32Array, []=, Float32ArraySetIndexed, 157872912)                     \
-  V(_Float64Array, [], Float64ArrayGetIndexed, 70640323)                       \
-  V(_Float64Array, []=, Float64ArraySetIndexed, 931916848)                     \
-  V(_Int8Array, [], Int8ArrayGetIndexed, 1025829142)                           \
-  V(_Int8Array, []=, Int8ArraySetIndexed, 1696011449)                          \
-  V(_Uint8Array, [], Uint8ArrayGetIndexed, 1821875314)                         \
-  V(_Uint8Array, []=, Uint8ArraySetIndexed, 914362419)                         \
-  V(_Uint8ClampedArray, [], Uint8ClampedArrayGetIndexed, 1787928039)           \
-  V(_Uint8ClampedArray, []=, Uint8ClampedArraySetIndexed, 1339679592)          \
-  V(_Uint16Array, [], Uint16ArrayGetIndexed, 1977340041)                       \
-  V(_Uint16Array, []=, Uint16ArraySetIndexed, 1199796786)                      \
-  V(_Int16Array, [], Int16ArrayGetIndexed, 747531885)                          \
-  V(_Int16Array, []=, Int16ArraySetIndexed, 1537264797)                        \
-  V(_Int32Array, [], Int32ArrayGetIndexed, 445698866)                          \
-  V(_Int32Array, []=, Int32ArraySetIndexed, 1911096077)                        \
-  V(_Int64Array, [], Int64ArrayGetIndexed, 1010752424)                         \
-  V(_Int64Array, []=, Int64ArraySetIndexed, 1007378595)                        \
-  V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 1590194821)                 \
-  V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 1468172313)                \
-  V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 1822801478)                   \
-  V(_Int8ArrayView, []=, Int8ArrayViewSetIndexed, 1125233200)                  \
-  V(_ByteDataView, setInt8, ByteDataViewSetInt8, 1157522735)                   \
-  V(_ByteDataView, setUint8, ByteDataViewSetUint8, 553855676)                  \
-  V(_ByteDataView, setInt16, ByteDataViewSetInt16, 2093298369)                 \
-  V(_ByteDataView, setUint16, ByteDataViewSetUint16, 74482884)                 \
-  V(_ByteDataView, setInt32, ByteDataViewSetInt32, 911540082)                  \
-  V(_ByteDataView, setUint32, ByteDataViewSetUint32, 1388215959)               \
-  V(_ByteDataView, setInt64, ByteDataViewSetInt64, 1590727231)                 \
-  V(_ByteDataView, setUint64, ByteDataViewSetUint64, 388990242)                \
-  V(_ByteDataView, setFloat32, ByteDataViewSetFloat32, 1599158058)             \
-  V(_ByteDataView, setFloat64, ByteDataViewSetFloat64, 586864117)              \
-  V(_ByteDataView, getInt8, ByteDataViewGetInt8, 1627121016)                   \
-  V(_ByteDataView, getUint8, ByteDataViewGetUint8, 1050030150)                 \
-  V(_ByteDataView, getInt16, ByteDataViewGetInt16, 891399987)                  \
-  V(_ByteDataView, getUint16, ByteDataViewGetUint16, 206709785)                \
-  V(_ByteDataView, getInt32, ByteDataViewGetInt32, 1680668347)                 \
-  V(_ByteDataView, getUint32, ByteDataViewGetUint32, 1978213659)               \
-  V(_ByteDataView, getInt64, ByteDataViewGetInt64, 1179480395)                 \
-  V(_ByteDataView, getUint64, ByteDataViewGetUint64, 1783456139)               \
-  V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 354362094)              \
-  V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 687470816)              \
+  V(_Float32Array, [], Float32ArrayGetIndexed, 321832479)                      \
+  V(_Float32Array, []=, Float32ArraySetIndexed, 979306169)                     \
+  V(_Float64Array, [], Float64ArrayGetIndexed, 1959896670)                     \
+  V(_Float64Array, []=, Float64ArraySetIndexed, 887301703)                     \
+  V(_Int8Array, [], Int8ArrayGetIndexed, 1390782783)                           \
+  V(_Int8Array, []=, Int8ArraySetIndexed, 1774152196)                          \
+  V(_Uint8Array, [], Uint8ArrayGetIndexed, 579862489)                          \
+  V(_Uint8Array, []=, Uint8ArraySetIndexed, 447309008)                         \
+  V(_Uint8ClampedArray, [], Uint8ClampedArrayGetIndexed, 1297457028)           \
+  V(_Uint8ClampedArray, []=, Uint8ClampedArraySetIndexed, 2018722539)          \
+  V(_Uint16Array, [], Uint16ArrayGetIndexed, 452576118)                        \
+  V(_Uint16Array, []=, Uint16ArraySetIndexed, 1594961463)                      \
+  V(_Int16Array, [], Int16ArrayGetIndexed, 1699340532)                         \
+  V(_Int16Array, []=, Int16ArraySetIndexed, 799870496)                         \
+  V(_Int32Array, [], Int32ArrayGetIndexed, 2052925823)                         \
+  V(_Int32Array, []=, Int32ArraySetIndexed, 504626978)                         \
+  V(_Int64Array, [], Int64ArrayGetIndexed, 297668331)                          \
+  V(_Int64Array, []=, Int64ArraySetIndexed, 36465128)                          \
+  V(_Uint8ArrayView, [], Uint8ArrayViewGetIndexed, 662241408)                  \
+  V(_Uint8ArrayView, []=, Uint8ArrayViewSetIndexed, 1550171024)                \
+  V(_Int8ArrayView, [], Int8ArrayViewGetIndexed, 875752635)                    \
+  V(_Int8ArrayView, []=, Int8ArrayViewSetIndexed, 689961281)                   \
+  V(_ByteDataView, setInt8, ByteDataViewSetInt8, 1039277590)                   \
+  V(_ByteDataView, setUint8, ByteDataViewSetUint8, 497316431)                  \
+  V(_ByteDataView, setInt16, ByteDataViewSetInt16, 27520778)                   \
+  V(_ByteDataView, setUint16, ByteDataViewSetUint16, 1543151983)               \
+  V(_ByteDataView, setInt32, ByteDataViewSetInt32, 535913934)                  \
+  V(_ByteDataView, setUint32, ByteDataViewSetUint32, 596009393)                \
+  V(_ByteDataView, setInt64, ByteDataViewSetInt64, 787812783)                  \
+  V(_ByteDataView, setUint64, ByteDataViewSetUint64, 1078002910)               \
+  V(_ByteDataView, setFloat32, ByteDataViewSetFloat32, 2098528020)             \
+  V(_ByteDataView, setFloat64, ByteDataViewSetFloat64, 659619201)              \
+  V(_ByteDataView, getInt8, ByteDataViewGetInt8, 2117136369)                   \
+  V(_ByteDataView, getUint8, ByteDataViewGetUint8, 298860761)                  \
+  V(_ByteDataView, getInt16, ByteDataViewGetInt16, 975961124)                  \
+  V(_ByteDataView, getUint16, ByteDataViewGetUint16, 1503060990)               \
+  V(_ByteDataView, getInt32, ByteDataViewGetInt32, 1096620023)                 \
+  V(_ByteDataView, getUint32, ByteDataViewGetUint32, 1698446167)               \
+  V(_ByteDataView, getInt64, ByteDataViewGetInt64, 1950535797)                 \
+  V(_ByteDataView, getUint64, ByteDataViewGetUint64, 786884343)                \
+  V(_ByteDataView, getFloat32, ByteDataViewGetFloat32, 889064264)              \
+  V(_ByteDataView, getFloat64, ByteDataViewGetFloat64, 1577605354)             \
   V(::, asin, MathASin, 1651042633)                                            \
   V(::, acos, MathACos, 1139647090)                                            \
   V(::, atan, MathATan, 1668754384)                                            \
