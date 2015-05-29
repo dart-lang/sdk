@@ -818,10 +818,11 @@ class ApiState {
 
   void SetupAcquiredError() {
     ASSERT(acquired_error_ == NULL);
-    acquired_error_ = persistent_handles().AllocateHandle();
-    acquired_error_->set_raw(
+    const String& msg = String::Handle(
         String::New("Internal Dart data pointers have been acquired, "
                     "please release them using Dart_TypedDataReleaseData."));
+    acquired_error_ = persistent_handles().AllocateHandle();
+    acquired_error_->set_raw(ApiError::New(msg));
   }
 
   PersistentHandle* AcquiredError() const {
