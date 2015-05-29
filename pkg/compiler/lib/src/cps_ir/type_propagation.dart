@@ -134,9 +134,7 @@ class TypePropagator<T> extends Pass {
       : _types = <Node, _AbstractValue>{};
 
   @override
-  void rewrite(RootNode root) {
-    if (root.isEmpty) return;
-
+  void rewrite(FunctionDefinition root) {
     // Set all parent pointers.
     new ParentVisitor().visit(root);
 
@@ -178,7 +176,7 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
                        this.internalError,
                        this.typeSystem);
 
-  void transform(RootNode root) {
+  void transform(FunctionDefinition root) {
     visit(root);
   }
 
@@ -384,7 +382,7 @@ class _TypePropagationVisitor<T> implements Visitor {
                           this._dartTypes)
       : this.typeSystem = typeSystem;
 
-  void analyze(RootNode root) {
+  void analyze(FunctionDefinition root) {
     reachableNodes.clear();
     defWorkset.clear();
     nodeWorklist.clear();
@@ -453,10 +451,6 @@ class _TypePropagationVisitor<T> implements Visitor {
   // -------------------------- Visitor overrides ------------------------------
   void visit(Node node) { node.accept(this); }
 
-  void visitFieldDefinition(FieldDefinition node) {
-    setReachable(node.body);
-  }
-
   void visitFunctionDefinition(FunctionDefinition node) {
     if (node.thisParameter != null) {
       setValue(node.thisParameter, nonConstant());
@@ -464,26 +458,6 @@ class _TypePropagationVisitor<T> implements Visitor {
     node.parameters.forEach(visit);
     setReachable(node.body);
   }
-
-  void visitConstructorDefinition(ConstructorDefinition node) {
-    node.parameters.forEach(visit);
-    node.initializers.forEach(visit);
-    setReachable(node.body);
-  }
-
-  void visitBody(Body node) {
-    setReachable(node.body);
-  }
-
-  void visitFieldInitializer(FieldInitializer node) {
-    setReachable(node.body);
-  }
-
-  void visitSuperInitializer(SuperInitializer node) {
-    node.arguments.forEach(setReachable);
-  }
-
-  // Expressions.
 
   void visitLetPrim(LetPrim node) {
     visit(node.primitive); // No reason to delay visits to primitives.
@@ -747,12 +721,6 @@ class _TypePropagationVisitor<T> implements Visitor {
     setReachable(node.body);
   }
 
-  void visitDeclareFunction(DeclareFunction node) {
-    setReachable(node.definition);
-    setReachable(node.body);
-  }
-
-  // Definitions.
   void visitLiteralList(LiteralList node) {
     // Constant lists are translated into (Constant ListConstant(...)) IR nodes,
     // and thus LiteralList nodes are NonConst.
@@ -770,10 +738,6 @@ class _TypePropagationVisitor<T> implements Visitor {
     setValue(node, constantValue(value, typeSystem.typeOf(value)));
   }
 
-  void visitReifyTypeVar(ReifyTypeVar node) {
-    setValue(node, nonConstant(typeSystem.typeType));
-  }
-
   void visitCreateFunction(CreateFunction node) {
     setReachable(node.definition);
     ConstantValue constant =
@@ -787,8 +751,8 @@ class _TypePropagationVisitor<T> implements Visitor {
 
   void visitMutableVariable(MutableVariable node) {
     // [MutableVariable]s are bound either as parameters to
-    // [FunctionDefinition]s, by [LetMutable], or by [DeclareFunction].
-    if (node.parent is RootNode) {
+    // [FunctionDefinition]s, by [LetMutable].
+    if (node.parent is FunctionDefinition) {
       // Just like immutable parameters, the values of mutable parameters are
       // never constant.
       // TODO(karlklose): remove reference to the element model.
@@ -797,9 +761,8 @@ class _TypePropagationVisitor<T> implements Visitor {
           ? typeSystem.getParameterType(source)
           : typeSystem.dynamicType;
       setValue(node, nonConstant(type));
-    } else if (node.parent is LetMutable || node.parent is DeclareFunction) {
-      // Mutable values bound by LetMutable or DeclareFunction could have
-      // known values.
+    } else if (node.parent is LetMutable) {
+      // Mutable values bound by LetMutable could have known values.
     } else {
       internalError(node.hint, "Unexpected parent of MutableVariable");
     }
@@ -811,7 +774,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     T type = (source is ParameterElement)
         ? typeSystem.getParameterType(source)
         : typeSystem.dynamicType;
-    if (node.parent is RootNode) {
+    if (node.parent is FunctionDefinition) {
       // Functions may escape and thus their parameters must be non-constant.
       setValue(node, nonConstant(type));
     } else if (node.parent is Continuation) {
@@ -847,14 +810,10 @@ class _TypePropagationVisitor<T> implements Visitor {
     setValue(returnValue, nonConstant());
   }
 
-  // Conditions.
-
   void visitIsTrue(IsTrue node) {
     Branch branch = node.parent;
     visitBranch(branch);
   }
-
-  // JavaScript specific nodes.
 
   void visitIdentical(Identical node) {
     _AbstractValue<T> leftConst = getValue(node.left.definition);

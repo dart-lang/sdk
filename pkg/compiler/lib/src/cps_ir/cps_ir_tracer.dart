@@ -5,7 +5,6 @@
 library dart2js.ir_tracer;
 
 import 'dart:async' show EventSink;
-
 import 'cps_ir_nodes.dart' as cps_ir hide Function;
 import '../tracer.dart';
 
@@ -21,8 +20,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visit(cps_ir.Node node) => node.accept(this);
 
-  void traceGraph(String name, cps_ir.RootNode node) {
-    if (node.isEmpty) return; // Don't bother printing an empty trace.
+  void traceGraph(String name, cps_ir.FunctionDefinition node) {
     tag("cfg", () {
       printProperty("name", name);
 
@@ -43,27 +41,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   // Temporary field used during tree walk
   Names names;
 
-  visitFieldDefinition(cps_ir.FieldDefinition node) {
-    unexpectedNode(node);
-  }
-
   visitFunctionDefinition(cps_ir.FunctionDefinition node) {
-    unexpectedNode(node);
-  }
-
-  visitConstructorDefinition(cps_ir.ConstructorDefinition node) {
-    unexpectedNode(node);
-  }
-
-  visitFieldInitializer(cps_ir.FieldInitializer node) {
-    unexpectedNode(node);
-  }
-
-  visitSuperInitializer(cps_ir.SuperInitializer node) {
-    unexpectedNode(node);
-  }
-
-  visitBody(cps_ir.Body node) {
     unexpectedNode(node);
   }
 
@@ -264,13 +242,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     visit(node.body);
   }
 
-  visitDeclareFunction(cps_ir.DeclareFunction node) {
-    String dummy = names.name(node);
-    String variable = names.name(node.variable);
-    printStmt(dummy, 'DeclareFunction $variable');
-    visit(node.body);
-  }
-
   String formatReference(cps_ir.Reference ref) {
     cps_ir.Definition target = ref.definition;
     if (target is cps_ir.Continuation && target.isReturnContinuation) {
@@ -356,10 +327,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitInterceptor(cps_ir.Interceptor node) {
     return "Interceptor(${formatReference(node.input)})";
-  }
-
-  visitReifyTypeVar(cps_ir.ReifyTypeVar node) {
-    return "ReifyTypeVar ${node.typeVariable.name}";
   }
 
   visitCreateFunction(cps_ir.CreateFunction node) {
@@ -469,31 +436,10 @@ class BlockCollector implements cps_ir.Visitor {
 
   visit(cps_ir.Node node) => node.accept(this);
 
-  visitFieldDefinition(cps_ir.FieldDefinition node) {
-    visit(node.body);
-  }
-
   visitFunctionDefinition(cps_ir.FunctionDefinition node) {
-    visit(node.body);
-  }
-
-  visitConstructorDefinition(cps_ir.ConstructorDefinition node) {
-    node.initializers.forEach(visit);
-    visit(node.body);
-  }
-
-  visitBody(cps_ir.Body node) {
     currentBlock = new Block(names.name(node), [], node.body);
     entries.add(currentBlock);
     visit(node.body);
-  }
-
-  visitFieldInitializer(cps_ir.FieldInitializer node) {
-    visit(node.body);
-  }
-
-  visitSuperInitializer(cps_ir.SuperInitializer node) {
-    node.arguments.forEach(visit);
   }
 
   visitLetPrim(cps_ir.LetPrim exp) {
@@ -567,10 +513,6 @@ class BlockCollector implements cps_ir.Visitor {
     addEdgeToContinuation(exp.continuation);
   }
 
-  visitDeclareFunction(cps_ir.DeclareFunction exp) {
-    visit(exp.body);
-  }
-
   visitBranch(cps_ir.Branch exp) {
     cps_ir.Continuation trueTarget = exp.trueContinuation.definition;
     if (!trueTarget.isReturnContinuation) {
@@ -606,9 +548,6 @@ class BlockCollector implements cps_ir.Visitor {
     unexpectedNode(node);
   }
   visitConstant(cps_ir.Constant node) {
-    unexpectedNode(node);
-  }
-  visitReifyTypeVar(cps_ir.ReifyTypeVar node) {
     unexpectedNode(node);
   }
   visitCreateFunction(cps_ir.CreateFunction node) {

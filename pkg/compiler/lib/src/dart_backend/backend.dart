@@ -130,75 +130,6 @@ class DartBackend extends Backend {
   }
 
   void codegen(CodegenWorkItem work) { }
-
-  static bool checkTreeIntegrity(tree_ir.RootNode node) {
-    new CheckTreeIntegrity().check(node);
-    return true; // So this can be used from assert().
-  }
-
-  static bool checkCpsIntegrity(cps_ir.RootNode node) {
-    new CheckCpsIntegrity().check(node);
-    return true; // So this can be used from assert().
-  }
-
-  /// Create an [ElementAst] from the CPS IR.
-  static ElementAst createElementAst(
-       ElementAstCreationContext context,
-       Element element,
-       cps_ir.RootNode cpsRoot) {
-    context.traceCompilation(element.name);
-    context.traceGraph('CPS builder', cpsRoot);
-    assert(checkCpsIntegrity(cpsRoot));
-
-    // Transformations on the CPS IR.
-    void applyCpsPass(cps_opt.Pass pass) {
-      pass.rewrite(cpsRoot);
-      context.traceGraph(pass.passName, cpsRoot);
-      assert(checkCpsIntegrity(cpsRoot));
-    }
-
-    // TODO(karlklose): enable type propagation for dart2dart when constant
-    // types are correctly marked as instantiated (Issue 21880).
-    TypePropagator typePropagator = new TypePropagator(
-        context.dartTypes,
-        context.constantSystem,
-        new UnitTypeSystem(),
-        context.internalError);
-    applyCpsPass(typePropagator);
-    applyCpsPass(new RedundantPhiEliminator());
-    applyCpsPass(new ShrinkingReducer());
-
-    tree_builder.Builder builder =
-        new tree_builder.Builder(context.internalError);
-    tree_ir.RootNode treeRoot = builder.build(cpsRoot);
-    assert(treeRoot != null);
-    context.traceGraph('Tree builder', treeRoot);
-    assert(checkTreeIntegrity(treeRoot));
-
-    // Transformations on the Tree IR.
-    void applyTreePass(tree_opt.Pass pass) {
-      pass.rewrite(treeRoot);
-      context.traceGraph(pass.passName, treeRoot);
-      assert(checkTreeIntegrity(treeRoot));
-    }
-
-    applyTreePass(new StatementRewriter(isDartMode: true));
-    applyTreePass(new VariableMerger());
-    applyTreePass(new LoopRewriter());
-    applyTreePass(new LogicalRewriter());
-    applyTreePass(new PullIntoInitializers());
-
-    // Backend-specific transformations.
-    new backend_ast_emitter.UnshadowParameters().unshadow(treeRoot);
-    context.traceGraph('Unshadow parameters', treeRoot);
-
-    TreeElementMapping treeElements = new TreeElementMapping(element);
-    backend_ast.RootNode backendAst = backend_ast_emitter.emit(treeRoot);
-    Node frontend_ast = backend2frontend.emit(treeElements, backendAst);
-    return new ElementAst(frontend_ast, treeElements);
-
-  }
-
   /**
    * Tells whether we should output given element. Corelib classes like
    * Object should not be in the resulting code.
@@ -216,13 +147,8 @@ class DartBackend extends Backend {
         new _ElementAstCreationContext(compiler, constantSystem);
 
     ElementAst computeElementAst(AstElement element) {
-      if (!compiler.irBuilder.hasIr(element)) {
-        return new ElementAst(element.resolvedAst.node,
-                              element.resolvedAst.elements);
-      } else {
-        cps_ir.RootNode irNode = compiler.irBuilder.getIr(element);
-        return createElementAst(context, element, irNode);
-      }
+      return new ElementAst(element.resolvedAst.node,
+                            element.resolvedAst.elements);
     }
 
     // TODO(johnniwinther): Remove the need for this method.
@@ -542,9 +468,6 @@ abstract class ElementAstCreationContext {
   DartTypes get dartTypes;
   ConstantSystem get constantSystem;
   InternalErrorFunction get internalError;
-
-  void traceCompilation(String name);
-  void traceGraph(String title, var irObject);
 }
 
 class _ElementAstCreationContext implements ElementAstCreationContext {
@@ -552,14 +475,6 @@ class _ElementAstCreationContext implements ElementAstCreationContext {
   final ConstantSystem constantSystem;
 
   _ElementAstCreationContext(this.compiler, this.constantSystem);
-
-  void traceCompilation(String name) {
-    compiler.tracer.traceCompilation(name, null);
-  }
-
-  void traceGraph(String title, var irObject) {
-    compiler.tracer.traceGraph(title, irObject);
-  }
 
   DartTypes get dartTypes => compiler.types;
 

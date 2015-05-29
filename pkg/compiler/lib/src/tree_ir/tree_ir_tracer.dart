@@ -61,11 +61,9 @@ class BlockCollector extends StatementVisitor {
     blocks.add(block);
   }
 
-  void collect(RootNode node) {
-    node.forEachBody((Statement body) {
-      _addBlock(new Block()..isEntryPoint = true);
-      visitStatement(body);
-    });
+  void collect(FunctionDefinition node) {
+    _addBlock(new Block()..isEntryPoint = true);
+    visitStatement(node.body);
   }
 
   visitLabeledStatement(LabeledStatement node) {
@@ -170,16 +168,6 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
     visitStatement(node.next);
   }
-
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    _addStatement(node);
-    visitStatement(node.next);
-  }
-
-  visitVariableDeclaration(VariableDeclaration node) {
-    _addStatement(node);
-    visitStatement(node.next);
-  }
 }
 
 class TreeTracer extends TracerUtil with StatementVisitor {
@@ -194,23 +182,16 @@ class TreeTracer extends TracerUtil with StatementVisitor {
   BlockCollector collector;
   int statementCounter;
 
-  void traceGraph(String name, RootNode node) {
-    if (node.isEmpty) return;
+  void traceGraph(String name, FunctionDefinition node) {
     parameters = node.parameters;
     tag("cfg", () {
       printProperty("name", name);
-      printRootNode(node);
+      names = new Names();
+      statementCounter = 0;
+      collector = new BlockCollector();
+      collector.collect(node);
       collector.blocks.forEach(printBlock);
     });
-  }
-
-  void printRootNode(RootNode node) {
-    collector = new BlockCollector();
-    names = new Names();
-    statementCounter = 0;
-    collector = new BlockCollector();
-    collector.collect(node);
-    collector.blocks.forEach(printBlock);
   }
 
   void printBlock(Block block) {
@@ -319,16 +300,6 @@ class TreeTracer extends TracerUtil with StatementVisitor {
     printStatement(null, expr(node.expression));
   }
 
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    printStatement(null, 'function ${node.definition.element.name}');
-  }
-
-  visitVariableDeclaration(VariableDeclaration node) {
-    String variable = names.varName(node.variable);
-    String value = expr(node.value);
-    printStatement(null, 'declare $variable = $value');
-  }
-
   visitSetField(SetField node) {
     String object = expr(node.object);
     String field = node.field.name;
@@ -425,10 +396,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return "this";
   }
 
-  String visitReifyTypeVar(ReifyTypeVar node) {
-    return "typevar [${node.typeVariable.name}]";
-  }
-
   static bool usesInfixNotation(Expression node) {
     return node is Conditional ||
            node is LogicalOperator ||
@@ -471,14 +438,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   String visitFunctionExpression(FunctionExpression node) {
     return "function ${node.definition.element.name}";
-  }
-
-  String visitFieldInitializer(FieldInitializer node) {
-    throw "$node should not be visited by $this";
-  }
-
-  String visitSuperInitializer(SuperInitializer node) {
-    throw "$node should not be visited by $this";
   }
 
   String visitGetField(GetField node) {

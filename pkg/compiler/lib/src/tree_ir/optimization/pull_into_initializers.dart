@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+library tree_ir.optimization.pull_into_initializers;
+
 import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
 
@@ -46,17 +48,10 @@ import '../tree_ir_nodes.dart';
 /// [PullIntoInitializers] cannot pull `y` into an initializer because
 /// the impure expressions `foo()` and `bar()` would then be swapped.
 ///
-class PullIntoInitializers implements Pass {
+class PullIntoInitializers extends ExpressionVisitor<Expression>
+                           implements Pass {
   String get passName => 'Pull into initializers';
 
-  void rewrite(RootNode node) {
-    node.replaceEachBody((Statement body) {
-      return new BodyRewriter().rewriteBody(node.parameters, body);
-    });
-  }
-}
-
-class BodyRewriter extends ExpressionVisitor<Expression> {
   Set<Variable> assignedVariables = new Set<Variable>();
 
   /// The fragment between [first] and [last] holds the statements
@@ -98,8 +93,9 @@ class BodyRewriter extends ExpressionVisitor<Expression> {
     return visitExpression(node);
   }
 
-  Statement rewriteBody(List<Variable> parameters, Statement body) {
-    assignedVariables.addAll(parameters);
+  void rewrite(FunctionDefinition node) {
+    Statement body = node.body;
+    assignedVariables.addAll(node.parameters);
 
     // [body] represents the first statement after the initializer block.
     // Repeatedly pull assignment statements into the initializer block.
@@ -134,7 +130,8 @@ class BodyRewriter extends ExpressionVisitor<Expression> {
 
     append(body);
     assert(first != null); // Because we just appended the body.
-    return first;
+
+    node.body = first;
   }
 
   void destroyVariableUse(VariableUse node) {
@@ -255,7 +252,7 @@ class BodyRewriter extends ExpressionVisitor<Expression> {
   }
 
   void visitInnerFunction(FunctionDefinition node) {
-    node.body = new BodyRewriter().rewriteBody(node.parameters, node.body);
+    new PullIntoInitializers().rewrite(node);
   }
 
   Expression visitFunctionExpression(FunctionExpression node) {
@@ -312,10 +309,6 @@ class BodyRewriter extends ExpressionVisitor<Expression> {
   }
 
   Expression visitThis(This node) {
-    return node;
-  }
-
-  Expression visitReifyTypeVar(ReifyTypeVar node) {
     return node;
   }
 

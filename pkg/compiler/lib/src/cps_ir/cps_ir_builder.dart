@@ -395,7 +395,7 @@ class IrBuilderSharedState {
   ir.Parameter _thisParameter;
   ir.Parameter enclosingMethodThisParameter;
 
-  final List<ir.Definition> functionParameters = <ir.Definition>[];
+  final List<ir.Parameter> functionParameters = <ir.Parameter>[];
 
   IrBuilderSharedState(this.constantSystem, this.currentElement);
 
@@ -565,33 +565,7 @@ abstract class IrBuilder {
         ..mutableVariables = mutableVariables;
   }
 
-  /// Construct a builder for making constructor field initializers.
-  IrBuilder makeInitializerBuilder() {
-    return _makeInstance()
-        ..state = new IrBuilderSharedState(state.constantSystem,
-                                           state.currentElement)
-        ..environment = new Environment.from(environment)
-        ..mutableVariables = mutableVariables;
-  }
-
-  /// Construct a builder for an inner function.
-  IrBuilder makeInnerFunctionBuilder(ExecutableElement currentElement) {
-    IrBuilderSharedState innerState =
-        new IrBuilderSharedState(state.constantSystem, currentElement)
-          ..enclosingMethodThisParameter = state.enclosingMethodThisParameter;
-    return _makeInstance()
-        ..state = innerState
-        ..environment = new Environment.empty()
-        ..mutableVariables =
-            new Map<Local, ir.MutableVariable>.from(mutableVariables);
-  }
-
   bool get isOpen => _root == null || _current != null;
-
-
-  void buildFieldInitializerHeader({ClosureScope closureScope}) {
-    _enterScope(closureScope);
-  }
 
   List<ir.Primitive> buildFunctionHeader(Iterable<Local> parameters,
                                         {ClosureScope closureScope,
@@ -832,87 +806,20 @@ abstract class IrBuilder {
     _current = null;
   }
 
-  ir.SuperInitializer makeSuperInitializer(ConstructorElement target,
-                                           List<ir.Body> arguments,
-                                           Selector selector) {
-    return new ir.SuperInitializer(target, arguments, selector);
-  }
-
-  ir.FieldInitializer makeFieldInitializer(FieldElement element,
-                                           ir.Body body) {
-    return new ir.FieldInitializer(element, body);
-  }
-
-  /// Create a [ir.FieldDefinition] for the current [Element] using [_root] as
-  /// the body using [initializer] as the initial value.
-  ir.FieldDefinition makeFieldDefinition(ir.Primitive initializer) {
-    if (initializer == null) {
-      return new ir.FieldDefinition.withoutInitializer(state.currentElement);
-    } else {
-      ir.Body body = makeBody(initializer);
-      return new ir.FieldDefinition(state.currentElement, body);
-    }
-  }
-
-  ir.Body makeBody([ir.Primitive value]) {
-    if (value == null) {
-      _ensureReturn();
-    } else {
-      buildReturn(value);
-    }
-    return new ir.Body(_root, state.returnContinuation);
-  }
-
-  /// Create a [ir.FunctionDefinition] for [element] using [_root] as the body.
+  /// Create a [ir.FunctionDefinition] using [_root] as the body.
   ///
-  /// Parameters must be created before the construction of the body using
-  /// [createFunctionParameter].
-  ir.FunctionDefinition makeFunctionDefinition(
-      List<ConstantExpression> defaults) {
-    FunctionElement element = state.currentElement;
-    if (element.isAbstract || element.isExternal) {
-      assert(invariant(element, _root == null,
-          message: "Non-empty body for abstract method $element: $_root"));
-      assert(invariant(element, state.localConstants.isEmpty,
-          message: "Local constants for abstract method $element: "
-                   "${state.localConstants}"));
-      return new ir.FunctionDefinition.abstract(
-          element, state.functionParameters, defaults);
-    } else {
-      ir.Body body = makeBody();
-      return new ir.FunctionDefinition(
-          element, state.thisParameter, state.functionParameters, body,
-          state.localConstants, defaults);
-    }
-  }
-
-  /// Create a constructor definition without a body, for representing
-  /// external constructors declarations.
-  ir.ConstructorDefinition makeAbstractConstructorDefinition(
-      List<ConstantExpression> defaults) {
-    FunctionElement element = state.currentElement;
-    assert(invariant(element, _root == null,
-        message: "Non-empty body for external constructor $element: $_root"));
-    assert(invariant(element, state.localConstants.isEmpty,
-        message: "Local constants for external constructor $element: "
-                 "${state.localConstants}"));
-    return new ir.ConstructorDefinition.abstract(
-        element, state.functionParameters, defaults);
-  }
-
-  ir.ConstructorDefinition makeConstructorDefinition(
-      List<ConstantExpression> defaults, List<ir.Initializer> initializers) {
-    FunctionElement element = state.currentElement;
-    ir.Body body = makeBody();
-    return new ir.ConstructorDefinition(
-        element, state.thisParameter, state.functionParameters, body, initializers,
-        state.localConstants, defaults);
-  }
-
-  ir.FunctionDefinition makeLazyFieldInitializer() {
-    ir.Body body = makeBody();
-    FieldElement element = state.currentElement;
-    return new ir.FunctionDefinition(element, null, [], body, [], []);
+  /// The protocol for building a function is:
+  /// 1. Call [buildFunctionHeader].
+  /// 2. Call `buildXXX` methods to build the body.
+  /// 3. Call [makeFunctionDefinition] to finish.
+  ir.FunctionDefinition makeFunctionDefinition() {
+    _ensureReturn();
+    return new ir.FunctionDefinition(
+        state.currentElement,
+        state.thisParameter,
+        state.functionParameters,
+        state.returnContinuation,
+        _root);
   }
 
   /// Create a invocation of the [method] on the super class where the call
@@ -2100,217 +2007,6 @@ abstract class IrBuilder {
     // There is always a join parameter for the result value, because it
     // is different on at least two paths.
     return join.continuation.parameters.last;
-  }
-}
-
-/// Shared state between DartIrBuilders within the same method.
-class DartIrBuilderSharedState {
-  /// [MutableVariable]s that should temporarily be treated as registers.
-  final Set<Local> registerizedMutableVariables = new Set<Local>();
-}
-
-/// Dart-specific subclass of [IrBuilder].
-///
-/// Inner functions are represented by a [FunctionDefinition] with the
-/// IR for the inner function nested inside.
-///
-/// Captured variables are translated to ref cells (see [MutableVariable])
-/// using [GetMutableVariable] and [SetMutableVariable].
-class DartIrBuilder extends IrBuilder {
-  final DartIrBuilderSharedState dartState;
-
-  IrBuilder _makeInstance() => new DartIrBuilder._blank(dartState);
-  DartIrBuilder._blank(this.dartState);
-
-  DartIrBuilder(ConstantSystem constantSystem,
-                ExecutableElement currentElement,
-                Set<Local> capturedVariables)
-      : dartState = new DartIrBuilderSharedState() {
-    _init(constantSystem, currentElement);
-    capturedVariables.forEach(makeMutableVariable);
-  }
-
-  @override
-  bool isInMutableVariable(Local local) {
-    return mutableVariables.containsKey(local) &&
-           !dartState.registerizedMutableVariables.contains(local);
-  }
-
-  void _enterScope(ClosureScope scope) {
-    assert(scope == null);
-  }
-
-  void _enterClosureEnvironment(ClosureEnvironment env) {
-    assert(env == null);
-  }
-
-  void _enterForLoopInitializer(ClosureScope scope,
-                                List<LocalElement> loopVariables) {
-    assert(scope == null);
-    for (LocalElement loopVariable in loopVariables) {
-      if (mutableVariables.containsKey(loopVariable)) {
-        // Temporarily keep the loop variable in a primitive.
-        // The loop variable will be added to environment when
-        // [declareLocalVariable] is called.
-        dartState.registerizedMutableVariables.add(loopVariable);
-      }
-    }
-  }
-
-  void _enterForLoopBody(ClosureScope scope,
-                         List<LocalElement> loopVariables) {
-    assert(scope == null);
-    for (LocalElement loopVariable in loopVariables) {
-      if (mutableVariables.containsKey(loopVariable)) {
-        // Move from [Primitive] into [MutableVariable].
-        dartState.registerizedMutableVariables.remove(loopVariable);
-        add(new ir.LetMutable(getMutableVariable(loopVariable),
-                              environment.lookup(loopVariable)));
-      }
-    }
-  }
-
-  void _enterForLoopUpdate(ClosureScope scope,
-                           List<LocalElement> loopVariables) {
-    assert(scope == null);
-    // Move captured loop variables back into the local environment.
-    // The update expression will use the values we put in the environment,
-    // and then the environments for the initializer and update will be
-    // joined at the head of the body.
-    for (LocalElement loopVariable in loopVariables) {
-      if (isInMutableVariable(loopVariable)) {
-        ir.MutableVariable mutableVariable = getMutableVariable(loopVariable);
-        ir.Primitive value =
-            addPrimitive(new ir.GetMutableVariable(mutableVariable));
-        environment.update(loopVariable, value);
-        dartState.registerizedMutableVariables.add(loopVariable);
-      }
-    }
-  }
-
-  void _createFunctionParameter(Local parameterElement) {
-    ir.Parameter parameter = new ir.Parameter(parameterElement);
-    _parameters.add(parameter);
-    if (isInMutableVariable(parameterElement)) {
-      state.functionParameters.add(getMutableVariable(parameterElement));
-    } else {
-      state.functionParameters.add(parameter);
-      environment.extend(parameterElement, parameter);
-    }
-  }
-
-  void _createThisParameter() {
-    void create() {
-      ir.Parameter thisParameter =
-          new ir.Parameter(new ThisParameterLocal(state.currentElement));
-      state.thisParameter = thisParameter;
-      state.enclosingMethodThisParameter = thisParameter;
-    }
-    if (state.currentElement.isLocal) return;
-    if (state.currentElement.isStatic) return;
-    if (state.currentElement.isGenerativeConstructor) {
-      create();
-      return;
-    }
-    if (state.currentElement.isStatic) return;
-    if (state.currentElement.isInstanceMember) {
-      create();
-      return;
-    }
-  }
-
-  void declareLocalVariable(LocalVariableElement variableElement,
-                            {ir.Primitive initialValue}) {
-    assert(isOpen);
-    if (initialValue == null) {
-      initialValue = buildNullConstant();
-    }
-    if (isInMutableVariable(variableElement)) {
-      add(new ir.LetMutable(getMutableVariable(variableElement),
-                            initialValue));
-    } else {
-      initialValue.useElementAsHint(variableElement);
-      environment.extend(variableElement, initialValue);
-    }
-  }
-
-  /// Add [functionElement] to the environment with provided [definition].
-  void declareLocalFunction(LocalFunctionElement functionElement,
-                            ir.FunctionDefinition definition) {
-    assert(isOpen);
-    if (isInMutableVariable(functionElement)) {
-      ir.MutableVariable variable = getMutableVariable(functionElement);
-      add(new ir.DeclareFunction(variable, definition));
-    } else {
-      ir.CreateFunction prim = addPrimitive(new ir.CreateFunction(definition));
-      environment.extend(functionElement, prim);
-      prim.useElementAsHint(functionElement);
-    }
-  }
-
-  /// Create a function expression from [definition].
-  ir.Primitive buildFunctionExpression(ir.FunctionDefinition definition) {
-    return addPrimitive(new ir.CreateFunction(definition));
-  }
-
-  /// Create a read access of [local].
-  @override
-  ir.Primitive _buildLocalGet(LocalElement local) {
-    assert(isOpen);
-    if (isInMutableVariable(local)) {
-      // Do not use [local] as a hint on [result]. The variable should always
-      // be inlined, but the hint prevents it.
-      return addPrimitive(new ir.GetMutableVariable(getMutableVariable(local)));
-    } else {
-      return environment.lookup(local);
-    }
-  }
-
-  /// Create a write access to [local] with the provided [value].
-  @override
-  ir.Primitive buildLocalVariableSet(LocalElement local, ir.Primitive value) {
-    assert(isOpen);
-    if (isInMutableVariable(local)) {
-      add(new ir.SetMutableVariable(getMutableVariable(local), value));
-    } else {
-      value.useElementAsHint(local);
-      environment.update(local, value);
-    }
-    return value;
-  }
-
-  ir.Primitive buildThis() {
-    return state.enclosingMethodThisParameter;
-  }
-
-  @override
-  ir.Primitive buildConstructorInvocation(ConstructorElement element,
-                                          CallStructure callStructure,
-                                          DartType type,
-                                          List<ir.Primitive> arguments) {
-    assert(isOpen);
-    Selector selector =
-        new Selector(SelectorKind.CALL, element.memberName, callStructure);
-    return _continueWithExpression(
-        (k) => new ir.InvokeConstructor(type, element, selector,
-            arguments, k));
-  }
-
-  @override
-  ir.Primitive buildReifyTypeVariable(TypeVariableType variable) {
-    return addPrimitive(new ir.ReifyTypeVar(variable.element));
-  }
-
-  @override
-  ir.Primitive buildTypeOperator(ir.Primitive value,
-                                 DartType type,
-                                 {bool isTypeTest}) {
-    assert(isOpen);
-    assert(isTypeTest != null);
-    ir.Primitive check = _continueWithExpression(
-            (k) => new ir.TypeOperator(value, type,
-                       const <ir.Primitive>[], k, isTypeTest: isTypeTest));
-    return check;
   }
 }
 

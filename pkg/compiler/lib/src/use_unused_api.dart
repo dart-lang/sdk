@@ -301,17 +301,12 @@ useSemanticVisitor() {
   new semantic_visitor.BulkDeclarationVisitor().apply(null, null);
 }
 
-class DummyTreeVisitor extends tree_ir.RootVisitor
-                          with tree_ir.InitializerVisitor {
-  visitFunctionDefinition(tree_ir.FunctionDefinition node) {}
-  visitConstructorDefinition(tree_ir.ConstructorDefinition node) {}
-  visitFieldDefinition(tree_ir.FieldDefinition node) {}
-
-  visitFieldInitializer(tree_ir.FieldInitializer node) {}
-  visitSuperInitializer(tree_ir.SuperInitializer node) {}
+class TreeVisitor1 extends tree_ir.ExpressionVisitor1
+                      with tree_ir.StatementVisitor1 {
+  noSuchMethod(inv) {}
 }
 
 useTreeVisitors() {
-  new DummyTreeVisitor().visitRootNode(null);
-  new DummyTreeVisitor().visitInitializer(null);
+  new TreeVisitor1().visitExpression(null, null);
+  new TreeVisitor1().visitStatement(null, null);
 }

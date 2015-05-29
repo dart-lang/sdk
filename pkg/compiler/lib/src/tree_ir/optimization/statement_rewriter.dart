@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree_ir.optimization;
+library tree_ir.optimization.statement_rewriter;
+
+import 'optimization.dart' show Pass;
+import '../tree_ir_nodes.dart';
 
 /**
  * Performs the following transformations on the tree:
@@ -109,8 +112,8 @@ class StatementRewriter extends Transformer implements Pass {
   String get passName => 'Statement rewriter';
 
   @override
-  void rewrite(RootNode node) {
-    node.replaceEachBody(visitStatement);
+  void rewrite(FunctionDefinition node) {
+    node.body = visitStatement(node.body);
   }
 
   /// True if targeting Dart.
@@ -269,7 +272,6 @@ class StatementRewriter extends Transformer implements Pass {
     // and/or if it is better handled at the CPS level.
     return exp is Constant ||
            exp is This ||
-           exp is ReifyTypeVar ||
            exp is CreateInvocationMirror ||
            exp is InvokeStatic && exp.isEffectivelyConstant ||
            exp is VariableUse && constantEnvironment.containsKey(exp.variable);
@@ -328,18 +330,6 @@ class StatementRewriter extends Transformer implements Pass {
       --node.variable.writeCount;
       return node.value;
     }
-    return node;
-  }
-
-  Statement visitVariableDeclaration(VariableDeclaration node) {
-    if (isEffectivelyConstant(node.value)) {
-      node.next = visitStatement(node.next);
-    } else {
-      inEmptyEnvironment(() {
-        node.next = visitStatement(node.next);
-      });
-    }
-    node.value = visitExpression(node.value);
     return node;
   }
 
@@ -419,12 +409,6 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitFunctionExpression(FunctionExpression node) {
     new StatementRewriter.nested(this).rewrite(node.definition);
-    return node;
-  }
-
-  Statement visitFunctionDeclaration(FunctionDeclaration node) {
-    new StatementRewriter.nested(this).rewrite(node.definition);
-    node.next = visitStatement(node.next);
     return node;
   }
 
@@ -550,10 +534,6 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitThis(This node) {
-    return node;
-  }
-
-  Expression visitReifyTypeVar(ReifyTypeVar node) {
     return node;
   }
 

@@ -153,7 +153,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
     }
   }
 
-  static bool checkCpsIntegrity(cps.RootNode node) {
+  static bool checkCpsIntegrity(cps.FunctionDefinition node) {
     new CheckCpsIntegrity().check(node);
     return true; // So this can be used from assert().
   }
@@ -189,7 +189,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
     return treeNode;
   }
 
-  static bool checkTreeIntegrity(tree_ir.RootNode node) {
+  static bool checkTreeIntegrity(tree_ir.FunctionDefinition node) {
     new CheckTreeIntegrity().check(node);
     return true; // So this can be used from assert().
   }

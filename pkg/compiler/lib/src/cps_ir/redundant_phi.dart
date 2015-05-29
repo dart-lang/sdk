@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.cps_ir.optimizers;
+library dart2js.cps_ir.redundant_phi_elimination;
+
+import 'cps_ir_nodes.dart';
+import 'optimizers.dart';
 
 /// Eliminate redundant phis from the given [FunctionDefinition].
 ///
@@ -18,9 +21,7 @@ class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
   final Set<Continuation> workSet = new Set<Continuation>();
 
   @override
-  void rewrite(RootNode root) {
-    if (root.isEmpty) return;
-
+  void rewrite(FunctionDefinition root) {
     // Set all parent pointers.
     new ParentVisitor().visit(root);
 

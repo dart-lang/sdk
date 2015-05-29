@@ -40,7 +40,8 @@ import 'cps_ir_builder.dart';
  * re-implemented to work directly on the IR.
  */
 class IrBuilderTask extends CompilerTask {
-  final Map<Element, ir.RootNode> nodes = <Element, ir.RootNode>{};
+  final Map<Element, ir.FunctionDefinition> nodes =
+      <Element, ir.FunctionDefinition>{};
   final SourceInformationFactory sourceInformationFactory;
 
   String bailoutMessage = null;
@@ -52,20 +53,16 @@ class IrBuilderTask extends CompilerTask {
 
   bool hasIr(Element element) => nodes.containsKey(element.implementation);
 
-  ir.RootNode getIr(ExecutableElement element) {
+  ir.FunctionDefinition getIr(ExecutableElement element) {
     return nodes[element.implementation];
   }
 
-  ir.RootNode buildNode(AstElement element) {
+  ir.FunctionDefinition buildNode(AstElement element) {
     return measure(() => _buildNode(element));
   }
 
-  ir.RootNode _buildNode(AstElement element) {
+  ir.FunctionDefinition _buildNode(AstElement element) {
     bailoutMessage = null;
-    if (!canBuild(element)) {
-      bailoutMessage = 'unsupported element ${element.name}:${element.kind}';
-      return null;
-    }
 
     TreeElements elementsMapping = element.resolvedAst.elements;
     element = element.implementation;
@@ -74,12 +71,9 @@ class IrBuilderTask extends CompilerTask {
           sourceInformationFactory.forContext(element);
 
       IrBuilderVisitor builder =
-          compiler.backend is JavaScriptBackend
-          ? new JsIrBuilderVisitor(
-              elementsMapping, compiler, sourceInformationBuilder)
-          : new DartIrBuilderVisitor(
+          new JsIrBuilderVisitor(
               elementsMapping, compiler, sourceInformationBuilder);
-      ir.RootNode irNode = builder.buildExecutable(element);
+      ir.FunctionDefinition irNode = builder.buildExecutable(element);
       if (irNode == null) {
         bailoutMessage = builder.bailoutMessage;
       } else {
@@ -94,31 +88,6 @@ class IrBuilderTask extends CompilerTask {
       Set<Element> resolved = compiler.enqueuer.resolution.resolvedElements;
       resolved.forEach(buildNode);
     });
-  }
-
-  bool canBuild(Element element) {
-    // If using JavaScript backend, don't try to bail out early.
-    if (compiler.backend is JavaScriptBackend) return true;
-
-    if (element is TypedefElement) return false;
-    if (element is FunctionElement) {
-      // TODO(sigurdm): Support native functions for dart2js.
-      assert(invariant(element, !element.isNative));
-
-      if (element is ConstructorElement) {
-        if (!element.isGenerativeConstructor) {
-          // TODO(kmillikin,sigurdm): Support constructors.
-          return false;
-        }
-        if (element.isSynthesized) {
-          // Do generate CPS for synthetic constructors.
-          return true;
-        }
-      }
-    } else if (element is! FieldElement) {
-      compiler.internalError(element, "Unexpected element type $element");
-    }
-    return compiler.backend.shouldOutput(element);
   }
 
   bool get inCheckedMode {
@@ -191,11 +160,11 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   SemanticSendVisitor get sendVisitor => this;
 
   /**
-   * Builds the [ir.RootNode] for an executable element. In case the
+   * Builds the [ir.FunctionDefinition] for an executable element. In case the
    * function uses features that cannot be expressed in the IR, this element
    * returns `null`.
    */
-  ir.RootNode buildExecutable(ExecutableElement element);
+  ir.FunctionDefinition buildExecutable(ExecutableElement element);
 
   ClosureClassMap get closureClassMap;
   ClosureScope getClosureScopeForNode(ast.Node node);
@@ -248,8 +217,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return useSelectorType(newSelector, elements.getSelector(node));
   }
 
-  ir.RootNode _makeFunctionBody(FunctionElement element,
-                                ast.FunctionExpression node) {
+  ir.FunctionDefinition _makeFunctionBody(FunctionElement element,
+                                          ast.FunctionExpression node) {
     FunctionSignature signature = element.functionSignature;
     List<ParameterElement> parameters = [];
     signature.orderedForEachParameter(parameters.add);
@@ -258,104 +227,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                                   closureScope: getClosureScopeForNode(node),
                                   env: getClosureEnvironment());
 
-    List<ConstantExpression> defaults = new List<ConstantExpression>();
-    signature.orderedOptionalParameters.forEach((ParameterElement element) {
-      defaults.add(getConstantForVariable(element));
-    });
-
-    List<ir.Initializer> initializers;
-    if (element.isSynthesized) {
-      assert(element is ConstructorElement);
-      return irBuilder.makeConstructorDefinition(const <ConstantExpression>[],
-          const <ir.Initializer>[]);
-    } else if (element.isGenerativeConstructor) {
-      if (element.isExternal) {
-        return irBuilder.makeAbstractConstructorDefinition(defaults);
-      } else {
-        initializers = buildConstructorInitializers(node, element);
-        visit(node.body);
-        return irBuilder.makeConstructorDefinition(defaults, initializers);
-      }
-    } else {
-      visit(node.body);
-      return irBuilder.makeFunctionDefinition(defaults);
-    }
-  }
-
-  List<ir.Initializer> buildConstructorInitializers(
-      ast.FunctionExpression function, ConstructorElement element) {
-    List<ir.Initializer> result = <ir.Initializer>[];
-    FunctionSignature signature = element.functionSignature;
-
-    void tryAddInitializingFormal(ParameterElement parameterElement) {
-      if (parameterElement.isInitializingFormal) {
-        InitializingFormalElement initializingFormal = parameterElement;
-        withBuilder(irBuilder.makeInitializerBuilder(), () {
-          ir.Primitive value =
-              irBuilder.buildLocalVariableGet(parameterElement);
-          result.add(irBuilder.makeFieldInitializer(
-              initializingFormal.fieldElement,
-              irBuilder.makeBody(value)));
-        });
-      }
-    }
-
-    // TODO(sigurdm): Preserve initializing formals as initializing formals.
-    signature.orderedForEachParameter(tryAddInitializingFormal);
-
-    if (function.initializers == null) return result;
-    bool explicitSuperInitializer = false;
-    for(ast.Node initializer in function.initializers) {
-      if (initializer is ast.SendSet) {
-        // Field initializer.
-        FieldElement field = elements[initializer];
-        withBuilder(irBuilder.makeInitializerBuilder(), () {
-          ir.Primitive value = visit(initializer.arguments.head);
-          ir.Body body = irBuilder.makeBody(value);
-          result.add(irBuilder.makeFieldInitializer(field, body));
-        });
-      } else if (initializer is ast.Send) {
-        // Super or this initializer.
-        if (ast.Initializers.isConstructorRedirect(initializer)) {
-          giveup(initializer, "constructor redirect (this) initializer");
-        }
-        ConstructorElement constructor = elements[initializer].implementation;
-        Selector selector = elements.getSelector(initializer);
-        List<ir.Body> arguments =
-            initializer.arguments.mapToList((ast.Node argument) {
-          return withBuilder(irBuilder.makeInitializerBuilder(), () {
-            ir.Primitive value = visit(argument);
-            return irBuilder.makeBody(value);
-          });
-        });
-        result.add(irBuilder.makeSuperInitializer(constructor,
-                                                  arguments,
-                                                  selector));
-        explicitSuperInitializer = true;
-      } else {
-        compiler.internalError(initializer,
-                               "Unexpected initializer type $initializer");
-      }
-
-    }
-    if (!explicitSuperInitializer) {
-      // No super initializer found. Try to find the default constructor if
-      // the class is not Object.
-      ClassElement enclosingClass = element.enclosingClass;
-      if (!enclosingClass.isObject) {
-        ClassElement superClass = enclosingClass.superclass;
-        FunctionElement target = superClass.lookupDefaultConstructor();
-        if (target == null) {
-          compiler.internalError(superClass,
-              "No default constructor available.");
-        }
-        Selector selector = new Selector.callDefaultConstructor();
-        result.add(irBuilder.makeSuperInitializer(target,
-                                                  <ir.Body>[],
-                                                  selector));
-      }
-    }
-    return result;
+    visit(node.body);
+    return irBuilder.makeFunctionDefinition();
   }
 
   ir.Primitive visit(ast.Node node) => node.accept(this);
@@ -1923,7 +1796,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return buildInstanceNoSuchMethod(selector, args);
   }
 
-  ir.RootNode nullIfGiveup(ir.RootNode action()) {
+  ir.FunctionDefinition nullIfGiveup(ir.FunctionDefinition action()) {
     try {
       return action();
     } catch(e) {
@@ -2110,185 +1983,6 @@ class DartCapturedVariables extends ast.Visitor {
   }
 }
 
-/// IR builder specific to the Dart backend, coupled to the [DartIrBuilder].
-class DartIrBuilderVisitor extends IrBuilderVisitor {
-  /// Promote the type of [irBuilder] to [DartIrBuilder].
-  DartIrBuilder get irBuilder => super.irBuilder;
-
-  DartIrBuilderVisitor(TreeElements elements,
-                       Compiler compiler,
-                       SourceInformationBuilder sourceInformationBuilder)
-      : super(elements, compiler, sourceInformationBuilder);
-
-  DartIrBuilder makeIRBuilder(ExecutableElement element,
-                              Set<Local> capturedVariables) {
-    return new DartIrBuilder(compiler.backend.constantSystem,
-                             element,
-                             capturedVariables);
-  }
-
-  DartCapturedVariables _analyzeCapturedVariables(ExecutableElement element,
-                                                  ast.Node node) {
-    DartCapturedVariables variables = new DartCapturedVariables(elements);
-    if (!element.isSynthesized) {
-      try {
-        variables.analyze(node);
-      } catch (e) {
-        bailoutMessage = variables.bailoutMessage;
-        rethrow;
-      }
-    }
-    return variables;
-  }
-
-  /// Recursively builds the IR for the given nested function.
-  ir.FunctionDefinition makeSubFunction(ast.FunctionExpression node) {
-    FunctionElement element = elements[node];
-    assert(invariant(element, element.isImplementation));
-
-    IrBuilder builder = irBuilder.makeInnerFunctionBuilder(element);
-
-    return withBuilder(builder, () => _makeFunctionBody(element, node));
-  }
-
-  ir.Primitive visitFunctionExpression(ast.FunctionExpression node) {
-    return irBuilder.buildFunctionExpression(makeSubFunction(node));
-  }
-
-  visitFunctionDeclaration(ast.FunctionDeclaration node) {
-    LocalFunctionElement element = elements[node.function];
-    Object inner = makeSubFunction(node.function);
-    irBuilder.declareLocalFunction(element, inner);
-  }
-
-  ClosureClassMap get closureClassMap => null;
-  ClosureScope getClosureScopeForNode(ast.Node node) => null;
-  ClosureEnvironment getClosureEnvironment() => null;
-
-  ir.RootNode buildExecutable(ExecutableElement element) {
-    return nullIfGiveup(() {
-      ir.RootNode root;
-      if (element is FieldElement) {
-        root = buildField(element);
-      } else if (element is FunctionElement || element is ConstructorElement) {
-        root = buildFunction(element);
-      } else {
-        compiler.internalError(element, "Unexpected element type $element");
-      }
-      new CleanupPass().visit(root);
-      return root;
-    });
-  }
-
-  /// Returns a [ir.FieldDefinition] describing the initializer of [element].
-  ir.FieldDefinition buildField(FieldElement element) {
-    assert(invariant(element, element.isImplementation));
-    ast.VariableDefinitions definitions = element.node;
-    ast.Node fieldDefinition = definitions.definitions.nodes.first;
-    if (definitions.modifiers.isConst) {
-      // TODO(sigurdm): Just return const value.
-    }
-    assert(fieldDefinition != null);
-    assert(elements[fieldDefinition] != null);
-
-    DartCapturedVariables variables =
-        _analyzeCapturedVariables(element, fieldDefinition);
-    tryStatements = variables.tryStatements;
-    IrBuilder builder = makeIRBuilder(element, variables.capturedVariables);
-
-    return withBuilder(builder, () {
-      builder.buildFieldInitializerHeader(
-          closureScope: getClosureScopeForNode(fieldDefinition));
-      ir.Primitive initializer;
-      if (fieldDefinition is ast.SendSet) {
-        ast.SendSet sendSet = fieldDefinition;
-        initializer = visit(sendSet.arguments.first);
-      }
-      return builder.makeFieldDefinition(initializer);
-    });
-  }
-
-  ir.RootNode buildFunction(FunctionElement element) {
-    assert(invariant(element, element.isImplementation));
-    ast.FunctionExpression node = element.node;
-    if (element.asyncMarker != AsyncMarker.SYNC) {
-      giveup(null, 'cannot handle async-await');
-    }
-
-    if (!element.isSynthesized) {
-      assert(node != null);
-      assert(elements[node] != null);
-    } else {
-      SynthesizedConstructorElementX constructor = element;
-      if (!constructor.isDefaultConstructor) {
-        giveup(null, 'cannot handle synthetic forwarding constructors');
-      }
-    }
-
-    DartCapturedVariables variables =
-        _analyzeCapturedVariables(element, node);
-    tryStatements = variables.tryStatements;
-    IrBuilder builder = makeIRBuilder(element, variables.capturedVariables);
-
-    return withBuilder(builder, () => _makeFunctionBody(element, node));
-  }
-
-  List<ir.Primitive> normalizeStaticArguments(
-      CallStructure callStructure,
-      FunctionElement target,
-      List<ir.Primitive> arguments) {
-    return arguments;
-  }
-
-  List<ir.Primitive> normalizeDynamicArguments(
-      CallStructure callStructure,
-      List<ir.Primitive> arguments) {
-    return arguments;
-  }
-
-  @override
-  ir.Primitive handleConstructorInvoke(
-      ast.NewExpression node,
-      ConstructorElement constructor,
-      DartType type,
-      ast.NodeList arguments,
-      CallStructure callStructure, _) {
-    List<ir.Primitive> arguments =
-        node.send.arguments.mapToList(visit, growable:false);
-    return irBuilder.buildConstructorInvocation(
-        constructor,
-        callStructure,
-        type,
-        arguments);
-  }
-
-  @override
-  ir.Primitive buildStaticNoSuchMethod(Selector selector,
-                                       List<ir.Primitive> arguments) {
-    return giveup(null, 'Static noSuchMethod');
-  }
-
-  @override
-  ir.Primitive buildInstanceNoSuchMethod(Selector selector,
-                                         List<ir.Primitive> arguments) {
-    return giveup(null, 'Instance noSuchMethod');
-  }
-
-  @override
-  ir.Primitive buildRuntimeError(String message) {
-    return giveup(null, 'Build runtime error: $message');
-  }
-
-  @override
-  ir.Primitive buildAbstractClassInstantiationError(ClassElement element) {
-    return giveup(null, 'Abstract class instantiation: ${element.name}');
-  }
-
-  ir.Primitive buildStaticFieldGet(FieldElement field, SourceInformation src) {
-    return irBuilder.buildStaticFieldLazyGet(field, src);
-  }
-}
-
 /// The [IrBuilder]s view on the information about the program that has been
 /// computed in resolution and and type interence.
 class GlobalProgramInformation {
@@ -2412,9 +2106,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
                             scope.boxedLoopVariables);
   }
 
-  ir.RootNode buildExecutable(ExecutableElement element) {
+  ir.FunctionDefinition buildExecutable(ExecutableElement element) {
     return nullIfGiveup(() {
-      ir.RootNode root;
+      ir.FunctionDefinition root;
       switch (element.kind) {
         case ElementKind.GENERATIVE_CONSTRUCTOR:
           root = buildConstructor(element);
@@ -2460,9 +2154,10 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
             elements);
     IrBuilder builder = getBuilderFor(element);
     return withBuilder(builder, () {
+      irBuilder.buildFunctionHeader(<Local>[]);
       ir.Primitive initialValue = visit(element.initializer);
       irBuilder.buildReturn(initialValue);
-      return irBuilder.makeLazyFieldInitializer();
+      return irBuilder.makeFunctionDefinition();
     });
   }
 
@@ -2598,7 +2293,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       // --- step 4: return the created object ----
       irBuilder.buildReturn(instance);
 
-      return irBuilder.makeFunctionDefinition([]);
+      return irBuilder.makeFunctionDefinition();
     });
   }
 
@@ -2882,7 +2577,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       irBuilder.buildConstructorBodyHeader(getConstructorBodyParameters(body),
                                            getClosureScopeForNode(node));
       visit(node.body);
-      return irBuilder.makeFunctionDefinition([]);
+      return irBuilder.makeFunctionDefinition();
     });
   }
 
@@ -2979,6 +2674,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     }
     return result;
   }
+
   @override
   ir.Primitive handleConstructorInvoke(
       ast.NewExpression node,
@@ -3080,6 +2776,10 @@ class CleanupPass extends ir.RecursiveVisitor {
     return expression;
   }
 
+  processFunctionDefinition(ir.FunctionDefinition node) {
+    node.body = replacementFor(node.body);
+  }
+
   processLetPrim(ir.LetPrim node) {
     node.body = replacementFor(node.body);
   }
@@ -3100,10 +2800,6 @@ class CleanupPass extends ir.RecursiveVisitor {
     node.body = replacementFor(node.body);
   }
 
-  processDeclareFunction(ir.DeclareFunction node) {
-    node.body = replacementFor(node.body);
-  }
-
   processSetField(ir.SetField node) {
     node.body = replacementFor(node.body);
   }
@@ -3113,10 +2809,6 @@ class CleanupPass extends ir.RecursiveVisitor {
   }
 
   processContinuation(ir.Continuation node) {
-    node.body = replacementFor(node.body);
-  }
-
-  processBody(ir.Body node) {
     node.body = replacementFor(node.body);
   }
 }

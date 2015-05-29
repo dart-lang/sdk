@@ -16,7 +16,7 @@ import 'tree_ir_nodes.dart';
 /// - Variables must not have more than one declaration.
 ///
 class CheckTreeIntegrity extends RecursiveVisitor {
-  RootNode topLevelNode;
+  FunctionDefinition topLevelNode;
 
   Map<Variable, int> varReads = <Variable, int>{};
   Map<Variable, int> varWrites = <Variable, int>{};
@@ -65,13 +65,6 @@ class CheckTreeIntegrity extends RecursiveVisitor {
     read(node.variable);
   }
 
-  visitVariableDeclaration(VariableDeclaration node) {
-    visitExpression(node.value);
-    declare(node.variable);
-    visitStatement(node.next);
-    undeclare(node.variable);
-  }
-
   visitAssign(Assign node) {
     visitExpression(node.value);
     write(node.variable);
@@ -82,16 +75,6 @@ class CheckTreeIntegrity extends RecursiveVisitor {
     node.catchParameters.forEach(declare);
     visitStatement(node.catchBody);
     node.catchParameters.forEach(undeclare);
-  }
-
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    declare(node.variable);
-    checkBody(node.definition);
-    visitStatement(node.next);
-    undeclare(node.variable);
-    if (varWrites[node.variable] > 1) {
-      error('Assignment to function declaration ${node.variable}');
-    }
   }
 
   visitJumpTargetBody(JumpTarget target) {
@@ -149,9 +132,9 @@ class CheckTreeIntegrity extends RecursiveVisitor {
     checkBody(node);
   }
 
-  void checkBody(RootNode node) {
+  void checkBody(FunctionDefinition node) {
     node.parameters.forEach(declare);
-    node.forEachBody(visitStatement);
+    visitStatement(node.body);
     node.parameters.forEach(undeclare);
   }
 
@@ -159,7 +142,7 @@ class CheckTreeIntegrity extends RecursiveVisitor {
     throw 'Tree IR integrity violation in ${topLevelNode.element}:\n$message';
   }
 
-  void check(RootNode node) {
+  void check(FunctionDefinition node) {
     topLevelNode = node;
     checkBody(node);
 
