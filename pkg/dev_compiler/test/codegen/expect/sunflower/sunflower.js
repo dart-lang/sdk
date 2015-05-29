@@ -1,13 +1,13 @@
 var sunflower = dart.defineLibrary(sunflower, {});
-var math = dart.import(math);
 var dom = dart.import(dom);
 var core = dart.import(core);
-(function(exports, math, dom, core) {
+var math = dart.import(math);
+var painter = dart.import(painter);
+var circle = dart.import(circle);
+(function(exports, dom, core, math, painter, circle) {
   'use strict';
-  let ORANGE = "orange";
   let SEED_RADIUS = 2;
   let SCALE_FACTOR = 4;
-  let TAU = dart.notNull(math.PI) * 2;
   let MAX_D = 300;
   let centerX = dart.notNull(MAX_D) / 2;
   let centerY = centerX;
@@ -17,6 +17,12 @@ var core = dart.import(core);
   dart.fn(querySelector, dom.Element, [core.String]);
   exports.seeds = 0;
   dart.defineLazyProperties(exports, {
+    get canvas() {
+      return dart.as(querySelector("#canvas"), dom.CanvasElement);
+    },
+    get context() {
+      return dart.as(exports.canvas.getContext('2d'), dom.CanvasRenderingContext2D);
+    },
     get slider() {
       return dart.as(querySelector("#slider"), dom.InputElement);
     },
@@ -25,9 +31,6 @@ var core = dart.import(core);
     },
     get PHI() {
       return (dart.notNull(math.sqrt(5)) + 1) / 2;
-    },
-    get context() {
-      return dart.as(dart.as(querySelector("#canvas"), dom.CanvasElement).getContext('2d'), dom.CanvasRenderingContext2D);
     }
   });
   function main() {
@@ -39,45 +42,16 @@ var core = dart.import(core);
     exports.seeds = core.int.parse(exports.slider.value);
     exports.context.clearRect(0, 0, MAX_D, MAX_D);
     for (let i = 0; dart.notNull(i) < dart.notNull(exports.seeds); i = dart.notNull(i) + 1) {
-      let theta = dart.notNull(i) * dart.notNull(TAU) / dart.notNull(exports.PHI);
+      let theta = dart.notNull(i) * dart.notNull(painter.TAU) / dart.notNull(exports.PHI);
       let r = dart.notNull(math.sqrt(i)) * dart.notNull(SCALE_FACTOR);
       let x = dart.notNull(centerX) + dart.notNull(r) * dart.notNull(math.cos(theta));
       let y = dart.notNull(centerY) - dart.notNull(r) * dart.notNull(math.sin(theta));
-      new SunflowerSeed(x, y, SEED_RADIUS).draw();
+      new SunflowerSeed(x, y, SEED_RADIUS).draw(exports.context);
     }
     exports.notes.textContent = `${exports.seeds} seeds`;
   }
   dart.fn(draw, dart.void, []);
-  class Circle extends core.Object {
-    Circle(x, y, radius) {
-      this.x = x;
-      this.y = y;
-      this.radius = radius;
-    }
-  }
-  dart.setSignature(Circle, {
-    constructors: () => ({Circle: [Circle, [core.num, core.num, core.num]]})
-  });
-  class CirclePainter extends core.Object {
-    CirclePainter() {
-      this.color = ORANGE;
-    }
-    draw() {
-      exports.context.beginPath();
-      exports.context.lineWidth = 2;
-      exports.context.fillStyle = this.color;
-      exports.context.strokeStyle = this.color;
-      exports.context.arc(this.x, this.y, this.radius, 0, TAU, false);
-      exports.context.fill();
-      exports.context.closePath();
-      exports.context.stroke();
-    }
-  }
-  CirclePainter[dart.implements] = () => [Circle];
-  dart.setSignature(CirclePainter, {
-    methods: () => ({draw: [dart.void, []]})
-  });
-  class SunflowerSeed extends dart.mixin(Circle, CirclePainter) {
+  class SunflowerSeed extends dart.mixin(circle.Circle, painter.CirclePainter) {
     SunflowerSeed(x, y, radius, color) {
       if (color === void 0)
         color = null;
@@ -90,17 +64,13 @@ var core = dart.import(core);
     constructors: () => ({SunflowerSeed: [SunflowerSeed, [core.num, core.num, core.num], [core.String]]})
   });
   // Exports:
-  exports.ORANGE = ORANGE;
   exports.SEED_RADIUS = SEED_RADIUS;
   exports.SCALE_FACTOR = SCALE_FACTOR;
-  exports.TAU = TAU;
   exports.MAX_D = MAX_D;
   exports.centerX = centerX;
   exports.centerY = centerY;
   exports.querySelector = querySelector;
   exports.main = main;
   exports.draw = draw;
-  exports.Circle = Circle;
-  exports.CirclePainter = CirclePainter;
   exports.SunflowerSeed = SunflowerSeed;
-})(sunflower, math, dom, core);
+})(sunflower, dom, core, math, painter, circle);
