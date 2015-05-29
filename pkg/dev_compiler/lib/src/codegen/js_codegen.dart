@@ -806,7 +806,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   JS.Statement _superConstructorCall(ClassElement element,
       [SuperConstructorInvocation node]) {
-
     ConstructorElement superCtor;
     if (node != null) {
       superCtor = node.staticElement;
