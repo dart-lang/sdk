@@ -497,6 +497,26 @@ class CacheEntryTest extends AbstractCacheTest {
     expect(entry.getValue(result), 1);
   }
 
+  test_setState_invalid_dependencyCycle() {
+    AnalysisTarget target1 = new TestSource('/a.dart');
+    AnalysisTarget target2 = new TestSource('/b.dart');
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    cache.put(entry1);
+    cache.put(entry2);
+    ResultDescriptor result = new ResultDescriptor('result', -1);
+    // Set each result as VALID with a dependency on on the other.
+    entry1.setValue(result, 100, [new TargetedResult(target2, result)]);
+    entry2.setValue(result, 200, [new TargetedResult(target1, result)]);
+    expect(entry1.getState(result), CacheState.VALID);
+    expect(entry2.getState(result), CacheState.VALID);
+    // Invalidate entry1.result; this should cause entry2 to be also
+    // cleared without going into an infinite regress.
+    entry1.setState(result, CacheState.INVALID);
+    expect(cache.get(target1), isNull);
+    expect(cache.get(target2), isNull);
+  }
+
   test_setState_invalid_invalidateDependent() {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
