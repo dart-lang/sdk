@@ -56,7 +56,7 @@ def PubSteps(build_info):
     common_args.append('-j1')
   if build_info.mode == 'release':
     bot.RunTest('pub and pkg ', build_info,
-                common_args + ['pub', 'pkg', 'docs'],
+                common_args + ['pub', 'pkg', 'docs', 'pkg_tested'],
                 swallow_error=True)
   else:
     # Pub tests currently have a lot of timeouts when run in debug mode.
