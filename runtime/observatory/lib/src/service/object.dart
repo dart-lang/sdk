@@ -753,11 +753,16 @@ class HeapSnapshot {
 
   List<Future<ServiceObject>> getMostRetained({int classId, int limit}) {
     var result = [];
-    for (var v in graph.getMostRetained(classId: classId, limit: limit)) {
-      var address = v.addressForWordSize(isolate.vm.architectureBits ~/ 8);
-      result.add(isolate.getObjectByAddress(address.toRadixString(16)).then((obj) {
-        obj.retainedSize = v.retainedSize;
-        return new Future(() => obj);
+    for (ObjectVertex v in graph.getMostRetained(classId: classId,
+                                                 limit: limit)) {
+      result.add(isolate.getObjectByAddress(v.address.toRadixString(16))
+                        .then((ServiceObject obj) {
+        if (obj is Instance) {
+          // TODO(rmacnak): size/retainedSize are properties of all heap
+          // objects, not just Instances.
+          obj.retainedSize = v.retainedSize;
+        }
+        return obj;
       }));
     }
     return result;
