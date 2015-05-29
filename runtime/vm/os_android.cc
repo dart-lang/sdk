@@ -281,7 +281,7 @@ void OS::SleepMicros(int64_t micros) {
 
 
 void OS::DebugBreak() {
-  UNIMPLEMENTED();
+  __builtin_trap();
 }
 
 

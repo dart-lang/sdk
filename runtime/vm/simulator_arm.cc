@@ -9,7 +9,7 @@
 #if defined(TARGET_ARCH_ARM)
 
 // Only build the simulator if not compiling for real ARM hardware.
-#if !defined(HOST_ARCH_ARM)
+#if defined(USING_SIMULATOR)
 
 #include "vm/simulator.h"
 
@@ -457,7 +457,7 @@ void SimulatorDebugger::Debug() {
           uint32_t value;
           if (strcmp(arg1, "icount") == 0) {
             const uint64_t icount = sim_->get_icount();
-            OS::Print("icount: %"Pu64" 0x%"Px64"\n", icount, icount);
+            OS::Print("icount: %" Pu64 " 0x%" Px64 "\n", icount, icount);
           } else if (GetValue(arg1, &value)) {
             OS::Print("%s: %u 0x%x\n", arg1, value, value);
           } else {
@@ -3879,6 +3879,6 @@ void Simulator::Longjmp(uword pc,
 
 }  // namespace dart
 
-#endif  // !defined(HOST_ARCH_ARM)
+#endif  // defined(USING_SIMULATOR)
 
 #endif  // defined TARGET_ARCH_ARM

@@ -186,8 +186,7 @@ void OS::DebugBreak() {
   // Microsoft Visual C/C++ or drop-in replacement.
   __debugbreak();
 #elif defined(__GCC__)
-  // MinGW?
-  asm("int $3");
+  __builtin_trap();
 #else
   // Microsoft style assembly.
   __asm {

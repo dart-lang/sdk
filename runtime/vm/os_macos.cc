@@ -154,11 +154,7 @@ void OS::SleepMicros(int64_t micros) {
 
 
 void OS::DebugBreak() {
-#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32)
-  asm("int $3");
-#else
-#error Unsupported architecture.
-#endif
+  __builtin_trap();
 }
 
 

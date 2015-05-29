@@ -50,7 +50,7 @@
 #include <winsock2.h>
 #include <Rpc.h>
 #include <shellapi.h>
-#endif
+#endif  // defined(_WIN32)
 
 #if !defined(_WIN32)
 #include <arpa/inet.h>
@@ -89,7 +89,15 @@
 #elif defined(__linux__) || defined(__FreeBSD__)
 #define TARGET_OS_LINUX 1
 #elif defined(__APPLE__)
+// Define the flavor of Mac OS we are running on.
+#include <TargetConditionals.h>
+// TODO(iposva): Rename TARGET_OS_MACOS to TARGET_OS_MAC to inherit
+// the value defined in TargetConditionals.h
 #define TARGET_OS_MACOS 1
+#if TARGET_OS_IPHONE
+#define TARGET_OS_IOS
+#endif
+
 #elif defined(_WIN32)
 #define TARGET_OS_WINDOWS 1
 #else
@@ -171,6 +179,8 @@ typedef simd128_value_t fpu_register_t;
 #define HOST_ARCH_ARM 1
 #define ARCH_IS_32_BIT 1
 #define kFpuRegisterSize 16
+// Mark the fact that we have defined simd_value_t.
+#define SIMD_VALUE_T_
 typedef struct {
   union {
     uint32_t u;
@@ -261,6 +271,30 @@ typedef simd128_value_t fpu_register_t;
 #if !defined(ARCH_IS_32_BIT)
 #error Mismatched Host/Target architectures.
 #endif
+#endif
+
+// Determine whether we will be using the simulator.
+#if defined(TARGET_ARCH_IA32)
+  // No simulator used.
+#elif defined(TARGET_ARCH_X64)
+  // No simulator used.
+#elif defined(TARGET_ARCH_ARM)
+#if !defined(HOST_ARCH_ARM) || defined(TARGET_OS_IOS)
+#define USING_SIMULATOR 1
+#endif
+
+#elif defined(TARGET_ARCH_ARM64)
+#if !defined(HOST_ARCH_ARM64) || defined(TARGET_OS_IOS)
+#define USING_SIMULATOR 1
+#endif
+
+#elif defined(TARGET_ARCH_MIPS)
+#if !defined(HOST_ARCH_MIPS) || defined(TARGET_OS_IOS)
+#define USING_SIMULATOR 1
+#endif
+
+#else
+#error Unknown architecture.
 #endif
 
 

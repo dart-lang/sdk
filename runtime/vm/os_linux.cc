@@ -508,17 +508,7 @@ void OS::SleepMicros(int64_t micros) {
 // CodeImmutability test in object_test.cc, it will be called only from the
 // simulator, which means that only the Intel implementation is needed.
 void OS::DebugBreak() {
-#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32)
-  asm("int $3");
-#elif defined(HOST_ARCH_ARM) && !defined(__THUMBEL__)
-  asm("svc #0x9f0001");  // __ARM_NR_breakpoint
-#elif defined(HOST_ARCH_ARM) && defined(__THUMBEL__)
-  UNIMPLEMENTED();
-#elif defined(HOST_ARCH_MIPS) || defined(HOST_ARCH_ARM64)
-  UNIMPLEMENTED();
-#else
-#error Unsupported architecture.
-#endif
+  __builtin_trap();
 }
 
 

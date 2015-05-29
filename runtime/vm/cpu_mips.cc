@@ -10,7 +10,7 @@
 #include "vm/cpuinfo.h"
 #include "vm/simulator.h"
 
-#if defined(HOST_ARCH_MIPS)
+#if !defined(USING_SIMULATOR)
 #include <asm/cachectl.h> /* NOLINT */
 #include <sys/syscall.h>  /* NOLINT */
 #include <unistd.h>  /* NOLINT */
@@ -19,7 +19,7 @@
 namespace dart {
 
 void CPU::FlushICache(uword start, uword size) {
-#if defined(HOST_ARCH_MIPS)
+#if !defined(USING_SIMULATOR)
   int res;
   // See http://www.linux-mips.org/wiki/Cacheflush_Syscall.
   res = syscall(__NR_cacheflush, start, size, ICACHE);
@@ -33,7 +33,7 @@ void CPU::FlushICache(uword start, uword size) {
 
 const char* CPU::Id() {
   return
-#if !defined(HOST_ARCH_MIPS)
+#if defined(USING_SIMULATOR)
   "sim"
 #endif  // !defined(HOST_ARCH_MIPS)
   "mips";
@@ -47,7 +47,7 @@ bool HostCPUFeatures::initialized_ = false;
 #endif
 
 
-#if defined(HOST_ARCH_MIPS)
+#if !defined(USING_SIMULATOR)
 void HostCPUFeatures::InitOnce() {
   CpuInfo::InitOnce();
   hardware_ = CpuInfo::GetCpuModel();

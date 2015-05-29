@@ -12,19 +12,17 @@ namespace dart {
 uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
   uintptr_t pc = 0;
 
-#if defined(TARGET_ARCH_IA32)
+#if defined(HOST_ARCH_IA32)
   pc = static_cast<uintptr_t>(mcontext->__ss.__eip);
-#elif defined(TARGET_ARCH_X64)
+#elif defined(HOST_ARCH_X64)
   pc = static_cast<uintptr_t>(mcontext->__ss.__rip);
-#elif defined(TARGET_ARCH_MIPS) && defined(USING_SIMULATOR)
-  pc = static_cast<uintptr_t>(mcontext->__ss.__eip);
-#elif defined(TARGET_ARCH_ARM) && defined(USING_SIMULATOR)
-  pc = static_cast<uintptr_t>(mcontext->__ss.__eip);
-#elif defined(TARGET_ARCH_ARM64) && defined(USING_SIMULATOR)
-  pc = static_cast<uintptr_t>(mcontext->__ss.__rip);
+#elif defined(HOST_ARCH_ARM)
+  pc = static_cast<uintptr_t>(mcontext->__ss.__pc);
+#elif defined(HOST_ARCH_ARM64)
+  pc = static_cast<uintptr_t>(mcontext->__ss.__pc);
 #else
-  UNIMPLEMENTED();
-#endif  // TARGET_ARCH_...
+#error Unsuported architecture.
+#endif  // HOST_ARCH_...
 
   return pc;
 }
@@ -33,19 +31,17 @@ uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
 uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
   uintptr_t fp = 0;
 
-#if defined(TARGET_ARCH_IA32)
+#if defined(HOST_ARCH_IA32)
   fp = static_cast<uintptr_t>(mcontext->__ss.__ebp);
-#elif defined(TARGET_ARCH_X64)
+#elif defined(HOST_ARCH_X64)
   fp = static_cast<uintptr_t>(mcontext->__ss.__rbp);
-#elif defined(TARGET_ARCH_MIPS) && defined(USING_SIMULATOR)
-  fp = static_cast<uintptr_t>(mcontext->__ss.__ebp);
-#elif defined(TARGET_ARCH_ARM) && defined(USING_SIMULATOR)
-  fp = static_cast<uintptr_t>(mcontext->__ss.__ebp);
-#elif defined(TARGET_ARCH_ARM64) && defined(USING_SIMULATOR)
-  fp = static_cast<uintptr_t>(mcontext->__ss.__rbp);
+#elif defined(HOST_ARCH_ARM)
+  fp = static_cast<uintptr_t>(mcontext->__ss.__r[11]);
+#elif defined(HOST_ARCH_ARM64)
+  fp = static_cast<uintptr_t>(mcontext->__ss.__fp);
 #else
-  UNIMPLEMENTED();
-#endif  // TARGET_ARCH_...
+#error Unsuported architecture.
+#endif  // HOST_ARCH_...
 
   return fp;
 }
@@ -54,19 +50,17 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
 uintptr_t SignalHandler::GetCStackPointer(const mcontext_t& mcontext) {
   uintptr_t sp = 0;
 
-#if defined(TARGET_ARCH_IA32)
+#if defined(HOST_ARCH_IA32)
   sp = static_cast<uintptr_t>(mcontext->__ss.__esp);
-#elif defined(TARGET_ARCH_X64)
+#elif defined(HOST_ARCH_X64)
   sp = static_cast<uintptr_t>(mcontext->__ss.__rsp);
-#elif defined(TARGET_ARCH_MIPS) && defined(USING_SIMULATOR)
-  sp = static_cast<uintptr_t>(mcontext->__ss.__esp);
-#elif defined(TARGET_ARCH_ARM) && defined(USING_SIMULATOR)
-  sp = static_cast<uintptr_t>(mcontext->__ss.__esp);
-#elif defined(TARGET_ARCH_ARM64) && defined(USING_SIMULATOR)
-  sp = static_cast<uintptr_t>(mcontext->__ss.__rsp);
+#elif defined(HOST_ARCH_ARM)
+  sp = static_cast<uintptr_t>(mcontext->__ss.__sp);
+#elif defined(HOST_ARCH_ARM64)
+  sp = static_cast<uintptr_t>(mcontext->__ss.__sp);
 #else
   UNIMPLEMENTED();
-#endif  // TARGET_ARCH_...
+#endif  // HOST_ARCH_...
 
   return sp;
 }
