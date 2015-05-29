@@ -17,15 +17,20 @@ dart -c bin/devc.dart --no-source-maps --sdk-check --force-compile -l warning \
     --dart-sdk test/generated_sdk -o lib/runtime/ dart:core \
     > test/generated_sdk/sdk_errors.txt || true
 
-if ! diff tool/sdk_expected_errors.txt test/generated_sdk/sdk_errors.txt ; then
-    echo
-    echo 'SDK errors have changed.  To update expectations, run:'
-    echo '$ cp test/generated_sdk/sdk_errors.txt tool/sdk_expected_errors.txt'
-    exit 1
-fi
-
 if [[ ! -f lib/runtime/dart/core.js ]] ; then
     echo 'core.js not found, assuming build failed.'
     echo './tool/build_sdk.sh can be run to reproduce this.'
+    exit 1
+fi
+
+DIFF_ARGS="-u tool/sdk_expected_errors.txt test/generated_sdk/sdk_errors.txt"
+
+if ! (diff $DIFF_ARGS > /dev/null) ; then
+    diff $DIFF_ARGS |\
+        sed -e "s/^\(+.*\)/[32m\1[0m/" |\
+        sed -e "s/^\(-.*\)/[31m\1[0m/"
+    echo
+    echo 'SDK errors have changed.  To update expectations, run:'
+    echo '$ cp test/generated_sdk/sdk_errors.txt tool/sdk_expected_errors.txt'
     exit 1
 fi
