@@ -51,7 +51,7 @@ part of dart.core;
  * directly or through iterating an [Iterable] that is backed by the list, will
  * break the iteration.
  */
-abstract class List<E> implements EfficientLengthIterable<E> {
+abstract class List<E> implements Iterable<E>, EfficientLength {
   /**
    * Creates a list of the given length.
    *

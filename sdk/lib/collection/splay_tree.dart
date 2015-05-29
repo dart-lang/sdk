@@ -600,7 +600,7 @@ abstract class _SplayTreeIterator<T> implements Iterator<T> {
 }
 
 class _SplayTreeKeyIterable<K> extends Iterable<K>
-                               implements EfficientLengthIterable<K> {
+                               implements EfficientLength {
   _SplayTree<K> _tree;
   _SplayTreeKeyIterable(this._tree);
   int get length => _tree._count;
@@ -618,7 +618,7 @@ class _SplayTreeKeyIterable<K> extends Iterable<K>
 }
 
 class _SplayTreeValueIterable<K, V> extends Iterable<V>
-                                    implements EfficientLengthIterable<V> {
+                                    implements EfficientLength {
   SplayTreeMap<K, V> _map;
   _SplayTreeValueIterable(this._map);
   int get length => _map._count;

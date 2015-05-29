@@ -90,7 +90,7 @@ abstract class IterableMixin<E> implements Iterable<E> {
   Set<E> toSet() => new Set<E>.from(this);
 
   int get length {
-    assert(this is! EfficientLengthIterable);
+    assert(this is! EfficientLength);
     int count = 0;
     Iterator it = iterator;
     while (it.moveNext()) {
@@ -396,35 +396,4 @@ void _iterablePartsToStrings(Iterable iterable, List parts) {
   }
   parts.add(penultimateString);
   parts.add(ultimateString);
-}
-
-
-/**
- * Marker interface for [Iterable] implementations that have an efficient
- * [length] getter.
- *
- * An iterable implementing this interface should have an "efficient"
- * implementation of `length` that doesn't trigger iteration of the
- * iterable. Being efficient doesn't necessarily require being constant
- * time, but should at least attempt to have have execution time that is
- * better than linear in the elements of the iterable.
- *
- * Methods that worry about reading the length of an `Iterable` because it
- * may be inefficient or may trigger side-effects, or may even never complete,
- * can first check if the iterable `is EfficientLengthIterable`,
- * and if so, use [length] without those concerns.
- *
- * The `EfficientLengthIterable` type should never be used as a type
- * assertion - neither as argument type or return type of a function.
- * Always use [Iterable] for the type and just document the performance if it
- * is relevant. This avoids needlessly restricting the values that can be used.
- */
-abstract class EfficientLengthIterable<T> implements Iterable<T> {
-  /**
-   * Returns the number of elements in the iterable.
-   *
-   * This is an efficient operation that doesn't iterate through
-   * the elements.
-   */
-  int get length;
 }

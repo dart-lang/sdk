@@ -389,7 +389,7 @@ abstract class ListMixin<E> implements List<E> {
 
   void replaceRange(int start, int end, Iterable<E> newContents) {
     RangeError.checkValidRange(start, end, this.length);
-    if (newContents is! EfficientLengthIterable) {
+    if (newContents is! EfficientLength) {
       newContents = newContents.toList();
     }
     int removeLength = end - start;
@@ -476,7 +476,7 @@ abstract class ListMixin<E> implements List<E> {
 
   void insertAll(int index, Iterable<E> iterable) {
     RangeError.checkValueInInterval(index, 0, length, "index");
-    if (iterable is EfficientLengthIterable) {
+    if (iterable is EfficientLength) {
       iterable = iterable.toList();
     }
     int insertionLength = iterable.length;
