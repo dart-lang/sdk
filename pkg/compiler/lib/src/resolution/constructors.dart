@@ -141,7 +141,7 @@ class InitializerResolver {
     ClassElement superClass = classElement.superclass;
     if (classElement != visitor.compiler.objectClass) {
       assert(superClass != null);
-      assert(superClass.resolutionState == STATE_DONE);
+      assert(superClass.isResolved);
 
       final bool isSuperCall = true;
       ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,

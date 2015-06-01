@@ -341,7 +341,7 @@ class World implements ClassWorld {
 
   // Used by selectors.
   bool isForeign(Element element) {
-    return element.isForeign(compiler.backend);
+    return compiler.backend.isForeign(element);
   }
 
   Set<ClassElement> typesImplementedBySubclassesOf(ClassElement cls) {

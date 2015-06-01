@@ -1511,7 +1511,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         }
       }
 
-      if (target != null && target.isForeign(compiler.backend)) {
+      if (target != null && compiler.backend.isForeign(target)) {
         if (selector.name == 'JS') {
           registry.registerJsCall(node, this);
         } else if (selector.name == 'JS_EMBEDDED_GLOBAL') {

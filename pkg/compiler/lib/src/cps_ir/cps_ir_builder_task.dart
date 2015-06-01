@@ -649,7 +649,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       MethodElement function,
       _) {
     // TODO(karlklose): support foreign functions.
-    if (function.isForeign(compiler.backend)) {
+    if (compiler.backend.isForeign(function)) {
       return giveup(node, 'handleStaticFunctionGet: foreign: $function');
     }
     return irBuilder.buildStaticFunctionGet(function);
@@ -1009,7 +1009,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       CallStructure callStructure,
       _) {
     // TODO(karlklose): support foreign functions.
-    if (function.isForeign(compiler.backend)) {
+    if (compiler.backend.isForeign(function)) {
       return giveup(node, 'handleStaticFunctionInvoke: foreign: $function');
     }
     return irBuilder.buildStaticFunctionInvocation(function, callStructure,
@@ -1035,7 +1035,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    if (getter.isForeign(compiler.backend)) {
+    if (compiler.backend.isForeign(getter)) {
       return giveup(node, 'handleStaticGetterInvoke: foreign: $getter');
     }
     ir.Primitive target = irBuilder.buildStaticGetterGet(getter);

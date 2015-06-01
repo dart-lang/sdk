@@ -270,7 +270,7 @@ class ConstantEmitter
   @override
   jsAst.Expression visitConstructed(ConstructedConstantValue constant, [_]) {
     Element element = constant.type.element;
-    if (element.isForeign(backend)
+    if (backend.isForeign(element)
         && element.name == 'JS_CONST') {
       StringConstantValue str = constant.fields.values.single;
       String value = str.primitiveValue.slowToString();

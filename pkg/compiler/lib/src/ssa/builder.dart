@@ -1873,7 +1873,7 @@ class SsaBuilder extends NewResolvedVisitor {
       // by the effective target.
       if (!callee.isRedirectingGenerative) {
         inlinedFrom(callee, () {
-          buildFieldInitializers(callee.enclosingElement.implementation,
+          buildFieldInitializers(callee.enclosingClass.implementation,
                                fieldValues);
         });
       }
@@ -2005,7 +2005,7 @@ class SsaBuilder extends NewResolvedVisitor {
       ClassElement superClass = enclosingClass.superclass;
       if (!enclosingClass.isObject) {
         assert(superClass != null);
-        assert(superClass.resolutionState == STATE_DONE);
+        assert(superClass.isResolved);
         // TODO(johnniwinther): Should we find injected constructors as well?
         FunctionElement target = superClass.lookupDefaultConstructor();
         if (target == null) {
@@ -5143,7 +5143,7 @@ class SsaBuilder extends NewResolvedVisitor {
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    if (function.isForeign(backend)) {
+    if (backend.isForeign(function)) {
       handleForeignSend(node, function);
     } else {
       generateStaticFunctionInvoke(node, function, callStructure);

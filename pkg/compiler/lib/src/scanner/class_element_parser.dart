@@ -101,10 +101,10 @@ class PartialClassElement extends ClassElementX with PartialElement {
 }
 
 class MemberListener extends NodeListener {
-  final ClassElement enclosingClass;
+  final ClassElementX enclosingClass;
 
   MemberListener(DiagnosticListener listener,
-                 ClassElement enclosingElement)
+                 ClassElementX enclosingElement)
       : this.enclosingClass = enclosingElement,
         super(listener, enclosingElement.compilationUnit);
 

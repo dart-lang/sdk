@@ -68,7 +68,7 @@ void main(List<String> arguments) {
   useSsa(null);
   useIo(null, null);
   usedByTests();
-  useElements(null, null, null, null, null);
+  useElements();
   useIr(null, null);
   useCompiler(null);
   useTypes();
@@ -245,17 +245,19 @@ usedByTests() {
 }
 
 useElements(
-    elements.ClassElement e,
-    elements.Name n,
-    modelx.FieldElementX f,
-    PartialClassElement pce,
-    PartialFunctionElement pfe) {
+    [elements.ClassElement e,
+     elements.Name n,
+     modelx.FieldElementX f,
+     PartialClassElement pce,
+     PartialFunctionElement pfe,
+     elements.LibraryElement l]) {
   e.lookupClassMember(null);
   e.lookupInterfaceMember(null);
   n.isAccessibleFrom(null);
   f.reuseElement();
   pce.copyWithEnclosing(null);
   pfe.copyWithEnclosing(null);
+  l.forEachImport(null);
 }
 
 useIr(ir_builder.IrBuilderTask task,

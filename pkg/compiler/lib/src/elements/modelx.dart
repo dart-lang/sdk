@@ -4,6 +4,7 @@
 
 library elements.modelx;
 
+import 'common.dart';
 import 'elements.dart';
 import '../constants/expressions.dart';
 import '../constants/constructors.dart';
@@ -25,6 +26,7 @@ import '../dart2jslib.dart' show
     MessageKind,
     Script,
     Selector,
+    SourceSpan,
     TypeVariableType,
     TypedefType,
     invariant,
@@ -44,7 +46,7 @@ import 'visitor.dart' show ElementVisitor;
 abstract class DeclarationSite {
 }
 
-abstract class ElementX extends Element {
+abstract class ElementX extends Element with ElementCommon {
   static int elementHashCode = 0;
 
   final String name;
@@ -94,29 +96,6 @@ abstract class ElementX extends Element {
   bool get isFinal => modifiers.isFinal;
   bool get isStatic => modifiers.isStatic;
   bool get isOperator => Elements.isOperatorName(name);
-  bool get impliesType => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
-
-  bool get isPatched => false;
-
-  bool get isPatch => false;
-
-  bool get isImplementation => true;
-
-  bool get isDeclaration => true;
-
-  bool get isInjected => !isPatch && implementationLibrary.isPatch;
-
-  Element get implementation => this;
-
-  Element get declaration => this;
-
-  Element get patch {
-    throw new UnsupportedError('patch is not supported on $this');
-  }
-
-  Element get origin {
-    throw new UnsupportedError('origin is not supported on $this');
-  }
 
   bool get isSynthesized => false;
 
@@ -139,6 +118,13 @@ abstract class ElementX extends Element {
   }
 
   Token get position => null;
+
+  SourceSpan get sourcePosition {
+    if (position == null) return null;
+    Uri uri = compilationUnit.script.readableUri;
+    return new SourceSpan(
+        uri, position.charOffset, position.charOffset + position.charCount);
+  }
 
   Token findMyName(Token token) {
     return findNameToken(token, isConstructor, name, enclosingElement.name);
@@ -251,7 +237,6 @@ abstract class ElementX extends Element {
   FunctionElement asFunctionElement() => null;
 
   bool get isAbstract => modifiers.isAbstract;
-  bool isForeign(Backend backend) => backend.isForeign(this);
 
   void diagnose(Element context, DiagnosticListener listener) {}
 
@@ -857,7 +842,10 @@ class ImportScope {
 }
 
 class LibraryElementX
-    extends ElementX with AnalyzableElementX, PatchMixin<LibraryElementX>
+    extends ElementX
+    with LibraryElementCommon,
+         AnalyzableElementX,
+         PatchMixin<LibraryElementX>
     implements LibraryElement {
   final Uri canonicalUri;
 
@@ -902,8 +890,6 @@ class LibraryElementX
       origin.applyPatch(this);
     }
   }
-
-  bool get isDartCore => canonicalUri == Compiler.DART_CORE;
 
   Link<MetadataAnnotation> get metadata {
     return (libraryTag == null) ? super.metadata : libraryTag.metadata;
@@ -1048,6 +1034,11 @@ class LibraryElementX
 
   Link<Import> getImportsFor(Element element) => importers.getImports(element);
 
+  @override
+  void forEachImport(f(Element element)) {
+    importScope.importScope.values.forEach(f);
+  }
+
   void forEachLocalMember(f(Element element)) {
     if (isPatch) {
       // Patch libraries traverse both origin and injected members.
@@ -1103,13 +1094,6 @@ class LibraryElementX
   }
 
   Scope buildScope() => new LibraryScope(this);
-
-  bool get isPlatformLibrary => canonicalUri.scheme == 'dart';
-
-  bool get isPackageLibrary => canonicalUri.scheme == 'package';
-
-  bool get isInternalLibrary =>
-      isPlatformLibrary && canonicalUri.path.startsWith('_');
 
   String toString() {
     if (origin != null) {
@@ -1273,12 +1257,21 @@ abstract class ConstantVariableMixin implements VariableElement {
   ConstantExpression _constant;
 
   ConstantExpression get constant {
+    if (isPatch) {
+      ConstantVariableMixin originVariable = origin;
+      return originVariable.constant;
+    }
     assert(invariant(this, _constant != null,
         message: "Constant has not been computed for $this."));
     return _constant;
   }
 
   void set constant(ConstantExpression value) {
+    if (isPatch) {
+      ConstantVariableMixin originVariable = origin;
+      originVariable.constant = value;
+      return null;
+    }
     assert(invariant(this, _constant == null || _constant == value,
         message: "Constant has already been computed for $this."));
     _constant = value;
@@ -1591,7 +1584,8 @@ class FormalElementX extends ElementX
 /// to ensure that default values on parameters are computed once (on the
 /// origin parameter) but can be found through both the origin and the patch.
 abstract class ParameterElementX extends FormalElementX
-    with PatchMixin<ParameterElement>, ConstantVariableMixin
+    with PatchMixin<ParameterElement>,
+         ConstantVariableMixin
     implements ParameterElement {
   final Expression initializer;
   final bool isOptional;
@@ -1617,6 +1611,15 @@ abstract class ParameterElementX extends FormalElementX
   }
 
   bool get isLocal => true;
+
+  String toString() {
+    if (isPatched) {
+      return 'origin ${super.toString()}';
+    } else if (isPatch) {
+      return 'patch ${super.toString()}';
+    }
+    return super.toString();
+  }
 }
 
 class LocalParameterElementX extends ParameterElementX
@@ -1747,7 +1750,8 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
 // TODO(johnniwinther): [FunctionSignature] should be merged with
 // [FunctionType].
 // TODO(karlklose): all these lists should have element type [FormalElement].
-class FunctionSignatureX implements FunctionSignature {
+class FunctionSignatureX extends FunctionSignatureCommon
+    implements FunctionSignature {
   final List<Element> requiredParameters;
   final List<Element> optionalParameters;
   final int requiredParameterCount;
@@ -1766,64 +1770,6 @@ class FunctionSignatureX implements FunctionSignature {
                       this.type})
       : optionalParameters = optionalParameters,
         hasOptionalParameters = !optionalParameters.isEmpty;
-
-  void forEachRequiredParameter(void function(Element parameter)) {
-    requiredParameters.forEach(function);
-  }
-
-  void forEachOptionalParameter(void function(Element parameter)) {
-    optionalParameters.forEach(function);
-  }
-
-  Element get firstOptionalParameter => optionalParameters.first;
-
-  void forEachParameter(void function(Element parameter)) {
-    forEachRequiredParameter(function);
-    forEachOptionalParameter(function);
-  }
-
-  void orderedForEachParameter(void function(Element parameter)) {
-    forEachRequiredParameter(function);
-    orderedOptionalParameters.forEach(function);
-  }
-
-  int get parameterCount => requiredParameterCount + optionalParameterCount;
-
-  /**
-   * Check whether a function with this signature can be used instead of a
-   * function with signature [signature] without causing a `noSuchMethod`
-   * exception/call.
-   */
-  bool isCompatibleWith(FunctionSignature signature) {
-    if (optionalParametersAreNamed) {
-      if (!signature.optionalParametersAreNamed) {
-        return requiredParameterCount == signature.parameterCount;
-      }
-      // If both signatures have named parameters, then they must have
-      // the same number of required parameters, and the names in
-      // [signature] must all be in [:this:].
-      if (requiredParameterCount != signature.requiredParameterCount) {
-        return false;
-      }
-      Set<String> names = optionalParameters.map(
-          (Element element) => element.name).toSet();
-      for (Element namedParameter in signature.optionalParameters) {
-        if (!names.contains(namedParameter.name)) {
-          return false;
-        }
-      }
-    } else {
-      if (signature.optionalParametersAreNamed) return false;
-      // There must be at least as many arguments as in the other signature, but
-      // this signature must not have more required parameters.  Having more
-      // optional parameters is not a problem, they simply are never provided
-      // by call sites of a call to a method with the other signature.
-      int otherTotalCount = signature.parameterCount;
-      return requiredParameterCount <= otherTotalCount
-          && parameterCount >= otherTotalCount;
-    }
-    return true;
-  }
 }
 
 abstract class BaseFunctionElementX
@@ -2110,8 +2056,6 @@ class DeferredLoaderGetterElementX extends GetterElementX
 
   bool get isClassMember => false;
 
-  bool isForeign(Backend backend) => true;
-
   bool get isSynthesized => true;
 
   bool get isDeferredLoaderGetter => true;
@@ -2332,11 +2276,14 @@ abstract class TypeDeclarationElementX<T extends GenericType>
   }
 
   bool get isResolved => resolutionState == STATE_DONE;
+
+  int get resolutionState;
 }
 
 abstract class BaseClassElementX extends ElementX
     with AstElementMixin,
          AnalyzableElementX,
+         ClassElementCommon,
          TypeDeclarationElementX<InterfaceType>,
          PatchMixin<ClassElement>,
          ClassMemberMixin
@@ -2356,10 +2303,6 @@ abstract class BaseClassElementX extends ElementX
   Link<Element> backendMembers = const Link<Element>();
 
   OrderedTypeSet allSupertypesAndSelf;
-
-  Link<DartType> get allSupertypes => allSupertypesAndSelf.supertypes;
-
-  int get hierarchyDepth => allSupertypesAndSelf.maxDepth;
 
   BaseClassElementX(String name,
                     Element enclosing,
@@ -2396,16 +2339,12 @@ abstract class BaseClassElementX extends ElementX
     }
   }
 
+  @override
   InterfaceType createType(List<DartType> typeArguments) {
     return new InterfaceType(this, typeArguments);
   }
 
   List<DartType> computeTypeParameters(Compiler compiler);
-
-  InterfaceType asInstanceOf(ClassElement cls) {
-    if (cls == this) return thisType;
-    return allSupertypesAndSelf.asInstanceOf(cls);
-  }
 
   bool get isObject {
     assert(invariant(this, isResolved,
@@ -2431,15 +2370,6 @@ abstract class BaseClassElementX extends ElementX
     backendMembers = backendMembers.reverse();
   }
 
-  /**
-   * Lookup local members in the class. This will ignore constructors.
-   */
-  Element lookupLocalMember(String memberName) {
-    var result = localLookup(memberName);
-    if (result != null && result.isConstructor) return null;
-    return result;
-  }
-
   /// Lookup a synthetic element created by the backend.
   Element lookupBackendMember(String memberName) {
     for (Element element in backendMembers) {
@@ -2448,132 +2378,6 @@ abstract class BaseClassElementX extends ElementX
       }
     }
     return null;
-  }
-  /**
-   * Lookup super members for the class. This will ignore constructors.
-   */
-  Element lookupSuperMember(String memberName) {
-    return lookupSuperMemberInLibrary(memberName, library);
-  }
-
-  /**
-   * Lookup super members for the class that is accessible in [library].
-   * This will ignore constructors.
-   */
-  Element lookupSuperMemberInLibrary(String memberName,
-                                     LibraryElement library) {
-    bool isPrivate = isPrivateName(memberName);
-    for (ClassElement s = superclass; s != null; s = s.superclass) {
-      // Private members from a different library are not visible.
-      if (isPrivate && !identical(library, s.library)) continue;
-      Element e = s.lookupLocalMember(memberName);
-      if (e == null) continue;
-      // Static members are not inherited.
-      if (e.isStatic) continue;
-      return e;
-    }
-    return null;
-  }
-
-  /**
-   * Find the first member in the class chain with the given [memberName].
-   *
-   * This method is NOT to be used for resolving
-   * unqualified sends because it does not implement the scoping
-   * rules, where library scope comes before superclass scope.
-   *
-   * When called on the implementation element both members declared in the
-   * origin and the patch class are returned.
-   */
-  Element lookupByName(Name memberName) {
-    return internalLookupByName(memberName, isSuperLookup: false);
-  }
-
-  Element lookupSuperByName(Name memberName) {
-    return internalLookupByName(memberName, isSuperLookup: true);
-  }
-
-  Element internalLookupByName(Name memberName, {bool isSuperLookup}) {
-    String name = memberName.text;
-    bool isPrivate = memberName.isPrivate;
-    LibraryElement library = memberName.library;
-    for (ClassElement current = isSuperLookup ? superclass : this;
-         current != null;
-         current = current.superclass) {
-      Element member = current.lookupLocalMember(name);
-      if (member == null && current.isPatched) {
-        // Doing lookups on selectors is done after resolution, so it
-        // is safe to look in the patch class.
-        member = current.patch.lookupLocalMember(name);
-      }
-      if (member == null) continue;
-      // Private members from a different library are not visible.
-      if (isPrivate && !identical(library, member.library)) continue;
-      // Static members are not inherited.
-      if (member.isStatic && !identical(this, current)) continue;
-      // If we find an abstract field we have to make sure that it has
-      // the getter or setter part we're actually looking
-      // for. Otherwise, we continue up the superclass chain.
-      if (member.isAbstractField) {
-        AbstractFieldElement field = member;
-        FunctionElement getter = field.getter;
-        FunctionElement setter = field.setter;
-        if (memberName.isSetter) {
-          // Abstract members can be defined in a super class.
-          if (setter != null && !setter.isAbstract) {
-            return setter;
-          }
-        } else {
-          if (getter != null && !getter.isAbstract) {
-            return getter;
-          }
-        }
-      // Abstract members can be defined in a super class.
-      } else if (!member.isAbstract) {
-        return member;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Find the first member in the class chain with the given
-   * [memberName]. This method is NOT to be used for resolving
-   * unqualified sends because it does not implement the scoping
-   * rules, where library scope comes before superclass scope.
-   */
-  Element lookupMember(String memberName) {
-    Element localMember = lookupLocalMember(memberName);
-    return localMember == null ? lookupSuperMember(memberName) : localMember;
-  }
-
-  /**
-   * Returns true if the [fieldMember] shadows another field.  The given
-   * [fieldMember] must be a member of this class, i.e. if there is a field of
-   * the same name in the superclass chain.
-   *
-   * This method also works if the [fieldMember] is private.
-   */
-  bool hasFieldShadowedBy(Element fieldMember) {
-    assert(fieldMember.isField);
-    String fieldName = fieldMember.name;
-    bool isPrivate = isPrivateName(fieldName);
-    LibraryElement memberLibrary = fieldMember.library;
-    ClassElement lookupClass = this.superclass;
-    while (lookupClass != null) {
-      Element foundMember = lookupClass.lookupLocalMember(fieldName);
-      if (foundMember != null) {
-        if (foundMember.isField) {
-          if (!isPrivate || memberLibrary == foundMember.library) {
-            // Private fields can only be shadowed by a field declared in the
-            // same library.
-            return true;
-          }
-        }
-      }
-      lookupClass = lookupClass.superclass;
-    }
-    return false;
   }
 
   ConstructorElement lookupDefaultConstructor() {
@@ -2589,21 +2393,6 @@ abstract class BaseClassElementX extends ElementX
     return null;
   }
 
-  ConstructorElement lookupConstructor(String name) {
-    Element result = localLookup(name);
-    return result != null && result.isConstructor ? result : null;
-  }
-
-  Link<Element> get constructors {
-    // TODO(ajohnsen): See if we can avoid this method at some point.
-    Link<Element> result = const Link<Element>();
-    // TODO(johnniwinther): Should we include injected constructors?
-    forEachMember((_, Element member) {
-      if (member.isConstructor) result = result.prepend(member);
-    });
-    return result;
-  }
-
   /**
    * Returns the super class, if any.
    *
@@ -2614,111 +2403,12 @@ abstract class BaseClassElementX extends ElementX
     return supertype == null ? null : supertype.element;
   }
 
-  /**
-   * Runs through all members of this class.
-   *
-   * The enclosing class is passed to the callback. This is useful when
-   * [includeSuperAndInjectedMembers] is [:true:].
-   *
-   * When called on an implementation element both the members in the origin
-   * and patch class are included.
-   */
-  // TODO(johnniwinther): Clean up lookup to get rid of the include predicates.
-  void forEachMember(void f(ClassElement enclosingClass, Element member),
-                     {includeBackendMembers: false,
-                      includeSuperAndInjectedMembers: false}) {
-    bool includeInjectedMembers = includeSuperAndInjectedMembers || isPatch;
-    ClassElement classElement = declaration;
-    do {
-      // Iterate through the members in textual order, which requires
-      // to reverse the data structure [localMembers] we created.
-      // Textual order may be important for certain operations, for
-      // example when emitting the initializers of fields.
-      classElement.forEachLocalMember((e) => f(classElement, e));
-      if (includeBackendMembers) {
-        classElement.forEachBackendMember((e) => f(classElement, e));
-      }
-      if (includeInjectedMembers) {
-        if (classElement.patch != null) {
-          classElement.patch.forEachLocalMember((e) {
-            if (!e.isPatch) f(classElement, e);
-          });
-        }
-      }
-      classElement = includeSuperAndInjectedMembers
-          ? classElement.superclass
-          : null;
-    } while (classElement != null);
-  }
-
-  /**
-   * Runs through all instance-field members of this class.
-   *
-   * The enclosing class is passed to the callback. This is useful when
-   * [includeSuperAndInjectedMembers] is [:true:].
-   *
-   * When called on the implementation element both the fields declared in the
-   * origin and in the patch are included.
-   */
-  void forEachInstanceField(void f(ClassElement enclosingClass,
-                                   FieldElement field),
-                            {bool includeSuperAndInjectedMembers: false}) {
-    // Filters so that [f] is only invoked with instance fields.
-    void fieldFilter(ClassElement enclosingClass, Element member) {
-      if (member.isInstanceMember && member.kind == ElementKind.FIELD) {
-        f(enclosingClass, member);
-      }
-    }
-
-    forEachMember(fieldFilter,
-        includeSuperAndInjectedMembers: includeSuperAndInjectedMembers);
-  }
-
-  /// Similar to [forEachInstanceField] but visits static fields.
-  void forEachStaticField(void f(ClassElement enclosingClass, Element field)) {
-    // Filters so that [f] is only invoked with static fields.
-    void fieldFilter(ClassElement enclosingClass, Element member) {
-      if (!member.isInstanceMember && member.kind == ElementKind.FIELD) {
-        f(enclosingClass, member);
-      }
-    }
-
-    forEachMember(fieldFilter);
-  }
-
   void forEachBackendMember(void f(Element member)) {
     backendMembers.forEach(f);
   }
 
   bool implementsFunction(Compiler compiler) {
     return asInstanceOf(compiler.functionClass) != null || callType != null;
-  }
-
-  bool implementsInterface(ClassElement intrface) {
-    for (DartType implementedInterfaceType in allSupertypes) {
-      ClassElement implementedInterface = implementedInterfaceType.element;
-      if (identical(implementedInterface, intrface)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
-   * Returns true if [this] is a subclass of [cls].
-   *
-   * This method is not to be used for checking type hierarchy and
-   * assignments, because it does not take parameterized types into
-   * account.
-   */
-  bool isSubclassOf(ClassElement cls) {
-    // Use [declaration] for both [this] and [cls], because
-    // declaration classes hold the superclass hierarchy.
-    cls = cls.declaration;
-    for (ClassElement s = declaration; s != null; s = s.superclass) {
-      if (identical(s, cls)) return true;
-    }
-    return false;
   }
 
   bool get isNative => nativeTagInfo != null;
@@ -2732,12 +2422,6 @@ abstract class BaseClassElementX extends ElementX
         message: "Native tag info set inconsistently on $this: "
                  "Existing name '$nativeTagInfo', new name '$name'."));
     nativeTagInfo = name;
-  }
-
-  FunctionType get callType {
-    MemberSignature member =
-        lookupInterfaceMember(const PublicName(Compiler.CALL_OPERATOR_NAME));
-    return member != null && member.isMethod ? member.type : null;
   }
 
   // TODO(johnniwinther): Remove these when issue 18630 is fixed.

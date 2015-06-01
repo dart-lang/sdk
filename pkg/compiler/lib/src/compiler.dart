@@ -1934,11 +1934,14 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   SourceSpan spanFromElement(Element element) {
+    if (element != null && element.sourcePosition != null) {
+      return element.sourcePosition;
+    }
     while (element != null && element.isSynthesized) {
       element = element.enclosingElement;
     }
     if (element != null &&
-        element.position == null &&
+        element.sourcePosition == null &&
         !element.isLibrary &&
         !element.isCompilationUnit) {
       // Sometimes, the backend fakes up elements that have no
@@ -1951,6 +1954,9 @@ abstract class Compiler implements DiagnosticListener {
     }
     if (element == null) {
       element = currentElement;
+    }
+    if (element.sourcePosition != null) {
+      return element.sourcePosition;
     }
     Token position = element.position;
     Uri uri = element.compilationUnit.script.readableUri;

@@ -867,7 +867,7 @@ class CodegenEnqueuer extends Enqueuer {
 
   bool internalAddToWorkList(Element element) {
     // Don't generate code for foreign elements.
-    if (element.isForeign(compiler.backend)) return false;
+    if (compiler.backend.isForeign(element)) return false;
 
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.
