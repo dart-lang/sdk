@@ -389,6 +389,41 @@ class Test {
     _assertLinkedGroup(change.linkedEditGroups[0], ['Test v =', 'Test {']);
   }
 
+  void test_createClass_inLibraryOfPrefix() {
+    // TODO
+    String libCode = r'''
+library my.lib;
+
+class A {}
+''';
+    addSource('/lib.dart', libCode);
+    resolveTestUnit('''
+import 'lib.dart' as lib;
+
+main() {
+  lib.A a = null;
+  lib.Test t = null;
+}
+''');
+    AnalysisError error = _findErrorToFix();
+    fix = _assertHasFix(DartFixKind.CREATE_CLASS, error);
+    change = fix.change;
+    // apply to "lib.dart"
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    SourceFileEdit fileEdit = change.edits[0];
+    expect(fileEdit.file, '/lib.dart');
+    expect(SourceEdit.applySequence(libCode, fileEdit.edits), r'''
+library my.lib;
+
+class A {}
+
+class Test {
+}
+''');
+    expect(change.linkedEditGroups, isEmpty);
+  }
+
   void test_createClass_innerLocalFunction() {
     resolveTestUnit('''
 f() {

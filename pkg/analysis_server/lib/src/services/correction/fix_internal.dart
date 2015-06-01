@@ -372,39 +372,79 @@ class FixProcessor {
   }
 
   void _addFix_createClass() {
-    if (!_mayBeTypeIdentifier(node)) {
+    Element prefixElement = null;
+    String name = null;
+    if (node is SimpleIdentifier) {
+      AstNode parent = node.parent;
+      if (parent is PrefixedIdentifier) {
+        PrefixedIdentifier prefixedIdentifier = parent;
+        prefixElement = prefixedIdentifier.prefix.staticElement;
+        parent = prefixedIdentifier.parent;
+        name = prefixedIdentifier.identifier.name;
+      } else {
+        name = (node as SimpleIdentifier).name;
+      }
+      if (parent is! TypeName) {
+        return;
+      }
+    } else {
       return;
     }
-    String name = (node as SimpleIdentifier).name;
     // prepare environment
-    CompilationUnitMember enclosingMember =
-        node.getAncestor((node) => node.parent is CompilationUnit);
-    if (enclosingMember == null) {
-      return;
-    }
-    int offset = enclosingMember.end;
+    Element targetUnit;
+    SourceBuilder sb;
     String prefix = '';
+    String suffix = '';
+    if (prefixElement == null) {
+      targetUnit = unitElement;
+      CompilationUnitMember enclosingMember =
+          node.getAncestor((node) => node.parent is CompilationUnit);
+      if (enclosingMember == null) {
+        return;
+      }
+      int offset = enclosingMember.end;
+      sb = new SourceBuilder(file, offset);
+      prefix = '$eol$eol';
+    } else {
+      for (ImportElement import in unitLibraryElement.imports) {
+        if (prefixElement is PrefixElement && import.prefix == prefixElement) {
+          targetUnit = import.importedLibrary.definingCompilationUnit;
+          Source targetSource = targetUnit.source;
+          int offset = targetSource.contents.data.length;
+          sb = new SourceBuilder(targetSource.fullName, offset);
+          prefix = '$eol';
+          suffix = '$eol';
+          break;
+        }
+      }
+      if (sb == null) {
+        return;
+      }
+    }
     // prepare source
-    SourceBuilder sb = new SourceBuilder(file, offset);
     {
-      sb.append('$eol$eol');
       sb.append(prefix);
       // "class"
       sb.append('class ');
       // append name
-      {
+      if (prefixElement == null) {
         sb.startPosition('NAME');
         sb.append(name);
         sb.endPosition();
+      } else {
+        sb.append(name);
       }
       // no members
       sb.append(' {');
       sb.append(eol);
       sb.append('}');
+      sb.append(suffix);
     }
     // insert source
-    _insertBuilder(sb, unitElement);
-    _addLinkedPosition('NAME', sb, rf.rangeNode(node));
+    _insertBuilder(sb, targetUnit);
+    if (prefixElement == null) {
+      _addLinkedPosition('NAME', sb, rf.rangeNode(node));
+    }
     // add proposal
     _addFix(DartFixKind.CREATE_CLASS, [name]);
   }
