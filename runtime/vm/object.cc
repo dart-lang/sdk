@@ -6753,8 +6753,21 @@ RawArray* Function::ic_data_array() const {
   return raw_ptr()->ic_data_array_;
 }
 
-void Function::ClearICData() const {
+void Function::ClearICDataArray() const {
   set_ic_data_array(Array::Handle());
+}
+
+
+void Function::SetDeoptReasonForAll(intptr_t deopt_id,
+                                    ICData::DeoptReasonId reason) {
+  const Array& icd_array = Array::Handle(ic_data_array());
+  ICData& icd = ICData::Handle();
+  for (intptr_t i = 0; i < icd_array.Length(); i++) {
+    icd ^= icd_array.At(i);
+    if (icd.deopt_id() == deopt_id) {
+      icd.AddDeoptReason(reason);
+    }
+  }
 }
 
 

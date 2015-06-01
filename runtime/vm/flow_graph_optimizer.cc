@@ -1444,7 +1444,10 @@ bool FlowGraphOptimizer::TryInlineRecognizedMethod(intptr_t receiver_cid,
     case MethodRecognizer::kInt16ArraySetIndexed:
     case MethodRecognizer::kUint16ArraySetIndexed:
       // Optimistically assume Smi.
-      // TODO(srdjan): Check deopt reason to prevent repeated deoptimizations.
+      if (ic_data.HasDeoptReason(ICData::kDeoptCheckSmi)) {
+        // Optimistic assumption failed at least once.
+        return false;
+      }
       value_check = ic_data.AsUnaryClassChecksForCid(kSmiCid, target);
       return InlineSetIndexed(kind, target, call, receiver, token_pos,
                               value_check, entry, last);

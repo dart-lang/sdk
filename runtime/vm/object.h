@@ -1706,6 +1706,314 @@ class PatchClass : public Object {
 };
 
 
+// Object holding information about an IC: test classes and their
+// corresponding targets.
+class ICData : public Object {
+ public:
+  RawFunction* owner() const {
+    return raw_ptr()->owner_;
+  }
+
+  RawString* target_name() const {
+    return raw_ptr()->target_name_;
+  }
+
+  RawArray* arguments_descriptor() const {
+    return raw_ptr()->args_descriptor_;
+  }
+
+  intptr_t NumArgsTested() const;
+
+  intptr_t deopt_id() const {
+    return raw_ptr()->deopt_id_;
+  }
+
+  // Note: only deopts with reasons before Unknown in this list are recorded in
+  // the ICData. All other reasons are used purely for informational messages
+  // printed during deoptimization itself.
+  #define DEOPT_REASONS(V)                                                     \
+    V(BinarySmiOp)                                                             \
+    V(BinaryMintOp)                                                            \
+    V(DoubleToSmi)                                                             \
+    V(CheckSmi)                                                                \
+    V(Unknown)                                                                 \
+    V(PolymorphicInstanceCallTestFail)                                         \
+    V(UnaryMintOp)                                                             \
+    V(BinaryDoubleOp)                                                          \
+    V(UnaryOp)                                                                 \
+    V(UnboxInteger)                                                            \
+    V(CheckClass)                                                              \
+    V(CheckArrayBound)                                                         \
+    V(AtCall)                                                                  \
+    V(Uint32Load)                                                              \
+    V(GuardField)                                                              \
+    V(TestCids)                                                                \
+    V(NumReasons)                                                              \
+
+  enum DeoptReasonId {
+  #define DEFINE_ENUM_LIST(name) kDeopt##name,
+  DEOPT_REASONS(DEFINE_ENUM_LIST)
+  #undef DEFINE_ENUM_LIST
+  };
+
+  static const intptr_t kLastRecordedDeoptReason = kDeoptUnknown - 1;
+
+  enum DeoptFlags {
+    // Deoptimization is caused by an optimistically hoisted instruction.
+    kHoisted = 1 << 0,
+
+    // Deoptimization is caused by an optimistically generalized bounds check.
+    kGeneralized = 1 << 1
+  };
+
+  bool HasDeoptReasons() const { return DeoptReasons() != 0; }
+  uint32_t DeoptReasons() const;
+  void SetDeoptReasons(uint32_t reasons) const;
+
+  bool HasDeoptReason(ICData::DeoptReasonId reason) const;
+  void AddDeoptReason(ICData::DeoptReasonId reason) const;
+
+  bool IssuedJSWarning() const;
+  void SetIssuedJSWarning() const;
+
+  // Return true if the target function of this IC data may check for (and
+  // possibly issue) a Javascript compatibility warning.
+  bool MayCheckForJSWarning() const;
+
+  intptr_t NumberOfChecks() const;
+
+  // Discounts any checks with usage of zero.
+  intptr_t NumberOfUsedChecks() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawICData));
+  }
+
+  static intptr_t target_name_offset() {
+    return OFFSET_OF(RawICData, target_name_);
+  }
+
+  static intptr_t state_bits_offset() {
+    return OFFSET_OF(RawICData, state_bits_);
+  }
+
+  static intptr_t NumArgsTestedShift() {
+    return kNumArgsTestedPos;
+  }
+
+  static intptr_t NumArgsTestedMask() {
+    return ((1 << kNumArgsTestedSize) - 1) << kNumArgsTestedPos;
+  }
+
+  static intptr_t arguments_descriptor_offset() {
+    return OFFSET_OF(RawICData, args_descriptor_);
+  }
+
+  static intptr_t ic_data_offset() {
+    return OFFSET_OF(RawICData, ic_data_);
+  }
+
+  static intptr_t owner_offset() {
+    return OFFSET_OF(RawICData, owner_);
+  }
+
+  // Used for unoptimized static calls when no class-ids are checked.
+  void AddTarget(const Function& target) const;
+
+  // Adding checks.
+
+  // Adds one more class test to ICData. Length of 'classes' must be equal to
+  // the number of arguments tested. Use only for num_args_tested > 1.
+  void AddCheck(const GrowableArray<intptr_t>& class_ids,
+                const Function& target) const;
+  // Adds sorted so that Smi is the first class-id. Use only for
+  // num_args_tested == 1.
+  void AddReceiverCheck(intptr_t receiver_class_id,
+                        const Function& target,
+                        intptr_t count = 1) const;
+
+  // Retrieving checks.
+
+  // TODO(srdjan): GetCheckAt without target.
+  void GetCheckAt(intptr_t index,
+                  GrowableArray<intptr_t>* class_ids,
+                  Function* target) const;
+  // Only for 'num_args_checked == 1'.
+  void GetOneClassCheckAt(intptr_t index,
+                          intptr_t* class_id,
+                          Function* target) const;
+  // Only for 'num_args_checked == 1'.
+  intptr_t GetCidAt(intptr_t index) const;
+
+  intptr_t GetReceiverClassIdAt(intptr_t index) const;
+  intptr_t GetClassIdAt(intptr_t index, intptr_t arg_nr) const;
+
+  RawFunction* GetTargetAt(intptr_t index) const;
+  RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
+
+  void IncrementCountAt(intptr_t index, intptr_t value) const;
+  void SetCountAt(intptr_t index, intptr_t value) const;
+  intptr_t GetCountAt(intptr_t index) const;
+  intptr_t AggregateCount() const;
+
+  // Returns this->raw() if num_args_tested == 1 and arg_nr == 1, otherwise
+  // returns a new ICData object containing only unique arg_nr checks.
+  // Returns only used entries.
+  RawICData* AsUnaryClassChecksForArgNr(intptr_t arg_nr) const;
+  RawICData* AsUnaryClassChecks() const {
+    return AsUnaryClassChecksForArgNr(0);
+  }
+  RawICData* AsUnaryClassChecksForCid(
+      intptr_t cid, const Function& target) const;
+
+  // Consider only used entries.
+  bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
+  bool AllReceiversAreNumbers() const;
+  bool HasOneTarget() const;
+  bool HasReceiverClassId(intptr_t class_id) const;
+
+  static RawICData* New(const Function& owner,
+                        const String& target_name,
+                        const Array& arguments_descriptor,
+                        intptr_t deopt_id,
+                        intptr_t num_args_tested);
+  static RawICData* NewFrom(const ICData& from, intptr_t num_args_tested);
+
+  static intptr_t TestEntryLengthFor(intptr_t num_args);
+
+  static intptr_t TargetIndexFor(intptr_t num_args) {
+    return num_args;
+  }
+
+  static intptr_t CountIndexFor(intptr_t num_args) {
+    return (num_args + 1);
+  }
+
+  bool IsUsedAt(intptr_t i) const;
+
+  void GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
+                             GrowableArray<intptr_t>* second) const;
+
+  // Range feedback tracking functionality.
+
+  // For arithmetic operations we store range information for inputs and the
+  // result. The goal is to discover:
+  //
+  //    - on 32-bit platforms:
+  //         - when Mint operation is actually a int32/uint32 operation;
+  //         - when Smi operation produces non-smi results;
+  //
+  //    - on 64-bit platforms:
+  //         - when Smi operation is actually int32/uint32 operation;
+  //         - when Mint operation produces non-smi results;
+  //
+  enum RangeFeedback {
+    kSmiRange,
+    kInt32Range,
+    kUint32Range,
+    kInt64Range
+  };
+
+  // We use 4 bits per operand/result feedback. Our lattice allows us to
+  // express the following states:
+  //
+  //   - usmi   0000 [used only on 32bit platforms]
+  //   - smi    0001
+  //   - uint31 0010
+  //   - int32  0011
+  //   - uint32 0100
+  //   - int33  x1x1
+  //   - int64  1xxx
+  //
+  // DecodeRangeFeedbackAt() helper maps these states into the RangeFeedback
+  // enumeration.
+  enum RangeFeedbackLatticeBits {
+    kSignedRangeBit = 1 << 0,
+    kInt32RangeBit = 1 << 1,
+    kUint32RangeBit = 1 << 2,
+    kInt64RangeBit = 1 << 3,
+    kBitsPerRangeFeedback = 4,
+    kRangeFeedbackMask = (1 << kBitsPerRangeFeedback) - 1,
+    kRangeFeedbackSlots = 3
+  };
+
+  static bool IsValidRangeFeedbackIndex(intptr_t index) {
+    return (0 <= index) && (index < kRangeFeedbackSlots);
+  }
+
+  static intptr_t RangeFeedbackShift(intptr_t index) {
+    return (index * kBitsPerRangeFeedback) + kRangeFeedbackPos;
+  }
+
+  static const char* RangeFeedbackToString(RangeFeedback feedback) {
+    switch (feedback) {
+      case kSmiRange:
+        return "smi";
+      case kInt32Range:
+        return "int32";
+      case kUint32Range:
+        return "uint32";
+      case kInt64Range:
+        return "int64";
+      default:
+        UNREACHABLE();
+        return "?";
+    }
+  }
+
+  // It is only meaningful to interptret range feedback stored in the ICData
+  // when all checks are Mint or Smi.
+  bool HasRangeFeedback() const;
+  RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
+
+  void PrintToJSONArray(const JSONArray& jsarray,
+                        intptr_t token_pos,
+                        bool is_static_call) const;
+
+ private:
+  RawArray* ic_data() const {
+    return raw_ptr()->ic_data_;
+  }
+
+  void set_owner(const Function& value) const;
+  void set_target_name(const String& value) const;
+  void set_arguments_descriptor(const Array& value) const;
+  void set_deopt_id(intptr_t value) const;
+  void SetNumArgsTested(intptr_t value) const;
+  void set_ic_data(const Array& value) const;
+  void set_state_bits(uint32_t bits) const;
+
+  enum {
+    kNumArgsTestedPos = 0,
+    kNumArgsTestedSize = 2,
+    kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
+    kDeoptReasonSize = kLastRecordedDeoptReason + 1,
+    kIssuedJSWarningBit = kDeoptReasonPos + kDeoptReasonSize,
+    kRangeFeedbackPos = kIssuedJSWarningBit + 1,
+    kRangeFeedbackSize = kBitsPerRangeFeedback * kRangeFeedbackSlots
+  };
+
+  class NumArgsTestedBits : public BitField<uint32_t,
+      kNumArgsTestedPos, kNumArgsTestedSize> {};  // NOLINT
+  class DeoptReasonBits : public BitField<uint32_t,
+      ICData::kDeoptReasonPos, ICData::kDeoptReasonSize> {};  // NOLINT
+  class IssuedJSWarningBit : public BitField<bool, kIssuedJSWarningBit, 1> {};
+  class RangeFeedbackBits : public BitField<uint32_t,
+      ICData::kRangeFeedbackPos, ICData::kRangeFeedbackSize> {};  // NOLINT
+
+#if defined(DEBUG)
+  // Used in asserts to verify that a check is not added twice.
+  bool HasCheck(const GrowableArray<intptr_t>& cids) const;
+#endif  // DEBUG
+
+  intptr_t TestEntryLength() const;
+  void WriteSentinel(const Array& data) const;
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
+  friend class Class;
+};
+
+
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
@@ -2231,7 +2539,10 @@ class Function : public Object {
       ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data) const;
 
   RawArray* ic_data_array() const;
-  void ClearICData() const;
+  void ClearICDataArray() const;
+
+  // Sets deopt reason in all ICData-s with given deopt_id.
+  void SetDeoptReasonForAll(intptr_t deopt_id, ICData::DeoptReasonId reason);
 
   static const int kCtorPhaseInit = 1 << 0;
   static const int kCtorPhaseBody = 1 << 1;
@@ -3548,314 +3859,6 @@ class DeoptInfo : public AllStatic {
                          const TypedData& packed,
                          GrowableArray<DeoptInstr*>* instructions,
                          intptr_t length);
-};
-
-
-// Object holding information about an IC: test classes and their
-// corresponding targets.
-class ICData : public Object {
- public:
-  RawFunction* owner() const {
-    return raw_ptr()->owner_;
-  }
-
-  RawString* target_name() const {
-    return raw_ptr()->target_name_;
-  }
-
-  RawArray* arguments_descriptor() const {
-    return raw_ptr()->args_descriptor_;
-  }
-
-  intptr_t NumArgsTested() const;
-
-  intptr_t deopt_id() const {
-    return raw_ptr()->deopt_id_;
-  }
-
-  // Note: only deopts with reasons before Unknown in this list are recorded in
-  // the ICData. All other reasons are used purely for informational messages
-  // printed during deoptimization itself.
-  #define DEOPT_REASONS(V)                                                     \
-    V(BinarySmiOp)                                                             \
-    V(BinaryMintOp)                                                            \
-    V(DoubleToSmi)                                                             \
-    V(Unknown)                                                                 \
-    V(PolymorphicInstanceCallTestFail)                                         \
-    V(UnaryMintOp)                                                             \
-    V(BinaryDoubleOp)                                                          \
-    V(UnaryOp)                                                                 \
-    V(UnboxInteger)                                                            \
-    V(CheckClass)                                                              \
-    V(CheckSmi)                                                                \
-    V(CheckArrayBound)                                                         \
-    V(AtCall)                                                                  \
-    V(Uint32Load)                                                              \
-    V(GuardField)                                                              \
-    V(TestCids)                                                                \
-    V(NumReasons)                                                              \
-
-  enum DeoptReasonId {
-  #define DEFINE_ENUM_LIST(name) kDeopt##name,
-  DEOPT_REASONS(DEFINE_ENUM_LIST)
-  #undef DEFINE_ENUM_LIST
-  };
-
-  static const intptr_t kLastRecordedDeoptReason = kDeoptUnknown - 1;
-
-  enum DeoptFlags {
-    // Deoptimization is caused by an optimistically hoisted instruction.
-    kHoisted = 1 << 0,
-
-    // Deoptimization is caused by an optimistically generalized bounds check.
-    kGeneralized = 1 << 1
-  };
-
-  bool HasDeoptReasons() const { return DeoptReasons() != 0; }
-  uint32_t DeoptReasons() const;
-  void SetDeoptReasons(uint32_t reasons) const;
-
-  bool HasDeoptReason(ICData::DeoptReasonId reason) const;
-  void AddDeoptReason(ICData::DeoptReasonId reason) const;
-
-  bool IssuedJSWarning() const;
-  void SetIssuedJSWarning() const;
-
-  // Return true if the target function of this IC data may check for (and
-  // possibly issue) a Javascript compatibility warning.
-  bool MayCheckForJSWarning() const;
-
-  intptr_t NumberOfChecks() const;
-
-  // Discounts any checks with usage of zero.
-  intptr_t NumberOfUsedChecks() const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawICData));
-  }
-
-  static intptr_t target_name_offset() {
-    return OFFSET_OF(RawICData, target_name_);
-  }
-
-  static intptr_t state_bits_offset() {
-    return OFFSET_OF(RawICData, state_bits_);
-  }
-
-  static intptr_t NumArgsTestedShift() {
-    return kNumArgsTestedPos;
-  }
-
-  static intptr_t NumArgsTestedMask() {
-    return ((1 << kNumArgsTestedSize) - 1) << kNumArgsTestedPos;
-  }
-
-  static intptr_t arguments_descriptor_offset() {
-    return OFFSET_OF(RawICData, args_descriptor_);
-  }
-
-  static intptr_t ic_data_offset() {
-    return OFFSET_OF(RawICData, ic_data_);
-  }
-
-  static intptr_t owner_offset() {
-    return OFFSET_OF(RawICData, owner_);
-  }
-
-  // Used for unoptimized static calls when no class-ids are checked.
-  void AddTarget(const Function& target) const;
-
-  // Adding checks.
-
-  // Adds one more class test to ICData. Length of 'classes' must be equal to
-  // the number of arguments tested. Use only for num_args_tested > 1.
-  void AddCheck(const GrowableArray<intptr_t>& class_ids,
-                const Function& target) const;
-  // Adds sorted so that Smi is the first class-id. Use only for
-  // num_args_tested == 1.
-  void AddReceiverCheck(intptr_t receiver_class_id,
-                        const Function& target,
-                        intptr_t count = 1) const;
-
-  // Retrieving checks.
-
-  // TODO(srdjan): GetCheckAt without target.
-  void GetCheckAt(intptr_t index,
-                  GrowableArray<intptr_t>* class_ids,
-                  Function* target) const;
-  // Only for 'num_args_checked == 1'.
-  void GetOneClassCheckAt(intptr_t index,
-                          intptr_t* class_id,
-                          Function* target) const;
-  // Only for 'num_args_checked == 1'.
-  intptr_t GetCidAt(intptr_t index) const;
-
-  intptr_t GetReceiverClassIdAt(intptr_t index) const;
-  intptr_t GetClassIdAt(intptr_t index, intptr_t arg_nr) const;
-
-  RawFunction* GetTargetAt(intptr_t index) const;
-  RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
-
-  void IncrementCountAt(intptr_t index, intptr_t value) const;
-  void SetCountAt(intptr_t index, intptr_t value) const;
-  intptr_t GetCountAt(intptr_t index) const;
-  intptr_t AggregateCount() const;
-
-  // Returns this->raw() if num_args_tested == 1 and arg_nr == 1, otherwise
-  // returns a new ICData object containing only unique arg_nr checks.
-  // Returns only used entries.
-  RawICData* AsUnaryClassChecksForArgNr(intptr_t arg_nr) const;
-  RawICData* AsUnaryClassChecks() const {
-    return AsUnaryClassChecksForArgNr(0);
-  }
-  RawICData* AsUnaryClassChecksForCid(
-      intptr_t cid, const Function& target) const;
-
-  // Consider only used entries.
-  bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
-  bool AllReceiversAreNumbers() const;
-  bool HasOneTarget() const;
-  bool HasReceiverClassId(intptr_t class_id) const;
-
-  static RawICData* New(const Function& owner,
-                        const String& target_name,
-                        const Array& arguments_descriptor,
-                        intptr_t deopt_id,
-                        intptr_t num_args_tested);
-  static RawICData* NewFrom(const ICData& from, intptr_t num_args_tested);
-
-  static intptr_t TestEntryLengthFor(intptr_t num_args);
-
-  static intptr_t TargetIndexFor(intptr_t num_args) {
-    return num_args;
-  }
-
-  static intptr_t CountIndexFor(intptr_t num_args) {
-    return (num_args + 1);
-  }
-
-  bool IsUsedAt(intptr_t i) const;
-
-  void GetUsedCidsForTwoArgs(GrowableArray<intptr_t>* first,
-                             GrowableArray<intptr_t>* second) const;
-
-  // Range feedback tracking functionality.
-
-  // For arithmetic operations we store range information for inputs and the
-  // result. The goal is to discover:
-  //
-  //    - on 32-bit platforms:
-  //         - when Mint operation is actually a int32/uint32 operation;
-  //         - when Smi operation produces non-smi results;
-  //
-  //    - on 64-bit platforms:
-  //         - when Smi operation is actually int32/uint32 operation;
-  //         - when Mint operation produces non-smi results;
-  //
-  enum RangeFeedback {
-    kSmiRange,
-    kInt32Range,
-    kUint32Range,
-    kInt64Range
-  };
-
-  // We use 4 bits per operand/result feedback. Our lattice allows us to
-  // express the following states:
-  //
-  //   - usmi   0000 [used only on 32bit platforms]
-  //   - smi    0001
-  //   - uint31 0010
-  //   - int32  0011
-  //   - uint32 0100
-  //   - int33  x1x1
-  //   - int64  1xxx
-  //
-  // DecodeRangeFeedbackAt() helper maps these states into the RangeFeedback
-  // enumeration.
-  enum RangeFeedbackLatticeBits {
-    kSignedRangeBit = 1 << 0,
-    kInt32RangeBit = 1 << 1,
-    kUint32RangeBit = 1 << 2,
-    kInt64RangeBit = 1 << 3,
-    kBitsPerRangeFeedback = 4,
-    kRangeFeedbackMask = (1 << kBitsPerRangeFeedback) - 1,
-    kRangeFeedbackSlots = 3
-  };
-
-  static bool IsValidRangeFeedbackIndex(intptr_t index) {
-    return (0 <= index) && (index < kRangeFeedbackSlots);
-  }
-
-  static intptr_t RangeFeedbackShift(intptr_t index) {
-    return (index * kBitsPerRangeFeedback) + kRangeFeedbackPos;
-  }
-
-  static const char* RangeFeedbackToString(RangeFeedback feedback) {
-    switch (feedback) {
-      case kSmiRange:
-        return "smi";
-      case kInt32Range:
-        return "int32";
-      case kUint32Range:
-        return "uint32";
-      case kInt64Range:
-        return "int64";
-      default:
-        UNREACHABLE();
-        return "?";
-    }
-  }
-
-  // It is only meaningful to interptret range feedback stored in the ICData
-  // when all checks are Mint or Smi.
-  bool HasRangeFeedback() const;
-  RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
-
-  void PrintToJSONArray(const JSONArray& jsarray,
-                        intptr_t token_pos,
-                        bool is_static_call) const;
-
- private:
-  RawArray* ic_data() const {
-    return raw_ptr()->ic_data_;
-  }
-
-  void set_owner(const Function& value) const;
-  void set_target_name(const String& value) const;
-  void set_arguments_descriptor(const Array& value) const;
-  void set_deopt_id(intptr_t value) const;
-  void SetNumArgsTested(intptr_t value) const;
-  void set_ic_data(const Array& value) const;
-  void set_state_bits(uint32_t bits) const;
-
-  enum {
-    kNumArgsTestedPos = 0,
-    kNumArgsTestedSize = 2,
-    kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
-    kDeoptReasonSize = kLastRecordedDeoptReason + 1,
-    kIssuedJSWarningBit = kDeoptReasonPos + kDeoptReasonSize,
-    kRangeFeedbackPos = kIssuedJSWarningBit + 1,
-    kRangeFeedbackSize = kBitsPerRangeFeedback * kRangeFeedbackSlots
-  };
-
-  class NumArgsTestedBits : public BitField<uint32_t,
-      kNumArgsTestedPos, kNumArgsTestedSize> {};  // NOLINT
-  class DeoptReasonBits : public BitField<uint32_t,
-      ICData::kDeoptReasonPos, ICData::kDeoptReasonSize> {};  // NOLINT
-  class IssuedJSWarningBit : public BitField<bool, kIssuedJSWarningBit, 1> {};
-  class RangeFeedbackBits : public BitField<uint32_t,
-      ICData::kRangeFeedbackPos, ICData::kRangeFeedbackSize> {};  // NOLINT
-
-#if defined(DEBUG)
-  // Used in asserts to verify that a check is not added twice.
-  bool HasCheck(const GrowableArray<intptr_t>& cids) const;
-#endif  // DEBUG
-
-  intptr_t TestEntryLength() const;
-  void WriteSentinel(const Array& data) const;
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
-  friend class Class;
 };
 
 
