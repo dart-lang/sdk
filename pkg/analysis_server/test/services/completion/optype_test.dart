@@ -1286,5 +1286,8 @@ class _TestSource implements Source {
   @override
   String get shortName => fullName;
 
+  @override
+  Source get source => this;
+
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
