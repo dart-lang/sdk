@@ -1181,15 +1181,17 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerBoundClosure(Enqueuer enqueuer) {
-    enqueuer.registerInstantiatedClass(
-        boundClosureClass,
+    boundClosureClass.ensureResolved(compiler);
+    enqueuer.registerInstantiatedType(
+        boundClosureClass.rawType,
         // Precise dependency is not important here.
         compiler.globalDependencies);
   }
 
   void registerGetOfStaticFunction(Enqueuer enqueuer) {
-    enqueuer.registerInstantiatedClass(closureClass,
-                                       compiler.globalDependencies);
+    closureClass.ensureResolved(compiler);
+    enqueuer.registerInstantiatedType(
+        closureClass.rawType, compiler.globalDependencies);
   }
 
   void registerComputeSignature(Enqueuer enqueuer, Registry registry) {
@@ -1371,28 +1373,31 @@ class JavaScriptBackend extends Backend {
   /// Register instantiation of [cls] in [enqueuer].
   ///
   /// This method calls [registerBackendUse].
-  void enqueueClass(Enqueuer enqueuer, Element cls, Registry registry) {
+  void enqueueClass(Enqueuer enqueuer, ClassElement cls, Registry registry) {
     if (cls == null) return;
     registerBackendUse(cls);
     helpersUsed.add(cls.declaration);
     if (cls.declaration != cls.implementation) {
       helpersUsed.add(cls.implementation);
     }
-    enqueuer.registerInstantiatedClass(cls, registry);
+    cls.ensureResolved(compiler);
+    enqueuer.registerInstantiatedType(cls.rawType, registry);
   }
 
-  void codegen(CodegenWorkItem work) {
+  WorldImpact codegen(CodegenWorkItem work) {
     Element element = work.element;
     if (compiler.elementHasCompileTimeError(element)) {
       generatedCode[element] = jsAst.js(
           "function () { throw new Error('Compile time error in $element') }");
-      return;
+      return const WorldImpact();
     }
     var kind = element.kind;
-    if (kind == ElementKind.TYPEDEF) return;
+    if (kind == ElementKind.TYPEDEF) {
+      return const WorldImpact();
+    }
     if (element.isConstructor && element.enclosingClass == jsNullClass) {
       // Work around a problem compiling JSNull's constructor.
-      return;
+      return const WorldImpact();
     }
     if (kind.category == ElementCategory.VARIABLE) {
       ConstantExpression initialValue =
@@ -1403,7 +1408,9 @@ class JavaScriptBackend extends Backend {
         // We don't need to generate code for static or top-level
         // variables. For instance variables, we may need to generate
         // the checked setter.
-        if (Elements.isStaticOrTopLevel(element)) return;
+        if (Elements.isStaticOrTopLevel(element)) {
+          return const WorldImpact();
+        }
       } else {
         // If the constant-handler was not able to produce a result we have to
         // go through the builder (below) to generate the lazy initializer for
@@ -1413,6 +1420,7 @@ class JavaScriptBackend extends Backend {
       }
     }
     generatedCode[element] = functionCompiler.compile(work);
+    return const WorldImpact();
   }
 
   native.NativeEnqueuer nativeResolutionEnqueuer(Enqueuer world) {
@@ -2637,13 +2645,18 @@ class JavaScriptBackend extends Backend {
       enqueue(enqueuer, getCompleterConstructor(), registry);
       enqueue(enqueuer, getStreamIteratorConstructor(), registry);
     } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
-      enqueuer.registerInstantiatedClass(getSyncStarIterable(), registry);
+      ClassElement clsSyncStarIterable = getSyncStarIterable();
+      clsSyncStarIterable.ensureResolved(compiler);
+      enqueuer.registerInstantiatedType(clsSyncStarIterable.rawType, registry);
       enqueue(enqueuer, getSyncStarIterableConstructor(), registry);
       enqueue(enqueuer, getEndOfIteration(), registry);
       enqueue(enqueuer, getYieldStar(), registry);
       enqueue(enqueuer, getSyncStarUncaughtError(), registry);
     } else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
-      enqueuer.registerInstantiatedClass(getASyncStarController(), registry);
+      ClassElement clsASyncStarController = getASyncStarController();
+      clsASyncStarController.ensureResolved(compiler);
+      enqueuer.registerInstantiatedType(
+          clsASyncStarController.rawType, registry);
       enqueue(enqueuer, getAsyncStarHelper(), registry);
       enqueue(enqueuer, getStreamOfController(), registry);
       enqueue(enqueuer, getYieldSingle(), registry);

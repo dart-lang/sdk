@@ -210,7 +210,7 @@ class Glue {
   }
 
   void registerIsCheck(DartType type, Registry registry) {
-    _enqueuer.registerIsCheck(type, registry);
+    _enqueuer.registerIsCheck(type);
     _backend.registerIsCheckForCodegen(type, _enqueuer, registry);
   }
 

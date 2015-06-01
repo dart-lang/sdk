@@ -32,7 +32,7 @@ abstract class WorkItem {
     assert(invariant(element, element.isDeclaration));
   }
 
-  void run(Compiler compiler, Enqueuer world);
+  WorldImpact run(Compiler compiler, Enqueuer world);
 }
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
@@ -43,9 +43,10 @@ class ResolutionWorkItem extends WorkItem {
                      ItemCompilationContext compilationContext)
       : super(element, compilationContext);
 
-  void run(Compiler compiler, ResolutionEnqueuer world) {
-    compiler.analyze(this, world);
+  WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
+    WorldImpact impact = compiler.analyze(this, world);
     resolutionTree = element.resolvedAst.elements;
+    return impact;
   }
 
   bool isAnalyzed() => resolutionTree != null;
@@ -81,7 +82,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerInstantiatedClass(ClassElement element) {
-    world.registerInstantiatedClass(element, this);
+    world.registerInstantiatedType(element.rawType, this);
   }
 
   void registerInstantiatedType(InterfaceType type) {
@@ -120,7 +121,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerIsCheck(DartType type) {
-    world.registerIsCheck(type, this);
+    world.registerIsCheck(type);
     backend.registerIsCheckForCodegen(type, world, this);
   }
 
@@ -186,7 +187,7 @@ class CodegenRegistry extends Registry {
 
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
 class CodegenWorkItem extends WorkItem {
-  Registry registry;
+  CodegenRegistry registry;
 
   factory CodegenWorkItem(
       Compiler compiler,
@@ -211,11 +212,11 @@ class CodegenWorkItem extends WorkItem {
 
   TreeElements get resolutionTree => element.resolvedAst.elements;
 
-  void run(Compiler compiler, CodegenEnqueuer world) {
-    if (world.isProcessed(element)) return;
+  WorldImpact run(Compiler compiler, CodegenEnqueuer world) {
+    if (world.isProcessed(element)) return const WorldImpact();
 
     registry = new CodegenRegistry(compiler, resolutionTree);
-    compiler.codegen(this, world);
+    return compiler.codegen(this, world);
   }
 }
 
@@ -249,8 +250,6 @@ abstract class Registry {
   void registerInstantiation(InterfaceType type);
 
   void registerGetOfStaticFunction(FunctionElement element);
-
-  void registerAsyncMarker(FunctionElement element);
 }
 
 abstract class Backend {
@@ -287,7 +286,7 @@ abstract class Backend {
   void initializeHelperClasses() {}
 
   void enqueueHelpers(ResolutionEnqueuer world, Registry registry);
-  void codegen(CodegenWorkItem work);
+  WorldImpact codegen(CodegenWorkItem work);
 
   // The backend determines the native resolution enqueuer, with a no-op
   // default, so tools like dart2dart can ignore the native classes.
@@ -1698,7 +1697,7 @@ abstract class Compiler implements DiagnosticListener {
       ClassElement cls = element;
       cls.ensureResolved(this);
       cls.forEachLocalMember(enqueuer.resolution.addToWorkList);
-      world.registerInstantiatedClass(element, globalDependencies);
+      world.registerInstantiatedType(cls.rawType, globalDependencies);
     } else {
       world.addToWorkList(element);
     }
@@ -1723,10 +1722,12 @@ abstract class Compiler implements DiagnosticListener {
       FunctionElement mainMethod = main;
       if (mainMethod.computeSignature(this).parameterCount != 0) {
         // The first argument could be a list of strings.
-        world.registerInstantiatedClass(
-            backend.listImplementation, globalDependencies);
-        world.registerInstantiatedClass(
-            backend.stringImplementation, globalDependencies);
+        backend.listImplementation.ensureResolved(this);
+        world.registerInstantiatedType(
+            backend.listImplementation.rawType, globalDependencies);
+        backend.stringImplementation.ensureResolved(this);
+        world.registerInstantiatedType(
+            backend.stringImplementation.rawType, globalDependencies);
 
         backend.registerMainHasArguments(world);
       }
@@ -1736,7 +1737,9 @@ abstract class Compiler implements DiagnosticListener {
       progress.reset();
     }
     world.forEach((WorkItem work) {
-      withCurrentElement(work.element, () => work.run(this, world));
+      withCurrentElement(work.element, () {
+        world.applyImpact(work.element, work.run(this, world));
+      });
     });
     world.queueIsClosed = true;
     assert(compilationFailed || world.checkNoEnqueuedInvokedInstanceMethods());
@@ -1782,7 +1785,7 @@ abstract class Compiler implements DiagnosticListener {
     }
   }
 
-  void analyzeElement(Element element) {
+  WorldImpact analyzeElement(Element element) {
     assert(invariant(element,
            element.impliesType ||
            element.isField ||
@@ -1795,22 +1798,23 @@ abstract class Compiler implements DiagnosticListener {
         message: 'Element $element is not analyzable.'));
     assert(invariant(element, element.isDeclaration));
     ResolutionEnqueuer world = enqueuer.resolution;
-    if (world.hasBeenResolved(element)) return;
+    if (world.hasBeenResolved(element)) {
+      return const WorldImpact();
+    }
     assert(parser != null);
     Node tree = parser.parse(element);
     assert(invariant(element, !element.isSynthesized || tree == null));
-    TreeElements elements = resolver.resolve(element);
-    if (elements != null) {
-      if (tree != null && !analyzeSignaturesOnly &&
-          !suppressWarnings) {
-        // Only analyze nodes with a corresponding [TreeElements].
-        checker.check(elements);
-      }
-      world.registerResolvedElement(element);
+    WorldImpact worldImpact = resolver.resolve(element);
+    if (tree != null && !analyzeSignaturesOnly &&
+        !suppressWarnings) {
+      // Only analyze nodes with a corresponding [TreeElements].
+      checker.check(element);
     }
+    world.registerResolvedElement(element);
+    return worldImpact;
   }
 
-  void analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
+  WorldImpact analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.resolution)));
     assert(invariant(work.element, !work.isAnalyzed(),
         message: 'Element ${work.element} has already been analyzed'));
@@ -1824,12 +1828,15 @@ abstract class Compiler implements DiagnosticListener {
       }
     }
     AstElement element = work.element;
-    if (world.hasBeenResolved(element)) return;
-    analyzeElement(element);
+    if (world.hasBeenResolved(element)) {
+      return const WorldImpact();
+    }
+    WorldImpact worldImpact = analyzeElement(element);
     backend.onElementResolved(element, element.resolvedAst.elements);
+    return worldImpact;
   }
 
-  void codegen(CodegenWorkItem work, CodegenEnqueuer world) {
+  WorldImpact codegen(CodegenWorkItem work, CodegenEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.codegen)));
     if (shouldPrintProgress) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
@@ -1837,7 +1844,7 @@ abstract class Compiler implements DiagnosticListener {
       log('Compiled ${enqueuer.codegen.generatedCode.length} methods.');
       progress.reset();
     }
-    backend.codegen(work);
+    return backend.codegen(work);
   }
 
   void reportError(Spannable node,

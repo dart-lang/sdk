@@ -59,14 +59,14 @@ class TestCompiler extends apiimpl.Compiler {
     return super.onLibrariesLoaded(loadedLibraries);
   }
 
-  void analyzeElement(Element element) {
+  WorldImpact analyzeElement(Element element) {
     test('Compiler.analyzeElement');
-    super.analyzeElement(element);
+    return super.analyzeElement(element);
   }
 
-  void codegen(CodegenWorkItem work, CodegenEnqueuer world) {
+  WorldImpact codegen(CodegenWorkItem work, CodegenEnqueuer world) {
     test('Compiler.codegen');
-    super.codegen(work, world);
+    return super.codegen(work, world);
   }
 
   withCurrentElement(Element element, f()) {

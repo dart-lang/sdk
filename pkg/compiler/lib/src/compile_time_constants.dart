@@ -9,7 +9,7 @@ import 'constants/constant_system.dart';
 import 'constants/expressions.dart';
 import 'constants/values.dart';
 import 'dart_types.dart';
-import 'dart2jslib.dart' show Compiler, CompilerTask, MessageKind, invariant;
+import 'dart2jslib.dart' show Compiler, CompilerTask, MessageKind, WorldImpact, invariant;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show FunctionElementX;
 import 'helpers/helpers.dart';
@@ -136,7 +136,9 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     }
     AstElement currentElement = element.analyzableElement;
     return compiler.withCurrentElement(currentElement, () {
-      compiler.analyzeElement(currentElement.declaration);
+      // TODO(johnniwinther): Avoid this eager analysis.
+      _analyzeElementEagerly(compiler, currentElement);
+
       ConstantExpression constant = compileVariableWithDefinitions(
           element, currentElement.resolvedAst.elements, isConst: isConst);
       return constant;
@@ -758,7 +760,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     // TODO(ahe): This is nasty: we must eagerly analyze the
     // constructor to ensure the redirectionTarget has been computed
     // correctly.  Find a way to avoid this.
-    compiler.analyzeElement(constructor.declaration);
+    _analyzeElementEagerly(compiler, constructor);
 
     // The redirection chain of this element may not have been resolved through
     // a post-process action, so we have to make sure it is done here.
@@ -1004,7 +1006,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
         this.definitions = new Map<Element, AstConstant>(),
         this.fieldValues = new Map<Element, AstConstant>(),
         super(handler,
-              compiler.resolver.resolveMethodElement(constructor.declaration),
+              _analyzeElementEagerly(compiler, constructor),
               compiler,
               isConst: true) {
     assert(invariant(constructor, constructor.isImplementation));
@@ -1140,7 +1142,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       ClassElement superClass = enclosingClass.superclass;
       if (enclosingClass != compiler.objectClass) {
         assert(superClass != null);
-        assert(superClass.resolutionState == STATE_DONE);
+        assert(superClass.isResolved);
 
         FunctionElement targetConstructor =
             superClass.lookupDefaultConstructor();
@@ -1224,4 +1226,11 @@ class AstConstant {
 class ErroneousAstConstant extends AstConstant {
   ErroneousAstConstant(Element element, Node node)
       : super(element, node, new ErroneousConstantExpression());
+}
+
+// TODO(johnniwinther): Avoid the need for this hack.
+TreeElements _analyzeElementEagerly(Compiler compiler, AstElement element) {
+  WorldImpact worldImpact = compiler.analyzeElement(element.declaration);
+  compiler.enqueuer.resolution.applyImpact(element.declaration, worldImpact);
+  return element.resolvedAst.elements;
 }

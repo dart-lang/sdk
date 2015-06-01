@@ -129,7 +129,8 @@ class DartBackend extends Backend {
     world.registerInvocation(new Selector.call("compareTo", null, 1));
   }
 
-  void codegen(CodegenWorkItem work) { }
+  WorldImpact codegen(CodegenWorkItem work) => const WorldImpact();
+
   /**
    * Tells whether we should output given element. Corelib classes like
    * Object should not be in the resulting code.
