@@ -5156,8 +5156,8 @@ class ImplicitConstructorBuilder extends SimpleElementVisitor {
   ImplicitConstructorBuilder(this.errorListener, this._callback);
 
   @override
-  void visitClassElement(ClassElementImpl classElement) {
-    classElement.mixinErrorsReported = false;
+  void visitClassElement(ClassElement classElement) {
+    (classElement as ClassElementImpl).mixinErrorsReported = false;
     if (classElement.isTypedef) {
       _visitClassTypeAlias(classElement);
     } else {

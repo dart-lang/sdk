@@ -1463,7 +1463,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     for (CompilationUnitElement unit in library.parts) {
       _collectAccessors(getters, setters, unit);
     }
-    for (PropertyAccessorElementImpl setter in setters) {
+    for (PropertyAccessorElement setter in setters) {
       PropertyAccessorElement getter = getters[setter.displayName];
       if (getter != null) {
         TopLevelVariableElementImpl variable = getter.variable;
@@ -1471,7 +1471,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         CompilationUnitElementImpl setterUnit = setterVariable.enclosingElement;
         setterUnit.replaceTopLevelVariable(setterVariable, variable);
         variable.setter = setter;
-        setter.variable = variable;
+        (setter as PropertyAccessorElementImpl).variable = variable;
       }
     }
   }
@@ -3328,7 +3328,8 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
   ResultDescriptor get currentResult => LIBRARY_ELEMENT2;
 
   @override
-  void set currentValue(LibraryElement library) {
+  void set currentValue(Object value) {
+    LibraryElement library = value;
     if (_libraries.add(library)) {
       if (kind == _SourceClosureKind.IMPORT ||
           kind == _SourceClosureKind.IMPORT_EXPORT) {

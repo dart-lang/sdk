@@ -158,7 +158,8 @@ class AnalysisCache {
    */
   MapIterator<AnalysisTarget, CacheEntry> iterator() {
     int count = _partitions.length;
-    List<Map<AnalysisTarget, CacheEntry>> maps = new List<Map>(count);
+    List<Map<AnalysisTarget, CacheEntry>> maps =
+        new List<Map<AnalysisTarget, CacheEntry>>(count);
     for (int i = 0; i < count; i++) {
       maps[i] = _partitions[i].map;
     }

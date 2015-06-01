@@ -6511,15 +6511,15 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
               withDynamic, visitedElements)) {
         return true;
       }
-      for (InterfaceTypeImpl interfaceType in interfaces) {
-        if (interfaceType.isMoreSpecificThan(type, thisExpansions,
-            typeExpansions, withDynamic, visitedElements)) {
+      for (InterfaceType interfaceType in interfaces) {
+        if ((interfaceType as InterfaceTypeImpl).isMoreSpecificThan(type,
+            thisExpansions, typeExpansions, withDynamic, visitedElements)) {
           return true;
         }
       }
-      for (InterfaceTypeImpl mixinType in mixins) {
-        if (mixinType.isMoreSpecificThan(type, thisExpansions, typeExpansions,
-            withDynamic, visitedElements)) {
+      for (InterfaceType mixinType in mixins) {
+        if ((mixinType as InterfaceTypeImpl).isMoreSpecificThan(type,
+            thisExpansions, typeExpansions, withDynamic, visitedElements)) {
           return true;
         }
       }
@@ -9721,12 +9721,12 @@ abstract class TypeImpl implements DartType {
    * use these as sets of function type aliases that don't need to be expanded.
    */
   @override
-  bool isAssignableTo(TypeImpl type,
+  bool isAssignableTo(DartType type,
       [Set<Element> thisExpansions, Set<Element> typeExpansions]) {
     // An interface type T may be assigned to a type S, written T <=> S, iff
     // either T <: S or S <: T.
     return isSubtypeOf(type, thisExpansions, typeExpansions) ||
-        type.isSubtypeOf(this, typeExpansions, thisExpansions);
+        (type as TypeImpl).isSubtypeOf(this, typeExpansions, thisExpansions);
   }
 
   /**

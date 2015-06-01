@@ -278,7 +278,7 @@ class _WrappedFuture<T> implements CancelableFuture<T> {
   _WrappedFuture(this._future);
 
   @override
-  Stream asStream() => _future.asStream();
+  Stream<T> asStream() => _future.asStream();
 
   @override
   void cancel() {}
@@ -296,5 +296,5 @@ class _WrappedFuture<T> implements CancelableFuture<T> {
       _future.timeout(timeLimit, onTimeout: onTimeout);
 
   @override
-  Future whenComplete(action()) => _future.whenComplete(action);
+  Future<T> whenComplete(action()) => _future.whenComplete(action);
 }
