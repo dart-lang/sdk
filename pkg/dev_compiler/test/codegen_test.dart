@@ -14,7 +14,7 @@ import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
 import 'package:args/args.dart';
 import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'package:dev_compiler/devc.dart';
 import 'package:dev_compiler/src/options.dart';
@@ -24,6 +24,8 @@ import 'package:dev_compiler/src/utils.dart'
     show computeHash, computeHashFromFile;
 import 'package:html/parser.dart' as html;
 
+import 'test_util.dart' show testDirectory;
+
 final ArgParser argParser = new ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
   ..addFlag('dart-gen',
@@ -32,7 +34,6 @@ final ArgParser argParser = new ArgParser()
 main(arguments) {
   if (arguments == null) arguments = [];
   ArgResults args = argParser.parse(arguments);
-  var script = Platform.script.path;
   var dartGen = args['dart-gen'];
   var filePattern = new RegExp(args.rest.length > 0 ? args.rest[0] : '.');
   var compilerMessages = new StringBuffer();
@@ -50,10 +51,7 @@ main(arguments) {
     }
   });
 
-  var testDir = path.absolute(path.dirname(script));
-  var inputDir = dartGen
-      ? path.join(testDir, 'dart_codegen')
-      : path.join(testDir, 'codegen');
+  var inputDir = path.join(testDirectory, dartGen ? 'dart_codegen' : 'codegen');
   var actualDir = path.join(inputDir, 'actual');
   var paths = new Directory(inputDir)
       .listSync()
@@ -65,8 +63,7 @@ main(arguments) {
       bool serverMode: false, bool sourceMaps: false, String subDir}) {
     // TODO(jmesserly): add a way to specify flags in the test file, so
     // they're more self-contained.
-    var runtimeDir = path.join(
-        path.dirname(path.dirname(Platform.script.path)), 'lib', 'runtime');
+    var runtimeDir = path.join(path.dirname(testDirectory), 'lib', 'runtime');
     var options = new CompilerOptions(
         allowConstCasts: !dartGen,
         outputDir: subDir == null ? actualDir : path.join(actualDir, subDir),
@@ -75,7 +72,6 @@ main(arguments) {
         formatOutput: dartGen,
         emitSourceMaps: sourceMaps,
         forceCompile: checkSdk,
-        cheapTestFormat: checkSdk,
         checkSdk: checkSdk,
         entryPointFile: entryPoint,
         dartSdkPath: sdkPath,
@@ -141,8 +137,8 @@ main(arguments) {
         // Get the test SDK. We use a checked in copy so test expectations can
         // be generated against a specific SDK version.
         var testSdk = dartGen
-            ? path.join(testDir, '..', 'tool', 'input_sdk')
-            : path.join(testDir, 'generated_sdk');
+            ? path.join(testDirectory, '..', 'tool', 'input_sdk')
+            : path.join(testDirectory, 'generated_sdk');
         var result = compile('dart:core', testSdk, checkSdk: true);
         var outputDir = new Directory(path.join(actualDir, 'core'));
         var outFile = new File(

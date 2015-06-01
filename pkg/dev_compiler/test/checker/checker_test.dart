@@ -5,15 +5,11 @@
 /// General type checking tests
 library dev_compiler.test.checker_test;
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'package:dev_compiler/src/testing.dart';
 
-import '../test_util.dart';
-
 void main() {
-  configureTest();
-
   test('ternary operator', () {
     testChecker({
       '/main.dart': '''

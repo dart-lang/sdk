@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:dev_compiler/runtime/dart_logging_runtime.dart' as devc;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 class A<T> {
   T x;

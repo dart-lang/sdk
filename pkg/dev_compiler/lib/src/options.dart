@@ -124,12 +124,10 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// Whether to force compilation of code with static errors.
   final bool forceCompile;
 
-  /// Whether to run the dart_style formatter on the generated Dart code.
+  /// Whether to use a cheap formatter instead of dart_style.
+  // TODO(jmesserly): old comment said this might not be a semantically correct
+  // formatter. Why not?
   final bool formatOutput;
-
-  /// Whether to use a cheap formatter instead of dart_style. This might not be
-  /// a semantically correct formatter and it is used for testing only.
-  final bool cheapTestFormat;
 
   /// Output directory for generated code.
   final String outputDir;
@@ -241,7 +239,7 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   CompilerOptions({this.allowConstCasts: true, this.checkSdk: false,
       this.dumpInfo: false, this.dumpInfoFile, this.dumpSrcDir,
       this.forceCompile: false, this.formatOutput: false,
-      this.cheapTestFormat: false, this.ignoreTypes: false,
+      this.ignoreTypes: false,
       this.wrapClosures: RulesOptions.wrapClosuresDefault, this.outputDir,
       this.outputDart: false, this.useColors: true,
       this.covariantGenerics: true, this.relaxedCasts: true,

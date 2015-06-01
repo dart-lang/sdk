@@ -38,7 +38,7 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 # all_tests twice. Finally self_host_test is not currently being tracked by
 # code coverage.
 unset COVERALLS_TOKEN
-dart -c test/all_tests.dart || fail
+pub run test:test test/all_tests.dart || fail
 
 # validate codegen_test output
 pushd test/codegen/ &> /dev/null
@@ -52,7 +52,7 @@ diff $DIFF_ARGS > /dev/null || show_diff
 popd &> /dev/null
 
 # run self host and analyzer after other tests, because they're ~seconds to run.
-dart -c test/checker/self_host_test.dart || fail
+pub run test:test test/checker/self_host_test.dart || fail
 
 # Run analyzer on bin/devc.dart, as it includes most of the code we care about
 # via transitive dependencies. This seems to be the only fast way to avoid

@@ -6,18 +6,15 @@
 /// SDK.
 library dev_compiler.test.end_to_end;
 
-import 'dart:io';
 import 'package:dev_compiler/devc.dart' show Compiler;
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/report.dart';
-import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import 'test_util.dart' show testDirectory;
 
 main() {
-  var testDir = path.absolute(path.dirname(Platform.script.path));
-  _check(testfile) {
+  _check(testFile) {
     var options = new CompilerOptions(
-        entryPointFile: '$testDir/$testfile.dart', useMockSdk: true);
+        entryPointFile: '$testDirectory/$testFile.dart', useMockSdk: true);
     new Compiler(options).run();
   }
 

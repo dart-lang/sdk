@@ -11,7 +11,6 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart' as java_core;
 import 'package:analyzer/src/generated/scanner.dart' show Token;
-import 'package:dart_style/dart_style.dart';
 import 'package:logging/logging.dart' as logger;
 import 'package:path/path.dart' as path;
 
@@ -95,7 +94,7 @@ class FileWriter extends java_core.PrintStringWriter {
   bool insideForLoop = false;
 
   void print(x) {
-    if (!options.cheapTestFormat) {
+    if (!options.formatOutput) {
       super.print(x);
       return;
     }
@@ -133,15 +132,6 @@ class FileWriter extends java_core.PrintStringWriter {
 
   void finalize() {
     String s = toString();
-    if (options.formatOutput && !options.cheapTestFormat) {
-      DartFormatter d = new DartFormatter();
-      try {
-        _log.fine("Formatting file $_path ");
-        s = d.format(s, uri: _path);
-      } catch (e) {
-        _log.severe("Failed to format $_path: " + e.toString());
-      }
-    }
     _log.fine("Writing file $_path");
     new File(_path).writeAsStringSync(s);
   }

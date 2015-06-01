@@ -10,7 +10,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:logging/logging.dart';
 import 'package:source_span/source_span.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'package:dev_compiler/config.dart';
 import 'package:dev_compiler/devc.dart' show Compiler;

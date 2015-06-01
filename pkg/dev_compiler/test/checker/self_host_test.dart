@@ -10,19 +10,14 @@ import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:dev_compiler/devc.dart' show Compiler;
 import 'package:dev_compiler/src/options.dart';
 import 'package:path/path.dart' as path;
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
+import '../test_util.dart' show testDirectory;
 
-import '../test_util.dart';
-
-void main(args) {
-  configureTest();
-
-  var testDir = path.absolute(path.dirname(Platform.script.path));
-
+void main() {
   test('checker can run on itself ', () {
     var options = new CompilerOptions(
-        entryPointFile: '$testDir/../all_tests.dart',
-        dartSdkPath: getSdkDir(args).path);
+        entryPointFile: '$testDirectory/all_tests.dart',
+        dartSdkPath: getSdkDir().path);
     new Compiler(options).run();
   });
 }

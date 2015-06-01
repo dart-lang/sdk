@@ -5,15 +5,11 @@
 /// Tests for type inference.
 library dev_compiler.test.inferred_type_test;
 
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'package:dev_compiler/src/testing.dart';
 
-import '../test_util.dart';
-
 void main() {
-  configureTest();
-
   test('infer type on var', () {
     // Error also expected when declared type is `int`.
     testChecker({
@@ -36,34 +32,37 @@ void main() {
     });
   });
 
-  // Error when declared type is `int` and assigned null.
-  testChecker({
-    '/main.dart': '''
-      test1() {
-        int x = 3;
-        x = /*severe:StaticTypeError*/null;
-      }
-    '''
-  }, nonnullableTypes: <String>['int', 'double']);
+  test('Error when declared type is `int` and assigned null.', () {
+    testChecker({
+      '/main.dart': '''
+        test1() {
+          int x = 3;
+          x = /*severe:StaticTypeError*/null;
+        }
+      '''
+    }, nonnullableTypes: <String>['int', 'double']);
+  });
 
-  // Error when inferred type is `int` and assigned null.
-  testChecker({
-    '/main.dart': '''
-      test1() {
-        var x = 3;
-        x = /*severe:StaticTypeError*/null;
-      }
-    '''
-  }, nonnullableTypes: <String>['int', 'double']);
+  test('Error when inferred type is `int` and assigned null.', () {
+    testChecker({
+      '/main.dart': '''
+        test1() {
+          var x = 3;
+          x = /*severe:StaticTypeError*/null;
+        }
+      '''
+    }, nonnullableTypes: <String>['int', 'double']);
+  });
 
-  // No error when declared type is `num` and assigned null.
-  testChecker({
-    '/main.dart': '''
-      test1() {
-        num x = 3;
-        x = null;
-      }
-    '''
+  test('No error when declared type is `num` and assigned null.', () {
+    testChecker({
+      '/main.dart': '''
+        test1() {
+          num x = 3;
+          x = null;
+        }
+      '''
+    });
   });
 
   test('do not infer type on dynamic', () {

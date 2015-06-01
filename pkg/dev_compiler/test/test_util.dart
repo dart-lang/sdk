@@ -4,14 +4,10 @@
 
 library dev_compiler.test.test_util;
 
-import 'dart:io';
+import 'dart:mirrors';
+import 'package:path/path.dart' as path;
 
-import 'package:unittest/compact_vm_config.dart';
-import 'package:unittest/unittest.dart';
+final String testDirectory =
+    path.dirname((reflectClass(_TestUtils).owner as LibraryMirror).uri.path);
 
-void configureTest() {
-  if (!Platform.environment.containsKey('COVERALLS_TOKEN')) {
-    groupSep = " > ";
-    useCompactVMConfiguration();
-  }
-}
+class _TestUtils {}
