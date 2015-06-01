@@ -20,27 +20,6 @@ var dart, _js_helper, _js_primitives;
     return getOwnPropertyNames(obj).concat(getOwnPropertySymbols(obj));
   }
 
-  // Adapted from Angular.js
-  let FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
-  let FN_ARG_SPLIT = /,/;
-  let FN_ARG = /^\s*(_?)(\S+?)\1\s*$/;
-  let STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-
-  function formalParameterList(fn) {
-    let fnText,argDecl;
-    let args=[];
-    fnText = fn.toString().replace(STRIP_COMMENTS, '');
-    argDecl = fnText.match(FN_ARGS);
-
-    let r = argDecl[1].split(FN_ARG_SPLIT);
-    for (let arg of r) {
-      arg.replace(FN_ARG, function(all, underscore, name){
-        args.push(name);
-      });
-    }
-    return args;
-  }
-
   function dload(obj, field) {
     field = _canonicalFieldName(obj, field);
     if (_getMethodType(obj, field) !== void 0) {
@@ -126,7 +105,7 @@ var dart, _js_helper, _js_primitives;
     // TODO(vsm): This should record / check the receiver type
     // as well.  E.g., only look for core.$map if the receiver
     // is an Iterable.
-    'map': () => core.$map,
+    'map': () => core.$map
   };
 
   // TODO(leafp): Integrate this with the eventual proper extension
@@ -572,10 +551,10 @@ var dart, _js_helper, _js_primitives;
     if (arguments.length == 1) {
       // No type arguments, it's all dynamic
       let len = closure.length;
-      function build() {
+      let build = () => {
         let args = Array.apply(null, new Array(len)).map(() => core.Object);
         return functionType(core.Object, args);
-      }
+      };
       // We could be called before Object is defined.
       if (core.Object === void 0) return fn(closure, build);
       t = build();
@@ -1021,8 +1000,7 @@ var dart, _js_helper, _js_primitives;
     if (sigObj === void 0) return void 0;
     let parts = sigObj[name];
     if (parts === void 0) return void 0;
-    let sig = functionType.apply(null, parts);
-    return sig;
+    return functionType.apply(null, parts);
   }
 
   /// Get the type of a constructor from a class using the stored signature
@@ -1036,8 +1014,7 @@ var dart, _js_helper, _js_primitives;
     if (sigCtor === void 0) return void 0;
     let parts = sigCtor[name];
     if (parts === void 0) return void 0;
-    let sig = functionType.apply(null, parts);
-    return sig;
+    return functionType.apply(null, parts);
   }
   dart.classGetConstructorType = _getConstructorType;
 
@@ -1047,7 +1024,7 @@ var dart, _js_helper, _js_primitives;
   /// TODO(leafp): Consider caching the tearoff on the object?
   function bind(obj, name) {
     let f = obj[name].bind(obj);
-    let sig = _getMethodType(obj, name)
+    let sig = _getMethodType(obj, name);
     assert(sig);
     setRuntimeType(f, sig);
     return f;
@@ -1076,11 +1053,10 @@ var dart, _js_helper, _js_primitives;
   // Set the lazily computed runtime type field on static methods
   function _setStaticTypes(f, names) {
     for (let name of names) {
-      function getT() {
+      defineProperty(f[name], _runtimeType, { get: function() {
         let parts = f[_staticSig][name];
         return functionType.apply(null, parts);
-      };
-      defineProperty(f[name], _runtimeType, {get : getT});
+      }});
     }
   }
 
@@ -1107,7 +1083,7 @@ var dart, _js_helper, _js_primitives;
     _setMethodSignature(f, methods);
     _setStaticSignature(f, statics);
     _setStaticTypes(f, names);
-  };
+  }
   dart.setSignature = setSignature;
 
   let _value = Symbol('_value');
@@ -1290,13 +1266,13 @@ var dart, _js_helper, _js_primitives;
     let result = _split.apply(this, arguments);
     dart.setType(result, core.List$(core.String));
     return result;
-  }
+  };
   String.prototype.get = function(i) {
     return this[i];
-  }
+  };
   String.prototype.codeUnitAt = function(i) {
     return this.charCodeAt(i);
-  }
+  };
   String.prototype.replaceAllMapped =  function(from, cb) {
     return this.replace(from.multiple, function() {
       // Remove offset & string from the result array
@@ -1305,7 +1281,7 @@ var dart, _js_helper, _js_primitives;
       // The callback receives match, p1, ..., pn
       return cb(matches);
     });
-  }
+  };
   String.prototype['+'] = function(arg) { return this.valueOf() + arg; };
 
   Boolean.prototype['!'] = function() { return !this.valueOf(); };
