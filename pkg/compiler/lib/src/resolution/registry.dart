@@ -530,6 +530,7 @@ class ResolutionRegistry implements Registry {
   void registerStaticInvocation(Element element) {
     if (element == null) return;
     registerStaticUse(element);
+    registerDependency(element);
   }
 
   void registerInstantiation(InterfaceType type) {
