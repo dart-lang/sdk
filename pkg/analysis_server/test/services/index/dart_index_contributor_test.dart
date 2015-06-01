@@ -79,6 +79,15 @@ class DartUnitContributorTest extends AbstractSingleUnitTest {
     });
   }
 
+  void test_bad_unresolvedFieldFormalParameter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class Test {
+  final field;
+  Test(this.fie);
+}''');
+  }
+
   void test_definesClass() {
     _indexTestUnit('class A {}');
     // prepare elements

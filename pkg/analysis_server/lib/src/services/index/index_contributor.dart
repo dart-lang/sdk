@@ -442,16 +442,15 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    IndexableObject indexable =
-        new IndexableElement(new NameElement(node.name));
+    NameElement nameElement = new NameElement(node.name);
     LocationImpl location = _createLocationForNode(node);
     if (location == null) {
       return;
     }
     // name in declaration
     if (node.inDeclarationContext()) {
-      _store.recordRelationship(
-          indexable, IndexConstants.NAME_IS_DEFINED_BY, location);
+      recordRelationship(
+          nameElement, IndexConstants.NAME_IS_DEFINED_BY, location);
       return;
     }
     // prepare information
@@ -466,14 +465,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
       bool inGetterContext = node.inGetterContext();
       bool inSetterContext = node.inSetterContext();
       if (inGetterContext && inSetterContext) {
-        _store.recordRelationship(
-            indexable, IndexConstants.IS_READ_WRITTEN_BY, location);
+        recordRelationship(
+            nameElement, IndexConstants.IS_READ_WRITTEN_BY, location);
       } else if (inGetterContext) {
-        _store.recordRelationship(
-            indexable, IndexConstants.IS_READ_BY, location);
+        recordRelationship(nameElement, IndexConstants.IS_READ_BY, location);
       } else if (inSetterContext) {
-        _store.recordRelationship(
-            indexable, IndexConstants.IS_WRITTEN_BY, location);
+        recordRelationship(nameElement, IndexConstants.IS_WRITTEN_BY, location);
       }
     }
     // this.field parameter
@@ -481,8 +478,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       RelationshipImpl relationship = peekElement().element == element
           ? IndexConstants.IS_WRITTEN_BY
           : IndexConstants.IS_REFERENCED_BY;
-      _store.recordRelationship(
-          new IndexableElement(element.field), relationship, location);
+      recordRelationship(element.field, relationship, location);
       return;
     }
     // record specific relations

@@ -23,7 +23,11 @@ class IndexableElement implements IndexableObject {
   /**
    * Initialize a newly created wrapper to wrap the given [element].
    */
-  IndexableElement(this.element);
+  IndexableElement(this.element) {
+    if (element == null) {
+      throw new ArgumentError.notNull('element');
+    }
+  }
 
   @override
   int get hashCode => element.hashCode;
@@ -152,7 +156,7 @@ class IndexableElementKind implements IndexableObjectKind {
           () => new IndexableElementKind._(ElementKind.CONSTRUCTOR));
     }
     ElementKind elementKind = element.kind;
-    return _kindMap.putIfAbsent(elementKind, () =>
-        new IndexableElementKind._(elementKind));
+    return _kindMap.putIfAbsent(
+        elementKind, () => new IndexableElementKind._(elementKind));
   }
 }
