@@ -1810,7 +1810,9 @@ static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
   Breakpoint* bpt =
       isolate->debugger()->SetBreakpointAtLine(script_url, line);
   if (bpt == NULL) {
-    js->PrintError(kNoBreakAtLine, NULL);
+    js->PrintError(kCannotAddBreakpoint,
+                   "%s: Cannot add breakpoint at line '%s'",
+                   js->method(), line_param);
     return true;
   }
   bpt->PrintJSON(js);
@@ -1836,7 +1838,9 @@ static bool AddBreakpointAtEntry(Isolate* isolate, JSONStream* js) {
   Breakpoint* bpt =
       isolate->debugger()->SetBreakpointAtEntry(function, false);
   if (bpt == NULL) {
-    js->PrintError(kNoBreakAtFunction, NULL);
+    js->PrintError(kCannotAddBreakpoint,
+                   "%s: Cannot add breakpoint at function '%s'",
+                   js->method(), function.ToCString());
     return true;
   }
   bpt->PrintJSON(js);
@@ -1862,7 +1866,9 @@ static bool AddBreakpointAtActivation(Isolate* isolate, JSONStream* js) {
   Breakpoint* bpt =
       isolate->debugger()->SetBreakpointAtActivation(closure);
   if (bpt == NULL) {
-    js->PrintError(kNoBreakAtFunction, NULL);
+    js->PrintError(kCannotAddBreakpoint,
+                   "%s: Cannot add breakpoint at activation",
+                   js->method());
     return true;
   }
   bpt->PrintJSON(js);

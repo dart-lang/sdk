@@ -659,7 +659,7 @@ class ScriptInsetElement extends ObservatoryElement {
           .catchError((e, st) {
             if (e is! ServerRpcException ||
                 (e as ServerRpcException).code !=
-                ServerRpcException.kNoBreakAtLine) {
+                ServerRpcException.kCannotAddBreakpoint) {
               app.handleException(e, st);
             }})
           .whenComplete(() {

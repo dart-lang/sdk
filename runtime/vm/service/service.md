@@ -148,7 +148,7 @@ subscribe to the _GC_ stream multiple times from the same client.
 {
   "json-rpc": "2.0",
   "error": {
-    "code": 101,
+    "code": 103,
     "message": "Stream already subscribed",
     "data": {
       "details": "The stream 'GC' is already subscribed"
@@ -163,12 +163,14 @@ specified in the JSON-RPC spec, we use the following application specific error 
 
 code | message | meaning
 ---- | ------- | -------
-100 | Invalid stream | An invalid _streamId_ parameter was provided
-101 | Stream already subscribed | The client is already subscribed to the specified _streamId_
-102 | Stream not subscribed | The client is not subscribed to the specified _streamId_
-200 | VM must be paused | This operation is only valid when the VM is paused
-201 | Cannot set breakpoint | The VM is unable to set a breakpoint at the specified line or function
-300 | Profiling is disabled | The operation is unable to complete because profiling is disabled
+100 | Feature is disabled | The operation is unable to complete because a feature is disabled
+101 | VM must be paused | This operation is only valid when the VM is paused
+102 | Cannot add breakpoint | The VM is unable to add a breakpoint at the specified line or function
+103 | Stream already subscribed | The client is already subscribed to the specified _streamId_
+104 | Stream not subscribed | The client is not subscribed to the specified _streamId_
+
+
+
 
 ## Events
 
@@ -366,7 +368,7 @@ Breakpoint addBreakpoint(string isolateId,
 The _addBreakpoint_ RPC is used to add a breakpoint at a specific line
 of some script.
 
-If no breakpoint is possible at that line, the _201_ (Cannot set
+If no breakpoint is possible at that line, the _102_ (Cannot add
 breakpoint) error code is returned.
 
 Note that breakpoints are added and removed on a per-isolate basis.
@@ -382,7 +384,7 @@ Breakpoint addBreakpointAtEntry(string isolateId,
 The _addBreakpointAtEntry_ RPC is used to add a breakpoint at the
 entrypoint of some function.
 
-If no breakpoint is possible at the function entry, the _201_ (Cannot set
+If no breakpoint is possible at the function entry, the _102_ (Cannot add
 breakpoint) error code is returned.
 
 See [Breakpoint](#breakpoint).
@@ -587,7 +589,7 @@ Success streamCancel(string streamId)
 
 The _streamCancel_ RPC cancels a stream subscription in the VM.
 
-If the client is not subscribed to the stream, the _102_ (Stream not
+If the client is not subscribed to the stream, the _104_ (Stream not
 subscribed) error code is returned.
 
 See [Success](#success).
@@ -601,7 +603,7 @@ Success streamListen(string streamId)
 The _streamListen_ RPC subscribes to a stream in the VM.  Once
 subscribed, the client will begin receiving events from the stream.
 
-If the client is not subscribed to the stream, the _101_ (Stream already
+If the client is not subscribed to the stream, the _103_ (Stream already
 subscribed) error code is returned.
 
 The _streamId_ parameter may have the following published values:
@@ -963,7 +965,7 @@ enum EventKind {
 
   // Notification that isolate identifying information has changed.
   // Currently used to notify of changes to the isolate debugging name
-  // via <code>setName</code>.
+  // via setName.
   IsolateUpdate,
 
   // An isolate has paused at start, before executing code.
@@ -975,7 +977,7 @@ enum EventKind {
   // An isolate has paused at a breakpoint or due to stepping.
   PauseBreakpoint,
 
-  // An isolate has paused due to interruption via <code>pause</code>.
+  // An isolate has paused due to interruption via pause.
   PauseInterrupted,
 
   // An isolate has paused due to an exception.
@@ -1360,7 +1362,7 @@ enum {
   List,
 
   // An instance of the built-in VM Map implementation.  User-defined
-  // Lists will be PlainInstance.
+  // Maps will be PlainInstance.
   Map,
 
   // An instance of the built-in VM Closure implementation.  User-defined

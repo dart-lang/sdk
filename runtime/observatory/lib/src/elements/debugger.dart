@@ -381,7 +381,7 @@ class BreakCommand extends DebuggerCommand {
         try {
           await debugger.isolate.addBreakpointAtEntry(loc.function);
         } on ServerRpcException catch(e) {
-          if (e.code == ServerRpcException.kNoBreakAtFunction) {
+          if (e.code == ServerRpcException.kCannotAddBreakpoint) {
             debugger.console.print('Unable to set breakpoint at ${loc}');
           } else {
             rethrow;
@@ -398,7 +398,7 @@ class BreakCommand extends DebuggerCommand {
         try {
           await debugger.isolate.addBreakpoint(loc.script, loc.line);
         } on ServerRpcException catch(e) {
-          if (e.code == ServerRpcException.kNoBreakAtLine) {
+          if (e.code == ServerRpcException.kCannotAddBreakpoint) {
             debugger.console.print('Unable to set breakpoint at ${loc}');
           } else {
             rethrow;

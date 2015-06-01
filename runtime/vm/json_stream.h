@@ -27,6 +27,7 @@ class String;
 class Zone;
 
 
+// Keep this in sync with runtime/observatory/lib/src/service/object.dart.
 enum JSONRpcErrorCode {
   kParseError     = -32700,
   kInvalidRequest = -32600,
@@ -34,11 +35,9 @@ enum JSONRpcErrorCode {
   kInvalidParams  = -32602,
   kInternalError  = -32603,
 
-  kVMMustBePaused    = 100,
-  kNoBreakAtLine     = 101,
-  kNoBreakAtFunction = 102,
-
-  kProfilingDisabled = 200,
+  kFeatureDisabled     = 100,
+  kVMMustBePaused      = 101,
+  kCannotAddBreakpoint = 102,
 };
 
 

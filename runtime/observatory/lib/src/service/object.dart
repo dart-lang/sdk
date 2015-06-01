@@ -20,10 +20,9 @@ class ServerRpcException extends RpcException {
   static const kMethodNotFound = -32601;
   static const kInvalidParams  = -32602;
   static const kInternalError  = -32603;
-  static const kVMMustBePaused    = 100;
-  static const kNoBreakAtLine     = 101;
-  static const kNoBreakAtFunction = 102;
-  static const kProfilingDisabled = 200;
+  static const kFeatureDisabled   = 100;
+  static const kVMMustBePaused    = 101;
+  static const kCannotAddBreakpoint = 102;
 
   int code;
   Map data;
@@ -1163,7 +1162,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       }
       return bpt;
     } on ServerRpcException catch(e) {
-      if (e.code == ServerRpcException.kNoBreakAtLine) {
+      if (e.code == ServerRpcException.kCannotAddBreakpoint) {
         // Unable to set a breakpoint at the desired line.
         script.getLine(line).possibleBpt = false;
       }
