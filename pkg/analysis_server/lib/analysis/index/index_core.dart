@@ -5,19 +5,107 @@
 library analysis_server.analysis.index.index_core;
 
 import 'dart:async';
+import 'dart:collection';
 
+import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
  * An object that can have a [Relationship] with various [Location]s in a code
- * base.
+ * base. The object is abstractly represented by a [kind] and an [offset] within
+ * a [source].
+ *
+ * Clients must ensure that two distinct objects in the same source cannot have
+ * the same kind and offset. Failure to do so will make it impossible for
+ * clients to identify the model element corresponding to the indexable object.
  *
  * Clients are expected to subtype this class when implementing plugins.
  */
 abstract class IndexableObject {
-  // TODO(brianwilkerson) Figure out the subset of the Element API that is used
-  // by the index.
+  /**
+   * Return the kind of this object.
+   */
+  IndexableObjectKind get kind;
+
+  /**
+   * Return the length of the indexable object within its source.
+   */
+  int get length;
+
+  /**
+   * Return the name of this element.
+   */
+  // TODO(brianwilkerson) Remove the need for this getter.
+  String get name;
+
+  /**
+   * Return the offset of the indexable object within its source.
+   */
+  int get offset;
+
+  /**
+   * Return the source containing the indexable object.
+   */
+  Source get source;
+}
+
+/**
+ * The kind associated with an [IndexableObject].
+ *
+ * Clients are expected to implement this class when implementing plugins.
+ */
+abstract class IndexableObjectKind {
+  /**
+   * The next available index for a newly created kind of indexable object.
+   */
+  static int _nextIndex = 0;
+
+  /**
+   * A table mapping indexes to object kinds.
+   */
+  static Map<int, IndexableObjectKind> _registry =
+      new HashMap<int, IndexableObjectKind>();
+
+  /**
+   * Return the next available index for a newly created kind of indexable
+   * object.
+   */
+  static int get nextIndex => _nextIndex++;
+
+  /**
+   * Return the unique index for this kind of indexable object. Implementations
+   * should invoke [nextIndex] to allocate an index that cannot be used by any
+   * other object kind.
+   */
+  int get index;
+
+  /**
+   * Return the indexable object of this kind that exists in the given
+   * [context], in the source with the given [filePath], and at the given
+   * [offset].
+   */
+  IndexableObject decode(AnalysisContext context, String filePath, int offset);
+
+  /**
+   * Return the object kind with the given [index].
+   */
+  static IndexableObjectKind getKind(int index) {
+    return _registry[index];
+  }
+
+  /**
+   * Register the given object [kind] so that it can be found by it's unique
+   * index. The index of the [kind] must not be changed after it is passed to
+   * this method.
+   */
+  static void register(IndexableObjectKind kind) {
+    int index = kind.index;
+    if (_registry.containsKey(index)) {
+      throw new ArgumentError('duplicate index for kind: $index');
+    }
+    _registry[index] = kind;
+  }
 }
 
 /**
@@ -181,5 +269,6 @@ abstract class Relationship {
    * has already been created, then it will be returned, otherwise a new
    * relationship will be created
    */
-  factory Relationship(String identifier) => null;
+  factory Relationship(String identifier) =>
+      RelationshipImpl.getRelationship(identifier);
 }

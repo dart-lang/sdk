@@ -8,9 +8,11 @@ import 'dart:async';
 import 'dart:collection';
 import 'dart:typed_data';
 
+import 'package:analysis_server/analysis/index/index_core.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
+import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
 import 'package:analysis_server/src/services/index/store/collection.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -276,10 +278,10 @@ class IndexNode {
    *    locations to be returned
    */
   List<LocationImpl> getRelationships(
-      Element element, RelationshipImpl relationship) {
+      IndexableObject indexable, RelationshipImpl relationship) {
     // prepare key
     RelationKeyData key = new RelationKeyData.forObject(
-        _elementCodec, _relationshipCodec, element, relationship);
+        _elementCodec, _relationshipCodec, indexable, relationship);
     // find LocationData(s)
     List<LocationData> locationDatas = _relations[key];
     if (locationDatas == null) {
@@ -324,10 +326,10 @@ class IndexNode {
    * [relationship] - the [RelationshipImpl] between [element] and [location].
    * [location] - the [LocationImpl] where relationship happens.
    */
-  void recordRelationship(
-      Element element, RelationshipImpl relationship, LocationImpl location) {
+  void recordRelationship(IndexableObject indexable,
+      RelationshipImpl relationship, LocationImpl location) {
     RelationKeyData key = new RelationKeyData.forObject(
-        _elementCodec, _relationshipCodec, element, relationship);
+        _elementCodec, _relationshipCodec, indexable, relationship);
     // prepare LocationData(s)
     List<LocationData> locationDatas = _relations[key];
     if (locationDatas == null) {
@@ -369,9 +371,9 @@ class LocationData {
       this.offset, this.length, this.flags);
 
   LocationData.forObject(ElementCodec elementCodec, LocationImpl location)
-      : elementId1 = elementCodec.encode1(location.element),
-        elementId2 = elementCodec.encode2(location.element),
-        elementId3 = elementCodec.encode3(location.element),
+      : elementId1 = elementCodec.encode1(location.indexable),
+        elementId2 = elementCodec.encode2(location.indexable),
+        elementId3 = elementCodec.encode3(location.indexable),
         offset = location.offset,
         length = location.length,
         flags = (location.isQualified ? _FLAG_QUALIFIED : 0) |
@@ -406,14 +408,14 @@ class LocationData {
    * Returns a {@link Location} that is represented by this {@link LocationData}.
    */
   LocationImpl getLocation(AnalysisContext context, ElementCodec elementCodec) {
-    Element element =
+    IndexableObject indexable =
         elementCodec.decode(context, elementId1, elementId2, elementId3);
-    if (element == null) {
+    if (indexable == null) {
       return null;
     }
     bool isQualified = (flags & _FLAG_QUALIFIED) != 0;
     bool isResovled = (flags & _FLAG_RESOLVED) != 0;
-    return new LocationImpl(element, offset, length,
+    return new LocationImpl(indexable, offset, length,
         isQualified: isQualified, isResolved: isResovled);
   }
 }
@@ -481,11 +483,11 @@ class RelationKeyData {
       this.elementId1, this.elementId2, this.elementId3, this.relationshipId);
 
   RelationKeyData.forObject(ElementCodec elementCodec,
-      RelationshipCodec relationshipCodec, Element element,
+      RelationshipCodec relationshipCodec, IndexableObject indexable,
       RelationshipImpl relationship)
-      : elementId1 = elementCodec.encode1(element),
-        elementId2 = elementCodec.encode2(element),
-        elementId3 = elementCodec.encode3(element),
+      : elementId1 = elementCodec.encode1(indexable),
+        elementId2 = elementCodec.encode2(indexable),
+        elementId3 = elementCodec.encode3(indexable),
         relationshipId = relationshipCodec.encode(relationship);
 
   @override
@@ -712,11 +714,11 @@ class SplitIndexStore implements InternalIndexStore {
   }
 
   Future<List<LocationImpl>> getRelationships(
-      Element element, RelationshipImpl relationship) {
+      IndexableObject indexable, RelationshipImpl relationship) {
     // prepare node names
     List<int> nodeNameIds;
     {
-      int nameId = _elementCodec.encodeHash(element);
+      int nameId = _elementCodec.encodeHash(indexable);
       IntToIntSetMap nameToNodeNames = _relToNameMap[relationship];
       if (nameToNodeNames != null) {
         nodeNameIds = nameToNodeNames.get(nameId);
@@ -735,7 +737,7 @@ class SplitIndexStore implements InternalIndexStore {
           // TODO(scheglov) remove node
           return LocationImpl.EMPTY_LIST;
         }
-        return node.getRelationships(element, relationship);
+        return node.getRelationships(indexable, relationship);
       });
       nodeFutures.add(locationsFuture);
     }
@@ -759,9 +761,10 @@ class SplitIndexStore implements InternalIndexStore {
         for (List<_TopElementData> topDataList in contextLocations.values) {
           for (_TopElementData topData in topDataList) {
             if (nameFilter(topData.name)) {
-              Element element = topData.getElement(context, _elementCodec);
-              if (element != null) {
-                elements.add(element);
+              IndexableObject indexable =
+                  topData.getElement(context, _elementCodec);
+              if (indexable is IndexableElement) {
+                elements.add(indexable.element);
               }
             }
           }
@@ -813,17 +816,19 @@ class SplitIndexStore implements InternalIndexStore {
   }
 
   @override
-  void recordRelationship(
-      Element element, RelationshipImpl relationship, LocationImpl location) {
-    if (element == null || element is MultiplyDefinedElement) {
+  void recordRelationship(IndexableObject indexable,
+      RelationshipImpl relationship, LocationImpl location) {
+    if (indexable == null ||
+        (indexable is IndexableElement &&
+            indexable.element is MultiplyDefinedElement)) {
       return;
     }
     if (location == null) {
       return;
     }
     // other elements
-    _recordNodeNameForElement(element, relationship);
-    _currentNode.recordRelationship(element, relationship, location);
+    _recordNodeNameForElement(indexable, relationship);
+    _currentNode.recordRelationship(indexable, relationship, location);
   }
 
   void recordTopLevelDeclaration(Element element) {
@@ -841,7 +846,8 @@ class SplitIndexStore implements InternalIndexStore {
       nodeDeclarations[_currentNodeNameId] = declarations;
     }
     // record LocationData
-    declarations.add(new _TopElementData(_elementCodec, element));
+    declarations
+        .add(new _TopElementData(_elementCodec, new IndexableElement(element)));
   }
 
   @override
@@ -931,13 +937,13 @@ class SplitIndexStore implements InternalIndexStore {
   }
 
   void _recordNodeNameForElement(
-      Element element, RelationshipImpl relationship) {
+      IndexableObject indexable, RelationshipImpl relationship) {
     IntToIntSetMap nameToNodeNames = _relToNameMap[relationship];
     if (nameToNodeNames == null) {
       nameToNodeNames = new IntToIntSetMap();
       _relToNameMap[relationship] = nameToNodeNames;
     }
-    int nameId = _elementCodec.encodeHash(element);
+    int nameId = _elementCodec.encodeHash(indexable);
     nameToNodeNames.add(nameId, _currentNodeNameId);
   }
 
@@ -1027,15 +1033,18 @@ class _TopElementData {
   final int elementId2;
   final int elementId3;
 
-  factory _TopElementData(ElementCodec elementCodec, Element element) {
-    return new _TopElementData._(element.name, elementCodec.encode1(element),
-        elementCodec.encode2(element), elementCodec.encode3(element));
+  factory _TopElementData(
+      ElementCodec elementCodec, IndexableObject indexable) {
+    return new _TopElementData._(indexable.name,
+        elementCodec.encode1(indexable), elementCodec.encode2(indexable),
+        elementCodec.encode3(indexable));
   }
 
   _TopElementData._(
       this.name, this.elementId1, this.elementId2, this.elementId3);
 
-  Element getElement(AnalysisContext context, ElementCodec elementCodec) {
+  IndexableObject getElement(
+      AnalysisContext context, ElementCodec elementCodec) {
     return elementCodec.decode(context, elementId1, elementId2, elementId3);
   }
 }

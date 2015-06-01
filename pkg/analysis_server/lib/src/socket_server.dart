@@ -71,6 +71,7 @@ class SocketServer {
     Index index = null;
     if (!analysisServerOptions.noIndex) {
       index = createLocalFileIndex();
+      index.contributors = serverPlugin.indexContributors;
       index.run();
     }
 

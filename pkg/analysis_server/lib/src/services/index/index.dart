@@ -6,6 +6,8 @@ library services.index;
 
 import 'dart:async';
 
+import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -19,39 +21,23 @@ typedef bool ElementNameFilter(String name);
 
 /**
  * The interface [Index] defines the behavior of objects that maintain an index
- * storing relations between [Element]s.
+ * storing relations between indexable objects.
  *
  * Any modification operations are executed before any read operation.
  * There is no guarantee about the order in which the [Future]s for read
  * operations will complete.
  */
-abstract class Index {
+abstract class Index implements IndexStore {
+  /**
+   * Set the index contributors used by this index to the given list of
+   * [contributors].
+   */
+  void set contributors(List<IndexContributor> contributors);
+
   /**
    * Answers index statistics.
    */
   String get statistics;
-
-  /**
-   * Removes from the index all the information.
-   */
-  void clear();
-
-  /**
-   * Asynchronously returns a list containing all of the locations of the
-   * elements that have the given [relationship] with the given [element].
-   *
-   * For example, if the element represents a function and the relationship is
-   * the `is-invoked-by` relationship, then the locations will be all of the
-   * places where the function is invoked.
-   *
-   * [element] - the element that has the relationship with the locations to be
-   * returned.
-   *
-   * [relationship] - the relationship between the given element and the
-   * locations to be returned.
-   */
-  Future<List<LocationImpl>> getRelationships(
-      Element element, RelationshipImpl relationship);
 
   /**
    * Returns top-level [Element]s whose names satisfy to [nameFilter].
@@ -75,41 +61,6 @@ abstract class Index {
   void indexUnit(AnalysisContext context, CompilationUnit unit);
 
   /**
-   * Removes from the index all of the information associated with [context].
-   *
-   * This method should be invoked when [context] is disposed.
-   */
-  void removeContext(AnalysisContext context);
-
-  /**
-   * Removes from the index all of the information associated with elements or
-   * locations in [source]. This includes relationships between an element in
-   * [source] and any other locations, relationships between any other elements
-   * and a location within [source].
-   *
-   * This method should be invoked when [source] is no longer part of the code
-   * base.
-   *
-   * [context] - the [AnalysisContext] in which [source] being removed
-   * [source] - the [Source] being removed
-   */
-  void removeSource(AnalysisContext context, Source source);
-
-  /**
-   * Removes from the index all of the information associated with elements or
-   * locations in the given sources. This includes relationships between an
-   * element in the given sources and any other locations, relationships between
-   * any other elements and a location within the given sources.
-   *
-   * This method should be invoked when multiple sources are no longer part of
-   * the code base.
-   *
-   * [context] - the [AnalysisContext] in which [Source]s being removed.
-   * [container] - the [SourceContainer] holding the sources being removed.
-   */
-  void removeSources(AnalysisContext context, SourceContainer container);
-
-  /**
    * Starts the index.
    * Should be called before any other method.
    */
@@ -120,6 +71,70 @@ abstract class Index {
    * After calling this method operations may not be executed.
    */
   void stop();
+}
+
+/**
+ * An [Element] which is used to index references to the name without specifying
+ * a concrete kind of this name - field, method or something else.
+ */
+class IndexableName implements IndexableObject {
+  // TODO(brianwilkerson) Replace NameElement with this class. This will require
+  // generalizing the search engine to use IndexableObject rather than Element.
+  /**
+   * The name to be indexed.
+   */
+  final String name;
+
+  /**
+   * Initialize a newly created indexable name to represent the given [name].
+   */
+  IndexableName(this.name);
+
+  @override
+  IndexableObjectKind get kind => IndexableNameKind.INSTANCE;
+
+  @override
+  int get length => 0;
+
+  @override
+  int get offset {
+    return -1;
+  }
+
+  @override
+  Source get source => null;
+
+  @override
+  String toString() => name;
+}
+
+/**
+ * The kind of an indexable name.
+ */
+class IndexableNameKind implements IndexableObjectKind {
+  /**
+   * The unique instance of this class.
+   */
+  static final IndexableNameKind INSTANCE =
+      new IndexableNameKind._(IndexableObjectKind.nextIndex);
+
+  /**
+   * The index uniquely identifying this kind.
+   */
+  final int index;
+
+  /**
+   * Initialize a newly created kind to have the given [index].
+   */
+  IndexableNameKind._(this.index) {
+    IndexableObjectKind.register(this);
+  }
+
+  @override
+  IndexableObject decode(AnalysisContext context, String filePath, int offset) {
+    throw new UnsupportedError(
+        'Indexable names cannot be decoded through their kind');
+  }
 }
 
 /**
@@ -217,7 +232,7 @@ class IndexConstants {
  * to the resource containing the element rather than the start of the element
  * within that resource.
  */
-class LocationImpl {
+class LocationImpl implements Location {
   static const int _FLAG_QUALIFIED = 1 << 0;
   static const int _FLAG_RESOLVED = 1 << 1;
 
@@ -227,9 +242,9 @@ class LocationImpl {
   static const List<LocationImpl> EMPTY_LIST = const <LocationImpl>[];
 
   /**
-   * The element containing this location.
+   * The indexable object containing this location.
    */
-  final Element element;
+  final IndexableObject indexable;
 
   /**
    * The offset of this location within the resource containing the element.
@@ -247,17 +262,13 @@ class LocationImpl {
   int _flags;
 
   /**
-   * Initializes a newly created location to be relative to the given element at
-   * the given [offset] with the given [length].
-   *
-   * [element] - the [Element] containing this location.
-   * [offset] - the offset within the resource containing [element].
-   * [length] - the length of this location
+   * Initializes a newly created location to be relative to the given
+   * [indexable] object at the given [offset] with the given [length].
    */
-  LocationImpl(this.element, this.offset, this.length,
+  LocationImpl(this.indexable, this.offset, this.length,
       {bool isQualified: false, bool isResolved: true}) {
-    if (element == null) {
-      throw new ArgumentError("element location cannot be null");
+    if (indexable == null) {
+      throw new ArgumentError("indexable object cannot be null");
     }
     _flags = 0;
     if (isQualified) {
@@ -269,13 +280,20 @@ class LocationImpl {
   }
 
   /**
-   * Returns `true` if this location is a qualified reference.
+   * The element containing this location.
    */
+  @deprecated
+  Element get element {
+    if (indexable is IndexableElement) {
+      return (indexable as IndexableElement).element;
+    }
+    return null;
+  }
+
+  @override
   bool get isQualified => (_flags & _FLAG_QUALIFIED) != 0;
 
-  /**
-   * Returns `true` if this location is a resolved reference.
-   */
+  @override
   bool get isResolved => (_flags & _FLAG_RESOLVED) != 0;
 
   @override
@@ -287,7 +305,7 @@ class LocationImpl {
     if (isResolved) {
       flagsStr += ' resolved';
     }
-    return '[${offset} - ${(offset + length)}) $flagsStr in ${element}';
+    return '[${offset} - ${(offset + length)}) $flagsStr in ${indexable}';
   }
 }
 
@@ -298,7 +316,7 @@ class LocationWithData<D> extends LocationImpl {
   final D data;
 
   LocationWithData(LocationImpl location, this.data)
-      : super(location.element, location.offset, location.length);
+      : super(location.indexable, location.offset, location.length);
 }
 
 /**
@@ -319,7 +337,7 @@ class NameElement extends ElementImpl {
  * Relationship between an element and a location. Relationships are identified
  * by a globally unique identifier.
  */
-class RelationshipImpl {
+class RelationshipImpl implements Relationship {
   /**
    * A table mapping relationship identifiers to relationships.
    */

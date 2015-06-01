@@ -6,8 +6,10 @@ library services.src.search.search_engine;
 
 import 'dart:async';
 
+import 'package:analysis_server/analysis/index/index_core.dart';
 import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -198,13 +200,17 @@ class _Requestor {
   _Requestor(this.index);
 
   void add(Element element, RelationshipImpl relationship, MatchKind kind) {
-    Future relationsFuture = index.getRelationships(element, relationship);
+    Future relationsFuture =
+        index.getRelationships(new IndexableElement(element), relationship);
     Future matchesFuture = relationsFuture.then((List<LocationImpl> locations) {
       List<SearchMatch> matches = <SearchMatch>[];
       for (LocationImpl location in locations) {
-        matches.add(new SearchMatch(kind, location.element,
-            new SourceRange(location.offset, location.length),
-            location.isResolved, location.isQualified));
+        IndexableObject indexable = location.indexable;
+        if (indexable is IndexableElement) {
+          matches.add(new SearchMatch(kind, indexable.element,
+              new SourceRange(location.offset, location.length),
+              location.isResolved, location.isQualified));
+        }
       }
       return matches;
     });

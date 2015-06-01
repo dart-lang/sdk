@@ -148,7 +148,7 @@ class ServerPlugin implements Plugin {
    * Return a list containing all of the index contributors that were
    * contributed.
    */
-  List<IndexContributor> get indexContributor =>
+  List<IndexContributor> get indexContributors =>
       indexContributorExtensionPoint.extensions;
 
   @override

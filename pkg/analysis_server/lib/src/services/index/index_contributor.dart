@@ -6,9 +6,12 @@ library services.src.index.index_contributor;
 
 import 'dart:collection' show Queue;
 
+import 'package:analysis_server/analysis/index/index_core.dart';
+import 'package:analysis_server/analysis/index/index_dart.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_store.dart';
+import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -65,6 +68,19 @@ void indexHtmlUnit(
 }
 
 /**
+ * An [IndexContributor] that can be used to contribute relationships for Dart
+ * files.
+ */
+class DefaultDartIndexContributor extends DartIndexContributor {
+  @override
+  void internalContributeTo(IndexStore store, CompilationUnit unit) {
+    _IndexContributor contributor =
+        new _IndexContributor(store as InternalIndexStore);
+    unit.accept(contributor);
+  }
+}
+
+/**
  * Visits a resolved AST and adds relationships into [InternalIndexStore].
  */
 class _IndexContributor extends GeneralizingAstVisitor {
@@ -90,12 +106,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   /**
-   * @return the inner-most enclosing [Element], may be `null`.
+   * Return the inner-most enclosing [Element], wrapped as an indexable object,
+   * or `null` if there is no enclosing element.
    */
-  Element peekElement() {
+  IndexableElement peekElement() {
     for (Element element in _elementStack) {
       if (element != null) {
-        return element;
+        return new IndexableElement(element);
       }
     }
     return null;
@@ -108,7 +125,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void recordRelationship(
       Element element, RelationshipImpl relationship, LocationImpl location) {
     if (element != null && location != null) {
-      _store.recordRelationship(element, relationship, location);
+      _store.recordRelationship(
+          new IndexableElement(element), relationship, location);
     }
   }
 
@@ -231,8 +249,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (fieldName != null) {
       Element element = fieldName.staticElement;
       LocationImpl location = _createLocationForNode(fieldName);
-      _store.recordRelationship(
-          element, IndexConstants.IS_WRITTEN_BY, location);
+      recordRelationship(element, IndexConstants.IS_WRITTEN_BY, location);
     }
     // index expression
     if (expression != null) {
@@ -374,9 +391,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     // name invocation
     {
-      Element nameElement = new NameElement(name.name);
-      _store.recordRelationship(
-          nameElement, IndexConstants.IS_INVOKED_BY, location);
+      recordRelationship(
+          new NameElement(name.name), IndexConstants.IS_INVOKED_BY, location);
     }
     _recordImportElementReferenceWithoutPrefix(name);
     super.visitMethodInvocation(node);
@@ -426,12 +442,16 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    Element nameElement = new NameElement(node.name);
+    IndexableObject indexable =
+        new IndexableElement(new NameElement(node.name));
     LocationImpl location = _createLocationForNode(node);
+    if (location == null) {
+      return;
+    }
     // name in declaration
     if (node.inDeclarationContext()) {
-      recordRelationship(
-          nameElement, IndexConstants.NAME_IS_DEFINED_BY, location);
+      _store.recordRelationship(
+          indexable, IndexConstants.NAME_IS_DEFINED_BY, location);
       return;
     }
     // prepare information
@@ -447,21 +467,22 @@ class _IndexContributor extends GeneralizingAstVisitor {
       bool inSetterContext = node.inSetterContext();
       if (inGetterContext && inSetterContext) {
         _store.recordRelationship(
-            nameElement, IndexConstants.IS_READ_WRITTEN_BY, location);
+            indexable, IndexConstants.IS_READ_WRITTEN_BY, location);
       } else if (inGetterContext) {
         _store.recordRelationship(
-            nameElement, IndexConstants.IS_READ_BY, location);
+            indexable, IndexConstants.IS_READ_BY, location);
       } else if (inSetterContext) {
         _store.recordRelationship(
-            nameElement, IndexConstants.IS_WRITTEN_BY, location);
+            indexable, IndexConstants.IS_WRITTEN_BY, location);
       }
     }
     // this.field parameter
     if (element is FieldFormalParameterElement) {
-      RelationshipImpl relationship = peekElement() == element
+      RelationshipImpl relationship = peekElement().element == element
           ? IndexConstants.IS_WRITTEN_BY
           : IndexConstants.IS_REFERENCED_BY;
-      _store.recordRelationship(element.field, relationship, location);
+      _store.recordRelationship(
+          new IndexableElement(element.field), relationship, location);
       return;
     }
     // record specific relations
@@ -585,8 +606,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     if (node is SimpleIdentifier) {
       isResolved = node.bestElement != null;
     }
-    Element element = peekElement();
-    return new LocationImpl(element, node.offset, node.length,
+    IndexableObject indexable = peekElement();
+    return new LocationImpl(indexable, node.offset, node.length,
         isQualified: isQualified, isResolved: isResolved);
   }
 
@@ -598,7 +619,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
    * inner-most [Element].
    */
   LocationImpl _createLocationForOffset(int offset, int length) {
-    Element element = peekElement();
+    IndexableObject element = peekElement();
     return new LocationImpl(element, offset, length);
   }
 
@@ -606,7 +627,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
    * @return the [LocationImpl] representing location of the [Token].
    */
   LocationImpl _createLocationForToken(Token token, bool isResolved) {
-    Element element = peekElement();
+    IndexableObject element = peekElement();
     return new LocationImpl(element, token.offset, token.length,
         isQualified: true, isResolved: isResolved);
   }
@@ -744,21 +765,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
    * Records the [Element] definition in the library and universe.
    */
   void _recordTopLevelElementDefinition(Element element) {
-    LocationImpl location = createLocation(element);
-    recordRelationship(_libraryElement, IndexConstants.DEFINES, location);
-    _store.recordTopLevelDeclaration(element);
-  }
-
-  /**
-   * Creates a [LocationImpl] representing declaration of the [Element].
-   */
-  static LocationImpl createLocation(Element element) {
     if (element != null) {
-      int offset = element.nameOffset;
-      int length = element.displayName.length;
-      return new LocationImpl(element, offset, length);
+      IndexableElement indexable = new IndexableElement(element);
+      int offset = indexable.offset;
+      int length = indexable.length;
+      LocationImpl location = new LocationImpl(indexable, offset, length);
+      recordRelationship(_libraryElement, IndexConstants.DEFINES, location);
+      _store.recordTopLevelDeclaration(element);
     }
-    return null;
   }
 
   /**

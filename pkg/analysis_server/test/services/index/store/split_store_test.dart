@@ -6,7 +6,9 @@ library test.services.src.index.store.split_store;
 
 import 'dart:async';
 
+import 'package:analysis_server/analysis/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analysis_server/src/services/index/store/codec.dart';
 import 'package:analysis_server/src/services/index/store/memory_node_manager.dart';
 import 'package:analysis_server/src/services/index/store/split_store.dart';
@@ -30,11 +32,10 @@ main() {
   defineReflectiveTests(_SplitIndexStoreTest);
 }
 
-void _assertHasLocation(
-    List<LocationImpl> locations, Element element, int offset, int length,
-    {bool isQualified: false, bool isResolved: true}) {
+void _assertHasLocation(List<LocationImpl> locations, IndexableElement element,
+    int offset, int length, {bool isQualified: false, bool isResolved: true}) {
   for (LocationImpl location in locations) {
-    if ((element == null || location.element == element) &&
+    if ((element == null || location.indexable == element) &&
         location.offset == offset &&
         location.length == length &&
         location.isQualified == isQualified &&
@@ -46,8 +47,8 @@ void _assertHasLocation(
       '(element=$element, offset=$offset, length=$length)');
 }
 
-void _assertHasLocationQ(
-    List<LocationImpl> locations, Element element, int offset, int length) {
+void _assertHasLocationQ(List<LocationImpl> locations, IndexableElement element,
+    int offset, int length) {
   _assertHasLocation(locations, element, offset, length, isQualified: true);
 }
 
@@ -164,9 +165,9 @@ class _FileNodeManagerTest {
       bytes = bs;
     });
     // prepare elements
-    Element elementA = _mockElement();
-    Element elementB = _mockElement();
-    Element elementC = _mockElement();
+    IndexableElement elementA = _mockElement();
+    IndexableElement elementB = _mockElement();
+    IndexableElement elementC = _mockElement();
     RelationshipImpl relationship =
         RelationshipImpl.getRelationship('my-relationship');
     // put Node
@@ -233,16 +234,17 @@ class _FileNodeManagerTest {
     verify(fileManager.delete(name)).once();
   }
 
-  Element _mockElement() {
+  IndexableElement _mockElement() {
     int id1 = nextElementId++;
     int id2 = nextElementId++;
     int id3 = nextElementId++;
     Element element = new MockElement();
-    when(elementCodec.encode1(element)).thenReturn(id1);
-    when(elementCodec.encode2(element)).thenReturn(id2);
-    when(elementCodec.encode3(element)).thenReturn(id3);
-    when(elementCodec.decode(context, id1, id2, id3)).thenReturn(element);
-    return element;
+    IndexableObject indexable = new IndexableElement(element);
+    when(elementCodec.encode1(indexable)).thenReturn(id1);
+    when(elementCodec.encode2(indexable)).thenReturn(id2);
+    when(elementCodec.encode3(indexable)).thenReturn(id3);
+    when(elementCodec.decode(context, id1, id2, id3)).thenReturn(indexable);
+    return indexable;
   }
 }
 
@@ -265,9 +267,9 @@ class _IndexNodeTest {
   }
 
   void test_recordRelationship() {
-    Element elementA = _mockElement();
-    Element elementB = _mockElement();
-    Element elementC = _mockElement();
+    IndexableElement elementA = _mockElement();
+    IndexableElement elementB = _mockElement();
+    IndexableElement elementC = _mockElement();
     RelationshipImpl relationship =
         RelationshipImpl.getRelationship('my-relationship');
     LocationImpl locationA = new LocationImpl(elementB, 1, 2);
@@ -298,9 +300,9 @@ class _IndexNodeTest {
   }
 
   void test_setRelations() {
-    Element elementA = _mockElement();
-    Element elementB = _mockElement();
-    Element elementC = _mockElement();
+    IndexableElement elementA = _mockElement();
+    IndexableElement elementB = _mockElement();
+    IndexableElement elementC = _mockElement();
     RelationshipImpl relationship =
         RelationshipImpl.getRelationship('my-relationship');
     // record
@@ -322,16 +324,17 @@ class _IndexNodeTest {
     _assertHasLocationQ(locations, elementC, 2, 20);
   }
 
-  Element _mockElement() {
+  IndexableElement _mockElement() {
     int id1 = nextElementId++;
     int id2 = nextElementId++;
     int id3 = nextElementId++;
     Element element = new MockElement();
-    when(elementCodec.encode1(element)).thenReturn(id1);
-    when(elementCodec.encode2(element)).thenReturn(id2);
-    when(elementCodec.encode3(element)).thenReturn(id3);
-    when(elementCodec.decode(context, id1, id2, id3)).thenReturn(element);
-    return element;
+    IndexableElement indexable = new IndexableElement(element);
+    when(elementCodec.encode1(indexable)).thenReturn(id1);
+    when(elementCodec.encode2(indexable)).thenReturn(id2);
+    when(elementCodec.encode3(indexable)).thenReturn(id3);
+    when(elementCodec.decode(context, id1, id2, id3)).thenReturn(indexable);
+    return indexable;
   }
 }
 
@@ -343,10 +346,11 @@ class _LocationDataTest {
 
   void test_newForData() {
     Element element = new MockElement();
-    when(elementCodec.decode(context, 11, 12, 13)).thenReturn(element);
+    IndexableElement indexable = new IndexableElement(element);
+    when(elementCodec.decode(context, 11, 12, 13)).thenReturn(indexable);
     LocationData locationData = new LocationData.forData(11, 12, 13, 1, 2, 0);
     LocationImpl location = locationData.getLocation(context, elementCodec);
-    expect(location.element, element);
+    expect(location.indexable, indexable);
     expect(location.offset, 1);
     expect(location.length, 2);
     expect(location.isQualified, isFalse);
@@ -356,12 +360,13 @@ class _LocationDataTest {
   void test_newForObject() {
     // prepare Element
     Element element = new MockElement();
-    when(elementCodec.encode1(element)).thenReturn(11);
-    when(elementCodec.encode2(element)).thenReturn(12);
-    when(elementCodec.encode3(element)).thenReturn(13);
-    when(elementCodec.decode(context, 11, 12, 13)).thenReturn(element);
+    IndexableElement indexable = new IndexableElement(element);
+    when(elementCodec.encode1(indexable)).thenReturn(11);
+    when(elementCodec.encode2(indexable)).thenReturn(12);
+    when(elementCodec.encode3(indexable)).thenReturn(13);
+    when(elementCodec.decode(context, 11, 12, 13)).thenReturn(indexable);
     // create
-    LocationImpl location = new LocationImpl(element, 1, 2);
+    LocationImpl location = new LocationImpl(indexable, 1, 2);
     LocationData locationData =
         new LocationData.forObject(elementCodec, location);
     // touch 'hashCode'
@@ -373,7 +378,7 @@ class _LocationDataTest {
     {
       LocationImpl newLocation =
           locationData.getLocation(context, elementCodec);
-      expect(newLocation.element, element);
+      expect(newLocation.indexable, indexable);
       expect(newLocation.offset, 1);
       expect(newLocation.length, 2);
     }
@@ -398,7 +403,7 @@ class _LocationEqualsWrapper {
 
   @override
   int get hashCode {
-    return 31 * (31 * location.element.hashCode + location.offset) +
+    return 31 * (31 * location.indexable.hashCode + location.offset) +
         location.length;
   }
 
@@ -407,7 +412,7 @@ class _LocationEqualsWrapper {
     if (other is _LocationEqualsWrapper) {
       return other.location.offset == location.offset &&
           other.location.length == location.length &&
-          other.location.element == location.element;
+          other.location.indexable == location.indexable;
     }
     return false;
   }
@@ -439,15 +444,16 @@ class _RelationKeyDataTest {
 
   void test_newFromObjects() {
     // prepare Element
-    Element element;
+    IndexableElement indexable;
     {
-      element = new MockElement();
+      Element element = new MockElement();
+      indexable = new IndexableElement(element);
       ElementLocation location = new ElementLocationImpl.con3(['foo', 'bar']);
       when(element.location).thenReturn(location);
-      when(context.getElement(location)).thenReturn(element);
-      when(elementCodec.encode1(element)).thenReturn(11);
-      when(elementCodec.encode2(element)).thenReturn(12);
-      when(elementCodec.encode3(element)).thenReturn(13);
+      when(context.getElement(location)).thenReturn(indexable);
+      when(elementCodec.encode1(indexable)).thenReturn(11);
+      when(elementCodec.encode2(indexable)).thenReturn(12);
+      when(elementCodec.encode3(indexable)).thenReturn(13);
     }
     // prepare relationship
     RelationshipImpl relationship =
@@ -456,7 +462,7 @@ class _RelationKeyDataTest {
     when(relationshipCodec.encode(relationship)).thenReturn(relationshipId);
     // create RelationKeyData
     RelationKeyData keyData = new RelationKeyData.forObject(
-        elementCodec, relationshipCodec, element, relationship);
+        elementCodec, relationshipCodec, indexable, relationship);
     // touch
     keyData.hashCode;
     // equals
@@ -479,6 +485,11 @@ class _SplitIndexStoreTest {
   Element elementC = new MockElement('elementC');
   Element elementD = new MockElement('elementD');
 
+  IndexableElement indexableA;
+  IndexableElement indexableB;
+  IndexableElement indexableC;
+  IndexableElement indexableD;
+
   HtmlElement htmlElementA = new MockHtmlElement();
   HtmlElement htmlElementB = new MockHtmlElement();
   LibraryElement libraryElement = new MockLibraryElement();
@@ -499,24 +510,29 @@ class _SplitIndexStoreTest {
   CompilationUnitElement unitElementD = new MockCompilationUnitElement();
 
   void setUp() {
+    indexableA = new IndexableElement(elementA);
+    indexableB = new IndexableElement(elementB);
+    indexableC = new IndexableElement(elementC);
+    indexableD = new IndexableElement(elementD);
+
     nodeManager.elementCodec = elementCodec;
     store = new SplitIndexStore(nodeManager);
-    when(elementCodec.encode1(elementA)).thenReturn(11);
-    when(elementCodec.encode2(elementA)).thenReturn(12);
-    when(elementCodec.encode3(elementA)).thenReturn(13);
-    when(elementCodec.encode1(elementB)).thenReturn(21);
-    when(elementCodec.encode2(elementB)).thenReturn(22);
-    when(elementCodec.encode3(elementB)).thenReturn(23);
-    when(elementCodec.encode1(elementC)).thenReturn(31);
-    when(elementCodec.encode2(elementC)).thenReturn(32);
-    when(elementCodec.encode3(elementC)).thenReturn(33);
-    when(elementCodec.encode1(elementD)).thenReturn(41);
-    when(elementCodec.encode2(elementD)).thenReturn(42);
-    when(elementCodec.encode3(elementD)).thenReturn(43);
-    when(elementCodec.decode(contextA, 11, 12, 13)).thenReturn(elementA);
-    when(elementCodec.decode(contextA, 21, 22, 23)).thenReturn(elementB);
-    when(elementCodec.decode(contextA, 31, 32, 33)).thenReturn(elementC);
-    when(elementCodec.decode(contextA, 41, 42, 43)).thenReturn(elementD);
+    when(elementCodec.encode1(indexableA)).thenReturn(11);
+    when(elementCodec.encode2(indexableA)).thenReturn(12);
+    when(elementCodec.encode3(indexableA)).thenReturn(13);
+    when(elementCodec.encode1(indexableB)).thenReturn(21);
+    when(elementCodec.encode2(indexableB)).thenReturn(22);
+    when(elementCodec.encode3(indexableB)).thenReturn(23);
+    when(elementCodec.encode1(indexableC)).thenReturn(31);
+    when(elementCodec.encode2(indexableC)).thenReturn(32);
+    when(elementCodec.encode3(indexableC)).thenReturn(33);
+    when(elementCodec.encode1(indexableD)).thenReturn(41);
+    when(elementCodec.encode2(indexableD)).thenReturn(42);
+    when(elementCodec.encode3(indexableD)).thenReturn(43);
+    when(elementCodec.decode(contextA, 11, 12, 13)).thenReturn(indexableA);
+    when(elementCodec.decode(contextA, 21, 22, 23)).thenReturn(indexableB);
+    when(elementCodec.decode(contextA, 31, 32, 33)).thenReturn(indexableC);
+    when(elementCodec.decode(contextA, 41, 42, 43)).thenReturn(indexableD);
     when(contextA.isDisposed).thenReturn(false);
     when(contextB.isDisposed).thenReturn(false);
     when(contextC.isDisposed).thenReturn(false);
@@ -571,28 +587,28 @@ class _SplitIndexStoreTest {
       store.doneIndex();
     }
     return store
-        .getRelationships(elementA, relationship)
+        .getRelationships(indexableA, relationship)
         .then((List<LocationImpl> locations) {
       assertLocations(locations, []);
     });
   }
 
   test_aboutToIndexDart_library_secondWithoutOneUnit() {
-    LocationImpl locationA = mockLocation(elementA);
-    LocationImpl locationB = mockLocation(elementB);
+    LocationImpl locationA = mockLocation(indexableA);
+    LocationImpl locationB = mockLocation(indexableB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(elementA, relationship, locationA);
+      store.recordRelationship(indexableA, relationship, locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(indexableA, relationship, locationB);
       store.doneIndex();
     }
     // "A" and "B" locations
     return store
-        .getRelationships(elementA, relationship)
+        .getRelationships(indexableA, relationship)
         .then((List<LocationImpl> locations) {
       assertLocations(locations, [locationA, locationB]);
       // apply "libraryUnitElement", only with "B"
@@ -603,7 +619,7 @@ class _SplitIndexStoreTest {
       }
     }).then((_) {
       return store
-          .getRelationships(elementA, relationship)
+          .getRelationships(indexableA, relationship)
           .then((List<LocationImpl> locations) {
         assertLocations(locations, [locationB]);
       });
@@ -625,21 +641,21 @@ class _SplitIndexStoreTest {
   }
 
   test_aboutToIndexHtml_() {
-    LocationImpl locationA = mockLocation(elementA);
-    LocationImpl locationB = mockLocation(elementB);
+    LocationImpl locationA = mockLocation(indexableA);
+    LocationImpl locationB = mockLocation(indexableB);
     {
       store.aboutToIndexHtml(contextA, htmlElementA);
-      store.recordRelationship(elementA, relationship, locationA);
+      store.recordRelationship(indexableA, relationship, locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexHtml(contextA, htmlElementB);
-      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(indexableA, relationship, locationB);
       store.doneIndex();
     }
     // "A" and "B" locations
     return store
-        .getRelationships(elementA, relationship)
+        .getRelationships(indexableA, relationship)
         .then((List<LocationImpl> locations) {
       assertLocations(locations, [locationA, locationB]);
     });
@@ -651,9 +667,9 @@ class _SplitIndexStoreTest {
   }
 
   void test_clear() {
-    LocationImpl locationA = mockLocation(elementA);
+    LocationImpl locationA = mockLocation(indexableA);
     store.aboutToIndexDart(contextA, unitElementA);
-    store.recordRelationship(elementA, relationship, locationA);
+    store.recordRelationship(indexableA, relationship, locationA);
     store.doneIndex();
     expect(nodeManager.isEmpty(), isFalse);
     // clear
@@ -663,7 +679,7 @@ class _SplitIndexStoreTest {
 
   test_getRelationships_empty() {
     return store
-        .getRelationships(elementA, relationship)
+        .getRelationships(indexableA, relationship)
         .then((List<LocationImpl> locations) {
       expect(locations, isEmpty);
     });
@@ -677,16 +693,16 @@ class _SplitIndexStoreTest {
       expect(statistics, contains('0 sources'));
     }
     // add 2 locations
-    LocationImpl locationA = mockLocation(elementA);
-    LocationImpl locationB = mockLocation(elementB);
+    LocationImpl locationA = mockLocation(indexableA);
+    LocationImpl locationB = mockLocation(indexableB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(elementA, relationship, locationA);
+      store.recordRelationship(indexableA, relationship, locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(indexableA, relationship, locationB);
       store.doneIndex();
     }
     {
@@ -699,94 +715,95 @@ class _SplitIndexStoreTest {
   void test_recordRelationship_multiplyDefinedElement() {
     Element multiplyElement =
         new MultiplyDefinedElementImpl(contextA, <Element>[elementA, elementB]);
-    LocationImpl location = mockLocation(elementA);
-    store.recordRelationship(multiplyElement, relationship, location);
+    LocationImpl location = mockLocation(indexableA);
+    store.recordRelationship(
+        new IndexableElement(multiplyElement), relationship, location);
     store.doneIndex();
     expect(nodeManager.isEmpty(), isTrue);
   }
 
   void test_recordRelationship_nullElement() {
-    LocationImpl locationA = mockLocation(elementA);
+    LocationImpl locationA = mockLocation(indexableA);
     store.recordRelationship(null, relationship, locationA);
     store.doneIndex();
     expect(nodeManager.isEmpty(), isTrue);
   }
 
   void test_recordRelationship_nullLocation() {
-    store.recordRelationship(elementA, relationship, null);
+    store.recordRelationship(indexableA, relationship, null);
     store.doneIndex();
     expect(nodeManager.isEmpty(), isTrue);
   }
 
   test_recordRelationship_oneElement_twoNodes() {
-    LocationImpl locationA = mockLocation(elementA);
-    LocationImpl locationB = mockLocation(elementB);
+    LocationImpl locationA = mockLocation(indexableA);
+    LocationImpl locationB = mockLocation(indexableB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(elementA, relationship, locationA);
+      store.recordRelationship(indexableA, relationship, locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(indexableA, relationship, locationB);
       store.doneIndex();
     }
     return store
-        .getRelationships(elementA, relationship)
+        .getRelationships(indexableA, relationship)
         .then((List<LocationImpl> locations) {
       assertLocations(locations, [locationA, locationB]);
     });
   }
 
   test_recordRelationship_oneLocation() {
-    LocationImpl locationA = mockLocation(elementA);
+    LocationImpl locationA = mockLocation(indexableA);
     store.aboutToIndexDart(contextA, unitElementA);
-    store.recordRelationship(elementA, relationship, locationA);
+    store.recordRelationship(indexableA, relationship, locationA);
     store.doneIndex();
     return store
-        .getRelationships(elementA, relationship)
+        .getRelationships(indexableA, relationship)
         .then((List<LocationImpl> locations) {
       assertLocations(locations, [locationA]);
     });
   }
 
   test_recordRelationship_twoLocations() {
-    LocationImpl locationA = mockLocation(elementA);
-    LocationImpl locationB = mockLocation(elementA);
+    LocationImpl locationA = mockLocation(indexableA);
+    LocationImpl locationB = mockLocation(indexableA);
     store.aboutToIndexDart(contextA, unitElementA);
-    store.recordRelationship(elementA, relationship, locationA);
-    store.recordRelationship(elementA, relationship, locationB);
+    store.recordRelationship(indexableA, relationship, locationA);
+    store.recordRelationship(indexableA, relationship, locationB);
     store.doneIndex();
     return store
-        .getRelationships(elementA, relationship)
+        .getRelationships(indexableA, relationship)
         .then((List<LocationImpl> locations) {
       assertLocations(locations, [locationA, locationB]);
     });
   }
 
   test_removeContext() {
-    LocationImpl locationA = mockLocation(elementA);
-    LocationImpl locationB = mockLocation(elementB);
+    LocationImpl locationA = mockLocation(indexableA);
+    LocationImpl locationB = mockLocation(indexableB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(elementA, relationship, locationA);
+      store.recordRelationship(indexableA, relationship, locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(indexableA, relationship, locationB);
       store.doneIndex();
     }
     // "A" and "B" locations
     return store
-        .getRelationships(elementA, relationship)
+        .getRelationships(indexableA, relationship)
         .then((List<LocationImpl> locations) {
       assertLocations(locations, [locationA, locationB]);
       // remove "A" context
       store.removeContext(contextA);
     }).then((_) {
       return store
-          .getRelationships(elementA, relationship)
+          .getRelationships(indexableA, relationship)
           .then((List<LocationImpl> locations) {
         assertLocations(locations, []);
       });
@@ -798,34 +815,34 @@ class _SplitIndexStoreTest {
   }
 
   test_removeSource_library() {
-    LocationImpl locationA = mockLocation(elementA);
-    LocationImpl locationB = mockLocation(elementB);
-    LocationImpl locationC = mockLocation(elementC);
+    LocationImpl locationA = mockLocation(indexableA);
+    LocationImpl locationB = mockLocation(indexableB);
+    LocationImpl locationC = mockLocation(indexableC);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(elementA, relationship, locationA);
+      store.recordRelationship(indexableA, relationship, locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(indexableA, relationship, locationB);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementC);
-      store.recordRelationship(elementA, relationship, locationC);
+      store.recordRelationship(indexableA, relationship, locationC);
       store.doneIndex();
     }
     // "A", "B" and "C" locations
     return store
-        .getRelationships(elementA, relationship)
+        .getRelationships(indexableA, relationship)
         .then((List<LocationImpl> locations) {
       assertLocations(locations, [locationA, locationB, locationC]);
     }).then((_) {
       // remove "librarySource"
       store.removeSource(contextA, librarySource);
       return store
-          .getRelationships(elementA, relationship)
+          .getRelationships(indexableA, relationship)
           .then((List<LocationImpl> locations) {
         assertLocations(locations, []);
       });
@@ -837,34 +854,34 @@ class _SplitIndexStoreTest {
   }
 
   test_removeSource_unit() {
-    LocationImpl locationA = mockLocation(elementA);
-    LocationImpl locationB = mockLocation(elementB);
-    LocationImpl locationC = mockLocation(elementC);
+    LocationImpl locationA = mockLocation(indexableA);
+    LocationImpl locationB = mockLocation(indexableB);
+    LocationImpl locationC = mockLocation(indexableC);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(elementA, relationship, locationA);
+      store.recordRelationship(indexableA, relationship, locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(indexableA, relationship, locationB);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementC);
-      store.recordRelationship(elementA, relationship, locationC);
+      store.recordRelationship(indexableA, relationship, locationC);
       store.doneIndex();
     }
     // "A", "B" and "C" locations
     return store
-        .getRelationships(elementA, relationship)
+        .getRelationships(indexableA, relationship)
         .then((List<LocationImpl> locations) {
       assertLocations(locations, [locationA, locationB, locationC]);
     }).then((_) {
       // remove "A" source
       store.removeSource(contextA, sourceA);
       return store
-          .getRelationships(elementA, relationship)
+          .getRelationships(indexableA, relationship)
           .then((List<LocationImpl> locations) {
         assertLocations(locations, [locationB, locationC]);
       });
@@ -872,28 +889,28 @@ class _SplitIndexStoreTest {
   }
 
   test_removeSources_library() {
-    LocationImpl locationA = mockLocation(elementA);
-    LocationImpl locationB = mockLocation(elementB);
+    LocationImpl locationA = mockLocation(indexableA);
+    LocationImpl locationB = mockLocation(indexableB);
     {
       store.aboutToIndexDart(contextA, unitElementA);
-      store.recordRelationship(elementA, relationship, locationA);
+      store.recordRelationship(indexableA, relationship, locationA);
       store.doneIndex();
     }
     {
       store.aboutToIndexDart(contextA, unitElementB);
-      store.recordRelationship(elementA, relationship, locationB);
+      store.recordRelationship(indexableA, relationship, locationB);
       store.doneIndex();
     }
     // "A" and "B" locations
     return store
-        .getRelationships(elementA, relationship)
+        .getRelationships(indexableA, relationship)
         .then((List<LocationImpl> locations) {
       assertLocations(locations, [locationA, locationB]);
     }).then((_) {
       // remove "librarySource"
       store.removeSources(contextA, new SingleSourceContainer(librarySource));
       return store
-          .getRelationships(elementA, relationship)
+          .getRelationships(indexableA, relationship)
           .then((List<LocationImpl> locations) {
         assertLocations(locations, []);
       });
@@ -935,8 +952,10 @@ class _SplitIndexStoreTest {
   }
 
   void test_universe_aboutToIndex() {
-    when(elementCodec.decode(contextA, 11, 12, 13)).thenReturn(elementA);
-    when(elementCodec.decode(contextB, 21, 22, 23)).thenReturn(elementB);
+    when(elementCodec.decode(contextA, 11, 12, 13))
+        .thenReturn(new IndexableElement(elementA));
+    when(elementCodec.decode(contextB, 21, 22, 23))
+        .thenReturn(new IndexableElement(elementB));
     {
       store.aboutToIndexDart(contextA, unitElementA);
       store.recordTopLevelDeclaration(elementA);
@@ -964,8 +983,10 @@ class _SplitIndexStoreTest {
   }
 
   void test_universe_clear() {
-    when(elementCodec.decode(contextA, 11, 12, 13)).thenReturn(elementA);
-    when(elementCodec.decode(contextB, 21, 22, 23)).thenReturn(elementB);
+    when(elementCodec.decode(contextA, 11, 12, 13))
+        .thenReturn(new IndexableElement(elementA));
+    when(elementCodec.decode(contextB, 21, 22, 23))
+        .thenReturn(new IndexableElement(elementB));
     {
       store.aboutToIndexDart(contextA, unitElementA);
       store.recordTopLevelDeclaration(elementA);
@@ -990,8 +1011,10 @@ class _SplitIndexStoreTest {
   }
 
   void test_universe_removeContext() {
-    when(elementCodec.decode(contextA, 11, 12, 13)).thenReturn(elementA);
-    when(elementCodec.decode(contextB, 21, 22, 23)).thenReturn(elementB);
+    when(elementCodec.decode(contextA, 11, 12, 13))
+        .thenReturn(new IndexableElement(elementA));
+    when(elementCodec.decode(contextB, 21, 22, 23))
+        .thenReturn(new IndexableElement(elementB));
     {
       store.aboutToIndexDart(contextA, unitElementA);
       store.recordTopLevelDeclaration(elementA);
@@ -1016,8 +1039,10 @@ class _SplitIndexStoreTest {
   }
 
   void test_universe_removeSource() {
-    when(elementCodec.decode(contextA, 11, 12, 13)).thenReturn(elementA);
-    when(elementCodec.decode(contextB, 21, 22, 23)).thenReturn(elementB);
+    when(elementCodec.decode(contextA, 11, 12, 13))
+        .thenReturn(new IndexableElement(elementA));
+    when(elementCodec.decode(contextB, 21, 22, 23))
+        .thenReturn(new IndexableElement(elementB));
     {
       store.aboutToIndexDart(contextA, unitElementA);
       store.recordTopLevelDeclaration(elementA);
@@ -1057,9 +1082,9 @@ class _SplitIndexStoreTest {
   /**
    * @return the new [LocationImpl] mock.
    */
-  static LocationImpl mockLocation(Element element) {
+  static LocationImpl mockLocation(IndexableElement indexable) {
     LocationImpl location = new MockLocation();
-    when(location.element).thenReturn(element);
+    when(location.indexable).thenReturn(indexable);
     when(location.offset).thenReturn(0);
     when(location.length).thenReturn(0);
     when(location.isQualified).thenReturn(true);
