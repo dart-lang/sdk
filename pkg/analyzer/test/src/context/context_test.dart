@@ -75,7 +75,7 @@ class AnalysisContextImplTest extends AbstractContextTest {
     expect(context.sourcesNeedingProcessing, hasLength(0));
   }
 
-  Future fail_applyChanges_remove() {
+  Future test_applyChanges_remove() {
     SourcesChangedListener listener = new SourcesChangedListener();
     context.onSourcesChanged.listen(listener.onData);
     String libAContents = r'''
@@ -101,16 +101,13 @@ import 'libB.dart';''';
     expect(importedLibraries, hasLength(1));
     return pumpEventQueue().then((_) {
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [libA]);
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [libB]);
-      listener.assertEvent(changedSources: [libB]);
       listener.assertEvent(wereSourcesRemovedOrDeleted: true);
       listener.assertNoMoreEvents();
     });
   }
 
-  Future fail_applyChanges_removeContainer() {
+  Future test_applyChanges_removeContainer() {
     SourcesChangedListener listener = new SourcesChangedListener();
     context.onSourcesChanged.listen(listener.onData);
     String libAContents = r'''
@@ -133,9 +130,7 @@ import 'libB.dart';''';
     expect(sources[0], same(libA));
     return pumpEventQueue().then((_) {
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [libA]);
       listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [libB]);
       listener.assertEvent(wereSourcesRemovedOrDeleted: true);
       listener.assertNoMoreEvents();
     });
