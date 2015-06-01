@@ -91,7 +91,7 @@ class EditDomainHandler implements RequestHandler {
         isCompilationUnit: true,
         selectionStart: start,
         selectionLength: length);
-    DartFormatter formatter = new DartFormatter();
+    DartFormatter formatter = new DartFormatter(pageWidth: params.lineLength);
     SourceCode formattedResult;
     try {
       formattedResult = formatter.formatSource(code);

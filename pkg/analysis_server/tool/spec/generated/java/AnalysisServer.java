@@ -269,8 +269,9 @@ public interface AnalysisServer {
    * @param file The file containing the code to be formatted.
    * @param selectionOffset The offset of the current selection in the file.
    * @param selectionLength The length of the current selection in the file.
+   * @param lineLength The line length to be used by the formatter.
    */
-  public void edit_format(String file, int selectionOffset, int selectionLength, FormatConsumer consumer);
+  public void edit_format(String file, int selectionOffset, int selectionLength, int lineLength, FormatConsumer consumer);
 
   /**
    * {@code edit.getAssists}

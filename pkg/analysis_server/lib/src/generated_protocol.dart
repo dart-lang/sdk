@@ -4494,6 +4494,7 @@ class SearchResultsParams implements HasToJson {
  *   "file": FilePath
  *   "selectionOffset": int
  *   "selectionLength": int
+ *   "lineLength": optional int
  * }
  */
 class EditFormatParams implements HasToJson {
@@ -4502,6 +4503,8 @@ class EditFormatParams implements HasToJson {
   int _selectionOffset;
 
   int _selectionLength;
+
+  int _lineLength;
 
   /**
    * The file containing the code to be formatted.
@@ -4542,10 +4545,23 @@ class EditFormatParams implements HasToJson {
     this._selectionLength = value;
   }
 
-  EditFormatParams(String file, int selectionOffset, int selectionLength) {
+  /**
+   * The line length to be used by the formatter.
+   */
+  int get lineLength => _lineLength;
+
+  /**
+   * The line length to be used by the formatter.
+   */
+  void set lineLength(int value) {
+    this._lineLength = value;
+  }
+
+  EditFormatParams(String file, int selectionOffset, int selectionLength, {int lineLength}) {
     this.file = file;
     this.selectionOffset = selectionOffset;
     this.selectionLength = selectionLength;
+    this.lineLength = lineLength;
   }
 
   factory EditFormatParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
@@ -4571,7 +4587,11 @@ class EditFormatParams implements HasToJson {
       } else {
         throw jsonDecoder.missingKey(jsonPath, "selectionLength");
       }
-      return new EditFormatParams(file, selectionOffset, selectionLength);
+      int lineLength;
+      if (json.containsKey("lineLength")) {
+        lineLength = jsonDecoder._decodeInt(jsonPath + ".lineLength", json["lineLength"]);
+      }
+      return new EditFormatParams(file, selectionOffset, selectionLength, lineLength: lineLength);
     } else {
       throw jsonDecoder.mismatch(jsonPath, "edit.format params");
     }
@@ -4587,6 +4607,9 @@ class EditFormatParams implements HasToJson {
     result["file"] = file;
     result["selectionOffset"] = selectionOffset;
     result["selectionLength"] = selectionLength;
+    if (lineLength != null) {
+      result["lineLength"] = lineLength;
+    }
     return result;
   }
 
@@ -4602,7 +4625,8 @@ class EditFormatParams implements HasToJson {
     if (other is EditFormatParams) {
       return file == other.file &&
           selectionOffset == other.selectionOffset &&
-          selectionLength == other.selectionLength;
+          selectionLength == other.selectionLength &&
+          lineLength == other.lineLength;
     }
     return false;
   }
@@ -4613,6 +4637,7 @@ class EditFormatParams implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, file.hashCode);
     hash = _JenkinsSmiHash.combine(hash, selectionOffset.hashCode);
     hash = _JenkinsSmiHash.combine(hash, selectionLength.hashCode);
+    hash = _JenkinsSmiHash.combine(hash, lineLength.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
 }

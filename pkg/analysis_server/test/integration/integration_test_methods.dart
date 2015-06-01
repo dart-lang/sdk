@@ -1090,6 +1090,10 @@ abstract class IntegrationTestMixin {
    *
    *   The length of the current selection in the file.
    *
+   * lineLength ( optional int )
+   *
+   *   The line length to be used by the formatter.
+   *
    * Returns
    *
    * edits ( List<SourceEdit> )
@@ -1105,8 +1109,8 @@ abstract class IntegrationTestMixin {
    *
    *   The length of the selection after formatting the code.
    */
-  Future<EditFormatResult> sendEditFormat(String file, int selectionOffset, int selectionLength) {
-    var params = new EditFormatParams(file, selectionOffset, selectionLength).toJson();
+  Future<EditFormatResult> sendEditFormat(String file, int selectionOffset, int selectionLength, {int lineLength}) {
+    var params = new EditFormatParams(file, selectionOffset, selectionLength, lineLength: lineLength).toJson();
     return server.send("edit.format", params)
         .then((result) {
       ResponseDecoder decoder = new ResponseDecoder(null);

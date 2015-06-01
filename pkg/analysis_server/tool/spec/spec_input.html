@@ -5,7 +5,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.6.2</version></h1>
+    <h1 style="color:#999999">Version <version>1.7.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -1362,6 +1362,12 @@
             </p>
           </field>
           -->
+          <field name="lineLength" optional="true">
+            <ref>int</ref>
+            <p>
+              The line length to be used by the formatter.
+            </p>
+          </field>
         </params>
         <result>
           <field name="edits">
