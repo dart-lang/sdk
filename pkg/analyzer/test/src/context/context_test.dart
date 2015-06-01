@@ -807,7 +807,7 @@ void g() { f(null); }''');
     fail("Implement this");
   }
 
-  void fail_resolveCompilationUnit_import_relative() {
+  void test_resolveCompilationUnit_import_relative() {
     Source sourceA =
         addSource("/libA.dart", "library libA; import 'libB.dart'; class A{}");
     addSource("/libB.dart", "library libB; class B{}");
@@ -818,10 +818,16 @@ void g() { f(null); }''');
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
     List<LibraryElement> visibleLibraries = library.visibleLibraries;
-    assertNamedElements(visibleLibraries, ["dart.core", "libA", "libB"]);
+    assertNamedElements(visibleLibraries, [
+      "dart.core",
+      "dart.async",
+      "dart.math",
+      "libA",
+      "libB"
+    ]);
   }
 
-  void fail_resolveCompilationUnit_import_relative_cyclic() {
+  void test_resolveCompilationUnit_import_relative_cyclic() {
     Source sourceA =
         addSource("/libA.dart", "library libA; import 'libB.dart'; class A{}");
     addSource("/libB.dart", "library libB; import 'libA.dart'; class B{}");
@@ -832,7 +838,13 @@ void g() { f(null); }''');
     List<LibraryElement> importedLibraries = library.importedLibraries;
     assertNamedElements(importedLibraries, ["dart.core", "libB"]);
     List<LibraryElement> visibleLibraries = library.visibleLibraries;
-    assertNamedElements(visibleLibraries, ["dart.core", "libA", "libB"]);
+    assertNamedElements(visibleLibraries, [
+      "dart.core",
+      "dart.async",
+      "dart.math",
+      "libA",
+      "libB"
+    ]);
   }
 
   void fail_resolveHtmlUnit() {
