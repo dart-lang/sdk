@@ -46,6 +46,12 @@
     <hr>
 
     <div class="content">
+      <eval-box callback="{{ evaluate }}"></eval-box>
+    </div>
+
+    <hr>
+
+    <div class="content">
       <template if="{{ library.dependencies.isNotEmpty }}">
         dependencies ({{ library.dependencies.length }})
         <curly-block expand="{{ library.dependencies.length <= 8 }}">
@@ -132,11 +138,6 @@
       </template>
     </div>
 
-    <hr>
-
-    <div class="content">
-      <eval-box callback="{{ evaluate }}"></eval-box>
-    </div>
     <view-footer></view-footer>
  </template>
 </polymer-element>

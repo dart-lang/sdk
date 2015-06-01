@@ -114,6 +114,7 @@ abstract class ServiceObject extends Observable {
   bool get isString => false;
   bool get isInt => false;
   bool get isList => false;
+  bool get isMap => false;
   bool get isMirrorReference => false;
   bool get isWeakProperty => false;
   bool get isClosure => false;
@@ -1808,6 +1809,7 @@ class Instance extends ServiceObject {
   bool get isString => kind == 'String';
   bool get isInt => kind == 'Int';
   bool get isList => kind == 'List';
+  bool get isMap => kind == 'Map';
   bool get isMirrorReference => kind == 'MirrorReference';
   bool get isWeakProperty => kind == 'WeakProperty';
   bool get isClosure => kind == 'Closure';

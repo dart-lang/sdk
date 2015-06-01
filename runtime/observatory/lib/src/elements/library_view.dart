@@ -20,8 +20,15 @@ class LibraryViewElement extends ObservatoryElement {
     return library.evaluate(expression);
   }
 
+  void attached() {
+    library.variables.forEach((variable) => variable.reload());
+  }
+
   Future refresh() {
-    return library.reload();
+    var loads = [];
+    loads.add(library.reload());
+    library.variables.forEach((variable) => loads.add(variable.reload()));
+    return Future.wait(loads);
   }
 
   Future refreshCoverage() {
