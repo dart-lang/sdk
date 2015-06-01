@@ -858,6 +858,9 @@ regress_22822_test: Crash # (try {for(int i=0;i<10;i++ ){return ()=>i+b;}}finall
 regress_22936_test/01: Crash # Please triage this failure.
 regress_22936_test/none: Crash # Please triage this failure.
 regress_23498_test: Crash #  cannot handle async/sync*/async* functions
+regress_23500_test/01: Crash #  cannot handle async/sync*/async* functions
+regress_23500_test/02: Crash #  cannot handle async/sync*/async* functions
+regress_23500_test/none: Crash #  cannot handle async/sync*/async* functions
 reify_typevar_static_test/01: Crash # Please triage this failure.
 return_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 side_effect_throw_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -871,7 +874,7 @@ super_all_named_constructor_test: Crash # Please triage this failure.
 super_bound_closure_test/01: RuntimeError # Please triage this failure.
 super_bound_closure_test/none: RuntimeError # Please triage this failure.
 super_call4_test: RuntimeError # Please triage this failure.
-super_getter_setter_test: RuntimeError # Please triage this failure.
+super_getter_setter_test: Crash # Please triage this failure.
 super_implicit_closure_test: RuntimeError # Please triage this failure.
 super_inferrer_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 super_operator_index2_test: RuntimeError # Please triage this failure.

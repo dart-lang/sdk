@@ -9876,11 +9876,13 @@ LibTest/async/Zone/registerUnaryCallback_A01_t01: Crash # Instance of 'TypeOpera
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Please triage this failure.
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Please triage this failure.
 LibTest/core/FallThroughError/toString_A01_t02: Crash #  Unhandled node
-LibTest/core/Invocation/isAccessor_A01_t01: RuntimeError # Please triage this failure.
+LibTest/core/Invocation/isAccessor_A01_t01: Crash # Please triage this failure.
+LibTest/core/Invocation/isGetter_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/isGetter_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/Invocation/isMethod_A01_t02: RuntimeError # Please triage this failure.
+LibTest/core/Invocation/isMethod_A01_t02: Crash # Please triage this failure.
 LibTest/core/Invocation/isSetter_A01_t01: Crash # Please triage this failure.
-LibTest/core/Invocation/memberName_A01_t01: RuntimeError # Please triage this failure.
+LibTest/core/Invocation/isSetter_A01_t02: RuntimeError # Please triage this failure.
+LibTest/core/Invocation/memberName_A01_t01: Crash # Please triage this failure.
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/List/List_class_A01_t02: Crash # Please triage this failure.
 LibTest/core/Map/Map_A01_t01: Crash # type expression SomeFunction (typedef)
