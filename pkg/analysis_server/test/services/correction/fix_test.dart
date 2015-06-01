@@ -1545,7 +1545,7 @@ class B extends A {
 ''');
   }
 
-  void test_createMissingOverrides_generics() {
+  void test_createMissingOverrides_generics_typeArguments() {
     resolveTestUnit('''
 class Iterator<T> {
 }
@@ -1569,6 +1569,29 @@ class Test extends IterableMixin<int> {
   // TODO: implement iterator
   @override
   Iterator<int> get iterator => null;
+}
+''');
+  }
+
+  void test_createMissingOverrides_generics_typeParameters() {
+    resolveTestUnit('''
+abstract class ItemProvider<T> {
+  List<T> getItems();
+}
+
+class Test<V> extends ItemProvider<V> {
+}
+''');
+    assertHasFix(DartFixKind.CREATE_MISSING_OVERRIDES, '''
+abstract class ItemProvider<T> {
+  List<T> getItems();
+}
+
+class Test<V> extends ItemProvider<V> {
+  @override
+  List<V> getItems() {
+    // TODO: implement getItems
+  }
 }
 ''');
   }

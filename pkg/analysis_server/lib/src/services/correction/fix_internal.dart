@@ -1062,7 +1062,10 @@ class FixProcessor {
       }
       return 1;
     });
+    // prepare target
     ClassDeclaration targetClass = node.parent as ClassDeclaration;
+    utils.targetClassElement = targetClass.element;
+    // prepare SourceBuilder
     int insertOffset = targetClass.end - 1;
     SourceBuilder sb = new SourceBuilder(file, insertOffset);
     // EOL management
