@@ -19,8 +19,11 @@ var core = dart.import(core);
     constructors: () => ({Overload: [Overload, []]})
   });
   let overload = dart.const(new Overload());
+  class JsIndexer extends core.Object {
+    JsIndexer() {
+    }
+  }
   let EventListener = dart.typedef('EventListener', () => dart.functionType(dart.void, [Event]));
-  class Event extends core.Object {}
   let InputElement = HTMLInputElement;
   let CanvasElement = HTMLCanvasElement;
   class RenderingContext extends core.Object {}
@@ -41,8 +44,8 @@ var core = dart.import(core);
   exports.JsName = JsName;
   exports.Overload = Overload;
   exports.overload = overload;
+  exports.JsIndexer = JsIndexer;
   exports.EventListener = EventListener;
-  exports.Event = Event;
   exports.InputElement = InputElement;
   exports.CanvasElement = CanvasElement;
   exports.RenderingContext = RenderingContext;
