@@ -25,6 +25,8 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
 
   void declaredClassTypeAlias(ClassTypeAlias declaration);
 
+  void declaredEnum(EnumDeclaration declaration) {}
+
   void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl);
 
   void declaredFunction(FunctionDeclaration declaration);
@@ -123,8 +125,7 @@ abstract class LocalDeclarationVisitor extends GeneralizingAstVisitor {
       if (declaration is ClassDeclaration) {
         declaredClass(declaration);
       } else if (declaration is EnumDeclaration) {
-        // TODO (danrubel) enum support
-//        declaredEnum(........)
+        declaredEnum(declaration);
       } else if (declaration is FunctionDeclaration) {
         declaredFunction(declaration);
       } else if (declaration is TopLevelVariableDeclaration) {

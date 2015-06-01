@@ -227,7 +227,8 @@ abstract class ElementSuggestionBuilder {
       }
     }
     if (element.isSynthetic) {
-      if (element is PropertyAccessorElement || element is FieldElement) {
+      if ((element is PropertyAccessorElement) ||
+          element is FieldElement && !_isSpecialEnumField(element)) {
         return;
       }
     }
@@ -240,6 +241,20 @@ abstract class ElementSuggestionBuilder {
     if (suggestion != null) {
       request.addSuggestion(suggestion);
     }
+  }
+
+  /**
+   * Determine if the given element is one of the synthetic enum accessors
+   * for which we should generate a suggestion.
+   */
+  bool _isSpecialEnumField(FieldElement element) {
+    Element parent = element.enclosingElement;
+    if (parent is ClassElement && parent.isEnum) {
+      if (element.name == 'values') {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

@@ -65,7 +65,8 @@ abstract class AbstractCompletionTest extends AbstractContextTest {
         content.substring(completionOffset + 1);
     testSource = addSource(testFile, content);
     cache = new DartCompletionCache(context, testSource);
-    AnalysisServer server = new AnalysisServerMock(searchEngine: searchEngine, resourceProvider: provider);
+    AnalysisServer server = new AnalysisServerMock(
+        searchEngine: searchEngine, resourceProvider: provider);
     request = new DartCompletionRequest(
         server, context, testSource, completionOffset, cache);
   }
@@ -550,6 +551,26 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
    */
   void assertCachedCompute(_) {
     // Subclasses override
+  }
+
+  CompletionSuggestion assertSuggestEnum(String completion,
+      {bool isDeprecated: false}) {
+    CompletionSuggestion suggestion =
+        assertSuggest(completion, isDeprecated: isDeprecated);
+    expect(suggestion.isDeprecated, isDeprecated);
+    expect(suggestion.element.kind, protocol.ElementKind.ENUM);
+    return suggestion;
+  }
+
+  CompletionSuggestion assertSuggestEnumConst(String completion,
+      {bool isDeprecated: false}) {
+    CompletionSuggestion suggestion =
+        assertSuggest(completion, isDeprecated: isDeprecated);
+    expect(suggestion.isDeprecated, isDeprecated);
+    // TODO(danrubel) : Perhaps should be protocol.ElementKind.ENUM_CONST
+    // but element model represents them as FIELD
+    expect(suggestion.element.kind, protocol.ElementKind.FIELD);
+    return suggestion;
   }
 
   CompletionSuggestion assertSuggestImportedClass(String name,
