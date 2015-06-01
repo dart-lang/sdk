@@ -3392,7 +3392,7 @@ main() {
     assertNoFix(DartFixKind.CREATE_METHOD);
   }
 
-  void test_undefinedMethod_create_generic_BAD() {
+  void test_undefinedMethod_create_generic_BAD_argumentType() {
     resolveTestUnit('''
 class A<T> {
   B b;
@@ -3416,6 +3416,31 @@ class A<T> {
 
 class B {
   void process(Map items) {
+  }
+}
+''');
+  }
+
+  void test_undefinedMethod_create_generic_BAD_returnType() {
+    resolveTestUnit('''
+class A<T> {
+  main() {
+    T t = new B().compute();
+  }
+}
+
+class B {
+}
+''');
+    assertHasFix(DartFixKind.CREATE_METHOD, '''
+class A<T> {
+  main() {
+    T t = new B().compute();
+  }
+}
+
+class B {
+  dynamic compute() {
   }
 }
 ''');
