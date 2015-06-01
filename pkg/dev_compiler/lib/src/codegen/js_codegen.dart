@@ -110,7 +110,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (unit.directives.isNotEmpty) {
       var libraryDir = unit.directives.first;
       if (libraryDir is LibraryDirective) {
-        var jsName = findNodeAnnotation(libraryDir, _isJsNameAnnotation);
+        var jsName = getAnnotationValue(libraryDir, _isJsNameAnnotation);
         jsDefaultValue = getConstantField(jsName, 'name', types.stringType);
       }
     }
@@ -329,7 +329,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // If we've already emitted this class, skip it.
     var classElem = node.element;
     var type = classElem.type;
-    var jsName = findNodeAnnotation(node, _isJsNameAnnotation);
+    var jsName = getAnnotationValue(node, _isJsNameAnnotation);
 
     if (jsName != null) return _emitJsType(node.name.name, jsName);
 
@@ -350,7 +350,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         _classHeritage(classElem), _emitClassMethods(node, ctors, fields));
 
     String jsPeerName;
-    var jsPeer = findNodeAnnotation(node, _isJsPeerInterface);
+    var jsPeer = getAnnotationValue(node, _isJsPeerInterface);
     if (jsPeer != null) {
       jsPeerName = getConstantField(jsPeer, 'name', types.stringType);
     }
@@ -475,7 +475,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       jsMethods.add(_emitImplicitConstructor(node, fields));
     }
 
-    bool hasJsPeer = findNodeAnnotation(node, _isJsPeerInterface) != null;
+    bool hasJsPeer = getAnnotationValue(node, _isJsPeerInterface) != null;
 
     bool hasIterator = false;
     for (var m in node.members) {
@@ -1349,12 +1349,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   JS.Expression _emitSet(Expression lhs, Expression rhs) {
     if (lhs is IndexExpression) {
-      var target = _getTarget(lhs);
-      if (_useNativeJsIndexer(target.staticType)) {
-        return js.call(
-            '#[#] = #', [_visit(target), _visit(lhs.index), _visit(rhs)]);
-      }
-      return _emitSend(target, '[]=', [lhs.index, rhs]);
+      return _emitSend(_getTarget(lhs), '[]=', [lhs.index, rhs]);
     }
 
     Expression target = null;
@@ -2121,17 +2116,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   visitIndexExpression(IndexExpression node) {
-    var target = _getTarget(node);
-    if (_useNativeJsIndexer(target.staticType)) {
-      return new JS.PropertyAccess(_visit(target), _visit(node.index));
-    }
-    return _emitSend(target, '[]', [node.index]);
+    return _emitSend(_getTarget(node), '[]', [node.index]);
   }
-
-  // TODO(jmesserly): ideally we'd check the method and see if it is marked
-  // `external`, but that doesn't work because it isn't in the element model.
-  bool _useNativeJsIndexer(DartType type) =>
-      findElementAnnotation(type.element, _isJsIndexerAnnotation) != null;
 
   /// Gets the target of a [PropertyAccess] or [IndexExpression].
   /// Those two nodes are special because they're both allowed on left side of
@@ -2649,9 +2635,6 @@ String jsOutputPath(LibraryInfo info, Uri root) {
 
 // TODO(jmesserly): validate the library. See issue #135.
 bool _isJsNameAnnotation(DartObjectImpl value) => value.type.name == 'JsName';
-
-bool _isJsIndexerAnnotation(DartObjectImpl value) =>
-    value.type.name == 'JsIndexer';
 
 bool _isJsPeerInterface(DartObjectImpl value) =>
     value.type.name == 'JsPeerInterface';

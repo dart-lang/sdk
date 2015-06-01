@@ -349,26 +349,13 @@ String resourceOutputPath(Uri resourceUri, Uri entryUri) {
 ///
 ///    (v) => v.type.name == 'Deprecated' && v.type.element.library.isDartCore
 ///
-DartObjectImpl findNodeAnnotation(
+DartObjectImpl getAnnotationValue(
     AnnotatedNode node, bool test(DartObjectImpl value)) {
   for (var metadata in node.metadata) {
     ElementAnnotationImpl element = metadata.elementAnnotation;
     if (element == null) continue;
 
     var evalResult = element.evaluationResult;
-    if (evalResult == null) continue;
-
-    var value = evalResult.value;
-    if (value != null && test(value)) return value;
-  }
-  return null;
-}
-
-/// Similar to [findNodeAnnotation] but starts from any element.
-DartObjectImpl findElementAnnotation(
-    Element element, bool test(DartObjectImpl value)) {
-  for (var metadata in element.metadata) {
-    var evalResult = metadata.evaluationResult;
     if (evalResult == null) continue;
 
     var value = evalResult.value;
