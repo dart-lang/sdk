@@ -1258,6 +1258,24 @@ class FunctionTypeImplTest extends EngineTestCase {
         isNotNull);
   }
 
+  void test_equality_recursive() {
+    FunctionTypeAliasElementImpl s =
+        ElementFactory.functionTypeAliasElement('s');
+    FunctionTypeAliasElementImpl t =
+        ElementFactory.functionTypeAliasElement('t');
+    FunctionTypeAliasElementImpl u =
+        ElementFactory.functionTypeAliasElement('u');
+    FunctionTypeAliasElementImpl v =
+        ElementFactory.functionTypeAliasElement('v');
+    s.returnType = t.type;
+    t.returnType = s.type;
+    u.returnType = v.type;
+    v.returnType = u.type;
+    // We don't care whether the types compare equal or not.  We just need the
+    // computation to terminate.
+    expect(s.type == u.type, new isInstanceOf<bool>());
+  }
+
   void test_getElement() {
     FunctionElementImpl typeElement =
         new FunctionElementImpl.forNode(AstFactory.identifier3("f"));
@@ -1305,6 +1323,18 @@ class FunctionTypeImplTest extends EngineTestCase {
   void test_hashCode_noElement() {
     FunctionTypeImpl type = new FunctionTypeImpl(null);
     type.hashCode;
+  }
+
+  void test_hashCode_recursive() {
+    FunctionTypeAliasElementImpl s =
+        ElementFactory.functionTypeAliasElement('s');
+    FunctionTypeAliasElementImpl t =
+        ElementFactory.functionTypeAliasElement('t');
+    s.returnType = t.type;
+    t.returnType = s.type;
+    // We don't care what the hash code is.  We just need its computation to
+    // terminate.
+    expect(t.type.hashCode, new isInstanceOf<int>());
   }
 
   void test_isAssignableTo_normalAndPositionalArgs() {
@@ -1691,6 +1721,141 @@ class FunctionTypeImplTest extends EngineTestCase {
     expect(s.isSubtypeOf(t), isFalse);
   }
 
+  void test_namedParameterTypes_pruned_no_type_arguments() {
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    FunctionTypeAliasElementImpl g =
+        ElementFactory.functionTypeAliasElement('g');
+    f.parameters = [ElementFactory.namedParameter2('x', g.type)];
+    FunctionTypeImpl paramType = f.type.namedParameterTypes['x'];
+    expect(paramType.prunedTypedefs, hasLength(1));
+    expect(paramType.prunedTypedefs[0], same(f));
+  }
+
+  void test_namedParameterTypes_pruned_with_type_arguments() {
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    FunctionTypeAliasElementImpl g =
+        ElementFactory.functionTypeAliasElement('g');
+    f.typeParameters = [ElementFactory.typeParameterElement('T')];
+    f.parameters = [ElementFactory.namedParameter2('x', g.type)];
+    FunctionTypeImpl paramType = f.type.namedParameterTypes['x'];
+    expect(paramType.prunedTypedefs, hasLength(1));
+    expect(paramType.prunedTypedefs[0], same(f));
+  }
+
+  void test_newPrune_no_previous_prune() {
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    FunctionTypeImpl type = f.type;
+    List<FunctionTypeAliasElement> pruneList = type.newPrune;
+    expect(pruneList, hasLength(1));
+    expect(pruneList[0], same(f));
+  }
+
+  void test_newPrune_non_typedef() {
+    // No pruning needs to be done for function types that aren't associated
+    // with typedefs because those types can't be directly referred to by the
+    // user (and hence can't participate in circularities).
+    FunctionElementImpl f = ElementFactory.functionElement('f');
+    FunctionTypeImpl type = f.type;
+    expect(type.newPrune, isNull);
+  }
+
+  void test_newPrune_synthetic_typedef() {
+    // No pruning needs to be done for function types that are associated with
+    // synthetic typedefs because those types are only created for
+    // function-typed formal parameters, which can't be directly referred to by
+    // the user (and hence can't participate in circularities).
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    f.synthetic = true;
+    FunctionTypeImpl type = f.type;
+    expect(type.newPrune, isNull);
+  }
+
+  void test_newPrune_with_previous_prune() {
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    FunctionTypeAliasElementImpl g =
+        ElementFactory.functionTypeAliasElement('g');
+    FunctionTypeImpl type = f.type;
+    FunctionTypeImpl prunedType = type.pruned([g]);
+    List<FunctionTypeAliasElement> pruneList = prunedType.newPrune;
+    expect(pruneList, hasLength(2));
+    expect(pruneList, contains(f));
+    expect(pruneList, contains(g));
+  }
+
+  void test_normalParameterTypes_pruned_no_type_arguments() {
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    FunctionTypeAliasElementImpl g =
+        ElementFactory.functionTypeAliasElement('g');
+    f.parameters = [ElementFactory.requiredParameter2('x', g.type)];
+    FunctionTypeImpl paramType = f.type.normalParameterTypes[0];
+    expect(paramType.prunedTypedefs, hasLength(1));
+    expect(paramType.prunedTypedefs[0], same(f));
+  }
+
+  void test_normalParameterTypes_pruned_with_type_arguments() {
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    FunctionTypeAliasElementImpl g =
+        ElementFactory.functionTypeAliasElement('g');
+    f.typeParameters = [ElementFactory.typeParameterElement('T')];
+    f.parameters = [ElementFactory.requiredParameter2('x', g.type)];
+    FunctionTypeImpl paramType = f.type.normalParameterTypes[0];
+    expect(paramType.prunedTypedefs, hasLength(1));
+    expect(paramType.prunedTypedefs[0], same(f));
+  }
+
+  void test_optionalParameterTypes_pruned_no_type_arguments() {
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    FunctionTypeAliasElementImpl g =
+        ElementFactory.functionTypeAliasElement('g');
+    f.parameters = [ElementFactory.positionalParameter2('x', g.type)];
+    FunctionTypeImpl paramType = f.type.optionalParameterTypes[0];
+    expect(paramType.prunedTypedefs, hasLength(1));
+    expect(paramType.prunedTypedefs[0], same(f));
+  }
+
+  void test_optionalParameterTypes_pruned_with_type_arguments() {
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    FunctionTypeAliasElementImpl g =
+        ElementFactory.functionTypeAliasElement('g');
+    f.typeParameters = [ElementFactory.typeParameterElement('T')];
+    f.parameters = [ElementFactory.positionalParameter2('x', g.type)];
+    FunctionTypeImpl paramType = f.type.optionalParameterTypes[0];
+    expect(paramType.prunedTypedefs, hasLength(1));
+    expect(paramType.prunedTypedefs[0], same(f));
+  }
+
+  void test_returnType_pruned_no_type_arguments() {
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    FunctionTypeAliasElementImpl g =
+        ElementFactory.functionTypeAliasElement('g');
+    f.returnType = g.type;
+    FunctionTypeImpl paramType = f.type.returnType;
+    expect(paramType.prunedTypedefs, hasLength(1));
+    expect(paramType.prunedTypedefs[0], same(f));
+  }
+
+  void test_returnType_pruned_with_type_arguments() {
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    FunctionTypeAliasElementImpl g =
+        ElementFactory.functionTypeAliasElement('g');
+    f.typeParameters = [ElementFactory.typeParameterElement('T')];
+    f.returnType = g.type;
+    FunctionTypeImpl paramType = f.type.returnType;
+    expect(paramType.prunedTypedefs, hasLength(1));
+    expect(paramType.prunedTypedefs[0], same(f));
+  }
+
   void test_setTypeArguments() {
     ClassElementImpl enclosingClass = ElementFactory.classElement2("C", ["E"]);
     MethodElementImpl methodElement =
@@ -1773,11 +1938,21 @@ class FunctionTypeImplTest extends EngineTestCase {
   }
 
   void test_toString_recursive() {
-    FunctionElementImpl t = ElementFactory.functionElement("t");
-    FunctionElementImpl s = ElementFactory.functionElement("s");
+    FunctionTypeAliasElementImpl t =
+        ElementFactory.functionTypeAliasElement("t");
+    FunctionTypeAliasElementImpl s =
+        ElementFactory.functionTypeAliasElement("s");
     t.returnType = s.type;
     s.returnType = t.type;
     expect(t.type.toString(), '() \u2192 () \u2192 ...');
+  }
+
+  void test_toString_recursive_via_interface_type() {
+    FunctionTypeAliasElementImpl f =
+        ElementFactory.functionTypeAliasElement('f');
+    ClassElementImpl c = ElementFactory.classElement2('C', ['T']);
+    f.returnType = c.type.substitute4([f.type]);
+    expect(f.type.toString(), '() \u2192 C<...>');
   }
 }
 

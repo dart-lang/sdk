@@ -84,27 +84,45 @@ class BottomTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) =>
-      identical(object, this);
+  bool isMoreSpecificThan(DartType type,
+      [bool withDynamic = false, Set<Element> visitedElements]) => true;
 
   @override
-  int internalHashCode(List<DartType> visitedTypes) => hashCode;
-
-  @override
-  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
-      Set<Element> typeExpansions, bool withDynamic = false,
-      Set<Element> visitedElements]) => true;
-
-  @override
-  bool isSubtypeOf(DartType type,
-      [Set<Element> thisExpansions, Set<Element> typeExpansions]) => true;
+  bool isSubtypeOf(DartType type) => true;
 
   @override
   bool isSupertypeOf(DartType type) => false;
 
   @override
+  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
   BottomTypeImpl substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) => this;
+      List<DartType> argumentTypes, List<DartType> parameterTypes,
+      [List<FunctionTypeAliasElement> prune]) => this;
+}
+
+/**
+ * Type created internally if a circular reference is ever detected.  Behaves
+ * like `dynamic`, except that when converted to a string it is displayed as
+ * `...`.
+ */
+class CircularTypeImpl extends DynamicTypeImpl {
+  CircularTypeImpl() : super._circular();
+
+  @override
+  int get hashCode => 1;
+
+  @override
+  bool operator ==(Object object) => object is CircularTypeImpl;
+
+  @override
+  void appendTo(StringBuffer buffer) {
+    buffer.write('...');
+  }
+
+  @override
+  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 }
 
 /**
@@ -2079,7 +2097,7 @@ abstract class DartType {
    * type directly.
    *
    * Note too that the current implementation of this method is only guaranteed
-   * to work when the argument types are type variables.
+   * to work when the parameter types are type variables.
    */
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes);
@@ -2191,6 +2209,12 @@ class DynamicTypeImpl extends TypeImpl {
     (element as DynamicElementImpl).type = this;
   }
 
+  /**
+   * Constructor used by [CircularTypeImpl].
+   */
+  DynamicTypeImpl._circular()
+      : super(_INSTANCE.element, Keyword.DYNAMIC.syntax);
+
   @override
   int get hashCode => 1;
 
@@ -2201,16 +2225,8 @@ class DynamicTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) =>
-      identical(object, this);
-
-  @override
-  int internalHashCode(List<DartType> visitedTypes) => hashCode;
-
-  @override
-  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
-      Set<Element> typeExpansions, bool withDynamic = false,
-      Set<Element> visitedElements]) {
+  bool isMoreSpecificThan(DartType type,
+      [bool withDynamic = false, Set<Element> visitedElements]) {
     // T is S
     if (identical(this, type)) {
       return true;
@@ -2220,15 +2236,18 @@ class DynamicTypeImpl extends TypeImpl {
   }
 
   @override
-  bool isSubtypeOf(DartType type,
-      [Set<Element> thisExpansions, Set<Element> typeExpansions]) => true;
+  bool isSubtypeOf(DartType type) => true;
 
   @override
   bool isSupertypeOf(DartType type) => true;
 
   @override
+  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
   DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
+      List<DartType> argumentTypes, List<DartType> parameterTypes,
+      [List<FunctionTypeAliasElement> prune]) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
       if (parameterTypes[i] == this) {
@@ -3233,60 +3252,6 @@ class ElementLocationImpl implements ElementLocation {
       }
       buffer.writeCharCode(currentChar);
     }
-  }
-}
-
-/**
- * A pair of [Element]s. [Object.==] and
- * [Object.hashCode] so this class can be used in hashed data structures.
- */
-class ElementPair {
-  /**
-   * The first [Element].
-   */
-  final Element _first;
-
-  /**
-   * The second [Element].
-   */
-  final Element _second;
-
-  /**
-   * A cached copy of the calculated hashCode for this element.
-   */
-  int _cachedHashCode;
-
-  /**
-   * Initialize a newly created pair of elements consisting of the [_first] and
-   * [_second] elements.
-   */
-  ElementPair(this._first, this._second) {
-    _cachedHashCode = JenkinsSmiHash.hash2(_first.hashCode, _second.hashCode);
-  }
-
-  /**
-   * Return the first element.
-   */
-  Element get firstElt => _first;
-
-  @override
-  int get hashCode {
-    return _cachedHashCode;
-  }
-
-  /**
-   * Return the second element
-   */
-  Element get secondElt => _second;
-
-  @override
-  bool operator ==(Object object) {
-    if (identical(object, this)) {
-      return true;
-    }
-    return object is ElementPair &&
-        _first == object._first &&
-        _second == object._second;
   }
 }
 
@@ -4608,17 +4573,26 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   List<DartType> typeArguments = DartType.EMPTY_LIST;
 
   /**
+   * The set of typedefs which should not be expanded when exploring this type,
+   * to avoid creating infinite types in response to self-referential typedefs.
+   */
+  final List<FunctionTypeAliasElement> prunedTypedefs;
+
+  /**
    * Initialize a newly created function type to be declared by the given
    * [element].
    */
-  FunctionTypeImpl(ExecutableElement element) : super(element, null);
+  FunctionTypeImpl(ExecutableElement element, [this.prunedTypedefs])
+      : super(element, null);
 
   /**
    * Initialize a newly created function type to be declared by the given
    * [element].
    */
   @deprecated // Use new FunctionTypeImpl(element)
-  FunctionTypeImpl.con1(ExecutableElement element) : super(element, null);
+  FunctionTypeImpl.con1(ExecutableElement element)
+      : prunedTypedefs = null,
+        super(element, null);
 
   /**
    * Initialize a newly created function type to be declared by the given
@@ -4626,14 +4600,22 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    */
   @deprecated // Use new FunctionTypeImpl.forTypedef(element)
   FunctionTypeImpl.con2(FunctionTypeAliasElement element)
-      : super(element, element == null ? null : element.name);
+      : prunedTypedefs = null,
+        super(element, element == null ? null : element.name);
 
   /**
    * Initialize a newly created function type to be declared by the given
    * [element].
    */
-  FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element)
+  FunctionTypeImpl.forTypedef(FunctionTypeAliasElement element,
+      [this.prunedTypedefs])
       : super(element, element == null ? null : element.name);
+
+  /**
+   * Private constructor.
+   */
+  FunctionTypeImpl._(Element element, String name, this.prunedTypedefs)
+      : super(element, name);
 
   /**
    * Return the base parameter elements of this function element.
@@ -4731,7 +4713,27 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  int get hashCode => internalHashCode(<DartType>[]);
+  int get hashCode {
+    if (element == null) {
+      return 0;
+    }
+    // Reference the arrays of parameters
+    List<DartType> normalParameterTypes = this.normalParameterTypes;
+    List<DartType> optionalParameterTypes = this.optionalParameterTypes;
+    Iterable<DartType> namedParameterTypes = this.namedParameterTypes.values;
+    // Generate the hashCode
+    int code = (returnType as TypeImpl).hashCode;
+    for (int i = 0; i < normalParameterTypes.length; i++) {
+      code = (code << 1) + (normalParameterTypes[i] as TypeImpl).hashCode;
+    }
+    for (int i = 0; i < optionalParameterTypes.length; i++) {
+      code = (code << 1) + (optionalParameterTypes[i] as TypeImpl).hashCode;
+    }
+    for (DartType type in namedParameterTypes) {
+      code = (code << 1) + (type as TypeImpl).hashCode;
+    }
+    return code;
+  }
 
   @override
   Map<String, DartType> get namedParameterTypes {
@@ -4748,12 +4750,36 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         DartType type = parameter.type;
         if (typeArguments.length != 0 &&
             typeArguments.length == typeParameters.length) {
-          type = type.substitute2(typeArguments, typeParameters);
+          type = (type as TypeImpl).substitute2(
+              typeArguments, typeParameters, newPrune);
+        } else {
+          type = (type as TypeImpl).pruned(newPrune);
         }
         namedParameterTypes[parameter.name] = type;
       }
     }
     return namedParameterTypes;
+  }
+
+  /**
+   * Determine the new set of typedefs which should be pruned when expanding
+   * this function type.
+   */
+  List<FunctionTypeAliasElement> get newPrune {
+    Element element = this.element;
+    if (element is FunctionTypeAliasElement && !element.isSynthetic) {
+      // This typedef should be pruned, along with anything that was previously
+      // pruned.
+      if (prunedTypedefs == null) {
+        return <FunctionTypeAliasElement>[element];
+      } else {
+        return new List<FunctionTypeAliasElement>.from(prunedTypedefs)
+          ..add(element);
+      }
+    } else {
+      // This is not a typedef, so nothing additional needs to be pruned.
+      return prunedTypedefs;
+    }
   }
 
   @override
@@ -4770,7 +4796,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         DartType type = parameter.type;
         if (typeArguments.length != 0 &&
             typeArguments.length == typeParameters.length) {
-          type = type.substitute2(typeArguments, typeParameters);
+          type = (type as TypeImpl).substitute2(
+              typeArguments, typeParameters, newPrune);
+        } else {
+          type = (type as TypeImpl).pruned(newPrune);
         }
         types.add(type);
       }
@@ -4792,7 +4821,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         DartType type = parameter.type;
         if (typeArguments.length != 0 &&
             typeArguments.length == typeParameters.length) {
-          type = type.substitute2(typeArguments, typeParameters);
+          type = (type as TypeImpl).substitute2(
+              typeArguments, typeParameters, newPrune);
+        } else {
+          type = (type as TypeImpl).pruned(newPrune);
         }
         types.add(type);
       }
@@ -4829,10 +4861,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     // match the parameter size, return the base return type.
     if (typeArguments.length == 0 ||
         typeArguments.length != typeParameters.length) {
-      return baseReturnType;
+      return (baseReturnType as TypeImpl).pruned(newPrune);
     }
-    return baseReturnType.substitute2(
-        typeArguments, TypeParameterTypeImpl.getTypes(typeParameters));
+    return (baseReturnType as TypeImpl).substitute2(typeArguments,
+        TypeParameterTypeImpl.getTypes(typeParameters), newPrune);
   }
 
   @override
@@ -4850,15 +4882,21 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   @override
-  bool operator ==(Object object) =>
-      internalEquals(object, new HashSet<ElementPair>());
+  bool operator ==(Object object) {
+    if (object is! FunctionTypeImpl) {
+      return false;
+    }
+    FunctionTypeImpl otherType = object as FunctionTypeImpl;
+    return TypeImpl.equalArrays(
+            normalParameterTypes, otherType.normalParameterTypes) &&
+        TypeImpl.equalArrays(
+            optionalParameterTypes, otherType.optionalParameterTypes) &&
+        _equals(namedParameterTypes, otherType.namedParameterTypes) &&
+        returnType == otherType.returnType;
+  }
 
   @override
-  void appendTo(StringBuffer buffer, Set<DartType> visitedTypes) {
-    if (!visitedTypes.add(this)) {
-      buffer.write(name == null ? '...' : name);
-      return;
-    }
+  void appendTo(StringBuffer buffer) {
     List<DartType> normalParameterTypes = this.normalParameterTypes;
     List<DartType> optionalParameterTypes = this.optionalParameterTypes;
     Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
@@ -4872,7 +4910,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         } else {
           needsComma = true;
         }
-        (type as TypeImpl).appendTo(buffer, visitedTypes);
+        (type as TypeImpl).appendTo(buffer);
       }
     }
     if (optionalParameterTypes.length > 0) {
@@ -4887,7 +4925,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         } else {
           needsComma = true;
         }
-        (type as TypeImpl).appendTo(buffer, visitedTypes);
+        (type as TypeImpl).appendTo(buffer);
       }
       buffer.write("]");
       needsComma = true;
@@ -4906,7 +4944,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         }
         buffer.write(name);
         buffer.write(": ");
-        (type as TypeImpl).appendTo(buffer, visitedTypes);
+        (type as TypeImpl).appendTo(buffer);
       });
       buffer.write("}");
       needsComma = true;
@@ -4916,78 +4954,20 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (returnType == null) {
       buffer.write("null");
     } else {
-      (returnType as TypeImpl).appendTo(buffer, visitedTypes);
+      (returnType as TypeImpl).appendTo(buffer);
     }
   }
 
   @override
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
-    if (object is! FunctionTypeImpl) {
-      return false;
-    }
-    FunctionTypeImpl otherType = object as FunctionTypeImpl;
-    // If the visitedTypePairs already has the pair (this, type),
-    // use the elements to determine equality
-    ElementPair elementPair = new ElementPair(element, otherType.element);
-    if (!visitedElementPairs.add(elementPair)) {
-      return elementPair.firstElt == elementPair.secondElt;
-    }
-    // Compute the result
-    bool result = TypeImpl.equalArrays(normalParameterTypes,
-            otherType.normalParameterTypes, visitedElementPairs) &&
-        TypeImpl.equalArrays(optionalParameterTypes,
-            otherType.optionalParameterTypes, visitedElementPairs) &&
-        _equals(namedParameterTypes, otherType.namedParameterTypes,
-            visitedElementPairs) &&
-        (returnType as TypeImpl).internalEquals(
-            otherType.returnType, visitedElementPairs);
-    // Remove the pair from our visited pairs list
-    visitedElementPairs.remove(elementPair);
-    // Return the result
-    return result;
-  }
-
-  @override
-  int internalHashCode(List<DartType> visitedTypes) {
-    if (element == null) {
-      return 0;
-    } else if (visitedTypes.contains(this)) {
-      return 3;
-    }
-    visitedTypes.add(this);
-    // Reference the arrays of parameters
-    List<DartType> normalParameterTypes = this.normalParameterTypes;
-    List<DartType> optionalParameterTypes = this.optionalParameterTypes;
-    Iterable<DartType> namedParameterTypes = this.namedParameterTypes.values;
-    // Generate the hashCode
-    int code = (returnType as TypeImpl).internalHashCode(visitedTypes);
-    for (int i = 0; i < normalParameterTypes.length; i++) {
-      code = (code << 1) +
-          (normalParameterTypes[i] as TypeImpl).internalHashCode(visitedTypes);
-    }
-    for (int i = 0; i < optionalParameterTypes.length; i++) {
-      code = (code << 1) +
-          (optionalParameterTypes[i] as TypeImpl)
-              .internalHashCode(visitedTypes);
-    }
-    for (DartType type in namedParameterTypes) {
-      code = (code << 1) + (type as TypeImpl).internalHashCode(visitedTypes);
-    }
-    return code;
-  }
-
-  @override
-  bool isAssignableTo(DartType type,
-      [Set<Element> thisExpansions, Set<Element> typeExpansions]) {
+  bool isAssignableTo(DartType type) {
     // A function type T may be assigned to a function type S, written T <=> S,
     // iff T <: S.
-    return isSubtypeOf(type, thisExpansions, typeExpansions);
+    return isSubtypeOf(type);
   }
 
   @override
-  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
-      Set<Element> typeExpansions, bool withDynamic = false,
-      Set<Element> visitedElements]) {
+  bool isMoreSpecificThan(DartType type,
+      [bool withDynamic = false, Set<Element> visitedElements]) {
     // Note: visitedElements is only used for breaking recursion in the type
     // hierarchy; we don't use it when recursing into the function type.
 
@@ -5006,129 +4986,104 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     FunctionType t = this;
     FunctionType s = type as FunctionType;
-    if (thisExpansions == null) {
-      thisExpansions = new HashSet<Element>();
-    } else if (thisExpansions.contains(this.element)) {
-      // [this] contains a reference to itself, which is illegal (and is
-      // checked elsewhere).  To avoid cascading errors, consider T to be a
-      // subtype of S.
-      return true;
+    List<DartType> tTypes = t.normalParameterTypes;
+    List<DartType> tOpTypes = t.optionalParameterTypes;
+    List<DartType> sTypes = s.normalParameterTypes;
+    List<DartType> sOpTypes = s.optionalParameterTypes;
+    // If one function has positional and the other has named parameters,
+    // return false.
+    if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) ||
+        (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
+      return false;
     }
-    if (typeExpansions == null) {
-      typeExpansions = new HashSet<Element>();
-    } else if (typeExpansions.contains(type.element)) {
-      // [type] contains a reference to itself, which is illegal (and is
-      // checked elsewhere).  To avoid cascading errors, consider T to be a
-      // subtype of S.
-      return true;
-    }
-    thisExpansions.add(this.element);
-    typeExpansions.add(type.element);
-    try {
-      List<DartType> tTypes = t.normalParameterTypes;
-      List<DartType> tOpTypes = t.optionalParameterTypes;
-      List<DartType> sTypes = s.normalParameterTypes;
-      List<DartType> sOpTypes = s.optionalParameterTypes;
-      // If one function has positional and the other has named parameters,
-      // return false.
-      if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) ||
-          (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
+    // named parameters case
+    if (t.namedParameterTypes.length > 0) {
+      // check that the number of required parameters are equal, and check that
+      // every t_i is more specific than every s_i
+      if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
+        return false;
+      } else if (t.normalParameterTypes.length > 0) {
+        for (int i = 0; i < tTypes.length; i++) {
+          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan(
+              sTypes[i], withDynamic)) {
+            return false;
+          }
+        }
+      }
+      Map<String, DartType> namedTypesT = t.namedParameterTypes;
+      Map<String, DartType> namedTypesS = s.namedParameterTypes;
+      // if k >= m is false, return false: the passed function type has more
+      // named parameter types than this
+      if (namedTypesT.length < namedTypesS.length) {
         return false;
       }
-      // named parameters case
-      if (t.namedParameterTypes.length > 0) {
-        // check that the number of required parameters are equal, and check that
-        // every t_i is more specific than every s_i
-        if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
-          return false;
-        } else if (t.normalParameterTypes.length > 0) {
-          for (int i = 0; i < tTypes.length; i++) {
-            if (!(tTypes[i] as TypeImpl).isMoreSpecificThan(
-                sTypes[i], thisExpansions, typeExpansions, withDynamic)) {
-              return false;
-            }
-          }
-        }
-        Map<String, DartType> namedTypesT = t.namedParameterTypes;
-        Map<String, DartType> namedTypesS = s.namedParameterTypes;
-        // if k >= m is false, return false: the passed function type has more
-        // named parameter types than this
-        if (namedTypesT.length < namedTypesS.length) {
+      // Loop through each element in S verifying that T has a matching
+      // parameter name and that the corresponding type is more specific then
+      // the type in S.
+      for (String keyS in namedTypesS.keys) {
+        DartType typeT = namedTypesT[keyS];
+        if (typeT == null) {
           return false;
         }
-        // Loop through each element in S verifying that T has a matching
-        // parameter name and that the corresponding type is more specific then
-        // the type in S.
-        for (String keyS in namedTypesS.keys) {
-          DartType typeT = namedTypesT[keyS];
-          if (typeT == null) {
-            return false;
-          }
-          if (!(typeT as TypeImpl).isMoreSpecificThan(
-              namedTypesS[keyS], thisExpansions, typeExpansions, withDynamic)) {
-            return false;
-          }
+        if (!(typeT as TypeImpl).isMoreSpecificThan(
+            namedTypesS[keyS], withDynamic)) {
+          return false;
         }
-      } else if (s.namedParameterTypes.length > 0) {
+      }
+    } else if (s.namedParameterTypes.length > 0) {
+      return false;
+    } else {
+      // positional parameter case
+      int tArgLength = tTypes.length + tOpTypes.length;
+      int sArgLength = sTypes.length + sOpTypes.length;
+      // Check that the total number of parameters in t is greater than or equal
+      // to the number of parameters in s and that the number of required
+      // parameters in s is greater than or equal to the number of required
+      // parameters in t.
+      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
         return false;
+      }
+      if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+        // No positional arguments, don't copy contents to new array
+        for (int i = 0; i < sTypes.length; i++) {
+          if (!(tTypes[i] as TypeImpl).isMoreSpecificThan(
+              sTypes[i], withDynamic)) {
+            return false;
+          }
+        }
       } else {
-        // positional parameter case
-        int tArgLength = tTypes.length + tOpTypes.length;
-        int sArgLength = sTypes.length + sOpTypes.length;
-        // Check that the total number of parameters in t is greater than or equal
-        // to the number of parameters in s and that the number of required
-        // parameters in s is greater than or equal to the number of required
-        // parameters in t.
-        if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
-          return false;
+        // Else, we do have positional parameters, copy required and positional
+        // parameter types into arrays to do the compare (for loop below).
+        List<DartType> tAllTypes = new List<DartType>(sArgLength);
+        for (int i = 0; i < tTypes.length; i++) {
+          tAllTypes[i] = tTypes[i];
         }
-        if (tOpTypes.length == 0 && sOpTypes.length == 0) {
-          // No positional arguments, don't copy contents to new array
-          for (int i = 0; i < sTypes.length; i++) {
-            if (!(tTypes[i] as TypeImpl).isMoreSpecificThan(
-                sTypes[i], thisExpansions, typeExpansions, withDynamic)) {
-              return false;
-            }
-          }
-        } else {
-          // Else, we do have positional parameters, copy required and positional
-          // parameter types into arrays to do the compare (for loop below).
-          List<DartType> tAllTypes = new List<DartType>(sArgLength);
-          for (int i = 0; i < tTypes.length; i++) {
-            tAllTypes[i] = tTypes[i];
-          }
-          for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
-            tAllTypes[i] = tOpTypes[j];
-          }
-          List<DartType> sAllTypes = new List<DartType>(sArgLength);
-          for (int i = 0; i < sTypes.length; i++) {
-            sAllTypes[i] = sTypes[i];
-          }
-          for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
-            sAllTypes[i] = sOpTypes[j];
-          }
-          for (int i = 0; i < sAllTypes.length; i++) {
-            if (!(tAllTypes[i] as TypeImpl).isMoreSpecificThan(
-                sAllTypes[i], thisExpansions, typeExpansions, withDynamic)) {
-              return false;
-            }
+        for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
+          tAllTypes[i] = tOpTypes[j];
+        }
+        List<DartType> sAllTypes = new List<DartType>(sArgLength);
+        for (int i = 0; i < sTypes.length; i++) {
+          sAllTypes[i] = sTypes[i];
+        }
+        for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
+          sAllTypes[i] = sOpTypes[j];
+        }
+        for (int i = 0; i < sAllTypes.length; i++) {
+          if (!(tAllTypes[i] as TypeImpl).isMoreSpecificThan(
+              sAllTypes[i], withDynamic)) {
+            return false;
           }
         }
       }
-      DartType tRetType = t.returnType;
-      DartType sRetType = s.returnType;
-      return sRetType.isVoid ||
-          (tRetType as TypeImpl).isMoreSpecificThan(
-              sRetType, thisExpansions, typeExpansions, withDynamic);
-    } finally {
-      thisExpansions.remove(this.element);
-      typeExpansions.remove(type.element);
     }
+    DartType tRetType = t.returnType;
+    DartType sRetType = s.returnType;
+    return sRetType.isVoid ||
+        (tRetType as TypeImpl).isMoreSpecificThan(sRetType, withDynamic);
   }
 
   @override
-  bool isSubtypeOf(DartType type,
-      [Set<Element> thisExpansions, Set<Element> typeExpansions]) {
+  bool isSubtypeOf(DartType type) {
     // trivial base cases
     if (type == null) {
       return false;
@@ -5144,141 +5099,142 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
     FunctionType t = this;
     FunctionType s = type as FunctionType;
-    if (thisExpansions == null) {
-      thisExpansions = new HashSet<Element>();
-    } else if (thisExpansions.contains(this.element)) {
-      // [this] contains a reference to itself, which is illegal (and is
-      // checked elsewhere).  To avoid cascading errors, consider T to be a
-      // subtype of S.
-      return true;
+    List<DartType> tTypes = t.normalParameterTypes;
+    List<DartType> tOpTypes = t.optionalParameterTypes;
+    List<DartType> sTypes = s.normalParameterTypes;
+    List<DartType> sOpTypes = s.optionalParameterTypes;
+    // If one function has positional and the other has named parameters,
+    // return false.
+    if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) ||
+        (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
+      return false;
     }
-    if (typeExpansions == null) {
-      typeExpansions = new HashSet<Element>();
-    } else if (typeExpansions.contains(type.element)) {
-      // [type] contains a reference to itself, which is illegal (and is
-      // checked elsewhere).  To avoid cascading errors, consider T to be a
-      // subtype of S.
-      return true;
-    }
-    thisExpansions.add(this.element);
-    typeExpansions.add(type.element);
-    try {
-      List<DartType> tTypes = t.normalParameterTypes;
-      List<DartType> tOpTypes = t.optionalParameterTypes;
-      List<DartType> sTypes = s.normalParameterTypes;
-      List<DartType> sOpTypes = s.optionalParameterTypes;
-      // If one function has positional and the other has named parameters,
-      // return false.
-      if ((sOpTypes.length > 0 && t.namedParameterTypes.length > 0) ||
-          (tOpTypes.length > 0 && s.namedParameterTypes.length > 0)) {
+    // named parameters case
+    if (t.namedParameterTypes.length > 0) {
+      // check that the number of required parameters are equal,
+      // and check that every t_i is assignable to every s_i
+      if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
+        return false;
+      } else if (t.normalParameterTypes.length > 0) {
+        for (int i = 0; i < tTypes.length; i++) {
+          if (!(tTypes[i] as TypeImpl).isAssignableTo(sTypes[i])) {
+            return false;
+          }
+        }
+      }
+      Map<String, DartType> namedTypesT = t.namedParameterTypes;
+      Map<String, DartType> namedTypesS = s.namedParameterTypes;
+      // if k >= m is false, return false: the passed function type has more
+      // named parameter types than this
+      if (namedTypesT.length < namedTypesS.length) {
         return false;
       }
-      // named parameters case
-      if (t.namedParameterTypes.length > 0) {
-        // check that the number of required parameters are equal,
-        // and check that every t_i is assignable to every s_i
-        if (t.normalParameterTypes.length != s.normalParameterTypes.length) {
-          return false;
-        } else if (t.normalParameterTypes.length > 0) {
-          for (int i = 0; i < tTypes.length; i++) {
-            if (!(tTypes[i] as TypeImpl).isAssignableTo(
-                sTypes[i], thisExpansions, typeExpansions)) {
-              return false;
-            }
-          }
-        }
-        Map<String, DartType> namedTypesT = t.namedParameterTypes;
-        Map<String, DartType> namedTypesS = s.namedParameterTypes;
-        // if k >= m is false, return false: the passed function type has more
-        // named parameter types than this
-        if (namedTypesT.length < namedTypesS.length) {
+      // Loop through each element in S verifying that T has a matching
+      // parameter name and that the corresponding type is assignable to the
+      // type in S.
+      for (String keyS in namedTypesS.keys) {
+        DartType typeT = namedTypesT[keyS];
+        if (typeT == null) {
           return false;
         }
-        // Loop through each element in S verifying that T has a matching
-        // parameter name and that the corresponding type is assignable to the
-        // type in S.
-        for (String keyS in namedTypesS.keys) {
-          DartType typeT = namedTypesT[keyS];
-          if (typeT == null) {
-            return false;
-          }
-          if (!(typeT as TypeImpl).isAssignableTo(
-              namedTypesS[keyS], thisExpansions, typeExpansions)) {
-            return false;
-          }
+        if (!(typeT as TypeImpl).isAssignableTo(namedTypesS[keyS])) {
+          return false;
         }
-      } else if (s.namedParameterTypes.length > 0) {
+      }
+    } else if (s.namedParameterTypes.length > 0) {
+      return false;
+    } else {
+      // positional parameter case
+      int tArgLength = tTypes.length + tOpTypes.length;
+      int sArgLength = sTypes.length + sOpTypes.length;
+      // Check that the total number of parameters in t is greater than or
+      // equal to the number of parameters in s and that the number of
+      // required parameters in s is greater than or equal to the number of
+      // required parameters in t.
+      if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
         return false;
+      }
+      if (tOpTypes.length == 0 && sOpTypes.length == 0) {
+        // No positional arguments, don't copy contents to new array
+        for (int i = 0; i < sTypes.length; i++) {
+          if (!(tTypes[i] as TypeImpl).isAssignableTo(sTypes[i])) {
+            return false;
+          }
+        }
       } else {
-        // positional parameter case
-        int tArgLength = tTypes.length + tOpTypes.length;
-        int sArgLength = sTypes.length + sOpTypes.length;
-        // Check that the total number of parameters in t is greater than or
-        // equal to the number of parameters in s and that the number of
-        // required parameters in s is greater than or equal to the number of
-        // required parameters in t.
-        if (tArgLength < sArgLength || sTypes.length < tTypes.length) {
-          return false;
+        // Else, we do have positional parameters, copy required and
+        // positional parameter types into arrays to do the compare (for loop
+        // below).
+        List<DartType> tAllTypes = new List<DartType>(sArgLength);
+        for (int i = 0; i < tTypes.length; i++) {
+          tAllTypes[i] = tTypes[i];
         }
-        if (tOpTypes.length == 0 && sOpTypes.length == 0) {
-          // No positional arguments, don't copy contents to new array
-          for (int i = 0; i < sTypes.length; i++) {
-            if (!(tTypes[i] as TypeImpl).isAssignableTo(
-                sTypes[i], thisExpansions, typeExpansions)) {
-              return false;
-            }
-          }
-        } else {
-          // Else, we do have positional parameters, copy required and
-          // positional parameter types into arrays to do the compare (for loop
-          // below).
-          List<DartType> tAllTypes = new List<DartType>(sArgLength);
-          for (int i = 0; i < tTypes.length; i++) {
-            tAllTypes[i] = tTypes[i];
-          }
-          for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
-            tAllTypes[i] = tOpTypes[j];
-          }
-          List<DartType> sAllTypes = new List<DartType>(sArgLength);
-          for (int i = 0; i < sTypes.length; i++) {
-            sAllTypes[i] = sTypes[i];
-          }
-          for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
-            sAllTypes[i] = sOpTypes[j];
-          }
-          for (int i = 0; i < sAllTypes.length; i++) {
-            if (!(tAllTypes[i] as TypeImpl).isAssignableTo(
-                sAllTypes[i], thisExpansions, typeExpansions)) {
-              return false;
-            }
+        for (int i = tTypes.length, j = 0; i < sArgLength; i++, j++) {
+          tAllTypes[i] = tOpTypes[j];
+        }
+        List<DartType> sAllTypes = new List<DartType>(sArgLength);
+        for (int i = 0; i < sTypes.length; i++) {
+          sAllTypes[i] = sTypes[i];
+        }
+        for (int i = sTypes.length, j = 0; i < sArgLength; i++, j++) {
+          sAllTypes[i] = sOpTypes[j];
+        }
+        for (int i = 0; i < sAllTypes.length; i++) {
+          if (!(tAllTypes[i] as TypeImpl).isAssignableTo(sAllTypes[i])) {
+            return false;
           }
         }
       }
-      DartType tRetType = t.returnType;
-      DartType sRetType = s.returnType;
-      return sRetType.isVoid ||
-          (tRetType as TypeImpl).isAssignableTo(
-              sRetType, thisExpansions, typeExpansions);
-    } finally {
-      thisExpansions.remove(this.element);
-      typeExpansions.remove(type.element);
+    }
+    DartType tRetType = t.returnType;
+    DartType sRetType = s.returnType;
+    return sRetType.isVoid || (tRetType as TypeImpl).isAssignableTo(sRetType);
+  }
+
+  @override
+  TypeImpl pruned(List<FunctionTypeAliasElement> prune) {
+    if (prune == null) {
+      return this;
+    } else if (prune.contains(element)) {
+      // Circularity found.  Prune the type declaration.
+      return new CircularTypeImpl();
+    } else {
+      // There should never be a reason to prune a type that has already been
+      // pruned, since pruning is only done when expanding a function type
+      // alias, and function type aliases are always expanded by starting with
+      // base types.
+      assert(this.prunedTypedefs == null);
+      FunctionTypeImpl result = new FunctionTypeImpl._(element, name, prune);
+      result.typeArguments =
+          typeArguments.map((TypeImpl t) => t.pruned(prune)).toList();
+      return result;
     }
   }
 
   @override
-  FunctionTypeImpl substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
+  DartType substitute2(
+      List<DartType> argumentTypes, List<DartType> parameterTypes,
+      [List<FunctionTypeAliasElement> prune]) {
+    // Pruned types should only ever result from peforming type variable
+    // substitution, and it doesn't make sense to substitute again after
+    // substituting once.
+    assert(this.prunedTypedefs == null);
     if (argumentTypes.length != parameterTypes.length) {
       throw new IllegalArgumentException(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
-    if (argumentTypes.length == 0) {
-      return this;
-    }
     Element element = this.element;
+    if (prune != null && prune.contains(element)) {
+      // Circularity found.  Prune the type declaration.
+      return new CircularTypeImpl();
+    }
+    if (argumentTypes.length == 0) {
+      return this.pruned(prune);
+    }
     FunctionTypeImpl newType = (element is ExecutableElement)
-        ? new FunctionTypeImpl(element)
-        : new FunctionTypeImpl.forTypedef(element as FunctionTypeAliasElement);
+        ? new FunctionTypeImpl(element, prune)
+        : new FunctionTypeImpl.forTypedef(
+            element as FunctionTypeAliasElement, prune);
     newType.typeArguments =
         TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
     return newType;
@@ -5292,12 +5248,10 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
    * Return `true` if all of the name/type pairs in the first map ([firstTypes])
    * are equal to the corresponding name/type pairs in the second map
    * ([secondTypes]). The maps are expected to iterate over their entries in the
-   * same order in which those entries were added to the map. The set of
-   * [visitedElementPairs] is used to prevent infinite recursion in the case of
-   * cyclic type structures.
+   * same order in which those entries were added to the map.
    */
-  static bool _equals(Map<String, DartType> firstTypes,
-      Map<String, DartType> secondTypes, Set<ElementPair> visitedElementPairs) {
+  static bool _equals(
+      Map<String, DartType> firstTypes, Map<String, DartType> secondTypes) {
     if (secondTypes.length != firstTypes.length) {
       return false;
     }
@@ -5308,8 +5262,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       String secondKey = secondKeys.current;
       TypeImpl firstType = firstTypes[firstKey];
       TypeImpl secondType = secondTypes[secondKey];
-      if (firstKey != secondKey ||
-          !firstType.internalEquals(secondType, visitedElementPairs)) {
+      if (firstKey != secondKey || firstType != secondType) {
         return false;
       }
     }
@@ -6113,29 +6066,47 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   List<DartType> typeArguments = DartType.EMPTY_LIST;
 
   /**
+   * The set of typedefs which should not be expanded when exploring this type,
+   * to avoid creating infinite types in response to self-referential typedefs.
+   */
+  final List<FunctionTypeAliasElement> prunedTypedefs;
+
+  /**
    * Initialize a newly created type to be declared by the given [element].
    */
-  InterfaceTypeImpl(ClassElement element) : super(element, element.displayName);
+  InterfaceTypeImpl(ClassElement element, [this.prunedTypedefs])
+      : super(element, element.displayName);
 
   /**
    * Initialize a newly created type to be declared by the given [element].
    */
   @deprecated // Use new InterfaceTypeImpl(element)
   InterfaceTypeImpl.con1(ClassElement element)
-      : super(element, element.displayName);
+      : prunedTypedefs = null,
+        super(element, element.displayName);
 
   /**
    * Initialize a newly created type to have the given [name]. This constructor
    * should only be used in cases where there is no declaration of the type.
    */
   @deprecated // Use new InterfaceTypeImpl.named(name)
-  InterfaceTypeImpl.con2(String name) : super(null, name);
+  InterfaceTypeImpl.con2(String name)
+      : prunedTypedefs = null,
+        super(null, name);
 
   /**
    * Initialize a newly created type to have the given [name]. This constructor
    * should only be used in cases where there is no declaration of the type.
    */
-  InterfaceTypeImpl.named(String name) : super(null, name);
+  InterfaceTypeImpl.named(String name)
+      : prunedTypedefs = null,
+        super(null, name);
+
+  /**
+   * Private constructor.
+   */
+  InterfaceTypeImpl._(Element element, String name, this.prunedTypedefs)
+      : super(element, name);
 
   @override
   List<PropertyAccessorElement> get accessors {
@@ -6280,15 +6251,16 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (identical(object, this)) {
       return true;
     }
-    return internalEquals(object, new HashSet<ElementPair>());
+    if (object is! InterfaceTypeImpl) {
+      return false;
+    }
+    InterfaceTypeImpl otherType = object as InterfaceTypeImpl;
+    return (element == otherType.element) &&
+        TypeImpl.equalArrays(typeArguments, otherType.typeArguments);
   }
 
   @override
-  void appendTo(StringBuffer buffer, Set<DartType> visitedTypes) {
-    if (!visitedTypes.add(this)) {
-      buffer.write(name == null ? '...' : name);
-      return;
-    }
+  void appendTo(StringBuffer buffer) {
     buffer.write(name);
     int argumentCount = typeArguments.length;
     if (argumentCount > 0) {
@@ -6297,7 +6269,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         if (i > 0) {
           buffer.write(", ");
         }
-        (typeArguments[i] as TypeImpl).appendTo(buffer, visitedTypes);
+        (typeArguments[i] as TypeImpl).appendTo(buffer);
       }
       buffer.write(">");
     }
@@ -6373,23 +6345,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       .from((element as ClassElementImpl).getSetter(setterName), this);
 
   @override
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) {
-    if (identical(object, this)) {
-      return true;
-    }
-    if (object is! InterfaceTypeImpl) {
-      return false;
-    }
-    InterfaceTypeImpl otherType = object as InterfaceTypeImpl;
-    return (element == otherType.element) &&
-        TypeImpl.equalArrays(
-            typeArguments, otherType.typeArguments, visitedElementPairs);
-  }
-
-  @override
-  int internalHashCode(List<DartType> visitedTypes) => hashCode;
-
-  @override
   bool isDirectSupertypeOf(InterfaceType type) {
     InterfaceType i = this;
     InterfaceType j = type;
@@ -6438,9 +6393,8 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
-  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
-      Set<Element> typeExpansions, bool withDynamic = false,
-      Set<Element> visitedElements]) {
+  bool isMoreSpecificThan(DartType type,
+      [bool withDynamic = false, Set<Element> visitedElements]) {
     //
     // S is dynamic.
     // The test to determine whether S is dynamic is done here because dynamic
@@ -6481,7 +6435,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
         }
         for (int i = 0; i < tArguments.length; i++) {
           if (!(tArguments[i] as TypeImpl).isMoreSpecificThan(
-              sArguments[i], thisExpansions, typeExpansions, withDynamic)) {
+              sArguments[i], withDynamic)) {
             return false;
           }
         }
@@ -6507,19 +6461,18 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       // specific than S.
       InterfaceTypeImpl supertype = superclass;
       if (supertype != null &&
-          supertype.isMoreSpecificThan(type, thisExpansions, typeExpansions,
-              withDynamic, visitedElements)) {
+          supertype.isMoreSpecificThan(type, withDynamic, visitedElements)) {
         return true;
       }
       for (InterfaceType interfaceType in interfaces) {
-        if ((interfaceType as InterfaceTypeImpl).isMoreSpecificThan(type,
-            thisExpansions, typeExpansions, withDynamic, visitedElements)) {
+        if ((interfaceType as InterfaceTypeImpl).isMoreSpecificThan(
+            type, withDynamic, visitedElements)) {
           return true;
         }
       }
       for (InterfaceType mixinType in mixins) {
-        if ((mixinType as InterfaceTypeImpl).isMoreSpecificThan(type,
-            thisExpansions, typeExpansions, withDynamic, visitedElements)) {
+        if ((mixinType as InterfaceTypeImpl).isMoreSpecificThan(
+            type, withDynamic, visitedElements)) {
           return true;
         }
       }
@@ -6529,8 +6482,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       MethodElement callMethod = getMethod('call');
       if (callMethod != null && !callMethod.isStatic) {
         FunctionTypeImpl callType = callMethod.type;
-        if (callType.isMoreSpecificThan(type, thisExpansions, typeExpansions,
-            withDynamic, visitedElements)) {
+        if (callType.isMoreSpecificThan(type, withDynamic, visitedElements)) {
           return true;
         }
       }
@@ -6682,21 +6634,43 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  InterfaceTypeImpl pruned(List<FunctionTypeAliasElement> prune) {
+    if (prune == null) {
+      return this;
+    } else {
+      // There should never be a reason to prune a type that has already been
+      // pruned, since pruning is only done when expanding a function type
+      // alias, and function type aliases are always expanded by starting with
+      // base types.
+      assert(this.prunedTypedefs == null);
+      InterfaceTypeImpl result = new InterfaceTypeImpl._(element, name, prune);
+      result.typeArguments =
+          typeArguments.map((TypeImpl t) => t.pruned(prune)).toList();
+      return result;
+    }
+  }
+
+  @override
   InterfaceTypeImpl substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
+      List<DartType> argumentTypes, List<DartType> parameterTypes,
+      [List<FunctionTypeAliasElement> prune]) {
+    // Pruned types should only ever result from performing type variable
+    // substitution, and it doesn't make sense to substitute again after
+    // substituting once.
+    assert(this.prunedTypedefs == null);
     if (argumentTypes.length != parameterTypes.length) {
       throw new IllegalArgumentException(
           "argumentTypes.length (${argumentTypes.length}) != parameterTypes.length (${parameterTypes.length})");
     }
     if (argumentTypes.length == 0 || typeArguments.length == 0) {
-      return this;
+      return this.pruned(prune);
     }
-    List<DartType> newTypeArguments =
-        TypeImpl.substitute(typeArguments, argumentTypes, parameterTypes);
+    List<DartType> newTypeArguments = TypeImpl.substitute(
+        typeArguments, argumentTypes, parameterTypes, prune);
     if (JavaArrays.equals(newTypeArguments, typeArguments)) {
       return this;
     }
-    InterfaceTypeImpl newType = new InterfaceTypeImpl(element);
+    InterfaceTypeImpl newType = new InterfaceTypeImpl(element, prune);
     newType.typeArguments = newTypeArguments;
     return newType;
   }
@@ -9690,11 +9664,7 @@ abstract class TypeImpl implements DartType {
    * Append a textual representation of this type to the given [buffer]. The set
    * of [visitedTypes] is used to prevent infinite recusion.
    */
-  void appendTo(StringBuffer buffer, Set<DartType> visitedTypes) {
-    if (!visitedTypes.add(this)) {
-      buffer.write(name == null ? '...' : name);
-      return;
-    }
+  void appendTo(StringBuffer buffer) {
     if (name == null) {
       buffer.write("<unnamed type>");
     } else {
@@ -9704,10 +9674,6 @@ abstract class TypeImpl implements DartType {
 
   @override
   DartType getLeastUpperBound(DartType type) => null;
-
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs);
-
-  int internalHashCode(List<DartType> visitedTypes);
 
   /**
    * Return `true` if this type is assignable to the given [type] (written in
@@ -9721,24 +9687,15 @@ abstract class TypeImpl implements DartType {
    * use these as sets of function type aliases that don't need to be expanded.
    */
   @override
-  bool isAssignableTo(DartType type,
-      [Set<Element> thisExpansions, Set<Element> typeExpansions]) {
+  bool isAssignableTo(DartType type) {
     // An interface type T may be assigned to a type S, written T <=> S, iff
     // either T <: S or S <: T.
-    return isSubtypeOf(type, thisExpansions, typeExpansions) ||
-        (type as TypeImpl).isSubtypeOf(this, typeExpansions, thisExpansions);
+    return isSubtypeOf(type) || (type as TypeImpl).isSubtypeOf(this);
   }
 
   /**
    * Return `true` if this type is more specific than the given [type] (written
    * in the spec as "T << S", where T=[this] and S=[type]).
-   *
-   * The sets [thisExpansions] and [typeExpansions], if given, are the sets of
-   * function type aliases that have been expanded so far in the process of
-   * reaching [this] and [type], respectively.  These are used to avoid
-   * infinite regress when analyzing invalid code; since the language spec
-   * forbids a typedef from referring to itself directly or indirectly, we can
-   * use these as sets of function type aliases that don't need to be expanded.
    *
    * If [withDynamic] is `true`, then "dynamic" should be considered as a
    * subtype of any type (as though "dynamic" had been replaced with bottom).
@@ -9751,9 +9708,8 @@ abstract class TypeImpl implements DartType {
    * examined when walking the class hierarchy.
    */
   @override
-  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
-      Set<Element> typeExpansions, bool withDynamic = false,
-      Set<Element> visitedElements]);
+  bool isMoreSpecificThan(DartType type,
+      [bool withDynamic = false, Set<Element> visitedElements]);
 
   /**
    * Return `true` if this type is a subtype of the given [type] (written in
@@ -9767,29 +9723,53 @@ abstract class TypeImpl implements DartType {
    * use these as sets of function type aliases that don't need to be expanded.
    */
   @override
-  bool isSubtypeOf(DartType type,
-      [Set<Element> thisExpansions, Set<Element> typeExpansions]) {
+  bool isSubtypeOf(DartType type) {
     // For non-function types, T <: S iff [_|_/dynamic]T << S.
-    return isMoreSpecificThan(type, thisExpansions, typeExpansions, true);
+    return isMoreSpecificThan(type, true);
   }
 
   @override
   bool isSupertypeOf(DartType type) => type.isSubtypeOf(this);
 
+  /**
+   * Create a new [TypeImpl] that is identical to [this] except that when
+   * visiting type parameters, function parameter types, and function return
+   * types, function types listed in [prune] will not be expanded.  This is
+   * used to avoid creating infinite types in the presence of circular
+   * typedefs.
+   *
+   * If [prune] is null, then [this] is returned unchanged.
+   *
+   * Only legal to call on a [TypeImpl] that is not already subject to pruning.
+   */
+  TypeImpl pruned(List<FunctionTypeAliasElement> prune);
+
+  /**
+   * Return the type resulting from substituting the given [argumentTypes] for
+   * the given [parameterTypes] in this type.
+   *
+   * In all classes derived from [TypeImpl], a new optional argument
+   * [prune] is added.  If specified, it is a list of function typdefs
+   * which should not be expanded.  This is used to avoid creating infinite
+   * types in response to self-referential typedefs.
+   */
+  @override
+  DartType substitute2(
+      List<DartType> argumentTypes, List<DartType> parameterTypes,
+      [List<FunctionTypeAliasElement> prune]);
+
   @override
   String toString() {
     StringBuffer buffer = new StringBuffer();
-    appendTo(buffer, new HashSet<DartType>());
+    appendTo(buffer);
     return buffer.toString();
   }
 
   /**
    * Return `true` if corresponding elements of the [first] and [second] lists
-   * of type arguments are all equal. Use the set of [visitedElementPairs] to
-   * prevent infinite loops when the types are recursively defined.
+   * of type arguments are all equal.
    */
-  static bool equalArrays(List<DartType> first, List<DartType> second,
-      Set<ElementPair> visitedElementPairs) {
+  static bool equalArrays(List<DartType> first, List<DartType> second) {
     if (first.length != second.length) {
       return false;
     }
@@ -9803,8 +9783,7 @@ abstract class TypeImpl implements DartType {
             .logInformation('Found null type argument in TypeImpl.equalArrays');
         return false;
       }
-      if (!(first[i] as TypeImpl).internalEquals(
-          second[i], visitedElementPairs)) {
+      if (first[i] != second[i]) {
         return false;
       }
     }
@@ -9814,16 +9793,22 @@ abstract class TypeImpl implements DartType {
   /**
    * Return a list containing the results of using the given [argumentTypes] and
    * [parameterTypes] to perform a substitution on all of the given [types].
+   *
+   * If [prune] is specified, it is a list of function typdefs which should not
+   * be expanded.  This is used to avoid creating infinite types in response to
+   * self-referential typedefs.
    */
   static List<DartType> substitute(List<DartType> types,
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
+      List<DartType> argumentTypes, List<DartType> parameterTypes,
+      [List<FunctionTypeAliasElement> prune]) {
     int length = types.length;
     if (length == 0) {
       return types;
     }
     List<DartType> newTypes = new List<DartType>(length);
     for (int i = 0; i < length; i++) {
-      newTypes[i] = types[i].substitute2(argumentTypes, parameterTypes);
+      newTypes[i] = (types[i] as TypeImpl).substitute2(
+          argumentTypes, parameterTypes, prune);
     }
     return newTypes;
   }
@@ -9943,16 +9928,8 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       object is TypeParameterTypeImpl && (element == object.element);
 
   @override
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) =>
-      this == object;
-
-  @override
-  int internalHashCode(List<DartType> visitedTypes) => hashCode;
-
-  @override
-  bool isMoreSpecificThan(DartType s, [Set<Element> thisExpansions,
-      Set<Element> typeExpansions, bool withDynamic = false,
-      Set<Element> visitedElements]) {
+  bool isMoreSpecificThan(DartType s,
+      [bool withDynamic = false, Set<Element> visitedElements]) {
     //
     // A type T is more specific than a type S, written T << S,
     // if one of the following conditions is met:
@@ -9998,21 +9975,22 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
     }
     visitedElements.add(element);
     try {
-      return bound.isMoreSpecificThan(
-          s, thisExpansions, typeExpansions, withDynamic, visitedElements);
+      return bound.isMoreSpecificThan(s, withDynamic, visitedElements);
     } finally {
       visitedElements.remove(element);
     }
   }
 
   @override
-  bool isSubtypeOf(DartType type,
-          [Set<Element> thisExpansions, Set<Element> typeExpansions]) =>
-      isMoreSpecificThan(type, thisExpansions, typeExpansions, true);
+  bool isSubtypeOf(DartType type) => isMoreSpecificThan(type, true);
+
+  @override
+  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
   DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
+      List<DartType> argumentTypes, List<DartType> parameterTypes,
+      [List<FunctionTypeAliasElement> prune]) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
       if (parameterTypes[i] == this) {
@@ -10085,16 +10063,8 @@ class UndefinedTypeImpl extends TypeImpl {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) =>
-      identical(object, this);
-
-  @override
-  int internalHashCode(List<DartType> visitedTypes) => hashCode;
-
-  @override
-  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
-      Set<Element> typeExpansions, bool withDynamic = false,
-      Set<Element> visitedElements]) {
+  bool isMoreSpecificThan(DartType type,
+      [bool withDynamic = false, Set<Element> visitedElements]) {
     // T is S
     if (identical(this, type)) {
       return true;
@@ -10104,15 +10074,18 @@ class UndefinedTypeImpl extends TypeImpl {
   }
 
   @override
-  bool isSubtypeOf(DartType type,
-      [Set<Element> thisExpansions, Set<Element> typeExpansions]) => true;
+  bool isSubtypeOf(DartType type) => true;
 
   @override
   bool isSupertypeOf(DartType type) => true;
 
   @override
+  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
   DartType substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) {
+      List<DartType> argumentTypes, List<DartType> parameterTypes,
+      [List<FunctionTypeAliasElement> prune]) {
     int length = parameterTypes.length;
     for (int i = 0; i < length; i++) {
       if (parameterTypes[i] == this) {
@@ -10420,20 +10393,12 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   bool operator ==(Object object) => identical(object, this);
 
   @override
-  bool internalEquals(Object object, Set<ElementPair> visitedElementPairs) =>
-      identical(object, this);
+  bool isMoreSpecificThan(DartType type,
+          [bool withDynamic = false, Set<Element> visitedElements]) =>
+      isSubtypeOf(type);
 
   @override
-  int internalHashCode(List<DartType> visitedTypes) => hashCode;
-
-  @override
-  bool isMoreSpecificThan(DartType type, [Set<Element> thisExpansions,
-      Set<Element> typeExpansions, bool withDynamic = false,
-      Set<Element> visitedElements]) => isSubtypeOf(type);
-
-  @override
-  bool isSubtypeOf(DartType type,
-      [Set<Element> thisExpansions, Set<Element> typeExpansions]) {
+  bool isSubtypeOf(DartType type) {
     // The only subtype relations that pertain to void are therefore:
     // void <: void (by reflexivity)
     // bottom <: void (as bottom is a subtype of all types).
@@ -10442,8 +10407,12 @@ class VoidTypeImpl extends TypeImpl implements VoidType {
   }
 
   @override
+  TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
+
+  @override
   VoidTypeImpl substitute2(
-      List<DartType> argumentTypes, List<DartType> parameterTypes) => this;
+      List<DartType> argumentTypes, List<DartType> parameterTypes,
+      [List<FunctionTypeAliasElement> prune]) => this;
 }
 
 /**

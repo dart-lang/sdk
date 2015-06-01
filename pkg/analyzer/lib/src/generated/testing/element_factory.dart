@@ -55,7 +55,7 @@ class ElementFactory {
             new List<TypeParameterTypeImpl>(count);
         for (int i = 0; i < count; i++) {
           TypeParameterElementImpl typeParameter =
-              new TypeParameterElementImpl(parameterNames[i], 0);
+              typeParameterElement(parameterNames[i]);
           typeParameters[i] = typeParameter;
           typeParameterTypes[i] = new TypeParameterTypeImpl(typeParameter);
           typeParameter.type = typeParameterTypes[i];
@@ -346,6 +346,14 @@ class ElementFactory {
     return functionElement;
   }
 
+  static FunctionTypeAliasElementImpl functionTypeAliasElement(String name) {
+    FunctionTypeAliasElementImpl functionTypeAliasElement =
+        new FunctionTypeAliasElementImpl(name, -1);
+    functionTypeAliasElement.type =
+        new FunctionTypeImpl.forTypedef(functionTypeAliasElement);
+    return functionTypeAliasElement;
+  }
+
   static PropertyAccessorElementImpl getterElement(
       String name, bool isStatic, DartType type) {
     FieldElementImpl field = new FieldElementImpl(name, -1);
@@ -537,4 +545,7 @@ class ElementFactory {
     }
     return variable;
   }
+
+  static TypeParameterElementImpl typeParameterElement(String name) =>
+      new TypeParameterElementImpl(name, 0);
 }

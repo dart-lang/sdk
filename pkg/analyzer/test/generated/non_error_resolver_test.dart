@@ -237,6 +237,40 @@ f(A a) {
     verify([source]);
   }
 
+  void test_assignability_function_expr_rettype_from_typedef_cls() {
+    // In the code below, the type of (() => f()) has a return type which is
+    // a class, and that class is inferred from the return type of the typedef
+    // F.
+    Source source = addSource('''
+class C {}
+typedef C F();
+F f;
+main() {
+  F f2 = (() => f());
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_assignability_function_expr_rettype_from_typedef_typedef() {
+    // In the code below, the type of (() => f()) has a return type which is
+    // a typedef, and that typedef is inferred from the return type of the
+    // typedef F.
+    Source source = addSource('''
+typedef G F();
+typedef G();
+F f;
+main() {
+  F f2 = (() => f());
+}
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_assignmentToFinal_prefixNegate() {
     Source source = addSource(r'''
 f() {
