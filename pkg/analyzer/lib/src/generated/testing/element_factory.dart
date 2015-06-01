@@ -75,7 +75,7 @@ class ElementFactory {
       [List<String> parameterNames]) {
     ClassElementImpl element =
         classElement(typeName, superclassType, parameterNames);
-    element.typedef = true;
+    element.mixinApplication = true;
     return element;
   }
 

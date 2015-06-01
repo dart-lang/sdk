@@ -4,8 +4,8 @@
 
 library engine.resolver;
 
-import "dart:math" as math;
 import 'dart:collection';
+import "dart:math" as math;
 
 import 'package:analyzer/src/generated/utilities_collection.dart';
 
@@ -2503,7 +2503,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     ClassElementImpl element = new ClassElementImpl.forNode(className);
     element.abstract = node.abstractKeyword != null;
     element.mixinApplication = true;
-    element.typedef = true;
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     element.typeParameters = typeParameters;
     List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
@@ -5158,7 +5157,7 @@ class ImplicitConstructorBuilder extends SimpleElementVisitor {
   @override
   void visitClassElement(ClassElement classElement) {
     (classElement as ClassElementImpl).mixinErrorsReported = false;
-    if (classElement.isTypedef) {
+    if (classElement.isMixinApplication) {
       _visitClassTypeAlias(classElement);
     } else {
       _visitClassDeclaration(classElement);

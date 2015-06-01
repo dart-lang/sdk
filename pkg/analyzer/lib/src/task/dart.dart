@@ -452,7 +452,7 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
     //
     // ClassTypeAlias
     //
-    if (classElement.isTypedef) {
+    if (classElement.isMixinApplication) {
       List<ConstructorElement> implicitConstructors =
           new List<ConstructorElement>();
       void callback(ConstructorElement explicitConstructor,
@@ -476,7 +476,7 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
     //
     // ClassDeclaration
     //
-    if (!classElement.isTypedef) {
+    if (!classElement.isMixinApplication) {
       bool constructorFound = false;
       void callback(ConstructorElement explicitConstructor,
           List<DartType> parameterTypes, List<DartType> argumentTypes) {
@@ -504,7 +504,7 @@ class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
     Source librarySource = classElement.library.source;
     DartType superType = classElement.supertype;
     if (superType is InterfaceType) {
-      if (classElement.isTypedef || classElement.mixins.isNotEmpty) {
+      if (classElement.isMixinApplication || classElement.mixins.isNotEmpty) {
         ClassElement superElement = superType.element;
         return <String, TaskInput>{
           'libraryDep': LIBRARY_ELEMENT5.of(librarySource),

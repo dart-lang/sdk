@@ -4,8 +4,8 @@
 
 library engine.resolver.error_verifier;
 
-import "dart:math" as math;
 import 'dart:collection';
+import "dart:math" as math;
 
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 
@@ -4176,7 +4176,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     InterfaceType mixinSupertype = mixinElement.supertype;
     if (mixinSupertype != null) {
       if (!mixinSupertype.isObject ||
-          !mixinElement.isTypedef && mixinElement.mixins.length != 0) {
+          !mixinElement.isMixinApplication && mixinElement.mixins.length != 0) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, mixinName,
             [mixinElement.name]);

@@ -215,8 +215,10 @@ abstract class ClassElement implements Element {
   bool get isProxy;
 
   /**
-   * Return `true` if this class is defined by a typedef construct.
+   * Return `true` if this class is a mixin application.  Deprecated--please
+   * use [isMixinApplication] instead.
    */
+  @deprecated
   bool get isTypedef;
 
   /**
@@ -703,7 +705,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  bool get isTypedef => hasModifier(Modifier.TYPEDEF);
+  @deprecated
+  bool get isTypedef => isMixinApplication;
 
   @override
   bool get isValidMixin => hasModifier(Modifier.MIXIN);
@@ -739,13 +742,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   void set mixinErrorsReported(bool value) {
     setModifier(Modifier.MIXIN_ERRORS_REPORTED, value);
-  }
-
-  /**
-   * Set whether this class is defined by a typedef construct.
-   */
-  void set typedef(bool isTypedef) {
-    setModifier(Modifier.TYPEDEF, isTypedef);
   }
 
   @override
@@ -8055,12 +8051,6 @@ class Modifier extends Enum<Modifier> {
    */
   static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
 
-  /**
-   * Indicates that a class was defined using an alias.
-   * TODO(brianwilkerson) This should be renamed to 'ALIAS'.
-   */
-  static const Modifier TYPEDEF = const Modifier('TYPEDEF', 19);
-
   static const List<Modifier> values = const [
     ABSTRACT,
     ASYNCHRONOUS,
@@ -8080,8 +8070,7 @@ class Modifier extends Enum<Modifier> {
     REFERENCES_SUPER,
     SETTER,
     STATIC,
-    SYNTHETIC,
-    TYPEDEF
+    SYNTHETIC
   ];
 
   const Modifier(String name, int ordinal) : super(name, ordinal);

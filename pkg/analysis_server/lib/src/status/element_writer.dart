@@ -54,7 +54,7 @@ class ElementWriter extends GeneralizingElementVisitor with TreeWriter {
       properties['isEnum'] = element.isEnum;
       properties['isOrInheritsProxy'] = element.isOrInheritsProxy;
       properties['isProxy'] = element.isProxy;
-      properties['isTypedef'] = element.isTypedef;
+      properties['isTypedef'] = element.isMixinApplication;
       properties['isValidMixin'] = element.isValidMixin;
       properties['mixins'] = element.mixins;
       properties['supertype'] = element.supertype;

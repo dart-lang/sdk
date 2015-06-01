@@ -70,7 +70,8 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isProxy => actualElement.isProxy;
 
   @override
-  bool get isTypedef => actualElement.isTypedef;
+  @deprecated
+  bool get isTypedef => actualElement.isMixinApplication;
 
   @override
   bool get isValidMixin => actualElement.isValidMixin;
