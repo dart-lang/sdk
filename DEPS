@@ -82,7 +82,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
-  "pub_rev": "@6f2a1b90b8210a85a38aab1af479c047681c29e6",
+  "pub_rev": "@d6257ece2f720b59aac92bb5447af714ee4ebf0f",
   "pub_semver_tag": "@1.2.1",
   "scheduled_test_tag": "@0.11.8+1",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
