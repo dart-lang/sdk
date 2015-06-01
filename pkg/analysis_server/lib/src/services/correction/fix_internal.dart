@@ -202,6 +202,7 @@ class FixProcessor {
     }
     if (errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS) {
       _addFix_createConstructor_insteadOfSyntheticDefault();
+      _addFix_addMissingParameter();
     }
     if (errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR) {
       _addFix_createConstructor_named();
@@ -345,6 +346,67 @@ class FixProcessor {
       }
     }
     return false;
+  }
+
+  void _addFix_addMissingParameter() {
+    if (node is SimpleIdentifier && node.parent is MethodInvocation) {
+      MethodInvocation invocation = node.parent;
+      SimpleIdentifier methodName = invocation.methodName;
+      ArgumentList argumentList = invocation.argumentList;
+      if (methodName == node && argumentList != null) {
+        Element targetElement = methodName.bestElement;
+        List<Expression> arguments = argumentList.arguments;
+        if (targetElement is ExecutableElement) {
+          List<ParameterElement> parameters = targetElement.parameters;
+          int numParameters = parameters.length;
+          Expression argument = arguments[numParameters];
+          // prepare target
+          int targetOffset;
+          if (numParameters != 0) {
+            ParameterElement parameterElement = parameters.last;
+            AstNode parameterNode = parameterElement.computeNode();
+            targetOffset = parameterNode.end;
+          } else {
+            AstNode targetNode = targetElement.computeNode();
+            if (targetNode is FunctionDeclaration) {
+              FunctionExpression function = targetNode.functionExpression;
+              targetOffset = function.parameters.leftParenthesis.end;
+            } else if (targetNode is MethodDeclaration) {
+              targetOffset = targetNode.parameters.leftParenthesis.end;
+            } else {
+              return;
+            }
+          }
+          String targetFile = targetElement.source.fullName;
+          // required
+          {
+            SourceBuilder sb = new SourceBuilder(targetFile, targetOffset);
+            // append source
+            if (numParameters != 0) {
+              sb.append(', ');
+            }
+            _appendParameterForArgument(sb, numParameters, argument);
+            // add proposal
+            _insertBuilder(sb, targetElement);
+            _addFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, []);
+          }
+          // optional positional
+          {
+            SourceBuilder sb = new SourceBuilder(targetFile, targetOffset);
+            // append source
+            if (numParameters != 0) {
+              sb.append(', ');
+            }
+            sb.append('[');
+            _appendParameterForArgument(sb, numParameters, argument);
+            sb.append(']');
+            // add proposal
+            _insertBuilder(sb, targetElement);
+            _addFix(DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL, []);
+          }
+        }
+      }
+    }
   }
 
   void _addFix_addPartOfDirective() {
@@ -1834,7 +1896,6 @@ class FixProcessor {
       SourceBuilder sb, ArgumentList argumentList) {
     // append parameters
     sb.append('(');
-    Set<String> excluded = new Set();
     List<Expression> arguments = argumentList.arguments;
     for (int i = 0; i < arguments.length; i++) {
       Expression argument = arguments[i];
@@ -1842,27 +1903,8 @@ class FixProcessor {
       if (i != 0) {
         sb.append(', ');
       }
-      // append type name
-      DartType type = argument.bestType;
-      String typeSource = utils.getTypeSource(type, librariesToImport);
-      if (typeSource != 'dynamic') {
-        sb.startPosition('TYPE$i');
-        sb.append(typeSource);
-        _addSuperTypeProposals(sb, new Set(), type);
-        sb.endPosition();
-        sb.append(' ');
-      }
-      // append parameter name
-      {
-        List<String> suggestions =
-            _getArgumentNameSuggestions(excluded, type, argument, i);
-        String favorite = suggestions[0];
-        excluded.add(favorite);
-        sb.startPosition('ARG$i');
-        sb.append(favorite);
-        sb.addSuggestions(LinkedEditSuggestionKind.PARAMETER, suggestions);
-        sb.endPosition();
-      }
+      // append parameter
+      _appendParameterForArgument(sb, i, argument);
     }
   }
 
@@ -2128,6 +2170,32 @@ class FixProcessor {
   void _addReplaceEdit(SourceRange range, String text, [Element target]) {
     SourceEdit edit = new SourceEdit(range.offset, range.length, text);
     _addEdit(target, edit);
+  }
+
+  void _appendParameterForArgument(
+      SourceBuilder sb, int index, Expression argument) {
+    // append type name
+    DartType type = argument.bestType;
+    String typeSource = utils.getTypeSource(type, librariesToImport);
+    if (typeSource != 'dynamic') {
+      sb.startPosition('TYPE$index');
+      sb.append(typeSource);
+      _addSuperTypeProposals(sb, new Set(), type);
+      sb.endPosition();
+      sb.append(' ');
+    }
+    // append parameter name
+    {
+      Set<String> excluded = new Set<String>();
+      List<String> suggestions =
+          _getArgumentNameSuggestions(excluded, type, argument, index);
+      String favorite = suggestions[0];
+      excluded.add(favorite);
+      sb.startPosition('ARG$index');
+      sb.append(favorite);
+      sb.addSuggestions(LinkedEditSuggestionKind.PARAMETER, suggestions);
+      sb.endPosition();
+    }
   }
 
   void _appendParameters(SourceBuilder sb, List<ParameterElement> parameters) {

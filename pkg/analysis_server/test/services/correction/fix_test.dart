@@ -162,6 +162,108 @@ class Test {
 ''');
   }
 
+  void test_addMissingParameter_function_positional_hasZero() {
+    resolveTestUnit('''
+test() {}
+main() {
+  test(1);
+}
+''');
+    assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL, '''
+test([int i]) {}
+main() {
+  test(1);
+}
+''');
+  }
+
+  void test_addMissingParameter_function_required_hasOne() {
+    resolveTestUnit('''
+test(int a) {}
+main() {
+  test(1, 2.0);
+}
+''');
+    assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, '''
+test(int a, double d) {}
+main() {
+  test(1, 2.0);
+}
+''');
+  }
+
+  void test_addMissingParameter_function_required_hasZero() {
+    resolveTestUnit('''
+test() {}
+main() {
+  test(1);
+}
+''');
+    assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, '''
+test(int i) {}
+main() {
+  test(1);
+}
+''');
+  }
+
+  void test_addMissingParameter_method_positional_hasOne() {
+    resolveTestUnit('''
+class A {
+  test(int a) {}
+  main() {
+    test(1, 2.0);
+  }
+}
+''');
+    assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_POSITIONAL, '''
+class A {
+  test(int a, [double d]) {}
+  main() {
+    test(1, 2.0);
+  }
+}
+''');
+  }
+
+  void test_addMissingParameter_method_required_hasOne() {
+    resolveTestUnit('''
+class A {
+  test(int a) {}
+  main() {
+    test(1, 2.0);
+  }
+}
+''');
+    assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, '''
+class A {
+  test(int a, double d) {}
+  main() {
+    test(1, 2.0);
+  }
+}
+''');
+  }
+
+  void test_addMissingParameter_method_required_hasZero() {
+    resolveTestUnit('''
+class A {
+  test() {}
+  main() {
+    test(1);
+  }
+}
+''');
+    assertHasFix(DartFixKind.ADD_MISSING_PARAMETER_REQUIRED, '''
+class A {
+  test(int i) {}
+  main() {
+    test(1);
+  }
+}
+''');
+  }
+
   void test_addPartOfDirective() {
     String partCode = r'''
 // Comment first.
@@ -390,7 +492,6 @@ class Test {
   }
 
   void test_createClass_inLibraryOfPrefix() {
-    // TODO
     String libCode = r'''
 library my.lib;
 
