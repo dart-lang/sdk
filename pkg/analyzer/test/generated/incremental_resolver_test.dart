@@ -1264,6 +1264,34 @@ class A {
 ''');
   }
 
+  void test_false_method_parameters_type_edit_insertImportPrefix() {
+    _assertDoesNotMatchOK(r'''
+import 'dart:async' as a;
+
+class C {
+  void foo(Future f) {}
+}
+
+class Future {}
+
+bar(C c, a.Future f) {
+  c.foo(f);
+}
+''', r'''
+import 'dart:async' as a;
+
+class C {
+  void foo(a.Future f) {}
+}
+
+class Future {}
+
+bar(C c, a.Future f) {
+  c.foo(f);
+}
+''');
+  }
+
   void test_false_method_returnType_edit() {
     _assertDoesNotMatchOK(r'''
 class A {
@@ -2198,6 +2226,22 @@ class A {
 typedef F();
 class A {
   m(F p) {}
+}
+''');
+  }
+
+  void test_true_method_parameters_type_sameImportPrefix() {
+    _assertMatches(r'''
+import 'dart:async' as a;
+
+bar(a.Future f) {
+  print(f);
+}
+''', r'''
+import 'dart:async' as a;
+
+bar(a.Future ff) {
+  print(ff);
 }
 ''');
   }
