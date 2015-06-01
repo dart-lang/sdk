@@ -12411,16 +12411,30 @@ A f(var p) {
     assertNoErrors(source);
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
-    ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
-    InterfaceType typeA = classA.element.type;
+    // prepare A
+    InterfaceType typeA;
+    {
+      ClassDeclaration classA = unit.declarations[0] as ClassDeclaration;
+      typeA = classA.element.type;
+    }
+    // verify "f"
     FunctionDeclaration function = unit.declarations[1] as FunctionDeclaration;
     BlockFunctionBody body =
         function.functionExpression.body as BlockFunctionBody;
     IfStatement ifStatement = body.block.statements[0] as IfStatement;
-    ReturnStatement statement =
-        (ifStatement.thenStatement as Block).statements[0] as ReturnStatement;
-    SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
-    expect(variableName.propagatedType, same(typeA));
+    // "p is A"
+    {
+      IsExpression isExpression = ifStatement.condition;
+      SimpleIdentifier variableName = isExpression.expression;
+      expect(variableName.propagatedType, isNull);
+    }
+    // "return p;"
+    {
+      ReturnStatement statement =
+          (ifStatement.thenStatement as Block).statements[0] as ReturnStatement;
+      SimpleIdentifier variableName = statement.expression as SimpleIdentifier;
+      expect(variableName.propagatedType, same(typeA));
+    }
   }
 
   void test_is_if_lessSpecific() {

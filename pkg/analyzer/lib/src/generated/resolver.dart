@@ -10509,13 +10509,15 @@ class ResolverVisitor extends ScopedVisitor {
    * @param potentialType the potential type of the elements
    * @param allowPrecisionLoss see @{code overrideVariable} docs
    */
-  void overrideExpression(
-      Expression expression, DartType potentialType, bool allowPrecisionLoss) {
+  void overrideExpression(Expression expression, DartType potentialType,
+      bool allowPrecisionLoss, bool setExpressionType) {
     VariableElement element = getOverridableStaticElement(expression);
     if (element != null) {
       DartType newBestType =
           overrideVariable(element, potentialType, allowPrecisionLoss);
-      recordPropagatedTypeIfBetter(expression, newBestType);
+      if (setExpressionType) {
+        recordPropagatedTypeIfBetter(expression, newBestType);
+      }
     }
     element = getOverridablePropagatedElement(expression);
     if (element != null) {
@@ -10638,7 +10640,7 @@ class ResolverVisitor extends ScopedVisitor {
     // Since an as-statement doesn't actually change the type, we don't
     // let it affect the propagated type when it would result in a loss
     // of precision.
-    overrideExpression(node.expression, node.type.type, false);
+    overrideExpression(node.expression, node.type.type, false, false);
     return null;
   }
 
@@ -11703,7 +11705,7 @@ class ResolverVisitor extends ScopedVisitor {
         // Since an is-statement doesn't actually change the type, we don't
         // let it affect the propagated type when it would result in a loss
         // of precision.
-        overrideExpression(is2.expression, is2.type.type, false);
+        overrideExpression(is2.expression, is2.type.type, false, false);
       }
     } else if (condition is PrefixExpression) {
       PrefixExpression prefix = condition;
@@ -11744,7 +11746,7 @@ class ResolverVisitor extends ScopedVisitor {
         // Since an is-statement doesn't actually change the type, we don't
         // let it affect the propagated type when it would result in a loss
         // of precision.
-        overrideExpression(is2.expression, is2.type.type, false);
+        overrideExpression(is2.expression, is2.type.type, false, false);
       }
     } else if (condition is PrefixExpression) {
       PrefixExpression prefix = condition;
