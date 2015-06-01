@@ -814,7 +814,6 @@ number_identifier_test/08: Crash # Instance of 'TypeOperator': type casts not im
 number_identifier_test/09: Crash # Instance of 'TypeOperator': type casts not implemented.
 number_identifier_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
 on_catch_malformed_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-operator4_test: RuntimeError # Please triage this failure.
 operator_equals_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 optimized_constant_array_string_access_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 optimized_string_charat_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

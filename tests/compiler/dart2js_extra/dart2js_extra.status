@@ -95,8 +95,6 @@ deferred/deferred_mirrors1_test: Crash # (lazy.loadLibrary()): handleStaticGette
 deferred/deferred_overlapping_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
 deferred_fail_and_retry_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
 deferred_fail_and_retry_worker_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-do_test: Timeout # Please triage this failure.
-for_test: Timeout # Please triage this failure.
 generics_factories_test: Crash # Please triage this failure.
 inference_nsm_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_is_int_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -125,4 +123,3 @@ switch_test/none: Crash # (switch (val){}): Unhandled node
 this_phi_elimination_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_constant_switch_test/none: Crash # (switch (v){}): Unhandled node
 typevariable_factory_test: Crash # Please triage this failure.
-while_test: Timeout # Please triage this failure.

@@ -302,7 +302,6 @@ regexp/range-out-of-order_test: Crash # Instance of 'TypeOperator': type check u
 regexp/regexp_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 set_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 set_to_string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-shuffle_test: RuntimeError # Please triage this failure.
 splay_tree_from_iterables_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 splay_tree_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_buffer_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -327,7 +326,6 @@ symbol_test/none: Crash # Please triage this failure.
 uri_file_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 uri_ipv4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 uri_ipv6_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-uri_normalize_path_test: RuntimeError # Please triage this failure.
 uri_path_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 uri_query_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 uri_scheme_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

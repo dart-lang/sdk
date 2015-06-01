@@ -9644,7 +9644,6 @@ Language/12_Expressions/13_Property_Extraction_A03_t02: RuntimeError # Please tr
 Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Please triage this failure.
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: RuntimeError # Please triage this failure.
-Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/22_Equality_A03_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/30_Identifier_Reference_A09_t03: Crash # (i=0): For-loop variable captured in loop header
 Language/12_Expressions/33_Type_Cast_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -9911,7 +9910,6 @@ LibTest/html/Window/resizeTo_A01_t01: Crash #  try/finally
 LibTest/isolate/ReceivePort/drain_A02_t01: Crash # Please triage this failure.
 LibTest/isolate/ReceivePort/take_A01_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
 Utils/tests/Expect/approxEquals_A04_t01: RuntimeError # Please triage this failure.
-Utils/tests/Expect/equals_A01_t04: RuntimeError # Please triage this failure.
 Utils/tests/Expect/stringEquals_A02_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: Crash #  Unhandled node
 WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: Crash #  Unhandled node

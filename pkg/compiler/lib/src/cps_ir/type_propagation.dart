@@ -839,6 +839,10 @@ class _TypePropagationVisitor<T> implements Visitor {
 
   void visitInterceptor(Interceptor node) {
     setReachable(node.input.definition);
+    _AbstractValue<T> value = getValue(node.input.definition);
+    if (!value.isNothing) {
+      setValue(node, nonConstant());
+    }
   }
 
   void visitGetField(GetField node) {

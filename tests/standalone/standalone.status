@@ -258,4 +258,3 @@ io/web_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented
 io/windows_file_system_links_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/zlib_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 priority_queue_stress_test: RuntimeError # Please triage this failure.
-status_expression_test: RuntimeError # Please triage this failure.
