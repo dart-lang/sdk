@@ -5,7 +5,7 @@
 /// Tracks the shape of the import/export graph and dependencies between files.
 library dev_compiler.src.dependency_graph;
 
-import 'dart:collection' show HashSet;
+import 'dart:collection' show HashSet, HashMap;
 
 import 'package:analyzer/analyzer.dart' show parseDirectives;
 import 'package:analyzer/src/generated/ast.dart'
@@ -21,7 +21,7 @@ import 'package:analyzer/src/generated/ast.dart'
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
-import 'package:html/dom.dart' show Document, Node;
+import 'package:html/dom.dart' show Document, Node, Element;
 import 'package:html/parser.dart' as html;
 import 'package:logging/logging.dart' show Logger, Level;
 import 'package:path/path.dart' as path;
@@ -167,6 +167,10 @@ class HtmlSourceNode extends SourceNode {
   /// Parsed document, updated whenever [update] is invoked.
   Document document;
 
+  /// Tracks resource files referenced from HTML nodes, e.g.
+  /// `<link rel=stylesheet href=...>` and `<img src=...>`
+  final htmlResourceNodes = new HashMap<Element, ResourceSourceNode>();
+
   HtmlSourceNode(SourceGraph graph, Uri uri, Source source)
       : runtimeDeps = graph.runtimeDeps,
         super(graph, uri, source);
@@ -199,16 +203,24 @@ class HtmlSourceNode extends SourceNode {
         scripts = newScripts;
       }
 
+      // TODO(jmesserly): simplify the design here. Ideally we wouldn't need
+      // to track user-defined CSS, images, etc. Also we don't have a clear
+      // way to distinguish runtime injected resources, like messages.css, from
+      // user-defined files.
+      htmlResourceNodes.clear();
       var newResources = new Set<SourceNode>();
       for (var resource in graph.resources) {
         newResources.add(graph.nodeFromUri(uri.resolve(resource)));
       }
       for (var tag in document.querySelectorAll('link[rel="stylesheet"]')) {
-        newResources
-            .add(graph.nodeFromUri(uri.resolve(tag.attributes['href'])));
+        var res = graph.nodeFromUri(uri.resolve(tag.attributes['href']));
+        htmlResourceNodes[tag] = res;
+        newResources.add(res);
       }
-      for (var tag in document.querySelectorAll('img')) {
-        newResources.add(graph.nodeFromUri(uri.resolve(tag.attributes['src'])));
+      for (var tag in document.querySelectorAll('img[src]')) {
+        var res = graph.nodeFromUri(uri.resolve(tag.attributes['src']));
+        htmlResourceNodes[tag] = res;
+        newResources.add(res);
       }
       if (!_same(newResources, resources)) {
         structureChanged = true;

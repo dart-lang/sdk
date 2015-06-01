@@ -43,13 +43,28 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
   if (options.outputDart) return '${document.outerHtml}\n';
 
   var libraries = [];
-  var resources = [];
+  var resources = new Set();
   visitInPostOrder(root, (n) {
     if (n is DartSourceNode) libraries.add(n);
     if (n is ResourceSourceNode) resources.add(n);
   }, includeParts: false);
 
-  String mainLibraryName;
+  root.htmlResourceNodes.forEach((element, resource) {
+    // Make sure we don't try and add this node again.
+    resources.remove(resource);
+
+    var resourcePath = resourceOutputPath(resource.uri, root.uri);
+    if (resource.cachingHash != null) {
+      resourcePath = _addHash(resourcePath, resource.cachingHash);
+    }
+    var attrs = element.attributes;
+    if (attrs.containsKey('href')) {
+      attrs['href'] = resourcePath;
+    } else if (attrs.containsKey('src')) {
+      attrs['src'] = resourcePath;
+    }
+  });
+
   var fragment = new DocumentFragment();
   for (var resource in resources) {
     var resourcePath = resourceOutputPath(resource.uri, root.uri);
@@ -57,12 +72,15 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
     if (resource.cachingHash != null) {
       resourcePath = _addHash(resourcePath, resource.cachingHash);
     }
-    if (ext == '.css') {
-      fragment.nodes.add(_cssInclude(resourcePath));
-    } else if (ext == '.js') {
+    if (ext == '.js') {
       fragment.nodes.add(_libraryInclude(resourcePath));
+    } else if (ext == '.css') {
+      var stylesheetLink = '<link rel="stylesheet" href="$resourcePath">\n';
+      fragment.nodes.add(parseFragment(stylesheetLink));
     }
   }
+
+  String mainLibraryName;
   for (var lib in libraries) {
     var info = lib.info;
     if (info == null) continue;
@@ -81,10 +99,6 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
 /// A script tag that loads the .js code for a compiled library.
 Node _libraryInclude(String jsUrl) =>
     parseFragment('<script src="$jsUrl"></script>\n');
-
-/// A tag that loads the .css code.
-Node _cssInclude(String cssUrl) =>
-    parseFragment('<link rel="stylesheet" href="$cssUrl">\n');
 
 /// A script tag that invokes the main function on the entry point library.
 Node _invokeMain(String mainLibraryName) {
