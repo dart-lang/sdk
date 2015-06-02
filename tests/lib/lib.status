@@ -406,9 +406,9 @@ mirrors/constructor_private_name_test: Crash # Instance of 'TypeOperator': type 
 mirrors/constructors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/dart2js_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/declarations_type_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/deferred_mirrors_metadata_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-mirrors/deferred_mirrors_metatarget_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-mirrors/deferred_mirrors_update_test: Crash # (l.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+mirrors/deferred_mirrors_metadata_test: RuntimeError # Please triage this failure.
+mirrors/deferred_mirrors_metatarget_test: RuntimeError # Please triage this failure.
+mirrors/deferred_mirrors_update_test: RuntimeError # Please triage this failure.
 mirrors/deferred_type_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 mirrors/delegate_call_through_getter_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/delegate_test: RuntimeError # Please triage this failure.
@@ -491,10 +491,10 @@ mirrors/lazy_static_test: Crash # Instance of 'TypeOperator': type check unimple
 mirrors/libraries_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_declarations_test/01: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
 mirrors/library_declarations_test/none: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/library_enumeration_deferred_loading_test: Crash # (other.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+mirrors/library_enumeration_deferred_loading_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_exports_hidden_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_exports_shown_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_import_deferred_loading_test: Crash # (other.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+mirrors/library_import_deferred_loading_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_imports_bad_metadata_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_imports_bad_metadata_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_imports_deferred_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -624,7 +624,7 @@ mirrors/type_variable_is_static_test: Crash # Instance of 'TypeOperator': type c
 mirrors/type_variable_owner_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
 mirrors/type_variable_owner_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
 mirrors/typearguments_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/typedef_deferred_library_test: Crash # (def.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+mirrors/typedef_deferred_library_test: RuntimeError # Please triage this failure.
 mirrors/typedef_reflected_type_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/typedef_reflected_type_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/unnamed_library_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

@@ -9852,7 +9852,7 @@ LayoutTests/fast/url/trivial_t01: Crash # Instance of 'TypeOperator': type casts
 LayoutTests/fast/xpath/name-null-namespace_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/xsl/default-html_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/xsl/extra-lf-at-end_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: Crash # (lazy.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError # Please triage this failure.
 LibTest/async/Stream/Stream.periodic_A01_t01: Crash # Please triage this failure.
 LibTest/async/Stream/drain_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/Stream/drain_A02_t01: Crash # Please triage this failure.

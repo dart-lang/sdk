@@ -123,10 +123,9 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-bool_from_environment_default_value_test: RuntimeError # Please triage this failure.
 count_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 cross_isolate_message_test: Crash #  Unhandled node
-deferred_in_isolate2_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+deferred_in_isolate2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 function_send_test: Crash # (try {p.send(func);}finally {p.send(0);}): try/finally
 handle_error2_test: Crash #  Unhandled node
 handle_error3_test: Crash #  Unhandled node
