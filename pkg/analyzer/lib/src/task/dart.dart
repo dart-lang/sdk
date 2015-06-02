@@ -2579,6 +2579,12 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   static const String LINE_INFO_INPUT_NAME = 'LINE_INFO_INPUT_NAME';
 
   /**
+   * The name of the input whose value is the modification time of the file.
+   */
+  static const String MODIFICATION_TIME_INPUT_NAME =
+      'MODIFICATION_TIME_INPUT_NAME';
+
+  /**
    * The name of the input whose value is the token stream produced for the file.
    */
   static const String TOKEN_STREAM_INPUT_NAME = 'TOKEN_STREAM_INPUT_NAME';
@@ -2612,6 +2618,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   void internalPerform() {
     Source source = getRequiredSource();
     LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT_NAME);
+    int modificationTime = getRequiredInput(MODIFICATION_TIME_INPUT_NAME);
     Token tokenStream = getRequiredInput(TOKEN_STREAM_INPUT_NAME);
 
     RecordingErrorListener errorListener = new RecordingErrorListener();
@@ -2662,7 +2669,9 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     // Compute kind.
     //
     SourceKind sourceKind = SourceKind.LIBRARY;
-    if (!hasNonPartOfDirective && hasPartOfDirective) {
+    if (modificationTime == -1) {
+      sourceKind = SourceKind.UNKNOWN;
+    } else if (!hasNonPartOfDirective && hasPartOfDirective) {
       sourceKind = SourceKind.PART;
     }
     //
@@ -2693,6 +2702,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(Source source) {
     return <String, TaskInput>{
       LINE_INFO_INPUT_NAME: LINE_INFO.of(source),
+      MODIFICATION_TIME_INPUT_NAME: MODIFICATION_TIME.of(source),
       TOKEN_STREAM_INPUT_NAME: TOKEN_STREAM.of(source)
     };
   }

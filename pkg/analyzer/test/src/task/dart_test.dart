@@ -2093,6 +2093,7 @@ class ParseDartTaskTest extends _AbstractDartTaskTest {
     expect(inputs, isNotNull);
     expect(inputs.keys, unorderedEquals([
       ParseDartTask.LINE_INFO_INPUT_NAME,
+      ParseDartTask.MODIFICATION_TIME_INPUT_NAME,
       ParseDartTask.TOKEN_STREAM_INPUT_NAME
     ]));
   }
@@ -2133,6 +2134,19 @@ class B {}''');
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.PART);
+    expect(outputs[UNITS], hasLength(1));
+  }
+
+  test_perform_doesNotExist() {
+    _performParseTask(null);
+    expect(outputs, hasLength(8));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[PARSE_ERRORS], hasLength(0));
+    expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[SOURCE_KIND], SourceKind.UNKNOWN);
     expect(outputs[UNITS], hasLength(1));
   }
 
