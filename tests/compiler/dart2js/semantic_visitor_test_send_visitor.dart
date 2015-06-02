@@ -2338,6 +2338,70 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CONST_CONSTRUCTOR_INVOKE,
                          constant: constant.getText()));
+    super.visitConstConstructorInvoke(node, constant, arg);
+  }
+
+  @override
+  visitBoolFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      BoolFromEnvironmentConstantExpression constant,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_BOOL_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+        constant: constant.getText()));
+    super.visitBoolFromEnvironmentConstructorInvoke(node, constant, arg);
+  }
+
+  @override
+  visitIntFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      IntFromEnvironmentConstantExpression constant,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_INT_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+        constant: constant.getText()));
+    super.visitIntFromEnvironmentConstructorInvoke(node, constant, arg);
+  }
+
+  @override
+  visitStringFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      StringFromEnvironmentConstantExpression constant,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_STRING_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+        constant: constant.getText()));
+    super.visitStringFromEnvironmentConstructorInvoke(node, constant, arg);
+  }
+
+  @override
+  errorNonConstantConstructorInvoke(
+        NewExpression node,
+        Element element,
+        DartType type,
+        NodeList arguments,
+        CallStructure callStructure,
+        arg) {
+    visits.add(new Visit(VisitKind.ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
+        element: element, type: type,
+        arguments: arguments, selector: callStructure));
+    super.errorNonConstantConstructorInvoke(
+        node, element, type, arguments, callStructure, arg);
+  }
+
+  @override
+  visitConstructorIncompatibleInvoke(
+        NewExpression node,
+        ConstructorElement constructor,
+        InterfaceType type,
+        NodeList arguments,
+        CallStructure callStructure,
+        arg) {
+    visits.add(new Visit(VisitKind.VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
+        element: constructor, type: type,
+        arguments: arguments, selector: callStructure));
+    super.visitConstructorIncompatibleInvoke(
+        node, constructor, type, arguments, callStructure, arg);
   }
 
   @override

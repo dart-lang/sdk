@@ -3089,6 +3089,44 @@ const Map<String, List<Test>> SEND_TESTS = const {
             constant: 'const Class(true, 42)')),
     const Test(
         '''
+        m() => const bool.fromEnvironment('foo');
+        ''',
+        const Visit(VisitKind.VISIT_BOOL_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+            constant:
+                'const bool.fromEnvironment("foo", defaultValue: false)')),
+    const Test(
+        '''
+        m() => const bool.fromEnvironment('foo', defaultValue: true);
+        ''',
+        const Visit(VisitKind.VISIT_BOOL_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+            constant: 'const bool.fromEnvironment("foo", defaultValue: true)')),
+    const Test(
+        '''
+        m() => const int.fromEnvironment('foo');
+        ''',
+        const Visit(VisitKind.VISIT_INT_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+            constant: 'const int.fromEnvironment("foo", defaultValue: null)')),
+    const Test(
+        '''
+        m() => const String.fromEnvironment('foo');
+        ''',
+        const Visit(VisitKind.VISIT_STRING_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+            constant:
+                'const String.fromEnvironment("foo", defaultValue: null)')),
+    const Test(
+        '''
+        class Class {
+          Class(a, b);
+        }
+        m() => const Class(true, 42);
+        ''',
+        const Visit(VisitKind.ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
+            element: 'generative_constructor(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
         class Class {}
         m() => new Class();
         ''',
@@ -3123,6 +3161,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
             selector: 'CallStructure(arity=2)')),
     const Test(
         '''
+        class Class {}
+        m() => new Class(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
+            element: 'generative_constructor(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
         class Class {
           Class(a, b) : this._(a, b);
           Class._(a, b);
@@ -3130,6 +3178,19 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(VisitKind.VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_INVOKE,
+            element: 'generative_constructor(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
+        class Class {
+          Class() : this._(true, 42);
+          Class._(a, b);
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
             element: 'generative_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
@@ -3149,6 +3210,19 @@ const Map<String, List<Test>> SEND_TESTS = const {
             selector: 'CallStructure(arity=2)')),
     const Test(
         '''
+        class Class {
+          factory Class() => new Class._(true, 42);
+          Class._(a, b);
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
         class Class<T> {
           factory Class(a, b) = Class<int>.a;
           factory Class.a(a, b) = Class<Class<T>>.b;
@@ -3162,6 +3236,51 @@ const Map<String, List<Test>> SEND_TESTS = const {
             type: 'Class<double>',
             target: 'generative_constructor(Class#b)',
             targetType: 'Class<Class<int>>',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
+        class Class<T> {
+          factory Class(a) = Class<int>.a;
+          factory Class.a(a, [b]) = Class<Class<T>>.b;
+          Class.b(a, [b]);
+        }
+        m() => new Class<double>(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class<double>',
+            target: 'generative_constructor(Class#b)',
+            targetType: 'Class<Class<int>>',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
+        class Class {
+          factory Class() = Class._;
+          Class._();
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
+        class Class<T> {
+          factory Class(a, b) = Class<int>.a;
+          factory Class.a(a, b) = Class<Class<T>>.b;
+          Class.b(a);
+        }
+        m() => new Class<double>(true, 42);
+        ''',
+        const Visit(
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class<double>',
             selector: 'CallStructure(arity=2)')),
     const Test(
         '''

@@ -9633,12 +9633,7 @@ Language/07_Classes/6_Constructors/2_Factories_A09_t02: Crash # Please triage th
 Language/07_Classes/6_Constructors/2_Factories_A09_t03: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A09_t04: Crash # Please triage this failure.
 Language/10_Generics/09_Generics_A04_t03: Crash # Please triage this failure.
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t07: RuntimeError # Please triage this failure.
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t08: Crash # Please triage this failure.
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t09: RuntimeError # Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: RuntimeError # Please triage this failure.
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t13: RuntimeError # Please triage this failure.
-Language/12_Expressions/12_Instance_Creation/1_New_A06_t14: Crash # Please triage this failure.
 Language/12_Expressions/13_Property_Extraction_A03_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/13_Property_Extraction_A03_t02: RuntimeError # Please triage this failure.
 Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Please triage this failure.
@@ -9794,12 +9789,10 @@ LayoutTests/fast/css/pseudo-out-of-range_t01: Crash # Instance of 'TypeOperator'
 LayoutTests/fast/css/pseudo-valid-dynamic_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/readonly-pseudoclass-opera-005_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/css/visited-link-hang_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/dom/TreeWalker/TreeWalker-basic_t01: Crash # Please triage this failure.
 LayoutTests/fast/dom/location-hash_t01: Crash #  Unhandled node
 LayoutTests/fast/dynamic/inline-to-block-crash_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/encoding/css-charset-dom_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/events/event-attributes-after-exception_t01: Crash #  try/finally
-LayoutTests/fast/eventsource/eventsource-constructor_t01: Crash # Please triage this failure.
 LayoutTests/fast/files/file-reader-methods-illegal-arguments_t01: Crash #  Unhandled node
 LayoutTests/fast/forms/autofocus-focus-only-once_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/forms/datalist/datalist-child-validation_t01: Crash # Instance of 'TypeOperator': type casts not implemented.

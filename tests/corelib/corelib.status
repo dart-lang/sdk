@@ -211,7 +211,6 @@ big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
 apply2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-bool_from_environment_test: RuntimeError # Please triage this failure.
 collection_removes_test: RuntimeError # Please triage this failure.
 const_list_remove_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 const_list_set_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -235,7 +234,6 @@ hash_set_test/01: Crash # Instance of 'TypeOperator': type check unimplemented f
 hash_set_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 hash_set_type_check_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 hashcode_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-int_from_environment_test: RuntimeError # Please triage this failure.
 int_parse_radix_test/01: Crash # Please triage this failure.
 int_parse_radix_test/02: Crash # Please triage this failure.
 int_parse_radix_test/none: Crash # Please triage this failure.
@@ -306,8 +304,6 @@ splay_tree_from_iterables_test: Crash # Instance of 'TypeOperator': type check u
 splay_tree_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_buffer_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_codeunits_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-string_from_environment2_test: RuntimeError # Please triage this failure.
-string_from_environment_test: RuntimeError # Please triage this failure.
 string_fromcharcode_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_fromcharcodes_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_operations_with_null_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

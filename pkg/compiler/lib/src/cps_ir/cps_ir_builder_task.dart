@@ -1578,6 +1578,17 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   @override
+  ir.Primitive visitConstructorIncompatibleInvoke(
+      ast.NewExpression node,
+      Element constructor,
+      DartType type,
+      ast.NodeList arguments,
+      CallStructure callStructure, _) {
+    return buildStaticNoSuchMethod(elements.getSelector(node.send),
+        translateDynamicArguments(arguments, callStructure));
+  }
+
+  @override
   ir.Primitive errorNonConstantConstructorInvoke(
       ast.NewExpression node,
       Element element,

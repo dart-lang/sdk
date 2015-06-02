@@ -453,9 +453,7 @@ constructor10_test/01: Crash # Please triage this failure.
 constructor10_test/02: Crash # Please triage this failure.
 constructor11_test: Crash # Please triage this failure.
 constructor12_test: RuntimeError # Please triage this failure.
-constructor3_negative_test: Crash # Please triage this failure.
 constructor5_test: Crash # Please triage this failure.
-constructor_call_wrong_argument_count_negative_test: Crash # Please triage this failure.
 constructor_initializer_test/01: Crash # Please triage this failure.
 constructor_with_mixin_test: Crash # Please triage this failure.
 continue_test: Crash # (switch (0){case 0:i=22;continue;default:i=25;break;}): Unhandled node
@@ -543,8 +541,6 @@ execute_finally8_test: Crash # (try {sum+= 1;return 'hi';}finally {sum+= 1;throw
 execute_finally9_test: Crash #  try/finally
 factory_redirection3_cyclic_test/01: Crash # Please triage this failure.
 factory_redirection_test/04: Crash # Please triage this failure.
-factory_redirection_test/05: MissingRuntimeError # Please triage this failure.
-factory_redirection_test/06: MissingRuntimeError # Please triage this failure.
 factory_return_type_checked_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 factory_type_parameter2_test: Crash # Please triage this failure.
 factory_type_parameter_test: Crash # Please triage this failure.
@@ -725,7 +721,7 @@ issue13474_test: Crash # Instance of 'TypeOperator': type check unimplemented fo
 issue14014_3_test: Crash # Instance of 'TypeOperator': type check unimplemented for foo<T>.
 issue20476_test: Crash # (try {try {return 1;}catch (e1){}finally {return 3;}}catch (e2){}finally {return 5;}): try/finally
 issue7525_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-issue_1751477_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+issue_1751477_test: RuntimeError # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
 label_test: Crash # (switch (i){case 111:while(doAgain()){break L;}default:i-- ;}): Unhandled node
 large_class_declaration_test: Crash # Please triage this failure.
 lazy_static3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -758,8 +754,6 @@ mixin_extends_method_test: Crash # Instance of 'TypeOperator': type check unimpl
 mixin_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mixin_forwarding_constructor1_test: Crash # Please triage this failure.
 mixin_forwarding_constructor3_test: Crash # Please triage this failure.
-mixin_illegal_constructor_test/13: MissingRuntimeError # Please triage this failure.
-mixin_illegal_constructor_test/15: MissingRuntimeError # Please triage this failure.
 mixin_illegal_cycles_test/02: Crash # Please triage this failure.
 mixin_illegal_cycles_test/03: Crash # Please triage this failure.
 mixin_illegal_cycles_test/04: Crash # Please triage this failure.
@@ -796,13 +790,9 @@ named_parameters_aggregated_test/05: Crash # Instance of 'TypeOperator': type ch
 naming_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 nested_switch_label_test: Crash #  Unhandled node
 no_such_constructor2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-no_such_constructor_test/01: MissingRuntimeError # Please triage this failure.
 no_such_method_dispatcher_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 no_such_method_empty_selector_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 no_such_method_test: RuntimeError # Please triage this failure.
-non_const_super_negative_test: Crash # Please triage this failure.
-not_enough_positional_arguments_test/00: MissingRuntimeError # Please triage this failure.
-not_enough_positional_arguments_test/03: Crash # Please triage this failure.
 null_inline_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 null_no_such_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 null_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
