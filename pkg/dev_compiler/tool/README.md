@@ -4,19 +4,20 @@
 
 This script combines:
 
-    tool/input_sdk_src/...
-    tool/input_sdk_patch/...
+    tool/input_sdk/lib/...
+    tool/input_sdk/patch/...
+    tool/input_sdk/private/...
 
 and produces the merged SDK sources in:
 
-    test/generated_sdk/...
+    tool/generated_sdk/...
 
 The result has all "external" keywords replaced with the @patch implementations.
 
-Generally local edits should be to `input_sdk_patch`, as it is specific to DDC.
-`input_sdk_src` should represent unmodified SDK sources to the maximum extent
-possible. Currently there are slight edits to the type annotations in some
-cases.
+Generally local edits should be to `input_sdk/patch` and `input_sdk/private`,
+as those two directories are specific to DDC. `input_sdk/lib` should represent
+unmodified SDK sources to the maximum extent possible. Currently there are
+slight edits to the type annotations in some cases.
 
 See patch_sdk.dart for more information.
 
