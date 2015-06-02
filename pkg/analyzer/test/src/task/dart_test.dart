@@ -2137,6 +2137,22 @@ class B {}''');
     expect(outputs[UNITS], hasLength(1));
   }
 
+  test_perform_computeSourceKind_noDirectives_noContainingLibraries() {
+    _performParseTask('');
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
+  }
+
+  test_perform_computeSourceKind_noDirectives_hasContainingLibraries() {
+    // Parse "lib.dart" to let the context know that "test.dart" is a part.
+    _computeResult(newSource('/lib.dart', r'''
+library lib;
+part 'test.dart';
+'''), PARSED_UNIT);
+    // So, know "test.dat" is parsed as a part.
+    _performParseTask('');
+    expect(outputs[SOURCE_KIND], SourceKind.PART);
+  }
+
   test_perform_doesNotExist() {
     _performParseTask(null);
     expect(outputs, hasLength(8));

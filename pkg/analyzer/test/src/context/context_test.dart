@@ -554,10 +554,7 @@ part of lib;
         reason: "part resolved 3");
   }
 
-  void fail_performAnalysisTask_changePartContents_makeItAPart() {
-    // TODO(paulberry): fix this.  It appears to be broken because of broken
-    // dependency handling with part files (see TODO comment in
-    // ContainingLibrariesTask.internalPeform)
+  void test_performAnalysisTask_changePartContents_makeItAPart() {
     Source libSource = addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';

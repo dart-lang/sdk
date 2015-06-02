@@ -821,10 +821,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     SourceKind kind = getKindOf(source);
     if (kind == SourceKind.LIBRARY) {
       return <Source>[source];
-    } else if (kind == SourceKind.PART) {
-      return dartWorkManager.getLibrariesContainingPart(source);
     }
-    return Source.EMPTY_ARRAY;
+    return dartWorkManager.getLibrariesContainingPart(source);
   }
 
   @override

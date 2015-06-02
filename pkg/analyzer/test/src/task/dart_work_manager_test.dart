@@ -37,6 +37,7 @@ main() {
 @reflectiveTest
 class DartWorkManagerTest {
   InternalAnalysisContext context = new _InternalAnalysisContextMock();
+  AnalysisCache cache;
   DartWorkManager manager;
 
   CaughtException caughtException = new CaughtException(null, null);
@@ -59,6 +60,7 @@ class DartWorkManagerTest {
   }
 
   void setUp() {
+    cache = context.analysisCache;
     manager = new DartWorkManager(context);
     entry1 = context.getCacheEntry(source1);
     entry2 = context.getCacheEntry(source2);
@@ -443,7 +445,39 @@ class DartWorkManagerTest {
     expect(notice.lineInfo, lineInfo);
   }
 
-  void test_resultsComputed_includedParts() {
+  void test_resultsComputed_includedParts_turnLibraryIntoPart() {
+    when(context.shouldErrorsBeAnalyzed(anyObject, null)).thenReturn(true);
+    Source library = new TestSource('library.dart');
+    Source part = new TestSource('part.dart');
+    // library "library" (real)
+    manager.resultsComputed(library, {SOURCE_KIND: SourceKind.LIBRARY});
+    CacheEntry libraryEntry = new CacheEntry(library);
+    cache.put(libraryEntry);
+    libraryEntry.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    // library "part" (speculative)
+    manager.resultsComputed(part, {SOURCE_KIND: SourceKind.LIBRARY});
+    CacheEntry partEntry = new CacheEntry(part);
+    cache.put(partEntry);
+    partEntry.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    // unit "part in part" (speculative)
+    AnalysisTarget partInPartTarget = new LibrarySpecificUnit(part, part);
+    CacheEntry partInPartEntry = new CacheEntry(partInPartTarget);
+    cache.put(partInPartEntry);
+    // so far we consider "part" a library
+    expect(manager.librarySourceQueue, contains(part));
+    expect(partEntry.getValue(SOURCE_KIND), SourceKind.LIBRARY);
+    expect(cache.get(partInPartTarget), isNotNull);
+    // "part" is used as a part in "library"
+    manager.resultsComputed(library, {INCLUDED_PARTS: [part]});
+    expect(manager.partLibrariesMap[part], [library]);
+    expect(manager.libraryPartsMap[library], [part]);
+    // now we know that "part" is not a library
+    expect(manager.librarySourceQueue, isNot(contains(part)));
+    expect(partEntry.getValue(SOURCE_KIND), SourceKind.PART);
+    expect(cache.get(partInPartTarget), isNull);
+  }
+
+  void test_resultsComputed_includedParts_updatePartLibraries() {
     Source part1 = new TestSource('part1.dart');
     Source part2 = new TestSource('part2.dart');
     Source part3 = new TestSource('part3.dart');

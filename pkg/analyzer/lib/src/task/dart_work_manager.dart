@@ -243,10 +243,6 @@ class DartWorkManager implements WorkManager {
     return WorkOrderPriority.NONE;
   }
 
-  void unitIncrementallyResolved(Source librarySource, Source unitSource) {
-    librarySourceQueue.add(librarySource);
-  }
-
   @override
   void resultsComputed(
       AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs) {
@@ -267,11 +263,25 @@ class DartWorkManager implements WorkManager {
       List<Source> includedParts = outputs[INCLUDED_PARTS];
       if (includedParts != null) {
         libraryPartsMap[library] = includedParts;
+        // update contanining libraries
         for (Source part in includedParts) {
           List<Source> libraries =
               partLibrariesMap.putIfAbsent(part, () => <Source>[]);
           if (!libraries.contains(library)) {
             libraries.add(library);
+          }
+        }
+        // all of the "includedParts" are not libraries anymore
+        for (Source part in includedParts) {
+          unknownSourceQueue.remove(part);
+          librarySourceQueue.remove(part);
+          analysisCache.remove(new LibrarySpecificUnit(part, part));
+          CacheEntry partEntry = analysisCache.get(part);
+          if (partEntry != null) {
+            partEntry.setValue(SOURCE_KIND, SourceKind.PART, <TargetedResult>[
+              new TargetedResult(part, CONTENT),
+              new TargetedResult(target, CONTENT)
+            ]);
           }
         }
       }
@@ -307,6 +317,10 @@ class DartWorkManager implements WorkManager {
         context.getNotice(source).setErrors(info.errors, info.lineInfo);
       }
     }
+  }
+
+  void unitIncrementallyResolved(Source librarySource, Source unitSource) {
+    librarySourceQueue.add(librarySource);
   }
 
   /**
