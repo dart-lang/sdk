@@ -696,6 +696,21 @@ class SplitIndexStore implements InternalIndexStore {
   }
 
   @override
+  void cancelIndexDart() {
+    if (_currentNode != null) {
+      // remove top-level information for the current node
+      for (Map<int, dynamic> nodeRelations in _topDeclarations.values) {
+        nodeRelations.remove(_currentNodeNameId);
+      }
+      // clear fields
+      _currentNodeName = null;
+      _currentNodeNameId = -1;
+      _currentNode = null;
+      _currentContextId = -1;
+    }
+  }
+
+  @override
   void clear() {
     _topDeclarations.clear();
     _nodeManager.clear();

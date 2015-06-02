@@ -40,8 +40,13 @@ void indexDartUnit(
     return;
   }
   // do index
-  unit.accept(new _IndexContributor(store));
-  store.doneIndex();
+  try {
+    unit.accept(new _IndexContributor(store));
+    store.doneIndex();
+  } catch (e) {
+    store.cancelIndexDart();
+    rethrow;
+  }
 }
 
 /**

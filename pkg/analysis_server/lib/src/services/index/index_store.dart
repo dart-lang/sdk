@@ -51,7 +51,14 @@ abstract class InternalIndexStore extends IndexStore {
   bool aboutToIndexHtml(AnalysisContext context, HtmlElement htmlElement);
 
   /**
-   * Notifies that index store that the current Dart or HTML unit indexing is
+   * Notifies the index store that there was an error during the current Dart
+   * indexing, and all the information recorded after the last
+   * [aboutToIndexDart] invocation must be discarded.
+   */
+  void cancelIndexDart();
+
+  /**
+   * Notifies the index store that the current Dart or HTML unit indexing is
    * done.
    *
    * If this method is not invoked after corresponding "aboutToIndex*"

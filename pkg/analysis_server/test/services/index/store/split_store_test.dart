@@ -666,6 +666,22 @@ class _SplitIndexStoreTest {
     expect(store.aboutToIndexHtml(contextA, htmlElementA), isFalse);
   }
 
+  test_cancelIndexDart() {
+    LocationImpl locationA = mockLocation(indexableA);
+    LocationImpl locationB = mockLocation(indexableA);
+    store.aboutToIndexDart(contextA, unitElementA);
+    store.recordRelationship(indexableA, relationship, locationA);
+    store.recordRelationship(indexableA, relationship, locationB);
+    store.recordTopLevelDeclaration(elementA);
+    store.cancelIndexDart();
+    return store
+        .getRelationships(indexableA, relationship)
+        .then((List<LocationImpl> locations) {
+      assertLocations(locations, []);
+      expect(store.getTopLevelDeclarations((name) => true), isEmpty);
+    });
+  }
+
   void test_clear() {
     LocationImpl locationA = mockLocation(indexableA);
     store.aboutToIndexDart(contextA, unitElementA);

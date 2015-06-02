@@ -326,8 +326,12 @@ class _DartIndexOperation extends _SingleFileOperation {
   @override
   void perform(AnalysisServer server) {
     ServerPerformanceStatistics.indexOperation.makeCurrentWhile(() {
-      Index index = server.index;
-      index.indexUnit(context, unit);
+      try {
+        Index index = server.index;
+        index.indexUnit(context, unit);
+      } catch (exception, stackTrace) {
+        server.sendServerErrorNotification(exception, stackTrace);
+      }
     });
   }
 }
