@@ -33,7 +33,8 @@ const DARTIUM_FILES = const [
 
 final FILES = []..addAll(SDK_FILES)..addAll(DARTIUM_FILES);
 
-Future<String> getHash256(String channel, int revision, String download) async {
+Future<String> getHash256(
+    String channel, String revision, String download) async {
   var client = new http.Client();
   try {
     var api = new storage.StorageApi(client);
@@ -48,7 +49,7 @@ Future<String> getHash256(String channel, int revision, String download) async {
   }
 }
 
-Future<String> getVersion(String channel, int revision) async {
+Future<String> getVersion(String channel, String revision) async {
   var client = new http.Client();
   try {
     var api = new storage.StorageApi(client);
@@ -68,7 +69,16 @@ Future setCurrentRevisions(Map revisions) async {
   var lines = await (new File('$repository/dart.rb')).readAsLines();
 
   for (var channel in CHANNELS) {
-    final regExp = new RegExp('channels/$channel/release/(\\d*)/sdk');
+    /// This RegExp between release/ and /sdk matches
+    /// * 1 digit followed by
+    /// * Any number of letters, numbers, dashes and dots
+    /// This covers both numeric- and version-formatted revisions
+    ///
+    /// Note: all of the regexp escape slashes `\` are double-escaped within the
+    /// Dart string
+    final regExp =
+        new RegExp('channels/$channel/release/(\\d[\\w\\d\\-\\.]*)/sdk');
+
     revisions[channel] =
         regExp.firstMatch(lines.firstWhere(regExp.hasMatch)).group(1);
   }
@@ -87,7 +97,7 @@ Future setHashes(Map revisions, Map hashes) {
   return Future.wait(waitOn);
 }
 
-Future writeHomebrewInfo(String channel, int revision) async {
+Future writeHomebrewInfo(String channel, String revision) async {
   var revisions = {};
   var hashes = {};
 
