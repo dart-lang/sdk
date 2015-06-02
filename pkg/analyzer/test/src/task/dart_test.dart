@@ -925,6 +925,16 @@ part 'part.dart';
     _assertErrorsWithCodes([CompileTimeErrorCode.PART_OF_NON_PART]);
   }
 
+  test_perform_invalidUri_part() {
+    _performBuildTask({
+      '/lib.dart': '''
+library lib;
+part '//////////';
+'''
+    });
+    expect(libraryElement.parts, isEmpty);
+  }
+
   test_perform_isLaunchable_inDefiningUnit() {
     _performBuildTask({
       '/lib.dart': '''

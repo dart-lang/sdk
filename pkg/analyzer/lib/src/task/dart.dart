@@ -1322,38 +1322,40 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         Source partSource = partDirective.source;
         hasPartDirective = true;
         CompilationUnit partUnit = partUnitMap[partSource];
-        CompilationUnitElementImpl partElement = partUnit.element;
-        partElement.uriOffset = partUri.offset;
-        partElement.uriEnd = partUri.end;
-        partElement.uri = partDirective.uriContent;
-        //
-        // Validate that the part contains a part-of directive with the same
-        // name as the library.
-        //
-        String partLibraryName =
-            _getPartLibraryName(partSource, partUnit, directivesToResolve);
-        if (partLibraryName == null) {
-          errors.add(new AnalysisError(librarySource, partUri.offset,
-              partUri.length, CompileTimeErrorCode.PART_OF_NON_PART,
-              [partUri.toSource()]));
-        } else if (libraryNameNode == null) {
-          if (partsLibraryName == _UNKNOWN_LIBRARY_NAME) {
-            partsLibraryName = partLibraryName;
-          } else if (partsLibraryName != partLibraryName) {
-            partsLibraryName = null;
+        if (partUnit != null) {
+          CompilationUnitElementImpl partElement = partUnit.element;
+          partElement.uriOffset = partUri.offset;
+          partElement.uriEnd = partUri.end;
+          partElement.uri = partDirective.uriContent;
+          //
+          // Validate that the part contains a part-of directive with the same
+          // name as the library.
+          //
+          String partLibraryName =
+              _getPartLibraryName(partSource, partUnit, directivesToResolve);
+          if (partLibraryName == null) {
+            errors.add(new AnalysisError(librarySource, partUri.offset,
+                partUri.length, CompileTimeErrorCode.PART_OF_NON_PART,
+                [partUri.toSource()]));
+          } else if (libraryNameNode == null) {
+            if (partsLibraryName == _UNKNOWN_LIBRARY_NAME) {
+              partsLibraryName = partLibraryName;
+            } else if (partsLibraryName != partLibraryName) {
+              partsLibraryName = null;
+            }
+          } else if (libraryNameNode.name != partLibraryName) {
+            errors.add(new AnalysisError(librarySource, partUri.offset,
+                partUri.length, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [
+              libraryNameNode.name,
+              partLibraryName
+            ]));
           }
-        } else if (libraryNameNode.name != partLibraryName) {
-          errors.add(new AnalysisError(librarySource, partUri.offset,
-              partUri.length, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [
-            libraryNameNode.name,
-            partLibraryName
-          ]));
+          if (entryPoint == null) {
+            entryPoint = _findEntryPoint(partElement);
+          }
+          directive.element = partElement;
+          sourcedCompilationUnits.add(partElement);
         }
-        if (entryPoint == null) {
-          entryPoint = _findEntryPoint(partElement);
-        }
-        directive.element = partElement;
-        sourcedCompilationUnits.add(partElement);
       }
     }
     if (hasPartDirective && libraryNameNode == null) {
