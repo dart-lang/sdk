@@ -269,6 +269,11 @@ class InvokeMethod extends Expression implements Invoke {
   final Reference<Continuation> continuation;
   final SourceInformation sourceInformation;
 
+  /// If true, it is known that the receiver cannot be `null`.
+  ///
+  /// This field is `null` until initialized by optimization phases.
+  bool receiverIsNotNull;
+
   InvokeMethod(Primitive receiver,
                this.selector,
                List<Primitive> arguments,

@@ -192,13 +192,16 @@ class InvokeStatic extends Expression implements Invoke {
 /**
  * A call to a method, operator, getter, setter or index getter/setter.
  *
- * In contrast to the CPS-based IR, the receiver and arguments can be
- * arbitrary expressions.
+ * If [receiver] is `null`, an error is thrown before the arguments are
+ * evaluated. This corresponds to the JS evaluation order.
  */
 class InvokeMethod extends Expression implements Invoke {
   Expression receiver;
   final Selector selector;
   final List<Expression> arguments;
+
+  /// If true, it is known that the receiver cannot be `null`.
+  bool receiverIsNotNull = false;
 
   InvokeMethod(this.receiver, this.selector, this.arguments) {
     assert(receiver != null);
@@ -211,6 +214,9 @@ class InvokeMethod extends Expression implements Invoke {
 }
 
 /// Invoke [target] on [receiver], bypassing ordinary dispatch semantics.
+///
+/// Since the [receiver] is not used for method lookup, it may be `null`
+/// without an error being thrown.
 class InvokeMethodDirectly extends Expression implements Invoke {
   Expression receiver;
   final Element target;

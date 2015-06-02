@@ -350,9 +350,10 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Statement visitInvokeMethod(cps_ir.InvokeMethod node) {
-    Expression invoke = new InvokeMethod(getVariableUse(node.receiver),
-                                         node.selector,
-                                         translateArguments(node.arguments));
+    InvokeMethod invoke = new InvokeMethod(getVariableUse(node.receiver),
+                                           node.selector,
+                                           translateArguments(node.arguments));
+    invoke.receiverIsNotNull = node.receiverIsNotNull;
     return continueWithExpression(node.continuation, invoke);
   }
 
