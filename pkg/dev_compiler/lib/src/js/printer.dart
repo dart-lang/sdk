@@ -844,9 +844,6 @@ class Printer implements NodeVisitor {
   }
 
   visitArrowFun(ArrowFun fun) {
-    if (fun.bindThisWorkaround) {
-      out("(");
-    }
     localNamer.enterScope(fun);
     if (fun.params.length == 1) {
       visitNestedExpression(fun.params.single, PRIMARY,
@@ -873,9 +870,6 @@ class Printer implements NodeVisitor {
       blockBody(fun.body, needsSeparation: false, needsNewline: false);
     }
     localNamer.leaveScope();
-    if (fun.bindThisWorkaround) {
-      out(").bind(this)");
-    }
   }
 
   visitLiteralBool(LiteralBool node) {

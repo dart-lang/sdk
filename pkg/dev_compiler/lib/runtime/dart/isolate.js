@@ -144,14 +144,14 @@ var async = dart.import(async);
         controller.addError(error, error.stackTrace);
       };
       dart.fn(handleError, dart.void, [core.Object]);
-      controller = async.StreamController.broadcast({sync: true, onListen: dart.fn((() => {
+      controller = async.StreamController.broadcast({sync: true, onListen: dart.fn(() => {
           port = RawReceivePort.new(handleError);
           this.addErrorListener(port.sendPort);
-        }).bind(this)), onCancel: dart.fn((() => {
+        }), onCancel: dart.fn(() => {
           this.removeErrorListener(port.sendPort);
           port.close();
           port = null;
-        }).bind(this))});
+        })});
       return controller.stream;
     }
   }

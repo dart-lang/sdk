@@ -142,7 +142,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         return new (_ConstantMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this[_keys], dart.fn((key => dart.as(this[_fetch](key), V)).bind(this), V, [core.Object]));
+        return _internal.MappedIterable$(K, V).new(this[_keys], dart.fn(key => dart.as(this[_fetch](key), V), V, [core.Object]));
       }
     }
     ConstantStringMap[dart.implements] = () => [_internal.EfficientLength];
@@ -1825,13 +1825,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
           let _ = positions.keys[core.$toList]();
           _[core.$sort]();
           return _;
-        })()[core.$forEach](dart.fn((name => {
+        })()[core.$forEach](dart.fn(name => {
           this.cachedSortedIndices[core.$set]((() => {
             let x = index;
             index = dart.notNull(x) + 1;
             return x;
           })(), positions.get(name));
-        }).bind(this), core.Object, [core.String]));
+        }, core.Object, [core.String]));
       }
       return dart.as(this.cachedSortedIndices[core.$get](unsortedIndex), core.int);
     }

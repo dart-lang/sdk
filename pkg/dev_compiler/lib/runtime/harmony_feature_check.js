@@ -9,9 +9,7 @@
       '"use strict";'+
       'class C {' +
         'constructor(x) { this.x = x; };' +
-        // TODO(jmesserly): arrow functions on V8 don't have lexical this yet.
-        // https://code.google.com/p/v8/issues/detail?id=2700
-        '["foo"]() { var self = this; return x => self.x + x; };' +
+        '["foo"]() { return x => this.x + x; };' +
       '};' +
       'return new C(42).foo()(100);');
     if (f() == 142) return; // supported!

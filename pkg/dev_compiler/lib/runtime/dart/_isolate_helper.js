@@ -857,11 +857,11 @@ var async = dart.import(async);
     }
     [_runHelper]() {
       if (exports.globalWindow != null) {
-        let next = (() => {
+        let next = () => {
           if (!dart.notNull(this.runIteration()))
             return;
           async.Timer.run(next);
-        }).bind(this);
+        };
         dart.fn(next);
         next();
       } else {
@@ -1279,11 +1279,11 @@ var async = dart.import(async);
         isolate.handleControlMessage(msg);
         return;
       }
-      exports._globalState.topEventLoop.enqueue(isolate, dart.fn((() => {
+      exports._globalState.topEventLoop.enqueue(isolate, dart.fn(() => {
         if (!dart.notNull(this[_receivePort][_isClosed])) {
           this[_receivePort][_add](msg);
         }
-      }).bind(this)), `receive ${message}`);
+      }), `receive ${message}`);
     }
     ['=='](other) {
       return dart.is(other, _NativeJsSendPort) && dart.notNull(dart.equals(this[_receivePort], dart.dload(other, _receivePort)));
@@ -1445,20 +1445,20 @@ var async = dart.import(async);
       this[_inEventLoop] = false;
       this[_handle] = null;
       if (milliseconds == 0 && (!dart.notNull(hasTimer()) || dart.notNull(exports._globalState.isWorker))) {
-        let internalCallback = (() => {
+        let internalCallback = () => {
           this[_handle] = null;
           callback();
-        }).bind(this);
+        };
         dart.fn(internalCallback, dart.void, []);
         this[_handle] = 1;
         exports._globalState.topEventLoop.enqueue(exports._globalState.currentContext, internalCallback, 'timer');
         this[_inEventLoop] = true;
       } else if (hasTimer()) {
-        let internalCallback = (() => {
+        let internalCallback = () => {
           this[_handle] = null;
           leaveJsAsync();
           callback();
-        }).bind(this);
+        };
         dart.fn(internalCallback, dart.void, []);
         enterJsAsync();
         this[_handle] = self.setTimeout(_js_helper.convertDartClosureToJS(internalCallback, 0), milliseconds);
@@ -1473,9 +1473,9 @@ var async = dart.import(async);
       this[_handle] = null;
       if (hasTimer()) {
         enterJsAsync();
-        this[_handle] = self.setInterval(_js_helper.convertDartClosureToJS(dart.fn((() => {
+        this[_handle] = self.setInterval(_js_helper.convertDartClosureToJS(dart.fn(() => {
           callback(this);
-        }).bind(this)), 0), milliseconds);
+        }), 0), milliseconds);
       } else {
         throw new core.UnsupportedError("Periodic timer.");
       }

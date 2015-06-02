@@ -58,12 +58,12 @@ var core = dart.import(core);
     }
     measure() {
       this.setup();
-      BenchmarkBase.measureFor(dart.fn((() => {
+      BenchmarkBase.measureFor(dart.fn(() => {
         this.warmup();
-      }).bind(this)), 100);
-      let result = BenchmarkBase.measureFor(dart.fn((() => {
+      }), 100);
+      let result = BenchmarkBase.measureFor(dart.fn(() => {
         this.exercise();
-      }).bind(this)), 2000);
+      }), 2000);
       this.teardown();
       return result;
     }

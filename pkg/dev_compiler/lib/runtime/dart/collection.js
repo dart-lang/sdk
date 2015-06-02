@@ -192,7 +192,7 @@ var math = dart.lazyImport(math);
           let _ = core.List$(E).new();
           _[core.$length] = this[core.$length];
           return _;
-        }).bind(this)() : core.List$(E).new(this[core.$length]);
+        })() : core.List$(E).new(this[core.$length]);
         let i = 0;
         for (let element of this)
           result[core.$set]((() => {
@@ -451,7 +451,7 @@ var math = dart.lazyImport(math);
           let _ = this[_newSet]();
           _.addAll(this);
           return _;
-        }).bind(this)();
+        })();
       }
     }
     dart.setSignature(_HashSetBase, {
@@ -1338,7 +1338,7 @@ var math = dart.lazyImport(math);
       }
       addAll(entries) {
         dart.as(entries, core.Iterable$(E));
-        entries[core.$forEach](dart.fn((entry => this[_insertAfter](this[_previous], dart.as(entry, E))).bind(this), dart.void, [core.Object]));
+        entries[core.$forEach](dart.fn(entry => this[_insertAfter](this[_previous], dart.as(entry, E)), dart.void, [core.Object]));
       }
       remove(entry) {
         dart.as(entry, E);
@@ -1747,7 +1747,7 @@ var math = dart.lazyImport(math);
           let x = this[core.$length];
           this[core.$length] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), element);
+        })(), element);
       }
       [core.$addAll](iterable) {
         dart.as(iterable, core.Iterable$(E));
@@ -1756,7 +1756,7 @@ var math = dart.lazyImport(math);
             let x = this[core.$length];
             this[core.$length] = dart.notNull(x) + 1;
             return x;
-          }).bind(this)(), element);
+          })(), element);
         }
       }
       [core.$remove](element) {
@@ -3416,11 +3416,11 @@ var math = dart.lazyImport(math);
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other.forEach(dart.fn(((key, value) => {
+        other.forEach(dart.fn((key, value) => {
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
-        }).bind(this), core.Object, [K, V]));
+        }, core.Object, [K, V]));
       }
       get isEmpty() {
         return this[_root] == null;
@@ -3448,7 +3448,7 @@ var math = dart.lazyImport(math);
       containsValue(value) {
         let found = false;
         let initialSplayCount = this[_splayCount];
-        let visit = (node => {
+        let visit = node => {
           while (node != null) {
             if (dart.equals(node.value, value))
               return true;
@@ -3460,7 +3460,7 @@ var math = dart.lazyImport(math);
             node = dart.as(node.left, _SplayTreeMapNode);
           }
           return false;
-        }).bind(this);
+        };
         dart.fn(visit, core.bool, [_SplayTreeMapNode]);
         return visit(dart.as(this[_root], _SplayTreeMapNode));
       }
@@ -3966,7 +3966,7 @@ var math = dart.lazyImport(math);
         return new (HashMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn((each => this.get(each)).bind(this), V, [core.Object]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => this.get(each), V, [core.Object]));
       }
       containsKey(key) {
         if (_HashMap$()._isStringKey(key)) {
@@ -3987,15 +3987,15 @@ var math = dart.lazyImport(math);
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this[_computeKeys]()[core.$any](dart.fn((each => dart.equals(this.get(each), value)).bind(this), core.bool, [core.Object]));
+        return this[_computeKeys]()[core.$any](dart.fn(each => dart.equals(this.get(each), value), core.bool, [core.Object]));
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other.forEach(dart.fn(((key, value) => {
+        other.forEach(dart.fn((key, value) => {
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
-        }).bind(this), core.Object, [K, V]));
+        }, core.Object, [K, V]));
       }
       get(key) {
         if (_HashMap$()._isStringKey(key)) {
@@ -4435,7 +4435,7 @@ var math = dart.lazyImport(math);
         return new (LinkedHashMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn((each => this.get(each)).bind(this), V, [core.Object]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => this.get(each), V, [core.Object]));
       }
       containsKey(key) {
         if (_LinkedHashMap$()._isStringKey(key)) {
@@ -4462,15 +4462,15 @@ var math = dart.lazyImport(math);
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this.keys[core.$any](dart.fn((each => dart.equals(this.get(each), value)).bind(this), core.bool, [core.Object]));
+        return this.keys[core.$any](dart.fn(each => dart.equals(this.get(each), value), core.bool, [core.Object]));
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other.forEach(dart.fn(((key, value) => {
+        other.forEach(dart.fn((key, value) => {
           dart.as(key, K);
           dart.as(value, V);
           this.set(key, value);
-        }).bind(this), core.Object, [K, V]));
+        }, core.Object, [K, V]));
       }
       get(key) {
         if (_LinkedHashMap$()._isStringKey(key)) {

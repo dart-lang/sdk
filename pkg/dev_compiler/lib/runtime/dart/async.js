@@ -159,7 +159,7 @@ var collection = dart.import(collection);
         dart.as(convert, dart.functionType(core.Object, [T]));
         let controller = null;
         let subscription = null;
-        let onListen = (() => {
+        let onListen = () => {
           let add = dart.bind(controller, 'add');
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = controller;
@@ -182,7 +182,7 @@ var collection = dart.import(collection);
               controller.add(newValue);
             }
           }, core.Object, [T]), {onError: dart.as(addError, core.Function), onDone: dart.bind(controller, 'close')});
-        }).bind(this);
+        };
         dart.fn(onListen, dart.void, []);
         if (this.isBroadcast) {
           controller = StreamController.broadcast({onListen: onListen, onCancel: dart.fn(() => {
@@ -203,7 +203,7 @@ var collection = dart.import(collection);
         dart.as(convert, dart.functionType(Stream$(), [T]));
         let controller = null;
         let subscription = null;
-        let onListen = (() => {
+        let onListen = () => {
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = controller;
           subscription = this.listen(dart.fn(event => {
@@ -222,7 +222,7 @@ var collection = dart.import(collection);
               controller.addStream(newStream).whenComplete(dart.bind(subscription, 'resume'));
             }
           }, core.Object, [T]), {onError: dart.as(eventSink[_addError], core.Function), onDone: dart.bind(controller, 'close')});
-        }).bind(this);
+        };
         dart.fn(onListen, dart.void, []);
         if (this.isBroadcast) {
           controller = StreamController.broadcast({onListen: onListen, onCancel: dart.fn(() => {
@@ -649,9 +649,9 @@ var collection = dart.import(collection);
             return;
           }
           elementIndex = dart.notNull(elementIndex) + 1;
-        }, core.Object, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn((() => {
+        }, core.Object, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_completeError](core.RangeError.index(index, this, "index", null, elementIndex));
-          }).bind(this)), cancelOnError: true});
+          }), cancelOnError: true});
         return future;
       }
       timeout(timeLimit, opts) {
@@ -682,7 +682,7 @@ var collection = dart.import(collection);
           controller.close();
         };
         dart.fn(onDone, dart.void, []);
-        let onListen = (() => {
+        let onListen = () => {
           zone = Zone.current;
           if (onTimeout == null) {
             timeout = dart.fn(() => {
@@ -699,7 +699,7 @@ var collection = dart.import(collection);
           }
           subscription = this.listen(onData, {onError: onError, onDone: onDone});
           timer = zone.createTimer(timeLimit, dart.as(timeout, dart.functionType(dart.void, [])));
-        }).bind(this);
+        };
         dart.fn(onListen, dart.void, []);
         let onCancel = () => {
           timer.cancel();
@@ -978,10 +978,10 @@ var collection = dart.import(collection);
         this[_onDone] = dart.fn(() => {
           result[_complete](futureValue);
         });
-        this[_onError] = dart.fn(((error, stackTrace) => {
+        this[_onError] = dart.fn((error, stackTrace) => {
           this.cancel();
           result[_completeError](error, dart.as(stackTrace, core.StackTrace));
-        }).bind(this));
+        });
         return result;
       }
       get [_isInputPaused]() {
@@ -1102,7 +1102,7 @@ var collection = dart.import(collection);
         dart.assert(!dart.notNull(this[_isPaused]));
         dart.assert(!dart.notNull(this[_inCallback]));
         let wasInputPaused = this[_isInputPaused];
-        let sendError = (() => {
+        let sendError = () => {
           if (dart.notNull(this[_isCanceled]) && !dart.notNull(this[_waitsForCancel]))
             return;
           this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
@@ -1112,7 +1112,7 @@ var collection = dart.import(collection);
             this[_zone].runUnaryGuarded(dart.as(this[_onError], __CastType25), error);
           }
           this[_state] = dart.notNull(this[_state]) & ~dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
-        }).bind(this);
+        };
         dart.fn(sendError, dart.void, []);
         if (this[_cancelOnError]) {
           this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription$()._STATE_WAIT_FOR_CANCEL);
@@ -1131,13 +1131,13 @@ var collection = dart.import(collection);
         dart.assert(!dart.notNull(this[_isCanceled]));
         dart.assert(!dart.notNull(this[_isPaused]));
         dart.assert(!dart.notNull(this[_inCallback]));
-        let sendDone = (() => {
+        let sendDone = () => {
           if (!dart.notNull(this[_waitsForCancel]))
             return;
           this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription$()._STATE_CANCELED) | dart.notNull(_BufferingStreamSubscription$()._STATE_CLOSED) | dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
           this[_zone].runGuarded(this[_onDone]);
           this[_state] = dart.notNull(this[_state]) & ~dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
-        }).bind(this);
+        };
         dart.fn(sendDone, dart.void, []);
         this[_cancel]();
         this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription$()._STATE_WAIT_FOR_CANCEL);
@@ -2333,9 +2333,9 @@ var collection = dart.import(collection);
       [_addListener](listener) {
         dart.assert(listener[_nextListener] == null);
         if (this[_isComplete]) {
-          this[_zone].scheduleMicrotask(dart.fn((() => {
+          this[_zone].scheduleMicrotask(dart.fn(() => {
             _Future$()._propagateToListeners(this, listener);
-          }).bind(this)));
+          }));
         } else {
           listener[_nextListener] = dart.as(this[_resultOrListeners], _FutureListener);
           this[_resultOrListeners] = listener;
@@ -2417,9 +2417,9 @@ var collection = dart.import(collection);
             let coreFuture = dart.as(typedFuture, _Future$(T));
             if (dart.notNull(coreFuture[_isComplete]) && dart.notNull(coreFuture[_hasError])) {
               this[_markPendingCompletion]();
-              this[_zone].scheduleMicrotask(dart.fn((() => {
+              this[_zone].scheduleMicrotask(dart.fn(() => {
                 _Future$()._chainCoreFuture(coreFuture, this);
-              }).bind(this)));
+              }));
             } else {
               _Future$()._chainCoreFuture(coreFuture, this);
             }
@@ -2431,16 +2431,16 @@ var collection = dart.import(collection);
           let typedValue = dart.as(value, T);
         }
         this[_markPendingCompletion]();
-        this[_zone].scheduleMicrotask(dart.fn((() => {
+        this[_zone].scheduleMicrotask(dart.fn(() => {
           this[_completeWithValue](value);
-        }).bind(this)));
+        }));
       }
       [_asyncCompleteError](error, stackTrace) {
         dart.assert(!dart.notNull(this[_isComplete]));
         this[_markPendingCompletion]();
-        this[_zone].scheduleMicrotask(dart.fn((() => {
+        this[_zone].scheduleMicrotask(dart.fn(() => {
           this[_completeError](error, stackTrace);
-        }).bind(this)));
+        }));
       }
       static _propagateToListeners(source, listeners) {
         while (true) {
@@ -3183,9 +3183,9 @@ var collection = dart.import(collection);
           this[_varData] = subscription;
         }
         subscription[_setPendingEvents](pendingEvents);
-        subscription[_guardCallback](dart.fn((() => {
+        subscription[_guardCallback](dart.fn(() => {
           _runGuarded(this[_onListen]);
-        }).bind(this)));
+        }));
         return dart.as(subscription, StreamSubscription$(T));
       }
       [_recordCancel](subscription) {
@@ -3211,11 +3211,11 @@ var collection = dart.import(collection);
             result = result.whenComplete(this[_onCancel]);
           }
         }
-        let complete = (() => {
+        let complete = () => {
           if (dart.notNull(this[_doneFuture] != null) && dart.notNull(this[_doneFuture][_mayComplete])) {
             this[_doneFuture][_asyncComplete](null);
           }
-        }).bind(this);
+        };
         dart.fn(complete, dart.void, []);
         if (result != null) {
           result = result.whenComplete(complete);
@@ -3447,9 +3447,9 @@ var collection = dart.import(collection);
           this.addStreamFuture[_asyncComplete](null);
           return null;
         }
-        return cancel.whenComplete(dart.fn((() => {
+        return cancel.whenComplete(dart.fn(() => {
           this.addStreamFuture[_asyncComplete](null);
-        }).bind(this)));
+        }));
       }
       complete() {
         this.addStreamFuture[_asyncComplete](null);
@@ -3522,7 +3522,7 @@ var collection = dart.import(collection);
           let _ = new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
           _[_setPendingEvents](this[_pending]());
           return _;
-        }).bind(this)(), StreamSubscription$(T));
+        })(), StreamSubscription$(T));
       }
     }
     dart.setSignature(_GeneratedStreamImpl, {
@@ -3552,13 +3552,13 @@ var collection = dart.import(collection);
         this[_state] = _PendingEvents._STATE_SCHEDULED;
         return;
       }
-      scheduleMicrotask(dart.fn((() => {
+      scheduleMicrotask(dart.fn(() => {
         let oldState = this[_state];
         this[_state] = _PendingEvents._STATE_UNSCHEDULED;
         if (oldState == _PendingEvents._STATE_CANCELED)
           return;
         this.handleNext(dispatch);
-      }).bind(this)));
+      }));
       this[_state] = _PendingEvents._STATE_SCHEDULED;
     }
     cancelSchedule() {
@@ -5243,25 +5243,25 @@ var collection = dart.import(collection);
     bindCallback(f, opts) {
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       if (runGuarded) {
-        return dart.fn((() => this.runGuarded(f)).bind(this));
+        return dart.fn(() => this.runGuarded(f));
       } else {
-        return dart.fn((() => this.run(f)).bind(this));
+        return dart.fn(() => this.run(f));
       }
     }
     bindUnaryCallback(f, opts) {
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       if (runGuarded) {
-        return dart.fn((arg => this.runUnaryGuarded(f, arg)).bind(this));
+        return dart.fn(arg => this.runUnaryGuarded(f, arg));
       } else {
-        return dart.fn((arg => this.runUnary(f, arg)).bind(this));
+        return dart.fn(arg => this.runUnary(f, arg));
       }
     }
     bindBinaryCallback(f, opts) {
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       if (runGuarded) {
-        return dart.fn(((arg1, arg2) => this.runBinaryGuarded(f, arg1, arg2)).bind(this));
+        return dart.fn((arg1, arg2) => this.runBinaryGuarded(f, arg1, arg2));
       } else {
-        return dart.fn(((arg1, arg2) => this.runBinary(f, arg1, arg2)).bind(this));
+        return dart.fn((arg1, arg2) => this.runBinary(f, arg1, arg2));
       }
     }
     get(key) {
@@ -5515,27 +5515,27 @@ var collection = dart.import(collection);
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       let registered = this.registerCallback(f);
       if (runGuarded) {
-        return dart.fn((() => this.runGuarded(registered)).bind(this));
+        return dart.fn(() => this.runGuarded(registered));
       } else {
-        return dart.fn((() => this.run(registered)).bind(this));
+        return dart.fn(() => this.run(registered));
       }
     }
     bindUnaryCallback(f, opts) {
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       let registered = this.registerUnaryCallback(f);
       if (runGuarded) {
-        return dart.fn((arg => this.runUnaryGuarded(registered, arg)).bind(this));
+        return dart.fn(arg => this.runUnaryGuarded(registered, arg));
       } else {
-        return dart.fn((arg => this.runUnary(registered, arg)).bind(this));
+        return dart.fn(arg => this.runUnary(registered, arg));
       }
     }
     bindBinaryCallback(f, opts) {
       let runGuarded = opts && 'runGuarded' in opts ? opts.runGuarded : true;
       let registered = this.registerBinaryCallback(f);
       if (runGuarded) {
-        return dart.fn(((arg1, arg2) => this.runBinaryGuarded(registered, arg1, arg2)).bind(this));
+        return dart.fn((arg1, arg2) => this.runBinaryGuarded(registered, arg1, arg2));
       } else {
-        return dart.fn(((arg1, arg2) => this.runBinary(registered, arg1, arg2)).bind(this));
+        return dart.fn((arg1, arg2) => this.runBinary(registered, arg1, arg2));
       }
     }
     get(key) {

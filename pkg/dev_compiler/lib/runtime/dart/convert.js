@@ -107,7 +107,7 @@ var collection = dart.import(collection);
       }
       bind(source) {
         dart.as(source, async.Stream$(S));
-        return async.Stream$(T).eventTransformed(source, dart.fn((sink => new _ConverterStreamEventSink(this, sink)).bind(this), _ConverterStreamEventSink, [async.EventSink]));
+        return async.Stream$(T).eventTransformed(source, dart.fn(sink => new _ConverterStreamEventSink(this, sink), _ConverterStreamEventSink, [async.EventSink]));
       }
     }
     Converter[dart.implements] = () => [async.StreamTransformer$(S, T)];
@@ -1250,13 +1250,13 @@ var collection = dart.import(collection);
     writeMap(map) {
       this.writeString('{');
       let separator = '"';
-      map.forEach(dart.fn(((key, value) => {
+      map.forEach(dart.fn((key, value) => {
         this.writeString(separator);
         separator = ',"';
         this.writeStringContent(key);
         this.writeString('":');
         this.writeObject(value);
-      }).bind(this), core.Object, [core.String, core.Object]));
+      }, core.Object, [core.String, core.Object]));
       this.writeString('}');
     }
   }
@@ -1319,7 +1319,7 @@ var collection = dart.import(collection);
         this.writeString('{\n');
         this[_indentLevel] = dart.notNull(this[_indentLevel]) + 1;
         let first = true;
-        map.forEach(dart.fn(((key, value) => {
+        map.forEach(dart.fn((key, value) => {
           if (!dart.notNull(first)) {
             this.writeString(",\n");
           }
@@ -1329,7 +1329,7 @@ var collection = dart.import(collection);
           this.writeString('": ');
           this.writeObject(value);
           first = false;
-        }).bind(this), core.Object, [core.String, core.Object]));
+        }, core.Object, [core.String, core.Object]));
         this.writeString('\n');
         this[_indentLevel] = dart.notNull(this[_indentLevel]) - 1;
         this.writeIndentation(this[_indentLevel]);
@@ -1500,7 +1500,7 @@ var collection = dart.import(collection);
         let x = this.index;
         this.index = dart.notNull(x) + 1;
         return x;
-      }).bind(this)(), byte);
+      })(), byte);
     }
   }
   dart.setSignature(_JsonUtf8Stringifier, {
@@ -2160,39 +2160,39 @@ var collection = dart.import(collection);
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 240 | dart.notNull(rune) >> 18);
+        })(), 240 | dart.notNull(rune) >> 18);
         this[_buffer][core.$set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 128 | dart.notNull(rune) >> 12 & 63);
+        })(), 128 | dart.notNull(rune) >> 12 & 63);
         this[_buffer][core.$set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 128 | dart.notNull(rune) >> 6 & 63);
+        })(), 128 | dart.notNull(rune) >> 6 & 63);
         this[_buffer][core.$set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 128 | dart.notNull(rune) & 63);
+        })(), 128 | dart.notNull(rune) & 63);
         return true;
       } else {
         this[_buffer][core.$set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 224 | dart.notNull(leadingSurrogate) >> 12);
+        })(), 224 | dart.notNull(leadingSurrogate) >> 12);
         this[_buffer][core.$set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 128 | dart.notNull(leadingSurrogate) >> 6 & 63);
+        })(), 128 | dart.notNull(leadingSurrogate) >> 6 & 63);
         this[_buffer][core.$set]((() => {
           let x = this[_bufferIndex];
           this[_bufferIndex] = dart.notNull(x) + 1;
           return x;
-        }).bind(this)(), 128 | dart.notNull(leadingSurrogate) & 63);
+        })(), 128 | dart.notNull(leadingSurrogate) & 63);
         return false;
       }
     }
@@ -2210,7 +2210,7 @@ var collection = dart.import(collection);
             let x = this[_bufferIndex];
             this[_bufferIndex] = dart.notNull(x) + 1;
             return x;
-          }).bind(this)(), codeUnit);
+          })(), codeUnit);
         } else if (_isLeadSurrogate(codeUnit)) {
           if (dart.notNull(this[_bufferIndex]) + 3 >= dart.notNull(this[_buffer][core.$length]))
             break;
@@ -2228,12 +2228,12 @@ var collection = dart.import(collection);
               let x = this[_bufferIndex];
               this[_bufferIndex] = dart.notNull(x) + 1;
               return x;
-            }).bind(this)(), 192 | dart.notNull(rune) >> 6);
+            })(), 192 | dart.notNull(rune) >> 6);
             this[_buffer][core.$set]((() => {
               let x = this[_bufferIndex];
               this[_bufferIndex] = dart.notNull(x) + 1;
               return x;
-            }).bind(this)(), 128 | dart.notNull(rune) & 63);
+            })(), 128 | dart.notNull(rune) & 63);
           } else {
             dart.assert(dart.notNull(rune) <= dart.notNull(_THREE_BYTE_LIMIT));
             if (dart.notNull(this[_bufferIndex]) + 2 >= dart.notNull(this[_buffer][core.$length]))
@@ -2242,17 +2242,17 @@ var collection = dart.import(collection);
               let x = this[_bufferIndex];
               this[_bufferIndex] = dart.notNull(x) + 1;
               return x;
-            }).bind(this)(), 224 | dart.notNull(rune) >> 12);
+            })(), 224 | dart.notNull(rune) >> 12);
             this[_buffer][core.$set]((() => {
               let x = this[_bufferIndex];
               this[_bufferIndex] = dart.notNull(x) + 1;
               return x;
-            }).bind(this)(), 128 | dart.notNull(rune) >> 6 & 63);
+            })(), 128 | dart.notNull(rune) >> 6 & 63);
             this[_buffer][core.$set]((() => {
               let x = this[_bufferIndex];
               this[_bufferIndex] = dart.notNull(x) + 1;
               return x;
-            }).bind(this)(), 128 | dart.notNull(rune) & 63);
+            })(), 128 | dart.notNull(rune) & 63);
           }
         }
       }
@@ -2449,11 +2449,11 @@ var collection = dart.import(collection);
         return dart.notNull(to) - dart.notNull(from);
       };
       dart.fn(scanOneByteCharacters, core.int, [core.Object, core.int]);
-      let addSingleBytes = ((from, to) => {
+      let addSingleBytes = (from, to) => {
         dart.assert(dart.notNull(from) >= dart.notNull(startIndex) && dart.notNull(from) <= dart.notNull(endIndex));
         dart.assert(dart.notNull(to) >= dart.notNull(startIndex) && dart.notNull(to) <= dart.notNull(endIndex));
         this[_stringSink].write(core.String.fromCharCodes(codeUnits, from, to));
-      }).bind(this);
+      };
       dart.fn(addSingleBytes, dart.void, [core.int, core.int]);
       let i = startIndex;
       loop:
@@ -2647,7 +2647,7 @@ var collection = dart.import(collection);
     get values() {
       if (this[_isUpgraded])
         return this[_upgradedMap].values;
-      return _internal.MappedIterable.new(this[_computeKeys](), dart.fn((each => this.get(each)).bind(this)));
+      return _internal.MappedIterable.new(this[_computeKeys](), dart.fn(each => this.get(each)));
     }
     set(key, value) {
       if (this[_isUpgraded]) {
@@ -2664,9 +2664,9 @@ var collection = dart.import(collection);
       }
     }
     addAll(other) {
-      other.forEach(dart.fn(((key, value) => {
+      other.forEach(dart.fn((key, value) => {
         this.set(key, value);
-      }).bind(this)));
+      }));
     }
     containsValue(value) {
       if (this[_isUpgraded])
