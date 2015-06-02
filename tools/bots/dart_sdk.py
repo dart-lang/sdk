@@ -187,6 +187,10 @@ def Run(command):
   return bot.RunProcess(command)
 
 if __name__ == '__main__':
+  if CHANNEL != bot_utils.Channel.BLEEDING_EDGE:
+    # We always clobber the bot, to make sure releases are build from scratch
+    bot.Clobber(force=True)
+
   CreateUploadSDK()
   if BUILD_OS == 'linux':
     CreateUploadVersionFile()
