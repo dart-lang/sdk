@@ -47,7 +47,7 @@ DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
 #if defined(DART_NO_SNAPSHOT)
-DEFINE_FLAG(bool, check_function_fingerprints, false,
+DEFINE_FLAG(bool, check_function_fingerprints, true,
             "Check function fingerprints");
 #endif  // defined(DART_NO_SNAPSHOT).
 DEFINE_FLAG(bool, trace_api, false,
