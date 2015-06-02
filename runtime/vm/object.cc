@@ -19357,12 +19357,10 @@ const char* Array::ToCString() const {
   if (IsNull()) {
     return IsImmutable() ? "_ImmutableList NULL" : "_List NULL";
   }
-  const char* format = IsImmutable() ?
-      "_ImmutableList len:%" Pd : "_List len:%" Pd;
-  intptr_t len = OS::SNPrint(NULL, 0, format, Length()) + 1;
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
-  OS::SNPrint(chars, len, format, Length());
-  return chars;
+  Zone* zone = Isolate::Current()->current_zone();
+  const char* format = IsImmutable() ? "_ImmutableList len:%" Pd
+                                     : "_List len:%" Pd;
+  return zone->PrintToString(format, Length());
 }
 
 
@@ -19377,11 +19375,12 @@ void Array::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   {
     JSONArray jsarr(&jsobj, "elements");
+    Object& element = Object::Handle();
     for (intptr_t index = 0; index < Length(); index++) {
       JSONObject jselement(&jsarr);
       jselement.AddProperty("index", index);
 
-      Object& element = Object::Handle(At(index));
+      element = At(index);
       jselement.AddProperty("value", element);
     }
   }
@@ -19623,11 +19622,12 @@ void GrowableObjectArray::PrintJSONImpl(JSONStream* stream,
   }
   {
     JSONArray jsarr(&jsobj, "elements");
+    Object& element = Object::Handle();
     for (intptr_t index = 0; index < Length(); index++) {
       JSONObject jselement(&jsarr);
       jselement.AddProperty("index", index);
 
-      Object& element = Object::Handle(At(index));
+      element = At(index);
       jselement.AddProperty("value", element);
     }
   }
@@ -19715,8 +19715,8 @@ RawLinkedHashMap* LinkedHashMap::NewUninitialized(Heap::Space space) {
 
 
 const char* LinkedHashMap::ToCString() const {
-  // TODO(koda): Print key/value pairs.
-  return "_LinkedHashMap";
+  Zone* zone = Isolate::Current()->current_zone();
+  return zone->PrintToString("_LinkedHashMap len:%" Pd, Length());
 }
 
 
@@ -19725,11 +19725,22 @@ void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Map");
   jsobj.AddServiceId(*this);
-  // TODO(koda): Print length.
+  jsobj.AddProperty("length", Length());
   if (ref) {
     return;
   }
-  // TODO(koda): Print key/value pairs.
+  {
+    JSONArray jsarr(&jsobj, "associations");
+    Object& object = Object::Handle();
+    LinkedHashMap::Iterator iterator(*this);
+    while (iterator.MoveNext()) {
+      JSONObject jsassoc(&jsarr);
+      object = iterator.CurrentKey();
+      jsassoc.AddProperty("key", object);
+      object = iterator.CurrentValue();
+      jsassoc.AddProperty("value", object);
+    }
+  }
 }
 
 

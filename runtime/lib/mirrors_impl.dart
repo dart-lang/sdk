@@ -392,7 +392,7 @@ class _LocalInstanceMirror extends _LocalObjectMirror
   }
 
   // LocalInstanceMirrors always reflect local instances
-  bool hasReflectee = true;
+  bool get hasReflectee => true;
 
   get reflectee => _reflectee;
 

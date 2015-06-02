@@ -1789,12 +1789,13 @@ class Instance extends ServiceObject {
   @observable ServiceFunction function;  // If a closure.
   @observable Context context;  // If a closure.
   @observable String name;  // If a Type.
-  @observable int length; // If a List.
+  @observable int length; // If a List or Map.
 
   @observable var typeClass;
   @observable var fields;
   @observable var nativeFields;
-  @observable var elements;
+  @observable var elements;  // If a List.
+  @observable var associations;  // If a Map.
   @observable var referent;  // If a MirrorReference.
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
@@ -1842,6 +1843,7 @@ class Instance extends ServiceObject {
     nativeFields = map['_nativeFields'];
     fields = map['fields'];
     elements = map['elements'];
+    associations = map['associations'];
     typeClass = map['typeClass'];
     referent = map['mirrorReferent'];
     key = map['propertyKey'];

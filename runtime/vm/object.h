@@ -7233,6 +7233,56 @@ class LinkedHashMap : public Instance {
     return OFFSET_OF(RawLinkedHashMap, deleted_keys_);
   }
 
+  intptr_t Length() const {
+    intptr_t used = Smi::Value(raw_ptr()->used_data_);
+    intptr_t deleted = Smi::Value(raw_ptr()->deleted_keys_);
+    return (used >> 1) - deleted;
+  }
+
+  // This iterator differs somewhat from its Dart counterpart (_CompactIterator
+  // in runtime/lib/compact_hash.dart):
+  //  - There are no checks for concurrent modifications.
+  //  - Accessing a key or value before the first call to MoveNext and after
+  //    MoveNext returns false will result in crashes.
+  class Iterator : ValueObject {
+   public:
+    explicit Iterator(const LinkedHashMap& map)
+      : map_(map),
+        data_(Array::Handle(map.data())),
+        scratch_(Object::Handle()),
+        offset_(-2),
+        length_(Smi::Value(map.used_data())) {}
+
+    bool MoveNext() {
+      while (true) {
+        offset_ += 2;
+        if (offset_ >= length_) {
+          return false;
+        }
+        scratch_ = data_.At(offset_);
+        if (scratch_.raw() != data_.raw()) {
+          // Slot is not deleted (self-reference indicates deletion).
+          return true;
+        }
+      }
+    }
+
+    RawObject* CurrentKey() const {
+      return data_.At(offset_);
+    }
+
+    RawObject* CurrentValue() const {
+      return data_.At(offset_ + 1);
+    }
+
+   private:
+    const LinkedHashMap& map_;
+    const Array& data_;
+    Object& scratch_;
+    intptr_t offset_;
+    const intptr_t length_;
+  };
+
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, Instance);
 

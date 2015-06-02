@@ -166,7 +166,7 @@
 
         <template if="{{ instance.elements.isNotEmpty }}">
           elements ({{ instance.elements.length }})
-          <curly-block expand="{{ instance.elements.length <= 8 }}">
+          <curly-block expand="{{ instance.elements.length <= 100 }}">
             <div class="memberList">
               <template repeat="{{ element in instance.elements }}">
                 <div class="memberItem">
@@ -179,6 +179,25 @@
             </div>
           </curly-block><br><br>
         </template>
+
+        <template if="{{ instance.associations.isNotEmpty }}">
+          associations ({{ instance.elements.length }})
+          <curly-block expand="{{ instance.associations.length <= 100 }}">
+            <div class="memberList">
+              <template repeat="{{ association in instance.associations }}">
+                <div class="memberItem">
+                  <div class="memberValue">
+                    [<any-service-ref ref="{{ association['key'] }}"></any-service-ref>]
+                  </div>
+                  <div class="memberValue">
+                    <any-service-ref ref="{{ association['value'] }}"></any-service-ref>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </curly-block><br><br>
+        </template>
+
       </div>
 
     </template>

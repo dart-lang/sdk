@@ -1267,6 +1267,12 @@ class Instance extends Object {
   //   List
   ListElement[] elements [optional];
 
+  // The elements of a List instance.
+  //
+  // Provided for instance kinds:
+  //   Map
+  MapAssociation[] associations [optional];
+
   // The function associated with a Closure instance.
   //
   // Provided for instance kinds:
@@ -1527,6 +1533,15 @@ A _LibraryDependency_ provides information about an import or export.
 ```
 class ListElement {
   int index;
+  @Instance|Sentinel value;
+}
+```
+
+### MapAssociation
+
+```
+class MapAssociation {
+  @Instance|Sentinel key;
   @Instance|Sentinel value;
 }
 ```

@@ -106,6 +106,38 @@ var tests = [
     expect(result['elements'][0]['value']['valueAsString'], equals('3'));
   },
 
+  // A built-in Map.
+  (Isolate isolate) async {
+    // Call eval to get a Dart map.
+    var evalResult = await eval(isolate, '{"x": 3, "y": 4}');
+    var params = {
+      'objectId': evalResult['id'],
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Map'));
+    expect(result['_vmType'], equals('LinkedHashMap'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_InternalLinkedHashMap'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['associations'].length, equals(2));
+    expect(result['associations'][0]['key']['type'], equals('@Instance'));
+    expect(result['associations'][0]['key']['kind'], equals('String'));
+    expect(result['associations'][0]['key']['valueAsString'], equals('x'));
+    expect(result['associations'][0]['value']['type'], equals('@Instance'));
+    expect(result['associations'][0]['value']['kind'], equals('Int'));
+    expect(result['associations'][0]['value']['valueAsString'], equals('3'));
+    expect(result['associations'][1]['key']['type'], equals('@Instance'));
+    expect(result['associations'][1]['key']['kind'], equals('String'));
+    expect(result['associations'][1]['key']['valueAsString'], equals('y'));
+    expect(result['associations'][1]['value']['type'], equals('@Instance'));
+    expect(result['associations'][1]['value']['kind'], equals('Int'));
+    expect(result['associations'][1]['value']['valueAsString'], equals('4'));
+  },
+
   // An expired object.
   (Isolate isolate) async {
     var params = {
