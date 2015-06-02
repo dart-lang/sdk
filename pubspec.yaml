@@ -3,6 +3,8 @@ version: 0.1.0
 author: Dart Team <misc@dartlang.org>
 description: Style linter for Dart.
 homepage: https://github.com/dart-lang/linter
+environment:
+  sdk: '>=1.8.0 <2.0.0'
 dependencies:
   analyzer: ^0.25.0-dev.1
   args: '>=0.12.1 <0.14.0'
