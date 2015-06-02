@@ -130,7 +130,8 @@ main() {
   }
 }""","""
 function() {
-  P.identical(V.foo(), true) ? P.print("bad") : P.print("good");
+  V.foo();
+  P.print("good");
   return null;
 }"""),
 ];

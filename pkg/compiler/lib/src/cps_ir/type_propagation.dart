@@ -33,7 +33,9 @@ abstract class TypeSystem<T> {
   T getSelectorReturnType(Selector selector);
   T getParameterType(ParameterElement element);
   T join(T a, T b);
-  T typeOf(ConstantValue constant);
+  T getTypeOf(ConstantValue constant);
+
+  bool areDisjoint(T leftType, T rightType);
 
   /// True if all values satisfying [type] are booleans (null is not a boolean).
   bool isDefinitelyBool(T type);
@@ -55,9 +57,13 @@ class UnitTypeSystem implements TypeSystem<String> {
   getReturnType(_) => UNIT;
   getSelectorReturnType(_) => UNIT;
   join(a, b) => UNIT;
-  typeOf(_) => UNIT;
+  getTypeOf(_) => UNIT;
 
   bool isDefinitelyBool(_) => false;
+
+  bool areDisjoint(String leftType, String rightType) {
+    return false;
+  }
 }
 
 class TypeMaskSystem implements TypeSystem<TypeMask> {
@@ -96,12 +102,18 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   }
 
   @override
-  TypeMask typeOf(ConstantValue constant) {
+  TypeMask getTypeOf(ConstantValue constant) {
     return computeTypeMask(inferrer.compiler, constant);
   }
 
   bool isDefinitelyBool(TypeMask t) {
     return t.containsOnlyBool(classWorld) && !t.isNullable;
+  }
+
+  @override
+  bool areDisjoint(TypeMask leftType, TypeMask rightType) {
+    TypeMask intersection = leftType.intersection(rightType, classWorld);
+    return intersection.isEmpty && !intersection.isNullable;
   }
 }
 
@@ -575,7 +587,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     if (result == null) {
       setValues(nonConstant());
     } else {
-      T type = typeSystem.typeOf(result);
+      T type = typeSystem.getTypeOf(result);
       setValues(constantValue(result, type));
     }
    }
@@ -735,7 +747,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
   void visitConstant(Constant node) {
     ConstantValue value = node.value;
-    setValue(node, constantValue(value, typeSystem.typeOf(value)));
+    setValue(node, constantValue(value, typeSystem.getTypeOf(value)));
   }
 
   void visitCreateFunction(CreateFunction node) {
@@ -826,7 +838,12 @@ class _TypePropagationVisitor<T> implements Visitor {
     } else if (!leftConst.isConstant || !rightConst.isConstant) {
       T leftType = leftConst.type;
       T rightType = rightConst.type;
-      setValue(node, nonConstant(typeSystem.boolType));
+      if (typeSystem.areDisjoint(leftType, rightType)) {
+        setValue(node,
+            constantValue(new FalseConstantValue(), typeSystem.boolType));
+      } else {
+        setValue(node, nonConstant(typeSystem.boolType));
+      }
     } else if (leftValue.isPrimitive && rightValue.isPrimitive) {
       assert(leftConst.isConstant && rightConst.isConstant);
       PrimitiveConstantValue left = leftValue;
