@@ -13,7 +13,7 @@
 #include "vm/object.h"
 #include "vm/simulator.h"
 
-#if defined(HOST_ARCH_ARM)
+#if !defined(USING_SIMULATOR)
 #include <sys/syscall.h>  /* NOLINT */
 #include <unistd.h>  /* NOLINT */
 #endif
@@ -69,7 +69,7 @@ DEFINE_FLAG(bool, use_integer_division, true,
             "Use integer division instruction if supported");
 #endif
 
-#if !defined(HOST_ARCH_ARM)
+#if defined(USING_SIMULATOR)
 #if defined(TARGET_ARCH_ARM_5TE)
 DEFINE_FLAG(bool, sim_use_hardfp, false, "Use the softfp ABI.");
 #else
@@ -78,7 +78,7 @@ DEFINE_FLAG(bool, sim_use_hardfp, true, "Use the softfp ABI.");
 #endif
 
 void CPU::FlushICache(uword start, uword size) {
-#if defined(HOST_ARCH_ARM)
+#if !defined(USING_SIMULATOR)
   // Nothing to do. Flushing no instructions.
   if (size == 0) {
     return;
@@ -97,16 +97,15 @@ void CPU::FlushICache(uword start, uword size) {
   #else
     #error FlushICache only tested/supported on Linux and Android
   #endif
-
 #endif
 }
 
 
 const char* CPU::Id() {
   return
-#if !defined(HOST_ARCH_ARM)
+#if defined(USING_SIMULATOR)
   "sim"
-#endif  // !defined(HOST_ARCH_ARM)
+#endif  // defined(USING_SIMULATOR)
   "arm";
 }
 
@@ -123,7 +122,7 @@ bool HostCPUFeatures::initialized_ = false;
 #endif
 
 
-#if defined(HOST_ARCH_ARM)
+#if !defined(USING_SIMULATOR)
 void HostCPUFeatures::InitOnce() {
   bool is_arm64 = false;
   CpuInfo::InitOnce();
@@ -236,7 +235,7 @@ void HostCPUFeatures::Cleanup() {
   hardware_ = NULL;
   CpuInfo::Cleanup();
 }
-#endif  // defined(HOST_ARCH_ARM)
+#endif  // !defined(USING_SIMULATOR)
 
 }  // namespace dart
 

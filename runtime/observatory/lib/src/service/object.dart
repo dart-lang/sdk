@@ -20,10 +20,9 @@ class ServerRpcException extends RpcException {
   static const kMethodNotFound = -32601;
   static const kInvalidParams  = -32602;
   static const kInternalError  = -32603;
-  static const kVMMustBePaused    = 100;
-  static const kNoBreakAtLine     = 101;
-  static const kNoBreakAtFunction = 102;
-  static const kProfilingDisabled = 200;
+  static const kFeatureDisabled   = 100;
+  static const kVMMustBePaused    = 101;
+  static const kCannotAddBreakpoint = 102;
 
   int code;
   Map data;
@@ -101,58 +100,25 @@ abstract class ServiceObject extends Observable {
   @reflectable String get vmType => _vmType;
   String _vmType;
 
-  static bool _isInstanceType(String type) {
-    switch (type) {
-      case 'BoundedType':
-      case 'Instance':
-      case 'List':
-      case 'String':
-      case 'Type':
-      case 'TypeParameter':
-      case 'TypeRef':
-      case 'bool':
-      case 'double':
-      case 'int':
-      case 'null':
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  static bool _isTypeType(String type) {
-    switch (type) {
-      case 'BoundedType':
-      case 'Type':
-      case 'TypeParameter':
-      case 'TypeRef':
-        return true;
-      default:
-        return false;
-    }
-  }
-
-  bool get isAbstractType => _isTypeType(type);
-  bool get isBool => type == 'bool';
   bool get isContext => type == 'Context';
-  bool get isDouble => type == 'double';
   bool get isError => type == 'Error';
-  bool get isInstance => _isInstanceType(type);
-  bool get isInt => type == 'int';
-  bool get isList => type == 'List';
-  bool get isNull => type == 'null';
+  bool get isInstance => type == 'Instance';
   bool get isSentinel => type == 'Sentinel';
-  bool get isString => type == 'String';
   bool get isMessage => type == 'Message';
 
   // Kinds of Instance.
-  bool get isMirrorReference => vmType == 'MirrorReference';
-  bool get isWeakProperty => vmType == 'WeakProperty';
+  bool get isAbstractType => false;
+  bool get isNull => false;
+  bool get isBool => false;
+  bool get isDouble => false;
+  bool get isString => false;
+  bool get isInt => false;
+  bool get isList => false;
+  bool get isMap => false;
+  bool get isMirrorReference => false;
+  bool get isWeakProperty => false;
   bool get isClosure => false;
-  bool get isPlainInstance {
-    return (type == 'Instance' &&
-            !isMirrorReference && !isWeakProperty && !isClosure);
-  }
+  bool get isPlainInstance => false;
 
   /// Has this object been fully loaded?
   bool get loaded => _loaded;
@@ -184,7 +150,7 @@ abstract class ServiceObject extends Observable {
     }
     assert(_isServiceMap(map));
     var type = _stripRef(map['type']);
-    var vmType = map['_vmType'] != null ? _stripRef(map['_vmType']) : type;
+    var vmType = map['_vmType'] != null ? map['_vmType'] : type;
     var obj = null;
     assert(type != 'VM');
     switch (type) {
@@ -234,7 +200,7 @@ abstract class ServiceObject extends Observable {
             break;
         }
         break;
-      case 'ServiceEvent':
+      case 'Event':
         obj = new ServiceEvent._empty(owner);
         break;
       case 'Script':
@@ -243,11 +209,11 @@ abstract class ServiceObject extends Observable {
       case 'Socket':
         obj = new Socket._empty(owner);
         break;
+      case 'Instance':
+      case 'Sentinel':  // TODO(rmacnak): Separate this out.
+        obj = new Instance._empty(owner);
+        break;
       default:
-        if (_isInstanceType(type) ||
-            type == 'Sentinel') {  // TODO(rmacnak): Separate this out.
-          obj = new Instance._empty(owner);
-        }
         break;
     }
     if (obj == null) {
@@ -441,9 +407,9 @@ abstract class VM extends ServiceObjectOwner {
     if (data != null) {
       map['_data'] = data;
     }
-    if (map['type'] != 'ServiceEvent') {
+    if (map['type'] != 'Event') {
       Logger.root.severe(
-          "Expected 'ServiceEvent' but found '${map['type']}'");
+          "Expected 'Event' but found '${map['type']}'");
       return;
     }
 
@@ -455,7 +421,7 @@ abstract class VM extends ServiceObjectOwner {
       // getFromMap creates the Isolate if it hasn't been seen already.
       var isolate = getFromMap(map['isolate']);
       var event = new ServiceObject._fromMap(isolate, map);
-      if (event.eventType == ServiceEvent.kIsolateExit) {
+      if (event.kind == ServiceEvent.kIsolateExit) {
         _removeIsolate(isolate.id);
       }
       isolate._onEvent(event);
@@ -560,7 +526,6 @@ abstract class VM extends ServiceObjectOwner {
   }
 
   Future<ObservableMap> _fetchDirect() {
-    print("FETCH DIRECT VM");
     return invokeRpcNoUpgrade('getVM', {});
   }
 
@@ -788,11 +753,16 @@ class HeapSnapshot {
 
   List<Future<ServiceObject>> getMostRetained({int classId, int limit}) {
     var result = [];
-    for (var v in graph.getMostRetained(classId: classId, limit: limit)) {
-      var address = v.addressForWordSize(isolate.vm.architectureBits ~/ 8);
-      result.add(isolate.getObjectByAddress(address.toRadixString(16)).then((obj) {
-        obj.retainedSize = v.retainedSize;
-        return new Future(() => obj);
+    for (ObjectVertex v in graph.getMostRetained(classId: classId,
+                                                 limit: limit)) {
+      result.add(isolate.getObjectByAddress(v.address.toRadixString(16))
+                        .then((ServiceObject obj) {
+        if (obj is Instance) {
+          // TODO(rmacnak): size/retainedSize are properties of all heap
+          // objects, not just Instances.
+          obj.retainedSize = v.retainedSize;
+        }
+        return obj;
       }));
     }
     return result;
@@ -813,7 +783,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   void _updateRunState() {
     topFrame = (pauseEvent != null ? pauseEvent.topFrame : null);
     paused = (pauseEvent != null &&
-              pauseEvent.eventType != ServiceEvent.kResume);
+              pauseEvent.kind != ServiceEvent.kResume);
     running = (!paused && topFrame != null);
     idle = (!paused && topFrame == null);
     notifyPropertyChange(#topFrame, 0, 1);
@@ -1132,7 +1102,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   void _onEvent(ServiceEvent event) {
-    switch(event.eventType) {
+    switch(event.kind) {
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kIsolateExit:
       case ServiceEvent.kInspect:
@@ -1193,7 +1163,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       }
       return bpt;
     } on ServerRpcException catch(e) {
-      if (e.code == ServerRpcException.kNoBreakAtLine) {
+      if (e.code == ServerRpcException.kCannotAddBreakpoint) {
         // Unable to set a breakpoint at the desired line.
         script.getLine(line).possibleBpt = false;
       }
@@ -1225,15 +1195,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   Future stepInto() {
-    return invokeRpc('resume', {'step': 'into'});
+    return invokeRpc('resume', {'step': 'Into'});
   }
 
   Future stepOver() {
-    return invokeRpc('resume', {'step': 'over'});
+    return invokeRpc('resume', {'step': 'Over'});
   }
 
   Future stepOut() {
-    return invokeRpc('resume', {'step': 'out'});
+    return invokeRpc('resume', {'step': 'Out'});
   }
 
   Future setName(String newName) {
@@ -1253,10 +1223,10 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('evaluate', params);
   }
 
-  Future<ServiceObject> evalFrame(int framePos,
+  Future<ServiceObject> evalFrame(int frameIndex,
                                   String expression) {
     Map params = {
-      'frame': framePos,
+      'frameIndex': frameIndex,
       'expression': expression,
     };
     return invokeRpc('evaluateInFrame', params);
@@ -1412,17 +1382,15 @@ class ServiceMap extends ServiceObject implements ObservableMap {
 class DartError extends ServiceObject {
   DartError._empty(ServiceObject owner) : super._empty(owner);
 
-  @observable String kind;
   @observable String message;
   @observable Instance exception;
   @observable Instance stacktrace;
 
   void _update(ObservableMap map, bool mapIsRef) {
-    kind = map['kind'];
     message = map['message'];
     exception = new ServiceObject._fromMap(owner, map['exception']);
     stacktrace = new ServiceObject._fromMap(owner, map['stacktrace']);
-    name = 'DartError $kind';
+    name = 'DartError($message)';
     vmName = name;
   }
 
@@ -1431,7 +1399,7 @@ class DartError extends ServiceObject {
 
 /// A [ServiceEvent] is an asynchronous event notification from the vm.
 class ServiceEvent extends ServiceObject {
-  /// The possible 'eventType' values.
+  /// The possible 'kind' values.
   static const kIsolateStart       = 'IsolateStart';
   static const kIsolateExit        = 'IsolateExit';
   static const kIsolateUpdate      = 'IsolateUpdate';
@@ -1452,10 +1420,10 @@ class ServiceEvent extends ServiceObject {
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   ServiceEvent.connectionClosed(this.reason) : super._empty(null) {
-    eventType = kConnectionClosed;
+    kind = kConnectionClosed;
   }
 
-  @observable String eventType;
+  @observable String kind;
   @observable Breakpoint breakpoint;
   @observable ServiceMap topFrame;
   @observable ServiceMap exception;
@@ -1466,20 +1434,20 @@ class ServiceEvent extends ServiceObject {
   int chunkIndex, chunkCount, nodeCount;
 
   @observable bool get isPauseEvent {
-    return (eventType == kPauseStart ||
-            eventType == kPauseExit ||
-            eventType == kPauseBreakpoint ||
-            eventType == kPauseInterrupted ||
-            eventType == kPauseException);
+    return (kind == kPauseStart ||
+            kind == kPauseExit ||
+            kind == kPauseBreakpoint ||
+            kind == kPauseInterrupted ||
+            kind == kPauseException);
   }
 
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
     _upgradeCollection(map, owner);
     assert(map['isolate'] == null || owner == map['isolate']);
-    eventType = map['eventType'];
+    kind = map['kind'];
     notifyPropertyChange(#isPauseEvent, 0, 1);
-    name = 'ServiceEvent $eventType';
+    name = 'ServiceEvent $kind';
     vmName = name;
     if (map['breakpoint'] != null) {
       breakpoint = map['breakpoint'];
@@ -1512,9 +1480,9 @@ class ServiceEvent extends ServiceObject {
 
   String toString() {
     if (data == null) {
-      return "ServiceEvent(owner='${owner.id}', type='${eventType}')";
+      return "ServiceEvent(owner='${owner.id}', kind='${kind}')";
     } else {
-      return "ServiceEvent(owner='${owner.id}', type='${eventType}', "
+      return "ServiceEvent(owner='${owner.id}', kind='${kind}', "
           "data.lengthInBytes=${data.lengthInBytes})";
     }
   }
@@ -1587,9 +1555,27 @@ class Breakpoint extends ServiceObject {
   }
 }
 
+
+class LibraryDependency {
+  @reflectable final bool isImport;
+  @reflectable final bool isDeferred;
+  @reflectable final String prefix;
+  @reflectable final Library target;
+
+  bool get isExport => !isImport;
+
+  LibraryDependency._(this.isImport, this.isDeferred, this.prefix, this.target);
+
+  static _fromMap(map) => new LibraryDependency._(map["isImport"],
+                                                  map["isDeferred"],
+                                                  map["prefix"],
+                                                  map["target"]);
+}
+
+
 class Library extends ServiceObject with Coverage {
   @observable String uri;
-  @reflectable final imports = new ObservableList<Library>();
+  @reflectable final dependencies = new ObservableList<LibraryDependency>();
   @reflectable final scripts = new ObservableList<Script>();
   @reflectable final classes = new ObservableList<Class>();
   @reflectable final variables = new ObservableList<Field>();
@@ -1618,8 +1604,8 @@ class Library extends ServiceObject with Coverage {
     }
     _loaded = true;
     _upgradeCollection(map, isolate);
-    imports.clear();
-    imports.addAll(removeDuplicatesAndSortLexical(map['imports']));
+    dependencies.clear();
+    dependencies.addAll(map["dependencies"].map(LibraryDependency._fromMap));
     scripts.clear();
     scripts.addAll(removeDuplicatesAndSortLexical(map['scripts']));
     classes.clear();
@@ -1738,9 +1724,9 @@ class Class extends ServiceObject with Coverage {
 
     isAbstract = map['abstract'];
     isConst = map['const'];
-    isFinalized = map['finalized'];
-    isPatch = map['patch'];
-    isImplemented = map['implemented'];
+    isFinalized = map['_finalized'];
+    isPatch = map['_patch'];
+    isImplemented = map['_implemented'];
 
     tokenPos = map['tokenPos'];
     endTokenPos = map['endTokenPos'];
@@ -1768,7 +1754,7 @@ class Class extends ServiceObject with Coverage {
     }
     error = map['error'];
 
-    var allocationStats = map['allocationStats'];
+    var allocationStats = map['_allocationStats'];
     if (allocationStats != null) {
       newSpace.update(allocationStats['new']);
       oldSpace.update(allocationStats['old']);
@@ -1794,6 +1780,7 @@ class Class extends ServiceObject with Coverage {
 }
 
 class Instance extends ServiceObject {
+  @observable String kind;
   @observable Class clazz;
   @observable int size;
   @observable int retainedSize;
@@ -1808,12 +1795,28 @@ class Instance extends ServiceObject {
   @observable var fields;
   @observable var nativeFields;
   @observable var elements;
-  @observable var userName;
   @observable var referent;  // If a MirrorReference.
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
 
-  bool get isClosure => function != null;
+  bool get isAbstractType {
+    return (kind == 'Type' || kind == 'TypeRef' ||
+            kind == 'TypeParameter' || kind == 'BoundedType');
+  }
+  bool get isNull => kind == 'Null';
+  bool get isBool => kind == 'Bool';
+  bool get isDouble => kind == 'Double';
+  bool get isString => kind == 'String';
+  bool get isInt => kind == 'Int';
+  bool get isList => kind == 'List';
+  bool get isMap => kind == 'Map';
+  bool get isMirrorReference => kind == 'MirrorReference';
+  bool get isWeakProperty => kind == 'WeakProperty';
+  bool get isClosure => kind == 'Closure';
+
+  // TODO(turnidge): Is this properly backwards compatible when new
+  // instance kinds are added?
+  bool get isPlainInstance => kind == 'PlainInstance';
 
   Instance._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1821,13 +1824,14 @@ class Instance extends ServiceObject {
     // Extract full properties.
     _upgradeCollection(map, isolate);
 
+    kind = map['kind'];
     clazz = map['class'];
     size = map['size'];
     valueAsString = map['valueAsString'];
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
-    function = map['function'];
-    context = map['context'];
+    function = map['closureFunction'];
+    context = map['closureContext'];
     name = map['name'];
     length = map['length'];
 
@@ -1835,14 +1839,13 @@ class Instance extends ServiceObject {
       return;
     }
 
-    nativeFields = map['nativeFields'];
+    nativeFields = map['_nativeFields'];
     fields = map['fields'];
     elements = map['elements'];
-    typeClass = map['type_class'];
-    userName = map['user_name'];
-    referent = map['referent'];
-    key = map['key'];
-    value = map['value'];
+    typeClass = map['typeClass'];
+    referent = map['mirrorReferent'];
+    key = map['propertyKey'];
+    value = map['propertyValue'];
 
     // We are fully loaded.
     _loaded = true;
@@ -1984,7 +1987,7 @@ class ServiceFunction extends ServiceObject with Coverage {
     _upgradeCollection(map, isolate);
 
     dartOwner = map['owner'];
-    kind = FunctionKind.fromJSON(map['kind']);
+    kind = FunctionKind.fromJSON(map['_kind']);
     isDart = !kind.isSynthetic();
 
     if (dartOwner is ServiceFunction) {
@@ -2030,7 +2033,7 @@ class Field extends ServiceObject {
   @observable bool isStatic;
   @observable bool isFinal;
   @observable bool isConst;
-  @observable Instance value;
+  @observable Instance staticValue;
   @observable String name;
   @observable String vmName;
 
@@ -2053,7 +2056,7 @@ class Field extends ServiceObject {
     isStatic = map['static'];
     isFinal = map['final'];
     isConst = map['const'];
-    value = map['value'];
+    staticValue = map['staticValue'];
 
     if (dartOwner is Class) {
       Class ownerClass = dartOwner;

@@ -187,7 +187,7 @@ class MapToFlattenListTaskInput<K, V, E> implements TaskInput<List<E>> {
   MapToFlattenListTaskInput(this.base, this.mapper);
 
   @override
-  TaskInputBuilder<List> createBuilder() {
+  TaskInputBuilder<List<E>> createBuilder() {
     return new MapToFlattenListTaskInputBuilder<K, V, E>(base, mapper);
   }
 }

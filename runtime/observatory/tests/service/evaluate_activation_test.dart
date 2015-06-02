@@ -81,7 +81,7 @@ testMethod(Isolate isolate) async {
   var sub;
   sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
     print("Event $event");
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;
       r = await isolate.evalFrame(frameNumber, '123');  /// instance: ok
       expect(r.valueAsString, equals('123'));  /// instance: continued
@@ -129,7 +129,7 @@ testMethod2(Isolate isolate) async {
   var sub;
   sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
     print("Event $event");
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;
       r = await isolate.evalFrame(frameNumber, '123');
       expect(r.valueAsString, equals('123'));
@@ -177,7 +177,7 @@ testMethod3(Isolate isolate) async {
   var sub;
   sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
     print("Event $event");
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;
       r = await isolate.evalFrame(frameNumber, '123');
       expect(r.valueAsString, equals('123'));
@@ -218,7 +218,7 @@ testMethod4(Isolate isolate) async {
   var sub;
   sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
     print("Event $event");
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;
       r = await isolate.evalFrame(frameNumber, '123');  /// instance: continued
       expect(r.valueAsString, equals('123'));  /// instance: continued

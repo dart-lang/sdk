@@ -1182,7 +1182,9 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     intptr_t num_frames = stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
       ActivationFrame* frame = stack->FrameAt(i);
-      const int num_vars = frame->NumLocalVariables();
+      // Variable locations and number are unknown when 'always_optimize'.
+      const int num_vars =
+         Compiler::always_optimize() ? 0 : frame->NumLocalVariables();
       intptr_t unused;
       for (intptr_t v = 0; v < num_vars; v++) {
         frame->VariableAt(v, &var_name, &unused, &unused, &var_value);

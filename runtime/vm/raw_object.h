@@ -1037,10 +1037,8 @@ class RawPcDescriptors : public RawObject {
   enum Kind {
     kDeopt           = 1,  // Deoptimization continuation point.
     kIcCall          = kDeopt << 1,  // IC call.
-    kOptStaticCall   = kIcCall << 1,  // Call directly to known target.
-    kUnoptStaticCall = kOptStaticCall << 1,  // Call to a known target via stub.
-    kClosureCall     = kUnoptStaticCall << 1,  // Closure call.
-    kRuntimeCall     = kClosureCall << 1,  // Runtime call.
+    kUnoptStaticCall = kIcCall << 1,  // Call to a known target via stub.
+    kRuntimeCall     = kUnoptStaticCall << 1,  // Runtime call.
     kOsrEntry        = kRuntimeCall << 1,  // OSR entry point in unopt. code.
     kOther           = kOsrEntry << 1,
     kLastKind        = kOther,
@@ -1700,11 +1698,15 @@ class RawLinkedHashMap : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
   }
   RawTypeArguments* type_arguments_;
-  RawInstance* cme_mark_;
+  RawTypedData* index_;
+  RawSmi* hash_mask_;
   RawArray* data_;
+  RawSmi* used_data_;
+  RawSmi* deleted_keys_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->data_);
+    return reinterpret_cast<RawObject**>(&ptr()->deleted_keys_);
   }
+
 
   friend class SnapshotReader;
 };

@@ -171,8 +171,14 @@ class Glue {
     return _backend.getSetRuntimeTypeInfo();
   }
 
+  /// checkSubtype(value, $isT, typeArgs, $asT)
   FunctionElement getCheckSubtype() {
     return _backend.getCheckSubtype();
+  }
+
+  /// checkSubtypeOfRuntime(value, runtimeType)
+  FunctionElement getCheckSubtypeOfRuntime() {
+    return _backend.getCheckSubtypeOfRuntimeType();
   }
 
   js.Expression getRuntimeTypeName(ClassElement cls) {
@@ -204,7 +210,7 @@ class Glue {
   }
 
   void registerIsCheck(DartType type, Registry registry) {
-    _enqueuer.registerIsCheck(type, registry);
+    _enqueuer.registerIsCheck(type);
     _backend.registerIsCheckForCodegen(type, _enqueuer, registry);
   }
 

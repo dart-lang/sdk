@@ -191,15 +191,14 @@ void MessageQueue::PrintJSON(JSONStream* stream) {
   while (it.HasNext()) {
     Message* current = it.Next();
     JSONObject message(&messages);
-    message.AddProperty("type", "Message");
     message.AddPropertyF("name", "Isolate Message (%" Px ")", current->Id());
     message.AddPropertyF("messageObjectId", "messages/%" Px "",
                          current->Id());
     message.AddProperty("size", current->len());
-    message.AddProperty("depth", depth++);
+    message.AddProperty("index", depth++);
     message.AddProperty("_destinationPort",
         static_cast<intptr_t>(current->dest_port()));
-    message.AddProperty("priority",
+    message.AddProperty("_priority",
         Message::PriorityAsString(current->priority()));
     // TODO(johnmccutchan): Move port -> handler map out of Dart and into the
     // VM, that way we can lookup the handler without invoking Dart code.

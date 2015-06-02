@@ -40,7 +40,8 @@ var tests = [
       'objectId': 'objects/null',
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('null'));
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Null'));
     expect(result['id'], equals('objects/null'));
     expect(result['valueAsString'], equals('null'));
     expect(result['class']['type'], equals('@Class'));
@@ -54,7 +55,8 @@ var tests = [
       'objectId': 'objects/bool-true',
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('bool'));
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Bool'));
     expect(result['id'], equals('objects/bool-true'));
     expect(result['valueAsString'], equals('true'));
     expect(result['class']['type'], equals('@Class'));
@@ -69,7 +71,8 @@ var tests = [
       'objectId': 'objects/int-123',
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('int'));
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Int'));
     expect(result['_vmType'], equals('Smi'));
     expect(result['id'], equals('objects/int-123'));
     expect(result['valueAsString'], equals('123'));
@@ -79,7 +82,7 @@ var tests = [
     expect(result['fields'], isEmpty);
   },
 
-  // A general Dart object.
+  // A built-in List.
   (Isolate isolate) async {
     // Call eval to get a Dart list.
     var evalResult = await eval(isolate, '[3, 2, 1]');
@@ -87,7 +90,8 @@ var tests = [
       'objectId': evalResult['id'],
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('List'));
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('List'));
     expect(result['_vmType'], equals('GrowableObjectArray'));
     expect(result['id'], startsWith('objects/'));
     expect(result['valueAsString'], isNull);
@@ -97,7 +101,8 @@ var tests = [
     expect(result['fields'], isEmpty);
     expect(result['elements'].length, equals(3));
     expect(result['elements'][0]['index'], equals(0));
-    expect(result['elements'][0]['value']['type'], equals('@int'));
+    expect(result['elements'][0]['value']['type'], equals('@Instance'));
+    expect(result['elements'][0]['value']['kind'], equals('Int'));
     expect(result['elements'][0]['value']['valueAsString'], equals('3'));
   },
 
@@ -125,8 +130,9 @@ var tests = [
     expect(result['name'], equals('get_object_rpc_test'));
     expect(result['uri'], startsWith('file:'));
     expect(result['uri'], endsWith('get_object_rpc_test.dart'));
-    expect(result['imports'].length, isPositive);
-    expect(result['imports'][0]['type'], equals('@Library'));
+    expect(result['debuggable'], equals(true));
+    expect(result['dependencies'].length, isPositive);
+    expect(result['dependencies'][0]['target']['type'], equals('@Library'));
     expect(result['scripts'].length, isPositive);
     expect(result['scripts'][0]['type'], equals('@Script'));
     expect(result['variables'].length, isPositive);
@@ -212,9 +218,9 @@ var tests = [
     expect(result['_vmName'], startsWith('_DummyClass@'));
     expect(result['abstract'], equals(false));
     expect(result['const'], equals(false));
-    expect(result['finalized'], equals(true));
-    expect(result['implemented'], equals(false));
-    expect(result['patch'], equals(false));
+    expect(result['_finalized'], equals(true));
+    expect(result['_implemented'], equals(false));
+    expect(result['_patch'], equals(false));
     expect(result['library']['type'], equals('@Library'));
     expect(result['script']['type'], equals('@Script'));
     expect(result['super']['type'], equals('@Class'));
@@ -254,7 +260,8 @@ var tests = [
       'objectId': id,
     };
     var result = await isolate.invokeRpcNoUpgrade('getObject', params);
-    expect(result['type'], equals('Type'));
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Type'));
     expect(result['id'], equals(id));
     expect(result['class']['type'], equals('@Class'));
     expect(result['class']['name'], equals('_Type'));
@@ -296,7 +303,7 @@ var tests = [
     expect(result['type'], equals('Function'));
     expect(result['id'], equals(id));
     expect(result['name'], equals('dummyFunction'));
-    expect(result['kind'], equals('RegularFunction'));
+    expect(result['_kind'], equals('RegularFunction'));
     expect(result['static'], equals(false));
     expect(result['const'], equals(false));
     expect(result['script']['type'], equals('@Script'));
@@ -342,12 +349,12 @@ var tests = [
     expect(result['type'], equals('Field'));
     expect(result['id'], equals(id));
     expect(result['name'], equals('dummyVar'));
-    expect(result['value']['valueAsString'], equals('11'));
     expect(result['const'], equals(false));
     expect(result['static'], equals(true));
     expect(result['final'], equals(false));
     expect(result['script']['type'], equals('@Script'));
     expect(result['tokenPos'], isPositive);
+    expect(result['staticValue']['valueAsString'], equals('11'));
     expect(result['_guardNullable'], isNotNull);
     expect(result['_guardClass'], isNotNull);
     expect(result['_guardLength'], isNotNull);

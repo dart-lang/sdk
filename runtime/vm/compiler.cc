@@ -69,6 +69,11 @@ DECLARE_FLAG(bool, trace_inlining_intervals);
 DECLARE_FLAG(bool, trace_irregexp);
 DECLARE_FLAG(bool, trace_patching);
 
+
+bool Compiler::always_optimize_ = false;
+bool Compiler::guess_other_cid_ = true;
+
+
 // TODO(zerny): Factor out unoptimizing/optimizing pipelines and remove
 // separate helpers functions & `optimizing` args.
 class CompilationPipeline : public ZoneAllocated {
@@ -153,6 +158,7 @@ class IrregexpCompilationPipeline : public CompilationPipeline {
  private:
   IndirectGotoInstr* backtrack_goto_;
 };
+
 
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
                                               const Function& function) {
@@ -409,7 +415,6 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         ZoneGrowableArray<const ICData*>* ic_data_array =
             new(zone) ZoneGrowableArray<const ICData*>();
         if (optimized) {
-          ASSERT(function.HasCode());
           // Extract type feedback before the graph is built, as the graph
           // builder uses it to attach it to nodes.
           ASSERT(function.deoptimization_counter() <
@@ -476,6 +481,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         CSTAT_TIMER_SCOPE(isolate, graphoptimizer_timer);
 
         FlowGraphOptimizer optimizer(flow_graph);
+        if (Compiler::always_optimize()) {
+          optimizer.PopulateWithICData();
+        }
         optimizer.ApplyICData();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
@@ -738,7 +746,8 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
         graph_compiler.FinalizeStaticCallTargetsTable(code);
 
         if (optimized) {
-          if (osr_id == Isolate::kNoDeoptId) {
+          // We may not have previous code if 'always_optimize' is set.
+          if ((osr_id == Isolate::kNoDeoptId) && function.HasCode()) {
             CodePatcher::PatchEntry(Code::Handle(function.CurrentCode()));
             if (FLAG_trace_compiler || FLAG_trace_patching) {
               if (FLAG_trace_compiler) {
@@ -765,7 +774,8 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
             field->RegisterDependentCode(code);
           }
         } else {  // not optimized.
-          if (function.ic_data_array() == Array::null()) {
+          if (!Compiler::always_optimize() &&
+              (function.ic_data_array() == Array::null())) {
             function.SaveICDataMap(graph_compiler.deopt_id_to_ic_data());
           }
           function.set_unoptimized_code(code);
@@ -973,10 +983,12 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 
     // Restore unoptimized code if needed.
     if (optimized) {
-      const Error& error = Error::Handle(
-          zone, Compiler::EnsureUnoptimizedCode(Thread::Current(), function));
-      if (!error.IsNull()) {
-        return error.raw();
+      if (!Compiler::always_optimize()) {
+        const Error& error = Error::Handle(
+            zone, Compiler::EnsureUnoptimizedCode(Thread::Current(), function));
+        if (!error.IsNull()) {
+          return error.raw();
+        }
       }
     }
 
@@ -1001,7 +1013,8 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                                      osr_id);
     if (!success) {
       if (optimized) {
-        // Optimizer bailed out. Disable optimizations and to never try again.
+        ASSERT(!Compiler::always_optimize());  // Optimized is the only code.
+        // Optimizer bailed out. Disable optimizations and never try again.
         if (FLAG_trace_compiler) {
           ISL_Print("--> disabling optimizations for '%s'\n",
                     function.ToFullyQualifiedCString());
@@ -1058,7 +1071,12 @@ RawError* Compiler::CompileFunction(Thread* thread,
   VMTagScope tagScope(thread->isolate(), VMTag::kCompileUnoptimizedTagId);
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
-  return CompileFunctionHelper(pipeline, function, false, Isolate::kNoDeoptId);
+
+  const bool optimized =
+      Compiler::always_optimize() && function.IsOptimizable();
+
+  return CompileFunctionHelper(pipeline, function, optimized,
+      Isolate::kNoDeoptId);
 }
 
 

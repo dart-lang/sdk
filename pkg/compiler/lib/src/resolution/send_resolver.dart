@@ -269,33 +269,17 @@ abstract class SendResolverMixin {
     if (node.isOperator) {
       String operatorText = node.selector.asOperator().source;
       if (node.arguments.isEmpty) {
-        unaryOperator = UnaryOperator.parse(operatorText);
-        if (unaryOperator != null) {
-          switch (unaryOperator.kind) {
-            case UnaryOperatorKind.NOT:
-              kind = SendStructureKind.NOT;
-              break;
-            default:
-              kind = SendStructureKind.UNARY;
-              break;
-          }
-        } else {
-          return const InvalidUnaryStructure();
-        }
+        return internalError(node, "Unexpected unary $operatorText.");
       } else {
         binaryOperator = BinaryOperator.parse(operatorText);
         if (binaryOperator != null) {
           switch (binaryOperator.kind) {
             case BinaryOperatorKind.EQ:
               kind = SendStructureKind.EQ;
-              break;
+              return internalError(node, "Unexpected binary $kind.");
             case BinaryOperatorKind.NOT_EQ:
-              if (node.isSuperCall) {
-                // `super != foo` is a compile-time error.
-                return const InvalidBinaryStructure();
-              }
               kind = SendStructureKind.NOT_EQ;
-              break;
+              return internalError(node, "Unexpected binary $kind.");
             case BinaryOperatorKind.INDEX:
               if (node.isPrefix) {
                 kind = SendStructureKind.INDEX_PREFIX;
@@ -304,6 +288,7 @@ abstract class SendResolverMixin {
               } else if (node.arguments.tail.isEmpty) {
                 // a[b]
                 kind = SendStructureKind.INDEX;
+                return internalError(node, "Unexpected binary $kind.");
               } else {
                 if (kind == SendStructureKind.COMPOUND) {
                   // a[b] += c
@@ -316,10 +301,11 @@ abstract class SendResolverMixin {
               break;
             default:
               kind = SendStructureKind.BINARY;
-              break;
+              return internalError(node, "Unexpected binary $kind.");
           }
         } else {
-          return const InvalidBinaryStructure();
+          return internalError(
+              node, "Unexpected invalid binary $operatorText.");
         }
       }
     }
@@ -854,18 +840,48 @@ abstract class DeclarationResolverMixin {
     }
   }
 
+  InitializersStructure computeInitializersStructure(FunctionExpression node) {
+    List<InitializerStructure> initializers = <InitializerStructure>[];
+    NodeList list = node.initializers;
+    bool constructorInvocationSeen = false;
+    if (list != null) {
+      for (Node initializer in list) {
+        InitializerStructure structure =
+            computeInitializerStructure(initializer);
+        if (structure.isConstructorInvoke) {
+          constructorInvocationSeen = true;
+        }
+        initializers.add(structure);
+      }
+    }
+    if (!constructorInvocationSeen) {
+      ConstructorElement currentConstructor = elements[node];
+      ClassElement currentClass = currentConstructor.enclosingClass;
+      InterfaceType supertype = currentClass.supertype;
+      if (supertype != null) {
+        ClassElement superclass = supertype.element;
+        ConstructorElement superConstructor =
+            superclass.lookupDefaultConstructor();
+        initializers.add(new ImplicitSuperConstructorInvokeStructure(
+            node, superConstructor, supertype));
+      }
+    }
+    return new InitializersStructure(initializers);
+  }
+
   InitializerStructure computeInitializerStructure(Send node) {
     Element element = elements[node];
     if (node.asSendSet() != null) {
-      return new FieldInitializerStructure(element);
+      return new FieldInitializerStructure(node, element);
     } else if (Initializers.isConstructorRedirect(node)) {
       return new ThisConstructorInvokeStructure(
-          element, elements.getSelector(node));
+          node, element, elements.getSelector(node).callStructure);
     } else if (Initializers.isSuperConstructorCall(node)) {
       return new SuperConstructorInvokeStructure(
+          node,
           element,
           elements.analyzedElement.enclosingClass.supertype,
-          elements.getSelector(node));
+          elements.getSelector(node).callStructure);
     }
     return internalError(node, "Unhandled initializer.");
   }

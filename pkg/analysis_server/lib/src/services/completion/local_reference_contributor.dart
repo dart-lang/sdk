@@ -93,50 +93,32 @@ class _ConstructorVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredClassTypeAlias(ClassTypeAlias declaration) {
-    // TODO: implement declaredClassTypeAlias
-  }
+  void declaredClassTypeAlias(ClassTypeAlias declaration) {}
 
   @override
-  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {
-    // TODO: implement declaredField
-  }
+  void declaredField(FieldDeclaration fieldDecl, VariableDeclaration varDecl) {}
 
   @override
-  void declaredFunction(FunctionDeclaration declaration) {
-    // TODO: implement declaredFunction
-  }
+  void declaredFunction(FunctionDeclaration declaration) {}
 
   @override
-  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
-    // TODO: implement declaredFunctionTypeAlias
-  }
+  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {}
 
   @override
-  void declaredLabel(Label label, bool isCaseLabel) {
-    // TODO: implement declaredLabel
-  }
+  void declaredLabel(Label label, bool isCaseLabel) {}
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeName type) {
-    // TODO: implement declaredLocalVar
-  }
+  void declaredLocalVar(SimpleIdentifier name, TypeName type) {}
 
   @override
-  void declaredMethod(MethodDeclaration declaration) {
-    // TODO: implement declaredMethod
-  }
+  void declaredMethod(MethodDeclaration declaration) {}
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeName type) {
-    // TODO: implement declaredParam
-  }
+  void declaredParam(SimpleIdentifier name, TypeName type) {}
 
   @override
   void declaredTopLevelVar(
-      VariableDeclarationList varList, VariableDeclaration varDecl) {
-    // TODO: implement declaredTopLevelVar
-  }
+      VariableDeclarationList varList, VariableDeclaration varDecl) {}
 
   /**
    * For the given class and constructor,
@@ -400,6 +382,22 @@ class _LocalVisitor extends LocalDeclarationVisitor {
             returnType: NO_RETURN_TYPE,
             isAbstract: true,
             isDeprecated: deprecated);
+      }
+    }
+  }
+
+  @override
+  void declaredEnum(EnumDeclaration declaration) {
+    SimpleIdentifier enumId = declaration.name;
+    if (enumId != null) {
+      bool deprecated = isDeprecated(declaration);
+      if (optype.includeTypeNameSuggestions) {
+        CompletionSuggestion suggestion = _addSuggestion(
+            enumId, NO_RETURN_TYPE, deprecated, DART_RELEVANCE_DEFAULT);
+        if (suggestion != null) {
+          suggestion.element = createElement(protocol.ElementKind.ENUM, enumId,
+              returnType: NO_RETURN_TYPE, isDeprecated: deprecated);
+        }
       }
     }
   }

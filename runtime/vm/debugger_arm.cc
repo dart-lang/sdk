@@ -27,9 +27,6 @@ void CodeBreakpoint::PatchCode() {
     case RawPcDescriptors::kUnoptStaticCall:
       stub_target = stub_code->ICCallBreakpointEntryPoint();
       break;
-    case RawPcDescriptors::kClosureCall:
-      stub_target = stub_code->ClosureCallBreakpointEntryPoint();
-      break;
     case RawPcDescriptors::kRuntimeCall:
       stub_target = stub_code->RuntimeCallBreakpointEntryPoint();
       break;
@@ -49,7 +46,6 @@ void CodeBreakpoint::RestoreCode() {
   switch (breakpoint_kind_) {
     case RawPcDescriptors::kIcCall:
     case RawPcDescriptors::kUnoptStaticCall:
-    case RawPcDescriptors::kClosureCall:
     case RawPcDescriptors::kRuntimeCall: {
       CodePatcher::PatchStaticCallAt(pc_, code, saved_value_);
       break;

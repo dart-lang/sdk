@@ -22,7 +22,7 @@ DEFINE_FLAG(bool, error_on_bad_type, false,
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
-DECLARE_FLAG(bool, use_cha);
+DECLARE_FLAG(bool, use_cha_deopt);
 
 
 bool ClassFinalizer::AllClassesFinalized() {
@@ -33,13 +33,13 @@ bool ClassFinalizer::AllClassesFinalized() {
 }
 
 
-// Removes optimized code once we load more classes, since --use_cha based
+// Removes optimized code once we load more classes, since CHA based
 // optimizations may have become invalid.
 // Only methods which owner classes where subclasses can be invalid.
 // TODO(srdjan): Be even more precise by recording the exact CHA optimization.
 static void RemoveCHAOptimizedCode(
     const GrowableArray<intptr_t>& added_subclass_to_cids) {
-  ASSERT(FLAG_use_cha);
+  ASSERT(FLAG_use_cha_deopt);
   if (added_subclass_to_cids.is_empty()) return;
   // Switch all functions' code to unoptimized.
   const ClassTable& class_table = *Isolate::Current()->class_table();
@@ -219,6 +219,8 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT(ImmutableArray::InstanceSize() == cls.instance_size());
   cls = object_store->weak_property_class();
   ASSERT(WeakProperty::InstanceSize() == cls.instance_size());
+  cls = object_store->linked_hash_map_class();
+  ASSERT(LinkedHashMap::InstanceSize() == cls.instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.
@@ -2234,6 +2236,12 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     super_type = FinalizeType(cls, super_type, kCanonicalizeWellFormed);
     cls.set_super_type(super_type);
   }
+  // Finalize mixin type.
+  Type& mixin_type = Type::Handle(cls.mixin());
+  if (!mixin_type.IsNull()) {
+    mixin_type ^= FinalizeType(cls, mixin_type, kCanonicalizeWellFormed);
+    cls.set_mixin(mixin_type);
+  }
   if (cls.IsSignatureClass()) {
     // Check for illegal self references.
     GrowableArray<intptr_t> visited_aliases;
@@ -2372,7 +2380,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (cls.is_const()) {
     CheckForLegalConstClass(cls);
   }
-  if (FLAG_use_cha) {
+  if (FLAG_use_cha_deopt) {
     GrowableArray<intptr_t> cids;
     CollectFinalizedSuperClasses(cls, &cids);
     CollectImmediateSuperInterfaces(cls, &cids);

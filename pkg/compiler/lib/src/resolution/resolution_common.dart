@@ -11,11 +11,11 @@ class ResolverTask extends CompilerTask {
 
   String get name => 'Resolver';
 
-  TreeElements resolve(Element element) {
+  WorldImpact resolve(Element element) {
     return measure(() {
       if (Elements.isErroneous(element)) return null;
 
-      processMetadata([result]) {
+      WorldImpact processMetadata([WorldImpact result]) {
         for (MetadataAnnotation metadata in element.metadata) {
           metadata.ensureResolved(compiler);
         }
@@ -36,7 +36,7 @@ class ResolverTask extends CompilerTask {
       if (element.isClass) {
         ClassElement cls = element;
         cls.ensureResolved(compiler);
-        return processMetadata();
+        return processMetadata(const WorldImpact());
       } else if (element.isTypedef) {
         TypedefElement typdef = element;
         return processMetadata(resolveTypedef(typdef));
@@ -69,7 +69,7 @@ class ResolverTask extends CompilerTask {
 
   static void processAsyncMarker(Compiler compiler,
                                  BaseFunctionElementX element,
-                                 Registry registry) {
+                                 ResolutionRegistry registry) {
     FunctionExpression functionExpression = element.node;
     AsyncModifier asyncModifier = functionExpression.asyncModifier;
     if (asyncModifier != null) {
@@ -126,7 +126,7 @@ class ResolverTask extends CompilerTask {
     return false;
   }
 
-  TreeElements resolveMethodElementImplementation(
+  WorldImpact resolveMethodElementImplementation(
       FunctionElement element, FunctionExpression tree) {
     return compiler.withCurrentElement(element, () {
       if (element.isExternal && tree.hasBody()) {
@@ -194,12 +194,12 @@ class ResolverTask extends CompilerTask {
         error(tree, MessageKind.NO_SUCH_METHOD_IN_NATIVE);
       }
 
-      return resolutionTree;
+      return registry.worldImpact;
     });
 
   }
 
-  TreeElements resolveMethodElement(FunctionElementX element) {
+  WorldImpact resolveMethodElement(FunctionElementX element) {
     assert(invariant(element, element.isDeclaration));
     return compiler.withCurrentElement(element, () {
       if (compiler.enqueuer.resolution.hasBeenResolved(element)) {
@@ -208,7 +208,7 @@ class ResolverTask extends CompilerTask {
         assert(invariant(element, element.isConstructor,
             message: 'Non-constructor element $element '
                      'has already been analyzed.'));
-        return element.resolvedAst.elements;
+        return const WorldImpact();
       }
       if (element.isSynthesized) {
         if (element.isGenerativeConstructor) {
@@ -224,10 +224,11 @@ class ResolverTask extends CompilerTask {
             registry.registerStaticUse(target);
             registry.registerImplicitSuperCall(target);
           }
-          return registry.mapping;
+          return registry.worldImpact;
         } else {
           assert(element.isDeferredLoaderGetter || element.isErroneous);
-          return _ensureTreeElements(element);
+          _ensureTreeElements(element);
+          return const WorldImpact();
         }
       } else {
         element.parseNode(compiler);
@@ -254,7 +255,7 @@ class ResolverTask extends CompilerTask {
         useEnclosingScope: useEnclosingScope);
   }
 
-  TreeElements resolveField(FieldElementX element) {
+  WorldImpact resolveField(FieldElementX element) {
     VariableDefinitions tree = element.parseNode(compiler);
     if(element.modifiers.isStatic && element.isTopLevel) {
       error(element.modifiers.getStatic(),
@@ -307,7 +308,7 @@ class ResolverTask extends CompilerTask {
     // Perform various checks as side effect of "computing" the type.
     element.computeType(compiler);
 
-    return registry.mapping;
+    return registry.worldImpact;
   }
 
   DartType resolveTypeAnnotation(Element element, TypeAnnotation annotation) {
@@ -886,8 +887,8 @@ class ResolverTask extends CompilerTask {
     });
   }
 
-  TreeElements resolveTypedef(TypedefElementX element) {
-    if (element.isResolved) return element.treeElements;
+  WorldImpact resolveTypedef(TypedefElementX element) {
+    if (element.isResolved) return const WorldImpact();
     compiler.world.allTypedefs.add(element);
     return _resolveTypeDeclaration(element, () {
       ResolutionRegistry registry = new ResolutionRegistry(compiler, element);
@@ -901,7 +902,7 @@ class ResolverTask extends CompilerTask {
             new TypedefResolverVisitor(compiler, element, registry);
           visitor.visit(node);
           element.resolutionState = STATE_DONE;
-          return registry.mapping;
+          return registry.worldImpact;
         });
       });
     });

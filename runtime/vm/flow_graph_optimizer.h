@@ -23,6 +23,10 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   FlowGraph* flow_graph() const { return flow_graph_; }
 
+  // Add ICData to InstanceCalls, so that optimizations can be run on them.
+  // TODO(srdjan): StaticCals as well?
+  void PopulateWithICData();
+
   // Use ICData to optimize, replace or eliminate instructions.
   void ApplyICData();
 
@@ -108,7 +112,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryReplaceWithEqualityOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithRelationalOp(InstanceCallInstr* call, Token::Kind op_kind);
 
-  bool TryInlineInstanceGetter(InstanceCallInstr* call);
+  bool TryInlineInstanceGetter(InstanceCallInstr* call,
+                               bool allow_check = true);
   bool TryInlineInstanceSetter(InstanceCallInstr* call,
                                const ICData& unary_ic_data);
 
@@ -233,7 +238,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                               Token::Kind op_kind);
   bool InlineFloat64x2BinaryOp(InstanceCallInstr* call,
                                Token::Kind op_kind);
-  void InlineImplicitInstanceGetter(InstanceCallInstr* call);
+  bool InlineImplicitInstanceGetter(InstanceCallInstr* call, bool allow_check);
 
   RawBool* InstanceOfAsBool(const ICData& ic_data,
                             const AbstractType& type,
@@ -256,6 +261,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   Thread* thread() const { return flow_graph_->thread(); }
   Isolate* isolate() const { return flow_graph_->isolate(); }
   Zone* zone() const { return flow_graph_->zone(); }
+
+  const Function& function() const { return flow_graph_->function(); }
 
   FlowGraph* flow_graph_;
 

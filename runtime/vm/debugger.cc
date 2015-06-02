@@ -1035,10 +1035,9 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
 }
 
 
-const uint8_t kSafepointKind =
-    RawPcDescriptors::kIcCall |  RawPcDescriptors::kOptStaticCall |
-    RawPcDescriptors::kUnoptStaticCall | RawPcDescriptors::kClosureCall |
-    RawPcDescriptors::kRuntimeCall;
+const uint8_t kSafepointKind = RawPcDescriptors::kIcCall
+                             | RawPcDescriptors::kUnoptStaticCall
+                             | RawPcDescriptors::kRuntimeCall;
 
 
 CodeBreakpoint::CodeBreakpoint(const Code& code,
@@ -1369,7 +1368,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
     }
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
-      if (code.is_optimized()) {
+      if (code.is_optimized() && !Compiler::always_optimize()) {
         deopt_frame = DeoptimizeToArray(isolate, frame, code);
         for (InlinedFunctionsIterator it(code, frame->pc());
              !it.Done();

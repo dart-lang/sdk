@@ -358,7 +358,7 @@ abstract class Iterable<E> {
    * Some iterables have a more efficient way to find the number of elements.
    */
   int get length {
-    assert(this is! EfficientLengthIterable);
+    assert(this is! EfficientLength);
     int count = 0;
     Iterator it = iterator;
     while (it.moveNext()) {
@@ -605,7 +605,7 @@ abstract class Iterable<E> {
 typedef E _Generator<E>(int index);
 
 class _GeneratorIterable<E> extends Iterable<E>
-                            implements EfficientLengthIterable<E> {
+                            implements EfficientLength {
   final int _start;
   final int _end;
   final _Generator<E> _generator;

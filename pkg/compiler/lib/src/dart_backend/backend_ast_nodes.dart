@@ -747,7 +747,7 @@ class Unparser {
   }
 
   void writeOperator(String operator) {
-    write(" "); // TODO(sigurdm,kmillikin): Minimize use of whitespace.
+    write(" ");
     write(operator);
     write(" ");
   }
@@ -787,7 +787,6 @@ class Unparser {
   /// Abusing terminology slightly, the function accepts a [Receiver] which
   /// may also be the [SuperReceiver] object.
   void writeExp(Receiver e, int minPrecedence, {beginStmt:false}) {
-    // TODO(kmillikin,sigurdm): it might be faster to use a Visitor.
     void withPrecedence(int actual, void action()) {
       if (actual < minPrecedence) {
         write("(");
@@ -820,7 +819,6 @@ class Unparser {
           write(e.name);
         }
         writeParameters(e.parameters);
-        // TODO(sigurdm,kmillikin): Print {} for "return null;"
         if (stmt is Return) {
           write('=> ');
           writeExp(stmt.expression, EXPRESSION);
@@ -863,8 +861,6 @@ class Unparser {
           write(v.toString());
         }
       } else {
-        // TODO(sigurdm): Use [ConstExp] to generate valid code for any
-        // constant.
         write(e.value.unparse());
       }
     } else if (e is LiteralList) {
@@ -1310,7 +1306,6 @@ class Unparser {
   /// A list of string quotings that the printer may use to quote strings.
   // Ignore multiline quotings for now. Would need to make sure that no
   // newline (potentially prefixed by whitespace) follows the quoting.
-  // TODO(sigurdm,kmillikin): Include multiline quotation schemes.
   static const _QUOTINGS = const <tree.StringQuoting>[
       const tree.StringQuoting(characters.$DQ, raw: false, leftQuoteLength: 1),
       const tree.StringQuoting(characters.$DQ, raw: true, leftQuoteLength: 1),
@@ -1319,7 +1314,6 @@ class Unparser {
   ];
 
   static StringLiteralOutput analyzeStringLiteral(Expression node) {
-    // TODO(sigurdm,kmillikin): This might be a bit too expensive. Benchmark.
     // Flatten the StringConcat tree.
     List parts = []; // Expression or int (char node)
     void collectParts(Expression e) {

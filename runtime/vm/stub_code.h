@@ -68,7 +68,6 @@ class RawCode;
   V(Deoptimize)                                                                \
   V(DeoptimizeLazy)                                                            \
   V(ICCallBreakpoint)                                                          \
-  V(ClosureCallBreakpoint)                                                     \
   V(RuntimeCallBreakpoint)                                                     \
   V(UnoptimizedIdenticalWithNumberCheck)                                       \
   V(OptimizedIdenticalWithNumberCheck)                                         \
@@ -231,7 +230,8 @@ class StubCode {
       intptr_t num_args,
       const RuntimeEntry& handle_ic_miss,
       Token::Kind kind,
-      RangeCollectionMode range_collection_mode);
+      RangeCollectionMode range_collection_mode,
+      bool optimized = false);
   static void GenerateUsageCounterIncrement(Assembler* assembler,
                                             Register temp_reg);
   static void GenerateOptimizedUsageCounterIncrement(Assembler* assembler);

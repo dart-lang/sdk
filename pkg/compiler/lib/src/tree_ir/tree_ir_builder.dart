@@ -119,35 +119,6 @@ class Builder implements cps_ir.Visitor<Node> {
     return new VariableUse(getVariable(reference.definition));
   }
 
-  RootNode build(cps_ir.RootNode node) {
-    // TODO(asgerf): Don't have build AND buildXXX as public API.
-    if (node is cps_ir.FieldDefinition) {
-      return buildField(node);
-    } else if (node is cps_ir.ConstructorDefinition) {
-      return buildConstructor(node);
-    } else {
-      assert(dart2js.invariant(
-          CURRENT_ELEMENT_SPANNABLE,
-          node is cps_ir.FunctionDefinition,
-          message: 'expected FunctionDefinition or FieldDefinition, '
-            ' found $node'));
-      return buildFunction(node);
-    }
-  }
-
-  FieldDefinition buildField(cps_ir.FieldDefinition node) {
-    Statement body;
-    if (!node.isEmpty) {
-      currentElement = node.element;
-      returnContinuation = node.body.returnContinuation;
-
-      phiTempVar = new Variable(node.element, null);
-
-      body = visit(node.body);
-    }
-    return new FieldDefinition(node.element, body);
-  }
-
   Variable addFunctionParameter(cps_ir.Definition variable) {
     if (variable is cps_ir.Parameter) {
       return getVariable(variable);
@@ -167,34 +138,10 @@ class Builder implements cps_ir.Visitor<Node> {
     }
     List<Variable> parameters =
         node.parameters.map(addFunctionParameter).toList();
-    Statement body;
-    if (!node.isEmpty) {
-      returnContinuation = node.body.returnContinuation;
-      phiTempVar = new Variable(node.element, null);
-      body = visit(node.body);
-    }
-
-    return new FunctionDefinition(node.element, parameters,
-        body, node.localConstants, node.defaultParameterValues);
-  }
-
-  ConstructorDefinition buildConstructor(cps_ir.ConstructorDefinition node) {
-    currentElement = node.element;
-    thisParameter = node.thisParameter;
-    List<Variable> parameters =
-        node.parameters.map(addFunctionParameter).toList();
-    List<Initializer> initializers;
-    Statement body;
-    if (!node.isEmpty) {
-      initializers = node.initializers.map(visit).toList();
-      returnContinuation = node.body.returnContinuation;
-
-      phiTempVar = new Variable(node.element, null);
-      body = visit(node.body);
-    }
-
-    return new ConstructorDefinition(node.element, parameters,
-        body, initializers, node.localConstants, node.defaultParameterValues);
+    returnContinuation = node.returnContinuation;
+    phiTempVar = new Variable(node.element, null);
+    Statement body = visit(node.body);
+    return new FunctionDefinition(node.element, parameters, body);
   }
 
   /// Returns a list of variables corresponding to the arguments to a method
@@ -334,28 +281,8 @@ class Builder implements cps_ir.Visitor<Node> {
 
   // Executable definitions are not visited directly.  They have 'build'
   // functions as entry points.
-  visitFieldDefinition(cps_ir.FieldDefinition node) {
-    return unexpectedNode(node);
-  }
   visitFunctionDefinition(cps_ir.FunctionDefinition node) {
     return unexpectedNode(node);
-  }
-  visitConstructorDefinition(cps_ir.ConstructorDefinition node) {
-    return unexpectedNode(node);
-  }
-
-  Initializer visitFieldInitializer(cps_ir.FieldInitializer node) {
-    returnContinuation = node.body.returnContinuation;
-    return new FieldInitializer(node.element, visit(node.body.body));
-  }
-
-  Initializer visitSuperInitializer(cps_ir.SuperInitializer node) {
-    List<Statement> arguments =
-        node.arguments.map((cps_ir.Body argument) {
-      returnContinuation = argument.returnContinuation;
-      return visit(argument.body);
-    }).toList();
-    return new SuperInitializer(node.target, node.selector, arguments);
   }
 
   Statement visitLetPrim(cps_ir.LetPrim node) {
@@ -364,20 +291,8 @@ class Builder implements cps_ir.Visitor<Node> {
     // Don't translate unused primitives.
     if (variable == null) return visit(node.body);
 
-    Node definition = visit(node.primitive);
-
-    // visitPrimitive returns a Statement without successor if it cannot occur
-    // in expression context (currently only the case for FunctionDeclarations).
-    if (definition is Statement) {
-      definition.next = visit(node.body);
-      return definition;
-    } else {
-      return Assign.makeStatement(variable, definition, visit(node.body));
-    }
-  }
-
-  Statement visitBody(cps_ir.Body node) {
-    return visit(node.body);
+    Expression value = visit(node.primitive);
+    return Assign.makeStatement(variable, value, visit(node.body));
   }
 
   Statement visitLetCont(cps_ir.LetCont node) {
@@ -486,11 +401,6 @@ class Builder implements cps_ir.Visitor<Node> {
     Variable variable = addMutableVariable(node.variable);
     Expression value = getVariableUse(node.value);
     Statement body = visit(node.body);
-    // If the variable was captured by an inner function in the body, this
-    // must be declared here so we assign to a fresh copy of the variable.
-    if (variable.isCaptured) {
-      return new VariableDeclaration(variable, value, body);
-    }
     return Assign.makeStatement(variable, value, body);
   }
 
@@ -502,12 +412,6 @@ class Builder implements cps_ir.Visitor<Node> {
     Variable variable = getMutableVariable(node.variable.definition);
     Expression value = getVariableUse(node.value);
     return Assign.makeStatement(variable, value, visit(node.body));
-  }
-
-  Statement visitDeclareFunction(cps_ir.DeclareFunction node) {
-    Variable variable = addMutableVariable(node.variable);
-    FunctionDefinition function = makeSubFunction(node.definition);
-    return new FunctionDeclaration(variable, function, visit(node.body));
   }
 
   Statement visitTypeOperator(cps_ir.TypeOperator node) {
@@ -589,10 +493,6 @@ class Builder implements cps_ir.Visitor<Node> {
     return new Constant(node.expression);
   }
 
-  Expression visitReifyTypeVar(cps_ir.ReifyTypeVar node) {
-    return new ReifyTypeVar(node.typeVariable);
-  }
-
   Expression visitLiteralList(cps_ir.LiteralList node) {
     return new LiteralList(
             node.type,
@@ -614,17 +514,11 @@ class Builder implements cps_ir.Visitor<Node> {
     return createInnerBuilder().buildFunction(function);
   }
 
-  Node visitCreateFunction(cps_ir.CreateFunction node) {
+  Expression visitCreateFunction(cps_ir.CreateFunction node) {
     FunctionDefinition def = makeSubFunction(node.definition);
     FunctionType type = node.definition.element.type;
     bool hasReturnType = !type.returnType.treatAsDynamic;
-    if (hasReturnType) {
-      // This function cannot occur in expression context.
-      // The successor will be filled in by visitLetPrim.
-      return new FunctionDeclaration(getVariable(node), def, null);
-    } else {
-      return new FunctionExpression(def);
-    }
+    return new FunctionExpression(def);
   }
 
   visitParameter(cps_ir.Parameter node) {

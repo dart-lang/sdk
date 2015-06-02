@@ -2950,7 +2950,8 @@ static uword TwoArgsSmiOpInlineCacheEntry(Token::Kind kind) {
 void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Zone* zone = compiler->zone();
   const ICData* call_ic_data = NULL;
-  if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
+  if (!FLAG_propagate_ic_data || !compiler->is_optimizing() ||
+      (ic_data() == NULL)) {
     const Array& arguments_descriptor =
         Array::Handle(zone, ArgumentsDescriptor::New(ArgumentCount(),
                                                      argument_names()));
@@ -2960,7 +2961,7 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     call_ic_data = &ICData::ZoneHandle(zone, ic_data()->raw());
   }
-  if (compiler->is_optimizing()) {
+  if (compiler->is_optimizing() && HasICData()) {
     ASSERT(HasICData());
     if (ic_data()->NumberOfUsedChecks() > 0) {
       const ICData& unary_ic_data =
@@ -3066,7 +3067,8 @@ LocationSummary* StaticCallInstr::MakeLocationSummary(Zone* zone,
 
 void StaticCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const ICData* call_ic_data = NULL;
-  if (!FLAG_propagate_ic_data || !compiler->is_optimizing()) {
+  if (!FLAG_propagate_ic_data || !compiler->is_optimizing() ||
+      (ic_data() == NULL)) {
     const Array& arguments_descriptor =
         Array::Handle(ArgumentsDescriptor::New(ArgumentCount(),
                                                argument_names()));

@@ -3117,7 +3117,7 @@ abstract class ConstructorBulkMixin<R, A>
 abstract class InitializerBulkMixin<R, A>
     implements SemanticDeclarationVisitor<R, A>, BulkHandle<R, A> {
 
-  R bulkHandleInitializer(Send node, A arg) {
+  R bulkHandleInitializer(Node node, A arg) {
     return bulkHandleNode(
         node, "Initializer `#` unhandled.", arg);
   }
@@ -3166,7 +3166,16 @@ abstract class InitializerBulkMixin<R, A>
       ConstructorElement superConstructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleInitializer(node, arg);
+  }
+
+  @override
+  R visitImplicitSuperConstructorInvoke(
+      FunctionExpression node,
+      ConstructorElement superConstructor,
+      InterfaceType type,
       A arg) {
     return bulkHandleInitializer(node, arg);
   }
@@ -3176,7 +3185,7 @@ abstract class InitializerBulkMixin<R, A>
       Send node,
       ConstructorElement thisConstructor,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     return bulkHandleInitializer(node, arg);
   }
@@ -3435,7 +3444,7 @@ class BulkDeclarationVisitor<R, A> extends SemanticDeclarationVisitor<R, A>
   }
 
   @override
-  applyInitializers(NodeList initializers, A arg) {
+  applyInitializers(FunctionExpression constructor, A arg) {
     throw new UnimplementedError(
         "BulkDeclVisitor.applyInitializers unimplemented");
   }
@@ -6041,7 +6050,7 @@ class TraversalDeclarationMixin<R, A>
   }
 
   @override
-  applyInitializers(NodeList initializers, A arg) {
+  applyInitializers(FunctionExpression constructor, A arg) {
     throw new UnimplementedError(
         "TraversalMixin.applyInitializers unimplemented");
   }
@@ -6105,7 +6114,7 @@ class TraversalDeclarationMixin<R, A>
       Node body,
       A arg) {
     applyParameters(parameters, arg);
-    applyInitializers(initializers, arg);
+    applyInitializers(node, arg);
     apply(body, arg);
     return null;
   }
@@ -6154,7 +6163,7 @@ class TraversalDeclarationMixin<R, A>
       NodeList initializers,
       A arg) {
     applyParameters(parameters, arg);
-    applyInitializers(initializers, arg);
+    applyInitializers(node, arg);
     return null;
   }
 
@@ -6176,9 +6185,18 @@ class TraversalDeclarationMixin<R, A>
       ConstructorElement superConstructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitImplicitSuperConstructorInvoke(
+      FunctionExpression node,
+      ConstructorElement superConstructor,
+      InterfaceType type,
+      A arg) {
     return null;
   }
 
@@ -6187,7 +6205,7 @@ class TraversalDeclarationMixin<R, A>
       Send node,
       ConstructorElement thisConstructor,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       A arg) {
     apply(arguments, arg);
     return null;
@@ -6483,8 +6501,8 @@ class TraversalVisitor<R, A> extends SemanticVisitor<R, A>
   }
 
   @override
-  applyInitializers(NodeList initializers, A arg) {
-    visitInitializers(initializers, arg);
+  applyInitializers(FunctionExpression constructor, A arg) {
+    visitInitializers(constructor, arg);
   }
 
   @override

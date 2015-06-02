@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree_ir.optimization;
+library tree_ir.optimization.logical_rewriter;
+
+import '../tree_ir_nodes.dart';
+import 'optimization.dart' show Pass;
+import '../../constants/values.dart' as values;
+
+// TODO(asgerf): Update this class to use JS semantics for && and ||.
 
 /// Rewrites logical expressions to be more compact in the Tree IR.
 ///
@@ -59,8 +65,8 @@ class LogicalRewriter extends RecursiveTransformer
   String get passName => 'Logical rewriter';
 
   @override
-  void rewrite(RootNode node) {
-    node.replaceEachBody(visitStatement);
+  void rewrite(FunctionDefinition node) {
+    node.body = visitStatement(node.body);
   }
 
   /// Statement to be executed next by natural fallthrough. Although fallthrough

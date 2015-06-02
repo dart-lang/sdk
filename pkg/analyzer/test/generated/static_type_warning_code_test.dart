@@ -80,6 +80,35 @@ f() async {
     verify([source]);
   }
 
+  void test_bug21912() {
+    Source source = addSource('''
+class A {}
+class B extends A {}
+
+typedef T Function2<S, T>(S z);
+typedef B AToB(A x);
+typedef A BToA(B x);
+
+void main() {
+  {
+    Function2<Function2<A, B>, Function2<B, A>> t1;
+    Function2<AToB, BToA> t2;
+
+    Function2<Function2<int, double>, Function2<int, double>> left;
+
+    left = t1;
+    left = t2;
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+      StaticTypeWarningCode.INVALID_ASSIGNMENT,
+      StaticTypeWarningCode.INVALID_ASSIGNMENT
+    ]);
+    verify([source]);
+  }
+
   void test_expectedOneListTypeArgument() {
     Source source = addSource(r'''
 main() {

@@ -15,9 +15,9 @@ import '../tree_ir_nodes.dart';
 class VariableMerger extends RecursiveVisitor implements Pass {
   String get passName => 'Variable merger';
 
-  void rewrite(RootNode node) {
+  void rewrite(FunctionDefinition node) {
     rewriteFunction(node);
-    node.forEachBody(visitStatement);
+    visitStatement(node.body);
   }
 
   @override
@@ -27,15 +27,13 @@ class VariableMerger extends RecursiveVisitor implements Pass {
 
   /// Rewrites the given function.
   /// This is called for the outermost function and inner functions.
-  void rewriteFunction(RootNode node) {
-    node.forEachBody((Statement body) {
-      BlockGraphBuilder builder = new BlockGraphBuilder();
-      builder.build(node.parameters, body);
-      _computeLiveness(builder.blocks);
-      Map<Variable, Variable> subst =
-          _computeRegisterAllocation(builder.blocks, node.parameters);
-      new SubstituteVariables(subst).apply(node);
-    });
+  void rewriteFunction(FunctionDefinition node) {
+    BlockGraphBuilder builder = new BlockGraphBuilder();
+    builder.build(node);
+    _computeLiveness(builder.blocks);
+    Map<Variable, Variable> subst =
+        _computeRegisterAllocation(builder.blocks, node.parameters);
+    new SubstituteVariables(subst).apply(node);
   }
 }
 
@@ -108,10 +106,10 @@ class BlockGraphBuilder extends RecursiveVisitor {
   /// them from the control-flow graph entirely.
   Set<Variable> _ignoredVariables = new Set<Variable>();
 
-  void build(List<Variable> parameters, Statement body) {
+  void build(FunctionDefinition node) {
     _currentBlock = newBlock();
-    parameters.forEach(write);
-    visitStatement(body);
+    node.parameters.forEach(write);
+    visitStatement(node.body);
   }
 
   @override
@@ -162,11 +160,6 @@ class BlockGraphBuilder extends RecursiveVisitor {
 
   visitVariableUse(VariableUse node) {
     read(node.variable);
-  }
-
-  visitVariableDeclaration(VariableDeclaration node) {
-    assert(node.variable.isCaptured);
-    visitStatement(node.next);
   }
 
   visitAssign(Assign node) {
@@ -242,12 +235,6 @@ class BlockGraphBuilder extends RecursiveVisitor {
     Block afterCondition = _currentBlock;
     branchFrom(afterCondition);
     visitExpression(node.right);
-  }
-
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    // The function variable is final, hence cannot be merged.
-    ignoreVariable(node.variable);
-    visitStatement(node.next);
   }
 }
 
@@ -492,11 +479,11 @@ class SubstituteVariables extends RecursiveTransformer {
     return w;
   }
 
-  void apply(RootNode node) {
+  void apply(FunctionDefinition node) {
     for (int i = 0; i < node.parameters.length; ++i) {
       node.parameters[i] = replaceWrite(node.parameters[i]);
     }
-    node.replaceEachBody(visitStatement);
+    node.body = visitStatement(node.body);
   }
 
   @override
@@ -535,15 +522,4 @@ class SubstituteVariables extends RecursiveTransformer {
     }
     return node;
   }
-
-  Statement visitVariableDeclaration(VariableDeclaration node) {
-    // VariableDeclaration is only used for captured variables, which are never
-    // merged, so this is not strictly necessary. But it's nicer if this class
-    // works for arbitrary substitution maps.
-    node.variable = replaceWrite(node.variable);
-    node.value = visitExpression(node.value);
-    node.next = visitStatement(node.next);
-    return node;
-  }
-
 }

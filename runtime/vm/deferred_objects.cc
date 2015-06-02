@@ -137,6 +137,10 @@ void DeferredRetAddr::Materialize(DeoptContext* deopt_context) {
     CodePatcher::GetInstanceCallAt(pc, code, &ic_data);
     if (!ic_data.IsNull()) {
       ic_data.AddDeoptReason(deopt_context->deopt_reason());
+      // Propagate the reason to all ICData-s with same deopt_id since
+      // only unoptimized-code ICData (IC calls) are propagated.
+      function.SetDeoptReasonForAll(ic_data.deopt_id(),
+                                    deopt_context->deopt_reason());
     }
   } else {
     if (deopt_context->HasDeoptFlag(ICData::kHoisted)) {

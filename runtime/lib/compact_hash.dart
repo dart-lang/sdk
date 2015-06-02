@@ -6,34 +6,68 @@ import 'dart:typed_data';
 import 'dart:_internal' as internal;
 
 // Hash table with open addressing that separates the index from keys/values.
-abstract class _HashBase {
+
+abstract class _HashFieldBase {
   // Each occupied entry in _index is a fixed-size integer that encodes a pair:
   //   [ hash pattern for key | index of entry in _data ]
   // The hash pattern is based on hashCode, but is guaranteed to be non-zero.
   // The length of _index is always a power of two, and there is always at
   // least one unoccupied entry.
-  Uint32List _index;
-
-  // The number of bits used for each component is determined by table size.
-  // The length of _index is twice the number of entries in _data, and both
-  // are doubled when _data is full. Thus, _index will have a max load factor
-  // of 1/2, which enables one more bit to be used for the hash.
-  // TODO(koda): Consider growing _data by factor sqrt(2), twice as often.
-  static const int _INITIAL_INDEX_BITS = 3;
-  static const int _INITIAL_INDEX_SIZE = 1 << (_INITIAL_INDEX_BITS + 1);
-
-  // Unused and deleted entries are marked by 0 and 1, respectively.
-  static const int _UNUSED_PAIR = 0;
-  static const int _DELETED_PAIR = 1;
+  Uint32List _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
 
   // Cached in-place mask for the hash pattern component. On 32-bit, the top
   // bits are wasted to avoid Mint allocation.
   // TODO(koda): Reclaim the bits by making the compiler treat hash patterns
   // as unsigned words.
   int _hashMask = internal.is64Bit ?
-      (1 << (32 - _INITIAL_INDEX_BITS)) - 1 :
-      (1 << (30 - _INITIAL_INDEX_BITS)) - 1;
+      (1 << (32 - _HashBase._INITIAL_INDEX_BITS)) - 1 :
+      (1 << (30 - _HashBase._INITIAL_INDEX_BITS)) - 1;
 
+  // Fixed-length list of keys (set) or key/value at even/odd indices (map).
+  List _data = new List(_HashBase._INITIAL_INDEX_SIZE);
+
+  // Length of _data that is used (i.e., keys + values for a map).
+  int _usedData = 0;
+
+  // Number of deleted keys.
+  int _deletedKeys = 0;
+}
+
+// Base class for VM-internal classes; keep in sync with _HashFieldBase.
+abstract class _HashVMBase {
+  Uint32List get _index native "LinkedHashMap_getIndex";
+  void set _index(Uint32List value) native "LinkedHashMap_setIndex";
+
+  int get _hashMask native "LinkedHashMap_getHashMask";
+  void set _hashMask(int value) native "LinkedHashMap_setHashMask";
+
+  List get _data native "LinkedHashMap_getData";
+  void set _data(List value) native "LinkedHashMap_setData";
+
+  int get _usedData native "LinkedHashMap_getUsedData";
+  void set _usedData(int value) native "LinkedHashMap_setUsedData";
+
+  int get _deletedKeys native "LinkedHashMap_getDeletedKeys";
+  void set _deletedKeys(int value) native "LinkedHashMap_setDeletedKeys";
+}
+
+// This mixin can be applied to _HashFieldBase or _HashVMBase (for
+// normal and VM-internalized classes, respectivley), which provide the
+// actual fields/accessors that this mixin assumes.
+// TODO(koda): Consider moving field comments to _HashFieldBase.
+abstract class _HashBase {
+  // The number of bits used for each component is determined by table size.
+  // The length of _index is twice the number of entries in _data, and both
+  // are doubled when _data is full. Thus, _index will have a max load factor
+  // of 1/2, which enables one more bit to be used for the hash.
+  // TODO(koda): Consider growing _data by factor sqrt(2), twice as often. 
+  static const int _INITIAL_INDEX_BITS = 3;
+  static const int _INITIAL_INDEX_SIZE = 1 << (_INITIAL_INDEX_BITS + 1);
+  
+  // Unused and deleted entries are marked by 0 and 1, respectively.
+  static const int _UNUSED_PAIR = 0;
+  static const int _DELETED_PAIR = 1;
+  
   static int _hashPattern(int fullHash, int hashMask, int size) {
     final int maskedHash = fullHash & hashMask;
     // TODO(koda): Consider keeping bit length and use left shift.
@@ -47,14 +81,7 @@ abstract class _HashBase {
     return ((i << 1) + i) & sizeMask;
   }
   static int _nextProbe(int i, int sizeMask) => (i + 1) & sizeMask;
-
-  // Fixed-length list of keys (set) or key/value at even/odd indices (map).
-  List _data;
-  // Length of _data that is used (i.e., keys + values for a map).
-  int _usedData = 0;
-  // Number of deleted keys.
-  int _deletedKeys = 0;
-
+  
   // A self-loop is used to mark a deleted key or value.
   static bool _isDeleted(List data, Object keyOrValue) =>
       identical(keyOrValue, data);
@@ -79,22 +106,19 @@ class _IdenticalAndIdentityHashCode {
   bool _equals(e1, e2) => identical(e1, e2);
 }
 
-// Map with iteration in insertion order (hence "Linked"). New keys are simply
-// appended to _data.
-class _CompactLinkedHashMap<K, V>
-    extends MapBase<K, V> with _HashBase, _OperatorEqualsAndHashCode
+// VM-internalized implementation of a default-constructed LinkedHashMap.
+class _InternalLinkedHashMap<K, V> extends _HashVMBase
+    with MapMixin<K, V>, _LinkedHashMapMixin<K, V>, _HashBase,
+         _OperatorEqualsAndHashCode
     implements LinkedHashMap<K, V> {
+  factory _InternalLinkedHashMap() native "LinkedHashMap_allocate";
+}
 
-  _CompactLinkedHashMap() {
-    assert(_HashBase._UNUSED_PAIR == 0);
-    _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
-    _data = new List(_HashBase._INITIAL_INDEX_SIZE);
-  }
-
+class _LinkedHashMapMixin<K, V> {  
   int get length => (_usedData >> 1) - _deletedKeys;
   bool get isEmpty => length == 0;
   bool get isNotEmpty => !isEmpty;
-
+  
   void _rehash() {
     if ((_deletedKeys << 2) > _usedData) {
       // TODO(koda): Consider shrinking.
@@ -105,7 +129,7 @@ class _CompactLinkedHashMap<K, V>
       _init(_index.length << 1, _hashMask >> 1, _data, _usedData);
     }
   }
-
+  
   void clear() {
     if (!isEmpty) {
       _init(_index.length, _hashMask);
@@ -131,7 +155,7 @@ class _CompactLinkedHashMap<K, V>
       }
     }
   }
-
+  
   void _insert(K key, V value, int hashPattern, int i) {
     if (_usedData == _data.length) {
       _rehash();
@@ -145,7 +169,7 @@ class _CompactLinkedHashMap<K, V>
       _data[_usedData++] = value;
     }
   }
-
+  
   // If key is present, returns the index of the value in _data, else returns
   // the negated insertion point in _index.
   int _findValueOrInsertPoint(K key, int fullHash, int hashPattern, int size) {
@@ -173,7 +197,7 @@ class _CompactLinkedHashMap<K, V>
     }
     return firstDeleted >= 0 ? -firstDeleted : -i;
   }
-
+  
   void operator[]=(K key, V value) {
     final int size = _index.length;
     final int sizeMask = size - 1;
@@ -187,7 +211,7 @@ class _CompactLinkedHashMap<K, V>
       _insert(key, value, hashPattern, i);
     }
   }
-
+  
   V putIfAbsent(K key, V ifAbsent()) {
     final int size = _index.length;
     final int sizeMask = size - 1;
@@ -210,7 +234,7 @@ class _CompactLinkedHashMap<K, V>
     }
     return value;
   }
-
+  
   V remove(Object key) {
     final int size = _index.length;
     final int sizeMask = size - 1;
@@ -239,7 +263,7 @@ class _CompactLinkedHashMap<K, V>
     }
     return null;
   }
-
+  
   // If key is absent, return _data (which is never a value).
   Object _getValueOrData(Object key) {
     final int size = _index.length;
@@ -264,14 +288,14 @@ class _CompactLinkedHashMap<K, V>
     }
     return _data;
   }
-
+  
   bool containsKey(Object key) => !identical(_data, _getValueOrData(key));
-
+  
   V operator[](Object key) {
     var v = _getValueOrData(key);
     return identical(_data, v) ? null : v;
   }
-
+  
   bool containsValue(Object value) {
     for (var v in values) {
       // Spec. says this should always use "==", also for identity maps, etc.
@@ -297,12 +321,15 @@ class _CompactLinkedHashMap<K, V>
       new _CompactIterable<V>(this, _data, _usedData, -1, 2);
 }
 
-class _CompactLinkedIdentityHashMap<K, V>
-    extends _CompactLinkedHashMap<K, V> with _IdenticalAndIdentityHashCode {
+class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
+    with MapMixin<K, V>, _LinkedHashMapMixin<K, V>, _HashBase,
+         _IdenticalAndIdentityHashCode
+    implements LinkedHashMap<K, V> {
 }
 
-class _CompactLinkedCustomHashMap<K, V>
-    extends _CompactLinkedHashMap<K, V> {
+class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
+    with MapMixin<K, V>, _LinkedHashMapMixin<K, V>, _HashBase
+    implements LinkedHashMap<K, V> {
   final _equality;
   final _hasher;
   final _validKey;
@@ -369,8 +396,8 @@ class _CompactIterator<E> implements Iterator<E> {
 }
 
 // Set implementation, analogous to _CompactLinkedHashMap.
-class _CompactLinkedHashSet<E>
-    extends SetBase<E> with _HashBase, _OperatorEqualsAndHashCode
+class _CompactLinkedHashSet<E> extends _HashFieldBase
+    with _HashBase, _OperatorEqualsAndHashCode, SetMixin<E>
     implements LinkedHashSet<E> {
 
   _CompactLinkedHashSet() {

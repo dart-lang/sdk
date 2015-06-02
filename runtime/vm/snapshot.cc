@@ -188,6 +188,7 @@ SnapshotReader::SnapshotReader(
       tokens_(Array::Handle(isolate)),
       stream_(TokenStream::Handle(isolate)),
       data_(ExternalTypedData::Handle(isolate)),
+      typed_data_(TypedData::Handle(isolate)),
       error_(UnhandledException::Handle(isolate)),
       max_vm_isolate_object_id_(
           Object::vm_isolate_snapshot_object_table().Length()),
@@ -595,8 +596,10 @@ RawApiError* SnapshotReader::VerifyVersion() {
                 Version::SnapshotString(),
                 actual_version);
     free(actual_version);
-    const String& msg = String::Handle(String::New(message_buffer));
-    return ApiError::New(msg);
+    // This can also fail while bringing up the VM isolate, so make sure to
+    // allocate the error message in old space.
+    const String& msg = String::Handle(String::New(message_buffer, Heap::kOld));
+    return ApiError::New(msg, Heap::kOld);
   }
   Advance(version_len);
   return ApiError::null();
@@ -2161,8 +2164,7 @@ void SnapshotWriter::WriteInstanceRef(RawObject* raw, RawClass* cls) {
 
 
 bool SnapshotWriter::AllowObjectsInDartLibrary(RawLibrary* library) {
-  return (library == object_store()->collection_library() ||
-          library == object_store()->typed_data_library());
+  return library == object_store()->typed_data_library();
 }
 
 

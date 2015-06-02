@@ -8,19 +8,18 @@ class TypeCheckerTask extends CompilerTask {
   TypeCheckerTask(Compiler compiler) : super(compiler);
   String get name => "Type checker";
 
-  void check(TreeElements elements) {
-    AstElement element = elements.analyzedElement;
+  void check(AstElement element) {
+    if (element.isClass) return;
     if (element.isTypedef) return;
-
+    ResolvedAst resolvedAst = element.resolvedAst;
     compiler.withCurrentElement(element, () {
       measure(() {
-        Node tree = element.node;
-        TypeCheckerVisitor visitor =
-            new TypeCheckerVisitor(compiler, elements, compiler.types);
+        TypeCheckerVisitor visitor = new TypeCheckerVisitor(
+            compiler, resolvedAst.elements, compiler.types);
         if (element.isField) {
           visitor.analyzingInitializer = true;
         }
-        tree.accept(visitor);
+        resolvedAst.node.accept(visitor);
       });
     });
   }

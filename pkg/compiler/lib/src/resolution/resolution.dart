@@ -47,7 +47,7 @@ import '../elements/modelx.dart' show
 
 import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
 import '../util/util.dart';
-import '../universe/universe.dart' show CallStructure;
+import '../universe/universe.dart' show CallStructure, SelectorKind;
 
 import 'access_semantics.dart';
 import 'class_members.dart' show MembersCreator;

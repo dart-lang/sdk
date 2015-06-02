@@ -560,7 +560,7 @@ class MultipleMapIterator<K, V> implements MapIterator<K, V> {
    */
   MultipleMapIterator(List<Map<K, V>> maps) {
     int count = maps.length;
-    _iterators = new List<MapIterator>(count);
+    _iterators = new List<MapIterator<K, V>>(count);
     for (int i = 0; i < count; i++) {
       _iterators[i] = new SingleMapIterator<K, V>(maps[i]);
     }

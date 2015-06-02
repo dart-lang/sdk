@@ -430,7 +430,7 @@ class _CustomHashMap<K, V> extends _HashMap<K, V> {
 }
 
 class HashMapKeyIterable<E> extends Iterable<E>
-                            implements EfficientLengthIterable<E> {
+                            implements EfficientLength {
   final _map;
   HashMapKeyIterable(this._map);
 

@@ -6,7 +6,9 @@ library services.src.index.store.codec;
 
 import 'dart:collection';
 
+import 'package:analysis_server/analysis/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/index/indexable_element.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -63,55 +65,28 @@ class ContextCodec {
 }
 
 /**
- * A helper that encodes/decodes [Element]s to/from integers.
+ * A helper that encodes/decodes [IndexableObject]s to/from integers.
  */
 class ElementCodec {
-  static const int _CONSTRUCTOR_KIND_BASE = -100;
-
+  // TODO(brianwilkerson) Rename this class now that if encodes indexable
+  // objects rather than elements.
   final StringCodec _stringCodec;
 
   ElementCodec(this._stringCodec);
 
   /**
-   * Returns an [Element] that corresponds to the given identifiers.
+   * Returns an [IndexableObject] that corresponds to the given identifiers.
    */
-  Element decode(AnalysisContext context, int fileId, int offset, int kindId) {
+  IndexableObject decode(
+      AnalysisContext context, int fileId, int offset, int kindId) {
     String filePath = _stringCodec.decode(fileId);
-    List<Source> unitSources = context.getSourcesWithFullName(filePath);
-    for (Source unitSource in unitSources) {
-      List<Source> libSources = context.getLibrariesContaining(unitSource);
-      for (Source libSource in libSources) {
-        CompilationUnitElement unitElement =
-            context.getCompilationUnitElement(unitSource, libSource);
-        if (unitElement == null) {
-          return null;
-        }
-        if (kindId == ElementKind.LIBRARY.ordinal) {
-          return unitElement.library;
-        } else if (kindId == ElementKind.COMPILATION_UNIT.ordinal) {
-          return unitElement;
-        } else {
-          Element element = unitElement.getElementAt(offset);
-          if (element == null) {
-            return null;
-          }
-          if (element is ClassElement && kindId <= _CONSTRUCTOR_KIND_BASE) {
-            int constructorIndex = -1 * (kindId - _CONSTRUCTOR_KIND_BASE);
-            return element.constructors[constructorIndex];
-          }
-          if (element is PropertyInducingElement) {
-            if (kindId == ElementKind.GETTER.ordinal) {
-              return element.getter;
-            }
-            if (kindId == ElementKind.SETTER.ordinal) {
-              return element.setter;
-            }
-          }
-          return element;
-        }
-      }
+    IndexableObjectKind kind = IndexableObjectKind.getKind(kindId);
+    if (kind == null) {
+      return null;
+    } else if (kind is IndexableNameKind) {
+      return new IndexableElement(new NameElement(_stringCodec.decode(offset)));
     }
-    return null;
+    return kind.decode(context, filePath, offset);
   }
 
   /**
@@ -119,8 +94,8 @@ class ElementCodec {
    * In the most cases it is an encoding of the [element]'s file path.
    * If the given [element] is not defined in a file, returns `-1`.
    */
-  int encode1(Element element) {
-    Source source = element.source;
+  int encode1(IndexableObject indexable) {
+    Source source = indexable.source;
     if (source == null) {
       return -1;
     }
@@ -132,44 +107,43 @@ class ElementCodec {
    * Returns the second component of the [element] id.
    * In the most cases it is the [element]'s name offset.
    */
-  int encode2(Element element) {
-    if (element is NameElement) {
-      String name = element.name;
+  int encode2(IndexableObject indexable) {
+    if (indexable is IndexableName) {
+      String name = indexable.name;
       return _stringCodec.encode(name);
     }
-    if (element is ConstructorElement) {
-      return element.enclosingElement.nameOffset;
+    int offset = indexable.offset;
+    if (offset < 0) {
+      return _stringCodec.encode(indexable.name);
     }
-    return element.nameOffset;
+    return offset;
   }
 
   /**
    * Returns the third component of the [element] id.
    * In the most cases it is the [element]'s kind.
    */
-  int encode3(Element element) {
-    if (element is ConstructorElement) {
-      ClassElement classElement = element.enclosingElement;
-      int constructorIndex = classElement.constructors.indexOf(element);
-      return _CONSTRUCTOR_KIND_BASE - constructorIndex;
-    }
-    return element.kind.ordinal;
+  int encode3(IndexableObject indexable) {
+    return indexable.kind.index;
   }
 
   /**
    * Returns an integer that corresponds to the name of [element].
    */
-  int encodeHash(Element element) {
-    String elementName = element.displayName;
+  int encodeHash(IndexableObject indexable) {
+    // TODO(brianwilkerson) Consider moving this to IndexableObjectKind so that
+    // we don't have to break encapsulation.
+    String elementName = indexable.name; // was: indexable.displayName;
     int elementNameId = _stringCodec.encode(elementName);
-    LibraryElement libraryElement = element.library;
-    if (libraryElement != null) {
-      String libraryPath = libraryElement.source.fullName;
-      int libraryPathId = _stringCodec.encode(libraryPath);
-      return JenkinsSmiHash.combine(libraryPathId, elementNameId);
-    } else {
-      return elementNameId;
+    if (indexable is IndexableElement) {
+      LibraryElement libraryElement = indexable.element.library;
+      if (libraryElement != null) {
+        String libraryPath = libraryElement.source.fullName;
+        int libraryPathId = _stringCodec.encode(libraryPath);
+        return JenkinsSmiHash.combine(libraryPathId, elementNameId);
+      }
     }
+    return elementNameId;
   }
 }
 

@@ -562,9 +562,12 @@ ClientSocket* ListenSocket::Accept() {
     accepted_count_--;
   }
 
-  if (!IsClosing()) {
-    if (!IssueAccept()) {
-      HandleError(this);
+  if (pending_accept_count_ < 5) {
+    // We have less than 5 pending accepts, queue another.
+    if (!IsClosing()) {
+      if (!IssueAccept()) {
+        HandleError(this);
+      }
     }
   }
 

@@ -141,7 +141,7 @@ class InitializerResolver {
     ClassElement superClass = classElement.superclass;
     if (classElement != visitor.compiler.objectClass) {
       assert(superClass != null);
-      assert(superClass.resolutionState == STATE_DONE);
+      assert(superClass.isResolved);
 
       final bool isSuperCall = true;
       ClassElement lookupTarget = getSuperOrThisLookupTarget(constructor,
@@ -192,8 +192,10 @@ class InitializerResolver {
         visitor.compiler.reportError(diagnosticNode, kind);
       } else if (caller.isConst
                  && !lookedupConstructor.isConst) {
-        visitor.compiler.reportError(
-            diagnosticNode, MessageKind.CONST_CALLS_NON_CONST);
+        MessageKind kind = isImplicitSuperCall
+                           ? MessageKind.CONST_CALLS_NON_CONST_FOR_IMPLICIT
+                           : MessageKind.CONST_CALLS_NON_CONST;
+        visitor.compiler.reportError(diagnosticNode, kind);
       }
     }
   }

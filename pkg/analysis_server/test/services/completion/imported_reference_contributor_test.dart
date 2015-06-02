@@ -4,6 +4,7 @@
 
 library test.services.completion.toplevel;
 
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/protocol.dart' as protocol
     show Element, ElementKind;
 import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
@@ -18,9 +19,8 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_context.dart';
-import 'completion_test_util.dart';
-import 'package:analysis_server/src/analysis_server.dart';
 import '../../operation/operation_queue_test.dart';
+import 'completion_test_util.dart';
 
 main() {
   groupSep = ' | ';
@@ -210,6 +210,18 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
     return cs;
   }
 
+  fail_enum_deprecated() {
+    addSource('/libA.dart', 'library A; @deprecated enum E { one, two }');
+    addTestSource('import "/libA.dart"; main() {^}');
+    return computeFull((bool result) {
+      // TODO(danrube) investigate why suggestion/element is not deprecated
+      // when AST node has correct @deprecated annotation
+      assertSuggestEnum('E', isDeprecated: true);
+      assertNotSuggested('one');
+      assertNotSuggested('two');
+    });
+  }
+
   bool isCached(List<CompletionSuggestion> suggestions, String completion) =>
       suggestions.any((CompletionSuggestion s) => s.completion == completion);
 
@@ -304,6 +316,16 @@ class ImportedReferenceContributorTest extends AbstractSelectorSuggestionTest {
       // Assert contributor does not wait for or include low priority results
       // from non-imported libraries unless instructed to do so.
       assertNotSuggested('H');
+    });
+  }
+
+  test_enum() {
+    addSource('/libA.dart', 'library A; enum E { one, two }');
+    addTestSource('import "/libA.dart"; main() {^}');
+    return computeFull((bool result) {
+      assertSuggestEnum('E');
+      assertNotSuggested('one');
+      assertNotSuggested('two');
     });
   }
 

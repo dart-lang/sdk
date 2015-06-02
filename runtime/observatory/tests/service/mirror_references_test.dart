@@ -25,22 +25,23 @@ void script() {
 
 var tests = [
 
-(Isolate isolate) =>
-  isolate.rootLibrary.load().then((Library lib) {
+  (Isolate isolate) async {
+    var lib = await isolate.rootLibrary.load();
     Field fooField = lib.variables.singleWhere((v) => v.name == 'foo');
-    Instance foo = fooField.value;
+    await fooField.load();
+    Instance foo = fooField.staticValue;
     Field refField = lib.variables.singleWhere((v) => v.name == 'ref');
-    Instance ref = refField.value;
+    await refField.load();
+    Instance ref = refField.staticValue;
 
     expect(foo.isMirrorReference, isFalse);
     expect(ref.isMirrorReference, isTrue);
     expect(ref.referent, isNull);
-    return ref.load().then((Instance loadedRef) {
-      expect(loadedRef.referent, isNotNull);
-      expect(loadedRef.referent.name, equals('Foo'));
-      expect(loadedRef.referent, equals(foo.clazz));
-    });
-  }),
+    var loadedRef = await ref.load();
+    expect(loadedRef.referent, isNotNull);
+    expect(loadedRef.referent.name, equals('Foo'));
+    expect(loadedRef.referent, equals(foo.clazz));
+  },
 
 ];
 

@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree_ir.optimization;
+library tree_ir.optimization.loop_rewriter;
+
+import 'optimization.dart' show Pass;
+import '../tree_ir_nodes.dart';
 
 /// Rewrites [WhileTrue] statements.
 ///
@@ -57,8 +60,8 @@ class LoopRewriter extends RecursiveTransformer
 
   Set<Label> usedContinueLabels = new Set<Label>();
 
-  void rewrite(RootNode root) {
-    root.replaceEachBody(visitStatement);
+  void rewrite(FunctionDefinition root) {
+    root.body = visitStatement(root.body);
   }
 
   @override

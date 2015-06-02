@@ -167,7 +167,8 @@ class AnalysisCache {
    */
   MapIterator<Source, SourceEntry> iterator() {
     int count = _partitions.length;
-    List<Map<Source, SourceEntry>> maps = new List<Map>(count);
+    List<Map<Source, SourceEntry>> maps =
+        new List<Map<Source, SourceEntry>>(count);
     for (int i = 0; i < count; i++) {
       maps[i] = _partitions[i].map;
     }
@@ -2505,7 +2506,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  bool shouldErrorsBeAnalyzed(Source source, DartEntry dartEntry) {
+  bool shouldErrorsBeAnalyzed(Source source, Object entry) {
+    DartEntry dartEntry = entry;
     if (source.isInSystemLibrary) {
       return _generateSdkErrors;
     } else if (!dartEntry.explicitlyAdded) {
@@ -2639,7 +2641,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           libraryElement.definingCompilationUnit;
       List<CompilationUnitElement> parts = libraryElement.parts;
       List<TimestampedData<CompilationUnit>> units =
-          new List<TimestampedData>(parts.length + 1);
+          new List<TimestampedData<CompilationUnit>>(parts.length + 1);
       units[0] = _getResolvedUnit(definingUnit, librarySource);
       if (units[0] == null) {
         Source source = definingUnit.source;
@@ -2693,7 +2695,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           libraryElement.definingCompilationUnit;
       List<CompilationUnitElement> parts = libraryElement.parts;
       List<TimestampedData<CompilationUnit>> units =
-          new List<TimestampedData>(parts.length + 1);
+          new List<TimestampedData<CompilationUnit>>(parts.length + 1);
       units[0] = _getResolvedUnit(definingUnit, librarySource);
       if (units[0] == null) {
         Source source = definingUnit.source;
@@ -3099,7 +3101,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         libraryElement.definingCompilationUnit;
     List<CompilationUnitElement> parts = libraryElement.parts;
     List<TimestampedData<CompilationUnit>> units =
-        new List<TimestampedData>(parts.length + 1);
+        new List<TimestampedData<CompilationUnit>>(parts.length + 1);
     units[0] = _getResolvedUnit(definingUnit, librarySource);
     if (units[0] == null) {
       // TODO(brianwilkerson) We should return a ResolveDartUnitTask
@@ -3132,7 +3134,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         libraryElement.definingCompilationUnit;
     List<CompilationUnitElement> parts = libraryElement.parts;
     List<TimestampedData<CompilationUnit>> units =
-        new List<TimestampedData>(parts.length + 1);
+        new List<TimestampedData<CompilationUnit>>(parts.length + 1);
     units[0] = _getResolvedUnit(definingUnit, librarySource);
     if (units[0] == null) {
       // TODO(brianwilkerson) We should return a ResolveDartUnitTask
@@ -11501,7 +11503,7 @@ class WorkManager {
    */
   WorkManager() {
     int queueCount = SourcePriority.values.length;
-    _workQueues = new List<List>(queueCount);
+    _workQueues = new List<List<Source>>(queueCount);
     for (int i = 0; i < queueCount; i++) {
       _workQueues[i] = new List<Source>();
     }

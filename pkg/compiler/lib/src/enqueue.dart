@@ -32,6 +32,27 @@ class EnqueueTask extends CompilerTask {
   }
 }
 
+class WorldImpact {
+  const WorldImpact();
+
+  Iterable<Selector> get dynamicInvocations => const <Selector>[];
+  Iterable<Selector> get dynamicGetters => const <Selector>[];
+  Iterable<Selector> get dynamicSetters => const <Selector>[];
+
+  // TODO(johnniwinther): Split this into more precise subsets.
+  Iterable<Element> get staticUses => const <Element>[];
+
+  // TODO(johnniwinther): Replace this by called constructors with type
+  // arguments.
+  Iterable<InterfaceType> get instantiatedTypes => const <InterfaceType>[];
+
+  // TODO(johnniwinther): Collect checked types for checked mode separately to
+  // support serialization.
+  Iterable<DartType> get checkedTypes => const <DartType>[];
+
+  Iterable<MethodElement> get closurizedFunctions => const <MethodElement>[];
+}
+
 abstract class Enqueuer {
   final String name;
   final Compiler compiler; // TODO(ahe): Remove this dependency.
@@ -84,6 +105,20 @@ abstract class Enqueuer {
    */
   bool internalAddToWorkList(Element element);
 
+  /// Apply the [worldImpact] of processing [element] to this enqueuer.
+  void applyImpact(Element element, WorldImpact worldImpact) {
+    // TODO(johnniwinther): Optimize the application of the world impact.
+    worldImpact.dynamicInvocations.forEach(registerDynamicInvocation);
+    worldImpact.dynamicGetters.forEach(registerDynamicGetter);
+    worldImpact.dynamicSetters.forEach(registerDynamicSetter);
+    worldImpact.staticUses.forEach(registerStaticUse);
+    // TODO(johnniwinther): Register [worldImpact.instantiatedTypes] when it
+    // doesn't require a [Registry].
+    worldImpact.checkedTypes.forEach(registerIsCheck);
+    worldImpact.closurizedFunctions.forEach(registerGetOfStaticFunction);
+  }
+
+  // TODO(johnniwinther): Remove the need for passing the [registry].
   void registerInstantiatedType(InterfaceType type, Registry registry,
                                 {bool mirrorUsage: false}) {
     task.measure(() {
@@ -94,12 +129,6 @@ abstract class Enqueuer {
       processInstantiatedClass(cls);
       compiler.backend.registerInstantiatedType(type, registry);
     });
-  }
-
-  void registerInstantiatedClass(ClassElement cls, Registry registry,
-                                 {bool mirrorUsage: false}) {
-    cls.ensureResolved(compiler);
-    registerInstantiatedType(cls.rawType, registry, mirrorUsage: mirrorUsage);
   }
 
   bool checkNoEnqueuedInvokedInstanceMethods() {
@@ -350,7 +379,8 @@ abstract class Enqueuer {
     if (includeClass) {
       logEnqueueReflectiveAction(cls, "register");
       ClassElement decl = cls.declaration;
-      registerInstantiatedClass(decl, compiler.mirrorDependencies,
+      decl.ensureResolved(compiler);
+      registerInstantiatedType(decl.rawType, compiler.mirrorDependencies,
           mirrorUsage: true);
     }
     // If the class is never instantiated, we know nothing of it can possibly
@@ -380,7 +410,8 @@ abstract class Enqueuer {
     for (ClassElement cls in classes) {
       if (compiler.backend.referencedFromMirrorSystem(cls)) {
         logEnqueueReflectiveAction(cls);
-        registerInstantiatedClass(cls, compiler.mirrorDependencies,
+        cls.ensureResolved(compiler);
+        registerInstantiatedType(cls.rawType, compiler.mirrorDependencies,
             mirrorUsage: true);
       }
     }
@@ -564,7 +595,7 @@ abstract class Enqueuer {
     universe.fieldSetters.add(element);
   }
 
-  void registerIsCheck(DartType type, Registry registry) {
+  void registerIsCheck(DartType type) {
     type = universe.registerIsCheck(type, compiler);
     // Even in checked mode, type annotations for return type and argument
     // types do not imply type checks, so there should never be a check
@@ -836,7 +867,7 @@ class CodegenEnqueuer extends Enqueuer {
 
   bool internalAddToWorkList(Element element) {
     // Don't generate code for foreign elements.
-    if (element.isForeign(compiler.backend)) return false;
+    if (compiler.backend.isForeign(element)) return false;
 
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.

@@ -39,7 +39,7 @@ var tests = [
   await script.load();
   await hasStoppedAtBreakpoint(isolate);
   // Sanity check.
-  expect(isolate.pauseEvent.eventType, equals(ServiceEvent.kPauseBreakpoint));
+  expect(isolate.pauseEvent.kind, equals(ServiceEvent.kPauseBreakpoint));
 },
 
 // Get stack
@@ -58,7 +58,7 @@ var tests = [
   for (var frame in stack['frames']) {
     print('checking frame $frameDepth');
     expect(frame.type, equals('Frame'));
-    expect(frame['depth'], equals(frameDepth++));
+    expect(frame['index'], equals(frameDepth++));
     expect(frame['code'].type, equals('Code'));
     expect(frame['function'].type, equals('Function'));
     expect(frame['script'].type, equals('Script'));
@@ -74,12 +74,11 @@ var tests = [
   var msgHandlerObjectId;
   for (var message in stack['messages']) {
     print('checking message $messageDepth');
-    expect(message.type, equals('Message'));
-    expect(message['_destinationPort'], isNotNull);
-    expect(message['depth'], equals(messageDepth++));
+    expect(message['index'], equals(messageDepth++));
     expect(message['name'], isNotNull);
     expect(message['size'], greaterThanOrEqualTo(1));
-    expect(message['priority'], isNotNull);
+    expect(message['_priority'], isNotNull);
+    expect(message['_destinationPort'], isNotNull);
     expect(message['handlerFunction'].type, equals('Function'));
     if (message['handlerFunction'].name.contains('msgHandler')) {
       msgHandlerObjectId = message['messageObjectId'];

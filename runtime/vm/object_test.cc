@@ -4331,7 +4331,8 @@ TEST_CASE(PrintJSONPrimitives) {
         "\"id\":\"\",\"name\":\"toString\","
         "\"owner\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"bool\"},"
-        "\"kind\":\"RegularFunction\"}",
+        "\"_kind\":\"RegularFunction\","
+        "\"static\":false,\"const\":false}",
         buffer);
   }
   // Library reference
@@ -4351,9 +4352,12 @@ TEST_CASE(PrintJSONPrimitives) {
     Bool::True().PrintJSON(&js, true);
     elideSubstring("classes", js.ToCString(), buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@bool\","
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"Bool\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"bool\"},\"fixedId\":true,"
+        "\"name\":\"bool\"},"
+        "\"kind\":\"Bool\","
+        "\"fixedId\":true,"
         "\"id\":\"objects\\/bool-true\",\"valueAsString\":\"true\"}",
         buffer);
   }
@@ -4365,10 +4369,13 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("classes", js.ToCString(), buffer);
     elideSubstring("_Smi@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@int\",\"_vmType\":\"@Smi\","
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"Smi\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Smi\","
-        "\"_vmName\":\"\"},\"fixedId\":true,"
+        "\"_vmName\":\"\"},"
+        "\"kind\":\"Int\","
+        "\"fixedId\":true,"
         "\"id\":\"objects\\/int-7\",\"valueAsString\":\"7\"}",
         buffer);
   }
@@ -4381,9 +4388,11 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_Mint@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@int\",\"_vmType\":\"@Mint\","
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"Mint\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Mint\",\"_vmName\":\"\"},"
+        "\"kind\":\"Int\","
         "\"id\":\"\",\"valueAsString\":\"-9223372036854775808\"}",
         buffer);
   }
@@ -4398,9 +4407,11 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_Bigint@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@int\",\"_vmType\":\"@Bigint\","
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"Bigint\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Bigint\",\"_vmName\":\"\"},"
+        "\"kind\":\"Int\","
         "\"id\":\"\",\"valueAsString\":\"44444444444444444444444444444444\"}",
         buffer);
   }
@@ -4413,9 +4424,11 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_Double@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@double\","
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"Double\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_Double\",\"_vmName\":\"\"},"
+        "\"kind\":\"Double\","
         "\"id\":\"\",\"valueAsString\":\"0.1234\"}",
         buffer);
   }
@@ -4428,9 +4441,11 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_OneByteString@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@String\","
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"String\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_OneByteString\",\"_vmName\":\"\"},"
+        "\"kind\":\"String\","
         "\"id\":\"\",\"valueAsString\":\"dw\"}",
         buffer);
   }
@@ -4443,9 +4458,11 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_List@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@List\",\"_vmType\":\"@Array\","
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"Array\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_List\",\"_vmName\":\"\"},"
+        "\"kind\":\"List\","
         "\"id\":\"\",\"length\":0}",
         buffer);
   }
@@ -4459,24 +4476,31 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_GrowableList@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@List\",\"_vmType\":\"@GrowableObjectArray\","
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"GrowableObjectArray\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_GrowableList\","
-        "\"_vmName\":\"\"},\"id\":\"\",\"length\":0}",
+        "\"_vmName\":\"\"},"
+        "\"kind\":\"List\","
+        "\"id\":\"\",\"length\":0}",
         buffer);
   }
   // LinkedHashMap reference
   {
     JSONStream js;
-    const LinkedHashMap& array = LinkedHashMap::Handle(LinkedHashMap::New());
+    const LinkedHashMap& array =
+        LinkedHashMap::Handle(LinkedHashMap::NewDefault());
     array.PrintJSON(&js, true);
     elideSubstring("classes", js.ToCString(), buffer);
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_InternalLinkedHashMap@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Instance\",\"_vmType\":\"@LinkedHashMap\","
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"LinkedHashMap\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_InternalLinkedHashMap\",\"_vmName\":\"\"},\"id\":\"\"}",
+        "\"name\":\"_InternalLinkedHashMap\",\"_vmName\":\"\"},"
+        "\"kind\":\"Map\","
+        "\"id\":\"\"}",
         buffer);
   }
   // UserTag reference
@@ -4488,9 +4512,11 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_UserTag@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Instance\",\"_vmType\":\"@UserTag\","
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"UserTag\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_UserTag\",\"_vmName\":\"\"},"
+        "\"kind\":\"PlainInstance\","
         "\"id\":\"\"}",
         buffer);
   }
@@ -4504,9 +4530,12 @@ TEST_CASE(PrintJSONPrimitives) {
     elideSubstring("objects", buffer, buffer);
     elideSubstring("_Type@", buffer, buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Type\","
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"Type\","
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
-        "\"name\":\"_Type\",\"_vmName\":\"\"},\"fixedId\":true,\"id\":\"\","
+        "\"name\":\"_Type\",\"_vmName\":\"\"},"
+        "\"kind\":\"Type\","
+        "\"fixedId\":true,\"id\":\"\","
         "\"typeClass\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"bool\"},\"name\":\"bool\"}",
         buffer);
@@ -4516,7 +4545,10 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Object::null_object().PrintJSON(&js, true);
     EXPECT_STREQ(
-        "{\"type\":\"@null\",\"fixedId\":true,"
+        "{\"type\":\"@Instance\","
+        "\"_vmType\":\"null\","
+        "\"kind\":\"Null\","
+        "\"fixedId\":true,"
         "\"id\":\"objects\\/null\","
         "\"valueAsString\":\"null\"}",
         js.ToCString());
@@ -4526,8 +4558,8 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Object::sentinel().PrintJSON(&js, true);
     EXPECT_STREQ(
-        "{\"type\":\"Sentinel\",\"fixedId\":true,"
-        "\"id\":\"objects\\/not-initialized\","
+        "{\"type\":\"Sentinel\","
+        "\"kind\":\"NotInitialized\","
         "\"valueAsString\":\"<not initialized>\"}",
         js.ToCString());
   }
@@ -4536,8 +4568,8 @@ TEST_CASE(PrintJSONPrimitives) {
     JSONStream js;
     Object::transition_sentinel().PrintJSON(&js, true);
     EXPECT_STREQ(
-        "{\"type\":\"Sentinel\",\"fixedId\":true,"
-        "\"id\":\"objects\\/being-initialized\","
+        "{\"type\":\"Sentinel\","
+        "\"kind\":\"BeingInitialized\","
         "\"valueAsString\":\"<being initialized>\"}",
         js.ToCString());
   }
@@ -4550,7 +4582,7 @@ TEST_CASE(PrintJSONPrimitives) {
     tok.PrintJSON(&js, true);
     elideSubstring("objects", js.ToCString(), buffer);
     EXPECT_STREQ(
-        "{\"type\":\"@Object\",\"_vmType\":\"@LiteralToken\",\"id\":\"\"}",
+        "{\"type\":\"@Object\",\"_vmType\":\"LiteralToken\",\"id\":\"\"}",
         buffer);
   }
 }
@@ -4605,6 +4637,73 @@ TEST_CASE(HashCode) {
   Integer& expected = Integer::Handle();
   expected ^= foo.HashCode();
   EXPECT(result.IsIdenticalTo(expected));
+}
+
+
+static void CheckIdenticalHashStructure(const Instance& a, const Instance& b) {
+  const char* kScript =
+      "(a, b) {\n"
+      "  if (a._usedData != b._usedData ||\n"
+      "      a._deletedKeys != b._deletedKeys ||\n"
+      "      a._hashMask != b._hashMask ||\n"
+      "      a._index.length != b._index.length ||\n"
+      "      a._data.length != b._data.length) {\n"
+      "    return false;\n"
+      "  }\n"
+      "  for (var i = 0; i < a._index.length; ++i) {\n"
+      "    if (a._index[i] != b._index[i]) {\n"
+      "      return false;\n"
+      "    }\n"
+      "  }\n"
+      "  for (var i = 0; i < a._data.length; ++i) {\n"
+      "    var ad = a._data[i];\n"
+      "    var bd = b._data[i];\n"
+      "    if (!identical(ad, bd) && !(ad == a && bd == b)) {\n"
+      "      return false;\n"
+      "    }\n"
+      "  }\n"
+      "  return true;\n"
+      "}(a, b)";
+  String& name = String::Handle();
+  Array& param_names = Array::Handle(Array::New(2));
+  name = String::New("a");
+  param_names.SetAt(0, name);
+  name = String::New("b");
+  param_names.SetAt(1, name);
+  Array& param_values = Array::Handle(Array::New(2));
+  param_values.SetAt(0, a);
+  param_values.SetAt(1, b);
+  name = String::New(kScript);
+  Library& lib = Library::Handle(Library::CollectionLibrary());
+  EXPECT(lib.Evaluate(name, param_names, param_values) == Bool::True().raw());
+}
+
+
+TEST_CASE(LinkedHashMap) {
+  // Check that initial index size and hash mask match in Dart vs. C++.
+  // 1. Create an empty custom linked hash map in Dart.
+  const char* kScript =
+      "import 'dart:collection';\n"
+      "makeMap() {\n"
+      "  Function eq = (a, b) => true;\n"
+      "  Function hc = (a) => 42;\n"
+      "  return new LinkedHashMap(equals: eq, hashCode: hc);\n"
+      "}";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
+  EXPECT_VALID(h_result);
+
+  // 2. Create an empty internalized LinkedHashMap in C++.
+  Instance& dart_map = Instance::Handle();
+  dart_map ^= Api::UnwrapHandle(h_result);
+  LinkedHashMap& cc_map = LinkedHashMap::Handle(LinkedHashMap::NewDefault());
+
+  // 3. Expect them to have identical structure.
+  CheckIdenticalHashStructure(dart_map, cc_map);
 }
 
 }  // namespace dart

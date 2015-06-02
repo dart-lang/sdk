@@ -99,6 +99,12 @@
     <hr>
 
     <div class="content">
+      <eval-box callback="{{ evaluate }}"></eval-box>
+    </div>
+
+    <hr>
+
+    <div class="content">
       <template if="{{ cls.fields.isNotEmpty }}">
         fields ({{ cls.fields.length }})
         <curly-block expand="{{ cls.fields.length <= 8 }}">
@@ -109,8 +115,8 @@
                   <field-ref ref="{{ field }}"></field-ref>
                 </div>
                 <div class="memberValue">
-                  <template if="{{ field.value != null }}">
-                    <any-service-ref ref="{{ field.value }}"></any-service-ref>
+                  <template if="{{ field.staticValue != null }}">
+                    <any-service-ref ref="{{ field.staticValue }}"></any-service-ref>
                   </template>
                 </div>
               </div>
@@ -199,10 +205,9 @@
         </template>
     </div>
 
+    <hr>
+
     <div class="content-centered-big">
-      <hr>
-      <eval-box callback="{{ evaluate }}"></eval-box>
-      <hr>
       <script-inset script="{{ cls.script }}"
                     startPos="{{ cls.tokenPos }}"
                     endPos="{{ cls.endTokenPos }}">

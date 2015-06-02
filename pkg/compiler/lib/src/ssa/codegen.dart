@@ -1285,7 +1285,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitTruncatingDivide(HTruncatingDivide node) {
     assert(node.isUInt31(compiler));
-    assert(node.left.isUInt32(compiler));
+    // TODO(karlklose): Enable this assertion again when type propagation is
+    // fixed. Issue 23555.
+//    assert(node.left.isUInt32(compiler));
     assert(node.right.isPositiveInteger(compiler));
     use(node.left);
     js.Expression jsLeft = pop();

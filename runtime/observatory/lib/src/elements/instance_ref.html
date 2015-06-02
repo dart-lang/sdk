@@ -42,7 +42,8 @@
         </a>
       </template>
 
-      <template if="{{ ref.isPlainInstance }}">
+      <!-- TODO(rmacnak): Specialized view for maps. -->
+      <template if="{{ ref.isPlainInstance || ref.isMap }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">

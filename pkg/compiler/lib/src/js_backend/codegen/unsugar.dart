@@ -2,8 +2,7 @@ library dart2js.unsugar_cps;
 
 import '../../cps_ir/cps_ir_nodes.dart';
 
-// TODO(karlklose): share the [ParentVisitor].
-import '../../cps_ir/optimizers.dart';
+import '../../cps_ir/optimizers.dart' show ParentVisitor;
 import '../../constants/expressions.dart';
 import '../../constants/values.dart';
 import '../../elements/elements.dart' show
@@ -124,14 +123,14 @@ class UnsugarVisitor extends RecursiveVisitor {
     //       body;
     //
     Continuation originalBody = new Continuation(<Parameter>[]);
-    originalBody.body = function.body.body;
+    originalBody.body = function.body;
 
     Continuation returnFalse = new Continuation(<Parameter>[]);
     Primitive falsePrimitive = falseConstant;
     returnFalse.body =
         new LetPrim(falsePrimitive,
             new InvokeContinuation(
-                function.body.returnContinuation, <Primitive>[falsePrimitive]));
+                function.returnContinuation, <Primitive>[falsePrimitive]));
 
     Primitive nullPrimitive = nullConstant;
     Primitive test = new Identical(function.parameters.single, nullPrimitive);
@@ -144,7 +143,7 @@ class UnsugarVisitor extends RecursiveVisitor {
                         new IsTrue(test),
                         returnFalse,
                         originalBody))));
-    function.body.body = newBody;
+    function.body = newBody;
   }
 
   /// Insert a static call to [function] at the point of [node] with result
@@ -257,8 +256,6 @@ class UnsugarVisitor extends RecursiveVisitor {
     }
 
     node.arguments.insert(0, node.receiver);
-    node.callingConvention = CallingConvention.JS_INTERCEPTED;
-    assert(node.isValid);
     node.receiver = new Reference<Primitive>(newReceiver);
   }
 

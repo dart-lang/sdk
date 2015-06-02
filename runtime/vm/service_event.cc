@@ -93,8 +93,8 @@ const char* ServiceEvent::EventTypeToCString(EventType type) {
 
 void ServiceEvent::PrintJSON(JSONStream* js) const {
   JSONObject jsobj(js);
-  jsobj.AddProperty("type", "ServiceEvent");
-  jsobj.AddProperty("eventType", EventTypeToCString(type()));
+  jsobj.AddProperty("type", "Event");
+  jsobj.AddProperty("kind", EventTypeToCString(type()));
   jsobj.AddProperty("isolate", isolate());
   if (breakpoint() != NULL) {
     jsobj.AddProperty("breakpoint", breakpoint());
@@ -102,6 +102,8 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   if (top_frame() != NULL) {
     JSONObject jsFrame(&jsobj, "topFrame");
     top_frame()->PrintToJSONObject(&jsFrame);
+    intptr_t index = 0;  // Avoid ambiguity in call to AddProperty.
+    jsFrame.AddProperty("index", index);
   }
   if (exception() != NULL) {
     jsobj.AddProperty("exception", *(exception()));

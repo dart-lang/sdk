@@ -32,28 +32,25 @@ class CHA : public StackResource {
   }
 
   // Returns true if the class has subclasses.
-  // Updates set of leaf classes that we register optimized code with for lazy
-  // deoptimization.
   bool HasSubclasses(const Class& cls);
   bool HasSubclasses(intptr_t cid);
 
   // Return true if the class is implemented by some other class.
-  // Updates set of leaf classes that we register optimized code with for lazy
-  // deoptimization.
   bool IsImplemented(const Class& cls);
 
   // Returns true if any subclass of 'cls' contains the function.
-  // Updates set of leaf classes that we register optimized code with for lazy
-  // deoptimization.
   bool HasOverride(const Class& cls, const String& function_name);
 
   const GrowableArray<Class*>& leaf_classes() const {
     return leaf_classes_;
   }
 
- private:
+  // Adds class 'cls' to the list of guarded leaf classes, deoptimization occurs
+  // if any of those leaf classes gets subclassed through later loaded/finalized
+  // libraries. Only classes that were used for CHA optimizations are added.
   void AddToLeafClasses(const Class& cls);
 
+ private:
   Thread* thread_;
   GrowableArray<Class*> leaf_classes_;
   CHA* previous_;

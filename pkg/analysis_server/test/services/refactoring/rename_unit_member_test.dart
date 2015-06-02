@@ -65,6 +65,26 @@ class B extends A {
     assertRefactoringStatusOK(status);
   }
 
+  test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
+    indexTestUnit('''
+class Test {}
+''');
+    indexUnit('/lib.dart', '''
+library my.lib;
+import 'test.dart';
+
+main() {
+  new Test();
+}
+''');
+    createRenameRefactoringAtString('Test {}');
+    // check status
+    refactoring.newName = '_NewName';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Renamed class will be invisible in 'my.lib'.");
+  }
+
   test_checkFinalConditions_shadowedBy_MethodElement() async {
     indexTestUnit('''
 class Test {}

@@ -70,7 +70,7 @@ def target_builder(arch, mode):
   test_args = [sys.executable, test_py, '--progress=line', '--report',
                '--time', '--compiler=none', '--runtime=vm', '--write-debug-log',
                '--write-test-outcome-log', '--mode=' + mode, '--arch=' + arch,
-               '--exclude-suite=pkg']
+               '--exclude-suite=pkg,pkg_tested']
 
   revision = os.environ['BUILDBOT_GOT_REVISION']
   tarball = tarball_name(arch, mode, revision)

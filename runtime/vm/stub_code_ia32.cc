@@ -1293,7 +1293,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    RangeCollectionMode range_collection_mode) {
+    RangeCollectionMode range_collection_mode,
+    bool optimized) {
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
@@ -1310,7 +1311,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 #endif  // DEBUG
 
   Label stepping, done_stepping;
-  if (FLAG_support_debugger) {
+  if (FLAG_support_debugger && !optimized) {
     __ Comment("Check single stepping");
     uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
         Isolate::single_step_offset();
@@ -1468,7 +1469,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ jmp(EBX);
   }
 
-  if (FLAG_support_debugger) {
+  if (FLAG_support_debugger && !optimized) {
     __ Bind(&stepping);
     __ EnterStubFrame();
     __ pushl(ECX);
@@ -1572,7 +1573,8 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
       kInlineCacheMissHandlerOneArgRuntimeEntry,
       Token::kILLEGAL,
-      kIgnoreRanges);
+      kIgnoreRanges,
+      true /* optimized */);
 }
 
 
@@ -1582,7 +1584,8 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
      kInlineCacheMissHandlerTwoArgsRuntimeEntry,
      Token::kILLEGAL,
-     kIgnoreRanges);
+     kIgnoreRanges,
+     true /* optimized */);
 }
 
 
@@ -1707,28 +1710,6 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popl(EAX);  // Address of original stub.
   __ popl(ECX);  // Restore IC data.
-  __ LeaveFrame();
-  __ jmp(EAX);   // Jump to original stub.
-}
-
-
-// ECX: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
-// stub).
-// EDX: Contains an arguments descriptor.
-void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  // Save arguments to original stub.
-  __ pushl(ECX);
-  __ pushl(EDX);
-  // Room for result. Debugger stub returns address of the
-  // unpatched runtime stub.
-  const Immediate& raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  __ pushl(raw_null);  // Room for result.
-  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
-  __ popl(EAX);  // Address of original stub.
-  __ popl(EDX);  // Restore arguments to original stub.
-  __ popl(ECX);
   __ LeaveFrame();
   __ jmp(EAX);   // Jump to original stub.
 }

@@ -10,7 +10,7 @@
 #include "vm/cpuinfo.h"
 #include "vm/simulator.h"
 
-#if defined(HOST_ARCH_ARM64)
+#if !defined(USING_SIMULATOR)
 #include <sys/syscall.h>  /* NOLINT */
 #include <unistd.h>  /* NOLINT */
 #endif
@@ -18,7 +18,7 @@
 namespace dart {
 
 void CPU::FlushICache(uword start, uword size) {
-#if defined(HOST_ARCH_ARM64)
+#if !defined(USING_SIMULATOR)
   // Nothing to do. Flushing no instructions.
   if (size == 0) {
     return;
@@ -41,7 +41,7 @@ void CPU::FlushICache(uword start, uword size) {
 
 const char* CPU::Id() {
   return
-#if !defined(HOST_ARCH_ARM64)
+#if defined(USING_SIMULATOR)
   "sim"
 #endif  // !defined(HOST_ARCH_ARM64)
   "arm64";
@@ -54,7 +54,7 @@ bool HostCPUFeatures::initialized_ = false;
 #endif
 
 
-#if defined(HOST_ARCH_ARM64)
+#if !defined(USING_SIMULATOR)
 void HostCPUFeatures::InitOnce() {
   CpuInfo::InitOnce();
   hardware_ = CpuInfo::GetCpuModel();
@@ -75,7 +75,7 @@ void HostCPUFeatures::Cleanup() {
   CpuInfo::Cleanup();
 }
 
-#else
+#else  // !defined(USING_SIMULATOR)
 
 void HostCPUFeatures::InitOnce() {
   CpuInfo::InitOnce();
@@ -96,7 +96,7 @@ void HostCPUFeatures::Cleanup() {
   hardware_ = NULL;
   CpuInfo::Cleanup();
 }
-#endif  // defined(HOST_ARCH_ARM64)
+#endif  // !defined(USING_SIMULATOR)
 
 }  // namespace dart
 

@@ -2197,12 +2197,14 @@ analyzeTopLevel(String text, [expectedWarnings]) {
           if (!e.isSynthesized) {
             element = e;
             node = element.parseNode(compiler);
-            mapping = compiler.resolver.resolve(element);
+            compiler.resolver.resolve(element);
+            mapping = element.treeElements;
           }
         });
       } else {
         node = element.parseNode(compiler);
-        mapping = compiler.resolver.resolve(element);
+        compiler.resolver.resolve(element);
+        mapping = element.treeElements;
       }
     }
     // Type check last class declaration or member.

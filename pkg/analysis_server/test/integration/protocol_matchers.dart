@@ -643,6 +643,7 @@ final Matcher isSearchResultsParams = new LazyMatcher(() => new MatchesJsonObjec
  *   "file": FilePath
  *   "selectionOffset": int
  *   "selectionLength": int
+ *   "lineLength": optional int
  * }
  */
 final Matcher isEditFormatParams = new LazyMatcher(() => new MatchesJsonObject(
@@ -650,6 +651,8 @@ final Matcher isEditFormatParams = new LazyMatcher(() => new MatchesJsonObject(
     "file": isFilePath,
     "selectionOffset": isInt,
     "selectionLength": isInt
+  }, optionalFields: {
+    "lineLength": isInt
   }));
 
 /**

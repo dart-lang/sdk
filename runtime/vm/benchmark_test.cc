@@ -607,4 +607,42 @@ BENCHMARK(SimpleMessage) {
   benchmark->set_score(elapsed_time);
 }
 
+
+BENCHMARK(LargeMap) {
+  const char* kScript =
+      "makeMap() {\n"
+      "  Map m = {};\n"
+      "  for (int i = 0; i < 100000; ++i) m[i*13+i*(i>>7)] = i;\n"
+      "  return m;\n"
+      "}";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
+  EXPECT_VALID(h_result);
+  Instance& map = Instance::Handle();
+  map ^= Api::UnwrapHandle(h_result);
+  const intptr_t kLoopCount = 100;
+  Isolate* isolate = Isolate::Current();
+  uint8_t* buffer;
+  Timer timer(true, "Large Map");
+  timer.Start();
+  for (intptr_t i = 0; i < kLoopCount; i++) {
+    StackZone zone(isolate);
+    MessageWriter writer(&buffer, &malloc_allocator, true);
+    writer.WriteMessage(map);
+    intptr_t buffer_len = writer.BytesWritten();
+
+    // Read object back from the snapshot.
+    MessageSnapshotReader reader(buffer,
+                                 buffer_len,
+                                 isolate,
+                                 zone.GetZone());
+    reader.ReadObject();
+    free(buffer);
+  }
+  timer.Stop();
+  int64_t elapsed_time = timer.TotalElapsedTime();
+  benchmark->set_score(elapsed_time);
+}
+
 }  // namespace dart

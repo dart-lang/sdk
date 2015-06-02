@@ -288,11 +288,11 @@ class NextCommand extends DebuggerCommand {
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
       var event = debugger.isolate.pauseEvent;
-      if (event.eventType == ServiceEvent.kPauseStart) {
+      if (event.kind == ServiceEvent.kPauseStart) {
         debugger.console.print("Type 'continue' to start the isolate");
         return new Future.value(null);
       }
-      if (event.eventType == ServiceEvent.kPauseExit) {
+      if (event.kind == ServiceEvent.kPauseExit) {
         debugger.console.print("Type 'continue' to exit the isolate");
         return new Future.value(null);
       }
@@ -320,11 +320,11 @@ class StepCommand extends DebuggerCommand {
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
       var event = debugger.isolate.pauseEvent;
-      if (event.eventType == ServiceEvent.kPauseStart) {
+      if (event.kind == ServiceEvent.kPauseStart) {
         debugger.console.print("Type 'continue' to start the isolate");
         return new Future.value(null);
       }
-      if (event.eventType == ServiceEvent.kPauseExit) {
+      if (event.kind == ServiceEvent.kPauseExit) {
         debugger.console.print("Type 'continue' to exit the isolate");
         return new Future.value(null);
       }
@@ -381,7 +381,7 @@ class BreakCommand extends DebuggerCommand {
         try {
           await debugger.isolate.addBreakpointAtEntry(loc.function);
         } on ServerRpcException catch(e) {
-          if (e.code == ServerRpcException.kNoBreakAtFunction) {
+          if (e.code == ServerRpcException.kCannotAddBreakpoint) {
             debugger.console.print('Unable to set breakpoint at ${loc}');
           } else {
             rethrow;
@@ -398,7 +398,7 @@ class BreakCommand extends DebuggerCommand {
         try {
           await debugger.isolate.addBreakpoint(loc.script, loc.line);
         } on ServerRpcException catch(e) {
-          if (e.code == ServerRpcException.kNoBreakAtLine) {
+          if (e.code == ServerRpcException.kCannotAddBreakpoint) {
             debugger.console.print('Unable to set breakpoint at ${loc}');
           } else {
             rethrow;
@@ -932,7 +932,7 @@ class ObservatoryDebugger extends Debugger {
     // debugger, this could introduce a race.
     return (isolate != null &&
             isolate.pauseEvent != null &&
-            isolate.pauseEvent.eventType != ServiceEvent.kResume);
+            isolate.pauseEvent.kind != ServiceEvent.kResume);
   }
 
   void warnOutOfDate() {
@@ -974,10 +974,10 @@ class ObservatoryDebugger extends Debugger {
   }
 
   void _reportPause(ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseStart) {
+    if (event.kind == ServiceEvent.kPauseStart) {
       console.print(
           "Paused at isolate start (type 'continue' to start the isolate')");
-    } else if (event.eventType == ServiceEvent.kPauseExit) {
+    } else if (event.kind == ServiceEvent.kPauseExit) {
       console.print(
           "Paused at isolate exit (type 'continue' to exit the isolate')");
     }
@@ -1005,7 +1005,7 @@ class ObservatoryDebugger extends Debugger {
   Future _reportBreakpointEvent(ServiceEvent event) {
     var bpt = event.breakpoint;
     var verb = null;
-    switch (event.eventType) {
+    switch (event.kind) {
       case ServiceEvent.kBreakpointAdded:
         verb = 'added';
         break;
@@ -1035,7 +1035,7 @@ class ObservatoryDebugger extends Debugger {
   }
 
   void _onEvent(ServiceEvent event) {
-    switch(event.eventType) {
+    switch(event.kind) {
       case ServiceEvent.kIsolateStart:
         {
           var iso = event.owner;
@@ -1230,7 +1230,7 @@ class DebuggerStackElement extends ObservatoryElement {
     DebuggerFrameElement frameElement = new Element.tag('debugger-frame');
     frameElement.frame = frameInfo;
 
-    if (frameInfo['depth'] == currentFrame) {
+    if (frameInfo['index'] == currentFrame) {
       frameElement.setCurrent(true);
     } else {
       frameElement.setCurrent(false);
@@ -1347,7 +1347,7 @@ class DebuggerStackElement extends ObservatoryElement {
     List frameElements = $['frameList'].children;
     for (var frameElement in frameElements) {
       var dbgFrameElement = frameElement.children[0];
-      if (dbgFrameElement.frame['depth'] == currentFrame) {
+      if (dbgFrameElement.frame['index'] == currentFrame) {
         dbgFrameElement.setCurrent(true);
       } else {
         dbgFrameElement.setCurrent(false);
@@ -1429,7 +1429,7 @@ class DebuggerFrameElement extends ObservatoryElement {
 
   void updateFrame(ObservableMap newFrame) {
     assert(matchFrame(newFrame));
-    frame['depth'] = newFrame['depth'];
+    frame['index'] = newFrame['index'];
     frame['tokenPos'] = newFrame['tokenPos'];
     frame['vars'] = newFrame['vars'];
   }
@@ -1503,7 +1503,7 @@ class DebuggerMessageElement extends ObservatoryElement {
   void updateMessage(ServiceMap newMessage) {
     bool messageChanged =
         (message['messageObjectId'] != newMessage['messageObjectId']);
-    message['depth'] = newMessage['depth'];
+    message['index'] = newMessage['index'];
     message['handlerFunction'] = newMessage['handlerFunction'];
     message['messageObjectId'] = newMessage['messageObjectId'];
     if (messageChanged) {

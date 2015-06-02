@@ -168,7 +168,7 @@ void SSALivenessAnalysis::ComputeInitialSets() {
       // Initialize location summary for instruction.
       current->InitializeLocationSummary(zone(), true);  // opt
       LocationSummary* locs = current->locs();
-#if DEBUG
+#if defined(DEBUG)
       locs->DiscoverWritableInputs();
 #endif
 

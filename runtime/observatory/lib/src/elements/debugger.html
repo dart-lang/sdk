@@ -241,7 +241,7 @@
       <a on-click="{{ toggleExpand }}">
         <div class="frameSummary">
           <div class="frameSummaryText">
-            <div class="frameId"><b>frame {{ frame['depth'] }}</b></div>
+            <div class="frameId"><b>frame {{ frame['index'] }}</b></div>
             <function-ref ref="{{ frame['function'] }}"></function-ref>
             ( <script-ref ref="{{ frame['script'] }}"
                           pos="{{ frame['tokenPos'] }}">
@@ -355,7 +355,7 @@
       <a on-click="{{ toggleExpand }}">
         <div class="messageSummary">
           <div class="messageSummaryText">
-            <div class="messageId"><b>message {{ message['depth'] }}</b></div>
+            <div class="messageId"><b>message {{ message['index'] }}</b></div>
             <function-ref ref="{{ message['handlerFunction'] }}"></function-ref>
             ( <script-ref ref="{{ message['handlerScript'] }}"
                           pos="{{ message['handlerTokenPos'] }}">

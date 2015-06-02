@@ -545,7 +545,7 @@ class CpuProfileElement extends ObservatoryElement {
       bool handled = false;
       if (e is ServerRpcException) {
         ServerRpcException se = e;
-        if (se.code == ServerRpcException.kProfilingDisabled) {
+        if (se.code == ServerRpcException.kFeatureDisabled) {
           state = 'Disabled';
           handled = true;
         }
@@ -876,7 +876,7 @@ class CpuProfileTableElement extends ObservatoryElement {
       bool handled = false;
       if (e is ServerRpcException) {
         ServerRpcException se = e;
-        if (se.code == ServerRpcException.kProfilingDisabled) {
+        if (se.code == ServerRpcException.kFeatureDisabled) {
           state = 'Disabled';
           handled = true;
         }

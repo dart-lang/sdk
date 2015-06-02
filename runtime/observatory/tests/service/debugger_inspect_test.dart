@@ -25,7 +25,7 @@ var tests = [
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
     print(event);
-    if (event.eventType == ServiceEvent.kInspect) {
+    if (event.kind == ServiceEvent.kInspect) {
       expect((event.inspectee as Instance).clazz.name, equals('Point'));
 
       subscription.cancel();

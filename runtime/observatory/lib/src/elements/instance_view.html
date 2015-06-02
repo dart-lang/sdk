@@ -88,8 +88,6 @@
                 </function-ref>
               </div>
             </div>
-          </template>
-          <template if="{{ instance.isClosure }}">
             <div class="memberItem">
               <div class="memberName">closure context</div>
               <div class="memberValue">
@@ -128,9 +126,15 @@
       <hr>
 
       <div class="content">
+        <eval-box callback="{{ evaluate }}"></eval-box>
+      </div>
+
+      <hr>
+
+      <div class="content">
         <template if="{{ instance.nativeFields.isNotEmpty }}">
           native fields ({{ instance.nativeFields.length }})
-          <curly-block expand="{{ instance.nativeFields.length <= 8 }}">
+          <curly-block expand="{{ instance.nativeFields.length <= 100 }}">
             <div class="memberList">
               <template repeat="{{ field in instance.nativeFields }}">
                 <div class="memberItem">
@@ -144,7 +148,7 @@
 
         <template if="{{ instance.fields.isNotEmpty }}">
           fields ({{ instance.fields.length }})
-          <curly-block expand="{{ instance.fields.length <= 8 }}">
+          <curly-block expand="{{ instance.fields.length <= 100 }}">
             <div class="memberList">
               <template repeat="{{ field in instance.fields }}">
                 <div class="memberItem">
@@ -177,11 +181,6 @@
         </template>
       </div>
 
-      <hr>
-
-      <div class="content">
-        <eval-box callback="{{ evaluate }}"></eval-box>
-      </div>
     </template>
     <view-footer></view-footer>
   </template>

@@ -76,9 +76,7 @@ abstract class CommonWebSocket {
 }
 
 /// A [CommonWebSocketVM] communicates with a Dart VM over a CommonWebSocket.
-/// The Dart VM can be embedded in Chromium or standalone. In the case of
-/// Chromium, we make the service requests via the Chrome Remote Debugging
-/// Protocol.
+/// The Dart VM can be embedded in Chromium or standalone.
 abstract class CommonWebSocketVM extends VM {
   final Completer _connected = new Completer();
   final Completer _disconnected = new Completer<String>();

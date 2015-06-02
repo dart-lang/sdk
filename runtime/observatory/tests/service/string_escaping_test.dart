@@ -54,15 +54,19 @@ var tests = [
   isolate.rootLibrary.load().then((Library lib) {
     expectFullString(String varName, String varValueAsString) {
       Field field = lib.variables.singleWhere((v) => v.name == varName);
-      Instance value = field.value;
-      expect(value.valueAsString, equals(varValueAsString));
-      expect(value.valueAsStringIsTruncated, isFalse);
+      field.load().then((_) {
+        Instance value = field.staticValue;
+        expect(value.valueAsString, equals(varValueAsString));
+        expect(value.valueAsStringIsTruncated, isFalse);
+      });
     }
     expectTruncatedString(String varName, String varValueAsString) {
       Field field = lib.variables.singleWhere((v) => v.name == varName);
-      Instance value = field.value;
-      expect(varValueAsString, startsWith(value.valueAsString));
-      expect(value.valueAsStringIsTruncated, isTrue);
+      field.load().then((_) {
+        Instance value = field.staticValue;
+        expect(varValueAsString, startsWith(value.valueAsString));
+        expect(value.valueAsStringIsTruncated, isTrue);
+      });
     }
 
     script();  // Need to initialize variables in the testing isolate.

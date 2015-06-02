@@ -170,7 +170,7 @@ class BinaryOperator {
 
   /// The if-null ?? operator.
   static const BinaryOperator IF_NULL =
-      const _LogicalOperator(BinaryOperatorKind.IF_NULL, '??');
+      const _IfNullOperator(BinaryOperatorKind.IF_NULL, '??');
 
   static BinaryOperator parse(String value) {
     switch (value) {
@@ -219,6 +219,16 @@ class _LogicalOperator extends BinaryOperator {
   bool get isUserDefinable => false;
 
   String get selectorName => null;
+}
+
+/// The operators ?? is not user definable.
+class _IfNullOperator extends BinaryOperator {
+  const _IfNullOperator(BinaryOperatorKind kind, String name)
+      : super._(kind, name);
+
+  bool get isUserDefinable => false;
+
+  String get selectorName => '??';
 }
 
 enum AssignmentOperatorKind {

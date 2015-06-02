@@ -370,8 +370,9 @@ convert/chunked_conversion_utf82_test: Crash # Instance of 'TypeOperator': type 
 convert/chunked_conversion_utf86_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/chunked_conversion_utf87_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/json_chunk_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/json_lib_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
+convert/json_lib_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 convert/json_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+convert/json_toEncodable_reviver_test: RuntimeError # Please triage this failure.
 convert/json_utf8_chunk_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/json_util_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/latin1_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -404,7 +405,7 @@ mirrors/constructor_kinds_test/none: Crash # Instance of 'TypeOperator': type ch
 mirrors/constructor_private_name_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/constructors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/dart2js_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/declarations_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for Map<Symbol, DeclarationMirror>.
+mirrors/declarations_type_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 mirrors/deferred_mirrors_metadata_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
 mirrors/deferred_mirrors_metatarget_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
 mirrors/deferred_mirrors_update_test: Crash # (l.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
@@ -439,11 +440,11 @@ mirrors/generic_superclass_test/none: Crash # Instance of 'TypeOperator': type c
 mirrors/generic_type_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/generics_double_substitution_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/generics_double_substitution_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_dynamic_test: Crash # Please triage this failure.
+mirrors/generics_dynamic_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/generics_special_types_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/generics_substitution_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/generics_test/01: Crash # Please triage this failure.
-mirrors/generics_test/none: Crash # Please triage this failure.
+mirrors/generics_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/generics_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/globalized_closures2_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/globalized_closures2_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/globalized_closures_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -579,9 +580,9 @@ mirrors/private_types_test: Crash # Instance of 'TypeOperator': type casts not i
 mirrors/proxy_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/raw_type_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/raw_type_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/redirecting_factory_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for Class<String, int>.
-mirrors/redirecting_factory_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for Class<String, int>.
-mirrors/redirecting_factory_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for Class<String, int>.
+mirrors/redirecting_factory_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/redirecting_factory_test/02: Crash # Please triage this failure.
+mirrors/redirecting_factory_test/none: Crash # Please triage this failure.
 mirrors/reflect_class_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/reflect_class_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/reflect_class_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -636,8 +637,5 @@ typed_data/constructor_checks_test: Crash # Instance of 'TypeOperator': type che
 typed_data/float32x4_shuffle_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 typed_data/float32x4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 typed_data/int32x4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/typed_data_hierarchy_int64_test: Crash # Instance of 'TypeOperator': type check unimplemented for List<int>.
 typed_data/typed_data_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/typed_data_sublist_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 typed_data/typed_list_iterable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/json_toEncodable_reviver_test : RuntimeError

@@ -15,7 +15,7 @@ DEFINE_FLAG(bool, trace_type_propagation, false,
             "Trace flow graph type propagation");
 
 DECLARE_FLAG(bool, propagate_types);
-DECLARE_FLAG(bool, use_cha);
+DECLARE_FLAG(bool, use_cha_deopt);
 
 
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
@@ -538,14 +538,18 @@ intptr_t CompileType::ToNullableCid() {
     } else if (type_->IsVoidType()) {
       cid_ = kNullCid;
     } else if (type_->HasResolvedTypeClass()) {
-      if (FLAG_use_cha) {
-        const Class& type_class = Class::Handle(type_->type_class());
-        CHA* cha = Thread::Current()->cha();
-        // Don't infer a cid from an abstract type for signature classes since
-        // there can be multiple compatible classes with different cids.
-        if (!type_class.IsSignatureClass() &&
-            !cha->IsImplemented(type_class) &&
-            !cha->HasSubclasses(type_class.id())) {
+      const Class& type_class = Class::Handle(type_->type_class());
+      CHA* cha = Thread::Current()->cha();
+      // Don't infer a cid from an abstract type for signature classes since
+      // there can be multiple compatible classes with different cids.
+      if (!type_class.IsSignatureClass() &&
+          !cha->IsImplemented(type_class) &&
+          !cha->HasSubclasses(type_class)) {
+        if (type_class.IsPrivate()) {
+          // Type of a private class cannot change through later loaded libs.
+          cid_ = type_class.id();
+        } else if (FLAG_use_cha_deopt) {
+          cha->AddToLeafClasses(type_class);
           cid_ = type_class.id();
         } else {
           cid_ = kDynamicCid;
@@ -772,10 +776,20 @@ CompileType ParameterInstr::ComputeType() const {
 
     // Receiver can't be null but can be an instance of a subclass.
     intptr_t cid = kDynamicCid;
-    if (FLAG_use_cha && type.HasResolvedTypeClass()) {
+
+    if (type.HasResolvedTypeClass()) {
+      Thread* thread = Thread::Current();
       const Class& type_class = Class::Handle(type.type_class());
-      if (!Thread::Current()->cha()->HasSubclasses(type_class.id())) {
-        cid = type_class.id();
+      if (!thread->cha()->HasSubclasses(type_class)) {
+        if (type_class.IsPrivate()) {
+          // Private classes can never be subclassed by later loaded libs.
+          cid = type_class.id();
+        } else {
+          if (FLAG_use_cha_deopt) {
+            thread->cha()->AddToLeafClasses(type_class);
+            cid = type_class.id();
+          }
+        }
       }
     }
 

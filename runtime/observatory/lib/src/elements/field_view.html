@@ -73,11 +73,11 @@
             </div>
           </div>
         </template>
-        <template if="{{ field.value != null }}">
+        <template if="{{ field.staticValue != null }}">
           <div class="memberItem">
             <div class="memberName">static value</div>
             <div class="memberValue">
-              <any-service-ref ref="{{ field.value }}"></any-service-ref>
+              <any-service-ref ref="{{ field.staticValue }}"></any-service-ref>
             </div>
           </div>
         </template>

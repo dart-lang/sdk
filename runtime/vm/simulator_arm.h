@@ -26,12 +26,14 @@ class RawObject;
 class SimulatorSetjmpBuffer;
 class Thread;
 
+#if !defined(SIMD_VALUE_T_)
 typedef struct {
   union {
     uint32_t u;
     float f;
   } data_[4];
 } simd_value_t;
+#endif
 
 class Simulator {
  public:

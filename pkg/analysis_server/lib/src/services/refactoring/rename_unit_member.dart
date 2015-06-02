@@ -15,6 +15,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/src/generated/ast.dart' show Identifier;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
@@ -117,6 +118,7 @@ class _RenameUnitMemberValidator {
   ElementKind elementKind;
   final String name;
   final bool isRename;
+  List<SearchMatch> references = <SearchMatch>[];
 
   final RefactoringStatus result = new RefactoringStatus();
 
@@ -127,14 +129,16 @@ class _RenameUnitMemberValidator {
   _RenameUnitMemberValidator.forRename(
       this.searchEngine, this.element, this.name)
       : isRename = true {
-    library = element.getAncestor((e) => e is LibraryElement);
+    library = element.library;
     elementKind = element.kind;
   }
 
   Future<RefactoringStatus> validate() async {
     _validateWillConflict();
     if (isRename) {
-      await _validateWillBeShadowed();
+      references = await searchEngine.searchReferences(element);
+      _validateWillBeInvisible();
+      _validateWillBeShadowed();
     }
     await _validateWillShadow();
     return result;
@@ -165,13 +169,27 @@ class _RenameUnitMemberValidator {
   }
 
   /**
-   * Validates if any usage of [element] renamed to [name] will be shadowed.
+   * Validates if any usage of [element] renamed to [name] will be invisible.
    */
-  Future _validateWillBeShadowed() async {
-    if (!isRename) {
+  void _validateWillBeInvisible() {
+    if (!Identifier.isPrivateName(name)) {
       return;
     }
-    List<SearchMatch> references = await searchEngine.searchReferences(element);
+    for (SearchMatch reference in references) {
+      Element refElement = reference.element;
+      LibraryElement refLibrary = refElement.library;
+      if (refLibrary != library) {
+        String message = format("Renamed {0} will be invisible in '{1}'.",
+            getElementKindName(element), getElementQualifiedName(refLibrary));
+        result.addError(message, newLocation_fromMatch(reference));
+      }
+    }
+  }
+
+  /**
+   * Validates if any usage of [element] renamed to [name] will be shadowed.
+   */
+  void _validateWillBeShadowed() {
     for (SearchMatch reference in references) {
       Element refElement = reference.element;
       ClassElement refClass = refElement.getAncestor((e) => e is ClassElement);

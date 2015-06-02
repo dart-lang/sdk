@@ -7,12 +7,10 @@ library heap_snapshot_element;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
-import 'heap_profile.dart';
 import 'package:observatory/app.dart';
 import 'package:observatory/service.dart';
 import 'package:observatory/elements.dart';
 import 'package:observatory/object_graph.dart';
-import 'package:logging/logging.dart';
 import 'package:polymer/polymer.dart';
 
 class DominatorTreeRow extends TableTreeRow {

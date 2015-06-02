@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/src/generated/ast.dart' show Identifier;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 
@@ -123,29 +124,32 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
  */
 class _ClassMemberValidator {
   final SearchEngine searchEngine;
+  final LibraryElement library;
   final Element element;
   final ClassElement elementClass;
   final ElementKind elementKind;
   final String name;
   final bool isRename;
 
+  final RefactoringStatus result = new RefactoringStatus();
   Set<Element> elements = new Set<Element>();
   List<SearchMatch> references = <SearchMatch>[];
 
   _ClassMemberValidator.forCreate(
       this.searchEngine, this.elementClass, this.name)
       : isRename = false,
+        library = null,
         element = null,
         elementKind = ElementKind.METHOD;
 
   _ClassMemberValidator.forRename(this.searchEngine, Element element, this.name)
       : isRename = true,
+        library = element.library,
         element = element,
         elementClass = element.enclosingElement,
         elementKind = element.kind;
 
   Future<RefactoringStatus> validate() async {
-    RefactoringStatus result = new RefactoringStatus();
     // check if there is a member with "newName" in the same ClassElement
     for (Element newNameMember in getChildren(elementClass, name)) {
       result.addError(format(
@@ -198,6 +202,10 @@ class _ClassMemberValidator {
         }
       }
     }
+    // visibility
+    if (isRename) {
+      _validateWillBeInvisible();
+    }
     // done
     return result;
   }
@@ -226,5 +234,23 @@ class _ClassMemberValidator {
           await searchEngine.searchReferences(element);
       references.addAll(elementReferences);
     });
+  }
+
+  /**
+   * Validates if any usage of [element] renamed to [name] will be invisible.
+   */
+  void _validateWillBeInvisible() {
+    if (!Identifier.isPrivateName(name)) {
+      return;
+    }
+    for (SearchMatch reference in references) {
+      Element refElement = reference.element;
+      LibraryElement refLibrary = refElement.library;
+      if (refLibrary != library) {
+        String message = format("Renamed {0} will be invisible in '{1}'.",
+            getElementKindName(element), getElementQualifiedName(refLibrary));
+        result.addError(message, newLocation_fromMatch(reference));
+      }
+    }
   }
 }

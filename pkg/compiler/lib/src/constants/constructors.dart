@@ -4,16 +4,17 @@
 
 library dart2js.constants.constructors;
 
-import '../elements/elements.dart';
-import 'expressions.dart';
-import 'values.dart';
+import '../dart2jslib.dart';
 import '../dart_types.dart';
+import '../elements/elements.dart';
 import '../resolution/resolution.dart';
 import '../resolution/operators.dart';
 import '../resolution/semantic_visitor.dart';
 import '../resolution/send_structure.dart';
-import '../dart2jslib.dart';
 import '../tree/tree.dart';
+import '../universe/universe.dart' show CallStructure;
+import 'expressions.dart';
+import 'values.dart';
 
 ConstantConstructor computeConstantConstructor(ResolvedAst resolvedAst) {
   ConstantConstructorComputer visitor =
@@ -80,7 +81,7 @@ class ConstantConstructorComputer extends SemanticVisitor
         _) {
     applyParameters(parameters, _);
     ConstructedConstantExpression constructorInvocation =
-        applyInitializers(initializers, _);
+        applyInitializers(node, _);
     return new GenerativeConstantConstructor(
         currentClass.thisType, defaultValues, fieldMap, constructorInvocation);
   }
@@ -93,7 +94,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       _) {
     applyParameters(parameters, _);
     ConstructedConstantExpression constructorInvocation =
-        applyInitializers(initializers, _);
+        applyInitializers(node, _);
     return new RedirectingGenerativeConstantConstructor(
         defaultValues, constructorInvocation);
   }
@@ -207,27 +208,17 @@ class ConstantConstructorComputer extends SemanticVisitor
   }
 
   /// Apply this visitor to the constructor [initializers].
-  ConstructedConstantExpression applyInitializers(NodeList initializers, _) {
+  ConstructedConstantExpression applyInitializers(
+      FunctionExpression constructor, _) {
     ConstructedConstantExpression constructorInvocation;
-    if (initializers != null) {
-      for (Node initializer in initializers) {
-        InitializerStructure structure =
-            computeInitializerStructure(initializer);
-        if (structure is SuperConstructorInvokeStructure ||
-            structure is ThisConstructorInvokeStructure) {
-          constructorInvocation = structure.dispatch(this, initializer, _);
-        } else {
-          structure.dispatch(this, initializer, _);
-        }
+    InitializersStructure initializers =
+        computeInitializersStructure(constructor);
+    for (InitializerStructure structure in initializers.initializers) {
+      if (structure.isConstructorInvoke) {
+        constructorInvocation = structure.dispatch(this, _);
+      } else {
+        structure.dispatch(this, _);
       }
-    }
-    if (constructorInvocation == null && !currentClass.isObject) {
-      constructorInvocation =
-          new ConstructedConstantExpression(null,
-              currentClass.supertype,
-              currentClass.superclass.lookupDefaultConstructor(),
-              CallStructure.NO_ARGS,
-              const <ConstantExpression>[]);
     }
     return constructorInvocation;
   }
@@ -257,29 +248,41 @@ class ConstantConstructorComputer extends SemanticVisitor
       ConstructorElement superConstructor,
       InterfaceType type,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       _) {
     List<ConstantExpression> argumentExpression =
         arguments.nodes.map((a) => apply(a)).toList();
     return new ConstructedConstantExpression(null,
         type,
         superConstructor,
-        selector.callStructure,
+        callStructure,
         argumentExpression);
+  }
+
+  ConstructedConstantExpression visitImplicitSuperConstructorInvoke(
+      FunctionExpression node,
+      ConstructorElement superConstructor,
+      InterfaceType type,
+      _) {
+     return new ConstructedConstantExpression(null,
+         type,
+         superConstructor,
+         CallStructure.NO_ARGS,
+         const <ConstantExpression>[]);
   }
 
   ConstructedConstantExpression visitThisConstructorInvoke(
       Send node,
       ConstructorElement thisConstructor,
       NodeList arguments,
-      Selector selector,
+      CallStructure callStructure,
       _) {
     List<ConstantExpression> argumentExpression =
         arguments.nodes.map((a) => apply(a)).toList();
     return new ConstructedConstantExpression(null,
         currentClass.thisType,
         thisConstructor,
-        selector.callStructure,
+        callStructure,
         argumentExpression);
   }
 

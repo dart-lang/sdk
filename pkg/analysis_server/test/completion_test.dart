@@ -984,7 +984,7 @@ main() {
 enum MyEnum {A, B, C}
 main() {
   MyEnum.!1;
-}''', <String>["1+values", "1+A", "1+B", "1+C"], failingTests: '1');
+}''', <String>["1+values", "1+A", "1+B", "1+C"]);
 
     buildTests('testCompletion_exactPrefix_hasHigherRelevance', '''
 var STR;

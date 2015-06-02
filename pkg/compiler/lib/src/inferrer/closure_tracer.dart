@@ -57,7 +57,7 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
   visitStaticCallSiteTypeInformation(StaticCallSiteTypeInformation info) {
     super.visitStaticCallSiteTypeInformation(info);
     Element called = info.calledElement;
-    if (called.isForeign(compiler.backend)) {
+    if (compiler.backend.isForeign(called)) {
       String name = called.name;
       if (name == 'JS' || name == 'DART_CLOSURE_TO_JS') {
         bailout('Used in JS ${info.call}');

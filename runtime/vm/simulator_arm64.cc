@@ -9,7 +9,7 @@
 #if defined(TARGET_ARCH_ARM64)
 
 // Only build the simulator if not compiling for real ARM hardware.
-#if !defined(HOST_ARCH_ARM64)
+#if defined(USING_SIMULATOR)
 
 #include "vm/simulator.h"
 
@@ -3539,6 +3539,6 @@ void Simulator::Longjmp(uword pc,
 
 }  // namespace dart
 
-#endif  // !defined(HOST_ARCH_ARM64)
+#endif  // !defined(USING_SIMULATOR)
 
 #endif  // defined TARGET_ARCH_ARM64

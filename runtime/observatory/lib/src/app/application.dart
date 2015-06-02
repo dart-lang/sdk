@@ -85,7 +85,7 @@ class ObservatoryApplication extends Observable {
   }
 
   void _onEvent(ServiceEvent event) {
-    switch(event.eventType) {
+    switch(event.kind) {
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kIsolateUpdate:
       case ServiceEvent.kGraph:
@@ -209,7 +209,7 @@ class ObservatoryApplication extends Observable {
     notifications.removeWhere((notification) {
         var event = notification.event;
         return (event != null &&
-                event.eventType == ServiceEvent.kConnectionClosed);
+                event.kind == ServiceEvent.kConnectionClosed);
       });
   }
 

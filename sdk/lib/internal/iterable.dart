@@ -5,13 +5,27 @@
 part of dart._internal;
 
 /**
+ * Marker interface for [Iterable] subclasses that have an efficient
+ * [length] implementation.
+ */
+abstract class EfficientLength {
+  /**
+   * Returns the number of elements in the iterable.
+   *
+   * This is an efficient operation that doesn't require iterating through
+   * the elements.
+   */
+  int get length;
+}
+
+/**
  * An [Iterable] for classes that have efficient [length] and [elementAt].
  *
  * All other methods are implemented in terms of [length] and [elementAt],
  * including [iterator].
  */
 abstract class ListIterable<E> extends Iterable<E>
-                               implements EfficientLengthIterable<E> {
+                               implements EfficientLength {
   int get length;
   E elementAt(int i);
 
@@ -337,7 +351,7 @@ class MappedIterable<S, T> extends Iterable<T> {
   final _Transformation<S, T> _f;
 
   factory MappedIterable(Iterable iterable, T function(S value)) {
-    if (iterable is EfficientLengthIterable) {
+    if (iterable is EfficientLength) {
       return new EfficientLengthMappedIterable<S, T>(iterable, function);
     }
     return new MappedIterable<S, T>._(iterable, function);
@@ -359,7 +373,7 @@ class MappedIterable<S, T> extends Iterable<T> {
 }
 
 class EfficientLengthMappedIterable<S, T> extends MappedIterable<S, T>
-    implements EfficientLengthIterable<T> {
+                                          implements EfficientLength {
   EfficientLengthMappedIterable(Iterable iterable, T function(S value))
       : super._(iterable, function);
 }
@@ -388,7 +402,8 @@ class MappedIterator<S, T> extends Iterator<T> {
  *
  * Expects efficient `length` and `elementAt` on the source iterable.
  */
-class MappedListIterable<S, T> extends ListIterable<T> {
+class MappedListIterable<S, T> extends ListIterable<T>
+                               implements EfficientLength {
   final Iterable<S> _source;
   final _Transformation<S, T> _f;
 
@@ -481,7 +496,7 @@ class TakeIterable<E> extends Iterable<E> {
     if (takeCount is! int || takeCount < 0) {
       throw new ArgumentError(takeCount);
     }
-    if (iterable is EfficientLengthIterable) {
+    if (iterable is EfficientLength) {
       return new EfficientLengthTakeIterable<E>(iterable, takeCount);
     }
     return new TakeIterable<E>._(iterable, takeCount);
@@ -495,7 +510,7 @@ class TakeIterable<E> extends Iterable<E> {
 }
 
 class EfficientLengthTakeIterable<E> extends TakeIterable<E>
-                                     implements EfficientLengthIterable<E> {
+                                     implements EfficientLength {
   EfficientLengthTakeIterable(Iterable<E> iterable, int takeCount)
       : super._(iterable, takeCount);
 
@@ -568,7 +583,7 @@ class SkipIterable<E> extends Iterable<E> {
   final int _skipCount;
 
   factory SkipIterable(Iterable<E> iterable, int count) {
-    if (iterable is EfficientLengthIterable) {
+    if (iterable is EfficientLength) {
       return new EfficientLengthSkipIterable<E>(iterable, count);
     }
     return new SkipIterable<E>._(iterable, count);
@@ -595,7 +610,7 @@ class SkipIterable<E> extends Iterable<E> {
 }
 
 class EfficientLengthSkipIterable<E> extends SkipIterable<E>
-                                     implements EfficientLengthIterable<E> {
+                                     implements EfficientLength {
   EfficientLengthSkipIterable(Iterable<E> iterable, int skipCount)
       : super._(iterable, skipCount);
 
@@ -657,8 +672,7 @@ class SkipWhileIterator<E> extends Iterator<E> {
 /**
  * The always empty [Iterable].
  */
-class EmptyIterable<E> extends Iterable<E>
-                       implements EfficientLengthIterable<E> {
+class EmptyIterable<E> extends Iterable<E> implements EfficientLength {
   const EmptyIterable();
 
   Iterator<E> get iterator => const EmptyIterator();

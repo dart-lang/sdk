@@ -1540,42 +1540,42 @@ class NativeFloat32x4 implements Float32x4 {
   }
 
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
-  Float32x4 shuffle(int m) {
-    if ((m < 0) || (m > 255)) {
-      throw new RangeError('mask $m must be in the range [0..256)');
+  Float32x4 shuffle(int mask) {
+    if ((mask < 0) || (mask > 255)) {
+      throw new RangeError.range(mask, 0, 255, "mask");
     }
     _list[0] = x;
     _list[1] = y;
     _list[2] = z;
     _list[3] = w;
 
-    double _x = _list[m & 0x3];
-    double _y = _list[(m >> 2) & 0x3];
-    double _z = _list[(m >> 4) & 0x3];
-    double _w = _list[(m >> 6) & 0x3];
+    double _x = _list[mask & 0x3];
+    double _y = _list[(mask >> 2) & 0x3];
+    double _z = _list[(mask >> 4) & 0x3];
+    double _w = _list[(mask >> 6) & 0x3];
     return new NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
   /// Shuffle the lane values in [this] and [other]. The returned
   /// Float32x4 will have XY lanes from [this] and ZW lanes from [other].
   /// Uses the same [mask] as [shuffle].
-  Float32x4 shuffleMix(Float32x4 other, int m) {
-    if ((m < 0) || (m > 255)) {
-      throw new RangeError('mask $m must be in the range [0..256)');
+  Float32x4 shuffleMix(Float32x4 other, int mask) {
+    if ((mask < 0) || (mask > 255)) {
+      throw new RangeError.range(mask, 0, 255, "mask");
     }
     _list[0] = x;
     _list[1] = y;
     _list[2] = z;
     _list[3] = w;
-    double _x = _list[m & 0x3];
-    double _y = _list[(m >> 2) & 0x3];
+    double _x = _list[mask & 0x3];
+    double _y = _list[(mask >> 2) & 0x3];
 
     _list[0] = other.x;
     _list[1] = other.y;
     _list[2] = other.z;
     _list[3] = other.w;
-    double _z = _list[(m >> 4) & 0x3];
-    double _w = _list[(m >> 6) & 0x3];
+    double _z = _list[(mask >> 4) & 0x3];
+    double _w = _list[(mask >> 6) & 0x3];
     return new NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
@@ -1763,7 +1763,7 @@ class NativeInt32x4 implements Int32x4 {
   /// Shuffle the lane values. [mask] must be one of the 256 shuffle constants.
   Int32x4 shuffle(int mask) {
     if ((mask < 0) || (mask > 255)) {
-      throw new RangeError('mask $mask must be in the range [0..256)');
+      throw new RangeError.range(mask, 0, 255, "mask");
     }
     _list[0] = x;
     _list[1] = y;
@@ -1781,7 +1781,7 @@ class NativeInt32x4 implements Int32x4 {
   /// Uses the same [mask] as [shuffle].
   Int32x4 shuffleMix(Int32x4 other, int mask) {
     if ((mask < 0) || (mask > 255)) {
-      throw new RangeError('mask $mask must be in the range [0..256)');
+      throw new RangeError.range(mask, 0, 255, "mask");
     }
     _list[0] = x;
     _list[1] = y;

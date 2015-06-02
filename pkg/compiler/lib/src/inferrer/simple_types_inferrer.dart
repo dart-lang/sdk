@@ -1328,6 +1328,14 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitSuperSetterGet(
+      ast.Send node,
+      MethodElement setter,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
   T visitUnresolvedSuperInvoke(
       ast.Send node,
       Element element,
@@ -1529,7 +1537,7 @@ class SimpleTypeInferrerVisitor<T>
         element = constructor.effectiveTarget.implementation;
       }
     }
-    if (element.isForeign(compiler.backend)) {
+    if (compiler.backend.isForeign(element)) {
       return handleForeignSend(node, element);
     }
     Selector selector = elements.getSelector(node);
@@ -1590,7 +1598,7 @@ class SimpleTypeInferrerVisitor<T>
 
   /// Handle invocation of a top level or static [function].
   T handleStaticFunctionInvoke(ast.Send node, MethodElement function) {
-    if (function.isForeign(compiler.backend)) {
+    if (compiler.backend.isForeign(function)) {
       return handleForeignSend(node, function);
     }
     ArgumentsTypes arguments = analyzeArguments(node.arguments);

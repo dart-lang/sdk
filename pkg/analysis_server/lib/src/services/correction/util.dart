@@ -1030,6 +1030,10 @@ class CorrectionUtils {
    */
   String getTypeSource(DartType type, Set<LibraryElement> librariesToImport) {
     StringBuffer sb = new StringBuffer();
+    // type parameter
+    if (!_isTypeVisible(type)) {
+      return 'dynamic';
+    }
     // just a Function, not FunctionTypeAliasElement
     if (type is FunctionType && type.element is! FunctionTypeAliasElement) {
       return "Function";

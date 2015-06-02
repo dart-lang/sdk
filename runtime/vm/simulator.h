@@ -7,38 +7,19 @@
 
 #include "vm/globals.h"
 
-#if defined(TARGET_ARCH_IA32)
+#if defined(USING_SIMULATOR)
+#if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 // No simulator used.
-
-#elif defined(TARGET_ARCH_X64)
-// No simulator used.
-
+#error Simulator not supported.
 #elif defined(TARGET_ARCH_ARM)
-#if defined(HOST_ARCH_ARM)
-// No simulator used.
-#else
-#define USING_SIMULATOR 1
 #include "vm/simulator_arm.h"
-#endif
-
 #elif defined(TARGET_ARCH_ARM64)
-#if defined(HOST_ARCH_ARM64)
-// No simulator used.
-#else
-#define USING_SIMULATOR 1
 #include "vm/simulator_arm64.h"
-#endif
-
 #elif defined(TARGET_ARCH_MIPS)
-#if defined(HOST_ARCH_MIPS)
-// No simulator used.
-#else
-#define USING_SIMULATOR 1
 #include "vm/simulator_mips.h"
-#endif
-
 #else
 #error Unknown architecture.
-#endif
+#endif  // defined(TARGET_ARCH_...)
+#endif  // defined(USING_SIMULATOR)
 
 #endif  // VM_SIMULATOR_H_

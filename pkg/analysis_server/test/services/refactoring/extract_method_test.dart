@@ -2384,6 +2384,39 @@ void res(int a) {
 ''');
   }
 
+  test_statements_parameters_ignoreInnerPropagatedType() async {
+    indexTestUnit('''
+main(Object x) {
+// start
+  if (x is int) {
+    print('int');
+  }
+  if (x is bool) {
+    print('bool');
+  }
+// end
+}
+''');
+    _createRefactoringForStartEndComments();
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+main(Object x) {
+// start
+  res(x);
+// end
+}
+
+void res(Object x) {
+  if (x is int) {
+    print('int');
+  }
+  if (x is bool) {
+    print('bool');
+  }
+}
+''');
+  }
+
   test_statements_parameters_importType() {
     _addLibraryReturningAsync();
     indexTestUnit('''

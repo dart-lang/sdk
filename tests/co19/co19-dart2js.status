@@ -9614,10 +9614,8 @@ WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please tria
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $cps_ir ]
-Language/03_Overview/1_Scoping_A01_t34: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 Language/03_Overview/1_Scoping_A01_t39: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/03_Overview/1_Scoping_A02_t19: Crash # (switch (1){case 1:var x;break;case 2:var x;break;}): Unhandled node
-Language/03_Overview/2_Privacy_A01_t06: Crash # Instance of 'TypeOperator': type check unimplemented for _inaccessibleFuncType.
 Language/07_Classes/07_Classes_A02_t17: Crash # Please triage this failure.
 Language/07_Classes/07_Classes_A02_t18: Crash # Please triage this failure.
 Language/07_Classes/07_Classes_A02_t19: Crash # Please triage this failure.
@@ -9630,14 +9628,11 @@ Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t09: Crash # Pl
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t10: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t11: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t16: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A13_t01: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 Language/07_Classes/6_Constructors/2_Factories_A09_t01: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A09_t02: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A09_t03: Crash # Please triage this failure.
 Language/07_Classes/6_Constructors/2_Factories_A09_t04: Crash # Please triage this failure.
-Language/10_Generics/09_Generics_A04_t03: Crash # Instance of 'TypeOperator': type check unimplemented for S.
-Language/10_Generics/10_Generics_A05_t01: Crash # Instance of 'TypeOperator': type check unimplemented for T.
-Language/10_Generics/10_Generics_A05_t03: Crash # Instance of 'TypeOperator': type check unimplemented for T.
+Language/10_Generics/09_Generics_A04_t03: Crash # Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t07: RuntimeError # Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t08: Crash # Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t09: RuntimeError # Please triage this failure.
@@ -9649,19 +9644,13 @@ Language/12_Expressions/13_Property_Extraction_A03_t02: RuntimeError # Please tr
 Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Please triage this failure.
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t04: RuntimeError # Please triage this failure.
-Language/12_Expressions/20_Logical_Boolean_Expressions_A01_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/22_Equality_A03_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/30_Identifier_Reference_A09_t03: Crash # (i=0): For-loop variable captured in loop header
-Language/12_Expressions/32_Type_Test_A02_t03: Crash # Instance of 'TypeOperator': type check unimplemented for Undeclared.
-Language/12_Expressions/32_Type_Test_A02_t04: Crash # Instance of 'TypeOperator': type check unimplemented for G<int, bool>.
-Language/12_Expressions/32_Type_Test_A02_t07: Crash # Instance of 'TypeOperator': type check unimplemented for G<Unknown>.
 Language/12_Expressions/33_Type_Cast_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/33_Type_Cast_A01_t04: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/33_Type_Cast_A02_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/33_Type_Cast_A02_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/33_Type_Cast_A02_t03: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A02_t04: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A02_t05: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/33_Type_Cast_A02_t06: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/33_Type_Cast_A02_t07: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/33_Type_Cast_A02_t08: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -9691,10 +9680,6 @@ Language/13_Statements/09_Switch_A10_t03: Crash # (switch (1){case 0:false;break
 Language/13_Statements/11_Return_A02_t02: Crash # (try {return 1;}finally {flag=true;}): try/finally
 Language/13_Statements/11_Return_A02_t03: Crash # (try {return 1;}finally {return 2;}): try/finally
 Language/13_Statements/11_Try_A01_t01: Crash # (try {throw "";}on int catch (ok){}catch (ok){}finally {}): try/finally
-Language/13_Statements/11_Try_A03_t01: Crash # Instance of 'TypeOperator': type check unimplemented for Unavailable.
-Language/13_Statements/11_Try_A03_t02: Crash # Instance of 'TypeOperator': type check unimplemented for Unavailable.
-Language/13_Statements/11_Try_A03_t03: Crash # Instance of 'TypeOperator': type check unimplemented for Foo.
-Language/13_Statements/11_Try_A03_t04: Crash # Instance of 'TypeOperator': type check unimplemented for Unavailable.
 Language/13_Statements/11_Try_A07_t02: Crash # (try {throw ex;}on int catch (i){}on bool catch (b){}finally {isFinallyExecuted=true;}): try/finally
 Language/13_Statements/11_Try_A08_t01: Crash #  try/finally
 Language/13_Statements/11_Try_A09_t01: Crash #  try/finally
@@ -9729,20 +9714,13 @@ Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Crash # Inst
 Language/14_Libraries_and_Scripts/1_Imports_A02_t26: Crash # Instance of 'TypeOperator': type check unimplemented for prefix.
 Language/14_Libraries_and_Scripts/1_Imports_A02_t27: Crash # Instance of 'TypeOperator': type check unimplemented for bar.
 Language/14_Libraries_and_Scripts/1_Imports_A02_t28: Crash # Instance of 'TypeOperator': type check unimplemented for bar.
-Language/14_Libraries_and_Scripts/1_Imports_A03_t02: Crash # Instance of 'TypeOperator': type check unimplemented for foo.
 Language/14_Libraries_and_Scripts/1_Imports_A03_t04: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/1_Imports_A03_t05: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/1_Imports_A03_t22: Crash # Instance of 'TypeOperator': type check unimplemented for foo.
 Language/14_Libraries_and_Scripts/1_Imports_A03_t24: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/1_Imports_A03_t25: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/1_Imports_A03_t31: Crash # Instance of 'TypeOperator': type check unimplemented for foo.
 Language/14_Libraries_and_Scripts/1_Imports_A03_t44: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/14_Libraries_and_Scripts/1_Imports_A03_t45: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/14_Libraries_and_Scripts/1_Imports_A03_t64: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/14_Libraries_and_Scripts/1_Imports_A03_t65: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/2_Exports_A04_t03: Crash # Instance of 'TypeOperator': type check unimplemented for foo.
 Language/14_Libraries_and_Scripts/2_Exports_A06_t02: Crash # Instance of 'TypeOperator': type check unimplemented for foo.
-Language/15_Types/1_Static_Types_A03_t01: Crash # Instance of 'TypeOperator': type check unimplemented for UnknownType.
 Language/15_Types/3_Type_Declarations/1_Typedef_A01_t03: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/15_Types/3_Type_Declarations/1_Typedef_A02_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f_t.
 Language/15_Types/3_Type_Declarations/1_Typedef_A02_t02: Crash # Instance of 'TypeOperator': type check unimplemented for f_t.
@@ -9753,14 +9731,12 @@ Language/15_Types/3_Type_Declarations/1_Typedef_A04_t02: Crash # Instance of 'Ty
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t05: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t06: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/15_Types/3_Type_Declarations/1_Typedef_A07_t07: Crash # Instance of 'TypeOperator': type check unimplemented for f.
-Language/15_Types/4_Interface_Types_A05_t04: Crash # Please triage this failure.
-Language/15_Types/4_Interface_Types_A08_t01: Crash # Instance of 'TypeOperator': type check unimplemented for S.
-Language/15_Types/4_Interface_Types_A10_t04: Crash # Please triage this failure.
-Language/15_Types/4_Interface_Types_A10_t06: Crash # Please triage this failure.
-Language/15_Types/4_Interface_Types_A10_t07: Crash # Please triage this failure.
-Language/15_Types/4_Interface_Types_A10_t08: Crash # Please triage this failure.
-Language/15_Types/4_Interface_Types_A10_t09: Crash # Please triage this failure.
-Language/15_Types/4_Interface_Types_A11_t04: Crash # Instance of 'TypeOperator': type check unimplemented for S<int>.
+Language/15_Types/4_Interface_Types_A05_t04: Crash # type expression t1 (typedef)
+Language/15_Types/4_Interface_Types_A10_t04: Crash # type expression param1 (typedef)
+Language/15_Types/4_Interface_Types_A10_t06: Crash # type expression f (typedef)
+Language/15_Types/4_Interface_Types_A10_t07: Crash # type expression f_1 (typedef)
+Language/15_Types/4_Interface_Types_A10_t08: Crash # type expression t1 (typedef)
+Language/15_Types/4_Interface_Types_A10_t09: Crash # type expression param1 (typedef)
 Language/15_Types/4_Interface_Types_A12_t18: Crash # Instance of 'TypeOperator': type check unimplemented for F1.
 Language/15_Types/5_Function_Types_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for check_t.
 Language/15_Types/5_Function_Types_A01_t02: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
@@ -9797,8 +9773,6 @@ Language/15_Types/5_Function_Types_A03_t11: Crash # Instance of 'TypeOperator': 
 Language/15_Types/5_Function_Types_A03_t12: Crash # Instance of 'TypeOperator': type check unimplemented for classesFunc.
 Language/15_Types/5_Function_Types_A03_t13: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
 Language/15_Types/5_Function_Types_A06_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f.
-Language/15_Types/6_Type_dynamic_A02_t01: Crash # Instance of 'TypeOperator': type check unimplemented for S.
-Language/15_Types/8_Parameterized_Types_A03_t06: Crash # Instance of 'TypeOperator': type check unimplemented for T1.
 LayoutTests/fast/backgrounds/multiple-backgrounds-computed-style_t01: Crash #  Unhandled node
 LayoutTests/fast/canvas/webgl/compressed-tex-image_t01: Crash # Please triage this failure.
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: Crash # Please triage this failure.
@@ -9901,15 +9875,18 @@ LibTest/async/Zone/registerUnaryCallback_A01_t01: Crash # Instance of 'TypeOpera
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Please triage this failure.
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Please triage this failure.
 LibTest/core/FallThroughError/toString_A01_t02: Crash #  Unhandled node
-LibTest/core/Invocation/isAccessor_A01_t01: RuntimeError # Please triage this failure.
+LibTest/core/Invocation/isAccessor_A01_t01: Crash # Please triage this failure.
+LibTest/core/Invocation/isGetter_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/isGetter_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/Invocation/isMethod_A01_t02: RuntimeError # Please triage this failure.
+LibTest/core/Invocation/isMethod_A01_t02: Crash # Please triage this failure.
 LibTest/core/Invocation/isSetter_A01_t01: Crash # Please triage this failure.
-LibTest/core/Invocation/memberName_A01_t01: RuntimeError # Please triage this failure.
+LibTest/core/Invocation/isSetter_A01_t02: RuntimeError # Please triage this failure.
+LibTest/core/Invocation/memberName_A01_t01: Crash # Please triage this failure.
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/List/List_class_A01_t02: Crash # Please triage this failure.
-LibTest/core/Map/Map_A01_t01: Crash # Please triage this failure.
-LibTest/core/Object/operator_equality_A01_t01 : Crash # Instance of 'TypeOperator': type casts not implemented.
+LibTest/core/Map/Map_A01_t01: Crash # type expression SomeFunction (typedef)
+LibTest/core/Object/operator_equality_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
+LibTest/core/Object/toString_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Crash #  Unhandled node
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Crash #  Unhandled node
 LibTest/core/Set/add_A01_t03: RuntimeError # Please triage this failure.
@@ -9917,8 +9894,6 @@ LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Pass # Please triage this failure.
-LibTest/html/Document/childNodes_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for DocumentType.
-LibTest/html/Document/securityPolicy_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for SecurityPolicy.
 LibTest/html/HttpRequest/abort_A01_t01: Crash #  Unhandled node
 LibTest/html/HttpRequest/getAllResponseHeaders_A01_t01: Crash #  Unhandled node
 LibTest/html/HttpRequest/getResponseHeader_A01_t01: Crash #  Unhandled node
@@ -9946,5 +9921,3 @@ WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: Crash #  Unha
 WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: Crash #  Unhandled node
 WebPlatformTest/html/semantics/forms/the-input-element/datetime_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 WebPlatformTest/html/semantics/forms/the-input-element/valueMode_t01: Crash #  Unhandled node
-Utils/tests/Expect/equals_A01_t04 : RuntimeError
-LibTest/core/Object/toString_A01_t01 : Crash # Instance of 'TypeOperator': type casts not implemented.

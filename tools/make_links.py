@@ -10,11 +10,15 @@ For each SOURCE in SOURCES create a link from SOURCE to TARGET.  If a
 SOURCE ends with .../lib, the lib suffix is ignored when determining
 the name of the target link.
 
+If a SOURCE contains ":", the left side is the path and the right side is the
+name of the package symlink.
+
 Before creating any links, the old entries of the TARGET directory will be
 removed.
 
 Usage:
   python tools/make_links.py OPTIONS TARGET SOURCES...
+
 """
 
 import optparse
@@ -84,11 +88,16 @@ def main(argv):
     os.makedirs(target)
   for source in args[1:]:
     # Assume the source directory is named ".../NAME/lib".
-    (name, lib) = os.path.split(source)
+    split = source.split(':')
+    name = None
+    if len(split) == 2: (source, name) = split
+
+    (path, lib) = os.path.split(source)
     if lib != 'lib':
-      name = source
-    # Remove any addtional path components preceding NAME.
-    (path, name) = os.path.split(name)
+      path = source
+    # Remove any additional path components preceding NAME, if one wasn't
+    # specified explicitly.
+    if not name: (_, name) = os.path.split(path)
     orig_source = source
     if utils.GuessOS() == 'win32':
       source = os.path.relpath(source)

@@ -58,6 +58,8 @@ class ObjectVertex {
 
   ObjectVertex._(this._id, this._graph);
 
+  bool get isRoot => _id == 1;
+
   bool operator ==(other) => _id == other._id && _graph == other._graph;
   int get hashCode => _id;
 
@@ -186,7 +188,7 @@ class ObjectGraph {
 
     var result = _mostRetained;
     if (classId != null) {
-      result = result.where((u) => u.classId == classId);
+      result = result.where((u) => u.vmCid == classId);
     }
     if (limit != null) {
       result = result.take(limit);
@@ -254,8 +256,8 @@ class ObjectGraph {
     while (stream.pendingBytes > 0) {
       positions[id] = stream.position;
       var addr = stream.readUnsigned();
-      var shallowSize = stream.readUnsigned();
-      var cid = stream.readUnsigned();
+      stream.readUnsigned(); // shallowSize
+      stream.readUnsigned(); // cid
       addrToId[addr] = id;
 
       var succAddr = stream.readUnsigned();
@@ -409,8 +411,7 @@ class ObjectGraph {
   // Keith D. Cooper, Timothy J. Harvey, and Ken Kennedy
   void _buildDominators() {
     var N = _N;
-    var E = _E;
-    var addrToId = _addrToId;
+
     var postOrder = _postOrderOrdinals;
     var postOrderIndex = _postOrderIndices;
     var firstPreds = _firstPreds;
@@ -486,7 +487,6 @@ class ObjectGraph {
 
   void _calculateRetainedSizes() {
     var N = _N;
-    var E = _E;
 
     var size = 0;
     var positions = _positions;

@@ -35,7 +35,8 @@ var tests = [
       'targetId': evalResult['id'],
     };
     var result = await isolate.invokeRpcNoUpgrade('_getRetainedSize', params);
-    expect(result['type'], equals('@int'));
+    expect(result['type'], equals('@Instance'));
+    expect(result['kind'], equals('Int'));
     int value1 = int.parse(result['valueAsString']);
     expect(value1, isPositive);
 
@@ -46,7 +47,8 @@ var tests = [
       'targetId': evalResult['id'],
     };
     result = await isolate.invokeRpcNoUpgrade('_getRetainedSize', params);
-    expect(result['type'], equals('@int'));
+    expect(result['type'], equals('@Instance'));
+    expect(result['kind'], equals('Int'));
     int value2 = int.parse(result['valueAsString']);
     expect(value2, isPositive);
 
@@ -58,7 +60,8 @@ var tests = [
       'targetId': evalResult['class']['id'],
     };
     result = await isolate.invokeRpcNoUpgrade('_getRetainedSize', params);
-    expect(result['type'], equals('@int'));
+    expect(result['type'], equals('@Instance'));
+    expect(result['kind'], equals('Int'));
     int value3 = int.parse(result['valueAsString']);
     expect(value3, isPositive);
     expect(value3, equals(value2));

@@ -34,30 +34,32 @@ void script() {
 
 var tests = [
 
-(Isolate isolate) =>
-  isolate.rootLibrary.load().then((Library lib) {
+  (Isolate isolate) async {
+    var lib = await isolate.rootLibrary.load();
     Field keyField = lib.variables.singleWhere((v) => v.name == 'key');
-    Instance key = keyField.value;
+    await keyField.load();
+    Instance key = keyField.staticValue;
     Field valueField = lib.variables.singleWhere((v) => v.name == 'value');
-    Instance value = valueField.value;
+    await valueField.load();
+    Instance value = valueField.staticValue;
     Field propField = lib.variables.singleWhere((v) => v.name == 'weak_property');
-    Instance prop = propField.value;
+    await propField.load();
+    Instance prop = propField.staticValue;
 
     expect(key.isWeakProperty, isFalse);
     expect(value.isWeakProperty, isFalse);
     expect(prop.isWeakProperty, isTrue);
     expect(prop.key, isNull);
     expect(prop.value, isNull);
-    return prop.load().then((Instance loadedProp) {
-      // Object ids are not cannonicalized, so we rely on the key and value
-      // being the sole instances of their classes to test we got the objects
-      // we expect.
-      expect(loadedProp.key, isNotNull);
-      expect(loadedProp.key.clazz, equals(key.clazz));
-      expect(loadedProp.value, isNotNull);
-      expect(loadedProp.value.clazz, equals(value.clazz));
-    });
-  }),
+    Instance loadedProp = await prop.load();
+    // Object ids are not cannonicalized, so we rely on the key and value
+    // being the sole instances of their classes to test we got the objects
+    // we expect.
+    expect(loadedProp.key, isNotNull);
+    expect(loadedProp.key.clazz, equals(key.clazz));
+    expect(loadedProp.value, isNotNull);
+    expect(loadedProp.value.clazz, equals(value.clazz));
+  },
 
 ];
 

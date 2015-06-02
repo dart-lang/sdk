@@ -30,7 +30,7 @@ var tests = [
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseInterrupted) {
+    if (event.kind == ServiceEvent.kPauseInterrupted) {
       subscription.cancel();
       completer.complete();
     }
@@ -44,7 +44,7 @@ var tests = [
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kResume) {
+    if (event.kind == ServiceEvent.kResume) {
       subscription.cancel();
       completer.complete();
     }
@@ -61,7 +61,7 @@ var tests = [
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print('Breakpoint reached');
       subscription.cancel();
       completer.complete();
@@ -100,7 +100,7 @@ var tests = [
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print('Breakpoint reached');
       subscription.cancel();
       completer.complete();
@@ -128,7 +128,7 @@ var tests = [
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kBreakpointRemoved) {
+    if (event.kind == ServiceEvent.kBreakpointRemoved) {
       print('Breakpoint removed');
       expect(isolate.breakpoints.length, equals(0));
       subscription.cancel();
@@ -147,7 +147,7 @@ var tests = [
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kResume) {
+    if (event.kind == ServiceEvent.kResume) {
       subscription.cancel();
       completer.complete();
     }
@@ -162,7 +162,7 @@ var tests = [
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print('Breakpoint reached');
       subscription.cancel();
       completer.complete();

@@ -43,7 +43,7 @@ js.Node getJsNodeForElement(Compiler compiler, Element element) {
   return compiler.enqueuer.codegen.generatedCode[element];
 }
 
-ir.RootNode getIrNodeForElement(Compiler compiler, Element element) {
+ir.FunctionDefinition getIrNodeForElement(Compiler compiler, Element element) {
   return compiler.irBuilder.getIr(element);
 }
 

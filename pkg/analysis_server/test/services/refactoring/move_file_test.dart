@@ -145,14 +145,18 @@ import 'new_name.dart';
     String pathA = '/project/000/1111/a.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
+library lib;
 part '22/test.dart';
 ''');
-    addTestSource('');
+    addTestSource('''
+part of lib;
+''');
     _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
+library lib;
 part '22/new_name.dart';
 ''');
     assertNoFileChange(testFile);
@@ -163,20 +167,26 @@ part '22/new_name.dart';
     String pathB = '/project/000/b.dart';
     testFile = '/project/000/1111/22/test.dart';
     addSource(pathA, '''
+library lib;
 part '22/test.dart';
 ''');
     addSource(pathB, '''
+library lib;
 part '1111/22/test.dart';
 ''');
-    addTestSource('');
+    addTestSource('''
+part of lib;
+''');
     _performAnalysis();
     // perform refactoring
     _createRefactoring('/project/000/1111/22/new_name.dart');
     await _assertSuccessfulRefactoring();
     assertFileChangeResult(pathA, '''
+library lib;
 part '22/new_name.dart';
 ''');
     assertFileChangeResult(pathB, '''
+library lib;
 part '1111/22/new_name.dart';
 ''');
     assertNoFileChange(testFile);

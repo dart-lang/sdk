@@ -55,7 +55,7 @@ var tests = [
     // Wait for the testee to start all of the isolates.
     if (vm.isolates.length != spawnCount + 1) {
       await processServiceEvents(vm, (event, sub, completer) {
-        if (event.eventType == ServiceEvent.kIsolateStart) {
+        if (event.kind == ServiceEvent.kIsolateStart) {
           if (vm.isolates.length == spawnCount + 1) {
             sub.cancel();
             completer.complete(null);
@@ -77,7 +77,7 @@ var tests = [
     // Wait for all spawned isolates to hit pause-at-exit.
     if (numPaused(vm) != spawnCount) {
       await processServiceEvents(vm, (event, sub, completer) {
-        if (event.eventType == ServiceEvent.kPauseExit) {
+        if (event.kind == ServiceEvent.kPauseExit) {
           if (numPaused(vm) == spawnCount) {
             sub.cancel();
             completer.complete(null);
@@ -93,7 +93,7 @@ var tests = [
   (VM vm) async {
     var resumedReceived = 0;
     var eventsDone = processServiceEvents(vm, (event, sub, completer) {
-      if (event.eventType == ServiceEvent.kIsolateExit) {
+      if (event.kind == ServiceEvent.kIsolateExit) {
         resumedReceived++;
         if (resumedReceived == resumeCount) {
           sub.cancel();

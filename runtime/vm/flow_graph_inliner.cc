@@ -269,9 +269,14 @@ class CallSites : public ValueObject {
 
     GrowableArray<intptr_t> static_call_counts(num_static_calls);
     for (intptr_t i = 0; i < num_static_calls; ++i) {
-      const intptr_t aggregate_count =
-          static_calls_[i + static_call_start_ix].
-              call->ic_data()->AggregateCount();
+      intptr_t aggregate_count = 0;
+      if (static_calls_[i + static_call_start_ix].call->ic_data() == NULL) {
+        aggregate_count = 0;
+      } else {
+        aggregate_count =
+            static_calls_[i + static_call_start_ix].
+                call->ic_data()->AggregateCount();
+      }
       static_call_counts.Add(aggregate_count);
       if (aggregate_count > max_count) max_count = aggregate_count;
     }
@@ -682,10 +687,12 @@ class CallSiteInliner : public ValueObject {
       ParsedFunction* parsed_function;
       {
         CSTAT_TIMER_SCOPE(isolate(), graphinliner_parse_timer);
-        const Error& error = Error::Handle(Z,
-            Compiler::EnsureUnoptimizedCode(Thread::Current(), function));
-        if (!error.IsNull()) {
-          Exceptions::PropagateError(error);
+        if (!Compiler::always_optimize()) {
+          const Error& error = Error::Handle(Z,
+              Compiler::EnsureUnoptimizedCode(Thread::Current(), function));
+          if (!error.IsNull()) {
+            Exceptions::PropagateError(error);
+          }
         }
         parsed_function = GetParsedFunction(function, &in_cache);
       }
@@ -770,6 +777,9 @@ class CallSiteInliner : public ValueObject {
         CSTAT_TIMER_SCOPE(isolate(), graphinliner_opt_timer);
         // TODO(zerny): Do more optimization passes on the callee graph.
         FlowGraphOptimizer optimizer(callee_graph);
+        if (Compiler::always_optimize()) {
+          optimizer.PopulateWithICData();
+        }
         optimizer.ApplyICData();
         DEBUG_ASSERT(callee_graph->VerifyUseLists());
 

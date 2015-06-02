@@ -3191,7 +3191,9 @@ class StaticCallInstr : public TemplateDefinition<0, Throws> {
     return (*arguments_)[index];
   }
 
-  virtual intptr_t CallCount() const { return ic_data()->AggregateCount(); }
+  virtual intptr_t CallCount() const {
+    return ic_data() == NULL ? 0 : ic_data()->AggregateCount();
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -8044,7 +8046,6 @@ class Environment : public ZoneAllocated {
         deopt_id_(deopt_id),
         parsed_function_(parsed_function),
         outer_(outer) {
-    ASSERT(!parsed_function_.code().IsNull());
   }
 
 

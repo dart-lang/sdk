@@ -432,8 +432,8 @@ class _HashMapEntry {
   _HashMapEntry(this.key, this.value, this.hashCode, this.next);
 }
 
-abstract class _HashMapIterable<E> extends Iterable<E>
-                                   implements EfficientLengthIterable<E> {
+abstract class _HashMapIterable<E> extends IterableBase<E>
+                                   implements EfficientLength {
   final HashMap _map;
   _HashMapIterable(this._map);
   int get length => _map.length;
@@ -835,8 +835,8 @@ class _LinkedHashMapEntry extends _HashMapEntry {
   }
 }
 
-class _LinkedHashMapKeyIterable<K> extends Iterable<K>
-                                   implements EfficientLengthIterable<K> {
+class _LinkedHashMapKeyIterable<K> extends IterableBase<K>
+                                   implements EfficientLength {
   LinkedHashMap<K, dynamic> _map;
   _LinkedHashMapKeyIterable(this._map);
   Iterator<K> get iterator => new _LinkedHashMapKeyIterator<K>(_map);
@@ -847,8 +847,8 @@ class _LinkedHashMapKeyIterable<K> extends Iterable<K>
   Set<K> toSet() => _map._newKeySet()..addAll(this);
 }
 
-class _LinkedHashMapValueIterable<V> extends Iterable<V>
-                                     implements EfficientLengthIterable<V> {
+class _LinkedHashMapValueIterable<V> extends IterableBase<V>
+                                     implements EfficientLength {
   LinkedHashMap<dynamic, V> _map;
   _LinkedHashMapValueIterable(this._map);
   Iterator<V> get iterator => new _LinkedHashMapValueIterator<V>(_map);
@@ -916,11 +916,7 @@ patch class LinkedHashMap<K, V> {
     if (isValidKey == null) {
       if (hashCode == null) {
         if (equals == null) {
-          if (_useInternalCached) {
-            return new _InternalLinkedHashMap<K, V>();
-          } else {
-            return new _CompactLinkedHashMap<K, V>();
-          }
+          return new _InternalLinkedHashMap<K, V>();
         }
         hashCode = _defaultHashCode;
       } else {
@@ -945,9 +941,6 @@ patch class LinkedHashMap<K, V> {
 
   /* patch */ factory LinkedHashMap.identity() =
       _CompactLinkedIdentityHashMap<K, V>;
-
-  static final bool _useInternalCached = _useInternal;
-  static bool get _useInternal native "LinkedHashMap_useInternal";
 }
 
 patch class LinkedHashSet<E> {

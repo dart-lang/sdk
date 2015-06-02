@@ -51,6 +51,7 @@ class Exceptions : AllStatic {
   enum ExceptionType {
     kNone,
     kRange,
+    kRangeRange,
     kArgument,
     kNoSuchMethod,
     kFormat,

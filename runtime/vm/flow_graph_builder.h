@@ -31,9 +31,9 @@ class TestGraphVisitor;
 // List of recognized list factories:
 // (factory-name-symbol, result-cid, fingerprint).
 #define RECOGNIZED_LIST_FACTORY_LIST(V)                                        \
-  V(_ListFactory, kArrayCid, 335347617)                                        \
+  V(_ListFactory, kArrayCid, 850375012)                                        \
   V(_GrowableListWithData, kGrowableObjectArrayCid, 2094352700)                \
-  V(_GrowableListFactory, kGrowableObjectArrayCid, 619206641)                  \
+  V(_GrowableListFactory, kGrowableObjectArrayCid, 1518848600)                 \
   V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 439914696)                      \
   V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1442599030)                   \
   V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 1320015159)     \
@@ -342,6 +342,11 @@ class EffectGraphVisitor : public AstNodeVisitor {
       intptr_t offset,
       const Type& type,
       intptr_t class_id);
+  // Assumes setter parameter is named 'value'. Returns null constant.
+  ConstantInstr* DoNativeSetterStoreValue(
+      NativeBodyNode* node,
+      intptr_t offset,
+      StoreBarrierType emit_store_barrier);
 
   // Helpers for translating parts of the AST.
   void BuildPushArguments(const ArgumentListNode& node,

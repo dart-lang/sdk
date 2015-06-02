@@ -29,10 +29,16 @@ class DartUnitOverridesComputer {
         _currentClass = unitMember.element;
         for (ClassMember classMember in unitMember.members) {
           if (classMember is MethodDeclaration) {
+            if (classMember.isStatic) {
+              continue;
+            }
             SimpleIdentifier nameNode = classMember.name;
             _addOverride(nameNode.offset, nameNode.length, nameNode.name);
           }
           if (classMember is FieldDeclaration) {
+            if (classMember.isStatic) {
+              continue;
+            }
             List<VariableDeclaration> fields = classMember.fields.variables;
             for (VariableDeclaration field in fields) {
               SimpleIdentifier nameNode = field.name;

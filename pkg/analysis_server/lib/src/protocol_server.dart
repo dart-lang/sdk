@@ -87,7 +87,12 @@ Element newElement_fromEngine(engine.Element element) {
   String elementTypeParameters = _getTypeParametersString(element);
   String elementParameters = _getParametersString(element);
   String elementReturnType = _getReturnTypeString(element);
-  return new Element(newElementKind_fromEngine(element.kind), name, Element
+  ElementKind kind = newElementKind_fromEngine(element.kind);
+  // TODO(danrubel) this check should be in newElementKind_fromEngine
+  if (element is engine.ClassElement && element.isEnum) {
+    kind = ElementKind.ENUM;
+  }
+  return new Element(kind, name, Element
           .makeFlags(
               isPrivate: element.isPrivate,
               isDeprecated: element.isDeprecated,
@@ -106,6 +111,7 @@ Element newElement_fromEngine(engine.Element element) {
  */
 ElementKind newElementKind_fromEngine(engine.ElementKind kind) {
   if (kind == engine.ElementKind.CLASS) {
+    // TODO(danrubel) check if element.isEnum and return ElementKind.ENUM
     return ElementKind.CLASS;
   }
   if (kind == engine.ElementKind.COMPILATION_UNIT) {

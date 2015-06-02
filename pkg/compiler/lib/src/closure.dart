@@ -741,7 +741,8 @@ class ClosureTranslator extends Visitor {
     } else {
       Element element = elements[node];
       if (element != null && element.isTypeVariable) {
-        if (outermostElement.isConstructor) {
+        if (outermostElement.isConstructor ||
+            outermostElement.isField) {
           TypeVariableElement typeVariable = element;
           useTypeVariableAsLocal(typeVariable.type);
         } else {
@@ -1079,6 +1080,17 @@ class ClosureTranslator extends Visitor {
     inTryStatement = true;
     node.visitChildren(this);
     inTryStatement = oldInTryStatement;
+  }
+
+  visitCatchBlock(CatchBlock node) {
+    if (node.type != null) {
+      // The "on T" clause may contain type variables.
+      analyzeType(elements.getType(node.type));
+    }
+    if (node.formals != null) {
+      node.formals.visitChildren(this);
+    }
+    node.block.accept(this);
   }
 
   visitAsyncForIn(AsyncForIn node) {

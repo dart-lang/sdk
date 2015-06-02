@@ -571,7 +571,7 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   void _assertSameType(TypeName node, DartType type) {
-    // no return type == dynamic
+    // no type == dynamic
     if (node == null) {
       return _assertTrue(type == null || type.isDynamic);
     }
@@ -579,14 +579,18 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       return _assertTrue(false);
     }
     // prepare name
+    SimpleIdentifier prefixIdentifier = null;
     Identifier nameIdentifier = node.name;
     if (nameIdentifier is PrefixedIdentifier) {
-      nameIdentifier = (nameIdentifier as PrefixedIdentifier).identifier;
+      PrefixedIdentifier prefixedIdentifier = nameIdentifier;
+      prefixIdentifier = prefixedIdentifier.prefix;
+      nameIdentifier = prefixedIdentifier.identifier;
     }
     String nodeName = nameIdentifier.name;
     // check specific type kinds
     if (type is ParameterizedType) {
       _assertEquals(nodeName, type.name);
+      _assertElementVisibleWithPrefix(prefixIdentifier, type.element);
       // check arguments
       TypeArgumentList nodeArgumentList = node.typeArguments;
       List<DartType> typeArguments = type.typeArguments;
@@ -612,6 +616,29 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       logger.log('node: $node type: $type  type.type: ${type.runtimeType}');
       _assertTrue(false);
     }
+  }
+
+  /**
+   * Asserts that there is an import with the same prefix as the given
+   * [prefixNode], which exposes the given [element].
+   */
+  void _assertElementVisibleWithPrefix(
+      SimpleIdentifier prefixNode, Element element) {
+    if (prefixNode == null) {
+      return;
+    }
+    String prefixName = prefixNode.name;
+    for (ImportElement import in _enclosingLibrary.imports) {
+      if (import.prefix != null && import.prefix.name == prefixName) {
+        Namespace namespace =
+            new NamespaceBuilder().createImportNamespaceForDirective(import);
+        Iterable<Element> visibleElements = namespace.definedNames.values;
+        if (visibleElements.contains(element)) {
+          return;
+        }
+      }
+    }
+    _assertTrue(false);
   }
 
   void _assertSameTypeParameter(

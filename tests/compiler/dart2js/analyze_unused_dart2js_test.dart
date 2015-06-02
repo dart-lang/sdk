@@ -37,6 +37,21 @@ const Map<String, List<String>> WHITE_LIST = const {
   // Method in abstract class. Currently only instantiated trough tests.
   "lib/src/constants/expressions.dart": const [
       "The method 'readFromEnvironment' is never called"],
+
+  // Nested functions are currently kept alive in the IR.
+  "lib/src/tree_ir/": const [
+    "accept", "FunctionExpression", "CreateFunction"
+  ],
+
+  "lib/src/cps_ir/": const [
+    "accept", "CreateFunction",
+  ],
+
+  "/lib/src/dart_backend/backend_ast_to_frontend_ast.dart": const [
+    " is never "
+  ],
+
+  "/lib/src/cps_ir/type_propagation.dart": const ["UnitTypeSystem"],
 };
 
 void main() {

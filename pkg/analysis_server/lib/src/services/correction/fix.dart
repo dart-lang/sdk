@@ -43,6 +43,11 @@ class DartFixKind {
       const FixKind('ADD_ASYNC', 50, "Add 'async' modifier");
   static const ADD_FIELD_FORMAL_PARAMETERS = const FixKind(
       'ADD_FIELD_FORMAL_PARAMETERS', 30, "Add final field formal parameters");
+  static const ADD_MISSING_PARAMETER_POSITIONAL = const FixKind(
+      'ADD_MISSING_PARAMETER_POSITIONAL', 31,
+      "Add optional positional parameter");
+  static const ADD_MISSING_PARAMETER_REQUIRED = const FixKind(
+      'ADD_MISSING_PARAMETER_REQUIRED', 30, "Add required parameter");
   static const ADD_PACKAGE_DEPENDENCY = const FixKind(
       'ADD_PACKAGE_DEPENDENCY', 50, "Add dependency on package '{0}'");
   static const ADD_PART_OF =

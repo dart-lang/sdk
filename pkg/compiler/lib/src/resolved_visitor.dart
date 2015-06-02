@@ -239,7 +239,8 @@ abstract class NewResolvedVisitor<R> extends BaseResolvedVisitor<R>
   bool checkResolvedKind(Node node,
                          ResolvedKind oldKind,
                          ResolvedKind newKind) {
-    return invariant(node, oldKind == newKind, message: '$oldKind != $newKind');
+    return invariant(node, oldKind == newKind,
+        message: 'old=$oldKind != new=$newKind');
   }
 
   ResolvedKind computeResolvedKindFromStructure(
@@ -436,7 +437,7 @@ class ResolvedSemanticDispatcher<R> extends Object
       Send node,
       FunctionElement setter,
       ResolvedKindVisitor<R> visitor) {
-    return visitor.visitGetterSend(node);
+    return visitor.visitSuperSend(node);
   }
 
   @override
@@ -492,6 +493,14 @@ class ResolvedSemanticDispatcher<R> extends Object
       Element element,
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitGetterSend(node);
+  }
+
+  @override
+  R visitUnresolvedSuperGet(
+      Send node,
+      Element element,
+      ResolvedKindVisitor<R> visitor) {
+    return visitor.visitSuperSend(node);
   }
 
   @override

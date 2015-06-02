@@ -6,9 +6,10 @@ library services.src.index.local_index;
 
 import 'dart:async';
 
+import 'package:analysis_server/analysis/index/index_core.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/index_contributor.dart'
-    as contributors;
+    as oldContributors;
 import 'package:analysis_server/src/services/index/store/split_store.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
@@ -20,6 +21,11 @@ import 'package:analyzer/src/generated/source.dart';
  * A local implementation of [Index].
  */
 class LocalIndex extends Index {
+  /**
+   * The index contributors used by this index.
+   */
+  List<IndexContributor> contributors;
+
   SplitIndexStore _store;
 
   LocalIndex(NodeManager nodeManager) {
@@ -52,8 +58,8 @@ class LocalIndex extends Index {
    */
   @override
   Future<List<LocationImpl>> getRelationships(
-      Element element, RelationshipImpl relationship) {
-    return _store.getRelationships(element, relationship);
+      IndexableObject indexable, RelationshipImpl relationship) {
+    return _store.getRelationships(indexable, relationship);
   }
 
   @override
@@ -63,12 +69,18 @@ class LocalIndex extends Index {
 
   @override
   void indexHtmlUnit(AnalysisContext context, HtmlUnit unit) {
-    contributors.indexHtmlUnit(_store, context, unit);
+    oldContributors.indexHtmlUnit(_store, context, unit);
   }
 
   @override
   void indexUnit(AnalysisContext context, CompilationUnit unit) {
-    contributors.indexDartUnit(_store, context, unit);
+    oldContributors.indexDartUnit(_store, context, unit);
+  }
+
+  @override
+  void recordRelationship(
+      IndexableObject indexable, Relationship relationship, Location location) {
+    _store.recordRelationship(indexable, relationship, location);
   }
 
   @override

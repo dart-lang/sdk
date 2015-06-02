@@ -26,7 +26,7 @@ const bool ENABLE_DUMP = tracer.TRACE_FILTER_PATTERN != null;
 ///
 class CheckCpsIntegrity extends RecursiveVisitor {
 
-  RootNode topLevelNode;
+  FunctionDefinition topLevelNode;
 
   Set<Definition> seenDefinitions = new Set<Definition>();
   Map<Definition, Set<Reference>> seenReferences =
@@ -78,15 +78,6 @@ class CheckCpsIntegrity extends RecursiveVisitor {
   }
 
   @override
-  visitBody(Body node) {
-    markAsSeen(node.returnContinuation);
-    if (!node.returnContinuation.isReturnContinuation) {
-      error('Return continuation with a body', node);
-    }
-    doInScope([node.returnContinuation], node, () => visit(node.body));
-  }
-
-  @override
   visitLetPrim(LetPrim node) {
     markAsSeen(node.primitive);
     visit(node.primitive);
@@ -106,39 +97,20 @@ class CheckCpsIntegrity extends RecursiveVisitor {
       markAsSeen(node.thisParameter);
     }
     node.parameters.forEach(markAsSeen);
-    if (node.body != null) {
-      doInOptionalScope(node.thisParameter, node,
-          () => doInScope(node.parameters, node, () => visit(node.body)));
+    markAsSeen(node.returnContinuation);
+    if (!node.returnContinuation.isReturnContinuation) {
+      error('Return continuation with a body', node);
     }
-  }
-
-  @override
-  visitConstructorDefinition(ConstructorDefinition node) {
-    if (node.thisParameter != null) {
-      markAsSeen(node.thisParameter);
-    }
-    node.parameters.forEach(markAsSeen);
-    doInScope(node.parameters, node, () {
-      if (node.initializers != null) node.initializers.forEach(visit);
-      if (node.body != null) {
-        doInOptionalScope(node.thisParameter, node, () => visit(node.body));
-      }
-    });
+    doInOptionalScope(node.thisParameter, node,
+        () => doInScope(node.parameters, node,
+            () => doInScope([node.returnContinuation], node,
+                () => visit(node.body))));
   }
 
   doInOptionalScope(Parameter parameter, Node node, action) {
     return (parameter == null)
         ? action()
         : doInScope([parameter], node, action);
-  }
-
-  @override
-  visitDeclareFunction(DeclareFunction node) {
-    markAsSeen(node.variable);
-    doInScope([node.variable], node, () {
-      visit(node.definition);
-      visit(node.body);
-    });
   }
 
   @override
@@ -209,7 +181,7 @@ class CheckCpsIntegrity extends RecursiveVisitor {
           '$sexpr\n';
   }
 
-  void check(RootNode node) {
+  void check(FunctionDefinition node) {
     topLevelNode = node;
     visit(node);
 

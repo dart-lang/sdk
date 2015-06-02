@@ -95,14 +95,12 @@ static const char* GetJSONRpcErrorMessage(intptr_t code) {
       return "Invalid params";
     case kInternalError:
       return "Internal error";
+    case kFeatureDisabled:
+      return "Feature is disabled";
     case kVMMustBePaused:
       return "VM must be paused";
-    case kNoBreakAtLine:
-      return "Cannot set breakpoint at line";
-    case kNoBreakAtFunction:
-      return "Cannot set breakpoint at function";
-    case kProfilingDisabled:
-      return "Profiling is disabled";
+    case kCannotAddBreakpoint:
+      return "Cannot add breakpoint";
     default:
       UNIMPLEMENTED();
       return "Unexpected rpc error code";

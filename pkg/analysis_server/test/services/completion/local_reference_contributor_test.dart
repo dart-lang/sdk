@@ -4,7 +4,9 @@
 
 library test.services.completion.dart.local;
 
-import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/protocol.dart' as protocol
+    show Element, ElementKind;
+import 'package:analysis_server/src/protocol.dart' hide Element, ElementKind;
 import 'package:analysis_server/src/services/completion/dart_completion_manager.dart';
 import 'package:analysis_server/src/services/completion/local_reference_contributor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -98,9 +100,9 @@ class LocalReferenceContributorTest extends AbstractSelectorSuggestionTest {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-    Element element = cs.element;
+    protocol.Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(ElementKind.LOCAL_VARIABLE));
+    expect(element.kind, equals(protocol.ElementKind.LOCAL_VARIABLE));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType, returnType != null ? returnType : 'dynamic');
@@ -113,9 +115,9 @@ class LocalReferenceContributorTest extends AbstractSelectorSuggestionTest {
     CompletionSuggestion cs = assertSuggest(name,
         csKind: CompletionSuggestionKind.INVOCATION, relevance: relevance);
     expect(cs.returnType, returnType != null ? returnType : 'dynamic');
-    Element element = cs.element;
+    protocol.Element element = cs.element;
     expect(element, isNotNull);
-    expect(element.kind, equals(ElementKind.PARAMETER));
+    expect(element.kind, equals(protocol.ElementKind.PARAMETER));
     expect(element.name, equals(name));
     expect(element.parameters, isNull);
     expect(element.returnType,
@@ -460,6 +462,22 @@ void main() {
 ''');
     expect(computeFast(), isTrue);
     assertSuggestLabel('foo');
+  }
+
+  test_enum() {
+    addTestSource('enum E { one, two } main() {^}');
+    expect(computeFast(), isTrue);
+    assertSuggestEnum('E');
+    assertNotSuggested('one');
+    assertNotSuggested('two');
+  }
+
+  test_enum_deprecated() {
+    addTestSource('@deprecated enum E { one, two } main() {^}');
+    expect(computeFast(), isTrue);
+    assertSuggestEnum('E', isDeprecated: true);
+    assertNotSuggested('one');
+    assertNotSuggested('two');
   }
 
   test_function_parameters_mixed_required_and_named() {

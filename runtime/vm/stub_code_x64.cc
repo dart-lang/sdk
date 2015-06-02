@@ -1334,7 +1334,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     intptr_t num_args,
     const RuntimeEntry& handle_ic_miss,
     Token::Kind kind,
-    RangeCollectionMode range_collection_mode) {
+    RangeCollectionMode range_collection_mode,
+    bool optimized) {
   ASSERT(num_args > 0);
 #if defined(DEBUG)
   { Label ok;
@@ -1351,7 +1352,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
 #endif  // DEBUG
 
   Label stepping, done_stepping;
-  if (FLAG_support_debugger) {
+  if (FLAG_support_debugger && !optimized) {
     __ Comment("Check single stepping");
     __ LoadIsolate(RAX);
     __ cmpb(Address(RAX, Isolate::single_step_offset()), Immediate(0));
@@ -1511,7 +1512,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
     __ jmp(RCX);
   }
 
-  if (FLAG_support_debugger) {
+  if (FLAG_support_debugger && !optimized) {
     __ Bind(&stepping);
     __ EnterStubFrame();
     __ pushq(RBX);
@@ -1615,7 +1616,7 @@ void StubCode::GenerateOneArgOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 1,
       kInlineCacheMissHandlerOneArgRuntimeEntry,
       Token::kILLEGAL,
-      kIgnoreRanges);
+      kIgnoreRanges, true /* optimized */);
 }
 
 
@@ -1625,7 +1626,7 @@ void StubCode::GenerateTwoArgsOptimizedCheckInlineCacheStub(
   GenerateNArgsCheckInlineCacheStub(assembler, 2,
       kInlineCacheMissHandlerTwoArgsRuntimeEntry,
       Token::kILLEGAL,
-      kIgnoreRanges);
+      kIgnoreRanges, true /* optimized */);
 }
 
 
@@ -1757,28 +1758,6 @@ void StubCode::GenerateICCallBreakpointStub(Assembler* assembler) {
   __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
   __ popq(RAX);  // Address of original.
   __ popq(RBX);  // Restore IC data.
-  __ LeaveStubFrame();
-  __ jmp(RAX);   // Jump to original stub.
-}
-
-
-// RBX: Contains Smi 0 (need to preserve a GC-safe value for the lazy compile
-// stub).
-// R10: Contains an arguments descriptor.
-// TOS(0): return address (Dart code).
-void StubCode::GenerateClosureCallBreakpointStub(Assembler* assembler) {
-  __ EnterStubFrame();
-  // Preserve runtime args.
-  __ pushq(RBX);
-  __ pushq(R10);
-  // Room for result. Debugger stub returns address of the
-  // unpatched runtime stub.
-  __ LoadObject(R12, Object::null_object(), PP);
-  __ pushq(R12);  // Room for result.
-  __ CallRuntime(kBreakpointRuntimeHandlerRuntimeEntry, 0);
-  __ popq(RAX);  // Address of original.
-  __ popq(R10);  // Restore arguments.
-  __ popq(RBX);
   __ LeaveStubFrame();
   __ jmp(RAX);   // Jump to original stub.
 }

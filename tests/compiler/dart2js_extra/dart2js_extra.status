@@ -65,6 +65,7 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 10216a_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 10216b_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 12320_test: Crash #  Unhandled node
+16407_test: Pass # Please triage this failure.
 17094_test: RuntimeError # Please triage this failure.
 21666_test: Crash # Instance of 'TypeOperator': type check unimplemented for fInt.
 22868_test: Crash #  cannot handle async/sync*/async* functions
@@ -94,14 +95,10 @@ deferred/deferred_mirrors1_test: Crash # (lazy.loadLibrary()): handleStaticGette
 deferred/deferred_overlapping_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
 deferred_fail_and_retry_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
 deferred_fail_and_retry_worker_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-do_test: Timeout # Please triage this failure.
-for_test: Timeout # Please triage this failure.
 generics_factories_test: Crash # Please triage this failure.
-if_null_test: Crash # Please triage this failure.
 inference_nsm_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_is_int_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 interface_type_optimization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-is_check_instanceof_test: Crash # Instance of 'TypeOperator': type check unimplemented for T.
 mirror_invalid_field_access2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirror_invalid_field_access3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirror_invalid_field_access4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -125,6 +122,4 @@ switch_test/02: Crash #  Unhandled node
 switch_test/none: Crash # (switch (val){}): Unhandled node
 this_phi_elimination_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_constant_switch_test/none: Crash # (switch (v){}): Unhandled node
-typevariable_factory_test: Crash # Instance of 'TypeOperator': type check unimplemented for A<T>.
-while_test: Timeout # Please triage this failure.
-16407_test : Pass
+typevariable_factory_test: Crash # Please triage this failure.

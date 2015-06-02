@@ -322,16 +322,16 @@
           <a class="link" on-click="{{ goto }}"
              _href="{{ gotoLink('/inspect', event.isolate) }}">{{ event.isolate.name }}</a>
           is paused
-          <template if="{{ event.eventType == 'PauseStart' }}">
+          <template if="{{ event.kind == 'PauseStart' }}">
             at isolate start
           </template>
-          <template if="{{ event.eventType == 'PauseExit' }}">
+          <template if="{{ event.kind == 'PauseExit' }}">
             at isolate exit
           </template>
           <template if="{{ event.breakpoint != null }}">
             at breakpoint {{ event.breakpoint.number }}
           </template>
-          <template if="{{ event.eventType == 'PauseException' }}">
+          <template if="{{ event.kind == 'PauseException' }}">
             due to exception
           </template>
 
@@ -342,7 +342,7 @@
           <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
         </div>
       </template>
-      <template if="{{ event.eventType == 'ConnectionClosed' }}">
+      <template if="{{ event.kind == 'ConnectionClosed' }}">
         <div class="item">
           Disconnected from VM: {{ event.reason }}
           <br><br>
@@ -351,7 +351,7 @@
           <a class="boxclose" on-click="{{ closeItem }}">&times;</a>
         </div>
       </template>
-      <template if="{{ event.eventType == 'Inspect' }}">
+      <template if="{{ event.kind == 'Inspect' }}">
         <div class="item">
           Inspect <any-service-ref ref="{{ event.inspectee }}"></any-service-ref>
           <br><br>

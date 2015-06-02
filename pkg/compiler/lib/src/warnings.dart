@@ -167,8 +167,8 @@ main() => new A().m();
   static const MessageKind NO_INSTANCE_AVAILABLE = const MessageKind(
       "'#{name}' is only available in instance methods.");
 
-  static const MessageKind NO_SUPER_AVAILABLE = const MessageKind(
-      "'super' is only available in instance methods.");
+  static const MessageKind NO_THIS_AVAILABLE = const MessageKind(
+      "'this' is only available in instance methods.");
 
   static const MessageKind PRIVATE_ACCESS = const MessageKind(
       "'#{name}' is declared private within library "
@@ -480,6 +480,22 @@ main() => new C();"""]);
 
   static const MessageKind CONST_CALLS_NON_CONST = const MessageKind(
       "'const' constructor cannot call a non-const constructor.");
+
+  static const MessageKind CONST_CALLS_NON_CONST_FOR_IMPLICIT =
+      const MessageKind(
+          "'const' constructor cannot call a non-const constructor. "
+          "This constructor has an implicit call to a "
+          "super non-const constructor.",
+          howToFix: "Try making the super constructor const.",
+          examples: const ["""
+class C {
+  C(); // missing const
+}
+class D extends C {
+  final d;
+  const D(this.d);
+}
+main() => new D(0);"""]);
 
   static const MessageKind CONST_CONSTRUCTOR_WITH_NONFINAL_FIELDS =
       const MessageKind(

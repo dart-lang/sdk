@@ -1334,7 +1334,7 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   GenerateDartCall(deopt_id,
                    token_pos,
                    &stub_code->CallStaticFunctionLabel(),
-                   RawPcDescriptors::kOptStaticCall,
+                   RawPcDescriptors::kOther,
                    locs);
   AddStaticCallTarget(function);
   __ Drop(argument_count);
@@ -1511,7 +1511,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     GenerateDartCall(deopt_id,
                      token_index,
                      &stub_code->CallStaticFunctionLabel(),
-                     RawPcDescriptors::kOptStaticCall,
+                     RawPcDescriptors::kOther,
                      locs);
     const Function& function = *sorted[i].target;
     AddStaticCallTarget(function);

@@ -226,6 +226,26 @@ class C implements B {
     });
   }
 
+  test_staticMembers() {
+    addTestFile('''
+class A {
+  static int F = 0;
+  static void M() {}
+  static int get G => 0;
+  static void set S(int v) {}
+}
+class B extends A {
+  static int F = 0;
+  static void M() {}
+  static int get G => 0;
+  static void set S(int v) {}
+}
+''');
+    return prepareOverrides().then((_) {
+      expect(overridesList, isEmpty);
+    });
+  }
+
   test_super_fieldByField() {
     addTestFile('''
 class A {

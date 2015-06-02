@@ -33,7 +33,7 @@ TEST_CASE(TraceJSWarning) {
                        "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
                        "\"uri\":\"Plug\","
                        "\"_kind\":\"script\"},\"tokenPos\":0,"
-                       "\"message\":{\"type\":\"@String\"",
+                       "\"message\":{\"type\":\"@Instance\"",
                        js.ToCString());
       // Skip private _OneByteString.
       EXPECT_SUBSTRING("\"valueAsString\":\"High Voltage\"",
@@ -51,7 +51,7 @@ TEST_CASE(TraceJSWarning) {
                    "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
                    "\"uri\":\"Plug\","
                    "\"_kind\":\"script\"},\"tokenPos\":0,"
-                   "\"message\":{\"type\":\"@String\"",
+                   "\"message\":{\"type\":\"@Instance\"",
                    trace_buffer->At(0)->message);
   // Skip private _OneByteString.
   EXPECT_SUBSTRING("\"valueAsString\":\"High Voltage\"",
@@ -62,7 +62,7 @@ TEST_CASE(TraceJSWarning) {
                    "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
                    "\"uri\":\"Plug\","
                    "\"_kind\":\"script\"},\"tokenPos\":1,"
-                   "\"message\":{\"type\":\"@String\"",
+                   "\"message\":{\"type\":\"@Instance\"",
                    trace_buffer->At(1)->message);
   // Skip private _OneByteString.
   EXPECT_SUBSTRING("\"valueAsString\":\"Low Voltage\"",

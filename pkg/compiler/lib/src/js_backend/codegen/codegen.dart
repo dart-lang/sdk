@@ -383,7 +383,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
       return buildStaticHelperInvocation(
           glue.getCheckSubtype(),
-          [value, isT, typeArgumentArray, asT]);
+          <js.Expression>[value, isT, typeArgumentArray, asT]);
+    } else if (type is TypeVariableType) {
+      glue.registerIsCheck(type, registry);
+      // The only type argument is the type held in the type variable.
+      js.Expression typeValue = typeArguments.single;
+      return buildStaticHelperInvocation(
+          glue.getCheckSubtypeOfRuntime(),
+          <js.Expression>[value, typeValue]);
     }
     return giveup(node, 'type check unimplemented for $type.');
   }
@@ -676,29 +683,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return glue.generateTypeRepresentation(node.dartType, arguments);
   }
 
-  // Dart-specific IR nodes
-
-  @override
-  visitReifyTypeVar(tree_ir.ReifyTypeVar node) {
-    return errorUnsupportedNode(node);
-  }
-
-  @override
   visitFunctionExpression(tree_ir.FunctionExpression node) {
-    return errorUnsupportedNode(node);
-  }
-
-  @override
-  visitFunctionDeclaration(tree_ir.FunctionDeclaration node) {
-    return errorUnsupportedNode(node);
-  }
-
-  @override
-  visitVariableDeclaration(tree_ir.VariableDeclaration node) {
-    return errorUnsupportedNode(node);
-  }
-
-  errorUnsupportedNode(tree_ir.DartSpecificNode node) {
-    throw "Unsupported node in JS backend: $node";
+    // FunctionExpressions are currently unused.
+    // We might need them if we want to emit raw JS nested functions.
+    throw 'FunctionExpressions should not be used';
   }
 }

@@ -4,59 +4,74 @@
 
 library update_homebrew;
 
-import 'dart:io';
-import 'dart:convert';
 import 'dart:async';
-import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:args/args.dart';
-import 'package:googleapis/storage/v1.dart' as storage;
 import 'package:googleapis/common/common.dart' show DownloadOptions, Media;
+import 'package:googleapis/storage/v1.dart' as storage;
+import 'package:http/http.dart' as http;
+import 'package:stack_trace/stack_trace.dart';
 
-String repository;  // The path to the temporary git checkout of dart-homebrew.
-Map gitEnvironment;  // Pass a wrapper script for SSH to git in the environment.
+String repository; // The path to the temporary git checkout of dart-homebrew.
+Map gitEnvironment; // Pass a wrapper script for SSH to git in the environment.
 
-final CHANNELS = ['dev', 'stable'];
+const GITHUB_REPO = 'dart-lang/homebrew-dart';
 
-final SDK_FILES = ['sdk/dartsdk-macos-x64-release.zip',
-                   'sdk/dartsdk-macos-ia32-release.zip' ];
-final DARTIUM_FILES = ['dartium/dartium-macos-ia32-release.zip',
-                       'dartium/content_shell-macos-ia32-release.zip'];
+const CHANNELS = const ['dev', 'stable'];
+
+const SDK_FILES = const [
+  'sdk/dartsdk-macos-x64-release.zip',
+  'sdk/dartsdk-macos-ia32-release.zip'
+];
+
+const DARTIUM_FILES = const [
+  'dartium/dartium-macos-ia32-release.zip',
+  'dartium/content_shell-macos-ia32-release.zip'
+];
+
 final FILES = []..addAll(SDK_FILES)..addAll(DARTIUM_FILES);
 
-
-Future<String> getHash256(String channel, int revision, String download) {
+Future<String> getHash256(String channel, int revision, String download) async {
   var client = new http.Client();
-  var api = new storage.StorageApi(client);
-  return
-      api.objects.get('dart-archive',
-                      'channels/$channel/release/$revision/$download.sha256sum',
-                       downloadOptions: DownloadOptions.FullMedia)
-      .then((Media media) => ASCII.decodeStream(media.stream))
-      .then((hashLine) => new RegExp('[0-9a-fA-F]*').stringMatch(hashLine))
-      .whenComplete(client.close);
+  try {
+    var api = new storage.StorageApi(client);
+    var media = await api.objects.get('dart-archive',
+        'channels/$channel/release/$revision/$download.sha256sum',
+        downloadOptions: DownloadOptions.FullMedia);
+
+    var hashLine = await ASCII.decodeStream(media.stream);
+    return new RegExp('[0-9a-fA-F]*').stringMatch(hashLine);
+  } finally {
+    client.close();
+  }
 }
 
-Future<String> getVersion(String channel, int revision) {
+Future<String> getVersion(String channel, int revision) async {
   var client = new http.Client();
-  var api = new storage.StorageApi(client);
-  return api.objects.get('dart-archive',
-                         'channels/$channel/release/$revision/VERSION',
-                         downloadOptions: DownloadOptions.FullMedia)
-      .then((Media media) => JSON.fuse(ASCII).decoder.bind(media.stream).first)
-      .then((versionObject) => versionObject['version'])
-      .whenComplete(client.close);
+  try {
+    var api = new storage.StorageApi(client);
+
+    var media = await api.objects.get(
+        'dart-archive', 'channels/$channel/release/$revision/VERSION',
+        downloadOptions: DownloadOptions.FullMedia);
+
+    var versionObject = await JSON.fuse(ASCII).decoder.bind(media.stream).first;
+    return versionObject['version'];
+  } finally {
+    client.close();
+  }
 }
 
-Future setCurrentRevisions(Map revisions) {
-  return new File('$repository/dart.rb')
-    .readAsLines()
-    .then((lines) {
-      for (var channel in CHANNELS) {
-        final regExp = new RegExp('channels/$channel/release/(\\d*)/sdk');
-        revisions[channel] =
-	    regExp.firstMatch(lines.firstWhere(regExp.hasMatch)).group(1);
-      }
-    });
+Future setCurrentRevisions(Map revisions) async {
+  var lines = await (new File('$repository/dart.rb')).readAsLines();
+
+  for (var channel in CHANNELS) {
+    final regExp = new RegExp('channels/$channel/release/(\\d*)/sdk');
+    revisions[channel] =
+        regExp.firstMatch(lines.firstWhere(regExp.hasMatch)).group(1);
+  }
 }
 
 Future setHashes(Map revisions, Map hashes) {
@@ -72,39 +87,30 @@ Future setHashes(Map revisions, Map hashes) {
   return Future.wait(waitOn);
 }
 
-Future writeHomebrewInfo(String channel, int revision) {
+Future writeHomebrewInfo(String channel, int revision) async {
   var revisions = {};
   var hashes = {};
-  var devVersion;
-  var stableVersion;
-  return setCurrentRevisions(revisions).then((_) {
-    if (revisions[channel] == revision) {
-      print("Channel $channel is already at revision $revision in homebrew.");
-      exit(0);
-    }
-    revisions[channel] = revision;
-    return setHashes(revisions, hashes);
-  }).then((_) {
-    return getVersion('dev', revisions['dev']);
-  }).then((version) {
-    devVersion = version;
-    return getVersion('stable', revisions['stable']);
-  }).then((version) {
-    stableVersion = version;
-    return (new File('$repository/dartium.rb').openWrite()
-      ..write(DartiumFile(revisions, hashes, devVersion, stableVersion)))
-      .close();
-  }).then((_) {
-    return (new File('$repository/dart.rb').openWrite()
-      ..write(DartFile(revisions, hashes, devVersion, stableVersion)))
-      .close();
-  });
+
+  await setCurrentRevisions(revisions);
+
+  if (revisions[channel] == revision) {
+    print("Channel $channel is already at revision $revision in homebrew.");
+    exit(0);
+  }
+  revisions[channel] = revision;
+  await setHashes(revisions, hashes);
+  var devVersion = await getVersion('dev', revisions['dev']);
+
+  var stableVersion = await getVersion('stable', revisions['stable']);
+
+  await (new File('$repository/dartium.rb').openWrite()
+    ..write(DartiumFile(revisions, hashes, devVersion, stableVersion))).close();
+  await (new File('$repository/dart.rb').openWrite()
+    ..write(DartFile(revisions, hashes, devVersion, stableVersion))).close();
 }
 
-String DartiumFile(Map revisions,
-                   Map hashes,
-                   String devVersion,
-                   String stableVersion) {
+String DartiumFile(
+    Map revisions, Map hashes, String devVersion, String stableVersion) {
   final urlBase = 'https://storage.googleapis.com/dart-archive/channels';
   final dartiumFile = 'dartium/dartium-macos-ia32-release.zip';
   final contentShellFile = 'dartium/content_shell-macos-ia32-release.zip';
@@ -167,10 +173,8 @@ end
 ''';
 }
 
-String DartFile(Map revisions,
-                Map hashes,
-                String devVersion,
-                String stableVersion) {
+String DartFile(
+    Map revisions, Map hashes, String devVersion, String stableVersion) {
   final urlBase = 'https://storage.googleapis.com/dart-archive/channels';
   final x64File = 'sdk/dartsdk-macos-x64-release.zip';
   final ia32File = 'sdk/dartsdk-macos-ia32-release.zip';
@@ -226,42 +230,54 @@ end
 ''';
 }
 
-Future runGit(List<String> args) {
+Future runGit(List<String> args) async {
   print("git ${args.join(' ')}");
-  return Process.run('git', args, workingDirectory: repository,
-                     environment: gitEnvironment)
-      .then((result) {
-        print(result.stdout);
-        print(result.stderr);
-      });
+
+  var result = await Process.run('git', args,
+      workingDirectory: repository, environment: gitEnvironment);
+
+  print(result.stdout);
+  print(result.stderr);
 }
 
-main(args) {
+main(args) async {
   final parser = new ArgParser()
-      ..addOption('revision', abbr: 'r')
-      ..addOption('channel', abbr: 'c', allowed: ['dev', 'stable'])
-      ..addOption('key', abbr: 'k');
+    ..addOption('revision', abbr: 'r')
+    ..addOption('channel', abbr: 'c', allowed: ['dev', 'stable'])
+    ..addOption('key', abbr: 'k');
   final options = parser.parse(args);
   final revision = options['revision'];
   final channel = options['channel'];
-  if ([revision, channel, options['key']].contains(null)) {
+  final key = options['key'];
+  if ([revision, channel, key].contains(null)) {
     print("Usage: update_homebrew.dart -r revision -c channel -k ssh_key\n"
-          "  ssh_key should allow pushes to dart-lang/homebrew-dart on github");
+        "  ssh_key should allow pushes to ${GITHUB_REPO} on github");
     return;
   }
   final sshWrapper = Platform.script.resolve('ssh_with_key').toFilePath();
-  gitEnvironment = {'GIT_SSH': sshWrapper,
-                    'SSH_KEY_PATH': options['key']};
+  gitEnvironment = {'GIT_SSH': sshWrapper, 'SSH_KEY_PATH': key};
 
-  Directory.systemTemp.createTemp('update_homebrew')
-      .then((tempDir) {
-        repository = tempDir.path;
-      })
-      .then((_) => runGit(
-          ['clone', 'git@github.com:dart-lang/homebrew-dart.git', '.']))
-      .then((_) => writeHomebrewInfo(channel, revision))
-      .then((_) => runGit(['commit', '-a', '-m',
-                           'Updated $channel branch to revision $revision']))
-      .then((_) => runGit(['push']))
-      .whenComplete(() => new Directory(repository).delete(recursive: true));
+  Chain.capture(() async {
+    var tempDir = await Directory.systemTemp.createTemp('update_homebrew');
+
+    try {
+      repository = tempDir.path;
+
+      await runGit(['clone', 'git@github.com:${GITHUB_REPO}.git', '.']);
+      await writeHomebrewInfo(channel, revision);
+      await runGit([
+        'commit',
+        '-a',
+        '-m',
+        'Updated $channel branch to revision $revision'
+      ]);
+
+      await runGit(['push']);
+    } finally {
+      await tempDir.delete(recursive: true);
+    }
+  }, onError: (error, chain) {
+    print(error);
+    print(chain.terse);
+  });
 }

@@ -31,7 +31,7 @@ class FormatTest extends AbstractAnalysisTest {
     handler = new EditDomainHandler(server);
   }
 
-  Future test_formatNoOp() {
+  Future test_format_noOp() {
     // Already formatted source
     addTestFile('''
 main() {
@@ -45,7 +45,7 @@ main() {
     });
   }
 
-  Future test_formatNoSelection() async {
+  Future test_format_noSelection() async {
     addTestFile('''
 main() { int x = 3; }
 ''');
@@ -65,7 +65,7 @@ main() {
     expect(formatResult.selectionLength, equals(0));
   }
 
-  Future test_formatSimple() {
+  Future test_format_simple() {
     addTestFile('''
 main() { int x = 3; }
 ''');
@@ -86,7 +86,25 @@ main() {
     });
   }
 
-  Future test_withErrors() {
+  Future test_format_longLine() {
+    String content = '''
+fun(firstParam, secondParam, thirdParam, fourthParam) {
+  if (firstParam.noNull && secondParam.noNull && thirdParam.noNull && fourthParam.noNull) {}
+}
+''';
+    addTestFile(content);
+    return waitForTasksFinished().then((_) {
+      EditFormatResult formatResult = _formatAt(0, 3, lineLength: 100);
+
+      expect(formatResult.edits, isNotNull);
+      expect(formatResult.edits, hasLength(0));
+
+      expect(formatResult.selectionOffset, equals(0));
+      expect(formatResult.selectionLength, equals(3));
+    });
+  }
+
+  Future test_format_withErrors() {
     addTestFile('''
 main() { int x = 
 ''');
@@ -97,9 +115,9 @@ main() { int x =
     });
   }
 
-  EditFormatResult _formatAt(int selectionOffset, int selectionLength) {
+  EditFormatResult _formatAt(int selectionOffset, int selectionLength, {int lineLength}) {
     Request request = new EditFormatParams(
-        testFile, selectionOffset, selectionLength).toRequest('0');
+        testFile, selectionOffset, selectionLength, lineLength: lineLength).toRequest('0');
     Response response = handleSuccessfulRequest(request);
     return new EditFormatResult.fromResponse(response);
   }

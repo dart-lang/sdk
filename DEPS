@@ -17,10 +17,22 @@ vars = {
   # If you do not know, use the full path while defining your new deps entry.
   "googlecode_url": "http://%s.googlecode.com/svn",
 
-  "dart_github": "https://github.com/dart-lang/%s.git",
+  # We use mirrors of all github repos to guarantee reproducibility and
+  # consistency between what users see and what the bots see.
+  # We need the mirrors to not have 100+ bots pulling github constantly.
+  # We mirror our github repos on chromium git servers.
+  # DO NOT use this var if you don't see a mirror here:
+  #   https://chromium.googlesource.com/
+  # named like:
+  #   external/github.com/dart-lang/NAME
+  # It is ok to add a dependency directly on dart-lang (dart-lang only)
+  # github repo until the mirror has been created, but please do file a bug
+  # against infra to make that happen.
+  "github_mirror":
+      "https://chromium.googlesource.com/external/github.com/dart-lang/%s.git",
 
   "gyp_rev": "@1752",
-  "co19_rev": "@801",
+  "co19_rev": "@f95f109fea67127a220958794ef5200a63cb454c",
   "chromium_url": "http://src.chromium.org/svn",
   "chromium_git": "https://chromium.googlesource.com",
 
@@ -64,12 +76,13 @@ vars = {
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "observatory_pub_packages_rev": "@45565",
-  "package_config_rev": "@286f9cf48448c4563e735a142c6f9442ab57674e",
+  "package_config_tag": "@0.0.2+4",
   "path_rev": "@93b3e2aa1db0ac0c8bab9d341588d77acda60320",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
+  "pub_rev": "@f6d3dceb51789b6ba7ae28e87b667663792a7aa9",
   "pub_semver_tag": "@1.2.1",
   "scheduled_test_tag": "@0.11.8+1",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
@@ -105,8 +118,8 @@ deps = {
   Var("dart_root") + "/third_party/gyp":
       (Var("googlecode_url") % "gyp") + "/trunk" + Var("gyp_rev"),
 
-  Var("dart_root") + "/tests/co19/src": ((Var("googlecode_url") % "co19") +
-      "/trunk/co19/tests/co19/src" + Var("co19_rev")),
+  Var("dart_root") + "/tests/co19/src":
+      "https://github.com/dart-lang/co19.git" + Var("co19_rev"),
 
   Var("dart_root") + "/third_party/nss":
       Var("chromium_git") + "/chromium/deps/nss.git" + Var("nss_rev"),
@@ -158,118 +171,120 @@ deps = {
       Var("observatory_pub_packages_rev"),
 
   Var("dart_root") + "/third_party/dart-services":
-      (Var("dart_github") % "dart-services") +
+      (Var("github_mirror") % "dart-services") +
       Var("dart_services_rev"),
 
   Var("dart_root") + "/third_party/pkg_tested/analyzer_cli":
-      (Var("dart_github") % "analyzer_cli") + Var("analyzer_cli_tag"),
+      (Var("github_mirror") % "analyzer_cli") + Var("analyzer_cli_tag"),
   Var("dart_root") + "/third_party/pkg/args":
-      (Var("dart_github") % "args") + Var("args_tag"),
+      (Var("github_mirror") % "args") + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async_await":
-      (Var("dart_github") % "async_await") + Var("async_await_rev"),
+      (Var("github_mirror") % "async_await") + Var("async_await_rev"),
   Var("dart_root") + "/third_party/pkg/barback":
-      (Var("dart_github") % "barback") + Var("barback_rev"),
+      (Var("github_mirror") % "barback") + Var("barback_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
-      (Var("dart_github") % "charcode") + Var("charcode_tag"),
+      "https://github.com/dart-lang/charcode.git" + Var("charcode_tag"),
   Var("dart_root") + "/third_party/pkg/cli_util":
-      "https://github.com/dart-lang/cli_util.git" + Var("cli_util_tag"),        
+      "https://github.com/dart-lang/cli_util.git" + Var("cli_util_tag"),
   Var("dart_root") + "/third_party/pkg/collection":
-      (Var("dart_github") % "collection") + Var("collection_rev"),
+      (Var("github_mirror") % "collection") + Var("collection_rev"),
   Var("dart_root") + "/third_party/pkg/crypto":
-      (Var("dart_github") % "crypto") + Var("crypto_rev"),
+      (Var("github_mirror") % "crypto") + Var("crypto_rev"),
   Var("dart_root") + "/third_party/pkg/csslib":
-      (Var("dart_github") % "csslib") + Var("csslib_tag"),
+      (Var("github_mirror") % "csslib") + Var("csslib_tag"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
-      (Var("dart_github") % "dart_style") + Var("dart_style_tag"),
+      (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/glob":
-      (Var("dart_github") % "glob") + Var("glob_rev"),
+      (Var("github_mirror") % "glob") + Var("glob_rev"),
   Var("dart_root") + "/third_party/pkg/html":
-      (Var("dart_github") % "html") + Var("html_tag"),
+      (Var("github_mirror") % "html") + Var("html_tag"),
   Var("dart_root") + "/third_party/pkg/http":
-      (Var("dart_github") % "http") + Var("http_rev"),
+      (Var("github_mirror") % "http") + Var("http_rev"),
   Var("dart_root") + "/third_party/pkg/http_multi_server":
-      (Var("dart_github") % "http_multi_server") +
+      (Var("github_mirror") % "http_multi_server") +
       Var("http_multi_server_tag"),
   Var("dart_root") + "/third_party/pkg/http_parser":
-      (Var("dart_github") % "http_parser") + Var("http_parser_rev"),
+      (Var("github_mirror") % "http_parser") + Var("http_parser_rev"),
   Var("dart_root") + "/third_party/pkg/http_throttle":
-      (Var("dart_github") % "http_throttle") +
+      (Var("github_mirror") % "http_throttle") +
       Var("http_throttle_rev"),
   Var("dart_root") + "/third_party/pkg/intl":
-      (Var("dart_github") % "intl") + Var("intl_rev"),
+      (Var("github_mirror") % "intl") + Var("intl_rev"),
   Var("dart_root") + "/third_party/pkg/json_rpc_2":
-      (Var("dart_github") % "json_rpc_2") + Var("json_rpc_2_rev"),
+      (Var("github_mirror") % "json_rpc_2") + Var("json_rpc_2_rev"),
   Var("dart_root") + "/third_party/pkg/linter":
-      (Var("dart_github") % "linter") + Var("linter_tag"),
+      (Var("github_mirror") % "linter") + Var("linter_tag"),
   Var("dart_root") + "/third_party/pkg/logging":
-      (Var("dart_github") % "logging") + Var("logging_rev"),
+      (Var("github_mirror") % "logging") + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
       "https://github.com/dpeek/dart-markdown.git" + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/matcher":
-      (Var("dart_github") % "matcher") + Var("matcher_tag"),
+      (Var("github_mirror") % "matcher") + Var("matcher_tag"),
   Var("dart_root") + "/third_party/pkg/metatest":
-      (Var("dart_github") % "metatest") + Var("metatest_rev"),
+      (Var("github_mirror") % "metatest") + Var("metatest_rev"),
   Var("dart_root") + "/third_party/pkg/mime":
-      (Var("dart_github") % "mime") + Var("mime_rev"),
+      (Var("github_mirror") % "mime") + Var("mime_rev"),
   Var("dart_root") + "/third_party/pkg/oauth2":
-      (Var("dart_github") % "oauth2") + Var("oauth2_rev"),
+      (Var("github_mirror") % "oauth2") + Var("oauth2_rev"),
   Var("dart_root") + "/third_party/pkg/observe":
-      (Var("dart_github") % "observe") + Var("observe_rev"),
+      (Var("github_mirror") % "observe") + Var("observe_rev"),
   Var("dart_root") + "/third_party/pkg/package_config":
-      (Var("dart_github") % "package_config") +
-      Var("package_config_rev"),
+      (Var("github_mirror") % "package_config") +
+      Var("package_config_tag"),
   Var("dart_root") + "/third_party/pkg/path":
-      (Var("dart_github") % "path") + Var("path_rev"),
+      (Var("github_mirror") % "path") + Var("path_rev"),
   Var("dart_root") + "/third_party/pkg/plugin":
-      (Var("dart_github") % "plugin") + Var("plugin_tag"),
+      (Var("github_mirror") % "plugin") + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
-      (Var("dart_github") % "pool") + Var("pool_rev"),
+      (Var("github_mirror") % "pool") + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
-      (Var("dart_github") % "pub_semver") + Var("pub_semver_tag"),
+      (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
+  Var("dart_root") + "/third_party/pkg_tested/pub":
+      ("https://github.com/dart-lang/pub.git") + Var("pub_rev"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
-      (Var("dart_github") % "scheduled_test") +
+      (Var("github_mirror") % "scheduled_test") +
       Var("scheduled_test_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
-      (Var("dart_github") % "shelf") + Var("shelf_rev"),
+      (Var("github_mirror") % "shelf") + Var("shelf_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
-      (Var("dart_github") % "shelf_web_socket") +
+      (Var("github_mirror") % "shelf_web_socket") +
       Var("shelf_web_socket_rev"),
   Var("dart_root") + "/third_party/pkg/smoke":
-      (Var("dart_github") % "smoke") + Var("smoke_rev"),
+      (Var("github_mirror") % "smoke") + Var("smoke_rev"),
   Var("dart_root") + "/third_party/pkg/source_maps":
-      (Var("dart_github") % "source_maps") + Var("source_maps_rev"),
+      (Var("github_mirror") % "source_maps") + Var("source_maps_rev"),
   Var("dart_root") + "/third_party/pkg/source_span":
-      (Var("dart_github") % "source_span") + Var("source_span_rev"),
+      (Var("github_mirror") % "source_span") + Var("source_span_rev"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
-      (Var("dart_github") % "stack_trace") + Var("stack_trace_tag"),
+      (Var("github_mirror") % "stack_trace") + Var("stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/string_scanner":
-      (Var("dart_github") % "string_scanner") +
+      (Var("github_mirror") % "string_scanner") +
       Var("string_scanner_rev"),
   Var("dart_root") + "/third_party/sunflower":
-      (Var("dart_github") % "sample-sunflower") +
+      (Var("github_mirror") % "sample-sunflower") +
       Var("sunflower_rev"),
   Var("dart_root") + "/third_party/pkg/test":
-      (Var("dart_github") % "test") + Var("test_tag"),
+      (Var("github_mirror") % "test") + Var("test_tag"),
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
-      (Var("dart_github") % "test_reflective_loader") + 
+      (Var("github_mirror") % "test_reflective_loader") +
       Var("test_reflective_loader_tag"),
   Var("dart_root") + "/third_party/pkg/unittest":
-      (Var("dart_github") % "test") + Var("unittest_tag"),
+      (Var("github_mirror") % "test") + Var("unittest_tag"),
   Var("dart_root") + "/third_party/pkg/usage":
-      (Var("dart_github") % "usage") + Var("usage_rev"),
+      (Var("github_mirror") % "usage") + Var("usage_rev"),
   Var("dart_root") + "/third_party/pkg/utf":
-      (Var("dart_github") % "utf") + Var("utf_rev"),
+      (Var("github_mirror") % "utf") + Var("utf_rev"),
   Var("dart_root") + "/third_party/pkg/watcher":
-      (Var("dart_github") % "watcher") + Var("watcher_tag"),
+      (Var("github_mirror") % "watcher") + Var("watcher_tag"),
   Var("dart_root") + "/third_party/pkg/web_components":
-      (Var("dart_github") % "web-components") +
+      (Var("github_mirror") % "web-components") +
       Var("web_components_rev"),
   Var("dart_root") + "/third_party/pkg/when":
-      "https://github.com/dart-lang/when.git" + Var("when_tag"),    
+      "https://github.com/dart-lang/when.git" + Var("when_tag"),
   Var("dart_root") + "/third_party/pkg/which":
-      "https://github.com/dart-lang/which.git"+ Var("which_tag"),    
+      "https://github.com/dart-lang/which.git"+ Var("which_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
-      (Var("dart_github") % "yaml") + Var("yaml_rev"),
+      (Var("github_mirror") % "yaml") + Var("yaml_rev"),
 
   # These specific versions of barback and source_maps are used for testing and
   # should be pulled from bleeding_edge even on channels.

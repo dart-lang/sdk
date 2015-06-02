@@ -8,15 +8,13 @@ import 'cps_ir_nodes.dart';
 
 export 'type_propagation.dart' show TypePropagator, TypeSystem,
                                     UnitTypeSystem, TypeMaskSystem;
-
-part 'redundant_phi.dart';
-part 'shrinking_reductions.dart';
-
+export 'redundant_phi.dart' show RedundantPhiEliminator;
+export 'shrinking_reductions.dart' show ShrinkingReducer, ParentVisitor;
 
 /// An optimization pass over the CPS IR.
 abstract class Pass {
   /// Applies optimizations to root, rewriting it in the process.
-  void rewrite(RootNode root);
+  void rewrite(FunctionDefinition root);
 
   String get passName;
 }

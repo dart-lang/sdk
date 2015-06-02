@@ -99,6 +99,11 @@ static void PrintUnrecognizedMethodError(JSONStream* js) {
 }
 
 
+static void PrintSuccess(JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Success");
+}
+
 static bool GetIntegerId(const char* s, intptr_t* id, int base = 10) {
   if ((s == NULL) || (*s == '\0')) {
     // Empty string.
@@ -733,9 +738,7 @@ static bool GetStack(Isolate* isolate, JSONStream* js) {
       ActivationFrame* frame = stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
       frame->PrintToJSONObject(&jsobj, full);
-      // TODO(turnidge): Implement depth differently -- differentiate
-      // inlined frames.
-      jsobj.AddProperty("depth", i);
+      jsobj.AddProperty("index", i);
     }
   }
 
@@ -764,8 +767,8 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
     JSONObject jsobj(&js);
     {
       JSONObject event(&jsobj, "event");
-      event.AddProperty("type", "ServiceEvent");
-      event.AddProperty("eventType", "_Echo");
+      event.AddProperty("type", "Event");
+      event.AddProperty("kind", "_Echo");
       event.AddProperty("isolate", isolate);
       if (text != NULL) {
         event.AddProperty("text", text);
@@ -853,10 +856,6 @@ static RawObject* LookupObjectId(Isolate* isolate,
     return Bool::False().raw();
   } else if (strcmp(arg, "null") == 0) {
     return Object::null();
-  } else if (strcmp(arg, "not-initialized") == 0) {
-    return Object::sentinel().raw();
-  } else if (strcmp(arg, "being-initialized") == 0) {
-    return Object::transition_sentinel().raw();
   }
 
   ObjectIdRing* ring = isolate->object_id_ring();
@@ -1556,7 +1555,7 @@ static bool Evaluate(Isolate* isolate, JSONStream* js) {
 
 static const MethodParameter* evaluate_in_frame_params[] = {
   ISOLATE_PARAMETER,
-  new UIntParameter("frame", true),
+  new UIntParameter("frameIndex", true),
   new MethodParameter("expression", true),
   NULL,
 };
@@ -1564,9 +1563,9 @@ static const MethodParameter* evaluate_in_frame_params[] = {
 
 static bool EvaluateInFrame(Isolate* isolate, JSONStream* js) {
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
-  intptr_t framePos = UIntParameter::Parse(js->LookupParam("frame"));
+  intptr_t framePos = UIntParameter::Parse(js->LookupParam("frameIndex"));
   if (framePos > stack->Length()) {
-    PrintInvalidParamError(js, "frame");
+    PrintInvalidParamError(js, "frameIndex");
     return true;
   }
   ActivationFrame* frame = stack->FrameAt(framePos);
@@ -1811,7 +1810,9 @@ static bool AddBreakpoint(Isolate* isolate, JSONStream* js) {
   Breakpoint* bpt =
       isolate->debugger()->SetBreakpointAtLine(script_url, line);
   if (bpt == NULL) {
-    js->PrintError(kNoBreakAtLine, NULL);
+    js->PrintError(kCannotAddBreakpoint,
+                   "%s: Cannot add breakpoint at line '%s'",
+                   js->method(), line_param);
     return true;
   }
   bpt->PrintJSON(js);
@@ -1837,7 +1838,9 @@ static bool AddBreakpointAtEntry(Isolate* isolate, JSONStream* js) {
   Breakpoint* bpt =
       isolate->debugger()->SetBreakpointAtEntry(function, false);
   if (bpt == NULL) {
-    js->PrintError(kNoBreakAtFunction, NULL);
+    js->PrintError(kCannotAddBreakpoint,
+                   "%s: Cannot add breakpoint at function '%s'",
+                   js->method(), function.ToCString());
     return true;
   }
   bpt->PrintJSON(js);
@@ -1863,7 +1866,9 @@ static bool AddBreakpointAtActivation(Isolate* isolate, JSONStream* js) {
   Breakpoint* bpt =
       isolate->debugger()->SetBreakpointAtActivation(closure);
   if (bpt == NULL) {
-    js->PrintError(kNoBreakAtFunction, NULL);
+    js->PrintError(kCannotAddBreakpoint,
+                   "%s: Cannot add breakpoint at activation",
+                   js->method());
     return true;
   }
   bpt->PrintJSON(js);
@@ -1885,15 +1890,11 @@ static bool RemoveBreakpoint(Isolate* isolate, JSONStream* js) {
   const char* bpt_id = js->LookupParam("breakpointId");
   Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id);
   if (bpt == NULL) {
-    fprintf(stderr, "ERROR1");
     PrintInvalidParamError(js, "breakpointId");
     return true;
   }
   isolate->debugger()->RemoveBreakpoint(bpt->id());
-
-  // TODO(turnidge): Consider whether the 'Success' type is proper.
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "Success");
+  PrintSuccess(js);
   return true;
 }
 
@@ -2090,28 +2091,26 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   if (isolate->message_handler()->paused_on_start()) {
     isolate->message_handler()->set_pause_on_start(false);
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "Success");
     {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
     }
+    PrintSuccess(js);
     return true;
   }
   if (isolate->message_handler()->paused_on_exit()) {
     isolate->message_handler()->set_pause_on_exit(false);
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "Success");
     // We don't send a resume event because we will be exiting.
+    PrintSuccess(js);
     return true;
   }
   if (isolate->debugger()->PauseEvent() != NULL) {
     if (step_param != NULL) {
-      if (strcmp(step_param, "into") == 0) {
+      if (strcmp(step_param, "Into") == 0) {
         isolate->debugger()->SetSingleStep();
-      } else if (strcmp(step_param, "over") == 0) {
+      } else if (strcmp(step_param, "Over") == 0) {
         isolate->debugger()->SetStepOver();
-      } else if (strcmp(step_param, "out") == 0) {
+      } else if (strcmp(step_param, "Out") == 0) {
         isolate->debugger()->SetStepOut();
       } else {
         PrintInvalidParamError(js, "step");
@@ -2119,8 +2118,7 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
       }
     }
     isolate->Resume();
-    JSONObject jsobj(js);
-    jsobj.AddProperty("type", "Success");
+    PrintSuccess(js);
     return true;
   }
 
@@ -2138,8 +2136,7 @@ static const MethodParameter* pause_params[] = {
 static bool Pause(Isolate* isolate, JSONStream* js) {
   // TODO(turnidge): Don't double-interrupt the isolate here.
   isolate->ScheduleInterrupts(Isolate::kApiInterrupt);
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "Success");
+  PrintSuccess(js);
   return true;
 }
 
@@ -2201,8 +2198,7 @@ static const MethodParameter* clear_cpu_profile_params[] = {
 
 static bool ClearCpuProfile(Isolate* isolate, JSONStream* js) {
   ProfilerService::ClearSamples();
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "Success");
+  PrintSuccess(js);
   return true;
 }
 
@@ -2289,8 +2285,8 @@ void Service::SendGraphEvent(Isolate* isolate) {
       JSONObject jsobj(&js);
       {
         JSONObject event(&jsobj, "event");
-        event.AddProperty("type", "ServiceEvent");
-        event.AddProperty("eventType", "_Graph");
+        event.AddProperty("type", "Event");
+        event.AddProperty("kind", "_Graph");
         event.AddProperty("isolate", isolate);
 
         event.AddProperty("chunkIndex", i);
@@ -2491,6 +2487,23 @@ static bool GetTypeArgumentsList(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_version_params[] = {
+  NO_ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool GetVersion(Isolate* isolate, JSONStream* js) {
+  JSONObject jsobj(js);
+  jsobj.AddProperty("type", "Version");
+  jsobj.AddProperty("major", static_cast<intptr_t>(1));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(0));
+  jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
+  jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
+  return true;
+}
+
+
 class ServiceIsolateVisitor : public IsolateVisitor {
  public:
   explicit ServiceIsolateVisitor(JSONArray* jsarr)
@@ -2572,16 +2585,42 @@ static bool SetFlag(Isolate* isolate, JSONStream* js) {
     PrintMissingParamError(js, "value");
     return true;
   }
-  JSONObject jsobj(js);
   const char* error = NULL;
   if (Flags::SetFlag(flag_name, flag_value, &error)) {
-    jsobj.AddProperty("type", "Success");
+    PrintSuccess(js);
     return true;
   } else {
+    JSONObject jsobj(js);
     jsobj.AddProperty("type", "Error");
     jsobj.AddProperty("message", error);
     return true;
   }
+}
+
+
+static const MethodParameter* set_library_debuggable_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("libraryId", true),
+  new BoolParameter("isDebuggable", true),
+  NULL,
+};
+
+
+static bool SetLibraryDebuggable(Isolate* isolate, JSONStream* js) {
+  const char* lib_id = js->LookupParam("libraryId");
+  ObjectIdRing::LookupResult lookup_result;
+  Object& obj = Object::Handle(LookupHeapObject(isolate, lib_id,
+                                                &lookup_result));
+  const bool is_debuggable =
+      BoolParameter::Parse(js->LookupParam("isDebuggable"), false);
+  if (obj.IsLibrary()) {
+    const Library& lib = Library::Cast(obj);
+    lib.set_debuggable(is_debuggable);
+    PrintSuccess(js);
+    return true;
+  }
+  PrintInvalidParamError(js, "libraryId");
+  return true;
 }
 
 
@@ -2598,8 +2637,7 @@ static bool SetName(Isolate* isolate, JSONStream* js) {
     ServiceEvent event(isolate, ServiceEvent::kIsolateUpdate);
     Service::HandleEvent(&event);
   }
-  JSONObject jsobj(js);
-  jsobj.AddProperty("type", "Success");
+  PrintSuccess(js);
   return true;
 }
 
@@ -2664,6 +2702,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_tag_profile_params },
   { "_getTypeArgumentsList", GetTypeArgumentsList,
     get_type_arguments_list_params },
+  { "getVersion", GetVersion,
+    get_version_params },
   { "getVM", GetVM,
     get_vm_params },
   { "_getVMMetric", GetVMMetric,
@@ -2680,6 +2720,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     request_heap_snapshot_params },
   { "_setFlag", SetFlag,
     set_flags_params },
+  { "setLibraryDebuggable", SetLibraryDebuggable,
+    set_library_debuggable_params },
   { "setName", SetName,
     set_name_params },
 };

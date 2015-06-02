@@ -31,7 +31,7 @@ var tests = [
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kPauseBreakpoint) {
+    if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print('Isolate paused at breakpoint');
       subscription.cancel();
       completer.complete();
@@ -63,7 +63,7 @@ var tests = [
   Completer completer = new Completer();
   var subscription;
   subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.eventType == ServiceEvent.kResume) {
+    if (event.kind == ServiceEvent.kResume) {
       print('Isolate resumed');
       subscription.cancel();
       completer.complete();

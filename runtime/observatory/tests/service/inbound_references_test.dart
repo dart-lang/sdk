@@ -28,28 +28,28 @@ void script() {
 
 var tests = [
 
-(Isolate isolate) =>
-  isolate.rootLibrary.load().then((Library lib) {
-    Instance e = lib.variables.where((v) => v.name == 'e').single.value;
-    return isolate.getInboundReferences(e, 100).then(
-        (ServiceMap response) {
-          List references = response['references'];
-          hasReferenceSuchThat(predicate) {
-            expect(references.any(predicate), isTrue);
-          }
+  (Isolate isolate) async {
+    var lib = await isolate.rootLibrary.load();
+    var field = lib.variables.where((v) => v.name == 'e').single;
+    await field.load();
+    Instance e = field.staticValue;
+    ServiceMap response = await isolate.getInboundReferences(e, 100);
+    List references = response['references'];
+    hasReferenceSuchThat(predicate) {
+      expect(references.any(predicate), isTrue);
+    }
 
-          // Assert e is referenced by at least n, array, and the top-level
-          // field e.
-          hasReferenceSuchThat((r) => r['slot'] is Field &&
-                                      r['slot'].name=='edge' &&
-                                      r['source'].isInstance &&
-                                      r['source'].clazz.name=='Node');
-          hasReferenceSuchThat((r) => r['slot'] == 1 &&
-                                      r['source'].isList);
-          hasReferenceSuchThat((r) => r['slot']=='<unknown>' &&
-                                      r['source'] is Field);
-    });
-}),
+    // Assert e is referenced by at least n, array, and the top-level
+    // field e.
+    hasReferenceSuchThat((r) => r['slot'] is Field &&
+                         r['slot'].name=='edge' &&
+                         r['source'].isInstance &&
+                         r['source'].clazz.name=='Node');
+    hasReferenceSuchThat((r) => r['slot'] == 1 &&
+                         r['source'].isList);
+    hasReferenceSuchThat((r) => r['slot']=='<unknown>' &&
+                         r['source'] is Field);
+  }
 
 ];
 
