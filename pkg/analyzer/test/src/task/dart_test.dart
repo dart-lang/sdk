@@ -1289,6 +1289,25 @@ const x = 1;
     expect(outputs[CONSTANT_DEPENDENCIES], [x]);
   }
 
+  test_enumConstant() {
+    Source source = newSource('/test.dart', '''
+enum E {A, B, C}
+''');
+    // First compute the resolved unit for the source.
+    LibrarySpecificUnit librarySpecificUnit =
+        new LibrarySpecificUnit(source, source);
+    _computeResult(librarySpecificUnit, RESOLVED_UNIT2);
+    CompilationUnit unit = outputs[RESOLVED_UNIT2];
+    // Find the element for 'A'
+    EnumDeclaration enumDeclaration = unit.declarations[0];
+    EnumConstantDeclaration constantDeclaration = enumDeclaration.constants[0];
+    FieldElement constantElement = constantDeclaration.element;
+    // Now compute the dependencies for the constant and check that there are
+    // none.
+    _computeResult(constantElement, CONSTANT_DEPENDENCIES);
+    expect(outputs[CONSTANT_DEPENDENCIES], isEmpty);
+  }
+
   test_perform() {
     Source source = newSource('/test.dart', '''
 const x = y;

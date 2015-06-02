@@ -418,7 +418,10 @@ class ConstantEvaluationEngine {
         }
       }
     } else if (constant is PotentiallyConstVariableElement) {
-      constant.constantInitializer.accept(referenceFinder);
+      Expression initializer = constant.constantInitializer;
+      if (initializer != null) {
+        initializer.accept(referenceFinder);
+      }
     } else if (constant is ConstructorElementImpl) {
       constant.isCycleFree = false;
       ConstructorElement redirectedConstructor =
