@@ -312,8 +312,8 @@ f(A a) {
         'pkgA': [resourceProvider.getResource('/packages/pkgA')]
       };
       resourceProvider.modifyFile(pkgDependency, 'new contents');
-      // Let the server time to notice the file has changed, then let
-      // analysis omplete.  There should now be no error.
+      // Give the server time to notice the file has changed, then let
+      // analysis complete. There should now be no error.
       return pumpEventQueue().then((_) => waitForTasksFinished()).then((_) {
         expect(filesErrors[testFile], isEmpty);
       });

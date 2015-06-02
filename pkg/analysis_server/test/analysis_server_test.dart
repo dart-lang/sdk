@@ -208,7 +208,7 @@ import "../foo/foo.dart";
     File bar = resourceProvider.newFile('/bar/bar.dart', 'library lib;');
     Source barSource = bar.createSource();
     server.setAnalysisRoots('0', ['/foo', '/bar'], [], {});
-    return pumpEventQueue(50).then((_) {
+    return pumpEventQueue(200).then((_) {
       expect(server.statusAnalyzing, isFalse);
       // Make sure getAnalysisContext returns the proper context for each.
       AnalysisContext fooContext =
@@ -320,12 +320,12 @@ import "../foo/foo.dart";
       subscriptions[service] = <String>[bar.path].toSet();
     }
     server.setAnalysisSubscriptions(subscriptions);
-    await pumpEventQueue(100);
+    await pumpEventQueue(200);
     expect(server.statusAnalyzing, isFalse);
     channel.notificationsReceived.clear();
     server.updateContent(
         '0', {bar.path: new AddContentOverlay('library bar; void f() {}')});
-    await pumpEventQueue(100);
+    await pumpEventQueue(200);
     expect(server.statusAnalyzing, isFalse);
     expect(channel.notificationsReceived, isNotEmpty);
     Set<String> notificationTypesReceived = new Set<String>();
