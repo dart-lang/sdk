@@ -276,6 +276,7 @@ useCompiler(dart2jslib.Compiler compiler) {
       ..resetAsync(null)
       ..lookupLibrary(null);
   compiler.forgetElement(null);
+  compiler.backend.constantCompilerTask.copyConstantValues(null);
 }
 
 useTypes() {

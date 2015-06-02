@@ -1380,8 +1380,9 @@ abstract class Compiler implements DiagnosticListener {
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
       proxyConstant =
-          resolver.constantCompiler.compileConstant(
-              coreLibrary.find('proxy')).value;
+          constants.getConstantValue(
+              resolver.constantCompiler.compileConstant(
+                  coreLibrary.find('proxy')));
 
       if (preserveComments) {
         return libraryLoader.loadLibrary(DART_MIRRORS)

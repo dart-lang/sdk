@@ -491,7 +491,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitConstant(cps_ir.Constant node) {
-    return new Constant(node.expression);
+    return new Constant(node.expression, node.value);
   }
 
   Expression visitLiteralList(cps_ir.LiteralList node) {

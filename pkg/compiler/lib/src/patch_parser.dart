@@ -362,8 +362,8 @@ abstract class EagerAnnotationHandler<T> {
   /// Checks [element] for metadata matching the [handler]. Return a non-null
   /// annotation marker matching metadata was found.
   static checkAnnotation(Compiler compiler,
-                              Element element,
-                              EagerAnnotationHandler handler) {
+                         Element element,
+                         EagerAnnotationHandler handler) {
     for (Link<MetadataAnnotation> link = element.metadata;
          !link.isEmpty;
          link = link.tail) {
@@ -375,7 +375,8 @@ abstract class EagerAnnotationHandler<T> {
         compiler.enqueuer.resolution.addDeferredAction(element, () {
           annotation.ensureResolved(compiler);
           handler.validate(
-              compiler, element, annotation, annotation.constant.value);
+              compiler, element, annotation,
+              compiler.constants.getConstantValue(annotation.constant));
         });
         return result;
       }

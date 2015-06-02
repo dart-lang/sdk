@@ -689,7 +689,8 @@ class NativeBehavior {
          !link.isEmpty;
          link = link.tail) {
       MetadataAnnotation annotation = link.head.ensureResolved(compiler);
-      ConstantValue value = annotation.constant.value;
+      ConstantValue value =
+          compiler.constants.getConstantValue(annotation.constant);
       if (!value.isConstructedObject) continue;
       ConstructedConstantValue constructedObject = value;
       if (constructedObject.type.element != annotationClass) continue;

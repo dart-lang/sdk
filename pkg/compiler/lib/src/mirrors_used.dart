@@ -137,7 +137,8 @@ class MirrorUsageAnalyzerTask extends CompilerTask {
       if (named == null) continue;
       ConstantCompiler constantCompiler = compiler.resolver.constantCompiler;
       ConstantValue value =
-          constantCompiler.compileNode(named.expression, mapping).value;
+          constantCompiler.getConstantValue(
+              constantCompiler.compileNode(named.expression, mapping));
 
       MirrorUsageBuilder builder =
           new MirrorUsageBuilder(
@@ -266,10 +267,11 @@ class MirrorUsageAnalyzer {
     List<MirrorUsage> result = <MirrorUsage>[];
     for (MetadataAnnotation metadata in tag.metadata) {
       metadata.ensureResolved(compiler);
-      Element element =
-          metadata.constant.value.getType(compiler.coreTypes).element;
+      ConstantValue value =
+          compiler.constants.getConstantValue(metadata.constant);
+      Element element = value.getType(compiler.coreTypes).element;
       if (element == compiler.mirrorsUsedClass) {
-        result.add(buildUsage(metadata.constant.value));
+        result.add(buildUsage(value));
       }
     }
     return result;
@@ -568,7 +570,7 @@ class MirrorUsageBuilder {
   Spannable positionOf(ConstantValue constant) {
     Node node;
     elements.forEachConstantNode((Node n, ConstantExpression c) {
-      if (node == null && c.value == constant) {
+      if (node == null && compiler.constants.getConstantValue(c) == constant) {
         node = n;
       }
     });

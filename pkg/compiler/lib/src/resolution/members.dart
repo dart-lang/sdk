@@ -1969,7 +1969,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         ConstantExpression constant =
             compiler.resolver.constantCompiler.compileNode(
                 argumentNode, registry.mapping);
-        ConstantValue name = constant.value;
+        ConstantValue name = compiler.constants.getConstantValue(constant);
         if (!name.isString) {
           DartType type = name.getType(compiler.coreTypes);
           compiler.reportError(argumentNode, MessageKind.STRING_EXPECTED,
@@ -2027,7 +2027,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       return;
     }
 
-    ConstantValue value = constant.value;
+    ConstantValue value = compiler.constants.getConstantValue(constant);
     if (value.isMap) {
       checkConstMapKeysDontOverrideEquals(node, value);
     }
@@ -2432,7 +2432,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         assert(invariant(node, constant != null,
             message: 'No constant computed for $node'));
 
-        DartType caseType = typeOfConstant(constant.value);
+        ConstantValue value = compiler.constants.getConstantValue(constant);
+        DartType caseType = typeOfConstant(value);
 
         if (firstCaseType == null) {
           firstCase = caseMatch;
@@ -2447,7 +2448,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           } else if (caseType.element == compiler.functionClass) {
             compiler.reportError(node, MessageKind.SWITCH_CASE_FORBIDDEN,
                                  {'type': "Function"});
-          } else if (constant.value.isObject && overridesEquals(caseType)) {
+          } else if (value.isObject && overridesEquals(caseType)) {
             compiler.reportError(firstCase.expression,
                 MessageKind.SWITCH_CASE_VALUE_OVERRIDES_EQUALS,
                 {'type': caseType});

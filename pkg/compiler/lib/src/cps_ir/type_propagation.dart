@@ -234,7 +234,7 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
     PrimitiveConstantValue primitiveConstant = value.constant;
     ConstantExpression constExp =
         const ConstantExpressionCreator().convert(primitiveConstant);
-    Constant constant = new Constant(constExp);
+    Constant constant = new Constant(constExp, primitiveConstant);
     LetPrim letPrim = new LetPrim(constant);
     InvokeContinuation invoke =
         new InvokeContinuation(continuation, <Primitive>[constant]);
@@ -1028,7 +1028,7 @@ class ConstantExpressionCreator
 
   @override
   ConstantExpression visitBool(BoolConstantValue constant, _) {
-    return new BoolConstantExpression(constant.primitiveValue, constant);
+    return new BoolConstantExpression(constant.primitiveValue);
   }
 
   @override
@@ -1043,7 +1043,7 @@ class ConstantExpressionCreator
 
   @override
   ConstantExpression visitDouble(DoubleConstantValue constant, arg) {
-    return new DoubleConstantExpression(constant.primitiveValue, constant);
+    return new DoubleConstantExpression(constant.primitiveValue);
   }
 
   @override
@@ -1058,7 +1058,7 @@ class ConstantExpressionCreator
 
   @override
   ConstantExpression visitInt(IntConstantValue constant, arg) {
-    return new IntConstantExpression(constant.primitiveValue, constant);
+    return new IntConstantExpression(constant.primitiveValue);
   }
 
   @override
@@ -1078,13 +1078,13 @@ class ConstantExpressionCreator
 
   @override
   ConstantExpression visitNull(NullConstantValue constant, arg) {
-    return new NullConstantExpression(constant);
+    return new NullConstantExpression();
   }
 
   @override
   ConstantExpression visitString(StringConstantValue constant, arg) {
     return new StringConstantExpression(
-        constant.primitiveValue.slowToString(), constant);
+        constant.primitiveValue.slowToString());
   }
 
   @override

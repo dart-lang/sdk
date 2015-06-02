@@ -173,9 +173,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
     js.Expression toString(tree_ir.Expression input) {
       bool useDirectly = input is tree_ir.Constant &&
-          (input.expression.value.isString ||
-           input.expression.value.isInt ||
-           input.expression.value.isBool);
+          (input.value.isString ||
+           input.value.isInt ||
+           input.value.isBool);
       js.Expression value = visitExpression(input);
       if (useDirectly) {
         return value;
@@ -205,11 +205,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitConstant(tree_ir.Constant node) {
-    return buildConstant(node.expression.value);
+    return buildConstant(node.value);
   }
 
   js.Expression compileConstant(ParameterElement parameter) {
-    return buildConstant(glue.getConstantForVariable(parameter).value);
+    return buildConstant(glue.getConstantValueForVariable(parameter));
   }
 
   // TODO(karlklose): get rid of the selector argument.

@@ -204,7 +204,7 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
           message: "Missing constant for parameter "
                    "$parameter with default value."));
       return _convertConstantToInstanceMirror(mirrorSystem,
-          constant, constant.value);
+          constant, mirrorSystem.compiler.constants.getConstantValue(constant));
     }
     return null;
   }

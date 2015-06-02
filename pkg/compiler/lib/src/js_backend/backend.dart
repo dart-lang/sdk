@@ -237,7 +237,7 @@ class JavaScriptBackend extends Backend {
 
   String get patchVersion => USE_NEW_EMITTER ? 'new' : 'old';
 
-  final Annotations annotations = new Annotations();
+  final Annotations annotations;
 
   /// Reference to the internal library to lookup functions to always inline.
   LibraryElement internalLibrary;
@@ -620,6 +620,7 @@ class JavaScriptBackend extends Backend {
         interceptedElements = new Map<String, Set<Element>>(),
         rti = new RuntimeTypes(compiler),
         specializedGetInterceptors = new Map<String, Set<ClassElement>>(),
+        annotations = new Annotations(compiler),
         super(compiler) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     typeVariableHandler = new TypeVariableHandler(compiler);
@@ -971,7 +972,7 @@ class JavaScriptBackend extends Backend {
                                 Element annotatedElement,
                                 Registry registry) {
     assert(registry.isForResolution);
-    ConstantValue constant = constants.getConstantForMetadata(metadata).value;
+    ConstantValue constant = constants.getConstantValueForMetadata(metadata);
     registerCompileTimeConstant(constant, registry);
     metadataConstants.add(new Dependency(constant, annotatedElement));
   }
@@ -1400,11 +1401,11 @@ class JavaScriptBackend extends Backend {
       return const WorldImpact();
     }
     if (kind.category == ElementCategory.VARIABLE) {
-      ConstantExpression initialValue =
-          constants.getConstantForVariable(element);
+      ConstantValue initialValue =
+          constants.getConstantValueForVariable(element);
       if (initialValue != null) {
-        registerCompileTimeConstant(initialValue.value, work.registry);
-        constants.addCompileTimeConstantForEmission(initialValue.value);
+        registerCompileTimeConstant(initialValue, work.registry);
+        constants.addCompileTimeConstantForEmission(initialValue);
         // We don't need to generate code for static or top-level
         // variables. For instance variables, we may need to generate
         // the checked setter.
@@ -1954,7 +1955,7 @@ class JavaScriptBackend extends Backend {
       for (MetadataAnnotation metadata in element.metadata) {
         metadata.ensureResolved(compiler);
         ConstantValue constant =
-            constants.getConstantForMetadata(metadata).value;
+            constants.getConstantValueForMetadata(metadata);
         constants.addCompileTimeConstantForEmission(constant);
       }
       return true;
@@ -2238,7 +2239,8 @@ class JavaScriptBackend extends Backend {
       // all metadata but only stuff that potentially would match one
       // of the used meta targets.
       metadata.ensureResolved(compiler);
-      ConstantValue value = metadata.constant.value;
+      ConstantValue value =
+          compiler.constants.getConstantValue(metadata.constant);
       if (value == null) continue;
       DartType type = value.getType(compiler.coreTypes);
       if (metaTargetsUsed.contains(type.element)) return true;
@@ -2536,8 +2538,10 @@ class JavaScriptBackend extends Backend {
     bool hasNoSideEffects = false;
     for (MetadataAnnotation metadata in element.metadata) {
       metadata.ensureResolved(compiler);
-      if (!metadata.constant.value.isConstructedObject) continue;
-      ObjectConstantValue value = metadata.constant.value;
+      ConstantValue constantValue =
+          compiler.constants.getConstantValue(metadata.constant);
+      if (!constantValue.isConstructedObject) continue;
+      ObjectConstantValue value = constantValue;
       ClassElement cls = value.type.element;
       if (cls == forceInlineClass) {
         hasForceInline = true;
@@ -2672,9 +2676,13 @@ class Annotations {
   static final Uri PACKAGE_EXPECT =
       new Uri(scheme: 'package', path: 'expect/expect.dart');
 
+  final Compiler compiler;
+
   ClassElement expectNoInlineClass;
   ClassElement expectTrustTypeAnnotationsClass;
   ClassElement expectAssumeDynamicClass;
+
+  Annotations(this.compiler);
 
   void onLibraryScanned(LibraryElement library) {
     if (library.canonicalUri == PACKAGE_EXPECT) {
@@ -2715,7 +2723,8 @@ class Annotations {
     for (Link<MetadataAnnotation> link = element.metadata;
          !link.isEmpty;
          link = link.tail) {
-      ConstantValue value = link.head.constant.value;
+      ConstantValue value =
+          compiler.constants.getConstantValue(link.head.constant);
       if (value.isConstructedObject) {
         ConstructedConstantValue constructedConstant = value;
         if (constructedConstant.type.element == annotationClass) {

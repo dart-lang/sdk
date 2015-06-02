@@ -36,7 +36,8 @@ void checkAnnotation(String name, String declaration,
         'Unexpected metadata count on $element.');
     PartialMetadataAnnotation annotation = element.metadata.head;
     annotation.ensureResolved(compiler);
-    PrimitiveConstantValue value = annotation.constant.value;
+    PrimitiveConstantValue value =
+        compiler.constants.getConstantValue(annotation.constant);
     Expect.stringEquals('xyz', value.primitiveValue.slowToString());
 
     checkPosition(annotation, annotation.cachedNode, source1, compiler);
@@ -59,8 +60,10 @@ void checkAnnotation(String name, String declaration,
     Expect.isFalse(identical(annotation1, annotation2),
                    'expected unique instances');
     Expect.notEquals(annotation1, annotation2, 'expected unequal instances');
-    PrimitiveConstantValue value1 = annotation1.constant.value;
-    PrimitiveConstantValue value2 = annotation2.constant.value;
+    PrimitiveConstantValue value1 =
+        compiler.constants.getConstantValue(annotation1.constant);
+    PrimitiveConstantValue value2 =
+        compiler.constants.getConstantValue(annotation2.constant);
     Expect.identical(value1, value2, 'expected same compile-time constant');
     Expect.stringEquals('xyz', value1.primitiveValue.slowToString());
     Expect.stringEquals('xyz', value2.primitiveValue.slowToString());
@@ -89,7 +92,8 @@ void checkAnnotation(String name, String declaration,
     Expect.equals(1, length(element.metadata));
     PartialMetadataAnnotation annotation = element.metadata.head;
     annotation.ensureResolved(compiler);
-    PrimitiveConstantValue value = annotation.constant.value;
+    PrimitiveConstantValue value =
+        compiler.constants.getConstantValue(annotation.constant);
     Expect.stringEquals('xyz', value.primitiveValue.slowToString());
 
     checkPosition(annotation, annotation.cachedNode, source3, compiler);
@@ -118,8 +122,10 @@ void checkAnnotation(String name, String declaration,
     Expect.isFalse(identical(annotation1, annotation2),
                    'expected unique instances');
     Expect.notEquals(annotation1, annotation2, 'expected unequal instances');
-    PrimitiveConstantValue value1 = annotation1.constant.value;
-    PrimitiveConstantValue value2 = annotation2.constant.value;
+    PrimitiveConstantValue value1 =
+        compiler.constants.getConstantValue(annotation1.constant);
+    PrimitiveConstantValue value2 =
+        compiler.constants.getConstantValue(annotation2.constant);
     Expect.identical(value1, value2, 'expected same compile-time constant');
     Expect.stringEquals('xyz', value1.primitiveValue.slowToString());
     Expect.stringEquals('xyz', value2.primitiveValue.slowToString());
@@ -168,7 +174,8 @@ void testLibraryTags() {
 
       PartialMetadataAnnotation annotation = metadata.head;
       annotation.ensureResolved(compiler);
-      PrimitiveConstantValue value = annotation.constant.value;
+      PrimitiveConstantValue value =
+          compiler.constants.getConstantValue(annotation.constant);
       Expect.stringEquals('xyz', value.primitiveValue.slowToString());
 
       checkPosition(annotation, annotation.cachedNode, source, compiler);

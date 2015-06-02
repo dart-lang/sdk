@@ -49,12 +49,12 @@ class MetadataCollector {
       if (link != null) {
         for (; !link.isEmpty; link = link.tail) {
           MetadataAnnotation annotation = link.head;
-          ConstantExpression constant =
-              _backend.constants.getConstantForMetadata(annotation);
+          ConstantValue constant =
+              _backend.constants.getConstantValueForMetadata(annotation);
           if (constant == null) {
             _compiler.internalError(annotation, 'Annotation value is null.');
           } else {
-            metadata.add(_emitter.constantReference(constant.value));
+            metadata.add(_emitter.constantReference(constant));
           }
         }
       }
@@ -69,24 +69,24 @@ class MetadataCollector {
     if (signature.optionalParameterCount == 0) return const [];
     List<int> defaultValues = <int>[];
     for (ParameterElement element in signature.optionalParameters) {
-      ConstantExpression constant =
-          _backend.constants.getConstantForVariable(element);
+      ConstantValue constant =
+          _backend.constants.getConstantValueForVariable(element);
       jsAst.Expression expression = (constant == null)
           ? null
-          : _emitter.constantReference(constant.value);
+          : _emitter.constantReference(constant);
       defaultValues.add(addGlobalMetadata(expression));
     }
     return defaultValues;
   }
 
   int reifyMetadata(MetadataAnnotation annotation) {
-    ConstantExpression constant =
-        _backend.constants.getConstantForMetadata(annotation);
+    ConstantValue constant =
+        _backend.constants.getConstantValueForMetadata(annotation);
     if (constant == null) {
       _compiler.internalError(annotation, 'Annotation value is null.');
       return -1;
     }
-    return addGlobalMetadata(_emitter.constantReference(constant.value));
+    return addGlobalMetadata(_emitter.constantReference(constant));
   }
 
   int reifyType(DartType type, {bool ignoreTypeVariables: false}) {

@@ -141,7 +141,7 @@ class SsaBuilderTask extends CompilerTask {
           signature.forEachOptionalParameter((ParameterElement parameter) {
             // This ensures the default value will be computed.
             ConstantValue constant =
-                backend.constants.getConstantForVariable(parameter).value;
+                backend.constants.getConstantValueForVariable(parameter);
             CodegenRegistry registry = work.registry;
             registry.registerCompileTimeConstant(constant);
           });
@@ -1505,11 +1505,11 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   HInstruction handleConstantForOptionalParameter(Element parameter) {
-    ConstantExpression constant =
-        backend.constants.getConstantForVariable(parameter);
-    assert(invariant(parameter, constant != null,
+    ConstantValue constantValue =
+        backend.constants.getConstantValueForVariable(parameter);
+    assert(invariant(parameter, constantValue != null,
         message: 'No constant computed for $parameter'));
-    return graph.addConstant(constant.value, compiler);
+    return graph.addConstant(constantValue, compiler);
   }
 
   Element get currentNonClosureClass {
@@ -1545,11 +1545,11 @@ class SsaBuilder extends NewResolvedVisitor {
   bool inTryStatement = false;
 
   ConstantValue getConstantForNode(ast.Node node) {
-    ConstantExpression constant =
-        backend.constants.getConstantForNode(node, elements);
-    assert(invariant(node, constant != null,
+    ConstantValue constantValue =
+        backend.constants.getConstantValueForNode(node, elements);
+    assert(invariant(node, constantValue != null,
         message: 'No constant computed for $node'));
-    return constant.value;
+    return constantValue;
   }
 
   HInstruction addConstant(ast.Node node) {
@@ -3310,7 +3310,7 @@ class SsaBuilder extends NewResolvedVisitor {
       ast.Send node,
       FieldElement field,
       ConstantExpression constant) {
-    ConstantValue value = constant.value;
+    ConstantValue value = backend.constants.getConstantValue(constant);
     HConstant instruction;
     // Constants that are referred via a deferred prefix should be referred
     // by reference.

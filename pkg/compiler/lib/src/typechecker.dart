@@ -1807,13 +1807,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
         List<FieldElement> unreferencedFields = <FieldElement>[];
         EnumClassElement enumClass = expressionType.element;
         enumClass.enumValues.forEach((FieldElement field) {
-          ConstantExpression constantExpression =
-              compiler.constants.getConstantForVariable(field);
-          if (constantExpression == null) {
+          ConstantValue constantValue =
+              compiler.constants.getConstantValueForVariable(field);
+          if (constantValue == null) {
             // The field might not have been resolved.
             unreferencedFields.add(field);
           } else {
-            enumValues[constantExpression.value] = field;
+            enumValues[constantValue] = field;
           }
         });
 
@@ -1824,7 +1824,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
               ConstantExpression caseConstant =
                   compiler.resolver.constantCompiler.compileNode(
                       caseMatch.expression, elements);
-              enumValues.remove(caseConstant.value);
+              enumValues.remove(
+                  compiler.constants.getConstantValue(caseConstant));
             }
           }
         }

@@ -275,17 +275,17 @@ class ConcatenateStrings extends Expression {
  */
 class Constant extends Expression {
   final ConstantExpression expression;
+  final values.ConstantValue value;
 
-  Constant(this.expression);
+  Constant(this.expression, this.value);
 
   Constant.bool(values.BoolConstantValue constantValue)
       : expression = new BoolConstantExpression(
-          constantValue.primitiveValue, constantValue);
+          constantValue.primitiveValue),
+        value = constantValue;
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitConstant(this, arg);
-
-  values.ConstantValue get value => expression.value;
 }
 
 class This extends Expression {

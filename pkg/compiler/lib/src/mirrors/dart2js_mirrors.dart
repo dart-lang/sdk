@@ -220,7 +220,9 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
             mirrorSystem.compiler.commentMap[metadata.beginToken]);
         metadata.ensureResolved(mirrorSystem.compiler);
         _metadata.add(_convertConstantToInstanceMirror(
-            mirrorSystem, metadata.constant, metadata.constant.value));
+            mirrorSystem, metadata.constant,
+            mirrorSystem.compiler.constants.getConstantValue(
+                metadata.constant)));
       }
       _appendCommentTokens(mirrorSystem.compiler.commentMap[getBeginToken()]);
     }

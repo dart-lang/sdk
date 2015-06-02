@@ -141,7 +141,7 @@ class ContainerBuilder extends CodeEmitterHelper {
           Iterable<int> metadataIndices =
               parameter.metadata.map((MetadataAnnotation annotation) {
             ConstantValue constant =
-                backend.constants.getConstantForMetadata(annotation).value;
+                backend.constants.getConstantValueForMetadata(annotation);
             backend.constants.addCompileTimeConstantForEmission(constant);
             return task.metadataCollector.reifyMetadata(annotation);
           });

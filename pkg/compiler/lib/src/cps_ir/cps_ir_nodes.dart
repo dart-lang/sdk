@@ -675,10 +675,9 @@ class CreateInvocationMirror extends Primitive {
 
 class Constant extends Primitive {
   final ConstantExpression expression;
+  final values.ConstantValue value;
 
-  Constant(this.expression);
-
-  values.ConstantValue get value => expression.value;
+  Constant(this.expression, this.value);
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 }

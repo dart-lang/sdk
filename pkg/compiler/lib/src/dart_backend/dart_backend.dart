@@ -14,6 +14,7 @@ import '../tree/tree.dart';
 import '../compile_time_constants.dart';
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
+import '../constants/values.dart';
 import '../util/util.dart';
 import '../mirror_renamer/mirror_renamer.dart';
 import 'backend_ast_to_frontend_ast.dart' as backend2frontend;
