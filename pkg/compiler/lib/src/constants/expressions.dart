@@ -38,6 +38,7 @@ enum ConstantExpressionKind {
   NULL,
   STRING,
   STRING_FROM_ENVIRONMENT,
+  STRING_LENGTH,
   SYMBOL,
   TYPE,
   UNARY,
@@ -1002,6 +1003,50 @@ class UnaryConstantExpression extends ConstantExpression {
   };
 }
 
+
+/// A string length constant expression like `a.length`.
+class StringLengthConstantExpression extends ConstantExpression {
+  final ConstantValue value;
+  final ConstantExpression expression;
+
+  StringLengthConstantExpression(this.value, this.expression);
+
+  ConstantExpressionKind get kind => ConstantExpressionKind.STRING_LENGTH;
+
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitStringLength(this, context);
+  }
+
+  @override
+  ConstantValue evaluate(Environment environment,
+                         ConstantSystem constantSystem) {
+    ConstantValue value = expression.evaluate(environment, constantSystem);
+    if (value.isString) {
+      StringConstantValue stringValue = value;
+      return constantSystem.createInt(stringValue.primitiveValue.length);
+    }
+    return new NonConstantValue();
+  }
+
+  ConstantExpression apply(NormalizedArguments arguments) {
+    return new StringLengthConstantExpression(
+        value,
+        expression.apply(arguments));
+  }
+
+  int get precedence => 15;
+
+  @override
+  int _computeHashCode() {
+    return 23 * expression.hashCode;
+  }
+
+  @override
+  bool _equals(StringLengthConstantExpression other) {
+    return expression == other.expression;
+  }
+}
+
 /// A constant conditional expression like `a ? b : c`.
 class ConditionalConstantExpression extends ConstantExpression {
   final ConstantValue value;
@@ -1135,7 +1180,7 @@ class NamedArgumentReference extends ConstantExpression {
 
 abstract class FromEnvironmentConstantExpression extends ConstantExpression {
   final ConstantValue value;
-  final String name;
+  final ConstantExpression name;
   final ConstantExpression defaultValue;
 
   FromEnvironmentConstantExpression(this.value, this.name, this.defaultValue);
@@ -1159,7 +1204,7 @@ class BoolFromEnvironmentConstantExpression
 
   BoolFromEnvironmentConstantExpression(
       ConstantValue value,
-      String name,
+      ConstantExpression name,
       ConstantExpression defaultValue)
       : super(value, name, defaultValue);
 
@@ -1174,19 +1219,35 @@ class BoolFromEnvironmentConstantExpression
   @override
   ConstantValue evaluate(Environment environment,
                          ConstantSystem constantSystem) {
-    String text = environment.readFromEnvironment(name);
+    ConstantValue nameConstantValue =
+        name.evaluate(environment, constantSystem);
+    ConstantValue defaultConstantValue;
+    if (defaultValue != null) {
+      defaultConstantValue =
+          defaultValue.evaluate(environment, constantSystem);
+    } else {
+      defaultConstantValue = constantSystem.createBool(false);
+    }
+    if (!nameConstantValue.isString) {
+      return new NonConstantValue();
+    }
+    StringConstantValue nameStringConstantValue = nameConstantValue;
+    String text = environment.readFromEnvironment(
+        nameStringConstantValue.primitiveValue.slowToString());
     if (text == 'true') {
       return constantSystem.createBool(true);
     } else if (text == 'false') {
       return constantSystem.createBool(false);
     } else {
-      return defaultValue.evaluate(environment, constantSystem);
+      return defaultConstantValue;
     }
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
     return new BoolFromEnvironmentConstantExpression(
-        null, name, defaultValue.apply(arguments));
+        null,
+        name.apply(arguments),
+        defaultValue != null ? defaultValue.apply(arguments) : null);
   }
 }
 
@@ -1196,7 +1257,7 @@ class IntFromEnvironmentConstantExpression
 
   IntFromEnvironmentConstantExpression(
       ConstantValue value,
-      String name,
+      ConstantExpression name,
       ConstantExpression defaultValue)
       : super(value, name, defaultValue);
 
@@ -1211,13 +1272,27 @@ class IntFromEnvironmentConstantExpression
   @override
   ConstantValue evaluate(Environment environment,
                          ConstantSystem constantSystem) {
+    ConstantValue nameConstantValue =
+        name.evaluate(environment, constantSystem);
+    ConstantValue defaultConstantValue;
+    if (defaultValue != null) {
+      defaultConstantValue =
+          defaultValue.evaluate(environment, constantSystem);
+    } else {
+      defaultConstantValue = constantSystem.createNull();
+    }
+    if (!nameConstantValue.isString) {
+      return new NonConstantValue();
+    }
+    StringConstantValue nameStringConstantValue = nameConstantValue;
+    String text = environment.readFromEnvironment(
+        nameStringConstantValue.primitiveValue.slowToString());
     int value;
-    String text = environment.readFromEnvironment(name);
     if (text != null) {
       value = int.parse(text, onError: (_) => null);
     }
     if (value == null) {
-      return defaultValue.evaluate(environment, constantSystem);
+      return defaultConstantValue;
     } else {
       return constantSystem.createInt(value);
     }
@@ -1225,7 +1300,9 @@ class IntFromEnvironmentConstantExpression
 
   ConstantExpression apply(NormalizedArguments arguments) {
     return new IntFromEnvironmentConstantExpression(
-        null, name, defaultValue.apply(arguments));
+        null,
+        name.apply(arguments),
+        defaultValue != null ? defaultValue.apply(arguments) : null);
   }
 }
 
@@ -1235,7 +1312,7 @@ class StringFromEnvironmentConstantExpression
 
   StringFromEnvironmentConstantExpression(
       ConstantValue value,
-      String name,
+      ConstantExpression name,
       ConstantExpression defaultValue)
       : super(value, name, defaultValue);
 
@@ -1250,9 +1327,23 @@ class StringFromEnvironmentConstantExpression
   @override
   ConstantValue evaluate(Environment environment,
                          ConstantSystem constantSystem) {
-    String text = environment.readFromEnvironment(name);
+    ConstantValue nameConstantValue =
+        name.evaluate(environment, constantSystem);
+    ConstantValue defaultConstantValue;
+    if (defaultValue != null) {
+      defaultConstantValue =
+          defaultValue.evaluate(environment, constantSystem);
+    } else {
+      defaultConstantValue = constantSystem.createNull();
+    }
+    if (!nameConstantValue.isString) {
+      return new NonConstantValue();
+    }
+    StringConstantValue nameStringConstantValue = nameConstantValue;
+    String text = environment.readFromEnvironment(
+        nameStringConstantValue.primitiveValue.slowToString());
     if (text == null) {
-      return defaultValue.evaluate(environment, constantSystem);
+      return defaultConstantValue;
     } else {
       return constantSystem.createString(new DartString.literal(text));
     }
@@ -1260,7 +1351,9 @@ class StringFromEnvironmentConstantExpression
 
   ConstantExpression apply(NormalizedArguments arguments) {
     return new StringFromEnvironmentConstantExpression(
-        null, name, defaultValue.apply(arguments));
+        null,
+        name.apply(arguments),
+        defaultValue != null ? defaultValue.apply(arguments) : null);
   }
 }
 
@@ -1284,6 +1377,11 @@ class DeferredConstantExpression extends ConstantExpression {
   @override
   int _computeHashCode() {
     return 13 * expression.hashCode;
+  }
+
+  ConstantExpression apply(NormalizedArguments arguments) {
+    return new DeferredConstantExpression(
+        value, expression.apply(arguments), prefix);
   }
 
   @override
@@ -1320,6 +1418,7 @@ abstract class ConstantExpressionVisitor<R, A> {
   R visitBinary(BinaryConstantExpression exp, A context);
   R visitIdentical(IdenticalConstantExpression exp, A context);
   R visitUnary(UnaryConstantExpression exp, A context);
+  R visitStringLength(StringLengthConstantExpression exp, A context);
   R visitConditional(ConditionalConstantExpression exp, A context);
   R visitBoolFromEnvironment(BoolFromEnvironmentConstantExpression exp,
                              A context);
@@ -1346,8 +1445,8 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   final StringBuffer sb = new StringBuffer();
 
   void write(ConstantExpression parent,
-        ConstantExpression child,
-        {bool leftAssociative: true}) {
+             ConstantExpression child,
+             {bool leftAssociative: true}) {
     if (child.precedence < parent.precedence ||
         !leftAssociative && child.precedence == parent.precedence) {
       sb.write('(');
@@ -1443,11 +1542,11 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   void visitConstructed(ConstructedConstantExpression exp, [_]) {
     sb.write('const ');
     sb.write(exp.target.enclosingClass.name);
+    writeTypeArguments(exp.type);
     if (exp.target.name != '') {
       sb.write('.');
       sb.write(exp.target.name);
     }
-    writeTypeArguments(exp.type);
     sb.write('(');
     bool needsComma = false;
 
@@ -1530,6 +1629,12 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   }
 
   @override
+  void visitStringLength(StringLengthConstantExpression exp, [_]) {
+    write(exp, exp.expression, leftAssociative: false);
+    sb.write('.length');
+  }
+
+  @override
   void visitConditional(ConditionalConstantExpression exp, [_]) {
     write(exp, exp.condition, leftAssociative: false);
     sb.write(' ? ');
@@ -1560,23 +1665,35 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   @override
   void visitBoolFromEnvironment(BoolFromEnvironmentConstantExpression exp,
                                 [_]) {
-    sb.write('const bool.fromEnvironment("${exp.name}", defaultValue: ');
-    visit(exp.defaultValue);
+    sb.write('const bool.fromEnvironment(');
+    visit(exp.name);
+    if (exp.defaultValue != null) {
+      sb.write(', defaultValue: ');
+      visit(exp.defaultValue);
+    }
     sb.write(')');
   }
 
   @override
   void visitIntFromEnvironment(IntFromEnvironmentConstantExpression exp, [_]) {
-    sb.write('const int.fromEnvironment("${exp.name}", defaultValue: ');
-    visit(exp.defaultValue);
+    sb.write('const int.fromEnvironment(');
+    visit(exp.name);
+    if (exp.defaultValue != null) {
+      sb.write(', defaultValue: ');
+      visit(exp.defaultValue);
+    }
     sb.write(')');
   }
 
   @override
   void visitStringFromEnvironment(StringFromEnvironmentConstantExpression exp,
                                   [_]) {
-    sb.write('const String.fromEnvironment("${exp.name}", defaultValue: ');
-    visit(exp.defaultValue);
+    sb.write('const String.fromEnvironment(');
+    visit(exp.name);
+    if (exp.defaultValue != null) {
+      sb.write(', defaultValue: ');
+      visit(exp.defaultValue);
+    }
     sb.write(')');
   }
 

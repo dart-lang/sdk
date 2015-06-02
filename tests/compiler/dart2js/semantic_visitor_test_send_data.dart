@@ -3093,7 +3093,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_BOOL_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
             constant:
-                'const bool.fromEnvironment("foo", defaultValue: false)')),
+                'const bool.fromEnvironment("foo")')),
     const Test(
         '''
         m() => const bool.fromEnvironment('foo', defaultValue: true);
@@ -3105,14 +3105,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => const int.fromEnvironment('foo');
         ''',
         const Visit(VisitKind.VISIT_INT_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
-            constant: 'const int.fromEnvironment("foo", defaultValue: null)')),
+            constant: 'const int.fromEnvironment("foo")')),
     const Test(
         '''
         m() => const String.fromEnvironment('foo');
         ''',
         const Visit(VisitKind.VISIT_STRING_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
             constant:
-                'const String.fromEnvironment("foo", defaultValue: null)')),
+                'const String.fromEnvironment("foo")')),
     const Test(
         '''
         class Class {

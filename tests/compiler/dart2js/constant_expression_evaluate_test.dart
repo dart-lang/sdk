@@ -38,7 +38,8 @@ class MemoryEnvironment implements Environment {
   final Compiler compiler;
   final Map<String, String> env;
 
-  MemoryEnvironment(this.compiler, [this.env = const <String, String>{}]);
+  MemoryEnvironment(this.compiler,
+                    [this.env = const <String, String>{}]);
 
   @override
   String readFromEnvironment(String name) => env[name];
@@ -54,6 +55,7 @@ const List<TestData> DATA = const [
     const ConstantData('"foo"', const { const {} : 'StringConstant("foo")' }),
     const ConstantData('1 + 2', const { const {} : 'IntConstant(3)' }),
     const ConstantData('-(1)', const { const {} : 'IntConstant(-1)' }),
+    const ConstantData('"foo".length', const { const {} : 'IntConstant(3)' }),
     const ConstantData('identical(0, 1)',
                        const { const {} : 'BoolConstant(false)' }),
     const ConstantData('"a" "b"', const { const {} : 'StringConstant("ab")' }),
@@ -144,9 +146,7 @@ class A<T> implements B {
 }
 class B<S> implements C {
   const factory B({field1}) = A<B<S>>;
-  // TODO(johnniwinther): Enable this when the constructor evaluator doesn't
-  // crash:
-  /*const factory B.named() = A<S>;*/
+  const factory B.named() = A<S>;
 }
 class C<U> {
   const factory C({field1}) = A<B<double>>;
@@ -170,11 +170,9 @@ class C<U> {
     const ConstantData('const C<int>(field1: 87)',
         const { const {} :
           'ConstructedConstant(A<B<double>>(field1=IntConstant(87)))' }),
-    // TODO(johnniwinther): Enable this when the constructor evaluator doesn't
-    // crash:
-    /*const ConstantData('const B<int>.named()',
+    const ConstantData('const B<int>.named()',
         const { const {} :
-          'ConstructedConstant(A<int>(field1=IntConstant(42)))' }),*/
+          'ConstructedConstant(A<int>(field1=IntConstant(42)))' }),
   ]),
   const TestData('''
 const c = const int.fromEnvironment("foo", defaultValue: 5);

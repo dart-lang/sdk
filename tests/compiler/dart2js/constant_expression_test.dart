@@ -52,6 +52,7 @@ const List<TestData> DATA = const [
     const ConstantData('"foo"', ConstantExpressionKind.STRING),
     const ConstantData('1 + 2', ConstantExpressionKind.BINARY),
     const ConstantData('-(1)', ConstantExpressionKind.UNARY, text: '-1'),
+    const ConstantData('"foo".length', ConstantExpressionKind.STRING_LENGTH),
     const ConstantData('identical(0, 1)', ConstantExpressionKind.IDENTICAL),
     const ConstantData('"a" "b"', ConstantExpressionKind.CONCATENATE,
                        text: '"ab"'),
@@ -148,7 +149,7 @@ class B<S> implements C {
   const factory B({field1}) = A<B<S>>;
   // TODO(johnniwinther): Enable this when the constructor evaluator doesn't 
   // crash:
-  /*const factory B.named() = A<S>;*/
+  const factory B.named() = A<S>;
 }
 class C<U> {
   const factory C({field1}) = A<B<double>>;
@@ -183,14 +184,12 @@ class C<U> {
         fields: const {
           'field(A#field1)': '87',
         }),
-    // TODO(johnniwinther): Enable this when the constructor evaluator doesn't
-    // crash:
-    /*const ConstantData('const B<int>.named()',
+    const ConstantData('const B<int>.named()',
         ConstantExpressionKind.CONSTRUCTED,
         type: 'A<int>',
         fields: const {
           'field(A#field1)': '42',
-        }),*/
+        }),
   ]),
 ];
 

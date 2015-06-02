@@ -535,7 +535,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
             StringConstantValue stringConstantValue = left.value;
             DartString string = stringConstantValue.primitiveValue;
             IntConstantValue length = constantSystem.createInt(string.length);
-            result = new VariableConstantExpression(length, element);
+            result =
+                new StringLengthConstantExpression(length, left.expression);
           }
         }
         // Fall through to error handling.
@@ -880,15 +881,20 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     AstConstant createEvaluatedConstant(ConstantValue value) {
 
       ConstantExpression expression;
+      ConstantExpression name = concreteArguments[0].expression;
+      ConstantExpression defaultValue;
+      if (concreteArguments.length > 1) {
+        defaultValue = concreteArguments[1].expression;
+      }
       if (constructor == compiler.intEnvironment) {
         expression = new IntFromEnvironmentConstantExpression(
-            value, name, normalizedArguments[1].expression);
+            value, name, defaultValue);
       } else if (constructor == compiler.boolEnvironment) {
         expression = new BoolFromEnvironmentConstantExpression(
-            value, name, normalizedArguments[1].expression);
+            value, name, defaultValue);
       } else if (constructor == compiler.stringEnvironment) {
         expression = new StringFromEnvironmentConstantExpression(
-            value, name, normalizedArguments[1].expression);
+            value, name, defaultValue);
       }
       return new AstConstant(context, node, expression);
     }
