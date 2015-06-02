@@ -4676,7 +4676,7 @@ class CompilationUnit extends AstNode {
    * The last token in the token stream that was parsed to form this compilation
    * unit. This token should always have a type of [TokenType.EOF].
    */
-  final Token endToken;
+  Token endToken;
 
   /**
    * The element associated with this compilation unit, or `null` if the AST

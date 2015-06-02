@@ -21,12 +21,15 @@ main() {
 @reflectiveTest
 class IncrementalCompilationUnitElementBuilderTest extends AbstractContextTest {
   Source source;
+
   String oldCode;
   CompilationUnit oldUnit;
   CompilationUnitElement unitElement;
 
   String newCode;
   CompilationUnit newUnit;
+
+  CompilationUnitElementDelta unitDelta;
 
   String getNodeText(AstNode node) {
     return newCode.substring(node.offset, node.end);
@@ -37,13 +40,13 @@ class IncrementalCompilationUnitElementBuilderTest extends AbstractContextTest {
 library test;
 import 'dart:math';
 ''');
+    List<Directive> oldDirectives = oldUnit.directives.toList();
     _buildNewUnit(r'''
 library test;
 import 'dart:async';
 import 'dart:math';
 ''');
-    var oldDirectives = oldUnit.directives;
-    var newDirectives = newUnit.directives;
+    List<Directive> newDirectives = newUnit.directives;
     {
       Directive newNode = newDirectives[0];
       expect(newNode, same(oldDirectives[0]));
@@ -66,6 +69,7 @@ import 'dart:math';
       expect(element, isNotNull);
       expect(element.nameOffset, newCode.indexOf("import 'dart:math';"));
     }
+    expect(unitDelta.hasDirectiveChange, isTrue);
   }
 
   test_directives_keepOffset_partOf() {
@@ -79,12 +83,12 @@ part 'test.dart';
 part of my_lib;
 class A {}
 ''', libSource);
+    List<Directive> oldDirectives = oldUnit.directives.toList();
     _buildNewUnit(r'''
 part of my_lib;
 class A {}
 ''');
-    var oldDirectives = oldUnit.directives;
-    var newDirectives = newUnit.directives;
+    List<Directive> newDirectives = newUnit.directives;
     {
       Directive newNode = newDirectives[0];
       expect(newNode, same(oldDirectives[0]));
@@ -101,12 +105,12 @@ library test;
 import 'dart:async';
 import 'dart:math';
 ''');
+    List<Directive> oldDirectives = oldUnit.directives.toList();
     _buildNewUnit(r'''
 library test;
 import 'dart:math';
 ''');
-    var oldDirectives = oldUnit.directives;
-    var newDirectives = newUnit.directives;
+    List<Directive> newDirectives = newUnit.directives;
     {
       Directive newNode = newDirectives[0];
       expect(newNode, same(oldDirectives[0]));
@@ -123,6 +127,7 @@ import 'dart:math';
       expect(element, isNotNull);
       expect(element.nameOffset, newCode.indexOf("import 'dart:math';"));
     }
+    expect(unitDelta.hasDirectiveChange, isTrue);
   }
 
   test_directives_reorder() {
@@ -131,13 +136,13 @@ library test;
 import  'dart:math' as m;
 import 'dart:async';
 ''');
+    List<Directive> oldDirectives = oldUnit.directives.toList();
     _buildNewUnit(r'''
 library test;
 import 'dart:async';
 import 'dart:math' as m;
 ''');
-    var oldDirectives = oldUnit.directives;
-    var newDirectives = newUnit.directives;
+    List<Directive> newDirectives = newUnit.directives;
     {
       Directive newNode = newDirectives[0];
       expect(newNode, same(oldDirectives[0]));
@@ -163,6 +168,7 @@ import 'dart:math' as m;
       expect(element.nameOffset, newCode.indexOf("import 'dart:math' as m;"));
       expect(element.prefix.nameOffset, newCode.indexOf("m;"));
     }
+    expect(unitDelta.hasDirectiveChange, isFalse);
   }
 
   test_directives_sameOrder_insertSpaces() {
@@ -171,14 +177,14 @@ library test;
 import 'dart:async';
 import 'dart:math';
 ''');
+    List<Directive> oldDirectives = oldUnit.directives.toList();
     _buildNewUnit(r'''
 library test;
 
 import 'dart:async' ;
 import  'dart:math';
 ''');
-    var oldDirectives = oldUnit.directives;
-    var newDirectives = newUnit.directives;
+    List<Directive> newDirectives = newUnit.directives;
     {
       Directive newNode = newDirectives[0];
       expect(newNode, same(oldDirectives[0]));
@@ -203,6 +209,7 @@ import  'dart:math';
       expect(element, isNotNull);
       expect(element.nameOffset, newCode.indexOf("import  'dart:math';"));
     }
+    expect(unitDelta.hasDirectiveChange, isFalse);
   }
 
   test_directives_sameOrder_removeSpaces() {
@@ -212,13 +219,13 @@ library test;
 import 'dart:async' ;
 import  'dart:math';
 ''');
+    List<Directive> oldDirectives = oldUnit.directives.toList();
     _buildNewUnit(r'''
 library test;
 import 'dart:async';
 import 'dart:math';
 ''');
-    var oldDirectives = oldUnit.directives;
-    var newDirectives = newUnit.directives;
+    List<Directive> newDirectives = newUnit.directives;
     {
       Directive newNode = newDirectives[0];
       expect(newNode, same(oldDirectives[0]));
@@ -243,17 +250,18 @@ import 'dart:math';
       expect(element, isNotNull);
       expect(element.nameOffset, newCode.indexOf("import 'dart:math';"));
     }
+    expect(unitDelta.hasDirectiveChange, isFalse);
   }
 
   test_unitMembers_accessor_add() {
     _buildOldUnit(r'''
 get a => 1;
 ''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
     _buildNewUnit(r'''
 get a => 1;
 get b => 2;
 ''');
-    List<CompilationUnitMember> oldNodes = oldUnit.declarations;
     List<CompilationUnitMember> newNodes = newUnit.declarations;
     // nodes
     FunctionDeclaration node1 = newNodes[0];
@@ -276,11 +284,11 @@ get b => 2;
     _buildOldUnit(r'''
 class A {}
 ''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
     _buildNewUnit(r'''
 class A {}
 class B {}
 ''');
-    List<CompilationUnitMember> oldNodes = oldUnit.declarations;
     List<CompilationUnitMember> newNodes = newUnit.declarations;
     // nodes
     CompilationUnitMember nodeA = newNodes[0];
@@ -295,6 +303,9 @@ class B {}
     expect(elementB.name, 'B');
     // unit.types
     expect(unitElement.types, unorderedEquals([elementA, elementB]));
+    // verify delta
+    expect(unitDelta.addedDeclarations, unorderedEquals([elementB]));
+    expect(unitDelta.removedDeclarations, unorderedEquals([]));
   }
 
   test_unitMembers_class_comments() {
@@ -306,6 +317,7 @@ class B {}
 /// reference [double] and [B] types.
 class C {}
 ''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
     _buildNewUnit(r'''
 /// reference [double] and [B] types.
 class C {}
@@ -314,7 +326,6 @@ class A {}
 /// reference [int] type.
 class B {}
 ''');
-    List<CompilationUnitMember> oldNodes = oldUnit.declarations;
     List<CompilationUnitMember> newNodes = newUnit.declarations;
     {
       CompilationUnitMember newNode = newNodes[0];
@@ -369,6 +380,37 @@ class B {}''');
         expect(docReferences[0].identifier.staticElement.name, 'int');
       }
     }
+    // verify delta
+    expect(unitDelta.addedDeclarations, unorderedEquals([]));
+    expect(unitDelta.removedDeclarations, unorderedEquals([]));
+  }
+
+  test_unitMembers_class_remove() {
+    _buildOldUnit(r'''
+class A {}
+class B {}
+''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
+    _buildNewUnit(r'''
+class A {}
+''');
+    List<CompilationUnitMember> newNodes = newUnit.declarations;
+    // nodes
+    CompilationUnitMember nodeA = newNodes[0];
+    CompilationUnitMember nodeB = oldNodes[1];
+    expect(nodeA, same(oldNodes[0]));
+    // elements
+    ClassElement elementA = nodeA.element;
+    ClassElement elementB = nodeB.element;
+    expect(elementA, isNotNull);
+    expect(elementB, isNotNull);
+    expect(elementA.name, 'A');
+    expect(elementB.name, 'B');
+    // unit.types
+    expect(unitElement.types, unorderedEquals([elementA]));
+    // verify delta
+    expect(unitDelta.addedDeclarations, unorderedEquals([]));
+    expect(unitDelta.removedDeclarations, unorderedEquals([elementB]));
   }
 
   test_unitMembers_class_reorder() {
@@ -377,12 +419,12 @@ class A {}
 class B {}
 class C {}
 ''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
     _buildNewUnit(r'''
 class C {}
 class A {}
 class B {}
 ''');
-    List<CompilationUnitMember> oldNodes = oldUnit.declarations;
     List<CompilationUnitMember> newNodes = newUnit.declarations;
     {
       CompilationUnitMember newNode = newNodes[0];
@@ -411,17 +453,20 @@ class B {}
       expect(element.name, 'B');
       expect(element.nameOffset, newCode.indexOf('B {}'));
     }
+    // verify delta
+    expect(unitDelta.addedDeclarations, unorderedEquals([]));
+    expect(unitDelta.removedDeclarations, unorderedEquals([]));
   }
 
   test_unitMembers_enum_add() {
     _buildOldUnit(r'''
 enum A {A1, A2}
 ''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
     _buildNewUnit(r'''
 enum A {A1, A2}
 enum B {B1, B2}
 ''');
-    List<CompilationUnitMember> oldNodes = oldUnit.declarations;
     List<CompilationUnitMember> newNodes = newUnit.declarations;
     // nodes
     CompilationUnitMember nodeA = newNodes[0];
@@ -436,17 +481,20 @@ enum B {B1, B2}
     expect(elementB.name, 'B');
     // unit.types
     expect(unitElement.enums, unorderedEquals([elementA, elementB]));
+    // verify delta
+    expect(unitDelta.addedDeclarations, unorderedEquals([elementB]));
+    expect(unitDelta.removedDeclarations, unorderedEquals([]));
   }
 
   test_unitMembers_function_add() {
     _buildOldUnit(r'''
 a() {}
 ''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
     _buildNewUnit(r'''
 a() {}
 b() {}
 ''');
-    List<CompilationUnitMember> oldNodes = oldUnit.declarations;
     List<CompilationUnitMember> newNodes = newUnit.declarations;
     // nodes
     CompilationUnitMember nodeA = newNodes[0];
@@ -461,17 +509,20 @@ b() {}
     expect(elementB.name, 'b');
     // unit.types
     expect(unitElement.functions, unorderedEquals([elementA, elementB]));
+    // verify delta
+    expect(unitDelta.addedDeclarations, unorderedEquals([elementB]));
+    expect(unitDelta.removedDeclarations, unorderedEquals([]));
   }
 
   test_unitMembers_functionTypeAlias_add() {
     _buildOldUnit(r'''
 typedef A();
 ''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
     _buildNewUnit(r'''
 typedef A();
 typedef B();
 ''');
-    List<CompilationUnitMember> oldNodes = oldUnit.declarations;
     List<CompilationUnitMember> newNodes = newUnit.declarations;
     // nodes
     CompilationUnitMember nodeA = newNodes[0];
@@ -487,17 +538,20 @@ typedef B();
     // unit.types
     expect(
         unitElement.functionTypeAliases, unorderedEquals([elementA, elementB]));
+    // verify delta
+    expect(unitDelta.addedDeclarations, unorderedEquals([elementB]));
+    expect(unitDelta.removedDeclarations, unorderedEquals([]));
   }
 
   test_unitMembers_topLevelVariable_add() {
     _buildOldUnit(r'''
 int a, b;
 ''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
     _buildNewUnit(r'''
 int a, b;
 int c, d;
 ''');
-    List<CompilationUnitMember> oldNodes = oldUnit.declarations;
     List<CompilationUnitMember> newNodes = newUnit.declarations;
     // nodes
     TopLevelVariableDeclaration node1 = newNodes[0];
@@ -536,12 +590,12 @@ int c, d;
 bool a = 1, b = 2;
 int c = 3;
 ''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
     _buildNewUnit(r'''
 int c = 3;
 
 bool a =1, b = 2;
 ''');
-    List<CompilationUnitMember> oldNodes = oldUnit.declarations;
     List<CompilationUnitMember> newNodes = newUnit.declarations;
     {
       TopLevelVariableDeclaration newNode = newNodes[0];
@@ -574,13 +628,19 @@ bool a =1, b = 2;
         expect(element.nameOffset, newCode.indexOf('b = 2'));
       }
     }
+    // verify delta
+    expect(unitDelta.addedDeclarations, unorderedEquals([]));
+    expect(unitDelta.removedDeclarations, unorderedEquals([]));
   }
 
   void _buildNewUnit(String newCode) {
     this.newCode = newCode;
     context.setContents(source, newCode);
     newUnit = context.parseCompilationUnit(source);
-    new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit).build();
+    IncrementalCompilationUnitElementBuilder builder =
+        new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
+    builder.build();
+    unitDelta = builder.unitDelta;
     expect(newUnit.element, unitElement);
   }
 
