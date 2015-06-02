@@ -982,7 +982,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       error(node, message);
 
       return new AstConstant(
-          null, node, new NullConstantExpression(new NullConstantValue()));
+          null, node, new ErroneousConstantExpression());
     }
     // Else we don't need to do anything. The final handler is only
     // optimistically trying to compile constants. So it is normal that we
