@@ -227,10 +227,11 @@ class _OverrideChecker {
       if (member is FieldDeclaration) {
         if (member.isStatic) continue;
         for (var variable in member.fields.variables) {
-          var name = variable.element.name;
+          var element = variable.element as PropertyInducingElement;
+          var name = element.name;
           if (seen.contains(name)) continue;
-          var getter = variable.element.getter;
-          var setter = variable.element.setter;
+          var getter = element.getter;
+          var setter = element.setter;
           bool found = _checkSingleOverride(getter, baseType, variable, member);
           if (!variable.isFinal &&
               _checkSingleOverride(setter, baseType, variable, member)) {
@@ -239,8 +240,7 @@ class _OverrideChecker {
           if (found) seen.add(name);
         }
       } else {
-        assert(member is MethodDeclaration);
-        if (member.isStatic) continue;
+        if ((member as MethodDeclaration).isStatic) continue;
         var method = member.element;
         if (seen.contains(method.name)) continue;
         if (_checkSingleOverride(method, baseType, member, member)) {

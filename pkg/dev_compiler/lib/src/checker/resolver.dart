@@ -198,13 +198,14 @@ class LibraryResolverWithInference extends LibraryResolver {
       FieldDeclaration field, Set<VariableDeclaration> pending) {
     var variables = field.fields;
     for (var variable in variables.variables) {
-      var varElement = variable.element;
+      var varElement = variable.element as FieldElement;
       if (!varElement.type.isDynamic || variables.type != null) continue;
       var getter = varElement.getter;
       // Note: type will be null only when there are no overrides. When some
       // override's type was not specified and couldn't be inferred, the type
       // here will be dynamic.
-      var type = searchTypeFor(varElement.enclosingElement.type, getter);
+      var enclosingElement = varElement.enclosingElement;
+      var type = searchTypeFor(enclosingElement.type, getter);
 
       // Infer from the RHS when there are no overrides.
       if (type == null) {
@@ -235,8 +236,8 @@ class LibraryResolverWithInference extends LibraryResolver {
             methodElement is PropertyAccessorElement) &&
         methodElement.returnType.isDynamic &&
         method.returnType == null) {
-      var type =
-          searchTypeFor(methodElement.enclosingElement.type, methodElement);
+      var enclosingElement = methodElement.enclosingElement as ClassElement;
+      var type = searchTypeFor(enclosingElement.type, methodElement);
       if (type != null && !type.returnType.isDynamic) {
         methodElement.returnType = type.returnType;
       }
@@ -245,7 +246,7 @@ class LibraryResolverWithInference extends LibraryResolver {
 
   void _inferVariableFromInitializer(Iterable<VariableDeclaration> variables) {
     for (var variable in variables) {
-      var declaration = variable.parent;
+      var declaration = variable.parent as VariableDeclarationList;
       // Only infer on variables that don't have any declared type.
       if (declaration.type != null) continue;
       if (_options.onlyInferConstsAndFinalFields &&
@@ -258,7 +259,7 @@ class LibraryResolverWithInference extends LibraryResolver {
       var type = initializer.staticType;
       if (type == null || type.isDynamic || type.isBottom) continue;
       if (!_canInferFrom(initializer)) continue;
-      var element = variable.element;
+      var element = variable.element as PropertyInducingElement;
       // Note: it's ok to update the type here, since initializer.staticType
       // is already computed for all declarations in the library cycle. The
       // new types will only be propagated on a second run of the
@@ -371,7 +372,7 @@ class RestrictedResolverVisitor extends ResolverVisitor {
         oldState = new _ResolverState(this);
         state.restore(this);
         if (node is FieldDeclaration) {
-          var cls = node.parent;
+          var cls = node.parent as ClassDeclaration;
           enclosingClass = cls.element;
         }
       }
@@ -547,8 +548,7 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     super.visitDeclaredIdentifier(node);
     if (node.type != null) return;
 
-    var parent = node.parent;
-    assert(parent is ForEachStatement);
+    var parent = node.parent as ForEachStatement;
     var expr = parent.iterable;
     var element = node.element as LocalVariableElementImpl;
     var exprType = expr.staticType;
@@ -606,9 +606,10 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
       // TODO(jmesserly): we'll likely need something that can handle a wider
       // variety of types, especially when we get to JS interop.
       var args = node.argumentList.arguments;
-      if (args.isNotEmpty && args.first is SimpleStringLiteral) {
+      var first = args.isNotEmpty ? args.first : null;
+      if (first is SimpleStringLiteral) {
         var coreLib = _typeProvider.objectType.element.library;
-        var classElem = coreLib.getType(args.first.stringValue);
+        var classElem = coreLib.getType(first.stringValue);
         if (classElem != null) node.staticType = classElem.type;
       }
     }

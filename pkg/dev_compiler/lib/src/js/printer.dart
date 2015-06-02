@@ -1266,7 +1266,7 @@ class DanglingElseVisitor extends BaseVisitor<bool> {
   bool visitLabeledStatement(LabeledStatement node)
       => node.body.accept(this);
   bool visitLiteralStatement(LiteralStatement node) => true;
-  bool visitClassDeclaration(ClassDeclaration) => false;
+  bool visitClassDeclaration(ClassDeclaration node) => false;
 
   bool visitExpression(Expression node) => false;
 }

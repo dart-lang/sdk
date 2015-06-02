@@ -523,8 +523,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // simple code size optimization.
     var parent = t.lookUpGetterInSuperclass('iterator', t.element.library);
     if (parent != null) return null;
-    parent = findSupertype(t, _implementsIterable);
-    if (parent != null) return null;
+    var parentType = findSupertype(t, _implementsIterable);
+    if (parentType != null) return null;
 
     // Otherwise, emit the adapter method, which wraps the Dart iterator in
     // an ES6 iterator.
@@ -1139,7 +1139,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     // Get the original declaring element. If we had a property accessor, this
     // indirects back to a (possibly synthetic) field.
     var element = accessor;
-    if (element is PropertyAccessorElement) element = accessor.variable;
+    if (accessor is PropertyAccessorElement) element = accessor.variable;
 
     _loader.declareBeforeUse(element);
 
@@ -1149,7 +1149,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (element is ClassElement ||
         element is DynamicElementImpl ||
         element is FunctionTypeAliasElement) {
-      return _emitTypeName(fillDynamicTypeArgs(element.type, types));
+      return _emitTypeName(
+          fillDynamicTypeArgs((element as dynamic).type, types));
     }
 
     // library member
@@ -1753,8 +1754,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         // TODO(jmesserly): we'll likely need something that can handle a wider
         // variety of types, especially when we get to JS interop.
         var args = expr.argumentList.arguments;
-        if (args.isNotEmpty && args.first is SimpleStringLiteral) {
-          var types = args.first.stringValue;
+        var first = args.isNotEmpty ? args.first : null;
+        if (first is SimpleStringLiteral) {
+          var types = first.stringValue;
           if (!types.split('|').contains('Null')) {
             return true;
           }
@@ -2059,7 +2061,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// Shared code for [PrefixedIdentifier] and [PropertyAccess].
   JS.Expression _emitGet(Expression target, SimpleIdentifier memberId) {
     var member = memberId.staticElement;
-    if (member is PropertyAccessorElement) member = member.variable;
+    if (member is PropertyAccessorElement) {
+      member = (member as PropertyAccessorElement).variable;
+    }
     bool isStatic = member is ClassMemberElement && member.isStatic;
     if (isStatic) {
       _loader.declareBeforeUse(member);
@@ -2246,7 +2250,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   JS.Statement _statement(Iterable stmts) {
-    var s = stmts is List ? stmts : new List<JS.Statement>.from(stmts);
+    List s = stmts is List ? stmts : new List<JS.Statement>.from(stmts);
     // TODO(jmesserly): empty block singleton?
     if (s.length == 0) return new JS.Block([]);
     if (s.length == 1) return s[0];

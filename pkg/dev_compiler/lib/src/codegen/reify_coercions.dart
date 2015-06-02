@@ -375,7 +375,8 @@ class CoercionManager {
     }
     var id = _vm.freshIdentifier(hint);
     var fp = AstBuilder.simpleFormal(id, null);
-    f(e2) => AstBuilder.parenthesize(AstBuilder.letExpression(fp, e1, e2));
+    Expression f(Expression e2) =>
+        AstBuilder.parenthesize(AstBuilder.letExpression(fp, e1, e2));
     return new Tuple2(id, f);
   }
 

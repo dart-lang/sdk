@@ -36,7 +36,8 @@ bool isStateless(Expression node, [AstNode context]) {
   if (node is ThisExpression || node is SuperExpression) return true;
   if (node is SimpleIdentifier) {
     var e = node.staticElement;
-    if (e is PropertyAccessorElement) e = e.variable;
+    if (e is PropertyAccessorElement) e =
+        (e as PropertyAccessorElement).variable;
     if (e is VariableElement && !e.isSynthetic) {
       if (e.isFinal) return true;
       if (e is LocalVariableElement || e is ParameterElement) {

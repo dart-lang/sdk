@@ -720,8 +720,9 @@ final List<Type> infoTypes = () {
   var allTypes = new Set();
   var baseTypes = new Set();
   var infoMirror = reflectClass(StaticInfo);
-  var declarations = infoMirror.owner.declarations.values;
-  for (var cls in declarations.where((d) => d is ClassMirror)) {
+  var libMirror = infoMirror.owner as LibraryMirror;
+  var declarations = libMirror.declarations.values;
+  for (ClassMirror cls in declarations.where((d) => d is ClassMirror)) {
     if (cls.isSubtypeOf(infoMirror)) {
       allTypes.add(cls);
       baseTypes.add(cls.superclass);

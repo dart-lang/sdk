@@ -132,8 +132,10 @@ class MetaLet extends Expression {
       vars.add(new VariableInitialization(params[i], values[i]));
     }
 
-    return new Block(
-        [new VariableDeclarationList('let', vars).toStatement(), block]);
+    return new Block(<Statement>[
+      new VariableDeclarationList('let', vars).toStatement(),
+      block
+    ]);
   }
 
   Node _build(List<TemporaryId> params, List<Expression> values, Node node) {

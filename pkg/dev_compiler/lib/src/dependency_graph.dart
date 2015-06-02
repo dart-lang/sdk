@@ -17,7 +17,8 @@ import 'package:analyzer/src/generated/ast.dart'
         ImportDirective,
         LibraryDirective,
         PartDirective,
-        PartOfDirective;
+        PartOfDirective,
+        UriBasedDirective;
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
 import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
@@ -291,11 +292,13 @@ class DartSourceNode extends SourceNode {
         if (d is PartOfDirective) return;
         if (d is LibraryDirective) continue;
 
+        var directiveUri = (d as UriBasedDirective).uri;
+
         // `dart:core` and other similar URLs only contain a name, but it is
         // meant to be a folder when resolving relative paths from it.
         var targetUri = uri.scheme == 'dart' && uri.pathSegments.length == 1
-            ? Uri.parse('$uri/').resolve(d.uri.stringValue)
-            : uri.resolve(d.uri.stringValue);
+            ? Uri.parse('$uri/').resolve(directiveUri.stringValue)
+            : uri.resolve(directiveUri.stringValue);
         var target =
             ParseDartTask.resolveDirective(graph._context, _source, d, null);
         if (target != null) {

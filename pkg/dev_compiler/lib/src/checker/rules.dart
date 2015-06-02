@@ -748,7 +748,9 @@ class DownwardsInference {
     //  the instantiated type of the constructor, then
     //     the uninstantiated element for the constructor, then
     //        the uninstantiated type for the constructor
-    var baseType = constructorElement.type.element.type;
+    var rawConstructorElement =
+        constructorElement.type.element as ConstructorElement;
+    var baseType = rawConstructorElement.type;
     if (baseType == null) return false;
     // From the interface type (instantiated), get:
     //  the uninstantiated element, then
@@ -791,8 +793,8 @@ class DownwardsInference {
 
   bool _inferFunctionExpression(FunctionExpression e, DartType t, errors) {
     if (t is! FunctionType) return false;
-    var fType = (t as FunctionType);
-    var eType = e.staticType;
+    var fType = t as FunctionType;
+    var eType = e.staticType as FunctionType;
     if (eType is! FunctionType) return false;
 
     // We have a function literal, so we can treat the arrow type
