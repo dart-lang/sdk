@@ -7247,8 +7247,7 @@ class LinkedHashMap : public Instance {
   class Iterator : ValueObject {
    public:
     explicit Iterator(const LinkedHashMap& map)
-      : map_(map),
-        data_(Array::Handle(map.data())),
+      : data_(Array::Handle(map.data())),
         scratch_(Object::Handle()),
         offset_(-2),
         length_(Smi::Value(map.used_data())) {}
@@ -7276,7 +7275,6 @@ class LinkedHashMap : public Instance {
     }
 
    private:
-    const LinkedHashMap& map_;
     const Array& data_;
     Object& scratch_;
     intptr_t offset_;
