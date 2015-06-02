@@ -19675,12 +19675,10 @@ RawLinkedHashMap* LinkedHashMap::NewDefault(Heap::Space space) {
   const Array& data = Array::Handle(Array::New(kInitialIndexSize, space));
   const TypedData& index = TypedData::Handle(TypedData::New(
       kTypedDataUint32ArrayCid, kInitialIndexSize, space));
+  // On 32-bit, the top bits are wasted to avoid Mint allocation.
+  static const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
   static const intptr_t kInitialHashMask =
-#if defined(ARCH_IS_64_BIT)
-      (1 << (32 - kInitialIndexBits)) - 1;
-#else
-      (1 << (30 - kInitialIndexBits)) - 1;
-#endif
+      (1 << (kAvailableBits - kInitialIndexBits)) - 1;
   return LinkedHashMap::New(data, index, kInitialHashMask, 0, 0, space);
 }
 
