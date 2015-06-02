@@ -207,8 +207,15 @@ _MemberTypeGetter _memberTypeGetter(ExecutableElement member) {
   return f;
 }
 
-bool isDynamicTarget(Expression node) =>
-    node != null && !isLibraryPrefix(node) && node.staticType.isDynamic;
+bool isDynamicTarget(Expression node) {
+  if (node == null) return false;
+  var type = node.staticType;
+
+  // This is an unknown identifier, like an import that doesn't resolve.
+  if (type == null) return true;
+
+  return type.isDynamic && !isLibraryPrefix(node);
+}
 
 bool isLibraryPrefix(Expression node) =>
     node is SimpleIdentifier && node.staticElement is PrefixElement;
