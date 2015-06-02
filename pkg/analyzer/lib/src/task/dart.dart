@@ -1322,7 +1322,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         Source partSource = partDirective.source;
         hasPartDirective = true;
         CompilationUnit partUnit = partUnitMap[partSource];
-        if (partUnit != null) {
+        if (partUnit != null && context.exists(partSource)) {
           CompilationUnitElementImpl partElement = partUnit.element;
           partElement.uriOffset = partUri.offset;
           partElement.uriEnd = partUri.end;

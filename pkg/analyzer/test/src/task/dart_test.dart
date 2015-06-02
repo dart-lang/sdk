@@ -899,6 +899,17 @@ part of libB;
     expect(error.getProperty(ErrorProperty.PARTS_LIBRARY_NAME), isNull);
   }
 
+  test_perform_error_partDoesNotExist() {
+    _performBuildTask({
+      '/lib.dart': '''
+library lib;
+part 'part.dart';
+'''
+    });
+    // we already report URI_DOES_NOT_EXIST, no need to report other errors
+    _assertErrorsWithCodes([]);
+  }
+
   test_perform_error_partOfDifferentLibrary() {
     _performBuildTask({
       '/lib.dart': '''
@@ -970,8 +981,7 @@ library lib;
 part 'no-such-file.dart';
 '''
     });
-    expect(libraryElement.parts, hasLength(1));
-    expect(libraryElement.parts[0].library, same(libraryElement));
+    expect(libraryElement.parts, isEmpty);
   }
 
   test_perform_patchTopLevelAccessors() {
