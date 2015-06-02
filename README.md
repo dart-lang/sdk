@@ -4,7 +4,7 @@ A Dart style linter.
 
 [![Build Status](https://travis-ci.org/dart-lang/linter.svg)](https://travis-ci.org/dart-lang/linter)
 [![Coverage Status](https://coveralls.io/repos/dart-lang/linter/badge.svg)](https://coveralls.io/r/dart-lang/linter)
-[![Pub](https://img.shields.io/pub/v/linter.svg)]()
+[![Pub](https://img.shields.io/pub/v/linter.svg)](https://pub.dartlang.org/packages/linter)
 
 ## Installing
 
