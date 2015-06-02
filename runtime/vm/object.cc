@@ -19669,9 +19669,6 @@ typedef EnumIndexHashMap<DefaultHashTraits> EnumIndexDefaultMap;
 
 
 RawLinkedHashMap* LinkedHashMap::NewDefault(Heap::Space space) {
-  // Keep this in sync with Dart implementation (lib/compact_hash.dart).
-  static const intptr_t kInitialIndexBits = 3;
-  static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
   const Array& data = Array::Handle(Array::New(kInitialIndexSize, space));
   const TypedData& index = TypedData::Handle(TypedData::New(
       kTypedDataUint32ArrayCid, kInitialIndexSize, space));

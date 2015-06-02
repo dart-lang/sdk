@@ -7236,6 +7236,10 @@ class LinkedHashMap : public Instance {
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap, Instance);
 
+  // Keep this in sync with Dart implementation (lib/compact_hash.dart).
+  static const intptr_t kInitialIndexBits = 3;
+  static const intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
+
   // Allocate a map, but leave all fields set to null.
   // Used during deserialization (since map might contain itself as key/value).
   static RawLinkedHashMap* NewUninitialized(Heap::Space space = Heap::kNew);

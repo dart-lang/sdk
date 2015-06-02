@@ -1661,6 +1661,7 @@ class RawArray : public RawInstance {
   friend class SnapshotReader;
   friend class GrowableObjectArray;
   friend class LinkedHashMap;
+  friend class RawLinkedHashMap;
   friend class Object;
   friend class ICData;  // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.

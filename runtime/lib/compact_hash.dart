@@ -13,15 +13,13 @@ abstract class _HashFieldBase {
   // The hash pattern is based on hashCode, but is guaranteed to be non-zero.
   // The length of _index is always a power of two, and there is always at
   // least one unoccupied entry.
+  // NOTE: When maps are deserialized, their _index and _hashMask is regenerated
+  // lazily by _regenerateIndex.
+  // TODO(koda): Consider also using null _index for tiny, linear-search tables.
   Uint32List _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
 
-  // Cached in-place mask for the hash pattern component. On 32-bit, the top
-  // bits are wasted to avoid Mint allocation.
-  // TODO(koda): Reclaim the bits by making the compiler treat hash patterns
-  // as unsigned words.
-  int _hashMask = internal.is64Bit ?
-      (1 << (32 - _HashBase._INITIAL_INDEX_BITS)) - 1 :
-      (1 << (30 - _HashBase._INITIAL_INDEX_BITS)) - 1;
+  // Cached in-place mask for the hash pattern component. 
+  int _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
 
   // Fixed-length list of keys (set) or key/value at even/odd indices (map).
   List _data = new List(_HashBase._INITIAL_INDEX_SIZE);
@@ -67,7 +65,16 @@ abstract class _HashBase {
   // Unused and deleted entries are marked by 0 and 1, respectively.
   static const int _UNUSED_PAIR = 0;
   static const int _DELETED_PAIR = 1;
-  
+
+  // On 32-bit, the top bits are wasted to avoid Mint allocation.
+  // TODO(koda): Reclaim the bits by making the compiler treat hash patterns
+  // as unsigned words.
+  static int _indexSizeToHashMask(int indexSize) {
+    int indexBits = indexSize.bitLength - 2;
+    return internal.is64Bit ? (1 << (32 - indexBits)) - 1 :
+                              (1 << (30 - indexBits)) - 1;
+  }
+
   static int _hashPattern(int fullHash, int hashMask, int size) {
     final int maskedHash = fullHash & hashMask;
     // TODO(koda): Consider keeping bit length and use left shift.
@@ -132,7 +139,8 @@ class _LinkedHashMapMixin<K, V> {
   
   void clear() {
     if (!isEmpty) {
-      _init(_index.length, _hashMask);
+      // Use _data.length, since _index might be null.
+      _init(_data.length, _hashMask);
     }
   }
 
@@ -154,6 +162,24 @@ class _LinkedHashMapMixin<K, V> {
         }
       }
     }
+  }
+
+  int _getIndexLength() {
+    return (_index == null) ? _regenerateIndex() : _index.length;
+  }
+
+  int _regenerateIndex() {
+    assert(_index == null);
+    _index = new Uint32List(_data.length);
+    assert(_hashMask == 0);
+    _hashMask = _HashBase._indexSizeToHashMask(_index.length);
+    final int tmpUsed = _usedData;
+    _usedData = 0;
+    for (int i = 0; i < tmpUsed; i += 2) {
+      // TODO(koda): Avoid redundant equality tests and stores into _data.
+      this[_data[i]] = _data[i + 1];
+    }
+    return _index.length;
   }
   
   void _insert(K key, V value, int hashPattern, int i) {
@@ -199,7 +225,7 @@ class _LinkedHashMapMixin<K, V> {
   }
   
   void operator[]=(K key, V value) {
-    final int size = _index.length;
+    final int size = _getIndexLength();
     final int sizeMask = size - 1;
     final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
@@ -213,7 +239,7 @@ class _LinkedHashMapMixin<K, V> {
   }
   
   V putIfAbsent(K key, V ifAbsent()) {
-    final int size = _index.length;
+    final int size = _getIndexLength();
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
     final int fullHash = _hashCode(key);
@@ -236,7 +262,7 @@ class _LinkedHashMapMixin<K, V> {
   }
   
   V remove(Object key) {
-    final int size = _index.length;
+    final int size = _getIndexLength();
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
     final int fullHash = _hashCode(key);
@@ -266,7 +292,7 @@ class _LinkedHashMapMixin<K, V> {
   
   // If key is absent, return _data (which is never a value).
   Object _getValueOrData(Object key) {
-    final int size = _index.length;
+    final int size = _getIndexLength();
     final int sizeMask = size - 1;
     final int maxEntries = size >> 1;
     final int fullHash = _hashCode(key);

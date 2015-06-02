@@ -1129,11 +1129,9 @@ void SnapshotReader::ArrayReadFrom(const Array& result,
   result.SetTypeArguments(*TypeArgumentsHandle());
 
   bool is_canonical = RawObject::IsCanonical(tags);
-  Object& obj = Object::Handle(isolate());
 
   for (intptr_t i = 0; i < len; i++) {
     *PassiveObjectHandle() = is_canonical ? ReadObjectImpl() : ReadObjectRef();
-    obj = (*PassiveObjectHandle()).raw();
     result.SetAt(i, *PassiveObjectHandle());
   }
 }
