@@ -93,7 +93,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     // prepare parameters
     FormalParameterList parameters;
     {
-      AstNode node = element.node;
+      AstNode node = element.computeNode();
       if (node is MethodDeclaration) {
         parameters = node.parameters;
       }

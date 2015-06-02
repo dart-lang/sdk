@@ -50,8 +50,8 @@ String _getMethodSourceForInvocation(RefactoringStatus status, _SourcePart part,
     List<Expression> arguments) {
   // prepare edits to replace parameters with arguments
   List<SourceEdit> edits = <SourceEdit>[];
-  part._parameters.forEach(
-      (ParameterElement parameter, List<_ParameterOccurrence> occurrences) {
+  part._parameters.forEach((ParameterElement parameter,
+      List<_ParameterOccurrence> occurrences) {
     // prepare argument
     Expression argument = null;
     for (Expression arg in arguments) {
@@ -344,7 +344,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // class member
     bool isClassMember = element.enclosingElement is ClassElement;
     if (element is MethodElement || _isAccessor && isClassMember) {
-      MethodDeclaration methodDeclaration = element.node;
+      MethodDeclaration methodDeclaration = element.computeNode();
       _methodNode = methodDeclaration;
       _methodParameters = methodDeclaration.parameters;
       _methodBody = methodDeclaration.body;
@@ -357,7 +357,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // unit member
     bool isUnitMember = element.enclosingElement is CompilationUnitElement;
     if (element is FunctionElement || _isAccessor && isUnitMember) {
-      FunctionDeclaration functionDeclaration = element.node;
+      FunctionDeclaration functionDeclaration = element.computeNode();
       _methodNode = functionDeclaration;
       _methodParameters = functionDeclaration.functionExpression.parameters;
       _methodBody = functionDeclaration.functionExpression.body;

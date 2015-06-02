@@ -85,7 +85,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     // prepare "get" keyword
     Token getKeyword = null;
     {
-      AstNode node = element.node;
+      AstNode node = element.computeNode();
       if (node is MethodDeclaration) {
         getKeyword = node.propertyKeyword;
       } else if (node is FunctionDeclaration) {
