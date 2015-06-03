@@ -113,6 +113,7 @@ class NestedStatement : public ValueObject {
   JoinEntryInstr* break_target() const { return break_target_; }
 
   virtual intptr_t ContextLevel() const;
+  virtual void AdjustContextLevel(intptr_t context_level);
 
   virtual JoinEntryInstr* BreakTargetFor(SourceLabel* label);
   virtual JoinEntryInstr* ContinueTargetFor(SourceLabel* label);
@@ -152,6 +153,13 @@ intptr_t NestedStatement::ContextLevel() const {
 }
 
 
+void NestedStatement::AdjustContextLevel(intptr_t context_level) {
+  // There must be a NestedContextAdjustment on the nesting stack.
+  ASSERT(outer() != NULL);
+  outer()->AdjustContextLevel(context_level);
+}
+
+
 intptr_t FlowGraphBuilder::context_level() const {
   return (nesting_stack() == NULL) ? 0 : nesting_stack()->ContextLevel();
 }
@@ -162,7 +170,7 @@ JoinEntryInstr* NestedStatement::BreakTargetFor(SourceLabel* label) {
   if (break_target_ == NULL) {
     break_target_ =
         new(owner()->zone()) JoinEntryInstr(owner()->AllocateBlockId(),
-                                               owner()->try_index());
+                                            owner()->try_index());
   }
   return break_target_;
 }
@@ -191,6 +199,24 @@ intptr_t NestedBlock::ContextLevel() const {
       ? NestedStatement::ContextLevel()
       : scope_->context_level();
 }
+
+
+// A nested statement reflecting a context level adjustment.
+class NestedContextAdjustment : public NestedStatement {
+ public:
+  NestedContextAdjustment(FlowGraphBuilder* owner, intptr_t context_level)
+      : NestedStatement(owner, NULL), context_level_(context_level) { }
+
+  virtual intptr_t ContextLevel() const { return context_level_; }
+
+  virtual void AdjustContextLevel(intptr_t context_level) {
+    ASSERT(context_level <= context_level_);
+    context_level_ = context_level;
+  }
+
+ private:
+  intptr_t context_level_;
+};
 
 
 // A nested statement that can be the target of a continue as well as a
@@ -1054,6 +1080,8 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* return_value = for_value.value();
+
+  NestedContextAdjustment context_adjustment(owner(), owner()->context_level());
 
   if (node->inlined_finally_list_length() > 0) {
     LocalVariable* temp = owner()->parsed_function().finally_return_temp_var();
@@ -2295,6 +2323,8 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
 
 void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
+  NestedContextAdjustment context_adjustment(owner(), owner()->context_level());
+
   for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
     EffectGraphVisitor for_effect(owner());
     node->InlinedFinallyNodeAt(i)->Visit(&for_effect);
@@ -2306,27 +2336,7 @@ void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
   // contains the destination label.
   SourceLabel* label = node->label();
   ASSERT(label->owner() != NULL);
-  int target_context_level = 0;
-  LocalScope* target_scope = label->owner();
-  if (target_scope->num_context_variables() > 0) {
-    // The scope of the target label allocates a context, therefore its outer
-    // scope is at a lower context level.
-    target_context_level = target_scope->context_level() - 1;
-  } else {
-    // The scope of the target label does not allocate a context, so its outer
-    // scope is at the same context level. Find it.
-    while ((target_scope != NULL) &&
-           (target_scope->num_context_variables() == 0)) {
-      target_scope = target_scope->parent();
-    }
-    if (target_scope != NULL) {
-      target_context_level = target_scope->context_level();
-    }
-  }
-  ASSERT(target_context_level >= 0);
-  intptr_t current_context_level = owner()->context_level();
-  ASSERT(current_context_level >= target_context_level);
-  UnchainContexts(current_context_level - target_context_level);
+  AdjustContextLevel(label->owner());
 
   JoinEntryInstr* jump_target = NULL;
   NestedStatement* current = owner()->nesting_stack();
@@ -3867,6 +3877,33 @@ void EffectGraphVisitor::UnchainContexts(intptr_t n) {
 }
 
 
+void EffectGraphVisitor::AdjustContextLevel(LocalScope* target_scope) {
+  ASSERT(target_scope != NULL);
+  intptr_t target_context_level = 0;
+  if (target_scope->num_context_variables() > 0) {
+    // The scope of the target label allocates a context, therefore its outer
+    // scope is at a lower context level.
+    target_context_level = target_scope->context_level() - 1;
+  } else {
+    // The scope of the target label does not allocate a context, so its outer
+    // scope is at the same context level. Find it.
+    while ((target_scope != NULL) &&
+           (target_scope->num_context_variables() == 0)) {
+      target_scope = target_scope->parent();
+    }
+    if (target_scope != NULL) {
+      target_context_level = target_scope->context_level();
+    }
+  }
+  ASSERT(target_context_level >= 0);
+  intptr_t current_context_level = owner()->context_level();
+  ASSERT(current_context_level >= target_context_level);
+  UnchainContexts(current_context_level - target_context_level);
+  // Record adjusted context level.
+  owner()->nesting_stack()->AdjustContextLevel(target_context_level);
+}
+
+
 // <Statement> ::= Sequence { scope: LocalScope
 //                            nodes: <Statement>*
 //                            label: SourceLabel }
@@ -4406,12 +4443,15 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
   }
 
   // Note: do not restore the saved_try_context here since the inlined
-  // code is running at he context level of the return or jump instruction
-  // that follows the inlined code. See issue 22822.
+  // code is not reached via an exception handler, therefore the context is
+  // always properly set on entry. In other words, the inlined finally clause is
+  // never the target of a long jump that would find an uninitialized current
+  // context variable.
 
   JoinEntryInstr* finally_entry =
       new(Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
   EffectGraphVisitor for_finally_block(owner());
+  for_finally_block.AdjustContextLevel(node->finally_block()->scope());
   node->finally_block()->Visit(&for_finally_block);
 
   if (try_index >= 0) {

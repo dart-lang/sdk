@@ -1972,7 +1972,7 @@ class ThrowNode : public AstNode {
 class InlinedFinallyNode : public AstNode {
  public:
   InlinedFinallyNode(intptr_t token_pos,
-                     AstNode* finally_block,
+                     SequenceNode* finally_block,
                      const LocalVariable* context_var,
                      intptr_t try_index)
       : AstNode(token_pos),
@@ -1983,7 +1983,7 @@ class InlinedFinallyNode : public AstNode {
     ASSERT(context_var != NULL);
   }
 
-  AstNode* finally_block() const { return finally_block_; }
+  SequenceNode* finally_block() const { return finally_block_; }
   const LocalVariable& context_var() const { return context_var_; }
   intptr_t try_index() const { return try_index_; }
 
@@ -1994,7 +1994,7 @@ class InlinedFinallyNode : public AstNode {
   DECLARE_COMMON_NODE_FUNCTIONS(InlinedFinallyNode);
 
  private:
-  AstNode* finally_block_;
+  SequenceNode* finally_block_;
   const LocalVariable& context_var_;
   const intptr_t try_index_;
 

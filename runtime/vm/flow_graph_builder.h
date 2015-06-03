@@ -407,6 +407,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Moves the nth parent context into the context register.
   void UnchainContexts(intptr_t n);
 
+  // Unchain the current context until its level matches the context level
+  // expected on entry at the target specified by its scope.
+  void AdjustContextLevel(LocalScope* target_scope);
+
   void CloseFragment() { exit_ = NULL; }
 
   // Returns a local variable index for a temporary local that is
