@@ -1081,6 +1081,18 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   Append(for_value);
   Value* return_value = for_value.value();
 
+  // Call to stub that checks whether the debugger is in single
+  // step mode. This call must happen before the contexts are
+  // unchained so that captured variables can be inspected.
+  // No debugger check is done in native functions or for return
+  // statements for which there is no associated source position.
+  const Function& function = owner()->function();
+  if (FLAG_support_debugger &&
+      (node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
+    AddInstruction(new(Z) DebugStepCheckInstr(node->token_pos(),
+                                              RawPcDescriptors::kRuntimeCall));
+  }
+
   NestedContextAdjustment context_adjustment(owner(), owner()->context_level());
 
   if (node->inlined_finally_list_length() > 0) {
@@ -1097,18 +1109,6 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
       }
     }
     return_value = Bind(BuildLoadLocal(*temp));
-  }
-
-  // Call to stub that checks whether the debugger is in single
-  // step mode. This call must happen before the contexts are
-  // unchained so that captured variables can be inspected.
-  // No debugger check is done in native functions or for return
-  // statements for which there is no associated source position.
-  const Function& function = owner()->function();
-  if (FLAG_support_debugger &&
-      (node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
-    AddInstruction(new(Z) DebugStepCheckInstr(node->token_pos(),
-                                              RawPcDescriptors::kRuntimeCall));
   }
 
   if (Isolate::Current()->TypeChecksEnabled()) {
