@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:args/args.dart';
@@ -110,6 +111,10 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
   try {
     List<AnalysisErrorInfo> errors = linter.lintFiles(filesToLint);
 
+    if (errors.length > 0) {
+      exitCode = _maxSeverity(errors);
+    }
+
     var commonRoot = getRoot(options.rest);
     var stats = options['stats'];
     ReportFormatter reporter = new ReportFormatter(
@@ -126,4 +131,11 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
 $err
 $stack''');
   }
+}
+
+int _maxSeverity(List<AnalysisErrorInfo> errors) {
+  int max = 0;
+  errors.forEach((info) => info.errors.forEach(
+      (error) => max = math.max(max, error.errorCode.errorSeverity.ordinal)));
+  return max;
 }
