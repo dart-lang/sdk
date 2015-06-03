@@ -38,7 +38,7 @@ for %%i in ("%SDK_DIR%\..\") do set DART_ROOT=%%~fi
 rem Remove trailing backslash if there is one
 if %DART_ROOT:~-1%==\ set DART_ROOT=%DART_ROOT:~0,-1%
 
-set ANALYZER=%DART_ROOT%\third_party\pkg_tested\analyzer_cli\bin\analyzer.dart
+set ANALYZER=%DART_ROOT%\third_party\pkg\analyzer_cli\bin\analyzer.dart
 
 rem DART_CONFIGURATION defaults to ReleaseIA32
 if "%DART_CONFIGURATION%"=="" set DART_CONFIGURATION=ReleaseIA32

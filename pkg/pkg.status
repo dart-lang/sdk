@@ -118,6 +118,7 @@ crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 
 [ $browser ]
+analyzer_cli/*: SkipByDesign # Uses dart:io.
 */test/analyzer_test: SkipByDesign # No need to run analysis tests on browser bots
 analysis_server/test/*: SkipByDesign # Uses dart:io.
 analysis_server/tool/spec/check_all_test: SkipByDesign # Uses dart:io.
@@ -144,6 +145,8 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 analyzer/test/*: PubGetError
 
 [ $compiler == dart2js && $cps_ir ]
+analyzer_cli/test/error_test: Crash # (try {return fn(tempDir);}finally {new Directory(tempDir).deleteSync(recursive:true);}): try/finally
+analyzer_cli/test/options_test: Crash #  try/finally
 analysis_server/tool/spec/check_all_test: Crash #  Unhandled node
 analyzer/test/cancelable_future_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
 analyzer/test/enum_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
