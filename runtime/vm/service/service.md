@@ -1072,6 +1072,9 @@ class Flag {
   // A description of the flag.
   string comment;
 
+  // Has this flag been modified from its default setting?
+  bool modified;
+
   // The value of this flag as a string.
   //
   // If this property is absent, then the value of the flag was NULL.
