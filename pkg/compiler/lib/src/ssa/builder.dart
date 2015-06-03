@@ -4258,36 +4258,6 @@ class SsaBuilder extends NewResolvedVisitor {
       handleForeignRawFunctionRef(node, 'RAW_DART_FUNCTION_REF');
     } else if (name == 'JS_SET_CURRENT_ISOLATE') {
       handleForeignSetCurrentIsolate(node);
-    } else if (name == 'JS_OPERATOR_AS_PREFIX') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.operatorAsPrefix));
-    } else if (name == 'JS_SIGNATURE_NAME') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.operatorSignature));
-    } else if (name == 'JS_TYPEDEF_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.typedefTag));
-    } else if (name == 'JS_FUNCTION_TYPE_VOID_RETURN_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.functionTypeVoidReturnTag));
-    } else if (name == 'JS_FUNCTION_TYPE_RETURN_TYPE_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.functionTypeReturnTypeTag));
-    } else if (name ==
-               'JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(
-          backend.namer.functionTypeRequiredParametersTag));
-    } else if (name ==
-               'JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(
-          backend.namer.functionTypeOptionalParametersTag));
-    } else if (name ==
-               'JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(
-          backend.namer.functionTypeNamedParametersTag));
     } else if (name == 'JS_IS_INDEXABLE_FIELD_NAME') {
       // TODO(floitsch): this should be a JS_NAME.
       Element element = backend.findHelper('JavaScriptIndexingBehavior');
@@ -4309,7 +4279,7 @@ class SsaBuilder extends NewResolvedVisitor {
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(node);
     } else {
-      throw "Unknown foreign: ${element}";
+      compiler.internalError(node, "Unknown foreign: ${element}");
     }
   }
 
