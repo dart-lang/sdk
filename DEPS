@@ -174,7 +174,7 @@ deps = {
       (Var("github_mirror") % "dart-services") +
       Var("dart_services_rev"),
 
-  Var("dart_root") + "/third_party/pkg_tested/analyzer_cli":
+  Var("dart_root") + "/third_party/pkg/analyzer_cli":
       (Var("github_mirror") % "analyzer_cli") + Var("analyzer_cli_tag"),
   Var("dart_root") + "/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
