@@ -27,14 +27,11 @@ import 'package:html/parser.dart' as html;
 import 'test_util.dart' show testDirectory;
 
 final ArgParser argParser = new ArgParser()
-  ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
-  ..addFlag('dart-gen',
-      abbr: 'd', help: 'Generate dart output', defaultsTo: false);
+  ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null);
 
 main(arguments) {
   if (arguments == null) arguments = [];
   ArgResults args = argParser.parse(arguments);
-  var dartGen = args['dart-gen'];
   var filePattern = new RegExp(args.rest.length > 0 ? args.rest[0] : '.');
   var compilerMessages = new StringBuffer();
   var loggerSub;
@@ -51,7 +48,7 @@ main(arguments) {
     }
   });
 
-  var inputDir = path.join(testDirectory, dartGen ? 'dart_codegen' : 'codegen');
+  var inputDir = path.join(testDirectory, 'codegen');
   var actualDir = path.join(inputDir, 'actual');
   var paths = new Directory(inputDir)
       .listSync()
@@ -65,11 +62,9 @@ main(arguments) {
     // they're more self-contained.
     var runtimeDir = path.join(path.dirname(testDirectory), 'lib', 'runtime');
     var options = new CompilerOptions(
-        allowConstCasts: !dartGen,
+        allowConstCasts: true,
         outputDir: subDir == null ? actualDir : path.join(actualDir, subDir),
         useColors: false,
-        outputDart: dartGen,
-        formatOutput: dartGen,
         emitSourceMaps: sourceMaps,
         forceCompile: checkSdk,
         checkSdk: checkSdk,
@@ -106,9 +101,7 @@ main(arguments) {
       new File(path.join(actualDir, '$filename.txt'))
           .writeAsStringSync(compilerMessages.toString());
 
-      var outFile = dartGen
-          ? new File(path.join(actualDir, '$filename/$filename.dart'))
-          : new File(path.join(actualDir, '$filename.js'));
+      var outFile = new File(path.join(actualDir, '$filename.js'));
       expect(outFile.existsSync(), success,
           reason: '${outFile.path} was created iff compilation succeeds');
 
@@ -117,7 +110,7 @@ main(arguments) {
     });
   }
 
-  if (dartGen || Platform.environment.containsKey('COVERALLS_TOKEN')) {
+  if (Platform.environment.containsKey('COVERALLS_TOKEN')) {
     group('sdk', () {
       // The analyzer does not bubble exception messages for certain internal
       // dart:* library failures, such as failing to find
@@ -136,13 +129,10 @@ main(arguments) {
       test('devc dart:core', () {
         // Get the test SDK. We use a checked in copy so test expectations can
         // be generated against a specific SDK version.
-        var testSdk = dartGen
-            ? path.join(testDirectory, '..', 'tool', 'input_sdk')
-            : path.join(testDirectory, 'generated_sdk');
+        var testSdk = path.join(testDirectory, 'generated_sdk');
         var result = compile('dart:core', testSdk, checkSdk: true);
         var outputDir = new Directory(path.join(actualDir, 'core'));
-        var outFile = new File(
-            path.join(actualDir, dartGen ? 'core/core' : 'dart/core.js'));
+        var outFile = new File(path.join(actualDir, 'dart/core.js'));
         expect(outFile.existsSync(), true,
             reason: '${outFile.path} was created for dart:core');
       });
@@ -152,124 +142,122 @@ main(arguments) {
   var expectedRuntime =
       defaultRuntimeFiles.map((f) => 'dev_compiler/runtime/$f');
 
-  if (!dartGen) {
-    test('devc jscodegen sunflower.html', () {
-      var filePath = path.join(inputDir, 'sunflower', 'sunflower.html');
-      compilerMessages.writeln('// Messages from compiling sunflower.html');
+  test('devc jscodegen sunflower.html', () {
+    var filePath = path.join(inputDir, 'sunflower', 'sunflower.html');
+    compilerMessages.writeln('// Messages from compiling sunflower.html');
 
-      var result = compile(filePath, realSdk, subDir: 'sunflower');
-      var success = !result.failure;
+    var result = compile(filePath, realSdk, subDir: 'sunflower');
+    var success = !result.failure;
 
-      // Write compiler messages to disk.
-      new File(path.join(actualDir, 'sunflower', 'sunflower.txt'))
-          .writeAsStringSync(compilerMessages.toString());
+    // Write compiler messages to disk.
+    new File(path.join(actualDir, 'sunflower', 'sunflower.txt'))
+        .writeAsStringSync(compilerMessages.toString());
 
-      var expectedFiles = [
-        'sunflower.html',
-        'sunflower.js',
-        'sunflower.css',
-        'math.png',
-      ]..addAll(expectedRuntime);
+    var expectedFiles = [
+      'sunflower.html',
+      'sunflower.js',
+      'sunflower.css',
+      'math.png',
+    ]..addAll(expectedRuntime);
 
-      for (var filepath in expectedFiles) {
-        var outFile = new File(path.join(actualDir, 'sunflower', filepath));
-        expect(outFile.existsSync(), success,
-            reason: '${outFile.path} was created iff compilation succeeds');
-      }
-    });
+    for (var filepath in expectedFiles) {
+      var outFile = new File(path.join(actualDir, 'sunflower', filepath));
+      expect(outFile.existsSync(), success,
+          reason: '${outFile.path} was created iff compilation succeeds');
+    }
+  });
 
-    test('devc jscodegen html_input.html', () {
-      var filePath = path.join(inputDir, 'html_input.html');
-      compilerMessages.writeln('// Messages from compiling html_input.html');
+  test('devc jscodegen html_input.html', () {
+    var filePath = path.join(inputDir, 'html_input.html');
+    compilerMessages.writeln('// Messages from compiling html_input.html');
 
-      var result = compile(filePath, realSdk);
-      var success = !result.failure;
+    var result = compile(filePath, realSdk);
+    var success = !result.failure;
 
-      // Write compiler messages to disk.
-      new File(path.join(actualDir, 'html_input.txt'))
-          .writeAsStringSync(compilerMessages.toString());
+    // Write compiler messages to disk.
+    new File(path.join(actualDir, 'html_input.txt'))
+        .writeAsStringSync(compilerMessages.toString());
 
-      var expectedFiles = [
-        'html_input.html',
-        'dir/html_input_a.js',
-        'dir/html_input_b.js',
-        'dir/html_input_c.js',
-        'dir/html_input_d.js',
-        'dir/html_input_e.js'
-      ]..addAll(expectedRuntime);
+    var expectedFiles = [
+      'html_input.html',
+      'dir/html_input_a.js',
+      'dir/html_input_b.js',
+      'dir/html_input_c.js',
+      'dir/html_input_d.js',
+      'dir/html_input_e.js'
+    ]..addAll(expectedRuntime);
 
-      for (var filepath in expectedFiles) {
-        var outFile = new File(path.join(actualDir, filepath));
-        expect(outFile.existsSync(), success,
-            reason: '${outFile.path} was created iff compilation succeeds');
-      }
+    for (var filepath in expectedFiles) {
+      var outFile = new File(path.join(actualDir, filepath));
+      expect(outFile.existsSync(), success,
+          reason: '${outFile.path} was created iff compilation succeeds');
+    }
 
-      var notExpectedFiles = [
-        'dev_compiler/runtime/messages_widget.js',
-        'dev_compiler/runtime/messages.css'
-      ];
-      for (var filepath in notExpectedFiles) {
-        var outFile = new File(path.join(actualDir, filepath));
-        expect(outFile.existsSync(), isFalse,
-            reason: '${outFile.path} should only be generated in server mode');
-      }
-    });
+    var notExpectedFiles = [
+      'dev_compiler/runtime/messages_widget.js',
+      'dev_compiler/runtime/messages.css'
+    ];
+    for (var filepath in notExpectedFiles) {
+      var outFile = new File(path.join(actualDir, filepath));
+      expect(outFile.existsSync(), isFalse,
+          reason: '${outFile.path} should only be generated in server mode');
+    }
+  });
 
-    test('devc jscodegen html_input.html server mode', () {
-      var filePath = path.join(inputDir, 'html_input.html');
-      compilerMessages.writeln('// Messages from compiling html_input.html');
+  test('devc jscodegen html_input.html server mode', () {
+    var filePath = path.join(inputDir, 'html_input.html');
+    compilerMessages.writeln('// Messages from compiling html_input.html');
 
-      var result =
-          compile(filePath, realSdk, serverMode: true, subDir: 'server_mode');
-      var success = !result.failure;
+    var result =
+        compile(filePath, realSdk, serverMode: true, subDir: 'server_mode');
+    var success = !result.failure;
 
-      // Write compiler messages to disk.
-      new File(path.join(actualDir, 'server_mode', 'html_input.txt'))
-          .writeAsStringSync(compilerMessages.toString());
+    // Write compiler messages to disk.
+    new File(path.join(actualDir, 'server_mode', 'html_input.txt'))
+        .writeAsStringSync(compilerMessages.toString());
 
-      var expectedFiles = [
-        'dir/html_input_a.js',
-        'dir/html_input_b.js',
-        'dir/html_input_c.js',
-        'dir/html_input_d.js',
-        'dir/html_input_e.js',
-        'dev_compiler/runtime/messages_widget.js',
-        'dev_compiler/runtime/messages.css'
-      ]..addAll(expectedRuntime);
+    var expectedFiles = [
+      'dir/html_input_a.js',
+      'dir/html_input_b.js',
+      'dir/html_input_c.js',
+      'dir/html_input_d.js',
+      'dir/html_input_e.js',
+      'dev_compiler/runtime/messages_widget.js',
+      'dev_compiler/runtime/messages.css'
+    ]..addAll(expectedRuntime);
 
-      // Parse the HTML file and verify its contents were expected.
-      var htmlPath = path.join(actualDir, 'server_mode', 'html_input.html');
-      var doc = html.parse(new File(htmlPath).readAsStringSync());
+    // Parse the HTML file and verify its contents were expected.
+    var htmlPath = path.join(actualDir, 'server_mode', 'html_input.html');
+    var doc = html.parse(new File(htmlPath).readAsStringSync());
 
-      for (var filepath in expectedFiles) {
-        var outPath = path.join(actualDir, 'server_mode', filepath);
-        expect(new File(outPath).existsSync(), success,
-            reason: '$outPath was created iff compilation succeeds');
+    for (var filepath in expectedFiles) {
+      var outPath = path.join(actualDir, 'server_mode', filepath);
+      expect(new File(outPath).existsSync(), success,
+          reason: '$outPath was created iff compilation succeeds');
 
-        var query;
-        if (filepath.endsWith('js')) {
-          var hash;
-          if (filepath.startsWith('dev_compiler')) {
-            hash = computeHashFromFile(outPath);
-          } else {
-            // TODO(jmesserly): see if we can get this to return the same
-            // answer as computeHashFromFile.
-            hash = computeHash(new File(outPath).readAsStringSync());
-          }
-          query = 'script[src="$filepath?____cached=$hash"]';
+      var query;
+      if (filepath.endsWith('js')) {
+        var hash;
+        if (filepath.startsWith('dev_compiler')) {
+          hash = computeHashFromFile(outPath);
         } else {
-          var hash = computeHashFromFile(outPath);
-          query = 'link[href="$filepath?____cached=$hash"]';
+          // TODO(jmesserly): see if we can get this to return the same
+          // answer as computeHashFromFile.
+          hash = computeHash(new File(outPath).readAsStringSync());
         }
-        expect(doc.querySelector(query), isNotNull,
-            reason: "should find `$query` in $htmlPath for $outPath");
+        query = 'script[src="$filepath?____cached=$hash"]';
+      } else {
+        var hash = computeHashFromFile(outPath);
+        query = 'link[href="$filepath?____cached=$hash"]';
       }
+      expect(doc.querySelector(query), isNotNull,
+          reason: "should find `$query` in $htmlPath for $outPath");
+    }
 
-      // Clean up the server mode folder, otherwise it causes diff churn.
-      var dir = new Directory(path.join(actualDir, 'server_mode'));
-      if (dir.existsSync()) dir.deleteSync(recursive: true);
-    });
-  }
+    // Clean up the server mode folder, otherwise it causes diff churn.
+    var dir = new Directory(path.join(actualDir, 'server_mode'));
+    if (dir.existsSync()) dir.deleteSync(recursive: true);
+  });
 }
 
 /// An implementation of analysis engine's [Logger] that prints.

@@ -17,7 +17,6 @@ tool/generated_sdk/
 
 # Or our test outputs
 test/codegen/actual/
-test/dart_codegen/actual/
 
 # Include when developing application packages.
 pubspec.lock

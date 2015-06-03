@@ -17,7 +17,6 @@ dependencies:
   shelf_static: ^0.2.1
   source_maps: ^0.10.0
   source_span: ^1.1.2
-  stack_trace: ^1.1.1
   yaml: ^2.1.2
 dev_dependencies:
   # We pin a specific version to ensure everyone is formatting the code exactly

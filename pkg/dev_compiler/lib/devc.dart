@@ -23,7 +23,6 @@ import 'src/analysis_context.dart';
 import 'src/checker/checker.dart';
 import 'src/checker/rules.dart';
 import 'src/codegen/code_generator.dart' show CodeGenerator;
-import 'src/codegen/dart_codegen.dart';
 import 'src/codegen/html_codegen.dart';
 import 'src/codegen/js_codegen.dart';
 import 'src/dependency_graph.dart';
@@ -91,16 +90,11 @@ class Compiler implements AbstractCompiler {
 
   Compiler._(this.options, this.context, this._reporter, this.rules,
       this._checker, this._entryNode) {
-    if (options.dumpSrcDir != null) {
-      _generators.add(new EmptyDartGenerator(this));
-    }
     if (options.outputDir != null) {
-      _generators.add(
-          options.outputDart ? new DartGenerator(this) : new JSGenerator(this));
+      _generators.add(new JSGenerator(this));
     }
     // TODO(sigmund): refactor to support hashing of the dart output?
-    _hashing =
-        options.enableHashing && _generators.length == 1 && !options.outputDart;
+    _hashing = options.enableHashing && _generators.length == 1;
   }
 
   Uri get entryPointUri => _entryNode.uri;
@@ -134,15 +128,13 @@ class Compiler implements AbstractCompiler {
     var filename = path.basename(node.uri.path);
     String outputFile = path.join(options.outputDir, filename);
     new File(outputFile).writeAsStringSync(output);
-
-    if (options.outputDart) return;
   }
 
   void _buildResourceFile(ResourceSourceNode node) {
     // ResourceSourceNodes files that just need to be copied over to the output
     // location. These can be external dependencies or pieces of the
     // dev_compiler runtime.
-    if (options.outputDir == null || options.outputDart) return;
+    if (options.outputDir == null) return;
     var filepath = resourceOutputPath(node.uri, _entryNode.uri);
     assert(filepath != null);
     filepath = path.join(options.outputDir, filepath);

@@ -117,23 +117,11 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// summary information (only used if [dumpInfo] is true).
   final String dumpInfoFile;
 
-  /// Directory where to dump the orignal but formatted Dart sources. This is
-  /// mainly used to make it easier to compare input and output files.
-  final String dumpSrcDir;
-
   /// Whether to force compilation of code with static errors.
   final bool forceCompile;
 
-  /// Whether to use a cheap formatter instead of dart_style.
-  // TODO(jmesserly): old comment said this might not be a semantically correct
-  // formatter. Why not?
-  final bool formatOutput;
-
   /// Output directory for generated code.
   final String outputDir;
-
-  /// Whether to emit Dart output (false means to emit JS output).
-  final bool outputDart;
 
   /// Whether to use colors when interacting on the console.
   final bool useColors;
@@ -240,14 +228,13 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   final Map<String, String> customUrlMappings;
 
   CompilerOptions({this.allowConstCasts: true, this.checkSdk: false,
-      this.dumpInfo: false, this.dumpInfoFile, this.dumpSrcDir,
-      this.forceCompile: false, this.formatOutput: false,
+      this.dumpInfo: false, this.dumpInfoFile, this.forceCompile: false,
       this.ignoreTypes: false,
       this.wrapClosures: RulesOptions.wrapClosuresDefault, this.outputDir,
-      this.outputDart: false, this.useColors: true,
-      this.covariantGenerics: true, this.relaxedCasts: true,
-      this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const <String>[], this.resources: const <String>[],
+      this.useColors: true, this.covariantGenerics: true,
+      this.relaxedCasts: true, this.useMultiPackage: false,
+      this.packageRoot: 'packages/', this.packagePaths: const <String>[],
+      this.resources: const <String>[],
       this.inferDownwards: RulesOptions.inferDownwardsDefault,
       this.inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
       this.inferTransitively: ResolverOptions.inferTransitivelyDefault,
@@ -311,12 +298,9 @@ CompilerOptions parseOptions(List<String> argv) {
       checkSdk: args['sdk-check'],
       dumpInfo: dumpInfo,
       dumpInfoFile: args['dump-info-file'],
-      dumpSrcDir: args['dump-src-to'],
       forceCompile: args['force-compile'] || serverMode,
-      formatOutput: args['dart-gen-fmt'],
       ignoreTypes: args['ignore-types'],
       wrapClosures: args['wrap-closures'],
-      outputDart: args['dart-gen'],
       outputDir: outputDir,
       covariantGenerics: args['covariant-generics'],
       relaxedCasts: args['relaxed-casts'],
@@ -387,10 +371,6 @@ final ArgParser argParser = new ArgParser()
   // input/output options
   ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
-  ..addFlag('dart-gen',
-      abbr: 'd', help: 'Generate dart output', defaultsTo: false)
-  ..addFlag('dart-gen-fmt',
-      help: 'Generate readable dart output', defaultsTo: true)
   ..addOption('dump-src-to', help: 'Dump dart src code', defaultsTo: null)
   ..addOption('package-root',
       abbr: 'p',

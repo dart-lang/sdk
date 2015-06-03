@@ -40,8 +40,6 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
     s.remove();
   });
 
-  if (options.outputDart) return '${document.outerHtml}\n';
-
   var libraries = [];
   var resources = new Set();
   visitInPostOrder(root, (n) {

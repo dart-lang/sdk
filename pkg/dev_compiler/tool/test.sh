@@ -46,11 +46,6 @@ rm -r actual/dev_compiler/ actual/sunflower/dev_compiler
 diff $DIFF_ARGS > /dev/null || show_diff
 popd &> /dev/null
 
-# validate dart_codegen_test output
-pushd test/dart_codegen/ &> /dev/null
-diff $DIFF_ARGS > /dev/null || show_diff
-popd &> /dev/null
-
 # run self host and analyzer after other tests, because they're ~seconds to run.
 pub run test:test test/checker/self_host_test.dart || fail
 

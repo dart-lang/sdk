@@ -12,7 +12,6 @@ import 'checker/inferred_type_test.dart' as inferred_type_test;
 import 'codegen_test.dart' as codegen_test;
 import 'end_to_end_test.dart' as e2e;
 import 'report_test.dart' as report_test;
-import 'runtime/dart_runtime_test.dart' as runtime_test;
 import 'dependency_graph_test.dart' as dependency_graph_test;
 
 void main() {
@@ -20,8 +19,6 @@ void main() {
   group('inferred types', inferred_type_test.main);
   group('checker', checker_test.main);
   group('report', report_test.main);
-  group('runtime', runtime_test.main);
   group('dependency_graph', dependency_graph_test.main);
   group('codegen', () => codegen_test.main([]));
-  group('dart_codegen', () => codegen_test.main(['--dart-gen']));
 }
