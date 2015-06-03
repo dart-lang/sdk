@@ -926,13 +926,15 @@ class IsolateSpawnState {
   IsolateSpawnState(Dart_Port parent_port,
                     const Function& func,
                     const Instance& message,
-                    bool paused);
+                    bool paused,
+                    bool checked);
   IsolateSpawnState(Dart_Port parent_port,
                     const char* script_url,
                     const char* package_root,
                     const Instance& args,
                     const Instance& message,
-                    bool paused);
+                    bool paused,
+                    bool checked);
   ~IsolateSpawnState();
 
   Isolate* isolate() const { return isolate_; }
@@ -946,6 +948,7 @@ class IsolateSpawnState {
   char* function_name() const { return function_name_; }
   bool is_spawn_uri() const { return library_url_ == NULL; }
   bool paused() const { return paused_; }
+  bool checked_mode() const { return checked_; }
 
   RawObject* ResolveFunction();
   RawInstance* BuildArgs(Zone* zone);
@@ -965,6 +968,7 @@ class IsolateSpawnState {
   uint8_t* serialized_message_;
   intptr_t serialized_message_len_;
   bool paused_;
+  bool checked_;
 };
 
 }  // namespace dart

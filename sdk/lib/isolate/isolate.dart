@@ -148,8 +148,6 @@ class Isolate {
    * before it starts running.
    * To resume the isolate, call `isolate.resume(isolate.pauseCapability)`.
    *
-   * WARNING: The `pause` parameter is not implemented on all platforms yet.
-   *
    * Returns a future that will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
@@ -172,6 +170,26 @@ class Isolate {
    * When present, the parameter `args` is set to the provided [args] list.
    * When present, the parameter `message` is set to the initial [message].
    *
+   * If the [paused] parameter is set to `true`,
+   * the isolate will start up in a paused state,
+   * as if by an initial call of `isolate.pause(isolate.pauseCapability)`.
+   * This allows setting up error or exit listeners on the isolate
+   * before it starts running.
+   * To resume the isolate, call `isolate.resume(isolate.pauseCapability)`.
+   *
+   * If the [checked] parameter is set to `true` or `false`,
+   * the new isolate will run code in checked mode,
+   * respectively in production mode, if possible.
+   * If the parameter is omitted, the new isolate will inherit the
+   * value from the current isolate.
+   *
+   * It may not always be possible to honor the `checked` parameter.
+   * If the isolate code was pre-compiled, it may not be possible to change
+   * the checked mode setting dynamically.
+   * In that case, the `checked` parameter is ignored.
+   *
+   * WARNING: The [checked] parameter is not implemented on all platforms yet.
+   *
    * If the [packageRoot] parameter is provided, it is used to find the location
    * of packages imports in the spawned isolate.
    * The `packageRoot` URI must be a "file" or "http"/"https" URI that specifies
@@ -187,15 +205,6 @@ class Isolate {
    * WARNING: The [packageRoot] parameter is not implemented on all
    * platforms yet.
    *
-   * If the [paused] parameter is set to `true`,
-   * the isolate will start up in a paused state,
-   * as if by an initial call of `isolate.pause(isolate.pauseCapability)`.
-   * This allows setting up error or exit listeners on the isolate
-   * before it starts running.
-   * To resume the isolate, call `isolate.resume(isolate.pauseCapability)`.
-   *
-   * WARNING: The `pause` parameter is not implemented on all platforms yet.
-   *
    * Returns a future that will complete with an [Isolate] instance if the
    * spawning succeeded. It will complete with an error otherwise.
    */
@@ -204,6 +213,7 @@ class Isolate {
       List<String> args,
       var message,
       {bool paused: false,
+       bool checked,
        Uri packageRoot});
 
   /**

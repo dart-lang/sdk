@@ -1799,7 +1799,8 @@ static RawInstance* DeserializeObject(Isolate* isolate,
 IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const Function& func,
                                      const Instance& message,
-                                     bool paused)
+                                     bool paused,
+                                     bool checkedFlag)
     : isolate_(NULL),
       parent_port_(parent_port),
       script_url_(NULL),
@@ -1811,7 +1812,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_args_len_(0),
       serialized_message_(NULL),
       serialized_message_len_(0),
-      paused_(paused) {
+      paused_(paused),
+      checked_(checkedFlag) {
   script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
@@ -1837,7 +1839,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                                      const char* package_root,
                                      const Instance& args,
                                      const Instance& message,
-                                     bool paused)
+                                     bool paused,
+                                     bool checkedFlag)
     : isolate_(NULL),
       parent_port_(parent_port),
       package_root_(NULL),
@@ -1848,7 +1851,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_args_len_(0),
       serialized_message_(NULL),
       serialized_message_len_(0),
-      paused_(paused) {
+      paused_(paused),
+      checked_(checkedFlag) {
   script_url_ = strdup(script_url);
   if (package_root != NULL) {
     package_root_ = strdup(package_root);
