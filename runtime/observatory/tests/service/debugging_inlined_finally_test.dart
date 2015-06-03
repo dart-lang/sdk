@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
 
+import "package:expect/expect.dart";
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
