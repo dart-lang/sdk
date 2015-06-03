@@ -301,9 +301,6 @@ class DartSourceNode extends SourceNode {
             : uri.resolve(directiveUri.stringValue);
         var target =
             ParseDartTask.resolveDirective(graph._context, _source, d, null);
-        if (target != null) {
-          if (targetUri != target.uri) print(">> ${target.uri} $targetUri");
-        }
         var node = graph.nodes.putIfAbsent(
             targetUri, () => new DartSourceNode(graph, targetUri, target));
         //var node = graph.nodeFromUri(targetUri);

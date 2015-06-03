@@ -8,6 +8,7 @@ library dev_compiler.test.checker_test;
 import 'package:test/test.dart';
 
 import 'package:dev_compiler/src/testing.dart';
+import '../test_util.dart' show testDirectory;
 
 void main() {
   test('ternary operator', () {
@@ -2915,7 +2916,7 @@ void main() {
 
           int foo(int x) => x;
           int bar(int x, int y) => x + y;
-          
+
           void main() {
             bool b;
             b = /*severe:InvalidRuntimeCheckError*/foo is I2I;
@@ -2951,4 +2952,15 @@ void main() {
       '''
     });
   });
+
+  test('custom URL mappings', () => testChecker({
+    '/main.dart': '''
+      import 'dart:foobar' show Baz;
+      main() {
+        print(Baz.quux);
+      }'''
+  },
+      customUrlMappings: {
+    'dart:foobar': '$testDirectory/checker/dart_foobar.dart'
+  }));
 }

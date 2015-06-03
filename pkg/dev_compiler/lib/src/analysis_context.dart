@@ -34,7 +34,11 @@ AnalysisContext createAnalysisContext(CompilerOptions options,
       ? createMockSdkResolver(mockSdkSources)
       : createSdkPathResolver(options.dartSdkPath);
 
-  var resolvers = [sdkResolver];
+  var resolvers = [];
+  if (options.customUrlMappings.isNotEmpty) {
+    resolvers.add(new CustomUriResolver(options.customUrlMappings));
+  }
+  resolvers.add(sdkResolver);
   if (options.useImplicitHtml) {
     resolvers.add(_createImplicitEntryResolver(options));
   }

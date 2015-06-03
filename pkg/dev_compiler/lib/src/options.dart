@@ -236,6 +236,9 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// package (if we can infer where that is located).
   final String runtimeDir;
 
+  /// Custom URI mappings, such as "dart:foo" -> "path/to/foo.dart"
+  final Map<String, String> customUrlMappings;
+
   CompilerOptions({this.allowConstCasts: true, this.checkSdk: false,
       this.dumpInfo: false, this.dumpInfoFile, this.dumpSrcDir,
       this.forceCompile: false, this.formatOutput: false,
@@ -254,12 +257,14 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
       this.emitSourceMaps: true, this.entryPointFile: null,
       this.serverMode: false, this.useImplicitHtml: false,
       this.enableHashing: false, this.host: 'localhost', this.port: 8080,
-      this.runtimeDir});
+      this.runtimeDir, this.customUrlMappings: const {}});
 }
 
 /// Parses options from the command-line
 CompilerOptions parseOptions(List<String> argv) {
   ArgResults args = argParser.parse(argv);
+  bool showUsage = args['help'];
+
   var serverMode = args['server'];
   var enableHashing = args['hashing'];
   if (enableHashing == null) {
@@ -289,6 +294,16 @@ CompilerOptions parseOptions(List<String> argv) {
   var dumpInfo = args['dump-info'];
   if (dumpInfo == null) dumpInfo = serverMode;
 
+  var customUrlMappings = <String, String>{};
+  for (var mapping in args['url-mapping']) {
+    var splitMapping = mapping.split(',');
+    if (splitMapping.length != 2) {
+      showUsage = true;
+      continue;
+    }
+    customUrlMappings[splitMapping[0]] = splitMapping[1];
+  }
+
   var entryPointFile = args.rest.length == 0 ? null : args.rest.first;
 
   return new CompilerOptions(
@@ -306,6 +321,7 @@ CompilerOptions parseOptions(List<String> argv) {
       covariantGenerics: args['covariant-generics'],
       relaxedCasts: args['relaxed-casts'],
       useColors: useColors,
+      customUrlMappings: customUrlMappings,
       useMultiPackage: args['use-multi-package'],
       packageRoot: args['package-root'],
       packagePaths: args['package-paths'].split(','),
@@ -319,7 +335,7 @@ CompilerOptions parseOptions(List<String> argv) {
       onlyInferConstsAndFinalFields: args['infer-only-finals'],
       nonnullableTypes: optionsToList(args['nonnullable'],
           defaultValue: TypeOptions.NONNULLABLE_TYPES),
-      help: args['help'],
+      help: showUsage,
       useMockSdk: args['mock-sdk'],
       dartSdkPath: sdkPath,
       logLevel: logLevel,
@@ -380,6 +396,11 @@ final ArgParser argParser = new ArgParser()
       abbr: 'p',
       help: 'Package root to resolve "package:" imports',
       defaultsTo: 'packages/')
+  ..addOption('url-mapping',
+      help: '--url-mapping=libraryUri,/path/to/library.dart uses library.dart\n'
+      'as the source for an import of of "libraryUri".',
+      allowMultiple: true,
+      splitCommas: false)
   ..addFlag('use-multi-package',
       help: 'Whether to use the multi-package resolver for "package:" imports',
       defaultsTo: false)

@@ -47,7 +47,7 @@ import 'utils.dart';
 ///     });
 ///
 CheckerResults testChecker(Map<String, String> testFiles,
-    {bool allowConstCasts: true, String sdkDir,
+    {bool allowConstCasts: true, String sdkDir, customUrlMappings: const {},
     CheckerReporter createReporter(AnalysisContext context),
     covariantGenerics: true, relaxedCasts: true,
     inferDownwards: RulesOptions.inferDownwardsDefault,
@@ -73,7 +73,8 @@ CheckerResults testChecker(Map<String, String> testFiles,
       useMockSdk: sdkDir == null,
       dartSdkPath: sdkDir,
       runtimeDir: '/dev_compiler_runtime/',
-      entryPointFile: '/main.dart');
+      entryPointFile: '/main.dart',
+      customUrlMappings: customUrlMappings);
 
   var context = createAnalysisContext(options, fileResolvers: [uriResolver]);
 
