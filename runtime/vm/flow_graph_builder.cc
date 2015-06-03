@@ -3450,7 +3450,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         return ReturnDefinition(BuildNativeGetter(
             node, kind, LinkedHashMap::index_offset(),
             Type::ZoneHandle(Z, Type::DynamicType()),
-            kTypedDataUint32ArrayCid));
+            kDynamicCid));
       }
       case MethodRecognizer::kLinkedHashMap_setIndex: {
         return ReturnDefinition(DoNativeSetterStoreValue(
