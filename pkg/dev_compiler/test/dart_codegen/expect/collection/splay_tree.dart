@@ -151,7 +151,7 @@ _root = null;
  factory SplayTreeMap.from(Map other, [int compare(K key1, K key2), bool isValidKey(Object potentialKey)]) {
 SplayTreeMap<K, V> result = new SplayTreeMap<K, V>();
  other.forEach((k, v) {
-result[k] = DEVC$RT.cast(v, dynamic, V, "CompositeCast", """line 275, column 40 of dart:collection/splay_tree.dart: """, v is V, false);
+result[DEVC$RT.cast(k, dynamic, K, "CompositeCast", """line 275, column 35 of dart:collection/splay_tree.dart: """, k is K, false)] = DEVC$RT.cast(v, dynamic, V, "CompositeCast", """line 275, column 40 of dart:collection/splay_tree.dart: """, v is V, false);
 }
 );
  return result;

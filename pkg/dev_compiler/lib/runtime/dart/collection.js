@@ -79,7 +79,7 @@ var math = dart.lazyImport(math);
       static from(other) {
         let result = HashMap$(K, V).new();
         other.forEach(dart.fn((k, v) => {
-          result.set(k, dart.as(v, V));
+          result.set(dart.as(k, K), dart.as(v, V));
         }));
         return result;
       }
@@ -1218,7 +1218,7 @@ var math = dart.lazyImport(math);
       static from(other) {
         let result = LinkedHashMap$(K, V).new();
         other.forEach(dart.fn((k, v) => {
-          result.set(k, dart.as(v, V));
+          result.set(dart.as(k, K), dart.as(v, V));
         }));
         return result;
       }
@@ -3324,7 +3324,7 @@ var math = dart.lazyImport(math);
           isValidKey = null;
         let result = new (SplayTreeMap$(K, V))();
         other.forEach(dart.fn((k, v) => {
-          result.set(k, dart.as(v, V));
+          result.set(dart.as(k, K), dart.as(v, V));
         }));
         return result;
       }

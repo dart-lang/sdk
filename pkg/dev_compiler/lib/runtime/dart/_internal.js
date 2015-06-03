@@ -1721,7 +1721,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         this[_values] = values;
       }
       get(key) {
-        return this.containsKey(key) ? this[_values][core.$get](key) : null;
+        return this.containsKey(key) ? this[_values][core.$get](dart.as(key, core.int)) : null;
       }
       get length() {
         return this[_values][core.$length];

@@ -10,7 +10,7 @@ part of dart.collection;
  factory HashMap.from(Map other) {
   HashMap<K, V> result = new HashMap<K, V>();
    other.forEach((k, v) {
-    result[k] = DEVC$RT.cast(v, dynamic, V, "CompositeCast", """line 87, column 40 of dart:collection/hash_map.dart: """, v is V, false);
+    result[DEVC$RT.cast(k, dynamic, K, "CompositeCast", """line 87, column 35 of dart:collection/hash_map.dart: """, k is K, false)] = DEVC$RT.cast(v, dynamic, V, "CompositeCast", """line 87, column 40 of dart:collection/hash_map.dart: """, v is V, false);
     }
   );
    return result;

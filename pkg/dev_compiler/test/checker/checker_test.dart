@@ -1923,7 +1923,7 @@ void main() {
     }, inferFromOverrides: true);
   });
 
-  test('binary operators', () {
+  test('binary and index operators', () {
     testChecker({
       '/main.dart': '''
           class A {
@@ -1938,6 +1938,7 @@ void main() {
             A operator &(B b) {}
             A operator ^(B b) {}
             A operator |(B b) {}
+            A operator[](B b) {}
           }
 
           class B {
@@ -1979,6 +1980,11 @@ void main() {
             p = (/*info:DynamicCast*/c) && /*info:DynamicCast*/c;
             p = (/*severe:StaticTypeError*/y) && p;
             p = c == y;
+
+            a = a[b];
+            a = a[/*info:DynamicCast*/c];
+            c = (/*info:DynamicInvoke*/c[b]);
+            a[/*severe:StaticTypeError*/y];
           }
        '''
     });
@@ -1999,10 +2005,16 @@ void main() {
             A operator &(B b) {}
             A operator ^(B b) {}
             A operator |(B b) {}
+            D operator [](B index) {}
+            void operator []=(B index, D value) {}
           }
 
           class B {
             A operator -(B b) {}
+          }
+
+          class D {
+            D operator +(D d) {}
           }
 
           foo() => new A();
@@ -2049,6 +2061,14 @@ void main() {
             a ^= b;
             a |= b;
             (/*info:DynamicInvoke*/c += b);
+
+            var d = new D();
+            a[b] += d;
+            a[/*info:DynamicCast*/c] += d;
+            a[/*severe:StaticTypeError*/z] += d;
+            a[b] += /*info:DynamicCast*/c;
+            a[b] += /*severe:StaticTypeError*/z;
+            (/*info:DynamicInvoke*/(/*info:DynamicInvoke*/c[b]) += d);
           }
        '''
     });

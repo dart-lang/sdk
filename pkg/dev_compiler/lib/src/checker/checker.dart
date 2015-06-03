@@ -719,9 +719,12 @@ class CodeChecker extends RecursiveAstVisitor {
         // Method invocation.
         if (element is MethodElement) {
           var type = element.type as FunctionType;
-          assert(type.normalParameterTypes.length == 1);
-          node.rightOperand =
-              checkArgument(node.rightOperand, type.normalParameterTypes[0]);
+          // Analyzer should enforce number of parameter types, but check in
+          // case we have erroneous input.
+          if (type.normalParameterTypes.isNotEmpty) {
+            node.rightOperand =
+                checkArgument(node.rightOperand, type.normalParameterTypes[0]);
+          }
         } else {
           // TODO(vsm): Assert that the analyzer found an error here?
         }
@@ -739,6 +742,26 @@ class CodeChecker extends RecursiveAstVisitor {
           break;
         default:
           assert(false);
+      }
+    }
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitIndexExpression(IndexExpression node) {
+    if (_rules.isDynamicTarget(node.target)) {
+      _recordDynamicInvoke(node);
+    } else {
+      var element = node.staticElement;
+      if (element is MethodElement) {
+        var type = element.type as FunctionType;
+        // Analyzer should enforce number of parameter types, but check in
+        // case we have erroneous input.
+        if (type.normalParameterTypes.isNotEmpty) {
+          node.index = checkArgument(node.index, type.normalParameterTypes[0]);
+        }
+      } else {
+        // TODO(vsm): Assert that the analyzer found an error here?
       }
     }
     node.visitChildren(this);

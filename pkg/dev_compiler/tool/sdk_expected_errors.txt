@@ -703,6 +703,9 @@ warning: line 1033, column 35 of dart:_internal/iterable.dart: [DownCastComposit
 warning: line 1115, column 31 of dart:_internal/iterable.dart: [DownCastComposite] l (List<dynamic>) will need runtime check to cast to type List<T>
     return new ListMapView<T>(l);
                               ^
+warning: line 251, column 59 of dart:_internal/list.dart: [DownCastImplicit] key (Object) will need runtime check to cast to type int
+  E operator[] (Object key) => containsKey(key) ? _values[key] : null;
+                                                          ^^^
 warning: line 179, column 12 of dart:collection: [DownCastComposite] JS('var', '#.splice(#, 2)[1]', bucket, index) (dynamic) will need runtime check to cast to type V
     return JS('var', '#.splice(#, 2)[1]', bucket, index);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -820,6 +823,9 @@ warning: line 1678, column 18 of dart:collection: [DownCastComposite] _cell._ele
 warning: line 112, column 40 of dart:collection/hash_map.dart: [DownCastComposite] v (dynamic) will need runtime check to cast to type V
     other.forEach((k, v) { result[k] = v; });
                                        ^
+warning: line 112, column 35 of dart:collection/hash_map.dart: [DownCastComposite] k (dynamic) will need runtime check to cast to type K
+    other.forEach((k, v) { result[k] = v; });
+                                  ^
 warning: line 128, column 17 of dart:collection/hash_set.dart: [DownCastComposite] elements (Iterable<dynamic>) will need runtime check to cast to type Iterable<E>
     for (E e in elements) result.add(e);
                 ^^^^^^^^
@@ -829,6 +835,9 @@ warning: line 33, column 16 of dart:collection/iterator.dart: [DownCastComposite
 warning: line 99, column 40 of dart:collection/linked_hash_map.dart: [DownCastComposite] v (dynamic) will need runtime check to cast to type V
     other.forEach((k, v) { result[k] = v; });
                                        ^
+warning: line 99, column 35 of dart:collection/linked_hash_map.dart: [DownCastComposite] k (dynamic) will need runtime check to cast to type K
+    other.forEach((k, v) { result[k] = v; });
+                                  ^
 warning: line 142, column 12 of dart:collection/linked_hash_map.dart: [DownCastComposite] fillLiteralMap(keyValuePairs, new _LinkedHashMap<K, V>()) (dynamic) will need runtime check to cast to type LinkedHashMap<K, V>
     return fillLiteralMap(keyValuePairs, new _LinkedHashMap<K, V>());
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -925,6 +934,9 @@ severe: line 266, column 65 of dart:collection/splay_tree.dart: [InvalidRuntimeC
 warning: line 275, column 40 of dart:collection/splay_tree.dart: [DownCastComposite] v (dynamic) will need runtime check to cast to type V
     other.forEach((k, v) { result[k] = v; });
                                        ^
+warning: line 275, column 35 of dart:collection/splay_tree.dart: [DownCastComposite] k (dynamic) will need runtime check to cast to type K
+    other.forEach((k, v) { result[k] = v; });
+                                  ^
 warning: line 328, column 25 of dart:collection/splay_tree.dart: [DownCastComposite] key (Object) will need runtime check to cast to type K
       int comp = _splay(key);
                         ^^^
