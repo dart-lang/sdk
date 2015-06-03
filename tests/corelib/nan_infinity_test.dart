@@ -54,7 +54,7 @@ void main() {
   Expect.isFalse(identical(double.NAN, double.INFINITY));
   Expect.isFalse(identical(double.NAN, double.NEGATIVE_INFINITY));
   Expect.isFalse(identical(double.INFINITY, double.NEGATIVE_INFINITY));
-  Expect.isTrue(identical(double.NAN, -double.NAN));  /// 01: continued
+  Expect.isFalse(identical(double.NAN, -double.NAN));
   Expect.isTrue(identical(double.INFINITY, -double.NEGATIVE_INFINITY));
   Expect.isTrue(identical(double.NEGATIVE_INFINITY, -double.INFINITY));
 

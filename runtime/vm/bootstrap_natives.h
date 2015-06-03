@@ -89,6 +89,7 @@ namespace dart {
   V(Double_toStringAsFixed, 2)                                                 \
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
+  V(Double_flipSignBit, 1)                                                     \
   V(JSSyntaxRegExp_factory, 4)                                                 \
   V(JSSyntaxRegExp_getPattern, 1)                                              \
   V(JSSyntaxRegExp_getIsMultiLine, 1)                                          \

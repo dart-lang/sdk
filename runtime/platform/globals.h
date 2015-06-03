@@ -334,6 +334,7 @@ const uint32_t kMaxUint32 = 0xFFFFFFFF;
 const int64_t kMinInt64 = DART_INT64_C(0x8000000000000000);
 const int64_t kMaxInt64 = DART_INT64_C(0x7FFFFFFFFFFFFFFF);
 const uint64_t kMaxUint64 = DART_2PART_UINT64_C(0xFFFFFFFF, FFFFFFFF);
+const int64_t kSignBitDouble = DART_INT64_C(0x8000000000000000);
 
 // Types for native machine words. Guaranteed to be able to hold pointers and
 // integers.
