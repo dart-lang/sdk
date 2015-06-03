@@ -5,6 +5,7 @@
 [ $runtime == vm ]
 browser/*: SkipByDesign  # Browser specific tests
 isolate_stress_test: Fail # Issue 12588: This should be able to pass when we have wrapper-less tests.
+checked_test: Skip  # Issue 23578
 
 [ $runtime != vm ]
 checked_test: Skip # Unsupported.
