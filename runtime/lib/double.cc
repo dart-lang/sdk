@@ -304,12 +304,8 @@ DEFINE_NATIVE_ENTRY(Double_getIsNegative, 1) {
 DEFINE_NATIVE_ENTRY(Double_flipSignBit, 1) {
   const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
   const double in_val = arg.value();
-  // TODO(srdjan): Fix this compilation error.
-  // const int64_t bits =
-  //     *(reinterpret_cast<const int64_t*>(&in_val)) ^ kSignBitDouble;
-  // const double out_val = *(reinterpret_cast<const double*>(&bits));
-  // return Double::New(out_val);
-  return Double::New(-in_val);
+  const int64_t bits = bit_cast<int64_t, double>(in_val) ^ kSignBitDouble;
+  return Double::New(bit_cast<double, int64_t>(bits));
 }
 
 // Add here only functions using/referring to old-style casts.
