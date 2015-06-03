@@ -27,7 +27,7 @@
     'lib/src/cli/command.dart',
     'lib/src/cpu_profile/cpu_profile.dart',
     'lib/src/debugger/debugger.dart',
-    'lib/src/debugger/source_location.dart',
+    'lib/src/debugger/debugger_location.dart',
     'lib/src/elements/action_link.dart',
     'lib/src/elements/action_link.html',
     'lib/src/elements/class_ref.dart',
