@@ -207,8 +207,16 @@ _MemberTypeGetter _memberTypeGetter(ExecutableElement member) {
   return f;
 }
 
-bool isDynamicTarget(Expression node) =>
-    node != null && !isLibraryPrefix(node) && node.staticType.isDynamic;
+bool isDynamicTarget(Expression node) {
+  if (node == null) return false;
+
+  if (isLibraryPrefix(node)) return false;
+
+  // Null type happens when we have unknown identifiers, like a dart: import
+  // that doesn't resolve.
+  var type = node.staticType;
+  return type == null || type.isDynamic;
+}
 
 bool isLibraryPrefix(Expression node) =>
     node is SimpleIdentifier && node.staticElement is PrefixElement;
