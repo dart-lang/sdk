@@ -27,21 +27,27 @@ defineTests() {
     group('p2', () {
       IOSink currentOut = outSink;
       CollectingSink collectingOut = new CollectingSink();
-      setUp(() => outSink = collectingOut);
+      setUp(() {
+        exitCode = 0;
+        outSink = collectingOut;
+      });
       tearDown(() {
         collectingOut.buffer.clear();
         outSink = currentOut;
+        exitCode = 0;
       });
       group('config', () {
         test('excludes', () {
           dartlint
               .main(['test/_data/p2', '-c', 'test/_data/p2/lintconfig.yaml']);
+          expect(exitCode, equals(1));
           expect(collectingOut.trim(),
               endsWith('4 files analyzed, 1 issue found (2 filtered).'));
         });
         test('overrrides', () {
           dartlint
               .main(['test/_data/p2', '-c', 'test/_data/p2/lintconfig2.yaml']);
+          expect(exitCode, equals(0));
           expect(collectingOut.trim(),
               endsWith('4 files analyzed, 0 issues found.'));
         });
