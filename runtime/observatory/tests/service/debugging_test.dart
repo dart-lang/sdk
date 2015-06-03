@@ -76,8 +76,8 @@ var tests = [
   expect(result is Breakpoint, isTrue);
   Breakpoint bpt = result;
   expect(bpt.type, equals('Breakpoint'));
-  expect(bpt.script.id, equals(script.id));
-  expect(bpt.script.tokenToLine(bpt.tokenPos), equals(15));
+  expect(bpt.location.script.id, equals(script.id));
+  expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(15));
   expect(isolate.breakpoints.length, equals(1));
 
   await completer.future;  // Wait for breakpoint events.
@@ -89,9 +89,9 @@ var tests = [
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
-  Script script = stack['frames'][0]['script'];
+  Script script = stack['frames'][0].location.script;
   expect(script.name,endsWith('debugging_test.dart'));
-  expect(script.tokenToLine(stack['frames'][0]['tokenPos']), equals(15));
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(15));
 },
 
 // Stepping
@@ -117,9 +117,9 @@ var tests = [
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
-  Script script = stack['frames'][0]['script'];
+  Script script = stack['frames'][0].location.script;
   expect(script.name,endsWith('debugging_test.dart'));
-  expect(script.tokenToLine(stack['frames'][0]['tokenPos']), equals(16));
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(16));
 },
 
 // Remove breakpoint
@@ -179,8 +179,8 @@ var tests = [
   expect(result is Breakpoint, isTrue);
   Breakpoint bpt = result;
   expect(bpt.type, equals('Breakpoint'));
-  expect(bpt.script.name, equals('debugging_test.dart'));
-  expect(bpt.script.tokenToLine(bpt.tokenPos), equals(14));
+  expect(bpt.location.script.name, equals('debugging_test.dart'));
+  expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(14));
   expect(isolate.breakpoints.length, equals(1));
 
   await completer.future;  // Wait for breakpoint events.
@@ -192,9 +192,9 @@ var tests = [
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
-  Script script = stack['frames'][0]['script'];
+  Script script = stack['frames'][0].location.script;
   expect(script.name,endsWith('debugging_test.dart'));
-  expect(script.tokenToLine(stack['frames'][0]['tokenPos']), equals(14));
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(14));
 },
 
 ];

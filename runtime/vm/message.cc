@@ -191,6 +191,7 @@ void MessageQueue::PrintJSON(JSONStream* stream) {
   while (it.HasNext()) {
     Message* current = it.Next();
     JSONObject message(&messages);
+    message.AddProperty("type", "Message");
     message.AddPropertyF("name", "Isolate Message (%" Px ")", current->Id());
     message.AddPropertyF("messageObjectId", "messages/%" Px "",
                          current->Id());
@@ -207,15 +208,16 @@ void MessageQueue::PrintJSON(JSONStream* stream) {
       // Grab function from closure.
       msg_handler = Closure::function(Instance::Cast(msg_handler));
     }
-    if (!msg_handler.IsFunction()) {
-      // No handler function.
-      continue;
+    if (msg_handler.IsFunction()) {
+      const Function& function = Function::Cast(msg_handler);
+      message.AddProperty("handler", function);
+
+      const Script& script = Script::Handle(function.script());
+      if (!script.IsNull()) {
+        message.AddLocation(script, function.token_pos(),
+                            function.end_token_pos());
+      }
     }
-    const Function& function = Function::Cast(msg_handler);
-    const Script& script = Script::Handle(function.script());
-    message.AddProperty("handlerFunction", function);
-    message.AddProperty("handlerScript", script);
-    message.AddProperty("handlerTokenPos", function.token_pos());
   }
 }
 

@@ -68,6 +68,7 @@ apparently outside the scope of the JSON-RPC specification.
 	- [Sentinel](#sentinel)
 	- [SentinelKind](#sentinelkind)
 	- [Script](#script)
+	- [SourceLocation](#sourcelocation)
 	- [Stack](#stack)
 	- [StepOption](#stepoption)
 	- [Success](#success)
@@ -740,8 +741,7 @@ will be the _OptimizedOut_ [Sentinel](#sentinel).
 class Breakpoint extends Response {
   int breakpointNumber;
   bool resolved;
-  @Script script;
-  int tokenPos;
+  SourceLocation location;
 }
 ```
 
@@ -784,9 +784,8 @@ class Class extends Object {
   // The library which contains this class.
   @Library library;
 
-  // The script which defines this class.  May be missing for some
-  // classes.
-  @Script script;
+  // The location of this class in the source code.
+  SourceLocation location [optional];
 
   // The superclass of this class, if any.
   @Class super [optional];
@@ -1054,11 +1053,8 @@ class Field extends Object {
   // The value of this field, if the field is static.
   @Instance staticValue [optional];
 
-  // The script containing this feild.
-  @Script script [optional];
-
-  // The token position of this field.
-  int tokenPos [optional];
+  // The location of this field in the source code.
+  SourceLocation location [optional];
 }
 ```
 
@@ -1102,7 +1098,7 @@ A _FlagList_ represents the complete set of VM command line flags.
 ### Frame
 
 ```
-class Frame {
+class Frame extends Response {
   int index;
   @Function function;
   @Code code;
@@ -1145,14 +1141,8 @@ class Function extends Object {
   // Function.
   @Library|@Class|@Function owner;
 
-  // The script containing this function.
-  @Script script [optional];
-
-  // The first token position of this function.
-  int tokenPos [optional];
-
-  // The last token position of this function.
-  int endTokenPos [optional];
+  // The location of this function in the source code.
+  SourceLocation location [optional];
 
   // The compiled code associated with this function.
   @Code code [optional];
@@ -1549,14 +1539,13 @@ class MapAssociation {
 ### Message
 
 ```
-class Message {
+class Message extends Response {
   int index;
   string name;
   string messageObjectId;
   int size;
-  @Function handlerFunction [optional];
-  @Script handleScript [optional];
-  int handlerTokenPos [optional];
+  @Function handler [optional];
+  SourceLocation location [optional];
 }
 ```
 
@@ -1704,6 +1693,24 @@ tokenPos | line | column
 100 | 1 | 5
 101 | 1 | 8
 102 | 2 | 7
+
+### SourceLocation
+
+```
+class SourceLocation extends Response {
+  // The script contaiinging the source location.
+  @Script script;
+
+  // The first token of the location.
+  int tokenPos;
+
+  // The last token of the location if this is a range.
+  int endTokenPos [optional];
+}
+```
+
+The _SourceLocation_ class is used to designate a position or range in
+some script.
 
 ### Stack
 

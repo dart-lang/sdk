@@ -83,13 +83,13 @@ var tests = [
       // Make sure we are in the right place.
       expect(stack.type, equals('Stack'));
       expect(stack['frames'].length, greaterThanOrEqualTo(2));
-      expect(stack['frames'][0]['function'].name, equals('myFunction'));
-      expect(stack['frames'][0]['function'].dartOwner.name, equals('MyClass'));
+      expect(stack['frames'][0].function.name, equals('myFunction'));
+      expect(stack['frames'][0].function.dartOwner.name, equals('MyClass'));
 
       var lib = isolate.rootLibrary;
-      var func = stack['frames'][0]['function'];
+      var func = stack['frames'][0].function;
       expect(func.name, equals('myFunction'));
-      var cls = stack['frames'][0]['function'].dartOwner;
+      var cls = func.dartOwner;
       expect(cls.name, equals('MyClass'));
 
       List tests = [];
@@ -126,8 +126,9 @@ var tests = [
                 }));
       // Script
       tests.add(cls.load().then((_) {
-            return isolate.invokeRpcNoUpgrade('_getCoverage',
-                                              { 'targetId': cls.script.id })
+            return isolate.invokeRpcNoUpgrade(
+                '_getCoverage',
+                { 'targetId': cls.location.script.id })
                 .then((Map coverage) {
                     expect(coverage['type'], equals('CodeCoverage'));
                     expect(coverage['coverage'].length, equals(3));

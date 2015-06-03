@@ -63,3 +63,10 @@ class ScriptRefElement extends ServiceRefElement {
 
   ScriptRefElement.created() : super.created();
 }
+
+@CustomTag('source-link')
+class SourceLinkElement extends PolymerElement {
+  SourceLinkElement.created() : super.created();
+
+  @published SourceLocation location;
+}

@@ -79,4 +79,20 @@
   </template>
 </polymer-element>
 
+
+<polymer-element name="source-inset">
+<template>
+  <template if="{{ location != null }}">
+    <script-inset script="{{ location.script }}"
+                  startPos="{{ location.tokenPos }}"
+                  endPos="{{ location.endTokenPos }}"
+                  height="{{ height }}"
+                  currentPos="{{ currentPos }}"
+                  inDebuggerContext="{{ inDebuggerContext }}"
+                  variables="{{ variables }}">
+    </script-inset>
+  </template>
+</template>
+</polymer-element>
+
 <script type="application/dart" src="script_inset.dart"></script>

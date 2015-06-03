@@ -4141,9 +4141,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
-    jsobj.AddProperty("script", script);
-    jsobj.AddProperty("tokenPos", token_pos());
-    jsobj.AddProperty("endTokenPos", ComputeEndTokenPos());
+    jsobj.AddLocation(script, token_pos(), ComputeEndTokenPos());
   }
   {
     JSONArray interfaces_array(&jsobj, "interfaces");
@@ -6930,9 +6928,7 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {
-    jsobj.AddProperty("script", script);
-    jsobj.AddProperty("tokenPos", token_pos());
-    jsobj.AddProperty("endTokenPos", end_token_pos());
+    jsobj.AddLocation(script, token_pos(), end_token_pos());
   }
 }
 
@@ -7287,8 +7283,7 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const Class& origin_cls = Class::Handle(origin());
   const Script& script = Script::Handle(origin_cls.script());
   if (!script.IsNull()) {
-    jsobj.AddProperty("script", script);
-    jsobj.AddProperty("tokenPos", token_pos());
+    jsobj.AddLocation(script, token_pos());
   }
 }
 
@@ -10788,6 +10783,7 @@ void PcDescriptors::PrintToJSONObject(JSONObject* jsobj, bool ref) const {
     descriptor.AddPropertyF("pcOffset", "%" Px "", iter.PcOffset());
     descriptor.AddProperty("kind", KindAsStr(iter.Kind()));
     descriptor.AddProperty("deoptId", iter.DeoptId());
+    // TODO(turnidge): Use AddLocation instead.
     descriptor.AddProperty("tokenPos", iter.TokenPos());
     descriptor.AddProperty("tryIndex", iter.TryIndex());
   }
@@ -12001,6 +11997,7 @@ void ICData::PrintToJSONArray(const JSONArray& jsarray,
 
   JSONObject jsobj(&jsarray);
   jsobj.AddProperty("name", String::Handle(target_name()).ToCString());
+  // TODO(turnidge): Use AddLocation instead.
   jsobj.AddProperty("tokenPos", token_pos);
   // TODO(rmacnak): Figure out how to stringify DeoptReasons().
   // jsobj.AddProperty("deoptReasons", ...);

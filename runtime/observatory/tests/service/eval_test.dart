@@ -56,12 +56,12 @@ var tests = [
       // Make sure we are in the right place.
       expect(stack.type, equals('Stack'));
       expect(stack['frames'].length, greaterThanOrEqualTo(2));
-      expect(stack['frames'][0]['function'].name, equals('printValue'));
-      expect(stack['frames'][0]['function'].dartOwner.name, equals('MyClass'));
+      expect(stack['frames'][0].function.name, equals('printValue'));
+      expect(stack['frames'][0].function.dartOwner.name, equals('MyClass'));
 
       var lib = isolate.rootLibrary;
-      var cls = stack['frames'][0]['function'].dartOwner;
-      var instance = stack['frames'][0]['vars'][0]['value'];
+      var cls = stack['frames'][0].function.dartOwner;
+      var instance = stack['frames'][0].variables[0]['value'];
 
       List evals = [];
       evals.add(lib.evaluate('globalVar + 5').then((result) {

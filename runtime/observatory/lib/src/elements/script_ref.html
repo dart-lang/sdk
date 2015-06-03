@@ -9,4 +9,14 @@
 </template>
 </polymer-element>
 
+<polymer-element name="source-link">
+<template>
+  <template if="{{ location != null }}">
+    <script-ref ref="{{ location.script }}"
+                pos="{{ location.tokenPos }}"></script-ref>
+  </template>
+</template>
+</polymer-element>
+
+
 <script type="application/dart" src="script_ref.dart"></script>

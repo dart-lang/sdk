@@ -4,10 +4,10 @@
 
 part of debugger;
 
-class SourceLocation {
-  SourceLocation.file(this.script, this.line, this.col);
-  SourceLocation.func(this.function);
-  SourceLocation.error(this.errorMessage);
+class DebuggerLocation {
+  DebuggerLocation.file(this.script, this.line, this.col);
+  DebuggerLocation.func(this.function);
+  DebuggerLocation.error(this.errorMessage);
 
   static RegExp sourceLocMatcher = new RegExp(r'^([^\d:][^:]+:)?(\d+)(:\d+)?');
   static RegExp functionMatcher = new RegExp(r'^([^.]+)([.][^.]+)?');
@@ -23,7 +23,7 @@ class SourceLocation {
   ///   main              -  function
   ///   FormatException   -  constructor
   ///   _SHA1._updateHash -  method
-  static Future<SourceLocation> parse(Debugger debugger, String locDesc) {
+  static Future<DebuggerLocation> parse(Debugger debugger, String locDesc) {
     if (locDesc == '') {
       // Special case: '' means return current location.
       return _currentLocation(debugger);
@@ -38,27 +38,27 @@ class SourceLocation {
     if (match != null) {
       return _parseFunction(debugger, match);
     }
-    return new Future.value(new SourceLocation.error(
+    return new Future.value(new DebuggerLocation.error(
         "Invalid source location '${locDesc}'"));
   }
 
-  static Future<SourceLocation> _currentLocation(Debugger debugger) {
+  static Future<DebuggerLocation> _currentLocation(Debugger debugger) {
     ServiceMap stack = debugger.stack;
     if (stack == null || stack['frames'].length == 0) {
-      return new Future.value(new SourceLocation.error(
+      return new Future.value(new DebuggerLocation.error(
           'A script must be provided when the stack is empty'));
     }
     var frame = stack['frames'][debugger.currentFrame];
-    Script script = frame['script'];
+    Script script = frame.location.script;
     return script.load().then((_) {
-      var line = script.tokenToLine(frame['tokenPos']);
+      var line = script.tokenToLine(frame.location.tokenPos);
       // TODO(turnidge): Pass in the column here once the protocol supports it.
-      return new Future.value(new SourceLocation.file(script, line, null));
+      return new Future.value(new DebuggerLocation.file(script, line, null));
     });
   }
 
-  static Future<SourceLocation> _parseScriptLine(Debugger debugger,
-                                                 Match match) {
+  static Future<DebuggerLocation> _parseScriptLine(Debugger debugger,
+                                                   Match match) {
     var scriptName = match.group(1);
     if (scriptName != null) {
       scriptName = scriptName.substring(0, scriptName.length - 1);
@@ -74,11 +74,11 @@ class SourceLocation {
                ? int.parse(colStr, onError:(_) => -1)
                : null);
     if (line == -1) {
-      return new Future.value(new SourceLocation.error(
+      return new Future.value(new DebuggerLocation.error(
           "Line '${lineStr}' must be an integer"));
     }
     if (col == -1) {
-      return new Future.value(new SourceLocation.error(
+      return new Future.value(new DebuggerLocation.error(
           "Column '${colStr}' must be an integer"));
     }
 
@@ -86,23 +86,23 @@ class SourceLocation {
       // Resolve the script.
       return _lookupScript(debugger.isolate, scriptName).then((scripts) {
         if (scripts.length == 0) {
-          return new SourceLocation.error("Script '${scriptName}' not found");
+          return new DebuggerLocation.error("Script '${scriptName}' not found");
         } else if (scripts.length == 1) {
-          return new SourceLocation.file(scripts[0], line, col);
+          return new DebuggerLocation.file(scripts[0], line, col);
         } else {
           // TODO(turnidge): Allow the user to disambiguate.
-          return new SourceLocation.error("Script '${scriptName}' is ambigous");
+          return new DebuggerLocation.error("Script '${scriptName}' is ambigous");
         }
       });
     } else {
       // No script provided.  Default to top of stack for now.
       ServiceMap stack = debugger.stack;
       if (stack == null || stack['frames'].length == 0) {
-        return new Future.value(new SourceLocation.error(
+        return new Future.value(new DebuggerLocation.error(
             'A script must be provided when the stack is empty'));
       }
-      Script script = stack['frames'][0]['script'];
-      return new Future.value(new SourceLocation.file(script, line, col));
+      Script script = stack['frames'][0].location.script;
+      return new Future.value(new DebuggerLocation.file(script, line, col));
     }
   }
 
@@ -198,7 +198,7 @@ class SourceLocation {
 
   // TODO(turnidge): This does not handle named functions which are
   // inside of named functions, e.g. foo.bar.baz.
-  static Future<SourceLocation> _parseFunction(Debugger debugger,
+  static Future<DebuggerLocation> _parseFunction(Debugger debugger,
                                                Match match) {
     Isolate isolate = debugger.isolate;
     var base = match.group(1);
@@ -238,16 +238,16 @@ class SourceLocation {
         }
       }
       if (functions.length == 0) {
-        return new SourceLocation.error(
+        return new DebuggerLocation.error(
             "Function '${match.group(0)}' not found");
       } else if (functions.length == 1) {
-        return new SourceLocation.func(functions[0]);
+        return new DebuggerLocation.func(functions[0]);
       } else {
         // TODO(turnidge): Allow the user to disambiguate.
-        return new SourceLocation.error(
+        return new DebuggerLocation.error(
             "Function '${match.group(0)}' is ambigous");
       }
-      return new SourceLocation.error('foo');
+      return new DebuggerLocation.error('foo');
     });
   }
 

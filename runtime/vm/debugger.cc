@@ -199,12 +199,7 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
   Script& script = Script::Handle(isolate);
   intptr_t token_pos;
   bpt_location_->GetCodeLocation(&library, &script, &token_pos);
-  {
-    JSONObject location(&jsobj, "location");
-    location.AddProperty("type", "Location");
-    location.AddProperty("script", script);
-    location.AddProperty("tokenPos", token_pos);
-  }
+  jsobj.AddLocation(script, token_pos);
 }
 
 
@@ -1004,10 +999,15 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
                                         bool full) {
   const Script& script = Script::Handle(SourceScript());
   jsobj->AddProperty("type", "Frame");
-  jsobj->AddProperty("script", script, !full);
-  jsobj->AddProperty("tokenPos", TokenPos());
+  jsobj->AddLocation(script, TokenPos());
   jsobj->AddProperty("function", function(), !full);
   jsobj->AddProperty("code", code());
+  if (full) {
+    // TODO(cutch): The old "full" script usage no longer fits
+    // in the world where we pass the script as part of the
+    // location.
+    jsobj->AddProperty("script", script, !full);
+  }
   {
     JSONArray jsvars(jsobj, "vars");
     const int num_vars = NumLocalVariables();
@@ -1020,8 +1020,11 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
       VariableAt(v, &var_name, &token_pos, &end_token_pos, &var_value);
       jsvar.AddProperty("name", var_name.ToCString());
       jsvar.AddProperty("value", var_value, !full);
-      jsvar.AddProperty("tokenPos", token_pos);
-      jsvar.AddProperty("endTokenPos", end_token_pos);
+      // TODO(turnidge): Do we really want to provide this on every
+      // stack dump?  Should be associated with the function object, I
+      // think, and not the stack frame.
+      jsvar.AddProperty("_tokenPos", token_pos);
+      jsvar.AddProperty("_endTokenPos", end_token_pos);
     }
   }
 }

@@ -59,10 +59,10 @@ var tests = [
       var frame0 = stack['frames'][0];
       var frame1 = stack['frames'][1];
       print(frame0);
-      expect(frame0['function'].name, equals('funcB'));
-      expect(frame1['function'].name, equals('funcA'));
-      var codeId0 = frame0['code'].id;
-      var codeId1 = frame1['code'].id;
+      expect(frame0.function.name, equals('funcB'));
+      expect(frame1.function.name, equals('funcA'));
+      var codeId0 = frame0.code.id;
+      var codeId1 = frame1.code.id;
 
       List tests = [];
       // Load code from frame 0.

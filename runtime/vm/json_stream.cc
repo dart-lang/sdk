@@ -577,6 +577,20 @@ void JSONObject::AddFixedServiceId(const char* format, ...) const {
 }
 
 
+void JSONObject::AddLocation(const Script& script,
+                             intptr_t token_pos,
+                             intptr_t end_token_pos) {
+  JSONObject location(this, "location");
+  location.AddProperty("type", "SourceLocation");
+  location.AddProperty("script", script);
+  location.AddProperty("tokenPos", token_pos);
+  if (end_token_pos >= 0) {
+    location.AddProperty("endTokenPos", end_token_pos);
+  }
+}
+
+
+
 void JSONObject::AddPropertyF(const char* name,
                               const char* format, ...) const {
   stream_->PrintPropertyName(name);

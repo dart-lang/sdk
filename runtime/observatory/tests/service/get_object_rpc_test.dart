@@ -254,7 +254,7 @@ var tests = [
     expect(result['_implemented'], equals(false));
     expect(result['_patch'], equals(false));
     expect(result['library']['type'], equals('@Library'));
-    expect(result['script']['type'], equals('@Script'));
+    expect(result['location']['type'], equals('SourceLocation'));
     expect(result['super']['type'], equals('@Class'));
     expect(result['interfaces'].length, isZero);
     expect(result['fields'].length, isPositive);
@@ -338,8 +338,7 @@ var tests = [
     expect(result['_kind'], equals('RegularFunction'));
     expect(result['static'], equals(false));
     expect(result['const'], equals(false));
-    expect(result['script']['type'], equals('@Script'));
-    expect(result['tokenPos'], isPositive);
+    expect(result['location']['type'], equals('SourceLocation'));
     expect(result['code']['type'], equals('@Code'));
     expect(result['_optimizable'], equals(true));
     expect(result['_inlinable'], equals(true));
@@ -384,8 +383,7 @@ var tests = [
     expect(result['const'], equals(false));
     expect(result['static'], equals(true));
     expect(result['final'], equals(false));
-    expect(result['script']['type'], equals('@Script'));
-    expect(result['tokenPos'], isPositive);
+    expect(result['location']['type'], equals('SourceLocation'));
     expect(result['staticValue']['valueAsString'], equals('11'));
     expect(result['_guardNullable'], isNotNull);
     expect(result['_guardClass'], isNotNull);

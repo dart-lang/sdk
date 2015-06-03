@@ -375,7 +375,7 @@ class BreakCommand extends DebuggerCommand {
       return new Future.value(null);
     }
     var arg = (args.length == 0 ? '' : args[0]);
-    var loc = await SourceLocation.parse(debugger, arg);
+    var loc = await DebuggerLocation.parse(debugger, arg);
     if (loc.valid) {
       if (loc.function != null) {
         try {
@@ -414,8 +414,8 @@ class BreakCommand extends DebuggerCommand {
     if (args.length != 1) {
       return new Future.value([args.join('')]);
     }
-    // TODO - fix SourceLocation complete
-    return new Future.value(SourceLocation.complete(debugger, args[0]));
+    // TODO - fix DebuggerLocation complete
+    return new Future.value(DebuggerLocation.complete(debugger, args[0]));
   }
 
   String helpShort = 'Add a breakpoint by source location or function name';
@@ -456,7 +456,7 @@ class ClearCommand extends DebuggerCommand {
       return new Future.value(null);
     }
     var arg = (args.length == 0 ? '' : args[0]);
-    return SourceLocation.parse(debugger, arg).then((loc) {
+    return DebuggerLocation.parse(debugger, arg).then((loc) {
       if (loc.valid) {
         if (loc.function != null) {
           debugger.console.print(
@@ -472,10 +472,10 @@ class ClearCommand extends DebuggerCommand {
         }
 
         for (var bpt in debugger.isolate.breakpoints.values) {
-          var script = bpt.script;
+          var script = bpt.location.script;
           if (script.id == loc.script.id) {
             assert(script.loaded);
-            var line = script.tokenToLine(bpt.tokenPos);
+            var line = script.tokenToLine(bpt.location.tokenPos);
             if (line == loc.line) {
               return debugger.isolate.removeBreakpoint(bpt).then((result) {
                 if (result is DartError) {
@@ -498,7 +498,7 @@ class ClearCommand extends DebuggerCommand {
     if (args.length != 1) {
       return new Future.value([args.join('')]);
     }
-    return new Future.value(SourceLocation.complete(debugger, args[0]));
+    return new Future.value(DebuggerLocation.complete(debugger, args[0]));
   }
 
   String helpShort = 'Remove a breakpoint by source location or function name';
@@ -583,8 +583,8 @@ class InfoBreakpointsCommand extends DebuggerCommand {
     bpts.sort((a, b) => a.number - b.number);
     for (var bpt in bpts) {
       var bpId = bpt.number;
-      var script = bpt.script;
-      var tokenPos = bpt.tokenPos;
+      var script = bpt.location.script;
+      var tokenPos = bpt.location.tokenPos;
       var line = script.tokenToLine(tokenPos);
       var col = script.tokenToCol(tokenPos);
       if (!bpt.resolved) {
@@ -982,11 +982,11 @@ class ObservatoryDebugger extends Debugger {
           "Paused at isolate exit (type 'continue' to exit the isolate')");
     }
     if (stack['frames'].length > 0) {
-      var frame = stack['frames'][0];
-      var script = frame['script'];
+      Frame frame = stack['frames'][0];
+      var script = frame.location.script;
       script.load().then((_) {
-        var line = script.tokenToLine(frame['tokenPos']);
-        var col = script.tokenToCol(frame['tokenPos']);
+        var line = script.tokenToLine(frame.location.tokenPos);
+        var col = script.tokenToCol(frame.location.tokenPos);
         if (event.breakpoint != null) {
           var bpId = event.breakpoint.number;
           console.print('Paused at breakpoint ${bpId} at '
@@ -1018,10 +1018,10 @@ class ObservatoryDebugger extends Debugger {
       default:
         break;
     }
-    var script = bpt.script;
+    var script = bpt.location.script;
     return script.load().then((_) {
       var bpId = bpt.number;
-      var tokenPos = bpt.tokenPos;
+      var tokenPos = bpt.location.tokenPos;
       var line = script.tokenToLine(tokenPos);
       var col = script.tokenToCol(tokenPos);
       if (bpt.resolved) {
@@ -1226,11 +1226,11 @@ class DebuggerStackElement extends ObservatoryElement {
   @observable int currentFrame;
   ObservatoryDebugger debugger;
 
-  _addFrame(List frameList, ObservableMap frameInfo) {
+  _addFrame(List frameList, Frame frameInfo) {
     DebuggerFrameElement frameElement = new Element.tag('debugger-frame');
     frameElement.frame = frameInfo;
 
-    if (frameInfo['index'] == currentFrame) {
+    if (frameInfo.index == currentFrame) {
       frameElement.setCurrent(true);
     } else {
       frameElement.setCurrent(false);
@@ -1243,7 +1243,7 @@ class DebuggerStackElement extends ObservatoryElement {
     frameList.insert(0, li);
   }
 
-  _addMessage(List messageList, ServiceMap messageInfo) {
+  _addMessage(List messageList, ServiceMessage messageInfo) {
     DebuggerMessageElement messageElement = new Element.tag('debugger-message');
     messageElement.message = messageInfo;
 
@@ -1347,7 +1347,7 @@ class DebuggerStackElement extends ObservatoryElement {
     List frameElements = $['frameList'].children;
     for (var frameElement in frameElements) {
       var dbgFrameElement = frameElement.children[0];
-      if (dbgFrameElement.frame['index'] == currentFrame) {
+      if (dbgFrameElement.frame.index == currentFrame) {
         dbgFrameElement.setCurrent(true);
       } else {
         dbgFrameElement.setCurrent(false);
@@ -1385,7 +1385,7 @@ class DebuggerStackElement extends ObservatoryElement {
 
 @CustomTag('debugger-frame')
 class DebuggerFrameElement extends ObservatoryElement {
-  @published ObservableMap frame;
+  @published Frame frame;
 
   // Is this the current frame?
   bool _current = false;
@@ -1395,7 +1395,7 @@ class DebuggerFrameElement extends ObservatoryElement {
 
   void setCurrent(bool value) {
     busy = true;
-    frame['function'].load().then((func) {
+    frame.function.load().then((func) {
       _current = value;
       var frameOuter = $['frameOuter'];
       if (_current) {
@@ -1423,18 +1423,16 @@ class DebuggerFrameElement extends ObservatoryElement {
 
   DebuggerFrameElement.created() : super.created();
 
-  bool matchFrame(ObservableMap newFrame) {
-    return newFrame['function'].id == frame['function'].id;
+  bool matchFrame(Frame newFrame) {
+    return newFrame.function.id == frame.function.id;
   }
 
-  void updateFrame(ObservableMap newFrame) {
+  void updateFrame(Frame newFrame) {
     assert(matchFrame(newFrame));
-    frame['index'] = newFrame['index'];
-    frame['tokenPos'] = newFrame['tokenPos'];
-    frame['vars'] = newFrame['vars'];
+    frame = newFrame;
   }
 
-  Script get script => frame['script'];
+  Script get script => frame.location.script;
 
   @override
   void attached() {
@@ -1448,7 +1446,7 @@ class DebuggerFrameElement extends ObservatoryElement {
       return;
     }
     busy = true;
-    frame['function'].load().then((func) {
+    frame.function.load().then((func) {
         _pinned = !_pinned;
         var frameOuter = $['frameOuter'];
         if (_pinned) {
@@ -1465,7 +1463,7 @@ class DebuggerFrameElement extends ObservatoryElement {
 
 @CustomTag('debugger-message')
 class DebuggerMessageElement extends ObservatoryElement {
-  @published ServiceMap message;
+  @published ServiceMessage message;
   @observable ServiceObject preview;
 
   // Is this the current message?
@@ -1500,12 +1498,10 @@ class DebuggerMessageElement extends ObservatoryElement {
 
   DebuggerMessageElement.created() : super.created();
 
-  void updateMessage(ServiceMap newMessage) {
+  void updateMessage(ServiceMessage newMessage) {
     bool messageChanged =
-        (message['messageObjectId'] != newMessage['messageObjectId']);
-    message['index'] = newMessage['index'];
-    message['handlerFunction'] = newMessage['handlerFunction'];
-    message['messageObjectId'] = newMessage['messageObjectId'];
+        (message.messageObjectId != newMessage.messageObjectId);
+    message = newMessage;
     if (messageChanged) {
       // Message object id has changed: clear preview and collapse.
       preview = null;
@@ -1527,7 +1523,7 @@ class DebuggerMessageElement extends ObservatoryElement {
       return;
     }
     busy = true;
-    var function = message['handlerFunction'];
+    var function = message.handler;
     var loadedFunction;
     if (function == null) {
       // Complete immediately.
@@ -1550,7 +1546,7 @@ class DebuggerMessageElement extends ObservatoryElement {
   }
 
   Future<ServiceObject> previewMessage(_) {
-    return message.isolate.getObject(message['messageObjectId']).then((result) {
+    return message.isolate.getObject(message.messageObjectId).then((result) {
       preview = result;
       return result;
     });

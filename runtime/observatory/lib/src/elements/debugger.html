@@ -241,11 +241,9 @@
       <a on-click="{{ toggleExpand }}">
         <div class="frameSummary">
           <div class="frameSummaryText">
-            <div class="frameId"><b>frame {{ frame['index'] }}</b></div>
-            <function-ref ref="{{ frame['function'] }}"></function-ref>
-            ( <script-ref ref="{{ frame['script'] }}"
-                          pos="{{ frame['tokenPos'] }}">
-            </script-ref> )
+            <div class="frameId"><b>frame {{ frame.index }}</b></div>
+            <function-ref ref="{{ frame.function }}"></function-ref>
+            ( <source-link location="{{ frame.location }}"></source-link> )
           </div>
           <template if="{{ !expanded }}">
             <div class="frameExpander">
@@ -259,18 +257,16 @@
         <div class="frameDetails">
           <div class="flex-row-wrap">
             <div class="flex-item-script">
-              <script-inset height="{{ scriptHeight }}"
-                            script="{{ frame['function'].script }}"
-                            startPos="{{ frame['function'].tokenPos }}"
-                            endPos="{{ frame['function'].endTokenPos }}"
-                            currentPos="{{ frame['tokenPos'] }}"
+              <source-inset height="{{ scriptHeight }}"
+                            location="{{ frame.function.location }}"
+                            currentPos="{{ frame.location.tokenPos }}"
                             inDebuggerContext="{{ true }}"
-                            variables="{{ frame['vars'] }}">
-              </script-inset>
+                            variables="{{ frame.variables }}">
+              </source-inset>
             </div>
             <div class="flex-item-vars">
               <div style="padding:10px;" class="memberList">
-                <template repeat="{{ v in frame['vars'] }}">
+                <template repeat="{{ v in frame.variables }}">
                   <div class="memberItem">
                     <div class="memberName">{{ v['name']}}</div>
                     <div class="memberValue">
@@ -355,11 +351,10 @@
       <a on-click="{{ toggleExpand }}">
         <div class="messageSummary">
           <div class="messageSummaryText">
-            <div class="messageId"><b>message {{ message['index'] }}</b></div>
-            <function-ref ref="{{ message['handlerFunction'] }}"></function-ref>
-            ( <script-ref ref="{{ message['handlerScript'] }}"
-                          pos="{{ message['handlerTokenPos'] }}">
-            </script-ref> )
+            <div class="messageId"><b>message {{ message.index }}</b></div>
+            <function-ref ref="{{ message.handler }}"></function-ref>
+            ( <source-link location="{{ message.location }}">
+            </source-link> )
           </div>
           <template if="{{ !expanded }}">
             <div class="messageExpander">
@@ -373,13 +368,11 @@
         <div class="messageDetails">
           <div class="flex-row-wrap">
             <div class="flex-item-script">
-              <template if="{{ message['handlerFunction'] != null }}">
-              <script-inset height="{{ scriptHeight }}"
-                            script="{{ message['handlerFunction'].script }}"
-                            startPos="{{ message['handlerFunction'].tokenPos }}"
-                            endPos="{{ message['handlerFunction'].endTokenPos }}"
-                            inDebuggerContext="{{ true }}">
-              </script-inset>
+              <template if="{{ message.handler != null }}">
+              <source-inset height="{{ scriptHeight }}"
+                              location="{{ message.handler.location }}"
+                              inDebuggerContext="{{ true }}">
+              </source-inset>
               </template>
             </div>
             <div class="flex-item-vars">

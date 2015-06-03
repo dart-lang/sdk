@@ -175,6 +175,9 @@ abstract class ServiceObject extends Observable {
       case 'Field':
         obj = new Field._empty(owner);
         break;
+      case 'Frame':
+        obj = new Frame._empty(owner);
+        break;
       case 'Function':
         obj = new ServiceFunction._empty(owner);
         break;
@@ -186,6 +189,12 @@ abstract class ServiceObject extends Observable {
         break;
       case 'Library':
         obj = new Library._empty(owner);
+        break;
+      case 'Message':
+        obj = new ServiceMessage._empty(owner);
+        break;
+      case 'SourceLocation':
+        obj = new SourceLocation._empty(owner);
         break;
       case 'Object':
         switch (vmType) {
@@ -363,6 +372,32 @@ abstract class ServiceObjectOwner extends ServiceObject {
   /// The result may come from the cache.  The result will not necessarily
   /// be [loaded].
   ServiceObject getFromMap(ObservableMap map);
+}
+
+/// A [SourceLocation] represents a location or range in the source code.
+class SourceLocation extends ServiceObject {
+  Script script;
+  int tokenPos;
+  int endTokenPos;
+
+  SourceLocation._empty(ServiceObject owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    assert(!mapIsRef);
+    _upgradeCollection(map, owner);
+    script = map['script'];
+    tokenPos = map['tokenPos'];
+    assert(script != null && tokenPos != null);
+    endTokenPos = map['endTokenPos'];
+  }
+
+  String toString() {
+    if (endTokenPos == null) {
+      return '${script.name}:token(${tokenPos})';
+    } else {
+      return '${script.name}:tokens(${tokenPos}-${endTokenPos})';
+    }
+  }
 }
 
 /// State for a VM being inspected.
@@ -930,7 +965,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable Library rootLibrary;
   @observable ObservableList<Library> libraries =
       new ObservableList<Library>();
-  @observable ObservableMap topFrame;
+  @observable Frame topFrame;
 
   @observable String name;
   @observable String vmName;
@@ -1157,7 +1192,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
       Breakpoint bpt = await invokeRpc('addBreakpoint', params);
       if (bpt.resolved &&
           script.loaded &&
-          script.tokenToLine(bpt.tokenPos) != line) {
+          script.tokenToLine(bpt.location.tokenPos) != line) {
         // TODO(turnidge): Can this still happen?
         script.getLine(line).possibleBpt = false;
       }
@@ -1425,7 +1460,7 @@ class ServiceEvent extends ServiceObject {
 
   @observable String kind;
   @observable Breakpoint breakpoint;
-  @observable ServiceMap topFrame;
+  @observable Frame topFrame;
   @observable ServiceMap exception;
   @observable ServiceObject inspectee;
   @observable ByteData data;
@@ -1452,9 +1487,7 @@ class ServiceEvent extends ServiceObject {
     if (map['breakpoint'] != null) {
       breakpoint = map['breakpoint'];
     }
-    if (map['topFrame'] != null) {
-      topFrame = map['topFrame'];
-    }
+    topFrame = map['topFrame'];
     if (map['exception'] != null) {
       exception = map['exception'];
     }
@@ -1500,8 +1533,7 @@ class Breakpoint extends ServiceObject {
   @observable int number;
 
   // Source location information.
-  @observable Script script;
-  @observable int tokenPos;
+  @observable SourceLocation location;
 
   // The breakpoint has been assigned to a final source location.
   @observable bool resolved;
@@ -1511,34 +1543,46 @@ class Breakpoint extends ServiceObject {
     _upgradeCollection(map, owner);
 
     var newNumber = map['breakpointNumber'];
-    var newScript = map['location']['script'];
-    var newTokenPos = map['location']['tokenPos'];
-
-    // number and script never change.
+    // number never changes.
     assert((number == null) || (number == newNumber));
-    assert((script == null) || (script == newScript));
+    number = newNumber;
 
-    number = map['breakpointNumber'];
-    script = map['location']['script'];
     resolved = map['resolved'];
-    bool tokenPosChanged = tokenPos != newTokenPos;
 
-    if (script.loaded &&
-        (tokenPos != null) &&
+    var oldLocation = location;
+    var newLocation = map['location'];
+    var oldScript;
+    var newScript;
+    var oldTokenPos;
+    var newTokenPos;
+    if (oldLocation != null) {
+      oldScript = location.script;
+      oldTokenPos = location.tokenPos;
+    }
+    if (newLocation != null) {
+      newScript = newLocation.script;
+      newTokenPos = newLocation.tokenPos;
+    }
+    // script never changes
+    assert((oldScript == null) || (oldScript == newScript));
+    bool tokenPosChanged = oldTokenPos != newTokenPos;
+    if (newScript.loaded &&
+        (newTokenPos != null) &&
         tokenPosChanged) {
       // The breakpoint has moved.  Remove it and add it later.
-      script._removeBreakpoint(this);
+      if (oldScript != null) {
+        oldScript._removeBreakpoint(this);
+      }
     }
-
-    tokenPos = newTokenPos;
-    if (script.loaded && tokenPosChanged) {
-      script._addBreakpoint(this);
+    location = newLocation;
+    if (newScript.loaded && tokenPosChanged) {
+      newScript._addBreakpoint(this);
     }
   }
 
   void remove() {
     // Remove any references to this breakpoint.  It has been removed.
-    script._removeBreakpoint(this);
+    location.script._removeBreakpoint(this);
     if ((isolate.pauseEvent != null) &&
         (isolate.pauseEvent.breakpoint != null) &&
         (isolate.pauseEvent.breakpoint.id == id)) {
@@ -1548,7 +1592,7 @@ class Breakpoint extends ServiceObject {
 
   String toString() {
     if (number != null) {
-      return 'Breakpoint ${number} at ${script.name}(token:${tokenPos})';
+      return 'Breakpoint ${number} at ${location})';
     } else {
       return 'Uninitialized breakpoint';
     }
@@ -1664,7 +1708,6 @@ class Allocations {
 
 class Class extends ServiceObject with Coverage {
   @observable Library library;
-  @observable Script script;
 
   @observable bool isAbstract;
   @observable bool isConst;
@@ -1672,8 +1715,7 @@ class Class extends ServiceObject with Coverage {
   @observable bool isPatch;
   @observable bool isImplemented;
 
-  @observable int tokenPos;
-  @observable int endTokenPos;
+  @observable SourceLocation location;
 
   @observable ServiceMap error;
   @observable int vmCid;
@@ -1720,16 +1762,12 @@ class Class extends ServiceObject with Coverage {
       library = null;
     }
 
-    script = map['script'];
-
+    location = map['location'];
     isAbstract = map['abstract'];
     isConst = map['const'];
     isFinalized = map['_finalized'];
     isPatch = map['_patch'];
     isImplemented = map['_implemented'];
-
-    tokenPos = map['tokenPos'];
-    endTokenPos = map['endTokenPos'];
 
     subclasses.clear();
     subclasses.addAll(map['subclasses']);
@@ -1963,9 +2001,7 @@ class ServiceFunction extends ServiceObject with Coverage {
   @observable Library library;
   @observable bool isStatic;
   @observable bool isConst;
-  @observable Script script;
-  @observable int tokenPos;
-  @observable int endTokenPos;
+  @observable SourceLocation location;
   @observable Code code;
   @observable Code unoptimizedCode;
   @observable bool isOptimizable;
@@ -2014,9 +2050,7 @@ class ServiceFunction extends ServiceObject with Coverage {
     _loaded = true;
     isStatic = map['static'];
     isConst = map['const'];
-    script = map['script'];
-    tokenPos = map['tokenPos'];
-    endTokenPos = map['endTokenPos'];
+    location = map['location'];
     code = map['code'];
     isOptimizable = map['_optimizable'];
     isInlinable = map['_inlinable'];
@@ -2042,8 +2076,7 @@ class Field extends ServiceObject {
   @observable bool guardNullable;
   @observable String guardClass;
   @observable String guardLength;
-  @observable Script script;
-  @observable int tokenPos;
+  @observable SourceLocation location;
 
   Field._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2075,9 +2108,7 @@ class Field extends ServiceObject {
     guardNullable = map['_guardNullable'];
     guardClass = map['_guardClass'];
     guardLength = map['_guardLength'];
-    script = map['script'];
-    tokenPos = map['tokenPos'];
-
+    location = map['location'];
     _loaded = true;
   }
 
@@ -2164,6 +2195,7 @@ class ScriptLine extends Observable {
 
 class CallSite {
   final String name;
+  // TODO(turnidge): Use SourceLocation here instead.
   final Script script;
   final int tokenPos;
   final List<CallSiteEntry> entries;
@@ -2352,7 +2384,7 @@ class Script extends ServiceObject with Coverage {
       lines.add(new ScriptLine(this, i + lineOffset + 1, sourceLines[i]));
     }
     for (var bpt in isolate.breakpoints.values) {
-      if (bpt.script == this) {
+      if (bpt.location.script == this) {
         _addBreakpoint(bpt);
       }
     }
@@ -2370,12 +2402,12 @@ class Script extends ServiceObject with Coverage {
   }
 
   void _addBreakpoint(Breakpoint bpt) {
-    var line = tokenToLine(bpt.tokenPos);
+    var line = tokenToLine(bpt.location.tokenPos);
     getLine(line).addBreakpoint(bpt);
   }
 
   void _removeBreakpoint(Breakpoint bpt) {
-    var line = tokenToLine(bpt.tokenPos);
+    var line = tokenToLine(bpt.location.tokenPos);
     if (line != null) {
       getLine(line).removeBreakpoint(bpt);
     }
@@ -2760,10 +2792,10 @@ class Code extends ServiceObject {
     if (function == null) {
       return;
     }
-    if (function.script == null) {
+    if (function.location.script == null) {
       // Attempt to load the function.
       function.load().then((func) {
-        var script = function.script;
+        var script = function.location.script;
         if (script == null) {
           // Function doesn't have an associated script.
           return;
@@ -2774,7 +2806,7 @@ class Code extends ServiceObject {
       return;
     }
     // Load the script and then update descriptors.
-    function.script.load().then(_updateDescriptors);
+    function.location.script.load().then(_updateDescriptors);
   }
 
   /// Reload [this]. Returns a future which completes to [this] or an
@@ -3123,6 +3155,50 @@ class MetricPoller {
     }
   }
 }
+
+class Frame extends ServiceObject {
+  @observable int index;
+  @observable ServiceFunction function;
+  @observable SourceLocation location;
+  @observable Code code;
+  @observable List<ServiceMap> variables = new ObservableList<ServiceMap>();
+
+  Frame._empty(ServiceObject owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    assert(!mapIsRef);
+    _loaded = true;
+    _upgradeCollection(map, owner);
+    this.index = map['index'];
+    this.function = map['function'];
+    this.location = map['location'];
+    this.code = map['code'];
+    this.variables = map['vars'];
+  }
+}
+
+
+class ServiceMessage extends ServiceObject {
+  @observable int index;
+  @observable String messageObjectId;
+  @observable int size;
+  @observable ServiceFunction handler;
+  @observable SourceLocation location;
+
+  ServiceMessage._empty(ServiceObject owner) : super._empty(owner);
+
+  void _update(ObservableMap map, bool mapIsRef) {
+    assert(!mapIsRef);
+    _loaded = true;
+    _upgradeCollection(map, owner);
+    this.messageObjectId = map['messageObjectId'];
+    this.index = map['index'];
+    this.size = map['size'];
+    this.handler = map['handler'];
+    this.location = map['location'];
+  }
+}
+
 
 // Returns true if [map] is a service map. i.e. it has the following keys:
 // 'id' and a 'type'.

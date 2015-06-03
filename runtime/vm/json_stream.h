@@ -21,6 +21,7 @@ class JSONObject;
 class MessageQueue;
 class Metric;
 class Object;
+class Script;
 class ServiceEvent;
 class Breakpoint;
 class String;
@@ -185,6 +186,10 @@ class JSONObject : public ValueObject {
   }
 
   void AddFixedServiceId(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
+
+  void AddLocation(const Script& script,
+                   intptr_t token_pos,
+                   intptr_t end_token_pos = -1);
 
   void AddProperty(const char* name, bool b) const {
     stream_->PrintPropertyBool(name, b);

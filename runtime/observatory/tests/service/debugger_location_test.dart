@@ -27,12 +27,12 @@ class TestDebugger extends Debugger {
   int currentFrame = 0;
 }
 
-void source_location_dummy_function() {
+void debugger_location_dummy_function() {
 }
 
-class SourceLocationTestFoo {
-  SourceLocationTestFoo(this.field);
-  SourceLocationTestFoo.named();
+class DebuggerLocationTestFoo {
+  DebuggerLocationTestFoo(this.field);
+  DebuggerLocationTestFoo.named();
 
   void method() {}
   void madness() {}
@@ -40,7 +40,7 @@ class SourceLocationTestFoo {
   int field;
 }
 
-class SourceLocationTestBar {
+class DebuggerLocationTestBar {
 }
 
 Future<Debugger> initDebugger(Isolate isolate) {
@@ -73,9 +73,9 @@ var tests = [
 // Parse '' => current position
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, '').then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, '').then((DebuggerLocation loc) {
       expect(loc.valid, isTrue);
-      expect(loc.toString(), equals('source_location_test.dart:15'));
+      expect(loc.toString(), equals('debugger_location_test.dart:15'));
     });
   });
 },
@@ -83,9 +83,9 @@ var tests = [
 // Parse line
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, '16').then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, '16').then((DebuggerLocation loc) {
       expect(loc.valid, isTrue);
-      expect(loc.toString(), equals('source_location_test.dart:16'));
+      expect(loc.toString(), equals('debugger_location_test.dart:16'));
     });
   });
 },
@@ -93,9 +93,9 @@ var tests = [
 // Parse line + col
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, '16:11').then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, '16:11').then((DebuggerLocation loc) {
       expect(loc.valid, isTrue);
-      expect(loc.toString(), equals('source_location_test.dart:16:11'));
+      expect(loc.toString(), equals('debugger_location_test.dart:16:11'));
     });
   });
 },
@@ -103,8 +103,8 @@ var tests = [
 // Parse script + line
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, 'unittest.dart:15')
-      .then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, 'unittest.dart:15')
+      .then((DebuggerLocation loc) {
         expect(loc.valid, isTrue);
         expect(loc.toString(), equals('unittest.dart:15'));
       });
@@ -114,8 +114,8 @@ var tests = [
 // Parse script + line + col
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, 'unittest.dart:15:10')
-      .then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, 'unittest.dart:15:10')
+      .then((DebuggerLocation loc) {
         expect(loc.valid, isTrue);
         expect(loc.toString(), equals('unittest.dart:15:10'));
       });
@@ -125,8 +125,8 @@ var tests = [
 // Parse bad script
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, 'bad.dart:15')
-      .then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, 'bad.dart:15')
+      .then((DebuggerLocation loc) {
         expect(loc.valid, isFalse);
         expect(loc.toString(), equals(
             'invalid source location (Script \'bad.dart\' not found)'));
@@ -137,8 +137,8 @@ var tests = [
 // Parse function
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, 'testFunction')
-      .then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, 'testFunction')
+      .then((DebuggerLocation loc) {
         expect(loc.valid, isTrue);
         expect(loc.toString(), equals('testFunction'));
       });
@@ -148,8 +148,8 @@ var tests = [
 // Parse bad function
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, 'doesNotReallyExit')
-      .then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, 'doesNotReallyExit')
+      .then((DebuggerLocation loc) {
         expect(loc.valid, isFalse);
         expect(loc.toString(), equals(
             'invalid source location (Function \'doesNotReallyExit\' not found)'));
@@ -160,14 +160,14 @@ var tests = [
 // Parse constructor
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, 'SourceLocationTestFoo')
-      .then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, 'DebuggerLocationTestFoo')
+      .then((DebuggerLocation loc) {
         expect(loc.valid, isTrue);
         // TODO(turnidge): Printing a constructor currently adds
         // another class qualifier at the front.  Do we want to change
         // this to be more consistent?
         expect(loc.toString(), equals(
-            'SourceLocationTestFoo.SourceLocationTestFoo'));
+            'DebuggerLocationTestFoo.DebuggerLocationTestFoo'));
       });
   });
 },
@@ -175,14 +175,14 @@ var tests = [
 // Parse named constructor
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, 'SourceLocationTestFoo.named')
-      .then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, 'DebuggerLocationTestFoo.named')
+      .then((DebuggerLocation loc) {
         expect(loc.valid, isTrue);
         // TODO(turnidge): Printing a constructor currently adds
         // another class qualifier at the front.  Do we want to change
         // this to be more consistent?
         expect(loc.toString(), equals(
-            'SourceLocationTestFoo.SourceLocationTestFoo.named'));
+            'DebuggerLocationTestFoo.DebuggerLocationTestFoo.named'));
       });
   });
 },
@@ -190,10 +190,10 @@ var tests = [
 // Parse method
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, 'SourceLocationTestFoo.method')
-      .then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, 'DebuggerLocationTestFoo.method')
+      .then((DebuggerLocation loc) {
         expect(loc.valid, isTrue);
-        expect(loc.toString(), equals('SourceLocationTestFoo.method'));
+        expect(loc.toString(), equals('DebuggerLocationTestFoo.method'));
       });
   });
 },
@@ -201,10 +201,10 @@ var tests = [
 // Parse method
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, 'SourceLocationTestFoo.field=')
-      .then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, 'DebuggerLocationTestFoo.field=')
+      .then((DebuggerLocation loc) {
         expect(loc.valid, isTrue);
-        expect(loc.toString(), equals('SourceLocationTestFoo.field='));
+        expect(loc.toString(), equals('DebuggerLocationTestFoo.field='));
       });
   });
 },
@@ -212,12 +212,12 @@ var tests = [
 // Parse bad method
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.parse(debugger, 'SourceLocationTestFoo.missing')
-      .then((SourceLocation loc) {
+    return DebuggerLocation.parse(debugger, 'DebuggerLocationTestFoo.missing')
+      .then((DebuggerLocation loc) {
         expect(loc.valid, isFalse);
         expect(loc.toString(), equals(
             'invalid source location '
-            '(Function \'SourceLocationTestFoo.missing\' not found)'));
+            '(Function \'DebuggerLocationTestFoo.missing\' not found)'));
       });
   });
 },
@@ -225,11 +225,11 @@ var tests = [
 // Complete function + script
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.complete(debugger, 'source_loc')
+    return DebuggerLocation.complete(debugger, 'debugger_loc')
       .then((List<String> completions) {
         expect(completions.toString(), equals(
-            '[source_location_dummy_function, '
-             'source_location.dart:, source_location_test.dart:]'));
+            '[debugger_location_dummy_function, '
+             'debugger_location.dart:, debugger_location_test.dart:]'));
       });
   });
 },
@@ -237,10 +237,10 @@ var tests = [
 // Complete class
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.complete(debugger, 'SourceLocationTe')
+    return DebuggerLocation.complete(debugger, 'DebuggerLocationTe')
       .then((List<String> completions) {
         expect(completions.toString(), equals(
-            '[SourceLocationTestBar, SourceLocationTestFoo]'));
+            '[DebuggerLocationTestBar, DebuggerLocationTestFoo]'));
       });
   });
 },
@@ -248,7 +248,7 @@ var tests = [
 // No completions: unqualified name
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.complete(debugger, 'source_locXYZZY')
+    return DebuggerLocation.complete(debugger, 'debugger_locXYZZY')
       .then((List<String> completions) {
         expect(completions.toString(), equals('[]'));
       });
@@ -258,10 +258,10 @@ var tests = [
 // Complete method
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.complete(debugger, 'SourceLocationTestFoo.m')
+    return DebuggerLocation.complete(debugger, 'DebuggerLocationTestFoo.m')
       .then((List<String> completions) {
         expect(completions.toString(), equals(
-            '[SourceLocationTestFoo.madness, SourceLocationTestFoo.method]'));
+          '[DebuggerLocationTestFoo.madness, DebuggerLocationTestFoo.method]'));
       });
   });
 },
@@ -269,7 +269,7 @@ var tests = [
 // No completions: qualified name
 (Isolate isolate) {
   return initDebugger(isolate).then((debugger) {
-    return SourceLocation.complete(debugger, 'SourceLocationTestFoo.q')
+    return DebuggerLocation.complete(debugger, 'DebuggerLocationTestFoo.q')
       .then((List<String> completions) {
         expect(completions.toString(), equals('[]'));
       });
