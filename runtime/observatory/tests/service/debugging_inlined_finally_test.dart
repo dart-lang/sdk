@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
 
-import "package:expect/expect.dart";
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
@@ -30,8 +29,7 @@ testFunction() {
 
 testMain() {
   var f = testFunction();
-  Expect.equals(11, f());
-
+  expect(f(), equals(11));
 }
 
 var tests = [
