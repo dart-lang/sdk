@@ -2171,18 +2171,18 @@ class B {}''');
     expect(outputs[UNITS], hasLength(1));
   }
 
-  test_perform_computeSourceKind_noDirectives_hasContainingLibraries() {
-    // Parse "lib.dart" to let the context know that "test.dart" is a part.
+  test_perform_computeSourceKind_noDirectives_hasContainingLibrary() {
+    // Parse "lib.dart" to let the context know that "test.dart" is included.
     _computeResult(newSource('/lib.dart', r'''
 library lib;
 part 'test.dart';
 '''), PARSED_UNIT);
-    // So, know "test.dat" is parsed as a part.
+    // If there are no the "part of" directive, then it is not a part.
     _performParseTask('');
-    expect(outputs[SOURCE_KIND], SourceKind.PART);
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
   }
 
-  test_perform_computeSourceKind_noDirectives_noContainingLibraries() {
+  test_perform_computeSourceKind_noDirectives_noContainingLibrary() {
     _performParseTask('');
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
   }
@@ -2235,6 +2235,21 @@ class A {''');
     expect(outputs[PARSED_UNIT], isNotNull);
     expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(2));
+  }
+
+  test_perform_part() {
+    _performParseTask(r'''
+part of lib;
+class B {}''');
+    expect(outputs, hasLength(8));
+    expect(outputs[EXPLICITLY_IMPORTED_LIBRARIES], hasLength(0));
+    expect(outputs[EXPORTED_LIBRARIES], hasLength(0));
+    _assertHasCore(outputs[IMPORTED_LIBRARIES], 1);
+    expect(outputs[INCLUDED_PARTS], hasLength(0));
+    expect(outputs[PARSE_ERRORS], hasLength(0));
+    expect(outputs[PARSED_UNIT], isNotNull);
+    expect(outputs[SOURCE_KIND], SourceKind.PART);
+    expect(outputs[UNITS], hasLength(1));
   }
 
   void _performParseTask(String content) {

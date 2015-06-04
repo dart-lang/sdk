@@ -263,25 +263,12 @@ class DartWorkManager implements WorkManager {
       List<Source> includedParts = outputs[INCLUDED_PARTS];
       if (includedParts != null) {
         libraryPartsMap[library] = includedParts;
-        // update contanining libraries
         for (Source part in includedParts) {
           List<Source> libraries =
               partLibrariesMap.putIfAbsent(part, () => <Source>[]);
           if (!libraries.contains(library)) {
             libraries.add(library);
-          }
-        }
-        // all of the "includedParts" are not libraries anymore
-        for (Source part in includedParts) {
-          unknownSourceQueue.remove(part);
-          librarySourceQueue.remove(part);
-          analysisCache.remove(new LibrarySpecificUnit(part, part));
-          CacheEntry partEntry = analysisCache.get(part);
-          if (partEntry != null) {
-            partEntry.setValue(SOURCE_KIND, SourceKind.PART, <TargetedResult>[
-              new TargetedResult(part, CONTENT),
-              new TargetedResult(target, CONTENT)
-            ]);
+            _invalidateContainingLibraries(part);
           }
         }
       }
@@ -324,6 +311,19 @@ class DartWorkManager implements WorkManager {
   }
 
   /**
+   * Invalidate  [CONTAINING_LIBRARIES] for the given [source].
+   * [CONTAINING_LIBRARIES] does not have dependencies, so we manage it here.
+   * The [source] may be a part, or a library whose contents is updated so
+   * will be a part.
+   */
+  void _invalidateContainingLibraries(Source source) {
+    CacheEntry entry = analysisCache.get(source);
+    if (entry != null) {
+      entry.setState(CONTAINING_LIBRARIES, CacheState.INVALID);
+    }
+  }
+
+  /**
    * Returns `true` if the given [result] of the given [target] needs
    * computing, i.e. it is not in the valid and not in the error state.
    */
@@ -343,9 +343,11 @@ class DartWorkManager implements WorkManager {
         List<Source> libraries = partLibrariesMap[part];
         if (libraries != null) {
           libraries.remove(library);
+          _invalidateContainingLibraries(part);
         }
       }
     }
+    _invalidateContainingLibraries(library);
   }
 
   static bool _isDartSource(AnalysisTarget target) {

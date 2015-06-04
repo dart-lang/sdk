@@ -145,6 +145,8 @@ class DartWorkManagerTest {
     manager.partLibrariesMap[part3] = [library1];
     manager.libraryPartsMap[library1] = [part1, part3];
     manager.libraryPartsMap[library2] = [part1, part2];
+    _getOrCreateEntry(part1).setValue(CONTAINING_LIBRARIES, [], []);
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.VALID);
     // change library1
     manager.applyChange([], [library1], []);
     expect(manager.partLibrariesMap[part1], unorderedEquals([library2]));
@@ -152,6 +154,7 @@ class DartWorkManagerTest {
     expect(manager.partLibrariesMap[part3], unorderedEquals([]));
     expect(manager.libraryPartsMap[library1], isNull);
     expect(manager.libraryPartsMap[library2], [part1, part2]);
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.INVALID);
   }
 
   void test_applyChange_updatePartsLibraries_changePart() {
@@ -165,12 +168,24 @@ class DartWorkManagerTest {
     manager.partLibrariesMap[part3] = [library1];
     manager.libraryPartsMap[library1] = [part1, part3];
     manager.libraryPartsMap[library2] = [part1, part2];
+    _getOrCreateEntry(part1).setValue(CONTAINING_LIBRARIES, [], []);
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.VALID);
     // change part1
     manager.applyChange([], [part1], []);
     expect(manager.partLibrariesMap[part2], unorderedEquals([library2]));
     expect(manager.partLibrariesMap[part3], unorderedEquals([library1]));
     expect(manager.libraryPartsMap[library1], [part1, part3]);
     expect(manager.libraryPartsMap[library2], [part1, part2]);
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.INVALID);
+  }
+
+  CacheEntry _getOrCreateEntry(Source source) {
+    CacheEntry entry = cache.get(source);
+    if (entry == null) {
+      entry = new CacheEntry(source);
+      cache.put(entry);
+    }
+    return entry;
   }
 
   void test_applyChange_updatePartsLibraries_removeLibrary() {
@@ -445,44 +460,14 @@ class DartWorkManagerTest {
     expect(notice.lineInfo, lineInfo);
   }
 
-  void test_resultsComputed_includedParts_turnLibraryIntoPart() {
-    when(context.shouldErrorsBeAnalyzed(anyObject, null)).thenReturn(true);
-    Source library = new TestSource('library.dart');
-    Source part = new TestSource('part.dart');
-    // library "library" (real)
-    manager.resultsComputed(library, {SOURCE_KIND: SourceKind.LIBRARY});
-    CacheEntry libraryEntry = new CacheEntry(library);
-    cache.put(libraryEntry);
-    libraryEntry.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
-    // library "part" (speculative)
-    manager.resultsComputed(part, {SOURCE_KIND: SourceKind.LIBRARY});
-    CacheEntry partEntry = new CacheEntry(part);
-    cache.put(partEntry);
-    partEntry.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
-    // unit "part in part" (speculative)
-    AnalysisTarget partInPartTarget = new LibrarySpecificUnit(part, part);
-    CacheEntry partInPartEntry = new CacheEntry(partInPartTarget);
-    cache.put(partInPartEntry);
-    // so far we consider "part" a library
-    expect(manager.librarySourceQueue, contains(part));
-    expect(partEntry.getValue(SOURCE_KIND), SourceKind.LIBRARY);
-    expect(cache.get(partInPartTarget), isNotNull);
-    // "part" is used as a part in "library"
-    manager.resultsComputed(library, {INCLUDED_PARTS: [part]});
-    expect(manager.partLibrariesMap[part], [library]);
-    expect(manager.libraryPartsMap[library], [part]);
-    // now we know that "part" is not a library
-    expect(manager.librarySourceQueue, isNot(contains(part)));
-    expect(partEntry.getValue(SOURCE_KIND), SourceKind.PART);
-    expect(cache.get(partInPartTarget), isNull);
-  }
-
   void test_resultsComputed_includedParts_updatePartLibraries() {
     Source part1 = new TestSource('part1.dart');
     Source part2 = new TestSource('part2.dart');
     Source part3 = new TestSource('part3.dart');
     Source library1 = new TestSource('library1.dart');
     Source library2 = new TestSource('library2.dart');
+    _getOrCreateEntry(part1).setValue(CONTAINING_LIBRARIES, [], []);
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.VALID);
     // library1 parts
     manager.resultsComputed(library1, {INCLUDED_PARTS: [part1, part2]});
     expect(manager.partLibrariesMap[part1], [library1]);
@@ -497,6 +482,8 @@ class DartWorkManagerTest {
     expect(manager.partLibrariesMap[part3], [library2]);
     expect(manager.libraryPartsMap[library1], [part1, part2]);
     expect(manager.libraryPartsMap[library2], [part2, part3]);
+    // part1 CONTAINING_LIBRARIES
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.INVALID);
   }
 
   void test_resultsComputed_noSourceKind() {

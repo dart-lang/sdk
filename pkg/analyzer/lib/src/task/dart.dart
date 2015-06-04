@@ -2681,16 +2681,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     SourceKind sourceKind = SourceKind.LIBRARY;
     if (modificationTime == -1) {
       sourceKind = SourceKind.UNKNOWN;
-    } else if (hasNonPartOfDirective) {
-      sourceKind = SourceKind.LIBRARY;
-    } else if (hasPartOfDirective) {
+    } else if (hasPartOfDirective && !hasNonPartOfDirective) {
       sourceKind = SourceKind.PART;
-    } else {
-      if (context.getLibrariesContaining(source).isEmpty) {
-        sourceKind = SourceKind.LIBRARY;
-      } else {
-        sourceKind = SourceKind.PART;
-      }
     }
     //
     // Record outputs.

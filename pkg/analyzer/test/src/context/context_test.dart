@@ -564,7 +564,7 @@ void f(x) {}''');
     expect(context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
         reason: "library resolved 1");
     expect(
-        context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
+        context.getResolvedCompilationUnit2(partSource, partSource), isNotNull,
         reason: "part resolved 1");
     // update and analyze
     context.setContents(partSource, r'''
@@ -572,7 +572,7 @@ part of lib;
 void g() { f(null); }''');
     expect(context.getResolvedCompilationUnit2(libSource, libSource), isNull,
         reason: "library changed 2");
-    expect(context.getResolvedCompilationUnit2(partSource, libSource), isNull,
+    expect(context.getResolvedCompilationUnit2(partSource, partSource), isNull,
         reason: "part changed 2");
     _analyzeAll_assertFinished();
     expect(context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
