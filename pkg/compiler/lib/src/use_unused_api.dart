@@ -69,7 +69,7 @@ void main(List<String> arguments) {
   useIo(null, null);
   usedByTests();
   useElements();
-  useIr(null, null);
+  useIr(null);
   useCompiler(null);
   useTypes();
   useCodeEmitterTask(null);
@@ -260,11 +260,7 @@ useElements(
   l.forEachImport(null);
 }
 
-useIr(ir_builder.IrBuilderTask task,
-      ir_builder.IrBuilder builder) {
-  task
-    ..hasIr(null)
-    ..getIr(null);
+useIr(ir_builder.IrBuilder builder) {
   builder
     ..buildStringConstant(null)
     ..buildDynamicGet(null, null);

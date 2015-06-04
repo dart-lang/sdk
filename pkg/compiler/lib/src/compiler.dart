@@ -1511,14 +1511,6 @@ abstract class Compiler implements DiagnosticListener {
     });
   }
 
-  bool irEnabled() {
-    // TODO(sigurdm,kmillikin): Support checked-mode checks.
-    return useCpsIr &&
-        backend is DartBackend &&
-        !enableTypeAssertions &&
-        !enableConcreteTypeInference;
-  }
-
   void computeMain() {
     if (mainApp == null) return;
 
@@ -1649,11 +1641,6 @@ abstract class Compiler implements DiagnosticListener {
     backend.onResolutionComplete();
 
     deferredLoadTask.onResolutionComplete(mainFunction);
-
-    if (irEnabled()) {
-      log('Building IR...');
-      irBuilder.buildNodes();
-    }
 
     log('Inferring types...');
     typesTask.onResolutionComplete(mainFunction);

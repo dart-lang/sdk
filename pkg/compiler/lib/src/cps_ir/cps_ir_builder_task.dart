@@ -22,87 +22,59 @@ import '../universe/universe.dart' show SelectorKind, CallStructure;
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder.dart';
 
-/**
- * This task iterates through all resolved elements and builds [ir.Node]s. The
- * nodes are stored in the [nodes] map and accessible through [hasIr] and
- * [getIr].
- *
- * The functionality of the IrNodes is added gradually, therefore elements might
- * have an IR or not, depending on the language features that are used. For
- * elements that do have an IR, the tree [ast.Node]s and the [Token]s are not
- * used in the rest of the compilation. This is ensured by setting the element's
- * cached tree to `null` and also breaking the token stream to crash future
- * attempts to parse.
- *
- * The type inferrer works on either IR nodes or tree nodes. The IR nodes are
- * then translated into the SSA form for optimizations and code generation.
- * Long-term, once the IR supports the full language, the backend can be
- * re-implemented to work directly on the IR.
- */
+typedef void IrBuilderCallback(Element element, ir.FunctionDefinition irNode);
+
+/// This task provides the interface to build IR nodes from [ast.Node]s, which
+/// is used from the [CpsFunctionCompiler] to generate code.
+///
+/// This class is mainly there to correctly measure how long building the IR
+/// takes.
 class IrBuilderTask extends CompilerTask {
-  final Map<Element, ir.FunctionDefinition> nodes =
-      <Element, ir.FunctionDefinition>{};
   final SourceInformationFactory sourceInformationFactory;
 
   String bailoutMessage = null;
 
-  IrBuilderTask(Compiler compiler, this.sourceInformationFactory)
+  /// If not null, this function will be called with for each
+  /// [ir.FunctionDefinition] node that has been built.
+  IrBuilderCallback builderCallback;
+
+  IrBuilderTask(Compiler compiler, this.sourceInformationFactory,
+      [this.builderCallback])
       : super(compiler);
 
   String get name => 'IR builder';
 
-  bool hasIr(Element element) => nodes.containsKey(element.implementation);
-
-  ir.FunctionDefinition getIr(ExecutableElement element) {
-    return nodes[element.implementation];
-  }
-
   ir.FunctionDefinition buildNode(AstElement element) {
-    return measure(() => _buildNode(element));
-  }
+    return measure(() {
+      bailoutMessage = null;
 
-  ir.FunctionDefinition _buildNode(AstElement element) {
-    bailoutMessage = null;
+      TreeElements elementsMapping = element.resolvedAst.elements;
+      element = element.implementation;
+      return compiler.withCurrentElement(element, () {
+        SourceInformationBuilder sourceInformationBuilder =
+            sourceInformationFactory.forContext(element);
 
-    TreeElements elementsMapping = element.resolvedAst.elements;
-    element = element.implementation;
-    return compiler.withCurrentElement(element, () {
-      SourceInformationBuilder sourceInformationBuilder =
-          sourceInformationFactory.forContext(element);
-
-      IrBuilderVisitor builder =
-          new JsIrBuilderVisitor(
-              elementsMapping, compiler, sourceInformationBuilder);
-      ir.FunctionDefinition irNode = builder.buildExecutable(element);
-      if (irNode == null) {
-        bailoutMessage = builder.bailoutMessage;
-      } else {
-        nodes[element] = irNode;
-      }
-      return irNode;
+        IrBuilderVisitor builder =
+            new JsIrBuilderVisitor(
+                elementsMapping, compiler, sourceInformationBuilder);
+        ir.FunctionDefinition irNode = builder.buildExecutable(element);
+        if (irNode == null) {
+          bailoutMessage = builder.bailoutMessage;
+        } else if (builderCallback != null) {
+          builderCallback(element, irNode);
+        }
+        return irNode;
+      });
     });
   }
-
-  void buildNodes() {
-    measure(() {
-      Set<Element> resolved = compiler.enqueuer.resolution.resolvedElements;
-      resolved.forEach(buildNode);
-    });
-  }
-
-  bool get inCheckedMode {
-    bool result = false;
-    assert((result = true));
-    return result;
-  }
-
 }
 
-/**
- * A tree visitor that builds [IrNodes]. The visit methods add statements using
- * to the [builder] and return the last added statement for trees that represent
- * an expression.
- */
+
+/// A tree visitor that builds [ir.Node]s.
+///
+/// The visit methods add statements using the [irBuilder] and return the last
+/// added statement for trees that represent expressions.
+///
 // TODO(johnniwinther): Implement [SemanticDeclVisitor].
 abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     with IrBuilderMixin<ast.Node>,

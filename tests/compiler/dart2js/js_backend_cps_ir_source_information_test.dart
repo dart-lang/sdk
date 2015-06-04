@@ -43,10 +43,6 @@ js.Node getJsNodeForElement(Compiler compiler, Element element) {
   return compiler.enqueuer.codegen.generatedCode[element];
 }
 
-ir.FunctionDefinition getIrNodeForElement(Compiler compiler, Element element) {
-  return compiler.irBuilder.getIr(element);
-}
-
 String getCodeForMethod(Compiler compiler, String name) {
   Element foundElement;
   for (Element element in compiler.enqueuer.codegen.generatedCode.keys) {
@@ -71,13 +67,23 @@ runTests(List<TestEntry> tests) {
     Map files = {TEST_MAIN_FILE: test.source};
     asyncTest(() {
       Compiler compiler = compilerFor(files, options: <String>['--use-cps-ir']);
+      ir.FunctionDefinition irNodeForMain;
+
+      void cacheIrNodeForMain(Element function, ir.FunctionDefinition irNode) {
+        if (function == compiler.mainFunction) {
+          assert(irNodeForMain == null);
+          irNodeForMain = irNode;
+        }
+      }
+
       Uri uri = Uri.parse('memory:$TEST_MAIN_FILE');
+      compiler.irBuilder.builderCallback = cacheIrNodeForMain;
+
       return compiler.run(uri).then((bool success) {
         Expect.isTrue(success);
 
-        ir.Node irNode = getIrNodeForElement(compiler, compiler.mainFunction);
         IrSourceInformationVisitor irVisitor = new IrSourceInformationVisitor();
-        irNode.accept(irVisitor);
+        irNodeForMain.accept(irVisitor);
 
         js.Node jsNode = getJsNodeForElement(compiler, compiler.mainFunction);
         JsSourceInformationVisitor jsVisitor = new JsSourceInformationVisitor();
@@ -90,7 +96,7 @@ runTests(List<TestEntry> tests) {
               'Expected:\n$expectation\n'
               'but found\n${irVisitor.sourceInformation}\n'
               'in\n${test.source}'
-              'CPS:\n${irNode.accept(new ir.SExpressionStringifier())}');
+              'CPS:\n${irNodeForMain.accept(new ir.SExpressionStringifier())}');
         Expect.listEquals(expectation, jsVisitor.sourceInformation,
               'Unexpected JS source information. '
               'Expected:\n$expectation\n'
