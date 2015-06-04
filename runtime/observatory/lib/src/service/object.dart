@@ -1487,6 +1487,14 @@ class ServiceEvent extends ServiceObject {
     if (map['breakpoint'] != null) {
       breakpoint = map['breakpoint'];
     }
+    // TODO(turnidge): Expose the full list of breakpoints.  For now
+    // we just pretend like there is only one active breakpoint.
+    if (map['pauseBreakpoints'] != null) {
+      var pauseBpts = map['pauseBreakpoints'];
+      if (pauseBpts.length > 0) {
+        breakpoint = pauseBpts[0];
+      }
+    }
     topFrame = map['topFrame'];
     if (map['exception'] != null) {
       exception = map['exception'];

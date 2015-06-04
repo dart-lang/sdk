@@ -699,6 +699,10 @@ class Object {
   RawObject* raw_;  // The raw object reference.
 
  protected:
+  void AddCommonObjectProperties(JSONObject* jsobj,
+                                 const char* protocol_type,
+                                 bool ref) const;
+
   virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;
 
  private:

@@ -64,11 +64,12 @@
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
-            <template repeat="{{ element in ref.elements }}">
+            <template repeat="{{ index in ref.elements.asMap().keys }}">
               <div class="memberItem">
-                <div class="memberName">[{{ element['index']}}]</div>
+                <div class="memberName">[{{ index }}]</div>
                 <div class="memberValue">
-                  <any-service-ref ref="{{ element['value'] }}"></any-service-ref>
+                  <any-service-ref ref="{{ ref.elements[index] }}">
+                  </any-service-ref>
                 </div>
               </div>
             </template>

@@ -96,8 +96,17 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   jsobj.AddProperty("type", "Event");
   jsobj.AddProperty("kind", EventTypeToCString(type()));
   jsobj.AddProperty("isolate", isolate());
-  if (breakpoint() != NULL) {
-    jsobj.AddProperty("breakpoint", breakpoint());
+  if (type() == kPauseBreakpoint) {
+    JSONArray jsarr(&jsobj, "pauseBreakpoints");
+    // TODO(rmacnak): If we are paused at more than one breakpoint,
+    // provide it here.
+    if (breakpoint() != NULL) {
+      jsarr.AddValue(breakpoint());
+    }
+  } else {
+    if (breakpoint() != NULL) {
+      jsobj.AddProperty("breakpoint", breakpoint());
+    }
   }
   if (top_frame() != NULL) {
     JSONObject jsFrame(&jsobj, "topFrame");

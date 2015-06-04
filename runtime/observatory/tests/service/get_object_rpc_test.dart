@@ -100,10 +100,9 @@ var tests = [
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['elements'].length, equals(3));
-    expect(result['elements'][0]['index'], equals(0));
-    expect(result['elements'][0]['value']['type'], equals('@Instance'));
-    expect(result['elements'][0]['value']['kind'], equals('Int'));
-    expect(result['elements'][0]['value']['valueAsString'], equals('3'));
+    expect(result['elements'][0]['type'], equals('@Instance'));
+    expect(result['elements'][0]['kind'], equals('Int'));
+    expect(result['elements'][0]['valueAsString'], equals('3'));
   },
 
   // A built-in Map.

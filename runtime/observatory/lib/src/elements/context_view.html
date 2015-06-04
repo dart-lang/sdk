@@ -47,11 +47,13 @@
           variables ({{ context.variables.length }})
           <curly-block expand="{{ context.variables.length <= 8 }}">
             <div class="memberList">
-              <template repeat="{{ variable in context.variables }}">
+              <template repeat="{{ index in context.variables.asMap().keys }}">
                 <div class="memberItem">
-                  <div class="memberName">[{{ variable['index']}}]</div>
+                  <div class="memberName">[{{ index }}]</div>
                   <div class="memberValue">
-                    <any-service-ref ref="{{ variable['value'] }}"></any-service-ref>
+                    <any-service-ref
+                       ref="{{ context.variables[index]{'value'] }}">
+                    </any-service-ref>
                   </div>
                 </div>
               </template>

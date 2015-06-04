@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 0.0
+# Dart VM Service Protocol 1.0 (Draft 1)
 
-This document describes _version 0.0_ of the Dart VM Service Protocol.
-This protocol is used to communicate with a running Dart Virtual
-Machine.
+This document describes _draft 1_ of _version 1.0_ of the Dart VM
+Service Protocol.  This protocol is used to communicate with a running
+Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
 The VM will start a webserver which services protocol requests via WebSocket.
@@ -11,7 +11,7 @@ but this does not allow access to VM _events_ and is not documented
 here.
 
 The Service Protocol is based on JSON-RPC 2.0
-(http://www.jsonrpc.org/specification).  The Service Protocol has been
+(http://www.jsonrpc.org/specification). The Service Protocol has been
 extended to support pushing _events_ to the client, which is
 apparently outside the scope of the JSON-RPC specification.
 
@@ -49,7 +49,10 @@ apparently outside the scope of the JSON-RPC specification.
 	- [ClassList](#classlist)
 	- [Code](#code)
 	- [CodeKind](#codekind)
+	- [Context](#context)
+	- [ContextElement](#contextelement)
 	- [Error](#error)
+	- [ErrorKind](#errorkind)
 	- [Event](#event)
 	- [EventKind](#eventkind)
 	- [Field](#field)
@@ -61,7 +64,7 @@ apparently outside the scope of the JSON-RPC specification.
 	- [Isolate](#isolate)
 	- [Library](#library)
 	- [LibraryDependency](#librarydependency)
-	- [ListElement](#listelement)
+	- [MapAssociation](#mapassociation)
 	- [Message](#message)
 	- [Null](#null)
 	- [Object](#object)
@@ -80,7 +83,7 @@ apparently outside the scope of the JSON-RPC specification.
 
 ## RPCs, Requests, and Responses
 
-An RPC request is a JSON object sent to the server.  Here is an
+An RPC request is a JSON object sent to the server. Here is an
 example [getVersion](#getversion) request:
 
 ```
@@ -92,11 +95,11 @@ example [getVersion](#getversion) request:
 }
 ```
 
-Currently the _id_ property must be a string.  The Service Protocol
+Currently the _id_ property must be a string. The Service Protocol
 optionally accepts requests without the _jsonprc_ property.
 
-An RPC response is a JSON object (http://json.org/).  The response always specifies an
-_id_ property to pair it with the corresponding request.  If the RPC
+An RPC response is a JSON object (http://json.org/). The response always specifies an
+_id_ property to pair it with the corresponding request. If the RPC
 was successful, the _result_ property provides the result.
 
 Here is an example response for our [getVersion](#getversion) request above:
@@ -106,7 +109,7 @@ Here is an example response for our [getVersion](#getversion) request above:
   "json-rpc": "2.0",
   "result": {
     "type": "Version",
-    "major": 0,
+    "major": 1,
     "minor": 0
   }
   "id": "1"
@@ -119,7 +122,7 @@ are not supported by the Dart VM.
 
 By convention, every response returned by the Service Protocol is a subtype
 of [Response](#response) and provides a _type_ paramters which can be used
-to distinguish the exact return type.  In the example above, the
+to distinguish the exact return type. In the example above, the
 [Version](#version) type is returned.
 
 Here is an example [streamListen](#streamlisten) request which provides
@@ -138,11 +141,11 @@ a parameter:
 
 <a name="rpc-error"></a>
 When an RPC encounters an error, it is provided in the _error_
-property of the response object.  JSON-RPC errors always provide
+property of the response object. JSON-RPC errors always provide
 _code_, _message_, and _data_ properties.
 
 Here is an example error response for our [streamListen](#streamlisten)
-request above.  This error would be generated if we were attempting to
+request above. This error would be generated if we were attempting to
 subscribe to the _GC_ stream multiple times from the same client.
 
 ```
@@ -177,11 +180,11 @@ code | message | meaning
 
 By using the [streamListen](#streamlisten) and [streamCancel](#streamcancel) RPCs, a client may
 request to be notified when an _event_ is posted to a specific
-_stream_ in the VM.  Every stream has an associated _stream id_ which
+_stream_ in the VM. Every stream has an associated _stream id_ which
 is used to name that stream.
 
-Each stream provides access to certain kinds of events.  For example the _Isolate_ stream provides
-access to events pertaining to isolate births, deaths, and name changes.  See [streamListen](#streamlisten)
+Each stream provides access to certain kinds of events. For example the _Isolate_ stream provides
+access to events pertaining to isolate births, deaths, and name changes. See [streamListen](#streamlisten)
 for a list of the well-known stream ids and their associated events.
 
 Events arrive asynchronously over the WebSocket and always have the
@@ -211,12 +214,12 @@ Clients should be written to handle this gracefully.
 
 By convention, every result and event provided by the Service Protocol
 is a subtype of [Response](#response) and has the _type_ property.
-This allows the client to distinguish different kinds of responses.  For example,
+This allows the client to distinguish different kinds of responses. For example,
 information about a Dart function is returned using the [Function](#function) type.
 
 If the type of a response begins with the _@_ character, then that
-response is a _reference_.  If the type name of a response does not
-begin with the _@_ character, it is the an _object_.  A reference is
+response is a _reference_. If the type name of a response does not
+begin with the _@_ character, it is the an _object_. A reference is
 intended to be a subset of an object which provides enough information
 to generate a reasonable looking reference to the object.
 
@@ -251,8 +254,8 @@ But an [Isolate](#isolate) object has more information:
 
 Many responses returned by the Service Protocol have an _id_ property.
 This is an identifier used to request an object from an isolate using
-the [getObject](#getobject) RPC.  If two responses have the same _id_ then they
-refer to the same object.  The converse is not true: the same object
+the [getObject](#getobject) RPC. If two responses have the same _id_ then they
+refer to the same object. The converse is not true: the same object
 may sometimes be returned with two different values for _id_.
 
 The _id_ property should be treated as an opaque string by the client:
@@ -260,65 +263,65 @@ it is not meant to be parsed.
 
 An id can be either _temporary_ or _fixed_:
 
-* A _temporary_ id can expire over time.  The VM allocates certain ids
+* A _temporary_ id can expire over time. The VM allocates certain ids
   in a ring which evicts old ids over time.
 
 * A _fixed_ id will never expire, but the object it refers to may
-  be collected.  The VM uses fixed ids for objects like scripts,
+  be collected. The VM uses fixed ids for objects like scripts,
   libraries, and classes.
 
 If an id is fixed, the _fixedId_ property will be true. If an id is temporary
 the _fixedId_ property will be omitted.
 
-Sometimes a temporary id may expire.  In this case, some RPCs may return
+Sometimes a temporary id may expire. In this case, some RPCs may return
 an _Expired_ [Sentinel](#sentinel) to indicate this.
 
 The object referred to by an id may be collected by the VM's garbage
-collector.  In this case, some RPCs may return a _Collected_ [Sentinel](#sentinel)
+collector. In this case, some RPCs may return a _Collected_ [Sentinel](#sentinel)
 to indicate this.
 
-Many objects also have a _name_ property.  This is provided so that
+Many objects also have a _name_ property. This is provided so that
 objects can be displayed in a way that a Dart language programmer
-would find familiar.  Names are not unique.
+would find familiar. Names are not unique.
 
 ## Versioning
 
 The [getVersion](#getversion) RPC can be used to find the version of the protocol
-returned by a VM.  The _Version_ response has a major and a minor
+returned by a VM. The _Version_ response has a major and a minor
 version number:
 
 ```
   "result": {
     "type": "Version",
-    "major": 0,
+    "major": 1,
     "minor": 0
   }
 ```
 
 The major version number is incremented when the protocol is changed
-in a potentially _incompatible_ way.  An example of an incompatible
+in a potentially _incompatible_ way. An example of an incompatible
 change is removing a non-optional property from a result.
 
 The minor version number is incremented when the protocol is changed
-in a _backwards compatible_ way.  An example of a backwards compatible
+in a _backwards compatible_ way. An example of a backwards compatible
 change is adding a property to a result.
 
 Certain changes that would normally not be backwards compatible are
 considered backwards compatible for the purposes of versioning.
 Specifically, additions can be made to the [EventKind](#eventkind) and
 [InstanceKind](#instancekind) enumerated types and the client must
-handle this gracefully.  See the notes on these enumerated types for more
+handle this gracefully. See the notes on these enumerated types for more
 information.
 
 ## Private RPCs, Types, and Properties
 
 Any RPC, type, or property which begins with an underscore is said to
-be _private_.  These RPCs, types, and fields can be changed at any
+be _private_. These RPCs, types, and fields can be changed at any
 time without changing major or minor version numbers.
 
 The intention is that the Service Protocol will evolve by adding
 private RPCs which may, over time, migrate to the public api as they
-become stable.  Some private types and properties expose VM specific
+become stable. Some private types and properties expose VM specific
 implementation state and will never be appropriate to add to
 the public api.
 
@@ -335,7 +338,7 @@ ReturnType methodName(parameterType1 parameterName1,
 ```
 
 If an RPC says it returns type _T_ it may actually return _T_ or any
-[subtype](#public-types) of _T_.  For example, an
+[subtype](#public-types) of _T_. For example, an
 RPC which is declared to return [@Instance](#instance) may actually
 return [@Int](#int).
 
@@ -348,7 +351,7 @@ ReturnType1|ReturnType2
 
 Any RPC may return an _error_ response as [described above](#rpc-error).
 
-Some parameters are optional.  This is indicated by the text
+Some parameters are optional. This is indicated by the text
 _[optional]_ following the parameter name:
 
 ```
@@ -428,7 +431,7 @@ reference will be returned.
 ```
 
 The _evaluateInFrame_ RPC is used to evaluate an expression in the
-context of a particular stack frame.  _frameIndex_ is the index of the
+context of a particular stack frame. _frameIndex_ is the index of the
 desired [Frame](#frame), with an index of _0_ indicating the top (most
 recent) frame.
 
@@ -486,7 +489,7 @@ Stack getStack(string isolateId)
 ```
 
 The _getStack_ RPC is used to retrieve the current execution stack and
-message queue for an isolate.  The isolate does not need to be paused.
+message queue for an isolate. The isolate does not need to be paused.
 
 See [Stack](#stack).
 
@@ -516,7 +519,7 @@ See [VM](#vm).
 Success pause(string isolateId)
 ```
 
-The _pause_ RPC is used to interrupt a running isolate.  The RPC enqueues the interrupt request and potentially returns before the isolate is paused.
+The _pause_ RPC is used to interrupt a running isolate. The RPC enqueues the interrupt request and potentially returns before the isolate is paused.
 
 When the isolate is paused an event will be sent on the _Debug_ stream.
 
@@ -601,7 +604,7 @@ See [Success](#success).
 Success streamListen(string streamId)
 ```
 
-The _streamListen_ RPC subscribes to a stream in the VM.  Once
+The _streamListen_ RPC subscribes to a stream in the VM. Once
 subscribed, the client will begin receiving events from the stream.
 
 If the client is not subscribed to the stream, the _103_ (Stream already
@@ -647,7 +650,7 @@ class T {
 
 This describes a JSON object type _T_ with some set of expected properties.
 
-Types are organized into an inheritance hierarchy.  If type _T_
+Types are organized into an inheritance hierarchy. If type _T_
 extends type _S_...
 
 ```
@@ -661,7 +664,7 @@ class T extends S {
 ```
 
 ...then that means that all properties of _S_ are also present in type
-_T_.  In the example above, type _T_ would have the expected
+_T_. In the example above, type _T_ would have the expected
 properties _a_ and _b_.
 
 If a property has an _Array_ type, it is written with brackets:
@@ -793,11 +796,11 @@ class Class extends Object {
   // A list of interface types for this class.
   @Type[] interfaces;
 
-  // A list of fields in this class.  Does not include fields from
+  // A list of fields in this class. Does not include fields from
   // superclasses.
   @Field[] fields;
 
-  // A list of functions in this class.  Does not include functions
+  // A list of functions in this class. Does not include functions
   // from superclasses.
   @Function[] functions;
 
@@ -869,7 +872,15 @@ class Context {
   int length;
 
   // The variables in this context object.
-  ListElement[] variables;
+  ContextElement[] variables;
+}
+```
+
+### ContextElement
+
+```
+class ContextElement {
+  @Instance|Sentinel value;
 }
 ```
 
@@ -877,6 +888,9 @@ class Context {
 
 ```
 class @Error extends @Object {
+  // What kind of error is this?
+  ErrorKind kind;
+
   // A description of the error.
   string message;
 }
@@ -886,6 +900,9 @@ _@Error_ is a reference to an _Error_.
 
 ```
 class Error extends Object {
+  // What kind of error is this?
+  ErrorKind kind;
+
   // A description of the error.
   string message;
 
@@ -899,15 +916,27 @@ class Error extends Object {
 }
 ```
 
-An _Error_ represents a Dart language level error.  This is distinct from an
+An _Error_ represents a Dart language level error. This is distinct from an
 [rpc error](#rpc-error).
 
-An error may occur when:
+### ErrorKind
 
-- The program has encountered an unhandled exception
-- The program has encountered a syntax error (or another Dart language error)
-- The program has encountered an unhandled erroneous condition in native code
-- The program has been terminated
+```
+enum ErrorKind {
+  // The isolate has encountered an unhandled Dart exception.
+  UnhandledException,
+
+  // The isolate has encountered a Dart language error in the program.
+  LanguageError,
+
+  // The isolate has encounted an internal error. These errors should be
+  // reported as bugs.
+  InternalError,
+
+  // The isolate has been terminated by an external source.
+  TerminationError
+}
+```
 
 ### Event
 
@@ -919,7 +948,7 @@ class Event extends Response {
   // The isolate with which this event is associated.
   @Isolate isolate;
 
-  // The breakpoint associated with this event, if applicable.
+  // The breakpoint which was added, removed, or resolved.
   //
   // This is provided for the event kinds:
   //   PauseBreakpoint
@@ -927,6 +956,19 @@ class Event extends Response {
   //   BreakpointRemoved
   //   BreakpointResolved
   Breakpoint breakpoint [optional];
+
+  // The list of breakpoints at which we are currently paused
+  // for a PauseBreakpoint event.
+  //
+  // This list may be empty. For example, while single-stepping, the
+  // VM sends a PauseBreakpoint event with no breakpoints.
+  //
+  // If there is more than one breakpoint set at the program position,
+  // then all of them will be provided.
+  //
+  // This is provided for the event kinds:
+  //   PauseBreakpoint
+  Breakpoint[] pauseBreakpoints [optional];
 
   // The top stack frame associated with this event, if applicable.
   //
@@ -946,7 +988,7 @@ class Event extends Response {
 }
 ```
 
-An _Event_ is an asynchronous notification from the VM.  It is delivered
+An _Event_ is an asynchronous notification from the VM. It is delivered
 only when the client has subscribed to an event stream using the
 [streamListen](#streamListen) RPC.
 
@@ -1000,7 +1042,7 @@ enum EventKind {
 ```
 
 Adding new values to _EventKind_ is considered a backwards compatible
-change.  Clients should ignore unrecognized events.
+change. Clients should ignore unrecognized events.
 
 ### Field
 
@@ -1161,7 +1203,7 @@ class @Instance extends @Object {
   // What kind of instance is this?
   InstanceKind kind;
 
-  // Instance references include their class.
+  // Instance references always include their class.
   @Class class;
 
   // The value of this instance as a string.
@@ -1174,7 +1216,7 @@ class @Instance extends @Object {
   //   String (value may be truncated)
   string valueAsString [optional];
 
-  // The valueAsString for String references may be truncated.  If so,
+  // The valueAsString for String references may be truncated. If so,
   // this property is added with the value 'true'.
   bool valueAsStringIsTruncated [optional];
 
@@ -1211,7 +1253,7 @@ class Instance extends Object {
   // What kind of instance is this?
   InstanceKind kind;
 
-  // Instance references include their class.
+  // Instance references always include their class.
   @Class class;
 
   // The value of this instance as a string.
@@ -1223,7 +1265,7 @@ class Instance extends Object {
   //   String (value may be truncated)
   string valueAsString [optional];
 
-  // The valueAsString for String references may be truncated.  If so,
+  // The valueAsString for String references may be truncated. If so,
   // this property is added with the value 'true'.
   bool valueAsStringIsTruncated [optional];
 
@@ -1258,7 +1300,7 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   List
-  ListElement[] elements [optional];
+  @Instance|Sentinel[] elements [optional];
 
   // The elements of a List instance.
   //
@@ -1309,8 +1351,8 @@ class Instance extends Object {
   int parameterIndex [optional];
 
   // The type bounded by a BoundedType instance
-  // or
-  // The referent of a TypeRef instance.
+  // - or -
+  // the referent of a TypeRef instance.
   //
   // The value will always be one of:
   // Type, TypeRef, TypeParameter, BoundedType.
@@ -1318,7 +1360,7 @@ class Instance extends Object {
   // Provided for instance kinds:
   //   BoundedType
   //   TypeRef
-  @Instance type [optional];
+  @Instance targetType [optional];
 
   // The bound of a TypeParameter or BoundedType.
   //
@@ -1356,15 +1398,15 @@ enum {
   // An instance of the Dart class String.
   String,
 
-  // An instance of the built-in VM List implementation.  User-defined
+  // An instance of the built-in VM List implementation. User-defined
   // Lists will be PlainInstance.
   List,
 
-  // An instance of the built-in VM Map implementation.  User-defined
+  // An instance of the built-in VM Map implementation. User-defined
   // Maps will be PlainInstance.
   Map,
 
-  // An instance of the built-in VM Closure implementation.  User-defined
+  // An instance of the built-in VM Closure implementation. User-defined
   // Closures will be PlainInstance.
   Closure,
 
@@ -1389,7 +1431,7 @@ enum {
 ```
 
 Adding new values to _InstanceKind_ is considered a backwards
-compatible change.  Clients should treat unrecognized instance kinds
+compatible change. Clients should treat unrecognized instance kinds
 as _PlainInstance_.
 
 ### Isolate
@@ -1399,10 +1441,10 @@ class @Isolate extends Response {
   // The id which is passed to the getIsolate RPC to load this isolate.
   string id;
 
-  // A numeric id for this isolate, represented as a string.  Unique.
+  // A numeric id for this isolate, represented as a string. Unique.
   string number;
 
-  // A name identifying this isolate.  Not guaranteed to be unique.
+  // A name identifying this isolate. Not guaranteed to be unique.
   string name;
 }
 ```
@@ -1415,10 +1457,10 @@ class Isolate extends Response {
   // isolate.
   string id;
 
-  // A numeric id for this isolate, represented as a string.  Unique.
+  // A numeric id for this isolate, represented as a string. Unique.
   string number;
 
-  // A name identifying this isolate.  Not guaranteed to be unique.
+  // A name identifying this isolate. Not guaranteed to be unique.
   string name;
 
   // The time that the VM started in milliseconds since the epoch.
@@ -1435,7 +1477,7 @@ class Isolate extends Response {
   // Will this isolate pause when exiting?
   bool pauseOnExit;
 
-  // The last pause event delivered to the isolate.  If the isolate is
+  // The last pause event delivered to the isolate. If the isolate is
   // running, this will be a resume event.
   Event pauseEvent;
 
@@ -1521,15 +1563,6 @@ class LibraryDependency {
 
 A _LibraryDependency_ provides information about an import or export.
 
-### ListElement
-
-```
-class ListElement {
-  int index;
-  @Instance|Sentinel value;
-}
-```
-
 ### MapAssociation
 
 ```
@@ -1576,7 +1609,7 @@ A _Null_ object represents the Dart language value null.
 
 ```
 class @Object extends Response {
-  // A unique identifier for an Object.  Passed to the
+  // A unique identifier for an Object. Passed to the
   // getObject RPC to load this Object.
   string id
 }
@@ -1586,19 +1619,30 @@ _@Object_ is a reference to a _Object_.
 
 ```
 class Object extends Response {
-  // A unique identifier for an Object.  Passed to the
+  // A unique identifier for an Object. Passed to the
   // getObject RPC to reload this Object.
   //
   // Some objects may get a new id when they are reloaded.
   string id;
 
-  // Every object has a corresponding Class in the VM.
-  @Class class;
+  // If an object is allocated in the Dart heap, it will have
+  // a corresponding class object.
+  //
+  // The class of a non-instance is not a Dart class, but is instead
+  // an internal vm object.
+  //
+  // Moving an Object into or out of the heap is considered a
+  // backwards compatible change for types other than Instance.
+  @Class class [optional];
 
   // The size of this object in the heap.
   //
-  // Note that the size can be zero for some objects.
-  int size;
+  // If an object is not heap-allocated, then this field is omitted.
+  //
+  // Note that the size can be zero for some objects. In the current
+  // VM implementation, this occurs for small integers, which are
+  // stored entirely within their object pointers.
+  int size [optional];
 }
 ```
 
@@ -1619,7 +1663,7 @@ class Sentinel extends Response {
 A _Sentinel_ is used to indicate that the normal response is not available.
 
 We use a _Sentinel_ instead of an [error](#errors) for these cases because
-they do not represent a problematic condition.  They are normal.
+they do not represent a problematic condition. They are normal.
 
 ### SentinelKind
 
@@ -1648,7 +1692,7 @@ enum SentinelKind {
 A _SentinelKind_ is used to distinguish different kinds of _Sentinel_ objects.
 
 Adding new values to _SentinelKind_ is considered a backwards
-compatible change.  Clients must handle this gracefully.
+compatible change. Clients must handle this gracefully.
 
 ### Script
 
@@ -1669,7 +1713,7 @@ class Script extends Object {
   // The library which owns this script.
   @Library library;
 
-  // The source code for this script.  For certain built-in scripts,
+  // The source code for this script. For certain built-in scripts,
   // this may be reconstructed without source comments.
   string source;
 
@@ -1680,7 +1724,7 @@ class Script extends Object {
 
 A _Script_ provides information about a Dart language script.
 
-The _tokenPosTable_ is an array of int arrays.  Each subarray
+The _tokenPosTable_ is an array of int arrays. Each subarray
 consists of a line number followed by _(tokenPos, columnNumber)_ pairs:
 
 > [lineNumber, (tokenPos, columnNumber)*]
@@ -1774,7 +1818,7 @@ instantiated generic type.
 ```
 class Response {
   // Every response returned by the VM Service has the
-  // type property.  This allows the client distinguish
+  // type property. This allows the client distinguish
   // between different kinds of responses.
   string type;
 }
@@ -1833,4 +1877,4 @@ class VM extends Response {
 
 version | comments
 ------- | --------
-0.0 | draft
+1.0 draft 1 | initial revision
