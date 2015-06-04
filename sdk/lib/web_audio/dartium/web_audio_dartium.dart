@@ -1,3 +1,6 @@
+/**
+ * High-fidelity audio programming in the browser.
+ */
 library dart.dom.web_audio;
 
 import 'dart:async';
