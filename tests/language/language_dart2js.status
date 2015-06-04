@@ -850,6 +850,7 @@ regress_23498_test: Crash #  cannot handle async/sync*/async* functions
 regress_23500_test/01: Crash #  cannot handle async/sync*/async* functions
 regress_23500_test/02: Crash #  cannot handle async/sync*/async* functions
 regress_23500_test/none: Crash #  cannot handle async/sync*/async* functions
+regress_23537_test: Crash # try/finally
 reify_typevar_static_test/01: Crash # Please triage this failure.
 return_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 side_effect_throw_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
