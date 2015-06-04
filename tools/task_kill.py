@@ -172,7 +172,9 @@ def Kill(name):
 
 def KillBrowsers():
   status = Kill('firefox')
-  status += Kill('chrome')
+  # We don't give error on killing chrome. It happens quite often that the
+  # browser controller fails in killing chrome, so we silently do it here.
+  Kill('chrome')
   status += Kill('iexplore')
   status += Kill('safari')
   status += Kill('content_shell')
