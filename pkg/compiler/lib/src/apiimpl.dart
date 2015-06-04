@@ -5,6 +5,7 @@
 library leg_apiimpl;
 
 import 'dart:async';
+import 'dart:convert';
 
 import '../compiler.dart' as api;
 import 'dart2jslib.dart' as leg;
@@ -13,6 +14,10 @@ import 'elements/elements.dart' as elements;
 import 'package:_internal/libraries.dart' hide LIBRARIES;
 import 'package:_internal/libraries.dart' as library_info show LIBRARIES;
 import 'io/source_file.dart';
+import 'package:package_config/packages.dart';
+import 'package:package_config/packages_file.dart' as pkgs;
+import 'package:package_config/src/packages_impl.dart'
+    show NonFilePackagesDirectoryPackages, MapPackages;
 
 const bool forceIncrementalSupport =
     const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');
@@ -21,7 +26,10 @@ class Compiler extends leg.Compiler {
   api.CompilerInputProvider provider;
   api.DiagnosticHandler handler;
   final Uri libraryRoot;
+  final Uri packageConfig;
   final Uri packageRoot;
+  final api.PackagesDiscoveryProvider packagesDiscoveryProvider;
+  Packages packages;
   List<String> options;
   Map<String, dynamic> environment;
   bool mockableLibraryUsed = false;
@@ -29,6 +37,7 @@ class Compiler extends leg.Compiler {
 
   leg.GenericTask userHandlerTask;
   leg.GenericTask userProviderTask;
+  leg.GenericTask userPackagesDiscoveryTask;
 
   Compiler(this.provider,
            api.CompilerOutputProvider outputProvider,
@@ -36,7 +45,9 @@ class Compiler extends leg.Compiler {
            this.libraryRoot,
            this.packageRoot,
            List<String> options,
-           this.environment)
+           this.environment,
+           [this.packageConfig,
+            this.packagesDiscoveryProvider])
       : this.options = options,
         this.allowedLibraryCategories = getAllowedLibraryCategories(options),
         super(
@@ -95,6 +106,8 @@ class Compiler extends leg.Compiler {
     tasks.addAll([
         userHandlerTask = new leg.GenericTask('Diagnostic handler', this),
         userProviderTask = new leg.GenericTask('Input provider', this),
+        userPackagesDiscoveryTask =
+            new leg.GenericTask('Package discovery', this),
     ]);
     if (libraryRoot == null) {
       throw new ArgumentError("[libraryRoot] is null.");
@@ -102,10 +115,11 @@ class Compiler extends leg.Compiler {
     if (!libraryRoot.path.endsWith("/")) {
       throw new ArgumentError("[libraryRoot] must end with a /.");
     }
-    if (packageRoot == null) {
-      throw new ArgumentError("[packageRoot] is null.");
+    if (packageRoot != null && packageConfig != null) {
+      throw new ArgumentError("Only one of [packageRoot] or [packageConfig] "
+                              "may be given.");
     }
-    if (!packageRoot.path.endsWith("/")) {
+    if (packageRoot != null && !packageRoot.path.endsWith("/")) {
       throw new ArgumentError("[packageRoot] must end with a /.");
     }
     if (!analyzeOnly) {
@@ -159,8 +173,7 @@ class Compiler extends leg.Compiler {
 
   // TODO(johnniwinther): Merge better with [translateDartUri] when
   // [scanBuiltinLibrary] is removed.
-  String lookupLibraryPath(String dartLibraryName) {
-    LibraryInfo info = lookupLibraryInfo(dartLibraryName);
+  String lookupLibraryPath(LibraryInfo info) {
     if (info == null) return null;
     if (!info.isDart2jsLibrary) return null;
     if (!allowedLibraryCategories.contains(info.category)) return null;
@@ -284,7 +297,7 @@ class Compiler extends leg.Compiler {
   Uri translateDartUri(elements.LibraryElement importingLibrary,
                        Uri resolvedUri, tree.Node node) {
     LibraryInfo libraryInfo = lookupLibraryInfo(resolvedUri.path);
-    String path = lookupLibraryPath(resolvedUri.path);
+    String path = lookupLibraryPath(libraryInfo);
     if (libraryInfo != null &&
         libraryInfo.category == "Internal") {
       bool allowInternalLibraryAccess = false;
@@ -332,25 +345,49 @@ class Compiler extends leg.Compiler {
   }
 
   Uri translatePackageUri(leg.Spannable node, Uri uri) {
-    return packageRoot.resolve(uri.path);
+    return packages.resolve(uri);
   }
 
-  Future<bool> run(Uri uri) {
-    log('Allowed library categories: $allowedLibraryCategories');
-    return super.run(uri).then((bool success) {
-      int cumulated = 0;
-      for (final task in tasks) {
-        int elapsed = task.timing;
-        if (elapsed != 0) {
-          cumulated += elapsed;
-          log('${task.name} took ${elapsed}msec');
-        }
+  Future setupPackages(Uri uri) async {
+    if (packageRoot != null) {
+      // Use "non-file" packages because the file version requires a [Directory]
+      // and we can't depend on 'dart:io' classes.
+      packages = new NonFilePackagesDirectoryPackages(packageRoot);
+    } else if (packageConfig != null) {
+      var packageConfigContents = await provider(packageConfig);
+      if (packageConfigContents is String) {
+        packageConfigContents = UTF8.encode(packageConfigContents);
       }
-      int total = totalCompileTime.elapsedMilliseconds;
-      log('Total compile-time ${total}msec;'
-          ' unaccounted ${total - cumulated}msec');
-      return success;
-    });
+      packages =
+          new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
+    } else {
+      if (packagesDiscoveryProvider == null) {
+        packages = Packages.noPackages;
+      } else {
+        packages = await callUserPackagesDiscovery(uri);
+      }
+    }
+  }
+
+  Future<bool> run(Uri uri) async {
+    log('Allowed library categories: $allowedLibraryCategories');
+
+    await setupPackages(uri);
+    assert(packages != null);
+
+    bool success = await super.run(uri);
+    int cumulated = 0;
+    for (final task in tasks) {
+      int elapsed = task.timing;
+      if (elapsed != 0) {
+        cumulated += elapsed;
+        log('${task.name} took ${elapsed}msec');
+      }
+    }
+    int total = totalCompileTime.elapsedMilliseconds;
+    log('Total compile-time ${total}msec;'
+        ' unaccounted ${total - cumulated}msec');
+    return success;
   }
 
   void reportDiagnostic(leg.Spannable node,
@@ -395,6 +432,16 @@ class Compiler extends leg.Compiler {
       return userProviderTask.measure(() => provider(uri));
     } catch (ex, s) {
       diagnoseCrashInUserCode('Uncaught exception in input provider', ex, s);
+      rethrow;
+    }
+  }
+
+  Future<Packages> callUserPackagesDiscovery(Uri uri) {
+    try {
+      return userPackagesDiscoveryTask.measure(
+                 () => packagesDiscoveryProvider(uri));
+    } catch (ex, s) {
+      diagnoseCrashInUserCode('Uncaught exception in package discovery', ex, s);
       rethrow;
     }
   }

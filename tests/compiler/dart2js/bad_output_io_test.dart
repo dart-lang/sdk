@@ -55,7 +55,8 @@ class CollectingFormattingDiagnosticHandler
 }
 
 testOutputProvider(script, libraryRoot, packageRoot, inputProvider, handler,
-                   [options, outputProvider, environment]) {
+                   [options, outputProvider, environment, packageConfig,
+                    findPackages]) {
   diagnosticHandler = new CollectingFormattingDiagnosticHandler();
   outputProvider("/non/existing/directory/should/fail/file", "js");
 }
