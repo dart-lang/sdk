@@ -3367,8 +3367,8 @@ abstract class ExecutableElement implements Element {
   List<FunctionElement> get functions;
 
   /**
-   * Return `true` if this executable element is abstract.
-   * Executable elements are abstract if they are not external and have no body.
+   * Return `true` if this executable element is abstract. Executable elements
+   * are abstract if they are not external and have no body.
    */
   bool get isAbstract;
 
@@ -3377,6 +3377,13 @@ abstract class ExecutableElement implements Element {
    * asynchronous.
    */
   bool get isAsynchronous;
+
+  /**
+   * Return `true` if this executable element is external. Executable elements
+   * are external if they are explicitly marked as such using the 'external'
+   * keyword.
+   */
+  bool get isExternal;
 
   /**
    * Return `true` if this executable element has a body marked as being a
@@ -3489,10 +3496,17 @@ abstract class ExecutableElementImpl extends ElementImpl
   ExecutableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   /**
-   * Set whether this method's body is asynchronous.
+   * Set whether this executable element's body is asynchronous.
    */
   void set asynchronous(bool isAsynchronous) {
     setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
+  }
+
+  /**
+   * Set whether this executable element is external.
+   */
+  void set external(bool isExternal) {
+    setModifier(Modifier.EXTERNAL, isExternal);
   }
 
   @override
@@ -3521,6 +3535,9 @@ abstract class ExecutableElementImpl extends ElementImpl
 
   @override
   bool get isAsynchronous => hasModifier(Modifier.ASYNCHRONOUS);
+
+  @override
+  bool get isExternal => hasModifier(Modifier.EXTERNAL);
 
   @override
   bool get isGenerator => hasModifier(Modifier.GENERATOR);
@@ -3679,6 +3696,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   bool get isAsynchronous => baseElement.isAsynchronous;
+
+  @override
+  bool get isExternal => baseElement.isExternal;
 
   @override
   bool get isGenerator => baseElement.isGenerator;
@@ -7968,80 +7988,85 @@ class Modifier extends Enum<Modifier> {
   static const Modifier ENUM = const Modifier('ENUM', 4);
 
   /**
+   * Indicates that a class element was defined by an enum declaration.
+   */
+  static const Modifier EXTERNAL = const Modifier('EXTERNAL', 5);
+
+  /**
    * Indicates that the modifier 'factory' was applied to the element.
    */
-  static const Modifier FACTORY = const Modifier('FACTORY', 5);
+  static const Modifier FACTORY = const Modifier('FACTORY', 6);
 
   /**
    * Indicates that the modifier 'final' was applied to the element.
    */
-  static const Modifier FINAL = const Modifier('FINAL', 6);
+  static const Modifier FINAL = const Modifier('FINAL', 7);
 
   /**
    * Indicates that an executable element has a body marked as being a
    * generator.
    */
-  static const Modifier GENERATOR = const Modifier('GENERATOR', 7);
+  static const Modifier GENERATOR = const Modifier('GENERATOR', 8);
 
   /**
    * Indicates that the pseudo-modifier 'get' was applied to the element.
    */
-  static const Modifier GETTER = const Modifier('GETTER', 8);
+  static const Modifier GETTER = const Modifier('GETTER', 9);
 
   /**
    * A flag used for libraries indicating that the defining compilation unit
    * contains at least one import directive whose URI uses the "dart-ext"
    * scheme.
    */
-  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 9);
+  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 10);
 
   /**
    * Indicates that a class can validly be used as a mixin.
    */
-  static const Modifier MIXIN = const Modifier('MIXIN', 10);
+  static const Modifier MIXIN = const Modifier('MIXIN', 11);
 
   /**
    * Indicates that a class is a mixin application.
    */
   static const Modifier MIXIN_APPLICATION =
-      const Modifier('MIXIN_APPLICATION', 11);
+      const Modifier('MIXIN_APPLICATION', 12);
 
   /**
    * Indicates that an error has reported explaining why this class is an
    * invalid mixin application.
    */
   static const Modifier MIXIN_ERRORS_REPORTED =
-      const Modifier('MIXIN_ERRORS_REPORTED', 12);
+      const Modifier('MIXIN_ERRORS_REPORTED', 13);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated
    * within the context.
    */
   static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT =
-      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 13);
+      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 14);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated
    * within the scope.
    */
   static const Modifier POTENTIALLY_MUTATED_IN_SCOPE =
-      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 14);
+      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 15);
 
   /**
    * Indicates that a class contains an explicit reference to 'super'.
    */
   static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 15);
+      const Modifier('REFERENCES_SUPER', 16);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 16);
+  static const Modifier SETTER = const Modifier('SETTER', 17);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 17);
+  static const Modifier STATIC = const Modifier('STATIC', 18);
 
   /**
    * Indicates that the element does not appear in the source code but was
@@ -8049,7 +8074,7 @@ class Modifier extends Enum<Modifier> {
    * constructors, an implicit zero-argument constructor will be created and it
    * will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 19);
 
   static const List<Modifier> values = const [
     ABSTRACT,
@@ -8057,6 +8082,7 @@ class Modifier extends Enum<Modifier> {
     CONST,
     DEFERRED,
     ENUM,
+    EXTERNAL,
     FACTORY,
     FINAL,
     GENERATOR,

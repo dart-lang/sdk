@@ -521,6 +521,9 @@ abstract class ExecutableElementHandle extends ElementHandle
   bool get isAsynchronous => actualElement.isAsynchronous;
 
   @override
+  bool get isExternal => actualElement.isExternal;
+
+  @override
   bool get isGenerator => actualElement.isGenerator;
 
   @override

@@ -2532,6 +2532,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier constructorName = node.name;
     ConstructorElementImpl element =
         new ConstructorElementImpl.forNode(constructorName);
+    if (node.externalKeyword != null) {
+      element.external = true;
+    }
     if (node.factoryKeyword != null) {
       element.factory = true;
     }
@@ -2691,6 +2694,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
+        if (node.externalKeyword != null) {
+          element.external = true;
+        }
         element.functions = holder.functions;
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
@@ -2730,6 +2736,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            getter.external = true;
+          }
           getter.functions = holder.functions;
           getter.labels = holder.labels;
           getter.localVariables = holder.localVariables;
@@ -2749,6 +2758,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            setter.external = true;
+          }
           setter.functions = holder.functions;
           setter.labels = holder.labels;
           setter.localVariables = holder.localVariables;
@@ -2900,6 +2912,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         MethodElementImpl element =
             new MethodElementImpl(nameOfMethod, methodName.offset);
         element.abstract = node.isAbstract;
+        if (node.externalKeyword != null) {
+          element.external = true;
+        }
         element.functions = holder.functions;
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
@@ -2928,6 +2943,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            getter.external = true;
+          }
           getter.functions = holder.functions;
           getter.labels = holder.labels;
           getter.localVariables = holder.localVariables;
@@ -2947,6 +2965,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            setter.external = true;
+          }
           setter.functions = holder.functions;
           setter.labels = holder.labels;
           setter.localVariables = holder.localVariables;
