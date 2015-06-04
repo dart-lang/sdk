@@ -3,7 +3,7 @@ var core = dart.import(core);
 (function(exports, core) {
   'use strict';
   function bootstrap() {
-    return dart.setType([new Foo()], core.List$(Foo));
+    return dart.list([new Foo()], Foo);
   }
   dart.fn(bootstrap, () => dart.functionType(core.List$(Foo), []));
   let A2B$ = dart.generic(function(A, B) {
@@ -17,7 +17,7 @@ var core = dart.import(core);
   dart.fn(id, () => dart.functionType(A2B$(Foo, Foo), [A2B$(Foo, Foo)]));
   class Foo extends core.Object {}
   function main() {
-    core.print(bootstrap()[core.$get](0));
+    core.print(bootstrap()[dartx.get](0));
   }
   dart.fn(main, dart.void, []);
   // Exports:

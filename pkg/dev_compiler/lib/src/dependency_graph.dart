@@ -520,14 +520,11 @@ const corelibOrder = const [
   'dart.typed_data',
   'dart._isolate_helper',
   'dart._js_primitives',
-  'dart.convert',
-
-  // TODO(jmesserly): add others
-  /*
-  'dart._foreign_helper',
   'dart._interceptors',
+  'dart.convert',
   'dart._native_typed_data',
-  */
+  // _foreign_helper is not included, as it only defines the JS builtin that
+  // the compiler handles at compile time.
 ];
 
 /// Runtime files added to applications when running in server mode.

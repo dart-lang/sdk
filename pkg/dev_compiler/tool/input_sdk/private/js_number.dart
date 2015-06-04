@@ -341,6 +341,9 @@ class JSNumber extends Interceptor implements num {
  * while we want to treat `2.0` as an integer for some operations, its
  * interceptor should answer `true` to `is double`.
  */
+// TODO(jmesserly): for dev_compiler all numbers will get `int` members at
+// runtime for dynamic dispatch. We can fix by checking it at dispatch time.
+@JsPeerInterface(name: 'Number')
 class JSInt extends JSNumber implements int, double {
   const JSInt();
 

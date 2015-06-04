@@ -105,21 +105,21 @@ var async = dart.import(async);
     }
     serializeArray(x) {
       let serialized = [];
-      serialized[core.$length] = x[core.$length];
-      for (let i = 0; dart.notNull(i) < dart.notNull(x[core.$length]); i = dart.notNull(i) + 1) {
-        serialized[core.$set](i, this.serialize(x[core.$get](i)));
+      serialized.length = x.length;
+      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
+        serialized[dartx.set](i, this.serialize(x[dartx.get](i)));
       }
       return serialized;
     }
     serializeArrayInPlace(x) {
-      for (let i = 0; dart.notNull(i) < dart.notNull(x[core.$length]); i = dart.notNull(i) + 1) {
-        x[core.$set](i, this.serialize(x[core.$get](i)));
+      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
+        x[dartx.set](i, this.serialize(x[dartx.get](i)));
       }
       return x;
     }
     serializeMap(x) {
       let serializeTearOff = dart.bind(this, 'serialize');
-      return ['map', x.keys[core.$map](dart.as(serializeTearOff, __CastType0))[core.$toList](), x.values[core.$map](dart.as(serializeTearOff, dart.functionType(core.Object, [dart.bottom])))[core.$toList]()];
+      return ['map', x.keys[dartx.map](dart.as(serializeTearOff, __CastType0))[dartx.toList](), x.values[dartx.map](dart.as(serializeTearOff, dart.functionType(core.Object, [dart.bottom])))[dartx.toList]()];
     }
     serializeJSObject(x) {
       if (!!x.constructor && x.constructor !== Object) {
@@ -127,9 +127,9 @@ var async = dart.import(async);
       }
       let keys = dart.as(Object.keys(x), core.List);
       let values = [];
-      values[core.$length] = keys[core.$length];
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
-        values[core.$set](i, this.serialize(x[keys[core.$get](i)]));
+      values.length = keys.length;
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+        values[dartx.set](i, this.serialize(x[keys[dartx.get](i)]));
       }
       return ['js-object', keys, values];
     }
@@ -266,48 +266,48 @@ var async = dart.import(async);
     deserializeRef(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'ref'));
       let serializationId = dart.as(dart.dindex(x, 1), core.int);
-      return this.deserializedObjects[core.$get](serializationId);
+      return this.deserializedObjects[dartx.get](serializationId);
     }
     deserializeByteBuffer(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'buffer'));
       let result = dart.as(dart.dindex(x, 1), _native_typed_data.NativeByteBuffer);
-      this.deserializedObjects[core.$add](result);
+      this.deserializedObjects[dartx.add](result);
       return result;
     }
     deserializeTypedData(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'typed'));
       let result = dart.as(dart.dindex(x, 1), _native_typed_data.NativeTypedData);
-      this.deserializedObjects[core.$add](result);
+      this.deserializedObjects[dartx.add](result);
       return result;
     }
     deserializeArrayInPlace(x) {
-      for (let i = 0; dart.notNull(i) < dart.notNull(x[core.$length]); i = dart.notNull(i) + 1) {
-        x[core.$set](i, this.deserialize(x[core.$get](i)));
+      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
+        x[dartx.set](i, this.deserialize(x[dartx.get](i)));
       }
       return x;
     }
     deserializeFixed(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'fixed'));
       let result = dart.as(dart.dindex(x, 1), core.List);
-      this.deserializedObjects[core.$add](result);
+      this.deserializedObjects[dartx.add](result);
       return _interceptors.JSArray.markFixed(this.deserializeArrayInPlace(dart.as(result, _interceptors.JSArray)));
     }
     deserializeExtendable(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'extendable'));
       let result = dart.as(dart.dindex(x, 1), core.List);
-      this.deserializedObjects[core.$add](result);
+      this.deserializedObjects[dartx.add](result);
       return _interceptors.JSArray.markGrowable(this.deserializeArrayInPlace(dart.as(result, _interceptors.JSArray)));
     }
     deserializeMutable(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'mutable'));
       let result = dart.as(dart.dindex(x, 1), core.List);
-      this.deserializedObjects[core.$add](result);
+      this.deserializedObjects[dartx.add](result);
       return this.deserializeArrayInPlace(dart.as(result, _interceptors.JSArray));
     }
     deserializeConst(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'const'));
       let result = dart.as(dart.dindex(x, 1), core.List);
-      this.deserializedObjects[core.$add](result);
+      this.deserializedObjects[dartx.add](result);
       return _interceptors.JSArray.markFixed(this.deserializeArrayInPlace(dart.as(result, _interceptors.JSArray)));
     }
     deserializeMap(x) {
@@ -315,10 +315,10 @@ var async = dart.import(async);
       let keys = dart.as(dart.dindex(x, 1), core.List);
       let values = dart.as(dart.dindex(x, 2), core.List);
       let result = dart.map();
-      this.deserializedObjects[core.$add](result);
-      keys = keys[core.$map](dart.bind(this, 'deserialize'))[core.$toList]();
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
-        result.set(keys[core.$get](i), this.deserialize(values[core.$get](i)));
+      this.deserializedObjects[dartx.add](result);
+      keys = keys[dartx.map](dart.bind(this, 'deserialize'))[dartx.toList]();
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+        result.set(keys[dartx.get](i), this.deserialize(values[dartx.get](i)));
       }
       return result;
     }
@@ -339,13 +339,13 @@ var async = dart.import(async);
       } else {
         result = new _WorkerSendPort(managerId, isolateId, receivePortId);
       }
-      this.deserializedObjects[core.$add](result);
+      this.deserializedObjects[dartx.add](result);
       return result;
     }
     deserializeRawSendPort(x) {
       dart.assert(dart.equals(dart.dindex(x, 0), 'raw sendport'));
       let result = dart.as(dart.dindex(x, 1), isolate.SendPort);
-      this.deserializedObjects[core.$add](result);
+      this.deserializedObjects[dartx.add](result);
       return result;
     }
     deserializeJSObject(x) {
@@ -353,9 +353,9 @@ var async = dart.import(async);
       let keys = dart.as(dart.dindex(x, 1), core.List);
       let values = dart.as(dart.dindex(x, 2), core.List);
       let o = {};
-      this.deserializedObjects[core.$add](o);
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
-        o[keys[core.$get](i)] = this.deserialize(values[core.$get](i));
+      this.deserializedObjects[dartx.add](o);
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+        o[keys[dartx.get](i)] = this.deserialize(values[dartx.get](i));
       }
       return o;
     }
@@ -363,7 +363,7 @@ var async = dart.import(async);
       dart.assert(dart.equals(dart.dindex(x, 0), 'function'));
       let name = dart.as(dart.dindex(x, 1), core.String);
       let result = dart.as(IsolateNatives._getJSFunctionFromName(name), core.Function);
-      this.deserializedObjects[core.$add](result);
+      this.deserializedObjects[dartx.add](result);
       return result;
     }
     deserializeDartObject(x) {
@@ -373,7 +373,7 @@ var async = dart.import(async);
       let instanceFromClassId = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INSTANCE_FROM_CLASS_ID);
       let initializeObject = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INITIALIZE_EMPTY_INSTANCE);
       let emptyInstance = instanceFromClassId(classId);
-      this.deserializedObjects[core.$add](emptyInstance);
+      this.deserializedObjects[dartx.add](emptyInstance);
       this.deserializeArrayInPlace(dart.as(fields, _interceptors.JSArray));
       return initializeObject(classId, emptyInstance, fields);
     }
@@ -553,7 +553,7 @@ var async = dart.import(async);
       this.controlPort = new RawReceivePortImpl._controlPort();
       this.pauseCapability = isolate.Capability.new();
       this.terminateCapability = isolate.Capability.new();
-      this.delayedEvents = dart.setType([], core.List$(_IsolateEvent));
+      this.delayedEvents = dart.list([], _IsolateEvent);
       this.pauseTokens = core.Set$(isolate.Capability).new();
       this.errorPorts = core.Set$(isolate.SendPort).new();
       this.initialized = false;
@@ -576,9 +576,9 @@ var async = dart.import(async);
       if (!dart.notNull(this.isPaused))
         return;
       this.pauseTokens.remove(resume);
-      if (this.pauseTokens[core.$isEmpty]) {
-        while (this.delayedEvents[core.$isNotEmpty]) {
-          let event = this.delayedEvents[core.$removeLast]();
+      if (this.pauseTokens.isEmpty) {
+        while (this.delayedEvents[dartx.isNotEmpty]) {
+          let event = this.delayedEvents[dartx.removeLast]();
           exports._globalState.topEventLoop.prequeue(event);
         }
         this.isPaused = false;
@@ -646,7 +646,7 @@ var async = dart.import(async);
       this.errorPorts.remove(port);
     }
     handleUncaughtError(error, stackTrace) {
-      if (this.errorPorts[core.$isEmpty]) {
+      if (this.errorPorts.isEmpty) {
         if (dart.notNull(this.errorsAreFatal) && dart.notNull(core.identical(this, exports._globalState.rootContext))) {
           return;
         }
@@ -660,8 +660,8 @@ var async = dart.import(async);
         return;
       }
       let message = core.List.new(2);
-      message[core.$set](0, dart.toString(error));
-      message[core.$set](1, stackTrace == null ? null : dart.toString(stackTrace));
+      message[dartx.set](0, dart.toString(error));
+      message[dartx.set](1, stackTrace == null ? null : dart.toString(stackTrace));
       for (let port of this.errorPorts)
         port.send(message);
     }
@@ -767,7 +767,7 @@ var async = dart.import(async);
       this[_addRegistration](portId, port);
     }
     [_updateGlobalState]() {
-      if (dart.notNull(this.ports.length) - dart.notNull(this.weakPorts[core.$length]) > 0 || dart.notNull(this.isPaused) || !dart.notNull(this.initialized)) {
+      if (dart.notNull(this.ports.length) - dart.notNull(this.weakPorts.length) > 0 || dart.notNull(this.isPaused) || !dart.notNull(this.initialized)) {
         exports._globalState.isolates.set(this.id, this);
       } else {
         this.kill();
@@ -836,7 +836,7 @@ var async = dart.import(async);
       this.events.addFirst(event);
     }
     dequeue() {
-      if (this.events[core.$isEmpty])
+      if (this.events.isEmpty)
         return null;
       return this.events.removeFirst();
     }
@@ -903,7 +903,7 @@ var async = dart.import(async);
     }
     process() {
       if (this.isolate.isPaused) {
-        this.isolate.delayedEvents[core.$add](this);
+        this.isolate.delayedEvents[dartx.add](this);
         return;
       }
       this.isolate.eval(this.fn);
@@ -1104,7 +1104,7 @@ var async = dart.import(async);
       return IsolateNatives.spawn(null, dart.toString(uri), args, message, isLight, isSpawnUri, startPaused);
     }
     static spawn(functionName, uri, args, message, isLight, isSpawnUri, startPaused) {
-      if (uri != null && dart.notNull(uri.endsWith(".dart"))) {
+      if (uri != null && dart.notNull(uri[dartx.endsWith](".dart"))) {
         uri = dart.notNull(uri) + ".js";
       }
       let port = isolate.ReceivePort.new();

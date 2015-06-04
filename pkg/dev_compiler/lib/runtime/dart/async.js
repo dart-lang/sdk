@@ -413,11 +413,11 @@ var collection = dart.import(collection);
         return future;
       }
       toList() {
-        let result = dart.setType([], core.List$(T));
+        let result = dart.list([], T);
         let future = new (_Future$(core.List$(T)))();
         this.listen(dart.fn(data => {
           dart.as(data, T);
-          result[core.$add](data);
+          result[dartx.add](data);
         }, core.Object, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             future[_complete](result);
           }), cancelOnError: true});
@@ -1914,7 +1914,7 @@ var collection = dart.import(collection);
           future.then(dart.fn(value => {
             remaining = dart.notNull(remaining) - 1;
             if (values != null) {
-              values[core.$set](pos, value);
+              values[dartx.set](pos, value);
               if (remaining == 0) {
                 result[_completeWithValue](values);
               }
@@ -1938,7 +1938,7 @@ var collection = dart.import(collection);
       }
       static forEach(input, f) {
         dart.as(f, dart.functionType(core.Object, [dart.bottom]));
-        let iterator = input[core.$iterator];
+        let iterator = input[dartx.iterator];
         return Future$().doWhile(dart.fn(() => {
           if (!dart.notNull(iterator.moveNext()))
             return false;
@@ -3576,7 +3576,7 @@ var collection = dart.import(collection);
   let _IterablePendingEvents$ = dart.generic(function(T) {
     class _IterablePendingEvents extends _PendingEvents {
       _IterablePendingEvents(data) {
-        this[_iterator] = data[core.$iterator];
+        this[_iterator] = data[dartx.iterator];
         super._PendingEvents();
       }
       get isEmpty() {

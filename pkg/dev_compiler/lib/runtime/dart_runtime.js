@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-var dart, _js_helper, _js_primitives;
+var dart, _js_helper, _js_primitives, dartx;
 (function (dart) {
   'use strict';
 
@@ -11,17 +11,19 @@ var dart, _js_helper, _js_primitives;
   // See: https://github.com/dart-lang/dev_compiler/issues/164
   dart.globalState = null;
 
-  let defineProperty = Object.defineProperty;
-  let getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
-  let getOwnPropertyNames = Object.getOwnPropertyNames;
-  let getOwnPropertySymbols = Object.getOwnPropertySymbols;
+  const defineProperty = Object.defineProperty;
+  const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
+  const getOwnPropertyNames = Object.getOwnPropertyNames;
+  const getOwnPropertySymbols = Object.getOwnPropertySymbols;
+  const hasOwnProperty = Object.prototype.hasOwnProperty;
+  const slice = [].slice;
 
   function getOwnNamesAndSymbols(obj) {
     return getOwnPropertyNames(obj).concat(getOwnPropertySymbols(obj));
   }
 
   function dload(obj, field) {
-    field = _canonicalFieldName(obj, field);
+    field = _canonicalFieldName(obj, field, [], field);
     if (_getMethodType(obj, field) !== void 0) {
       return dart.bind(obj, field);
     }
@@ -31,10 +33,8 @@ var dart, _js_helper, _js_primitives;
     // See: https://github.com/dart-lang/dev_compiler/issues/169
     var result = obj[field];
 
-    // TODO(leafp): Decide whether to keep this for javascript
-    // objects, or just use the javascript semantics.
-    if (typeof result == "function" &&
-        !Object.prototype.hasOwnProperty.call(obj, field)) {
+    // TODO(vsm): Check this more robustly.
+    if (typeof result == "function" && !hasOwnProperty.call(obj, field)) {
       // This appears to be a method tearoff.  Bind this.
       return result.bind(obj);
     }
@@ -43,7 +43,7 @@ var dart, _js_helper, _js_primitives;
   dart.dload = dload;
 
   function dput(obj, field, value) {
-    field = _canonicalFieldName(obj, field);
+    field = _canonicalFieldName(obj, field, [value], field);
     // TODO(vsm): Implement NSM and type checks.
     // See: https://github.com/dart-lang/dev_compiler/issues/170
     obj[field] = value;
@@ -91,51 +91,46 @@ var dart, _js_helper, _js_primitives;
   }
 
   function dcall(f/*, ...args*/) {
-    let args = Array.prototype.slice.call(arguments, 1);
+    let args = slice.call(arguments, 1);
     let ftype = _getFunctionType(f);
     return checkAndCall(f, ftype, void 0, args, 'call');
   }
   dart.dcall = dcall;
 
-  // TODO(vsm): Automatically build this.
-  // All dynamic methods should check for these.
-  // See: https://github.com/dart-lang/dev_compiler/issues/142
-  var _extensionMethods = {
-    // Lazy - as these symbols may not be loaded yet.
-    // TODO(vsm): This should record / check the receiver type
-    // as well.  E.g., only look for core.$map if the receiver
-    // is an Iterable.
-    'map': () => core.$map
-  };
-
-  // TODO(leafp): Integrate this with the eventual proper extension
-  // method system.
-  function _canonicalFieldName(obj, name) {
-    if (obj[name] === void 0) return _extensionMethods[name]();
+  let _extensionType = Symbol('extensionType');
+  function _canonicalFieldName(obj, name, args, displayName) {
+    if (obj[_extensionType]) {
+      var extension = dartx[name];
+      if (extension) return extension;
+      // TODO(jmesserly): in the future we might have types that "overlay" Dart
+      // methods while also exposing the full native API, e.g. dart:html vs
+      // dart:dom. To support that we'd need to fall back to the normal name
+      // if an extension method wasn't found.
+      throwNoSuchMethod(obj, displayName, args);
+    }
     return name;
   }
 
-  function dsend(obj, method/*, ...args*/) {
-    let args = Array.prototype.slice.call(arguments, 2);
-    let symbol = _canonicalFieldName(obj, method);
+  /** Shared code for dsend, dindex, and dsetindex. */
+  function callMethod(obj, name, args, displayName) {
+    let symbol = _canonicalFieldName(obj, name, args, displayName);
     let f = obj[symbol];
-    let ftype = _getMethodType(obj, symbol);
-    return checkAndCall(f, ftype, obj, args, method);
+    let ftype = _getMethodType(obj, name);
+    return checkAndCall(f, ftype, obj, args, displayName);
+  }
+
+  function dsend(obj, method/*, ...args*/) {
+    return callMethod(obj, method, slice.call(arguments, 2));
   }
   dart.dsend = dsend;
 
   function dindex(obj, index) {
-    // TODO(jmesserly): remove this special case once Array extensions are
-    // hooked up.
-    if (obj instanceof Array && realRuntimeType(index) == core.int) {
-      return obj[index];
-    }
-    return checkAndCall(obj.get, void 0, obj, [index], '[]');
+    return callMethod(obj, 'get', [index], '[]');
   }
   dart.dindex = dindex;
 
   function dsetindex(obj, index, value) {
-    return checkAndCall(obj.set, void 0, obj, [index, value], '[]=');
+    return callMethod(obj, 'set', [index, value], '[]=');
   }
   dart.dsetindex = dsetindex;
 
@@ -178,7 +173,7 @@ var dart, _js_helper, _js_primitives;
 
 
   // TODO(vsm): How should we encode the runtime type?
-  let _runtimeType = Symbol('_runtimeType');
+  const _runtimeType = Symbol('_runtimeType');
 
   function checkPrimitiveType(obj) {
     switch (typeof obj) {
@@ -247,7 +242,7 @@ var dart, _js_helper, _js_primitives;
     return t;
   }
 
-  let subtypeMap = new Map();
+  const subtypeMap = new Map();
   function isSubtype(t1, t2) {
     // See if we already know the answer
     // TODO(jmesserly): general purpose memoize function?
@@ -561,7 +556,7 @@ var dart, _js_helper, _js_primitives;
     } else {
       // We're passed the piecewise components of the function type,
       // construct it.
-      let args = Array.prototype.slice.call(arguments, 1);
+      let args = slice.call(arguments, 1);
       t = functionType.apply(null, args);
     }
     setRuntimeType(closure, t);
@@ -778,16 +773,58 @@ var dart, _js_helper, _js_primitives;
   }
   dart.copyProperties = copyProperties;
 
+  function getExtensionSymbol(name) {
+    let sym = dartx[name];
+    if (!sym) dartx[name] = sym = Symbol('dartx.' + name);
+    return sym;
+  }
+
   /**
    * Copy symbols from the prototype of the source to destination.
    * These are the only properties safe to copy onto an existing public
    * JavaScript class.
    */
-  function registerExtension(to, from) {
-    return copyPropertiesHelper(to.prototype, from.prototype,
-        getOwnPropertySymbols(from.prototype));
+  function registerExtension(jsType, dartExtType) {
+    let extProto = dartExtType.prototype;
+    let jsProto = jsType.prototype;
+
+    // Mark the JS type's instances so we can easily check for extensions.
+    assert(jsProto[_extensionType] === void 0);
+    jsProto[_extensionType] = extProto;
+    for (let name of getOwnPropertyNames(extProto)) {
+      let symbol = getExtensionSymbol(name);
+      defineProperty(jsProto, symbol, getOwnPropertyDescriptor(extProto, name));
+    }
   }
   dart.registerExtension = registerExtension;
+
+  /**
+   * Mark a concrete type as implementing extension methods.
+   * For example: `class MyIter implements Iterable`.
+   *
+   * This takes a list of names, which are the extension methods implemented.
+   * It will add a forwarder, so the extension method name redirects to the
+   * normal Dart method name. For example:
+   *
+   *     defineExtensionMembers(MyType, ['add', 'remove']);
+   *
+   * Results in:
+   *
+   *     MyType.prototype[dartx.add] = MyType.prototype.add;
+   *     MyType.prototype[dartx.remove] = MyType.prototype.remove;
+   */
+  // TODO(jmesserly): essentially this gives two names to the same method.
+  // This benefit is roughly equivalent call performance either way, but the
+  // cost is we need to call implementExtension any time a subclass overrides
+  // one of these methods.
+  function defineExtensionMembers(type, methodNames) {
+    let proto = type.prototype;
+    for (let name of methodNames) {
+      let method = getOwnPropertyDescriptor(proto, name);
+      defineProperty(proto, getExtensionSymbol(name), method);
+    }
+  }
+  dart.defineExtensionMembers = defineExtensionMembers;
 
   function setBaseClass(derived, base) {
     // Link the extension to the type it's extending as a base class.
@@ -833,7 +870,7 @@ var dart, _js_helper, _js_primitives;
   function mixin(base/*, ...mixins*/) {
     // Create an initializer for the mixin, so when derived constructor calls
     // super, we can correctly initialize base and mixins.
-    let mixins = Array.prototype.slice.call(arguments, 1);
+    let mixins = slice.call(arguments, 1);
 
     // Create a class that will hold all of the mixin methods.
     class Mixin extends base {
@@ -921,7 +958,7 @@ var dart, _js_helper, _js_primitives;
   function defineNamedConstructor(clazz, name) {
     let proto = clazz.prototype;
     let initMethod = proto[name];
-    let ctor = function() { return initMethod.apply(this, arguments); }
+    let ctor = function() { return initMethod.apply(this, arguments); };
     ctor.prototype = proto;
     // Use defineProperty so we don't hit a property defined on Function,
     // like `caller` and `arguments`.
@@ -948,7 +985,7 @@ var dart, _js_helper, _js_primitives;
       if (arguments.length != length && arguments.length != 0) {
         throw Error('requires ' + length + ' or 0 type arguments');
       }
-      let args = Array.prototype.slice.call(arguments);
+      let args = slice.call(arguments);
       // TODO(leafp): This should really be core.Object for
       // consistency, but Object is not attached to core
       // until the entire core library has been processed,
@@ -1116,7 +1153,7 @@ var dart, _js_helper, _js_primitives;
   }
 
   /** The global constant table. */
-  let constants = new Map();
+  const constants = new Map();
 
   /**
    * Canonicalize a constant object.
@@ -1127,11 +1164,17 @@ var dart, _js_helper, _js_primitives;
    */
   function constant(obj) {
     let objectKey = [realRuntimeType(obj)];
-    // There's no guarantee in JS that names/symbols are returned in the same
-    // order. We could probably get the same order if we're judicious about
-    // initializing them, but easier to not depend on that.
+    // TODO(jmesserly): there's no guarantee in JS that names/symbols are
+    // returned in the same order.
+    //
+    // We could probably get the same order if we're judicious about
+    // initializing fields in a consistent order across all const constructors.
+    // Alternatively we need a way to sort them to make consistent.
+    //
+    // Right now we use the (name,value) pairs in sequence, which prevents
+    // an object with incorrect field values being returned, but won't
+    // canonicalize correctly if key order is different.
     for (let name of getOwnNamesAndSymbols(obj)) {
-      // TODO(jmesserly): we can make this faster if needed.
       objectKey.push(name);
       objectKey.push(obj[name]);
     }
@@ -1151,6 +1194,12 @@ var dart, _js_helper, _js_primitives;
     return obj;
   }
   dart.setType = setType;
+
+  /** Sets the element type of a list literal. */
+  function list(obj, elementType) {
+    return setType(obj, _interceptors.JSArray$(elementType));
+  }
+  dart.list = list;
 
   /** Sets the internal runtime type of `obj` to be `type` */
   function setRuntimeType(obj, type) {
@@ -1258,44 +1307,13 @@ var dart, _js_helper, _js_primitives;
   _js_primitives = _js_primitives || {};
   _js_primitives.printString = (s) => console.log(s);
 
-  // TODO(vsm): Plumb this correctly.
-  // See: https://github.com/dart-lang/dev_compiler/issues/40
-  String.prototype.contains = function(sub) { return this.indexOf(sub) >= 0; }
-  let _split = String.prototype.split;
-  String.prototype.split = function() {
-    let result = _split.apply(this, arguments);
-    dart.setType(result, core.List$(core.String));
-    return result;
-  };
-  String.prototype.get = function(i) {
-    return this[i];
-  };
-  String.prototype.codeUnitAt = function(i) {
-    return this.charCodeAt(i);
-  };
-  String.prototype.replaceAllMapped =  function(from, cb) {
-    return this.replace(from.multiple, function() {
-      // Remove offset & string from the result array
-      var matches = arguments;
-      matches.splice(-2, 2);
-      // The callback receives match, p1, ..., pn
-      return cb(matches);
-    });
-  };
-  String.prototype['+'] = function(arg) { return this.valueOf() + arg; };
-
-  Boolean.prototype['!'] = function() { return !this.valueOf(); };
-  Boolean.prototype['&&'] = function(arg) { return this.valueOf() && arg; };
-  Boolean.prototype['||'] = function(arg) { return this.valueOf() || arg; };
-  Number.prototype['<'] = function(arg) { return this.valueOf() < arg; };
-  Number.prototype['<='] = function(arg) { return this.valueOf() <= arg; };
-  Number.prototype['>'] = function(arg) { return this.valueOf() > arg; };
-  Number.prototype['+'] = function(arg) { return this.valueOf() + arg; };
-
   // TODO(vsm): DOM facades?
   // See: https://github.com/dart-lang/dev_compiler/issues/173
   NodeList.prototype.get = function(i) { return this[i]; };
   NamedNodeMap.prototype.get = function(i) { return this[i]; };
   DOMTokenList.prototype.get = function(i) { return this[i]; };
+
+  /** Dart extension members. */
+  dartx = dartx || {};
 
 })(dart || (dart = {}));

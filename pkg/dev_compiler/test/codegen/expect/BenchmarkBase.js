@@ -9,11 +9,11 @@ var core = dart.import(core);
       }
     }
     static listEquals(expected, actual) {
-      if (expected[core.$length] != actual[core.$length]) {
-        throw `Lists have different lengths: ${expected[core.$length]} vs ${actual[core.$length]}`;
+      if (expected.length != actual.length) {
+        throw `Lists have different lengths: ${expected.length} vs ${actual.length}`;
       }
-      for (let i = 0; dart.notNull(i) < dart.notNull(actual[core.$length]); i = dart.notNull(i) + 1) {
-        Expect.equals(expected[core.$get](i), actual[core.$get](i));
+      for (let i = 0; dart.notNull(i) < dart.notNull(actual.length); i = dart.notNull(i) + 1) {
+        Expect.equals(expected[dartx.get](i), actual[dartx.get](i));
       }
     }
     fail(message) {

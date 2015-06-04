@@ -93,14 +93,6 @@ abstract class InternalMap {
 /// JS engine.
 requiresPreamble() {}
 
-bool isJsIndexable(var object, var record) {
-  if (record != null) {
-    var result = dispatchRecordIndexability(record);
-    if (result != null) return result;
-  }
-  return object is JavaScriptIndexingBehavior;
-}
-
 String S(value) {
   if (value is String) return value;
   if (value is num) {

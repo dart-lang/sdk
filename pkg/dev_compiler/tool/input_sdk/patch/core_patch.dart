@@ -18,19 +18,6 @@ import 'dart:_foreign_helper' show JS;
 
 String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
 
-_symbolMapToStringMap(Map<Symbol, dynamic> map) {
-  if (map == null) return null;
-  var result = new Map<String, dynamic>();
-  map.forEach((Symbol key, value) {
-    result[_symbolToString(key)] = value;
-  });
-  return result;
-}
-
-class SupportJsExtensionMethods {
-  const SupportJsExtensionMethods();
-}
-
 @patch
 int identityHashCode(Object object) => objectHashCode(object);
 
@@ -238,10 +225,6 @@ class Stopwatch {
   static int _now() => Primitives.timerTicks();
 }
 
-class _ListConstructorSentinel {
-  const _ListConstructorSentinel();
-}
-
 // Patch for List implementation.
 @patch
 class List<E> {
@@ -256,14 +239,9 @@ class List<E> {
       if ((length is !int) || (length < 0)) {
         throw new ArgumentError("Length must be a non-negative integer: $length");
       }
-      list = JS('', 'new Array(#)', length);
-      // TODO(jmesserly): consider a fixed array subclass instead.
-      JS('void', r'#.fixed$length = Array', list);
+      list = JSArray.markFixedList(JS('', 'new Array(#)', length));
     }
-    // TODO(jmesserly): skip this when E is dynamic and Object.
-    JS('void', 'dart.setType(#, List\$(#))', list, E);
-    // TODO(jmesserly): compiler creates a bogus type check here.
-    return list;
+    return new JSArray<E>.typed(list);
   }
 
   @patch

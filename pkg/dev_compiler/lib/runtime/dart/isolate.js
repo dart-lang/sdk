@@ -53,8 +53,8 @@ var async = dart.import(async);
         throw new core.UnimplementedError("packageRoot");
       try {
         if (dart.is(args, core.List)) {
-          for (let i = 0; dart.notNull(i) < dart.notNull(args[core.$length]); i = dart.notNull(i) + 1) {
-            if (!(typeof args[core.$get](i) == 'string')) {
+          for (let i = 0; dart.notNull(i) < dart.notNull(args.length); i = dart.notNull(i) + 1) {
+            if (!(typeof args[dartx.get](i) == 'string')) {
               throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
             }
           }
@@ -78,34 +78,34 @@ var async = dart.import(async);
     }
     [_pause](resumeCapability) {
       let message = core.List.new(3);
-      message[core.$set](0, "pause");
-      message[core.$set](1, this.pauseCapability);
-      message[core.$set](2, resumeCapability);
+      message[dartx.set](0, "pause");
+      message[dartx.set](1, this.pauseCapability);
+      message[dartx.set](2, resumeCapability);
       this.controlPort.send(message);
     }
     resume(resumeCapability) {
       let message = core.List.new(2);
-      message[core.$set](0, "resume");
-      message[core.$set](1, resumeCapability);
+      message[dartx.set](0, "resume");
+      message[dartx.set](1, resumeCapability);
       this.controlPort.send(message);
     }
     addOnExitListener(responsePort) {
       let message = core.List.new(2);
-      message[core.$set](0, "add-ondone");
-      message[core.$set](1, responsePort);
+      message[dartx.set](0, "add-ondone");
+      message[dartx.set](1, responsePort);
       this.controlPort.send(message);
     }
     removeOnExitListener(responsePort) {
       let message = core.List.new(2);
-      message[core.$set](0, "remove-ondone");
-      message[core.$set](1, responsePort);
+      message[dartx.set](0, "remove-ondone");
+      message[dartx.set](1, responsePort);
       this.controlPort.send(message);
     }
     setErrorsFatal(errorsAreFatal) {
       let message = core.List.new(3);
-      message[core.$set](0, "set-errors-fatal");
-      message[core.$set](1, this.terminateCapability);
-      message[core.$set](2, errorsAreFatal);
+      message[dartx.set](0, "set-errors-fatal");
+      message[dartx.set](1, this.terminateCapability);
+      message[dartx.set](2, errorsAreFatal);
       this.controlPort.send(message);
     }
     kill(priority) {
@@ -117,21 +117,21 @@ var async = dart.import(async);
       if (pingType === void 0)
         pingType = Isolate.IMMEDIATE;
       let message = core.List.new(3);
-      message[core.$set](0, "ping");
-      message[core.$set](1, responsePort);
-      message[core.$set](2, pingType);
+      message[dartx.set](0, "ping");
+      message[dartx.set](1, responsePort);
+      message[dartx.set](2, pingType);
       this.controlPort.send(message);
     }
     addErrorListener(port) {
       let message = core.List.new(2);
-      message[core.$set](0, "getErrors");
-      message[core.$set](1, port);
+      message[dartx.set](0, "getErrors");
+      message[dartx.set](1, port);
       this.controlPort.send(message);
     }
     removeErrorListener(port) {
       let message = core.List.new(2);
-      message[core.$set](0, "stopErrors");
-      message[core.$set](1, port);
+      message[dartx.set](0, "stopErrors");
+      message[dartx.set](1, port);
       this.controlPort.send(message);
     }
     get errors() {
@@ -217,7 +217,7 @@ var async = dart.import(async);
       this.stackTrace = stackTrace;
     }
     toString() {
-      return 'IsolateUnhandledException: exception while handling message: ' + `${this.message} \n  ` + `${dart.toString(this.source).replaceAll("\n", "\n  ")}\n` + 'original stack trace:\n  ' + `${dart.toString(this.stackTrace).replaceAll("\n", "\n  ")}`;
+      return 'IsolateUnhandledException: exception while handling message: ' + `${this.message} \n  ` + `${dart.toString(this.source)[dartx.replaceAll]("\n", "\n  ")}\n` + 'original stack trace:\n  ' + `${dart.toString(this.stackTrace)[dartx.replaceAll]("\n", "\n  ")}`;
     }
   }
   _IsolateUnhandledException[dart.implements] = () => [core.Exception];

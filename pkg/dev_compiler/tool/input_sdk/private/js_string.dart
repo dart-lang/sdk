@@ -10,6 +10,7 @@ part of _interceptors;
  * actually use the receiver of the method, which is generated as an extra
  * argument added to each member.
  */
+@JsPeerInterface(name: 'String')
 class JSString extends Interceptor implements String, JSIndexable {
   const JSString();
 

@@ -1083,8 +1083,9 @@ class LiteralNumber extends Literal {
 
 class ArrayInitializer extends Expression {
   final List<Expression> elements;
+  final bool multiline;
 
-  ArrayInitializer(this.elements);
+  ArrayInitializer(this.elements, {this.multiline: false});
 
   accept(NodeVisitor visitor) => visitor.visitArrayInitializer(this);
 
@@ -1113,20 +1114,13 @@ class ArrayHole extends Expression {
 
 class ObjectInitializer extends Expression {
   final List<Property> properties;
-  /**
-   * If set to true, forces a vertical layout when using the [Printer].
-   * Otherwise, layout will be vertical if and only if any [properties]
-   * are [FunctionExpression]s.
-   */
-  final bool _vertical;
-  bool get vertical {
-    return _vertical || properties.any((p) => p.value is FunctionExpression);
-  }
+  final bool _multiline;
 
   /**
    * Constructs a new object-initializer containing the given [properties].
    */
-  ObjectInitializer(this.properties, {vertical: false}) : _vertical = vertical;
+  ObjectInitializer(this.properties, {multiline: false})
+      : _multiline = multiline;
 
   accept(NodeVisitor visitor) => visitor.visitObjectInitializer(this);
 
@@ -1137,6 +1131,14 @@ class ObjectInitializer extends Expression {
   ObjectInitializer _clone() => new ObjectInitializer(properties);
 
   int get precedenceLevel => PRIMARY;
+  /**
+   * If set to true, forces a vertical layout when using the [Printer].
+   * Otherwise, layout will be vertical if and only if any [properties]
+   * are [FunctionExpression]s.
+   */
+  bool get multiline {
+    return _multiline || properties.any((p) => p.value is FunctionExpression);
+  }
 }
 
 class Property extends Node {

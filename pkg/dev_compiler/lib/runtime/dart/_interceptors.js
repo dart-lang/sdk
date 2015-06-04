@@ -1,12 +1,398 @@
 var _interceptors = dart.defineLibrary(_interceptors, {});
 var core = dart.import(core);
-var _js_helper = dart.lazyImport(_js_helper);
 var _internal = dart.import(_internal);
-var _foreign_helper = dart.import(_foreign_helper);
-var _js_embedded_names = dart.import(_js_embedded_names);
-(function(exports, core, _js_helper, _internal, _foreign_helper, _js_embedded_names) {
+var _js_helper = dart.lazyImport(_js_helper);
+var collection = dart.import(collection);
+var math = dart.import(math);
+(function(exports, core, _internal, _js_helper, collection, math) {
   'use strict';
-  let JSArray = Array;
+  let JSArray$ = dart.generic(function(E) {
+    class JSArray extends core.Object {
+      JSArray() {
+      }
+      static typed(allocation) {
+        return dart.list(allocation, E);
+      }
+      static markFixed(allocation) {
+        return JSArray$(E).typed(JSArray$().markFixedList(dart.as(allocation, core.List)));
+      }
+      static markGrowable(allocation) {
+        return JSArray$().typed(allocation);
+      }
+      static markFixedList(list) {
+        list.fixed$length = Array;
+        return list;
+      }
+      checkGrowable(reason) {
+        if (this.fixed$length) {
+          throw new core.UnsupportedError(dart.as(reason, core.String));
+        }
+      }
+      add(value) {
+        dart.as(value, E);
+        this[dartx.checkGrowable]('add');
+        this.push(value);
+      }
+      removeAt(index) {
+        if (!(typeof index == 'number'))
+          throw new core.ArgumentError(index);
+        if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(this.length)) {
+          throw new core.RangeError.value(index);
+        }
+        this[dartx.checkGrowable]('removeAt');
+        return this.splice(index, 1)[0];
+      }
+      insert(index, value) {
+        dart.as(value, E);
+        if (!(typeof index == 'number'))
+          throw new core.ArgumentError(index);
+        if (dart.notNull(index) < 0 || dart.notNull(index) > dart.notNull(this.length)) {
+          throw new core.RangeError.value(index);
+        }
+        this[dartx.checkGrowable]('insert');
+        this.splice(index, 0, value);
+      }
+      insertAll(index, iterable) {
+        dart.as(iterable, core.Iterable$(E));
+        this[dartx.checkGrowable]('insertAll');
+        _internal.IterableMixinWorkaround.insertAllList(this, index, iterable);
+      }
+      setAll(index, iterable) {
+        dart.as(iterable, core.Iterable$(E));
+        _internal.IterableMixinWorkaround.setAllList(this, index, iterable);
+      }
+      removeLast() {
+        this[dartx.checkGrowable]('removeLast');
+        if (this.length == 0)
+          throw new core.RangeError.value(-1);
+        return dart.as(this.pop(), E);
+      }
+      remove(element) {
+        this[dartx.checkGrowable]('remove');
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
+          if (dart.equals(this[dartx.get](i), element)) {
+            this.splice(i, 1);
+            return true;
+          }
+        }
+        return false;
+      }
+      removeWhere(test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        _internal.IterableMixinWorkaround.removeWhereList(this, test);
+      }
+      retainWhere(test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        _internal.IterableMixinWorkaround.removeWhereList(this, dart.fn(element => !dart.notNull(test(element)), core.bool, [E]));
+      }
+      where(f) {
+        dart.as(f, dart.functionType(core.bool, [E]));
+        return new (_internal.IterableMixinWorkaround$(E))().where(this, f);
+      }
+      expand(f) {
+        dart.as(f, dart.functionType(core.Iterable, [E]));
+        return _internal.IterableMixinWorkaround.expand(this, f);
+      }
+      addAll(collection) {
+        dart.as(collection, core.Iterable$(E));
+        for (let e of collection) {
+          this[dartx.add](e);
+        }
+      }
+      clear() {
+        this.length = 0;
+      }
+      forEach(f) {
+        dart.as(f, dart.functionType(dart.void, [E]));
+        let length = this.length;
+        for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
+          f(dart.as(this[i], E));
+          if (length != this.length) {
+            throw new core.ConcurrentModificationError(this);
+          }
+        }
+      }
+      map(f) {
+        dart.as(f, dart.functionType(core.Object, [E]));
+        return _internal.IterableMixinWorkaround.mapList(this, f);
+      }
+      join(separator) {
+        if (separator === void 0)
+          separator = "";
+        let list = core.List.new(this.length);
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
+          list[dartx.set](i, `${this[dartx.get](i)}`);
+        }
+        return list.join(separator);
+      }
+      take(n) {
+        return new (_internal.IterableMixinWorkaround$(E))().takeList(this, n);
+      }
+      takeWhile(test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        return new (_internal.IterableMixinWorkaround$(E))().takeWhile(this, test);
+      }
+      skip(n) {
+        return new (_internal.IterableMixinWorkaround$(E))().skipList(this, n);
+      }
+      skipWhile(test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        return new (_internal.IterableMixinWorkaround$(E))().skipWhile(this, test);
+      }
+      reduce(combine) {
+        dart.as(combine, dart.functionType(E, [E, E]));
+        return dart.as(_internal.IterableMixinWorkaround.reduce(this, combine), E);
+      }
+      fold(initialValue, combine) {
+        dart.as(combine, dart.functionType(core.Object, [dart.bottom, E]));
+        return _internal.IterableMixinWorkaround.fold(this, initialValue, combine);
+      }
+      firstWhere(test, opts) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        dart.as(orElse, dart.functionType(E, []));
+        return dart.as(_internal.IterableMixinWorkaround.firstWhere(this, test, orElse), E);
+      }
+      lastWhere(test, opts) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        let orElse = opts && 'orElse' in opts ? opts.orElse : null;
+        dart.as(orElse, dart.functionType(E, []));
+        return dart.as(_internal.IterableMixinWorkaround.lastWhereList(this, test, orElse), E);
+      }
+      singleWhere(test) {
+        dart.as(test, dart.functionType(core.bool, [E]));
+        return dart.as(_internal.IterableMixinWorkaround.singleWhere(this, test), E);
+      }
+      elementAt(index) {
+        return this[dartx.get](index);
+      }
+      sublist(start, end) {
+        if (end === void 0)
+          end = null;
+        _js_helper.checkNull(start);
+        if (!(typeof start == 'number'))
+          throw new core.ArgumentError(start);
+        if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(this.length)) {
+          throw new core.RangeError.range(start, 0, this.length);
+        }
+        if (end == null) {
+          end = this.length;
+        } else {
+          if (!(typeof end == 'number'))
+            throw new core.ArgumentError(end);
+          if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(this.length)) {
+            throw new core.RangeError.range(end, start, this.length);
+          }
+        }
+        if (start == end)
+          return dart.list([], E);
+        return JSArray$(E).typed(this.slice(start, end));
+      }
+      getRange(start, end) {
+        return new (_internal.IterableMixinWorkaround$(E))().getRangeList(this, start, end);
+      }
+      get first() {
+        if (dart.notNull(this.length) > 0)
+          return this[dartx.get](0);
+        throw new core.StateError("No elements");
+      }
+      get last() {
+        if (dart.notNull(this.length) > 0)
+          return this[dartx.get](dart.notNull(this.length) - 1);
+        throw new core.StateError("No elements");
+      }
+      get single() {
+        if (this.length == 1)
+          return this[dartx.get](0);
+        if (this.length == 0)
+          throw new core.StateError("No elements");
+        throw new core.StateError("More than one element");
+      }
+      removeRange(start, end) {
+        this[dartx.checkGrowable]('removeRange');
+        let receiverLength = this.length;
+        if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(receiverLength)) {
+          throw new core.RangeError.range(start, 0, receiverLength);
+        }
+        if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(receiverLength)) {
+          throw new core.RangeError.range(end, start, receiverLength);
+        }
+        _internal.Lists.copy(this, end, this, start, dart.notNull(receiverLength) - dart.notNull(end));
+        this.length = dart.notNull(receiverLength) - (dart.notNull(end) - dart.notNull(start));
+      }
+      setRange(start, end, iterable, skipCount) {
+        dart.as(iterable, core.Iterable$(E));
+        if (skipCount === void 0)
+          skipCount = 0;
+        _internal.IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
+      }
+      fillRange(start, end, fillValue) {
+        if (fillValue === void 0)
+          fillValue = null;
+        dart.as(fillValue, E);
+        _internal.IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
+      }
+      replaceRange(start, end, iterable) {
+        dart.as(iterable, core.Iterable$(E));
+        _internal.IterableMixinWorkaround.replaceRangeList(this, start, end, iterable);
+      }
+      any(f) {
+        dart.as(f, dart.functionType(core.bool, [E]));
+        return _internal.IterableMixinWorkaround.any(this, f);
+      }
+      every(f) {
+        dart.as(f, dart.functionType(core.bool, [E]));
+        return _internal.IterableMixinWorkaround.every(this, f);
+      }
+      get reversed() {
+        return new (_internal.IterableMixinWorkaround$(E))().reversedList(this);
+      }
+      sort(compare) {
+        if (compare === void 0)
+          compare = null;
+        dart.as(compare, dart.functionType(core.int, [E, E]));
+        _internal.IterableMixinWorkaround.sortList(this, compare);
+      }
+      shuffle(random) {
+        if (random === void 0)
+          random = null;
+        _internal.IterableMixinWorkaround.shuffleList(this, random);
+      }
+      indexOf(element, start) {
+        if (start === void 0)
+          start = 0;
+        return _internal.IterableMixinWorkaround.indexOfList(this, element, start);
+      }
+      lastIndexOf(element, start) {
+        if (start === void 0)
+          start = null;
+        return _internal.IterableMixinWorkaround.lastIndexOfList(this, element, start);
+      }
+      contains(other) {
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
+          if (dart.equals(this[dartx.get](i), other))
+            return true;
+        }
+        return false;
+      }
+      get isEmpty() {
+        return this.length == 0;
+      }
+      get isNotEmpty() {
+        return !dart.notNull(this[dartx.isEmpty]);
+      }
+      toString() {
+        return collection.ListBase.listToString(this);
+      }
+      toList(opts) {
+        let growable = opts && 'growable' in opts ? opts.growable : true;
+        let list = this.slice();
+        if (!dart.notNull(growable))
+          JSArray$().markFixedList(dart.as(list, core.List));
+        return JSArray$(E).typed(list);
+      }
+      toSet() {
+        return core.Set$(E).from(this);
+      }
+      get iterator() {
+        return new (_internal.ListIterator$(E))(this);
+      }
+      get hashCode() {
+        return _js_helper.Primitives.objectHashCode(this);
+      }
+      get length() {
+        return dart.as(this.length, core.int);
+      }
+      set length(newLength) {
+        if (!(typeof newLength == 'number'))
+          throw new core.ArgumentError(newLength);
+        if (dart.notNull(newLength) < 0)
+          throw new core.RangeError.value(newLength);
+        this[dartx.checkGrowable]('set length');
+        this.length = newLength;
+      }
+      get(index) {
+        if (!(typeof index == 'number'))
+          throw new core.ArgumentError(index);
+        if (dart.notNull(index) >= dart.notNull(this.length) || dart.notNull(index) < 0)
+          throw new core.RangeError.value(index);
+        return dart.as(this[index], E);
+      }
+      set(index, value) {
+        dart.as(value, E);
+        if (!(typeof index == 'number'))
+          throw new core.ArgumentError(index);
+        if (dart.notNull(index) >= dart.notNull(this.length) || dart.notNull(index) < 0)
+          throw new core.RangeError.value(index);
+        this[index] = value;
+      }
+      asMap() {
+        return new (_internal.IterableMixinWorkaround$(E))().asMapList(this);
+      }
+    }
+    dart.setBaseClass(JSArray, dart.global.Array);
+    JSArray[dart.implements] = () => [core.List$(E), JSIndexable];
+    dart.setSignature(JSArray, {
+      constructors: () => ({
+        JSArray: [JSArray$(E), []],
+        typed: [JSArray$(E), [core.Object]],
+        markFixed: [JSArray$(E), [core.Object]],
+        markGrowable: [JSArray$(E), [core.Object]]
+      }),
+      methods: () => ({
+        checkGrowable: [core.Object, [core.Object]],
+        add: [dart.void, [E]],
+        removeAt: [E, [core.int]],
+        insert: [dart.void, [core.int, E]],
+        insertAll: [dart.void, [core.int, core.Iterable$(E)]],
+        setAll: [dart.void, [core.int, core.Iterable$(E)]],
+        removeLast: [E, []],
+        remove: [core.bool, [core.Object]],
+        removeWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        retainWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        expand: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
+        addAll: [dart.void, [core.Iterable$(E)]],
+        clear: [dart.void, []],
+        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
+        map: [core.Iterable, [dart.functionType(core.Object, [E])]],
+        join: [core.String, [], [core.String]],
+        take: [core.Iterable$(E), [core.int]],
+        takeWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        skip: [core.Iterable$(E), [core.int]],
+        skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        reduce: [E, [dart.functionType(E, [E, E])]],
+        fold: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
+        firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        singleWhere: [E, [dart.functionType(core.bool, [E])]],
+        elementAt: [E, [core.int]],
+        sublist: [core.List$(E), [core.int], [core.int]],
+        getRange: [core.Iterable$(E), [core.int, core.int]],
+        removeRange: [dart.void, [core.int, core.int]],
+        setRange: [dart.void, [core.int, core.int, core.Iterable$(E)], [core.int]],
+        fillRange: [dart.void, [core.int, core.int], [E]],
+        replaceRange: [dart.void, [core.int, core.int, core.Iterable$(E)]],
+        any: [core.bool, [dart.functionType(core.bool, [E])]],
+        every: [core.bool, [dart.functionType(core.bool, [E])]],
+        sort: [dart.void, [], [dart.functionType(core.int, [E, E])]],
+        shuffle: [dart.void, [], [math.Random]],
+        indexOf: [core.int, [core.Object], [core.int]],
+        lastIndexOf: [core.int, [core.Object], [core.int]],
+        contains: [core.bool, [core.Object]],
+        toList: [core.List$(E), [], {growable: core.bool}],
+        toSet: [core.Set$(E), []],
+        get: [E, [core.int]],
+        set: [dart.void, [core.int, E]],
+        asMap: [core.Map$(core.int, E), []]
+      }),
+      statics: () => ({markFixedList: [core.List, [core.List]]}),
+      names: ['markFixedList']
+    });
+    return JSArray;
+  });
+  let JSArray = JSArray$();
+  dart.registerExtension(dart.global.Array, JSArray);
   let JSMutableArray$ = dart.generic(function(E) {
     class JSMutableArray extends JSArray$(E) {
       JSMutableArray() {
@@ -30,25 +416,9 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   class Interceptor extends core.Object {
     Interceptor() {
     }
-    ['=='](other) {
-      return core.identical(this, other);
-    }
-    get hashCode() {
-      return _js_helper.Primitives.objectHashCode(this);
-    }
-    toString() {
-      return _js_helper.Primitives.objectToString(this);
-    }
-    noSuchMethod(invocation) {
-      throw new core.NoSuchMethodError(this, invocation.memberName, invocation.positionalArguments, invocation.namedArguments);
-    }
-    get runtimeType() {
-      return _js_helper.getRuntimeType(this);
-    }
   }
   dart.setSignature(Interceptor, {
-    constructors: () => ({Interceptor: [Interceptor, []]}),
-    methods: () => ({'==': [core.bool, [core.Object]]})
+    constructors: () => ({Interceptor: [Interceptor, []]})
   });
   let _isInt32 = Symbol('_isInt32');
   let _tdivFast = Symbol('_tdivFast');
@@ -64,22 +434,22 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     compareTo(b) {
       if (!dart.is(b, core.num))
         throw new core.ArgumentError(b);
-      if (this['<'](b)) {
+      if (this[dartx['<']](b)) {
         return -1;
-      } else if (this['>'](b)) {
+      } else if (this[dartx['>']](b)) {
         return 1;
       } else if (dart.equals(this, b)) {
         if (dart.equals(this, 0)) {
-          let bIsNegative = b.isNegative;
-          if (this.isNegative == bIsNegative)
+          let bIsNegative = b[dartx.isNegative];
+          if (this[dartx.isNegative] == bIsNegative)
             return 0;
-          if (this.isNegative)
+          if (this[dartx.isNegative])
             return -1;
           return 1;
         }
         return 0;
-      } else if (this.isNaN) {
-        if (b.isNaN) {
+      } else if (this[dartx.isNaN]) {
+        if (b[dartx.isNaN]) {
           return 0;
         }
         return 1;
@@ -88,7 +458,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       }
     }
     get isNegative() {
-      return dart.equals(this, 0) ? (1)['/'](this) < 0 : this['<'](0);
+      return dart.equals(this, 0) ? (1)[dartx['/']](this) < 0 : this[dartx['<']](0);
     }
     get isNaN() {
       return isNaN(this);
@@ -109,28 +479,28 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       return Math.abs(this);
     }
     get sign() {
-      return this['>'](0) ? 1 : this['<'](0) ? -1 : this;
+      return this[dartx['>']](0) ? 1 : this[dartx['<']](0) ? -1 : this;
     }
     toInt() {
-      if (dart.notNull(this['>='](JSNumber._MIN_INT32)) && dart.notNull(this['<='](JSNumber._MAX_INT32))) {
+      if (dart.notNull(this[dartx['>=']](JSNumber._MIN_INT32)) && dart.notNull(this[dartx['<=']](JSNumber._MAX_INT32))) {
         return this | 0;
       }
       if (isFinite(this)) {
-        return this.truncateToDouble() + 0;
+        return this[dartx.truncateToDouble]() + 0;
       }
       throw new core.UnsupportedError('' + this);
     }
     truncate() {
-      return this.toInt();
+      return this[dartx.toInt]();
     }
     ceil() {
-      return this.ceilToDouble().toInt();
+      return this[dartx.ceilToDouble]()[dartx.toInt]();
     }
     floor() {
-      return this.floorToDouble().toInt();
+      return this[dartx.floorToDouble]()[dartx.toInt]();
     }
     round() {
-      return this.roundToDouble().toInt();
+      return this[dartx.roundToDouble]()[dartx.toInt]();
     }
     ceilToDouble() {
       return Math.ceil(this);
@@ -139,26 +509,26 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       return Math.floor(this);
     }
     roundToDouble() {
-      if (this['<'](0)) {
+      if (this[dartx['<']](0)) {
         return -Math.round(-this);
       } else {
         return Math.round(this);
       }
     }
     truncateToDouble() {
-      return this['<'](0) ? this.ceilToDouble() : this.floorToDouble();
+      return this[dartx['<']](0) ? this[dartx.ceilToDouble]() : this[dartx.floorToDouble]();
     }
     clamp(lowerLimit, upperLimit) {
       if (!dart.is(lowerLimit, core.num))
         throw new core.ArgumentError(lowerLimit);
       if (!dart.is(upperLimit, core.num))
         throw new core.ArgumentError(upperLimit);
-      if (dart.notNull(lowerLimit.compareTo(upperLimit)) > 0) {
+      if (dart.notNull(lowerLimit[dartx.compareTo](upperLimit)) > 0) {
         throw new core.ArgumentError(lowerLimit);
       }
-      if (dart.notNull(this.compareTo(lowerLimit)) < 0)
+      if (dart.notNull(this[dartx.compareTo](lowerLimit)) < 0)
         return lowerLimit;
-      if (dart.notNull(this.compareTo(upperLimit)) > 0)
+      if (dart.notNull(this[dartx.compareTo](upperLimit)) > 0)
         return upperLimit;
       return this;
     }
@@ -171,7 +541,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
         throw new core.RangeError(fractionDigits);
       }
       let result = this.toFixed(fractionDigits);
-      if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this.isNegative))
+      if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this[dartx.isNegative]))
         return `-${result}`;
       return result;
     }
@@ -188,7 +558,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       } else {
         result = this.toExponential();
       }
-      if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this.isNegative))
+      if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this[dartx.isNegative]))
         return `-${result}`;
       return result;
     }
@@ -198,7 +568,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
         throw new core.RangeError(precision);
       }
       let result = this.toPrecision(precision);
-      if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this.isNegative))
+      if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this[dartx.isNegative]))
         return `-${result}`;
       return result;
     }
@@ -208,7 +578,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
         throw new core.RangeError(radix);
       let result = this.toString(radix);
       let rightParenCode = 41;
-      if (result.codeUnitAt(dart.notNull(result.length) - 1) != rightParenCode) {
+      if (result[dartx.codeUnitAt](dart.notNull(result.length) - 1) != rightParenCode) {
         return result;
       }
       return JSNumber._handleIEtoString(result);
@@ -224,7 +594,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
         result = result + dart.dindex(match, 2);
         exponent = dart.notNull(exponent) - dart.dindex(match, 2).length;
       }
-      return dart.notNull(result) + "0"['*'](exponent);
+      return dart.notNull(result) + "0"[dartx['*']](exponent);
     }
     toString() {
       if (dart.notNull(dart.equals(this, 0)) && 1 / this < 0) {
@@ -286,12 +656,12 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       }
     }
     [_tdivFast](other) {
-      return this[_isInt32](this) ? this / other | 0 : (this / other).toInt();
+      return this[_isInt32](this) ? this / other | 0 : (this / other)[dartx.toInt]();
     }
     [_tdivSlow](other) {
       if (!dart.is(other, core.num))
         throw new core.ArgumentError(other);
-      return (this / other).toInt();
+      return (this / other)[dartx.toInt]();
     }
     ['<<'](other) {
       if (!dart.is(other, core.num))
@@ -418,20 +788,20 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       super.JSNumber();
     }
     get isEven() {
-      return this['&'](1) == 0;
+      return this[dartx['&']](1) == 0;
     }
     get isOdd() {
-      return this['&'](1) == 1;
+      return this[dartx['&']](1) == 1;
     }
     toUnsigned(width) {
-      return this['&']((1 << dart.notNull(width)) - 1);
+      return this[dartx['&']]((1 << dart.notNull(width)) - 1);
     }
     toSigned(width) {
       let signMask = 1 << dart.notNull(width) - 1;
-      return dart.notNull(this['&'](dart.notNull(signMask) - 1)) - dart.notNull(this['&'](signMask));
+      return dart.notNull(this[dartx['&']](dart.notNull(signMask) - 1)) - dart.notNull(this[dartx['&']](signMask));
     }
     get bitLength() {
-      let nonneg = this['<'](0) ? dart.notNull(this['unary-']()) - 1 : this;
+      let nonneg = this[dartx['<']](0) ? dart.notNull(this[dartx['unary-']]()) - 1 : this;
       if (dart.notNull(nonneg) >= 4294967296) {
         nonneg = (dart.notNull(nonneg) / 4294967296).truncate();
         return dart.notNull(JSInt._bitCount(JSInt._spread(nonneg))) + 32;
@@ -487,6 +857,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }),
     names: ['_bitCount', '_shru', '_shrs', '_ors', '_spread']
   });
+  dart.registerExtension(dart.global.Number, JSInt);
   class JSDouble extends JSNumber {
     JSDouble() {
       super.JSNumber();
@@ -539,7 +910,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       if (dart.notNull(start) + dart.notNull(this.length) > dart.notNull(string.length))
         return null;
       for (let i = 0; dart.notNull(i) < dart.notNull(this.length); i = dart.notNull(i) + 1) {
-        if (string.codeUnitAt(dart.notNull(start) + dart.notNull(i)) != this.codeUnitAt(i)) {
+        if (string[dartx.codeUnitAt](dart.notNull(start) + dart.notNull(i)) != this[dartx.codeUnitAt](i)) {
           return null;
         }
       }
@@ -555,14 +926,14 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       let otherLength = other.length;
       if (dart.notNull(otherLength) > dart.notNull(this.length))
         return false;
-      return other == this.substring(dart.notNull(this.length) - dart.notNull(otherLength));
+      return other == this[dartx.substring](dart.notNull(this.length) - dart.notNull(otherLength));
     }
     replaceAll(from, to) {
       _js_helper.checkString(to);
       return dart.as(_js_helper.stringReplaceAllUnchecked(this, from, to), core.String);
     }
     replaceAllMapped(from, convert) {
-      return this.splitMapJoin(from, {onMatch: convert});
+      return this[dartx.splitMapJoin](from, {onMatch: convert});
     }
     splitMapJoin(from, opts) {
       let onMatch = opts && 'onMatch' in opts ? opts.onMatch : null;
@@ -591,10 +962,10 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       }
     }
     [_defaultSplit](pattern) {
-      let result = dart.setType([], core.List$(core.String));
+      let result = dart.list([], core.String);
       let start = 0;
       let length = 1;
-      for (let match of pattern.allMatches(this)) {
+      for (let match of pattern[dartx.allMatches](this)) {
         let matchStart = match.start;
         let matchEnd = match.end;
         length = dart.notNull(matchEnd) - dart.notNull(matchStart);
@@ -602,11 +973,11 @@ var _js_embedded_names = dart.import(_js_embedded_names);
           continue;
         }
         let end = matchStart;
-        result[core.$add](this.substring(start, end));
+        result[dartx.add](this[dartx.substring](start, end));
         start = matchEnd;
       }
       if (dart.notNull(start) < dart.notNull(this.length) || dart.notNull(length) > 0) {
-        result[core.$add](this.substring(start));
+        result[dartx.add](this[dartx.substring](start));
       }
       return result;
     }
@@ -625,7 +996,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
           return false;
         return other == this.substring(index, endIndex);
       }
-      return pattern.matchAsPrefix(this, index) != null;
+      return pattern[dartx.matchAsPrefix](this, index) != null;
     }
     substring(startIndex, endIndex) {
       if (endIndex === void 0)
@@ -701,7 +1072,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       let SPACE = 32;
       let CARRIAGE_RETURN = 13;
       while (dart.notNull(index) < dart.notNull(string.length)) {
-        let codeUnit = string.codeUnitAt(index);
+        let codeUnit = string[dartx.codeUnitAt](index);
         if (codeUnit != SPACE && codeUnit != CARRIAGE_RETURN && !dart.notNull(JSString._isWhitespace(codeUnit))) {
           break;
         }
@@ -713,7 +1084,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       let SPACE = 32;
       let CARRIAGE_RETURN = 13;
       while (dart.notNull(index) > 0) {
-        let codeUnit = string.codeUnitAt(dart.notNull(index) - 1);
+        let codeUnit = string[dartx.codeUnitAt](dart.notNull(index) - 1);
         if (codeUnit != SPACE && codeUnit != CARRIAGE_RETURN && !dart.notNull(JSString._isWhitespace(codeUnit))) {
           break;
         }
@@ -726,7 +1097,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       let result = this.trim();
       if (result.length == 0)
         return result;
-      let firstCode = result.codeUnitAt(0);
+      let firstCode = result[dartx.codeUnitAt](0);
       let startIndex = 0;
       if (firstCode == NEL) {
         startIndex = JSString._skipLeadingWhitespace(result, 1);
@@ -734,7 +1105,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
           return "";
       }
       let endIndex = result.length;
-      let lastCode = result.codeUnitAt(dart.notNull(endIndex) - 1);
+      let lastCode = result[dartx.codeUnitAt](dart.notNull(endIndex) - 1);
       if (lastCode == NEL) {
         endIndex = JSString._skipTrailingWhitespace(result, dart.notNull(endIndex) - 1);
       }
@@ -750,7 +1121,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
         result = this.trimLeft();
         if (result.length == 0)
           return result;
-        let firstCode = result.codeUnitAt(0);
+        let firstCode = result[dartx.codeUnitAt](0);
         if (firstCode == NEL) {
           startIndex = JSString._skipLeadingWhitespace(result, 1);
         }
@@ -773,7 +1144,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
         endIndex = result.length;
         if (endIndex == 0)
           return result;
-        let lastCode = result.codeUnitAt(dart.notNull(endIndex) - 1);
+        let lastCode = result[dartx.codeUnitAt](dart.notNull(endIndex) - 1);
         if (lastCode == NEL) {
           endIndex = JSString._skipTrailingWhitespace(result, dart.notNull(endIndex) - 1);
         }
@@ -799,11 +1170,11 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       let s = this;
       while (true) {
         if ((dart.notNull(times) & 1) == 1)
-          result = s['+'](result);
+          result = s[dartx['+']](result);
         times = dart.as(times >>> 1, core.int);
         if (times == 0)
           break;
-        s = s['+'](s);
+        s = s[dartx['+']](s);
       }
       return result;
     }
@@ -813,7 +1184,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       let delta = dart.notNull(width) - dart.notNull(this.length);
       if (dart.notNull(delta) <= 0)
         return this;
-      return padding['*'](delta) + this;
+      return padding[dartx['*']](delta) + this;
     }
     padRight(width, padding) {
       if (padding === void 0)
@@ -821,7 +1192,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       let delta = dart.notNull(width) - dart.notNull(this.length);
       if (dart.notNull(delta) <= 0)
         return this;
-      return this['+'](padding['*'](delta));
+      return this[dartx['+']](padding[dartx['*']](delta));
     }
     get codeUnits() {
       return new _CodeUnits(this);
@@ -847,7 +1218,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
         return match == null ? -1 : match.start;
       }
       for (let i = start; dart.notNull(i) <= dart.notNull(this.length); i = dart.notNull(i) + 1) {
-        if (pattern.matchAsPrefix(this, i) != null)
+        if (pattern[dartx.matchAsPrefix](this, i) != null)
           return i;
       }
       return -1;
@@ -871,7 +1242,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
         return dart.as(_js_helper.stringLastIndexOfUnchecked(this, other, start), core.int);
       }
       for (let i = start; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
-        if (pattern.matchAsPrefix(this, i) != null)
+        if (pattern[dartx.matchAsPrefix](this, i) != null)
           return i;
       }
       return -1;
@@ -889,7 +1260,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
       return this.length == 0;
     }
     get isNotEmpty() {
-      return !dart.notNull(this.isEmpty);
+      return !dart.notNull(this[dartx.isEmpty]);
     }
     compareTo(other) {
       if (!(typeof other == 'string'))
@@ -962,146 +1333,27 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     }),
     names: ['_isWhitespace', '_skipLeadingWhitespace', '_skipTrailingWhitespace']
   });
+  dart.registerExtension(dart.global.String, JSString);
   let _string = Symbol('_string');
   class _CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
     _CodeUnits(string) {
       this[_string] = string;
     }
-    get [core.$length]() {
+    get length() {
       return this[_string].length;
     }
-    [core.$get](i) {
-      return this[_string].codeUnitAt(i);
+    get(i) {
+      return this[_string][dartx.codeUnitAt](i);
     }
   }
   dart.setSignature(_CodeUnits, {
     constructors: () => ({_CodeUnits: [_CodeUnits, [core.String]]}),
-    methods: () => ({[core.$get]: [core.int, [core.int]]})
+    methods: () => ({get: [core.int, [core.int]]})
   });
-  function _symbolToString(symbol) {
-    return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
-  }
-  dart.fn(_symbolToString, core.String, [core.Symbol]);
-  function _symbolMapToStringMap(map) {
-    if (map == null)
-      return null;
-    let result = core.Map$(core.String, core.Object).new();
-    map.forEach(dart.fn((key, value) => {
-      result.set(_symbolToString(key), value);
-    }, core.Object, [core.Symbol, core.Object]));
-    return result;
-  }
-  dart.fn(_symbolMapToStringMap, core.Object, [core.Map$(core.Symbol, core.Object)]);
-  function getInterceptor(object) {
-    return void 0;
+  function getInterceptor(obj) {
+    return obj;
   }
   dart.fn(getInterceptor);
-  function getDispatchProperty(object) {
-    return object[_foreign_helper.JS_EMBEDDED_GLOBAL('String', _js_embedded_names.DISPATCH_PROPERTY_NAME)];
-  }
-  dart.fn(getDispatchProperty);
-  function setDispatchProperty(object, value) {
-    _js_helper.defineProperty(object, dart.as(_foreign_helper.JS_EMBEDDED_GLOBAL('String', _js_embedded_names.DISPATCH_PROPERTY_NAME), core.String), value);
-  }
-  dart.fn(setDispatchProperty);
-  function makeDispatchRecord(interceptor, proto, extension, indexability) {
-    return {i: interceptor, p: proto, e: extension, x: indexability};
-  }
-  dart.fn(makeDispatchRecord);
-  function dispatchRecordInterceptor(record) {
-    return record.i;
-  }
-  dart.fn(dispatchRecordInterceptor);
-  function dispatchRecordProto(record) {
-    return record.p;
-  }
-  dart.fn(dispatchRecordProto);
-  function dispatchRecordExtension(record) {
-    return record.e;
-  }
-  dart.fn(dispatchRecordExtension);
-  function dispatchRecordIndexability(record) {
-    return record.x;
-  }
-  dart.fn(dispatchRecordIndexability);
-  function getNativeInterceptor(object) {
-    let record = getDispatchProperty(object);
-    if (record == null) {
-      if (_js_helper.initNativeDispatchFlag == null) {
-        _js_helper.initNativeDispatch();
-        record = getDispatchProperty(object);
-      }
-    }
-    if (record != null) {
-      let proto = dispatchRecordProto(record);
-      if (dart.equals(false, proto))
-        return dispatchRecordInterceptor(record);
-      if (dart.equals(true, proto))
-        return object;
-      let objectProto = Object.getPrototypeOf(object);
-      if (proto === objectProto) {
-        return dispatchRecordInterceptor(record);
-      }
-      let extension = dispatchRecordExtension(record);
-      if (extension === objectProto) {
-        let discriminatedTag = proto(object, record);
-        throw new core.UnimplementedError(`Return interceptor for ${discriminatedTag}`);
-      }
-    }
-    let interceptor = _js_helper.lookupAndCacheInterceptor(object);
-    if (interceptor == null) {
-      let proto = Object.getPrototypeOf(object);
-      if (proto == null || proto === Object.prototype) {
-        return _foreign_helper.JS_INTERCEPTOR_CONSTANT(PlainJavaScriptObject);
-      } else {
-        return _foreign_helper.JS_INTERCEPTOR_CONSTANT(UnknownJavaScriptObject);
-      }
-    }
-    return interceptor;
-  }
-  dart.fn(getNativeInterceptor);
-  dart.copyProperties(exports, {
-    get mapTypeToInterceptor() {
-      return _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.MAP_TYPE_TO_INTERCEPTOR);
-    }
-  });
-  function findIndexForNativeSubclassType(type) {
-    if (exports.mapTypeToInterceptor == null)
-      return null;
-    let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    for (let i = 0; dart.notNull(i) + 1 < dart.notNull(map[core.$length]); i = dart.notNull(i) + 3) {
-      if (dart.equals(type, map[core.$get](i))) {
-        return i;
-      }
-    }
-    return null;
-  }
-  dart.fn(findIndexForNativeSubclassType, core.int, [core.Type]);
-  function findInterceptorConstructorForType(type) {
-    let index = findIndexForNativeSubclassType(type);
-    if (index == null)
-      return null;
-    let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    return map[core.$get](dart.notNull(index) + 1);
-  }
-  dart.fn(findInterceptorConstructorForType, core.Object, [core.Type]);
-  function findConstructorForNativeSubclassType(type, name) {
-    let index = findIndexForNativeSubclassType(type);
-    if (index == null)
-      return null;
-    let map = dart.as(exports.mapTypeToInterceptor, core.List);
-    let constructorMap = map[core.$get](dart.notNull(index) + 2);
-    let constructorFn = constructorMap[name];
-    return constructorFn;
-  }
-  dart.fn(findConstructorForNativeSubclassType, core.Object, [core.Type, core.String]);
-  function findInterceptorForType(type) {
-    let constructor = findInterceptorConstructorForType(type);
-    if (constructor == null)
-      return null;
-    return constructor.prototype;
-  }
-  dart.fn(findInterceptorForType, core.Object, [core.Type]);
   class JSBool extends Interceptor {
     JSBool() {
       super.Interceptor();
@@ -1120,31 +1372,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   dart.setSignature(JSBool, {
     constructors: () => ({JSBool: [JSBool, []]})
   });
-  class JSNull extends Interceptor {
-    JSNull() {
-      super.Interceptor();
-    }
-    ['=='](other) {
-      return core.identical(null, other);
-    }
-    toString() {
-      return 'null';
-    }
-    get hashCode() {
-      return 0;
-    }
-    get runtimeType() {
-      return core.Null;
-    }
-    noSuchMethod(invocation) {
-      return super.noSuchMethod(invocation);
-    }
-  }
-  JSNull[dart.implements] = () => [core.Null];
-  dart.setSignature(JSNull, {
-    constructors: () => ({JSNull: [JSNull, []]}),
-    methods: () => ({'==': [core.bool, [core.Object]]})
-  });
+  dart.registerExtension(dart.global.Boolean, JSBool);
   class JSIndexable extends core.Object {}
   class JSMutableIndexable extends JSIndexable {}
   class JSObject extends core.Object {}
@@ -1183,6 +1411,7 @@ var _js_embedded_names = dart.import(_js_embedded_names);
     constructors: () => ({UnknownJavaScriptObject: [UnknownJavaScriptObject, []]})
   });
   // Exports:
+  exports.JSArray$ = JSArray$;
   exports.JSArray = JSArray;
   exports.JSMutableArray$ = JSMutableArray$;
   exports.JSMutableArray = JSMutableArray;
@@ -1199,24 +1428,11 @@ var _js_embedded_names = dart.import(_js_embedded_names);
   exports.JSUInt31 = JSUInt31;
   exports.JSString = JSString;
   exports.getInterceptor = getInterceptor;
-  exports.getDispatchProperty = getDispatchProperty;
-  exports.setDispatchProperty = setDispatchProperty;
-  exports.makeDispatchRecord = makeDispatchRecord;
-  exports.dispatchRecordInterceptor = dispatchRecordInterceptor;
-  exports.dispatchRecordProto = dispatchRecordProto;
-  exports.dispatchRecordExtension = dispatchRecordExtension;
-  exports.dispatchRecordIndexability = dispatchRecordIndexability;
-  exports.getNativeInterceptor = getNativeInterceptor;
-  exports.findIndexForNativeSubclassType = findIndexForNativeSubclassType;
-  exports.findInterceptorConstructorForType = findInterceptorConstructorForType;
-  exports.findConstructorForNativeSubclassType = findConstructorForNativeSubclassType;
-  exports.findInterceptorForType = findInterceptorForType;
   exports.JSBool = JSBool;
-  exports.JSNull = JSNull;
   exports.JSIndexable = JSIndexable;
   exports.JSMutableIndexable = JSMutableIndexable;
   exports.JSObject = JSObject;
   exports.JavaScriptObject = JavaScriptObject;
   exports.PlainJavaScriptObject = PlainJavaScriptObject;
   exports.UnknownJavaScriptObject = UnknownJavaScriptObject;
-})(_interceptors, core, _js_helper, _internal, _foreign_helper, _js_embedded_names);
+})(_interceptors, core, _internal, _js_helper, collection, math);

@@ -1,21 +1,21 @@
 warning: line 20, column 39 of dart:async/async_error.dart: [DownCastImplicit] errorHandler (Function) will need runtime check to cast to type (dynamic) → dynamic
     return zone.registerUnaryCallback(errorHandler);
                                       ^^^^^^^^^^^^
-severe: line 211, column 38 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
-      assert(!identical(subscription._next, subscription));
-                                     ^^^^^
-severe: line 207, column 36 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
-    assert(!identical(subscription._next, subscription));
-                                   ^^^^^
-severe: line 209, column 20 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The method '_setRemoveAfterFiring' is not defined for the class 'StreamSubscription<T>'
-      subscription._setRemoveAfterFiring();
-                   ^^^^^^^^^^^^^^^^^^^^^
 severe: line 208, column 22 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_isFiring' is not defined for the class 'StreamSubscription<T>'
     if (subscription._isFiring) {
                      ^^^^^^^^^
 severe: line 206, column 32 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
     if (identical(subscription._next, subscription)) return null;
                                ^^^^^
+severe: line 207, column 36 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
+    assert(!identical(subscription._next, subscription));
+                                   ^^^^^
+severe: line 209, column 20 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The method '_setRemoveAfterFiring' is not defined for the class 'StreamSubscription<T>'
+      subscription._setRemoveAfterFiring();
+                   ^^^^^^^^^^^^^^^^^^^^^
+severe: line 211, column 38 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
+      assert(!identical(subscription._next, subscription));
+                                     ^^^^^
 warning: line 8, column 67 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] controller (_StreamControllerLifecycle<dynamic>) will need runtime check to cast to type _StreamControllerLifecycle<T>
   _BroadcastStream(_StreamControllerLifecycle controller) : super(controller);
                                                                   ^^^^^^^^^^
@@ -262,43 +262,25 @@ warning: line 168, column 14 of dart:isolate: [DownCastComposite] IsolateNatives
 warning: line 234, column 14 of dart:isolate: [DownCastComposite] IsolateNatives.spawnUri(uri, args, message, paused).then((msg) => new Isolate(msg[1], pauseCapability: msg[2], terminateCapability: msg[3])) (Future<dynamic>) will need runtime check to cast to type Future<Isolate>
       return IsolateNatives.spawnUri(uri, args, message, paused)
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 50, column 69 of dart:_interceptors: [DownCastImplicit] symbol (Symbol) will need runtime check to cast to type Symbol
-String _symbolToString(Symbol symbol) => _symbol_dev.Symbol.getName(symbol);
-                                                                    ^^^^^^
-severe: line 329, column 3 of dart:_interceptors: [InvalidMethodOverride] Invalid override. The type of JSNull.== ((dynamic) → bool) is not a subtype of Interceptor.== ((Object) → bool).
-  bool operator ==(other) => identical(null, other);
-  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 65, column 40 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('JSArray', '#', allocation) (dynamic) will need runtime check to cast to type JSArray<E>
-  factory JSArray.typed(allocation) => JS('JSArray', '#', allocation);
-                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 68, column 7 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('JSFixedArray', '#', markFixedList(new JSArray<E>.typed(allocation))) (dynamic) will need runtime check to cast to type JSArray<E>
-      JS('JSFixedArray', '#', markFixedList(new JSArray<E>.typed(allocation)));
-      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 71, column 7 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('JSExtendableArray', '#', new JSArray<E>.typed(allocation)) (dynamic) will need runtime check to cast to type JSArray<E>
-      JS('JSExtendableArray', '#', new JSArray<E>.typed(allocation));
-      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 104, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('var', r'#.splice(#, 1)[0]', this, index) (dynamic) will need runtime check to cast to type E
-    return JS('var', r'#.splice(#, 1)[0]', this, index);
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 129, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('var', r'#.pop()', this) (dynamic) will need runtime check to cast to type E
+warning: line 80, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('var', r'#.pop()', this) (dynamic) will need runtime check to cast to type E
     return JS('var', r'#.pop()', this);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 174, column 9 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('', '#[#]', this, i) (dynamic) will need runtime check to cast to type E
+warning: line 125, column 9 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('', '#[#]', this, i) (dynamic) will need runtime check to cast to type E
       f(JS('', '#[#]', this, i));
         ^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 210, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] IterableMixinWorkaround.reduce(this, combine) (dynamic) will need runtime check to cast to type E
+warning: line 161, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] IterableMixinWorkaround.reduce(this, combine) (dynamic) will need runtime check to cast to type E
     return IterableMixinWorkaround.reduce(this, combine);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 218, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] IterableMixinWorkaround.firstWhere(this, test, orElse) (dynamic) will need runtime check to cast to type E
+warning: line 169, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] IterableMixinWorkaround.firstWhere(this, test, orElse) (dynamic) will need runtime check to cast to type E
     return IterableMixinWorkaround.firstWhere(this, test, orElse);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 222, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] IterableMixinWorkaround.lastWhereList(this, test, orElse) (dynamic) will need runtime check to cast to type E
+warning: line 173, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] IterableMixinWorkaround.lastWhereList(this, test, orElse) (dynamic) will need runtime check to cast to type E
     return IterableMixinWorkaround.lastWhereList(this, test, orElse);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 226, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] IterableMixinWorkaround.singleWhere(this, test) (dynamic) will need runtime check to cast to type E
+warning: line 177, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] IterableMixinWorkaround.singleWhere(this, test) (dynamic) will need runtime check to cast to type E
     return IterableMixinWorkaround.singleWhere(this, test);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 368, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('var', '#[#]', this, index) (dynamic) will need runtime check to cast to type E
+warning: line 313, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('var', '#[#]', this, index) (dynamic) will need runtime check to cast to type E
     return JS('var', '#[#]', this, index);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 warning: line 83, column 28 of dart:_interceptors/js_number.dart: [DownCastImplicit] JS('num', r'Math.ceil(#)', this) (num) will need runtime check to cast to type double
@@ -316,67 +298,67 @@ warning: line 91, column 14 of dart:_interceptors/js_number.dart: [DownCastImpli
 severe: line 110, column 17 of dart:_interceptors/js_number.dart: [StaticTypeError] Type check failed: this (JSNumber) is not of type double
   toDouble() => this;
                 ^^^^
-severe: line 344, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.abs (() → num) is not a subtype of int.abs (() → int).
+severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.abs (() → num) is not a subtype of int.abs (() → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 344, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.unary- (() → num) is not a subtype of int.unary- (() → int).
+severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.unary- (() → num) is not a subtype of int.unary- (() → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 344, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.<< ((num) → num) is not a subtype of int.<< ((int) → int).
+severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.<< ((num) → num) is not a subtype of int.<< ((int) → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 344, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.>> ((num) → num) is not a subtype of int.>> ((int) → int).
+severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.>> ((num) → num) is not a subtype of int.>> ((int) → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 344, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.& ((num) → num) is not a subtype of int.& ((int) → int).
+severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.& ((num) → num) is not a subtype of int.& ((int) → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 344, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.| ((num) → num) is not a subtype of int.| ((int) → int).
+severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.| ((num) → num) is not a subtype of int.| ((int) → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 344, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.^ ((num) → num) is not a subtype of int.^ ((int) → int).
+severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.^ ((num) → num) is not a subtype of int.^ ((int) → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 344, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.sign (() → num) is not a subtype of int.sign (() → int).
+severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.sign (() → num) is not a subtype of int.sign (() → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-warning: line 352, column 12 of dart:_interceptors/js_number.dart: [DownCastImplicit] this & ((1 << width) - 1) (num) will need runtime check to cast to type int
+warning: line 355, column 12 of dart:_interceptors/js_number.dart: [DownCastImplicit] this & ((1 << width) - 1) (num) will need runtime check to cast to type int
     return this & ((1 << width) - 1);
            ^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 357, column 12 of dart:_interceptors/js_number.dart: [DownCastImplicit] (this & (signMask - 1)) - (this & signMask) (num) will need runtime check to cast to type int
+warning: line 360, column 12 of dart:_interceptors/js_number.dart: [DownCastImplicit] (this & (signMask - 1)) - (this & signMask) (num) will need runtime check to cast to type int
     return (this & (signMask - 1)) - (this & signMask);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-severe: line 415, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.remainder ((num) → num) is not a subtype of double.remainder ((num) → double).
+severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.remainder ((num) → num) is not a subtype of double.remainder ((num) → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 415, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.abs (() → num) is not a subtype of double.abs (() → double).
+severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.abs (() → num) is not a subtype of double.abs (() → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 415, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.unary- (() → num) is not a subtype of double.unary- (() → double).
+severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.unary- (() → num) is not a subtype of double.unary- (() → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 415, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.+ ((num) → num) is not a subtype of double.+ ((num) → double).
+severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.+ ((num) → num) is not a subtype of double.+ ((num) → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 415, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.- ((num) → num) is not a subtype of double.- ((num) → double).
+severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.- ((num) → num) is not a subtype of double.- ((num) → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 415, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.* ((num) → num) is not a subtype of double.* ((num) → double).
+severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.* ((num) → num) is not a subtype of double.* ((num) → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 415, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.% ((num) → num) is not a subtype of double.% ((num) → double).
+severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.% ((num) → num) is not a subtype of double.% ((num) → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 415, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.sign (() → num) is not a subtype of double.sign (() → double).
+severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.sign (() → num) is not a subtype of double.sign (() → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-warning: line 85, column 14 of dart:_interceptors/js_string.dart: [DownCastComposite] JS('JSExtendableArray', r'#.split(#)', this, pattern) (dynamic) will need runtime check to cast to type List<String>
+warning: line 86, column 14 of dart:_interceptors/js_string.dart: [DownCastComposite] JS('JSExtendableArray', r'#.split(#)', this, pattern) (dynamic) will need runtime check to cast to type List<String>
       return JS('JSExtendableArray', r'#.split(#)', this, pattern);
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 88, column 14 of dart:_interceptors/js_string.dart: [DownCastComposite] JS('JSExtendableArray', r'#.split(#)', this, re) (dynamic) will need runtime check to cast to type List<String>
+warning: line 89, column 14 of dart:_interceptors/js_string.dart: [DownCastComposite] JS('JSExtendableArray', r'#.split(#)', this, re) (dynamic) will need runtime check to cast to type List<String>
       return JS('JSExtendableArray', r'#.split(#)', this, re);
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-severe: line 345, column 7 of dart:_interceptors/js_string.dart: [StaticTypeError] Type check failed: s += s (String) is not of type JSString
+severe: line 346, column 7 of dart:_interceptors/js_string.dart: [StaticTypeError] Type check failed: s += s (String) is not of type JSString
       s += s;
       ^^^^^^
 severe: line 452, column 28 of dart:_native_typed_data: [AnalyzerError] The getter 'length' is not defined for the class 'NativeTypedData'
@@ -433,73 +415,73 @@ warning: line 357, column 29 of dart:_isolate_helper/isolate_serialization.dart:
 warning: line 59, column 22 of dart:_js_names: [DownCastComposite] keys (List<dynamic>) will need runtime check to cast to type Iterable<String>
   for (String key in keys) {
                      ^^^^
-warning: line 246, column 52 of dart:_js_helper: [DownCastImplicit] memberName (Symbol) will need runtime check to cast to type Symbol
+warning: line 238, column 52 of dart:_js_helper: [DownCastImplicit] memberName (Symbol) will need runtime check to cast to type Symbol
       String baseName = _symbol_dev.Symbol.getName(memberName);
                                                    ^^^^^^^^^^
-warning: line 474, column 14 of dart:_js_helper: [DownCastComposite] JS('', '#[2 * # + # + # + 1]', data, parameter, optionalParameterCount, FIRST_DEFAULT_ARGUMENT) (dynamic) will need runtime check to cast to type List<int>
+warning: line 466, column 14 of dart:_js_helper: [DownCastComposite] JS('', '#[2 * # + # + # + 1]', data, parameter, optionalParameterCount, FIRST_DEFAULT_ARGUMENT) (dynamic) will need runtime check to cast to type List<int>
       return JS('', '#[2 * # + # + # + 1]', data, parameter,
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 609, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 16)', source) (num) will need runtime check to cast to type int
+warning: line 601, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 16)', source) (num) will need runtime check to cast to type int
           return JS('num', r'parseInt(#, 16)', source);
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 613, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
+warning: line 605, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
           return JS('num', r'parseInt(#, 10)', source);
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 625, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
+warning: line 617, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
           return JS('num', r'parseInt(#, 10)', source);
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 657, column 12 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, #)', source, radix) (num) will need runtime check to cast to type int
+warning: line 649, column 12 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, #)', source, radix) (num) will need runtime check to cast to type int
     return JS('num', r'parseInt(#, #)', source, radix);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 681, column 16 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
+warning: line 673, column 16 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
         return result;
                ^^^^^^
-warning: line 685, column 12 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
+warning: line 677, column 12 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
     return result;
            ^^^^^^
-warning: line 834, column 15 of dart:_js_helper: [DownCastImplicit] 0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)) (num) will need runtime check to cast to type int
+warning: line 826, column 15 of dart:_js_helper: [DownCastImplicit] 0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)) (num) will need runtime check to cast to type int
         a.add(0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)));
               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 835, column 15 of dart:_js_helper: [DownCastImplicit] 0xdc00 + (i & 0x3ff) (num) will need runtime check to cast to type int
+warning: line 827, column 15 of dart:_js_helper: [DownCastImplicit] 0xdc00 + (i & 0x3ff) (num) will need runtime check to cast to type int
         a.add(0xdc00 + (i & 0x3ff));
               ^^^^^^^^^^^^^^^^^^^^
-warning: line 849, column 31 of dart:_js_helper: [DownCastComposite] charCodes (dynamic) will need runtime check to cast to type List<int>
+warning: line 841, column 31 of dart:_js_helper: [DownCastComposite] charCodes (dynamic) will need runtime check to cast to type List<int>
     return _fromCharCodeApply(charCodes);
                               ^^^^^^^^^
-warning: line 1505, column 9 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message) (dynamic) will need runtime check to cast to type List<String>
+warning: line 1497, column 9 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message) (dynamic) will need runtime check to cast to type List<String>
         JS('JSExtendableArray|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message);
         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3063, column 7 of dart:_js_helper: [DownCastComposite] parameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
+warning: line 3055, column 7 of dart:_js_helper: [DownCastComposite] parameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
       parameterTypes,
       ^^^^^^^^^^^^^^
-warning: line 3064, column 7 of dart:_js_helper: [DownCastComposite] optionalParameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
+warning: line 3056, column 7 of dart:_js_helper: [DownCastComposite] optionalParameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
       optionalParameterTypes,
       ^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3073, column 7 of dart:_js_helper: [DownCastComposite] parameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
+warning: line 3065, column 7 of dart:_js_helper: [DownCastComposite] parameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
       parameterTypes,
       ^^^^^^^^^^^^^^
-warning: line 3083, column 39 of dart:_js_helper: [DownCastComposite] typeArguments (dynamic) will need runtime check to cast to type List<RuntimeType>
+warning: line 3075, column 39 of dart:_js_helper: [DownCastComposite] typeArguments (dynamic) will need runtime check to cast to type List<RuntimeType>
   return new RuntimeTypeGeneric(name, typeArguments, null);
                                       ^^^^^^^^^^^^^
-warning: line 3144, column 41 of dart:_js_helper: [DownCastComposite] arguments (List<dynamic>) will need runtime check to cast to type List<RuntimeType>
+warning: line 3136, column 41 of dart:_js_helper: [DownCastComposite] arguments (List<dynamic>) will need runtime check to cast to type List<RuntimeType>
     return new RuntimeTypeGeneric(name, arguments, rti);
                                         ^^^^^^^^^
-warning: line 3329, column 23 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', '#[#]', urisMap, loadId) (dynamic) will need runtime check to cast to type List<String>
+warning: line 3321, column 23 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', '#[#]', urisMap, loadId) (dynamic) will need runtime check to cast to type List<String>
   List<String> uris = JS('JSExtendableArray|Null', '#[#]', urisMap, loadId);
                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3331, column 25 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId) (dynamic) will need runtime check to cast to type List<String>
+warning: line 3323, column 25 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId) (dynamic) will need runtime check to cast to type List<String>
   List<String> hashes = JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId);
                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3341, column 10 of dart:_js_helper: [DownCastComposite] Future.wait(indicesToLoad.map((int i) => _loadHunk(uris[i]))).then((_) {List<int> indicesToInitialize = indices.where((int i) => !JS('bool', '#(#)', isHunkInitialized, hashes[i])).toList(); for (int i in indicesToInitialize) {var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK); JS('void', '#(#)', initializer, hashes[i]);} bool updated = _loadedLibraries.add(loadId); if (updated && deferredLoadHook != null) {deferredLoadHook();}}) (Future<dynamic>) will need runtime check to cast to type Future<Null>
+warning: line 3333, column 10 of dart:_js_helper: [DownCastComposite] Future.wait(indicesToLoad.map((int i) => _loadHunk(uris[i]))).then((_) {List<int> indicesToInitialize = indices.where((int i) => !JS('bool', '#(#)', isHunkInitialized, hashes[i])).toList(); for (int i in indicesToInitialize) {var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK); JS('void', '#(#)', initializer, hashes[i]);} bool updated = _loadedLibraries.add(loadId); if (updated && deferredLoadHook != null) {deferredLoadHook();}}) (Future<dynamic>) will need runtime check to cast to type Future<Null>
   return Future.wait(indicesToLoad
          ^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3341, column 22 of dart:_js_helper: [DownCastComposite] indicesToLoad.map((int i) => _loadHunk(uris[i])) (Iterable<dynamic>) will need runtime check to cast to type Iterable<Future<dynamic>>
+warning: line 3333, column 22 of dart:_js_helper: [DownCastComposite] indicesToLoad.map((int i) => _loadHunk(uris[i])) (Iterable<dynamic>) will need runtime check to cast to type Iterable<Future<dynamic>>
   return Future.wait(indicesToLoad
                      ^^^^^^^^^^^^^^
-warning: line 3364, column 12 of dart:_js_helper: [DownCastComposite] future.then((_) => null) (Future<dynamic>) will need runtime check to cast to type Future<Null>
+warning: line 3356, column 12 of dart:_js_helper: [DownCastComposite] future.then((_) => null) (Future<dynamic>) will need runtime check to cast to type Future<Null>
     return future.then((_) => null);
            ^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3390, column 36 of dart:_js_helper: [DownCastComposite] completer.future.whenComplete(() {leaveJsAsync();}) (Future<dynamic>) will need runtime check to cast to type Future<Null>
+warning: line 3382, column 36 of dart:_js_helper: [DownCastComposite] completer.future.whenComplete(() {leaveJsAsync();}) (Future<dynamic>) will need runtime check to cast to type Future<Null>
       Future<Null> leavingFuture = completer.future.whenComplete(() {
                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 warning: line 20, column 41 of dart:_js_helper/constant_map.dart: [DownCastComposite] _throwUnmodifiable() (dynamic) will need runtime check to cast to type V
@@ -1111,51 +1093,15 @@ warning: line 259, column 40 of dart:core/duration.dart: [DownCastImplicit] inSe
 warning: line 261, column 19 of dart:core/duration.dart: [DownCastImplicit] inMicroseconds.remainder(MICROSECONDS_PER_SECOND) (num) will need runtime check to cast to type int
         sixDigits(inMicroseconds.remainder(MICROSECONDS_PER_SECOND));
                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 320, column 22 of dart:core/iterable.dart: [DownCastComposite] (generator != null) ? generator : _id (dynamic) will need runtime check to cast to type (int) → E
+warning: line 319, column 22 of dart:core/iterable.dart: [DownCastComposite] (generator != null) ? generator : _id (dynamic) will need runtime check to cast to type (int) → E
         _generator = (generator != null) ? generator : _id;
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-severe: line 612, column 5 of dart:core/list.dart: [AnalyzerError] The method 'checkNull' is not defined for the class 'List'
-    checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-    ^^^^^^^^^
-severe: line 523, column 22 of dart:core/list.dart: [AnalyzerError] Undefined name 'value'
-      if (this[i] == value) {
-                     ^^^^^
-warning: line 96, column 12 of dart:core/list.dart: [DownCastComposite] list (dynamic) will need runtime check to cast to type List<E>
-    return list;
-           ^^^^
-warning: line 128, column 16 of dart:core/list.dart: [DownCastComposite] e (dynamic) will need runtime check to cast to type E
+warning: line 121, column 16 of dart:core/list.dart: [DownCastComposite] e (dynamic) will need runtime check to cast to type E
       list.add(e);
                ^
-warning: line 131, column 12 of dart:core/list.dart: [DownCastComposite] makeListFixedLength(list) (List<dynamic>) will need runtime check to cast to type List<E>
+warning: line 124, column 12 of dart:core/list.dart: [DownCastComposite] makeListFixedLength(list) (List<dynamic>) will need runtime check to cast to type List<E>
     return makeListFixedLength(list);
            ^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 186, column 9 of dart:core/list.dart: [DownCastComposite] JS('', '#[#]', this, i) (dynamic) will need runtime check to cast to type E
-      f(JS('', '#[#]', this, i));
-        ^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 222, column 12 of dart:core/list.dart: [DownCastComposite] IterableMixinWorkaround.reduce(this, combine) (dynamic) will need runtime check to cast to type E
-    return IterableMixinWorkaround.reduce(this, combine);
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 230, column 12 of dart:core/list.dart: [DownCastComposite] IterableMixinWorkaround.firstWhere(this, test, orElse) (dynamic) will need runtime check to cast to type E
-    return IterableMixinWorkaround.firstWhere(this, test, orElse);
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 234, column 12 of dart:core/list.dart: [DownCastComposite] IterableMixinWorkaround.lastWhereList(this, test, orElse) (dynamic) will need runtime check to cast to type E
-    return IterableMixinWorkaround.lastWhereList(this, test, orElse);
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 238, column 12 of dart:core/list.dart: [DownCastComposite] IterableMixinWorkaround.singleWhere(this, test) (dynamic) will need runtime check to cast to type E
-    return IterableMixinWorkaround.singleWhere(this, test);
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 281, column 12 of dart:core/list.dart: [DownCastComposite] JS('', 'dart.setType(#.slice(), core.List\$(#))', this, E) (dynamic) will need runtime check to cast to type List<E>
-    return JS('', 'dart.setType(#.slice(), core.List\$(#))', this, E);
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 299, column 12 of dart:core/list.dart: [DownCastComposite] JS('var', '#[#]', this, index) (dynamic) will need runtime check to cast to type E
-    return JS('var', '#[#]', this, index);
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 550, column 12 of dart:core/list.dart: [DownCastComposite] JS('var', r'#.splice(#, 1)[0]', this, index) (dynamic) will need runtime check to cast to type E
-    return JS('var', r'#.splice(#, 1)[0]', this, index);
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 561, column 12 of dart:core/list.dart: [DownCastComposite] JS('var', r'#.pop()', this) (dynamic) will need runtime check to cast to type E
-    return JS('var', r'#.pop()', this);
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 warning: line 102, column 12 of dart:core/stopwatch.dart: [DownCastImplicit] (_stop == null) ? (_now() - _start) : (_stop - _start) (num) will need runtime check to cast to type int
     return (_stop == null) ? (_now() - _start) : (_stop - _start);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

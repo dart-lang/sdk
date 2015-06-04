@@ -608,9 +608,17 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
       var args = node.argumentList.arguments;
       var first = args.isNotEmpty ? args.first : null;
       if (first is SimpleStringLiteral) {
-        var coreLib = _typeProvider.objectType.element.library;
-        var classElem = coreLib.getType(first.stringValue);
-        if (classElem != null) node.staticType = classElem.type;
+        var typeStr = first.stringValue;
+        if (typeStr == '-dynamic') {
+          node.staticType = _typeProvider.bottomType;
+        } else {
+          var coreLib = _typeProvider.objectType.element.library;
+          var classElem = coreLib.getType(typeStr);
+          if (classElem != null) {
+            var type = fillDynamicTypeArgs(classElem.type, _typeProvider);
+            node.staticType = type;
+          }
+        }
       }
     }
   }

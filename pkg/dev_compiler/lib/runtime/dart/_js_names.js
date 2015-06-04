@@ -34,8 +34,8 @@ var _js_helper = dart.lazyImport(_js_helper);
       let value = jsMangledNames[key];
       result.set(key, value);
       if (!dart.notNull(isGlobal)) {
-        if (key.startsWith(getterPrefix)) {
-          result.set(`${setterPrefix}${key.substring(getterPrefixLength)}`, `${value}=`);
+        if (key[dartx.startsWith](getterPrefix)) {
+          result.set(`${setterPrefix}${key[dartx.substring](getterPrefixLength)}`, `${value}=`);
         }
       }
     }

@@ -49,16 +49,16 @@ var core = dart.import(core);
   dart.fn(test_mutate_outside_cascade, dart.void, []);
   function test_VariableDeclaration_single() {
     let a = [];
-    a[core.$length] = 2;
-    a[core.$add](42);
+    a.length = 2;
+    a[dartx.add](42);
     core.print(a);
   }
   dart.fn(test_VariableDeclaration_single, dart.void, []);
   function test_VariableDeclaration_last() {
     let a = 42, b = (() => {
       let _ = [];
-      _[core.$length] = 2;
-      _[core.$add](a);
+      _.length = 2;
+      _[dartx.add](a);
       return _;
     })();
     core.print(b);
@@ -67,8 +67,8 @@ var core = dart.import(core);
   function test_VariableDeclaration_first() {
     let a = (() => {
       let _ = [];
-      _[core.$length] = 2;
-      _[core.$add](3);
+      _.length = 2;
+      _[dartx.add](3);
       return _;
     })(), b = 2;
     core.print(a);
@@ -86,7 +86,7 @@ var core = dart.import(core);
   let Base$ = dart.generic(function(T) {
     class Base extends core.Object {
       Base() {
-        this.x = dart.setType([], core.List$(T));
+        this.x = dart.list([], T);
       }
     }
     return Base;
@@ -97,10 +97,10 @@ var core = dart.import(core);
       super.Base();
     }
     test_final_field_generic(t) {
-      this.x[core.$add](1);
-      this.x[core.$add](2);
-      this.x[core.$add](3);
-      this.x[core.$add](4);
+      this.x[dartx.add](1);
+      this.x[dartx.add](2);
+      this.x[dartx.add](3);
+      this.x[dartx.add](4);
     }
   }
   dart.setSignature(Foo, {

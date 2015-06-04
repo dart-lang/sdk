@@ -3,12 +3,12 @@ var core = dart.import(core);
 var collection = dart.import(collection);
 var _internal = dart.import(_internal);
 var _foreign_helper = dart.import(_foreign_helper);
-var _js_embedded_names = dart.import(_js_embedded_names);
 var _interceptors = dart.lazyImport(_interceptors);
 var _js_names = dart.import(_js_names);
+var _js_embedded_names = dart.import(_js_embedded_names);
 var async = dart.import(async);
 var _isolate_helper = dart.lazyImport(_isolate_helper);
-(function(exports, core, collection, _internal, _foreign_helper, _js_embedded_names, _interceptors, _js_names, async, _isolate_helper) {
+(function(exports, core, collection, _internal, _foreign_helper, _interceptors, _js_names, _js_embedded_names, async, _isolate_helper) {
   'use strict';
   class NoSideEffects extends core.Object {
     NoSideEffects() {
@@ -46,6 +46,31 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   }
   dart.setSignature(Native, {
     constructors: () => ({Native: [Native, [core.String]]})
+  });
+  class JsName extends core.Object {
+    JsName(opts) {
+      let name = opts && 'name' in opts ? opts.name : null;
+      this.name = name;
+    }
+  }
+  dart.setSignature(JsName, {
+    constructors: () => ({JsName: [JsName, [], {name: core.String}]})
+  });
+  class JsPeerInterface extends core.Object {
+    JsPeerInterface(opts) {
+      let name = opts && 'name' in opts ? opts.name : null;
+      this.name = name;
+    }
+  }
+  dart.setSignature(JsPeerInterface, {
+    constructors: () => ({JsPeerInterface: [JsPeerInterface, [], {name: core.String}]})
+  });
+  class SupportJsExtensionMethods extends core.Object {
+    SupportJsExtensionMethods() {
+    }
+  }
+  dart.setSignature(SupportJsExtensionMethods, {
+    constructors: () => ({SupportJsExtensionMethods: [SupportJsExtensionMethods, []]})
   });
   let _throwUnmodifiable = Symbol('_throwUnmodifiable');
   let ConstantMap$ = dart.generic(function(K, V) {
@@ -113,7 +138,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         super._();
       }
       containsValue(needle) {
-        return this.values[core.$any](dart.fn(value => dart.equals(value, needle), core.bool, [V]));
+        return this.values[dartx.any](dart.fn(value => dart.equals(value, needle), core.bool, [V]));
       }
       containsKey(key) {
         if (!(typeof key == 'string'))
@@ -192,11 +217,11 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         this[_map] = map;
         super.IterableBase();
       }
-      get [core.$iterator]() {
-        return this[_map][_keys][core.$iterator];
+      get iterator() {
+        return this[_map][_keys][dartx.iterator];
       }
-      get [core.$length]() {
-        return this[_map][_keys][core.$length];
+      get length() {
+        return this[_map][_keys].length;
       }
     }
     dart.setSignature(_ConstantMapKeyIterable, {
@@ -288,233 +313,10 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     return Object.getPrototypeOf(object)[name];
   }
   dart.fn(getPropertyFromPrototype, core.Object, [core.Object, core.String]);
-  exports.getTagFunction = null;
-  exports.alternateTagFunction = null;
-  exports.prototypeForTagFunction = null;
-  function toStringForNativeObject(obj) {
-    let name = exports.getTagFunction == null ? '<Unknown>' : dart.dcall(exports.getTagFunction, obj);
-    return `Instance of ${name}`;
-  }
-  dart.fn(toStringForNativeObject, core.String, [core.Object]);
-  function hashCodeForNativeObject(object) {
-    return Primitives.objectHashCode(object);
-  }
-  dart.fn(hashCodeForNativeObject, core.int, [core.Object]);
   function defineProperty(obj, property, value) {
     Object.defineProperty(obj, property, {value: value, enumerable: false, writable: true, configurable: true});
   }
   dart.fn(defineProperty, dart.void, [core.Object, core.String, core.Object]);
-  function isDartObject(obj) {
-    return obj instanceof _foreign_helper.JS_DART_OBJECT_CONSTRUCTOR();
-  }
-  dart.fn(isDartObject, core.bool, [core.Object]);
-  dart.copyProperties(exports, {
-    get interceptorsByTag() {
-      return _foreign_helper.JS_EMBEDDED_GLOBAL('=Object', _js_embedded_names.INTERCEPTORS_BY_TAG);
-    },
-    get leafTags() {
-      return _foreign_helper.JS_EMBEDDED_GLOBAL('=Object', _js_embedded_names.LEAF_TAGS);
-    }
-  });
-  function findDispatchTagForInterceptorClass(interceptorClassConstructor) {
-    return dart.as(interceptorClassConstructor[_js_embedded_names.NATIVE_SUPERCLASS_TAG_NAME], core.String);
-  }
-  dart.fn(findDispatchTagForInterceptorClass, core.String, [core.Object]);
-  exports.dispatchRecordsForInstanceTags = null;
-  exports.interceptorsForUncacheableTags = null;
-  function lookupInterceptor(tag) {
-    return propertyGet(exports.interceptorsByTag, tag);
-  }
-  dart.fn(lookupInterceptor, core.Object, [core.String]);
-  let UNCACHED_MARK = '~';
-  let INSTANCE_CACHED_MARK = '!';
-  let LEAF_MARK = '-';
-  let INTERIOR_MARK = '+';
-  let DISCRIMINATED_MARK = '*';
-  function lookupAndCacheInterceptor(obj) {
-    dart.assert(!dart.notNull(isDartObject(obj)));
-    let tag = dart.as(dart.dcall(exports.getTagFunction, obj), core.String);
-    let record = propertyGet(exports.dispatchRecordsForInstanceTags, tag);
-    if (record != null)
-      return patchInstance(obj, record);
-    let interceptor = propertyGet(exports.interceptorsForUncacheableTags, tag);
-    if (interceptor != null)
-      return interceptor;
-    let interceptorClass = lookupInterceptor(tag);
-    if (interceptorClass == null) {
-      tag = dart.as(dart.dcall(exports.alternateTagFunction, obj, tag), core.String);
-      if (tag != null) {
-        record = propertyGet(exports.dispatchRecordsForInstanceTags, tag);
-        if (record != null)
-          return patchInstance(obj, record);
-        interceptor = propertyGet(exports.interceptorsForUncacheableTags, tag);
-        if (interceptor != null)
-          return interceptor;
-        interceptorClass = lookupInterceptor(tag);
-      }
-    }
-    if (interceptorClass == null) {
-      return null;
-    }
-    interceptor = interceptorClass.prototype;
-    let mark = tag[0];
-    if (dart.equals(mark, INSTANCE_CACHED_MARK)) {
-      record = makeLeafDispatchRecord(interceptor);
-      propertySet(exports.dispatchRecordsForInstanceTags, tag, record);
-      return patchInstance(obj, record);
-    }
-    if (dart.equals(mark, UNCACHED_MARK)) {
-      propertySet(exports.interceptorsForUncacheableTags, tag, interceptor);
-      return interceptor;
-    }
-    if (dart.equals(mark, LEAF_MARK)) {
-      return patchProto(obj, makeLeafDispatchRecord(interceptor));
-    }
-    if (dart.equals(mark, INTERIOR_MARK)) {
-      return patchInteriorProto(obj, interceptor);
-    }
-    if (dart.equals(mark, DISCRIMINATED_MARK)) {
-      throw new core.UnimplementedError(tag);
-    }
-    let isLeaf = exports.leafTags[tag] === true;
-    if (isLeaf) {
-      return patchProto(obj, makeLeafDispatchRecord(interceptor));
-    } else {
-      return patchInteriorProto(obj, interceptor);
-    }
-  }
-  dart.fn(lookupAndCacheInterceptor);
-  function patchInstance(obj, record) {
-    _interceptors.setDispatchProperty(obj, record);
-    return _interceptors.dispatchRecordInterceptor(record);
-  }
-  dart.fn(patchInstance);
-  function patchProto(obj, record) {
-    _interceptors.setDispatchProperty(Object.getPrototypeOf(obj), record);
-    return _interceptors.dispatchRecordInterceptor(record);
-  }
-  dart.fn(patchProto);
-  function patchInteriorProto(obj, interceptor) {
-    let proto = Object.getPrototypeOf(obj);
-    let record = _interceptors.makeDispatchRecord(interceptor, proto, null, null);
-    _interceptors.setDispatchProperty(proto, record);
-    return interceptor;
-  }
-  dart.fn(patchInteriorProto);
-  function makeLeafDispatchRecord(interceptor) {
-    let fieldName = _foreign_helper.JS_IS_INDEXABLE_FIELD_NAME();
-    let indexability = !!interceptor[fieldName];
-    return _interceptors.makeDispatchRecord(interceptor, false, null, indexability);
-  }
-  dart.fn(makeLeafDispatchRecord);
-  function makeDefaultDispatchRecord(tag, interceptorClass, proto) {
-    let interceptor = interceptorClass.prototype;
-    let isLeaf = exports.leafTags[tag] === true;
-    if (isLeaf) {
-      return makeLeafDispatchRecord(interceptor);
-    } else {
-      return _interceptors.makeDispatchRecord(interceptor, proto, null, null);
-    }
-  }
-  dart.fn(makeDefaultDispatchRecord);
-  function setNativeSubclassDispatchRecord(proto, interceptor) {
-    _interceptors.setDispatchProperty(proto, makeLeafDispatchRecord(interceptor));
-  }
-  dart.fn(setNativeSubclassDispatchRecord);
-  function constructorNameFallback(object) {
-    return _constructorNameFallback(object);
-  }
-  dart.fn(constructorNameFallback, core.String, [core.Object]);
-  exports.initNativeDispatchFlag = null;
-  function initNativeDispatch() {
-    if (dart.equals(true, exports.initNativeDispatchFlag))
-      return;
-    exports.initNativeDispatchFlag = true;
-    initNativeDispatchContinue();
-  }
-  dart.fn(initNativeDispatch, dart.void, []);
-  function initNativeDispatchContinue() {
-    exports.dispatchRecordsForInstanceTags = Object.create(null);
-    exports.interceptorsForUncacheableTags = Object.create(null);
-    initHooks();
-    let map = exports.interceptorsByTag;
-    let tags = Object.getOwnPropertyNames(map);
-    if (typeof window != "undefined") {
-      let context = window;
-      let fun = function() {
-      };
-      for (let i = 0; dart.notNull(i) < dart.notNull(dart.as(dart.dload(tags, 'length'), core.num)); i = dart.notNull(i) + 1) {
-        let tag = dart.dindex(tags, i);
-        let proto = dart.dcall(exports.prototypeForTagFunction, tag);
-        if (proto != null) {
-          let interceptorClass = map[tag];
-          let record = makeDefaultDispatchRecord(tag, interceptorClass, proto);
-          if (record != null) {
-            _interceptors.setDispatchProperty(proto, record);
-            fun.prototype = proto;
-          }
-        }
-      }
-    }
-    for (let i = 0; dart.notNull(i) < dart.notNull(dart.as(dart.dload(tags, 'length'), core.num)); i = dart.notNull(i) + 1) {
-      let tag = tags[i];
-      if (/^[A-Za-z_]/.test(tag)) {
-        let interceptorClass = propertyGet(map, tag);
-        propertySet(map, dart.notNull(INSTANCE_CACHED_MARK) + dart.notNull(tag), interceptorClass);
-        propertySet(map, dart.notNull(UNCACHED_MARK) + dart.notNull(tag), interceptorClass);
-        propertySet(map, dart.notNull(LEAF_MARK) + dart.notNull(tag), interceptorClass);
-        propertySet(map, dart.notNull(INTERIOR_MARK) + dart.notNull(tag), interceptorClass);
-        propertySet(map, dart.notNull(DISCRIMINATED_MARK) + dart.notNull(tag), interceptorClass);
-      }
-    }
-  }
-  dart.fn(initNativeDispatchContinue, dart.void, []);
-  function initHooks() {
-    let hooks = _baseHooks();
-    let _fallbackConstructorHooksTransformer = _fallbackConstructorHooksTransformerGenerator(_constructorNameFallback);
-    hooks = applyHooksTransformer(_fallbackConstructorHooksTransformer, hooks);
-    hooks = applyHooksTransformer(_firefoxHooksTransformer, hooks);
-    hooks = applyHooksTransformer(_ieHooksTransformer, hooks);
-    hooks = applyHooksTransformer(_operaHooksTransformer, hooks);
-    hooks = applyHooksTransformer(_safariHooksTransformer, hooks);
-    hooks = applyHooksTransformer(_fixDocumentHooksTransformer, hooks);
-    hooks = applyHooksTransformer(_dartExperimentalFixupGetTagHooksTransformer, hooks);
-    if (typeof dartNativeDispatchHooksTransformer != "undefined") {
-      let transformers = dartNativeDispatchHooksTransformer;
-      if (typeof transformers == "function") {
-        transformers = [transformers];
-      }
-      if (transformers.constructor == Array) {
-        for (let i = 0; dart.notNull(i) < transformers.length; i = dart.notNull(i) + 1) {
-          let transformer = transformers[i];
-          if (typeof transformer == "function") {
-            hooks = applyHooksTransformer(transformer, hooks);
-          }
-        }
-      }
-    }
-    let getTag = hooks.getTag;
-    let getUnknownTag = hooks.getUnknownTag;
-    let prototypeForTag = hooks.prototypeForTag;
-    exports.getTagFunction = dart.fn(o => getTag(o));
-    exports.alternateTagFunction = dart.fn((o, tag) => getUnknownTag(o, tag), core.Object, [core.Object, core.String]);
-    exports.prototypeForTagFunction = dart.fn(tag => prototypeForTag(tag), core.Object, [core.String]);
-  }
-  dart.fn(initHooks, dart.void, []);
-  function applyHooksTransformer(transformer, hooks) {
-    let newHooks = transformer(hooks);
-    return newHooks || hooks;
-  }
-  dart.fn(applyHooksTransformer);
-  let _baseHooks = dart.const(new _foreign_helper.JS_CONST('function() {\n  function typeNameInChrome(o) {\n    var constructor = o.constructor;\n    if (constructor) {\n      var name = constructor.name;\n      if (name) return name;\n    }\n    var s = Object.prototype.toString.call(o);\n    return s.substring(8, s.length - 1);\n  }\n  function getUnknownTag(object, tag) {\n    // This code really belongs in [getUnknownTagGenericBrowser] but having it\n    // here allows [getUnknownTag] to be tested on d8.\n    if (/^HTML[A-Z].*Element$/.test(tag)) {\n      // Check that it is not a simple JavaScript object.\n      var name = Object.prototype.toString.call(object);\n      if (name == "[object Object]") return null;\n      return "HTMLElement";\n    }\n  }\n  function getUnknownTagGenericBrowser(object, tag) {\n    if (self.HTMLElement && object instanceof HTMLElement) return "HTMLElement";\n    return getUnknownTag(object, tag);\n  }\n  function prototypeForTag(tag) {\n    if (typeof window == "undefined") return null;\n    if (typeof window[tag] == "undefined") return null;\n    var constructor = window[tag];\n    if (typeof constructor != "function") return null;\n    return constructor.prototype;\n  }\n  function discriminator(tag) { return null; }\n\n  var isBrowser = typeof navigator == "object";\n\n  return {\n    getTag: typeNameInChrome,\n    getUnknownTag: isBrowser ? getUnknownTagGenericBrowser : getUnknownTag,\n    prototypeForTag: prototypeForTag,\n    discriminator: discriminator };\n}'));
-  let _constructorNameFallback = dart.const(new _foreign_helper.JS_CONST('function getTagFallback(o) {\n  var constructor = o.constructor;\n  if (typeof constructor == "function") {\n    var name = constructor.name;\n    // If the name is a non-empty string, we use that as the type name of this\n    // object.  There are various cases where that does not work, so we have to\n    // detect them and fall through to the toString() based implementation.\n\n    if (typeof name == "string" &&\n\n        // Sometimes the string is empty.  This test also catches minified\n        // shadow dom polyfil wrapper for Window on Firefox where the faked\n        // constructor name does not \'stick\'.  The shortest real DOM object\n        // names have three characters (e.g. URL, CSS).\n        name.length > 2 &&\n\n        // On Firefox we often get "Object" as the constructor name, even for\n        // more specialized DOM objects.\n        name !== "Object" &&\n\n        // This can happen in Opera.\n        name !== "Function.prototype") {\n      return name;\n    }\n  }\n  var s = Object.prototype.toString.call(o);\n  return s.substring(8, s.length - 1);\n}'));
-  let _fallbackConstructorHooksTransformerGenerator = dart.const(new _foreign_helper.JS_CONST('function(getTagFallback) {\n  return function(hooks) {\n    // If we are not in a browser, assume we are in d8.\n    // TODO(sra): Recognize jsshell.\n    if (typeof navigator != "object") return hooks;\n\n    var ua = navigator.userAgent;\n    // TODO(antonm): remove a reference to DumpRenderTree.\n    if (ua.indexOf("DumpRenderTree") >= 0) return hooks;\n    if (ua.indexOf("Chrome") >= 0) {\n      // Confirm constructor name is usable for dispatch.\n      function confirm(p) {\n        return typeof window == "object" && window[p] && window[p].name == p;\n      }\n      if (confirm("Window") && confirm("HTMLElement")) return hooks;\n    }\n\n    hooks.getTag = getTagFallback;\n  };\n}'));
-  let _ieHooksTransformer = dart.const(new _foreign_helper.JS_CONST('function(hooks) {\n  var userAgent = typeof navigator == "object" ? navigator.userAgent : "";\n  if (userAgent.indexOf("Trident/") == -1) return hooks;\n\n  var getTag = hooks.getTag;\n\n  var quickMap = {\n    "BeforeUnloadEvent": "Event",\n    "DataTransfer": "Clipboard",\n    "HTMLDDElement": "HTMLElement",\n    "HTMLDTElement": "HTMLElement",\n    "HTMLPhraseElement": "HTMLElement",\n    "Position": "Geoposition"\n  };\n\n  function getTagIE(o) {\n    var tag = getTag(o);\n    var newTag = quickMap[tag];\n    if (newTag) return newTag;\n    // Patches for types which report themselves as Objects.\n    if (tag == "Object") {\n      if (window.DataView && (o instanceof window.DataView)) return "DataView";\n    }\n    return tag;\n  }\n\n  function prototypeForTagIE(tag) {\n    var constructor = window[tag];\n    if (constructor == null) return null;\n    return constructor.prototype;\n  }\n\n  hooks.getTag = getTagIE;\n  hooks.prototypeForTag = prototypeForTagIE;\n}'));
-  let _fixDocumentHooksTransformer = dart.const(new _foreign_helper.JS_CONST('function(hooks) {\n  var getTag = hooks.getTag;\n  var prototypeForTag = hooks.prototypeForTag;\n  function getTagFixed(o) {\n    var tag = getTag(o);\n    if (tag == "Document") {\n      // Some browsers and the polymer polyfill call both HTML and XML documents\n      // "Document", so we check for the xmlVersion property, which is the empty\n      // string on HTML documents. Since both dart:html classes Document and\n      // HtmlDocument share the same type, we must patch the instances and not\n      // the prototype.\n      if (!!o.xmlVersion) return "!Document";\n      return "!HTMLDocument";\n    }\n    return tag;\n  }\n\n  function prototypeForTagFixed(tag) {\n    if (tag == "Document") return null;  // Do not pre-patch Document.\n    return prototypeForTag(tag);\n  }\n\n  hooks.getTag = getTagFixed;\n  hooks.prototypeForTag = prototypeForTagFixed;\n}'));
-  let _firefoxHooksTransformer = dart.const(new _foreign_helper.JS_CONST('function(hooks) {\n  var userAgent = typeof navigator == "object" ? navigator.userAgent : "";\n  if (userAgent.indexOf("Firefox") == -1) return hooks;\n\n  var getTag = hooks.getTag;\n\n  var quickMap = {\n    "BeforeUnloadEvent": "Event",\n    "DataTransfer": "Clipboard",\n    "GeoGeolocation": "Geolocation",\n    "Location": "!Location",               // Fixes issue 18151\n    "WorkerMessageEvent": "MessageEvent",\n    "XMLDocument": "!Document"};\n\n  function getTagFirefox(o) {\n    var tag = getTag(o);\n    return quickMap[tag] || tag;\n  }\n\n  hooks.getTag = getTagFirefox;\n}'));
-  let _operaHooksTransformer = dart.const(new _foreign_helper.JS_CONST('function(hooks) { return hooks; }\n'));
-  let _safariHooksTransformer = dart.const(new _foreign_helper.JS_CONST('function(hooks) { return hooks; }\n'));
-  let _dartExperimentalFixupGetTagHooksTransformer = dart.const(new _foreign_helper.JS_CONST('function(hooks) {\n  if (typeof dartExperimentalFixupGetTag != "function") return hooks;\n  hooks.getTag = dartExperimentalFixupGetTag(hooks.getTag);\n}'));
   let _nativeRegExp = Symbol('_nativeRegExp');
   function regExpGetNative(regexp) {
     return regexp[_nativeRegExp];
@@ -625,9 +427,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       let match = dart.as(regexp.exec(string), core.List);
       if (match == null)
         return null;
-      if (match[core.$get](dart.notNull(match[core.$length]) - 1) != null)
+      if (match[dartx.get](dart.notNull(match.length) - 1) != null)
         return null;
-      match[core.$length] = dart.notNull(match[core.$length]) - 1;
+      match.length = dart.notNull(match.length) - 1;
       return new _MatchImplementation(this, dart.as(match, core.List$(core.String)));
     }
     matchAsPrefix(string, start) {
@@ -646,6 +448,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     }
   }
   JSSyntaxRegExp[dart.implements] = () => [core.RegExp];
+  dart.defineExtensionMembers(JSSyntaxRegExp, ['allMatches', 'matchAsPrefix']);
   dart.setSignature(JSSyntaxRegExp, {
     constructors: () => ({JSSyntaxRegExp: [JSSyntaxRegExp, [core.String], {multiLine: core.bool, caseSensitive: core.bool}]}),
     methods: () => ({
@@ -675,21 +478,21 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return this[_match].index;
     }
     get end() {
-      return dart.notNull(this.start) + dart.notNull(this[_match][core.$get](0).length);
+      return dart.notNull(this.start) + dart.notNull(this[_match][dartx.get](0).length);
     }
     group(index) {
-      return this[_match][core.$get](index);
+      return this[_match][dartx.get](index);
     }
     get(index) {
       return this.group(index);
     }
     get groupCount() {
-      return dart.notNull(this[_match][core.$length]) - 1;
+      return dart.notNull(this[_match].length) - 1;
     }
     groups(groups) {
-      let out = dart.setType([], core.List$(core.String));
+      let out = dart.list([], core.String);
       for (let i of groups) {
-        out[core.$add](this.group(i));
+        out[dartx.add](this.group(i));
       }
       return out;
     }
@@ -713,7 +516,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       this[_start] = start;
       super.IterableBase();
     }
-    get [core.$iterator]() {
+    get iterator() {
       return new _AllMatchesIterator(this[_re], this[_string], this[_start]);
     }
   }
@@ -786,7 +589,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     groups(groups_) {
       let result = core.List$(core.String).new();
       for (let g of groups_) {
-        result[core.$add](this.group(g));
+        result[dartx.add](this.group(g));
       }
       return result;
     }
@@ -805,11 +608,11 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let length = haystack.length;
     let patternLength = needle.length;
     while (true) {
-      let position = haystack.indexOf(needle, startIndex);
+      let position = haystack[dartx.indexOf](needle, startIndex);
       if (position == -1) {
         break;
       }
-      result[core.$add](new StringMatch(position, haystack, needle));
+      result[dartx.add](new StringMatch(position, haystack, needle));
       let endIndex = dart.notNull(position) + dart.notNull(patternLength);
       if (endIndex == length) {
         break;
@@ -992,7 +795,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return this[_unmangledName] = unmangledName;
     }
     get hashCode() {
-      return dart.hashCode(this[_typeName]);
+      return dart[dartx.hashCode](this[_typeName]);
     }
     ['=='](other) {
       return dart.is(other, TypeImpl) && dart.equals(this[_typeName], dart.dload(other, _typeName));
@@ -1146,7 +949,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   dart.fn(checkSubtype, core.bool, [core.Object, core.String, core.List, core.String]);
   function computeTypeName(isField, arguments$) {
     let prefixLength = _foreign_helper.JS_OPERATOR_IS_PREFIX().length;
-    return Primitives.formatType(isField.substring(prefixLength, isField.length), arguments$);
+    return Primitives.formatType(isField[dartx.substring](prefixLength, isField.length), arguments$);
   }
   dart.fn(computeTypeName, core.String, [core.String, core.List]);
   function subtypeCast(object, isField, checks, asField) {
@@ -1315,8 +1118,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     dart.assert(isJsObject(s));
     dart.assert(isJsObject(t));
     let names = _interceptors.JSArray.markFixedList(dart.as(Object.getOwnPropertyNames(t), core.List));
-    for (let i = 0; dart.notNull(i) < dart.notNull(names[core.$length]); i = dart.notNull(i) + 1) {
-      let name = names[core.$get](i);
+    for (let i = 0; dart.notNull(i) < dart.notNull(names.length); i = dart.notNull(i) + 1) {
+      let name = names[dartx.get](i);
       if (!Object.hasOwnProperty.call(s, name)) {
         return false;
       }
@@ -1464,15 +1267,6 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   function requiresPreamble() {
   }
   dart.fn(requiresPreamble);
-  function isJsIndexable(object, record) {
-    if (record != null) {
-      let result = _interceptors.dispatchRecordIndexability(record);
-      if (result != null)
-        return dart.as(result, core.bool);
-    }
-    return dart.is(object, exports.JavaScriptIndexingBehavior);
-  }
-  dart.fn(isJsIndexable, core.bool, [core.Object, core.Object]);
   function S(value) {
     if (typeof value == 'string')
       return dart.as(value, core.String);
@@ -1537,7 +1331,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       let name = dart.as(this[_memberName], core.String);
       let unmangledName = _js_names.mangledNames.get(name);
       if (unmangledName != null) {
-        name = unmangledName.split(':')[core.$get](0);
+        name = unmangledName[dartx.split](':')[dartx.get](0);
       } else {
         if (_js_names.mangledNames.get(this[_internalName]) == null) {
           core.print(`Warning: '${name}' is used reflectively but not in MirrorsUsed. ` + "This will break minified code.");
@@ -1561,25 +1355,25 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     get positionalArguments() {
       if (this.isGetter)
         return dart.const([]);
-      let argumentCount = dart.notNull(this[_arguments][core.$length]) - dart.notNull(this[_namedArgumentNames][core.$length]);
+      let argumentCount = dart.notNull(this[_arguments].length) - dart.notNull(this[_namedArgumentNames].length);
       if (argumentCount == 0)
         return dart.const([]);
       let list = [];
       for (let index = 0; dart.notNull(index) < dart.notNull(argumentCount); index = dart.notNull(index) + 1) {
-        list[core.$add](this[_arguments][core.$get](index));
+        list[dartx.add](this[_arguments][dartx.get](index));
       }
       return dart.as(makeLiteralListConst(list), core.List);
     }
     get namedArguments() {
       if (this.isAccessor)
         return dart.map();
-      let namedArgumentCount = this[_namedArgumentNames][core.$length];
-      let namedArgumentsStartIndex = dart.notNull(this[_arguments][core.$length]) - dart.notNull(namedArgumentCount);
+      let namedArgumentCount = this[_namedArgumentNames].length;
+      let namedArgumentsStartIndex = dart.notNull(this[_arguments].length) - dart.notNull(namedArgumentCount);
       if (namedArgumentCount == 0)
         return dart.map();
       let map = core.Map$(core.Symbol, core.Object).new();
       for (let i = 0; dart.notNull(i) < dart.notNull(namedArgumentCount); i = dart.notNull(i) + 1) {
-        map.set(new _internal.Symbol.unvalidated(dart.as(this[_namedArgumentNames][core.$get](i), core.String)), this[_arguments][core.$get](dart.notNull(namedArgumentsStartIndex) + dart.notNull(i)));
+        map.set(new _internal.Symbol.unvalidated(dart.as(this[_namedArgumentNames][dartx.get](i), core.String)), this[_arguments][dartx.get](dart.notNull(namedArgumentsStartIndex) + dart.notNull(i)));
       }
       return map;
     }
@@ -1670,7 +1464,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
           arguments$ = core.List.from(arguments$);
       } else {
         let _ = [victim];
-        _[core.$addAll](arguments$);
+        _[dartx.addAll](arguments$);
         arguments$ = _;
         if (this.cachedInterceptor != null)
           receiver = this.cachedInterceptor;
@@ -1696,31 +1490,31 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       let fullParameterCount = dart.notNull(this.info.requiredParameterCount) + dart.notNull(this.info.optionalParameterCount);
       if (!dart.notNull(this.isIntercepted)) {
         if (dart.is(arguments$, _interceptors.JSArray)) {
-          providedArgumentCount = arguments$[core.$length];
+          providedArgumentCount = arguments$.length;
           if (dart.notNull(providedArgumentCount) < dart.notNull(fullParameterCount)) {
             arguments$ = core.List.from(arguments$);
           }
         } else {
           arguments$ = core.List.from(arguments$);
-          providedArgumentCount = arguments$[core.$length];
+          providedArgumentCount = arguments$.length;
         }
       } else {
         let _ = [victim];
-        _[core.$addAll](arguments$);
+        _[dartx.addAll](arguments$);
         arguments$ = _;
         if (this.cachedInterceptor != null)
           receiver = this.cachedInterceptor;
-        providedArgumentCount = dart.notNull(arguments$[core.$length]) - 1;
+        providedArgumentCount = dart.notNull(arguments$.length) - 1;
       }
       if (dart.notNull(this.info.areOptionalParametersNamed) && dart.notNull(providedArgumentCount) > dart.notNull(this.info.requiredParameterCount)) {
-        throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${arguments$[core.$length]} arguments.`);
+        throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${arguments$.length} arguments.`);
       } else if (dart.notNull(providedArgumentCount) < dart.notNull(this.info.requiredParameterCount)) {
         throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${providedArgumentCount} arguments (too few).`);
       } else if (dart.notNull(providedArgumentCount) > dart.notNull(fullParameterCount)) {
         throw new UnimplementedNoSuchMethodError(`Invocation of unstubbed method '${this.info.reflectionName}'` + ` with ${providedArgumentCount} arguments (too many).`);
       }
       for (let i = providedArgumentCount; dart.notNull(i) < dart.notNull(fullParameterCount); i = dart.notNull(i) + 1) {
-        arguments$[core.$add](getMetadata(this.info.defaultValue(i)));
+        arguments$[dartx.add](getMetadata(this.info.defaultValue(i)));
       }
       return this.jsFunction.apply(receiver, arguments$);
     }
@@ -1822,18 +1616,18 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         }
         let index = 0;
         (() => {
-          let _ = positions.keys[core.$toList]();
-          _[core.$sort]();
+          let _ = positions.keys[dartx.toList]();
+          _[dartx.sort]();
           return _;
-        })()[core.$forEach](dart.fn(name => {
-          this.cachedSortedIndices[core.$set]((() => {
+        })()[dartx.forEach](dart.fn(name => {
+          this.cachedSortedIndices[dartx.set]((() => {
             let x = index;
             index = dart.notNull(x) + 1;
             return x;
           })(), positions.get(name));
         }, core.Object, [core.String]));
       }
-      return dart.as(this.cachedSortedIndices[core.$get](unsortedIndex), core.int);
+      return dart.as(this.cachedSortedIndices[dartx.get](unsortedIndex), core.int);
     }
     computeFunctionRti(jsConstructor) {
       if (typeof this.functionType == "number") {
@@ -1930,8 +1724,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
             }
             let digitsPart = dart.as(dart.dindex(match, digitsIndex), core.String);
             for (let i = 0; dart.notNull(i) < dart.notNull(digitsPart.length); i = dart.notNull(i) + 1) {
-              let characterCode = dart.notNull(digitsPart.codeUnitAt(0)) | 32;
-              if (dart.notNull(digitsPart.codeUnitAt(i)) > dart.notNull(maxCharCode)) {
+              let characterCode = dart.notNull(digitsPart[dartx.codeUnitAt](0)) | 32;
+              if (dart.notNull(digitsPart[dartx.codeUnitAt](i)) > dart.notNull(maxCharCode)) {
                 return handleError(source);
               }
             }
@@ -1950,8 +1744,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         return handleError(source);
       }
       let result = parseFloat(source);
-      if (result.isNaN) {
-        let trimmed = source.trim();
+      if (result[dartx.isNaN]) {
+        let trimmed = source[dartx.trim]();
         if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
           return result;
         }
@@ -1995,7 +1789,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       if (typeof performance.now != "function")
         return;
       Primitives.timerFrequency = 1000000;
-      Primitives.timerTicks = dart.fn(() => (1000 * performance.now()).floor(), core.int, []);
+      Primitives.timerTicks = dart.fn(() => (1000 * performance.now())[dartx.floor](), core.int, []);
     }
     static get isD8() {
       return typeof version == "function" && typeof os == "object" && "system" in os;
@@ -2013,7 +1807,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     static _fromCharCodeApply(array) {
       let result = "";
       let kMaxApply = 500;
-      let end = array[core.$length];
+      let end = array.length;
       for (let i = 0; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + dart.notNull(kMaxApply)) {
         let subarray = null;
         if (dart.notNull(end) <= dart.notNull(kMaxApply)) {
@@ -2026,15 +1820,15 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return result;
     }
     static stringFromCodePoints(codePoints) {
-      let a = dart.setType([], core.List$(core.int));
+      let a = dart.list([], core.int);
       for (let i of dart.as(codePoints, core.Iterable)) {
         if (!(typeof i == 'number'))
           throw new core.ArgumentError(i);
         if (dart.dsend(i, '<=', 65535)) {
-          a[core.$add](dart.as(i, core.int));
+          a[dartx.add](dart.as(i, core.int));
         } else if (dart.dsend(i, '<=', 1114111)) {
-          a[core.$add]((55296)['+'](dart.as(dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023), core.num)));
-          a[core.$add]((56320)['+'](dart.as(dart.dsend(i, '&', 1023), core.num)));
+          a[dartx.add]((55296)[dartx['+']](dart.as(dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023), core.num)));
+          a[dartx.add]((56320)[dartx['+']](dart.as(dart.dsend(i, '&', 1023), core.num)));
         } else {
           throw new core.ArgumentError(i);
         }
@@ -2059,8 +1853,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         }
         if (dart.dsend(charCode, '<=', 1114111)) {
           let bits = dart.dsend(charCode, '-', 65536);
-          let low = (56320)['|'](dart.as(dart.dsend(bits, '&', 1023), core.int));
-          let high = (55296)['|'](dart.as(dart.dsend(bits, '>>', 10), core.int));
+          let low = (56320)[dartx['|']](dart.as(dart.dsend(bits, '&', 1023), core.int));
+          let high = (55296)[dartx['|']](dart.as(dart.dsend(bits, '>>', 10), core.int));
           return String.fromCharCode(high, low);
         }
       }
@@ -2076,13 +1870,13 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       let d = Primitives.lazyAsJsDate(receiver);
       let match = dart.as(/\((.*)\)/.exec(d.toString()), core.List);
       if (match != null)
-        return dart.as(match[core.$get](1), core.String);
+        return dart.as(match[dartx.get](1), core.String);
       match = dart.as(/^[A-Z,a-z]{3}\s[A-Z,a-z]{3}\s\d+\s\d{2}:\d{2}:\d{2}\s([A-Z]{3,5})\s\d{4}$/.exec(d.toString()), core.List);
       if (match != null)
-        return dart.as(match[core.$get](1), core.String);
+        return dart.as(match[dartx.get](1), core.String);
       match = dart.as(/(?:GMT|UTC)[+-]\d{4}/.exec(d.toString()), core.List);
       if (match != null)
-        return dart.as(match[core.$get](0), core.String);
+        return dart.as(match[dartx.get](0), core.String);
       return "";
     }
     static getTimeZoneOffsetInMinutes(receiver) {
@@ -2156,7 +1950,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       if (!(typeof str == 'string'))
         throw new core.ArgumentError(str);
       let value = Date.parse(str);
-      if (value.isNaN)
+      if (value[dartx.isNaN])
         throw new core.ArgumentError(str);
       return value;
     }
@@ -2177,15 +1971,15 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       let arguments$ = [];
       let namedArgumentList = [];
       if (positionalArguments != null) {
-        argumentCount = dart.notNull(argumentCount) + dart.notNull(positionalArguments[core.$length]);
-        arguments$[core.$addAll](positionalArguments);
+        argumentCount = dart.notNull(argumentCount) + dart.notNull(positionalArguments.length);
+        arguments$[dartx.addAll](positionalArguments);
       }
       let names = '';
       if (dart.notNull(namedArguments != null) && !dart.notNull(namedArguments.isEmpty)) {
         namedArguments.forEach(dart.fn((name, argument) => {
           names = `${names}$${name}`;
-          namedArgumentList[core.$add](name);
-          arguments$[core.$add](argument);
+          namedArgumentList[dartx.add](name);
+          arguments$[dartx.add](argument);
           argumentCount = dart.notNull(argumentCount) + 1;
         }, core.Object, [core.String, core.Object]));
       }
@@ -2233,7 +2027,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       } else {
         positionalArguments = [];
       }
-      if (info.requiredParameterCount != positionalArguments[core.$length]) {
+      if (info.requiredParameterCount != positionalArguments.length) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
       let defaultArguments = core.Map.new();
@@ -2255,7 +2049,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       if (bad) {
         return Primitives.functionNoSuchMethod(func, positionalArguments, namedArguments);
       }
-      positionalArguments[core.$addAll](defaultArguments.values);
+      positionalArguments[dartx.addAll](defaultArguments.values);
       return jsFunction.apply(func, positionalArguments);
     }
     static _mangledNameMatchesType(mangledName, type) {
@@ -2498,7 +2292,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       message = message.replace(new RegExp(ESCAPE_REGEXP, 'g'), '\\$&');
       let match = dart.as(message.match(/\\\$[a-zA-Z]+\\\$/g), core.List$(core.String));
       if (match == null)
-        match = dart.setType([], core.List$(core.String));
+        match = dart.list([], core.String);
       let arguments$ = match.indexOf('\\$arguments\\$');
       let argumentsExpr = match.indexOf('\\$argumentsExpr\\$');
       let expr = match.indexOf('\\$expr\\$');
@@ -2668,7 +2462,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       super.Error();
     }
     toString() {
-      return this[_message].isEmpty ? 'Error' : `Error: ${this[_message]}`;
+      return this[_message][dartx.isEmpty] ? 'Error' : `Error: ${this[_message]}`;
     }
   }
   dart.setSignature(UnknownJsTypeError, {
@@ -2879,8 +2673,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       }
       prototype[_foreign_helper.JS_SIGNATURE_NAME()] = signatureFunction;
       prototype[callName] = trampoline;
-      for (let i = 1; dart.notNull(i) < dart.notNull(functions[core.$length]); i = dart.notNull(i) + 1) {
-        let stub = functions[core.$get](i);
+      for (let i = 1; dart.notNull(i) < dart.notNull(functions.length); i = dart.notNull(i) + 1) {
+        let stub = functions[dartx.get](i);
         let stubCallName = stub.$callName;
         if (stubCallName != null) {
           prototype[stubCallName] = isStatic ? stub : Closure.forwardCallTo(receiver, stub, isIntercepted);
@@ -3163,8 +2957,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     static computeFieldNamed(fieldName) {
       let template = new BoundClosure('self', 'target', 'receiver', 'name');
       let names = _interceptors.JSArray.markFixedList(dart.as(Object.getOwnPropertyNames(template), core.List));
-      for (let i = 0; dart.notNull(i) < dart.notNull(names[core.$length]); i = dart.notNull(i) + 1) {
-        let name = names[core.$get](i);
+      for (let i = 0; dart.notNull(i) < dart.notNull(names.length); i = dart.notNull(i) + 1) {
+        let name = names[dartx.get](i);
         if (template[name] === fieldName) {
           return name;
         }
@@ -3480,7 +3274,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   }
   dart.fn(checkMalformedType);
   function checkDeferredIsLoaded(loadId, uri) {
-    if (!dart.notNull(exports._loadedLibraries[core.$contains](loadId))) {
+    if (!dart.notNull(exports._loadedLibraries.contains(loadId))) {
       throw new DeferredNotLoadedError(uri);
     }
   }
@@ -3654,17 +3448,17 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
           result[_foreign_helper.JS_FUNCTION_TYPE_RETURN_TYPE_TAG()] = this.returnType.toRti();
         }
       }
-      if (dart.notNull(this.parameterTypes != null) && !dart.notNull(this.parameterTypes[core.$isEmpty])) {
+      if (dart.notNull(this.parameterTypes != null) && !dart.notNull(this.parameterTypes[dartx.isEmpty])) {
         result[_foreign_helper.JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG()] = RuntimeFunctionType.listToRti(this.parameterTypes);
       }
-      if (dart.notNull(this.optionalParameterTypes != null) && !dart.notNull(this.optionalParameterTypes[core.$isEmpty])) {
+      if (dart.notNull(this.optionalParameterTypes != null) && !dart.notNull(this.optionalParameterTypes[dartx.isEmpty])) {
         result[_foreign_helper.JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()] = RuntimeFunctionType.listToRti(this.optionalParameterTypes);
       }
       if (this.namedParameters != null) {
         let namedRti = Object.create(null);
         let keys = _js_names.extractKeys(this.namedParameters);
-        for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
-          let name = keys[core.$get](i);
+        for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+          let name = keys[dartx.get](i);
           let rti = dart.dsend(this.namedParameters[name], 'toRti');
           namedRti[name] = rti;
         }
@@ -3684,8 +3478,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       let result = '(';
       let needsComma = false;
       if (this.parameterTypes != null) {
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.parameterTypes[core.$length]); i = dart.notNull(i) + 1) {
-          let type = this.parameterTypes[core.$get](i);
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.parameterTypes.length); i = dart.notNull(i) + 1) {
+          let type = this.parameterTypes[dartx.get](i);
           if (needsComma) {
             result = dart.notNull(result) + ', ';
           }
@@ -3693,14 +3487,14 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
           needsComma = true;
         }
       }
-      if (dart.notNull(this.optionalParameterTypes != null) && !dart.notNull(this.optionalParameterTypes[core.$isEmpty])) {
+      if (dart.notNull(this.optionalParameterTypes != null) && !dart.notNull(this.optionalParameterTypes[dartx.isEmpty])) {
         if (needsComma) {
           result = dart.notNull(result) + ', ';
         }
         needsComma = false;
         result = dart.notNull(result) + '[';
-        for (let i = 0; dart.notNull(i) < dart.notNull(this.optionalParameterTypes[core.$length]); i = dart.notNull(i) + 1) {
-          let type = this.optionalParameterTypes[core.$get](i);
+        for (let i = 0; dart.notNull(i) < dart.notNull(this.optionalParameterTypes.length); i = dart.notNull(i) + 1) {
+          let type = this.optionalParameterTypes[dartx.get](i);
           if (needsComma) {
             result = dart.notNull(result) + ', ';
           }
@@ -3715,8 +3509,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         needsComma = false;
         result = dart.notNull(result) + '{';
         let keys = _js_names.extractKeys(this.namedParameters);
-        for (let i = 0; dart.notNull(i) < dart.notNull(keys[core.$length]); i = dart.notNull(i) + 1) {
-          let name = keys[core.$get](i);
+        for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+          let name = keys[dartx.get](i);
           if (needsComma) {
             result = dart.notNull(result) + ', ';
           }
@@ -3823,10 +3617,10 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return new RuntimeTypePlain(rti.name);
     } else if (rti.constructor == Array) {
       let list = dart.as(rti, core.List);
-      let name = list[core.$get](0).name;
+      let name = list[dartx.get](0).name;
       let arguments$ = [];
-      for (let i = 1; dart.notNull(i) < dart.notNull(list[core.$length]); i = dart.notNull(i) + 1) {
-        arguments$[core.$add](convertRtiToRuntimeType(list[core.$get](i)));
+      for (let i = 1; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
+        arguments$[dartx.add](convertRtiToRuntimeType(list[dartx.get](i)));
       }
       return new RuntimeTypeGeneric(name, dart.as(arguments$, core.List$(RuntimeType)), rti);
     } else if ("func" in rti) {
@@ -3877,7 +3671,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return this.rti = result;
     }
     toString() {
-      return `${this.name}<${this.arguments[core.$join](", ")}>`;
+      return `${this.name}<${this.arguments[dartx.join](", ")}>`;
     }
   }
   dart.setSignature(RuntimeTypeGeneric, {
@@ -4041,15 +3835,15 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
     let hashes = dart.as(hashesMap[loadId], core.List$(core.String));
     if (uris == null)
       return async.Future$(core.Null).value(null);
-    let indices = core.List$(core.int).generate(uris[core.$length], dart.fn(i => dart.as(i, core.int), core.int, [core.Object]));
+    let indices = core.List$(core.int).generate(uris.length, dart.fn(i => dart.as(i, core.int), core.int, [core.Object]));
     let isHunkLoaded = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_LOADED);
     let isHunkInitialized = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.IS_HUNK_INITIALIZED);
-    let indicesToLoad = indices[core.$where](dart.fn(i => !isHunkLoaded(hashes[core.$get](i)), core.bool, [core.int]))[core.$toList]();
-    return dart.as(async.Future.wait(dart.as(indicesToLoad[core.$map](dart.fn(i => _loadHunk(uris[core.$get](i)), async.Future$(core.Null), [core.int])), core.Iterable$(async.Future))).then(dart.fn(_ => {
-      let indicesToInitialize = indices[core.$where](dart.fn(i => !isHunkInitialized(hashes[core.$get](i)), core.bool, [core.int]))[core.$toList]();
+    let indicesToLoad = indices[dartx.where](dart.fn(i => !isHunkLoaded(hashes[dartx.get](i)), core.bool, [core.int]))[dartx.toList]();
+    return dart.as(async.Future.wait(dart.as(indicesToLoad[dartx.map](dart.fn(i => _loadHunk(uris[dartx.get](i)), async.Future$(core.Null), [core.int])), core.Iterable$(async.Future))).then(dart.fn(_ => {
+      let indicesToInitialize = indices[dartx.where](dart.fn(i => !isHunkInitialized(hashes[dartx.get](i)), core.bool, [core.int]))[dartx.toList]();
       for (let i of indicesToInitialize) {
         let initializer = _foreign_helper.JS_EMBEDDED_GLOBAL('', _js_embedded_names.INITIALIZE_LOADED_HUNK);
-        initializer(hashes[core.$get](i));
+        initializer(hashes[dartx.get](i));
       }
       let updated = exports._loadedLibraries.add(loadId);
       if (dart.notNull(updated) && dart.notNull(exports.deferredLoadHook != null)) {
@@ -4064,8 +3858,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
       return dart.as(future.then(dart.fn(_ => null, dart.bottom, [core.Object])), async.Future$(core.Null));
     }
     let uri = _isolate_helper.IsolateNatives.thisScript;
-    let index = uri.lastIndexOf('/');
-    uri = `${uri.substring(0, dart.notNull(index) + 1)}${hunkName}`;
+    let index = uri[dartx.lastIndexOf]('/');
+    uri = `${uri[dartx.substring](0, dart.notNull(index) + 1)}${hunkName}`;
     if (dart.notNull(Primitives.isJsshell) || dart.notNull(Primitives.isD8)) {
       return exports._loadingLibraries.set(hunkName, async.Future$(core.Null).new(dart.fn(() => {
         try {
@@ -4084,8 +3878,8 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
         let leavingFuture = dart.as(completer.future.whenComplete(dart.fn(() => {
           _isolate_helper.leaveJsAsync();
         })), async.Future$(core.Null));
-        let index = uri.lastIndexOf('/');
-        uri = `${uri.substring(0, dart.notNull(index) + 1)}${hunkName}`;
+        let index = uri[dartx.lastIndexOf]('/');
+        uri = `${uri[dartx.substring](0, dart.notNull(index) + 1)}${hunkName}`;
         let xhr = new XMLHttpRequest();
         xhr.open("GET", uri);
         xhr.addEventListener("load", convertDartClosureToJS(dart.fn(event => {
@@ -4160,6 +3954,9 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   exports.NoInline = NoInline;
   exports.IrRepresentation = IrRepresentation;
   exports.Native = Native;
+  exports.JsName = JsName;
+  exports.JsPeerInterface = JsPeerInterface;
+  exports.SupportJsExtensionMethods = SupportJsExtensionMethods;
   exports.ConstantMap$ = ConstantMap$;
   exports.ConstantMap = ConstantMap;
   exports.ConstantStringMap$ = ConstantStringMap$;
@@ -4176,29 +3973,7 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   exports.callHasOwnProperty = callHasOwnProperty;
   exports.propertySet = propertySet;
   exports.getPropertyFromPrototype = getPropertyFromPrototype;
-  exports.toStringForNativeObject = toStringForNativeObject;
-  exports.hashCodeForNativeObject = hashCodeForNativeObject;
   exports.defineProperty = defineProperty;
-  exports.isDartObject = isDartObject;
-  exports.findDispatchTagForInterceptorClass = findDispatchTagForInterceptorClass;
-  exports.lookupInterceptor = lookupInterceptor;
-  exports.UNCACHED_MARK = UNCACHED_MARK;
-  exports.INSTANCE_CACHED_MARK = INSTANCE_CACHED_MARK;
-  exports.LEAF_MARK = LEAF_MARK;
-  exports.INTERIOR_MARK = INTERIOR_MARK;
-  exports.DISCRIMINATED_MARK = DISCRIMINATED_MARK;
-  exports.lookupAndCacheInterceptor = lookupAndCacheInterceptor;
-  exports.patchInstance = patchInstance;
-  exports.patchProto = patchProto;
-  exports.patchInteriorProto = patchInteriorProto;
-  exports.makeLeafDispatchRecord = makeLeafDispatchRecord;
-  exports.makeDefaultDispatchRecord = makeDefaultDispatchRecord;
-  exports.setNativeSubclassDispatchRecord = setNativeSubclassDispatchRecord;
-  exports.constructorNameFallback = constructorNameFallback;
-  exports.initNativeDispatch = initNativeDispatch;
-  exports.initNativeDispatchContinue = initNativeDispatchContinue;
-  exports.initHooks = initHooks;
-  exports.applyHooksTransformer = applyHooksTransformer;
   exports.regExpGetNative = regExpGetNative;
   exports.regExpGetGlobalNative = regExpGetGlobalNative;
   exports.regExpCaptureCount = regExpCaptureCount;
@@ -4271,7 +4046,6 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   exports.patch = patch;
   exports.InternalMap = InternalMap;
   exports.requiresPreamble = requiresPreamble;
-  exports.isJsIndexable = isJsIndexable;
   exports.S = S;
   exports.createInvocationMirror = createInvocationMirror;
   exports.createUnmangledInvocationMirror = createUnmangledInvocationMirror;
@@ -4386,4 +4160,4 @@ var _isolate_helper = dart.lazyImport(_isolate_helper);
   exports.missingMain = missingMain;
   exports.badMain = badMain;
   exports.mainHasTooManyParameters = mainHasTooManyParameters;
-})(_js_helper, core, collection, _internal, _foreign_helper, _js_embedded_names, _interceptors, _js_names, async, _isolate_helper);
+})(_js_helper, core, collection, _internal, _foreign_helper, _interceptors, _js_names, _js_embedded_names, async, _isolate_helper);

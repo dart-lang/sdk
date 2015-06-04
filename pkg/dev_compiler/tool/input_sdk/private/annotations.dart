@@ -34,3 +34,28 @@ class Native {
   final String name;
   const Native(this.name);
 }
+
+// TODO(jmesserly): move these somewhere else, e.g. package:js or dart:js
+
+class JsName {
+  /// The JavaScript name.
+  /// Used for classes and libraries.
+  /// Note that this could be an expression, e.g. `lib.TypeName` in JS, but it
+  /// should be kept simple, as it will be generated directly into the code.
+  final String name;
+  const JsName({this.name});
+}
+
+class JsPeerInterface {
+  /// The JavaScript type that we should match the API of.
+  /// Used for classes where Dart subclasses should be callable from JavaScript
+  /// matching the JavaScript calling conventions.
+  final String name;
+  const JsPeerInterface({this.name});
+}
+
+/// A Dart interface may only be implemented by a native JavaScript object
+/// if it is marked with this annotation.
+class SupportJsExtensionMethods {
+  const SupportJsExtensionMethods();
+}

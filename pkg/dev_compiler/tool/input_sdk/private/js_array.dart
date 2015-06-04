@@ -10,78 +10,30 @@ part of _interceptors;
  * actually use the receiver of the method, which is generated as an extra
  * argument added to each member.
  */
-@JsName(name: 'Array')
+@JsPeerInterface(name: 'Array')
 class JSArray<E> implements List<E>, JSIndexable {
 
   const JSArray();
 
   /**
-   * Returns a fresh JavaScript Array, marked as fixed-length.
-   *
-   * [length] must be a non-negative integer.
-   */
-  factory JSArray.fixed(int length)  {
-    // Explicit type test is necessary to guard against JavaScript conversions
-    // in unchecked mode.
-    if ((length is !int) || (length < 0)) {
-      throw new ArgumentError("Length must be a non-negative integer: $length");
-    }
-    return new JSArray<E>.markFixed(JS('', 'new Array(#)', length));
-  }
-
-  /**
-   * Returns a fresh growable JavaScript Array of zero length length.
-   */
-  factory JSArray.emptyGrowable() => new JSArray<E>.markGrowable(JS('', '[]'));
-
-  /**
-   * Returns a fresh growable JavaScript Array with initial length.
-   *
-   * [validatedLength] must be a non-negative integer.
-   */
-  factory JSArray.growable(int length) {
-    // Explicit type test is necessary to guard against JavaScript conversions
-    // in unchecked mode.
-    if ((length is !int) || (length < 0)) {
-      throw new ArgumentError("Length must be a non-negative integer: $length");
-    }
-    return new JSArray<E>.markGrowable(JS('', 'new Array(#)', length));
-  }
-
-  /**
    * Constructor for adding type parameters to an existing JavaScript Array.
-   * The compiler specially recognizes this constructor.
-   *
-   *     var a = new JSArray<int>.typed(JS('JSExtendableArray', '[]'));
-   *     a is List<int>    --> true
-   *     a is List<String> --> false
-   *
-   * Usually either the [JSArray.markFixed] or [JSArray.markGrowable]
-   * constructors is used instead.
-   *
-   * The input must be a JavaScript Array.  The JS form is just a re-assertion
-   * to help type analysis when the input type is sloppy.
    */
-  factory JSArray.typed(allocation) => JS('JSArray', '#', allocation);
+  factory JSArray.typed(allocation) =>
+      // TODO(jmesserly): skip this when E is dynamic and Object.
+      JS('-dynamic', 'dart.list(#, #)', allocation, E);
 
+  // TODO(jmesserly): consider a fixed array subclass instead.
   factory JSArray.markFixed(allocation) =>
-      JS('JSFixedArray', '#', markFixedList(new JSArray<E>.typed(allocation)));
+      new JSArray<E>.typed(markFixedList(allocation));
 
-  factory JSArray.markGrowable(allocation) =>
-      JS('JSExtendableArray', '#', new JSArray<E>.typed(allocation));
+  factory JSArray.markGrowable(allocation) = JSArray.typed;
 
   static List markFixedList(List list) {
     // Functions are stored in the hidden class and not as properties in
     // the object. We never actually look at the value, but only want
     // to know if the property exists.
     JS('void', r'#.fixed$length = Array', list);
-    return JS('JSFixedArray', '#', list);
-  }
-
-  checkMutable(reason) {
-    if (this is !JSMutableArray) {
-      throw new UnsupportedError(reason);
-    }
+    return list;
   }
 
   checkGrowable(reason) {
@@ -101,7 +53,7 @@ class JSArray<E> implements List<E>, JSIndexable {
       throw new RangeError.value(index);
     }
     checkGrowable('removeAt');
-    return JS('var', r'#.splice(#, 1)[0]', this, index);
+    return JS('-dynamic', r'#.splice(#, 1)[0]', this, index);
   }
 
   void insert(int index, E value) {
@@ -119,7 +71,6 @@ class JSArray<E> implements List<E>, JSIndexable {
   }
 
   void setAll(int index, Iterable<E> iterable) {
-    checkMutable('setAll');
     IterableMixinWorkaround.setAllList(this, index, iterable);
   }
 
@@ -245,7 +196,7 @@ class JSArray<E> implements List<E>, JSIndexable {
       }
     }
     if (start == end) return <E>[];
-    return new JSArray<E>.markGrowable(
+    return new JSArray<E>.typed(
         JS('', r'#.slice(#, #)', this, start, end));
   }
 
@@ -288,17 +239,14 @@ class JSArray<E> implements List<E>, JSIndexable {
   }
 
   void setRange(int start, int end, Iterable<E> iterable, [int skipCount = 0]) {
-    checkMutable('set range');
     IterableMixinWorkaround.setRangeList(this, start, end, iterable, skipCount);
   }
 
   void fillRange(int start, int end, [E fillValue]) {
-    checkMutable('fill range');
     IterableMixinWorkaround.fillRangeList(this, start, end, fillValue);
   }
 
   void replaceRange(int start, int end, Iterable<E> iterable) {
-    checkGrowable('removeRange');
     IterableMixinWorkaround.replaceRangeList(this, start, end, iterable);
   }
 
@@ -310,7 +258,6 @@ class JSArray<E> implements List<E>, JSIndexable {
       new IterableMixinWorkaround<E>().reversedList(this);
 
   void sort([int compare(E a, E b)]) {
-    checkMutable('sort');
     IterableMixinWorkaround.sortList(this, compare);
   }
 
@@ -340,11 +287,9 @@ class JSArray<E> implements List<E>, JSIndexable {
   String toString() => ListBase.listToString(this);
 
   List<E> toList({ bool growable: true }) {
-    if (growable) {
-      return new JSArray<E>.markGrowable(JS('', '#.slice()', this));
-    } else {
-      return new JSArray<E>.markFixed(JS('', '#.slice()', this));
-    }
+    var list = JS('', '#.slice()', this);
+    if (!growable) markFixedList(list);
+    return new JSArray<E>.typed(list);
   }
 
   Set<E> toSet() => new Set<E>.from(this);
@@ -369,7 +314,6 @@ class JSArray<E> implements List<E>, JSIndexable {
   }
 
   void operator []=(int index, E value) {
-    checkMutable('indexed set');
     if (index is !int) throw new ArgumentError(index);
     if (index >= length || index < 0) throw new RangeError.value(index);
     JS('void', r'#[#] = #', this, index, value);

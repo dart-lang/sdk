@@ -894,6 +894,8 @@ class Printer implements NodeVisitor {
 
   visitArrayInitializer(ArrayInitializer node) {
     out("[");
+    indentMore();
+    var multiline = node.multiline;
     List<Expression> elements = node.elements;
     for (int i = 0; i < elements.length; i++) {
       Expression element = elements[i];
@@ -905,12 +907,21 @@ class Printer implements NodeVisitor {
         out(",");
         continue;
       }
-      if (i != 0) spaceOut();
+      if (i != 0 && !multiline) spaceOut();
+      if (multiline) {
+        forceLine();
+        indent();
+      }
       visitNestedExpression(element, ASSIGNMENT,
                             newInForInit: false, newAtStatementBegin: false);
       // We can skip the trailing "," for the last element (since it's not
       // an array hole).
       if (i != elements.length - 1) out(",");
+    }
+    indentLess();
+    if (multiline) {
+      lineOut();
+      indent();
     }
     out("]");
   }
@@ -924,20 +935,20 @@ class Printer implements NodeVisitor {
     out("{");
     indentMore();
 
-    var isOneLiner = !node.vertical;
+    var multiline = node.multiline;
     for (int i = 0; i < properties.length; i++) {
       if (i != 0) {
         out(",");
-        if (isOneLiner) spaceOut();
+        if (!multiline) spaceOut();
       }
-      if (!isOneLiner) {
+      if (multiline) {
         forceLine();
         indent();
       }
       visit(properties[i]);
     }
     indentLess();
-    if (!isOneLiner) {
+    if (multiline) {
       lineOut();
       indent();
     }
