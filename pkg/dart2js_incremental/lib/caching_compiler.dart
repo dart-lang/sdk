@@ -60,9 +60,7 @@ Future<Compiler> reuseCompiler(
         libraryRoot,
         packageRoot,
         options,
-        environment,
-        null,
-        null);
+        environment);
     JavaScriptBackend backend = compiler.backend;
 
     // Much like a scout, an incremental compiler is always prepared. For

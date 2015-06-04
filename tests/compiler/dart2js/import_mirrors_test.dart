@@ -66,16 +66,16 @@ import 'first.dart';
 main() {}
 ''',
   '/first.dart': '''
-import 'package:second/second.dart';
+import 'package:second.dart';
 ''',
-  '/pkg/second/second.dart': '''
+  '/pkg/second.dart': '''
 import 'dart:mirrors';
 ''',
 
   'paths':
-      "first.dart => package:second => dart:mirrors",
+      "first.dart => package:second.dart => dart:mirrors",
   'verbosePaths':
-      "main.dart => first.dart => package:second/second.dart => dart:mirrors",
+      "main.dart => first.dart => package:second.dart => dart:mirrors",
 };
 
 const INDIRECT_PACKAGE_IMPORT2 = const {
@@ -85,16 +85,16 @@ import 'first.dart';
 main() {}
 ''',
   '/first.dart': '''
-import 'package:packagename/second.dart';
+import 'package:package-name/second.dart';
 ''',
-  '/pkg/packagename/second.dart': '''
+  '/pkg/package-name/second.dart': '''
 import 'dart:mirrors';
 ''',
 
   'paths':
-      "first.dart => package:packagename => dart:mirrors",
+      "first.dart => package:package-name => dart:mirrors",
   'verbosePaths':
-      "main.dart => first.dart => package:packagename/second.dart "
+      "main.dart => first.dart => package:package-name/second.dart "
       "=> dart:mirrors",
 };
 
@@ -306,16 +306,16 @@ import 'first.dart';
 main() {}
 ''',
   '/first.dart': '''
-import 'package:packagename/second.dart';
+import 'package:package-name/second.dart';
 ''',
-  '/pkg/packagename/second.dart': '''
+  '/pkg/package-name/second.dart': '''
 export 'dart:mirrors';
 ''',
 
   'paths':
-      "first.dart => package:packagename => dart:mirrors",
+      "first.dart => package:package-name => dart:mirrors",
   'verbosePaths':
-      "main.dart => first.dart => package:packagename/second.dart "
+      "main.dart => first.dart => package:package-name/second.dart "
       "=> dart:mirrors",
 };
 
@@ -326,16 +326,16 @@ import 'first.dart';
 main() {}
 ''',
   '/first.dart': '''
-export 'package:packagename/second.dart';
+export 'package:package-name/second.dart';
 ''',
-  '/pkg/packagename/second.dart': '''
+  '/pkg/package-name/second.dart': '''
 import 'dart:mirrors';
 ''',
 
   'paths':
-      "first.dart => package:packagename => dart:mirrors",
+      "first.dart => package:package-name => dart:mirrors",
   'verbosePaths':
-      "main.dart => first.dart => package:packagename/second.dart "
+      "main.dart => first.dart => package:package-name/second.dart "
       "=> dart:mirrors",
 };
 
