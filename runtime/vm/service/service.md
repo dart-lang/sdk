@@ -341,8 +341,8 @@ ReturnType methodName(parameterType1 parameterName1,
 
 If an RPC says it returns type _T_ it may actually return _T_ or any
 [subtype](#public-types) of _T_. For example, an
-RPC which is declared to return [@Instance](#instance) may actually
-return [@Int](#int).
+RPC which is declared to return [@Object](#object) may actually
+return [@Instance](#instance).
 
 If an RPC can return one or more independent types, this is indicated
 with the vertical bar:
