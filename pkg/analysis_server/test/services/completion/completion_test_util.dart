@@ -567,9 +567,7 @@ abstract class AbstractSelectorSuggestionTest extends AbstractCompletionTest {
     CompletionSuggestion suggestion =
         assertSuggest(completion, isDeprecated: isDeprecated);
     expect(suggestion.isDeprecated, isDeprecated);
-    // TODO(danrubel) : Perhaps should be protocol.ElementKind.ENUM_CONST
-    // but element model represents them as FIELD
-    expect(suggestion.element.kind, protocol.ElementKind.FIELD);
+    expect(suggestion.element.kind, protocol.ElementKind.ENUM_CONSTANT);
     return suggestion;
   }
 

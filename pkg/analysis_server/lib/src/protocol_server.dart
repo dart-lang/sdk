@@ -87,19 +87,14 @@ Element newElement_fromEngine(engine.Element element) {
   String elementTypeParameters = _getTypeParametersString(element);
   String elementParameters = _getParametersString(element);
   String elementReturnType = _getReturnTypeString(element);
-  ElementKind kind = newElementKind_fromEngine(element.kind);
-  // TODO(danrubel) this check should be in newElementKind_fromEngine
-  if (element is engine.ClassElement && element.isEnum) {
-    kind = ElementKind.ENUM;
-  }
-  return new Element(kind, name, Element
-          .makeFlags(
-              isPrivate: element.isPrivate,
-              isDeprecated: element.isDeprecated,
-              isAbstract: _isAbstract(element),
-              isConst: _isConst(element),
-              isFinal: _isFinal(element),
-              isStatic: _isStatic(element)),
+  ElementKind kind = newElementKind_fromEngineElement(element);
+  return new Element(kind, name, Element.makeFlags(
+          isPrivate: element.isPrivate,
+          isDeprecated: element.isDeprecated,
+          isAbstract: _isAbstract(element),
+          isConst: _isConst(element),
+          isFinal: _isFinal(element),
+          isStatic: _isStatic(element)),
       location: newLocation_fromElement(element),
       typeParameters: elementTypeParameters,
       parameters: elementParameters,
@@ -108,10 +103,13 @@ Element newElement_fromEngine(engine.Element element) {
 
 /**
  * Construct based on a value from the analyzer engine.
+ * This does not take into account that 
+ * instances of ClassElement can be an enum and
+ * instances of FieldElement can be an enum constant.
+ * Use [newElementKind_fromEngineElement] where possible.
  */
 ElementKind newElementKind_fromEngine(engine.ElementKind kind) {
   if (kind == engine.ElementKind.CLASS) {
-    // TODO(danrubel) check if element.isEnum and return ElementKind.ENUM
     return ElementKind.CLASS;
   }
   if (kind == engine.ElementKind.COMPILATION_UNIT) {
@@ -160,6 +158,29 @@ ElementKind newElementKind_fromEngine(engine.ElementKind kind) {
     return ElementKind.TYPE_PARAMETER;
   }
   return ElementKind.UNKNOWN;
+}
+
+/**
+ * Construct based on a value from the analyzer engine.
+ */
+ElementKind newElementKind_fromEngineElement(engine.Element element) {
+  if (element is engine.ClassElement && element.isEnum) {
+    return ElementKind.ENUM;
+  }
+  if (element is engine.FieldElement && element.isEnumConstant &&
+      // MyEnum.values and MyEnum.one.index return isEnumConstant = true
+      // so these additional checks are necessary.
+      // TODO(danrubel) MyEnum.values is constant, but is a list
+      // so should it return isEnumConstant = true?
+      // MyEnum.one.index is final but *not* constant
+      // so should it return isEnumConstant = true?
+      // Or should we return ElementKind.ENUM_CONSTANT here
+      // in either or both of these cases?
+      element.type != null &&
+      element.type.element == element.enclosingElement) {
+    return ElementKind.ENUM_CONSTANT;
+  }
+  return newElementKind_fromEngine(element.kind);
 }
 
 /**

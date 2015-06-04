@@ -267,6 +267,130 @@ class A {
     expect(element.flags, 0);
   }
 
+  void test_fromElement_ENUM() {
+    engine.Source source = addSource('/test.dart', '''
+@deprecated
+enum _E1 { one, two }
+enum E2 { three, four }''');
+    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    {
+      engine.ClassElement engineElement = findElementInUnit(unit, '_E1');
+      // TODO (danrubel) determine why enum is not deprecated
+      expect(engineElement.isDeprecated, isFalse);
+      // create notification Element
+      Element element = newElement_fromEngine(engineElement);
+      expect(element.kind, ElementKind.ENUM);
+      expect(element.name, '_E1');
+      expect(element.typeParameters, isNull);
+      {
+        Location location = element.location;
+        expect(location.file, '/test.dart');
+        expect(location.offset, 17);
+        expect(location.length, '_E1'.length);
+        expect(location.startLine, 2);
+        expect(location.startColumn, 6);
+      }
+      expect(element.parameters, isNull);
+      expect(element.flags,
+          (engineElement.isDeprecated ? Element.FLAG_DEPRECATED : 0) |
+              Element.FLAG_PRIVATE);
+    }
+    {
+      engine.ClassElement engineElement = findElementInUnit(unit, 'E2');
+      // create notification Element
+      Element element = newElement_fromEngine(engineElement);
+      expect(element.kind, ElementKind.ENUM);
+      expect(element.name, 'E2');
+      expect(element.typeParameters, isNull);
+      expect(element.flags, 0);
+    }
+  }
+
+  void test_fromElement_ENUM_CONSTANT() {
+    engine.Source source = addSource('/test.dart', '''
+@deprecated
+enum _E1 { one, two }
+enum E2 { three, four }''');
+    engine.CompilationUnit unit = resolveLibraryUnit(source);
+    {
+      engine.FieldElement engineElement = findElementInUnit(unit, 'one');
+      // create notification Element
+      Element element = newElement_fromEngine(engineElement);
+      expect(element.kind, ElementKind.ENUM_CONSTANT);
+      expect(element.name, 'one');
+      {
+        Location location = element.location;
+        expect(location.file, '/test.dart');
+        expect(location.offset, 23);
+        expect(location.length, 'one'.length);
+        expect(location.startLine, 2);
+        expect(location.startColumn, 12);
+      }
+      expect(element.parameters, isNull);
+      expect(element.returnType, '_E1');
+      // TODO(danrubel) determine why enum constant is not marked as deprecated
+      engine.ClassElement classElement = engineElement.enclosingElement;
+      expect(element.flags,
+          (classElement.isDeprecated ? Element.FLAG_DEPRECATED : 0) |
+              Element.FLAG_CONST |
+              Element.FLAG_STATIC);
+    }
+    {
+      engine.FieldElement engineElement = findElementInUnit(unit, 'three');
+      // create notification Element
+      Element element = newElement_fromEngine(engineElement);
+      expect(element.kind, ElementKind.ENUM_CONSTANT);
+      expect(element.name, 'three');
+      {
+        Location location = element.location;
+        expect(location.file, '/test.dart');
+        expect(location.offset, 44);
+        expect(location.length, 'three'.length);
+        expect(location.startLine, 3);
+        expect(location.startColumn, 11);
+      }
+      expect(element.parameters, isNull);
+      expect(element.returnType, 'E2');
+      expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
+    }
+    {
+      engine.FieldElement engineElement = findElementInUnit(unit, 'index');
+      // create notification Element
+      Element element = newElement_fromEngine(engineElement);
+      expect(element.kind, ElementKind.FIELD);
+      expect(element.name, 'index');
+      {
+        Location location = element.location;
+        expect(location.file, '/test.dart');
+        expect(location.offset, -1);
+        expect(location.length, 'index'.length);
+        expect(location.startLine, 1);
+        expect(location.startColumn, 0);
+      }
+      expect(element.parameters, isNull);
+      expect(element.returnType, 'int');
+      expect(element.flags, Element.FLAG_FINAL);
+    }
+    {
+      engine.FieldElement engineElement = findElementInUnit(unit, 'values');
+      // create notification Element
+      Element element = newElement_fromEngine(engineElement);
+      expect(element.kind, ElementKind.FIELD);
+      expect(element.name, 'values');
+      {
+        Location location = element.location;
+        expect(location.file, '/test.dart');
+        expect(location.offset, -1);
+        expect(location.length, 'values'.length);
+        expect(location.startLine, 1);
+        expect(location.startColumn, 0);
+      }
+      expect(element.parameters, isNull);
+      expect(element.returnType, 'List<E2>');
+      expect(element.flags, Element.FLAG_CONST | Element.FLAG_STATIC);
+    }
+  }
+
   void test_fromElement_FIELD() {
     engine.Source source = addSource('/test.dart', '''
 class A {
