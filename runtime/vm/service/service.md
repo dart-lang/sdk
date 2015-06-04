@@ -1,8 +1,6 @@
 # Dart VM Service Protocol 1.0 (Draft 1)
 
-> Please post feedback to the observatory-discuss group:
->
-> https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
+> Please post feedback to the [observatory-discuss group][discuss-list]
 
 This document describes _draft 1_ of _version 1.0_ of the Dart VM
 Service Protocol.  This protocol is used to communicate with a running
@@ -1885,3 +1883,6 @@ class VM extends Response {
 version | comments
 ------- | --------
 1.0 draft 1 | initial revision
+
+
+[discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
