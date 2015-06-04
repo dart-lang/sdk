@@ -22,6 +22,6 @@ this causes for our clients, but some pain is inevitable.
 
 Questions and requests for additional functionality are welcome, and can be made
 by either opening an issue at
-[https://code.google.com/p/dart/issues](https://code.google.com/p/dart/issues)
+[http://dartbug.com](http://dartbug.com)
 or by emailing
 [analyzer-discuss@dartlang.org](https://groups.google.com/a/dartlang.org/forum/#!forum/analyzer-discuss).
