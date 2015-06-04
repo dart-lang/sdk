@@ -36,6 +36,7 @@ main() {
   runReflectiveTests(ElementImplTest);
   runReflectiveTests(HtmlElementImplTest);
   runReflectiveTests(LibraryElementImplTest);
+  runReflectiveTests(MethodElementImplTest);
   runReflectiveTests(MultiplyDefinedElementImplTest);
   runReflectiveTests(ParameterElementImplTest);
 }
@@ -3858,6 +3859,39 @@ class LibraryElementImplTest extends EngineTestCase {
     expect(actualImports, hasLength(expectedImports.length));
     for (int i = 0; i < actualImports.length; i++) {
       expect(actualImports[i], same(expectedImports[i]));
+    }
+  }
+}
+
+@reflectiveTest
+class MethodElementImplTest extends EngineTestCase {
+  void test_computeNode() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", r'''
+abstract class A {
+  String m1() => null;
+  m2();
+}
+''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // m1
+    {
+      MethodElement m1Element = unitElement.getType("A").getMethod('m1');
+      MethodDeclaration m1Node = m1Element.computeNode();
+      expect(m1Node, isNotNull);
+      expect(m1Node.name.name, "m1");
+      expect(m1Node.element, same(m1Element));
+    }
+    // m2
+    {
+      MethodElement m2Element = unitElement.getType("A").getMethod('m2');
+      MethodDeclaration m2Node = m2Element.computeNode();
+      expect(m2Node, isNotNull);
+      expect(m2Node.name.name, "m2");
+      expect(m2Node.element, same(m2Element));
     }
   }
 }
