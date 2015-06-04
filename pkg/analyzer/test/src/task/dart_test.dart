@@ -1181,6 +1181,40 @@ library lib_d;
     }
   }
 
+  test_perform_importExportClosure() {
+    Source sourceA = newSource('/a.dart', '''
+library lib_a;
+''');
+    Source sourceB = newSource('/b.dart', '''
+library lib_b;
+export 'a.dart';
+''');
+    Source sourceC = newSource('/c.dart', '''
+library lib_c;
+import 'b.dart';
+''');
+    Source coreSource = context.sourceFactory.resolveUri(null, 'dart:core');
+    // c.dart
+    {
+      _computeResult(sourceC, IMPORT_EXPORT_SOURCE_CLOSURE);
+      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      List<Source> closure = outputs[IMPORT_EXPORT_SOURCE_CLOSURE];
+      expect(closure, contains(sourceA));
+      expect(closure, contains(sourceB));
+      expect(closure, contains(sourceC));
+      expect(closure, contains(coreSource));
+    }
+    // b.dart
+    {
+      _computeResult(sourceB, IMPORT_EXPORT_SOURCE_CLOSURE);
+      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      List<Source> closure = outputs[IMPORT_EXPORT_SOURCE_CLOSURE];
+      expect(closure, contains(sourceA));
+      expect(closure, contains(sourceB));
+      expect(closure, contains(coreSource));
+    }
+  }
+
   test_perform_isClient_false() {
     Source sourceA = newSource('/a.dart', '''
 library lib_a;
@@ -2137,11 +2171,6 @@ class B {}''');
     expect(outputs[UNITS], hasLength(1));
   }
 
-  test_perform_computeSourceKind_noDirectives_noContainingLibraries() {
-    _performParseTask('');
-    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
-  }
-
   test_perform_computeSourceKind_noDirectives_hasContainingLibraries() {
     // Parse "lib.dart" to let the context know that "test.dart" is a part.
     _computeResult(newSource('/lib.dart', r'''
@@ -2151,6 +2180,11 @@ part 'test.dart';
     // So, know "test.dat" is parsed as a part.
     _performParseTask('');
     expect(outputs[SOURCE_KIND], SourceKind.PART);
+  }
+
+  test_perform_computeSourceKind_noDirectives_noContainingLibraries() {
+    _performParseTask('');
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
   }
 
   test_perform_doesNotExist() {
@@ -2325,6 +2359,42 @@ main(A a) {
     _fillErrorListener(RESOLVE_REFERENCES_ERRORS);
     errorListener.assertErrorsWithCodes(
         <ErrorCode>[StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
+  test_perform_importExport() {
+    newSource('/a.dart', '''
+library a;
+class A<T> {
+  T m() {}
+}
+''');
+    newSource('/b.dart', '''
+library b;
+export 'a.dart';
+''');
+    Source sourceC = newSource('/c.dart', '''
+library c;
+import 'b.dart';
+main() {
+  new A<int>().m();
+}
+''');
+    _computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT6);
+    expect(task, new isInstanceOf<ResolveReferencesTask>());
+    // validate
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    expect(unit, isNotNull);
+    {
+      FunctionDeclaration functionDeclaration = unit.declarations[0];
+      BlockFunctionBody body = functionDeclaration.functionExpression.body;
+      List<Statement> statements = body.block.statements;
+      ExpressionStatement statement = statements[0];
+      MethodInvocation invocation = statement.expression;
+      MethodElement methodElement = invocation.methodName.staticElement;
+      expect(methodElement, isNotNull);
+      expect(methodElement.type, isNotNull);
+      expect(methodElement.returnType.toString(), 'int');
+    }
   }
 }
 
