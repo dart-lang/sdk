@@ -1,6 +1,9 @@
 // DO NOT EDIT
 // Auto-generated dart:web_gl library.
 
+/**
+ * 3D programming in the browser.
+ */
 library dart.dom.web_gl;
 
 import 'dart:async';
