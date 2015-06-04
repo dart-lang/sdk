@@ -20,9 +20,11 @@ class ServerRpcException extends RpcException {
   static const kMethodNotFound = -32601;
   static const kInvalidParams  = -32602;
   static const kInternalError  = -32603;
-  static const kFeatureDisabled   = 100;
-  static const kVMMustBePaused    = 101;
-  static const kCannotAddBreakpoint = 102;
+  static const kFeatureDisabled         = 100;
+  static const kVMMustBePaused          = 101;
+  static const kCannotAddBreakpoint     = 102;
+  static const kStreamAlreadySubscribed = 103;
+  static const kStreamNotSubscribed     = 104;
 
   int code;
   Map data;
@@ -560,12 +562,29 @@ abstract class VM extends ServiceObjectOwner {
     });
   }
 
-  Future<ObservableMap> _fetchDirect() {
-    return invokeRpcNoUpgrade('getVM', {});
+  Future<ObservableMap> _fetchDirect() async {
+    if (!loaded) {
+      // TODO(turnidge): Instead of always listening to all streams,
+      // implement a stream abstraction in the service library so
+      // that we only subscribe to the streams we want.
+      await _streamListen('Isolate');
+      await _streamListen('Debug');
+      await _streamListen('GC');
+      await _streamListen('_Echo');
+      await _streamListen('_Graph');
+    }
+    return await invokeRpcNoUpgrade('getVM', {});
   }
 
   Future<ServiceObject> getFlagList() {
     return invokeRpc('getFlagList', {});
+  }
+
+  Future<ServiceObject> _streamListen(String streamId) {
+    Map params = {
+      'streamId': streamId,
+    };
+    return invokeRpc('streamListen', params);
   }
 
   /// Force the VM to disconnect.

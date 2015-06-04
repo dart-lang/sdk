@@ -74,6 +74,54 @@ EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
 struct ServiceMethodDescriptor;
 ServiceMethodDescriptor* FindMethod(const char* method_name);
 
+// TODO(turnidge): Build a general framework later.  For now, we have
+// a small set of well-known streams.
+bool Service::needs_isolate_events_ = false;
+bool Service::needs_debug_events_ = false;
+bool Service::needs_gc_events_ = false;
+bool Service::needs_echo_events_ = false;
+bool Service::needs_graph_events_ = false;
+
+void Service::ListenStream(const char* stream_id) {
+  if (FLAG_trace_service) {
+    OS::Print("vm-service: starting stream '%s'\n",
+              stream_id);
+  }
+  if (strcmp(stream_id, "Isolate") == 0) {
+    needs_isolate_events_ = true;
+  } else if (strcmp(stream_id, "Debug") == 0) {
+    needs_debug_events_ = true;
+  } else if (strcmp(stream_id, "GC") == 0) {
+    needs_gc_events_ = true;
+  } else if (strcmp(stream_id, "_Echo") == 0) {
+    needs_echo_events_ = true;
+  } else if (strcmp(stream_id, "_Graph") == 0) {
+    needs_graph_events_ = true;
+  } else {
+    UNREACHABLE();
+  }
+}
+
+void Service::CancelStream(const char* stream_id) {
+  if (FLAG_trace_service) {
+    OS::Print("vm-service: stopping stream '%s'\n",
+              stream_id);
+  }
+  if (strcmp(stream_id, "Isolate") == 0) {
+    needs_isolate_events_ = false;
+  } else if (strcmp(stream_id, "Debug") == 0) {
+    needs_debug_events_ = false;
+  } else if (strcmp(stream_id, "GC") == 0) {
+    needs_gc_events_ = false;
+  } else if (strcmp(stream_id, "_Echo") == 0) {
+    needs_echo_events_ = false;
+  } else if (strcmp(stream_id, "_Graph") == 0) {
+    needs_graph_events_ = false;
+  } else {
+    UNREACHABLE();
+  }
+}
+
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
   return reinterpret_cast<uint8_t*>(new_ptr);
@@ -497,13 +545,9 @@ void Service::HandleIsolateMessage(Isolate* isolate, const Array& msg) {
 }
 
 
-bool Service::NeedsEvents() {
-  return ServiceIsolate::IsRunning();
-}
-
-
-void Service::SendEvent(intptr_t eventType,
-                        const Object& eventMessage) {
+void Service::SendEvent(const char* stream_id,
+                        const char* event_type,
+                        const Object& event_message) {
   ASSERT(!ServiceIsolate::IsServiceIsolateDescendant(Isolate::Current()));
   if (!ServiceIsolate::IsRunning()) {
     return;
@@ -512,14 +556,21 @@ void Service::SendEvent(intptr_t eventType,
   ASSERT(isolate != NULL);
   HANDLESCOPE(isolate);
 
+  const Array& list = Array::Handle(Array::New(2));
+  ASSERT(!list.IsNull());
+  const String& stream_id_str = String::Handle(String::New(stream_id));
+  list.SetAt(0, stream_id_str);
+  list.SetAt(1, event_message);
+
   // Push the event to port_.
   uint8_t* data = NULL;
   MessageWriter writer(&data, &allocator, false);
-  writer.WriteMessage(eventMessage);
+  writer.WriteMessage(list);
   intptr_t len = writer.BytesWritten();
   if (FLAG_trace_service) {
-    OS::Print("vm-service: Pushing event of type %" Pd ", len %" Pd "\n",
-              eventType, len);
+    OS::Print(
+        "vm-service: Pushing event of type %s to stream %s, len %" Pd "\n",
+        event_type, stream_id, len);
   }
   // TODO(turnidge): For now we ignore failure to send an event.  Revisit?
   PortMap::PostMessage(
@@ -527,9 +578,11 @@ void Service::SendEvent(intptr_t eventType,
 }
 
 
-void Service::SendEvent(const String& meta,
-                        const uint8_t* data,
-                        intptr_t size) {
+void Service::SendEventWithData(const char* stream_id,
+                                const char* event_type,
+                                const String& meta,
+                                const uint8_t* data,
+                                intptr_t size) {
   // Bitstream: [meta data size (big-endian 64 bit)] [meta data (UTF-8)] [data]
   const intptr_t meta_bytes = Utf8::Length(meta);
   const intptr_t total_bytes = sizeof(uint64_t) + meta_bytes + size;
@@ -552,8 +605,7 @@ void Service::SendEvent(const String& meta,
     offset += size;
   }
   ASSERT(offset == total_bytes);
-  // TODO(turnidge): Pass the real eventType here.
-  SendEvent(0, message);
+  SendEvent(stream_id, event_type, message);
 }
 
 
@@ -562,12 +614,16 @@ void Service::HandleEvent(ServiceEvent* event) {
     return;
   }
   JSONStream js;
+  const char* stream_id = event->stream_id();
+  ASSERT(stream_id != NULL);
   {
     JSONObject jsobj(&js);
     jsobj.AddProperty("event", event);
+    jsobj.AddProperty("streamId", stream_id);
   }
   const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(event->type(), message);
+  SendEvent(stream_id, ServiceEvent::EventTypeToCString(event->type()),
+            message);
 }
 
 
@@ -616,10 +672,10 @@ void Service::EmbedderHandleMessage(EmbedderServiceHandler* handler,
   Dart_ServiceRequestCallback callback = handler->callback();
   ASSERT(callback != NULL);
   const char* r = NULL;
-  const char* name = js->method();
+  const char* method = js->method();
   const char** keys = js->param_keys();
   const char** values = js->param_values();
-  r = callback(name, keys, values, js->num_params(), handler->user_data());
+  r = callback(method, keys, values, js->num_params(), handler->user_data());
   ASSERT(r != NULL);
   // TODO(johnmccutchan): Allow for NULL returns?
   TextBuffer* buffer = js->buffer();
@@ -774,15 +830,18 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
         event.AddProperty("text", text);
       }
     }
+    jsobj.AddProperty("streamId", "_Echo");
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   uint8_t data[] = {0, 128, 255};
-  SendEvent(message, data, sizeof(data));
+  SendEventWithData("_Echo", "_Echo", message, data, sizeof(data));
 }
 
 
 static bool TriggerEchoEvent(Isolate* isolate, JSONStream* js) {
-  Service::SendEchoEvent(isolate, js->LookupParam("text"));
+  if (Service::NeedsEchoEvents()) {
+    Service::SendEchoEvent(isolate, js->LookupParam("text"));
+  }
   JSONObject jsobj(js);
   return HandleCommonEcho(&jsobj, js);
 }
@@ -2091,7 +2150,7 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   if (isolate->message_handler()->paused_on_start()) {
     isolate->message_handler()->set_pause_on_start(false);
-    {
+    if (Service::NeedsDebugEvents()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
     }
@@ -2260,7 +2319,9 @@ static const MethodParameter* request_heap_snapshot_params[] = {
 
 
 static bool RequestHeapSnapshot(Isolate* isolate, JSONStream* js) {
-  Service::SendGraphEvent(isolate);
+  if (Service::NeedsGraphEvents()) {
+    Service::SendGraphEvent(isolate);
+  }
   // TODO(koda): Provide some id that ties this request to async response(s).
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "OK");
@@ -2303,12 +2364,15 @@ void Service::SendGraphEvent(Isolate* isolate) {
         ? stream.bytes_written() - (i * kChunkSize)
         : kChunkSize;
 
-    SendEvent(message, chunk_start, chunk_size);
+    SendEventWithData("_Graph", "_Graph", message, chunk_start, chunk_size);
   }
 }
 
 
 void Service::SendInspectEvent(Isolate* isolate, const Object& inspectee) {
+  if (!Service::NeedsDebugEvents()) {
+    return;
+  }
   ServiceEvent event(isolate, ServiceEvent::kInspect);
   event.set_inspectee(&inspectee);
   Service::HandleEvent(&event);
@@ -2633,7 +2697,7 @@ static const MethodParameter* set_name_params[] = {
 
 static bool SetName(Isolate* isolate, JSONStream* js) {
   isolate->set_debugger_name(js->LookupParam("name"));
-  {
+  if (Service::NeedsIsolateEvents()) {
     ServiceEvent event(isolate, ServiceEvent::kIsolateUpdate);
     Service::HandleEvent(&event);
   }

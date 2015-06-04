@@ -871,6 +871,9 @@ class Context {
   // The number of variables in this context.
   int length;
 
+  // The enclosing context for this context.
+  Context parent [optional];
+
   // The variables in this context object.
   ContextElement[] variables;
 }

@@ -8,6 +8,7 @@ part of vmservice;
 abstract class Client {
   final VMService service;
   final bool sendEvents;
+  final Set<String> streams = new Set<String>();
 
   Client(this.service, { bool sendEvents: true })
       : this.sendEvents = sendEvents {

@@ -13031,7 +13031,9 @@ void Context::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 
   const Context& parent_context = Context::Handle(parent());
-  jsobj.AddProperty("parent", parent_context);
+  if (!parent_context.IsNull()) {
+    jsobj.AddProperty("parent", parent_context);
+  }
 
   JSONArray jsarr(&jsobj, "variables");
   Object& var = Object::Handle();

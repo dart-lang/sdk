@@ -31,12 +31,14 @@
         <div class="memberList">
           <div class="memberItem">&nbsp;</div>
 
-          <div class="memberItem">
-            <div class="memberName">parent context</div>
-            <div class="memberValue">
-              <any-service-ref ref="{{ context.parentContext }}"></any-service-ref>
+          <template if="{{ context.parentContext != null }}">
+            <div class="memberItem">
+              <div class="memberName">parent context</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ context.parentContext }}"></any-service-ref>
+              </div>
             </div>
-          </div>
+          </template>
         </div>
       </div>
 
@@ -52,7 +54,7 @@
                   <div class="memberName">[{{ index }}]</div>
                   <div class="memberValue">
                     <any-service-ref
-                       ref="{{ context.variables[index]{'value'] }}">
+                       ref="{{ context.variables[index]['value'] }}">
                     </any-service-ref>
                   </div>
                 </div>

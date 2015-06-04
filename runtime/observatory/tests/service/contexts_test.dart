@@ -59,7 +59,7 @@ var tests = [
         expect(block.context.isContext, isTrue);
         expect(block.context.length, equals(0));
         return block.context.load().then((Context ctxt) {
-          expect(ctxt.parentContext.isNull, isTrue);
+          expect(ctxt.parentContext, isNull);
         });
       });
     });
@@ -79,7 +79,7 @@ var tests = [
           expect(ctxt.parentContext.isContext, isTrue);
           expect(ctxt.parentContext.length, equals(0));
           return ctxt.parentContext.load().then((Context outerCtxt) {
-            expect(outerCtxt.parentContext.isNull, isTrue);
+            expect(outerCtxt.parentContext, isNull);
           });
         });
       });
@@ -100,7 +100,7 @@ var tests = [
           expect(ctxt.parentContext.isContext, isTrue);
           expect(ctxt.parentContext.length, equals(0));
           return ctxt.parentContext.load().then((Context outerCtxt) {
-            expect(outerCtxt.parentContext.isNull, isTrue);
+            expect(outerCtxt.parentContext, isNull);
           });
         });
       });
@@ -126,7 +126,7 @@ var tests = [
             expect(outerCtxt.parentContext.isContext, isTrue);
             expect(outerCtxt.parentContext.length, equals(0));
             return outerCtxt.parentContext.load().then((Context outerCtxt2) {
-              expect(outerCtxt2.parentContext.isNull, isTrue);
+                expect(outerCtxt2.parentContext, isNull);
             });
           });
         });
