@@ -428,6 +428,17 @@ class Server {
   Stopwatch _time = new Stopwatch();
 
   /**
+   * The [currentElapseTime] at which the last communication was received from the server
+   * or `null` if no communication has been received.
+   */
+  double lastCommunicationTime;
+
+  /**
+   * The current elapse time (seconds) since the server was started.
+   */
+  double get currentElapseTime => _time.elapsedTicks / _time.frequency;
+
+  /**
    * Future that completes when the server process exits.
    */
   Future<int> get exitCode => _process.exitCode;
@@ -488,6 +499,7 @@ class Server {
         .transform((new Utf8Codec()).decoder)
         .transform(new LineSplitter())
         .listen((String line) {
+      lastCommunicationTime = currentElapseTime;
       String trimmedLine = line.trim();
       _recordStdio('RECV: $trimmedLine');
       var message;
@@ -630,7 +642,7 @@ class Server {
    * [debugStdio] has been called.
    */
   void _recordStdio(String line) {
-    double elapsedTime = _time.elapsedTicks / _time.frequency;
+    double elapsedTime = currentElapseTime;
     line = "$elapsedTime: $line";
     if (_debuggingStdio) {
       print(line);
