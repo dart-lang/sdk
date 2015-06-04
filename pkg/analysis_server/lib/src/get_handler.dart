@@ -291,7 +291,7 @@ class GetHandler {
               taskClass.toString(),
               count,
               totalTime,
-              count <= 0 ? '-' : totalTime / count
+              count <= 0 ? '-' : (totalTime / count).toStringAsFixed(3)
             ], classes: [null, "right", "right", "right"]);
           });
           buffer.write('</table>');
