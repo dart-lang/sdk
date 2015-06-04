@@ -31,7 +31,7 @@ patch class Utf8Decoder {
     return super.fuse(next);
   }
 
-  // Allow intercepting of UTF8 decoding when builtin lists are passed.
+  // Allow intercepting of UTF-8 decoding when built-in lists are passed.
   /* patch */
   static String _convertIntercepted(
       bool allowMalformed, List<int> codeUnits, int start, int end) {
@@ -77,6 +77,13 @@ abstract class _JsonListener {
   void beginArray() {}
   void arrayElement() {}
   void endArray() {}
+
+  /**
+   * Read out the final result of parsing a JSON string.
+   *
+   * Must only be called when the entire input has been parsed.
+   */
+  get result;
 }
 
 /**
@@ -268,37 +275,40 @@ abstract class _ChunkedJsonParser {
   // gets to the next state (not empty, doesn't allow a value).
 
   // State building-block constants.
-  static const int INSIDE_ARRAY = 1;
-  static const int INSIDE_OBJECT = 2;
-  static const int AFTER_COLON = 3;  // Always inside object.
+  static const int TOP_LEVEL         = 0;
+  static const int INSIDE_ARRAY      = 1;
+  static const int INSIDE_OBJECT     = 2;
+  static const int AFTER_COLON       = 3;  // Always inside object.
 
   static const int ALLOW_STRING_MASK = 8;  // Allowed if zero.
-  static const int ALLOW_VALUE_MASK = 4;  // Allowed if zero.
-  static const int ALLOW_VALUE = 0;
-  static const int STRING_ONLY = 4;
-  static const int NO_VALUES = 12;
+  static const int ALLOW_VALUE_MASK  = 4;  // Allowed if zero.
+  static const int ALLOW_VALUE       = 0;
+  static const int STRING_ONLY       = 4;
+  static const int NO_VALUES         = 12;
 
   // Objects and arrays are "empty" until their first property/element.
   // At this position, they may either have an entry or a close-bracket.
-  static const int EMPTY = 0;
-  static const int NON_EMPTY = 16;
-  static const int EMPTY_MASK = 16;  // Empty if zero.
+  static const int EMPTY             =  0;
+  static const int NON_EMPTY         = 16;
+  static const int EMPTY_MASK        = 16;  // Empty if zero.
 
-  static const int VALUE_READ_BITS = NO_VALUES | NON_EMPTY;
+  // Actual states                    : Context       | Is empty? | Next?
+  static const int STATE_INITIAL      = TOP_LEVEL     | EMPTY     | ALLOW_VALUE;
+  static const int STATE_END          = TOP_LEVEL     | NON_EMPTY | NO_VALUES;
 
-  // Actual states.
-  static const int STATE_INITIAL      = EMPTY | ALLOW_VALUE;
-  static const int STATE_END          = NON_EMPTY | NO_VALUES;
+  static const int STATE_ARRAY_EMPTY  = INSIDE_ARRAY  | EMPTY     | ALLOW_VALUE;
+  static const int STATE_ARRAY_VALUE  = INSIDE_ARRAY  | NON_EMPTY | NO_VALUES;
+  static const int STATE_ARRAY_COMMA  = INSIDE_ARRAY  | NON_EMPTY | ALLOW_VALUE;
 
-  static const int STATE_ARRAY_EMPTY  = INSIDE_ARRAY | EMPTY | ALLOW_VALUE;
-  static const int STATE_ARRAY_VALUE  = INSIDE_ARRAY | NON_EMPTY | NO_VALUES;
-  static const int STATE_ARRAY_COMMA  = INSIDE_ARRAY | NON_EMPTY | ALLOW_VALUE;
-
-  static const int STATE_OBJECT_EMPTY = INSIDE_OBJECT | EMPTY | STRING_ONLY;
+  static const int STATE_OBJECT_EMPTY = INSIDE_OBJECT | EMPTY     | STRING_ONLY;
   static const int STATE_OBJECT_KEY   = INSIDE_OBJECT | NON_EMPTY | NO_VALUES;
-  static const int STATE_OBJECT_COLON = AFTER_COLON | NON_EMPTY | ALLOW_VALUE;
-  static const int STATE_OBJECT_VALUE = AFTER_COLON | NON_EMPTY | NO_VALUES;
+  static const int STATE_OBJECT_COLON = AFTER_COLON   | NON_EMPTY | ALLOW_VALUE;
+  static const int STATE_OBJECT_VALUE = AFTER_COLON   | NON_EMPTY | NO_VALUES;
   static const int STATE_OBJECT_COMMA = INSIDE_OBJECT | NON_EMPTY | STRING_ONLY;
+
+  // Bits set in state after successfully reading a value.
+  // This transitions the state to expect the next punctuation.
+  static const int VALUE_READ_BITS    = NON_EMPTY | NO_VALUES;
 
   // Character code constants.
   static const int BACKSPACE       = 0x08;
@@ -334,40 +344,40 @@ abstract class _ChunkedJsonParser {
   static const int RBRACE          = 0x7d;
 
   // State of partial value at chunk split.
-  static const int NO_PARTIAL      = 0;
-  static const int PARTIAL_STRING  = 1;
-  static const int PARTIAL_NUMERAL = 2;
-  static const int PARTIAL_KEYWORD = 3;
-  static const int MASK_PARTIAL    = 3;
+  static const int NO_PARTIAL        =  0;
+  static const int PARTIAL_STRING    =  1;
+  static const int PARTIAL_NUMERAL   =  2;
+  static const int PARTIAL_KEYWORD   =  3;
+  static const int MASK_PARTIAL      =  3;
 
   // Partial states for numerals. Values can be |'ed with PARTIAL_NUMERAL.
-  static const int NUM_SIGN        =  0;  // After initial '-'.
-  static const int NUM_ZERO        =  4;  // After '0' as first digit.
-  static const int NUM_DIGIT       =  8;  // After digit, no '.' or 'e' seen.
-  static const int NUM_DOT         = 12;  // After '.'.
-  static const int NUM_DOT_DIGIT   = 16;  // After a decimal digit (after '.').
-  static const int NUM_E           = 20;  // After 'e' or 'E'.
-  static const int NUM_E_SIGN      = 24;  // After '-' or '+' after 'e' or 'E'.
-  static const int NUM_E_DIGIT     = 28;  // After exponent digit.
-  static const int NUM_SUCCESS     = 32;  // Never stored as partial state.
+  static const int NUM_SIGN          =  0;  // After initial '-'.
+  static const int NUM_ZERO          =  4;  // After '0' as first digit.
+  static const int NUM_DIGIT         =  8;  // After digit, no '.' or 'e' seen.
+  static const int NUM_DOT           = 12;  // After '.'.
+  static const int NUM_DOT_DIGIT     = 16;  // After a decimal digit (after '.').
+  static const int NUM_E             = 20;  // After 'e' or 'E'.
+  static const int NUM_E_SIGN        = 24;  // After '-' or '+' after 'e' or 'E'.
+  static const int NUM_E_DIGIT       = 28;  // After exponent digit.
+  static const int NUM_SUCCESS       = 32;  // Never stored as partial state.
 
   // Partial states for strings.
   static const int STR_PLAIN         =  0;   // Inside string, but not escape.
   static const int STR_ESCAPE        =  4;   // After '\'.
-  static const int STR_U             =  16;  // After '\u' and 0-3 hex digits.
+  static const int STR_U             = 16;   // After '\u' and 0-3 hex digits.
   static const int STR_U_COUNT_SHIFT =  2;   // Hex digit count in bits 2-3.
   static const int STR_U_VALUE_SHIFT =  5;   // Hex digit value in bits 5+.
 
   // Partial states for keywords.
   static const int KWD_TYPE_MASK     = 12;
-  static const int KWD_TYPE_SHIFT    = 2;
-  static const int KWD_NULL          = 0;  // Prefix of "null" seen.
-  static const int KWD_TRUE          = 4;  // Prefix of "true" seen.
-  static const int KWD_FALSE         = 8;  // Prefix of "false" seen.
-  static const int KWD_COUNT_SHIFT   = 4;  // Prefix length in bits 4+.
+  static const int KWD_TYPE_SHIFT    =  2;
+  static const int KWD_NULL          =  0;  // Prefix of "null" seen.
+  static const int KWD_TRUE          =  4;  // Prefix of "true" seen.
+  static const int KWD_FALSE         =  8;  // Prefix of "false" seen.
+  static const int KWD_COUNT_SHIFT   =  4;  // Prefix length in bits 4+.
 
   // Mask used to mask off two lower bits.
-  static const int TWO_BIT_MASK = 3;
+  static const int TWO_BIT_MASK      = 3;
 
   final _JsonListener listener;
 
@@ -514,7 +524,7 @@ abstract class _ChunkedJsonParser {
    *
    * Used for number buffer (always copies ASCII, so encoding is not important).
    */
-  void copyCharsToList(int start, int end, List<int> target);
+  void copyCharsToList(int start, int end, List<int> target, int offset);
 
   /**
    * Build a string using input code units.
@@ -592,7 +602,7 @@ abstract class _ChunkedJsonParser {
     assert(start < chunkEnd);
     int length = chunkEnd - start;
     var buffer = new _NumberBuffer(length);
-    copyCharsToList(start, chunkEnd, buffer.list);
+    copyCharsToList(start, chunkEnd, buffer.list, 0);
     buffer.length = length;
     return buffer;
   }
@@ -800,9 +810,6 @@ abstract class _ChunkedJsonParser {
     int state = this.state;
     while (position < length) {
       int char = getChar(position);
-      if (char == null) {
-        print("[[[$chunk]]] - $position - ${chunk.runtimeType}");
-      }
       switch (char) {
         case SPACE:
         case CARRIAGE_RETURN:
@@ -901,7 +908,7 @@ abstract class _ChunkedJsonParser {
   /**
    * Parses a "true" literal starting at [position].
    *
-   * [:source[position]:] must be "t".
+   * The character `source[position]` must be "t".
    */
   int parseTrue(int position) {
     assert(getChar(position) == CHAR_t);
@@ -920,7 +927,7 @@ abstract class _ChunkedJsonParser {
   /**
    * Parses a "false" literal starting at [position].
    *
-   * [:source[position]:] must be "f".
+   * The character `source[position]` must be "f".
    */
   int parseFalse(int position) {
     assert(getChar(position) == CHAR_f);
@@ -940,7 +947,7 @@ abstract class _ChunkedJsonParser {
   /**
    * Parses a "null" literal starting at [position].
    *
-   * [:source[position]:] must be "n".
+   * The character `source[position]` must be "n".
    */
   int parseNull(int position) {
     assert(getChar(position) == CHAR_n);
@@ -1000,7 +1007,7 @@ abstract class _ChunkedJsonParser {
         return position;
       }
       if (char < SPACE) {
-        fail(position - 1, "Control character in string");
+        return fail(position - 1, "Control character in string");
       }
     }
     beginString();
@@ -1059,8 +1066,7 @@ abstract class _ChunkedJsonParser {
       int char = getChar(position++);
       if (char > BACKSLASH) continue;
       if (char < SPACE) {
-        fail(position - 1);  // Control character in string.
-        return;
+        return fail(position - 1);  // Control character in string.
       }
       if (char == QUOTE) {
         int quotePosition = position - 1;
@@ -1171,7 +1177,7 @@ abstract class _ChunkedJsonParser {
   int finishChunkNumber(int state, int start, int end, _NumberBuffer buffer) {
     if (state == NUM_ZERO) {
       listener.handleNumber(0);
-      return;
+      return end;
     }
     if (end > start) {
       addNumberChunk(buffer, start, end, 0);
@@ -1201,86 +1207,84 @@ abstract class _ChunkedJsonParser {
     // Break this block when the end of the number literal is reached.
     // At that time, position points to the next character, and isDouble
     // is set if the literal contains a decimal point or an exponential.
-    parsing: {
-      if (char == MINUS) {
-        sign = -1;
-        position++;
-        if (position == length) return beginChunkNumber(NUM_SIGN, start);
-        char = getChar(position);
+    if (char == MINUS) {
+      sign = -1;
+      position++;
+      if (position == length) return beginChunkNumber(NUM_SIGN, start);
+      char = getChar(position);
+    }
+    int digit = char ^ CHAR_0;
+    if (digit > 9) {
+      if (sign < 0) {
+        fail(position, "Missing expected digit");
+      } else {
+        // If it doesn't even start out as a numeral.
+        fail(position, "Unexpected character");
       }
-      int digit = char ^ CHAR_0;
-      if (digit > 9) {
-        if (sign < 0) {
-          fail(position, "Missing expected digit");
-        } else {
-          // If it doesn't even start out as a numeral.
-          fail(position, "Unexpected character");
-        }
-      }
-      if (digit == 0) {
+    }
+    if (digit == 0) {
+      position++;
+      if (position == length) return beginChunkNumber(NUM_ZERO, start);
+      char = getChar(position);
+      digit = char ^ CHAR_0;
+      // If starting with zero, next character must not be digit.
+      if (digit <= 9) fail(position);
+    } else {
+      do {
+        intValue = 10 * intValue + digit;
         position++;
-        if (position == length) return beginChunkNumber(NUM_ZERO, start);
+        if (position == length) return beginChunkNumber(NUM_DIGIT, start);
         char = getChar(position);
         digit = char ^ CHAR_0;
-        // If starting with zero, next character must not be digit.
-        if (digit <= 9) fail(position);
-      } else {
-        do {
-          intValue = 10 * intValue + digit;
-          position++;
-          if (position == length) return beginChunkNumber(NUM_DIGIT, start);
-          char = getChar(position);
-          digit = char ^ CHAR_0;
-        } while (digit <= 9);
-      }
-      if (char == DECIMALPOINT) {
-        isDouble = true;
+      } while (digit <= 9);
+    }
+    if (char == DECIMALPOINT) {
+      isDouble = true;
+      doubleValue = intValue.toDouble();
+      intValue = 0;
+      position++;
+      if (position == length) return beginChunkNumber(NUM_DOT, start);
+      char = getChar(position);
+      digit = char ^ CHAR_0;
+      if (digit > 9) fail(position);
+      do {
+        doubleValue = 10.0 * doubleValue + digit;
+        intValue -= 1;
+        position++;
+        if (position == length) return beginChunkNumber(NUM_DOT_DIGIT, start);
+        char = getChar(position);
+        digit = char ^ CHAR_0;
+      } while (digit <= 9);
+    }
+    if ((char | 0x20) == CHAR_e) {
+      if (!isDouble) {
         doubleValue = intValue.toDouble();
         intValue = 0;
+        isDouble = true;
+      }
+      position++;
+      if (position == length) return beginChunkNumber(NUM_E, start);
+      char = getChar(position);
+      int expSign = 1;
+      int exponent = 0;
+      if (char == PLUS || char == MINUS) {
+        expSign = 0x2C - char;  // -1 for MINUS, +1 for PLUS
         position++;
-        if (position == length) return beginChunkNumber(NUM_DOT, start);
+        if (position == length) return beginChunkNumber(NUM_E_SIGN, start);
+        char = getChar(position);
+      }
+      digit = char ^ CHAR_0;
+      if (digit > 9) {
+        fail(position, "Missing expected digit");
+      }
+      do {
+        exponent = 10 * exponent + digit;
+        position++;
+        if (position == length) return beginChunkNumber(NUM_E_DIGIT, start);
         char = getChar(position);
         digit = char ^ CHAR_0;
-        if (digit > 9) fail(position);
-        do {
-          doubleValue = 10.0 * doubleValue + digit;
-          intValue -= 1;
-          position++;
-          if (position == length) return beginChunkNumber(NUM_DOT_DIGIT, start);
-          char = getChar(position);
-          digit = char ^ CHAR_0;
-        } while (digit <= 9);
-      }
-      if ((char | 0x20) == CHAR_e) {
-        if (!isDouble) {
-          doubleValue = intValue.toDouble();
-          intValue = 0;
-          isDouble = true;
-        }
-        position++;
-        if (position == length) return beginChunkNumber(NUM_E, start);
-        char = getChar(position);
-        int expSign = 1;
-        int exponent = 0;
-        if (char == PLUS || char == MINUS) {
-          expSign = 0x2C - char;  // -1 for MINUS, +1 for PLUS
-          position++;
-          if (position == length) return beginChunkNumber(NUM_E_SIGN, start);
-          char = getChar(position);
-        }
-        digit = char ^ CHAR_0;
-        if (digit > 9) {
-          fail(position, "Missing expected digit");
-        }
-        do {
-          exponent = 10 * exponent + digit;
-          position++;
-          if (position == length) return beginChunkNumber(NUM_E_DIGIT, start);
-          char = getChar(position);
-          digit = char ^ CHAR_0;
-        } while (digit <= 9);
-        intValue += expSign * exponent;
-      }
+      } while (digit <= 9);
+      intValue += expSign * exponent;
     }
     if (!isDouble) {
       listener.handleNumber(sign * intValue);
@@ -1314,7 +1318,7 @@ abstract class _ChunkedJsonParser {
     return position;
   }
 
-  int fail(int position, [String message]) {
+  fail(int position, [String message]) {
     if (message == null) {
       message = "Unexpected character";
       if (position == chunkEnd) message = "Unexpected end of input";
