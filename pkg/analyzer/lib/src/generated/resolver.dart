@@ -2064,10 +2064,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       sc.Token property = node.propertyKeyword;
       SimpleIdentifier methodName = node.name;
       String nameOfMethod = methodName.name;
-      if (nameOfMethod == sc.TokenType.MINUS.lexeme &&
-          node.parameters.parameters.length == 0) {
-        nameOfMethod = "unary-";
-      }
       if (property == null) {
         _enclosingExecutable = _findWithNameAndOffset(
             _enclosingClass.methods, nameOfMethod, methodName.offset);
@@ -2284,7 +2280,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   Element _findWithNameAndOffset(
       List<Element> elements, String name, int offset) {
     for (Element element in elements) {
-      if (element.displayName == name && element.nameOffset == offset) {
+      if (element.nameOffset == offset && element.displayName == name) {
         return element;
       }
     }
