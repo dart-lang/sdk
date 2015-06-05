@@ -174,7 +174,7 @@ var convert = dart.lazyImport(convert);
         if (millisecondsSinceEpoch == null) {
           throw new FormatException("Time out of range", formattedString);
         }
-        if (addOneMillisecond) {
+        if (dart.notNull(addOneMillisecond)) {
           millisecondsSinceEpoch = dart.notNull(millisecondsSinceEpoch) + 1;
         }
         return new DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch, {isUtc: isUtc});
@@ -213,13 +213,13 @@ var convert = dart.lazyImport(convert);
       return this.millisecondsSinceEpoch;
     }
     toLocal() {
-      if (this.isUtc) {
+      if (dart.notNull(this.isUtc)) {
         return new DateTime.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch, {isUtc: false});
       }
       return this;
     }
     toUtc() {
-      if (this.isUtc)
+      if (dart.notNull(this.isUtc))
         return this;
       return new DateTime.fromMillisecondsSinceEpoch(this.millisecondsSinceEpoch, {isUtc: true});
     }
@@ -262,7 +262,7 @@ var convert = dart.lazyImport(convert);
       let min = DateTime._twoDigits(this.minute);
       let sec = DateTime._twoDigits(this.second);
       let ms = DateTime._threeDigits(this.millisecond);
-      if (this.isUtc) {
+      if (dart.notNull(this.isUtc)) {
         return `${y}-${m}-${d} ${h}:${min}:${sec}.${ms}Z`;
       } else {
         return `${y}-${m}-${d} ${h}:${min}:${sec}.${ms}`;
@@ -276,7 +276,7 @@ var convert = dart.lazyImport(convert);
       let min = DateTime._twoDigits(this.minute);
       let sec = DateTime._twoDigits(this.second);
       let ms = DateTime._threeDigits(this.millisecond);
-      if (this.isUtc) {
+      if (dart.notNull(this.isUtc)) {
         return `${y}-${m}-${d}T${h}:${min}:${sec}.${ms}Z`;
       } else {
         return `${y}-${m}-${d}T${h}:${min}:${sec}.${ms}`;
@@ -307,12 +307,12 @@ var convert = dart.lazyImport(convert);
       return dart.as(_js_helper.Primitives.valueFromDecomposedDate(year, month, day, hour, minute, second, millisecond, isUtc), int);
     }
     get timeZoneName() {
-      if (this.isUtc)
+      if (dart.notNull(this.isUtc))
         return "UTC";
       return _js_helper.Primitives.getTimeZoneName(this);
     }
     get timeZoneOffset() {
-      if (this.isUtc)
+      if (dart.notNull(this.isUtc))
         return new Duration();
       return new Duration({minutes: _js_helper.Primitives.getTimeZoneOffsetInMinutes(this)});
     }
@@ -602,7 +602,7 @@ var convert = dart.lazyImport(convert);
     Error() {
     }
     static safeToString(object) {
-      if (dart.is(object, num) || typeof object == 'boolean' || dart.notNull(null == object)) {
+      if (dart.is(object, num) || typeof object == 'boolean' || null == object) {
         return dart.toString(object);
       }
       if (typeof object == 'string') {
@@ -836,7 +836,7 @@ var convert = dart.lazyImport(convert);
       dart.assert(this[_hasValue]);
       let target = Error.safeToString(this.indexable);
       let explanation = `index should be less than ${this.length}`;
-      if (dart.dsend(this.invalidValue, '<', 0)) {
+      if (dart.notNull(dart.as(dart.dsend(this.invalidValue, '<', 0), bool))) {
         explanation = "index must not be negative";
       }
       return `RangeError: ${this.message} (${target}[${this.invalidValue}]): ${explanation}`;
@@ -1413,7 +1413,7 @@ var convert = dart.lazyImport(convert);
       }
       static filled(length, fill) {
         let result = List$(E).new(length);
-        if (length != 0 && dart.notNull(fill != null)) {
+        if (length != 0 && fill != null) {
           for (let i = 0; dart.notNull(i) < dart.notNull(result.length); i = dart.notNull(i) + 1) {
             result[dartx.set](i, fill);
           }
@@ -1426,14 +1426,14 @@ var convert = dart.lazyImport(convert);
         for (let e of elements) {
           list[dartx.add](dart.as(e, E));
         }
-        if (growable)
+        if (dart.notNull(growable))
           return list;
         return dart.as(_internal.makeListFixedLength(list), List$(E));
       }
       static generate(length, generator, opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
-        if (growable) {
+        if (dart.notNull(growable)) {
           result = dart.list([], E);
           result.length = length;
         } else {
@@ -1564,7 +1564,7 @@ var convert = dart.lazyImport(convert);
       Stopwatch._initTicker();
     }
     start() {
-      if (this.isRunning)
+      if (dart.notNull(this.isRunning))
         return;
       if (this[_start] == null) {
         this[_start] = Stopwatch._now();
@@ -1671,7 +1671,7 @@ var convert = dart.lazyImport(convert);
       }
       let list = [];
       if (end == null) {
-        while (it.moveNext())
+        while (dart.notNull(it.moveNext()))
           list[dartx.add](it.current);
       } else {
         for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
@@ -1712,7 +1712,7 @@ var convert = dart.lazyImport(convert);
           let code = this.string[dartx.codeUnitAt](dart.notNull(length) - 1);
           if (dart.notNull(_isTrailSurrogate(code)) && dart.notNull(this.string.length) > 1) {
             let previousCode = this.string[dartx.codeUnitAt](dart.notNull(length) - 2);
-            if (_isLeadSurrogate(previousCode)) {
+            if (dart.notNull(_isLeadSurrogate(previousCode))) {
               return _combineSurrogatePair(previousCode, code);
             }
           }
@@ -1800,7 +1800,7 @@ var convert = dart.lazyImport(convert);
       let nextPosition = dart.notNull(this[_position]) + 1;
       if (dart.notNull(_isLeadSurrogate(codeUnit)) && dart.notNull(nextPosition) < dart.notNull(this.string.length)) {
         let nextCodeUnit = this.string[dartx.codeUnitAt](nextPosition);
-        if (_isTrailSurrogate(nextCodeUnit)) {
+        if (dart.notNull(_isTrailSurrogate(nextCodeUnit))) {
           this[_nextPosition] = dart.notNull(nextPosition) + 1;
           this[_currentCodePoint] = _combineSurrogatePair(codeUnit, nextCodeUnit);
           return true;
@@ -1820,7 +1820,7 @@ var convert = dart.lazyImport(convert);
       let codeUnit = this.string[dartx.codeUnitAt](position);
       if (dart.notNull(_isTrailSurrogate(codeUnit)) && dart.notNull(position) > 0) {
         let prevCodeUnit = this.string[dartx.codeUnitAt](dart.notNull(position) - 1);
-        if (_isLeadSurrogate(prevCodeUnit)) {
+        if (dart.notNull(_isLeadSurrogate(prevCodeUnit))) {
           this[_position] = dart.notNull(position) - 1;
           this[_currentCodePoint] = _combineSurrogatePair(prevCodeUnit, codeUnit);
           return true;
@@ -1874,13 +1874,13 @@ var convert = dart.lazyImport(convert);
       let iterator = objects[dartx.iterator];
       if (!dart.notNull(iterator.moveNext()))
         return;
-      if (separator[dartx.isEmpty]) {
+      if (dart.notNull(separator[dartx.isEmpty])) {
         do {
           this.write(iterator.current);
-        } while (iterator.moveNext());
+        } while (dart.notNull(iterator.moveNext()));
       } else {
         this.write(iterator.current);
-        while (iterator.moveNext()) {
+        while (dart.notNull(iterator.moveNext())) {
           this.write(separator);
           this.write(iterator.current);
         }
@@ -1953,7 +1953,7 @@ var convert = dart.lazyImport(convert);
     get host() {
       if (this[_host] == null)
         return "";
-      if (this[_host][dartx.startsWith]('[')) {
+      if (dart.notNull(this[_host][dartx.startsWith]('['))) {
         return this[_host][dartx.substring](1, dart.notNull(this[_host].length) - 1);
       }
       return this[_host];
@@ -1981,7 +1981,7 @@ var convert = dart.lazyImport(convert);
     }
     static parse(uri) {
       let isRegName = ch => {
-        return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dsend(Uri._regNameTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+        return dart.notNull(ch) < 128 && !dart.equals(dart.dsend(Uri._regNameTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0);
       };
       dart.fn(isRegName, bool, [int]);
       let EOI = -1;
@@ -2227,7 +2227,7 @@ var convert = dart.lazyImport(convert);
         for (; dart.notNull(hostEnd) < dart.notNull(authority.length); hostEnd = dart.notNull(hostEnd) + 1) {
           if (authority[dartx.codeUnitAt](hostEnd) == Uri._COLON) {
             let portString = authority[dartx.substring](dart.notNull(hostEnd) + 1);
-            if (portString[dartx.isNotEmpty])
+            if (dart.notNull(portString[dartx.isNotEmpty]))
               port = int.parse(portString);
             break;
           }
@@ -2239,7 +2239,7 @@ var convert = dart.lazyImport(convert);
     static file(path, opts) {
       let windows = opts && 'windows' in opts ? opts.windows : null;
       windows = windows == null ? Uri._isWindows : windows;
-      return windows ? dart.as(Uri._makeWindowsFileUrl(path), Uri) : dart.as(Uri._makeFileUri(path), Uri);
+      return dart.notNull(windows) ? dart.as(Uri._makeWindowsFileUrl(path), Uri) : dart.as(Uri._makeFileUri(path), Uri);
     }
     static get base() {
       let uri = _js_helper.Primitives.currentUri();
@@ -2252,8 +2252,8 @@ var convert = dart.lazyImport(convert);
     }
     static _checkNonWindowsPathReservedCharacters(segments, argumentError) {
       segments[dartx.forEach](dart.fn(segment => {
-        if (dart.dsend(segment, 'contains', "/")) {
-          if (argumentError) {
+        if (dart.notNull(dart.as(dart.dsend(segment, 'contains', "/"), bool))) {
+          if (dart.notNull(argumentError)) {
             throw new ArgumentError(`Illegal path character ${segment}`);
           } else {
             throw new UnsupportedError(`Illegal path character ${segment}`);
@@ -2265,8 +2265,8 @@ var convert = dart.lazyImport(convert);
       if (firstSegment === void 0)
         firstSegment = 0;
       segments[dartx.skip](firstSegment)[dartx.forEach](dart.fn(segment => {
-        if (dart.dsend(segment, 'contains', RegExp.new('["*/:<>?\\\\|]'))) {
-          if (argumentError) {
+        if (dart.notNull(dart.as(dart.dsend(segment, 'contains', RegExp.new('["*/:<>?\\\\|]')), bool))) {
+          if (dart.notNull(argumentError)) {
             throw new ArgumentError("Illegal character in path");
           } else {
             throw new UnsupportedError("Illegal character in path");
@@ -2278,7 +2278,7 @@ var convert = dart.lazyImport(convert);
       if (dart.notNull(Uri._UPPER_CASE_A) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri._UPPER_CASE_Z) || dart.notNull(Uri._LOWER_CASE_A) <= dart.notNull(charCode) && dart.notNull(charCode) <= dart.notNull(Uri._LOWER_CASE_Z)) {
         return;
       }
-      if (argumentError) {
+      if (dart.notNull(argumentError)) {
         throw new ArgumentError("Illegal drive letter " + dart.notNull(String.fromCharCode(charCode)));
       } else {
         throw new UnsupportedError("Illegal drive letter " + dart.notNull(String.fromCharCode(charCode)));
@@ -2286,15 +2286,15 @@ var convert = dart.lazyImport(convert);
     }
     static _makeFileUri(path) {
       let sep = "/";
-      if (path[dartx.startsWith](sep)) {
+      if (dart.notNull(path[dartx.startsWith](sep))) {
         return Uri.new({scheme: "file", pathSegments: path[dartx.split](sep)});
       } else {
         return Uri.new({pathSegments: path[dartx.split](sep)});
       }
     }
     static _makeWindowsFileUrl(path) {
-      if (path[dartx.startsWith]("\\\\?\\")) {
-        if (path[dartx.startsWith]("\\\\?\\UNC\\")) {
+      if (dart.notNull(path[dartx.startsWith]("\\\\?\\"))) {
+        if (dart.notNull(path[dartx.startsWith]("\\\\?\\UNC\\"))) {
           path = `\\${path[dartx.substring](7)}`;
         } else {
           path = path[dartx.substring](4);
@@ -2361,19 +2361,19 @@ var convert = dart.lazyImport(convert);
         port = Uri._makePort(port, scheme);
       } else {
         port = this[_port];
-        if (schemeChanged) {
+        if (dart.notNull(schemeChanged)) {
           port = Uri._makePort(port, scheme);
         }
       }
       if (host != null) {
         host = Uri._makeHost(host, 0, host.length, false);
-      } else if (this.hasAuthority) {
+      } else if (dart.notNull(this.hasAuthority)) {
         host = this.host;
       } else if (dart.notNull(userInfo[dartx.isNotEmpty]) || port != null || dart.notNull(isFile)) {
         host = "";
       }
       let ensureLeadingSlash = host != null;
-      if (path != null || dart.notNull(pathSegments != null)) {
+      if (path != null || pathSegments != null) {
         path = Uri._makePath(path, 0, Uri._stringOrNullLength(path), pathSegments, ensureLeadingSlash, isFile);
       } else {
         path = this.path;
@@ -2381,14 +2381,14 @@ var convert = dart.lazyImport(convert);
           path = `/${path}`;
         }
       }
-      if (query != null || dart.notNull(queryParameters != null)) {
+      if (query != null || queryParameters != null) {
         query = Uri._makeQuery(query, 0, Uri._stringOrNullLength(query), queryParameters);
-      } else if (this.hasQuery) {
+      } else if (dart.notNull(this.hasQuery)) {
         query = this.query;
       }
       if (fragment != null) {
         fragment = Uri._makeFragment(fragment, 0, fragment.length);
-      } else if (this.hasFragment) {
+      } else if (dart.notNull(this.hasFragment)) {
         fragment = this.fragment;
       }
       return new Uri._internal(scheme, userInfo, host, port, path, query, fragment);
@@ -2434,7 +2434,7 @@ var convert = dart.lazyImport(convert);
       return Uri._normalizeRegName(host, start, end);
     }
     static _isRegNameChar(char) {
-      return dart.notNull(char) < 127 && dart.notNull(!dart.equals(dart.dsend(Uri._regNameTable[dartx.get](dart.notNull(char) >> 4), '&', 1 << (dart.notNull(char) & 15)), 0));
+      return dart.notNull(char) < 127 && !dart.equals(dart.dsend(Uri._regNameTable[dartx.get](dart.notNull(char) >> 4), '&', 1 << (dart.notNull(char) & 15)), 0);
     }
     static _normalizeRegName(host, start, end) {
       let buffer = null;
@@ -2466,7 +2466,7 @@ var convert = dart.lazyImport(convert);
           index = dart.notNull(index) + dart.notNull(sourceLength);
           sectionStart = index;
           isNormalized = true;
-        } else if (Uri._isRegNameChar(char)) {
+        } else if (dart.notNull(Uri._isRegNameChar(char))) {
           if (dart.notNull(isNormalized) && dart.notNull(Uri._UPPER_CASE_A) <= dart.notNull(char) && dart.notNull(Uri._UPPER_CASE_Z) >= dart.notNull(char)) {
             if (buffer == null)
               buffer = new StringBuffer();
@@ -2477,7 +2477,7 @@ var convert = dart.lazyImport(convert);
             isNormalized = false;
           }
           index = dart.notNull(index) + 1;
-        } else if (Uri._isGeneralDelimiter(char)) {
+        } else if (dart.notNull(Uri._isGeneralDelimiter(char))) {
           Uri._fail(host, index, "Invalid character");
         } else {
           let sourceLength = 1;
@@ -2537,9 +2537,9 @@ var convert = dart.lazyImport(convert);
       return Uri._normalize(userInfo, start, end, dart.as(Uri._userinfoTable, List$(int)));
     }
     static _makePath(path, start, end, pathSegments, ensureLeadingSlash, isFile) {
-      if (path == null && dart.notNull(pathSegments == null))
-        return isFile ? "/" : "";
-      if (path != null && dart.notNull(pathSegments != null)) {
+      if (path == null && pathSegments == null)
+        return dart.notNull(isFile) ? "/" : "";
+      if (path != null && pathSegments != null) {
         throw new ArgumentError('Both path and pathSegments specified');
       }
       let result = null;
@@ -2548,18 +2548,18 @@ var convert = dart.lazyImport(convert);
       } else {
         result = pathSegments[dartx.map](dart.fn(s => Uri._uriEncode(dart.as(Uri._pathCharTable, List$(int)), dart.as(s, String)), String, [Object]))[dartx.join]("/");
       }
-      if (dart.dload(result, 'isEmpty')) {
-        if (isFile)
+      if (dart.notNull(dart.as(dart.dload(result, 'isEmpty'), bool))) {
+        if (dart.notNull(isFile))
           return "/";
-      } else if ((dart.notNull(isFile) || dart.notNull(ensureLeadingSlash)) && dart.notNull(!dart.equals(dart.dsend(result, 'codeUnitAt', 0), Uri._SLASH))) {
+      } else if ((dart.notNull(isFile) || dart.notNull(ensureLeadingSlash)) && !dart.equals(dart.dsend(result, 'codeUnitAt', 0), Uri._SLASH)) {
         return `/${result}`;
       }
       return dart.as(result, String);
     }
     static _makeQuery(query, start, end, queryParameters) {
-      if (query == null && dart.notNull(queryParameters == null))
+      if (query == null && queryParameters == null)
         return null;
-      if (query != null && dart.notNull(queryParameters != null)) {
+      if (query != null && queryParameters != null) {
         throw new ArgumentError('Both query and queryParameters specified');
       }
       if (query != null)
@@ -2572,7 +2572,7 @@ var convert = dart.lazyImport(convert);
         }
         first = false;
         result.write(Uri.encodeQueryComponent(dart.as(key, String)));
-        if (dart.notNull(value != null) && dart.notNull(dart.dsend(dart.dload(value, 'isEmpty'), '!'))) {
+        if (value != null && !dart.notNull(dart.as(dart.dload(value, 'isEmpty'), bool))) {
           result.write("=");
           result.write(Uri.encodeQueryComponent(dart.as(value, String)));
         }
@@ -2611,7 +2611,7 @@ var convert = dart.lazyImport(convert);
         return "%";
       }
       let value = dart.notNull(Uri._hexValue(firstDigit)) * 16 + dart.notNull(Uri._hexValue(secondDigit));
-      if (Uri._isUnreservedChar(value)) {
+      if (dart.notNull(Uri._isUnreservedChar(value))) {
         if (dart.notNull(lowerCase) && dart.notNull(Uri._UPPER_CASE_A) <= dart.notNull(value) && dart.notNull(Uri._UPPER_CASE_Z) >= dart.notNull(value)) {
           value = dart.notNull(value) | 32;
         }
@@ -2623,13 +2623,13 @@ var convert = dart.lazyImport(convert);
       return null;
     }
     static _isUnreservedChar(ch) {
-      return dart.notNull(ch) < 127 && dart.notNull(!dart.equals(dart.dsend(Uri._unreservedTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+      return dart.notNull(ch) < 127 && !dart.equals(dart.dsend(Uri._unreservedTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0);
     }
     static _escapeChar(char) {
       dart.assert(dart.dsend(char, '<=', 1114111));
       let hexDigits = "0123456789ABCDEF";
       let codeUnits = null;
-      if (dart.dsend(char, '<', 128)) {
+      if (dart.notNull(dart.as(dart.dsend(char, '<', 128), bool))) {
         codeUnits = List.new(3);
         codeUnits[dartx.set](0, Uri._PERCENT);
         codeUnits[dartx.set](1, hexDigits[dartx.codeUnitAt](dart.as(dart.dsend(char, '>>', 4), int)));
@@ -2637,10 +2637,10 @@ var convert = dart.lazyImport(convert);
       } else {
         let flag = 192;
         let encodedBytes = 2;
-        if (dart.dsend(char, '>', 2047)) {
+        if (dart.notNull(dart.as(dart.dsend(char, '>', 2047), bool))) {
           flag = 224;
           encodedBytes = 3;
-          if (dart.dsend(char, '>', 65535)) {
+          if (dart.notNull(dart.as(dart.dsend(char, '>', 65535), bool))) {
             encodedBytes = 4;
             flag = 240;
           }
@@ -2681,7 +2681,7 @@ var convert = dart.lazyImport(convert);
             } else {
               sourceLength = 3;
             }
-          } else if (Uri._isGeneralDelimiter(char)) {
+          } else if (dart.notNull(Uri._isGeneralDelimiter(char))) {
             Uri._fail(component, index, "Invalid character");
           } else {
             sourceLength = 1;
@@ -2713,20 +2713,20 @@ var convert = dart.lazyImport(convert);
       return dart.toString(buffer);
     }
     static _isSchemeCharacter(ch) {
-      return dart.notNull(ch) < 128 && dart.notNull(!dart.equals(dart.dsend(Uri._schemeTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+      return dart.notNull(ch) < 128 && !dart.equals(dart.dsend(Uri._schemeTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0);
     }
     static _isGeneralDelimiter(ch) {
-      return dart.notNull(ch) <= dart.notNull(Uri._RIGHT_BRACKET) && dart.notNull(!dart.equals(dart.dsend(Uri._genDelimitersTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0));
+      return dart.notNull(ch) <= dart.notNull(Uri._RIGHT_BRACKET) && !dart.equals(dart.dsend(Uri._genDelimitersTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0);
     }
     get isAbsolute() {
       return this.scheme != "" && this.fragment == "";
     }
     [_merge](base, reference) {
-      if (base[dartx.isEmpty])
+      if (dart.notNull(base[dartx.isEmpty]))
         return `/${reference}`;
       let backCount = 0;
       let refStart = 0;
-      while (reference[dartx.startsWith]("../", refStart)) {
+      while (dart.notNull(reference[dartx.startsWith]("../", refStart))) {
         refStart = dart.notNull(refStart) + 3;
         backCount = dart.notNull(backCount) + 1;
       }
@@ -2768,7 +2768,7 @@ var convert = dart.lazyImport(convert);
           output[dartx.add](segment);
         }
       }
-      if (appendSlash)
+      if (dart.notNull(appendSlash))
         output[dartx.add]("");
       return output[dartx.join]("/");
     }
@@ -2782,41 +2782,41 @@ var convert = dart.lazyImport(convert);
       let targetPort = null;
       let targetPath = null;
       let targetQuery = null;
-      if (reference.scheme[dartx.isNotEmpty]) {
+      if (dart.notNull(reference.scheme[dartx.isNotEmpty])) {
         targetScheme = reference.scheme;
-        if (reference.hasAuthority) {
+        if (dart.notNull(reference.hasAuthority)) {
           targetUserInfo = reference.userInfo;
           targetHost = reference.host;
-          targetPort = reference.hasPort ? reference.port : null;
+          targetPort = dart.notNull(reference.hasPort) ? reference.port : null;
         }
         targetPath = this[_removeDotSegments](reference.path);
-        if (reference.hasQuery) {
+        if (dart.notNull(reference.hasQuery)) {
           targetQuery = reference.query;
         }
       } else {
         targetScheme = this.scheme;
-        if (reference.hasAuthority) {
+        if (dart.notNull(reference.hasAuthority)) {
           targetUserInfo = reference.userInfo;
           targetHost = reference.host;
-          targetPort = Uri._makePort(reference.hasPort ? reference.port : null, targetScheme);
+          targetPort = Uri._makePort(dart.notNull(reference.hasPort) ? reference.port : null, targetScheme);
           targetPath = this[_removeDotSegments](reference.path);
-          if (reference.hasQuery)
+          if (dart.notNull(reference.hasQuery))
             targetQuery = reference.query;
         } else {
           if (reference.path == "") {
             targetPath = this[_path];
-            if (reference.hasQuery) {
+            if (dart.notNull(reference.hasQuery)) {
               targetQuery = reference.query;
             } else {
               targetQuery = this[_query];
             }
           } else {
-            if (reference.path[dartx.startsWith]("/")) {
+            if (dart.notNull(reference.path[dartx.startsWith]("/"))) {
               targetPath = this[_removeDotSegments](reference.path);
             } else {
               targetPath = this[_removeDotSegments](this[_merge](this[_path], reference.path));
             }
-            if (reference.hasQuery)
+            if (dart.notNull(reference.hasQuery))
               targetQuery = reference.query;
           }
           targetUserInfo = this[_userInfo];
@@ -2824,7 +2824,7 @@ var convert = dart.lazyImport(convert);
           targetPort = this[_port];
         }
       }
-      let fragment = reference.hasFragment ? reference.fragment : null;
+      let fragment = dart.notNull(reference.hasFragment) ? reference.fragment : null;
       return new Uri._internal(targetScheme, targetUserInfo, targetHost, targetPort, targetPath, targetQuery, fragment);
     }
     get hasAuthority() {
@@ -2863,7 +2863,7 @@ var convert = dart.lazyImport(convert);
       }
       if (windows == null)
         windows = Uri._isWindows;
-      return windows ? this[_toWindowsFilePath]() : this[_toFilePath]();
+      return dart.notNull(windows) ? this[_toWindowsFilePath]() : this[_toFilePath]();
     }
     [_toFilePath]() {
       if (this.host != "") {
@@ -2871,7 +2871,7 @@ var convert = dart.lazyImport(convert);
       }
       Uri._checkNonWindowsPathReservedCharacters(this.pathSegments, false);
       let result = new StringBuffer();
-      if (this[_isPathAbsolute])
+      if (dart.notNull(this[_isPathAbsolute]))
         result.write("/");
       result.writeAll(this.pathSegments, "/");
       return dart.toString(result);
@@ -2905,7 +2905,7 @@ var convert = dart.lazyImport(convert);
       return this.path[dartx.startsWith]('/');
     }
     [_writeAuthority](ss) {
-      if (this[_userInfo][dartx.isNotEmpty]) {
+      if (dart.notNull(this[_userInfo][dartx.isNotEmpty])) {
         ss.write(this[_userInfo]);
         ss.write("@");
       }
@@ -3045,7 +3045,7 @@ var convert = dart.lazyImport(convert);
             partStart = i;
           }
           if (i == partStart) {
-            if (wildcardSeen) {
+            if (dart.notNull(wildcardSeen)) {
               error('only one wildcard `::` is allowed', i);
             }
             wildcardSeen = true;
@@ -3078,7 +3078,7 @@ var convert = dart.lazyImport(convert);
         }
 
       }
-      if (wildcardSeen) {
+      if (dart.notNull(wildcardSeen)) {
         if (dart.notNull(parts.length) > 7) {
           error('an address with a wildcard must have less than 7 parts');
         }
@@ -3153,8 +3153,8 @@ var convert = dart.lazyImport(convert);
         simple = codeUnit != Uri._PERCENT && codeUnit != Uri._PLUS;
       }
       let bytes = null;
-      if (simple) {
-        if (dart.notNull(dart.equals(encoding, convert.UTF8)) || dart.notNull(dart.equals(encoding, convert.LATIN1))) {
+      if (dart.notNull(simple)) {
+        if (dart.equals(encoding, convert.UTF8) || dart.equals(encoding, convert.LATIN1)) {
           return text;
         } else {
           bytes = text[dartx.codeUnits];

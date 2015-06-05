@@ -111,9 +111,9 @@ var _foreign_helper = dart.import(_foreign_helper);
     }
     static makeNative(source, multiLine, caseSensitive, global) {
       checkString(source);
-      let m = multiLine ? 'm' : '';
-      let i = caseSensitive ? '' : 'i';
-      let g = global ? 'g' : '';
+      let m = dart.notNull(multiLine) ? 'm' : '';
+      let i = dart.notNull(caseSensitive) ? '' : 'i';
+      let g = dart.notNull(global) ? 'g' : '';
       let regexp = function() {
         try {
           return new RegExp(source, m + i + g);
@@ -501,7 +501,7 @@ var _foreign_helper = dart.import(_foreign_helper);
       startIndex = 0;
     if (typeof from == 'string') {
       let index = dart.dsend(receiver, 'indexOf', from, startIndex);
-      if (dart.dsend(index, '<', 0))
+      if (dart.notNull(dart.as(dart.dsend(index, '<', 0), core.bool)))
         return receiver;
       return `${dart.dsend(receiver, 'substring', 0, index)}${to}` + `${dart.dsend(receiver, 'substring', dart.dsend(index, '+', dart.dload(from, 'length')))}`;
     } else if (dart.is(from, JSSyntaxRegExp)) {
@@ -586,10 +586,10 @@ var _foreign_helper = dart.import(_foreign_helper);
           throw new core.RangeError(`Radix ${radix} not in range 2..36`);
         }
         if (match != null) {
-          if (radix == 10 && dart.notNull(dart.dindex(match, decimalIndex) != null)) {
+          if (radix == 10 && dart.dindex(match, decimalIndex) != null) {
             return parseInt(source, 10);
           }
-          if (dart.notNull(radix) < 10 || dart.notNull(dart.dindex(match, decimalIndex) == null)) {
+          if (dart.notNull(radix) < 10 || dart.dindex(match, decimalIndex) == null) {
             let maxCharCode = null;
             if (dart.notNull(radix) <= 10) {
               maxCharCode = 48 + dart.notNull(radix) - 1;
@@ -618,7 +618,7 @@ var _foreign_helper = dart.import(_foreign_helper);
         return handleError(source);
       }
       let result = parseFloat(source);
-      if (result[dartx.isNaN]) {
+      if (dart.notNull(result[dartx.isNaN])) {
         let trimmed = source[dartx.trim]();
         if (trimmed == 'NaN' || trimmed == '+NaN' || trimmed == '-NaN') {
           return result;
@@ -687,9 +687,9 @@ var _foreign_helper = dart.import(_foreign_helper);
       for (let i of dart.as(codePoints, core.Iterable)) {
         if (!(typeof i == 'number'))
           throw new core.ArgumentError(i);
-        if (dart.dsend(i, '<=', 65535)) {
+        if (dart.notNull(dart.as(dart.dsend(i, '<=', 65535), core.bool))) {
           a[dartx.add](dart.as(i, core.int));
-        } else if (dart.dsend(i, '<=', 1114111)) {
+        } else if (dart.notNull(dart.as(dart.dsend(i, '<=', 1114111), core.bool))) {
           a[dartx.add]((55296)[dartx['+']](dart.as(dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023), core.num)));
           a[dartx.add]((56320)[dartx['+']](dart.as(dart.dsend(i, '&', 1023), core.num)));
         } else {
@@ -702,19 +702,19 @@ var _foreign_helper = dart.import(_foreign_helper);
       for (let i of dart.as(charCodes, core.Iterable)) {
         if (!(typeof i == 'number'))
           throw new core.ArgumentError(i);
-        if (dart.dsend(i, '<', 0))
+        if (dart.notNull(dart.as(dart.dsend(i, '<', 0), core.bool)))
           throw new core.ArgumentError(i);
-        if (dart.dsend(i, '>', 65535))
+        if (dart.notNull(dart.as(dart.dsend(i, '>', 65535), core.bool)))
           return Primitives.stringFromCodePoints(charCodes);
       }
       return Primitives._fromCharCodeApply(dart.as(charCodes, core.List$(core.int)));
     }
     static stringFromCharCode(charCode) {
       if (0 <= dart.notNull(dart.as(charCode, core.num))) {
-        if (dart.dsend(charCode, '<=', 65535)) {
+        if (dart.notNull(dart.as(dart.dsend(charCode, '<=', 65535), core.bool))) {
           return String.fromCharCode(charCode);
         }
-        if (dart.dsend(charCode, '<=', 1114111)) {
+        if (dart.notNull(dart.as(dart.dsend(charCode, '<=', 1114111), core.bool))) {
           let bits = dart.dsend(charCode, '-', 65536);
           let low = (56320)[dartx['|']](dart.as(dart.dsend(bits, '&', 1023), core.int));
           let high = (55296)[dartx['|']](dart.as(dart.dsend(bits, '>>', 10), core.int));
@@ -757,7 +757,7 @@ var _foreign_helper = dart.import(_foreign_helper);
       checkBool(isUtc);
       let jsMonth = dart.dsend(month, '-', 1);
       let value = null;
-      if (isUtc) {
+      if (dart.notNull(dart.as(isUtc, core.bool))) {
         value = Date.UTC(years, jsMonth, day, hours, minutes, seconds, milliseconds);
       } else {
         value = new Date(years, jsMonth, day, hours, minutes, seconds, milliseconds).valueOf();
@@ -771,7 +771,7 @@ var _foreign_helper = dart.import(_foreign_helper);
     }
     static patchUpY2K(value, years, isUtc) {
       let date = new Date(value);
-      if (isUtc) {
+      if (dart.notNull(dart.as(isUtc, core.bool))) {
         date.setUTCFullYear(years);
       } else {
         date.setFullYear(years);
@@ -785,46 +785,46 @@ var _foreign_helper = dart.import(_foreign_helper);
       return receiver.date;
     }
     static getYear(receiver) {
-      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCFullYear() + 0 : Primitives.lazyAsJsDate(receiver).getFullYear() + 0;
+      return dart.notNull(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? Primitives.lazyAsJsDate(receiver).getUTCFullYear() + 0 : Primitives.lazyAsJsDate(receiver).getFullYear() + 0;
     }
     static getMonth(receiver) {
-      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCMonth() + 1 : Primitives.lazyAsJsDate(receiver).getMonth() + 1;
+      return dart.notNull(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? Primitives.lazyAsJsDate(receiver).getUTCMonth() + 1 : Primitives.lazyAsJsDate(receiver).getMonth() + 1;
     }
     static getDay(receiver) {
-      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCDate() + 0 : Primitives.lazyAsJsDate(receiver).getDate() + 0;
+      return dart.notNull(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? Primitives.lazyAsJsDate(receiver).getUTCDate() + 0 : Primitives.lazyAsJsDate(receiver).getDate() + 0;
     }
     static getHours(receiver) {
-      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCHours() + 0 : Primitives.lazyAsJsDate(receiver).getHours() + 0;
+      return dart.notNull(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? Primitives.lazyAsJsDate(receiver).getUTCHours() + 0 : Primitives.lazyAsJsDate(receiver).getHours() + 0;
     }
     static getMinutes(receiver) {
-      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCMinutes() + 0 : Primitives.lazyAsJsDate(receiver).getMinutes() + 0;
+      return dart.notNull(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? Primitives.lazyAsJsDate(receiver).getUTCMinutes() + 0 : Primitives.lazyAsJsDate(receiver).getMinutes() + 0;
     }
     static getSeconds(receiver) {
-      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCSeconds() + 0 : Primitives.lazyAsJsDate(receiver).getSeconds() + 0;
+      return dart.notNull(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? Primitives.lazyAsJsDate(receiver).getUTCSeconds() + 0 : Primitives.lazyAsJsDate(receiver).getSeconds() + 0;
     }
     static getMilliseconds(receiver) {
-      return dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCMilliseconds() + 0 : Primitives.lazyAsJsDate(receiver).getMilliseconds() + 0;
+      return dart.notNull(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? Primitives.lazyAsJsDate(receiver).getUTCMilliseconds() + 0 : Primitives.lazyAsJsDate(receiver).getMilliseconds() + 0;
     }
     static getWeekday(receiver) {
-      let weekday = dart.dload(receiver, 'isUtc') ? Primitives.lazyAsJsDate(receiver).getUTCDay() + 0 : Primitives.lazyAsJsDate(receiver).getDay() + 0;
+      let weekday = dart.notNull(dart.as(dart.dload(receiver, 'isUtc'), core.bool)) ? Primitives.lazyAsJsDate(receiver).getUTCDay() + 0 : Primitives.lazyAsJsDate(receiver).getDay() + 0;
       return (dart.notNull(weekday) + 6) % 7 + 1;
     }
     static valueFromDateString(str) {
       if (!(typeof str == 'string'))
         throw new core.ArgumentError(str);
       let value = Date.parse(str);
-      if (value[dartx.isNaN])
+      if (dart.notNull(value[dartx.isNaN]))
         throw new core.ArgumentError(str);
       return value;
     }
     static getProperty(object, key) {
-      if (dart.notNull(object == null) || typeof object == 'boolean' || dart.is(object, core.num) || typeof object == 'string') {
+      if (object == null || typeof object == 'boolean' || dart.is(object, core.num) || typeof object == 'string') {
         throw new core.ArgumentError(object);
       }
       return object[key];
     }
     static setProperty(object, key, value) {
-      if (dart.notNull(object == null) || typeof object == 'boolean' || dart.is(object, core.num) || typeof object == 'string') {
+      if (object == null || typeof object == 'boolean' || dart.is(object, core.num) || typeof object == 'string') {
         throw new core.ArgumentError(object);
       }
       object[key] = value;
@@ -971,7 +971,7 @@ var _foreign_helper = dart.import(_foreign_helper);
       super.Error();
     }
     toString() {
-      return this[_message][dartx.isEmpty] ? 'Error' : `Error: ${this[_message]}`;
+      return dart.notNull(this[_message][dartx.isEmpty]) ? 'Error' : `Error: ${this[_message]}`;
     }
   }
   dart.setSignature(UnknownJsTypeError, {
@@ -1003,7 +1003,7 @@ var _foreign_helper = dart.import(_foreign_helper);
     constructors: () => ({_StackTrace: [_StackTrace, [core.Object]]})
   });
   function objectHashCode(object) {
-    if (dart.notNull(object == null) || typeof object != 'object') {
+    if (object == null || typeof object != 'object') {
       return dart.hashCode(object);
     } else {
       return Primitives.objectHashCode(object);

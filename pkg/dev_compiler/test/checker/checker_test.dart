@@ -39,10 +39,49 @@ void main() {
           }
         }
         void main() {
+          Object obj = 42;
+          dynamic dyn = 42;
+          int i = 42;
+
+          // Check the boolean conversion of the condition.
+          print((/*severe:StaticTypeError*/i) ? false : true);
+          print((/*warning:DownCastImplicit*/obj) ? false : true);
+          print((/*info:DynamicCast*/dyn) ? false : true);
         }
       '''
     });
   });
+
+  test('if/for/do/while statements use boolean conversion', () => testChecker({
+    '/main.dart': '''
+      main() {
+        dynamic d = 42;
+        Object obj = 42;
+        int i = 42;
+        bool b = false;
+
+        if (b) {}
+        if (/*info:DynamicCast*/dyn) {}
+        if (/*warning:DownCastImplicit*/obj) {}
+        if (/*severe:StaticTypeError*/i) {}
+
+        while (b) {}
+        while (/*info:DynamicCast*/dyn) {}
+        while (/*warning:DownCastImplicit*/obj) {}
+        while (/*severe:StaticTypeError*/i) {}
+
+        do {} while (b);
+        do {} while (/*info:DynamicCast*/dyn);
+        do {} while (/*warning:DownCastImplicit*/obj);
+        do {} while (/*severe:StaticTypeError*/i);
+
+        for (;b;) {}
+        for (;/*info:DynamicCast*/dyn;) {}
+        for (;/*warning:DownCastImplicit*/obj;) {}
+        for (;/*severe:StaticTypeError*/i;) {}
+      }
+    '''
+  }));
 
   test('dynamic invocation', () {
     testChecker({
@@ -1923,6 +1962,42 @@ void main() {
        '''
     }, inferFromOverrides: true);
   });
+
+  test('unary operators', () => testChecker({
+    '/main.dart': '''
+      class A {
+        A operator ~() {}
+        A operator +(int x) {}
+        A operator -(int x) {}
+        A operator -() {}
+      }
+
+      foo() => new A();
+
+      test() {
+        A a = new A();
+        var c = foo();
+
+        ~a;
+        (/*info:DynamicInvoke*/~d);
+
+        !/*severe:StaticTypeError*/a;
+        !/*info:DynamicCast*/d;
+
+        -a;
+        (/*info:DynamicInvoke*/-d);
+
+        ++a;
+        --a;
+        (/*info:DynamicInvoke*/++d);
+        (/*info:DynamicInvoke*/--d);
+
+        a++;
+        a--;
+        (/*info:DynamicInvoke*/d++);
+        (/*info:DynamicInvoke*/d--);
+      }'''
+  }));
 
   test('binary and index operators', () {
     testChecker({

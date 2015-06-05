@@ -74,7 +74,7 @@ var collection = dart.import(collection);
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : null;
       if (allowInvalid == null)
         allowInvalid = this[_allowInvalid];
-      if (allowInvalid) {
+      if (dart.notNull(allowInvalid)) {
         return dart.const(new AsciiDecoder({allowInvalid: true})).convert(bytes);
       } else {
         return dart.const(new AsciiDecoder({allowInvalid: false})).convert(bytes);
@@ -84,7 +84,7 @@ var collection = dart.import(collection);
       return dart.const(new AsciiEncoder());
     }
     get decoder() {
-      return this[_allowInvalid] ? dart.const(new AsciiDecoder({allowInvalid: true})) : dart.const(new AsciiDecoder({allowInvalid: false}));
+      return dart.notNull(this[_allowInvalid]) ? dart.const(new AsciiDecoder({allowInvalid: true})) : dart.const(new AsciiDecoder({allowInvalid: false}));
     }
   }
   dart.setSignature(AsciiCodec, {
@@ -212,7 +212,7 @@ var collection = dart.import(collection);
         }
       }
       this[_sink].add(source[dartx.codeUnits][dartx.sublist](start, end));
-      if (isLast) {
+      if (dart.notNull(isLast)) {
         this.close();
       }
     }
@@ -286,7 +286,7 @@ var collection = dart.import(collection);
       } else {
         stringSink = StringConversionSink.from(sink);
       }
-      if (this[_allowInvalid]) {
+      if (dart.notNull(this[_allowInvalid])) {
         return new _ErrorHandlingAsciiDecoderSink(stringSink.asUtf8Sink(false));
       } else {
         return new _SimpleAsciiDecoderSink(stringSink);
@@ -339,7 +339,7 @@ var collection = dart.import(collection);
     }
     addSlice(chunk, start, end, isLast) {
       this.add(chunk[dartx.sublist](start, end));
-      if (isLast)
+      if (dart.notNull(isLast))
         this.close();
     }
   }
@@ -369,7 +369,7 @@ var collection = dart.import(collection);
       }
       if (dart.notNull(start) < dart.notNull(end)) {
         this[_utf8Sink].addSlice(source, start, end, isLast);
-      } else if (isLast) {
+      } else if (dart.notNull(isLast)) {
         this.close();
       }
     }
@@ -405,7 +405,7 @@ var collection = dart.import(collection);
         }
         this.add(source);
       }
-      if (isLast)
+      if (dart.notNull(isLast))
         this.close();
     }
   }
@@ -693,31 +693,31 @@ var collection = dart.import(collection);
           }
           case '"':
           {
-            if (this.mode.escapeQuot)
+            if (dart.notNull(this.mode.escapeQuot))
               replace = '&quot;';
             break;
           }
           case "'":
           {
-            if (this.mode.escapeApos)
+            if (dart.notNull(this.mode.escapeApos))
               replace = '&#x27;';
             break;
           }
           case '<':
           {
-            if (this.mode.escapeLtGt)
+            if (dart.notNull(this.mode.escapeLtGt))
               replace = '&lt;';
             break;
           }
           case '>':
           {
-            if (this.mode.escapeLtGt)
+            if (dart.notNull(this.mode.escapeLtGt))
               replace = '&gt;';
             break;
           }
           case '/':
           {
-            if (this.mode.escapeSlash)
+            if (dart.notNull(this.mode.escapeSlash))
               replace = '&#x2F;';
             break;
           }
@@ -762,7 +762,7 @@ var collection = dart.import(collection);
         this[_sink].addSlice(chunk, start, end, isLast);
       } else {
         this[_sink].add(val);
-        if (isLast)
+        if (dart.notNull(isLast))
           this[_sink].close();
       }
     }
@@ -927,7 +927,7 @@ var collection = dart.import(collection);
     static _utf8Encode(string) {
       if (string == null)
         return null;
-      if (string[dartx.isEmpty])
+      if (dart.notNull(string[dartx.isEmpty]))
         return typed_data.Uint8List.new(0);
       checkAscii: {
         for (let i = 0; dart.notNull(i) < dart.notNull(string.length); i = dart.notNull(i) + 1) {
@@ -1002,7 +1002,7 @@ var collection = dart.import(collection);
       super.ChunkedConversionSink();
     }
     add(o) {
-      if (this[_isDone]) {
+      if (dart.notNull(this[_isDone])) {
         throw new core.StateError("Only one call to add allowed");
       }
       this[_isDone] = true;
@@ -1033,7 +1033,7 @@ var collection = dart.import(collection);
       this[_sink].addSlice(chunk, start, end, false);
     }
     add(object) {
-      if (this[_isDone]) {
+      if (dart.notNull(this[_isDone])) {
         throw new core.StateError("Only one call to add allowed");
       }
       this[_isDone] = true;
@@ -1176,7 +1176,7 @@ var collection = dart.import(collection);
     }
     [_checkCycle](object) {
       for (let i = 0; dart.notNull(i) < dart.notNull(this[_seen].length); i = dart.notNull(i) + 1) {
-        if (core.identical(object, this[_seen][dartx.get](i))) {
+        if (dart.notNull(core.identical(object, this[_seen][dartx.get](i)))) {
           throw new JsonCyclicError(object);
         }
       }
@@ -1188,7 +1188,7 @@ var collection = dart.import(collection);
       this[_seen][dartx.removeLast]();
     }
     writeObject(object) {
-      if (this.writeJsonValue(object))
+      if (dart.notNull(this.writeJsonValue(object)))
         return;
       this[_checkCycle](object);
       try {
@@ -1204,14 +1204,14 @@ var collection = dart.import(collection);
     }
     writeJsonValue(object) {
       if (dart.is(object, core.num)) {
-        if (dart.dsend(dart.dload(object, 'isFinite'), '!'))
+        if (!dart.notNull(dart.as(dart.dload(object, 'isFinite'), core.bool)))
           return false;
         this.writeNumber(dart.as(object, core.num));
         return true;
-      } else if (core.identical(object, true)) {
+      } else if (dart.notNull(core.identical(object, true))) {
         this.writeString('true');
         return true;
-      } else if (core.identical(object, false)) {
+      } else if (dart.notNull(core.identical(object, false))) {
         this.writeString('false');
         return true;
       } else if (object == null) {
@@ -1294,7 +1294,7 @@ var collection = dart.import(collection);
       this[_indentLevel] = 0;
     }
     writeList(list) {
-      if (list[dartx.isEmpty]) {
+      if (dart.notNull(list[dartx.isEmpty])) {
         this.writeString('[]');
       } else {
         this.writeString('[\n');
@@ -1313,7 +1313,7 @@ var collection = dart.import(collection);
       }
     }
     writeMap(map) {
-      if (map.isEmpty) {
+      if (dart.notNull(map.isEmpty)) {
         this.writeString('{}');
       } else {
         this.writeString('{\n');
@@ -1569,7 +1569,7 @@ var collection = dart.import(collection);
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : null;
       if (allowInvalid == null)
         allowInvalid = this[_allowInvalid];
-      if (allowInvalid) {
+      if (dart.notNull(allowInvalid)) {
         return dart.const(new Latin1Decoder({allowInvalid: true})).convert(bytes);
       } else {
         return dart.const(new Latin1Decoder({allowInvalid: false})).convert(bytes);
@@ -1579,7 +1579,7 @@ var collection = dart.import(collection);
       return dart.const(new Latin1Encoder());
     }
     get decoder() {
-      return this[_allowInvalid] ? dart.const(new Latin1Decoder({allowInvalid: true})) : dart.const(new Latin1Decoder({allowInvalid: false}));
+      return dart.notNull(this[_allowInvalid]) ? dart.const(new Latin1Decoder({allowInvalid: true})) : dart.const(new Latin1Decoder({allowInvalid: false}));
     }
   }
   dart.setSignature(Latin1Codec, {
@@ -1630,7 +1630,7 @@ var collection = dart.import(collection);
     }
     [_addSliceToSink](source, start, end, isLast) {
       this[_sink].add(core.String.fromCharCodes(source, start, end));
-      if (isLast)
+      if (dart.notNull(isLast))
         this.close();
     }
     addSlice(source, start, end, isLast) {
@@ -1644,7 +1644,7 @@ var collection = dart.import(collection);
       if (dart.notNull(start) < dart.notNull(end)) {
         this[_addSliceToSink](source, start, end, isLast);
       }
-      if (isLast) {
+      if (dart.notNull(isLast)) {
         this.close();
       }
     }
@@ -1675,7 +1675,7 @@ var collection = dart.import(collection);
       if (dart.notNull(start) < dart.notNull(end)) {
         this[_addSliceToSink](source, start, end, isLast);
       }
-      if (isLast) {
+      if (dart.notNull(isLast)) {
         this.close();
       }
     }
@@ -1720,7 +1720,7 @@ var collection = dart.import(collection);
         this[_carry] = null;
       }
       this[_carry] = _LineSplitterSink._addSlice(chunk, start, end, isLast, dart.bind(this[_sink], 'add'));
-      if (isLast)
+      if (dart.notNull(isLast))
         this[_sink].close();
     }
     close() {
@@ -1752,7 +1752,7 @@ var collection = dart.import(collection);
       }
       if (pos != start) {
         let carry = chunk[dartx.substring](start, pos);
-        if (isLast) {
+        if (dart.notNull(isLast)) {
           adder(carry);
         } else {
           return carry;
@@ -1846,7 +1846,7 @@ var collection = dart.import(collection);
       this[_buffer] = new core.StringBuffer();
     }
     close() {
-      if (this[_buffer].isNotEmpty)
+      if (dart.notNull(this[_buffer].isNotEmpty))
         this[_flush]();
       this[_chunkedSink].close();
     }
@@ -1856,7 +1856,7 @@ var collection = dart.import(collection);
         this[_flush]();
     }
     write(o) {
-      if (this[_buffer].isNotEmpty)
+      if (dart.notNull(this[_buffer].isNotEmpty))
         this[_flush]();
       let str = dart.toString(o);
       this[_chunkedSink].add(dart.toString(o));
@@ -1871,18 +1871,18 @@ var collection = dart.import(collection);
     writeAll(objects, separator) {
       if (separator === void 0)
         separator = "";
-      if (this[_buffer].isNotEmpty)
+      if (dart.notNull(this[_buffer].isNotEmpty))
         this[_flush]();
       let iterator = objects[dartx.iterator];
       if (!dart.notNull(iterator.moveNext()))
         return;
-      if (separator[dartx.isEmpty]) {
+      if (dart.notNull(separator[dartx.isEmpty])) {
         do {
           this[_chunkedSink].add(dart.toString(iterator.current));
-        } while (iterator.moveNext());
+        } while (dart.notNull(iterator.moveNext()));
       } else {
         this[_chunkedSink].add(dart.toString(iterator.current));
-        while (iterator.moveNext()) {
+        while (dart.notNull(iterator.moveNext())) {
           this.write(separator);
           this[_chunkedSink].add(dart.toString(iterator.current));
         }
@@ -1921,7 +1921,7 @@ var collection = dart.import(collection);
       } else {
         this[_stringSink].write(str);
       }
-      if (isLast)
+      if (dart.notNull(isLast))
         this.close();
     }
     add(str) {
@@ -1972,7 +1972,7 @@ var collection = dart.import(collection);
       } else {
         this.add(str[dartx.substring](start, end));
       }
-      if (isLast)
+      if (dart.notNull(isLast))
         this.close();
     }
     close() {
@@ -2003,7 +2003,7 @@ var collection = dart.import(collection);
     }
     addSlice(codeUnits, startIndex, endIndex, isLast) {
       this[_decoder].convert(codeUnits, startIndex, endIndex);
-      if (isLast)
+      if (dart.notNull(isLast))
         this.close();
     }
   }
@@ -2027,7 +2027,7 @@ var collection = dart.import(collection);
     }
     close() {
       this[_decoder].close();
-      if (this[_buffer].isNotEmpty) {
+      if (dart.notNull(this[_buffer].isNotEmpty)) {
         let accumulated = dart.toString(this[_buffer]);
         this[_buffer].clear();
         this[_chunkedSink].addSlice(accumulated, 0, accumulated.length, true);
@@ -2040,13 +2040,13 @@ var collection = dart.import(collection);
     }
     addSlice(chunk, startIndex, endIndex, isLast) {
       this[_decoder].convert(chunk, startIndex, endIndex);
-      if (this[_buffer].isNotEmpty) {
+      if (dart.notNull(this[_buffer].isNotEmpty)) {
         let accumulated = dart.toString(this[_buffer]);
         this[_chunkedSink].addSlice(accumulated, 0, accumulated.length, isLast);
         this[_buffer].clear();
         return;
       }
-      if (isLast)
+      if (dart.notNull(isLast))
         this.close();
     }
   }
@@ -2152,7 +2152,7 @@ var collection = dart.import(collection);
       return typed_data.Uint8List.new(size);
     }
     [_writeSurrogate](leadingSurrogate, nextCodeUnit) {
-      if (_isTailSurrogate(nextCodeUnit)) {
+      if (dart.notNull(_isTailSurrogate(nextCodeUnit))) {
         let rune = _combineSurrogatePair(leadingSurrogate, nextCodeUnit);
         dart.assert(dart.notNull(rune) > dart.notNull(_THREE_BYTE_LIMIT));
         dart.assert(dart.notNull(rune) <= dart.notNull(_FOUR_BYTE_LIMIT));
@@ -2211,12 +2211,12 @@ var collection = dart.import(collection);
             this[_bufferIndex] = dart.notNull(x) + 1;
             return x;
           })(), codeUnit);
-        } else if (_isLeadSurrogate(codeUnit)) {
+        } else if (dart.notNull(_isLeadSurrogate(codeUnit))) {
           if (dart.notNull(this[_bufferIndex]) + 3 >= dart.notNull(this[_buffer].length))
             break;
           let nextCodeUnit = str[dartx.codeUnitAt](dart.notNull(stringIndex) + 1);
           let wasCombined = this[_writeSurrogate](codeUnit, nextCodeUnit);
-          if (wasCombined) {
+          if (dart.notNull(wasCombined)) {
             stringIndex = dart.notNull(stringIndex) + 1;
           }
         } else {
@@ -2299,7 +2299,7 @@ var collection = dart.import(collection);
         }
         let wasCombined = this[_writeSurrogate](this[_carry], nextCodeUnit);
         dart.assert(!dart.notNull(wasCombined) || start != end);
-        if (wasCombined) {
+        if (dart.notNull(wasCombined)) {
           start = dart.notNull(start) + 1;
         }
         this[_carry] = 0;
@@ -2319,7 +2319,7 @@ var collection = dart.import(collection);
         this[_sink].addSlice(this[_buffer], 0, this[_bufferIndex], isLastSlice);
         this[_bufferIndex] = 0;
       } while (dart.notNull(start) < dart.notNull(end));
-      if (isLast)
+      if (dart.notNull(isLast))
         this.close();
     }
   }
@@ -2421,7 +2421,7 @@ var collection = dart.import(collection);
       this.flush();
     }
     flush() {
-      if (this.hasPartialInput) {
+      if (dart.notNull(this.hasPartialInput)) {
         if (!dart.notNull(this[_allowMalformed])) {
           throw new core.FormatException("Unfinished UTF-8 octet sequence");
         }
@@ -2619,19 +2619,19 @@ var collection = dart.import(collection);
       this[_data] = null;
     }
     get(key) {
-      if (this[_isUpgraded]) {
+      if (dart.notNull(this[_isUpgraded])) {
         return this[_upgradedMap].get(key);
       } else if (!(typeof key == 'string')) {
         return null;
       } else {
         let result = _JsonMap._getProperty(this[_processed], dart.as(key, core.String));
-        if (_JsonMap._isUnprocessed(result))
+        if (dart.notNull(_JsonMap._isUnprocessed(result)))
           result = this[_process](dart.as(key, core.String));
         return result;
       }
     }
     get length() {
-      return this[_isUpgraded] ? this[_upgradedMap].length : this[_computeKeys]().length;
+      return dart.notNull(this[_isUpgraded]) ? this[_upgradedMap].length : this[_computeKeys]().length;
     }
     get isEmpty() {
       return this.length == 0;
@@ -2640,19 +2640,19 @@ var collection = dart.import(collection);
       return dart.notNull(this.length) > 0;
     }
     get keys() {
-      if (this[_isUpgraded])
+      if (dart.notNull(this[_isUpgraded]))
         return this[_upgradedMap].keys;
       return new _JsonMapKeyIterable(this);
     }
     get values() {
-      if (this[_isUpgraded])
+      if (dart.notNull(this[_isUpgraded]))
         return this[_upgradedMap].values;
       return _internal.MappedIterable.new(this[_computeKeys](), dart.fn(each => this.get(each)));
     }
     set(key, value) {
-      if (this[_isUpgraded]) {
+      if (dart.notNull(this[_isUpgraded])) {
         this[_upgradedMap].set(key, value);
-      } else if (this.containsKey(key)) {
+      } else if (dart.notNull(this.containsKey(key))) {
         let processed = this[_processed];
         _JsonMap._setProperty(processed, dart.as(key, core.String), value);
         let original = this[_original];
@@ -2669,7 +2669,7 @@ var collection = dart.import(collection);
       }));
     }
     containsValue(value) {
-      if (this[_isUpgraded])
+      if (dart.notNull(this[_isUpgraded]))
         return this[_upgradedMap].containsValue(value);
       let keys = this[_computeKeys]();
       for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
@@ -2680,14 +2680,14 @@ var collection = dart.import(collection);
       return false;
     }
     containsKey(key) {
-      if (this[_isUpgraded])
+      if (dart.notNull(this[_isUpgraded]))
         return this[_upgradedMap].containsKey(key);
       if (!(typeof key == 'string'))
         return false;
       return _JsonMap._hasProperty(this[_original], dart.as(key, core.String));
     }
     putIfAbsent(key, ifAbsent) {
-      if (this.containsKey(key))
+      if (dart.notNull(this.containsKey(key)))
         return this.get(key);
       let value = ifAbsent();
       this.set(key, value);
@@ -2699,7 +2699,7 @@ var collection = dart.import(collection);
       return this[_upgrade]().remove(key);
     }
     clear() {
-      if (this[_isUpgraded]) {
+      if (dart.notNull(this[_isUpgraded])) {
         this[_upgradedMap].clear();
       } else {
         if (this[_data] != null) {
@@ -2710,13 +2710,13 @@ var collection = dart.import(collection);
       }
     }
     forEach(f) {
-      if (this[_isUpgraded])
+      if (dart.notNull(this[_isUpgraded]))
         return this[_upgradedMap].forEach(f);
       let keys = this[_computeKeys]();
       for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
         let key = keys[dartx.get](i);
         let value = _JsonMap._getProperty(this[_processed], key);
-        if (_JsonMap._isUnprocessed(value)) {
+        if (dart.notNull(_JsonMap._isUnprocessed(value))) {
           value = _convertJsonToDartLazy(_JsonMap._getProperty(this[_original], key));
           _JsonMap._setProperty(this[_processed], key, value);
         }
@@ -2745,7 +2745,7 @@ var collection = dart.import(collection);
       return dart.as(keys, core.List$(core.String));
     }
     [_upgrade]() {
-      if (this[_isUpgraded])
+      if (dart.notNull(this[_isUpgraded]))
         return this[_upgradedMap];
       let result = dart.map();
       let keys = this[_computeKeys]();
@@ -2753,7 +2753,7 @@ var collection = dart.import(collection);
         let key = keys[dartx.get](i);
         result.set(key, this.get(key));
       }
-      if (keys[dartx.isEmpty]) {
+      if (dart.notNull(keys[dartx.isEmpty])) {
         keys[dartx.add](null);
       } else {
         keys[dartx.clear]();
@@ -2825,10 +2825,10 @@ var collection = dart.import(collection);
       return this[_parent].length;
     }
     elementAt(index) {
-      return this[_parent][_isUpgraded] ? dart.as(this[_parent].keys[dartx.elementAt](index), core.String) : this[_parent][_computeKeys]()[dartx.get](index);
+      return dart.notNull(this[_parent][_isUpgraded]) ? dart.as(this[_parent].keys[dartx.elementAt](index), core.String) : this[_parent][_computeKeys]()[dartx.get](index);
     }
     get iterator() {
-      return this[_parent][_isUpgraded] ? this[_parent].keys[dartx.iterator] : this[_parent][_computeKeys]()[dartx.iterator];
+      return dart.notNull(this[_parent][_isUpgraded]) ? this[_parent].keys[dartx.iterator] : this[_parent][_computeKeys]()[dartx.iterator];
     }
     contains(key) {
       return this[_parent].containsKey(key);

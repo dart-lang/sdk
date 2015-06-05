@@ -1798,8 +1798,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
     DartType type = null;
     if (expr is BinaryExpression) {
+      switch (expr.operator.type) {
+        case TokenType.EQ_EQ:
+        case TokenType.BANG_EQ:
+        case TokenType.AMPERSAND_AMPERSAND:
+        case TokenType.BAR_BAR:
+          return true;
+      }
       type = getStaticType(expr.leftOperand);
     } else if (expr is PrefixExpression) {
+      if (expr.operator.type == TokenType.BANG) return true;
       type = getStaticType(expr.operand);
     } else if (expr is PostfixExpression) {
       type = getStaticType(expr.operand);
@@ -1835,11 +1843,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   JS.Expression notNull(Expression expr) {
-    if (_isNonNullableExpression(expr)) {
-      return _visit(expr);
-    } else {
-      return js.call('dart.notNull(#)', _visit(expr));
-    }
+    if (expr == null) return null;
+    var jsExpr = _visit(expr);
+    if (_isNonNullableExpression(expr)) return jsExpr;
+    return js.call('dart.notNull(#)', jsExpr);
   }
 
   @override
@@ -2202,7 +2209,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   @override
   visitConditionalExpression(ConditionalExpression node) {
     return js.call('# ? # : #', [
-      _visit(node.condition),
+      notNull(node.condition),
       _visit(node.thenExpression),
       _visit(node.elseExpression)
     ]);
@@ -2229,7 +2236,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
 
   @override
   JS.If visitIfStatement(IfStatement node) {
-    return new JS.If(_visit(node.condition), _visit(node.thenStatement),
+    return new JS.If(notNull(node.condition), _visit(node.thenStatement),
         _visit(node.elseStatement));
   }
 
@@ -2239,17 +2246,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (init == null) init = _visit(node.variables);
     var update = _visitListToBinary(node.updaters, ',');
     if (update != null) update = update.toVoidExpression();
-    return new JS.For(init, _visit(node.condition), update, _visit(node.body));
+    return new JS.For(init, notNull(node.condition), update, _visit(node.body));
   }
 
   @override
   JS.While visitWhileStatement(WhileStatement node) {
-    return new JS.While(_visit(node.condition), _visit(node.body));
+    return new JS.While(notNull(node.condition), _visit(node.body));
   }
 
   @override
   JS.Do visitDoStatement(DoStatement node) {
-    return new JS.Do(_visit(node.body), _visit(node.condition));
+    return new JS.Do(_visit(node.body), notNull(node.condition));
   }
 
   @override
@@ -2558,7 +2565,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   ///
   /// For user-defined operators the following names are allowed:
   ///
-  ///     <, >, <=, >=, ==, -, +, /, ˜/, *, %, |, ˆ, &, <<, >>, []=, [], ˜
+  ///     <, >, <=, >=, ==, -, +, /, ~/, *, %, |, ^, &, <<, >>, []=, [], ~
   ///
   /// They generate code like:
   ///

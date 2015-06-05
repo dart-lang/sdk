@@ -72,7 +72,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         dart.as(test, dart.functionType(core.bool, [E]));
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          if (test(this.elementAt(i)))
+          if (dart.notNull(test(this.elementAt(i))))
             return true;
           if (length != this.length) {
             throw new core.ConcurrentModificationError(this);
@@ -87,7 +87,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = this.elementAt(i);
-          if (test(element))
+          if (dart.notNull(test(element)))
             return element;
           if (length != this.length) {
             throw new core.ConcurrentModificationError(this);
@@ -104,7 +104,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         let length = this.length;
         for (let i = dart.notNull(length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = this.elementAt(i);
-          if (test(element))
+          if (dart.notNull(test(element)))
             return element;
           if (length != this.length) {
             throw new core.ConcurrentModificationError(this);
@@ -121,8 +121,8 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         let matchFound = false;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = this.elementAt(i);
-          if (test(element)) {
-            if (matchFound) {
+          if (dart.notNull(test(element))) {
+            if (dart.notNull(matchFound)) {
               throw IterableElementError.tooMany();
             }
             matchFound = true;
@@ -132,7 +132,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
             throw new core.ConcurrentModificationError(this);
           }
         }
-        if (matchFound)
+        if (dart.notNull(matchFound))
           return match;
         throw IterableElementError.noElement();
       }
@@ -218,7 +218,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       toList(opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
-        if (growable) {
+        if (dart.notNull(growable)) {
           result = core.List$(E).new();
           result.length = this.length;
         } else {
@@ -363,7 +363,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         let length = dart.notNull(end) - dart.notNull(start);
         if (dart.notNull(length) < 0)
           length = 0;
-        let result = growable ? (() => {
+        let result = dart.notNull(growable) ? (() => {
           let _ = core.List$(E).new();
           _.length = length;
           return _;
@@ -498,7 +498,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         this[_current] = null;
       }
       moveNext() {
-        if (this[_iterator].moveNext()) {
+        if (dart.notNull(this[_iterator].moveNext())) {
           this[_current] = this[_f](this[_iterator].current);
           return true;
         }
@@ -569,8 +569,8 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         this[_f] = f;
       }
       moveNext() {
-        while (this[_iterator].moveNext()) {
-          if (this[_f](this[_iterator].current)) {
+        while (dart.notNull(this[_iterator].moveNext())) {
+          if (dart.notNull(this[_f](this[_iterator].current))) {
             return true;
           }
         }
@@ -628,7 +628,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
           return false;
         while (!dart.notNull(this[_currentExpansion].moveNext())) {
           this[_current] = null;
-          if (this[_iterator].moveNext()) {
+          if (dart.notNull(this[_iterator].moveNext())) {
             this[_currentExpansion] = null;
             this[_currentExpansion] = dart.as(dart.dcall(this[_f], this[_iterator].current)[dartx.iterator], core.Iterator$(T));
           } else {
@@ -756,7 +756,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         this[_isFinished] = false;
       }
       moveNext() {
-        if (this[_isFinished])
+        if (dart.notNull(this[_isFinished]))
           return false;
         if (!dart.notNull(this[_iterator].moveNext()) || !dart.notNull(dart.dcall(this[_f], this[_iterator].current))) {
           this[_isFinished] = true;
@@ -765,7 +765,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         return true;
       }
       get current() {
-        if (this[_isFinished])
+        if (dart.notNull(this[_isFinished]))
           return null;
         return this[_iterator].current;
       }
@@ -889,7 +889,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       moveNext() {
         if (!dart.notNull(this[_hasSkipped])) {
           this[_hasSkipped] = true;
-          while (this[_iterator].moveNext()) {
+          while (dart.notNull(this[_iterator].moveNext())) {
             if (!dart.notNull(dart.dcall(this[_f], this[_iterator].current)))
               return true;
           }
@@ -1010,7 +1010,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
       toList(opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        return growable ? dart.list([], E) : core.List$(E).new(0);
+        return dart.notNull(growable) ? dart.list([], E) : core.List$(E).new(0);
       }
       toSet() {
         return core.Set$(E).new();
@@ -1112,7 +1112,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       static any(iterable, f) {
         dart.as(f, dart.functionType(core.bool, [dart.bottom]));
         for (let e of iterable) {
-          if (dart.dcall(f, e))
+          if (dart.notNull(dart.dcall(f, e)))
             return true;
         }
         return false;
@@ -1131,7 +1131,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         if (!dart.notNull(iterator.moveNext()))
           throw IterableElementError.noElement();
         let value = iterator.current;
-        while (iterator.moveNext()) {
+        while (dart.notNull(iterator.moveNext())) {
           value = dart.dcall(combine, value, iterator.current);
         }
         return value;
@@ -1181,7 +1181,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         let result = null;
         do {
           result = it.current;
-        } while (it.moveNext());
+        } while (dart.notNull(it.moveNext()));
         return result;
       }
       static single(iterable) {
@@ -1189,7 +1189,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         if (!dart.notNull(it.moveNext()))
           throw IterableElementError.noElement();
         let result = it.current;
-        if (it.moveNext())
+        if (dart.notNull(it.moveNext()))
           throw IterableElementError.tooMany();
         return result;
       }
@@ -1197,7 +1197,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         dart.as(test, dart.functionType(core.bool, [dart.bottom]));
         dart.as(orElse, dart.functionType(core.Object, []));
         for (let element of iterable) {
-          if (dart.dcall(test, element))
+          if (dart.notNull(dart.dcall(test, element)))
             return element;
         }
         if (orElse != null)
@@ -1210,12 +1210,12 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
-          if (dart.dcall(test, element)) {
+          if (dart.notNull(dart.dcall(test, element))) {
             result = element;
             foundMatching = true;
           }
         }
-        if (foundMatching)
+        if (dart.notNull(foundMatching))
           return result;
         if (orElse != null)
           return orElse();
@@ -1226,7 +1226,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         dart.as(orElse, dart.functionType(core.Object, []));
         for (let i = dart.notNull(list.length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = list[dartx.get](i);
-          if (dart.dcall(test, element))
+          if (dart.notNull(dart.dcall(test, element)))
             return element;
         }
         if (orElse != null)
@@ -1238,15 +1238,15 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
-          if (dart.dcall(test, element)) {
-            if (foundMatching) {
+          if (dart.notNull(dart.dcall(test, element))) {
+            if (dart.notNull(foundMatching)) {
               throw IterableElementError.tooMany();
             }
             result = element;
             foundMatching = true;
           }
         }
-        if (foundMatching)
+        if (dart.notNull(foundMatching))
           return result;
         throw IterableElementError.noElement();
       }
@@ -1272,12 +1272,12 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       static joinList(list, separator) {
         if (separator === void 0)
           separator = null;
-        if (list[dartx.isEmpty])
+        if (dart.notNull(list[dartx.isEmpty]))
           return "";
         if (list.length == 1)
           return `${list[dartx.get](0)}`;
         let buffer = new core.StringBuffer();
-        if (separator[dartx.isEmpty]) {
+        if (dart.notNull(separator[dartx.isEmpty])) {
           for (let i = 0; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
             buffer.write(list[dartx.get](i));
           }
@@ -1455,7 +1455,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
           larger = set;
         }
         for (let element of smaller) {
-          if (larger.contains(element)) {
+          if (dart.notNull(larger.contains(element))) {
             result.add(element);
           }
         }
@@ -1797,7 +1797,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         this[_values] = values;
       }
       get(key) {
-        return this.containsKey(key) ? this[_values][dartx.get](dart.as(key, core.int)) : null;
+        return dart.notNull(this.containsKey(key)) ? this[_values][dartx.get](dart.as(key, core.int)) : null;
       }
       get length() {
         return this[_values].length;
@@ -1950,7 +1950,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
     }
     static areEqual(a, b) {
-      if (core.identical(a, b))
+      if (dart.notNull(core.identical(a, b)))
         return true;
       if (!dart.is(b, core.List))
         return false;
@@ -2115,7 +2115,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       let less = dart.notNull(left) + 1;
       let great = dart.notNull(right) - 1;
       let pivots_are_equal = dart.dcall(compare, pivot1, pivot2) == 0;
-      if (pivots_are_equal) {
+      if (dart.notNull(pivots_are_equal)) {
         let pivot = pivot1;
         for (let k = less; dart.notNull(k) <= dart.notNull(great); k = dart.notNull(k) + 1) {
           let ak = a[dartx.get](k);
@@ -2214,7 +2214,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       a[dartx.set](dart.notNull(great) + 1, pivot2);
       Sort._doSort(a, left, dart.notNull(less) - 2, compare);
       Sort._doSort(a, dart.notNull(great) + 2, right, compare);
-      if (pivots_are_equal) {
+      if (dart.notNull(pivots_are_equal)) {
         return;
       }
       if (dart.notNull(less) < dart.notNull(index1) && dart.notNull(great) > dart.notNull(index5)) {
@@ -2315,7 +2315,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     static validatePublicSymbol(name) {
       if (dart.notNull(name[dartx.isEmpty]) || dart.notNull(Symbol.publicSymbolPattern.hasMatch(name)))
         return name;
-      if (name[dartx.startsWith]('_')) {
+      if (dart.notNull(name[dartx.startsWith]('_'))) {
         throw new core.ArgumentError(`"${name}" is a private identifier`);
       }
       throw new core.ArgumentError(`"${name}" is not a valid (qualified) symbol name`);

@@ -143,7 +143,7 @@ var math = dart.lazyImport(math);
         dart.as(test, dart.functionType(core.bool, [E]));
         let toRemove = [];
         for (let element of this) {
-          if (test(element))
+          if (dart.notNull(test(element)))
             toRemove[dartx.add](element);
         }
         this.removeAll(toRemove);
@@ -181,14 +181,14 @@ var math = dart.lazyImport(math);
       difference(other) {
         let result = this.toSet();
         for (let element of this) {
-          if (other.contains(element))
+          if (dart.notNull(other.contains(element)))
             result.remove(element);
         }
         return result;
       }
       toList(opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
-        let result = growable ? (() => {
+        let result = dart.notNull(growable) ? (() => {
           let _ = core.List$(E).new();
           _.length = this.length;
           return _;
@@ -238,7 +238,7 @@ var math = dart.lazyImport(math);
           throw _internal.IterableElementError.noElement();
         }
         let value = iterator.current;
-        while (iterator.moveNext()) {
+        while (dart.notNull(iterator.moveNext())) {
           value = combine(value, iterator.current);
         }
         return value;
@@ -268,10 +268,10 @@ var math = dart.lazyImport(math);
         if (separator == null || separator == "") {
           do {
             buffer.write(`${iterator.current}`);
-          } while (iterator.moveNext());
+          } while (dart.notNull(iterator.moveNext()));
         } else {
           buffer.write(`${iterator.current}`);
-          while (iterator.moveNext()) {
+          while (dart.notNull(iterator.moveNext())) {
             buffer.write(separator);
             buffer.write(`${iterator.current}`);
           }
@@ -281,7 +281,7 @@ var math = dart.lazyImport(math);
       any(test) {
         dart.as(test, dart.functionType(core.bool, [E]));
         for (let element of this) {
-          if (test(element))
+          if (dart.notNull(test(element)))
             return true;
         }
         return false;
@@ -315,7 +315,7 @@ var math = dart.lazyImport(math);
         let result = null;
         do {
           result = it.current;
-        } while (it.moveNext());
+        } while (dart.notNull(it.moveNext()));
         return result;
       }
       firstWhere(test, opts) {
@@ -323,7 +323,7 @@ var math = dart.lazyImport(math);
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         for (let element of this) {
-          if (test(element))
+          if (dart.notNull(test(element)))
             return element;
         }
         if (orElse != null)
@@ -337,12 +337,12 @@ var math = dart.lazyImport(math);
         let result = null;
         let foundMatching = false;
         for (let element of this) {
-          if (test(element)) {
+          if (dart.notNull(test(element))) {
             result = element;
             foundMatching = true;
           }
         }
-        if (foundMatching)
+        if (dart.notNull(foundMatching))
           return result;
         if (orElse != null)
           return orElse();
@@ -353,15 +353,15 @@ var math = dart.lazyImport(math);
         let result = null;
         let foundMatching = false;
         for (let element of this) {
-          if (test(element)) {
-            if (foundMatching) {
+          if (dart.notNull(test(element))) {
+            if (dart.notNull(foundMatching)) {
               throw _internal.IterableElementError.tooMany();
             }
             result = element;
             foundMatching = true;
           }
         }
-        if (foundMatching)
+        if (dart.notNull(foundMatching))
           return result;
         throw _internal.IterableElementError.noElement();
       }
@@ -466,7 +466,7 @@ var math = dart.lazyImport(math);
       intersection(other) {
         let result = this[_newSet]();
         for (let element of this) {
-          if (other.contains(element))
+          if (dart.notNull(other.contains(element)))
             result.add(element);
         }
         return result;
@@ -576,7 +576,7 @@ var math = dart.lazyImport(math);
           throw _internal.IterableElementError.noElement();
         }
         let value = iterator.current;
-        while (iterator.moveNext()) {
+        while (dart.notNull(iterator.moveNext())) {
           value = combine(value, iterator.current);
         }
         return value;
@@ -606,10 +606,10 @@ var math = dart.lazyImport(math);
         if (separator == null || separator == "") {
           do {
             buffer.write(`${iterator.current}`);
-          } while (iterator.moveNext());
+          } while (dart.notNull(iterator.moveNext()));
         } else {
           buffer.write(`${iterator.current}`);
-          while (iterator.moveNext()) {
+          while (dart.notNull(iterator.moveNext())) {
             buffer.write(separator);
             buffer.write(`${iterator.current}`);
           }
@@ -619,7 +619,7 @@ var math = dart.lazyImport(math);
       any(f) {
         dart.as(f, dart.functionType(core.bool, [E]));
         for (let element of this) {
-          if (f(element))
+          if (dart.notNull(f(element)))
             return true;
         }
         return false;
@@ -635,7 +635,7 @@ var math = dart.lazyImport(math);
         dart.assert(!dart.is(this, _internal.EfficientLength));
         let count = 0;
         let it = this[dartx.iterator];
-        while (it.moveNext()) {
+        while (dart.notNull(it.moveNext())) {
           count = dart.notNull(count) + 1;
         }
         return count;
@@ -675,7 +675,7 @@ var math = dart.lazyImport(math);
         let result = null;
         do {
           result = it.current;
-        } while (it.moveNext());
+        } while (dart.notNull(it.moveNext()));
         return result;
       }
       get single() {
@@ -683,7 +683,7 @@ var math = dart.lazyImport(math);
         if (!dart.notNull(it.moveNext()))
           throw _internal.IterableElementError.noElement();
         let result = it.current;
-        if (it.moveNext())
+        if (dart.notNull(it.moveNext()))
           throw _internal.IterableElementError.tooMany();
         return result;
       }
@@ -692,7 +692,7 @@ var math = dart.lazyImport(math);
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         for (let element of this) {
-          if (test(element))
+          if (dart.notNull(test(element)))
             return element;
         }
         if (orElse != null)
@@ -706,12 +706,12 @@ var math = dart.lazyImport(math);
         let result = null;
         let foundMatching = false;
         for (let element of this) {
-          if (test(element)) {
+          if (dart.notNull(test(element))) {
             result = element;
             foundMatching = true;
           }
         }
-        if (foundMatching)
+        if (dart.notNull(foundMatching))
           return result;
         if (orElse != null)
           return orElse();
@@ -722,15 +722,15 @@ var math = dart.lazyImport(math);
         let result = null;
         let foundMatching = false;
         for (let element of this) {
-          if (test(element)) {
-            if (foundMatching) {
+          if (dart.notNull(test(element))) {
+            if (dart.notNull(foundMatching)) {
               throw _internal.IterableElementError.tooMany();
             }
             result = element;
             foundMatching = true;
           }
         }
-        if (foundMatching)
+        if (dart.notNull(foundMatching))
           return result;
         throw _internal.IterableElementError.noElement();
       }
@@ -844,7 +844,7 @@ var math = dart.lazyImport(math);
           throw _internal.IterableElementError.noElement();
         }
         let value = iterator.current;
-        while (iterator.moveNext()) {
+        while (dart.notNull(iterator.moveNext())) {
           value = combine(value, iterator.current);
         }
         return value;
@@ -874,10 +874,10 @@ var math = dart.lazyImport(math);
         if (separator == null || separator == "") {
           do {
             buffer.write(`${iterator.current}`);
-          } while (iterator.moveNext());
+          } while (dart.notNull(iterator.moveNext()));
         } else {
           buffer.write(`${iterator.current}`);
-          while (iterator.moveNext()) {
+          while (dart.notNull(iterator.moveNext())) {
             buffer.write(separator);
             buffer.write(`${iterator.current}`);
           }
@@ -887,7 +887,7 @@ var math = dart.lazyImport(math);
       any(f) {
         dart.as(f, dart.functionType(core.bool, [E]));
         for (let element of this) {
-          if (f(element))
+          if (dart.notNull(f(element)))
             return true;
         }
         return false;
@@ -903,7 +903,7 @@ var math = dart.lazyImport(math);
         dart.assert(!dart.is(this, _internal.EfficientLength));
         let count = 0;
         let it = this[dartx.iterator];
-        while (it.moveNext()) {
+        while (dart.notNull(it.moveNext())) {
           count = dart.notNull(count) + 1;
         }
         return count;
@@ -943,7 +943,7 @@ var math = dart.lazyImport(math);
         let result = null;
         do {
           result = it.current;
-        } while (it.moveNext());
+        } while (dart.notNull(it.moveNext()));
         return result;
       }
       get single() {
@@ -951,7 +951,7 @@ var math = dart.lazyImport(math);
         if (!dart.notNull(it.moveNext()))
           throw _internal.IterableElementError.noElement();
         let result = it.current;
-        if (it.moveNext())
+        if (dart.notNull(it.moveNext()))
           throw _internal.IterableElementError.tooMany();
         return result;
       }
@@ -960,7 +960,7 @@ var math = dart.lazyImport(math);
         let orElse = opts && 'orElse' in opts ? opts.orElse : null;
         dart.as(orElse, dart.functionType(E, []));
         for (let element of this) {
-          if (test(element))
+          if (dart.notNull(test(element)))
             return element;
         }
         if (orElse != null)
@@ -974,12 +974,12 @@ var math = dart.lazyImport(math);
         let result = null;
         let foundMatching = false;
         for (let element of this) {
-          if (test(element)) {
+          if (dart.notNull(test(element))) {
             result = element;
             foundMatching = true;
           }
         }
-        if (foundMatching)
+        if (dart.notNull(foundMatching))
           return result;
         if (orElse != null)
           return orElse();
@@ -990,15 +990,15 @@ var math = dart.lazyImport(math);
         let result = null;
         let foundMatching = false;
         for (let element of this) {
-          if (test(element)) {
-            if (foundMatching) {
+          if (dart.notNull(test(element))) {
+            if (dart.notNull(foundMatching)) {
               throw _internal.IterableElementError.tooMany();
             }
             result = element;
             foundMatching = true;
           }
         }
-        if (foundMatching)
+        if (dart.notNull(foundMatching))
           return result;
         throw _internal.IterableElementError.noElement();
       }
@@ -1022,7 +1022,7 @@ var math = dart.lazyImport(math);
           leftDelimiter = '(';
         if (rightDelimiter === void 0)
           rightDelimiter = ')';
-        if (IterableBase$()._isToStringVisiting(iterable)) {
+        if (dart.notNull(IterableBase$()._isToStringVisiting(iterable))) {
           if (leftDelimiter == "(" && rightDelimiter == ")") {
             return "(...)";
           }
@@ -1048,7 +1048,7 @@ var math = dart.lazyImport(math);
           leftDelimiter = '(';
         if (rightDelimiter === void 0)
           rightDelimiter = ')';
-        if (IterableBase$()._isToStringVisiting(iterable)) {
+        if (dart.notNull(IterableBase$()._isToStringVisiting(iterable))) {
           return `${leftDelimiter}...${rightDelimiter}`;
         }
         let buffer = new core.StringBuffer(leftDelimiter);
@@ -1064,7 +1064,7 @@ var math = dart.lazyImport(math);
       }
       static _isToStringVisiting(o) {
         for (let i = 0; dart.notNull(i) < dart.notNull(IterableBase$()._toStringVisiting.length); i = dart.notNull(i) + 1) {
-          if (core.identical(o, IterableBase$()._toStringVisiting[dartx.get](i)))
+          if (dart.notNull(core.identical(o, IterableBase$()._toStringVisiting[dartx.get](i))))
             return true;
         }
         return false;
@@ -1111,7 +1111,7 @@ var math = dart.lazyImport(math);
             ultimate = it.current;
             count = dart.notNull(count) + 1;
             dart.assert(dart.notNull(count) < dart.notNull(MAX_COUNT));
-            while (it.moveNext()) {
+            while (dart.notNull(it.moveNext())) {
               penultimate = ultimate;
               ultimate = it.current;
               count = dart.notNull(count) + 1;
@@ -1243,7 +1243,7 @@ var math = dart.lazyImport(math);
         return result;
       }
       [_move]() {
-        if (this[_iterator].moveNext()) {
+        if (dart.notNull(this[_iterator].moveNext())) {
           this[_state] = HasNextIterator$()._HAS_NEXT_AND_NEXT_IN_CURRENT;
         } else {
           this[_state] = HasNextIterator$()._NO_NEXT;
@@ -1446,19 +1446,19 @@ var math = dart.lazyImport(math);
         this[_length] = 0;
       }
       get first() {
-        if (core.identical(this[_next], this)) {
+        if (dart.notNull(core.identical(this[_next], this))) {
           throw new core.StateError('No such element');
         }
         return dart.as(this[_next], E);
       }
       get last() {
-        if (core.identical(this[_previous], this)) {
+        if (dart.notNull(core.identical(this[_previous], this))) {
           throw new core.StateError('No such element');
         }
         return dart.as(this[_previous], E);
       }
       get single() {
-        if (core.identical(this[_previous], this)) {
+        if (dart.notNull(core.identical(this[_previous], this))) {
           throw new core.StateError('No such element');
         }
         if (!dart.notNull(core.identical(this[_previous], this[_next]))) {
@@ -1544,7 +1544,7 @@ var math = dart.lazyImport(math);
         return this[_current];
       }
       moveNext() {
-        if (core.identical(this[_next], this[_list])) {
+        if (dart.notNull(core.identical(this[_next], this[_list]))) {
           this[_current] = null;
           return false;
         }
@@ -1584,13 +1584,13 @@ var math = dart.lazyImport(math);
         this[_list][_unlink](this);
       }
       get next() {
-        if (core.identical(this[_next], this[_list]))
+        if (dart.notNull(core.identical(this[_next], this[_list])))
           return null;
         let result = dart.as(this[_next], E);
         return result;
       }
       get previous() {
-        if (core.identical(this[_previous], this[_list]))
+        if (dart.notNull(core.identical(this[_previous], this[_list])))
           return null;
         return dart.as(this[_previous], E);
       }
@@ -1685,7 +1685,7 @@ var math = dart.lazyImport(math);
         dart.as(test, dart.functionType(core.bool, [E]));
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          if (test(this.get(i)))
+          if (dart.notNull(test(this.get(i))))
             return true;
           if (length != this.length) {
             throw new core.ConcurrentModificationError(this);
@@ -1700,7 +1700,7 @@ var math = dart.lazyImport(math);
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = this.get(i);
-          if (test(element))
+          if (dart.notNull(test(element)))
             return element;
           if (length != this.length) {
             throw new core.ConcurrentModificationError(this);
@@ -1717,7 +1717,7 @@ var math = dart.lazyImport(math);
         let length = this.length;
         for (let i = dart.notNull(length) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = this.get(i);
-          if (test(element))
+          if (dart.notNull(test(element)))
             return element;
           if (length != this.length) {
             throw new core.ConcurrentModificationError(this);
@@ -1734,8 +1734,8 @@ var math = dart.lazyImport(math);
         let matchFound = false;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let element = this.get(i);
-          if (test(element)) {
-            if (matchFound) {
+          if (dart.notNull(test(element))) {
+            if (dart.notNull(matchFound)) {
               throw _internal.IterableElementError.tooMany();
             }
             matchFound = true;
@@ -1745,7 +1745,7 @@ var math = dart.lazyImport(math);
             throw new core.ConcurrentModificationError(this);
           }
         }
-        if (matchFound)
+        if (dart.notNull(matchFound))
           return match;
         throw _internal.IterableElementError.noElement();
       }
@@ -1813,7 +1813,7 @@ var math = dart.lazyImport(math);
       toList(opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let result = null;
-        if (growable) {
+        if (dart.notNull(growable)) {
           result = core.List$(E).new();
           result.length = this.length;
         } else {
@@ -2237,7 +2237,7 @@ var math = dart.lazyImport(math);
       putIfAbsent(key, ifAbsent) {
         dart.as(key, K);
         dart.as(ifAbsent, dart.functionType(V, []));
-        if (this.keys[dartx.contains](key)) {
+        if (dart.notNull(this.keys[dartx.contains](key))) {
           return this.get(key);
         }
         return this.set(key, ifAbsent());
@@ -2374,7 +2374,7 @@ var math = dart.lazyImport(math);
         this[_current] = null;
       }
       moveNext() {
-        if (this[_keys].moveNext()) {
+        if (dart.notNull(this[_keys].moveNext())) {
           this[_current] = dart.as(this[_map].get(this[_keys].current), V);
           return true;
         }
@@ -2491,7 +2491,7 @@ var math = dart.lazyImport(math);
       return false;
     }
     static putIfAbsent(map, key, ifAbsent) {
-      if (map.containsKey(key)) {
+      if (dart.notNull(map.containsKey(key))) {
         return map.get(key);
       }
       let v = ifAbsent();
@@ -2521,7 +2521,7 @@ var math = dart.lazyImport(math);
       return map.keys[dartx.isNotEmpty];
     }
     static mapToString(m) {
-      if (IterableBase._isToStringVisiting(m)) {
+      if (dart.notNull(IterableBase._isToStringVisiting(m))) {
         return '{...}';
       }
       let result = new core.StringBuffer();
@@ -2777,7 +2777,7 @@ var math = dart.lazyImport(math);
         let entry = this[_sentinel][_next];
         while (!dart.notNull(core.identical(entry, this[_sentinel]))) {
           let next = entry[_next];
-          if (core.identical(removeMatching, test(entry.element))) {
+          if (dart.notNull(core.identical(removeMatching, test(entry.element)))) {
             entry.remove();
             this[_elementCount] = dart.notNull(this[_elementCount]) - 1;
           }
@@ -2799,7 +2799,7 @@ var math = dart.lazyImport(math);
         return this[_sentinel][_previous].element;
       }
       get single() {
-        if (core.identical(this[_sentinel][_next], this[_sentinel][_previous])) {
+        if (dart.notNull(core.identical(this[_sentinel][_next], this[_sentinel][_previous]))) {
           return this[_sentinel][_next].element;
         }
         throw _internal.IterableElementError.tooMany();
@@ -2988,7 +2988,7 @@ var math = dart.lazyImport(math);
       toList(opts) {
         let growable = opts && 'growable' in opts ? opts.growable : true;
         let list = null;
-        if (growable) {
+        if (dart.notNull(growable)) {
           list = core.List$(E).new();
           list.length = this.length;
         } else {
@@ -3049,7 +3049,7 @@ var math = dart.lazyImport(math);
           let element = this[_table][dartx.get](i);
           let remove = core.identical(removeMatching, test(element));
           this[_checkModification](modificationCount);
-          if (remove) {
+          if (dart.notNull(remove)) {
             i = this[_remove](i);
             modificationCount = this[_modificationCount] = dart.notNull(this[_modificationCount]) + 1;
           } else {
@@ -3600,7 +3600,7 @@ var math = dart.lazyImport(math);
       forEach(f) {
         dart.as(f, dart.functionType(dart.void, [K, V]));
         let nodes = new (_SplayTreeNodeIterator$(K))(this);
-        while (nodes.moveNext()) {
+        while (dart.notNull(nodes.moveNext())) {
           let node = dart.as(nodes.current, _SplayTreeMapNode$(K, V));
           f(node.key, node.value);
         }
@@ -3624,7 +3624,7 @@ var math = dart.lazyImport(math);
             if (initialSplayCount != this[_splayCount]) {
               throw new core.ConcurrentModificationError(this);
             }
-            if (dart.notNull(node.right != null) && dart.notNull(visit(dart.as(node.right, _SplayTreeMapNode))))
+            if (node.right != null && dart.notNull(visit(dart.as(node.right, _SplayTreeMapNode))))
               return true;
             node = dart.as(node.left, _SplayTreeMapNode);
           }
@@ -3775,11 +3775,11 @@ var math = dart.lazyImport(math);
         if (this[_modificationCount] != this[_tree][_modificationCount]) {
           throw new core.ConcurrentModificationError(this[_tree]);
         }
-        if (this[_workList][dartx.isEmpty]) {
+        if (dart.notNull(this[_workList][dartx.isEmpty])) {
           this[_currentNode] = null;
           return false;
         }
-        if (this[_tree][_splayCount] != this[_splayCount] && dart.notNull(this[_currentNode] != null)) {
+        if (this[_tree][_splayCount] != this[_splayCount] && this[_currentNode] != null) {
           this[_rebuildWorkList](this[_currentNode]);
         }
         this[_currentNode] = this[_workList][dartx.removeLast]();
@@ -3999,7 +3999,7 @@ var math = dart.lazyImport(math);
       }
       removeAll(elements) {
         for (let element of elements) {
-          if (this[_validKey](element))
+          if (dart.notNull(this[_validKey](element)))
             this[_remove](dart.as(element, E));
         }
       }
@@ -4030,7 +4030,7 @@ var math = dart.lazyImport(math);
       intersection(other) {
         let result = new (SplayTreeSet$(E))(this[_comparator], this[_validKey]);
         for (let element of this) {
-          if (other.contains(element))
+          if (dart.notNull(other.contains(element)))
             result.add(element);
         }
         return result;
@@ -4140,10 +4140,10 @@ var math = dart.lazyImport(math);
         return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => this.get(each), V, [core.Object]));
       }
       containsKey(key) {
-        if (_HashMap$()._isStringKey(key)) {
+        if (dart.notNull(_HashMap$()._isStringKey(key))) {
           let strings = this[_strings];
           return strings == null ? false : _HashMap$()._hasTableEntry(strings, key);
-        } else if (_HashMap$()._isNumericKey(key)) {
+        } else if (dart.notNull(_HashMap$()._isNumericKey(key))) {
           let nums = this[_nums];
           return nums == null ? false : _HashMap$()._hasTableEntry(nums, key);
         } else {
@@ -4169,10 +4169,10 @@ var math = dart.lazyImport(math);
         }, core.Object, [K, V]));
       }
       get(key) {
-        if (_HashMap$()._isStringKey(key)) {
+        if (dart.notNull(_HashMap$()._isStringKey(key))) {
           let strings = this[_strings];
           return strings == null ? null : dart.as(_HashMap$()._getTableEntry(strings, key), V);
-        } else if (_HashMap$()._isNumericKey(key)) {
+        } else if (dart.notNull(_HashMap$()._isNumericKey(key))) {
           let nums = this[_nums];
           return nums == null ? null : dart.as(_HashMap$()._getTableEntry(nums, key), V);
         } else {
@@ -4190,12 +4190,12 @@ var math = dart.lazyImport(math);
       set(key, value) {
         dart.as(key, K);
         dart.as(value, V);
-        if (_HashMap$()._isStringKey(key)) {
+        if (dart.notNull(_HashMap$()._isStringKey(key))) {
           let strings = this[_strings];
           if (strings == null)
             this[_strings] = strings = _HashMap$()._newHashTable();
           this[_addHashTableEntry](strings, key, value);
-        } else if (_HashMap$()._isNumericKey(key)) {
+        } else if (dart.notNull(_HashMap$()._isNumericKey(key))) {
           let nums = this[_nums];
           if (nums == null)
             this[_nums] = nums = _HashMap$()._newHashTable();
@@ -4230,16 +4230,16 @@ var math = dart.lazyImport(math);
       putIfAbsent(key, ifAbsent) {
         dart.as(key, K);
         dart.as(ifAbsent, dart.functionType(V, []));
-        if (this.containsKey(key))
+        if (dart.notNull(this.containsKey(key)))
           return this.get(key);
         let value = ifAbsent();
         this.set(key, value);
         return value;
       }
       remove(key) {
-        if (_HashMap$()._isStringKey(key)) {
+        if (dart.notNull(_HashMap$()._isStringKey(key))) {
           return this[_removeHashTableEntry](this[_strings], key);
-        } else if (_HashMap$()._isNumericKey(key)) {
+        } else if (dart.notNull(_HashMap$()._isNumericKey(key))) {
           return this[_removeHashTableEntry](this[_nums], key);
         } else {
           return this[_remove](key);
@@ -4327,7 +4327,7 @@ var math = dart.lazyImport(math);
         _HashMap$()._setTableEntry(table, key, value);
       }
       [_removeHashTableEntry](table, key) {
-        if (dart.notNull(table != null) && dart.notNull(_HashMap$()._hasTableEntry(table, key))) {
+        if (table != null && dart.notNull(_HashMap$()._hasTableEntry(table, key))) {
           let value = dart.as(_HashMap$()._getTableEntry(table, key), V);
           _HashMap$()._deleteTableEntry(table, key);
           this[_length] = dart.notNull(this[_length]) - 1;
@@ -4338,7 +4338,7 @@ var math = dart.lazyImport(math);
         }
       }
       static _isStringKey(key) {
-        return typeof key == 'string' && dart.notNull(!dart.equals(key, '__proto__'));
+        return typeof key == 'string' && !dart.equals(key, '__proto__');
       }
       static _isNumericKey(key) {
         return dart.is(key, core.num) && (key & 0x3ffffff) === key;
@@ -4437,7 +4437,7 @@ var math = dart.lazyImport(math);
           return -1;
         let length = bucket.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 2) {
-          if (core.identical(bucket[i], key))
+          if (dart.notNull(core.identical(bucket[i], key)))
             return i;
         }
         return -1;
@@ -4484,7 +4484,7 @@ var math = dart.lazyImport(math);
           return -1;
         let length = bucket.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 2) {
-          if (this[_equals](dart.as(bucket[i], K), dart.as(key, K)))
+          if (dart.notNull(this[_equals](dart.as(bucket[i], K), dart.as(key, K))))
             return i;
         }
         return -1;
@@ -4616,13 +4616,13 @@ var math = dart.lazyImport(math);
         return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => this.get(each), V, [core.Object]));
       }
       containsKey(key) {
-        if (_LinkedHashMap$()._isStringKey(key)) {
+        if (dart.notNull(_LinkedHashMap$()._isStringKey(key))) {
           let strings = this[_strings];
           if (strings == null)
             return false;
           let cell = dart.as(_LinkedHashMap$()._getTableEntry(strings, key), LinkedHashMapCell);
           return cell != null;
-        } else if (_LinkedHashMap$()._isNumericKey(key)) {
+        } else if (dart.notNull(_LinkedHashMap$()._isNumericKey(key))) {
           let nums = this[_nums];
           if (nums == null)
             return false;
@@ -4651,13 +4651,13 @@ var math = dart.lazyImport(math);
         }, core.Object, [K, V]));
       }
       get(key) {
-        if (_LinkedHashMap$()._isStringKey(key)) {
+        if (dart.notNull(_LinkedHashMap$()._isStringKey(key))) {
           let strings = this[_strings];
           if (strings == null)
             return null;
           let cell = dart.as(_LinkedHashMap$()._getTableEntry(strings, key), LinkedHashMapCell);
           return cell == null ? null : dart.as(cell[_value], V);
-        } else if (_LinkedHashMap$()._isNumericKey(key)) {
+        } else if (dart.notNull(_LinkedHashMap$()._isNumericKey(key))) {
           let nums = this[_nums];
           if (nums == null)
             return null;
@@ -4681,12 +4681,12 @@ var math = dart.lazyImport(math);
       set(key, value) {
         dart.as(key, K);
         dart.as(value, V);
-        if (_LinkedHashMap$()._isStringKey(key)) {
+        if (dart.notNull(_LinkedHashMap$()._isStringKey(key))) {
           let strings = this[_strings];
           if (strings == null)
             this[_strings] = strings = _LinkedHashMap$()._newHashTable();
           this[_addHashTableEntry](strings, key, value);
-        } else if (_LinkedHashMap$()._isNumericKey(key)) {
+        } else if (dart.notNull(_LinkedHashMap$()._isNumericKey(key))) {
           let nums = this[_nums];
           if (nums == null)
             this[_nums] = nums = _LinkedHashMap$()._newHashTable();
@@ -4720,16 +4720,16 @@ var math = dart.lazyImport(math);
       putIfAbsent(key, ifAbsent) {
         dart.as(key, K);
         dart.as(ifAbsent, dart.functionType(V, []));
-        if (this.containsKey(key))
+        if (dart.notNull(this.containsKey(key)))
           return this.get(key);
         let value = ifAbsent();
         this.set(key, value);
         return value;
       }
       remove(key) {
-        if (_LinkedHashMap$()._isStringKey(key)) {
+        if (dart.notNull(_LinkedHashMap$()._isStringKey(key))) {
           return this[_removeHashTableEntry](this[_strings], key);
-        } else if (_LinkedHashMap$()._isNumericKey(key)) {
+        } else if (dart.notNull(_LinkedHashMap$()._isNumericKey(key))) {
           return this[_removeHashTableEntry](this[_nums], key);
         } else {
           return this[_remove](key);
@@ -4823,7 +4823,7 @@ var math = dart.lazyImport(math);
         this[_modified]();
       }
       static _isStringKey(key) {
-        return typeof key == 'string' && dart.notNull(!dart.equals(key, '__proto__'));
+        return typeof key == 'string' && !dart.equals(key, '__proto__');
       }
       static _isNumericKey(key) {
         return dart.is(key, core.num) && (key & 0x3ffffff) === key;
@@ -4920,7 +4920,7 @@ var math = dart.lazyImport(math);
         let length = bucket.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let cell = dart.as(bucket[i], LinkedHashMapCell);
-          if (core.identical(cell[_key], key))
+          if (dart.notNull(core.identical(cell[_key], key)))
             return i;
         }
         return -1;
@@ -4966,7 +4966,7 @@ var math = dart.lazyImport(math);
         let length = bucket.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let cell = dart.as(bucket[i], LinkedHashMapCell);
-          if (this[_equals](dart.as(cell[_key], K), dart.as(key, K)))
+          if (dart.notNull(this[_equals](dart.as(cell[_key], K), dart.as(key, K))))
             return i;
         }
         return -1;
@@ -5103,10 +5103,10 @@ var math = dart.lazyImport(math);
         return !dart.notNull(this.isEmpty);
       }
       contains(object) {
-        if (_HashSet$()._isStringElement(object)) {
+        if (dart.notNull(_HashSet$()._isStringElement(object))) {
           let strings = this[_strings];
           return strings == null ? false : _HashSet$()._hasTableEntry(strings, object);
-        } else if (_HashSet$()._isNumericElement(object)) {
+        } else if (dart.notNull(_HashSet$()._isNumericElement(object))) {
           let nums = this[_nums];
           return nums == null ? false : _HashSet$()._hasTableEntry(nums, object);
         } else {
@@ -5122,7 +5122,7 @@ var math = dart.lazyImport(math);
       }
       lookup(object) {
         if (dart.notNull(_HashSet$()._isStringElement(object)) || dart.notNull(_HashSet$()._isNumericElement(object))) {
-          return dart.as(this.contains(object) ? object : null, E);
+          return dart.as(dart.notNull(this.contains(object)) ? object : null, E);
         }
         return this[_lookup](object);
       }
@@ -5138,12 +5138,12 @@ var math = dart.lazyImport(math);
       }
       add(element) {
         dart.as(element, E);
-        if (_HashSet$()._isStringElement(element)) {
+        if (dart.notNull(_HashSet$()._isStringElement(element))) {
           let strings = this[_strings];
           if (strings == null)
             this[_strings] = strings = _HashSet$()._newHashTable();
           return this[_addHashTableEntry](strings, element);
-        } else if (_HashSet$()._isNumericElement(element)) {
+        } else if (dart.notNull(_HashSet$()._isNumericElement(element))) {
           let nums = this[_nums];
           if (nums == null)
             this[_nums] = nums = _HashSet$()._newHashTable();
@@ -5178,9 +5178,9 @@ var math = dart.lazyImport(math);
         }
       }
       remove(object) {
-        if (_HashSet$()._isStringElement(object)) {
+        if (dart.notNull(_HashSet$()._isStringElement(object))) {
           return this[_removeHashTableEntry](this[_strings], object);
-        } else if (_HashSet$()._isNumericElement(object)) {
+        } else if (dart.notNull(_HashSet$()._isNumericElement(object))) {
           return this[_removeHashTableEntry](this[_nums], object);
         } else {
           return this[_remove](object);
@@ -5249,7 +5249,7 @@ var math = dart.lazyImport(math);
       }
       [_addHashTableEntry](table, element) {
         dart.as(element, E);
-        if (_HashSet$()._hasTableEntry(table, element))
+        if (dart.notNull(_HashSet$()._hasTableEntry(table, element)))
           return false;
         _HashSet$()._setTableEntry(table, element, 0);
         this[_length] = dart.notNull(this[_length]) + 1;
@@ -5257,7 +5257,7 @@ var math = dart.lazyImport(math);
         return true;
       }
       [_removeHashTableEntry](table, element) {
-        if (dart.notNull(table != null) && dart.notNull(_HashSet$()._hasTableEntry(table, element))) {
+        if (table != null && dart.notNull(_HashSet$()._hasTableEntry(table, element))) {
           _HashSet$()._deleteTableEntry(table, element);
           this[_length] = dart.notNull(this[_length]) - 1;
           this[_elements] = null;
@@ -5267,7 +5267,7 @@ var math = dart.lazyImport(math);
         }
       }
       static _isStringElement(element) {
-        return typeof element == 'string' && dart.notNull(!dart.equals(element, '__proto__'));
+        return typeof element == 'string' && !dart.equals(element, '__proto__');
       }
       static _isNumericElement(element) {
         return dart.is(element, core.num) && (element & 0x3ffffff) === element;
@@ -5365,7 +5365,7 @@ var math = dart.lazyImport(math);
           return -1;
         let length = bucket.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          if (core.identical(bucket[i], element))
+          if (dart.notNull(core.identical(bucket[i], element)))
             return i;
         }
         return -1;
@@ -5395,7 +5395,7 @@ var math = dart.lazyImport(math);
           return -1;
         let length = bucket.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
-          if (this[_equality](dart.as(bucket[i], E), dart.as(element, E)))
+          if (dart.notNull(this[_equality](dart.as(bucket[i], E), dart.as(element, E))))
             return i;
         }
         return -1;
@@ -5499,13 +5499,13 @@ var math = dart.lazyImport(math);
         return !dart.notNull(this.isEmpty);
       }
       contains(object) {
-        if (_LinkedHashSet$()._isStringElement(object)) {
+        if (dart.notNull(_LinkedHashSet$()._isStringElement(object))) {
           let strings = this[_strings];
           if (strings == null)
             return false;
           let cell = dart.as(_LinkedHashSet$()._getTableEntry(strings, object), LinkedHashSetCell);
           return cell != null;
-        } else if (_LinkedHashSet$()._isNumericElement(object)) {
+        } else if (dart.notNull(_LinkedHashSet$()._isNumericElement(object))) {
           let nums = this[_nums];
           if (nums == null)
             return false;
@@ -5524,7 +5524,7 @@ var math = dart.lazyImport(math);
       }
       lookup(object) {
         if (dart.notNull(_LinkedHashSet$()._isStringElement(object)) || dart.notNull(_LinkedHashSet$()._isNumericElement(object))) {
-          return dart.as(this.contains(object) ? object : null, E);
+          return dart.as(dart.notNull(this.contains(object)) ? object : null, E);
         } else {
           return this[_lookup](object);
         }
@@ -5563,12 +5563,12 @@ var math = dart.lazyImport(math);
       }
       add(element) {
         dart.as(element, E);
-        if (_LinkedHashSet$()._isStringElement(element)) {
+        if (dart.notNull(_LinkedHashSet$()._isStringElement(element))) {
           let strings = this[_strings];
           if (strings == null)
             this[_strings] = strings = _LinkedHashSet$()._newHashTable();
           return this[_addHashTableEntry](strings, element);
-        } else if (_LinkedHashSet$()._isNumericElement(element)) {
+        } else if (dart.notNull(_LinkedHashSet$()._isNumericElement(element))) {
           let nums = this[_nums];
           if (nums == null)
             this[_nums] = nums = _LinkedHashSet$()._newHashTable();
@@ -5597,9 +5597,9 @@ var math = dart.lazyImport(math);
         return true;
       }
       remove(object) {
-        if (_LinkedHashSet$()._isStringElement(object)) {
+        if (dart.notNull(_LinkedHashSet$()._isStringElement(object))) {
           return this[_removeHashTableEntry](this[_strings], object);
-        } else if (_LinkedHashSet$()._isNumericElement(object)) {
+        } else if (dart.notNull(_LinkedHashSet$()._isNumericElement(object))) {
           return this[_removeHashTableEntry](this[_nums], object);
         } else {
           return this[_remove](object);
@@ -5636,7 +5636,7 @@ var math = dart.lazyImport(math);
           if (modifications != this[_modifications]) {
             throw new core.ConcurrentModificationError(this);
           }
-          if (shouldRemove)
+          if (dart.notNull(shouldRemove))
             this.remove(element);
           cell = next;
         }
@@ -5702,7 +5702,7 @@ var math = dart.lazyImport(math);
         this[_modified]();
       }
       static _isStringElement(element) {
-        return typeof element == 'string' && dart.notNull(!dart.equals(element, '__proto__'));
+        return typeof element == 'string' && !dart.equals(element, '__proto__');
       }
       static _isNumericElement(element) {
         return dart.is(element, core.num) && (element & 0x3ffffff) === element;
@@ -5810,7 +5810,7 @@ var math = dart.lazyImport(math);
         let length = bucket.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let cell = dart.as(bucket[i], LinkedHashSetCell);
-          if (core.identical(cell[_element], element))
+          if (dart.notNull(core.identical(cell[_element], element)))
             return i;
         }
         return -1;
@@ -5839,7 +5839,7 @@ var math = dart.lazyImport(math);
         let length = bucket.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
           let cell = dart.as(bucket[i], LinkedHashSetCell);
-          if (this[_equality](dart.as(cell[_element], E), dart.as(element, E)))
+          if (dart.notNull(this[_equality](dart.as(cell[_element], E), dart.as(element, E))))
             return i;
         }
         return -1;
@@ -5875,7 +5875,7 @@ var math = dart.lazyImport(math);
       }
       removeAll(elements) {
         for (let element of elements) {
-          if (this[_validKey](element)) {
+          if (dart.notNull(this[_validKey](element))) {
             super[_remove](element);
           }
         }

@@ -1,7 +1,19 @@
 // Messages from compiling opassign.dart
+info: line 21, column 3 of test/codegen/opassign.dart: [DynamicInvoke] ++f[index] requires dynamic invoke
+  ++f[index];
+  ^^^^^^^^^^
+info: line 22, column 16 of test/codegen/opassign.dart: [DynamicInvoke] f[index]++ requires dynamic invoke
+  forcePostfix(f[index]++);
+               ^^^^^^^^^^
+info: line 25, column 3 of test/codegen/opassign.dart: [DynamicInvoke] ++foo.x requires dynamic invoke
+  ++foo.x;
+  ^^^^^^^
 info: line 25, column 5 of test/codegen/opassign.dart: [DynamicInvoke] foo.x requires dynamic invoke
   ++foo.x;
     ^^^^^
+info: line 26, column 16 of test/codegen/opassign.dart: [DynamicInvoke] foo.x++ requires dynamic invoke
+  forcePostfix(foo.x++);
+               ^^^^^^^
 info: line 26, column 16 of test/codegen/opassign.dart: [DynamicInvoke] foo.x requires dynamic invoke
   forcePostfix(foo.x++);
                ^^^^^

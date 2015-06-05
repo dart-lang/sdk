@@ -434,22 +434,22 @@ var math = dart.import(math);
     compareTo(b) {
       if (!dart.is(b, core.num))
         throw new core.ArgumentError(b);
-      if (this[dartx['<']](b)) {
+      if (dart.notNull(this[dartx['<']](b))) {
         return -1;
-      } else if (this[dartx['>']](b)) {
+      } else if (dart.notNull(this[dartx['>']](b))) {
         return 1;
       } else if (dart.equals(this, b)) {
         if (dart.equals(this, 0)) {
           let bIsNegative = b[dartx.isNegative];
           if (this[dartx.isNegative] == bIsNegative)
             return 0;
-          if (this[dartx.isNegative])
+          if (dart.notNull(this[dartx.isNegative]))
             return -1;
           return 1;
         }
         return 0;
-      } else if (this[dartx.isNaN]) {
-        if (b[dartx.isNaN]) {
+      } else if (dart.notNull(this[dartx.isNaN])) {
+        if (dart.notNull(b[dartx.isNaN])) {
           return 0;
         }
         return 1;
@@ -479,7 +479,7 @@ var math = dart.import(math);
       return Math.abs(this);
     }
     get sign() {
-      return this[dartx['>']](0) ? 1 : this[dartx['<']](0) ? -1 : this;
+      return dart.notNull(this[dartx['>']](0)) ? 1 : dart.notNull(this[dartx['<']](0)) ? -1 : this;
     }
     toInt() {
       if (dart.notNull(this[dartx['>=']](JSNumber._MIN_INT32)) && dart.notNull(this[dartx['<=']](JSNumber._MAX_INT32))) {
@@ -509,14 +509,14 @@ var math = dart.import(math);
       return Math.floor(this);
     }
     roundToDouble() {
-      if (this[dartx['<']](0)) {
+      if (dart.notNull(this[dartx['<']](0))) {
         return -Math.round(-this);
       } else {
         return Math.round(this);
       }
     }
     truncateToDouble() {
-      return this[dartx['<']](0) ? this[dartx.ceilToDouble]() : this[dartx.floorToDouble]();
+      return dart.notNull(this[dartx['<']](0)) ? this[dartx.ceilToDouble]() : this[dartx.floorToDouble]();
     }
     clamp(lowerLimit, upperLimit) {
       if (!dart.is(lowerLimit, core.num))
@@ -541,7 +541,7 @@ var math = dart.import(math);
         throw new core.RangeError(fractionDigits);
       }
       let result = this.toFixed(fractionDigits);
-      if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this[dartx.isNegative]))
+      if (dart.equals(this, 0) && dart.notNull(this[dartx.isNegative]))
         return `-${result}`;
       return result;
     }
@@ -558,7 +558,7 @@ var math = dart.import(math);
       } else {
         result = this.toExponential();
       }
-      if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this[dartx.isNegative]))
+      if (dart.equals(this, 0) && dart.notNull(this[dartx.isNegative]))
         return `-${result}`;
       return result;
     }
@@ -568,7 +568,7 @@ var math = dart.import(math);
         throw new core.RangeError(precision);
       }
       let result = this.toPrecision(precision);
-      if (dart.notNull(dart.equals(this, 0)) && dart.notNull(this[dartx.isNegative]))
+      if (dart.equals(this, 0) && dart.notNull(this[dartx.isNegative]))
         return `-${result}`;
       return result;
     }
@@ -597,7 +597,7 @@ var math = dart.import(math);
       return dart.notNull(result) + "0"[dartx['*']](exponent);
     }
     toString() {
-      if (dart.notNull(dart.equals(this, 0)) && 1 / this < 0) {
+      if (dart.equals(this, 0) && 1 / this < 0) {
         return '-0.0';
       } else {
         return "" + this;
@@ -656,7 +656,7 @@ var math = dart.import(math);
       }
     }
     [_tdivFast](other) {
-      return this[_isInt32](this) ? this / other | 0 : (this / other)[dartx.toInt]();
+      return dart.notNull(this[_isInt32](this)) ? this / other | 0 : (this / other)[dartx.toInt]();
     }
     [_tdivSlow](other) {
       if (!dart.is(other, core.num))
@@ -801,7 +801,7 @@ var math = dart.import(math);
       return dart.notNull(this[dartx['&']](dart.notNull(signMask) - 1)) - dart.notNull(this[dartx['&']](signMask));
     }
     get bitLength() {
-      let nonneg = this[dartx['<']](0) ? dart.notNull(this[dartx['unary-']]()) - 1 : this;
+      let nonneg = dart.notNull(this[dartx['<']](0)) ? dart.notNull(this[dartx['unary-']]()) - 1 : this;
       if (dart.notNull(nonneg) >= 4294967296) {
         nonneg = (dart.notNull(nonneg) / 4294967296).truncate();
         return dart.notNull(JSInt._bitCount(JSInt._spread(nonneg))) + 32;

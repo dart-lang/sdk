@@ -42,7 +42,7 @@ var _js_helper = dart.lazyImport(_js_helper);
       ['=='](other) {
         if (!dart.is(other, Point$()))
           return false;
-        return dart.notNull(dart.equals(this.x, dart.dload(other, 'x'))) && dart.notNull(dart.equals(this.y, dart.dload(other, 'y')));
+        return dart.equals(this.x, dart.dload(other, 'x')) && dart.equals(this.y, dart.dload(other, 'y'));
       }
       get hashCode() {
         return _JenkinsSmiHash.hash2(dart.hashCode(this.x), dart.hashCode(this.y));
@@ -113,7 +113,7 @@ var _js_helper = dart.lazyImport(_js_helper);
       ['=='](other) {
         if (!dart.is(other, Rectangle))
           return false;
-        return dart.notNull(dart.equals(this.left, dart.dload(other, 'left'))) && dart.notNull(dart.equals(this.top, dart.dload(other, 'top'))) && dart.notNull(dart.equals(this.right, dart.dload(other, 'right'))) && dart.notNull(dart.equals(this.bottom, dart.dload(other, 'bottom')));
+        return dart.equals(this.left, dart.dload(other, 'left')) && dart.equals(this.top, dart.dload(other, 'top')) && dart.equals(this.right, dart.dload(other, 'right')) && dart.equals(this.bottom, dart.dload(other, 'bottom'));
       }
       get hashCode() {
         return _JenkinsSmiHash.hash4(dart.hashCode(this.left), dart.hashCode(this.top), dart.hashCode(this.right), dart.hashCode(this.bottom));
@@ -179,8 +179,8 @@ var _js_helper = dart.lazyImport(_js_helper);
       Rectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this.width = dart.as(width['<'](0) ? dart.notNull(width['unary-']()) * 0 : width, T);
-        this.height = dart.as(height['<'](0) ? dart.notNull(height['unary-']()) * 0 : height, T);
+        this.width = dart.as(dart.notNull(width['<'](0)) ? dart.notNull(width['unary-']()) * 0 : width, T);
+        this.height = dart.as(dart.notNull(height['<'](0)) ? dart.notNull(height['unary-']()) * 0 : height, T);
         super._RectangleBase();
       }
       static fromPoints(a, b) {
@@ -207,8 +207,8 @@ var _js_helper = dart.lazyImport(_js_helper);
       MutableRectangle(left, top, width, height) {
         this.left = left;
         this.top = top;
-        this[_width] = dart.as(width['<'](0) ? _clampToZero(width) : width, T);
-        this[_height] = dart.as(height['<'](0) ? _clampToZero(height) : height, T);
+        this[_width] = dart.as(dart.notNull(width['<'](0)) ? _clampToZero(width) : width, T);
+        this[_height] = dart.as(dart.notNull(height['<'](0)) ? _clampToZero(height) : height, T);
         super._RectangleBase();
       }
       static fromPoints(a, b) {
@@ -223,7 +223,7 @@ var _js_helper = dart.lazyImport(_js_helper);
       }
       set width(width) {
         dart.as(width, T);
-        if (width['<'](0))
+        if (dart.notNull(width['<'](0)))
           width = dart.as(_clampToZero(width), T);
         this[_width] = width;
       }
@@ -232,7 +232,7 @@ var _js_helper = dart.lazyImport(_js_helper);
       }
       set height(height) {
         dart.as(height, T);
-        if (height['<'](0))
+        if (dart.notNull(height['<'](0)))
           height = dart.as(_clampToZero(height), T);
         this[_height] = height;
       }
@@ -297,7 +297,7 @@ var _js_helper = dart.lazyImport(_js_helper);
           return dart.notNull(a) + dart.notNull(b);
         }
       }
-      if (b[dartx.isNaN])
+      if (dart.notNull(b[dartx.isNaN]))
         return b;
       return a;
     }
