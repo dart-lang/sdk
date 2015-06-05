@@ -1681,14 +1681,20 @@ void RawInstance::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawMint* Mint::ReadFrom(SnapshotReader* reader,
-                        intptr_t object_id,
-                        intptr_t tags,
-                        Snapshot::Kind kind) {
+RawInteger* Mint::ReadFrom(SnapshotReader* reader,
+                           intptr_t object_id,
+                           intptr_t tags,
+                           Snapshot::Kind kind) {
   ASSERT(reader != NULL);
 
   // Read the 64 bit value for the object.
   int64_t value = reader->Read<int64_t>();
+
+  // Check if the value could potentially fit in a Smi in our current
+  // architecture, if so return the object as a Smi.
+  if (Smi::IsValid(value)) {
+    return Smi::New(static_cast<intptr_t>(value));
+  }
 
   // Create a Mint object or get canonical one if it is a canonical constant.
   Mint& mint = Mint::ZoneHandle(reader->zone(), Mint::null());

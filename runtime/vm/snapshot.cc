@@ -1749,19 +1749,6 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
     return true;
   }
 
-  // Check if the object is a Mint and could potentially be a Smi
-  // on other architectures (64 bit), if so write it out as int64_t value.
-  if (cid == kMintCid) {
-    int64_t value = reinterpret_cast<RawMint*>(rawobj)->ptr()->value_;
-    const intptr_t kSmi64Bits = 62;
-    const int64_t kSmi64Max = (static_cast<int64_t>(1) << kSmi64Bits) - 1;
-    const int64_t kSmi64Min = -(static_cast<int64_t>(1) << kSmi64Bits);
-    if (value <= kSmi64Max && value >= kSmi64Min) {
-      Write<int64_t>((value << kSmiTagShift) | kSmiTag);
-      return true;
-    }
-  }
-
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
   if (cid == kCodeCid) {

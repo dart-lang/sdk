@@ -206,7 +206,7 @@ class Symbols;
   friend class StackFrame;                                                     \
 
 // This macro is used to denote types that do not have a sub-type.
-#define FINAL_HEAP_OBJECT_IMPLEMENTATION(object, super)                        \
+#define FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, rettype, super)        \
  public:  /* NOLINT */                                                         \
   void operator=(Raw##object* value) {                                         \
     raw_ = value;                                                              \
@@ -226,9 +226,15 @@ class Symbols;
   static intptr_t NextFieldOffset() {                                          \
     return -kWordSize;                                                         \
   }                                                                            \
-  SNAPSHOT_READER_SUPPORT(object)                                              \
+  SNAPSHOT_READER_SUPPORT(rettype)                                             \
   friend class Isolate;                                                        \
   friend class StackFrame;                                                     \
+
+#define FINAL_HEAP_OBJECT_IMPLEMENTATION(object, super)                        \
+  FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, object, super)               \
+
+#define MINT_OBJECT_IMPLEMENTATION(object, rettype, super)                     \
+  FINAL_HEAP_OBJECT_IMPLEMENTATION_HELPER(object, rettype, super)              \
 
 class Object {
  public:
@@ -5552,7 +5558,7 @@ class Mint : public Integer {
  private:
   void set_value(int64_t value) const;
 
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(Mint, Integer);
+  MINT_OBJECT_IMPLEMENTATION(Mint, Integer, Integer);
   friend class Class;
 };
 

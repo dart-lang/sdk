@@ -13860,6 +13860,7 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
       break;
     }
     if (this->CanonicalizeEquals(result)) {
+      ASSERT(result.IsCanonical());
       return result.raw();
     }
     index++;
@@ -16546,6 +16547,7 @@ RawMint* Mint::NewCanonical(int64_t value) {
       break;
     }
     if (canonical_value.value() == value) {
+      ASSERT(canonical_value.IsCanonical());
       return canonical_value.raw();
     }
     index++;
