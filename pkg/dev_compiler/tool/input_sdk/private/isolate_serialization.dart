@@ -60,7 +60,7 @@ class _Serializer {
     if (x is _NativeJsSendPort) return serializeJsSendPort(x);
     if (x is _WorkerSendPort) return serializeWorkerSendPort(x);
 
-    if (x is Closure) return serializeClosure(x);
+    if (x is Function) return serializeClosure(x);
 
     return serializeDartObject(x);
   }
@@ -156,7 +156,7 @@ class _Serializer {
 
   serializeCapability(CapabilityImpl x) => ['capability', x._id];
 
-  serializeClosure(Closure x) {
+  serializeClosure(Function x) {
     final name = IsolateNatives._getJSFunctionName(x);
     if (name == null) {
       unsupported(x, "Closures can't be transmitted:");

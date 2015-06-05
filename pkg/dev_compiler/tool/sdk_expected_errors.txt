@@ -1,267 +1,3 @@
-warning: line 20, column 39 of dart:async/async_error.dart: [DownCastImplicit] errorHandler (Function) will need runtime check to cast to type (dynamic) → dynamic
-    return zone.registerUnaryCallback(errorHandler);
-                                      ^^^^^^^^^^^^
-severe: line 208, column 22 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_isFiring' is not defined for the class 'StreamSubscription<T>'
-    if (subscription._isFiring) {
-                     ^^^^^^^^^
-severe: line 206, column 32 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
-    if (identical(subscription._next, subscription)) return null;
-                               ^^^^^
-severe: line 207, column 36 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
-    assert(!identical(subscription._next, subscription));
-                                   ^^^^^
-severe: line 209, column 20 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The method '_setRemoveAfterFiring' is not defined for the class 'StreamSubscription<T>'
-      subscription._setRemoveAfterFiring();
-                   ^^^^^^^^^^^^^^^^^^^^^
-severe: line 211, column 38 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
-      assert(!identical(subscription._next, subscription));
-                                     ^^^^^
-warning: line 8, column 67 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] controller (_StreamControllerLifecycle<dynamic>) will need runtime check to cast to type _StreamControllerLifecycle<T>
-  _BroadcastStream(_StreamControllerLifecycle controller) : super(controller);
-                                                                  ^^^^^^^^^^
-warning: line 36, column 15 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] controller (_StreamControllerLifecycle<dynamic>) will need runtime check to cast to type _StreamControllerLifecycle<T>
-      : super(controller, onData, onError, onDone, cancelOnError) {
-              ^^^^^^^^^^
-warning: line 40, column 52 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] super._controller (_StreamControllerLifecycle<T>) will need runtime check to cast to type _BroadcastStreamController<T>
-  _BroadcastStreamController<T> get _controller => super._controller;
-                                                   ^^^^^^^^^^^^^^^^^
-warning: line 196, column 18 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] subscription (StreamSubscription<dynamic>) will need runtime check to cast to type _BroadcastSubscription<T>
-    _addListener(subscription);
-                 ^^^^^^^^^^^^
-warning: line 201, column 12 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] subscription (StreamSubscription<dynamic>) will need runtime check to cast to type StreamSubscription<T>
-    return subscription;
-           ^^^^^^^^^^^^
-warning: line 212, column 23 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] subscription (StreamSubscription<T>) will need runtime check to cast to type _BroadcastSubscription<T>
-      _removeListener(subscription);
-                      ^^^^^^^^^^^^
-warning: line 309, column 48 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] link (_BroadcastSubscriptionLink) will need runtime check to cast to type _BroadcastSubscription<T>
-      _BroadcastSubscription<T> subscription = link;
-                                               ^^^^
-warning: line 372, column 24 of dart:async/broadcast_stream_controller.dart: [UninferredClosure] (_BroadcastSubscription<T> subscription) {subscription._close();} ((_BroadcastSubscription<T>) → dynamic) will need runtime check to cast to type (_BufferingStreamSubscription<T>) → void
-      _forEachListener((_BroadcastSubscription<T> subscription) {
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 393, column 48 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] link (_BroadcastSubscriptionLink) will need runtime check to cast to type _BroadcastSubscription<T>
-      _BroadcastSubscription<T> subscription = link;
-                                               ^^^^
-warning: line 402, column 48 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] link (_BroadcastSubscriptionLink) will need runtime check to cast to type _BroadcastSubscription<T>
-      _BroadcastSubscription<T> subscription = link;
-                                               ^^^^
-warning: line 412, column 50 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] link (_BroadcastSubscriptionLink) will need runtime check to cast to type _BroadcastSubscription<T>
-        _BroadcastSubscription<T> subscription = link;
-                                                 ^^^^
-warning: line 123, column 12 of dart:async/future.dart: [DownCastComposite] result (_Future<dynamic>) will need runtime check to cast to type Future<T>
-    return result;
-           ^^^^^^
-warning: line 149, column 12 of dart:async/future.dart: [DownCastComposite] result (_Future<dynamic>) will need runtime check to cast to type Future<T>
-    return result;
-           ^^^^^^
-warning: line 233, column 12 of dart:async/future.dart: [DownCastComposite] result (_Future<dynamic>) will need runtime check to cast to type Future<T>
-    return result;
-           ^^^^^^
-warning: line 112, column 12 of dart:async/future_impl.dart: [DownCastImplicit] callback (Function) will need runtime check to cast to type (dynamic) → dynamic
-    return callback;
-           ^^^^^^^^
-warning: line 117, column 12 of dart:async/future_impl.dart: [DownCastComposite] callback (Function) will need runtime check to cast to type (dynamic) → bool
-    return callback;
-           ^^^^^^^^
-warning: line 121, column 12 of dart:async/future_impl.dart: [DownCastImplicit] callback (Function) will need runtime check to cast to type () → dynamic
-    return callback;
-           ^^^^^^^^
-warning: line 208, column 11 of dart:async/future_impl.dart: [DownCastComposite] result._zone.registerUnaryCallback(f) ((dynamic) → dynamic) will need runtime check to cast to type (T) → dynamic
-      f = result._zone.registerUnaryCallback(f);
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 221, column 32 of dart:async/future_impl.dart: [DownCastComposite] result._zone.registerUnaryCallback(test) ((dynamic) → dynamic) will need runtime check to cast to type (dynamic) → bool
-      if (test != null) test = result._zone.registerUnaryCallback(test);
-                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 233, column 12 of dart:async/future_impl.dart: [DownCastComposite] result (_Future<dynamic>) will need runtime check to cast to type Future<T>
-    return result;
-           ^^^^^^
-warning: line 245, column 12 of dart:async/future_impl.dart: [DownCastComposite] _resultOrListeners (dynamic) will need runtime check to cast to type T
-    return _resultOrListeners;
-           ^^^^^^^^^^^^^^^^^^
-warning: line 347, column 17 of dart:async/future_impl.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type T
-      _setValue(value);
-                ^^^^^
-warning: line 357, column 15 of dart:async/future_impl.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type T
-    _setValue(value);
-              ^^^^^
-warning: line 386, column 31 of dart:async/future_impl.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type Future<T>
-      Future<T> typedFuture = value;
-                              ^^^^^
-warning: line 388, column 33 of dart:async/future_impl.dart: [DownCastComposite] typedFuture (Future<T>) will need runtime check to cast to type _Future<T>
-        _Future<T> coreFuture = typedFuture;
-                                ^^^^^^^^^^^
-warning: line 407, column 22 of dart:async/future_impl.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type T
-      T typedValue = value;
-                     ^^^^^
-warning: line 515, column 54 of dart:async/future_impl.dart: [DownCastImplicit] errorCallback (Function) will need runtime check to cast to type (dynamic) → dynamic
-                listenerValueOrError = zone.runUnary(errorCallback,
-                                                     ^^^^^^^^^^^^^
-warning: line 66, column 61 of dart:async/schedule_microtask.dart: [DownCastComposite] callback (dynamic) will need runtime check to cast to type () → void
-    _nextCallback = _lastCallback = new _AsyncCallbackEntry(callback);
-                                                            ^^^^^^^^
-warning: line 71, column 60 of dart:async/schedule_microtask.dart: [DownCastComposite] callback (dynamic) will need runtime check to cast to type () → void
-    _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(callback);
-                                                           ^^^^^^^^
-warning: line 84, column 55 of dart:async/schedule_microtask.dart: [DownCastComposite] callback (dynamic) will need runtime check to cast to type () → void
-  _AsyncCallbackEntry entry = new _AsyncCallbackEntry(callback);
-                                                      ^^^^^^^^
-severe: line 321, column 34 of dart:async/stream.dart: [AnalyzerError] The getter '_addError' is not defined for the class 'StreamController'
-      final addError = eventSink._addError;
-                                 ^^^^^^^^^
-severe: line 1227, column 17 of dart:async/stream.dart: [AnalyzerError] The method '_addError' is not defined for the class 'StreamController'
-      eventSink._addError(error, stackTrace);  // Avoid Zone error replacement.
-                ^^^^^^^^^
-severe: line 396, column 30 of dart:async/stream.dart: [AnalyzerError] The getter '_addError' is not defined for the class 'StreamController'
-          onError: eventSink._addError,  // Avoid Zone error replacement.
-                             ^^^^^^^^^
-warning: line 90, column 25 of dart:async/stream.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type T
-        controller._add(value);
-                        ^^^^^
-warning: line 217, column 41 of dart:async/stream.dart: [DownCastComposite] mapSink ((EventSink<T>) → EventSink<dynamic>) will need runtime check to cast to type (EventSink<dynamic>) → EventSink
-    return new _BoundSinkStream(source, mapSink);
-                                        ^^^^^^^
-warning: line 249, column 44 of dart:async/stream.dart: [DownCastComposite] onListen ((StreamSubscription<T>) → void) will need runtime check to cast to type (StreamSubscription<dynamic>) → void
-    return new _AsBroadcastStream<T>(this, onListen, onCancel);
-                                           ^^^^^^^^
-warning: line 249, column 54 of dart:async/stream.dart: [DownCastComposite] onCancel ((StreamSubscription<T>) → void) will need runtime check to cast to type (StreamSubscription<dynamic>) → void
-    return new _AsBroadcastStream<T>(this, onListen, onCancel);
-                                                     ^^^^^^^^
-warning: line 502, column 24 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, result) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
-                       _cancelAndErrorClosure(subscription, result));
-                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 535, column 11 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, result) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
-          _cancelAndErrorClosure(subscription, result)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 603, column 13 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
-            _cancelAndErrorClosure(subscription, future)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 629, column 13 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
-            _cancelAndErrorClosure(subscription, future)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 658, column 13 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
-            _cancelAndErrorClosure(subscription, future)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 695, column 13 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
-            _cancelAndErrorClosure(subscription, future)
-            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 1037, column 11 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
-          _cancelAndErrorClosure(subscription, future)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 1078, column 11 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
-          _cancelAndErrorClosure(subscription, future)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 1130, column 11 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
-          _cancelAndErrorClosure(subscription, future)
-          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 1220, column 43 of dart:async/stream.dart: [DownCastComposite] timeout (Function) will need runtime check to cast to type () → void
-      timer = zone.createTimer(timeLimit, timeout);
-                                          ^^^^^^^
-warning: line 1228, column 43 of dart:async/stream.dart: [DownCastComposite] timeout (Function) will need runtime check to cast to type () → void
-      timer = zone.createTimer(timeLimit, timeout);
-                                          ^^^^^^^
-warning: line 1246, column 21 of dart:async/stream.dart: [DownCastComposite] zone.registerUnaryCallback(onTimeout) ((dynamic) → dynamic) will need runtime check to cast to type (EventSink<dynamic>) → void
-        onTimeout = zone.registerUnaryCallback(onTimeout);
-                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 1257, column 43 of dart:async/stream.dart: [DownCastComposite] timeout (Function) will need runtime check to cast to type () → void
-      timer = zone.createTimer(timeLimit, timeout);
-                                          ^^^^^^^
-warning: line 1276, column 53 of dart:async/stream.dart: [DownCastComposite] timeout (Function) will need runtime check to cast to type () → void
-                timer = zone.createTimer(timeLimit, timeout);
-                                                    ^^^^^^^
-warning: line 83, column 14 of dart:async/stream_controller.dart: [DownCastComposite] sync ? new _NoCallbackSyncStreamController() : new _NoCallbackAsyncStreamController() (_StreamController<dynamic>) will need runtime check to cast to type StreamController<T>
-      return sync
-             ^^^^^
-warning: line 516, column 12 of dart:async/stream_controller.dart: [DownCastComposite] subscription (_ControllerSubscription<dynamic>) will need runtime check to cast to type StreamSubscription<T>
-    return subscription;
-           ^^^^^^^^^^^^
-warning: line 798, column 15 of dart:async/stream_controller.dart: [DownCastComposite] controller (_StreamController<dynamic>) will need runtime check to cast to type _EventSink<T>
-      : super(controller, source, cancelOnError) {
-              ^^^^^^^^^^
-warning: line 153, column 42 of dart:async/stream_impl.dart: [DownCastComposite] _nullDataHandler ((dynamic) → void) will need runtime check to cast to type (T) → void
-    if (handleData == null) handleData = _nullDataHandler;
-                                         ^^^^^^^^^^^^^^^^
-warning: line 154, column 15 of dart:async/stream_impl.dart: [DownCastComposite] _zone.registerUnaryCallback(handleData) ((dynamic) → dynamic) will need runtime check to cast to type (T) → void
-    _onData = _zone.registerUnaryCallback(handleData);
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 358, column 32 of dart:async/stream_impl.dart: [DownCastImplicit] _onError (Function) will need runtime check to cast to type (dynamic, dynamic) → dynamic
-        _zone.runBinaryGuarded(_onError, error, stackTrace);
-                               ^^^^^^^^
-warning: line 360, column 31 of dart:async/stream_impl.dart: [DownCastImplicit] _onError (Function) will need runtime check to cast to type (dynamic) → dynamic
-        _zone.runUnaryGuarded(_onError, error);
-                              ^^^^^^^^
-warning: line 476, column 12 of dart:async/stream_impl.dart: [DownCastComposite] subscription (StreamSubscription<dynamic>) will need runtime check to cast to type StreamSubscription<T>
-    return subscription;
-           ^^^^^^^^^^^^
-warning: line 515, column 12 of dart:async/stream_impl.dart: [DownCastComposite] new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError).._setPendingEvents(_pending()) (_BufferingStreamSubscription<dynamic>) will need runtime check to cast to type StreamSubscription<T>
-    return new _BufferingStreamSubscription(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 813, column 28 of dart:async/stream_impl.dart: [DownCastComposite] Zone.current.registerUnaryCallback(onListenHandler) ((dynamic) → dynamic) will need runtime check to cast to type (StreamSubscription<dynamic>) → void
-      : _onListenHandler = Zone.current.registerUnaryCallback(onListenHandler),
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 814, column 28 of dart:async/stream_impl.dart: [DownCastComposite] Zone.current.registerUnaryCallback(onCancelHandler) ((dynamic) → dynamic) will need runtime check to cast to type (StreamSubscription<dynamic>) → void
-        _onCancelHandler = Zone.current.registerUnaryCallback(onCancelHandler),
-                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 1000, column 14 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type Future<bool>
-      return _futureOrPrefetch;
-             ^^^^^^^^^^^^^^^^^
-warning: line 1006, column 22 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type T
-          _current = _futureOrPrefetch;
-                     ^^^^^^^^^^^^^^^^^
-warning: line 1033, column 31 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type _Future<bool>
-      _Future<bool> hasNext = _futureOrPrefetch;
-                              ^^^^^^^^^^^^^^^^^
-warning: line 1045, column 31 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type _Future<bool>
-      _Future<bool> hasNext = _futureOrPrefetch;
-                              ^^^^^^^^^^^^^^^^^
-warning: line 1059, column 31 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type _Future<bool>
-      _Future<bool> hasNext = _futureOrPrefetch;
-                              ^^^^^^^^^^^^^^^^^
-warning: line 1073, column 31 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type _Future<bool>
-      _Future<bool> hasNext = _futureOrPrefetch;
-                              ^^^^^^^^^^^^^^^^^
-warning: line 104, column 15 of dart:async/stream_pipe.dart: [DownCastComposite] outputData (dynamic) will need runtime check to cast to type T
-    sink._add(outputData);
-              ^^^^^^^^^^
-warning: line 235, column 21 of dart:async/stream_pipe.dart: [DownCastComposite] _transform(inputEvent) (dynamic) will need runtime check to cast to type T
-      outputEvent = _transform(inputEvent);
-                    ^^^^^^^^^^^^^^^^^^^^^^
-warning: line 426, column 29 of dart:async/stream_pipe.dart: [DownCastComposite] _previous (Object) will need runtime check to cast to type T
-          isEqual = _equals(_previous, inputEvent);
-                            ^^^^^^^^^
-warning: line 187, column 18 of dart:async/stream_transformers.dart: [DownCastComposite] _sinkMapper ((EventSink<T>) → EventSink<S>) will need runtime check to cast to type (EventSink<dynamic>) → EventSink
-        _stream, _sinkMapper, onData, onError, onDone, cancelOnError);
-                 ^^^^^^^^^^^
-warning: line 233, column 15 of dart:async/stream_transformers.dart: [UninferredClosure] (EventSink<T> outputSink) {if (handleData == null) handleData = _defaultHandleData; if (handleError == null) handleError = _defaultHandleError; if (handleDone == null) handleDone = _defaultHandleDone; return new _HandlerEventSink<S, T>(handleData, handleError, handleDone, outputSink);} ((EventSink<T>) → dynamic) will need runtime check to cast to type (EventSink<T>) → EventSink<S>
-      : super((EventSink<T> outputSink) {
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 234, column 48 of dart:async/stream_transformers.dart: [DownCastComposite] _defaultHandleData ((dynamic, EventSink<dynamic>) → void) will need runtime check to cast to type (S, EventSink<T>) → void
-          if (handleData == null) handleData = _defaultHandleData;
-                                               ^^^^^^^^^^^^^^^^^^
-warning: line 235, column 50 of dart:async/stream_transformers.dart: [DownCastComposite] _defaultHandleError ((dynamic, StackTrace, EventSink<dynamic>) → void) will need runtime check to cast to type (Object, StackTrace, EventSink<T>) → void
-          if (handleError == null) handleError = _defaultHandleError;
-                                                 ^^^^^^^^^^^^^^^^^^^
-warning: line 80, column 19 of dart:async/timer.dart: [DownCastComposite] Zone.current.bindUnaryCallback(callback, runGuarded: true) ((dynamic) → dynamic) will need runtime check to cast to type (Timer) → void
-        duration, Zone.current.bindUnaryCallback(callback, runGuarded: true));
-                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 845, column 57 of dart:async/zone.dart: [DownCastImplicit] implementationZone (Zone) will need runtime check to cast to type _Zone
-    final ZoneDelegate parentDelegate = _parentDelegate(implementationZone);
-                                                        ^^^^^^^^^^^^^^^^^^
-warning: line 962, column 16 of dart:async/zone.dart: [DownCastComposite] zone.bindUnaryCallback(callback) ((dynamic) → dynamic) will need runtime check to cast to type (Timer) → void
-    callback = zone.bindUnaryCallback(callback);
-               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 999, column 26 of dart:async/zone.dart: [DownCastImplicit] zone (Zone) will need runtime check to cast to type _Zone
-  return new _CustomZone(zone, specification, valueMap);
-                         ^^^^
-warning: line 1228, column 37 of dart:async/zone.dart: [DownCastImplicit] onError (Function) will need runtime check to cast to type (dynamic) → dynamic
-        return self.parent.runUnary(onError, error);
-                                    ^^^^^^^
-warning: line 168, column 14 of dart:isolate: [DownCastComposite] IsolateNatives.spawnFunction(entryPoint, message, paused).then((msg) => new Isolate(msg[1], pauseCapability: msg[2], terminateCapability: msg[3])) (Future<dynamic>) will need runtime check to cast to type Future<Isolate>
-      return IsolateNatives.spawnFunction(entryPoint, message, paused)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 234, column 14 of dart:isolate: [DownCastComposite] IsolateNatives.spawnUri(uri, args, message, paused).then((msg) => new Isolate(msg[1], pauseCapability: msg[2], terminateCapability: msg[3])) (Future<dynamic>) will need runtime check to cast to type Future<Isolate>
-      return IsolateNatives.spawnUri(uri, args, message, paused)
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 warning: line 80, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('var', r'#.pop()', this) (dynamic) will need runtime check to cast to type E
     return JS('var', r'#.pop()', this);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -361,156 +97,33 @@ warning: line 89, column 14 of dart:_interceptors/js_string.dart: [DownCastCompo
 severe: line 346, column 7 of dart:_interceptors/js_string.dart: [StaticTypeError] Type check failed: s += s (String) is not of type JSString
       s += s;
       ^^^^^^
-severe: line 452, column 28 of dart:_native_typed_data: [AnalyzerError] The getter 'length' is not defined for the class 'NativeTypedData'
-        if (length == list.length) {
-                           ^^^^^^
-warning: line 201, column 9 of dart:_native_typed_data: [DownCastImplicit] _storage.sublist(start * 4, end * 4) (List<double>) will need runtime check to cast to type NativeFloat32List
-        _storage.sublist(start * 4, end * 4));
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 311, column 9 of dart:_native_typed_data: [DownCastImplicit] _storage.sublist(start * 4, end * 4) (List<int>) will need runtime check to cast to type Int32List
-        _storage.sublist(start * 4, end * 4));
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 415, column 9 of dart:_native_typed_data: [DownCastImplicit] _storage.sublist(start * 2, end * 2) (List<double>) will need runtime check to cast to type NativeFloat64List
-        _storage.sublist(start * 2, end * 2));
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 1106, column 12 of dart:_native_typed_data: [DownCastImplicit] length == null ? _create2(buffer, offsetInBytes) : _create3(buffer, offsetInBytes, length) (Int8List) will need runtime check to cast to type NativeInt8List
-    return length == null
-           ^^^^^^^^^^^^^^^
-warning: line 578, column 29 of dart:_isolate_helper: [DownCastComposite] doneHandlers (dynamic) will need runtime check to cast to type Iterable<SendPort>
-      for (SendPort port in doneHandlers) {
-                            ^^^^^^^^^^^^
-warning: line 841, column 37 of dart:_isolate_helper: [DownCastComposite] args (dynamic) will need runtime check to cast to type List<String>
-          _startIsolate(entryPoint, args, message,
-                                    ^^^^
-warning: line 888, column 11 of dart:_isolate_helper: [DownCastComposite] msg['args'] (dynamic) will need runtime check to cast to type List<String>
-          msg['args'], msg['msg'],
-          ^^^^^^^^^^^
-warning: line 89, column 38 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] indexable (JSIndexable) will need runtime check to cast to type JSArray<dynamic>
-    List serialized = serializeArray(indexable);
-                                     ^^^^^^^^^
-warning: line 120, column 24 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] serializeTearOff (Function) will need runtime check to cast to type (dynamic) → dynamic
-            x.keys.map(serializeTearOff).toList(),
-                       ^^^^^^^^^^^^^^^^
-warning: line 121, column 26 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] serializeTearOff (Function) will need runtime check to cast to type (dynamic) → dynamic
-            x.values.map(serializeTearOff).toList()];
-                         ^^^^^^^^^^^^^^^^
-warning: line 172, column 52 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] fields (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
-    return ['dart', classId, serializeArrayInPlace(fields)];
-                                                   ^^^^^^
-warning: line 250, column 58 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] result (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
-    return new JSArray.markFixed(deserializeArrayInPlace(result));
-                                                         ^^^^^^
-warning: line 258, column 61 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] result (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
-    return new JSArray.markGrowable(deserializeArrayInPlace(result));
-                                                            ^^^^^^
-warning: line 266, column 36 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] result (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
-    return deserializeArrayInPlace(result);
-                                   ^^^^^^
-warning: line 275, column 58 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] result (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
-    return new JSArray.markFixed(deserializeArrayInPlace(result));
-                                                         ^^^^^^
-warning: line 357, column 29 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] fields (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
-    deserializeArrayInPlace(fields);
-                            ^^^^^^
-warning: line 59, column 22 of dart:_js_names: [DownCastComposite] keys (List<dynamic>) will need runtime check to cast to type Iterable<String>
-  for (String key in keys) {
-                     ^^^^
-warning: line 238, column 52 of dart:_js_helper: [DownCastImplicit] memberName (Symbol) will need runtime check to cast to type Symbol
-      String baseName = _symbol_dev.Symbol.getName(memberName);
-                                                   ^^^^^^^^^^
-warning: line 466, column 14 of dart:_js_helper: [DownCastComposite] JS('', '#[2 * # + # + # + 1]', data, parameter, optionalParameterCount, FIRST_DEFAULT_ARGUMENT) (dynamic) will need runtime check to cast to type List<int>
-      return JS('', '#[2 * # + # + # + 1]', data, parameter,
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 601, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 16)', source) (num) will need runtime check to cast to type int
+warning: line 87, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 16)', source) (num) will need runtime check to cast to type int
           return JS('num', r'parseInt(#, 16)', source);
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 605, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
+warning: line 91, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
           return JS('num', r'parseInt(#, 10)', source);
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 617, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
+warning: line 103, column 18 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, 10)', source) (num) will need runtime check to cast to type int
           return JS('num', r'parseInt(#, 10)', source);
                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 649, column 12 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, #)', source, radix) (num) will need runtime check to cast to type int
+warning: line 135, column 12 of dart:_js_helper: [DownCastImplicit] JS('num', r'parseInt(#, #)', source, radix) (num) will need runtime check to cast to type int
     return JS('num', r'parseInt(#, #)', source, radix);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 673, column 16 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
+warning: line 159, column 16 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
         return result;
                ^^^^^^
-warning: line 677, column 12 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
+warning: line 163, column 12 of dart:_js_helper: [DownCastImplicit] result (num) will need runtime check to cast to type double
     return result;
            ^^^^^^
-warning: line 826, column 15 of dart:_js_helper: [DownCastImplicit] 0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)) (num) will need runtime check to cast to type int
+warning: line 250, column 15 of dart:_js_helper: [DownCastImplicit] 0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)) (num) will need runtime check to cast to type int
         a.add(0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)));
               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 827, column 15 of dart:_js_helper: [DownCastImplicit] 0xdc00 + (i & 0x3ff) (num) will need runtime check to cast to type int
+warning: line 251, column 15 of dart:_js_helper: [DownCastImplicit] 0xdc00 + (i & 0x3ff) (num) will need runtime check to cast to type int
         a.add(0xdc00 + (i & 0x3ff));
               ^^^^^^^^^^^^^^^^^^^^
-warning: line 841, column 31 of dart:_js_helper: [DownCastComposite] charCodes (dynamic) will need runtime check to cast to type List<int>
+warning: line 265, column 31 of dart:_js_helper: [DownCastComposite] charCodes (dynamic) will need runtime check to cast to type List<int>
     return _fromCharCodeApply(charCodes);
                               ^^^^^^^^^
-warning: line 1497, column 9 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message) (dynamic) will need runtime check to cast to type List<String>
-        JS('JSExtendableArray|Null', r"#.match(/\\\$[a-zA-Z]+\\\$/g)", message);
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3055, column 7 of dart:_js_helper: [DownCastComposite] parameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
-      parameterTypes,
-      ^^^^^^^^^^^^^^
-warning: line 3056, column 7 of dart:_js_helper: [DownCastComposite] optionalParameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
-      optionalParameterTypes,
-      ^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3065, column 7 of dart:_js_helper: [DownCastComposite] parameterTypes (dynamic) will need runtime check to cast to type List<RuntimeType>
-      parameterTypes,
-      ^^^^^^^^^^^^^^
-warning: line 3075, column 39 of dart:_js_helper: [DownCastComposite] typeArguments (dynamic) will need runtime check to cast to type List<RuntimeType>
-  return new RuntimeTypeGeneric(name, typeArguments, null);
-                                      ^^^^^^^^^^^^^
-warning: line 3136, column 41 of dart:_js_helper: [DownCastComposite] arguments (List<dynamic>) will need runtime check to cast to type List<RuntimeType>
-    return new RuntimeTypeGeneric(name, arguments, rti);
-                                        ^^^^^^^^^
-warning: line 3321, column 23 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', '#[#]', urisMap, loadId) (dynamic) will need runtime check to cast to type List<String>
-  List<String> uris = JS('JSExtendableArray|Null', '#[#]', urisMap, loadId);
-                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3323, column 25 of dart:_js_helper: [DownCastComposite] JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId) (dynamic) will need runtime check to cast to type List<String>
-  List<String> hashes = JS('JSExtendableArray|Null', '#[#]', hashesMap, loadId);
-                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3333, column 10 of dart:_js_helper: [DownCastComposite] Future.wait(indicesToLoad.map((int i) => _loadHunk(uris[i]))).then((_) {List<int> indicesToInitialize = indices.where((int i) => !JS('bool', '#(#)', isHunkInitialized, hashes[i])).toList(); for (int i in indicesToInitialize) {var initializer = JS_EMBEDDED_GLOBAL('', INITIALIZE_LOADED_HUNK); JS('void', '#(#)', initializer, hashes[i]);} bool updated = _loadedLibraries.add(loadId); if (updated && deferredLoadHook != null) {deferredLoadHook();}}) (Future<dynamic>) will need runtime check to cast to type Future<Null>
-  return Future.wait(indicesToLoad
-         ^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3333, column 22 of dart:_js_helper: [DownCastComposite] indicesToLoad.map((int i) => _loadHunk(uris[i])) (Iterable<dynamic>) will need runtime check to cast to type Iterable<Future<dynamic>>
-  return Future.wait(indicesToLoad
-                     ^^^^^^^^^^^^^^
-warning: line 3356, column 12 of dart:_js_helper: [DownCastComposite] future.then((_) => null) (Future<dynamic>) will need runtime check to cast to type Future<Null>
-    return future.then((_) => null);
-           ^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 3382, column 36 of dart:_js_helper: [DownCastComposite] completer.future.whenComplete(() {leaveJsAsync();}) (Future<dynamic>) will need runtime check to cast to type Future<Null>
-      Future<Null> leavingFuture = completer.future.whenComplete(() {
-                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 20, column 41 of dart:_js_helper/constant_map.dart: [DownCastComposite] _throwUnmodifiable() (dynamic) will need runtime check to cast to type V
-  V putIfAbsent(K key, V ifAbsent()) => _throwUnmodifiable();
-                                        ^^^^^^^^^^^^^^^^^^^^
-warning: line 21, column 27 of dart:_js_helper/constant_map.dart: [DownCastComposite] _throwUnmodifiable() (dynamic) will need runtime check to cast to type V
-  V remove(Object key) => _throwUnmodifiable();
-                          ^^^^^^^^^^^^^^^^^^^^
-warning: line 46, column 40 of dart:_js_helper/constant_map.dart: [DownCastImplicit] key (Object) will need runtime check to cast to type String
-    return jsHasOwnProperty(_jsObject, key);
-                                       ^^^
-warning: line 51, column 12 of dart:_js_helper/constant_map.dart: [DownCastComposite] _fetch(key) (dynamic) will need runtime check to cast to type V
-    return _fetch(key);
-           ^^^^^^^^^^^
-warning: line 64, column 9 of dart:_js_helper/constant_map.dart: [DownCastComposite] key (dynamic) will need runtime check to cast to type K
-      f(key, _fetch(key));
-        ^^^
-warning: line 64, column 14 of dart:_js_helper/constant_map.dart: [DownCastComposite] _fetch(key) (dynamic) will need runtime check to cast to type V
-      f(key, _fetch(key));
-             ^^^^^^^^^^^
-warning: line 81, column 35 of dart:_js_helper/constant_map.dart: [DownCastComposite] keys (dynamic) will need runtime check to cast to type List<K>
-      : super._(length, jsObject, keys);
-                                  ^^^^
-warning: line 88, column 40 of dart:_js_helper/constant_map.dart: [DownCastImplicit] key (Object) will need runtime check to cast to type String
-    return jsHasOwnProperty(_jsObject, key);
-                                       ^^^
-warning: line 119, column 12 of dart:_js_helper/constant_map.dart: [DownCastComposite] JS('Map<K, V>', r'this.$map') (dynamic) will need runtime check to cast to type Map<K, V>
-    return JS('Map<K, V>', r'this.$map');
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 warning: line 108, column 22 of dart:_js_helper/regexp_helper.dart: [DownCastComposite] JS('JSExtendableArray|Null', r'#.exec(#)', _nativeRegExp, checkString(string)) (dynamic) will need runtime check to cast to type List<String>
     List<String> m = JS('JSExtendableArray|Null',
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1003,6 +616,321 @@ warning: line 779, column 39 of dart:collection/splay_tree.dart: [DownCastCompos
 warning: line 791, column 23 of dart:collection/splay_tree.dart: [DownCastComposite] object (Object) will need runtime check to cast to type E
     int comp = _splay(object);
                       ^^^^^^
+warning: line 168, column 14 of dart:isolate: [DownCastComposite] IsolateNatives.spawnFunction(entryPoint, message, paused).then((msg) => new Isolate(msg[1], pauseCapability: msg[2], terminateCapability: msg[3])) (Future<dynamic>) will need runtime check to cast to type Future<Isolate>
+      return IsolateNatives.spawnFunction(entryPoint, message, paused)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 234, column 14 of dart:isolate: [DownCastComposite] IsolateNatives.spawnUri(uri, args, message, paused).then((msg) => new Isolate(msg[1], pauseCapability: msg[2], terminateCapability: msg[3])) (Future<dynamic>) will need runtime check to cast to type Future<Isolate>
+      return IsolateNatives.spawnUri(uri, args, message, paused)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+severe: line 452, column 28 of dart:_native_typed_data: [AnalyzerError] The getter 'length' is not defined for the class 'NativeTypedData'
+        if (length == list.length) {
+                           ^^^^^^
+warning: line 201, column 9 of dart:_native_typed_data: [DownCastImplicit] _storage.sublist(start * 4, end * 4) (List<double>) will need runtime check to cast to type NativeFloat32List
+        _storage.sublist(start * 4, end * 4));
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 311, column 9 of dart:_native_typed_data: [DownCastImplicit] _storage.sublist(start * 4, end * 4) (List<int>) will need runtime check to cast to type Int32List
+        _storage.sublist(start * 4, end * 4));
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 415, column 9 of dart:_native_typed_data: [DownCastImplicit] _storage.sublist(start * 2, end * 2) (List<double>) will need runtime check to cast to type NativeFloat64List
+        _storage.sublist(start * 2, end * 2));
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 1106, column 12 of dart:_native_typed_data: [DownCastImplicit] length == null ? _create2(buffer, offsetInBytes) : _create3(buffer, offsetInBytes, length) (Int8List) will need runtime check to cast to type NativeInt8List
+    return length == null
+           ^^^^^^^^^^^^^^^
+warning: line 576, column 29 of dart:_isolate_helper: [DownCastComposite] doneHandlers (dynamic) will need runtime check to cast to type Iterable<SendPort>
+      for (SendPort port in doneHandlers) {
+                            ^^^^^^^^^^^^
+warning: line 835, column 37 of dart:_isolate_helper: [DownCastComposite] args (dynamic) will need runtime check to cast to type List<String>
+          _startIsolate(entryPoint, args, message,
+                                    ^^^^
+warning: line 882, column 11 of dart:_isolate_helper: [DownCastComposite] msg['args'] (dynamic) will need runtime check to cast to type List<String>
+          msg['args'], msg['msg'],
+          ^^^^^^^^^^^
+warning: line 89, column 38 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] indexable (JSIndexable) will need runtime check to cast to type JSArray<dynamic>
+    List serialized = serializeArray(indexable);
+                                     ^^^^^^^^^
+warning: line 120, column 24 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] serializeTearOff (Function) will need runtime check to cast to type (dynamic) → dynamic
+            x.keys.map(serializeTearOff).toList(),
+                       ^^^^^^^^^^^^^^^^
+warning: line 121, column 26 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] serializeTearOff (Function) will need runtime check to cast to type (dynamic) → dynamic
+            x.values.map(serializeTearOff).toList()];
+                         ^^^^^^^^^^^^^^^^
+warning: line 172, column 52 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] fields (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
+    return ['dart', classId, serializeArrayInPlace(fields)];
+                                                   ^^^^^^
+warning: line 250, column 58 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] result (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
+    return new JSArray.markFixed(deserializeArrayInPlace(result));
+                                                         ^^^^^^
+warning: line 258, column 61 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] result (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
+    return new JSArray.markGrowable(deserializeArrayInPlace(result));
+                                                            ^^^^^^
+warning: line 266, column 36 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] result (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
+    return deserializeArrayInPlace(result);
+                                   ^^^^^^
+warning: line 275, column 58 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] result (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
+    return new JSArray.markFixed(deserializeArrayInPlace(result));
+                                                         ^^^^^^
+warning: line 357, column 29 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] fields (List<dynamic>) will need runtime check to cast to type JSArray<dynamic>
+    deserializeArrayInPlace(fields);
+                            ^^^^^^
+warning: line 20, column 39 of dart:async/async_error.dart: [DownCastImplicit] errorHandler (Function) will need runtime check to cast to type (dynamic) → dynamic
+    return zone.registerUnaryCallback(errorHandler);
+                                      ^^^^^^^^^^^^
+severe: line 211, column 38 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
+      assert(!identical(subscription._next, subscription));
+                                     ^^^^^
+severe: line 207, column 36 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
+    assert(!identical(subscription._next, subscription));
+                                   ^^^^^
+severe: line 209, column 20 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The method '_setRemoveAfterFiring' is not defined for the class 'StreamSubscription<T>'
+      subscription._setRemoveAfterFiring();
+                   ^^^^^^^^^^^^^^^^^^^^^
+severe: line 208, column 22 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_isFiring' is not defined for the class 'StreamSubscription<T>'
+    if (subscription._isFiring) {
+                     ^^^^^^^^^
+severe: line 206, column 32 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
+    if (identical(subscription._next, subscription)) return null;
+                               ^^^^^
+warning: line 8, column 67 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] controller (_StreamControllerLifecycle<dynamic>) will need runtime check to cast to type _StreamControllerLifecycle<T>
+  _BroadcastStream(_StreamControllerLifecycle controller) : super(controller);
+                                                                  ^^^^^^^^^^
+warning: line 36, column 15 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] controller (_StreamControllerLifecycle<dynamic>) will need runtime check to cast to type _StreamControllerLifecycle<T>
+      : super(controller, onData, onError, onDone, cancelOnError) {
+              ^^^^^^^^^^
+warning: line 40, column 52 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] super._controller (_StreamControllerLifecycle<T>) will need runtime check to cast to type _BroadcastStreamController<T>
+  _BroadcastStreamController<T> get _controller => super._controller;
+                                                   ^^^^^^^^^^^^^^^^^
+warning: line 196, column 18 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] subscription (StreamSubscription<dynamic>) will need runtime check to cast to type _BroadcastSubscription<T>
+    _addListener(subscription);
+                 ^^^^^^^^^^^^
+warning: line 201, column 12 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] subscription (StreamSubscription<dynamic>) will need runtime check to cast to type StreamSubscription<T>
+    return subscription;
+           ^^^^^^^^^^^^
+warning: line 212, column 23 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] subscription (StreamSubscription<T>) will need runtime check to cast to type _BroadcastSubscription<T>
+      _removeListener(subscription);
+                      ^^^^^^^^^^^^
+warning: line 309, column 48 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] link (_BroadcastSubscriptionLink) will need runtime check to cast to type _BroadcastSubscription<T>
+      _BroadcastSubscription<T> subscription = link;
+                                               ^^^^
+warning: line 372, column 24 of dart:async/broadcast_stream_controller.dart: [UninferredClosure] (_BroadcastSubscription<T> subscription) {subscription._close();} ((_BroadcastSubscription<T>) → dynamic) will need runtime check to cast to type (_BufferingStreamSubscription<T>) → void
+      _forEachListener((_BroadcastSubscription<T> subscription) {
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 393, column 48 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] link (_BroadcastSubscriptionLink) will need runtime check to cast to type _BroadcastSubscription<T>
+      _BroadcastSubscription<T> subscription = link;
+                                               ^^^^
+warning: line 402, column 48 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] link (_BroadcastSubscriptionLink) will need runtime check to cast to type _BroadcastSubscription<T>
+      _BroadcastSubscription<T> subscription = link;
+                                               ^^^^
+warning: line 412, column 50 of dart:async/broadcast_stream_controller.dart: [DownCastComposite] link (_BroadcastSubscriptionLink) will need runtime check to cast to type _BroadcastSubscription<T>
+        _BroadcastSubscription<T> subscription = link;
+                                                 ^^^^
+warning: line 123, column 12 of dart:async/future.dart: [DownCastComposite] result (_Future<dynamic>) will need runtime check to cast to type Future<T>
+    return result;
+           ^^^^^^
+warning: line 149, column 12 of dart:async/future.dart: [DownCastComposite] result (_Future<dynamic>) will need runtime check to cast to type Future<T>
+    return result;
+           ^^^^^^
+warning: line 233, column 12 of dart:async/future.dart: [DownCastComposite] result (_Future<dynamic>) will need runtime check to cast to type Future<T>
+    return result;
+           ^^^^^^
+warning: line 112, column 12 of dart:async/future_impl.dart: [DownCastImplicit] callback (Function) will need runtime check to cast to type (dynamic) → dynamic
+    return callback;
+           ^^^^^^^^
+warning: line 117, column 12 of dart:async/future_impl.dart: [DownCastComposite] callback (Function) will need runtime check to cast to type (dynamic) → bool
+    return callback;
+           ^^^^^^^^
+warning: line 121, column 12 of dart:async/future_impl.dart: [DownCastImplicit] callback (Function) will need runtime check to cast to type () → dynamic
+    return callback;
+           ^^^^^^^^
+warning: line 208, column 11 of dart:async/future_impl.dart: [DownCastComposite] result._zone.registerUnaryCallback(f) ((dynamic) → dynamic) will need runtime check to cast to type (T) → dynamic
+      f = result._zone.registerUnaryCallback(f);
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 221, column 32 of dart:async/future_impl.dart: [DownCastComposite] result._zone.registerUnaryCallback(test) ((dynamic) → dynamic) will need runtime check to cast to type (dynamic) → bool
+      if (test != null) test = result._zone.registerUnaryCallback(test);
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 233, column 12 of dart:async/future_impl.dart: [DownCastComposite] result (_Future<dynamic>) will need runtime check to cast to type Future<T>
+    return result;
+           ^^^^^^
+warning: line 245, column 12 of dart:async/future_impl.dart: [DownCastComposite] _resultOrListeners (dynamic) will need runtime check to cast to type T
+    return _resultOrListeners;
+           ^^^^^^^^^^^^^^^^^^
+warning: line 347, column 17 of dart:async/future_impl.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type T
+      _setValue(value);
+                ^^^^^
+warning: line 357, column 15 of dart:async/future_impl.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type T
+    _setValue(value);
+              ^^^^^
+warning: line 386, column 31 of dart:async/future_impl.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type Future<T>
+      Future<T> typedFuture = value;
+                              ^^^^^
+warning: line 388, column 33 of dart:async/future_impl.dart: [DownCastComposite] typedFuture (Future<T>) will need runtime check to cast to type _Future<T>
+        _Future<T> coreFuture = typedFuture;
+                                ^^^^^^^^^^^
+warning: line 407, column 22 of dart:async/future_impl.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type T
+      T typedValue = value;
+                     ^^^^^
+warning: line 515, column 54 of dart:async/future_impl.dart: [DownCastImplicit] errorCallback (Function) will need runtime check to cast to type (dynamic) → dynamic
+                listenerValueOrError = zone.runUnary(errorCallback,
+                                                     ^^^^^^^^^^^^^
+warning: line 66, column 61 of dart:async/schedule_microtask.dart: [DownCastComposite] callback (dynamic) will need runtime check to cast to type () → void
+    _nextCallback = _lastCallback = new _AsyncCallbackEntry(callback);
+                                                            ^^^^^^^^
+warning: line 71, column 60 of dart:async/schedule_microtask.dart: [DownCastComposite] callback (dynamic) will need runtime check to cast to type () → void
+    _AsyncCallbackEntry newEntry = new _AsyncCallbackEntry(callback);
+                                                           ^^^^^^^^
+warning: line 84, column 55 of dart:async/schedule_microtask.dart: [DownCastComposite] callback (dynamic) will need runtime check to cast to type () → void
+  _AsyncCallbackEntry entry = new _AsyncCallbackEntry(callback);
+                                                      ^^^^^^^^
+severe: line 321, column 34 of dart:async/stream.dart: [AnalyzerError] The getter '_addError' is not defined for the class 'StreamController'
+      final addError = eventSink._addError;
+                                 ^^^^^^^^^
+severe: line 1227, column 17 of dart:async/stream.dart: [AnalyzerError] The method '_addError' is not defined for the class 'StreamController'
+      eventSink._addError(error, stackTrace);  // Avoid Zone error replacement.
+                ^^^^^^^^^
+severe: line 396, column 30 of dart:async/stream.dart: [AnalyzerError] The getter '_addError' is not defined for the class 'StreamController'
+          onError: eventSink._addError,  // Avoid Zone error replacement.
+                             ^^^^^^^^^
+warning: line 90, column 25 of dart:async/stream.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type T
+        controller._add(value);
+                        ^^^^^
+warning: line 217, column 41 of dart:async/stream.dart: [DownCastComposite] mapSink ((EventSink<T>) → EventSink<dynamic>) will need runtime check to cast to type (EventSink<dynamic>) → EventSink
+    return new _BoundSinkStream(source, mapSink);
+                                        ^^^^^^^
+warning: line 249, column 44 of dart:async/stream.dart: [DownCastComposite] onListen ((StreamSubscription<T>) → void) will need runtime check to cast to type (StreamSubscription<dynamic>) → void
+    return new _AsBroadcastStream<T>(this, onListen, onCancel);
+                                           ^^^^^^^^
+warning: line 249, column 54 of dart:async/stream.dart: [DownCastComposite] onCancel ((StreamSubscription<T>) → void) will need runtime check to cast to type (StreamSubscription<dynamic>) → void
+    return new _AsBroadcastStream<T>(this, onListen, onCancel);
+                                                     ^^^^^^^^
+warning: line 502, column 24 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, result) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
+                       _cancelAndErrorClosure(subscription, result));
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 535, column 11 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, result) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
+          _cancelAndErrorClosure(subscription, result)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 603, column 13 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
+            _cancelAndErrorClosure(subscription, future)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 629, column 13 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
+            _cancelAndErrorClosure(subscription, future)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 658, column 13 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
+            _cancelAndErrorClosure(subscription, future)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 695, column 13 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
+            _cancelAndErrorClosure(subscription, future)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 1037, column 11 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
+          _cancelAndErrorClosure(subscription, future)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 1078, column 11 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
+          _cancelAndErrorClosure(subscription, future)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 1130, column 11 of dart:async/stream.dart: [DownCastComposite] _cancelAndErrorClosure(subscription, future) (dynamic) will need runtime check to cast to type (dynamic, StackTrace) → dynamic
+          _cancelAndErrorClosure(subscription, future)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 1220, column 43 of dart:async/stream.dart: [DownCastComposite] timeout (Function) will need runtime check to cast to type () → void
+      timer = zone.createTimer(timeLimit, timeout);
+                                          ^^^^^^^
+warning: line 1228, column 43 of dart:async/stream.dart: [DownCastComposite] timeout (Function) will need runtime check to cast to type () → void
+      timer = zone.createTimer(timeLimit, timeout);
+                                          ^^^^^^^
+warning: line 1246, column 21 of dart:async/stream.dart: [DownCastComposite] zone.registerUnaryCallback(onTimeout) ((dynamic) → dynamic) will need runtime check to cast to type (EventSink<dynamic>) → void
+        onTimeout = zone.registerUnaryCallback(onTimeout);
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 1257, column 43 of dart:async/stream.dart: [DownCastComposite] timeout (Function) will need runtime check to cast to type () → void
+      timer = zone.createTimer(timeLimit, timeout);
+                                          ^^^^^^^
+warning: line 1276, column 53 of dart:async/stream.dart: [DownCastComposite] timeout (Function) will need runtime check to cast to type () → void
+                timer = zone.createTimer(timeLimit, timeout);
+                                                    ^^^^^^^
+warning: line 83, column 14 of dart:async/stream_controller.dart: [DownCastComposite] sync ? new _NoCallbackSyncStreamController() : new _NoCallbackAsyncStreamController() (_StreamController<dynamic>) will need runtime check to cast to type StreamController<T>
+      return sync
+             ^^^^^
+warning: line 516, column 12 of dart:async/stream_controller.dart: [DownCastComposite] subscription (_ControllerSubscription<dynamic>) will need runtime check to cast to type StreamSubscription<T>
+    return subscription;
+           ^^^^^^^^^^^^
+warning: line 798, column 15 of dart:async/stream_controller.dart: [DownCastComposite] controller (_StreamController<dynamic>) will need runtime check to cast to type _EventSink<T>
+      : super(controller, source, cancelOnError) {
+              ^^^^^^^^^^
+warning: line 153, column 42 of dart:async/stream_impl.dart: [DownCastComposite] _nullDataHandler ((dynamic) → void) will need runtime check to cast to type (T) → void
+    if (handleData == null) handleData = _nullDataHandler;
+                                         ^^^^^^^^^^^^^^^^
+warning: line 154, column 15 of dart:async/stream_impl.dart: [DownCastComposite] _zone.registerUnaryCallback(handleData) ((dynamic) → dynamic) will need runtime check to cast to type (T) → void
+    _onData = _zone.registerUnaryCallback(handleData);
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 358, column 32 of dart:async/stream_impl.dart: [DownCastImplicit] _onError (Function) will need runtime check to cast to type (dynamic, dynamic) → dynamic
+        _zone.runBinaryGuarded(_onError, error, stackTrace);
+                               ^^^^^^^^
+warning: line 360, column 31 of dart:async/stream_impl.dart: [DownCastImplicit] _onError (Function) will need runtime check to cast to type (dynamic) → dynamic
+        _zone.runUnaryGuarded(_onError, error);
+                              ^^^^^^^^
+warning: line 476, column 12 of dart:async/stream_impl.dart: [DownCastComposite] subscription (StreamSubscription<dynamic>) will need runtime check to cast to type StreamSubscription<T>
+    return subscription;
+           ^^^^^^^^^^^^
+warning: line 515, column 12 of dart:async/stream_impl.dart: [DownCastComposite] new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError).._setPendingEvents(_pending()) (_BufferingStreamSubscription<dynamic>) will need runtime check to cast to type StreamSubscription<T>
+    return new _BufferingStreamSubscription(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 813, column 28 of dart:async/stream_impl.dart: [DownCastComposite] Zone.current.registerUnaryCallback(onListenHandler) ((dynamic) → dynamic) will need runtime check to cast to type (StreamSubscription<dynamic>) → void
+      : _onListenHandler = Zone.current.registerUnaryCallback(onListenHandler),
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 814, column 28 of dart:async/stream_impl.dart: [DownCastComposite] Zone.current.registerUnaryCallback(onCancelHandler) ((dynamic) → dynamic) will need runtime check to cast to type (StreamSubscription<dynamic>) → void
+        _onCancelHandler = Zone.current.registerUnaryCallback(onCancelHandler),
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 1000, column 14 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type Future<bool>
+      return _futureOrPrefetch;
+             ^^^^^^^^^^^^^^^^^
+warning: line 1006, column 22 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type T
+          _current = _futureOrPrefetch;
+                     ^^^^^^^^^^^^^^^^^
+warning: line 1033, column 31 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type _Future<bool>
+      _Future<bool> hasNext = _futureOrPrefetch;
+                              ^^^^^^^^^^^^^^^^^
+warning: line 1045, column 31 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type _Future<bool>
+      _Future<bool> hasNext = _futureOrPrefetch;
+                              ^^^^^^^^^^^^^^^^^
+warning: line 1059, column 31 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type _Future<bool>
+      _Future<bool> hasNext = _futureOrPrefetch;
+                              ^^^^^^^^^^^^^^^^^
+warning: line 1073, column 31 of dart:async/stream_impl.dart: [DownCastComposite] _futureOrPrefetch (dynamic) will need runtime check to cast to type _Future<bool>
+      _Future<bool> hasNext = _futureOrPrefetch;
+                              ^^^^^^^^^^^^^^^^^
+warning: line 104, column 15 of dart:async/stream_pipe.dart: [DownCastComposite] outputData (dynamic) will need runtime check to cast to type T
+    sink._add(outputData);
+              ^^^^^^^^^^
+warning: line 235, column 21 of dart:async/stream_pipe.dart: [DownCastComposite] _transform(inputEvent) (dynamic) will need runtime check to cast to type T
+      outputEvent = _transform(inputEvent);
+                    ^^^^^^^^^^^^^^^^^^^^^^
+warning: line 426, column 29 of dart:async/stream_pipe.dart: [DownCastComposite] _previous (Object) will need runtime check to cast to type T
+          isEqual = _equals(_previous, inputEvent);
+                            ^^^^^^^^^
+warning: line 187, column 18 of dart:async/stream_transformers.dart: [DownCastComposite] _sinkMapper ((EventSink<T>) → EventSink<S>) will need runtime check to cast to type (EventSink<dynamic>) → EventSink
+        _stream, _sinkMapper, onData, onError, onDone, cancelOnError);
+                 ^^^^^^^^^^^
+warning: line 233, column 15 of dart:async/stream_transformers.dart: [UninferredClosure] (EventSink<T> outputSink) {if (handleData == null) handleData = _defaultHandleData; if (handleError == null) handleError = _defaultHandleError; if (handleDone == null) handleDone = _defaultHandleDone; return new _HandlerEventSink<S, T>(handleData, handleError, handleDone, outputSink);} ((EventSink<T>) → dynamic) will need runtime check to cast to type (EventSink<T>) → EventSink<S>
+      : super((EventSink<T> outputSink) {
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 234, column 48 of dart:async/stream_transformers.dart: [DownCastComposite] _defaultHandleData ((dynamic, EventSink<dynamic>) → void) will need runtime check to cast to type (S, EventSink<T>) → void
+          if (handleData == null) handleData = _defaultHandleData;
+                                               ^^^^^^^^^^^^^^^^^^
+warning: line 235, column 50 of dart:async/stream_transformers.dart: [DownCastComposite] _defaultHandleError ((dynamic, StackTrace, EventSink<dynamic>) → void) will need runtime check to cast to type (Object, StackTrace, EventSink<T>) → void
+          if (handleError == null) handleError = _defaultHandleError;
+                                                 ^^^^^^^^^^^^^^^^^^^
+warning: line 80, column 19 of dart:async/timer.dart: [DownCastComposite] Zone.current.bindUnaryCallback(callback, runGuarded: true) ((dynamic) → dynamic) will need runtime check to cast to type (Timer) → void
+        duration, Zone.current.bindUnaryCallback(callback, runGuarded: true));
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 845, column 57 of dart:async/zone.dart: [DownCastImplicit] implementationZone (Zone) will need runtime check to cast to type _Zone
+    final ZoneDelegate parentDelegate = _parentDelegate(implementationZone);
+                                                        ^^^^^^^^^^^^^^^^^^
+warning: line 962, column 16 of dart:async/zone.dart: [DownCastComposite] zone.bindUnaryCallback(callback) ((dynamic) → dynamic) will need runtime check to cast to type (Timer) → void
+    callback = zone.bindUnaryCallback(callback);
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+warning: line 999, column 26 of dart:async/zone.dart: [DownCastImplicit] zone (Zone) will need runtime check to cast to type _Zone
+  return new _CustomZone(zone, specification, valueMap);
+                         ^^^^
+warning: line 1228, column 37 of dart:async/zone.dart: [DownCastImplicit] onError (Function) will need runtime check to cast to type (dynamic) → dynamic
+        return self.parent.runUnary(onError, error);
+                                    ^^^^^^^
 warning: line 176, column 45 of dart:convert: [DownCastImplicit] key (Object) will need runtime check to cast to type String
       var result = _getProperty(_processed, key);
                                             ^^^

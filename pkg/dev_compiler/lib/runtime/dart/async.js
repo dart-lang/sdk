@@ -1,10 +1,10 @@
 var async = dart.defineLibrary(async, {});
 var core = dart.import(core);
 var _internal = dart.import(_internal);
-var _js_helper = dart.lazyImport(_js_helper);
 var _isolate_helper = dart.lazyImport(_isolate_helper);
+var _js_helper = dart.import(_js_helper);
 var collection = dart.import(collection);
-(function(exports, core, _internal, _js_helper, _isolate_helper, collection) {
+(function(exports, core, _internal, _isolate_helper, _js_helper, collection) {
   'use strict';
   function _invokeErrorHandler(errorHandler, error, stackTrace) {
     if (dart.is(errorHandler, ZoneBinaryCallback)) {
@@ -2769,7 +2769,6 @@ var collection = dart.import(collection);
       dart.dcall(_AsyncRun.scheduleImmediateClosure, callback);
     }
     static _initializeScheduleImmediate() {
-      _js_helper.requiresPreamble();
       if (self.scheduleImmediate != null) {
         return _AsyncRun._scheduleImmediateJsOverride;
       }
@@ -5907,4 +5906,4 @@ var collection = dart.import(collection);
   exports.ZoneDelegate = ZoneDelegate;
   exports.Zone = Zone;
   exports.runZoned = runZoned;
-})(async, core, _internal, _js_helper, _isolate_helper, collection);
+})(async, core, _internal, _isolate_helper, _js_helper, collection);

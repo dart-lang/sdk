@@ -1,8 +1,8 @@
 var _isolate_helper = dart.defineLibrary(_isolate_helper, {});
 var core = dart.import(core);
 var _native_typed_data = dart.import(_native_typed_data);
-var _interceptors = dart.lazyImport(_interceptors);
-var _js_helper = dart.lazyImport(_js_helper);
+var _interceptors = dart.import(_interceptors);
+var _js_helper = dart.import(_js_helper);
 var isolate = dart.import(isolate);
 var _foreign_helper = dart.import(_foreign_helper);
 var _js_embedded_names = dart.import(_js_embedded_names);
@@ -63,8 +63,8 @@ var async = dart.import(async);
         return this.serializeJsSendPort(dart.as(x, _NativeJsSendPort));
       if (dart.is(x, _WorkerSendPort))
         return this.serializeWorkerSendPort(dart.as(x, _WorkerSendPort));
-      if (dart.is(x, _js_helper.Closure))
-        return this.serializeClosure(dart.as(x, _js_helper.Closure));
+      if (dart.is(x, core.Function))
+        return this.serializeClosure(dart.as(x, core.Function));
       return this.serializeDartObject(x);
     }
     unsupported(x, message) {
@@ -182,7 +182,7 @@ var async = dart.import(async);
       serializeWorkerSendPort: [core.Object, [_WorkerSendPort]],
       serializeJsSendPort: [core.Object, [_NativeJsSendPort]],
       serializeCapability: [core.Object, [CapabilityImpl]],
-      serializeClosure: [core.Object, [_js_helper.Closure]],
+      serializeClosure: [core.Object, [core.Function]],
       serializeDartObject: [core.Object, [core.Object]]
     })
   });
@@ -915,7 +915,6 @@ var async = dart.import(async);
   });
   class _MainManagerStub extends core.Object {
     postMessage(msg) {
-      _js_helper.requiresPreamble();
       self.postMessage(msg);
     }
   }
@@ -926,15 +925,12 @@ var async = dart.import(async);
   let _SPAWN_FAILED_SIGNAL = "spawn failed";
   dart.copyProperties(exports, {
     get globalWindow() {
-      _js_helper.requiresPreamble();
       return self.window;
     },
     get globalWorker() {
-      _js_helper.requiresPreamble();
       return self.Worker;
     },
     get globalPostMessageDefined() {
-      _js_helper.requiresPreamble();
       return !!self.postMessage;
     }
   });
@@ -1074,7 +1070,6 @@ var async = dart.import(async);
       }
     }
     static _consoleLog(msg) {
-      _js_helper.requiresPreamble();
       self.console.log(msg);
     }
     static _getJSFunctionFromName(functionName) {
@@ -1082,7 +1077,7 @@ var async = dart.import(async);
       return globalFunctionsContainer[functionName]();
     }
     static _getJSFunctionName(f) {
-      return dart.is(f, _js_helper.Closure) ? dart.as(f.$name, core.String) : null;
+      return dart.as(f.$name, core.String);
     }
     static _allocate(ctor) {
       return new ctor();
@@ -1512,7 +1507,6 @@ var async = dart.import(async);
     methods: () => ({cancel: [dart.void, []]})
   });
   function hasTimer() {
-    _js_helper.requiresPreamble();
     return self.setTimeout != null;
   }
   dart.fn(hasTimer, core.bool, []);

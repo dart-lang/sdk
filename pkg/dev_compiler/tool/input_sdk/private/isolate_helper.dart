@@ -18,13 +18,11 @@ import 'dart:isolate';
 import 'dart:_native_typed_data' show NativeByteBuffer, NativeTypedData;
 
 import 'dart:_js_helper' show
-    Closure,
     InternalMap,
     Null,
     Primitives,
     convertDartClosureToJS,
-    random64,
-    requiresPreamble;
+    random64;
 
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
@@ -706,7 +704,6 @@ class _MainManagerStub {
     //
     // See: http://www.w3.org/TR/workers/#the-global-scope
     // and: http://www.w3.org/TR/Window/#dfn-self-attribute
-    requiresPreamble();
     JS("void", r"self.postMessage(#)", msg);
   }
 }
@@ -715,16 +712,13 @@ const String _SPAWNED_SIGNAL = "spawned";
 const String _SPAWN_FAILED_SIGNAL = "spawn failed";
 
 get globalWindow {
-  requiresPreamble();
   return JS('', "self.window");
 }
 
 get globalWorker {
-  requiresPreamble();
   return JS('', "self.Worker");
 }
 bool get globalPostMessageDefined {
-  requiresPreamble();
   return JS('bool', "!!self.postMessage");
 }
 
@@ -908,7 +902,6 @@ class IsolateNatives {
   }
 
   static void _consoleLog(msg) {
-    requiresPreamble();
     JS("void", r"self.console.log(#)", msg);
   }
 
@@ -923,7 +916,7 @@ class IsolateNatives {
    * but you should probably not count on this.
    */
   static String _getJSFunctionName(Function f) {
-    return (f is Closure) ? JS("String|Null", r'#.$name', f) : null;
+    return JS("String|Null", r'#.$name', f);
   }
 
   /** Create a new JavaScript object instance given its constructor. */
@@ -1417,7 +1410,6 @@ class TimerImpl implements Timer {
 }
 
 bool hasTimer() {
-  requiresPreamble();
   return JS('', 'self.setTimeout') != null;
 }
 

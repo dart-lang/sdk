@@ -514,7 +514,6 @@ const corelibOrder = const [
   'dart.async',
   'dart._foreign_helper',
   'dart._js_embedded_names',
-  'dart._js_names',
   'dart._js_helper',
   'dart.isolate',
   'dart.typed_data',

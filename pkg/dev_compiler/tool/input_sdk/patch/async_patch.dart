@@ -7,8 +7,7 @@
 import 'dart:_js_helper' show
     patch,
     Primitives,
-    convertDartClosureToJS,
-    requiresPreamble;
+    convertDartClosureToJS;
 import 'dart:_isolate_helper' show
     IsolateNatives,
     TimerImpl,
@@ -30,7 +29,6 @@ class _AsyncRun {
       _initializeScheduleImmediate();
 
   static Function _initializeScheduleImmediate() {
-    requiresPreamble();
     if (JS('', 'self.scheduleImmediate') != null) {
       return _scheduleImmediateJsOverride;
     }

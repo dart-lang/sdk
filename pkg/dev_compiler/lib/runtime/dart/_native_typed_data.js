@@ -4,7 +4,7 @@ var typed_data = dart.import(typed_data);
 var collection = dart.import(collection);
 var _internal = dart.import(_internal);
 var _interceptors = dart.lazyImport(_interceptors);
-var _js_helper = dart.lazyImport(_js_helper);
+var _js_helper = dart.import(_js_helper);
 var math = dart.import(math);
 (function(exports, core, typed_data, collection, _internal, _interceptors, _js_helper, math) {
   'use strict';
