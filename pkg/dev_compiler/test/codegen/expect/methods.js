@@ -1,6 +1,7 @@
-var methods = dart.defineLibrary(methods, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('methods', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   let _c = Symbol('_c');
   class A extends core.Object {
@@ -79,4 +80,4 @@ var core = dart.import(core);
   exports.Bar = Bar;
   exports.Foo = Foo;
   exports.test = test;
-})(methods, core);
+});

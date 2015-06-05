@@ -1,6 +1,7 @@
-var _js_primitives = dart.defineLibrary(_js_primitives, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('dart/_js_primitives', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   function printString(string) {
     if (typeof dartPrint == "function") {
@@ -23,4 +24,4 @@ var core = dart.import(core);
   dart.fn(printString, dart.void, [core.String]);
   // Exports:
   exports.printString = printString;
-})(_js_primitives, core);
+});

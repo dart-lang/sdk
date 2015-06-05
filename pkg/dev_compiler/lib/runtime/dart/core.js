@@ -1,10 +1,11 @@
-var core = dart.defineLibrary(core, {});
-var _js_helper = dart.lazyImport(_js_helper);
-var _internal = dart.lazyImport(_internal);
-var collection = dart.lazyImport(collection);
-var _interceptors = dart.lazyImport(_interceptors);
-var convert = dart.lazyImport(convert);
-(function(exports, _js_helper, _internal, collection, _interceptors, convert) {
+dart.library('dart/core', null, /* Imports */[
+], /* Lazy imports */[
+  'dart/_js_helper',
+  'dart/_internal',
+  'dart/collection',
+  'dart/_interceptors',
+  'dart/convert'
+], function(exports, _js_helper, _internal, collection, _interceptors, convert) {
   'use strict';
   class Object {
     constructor() {
@@ -3363,4 +3364,4 @@ var convert = dart.lazyImport(convert);
   exports.Symbol = Symbol;
   exports.Type = Type;
   exports.Uri = Uri;
-})(core, _js_helper, _internal, collection, _interceptors, convert);
+});

@@ -1,6 +1,7 @@
-var temps = dart.defineLibrary(temps, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('temps', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   let _x = Symbol('_x');
   let __x = Symbol('__x');
@@ -44,4 +45,4 @@ var core = dart.import(core);
   exports.FormalCollision = FormalCollision;
   exports.OptionalArg = OptionalArg;
   exports.main = main;
-})(temps, core);
+});

@@ -1,7 +1,8 @@
-var map_keys = dart.defineLibrary(map_keys, {});
-var core = dart.import(core);
-var math = dart.import(math);
-(function(exports, core, math) {
+dart.library('map_keys', null, /* Imports */[
+  'dart/core',
+  'dart/math'
+], /* Lazy imports */[
+], function(exports, core, math) {
   'use strict';
   function main() {
     core.print(dart.map({'1': 2, '3': 4, '5': 6}));
@@ -14,5 +15,5 @@ var math = dart.import(math);
   dart.fn(main);
   // Exports:
   exports.main = main;
-})(map_keys, core, math);
+});
 //# sourceMappingURL=map_keys.js.map

@@ -1,9 +1,10 @@
-var collection = dart.defineLibrary(collection, {});
-var _internal = dart.lazyImport(_internal);
-var core = dart.import(core);
-var _js_helper = dart.lazyImport(_js_helper);
-var math = dart.lazyImport(math);
-(function(exports, _internal, core, _js_helper, math) {
+dart.library('dart/collection', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+  'dart/_internal',
+  'dart/_js_helper',
+  'dart/math'
+], function(exports, core, _internal, _js_helper, math) {
   'use strict';
   let _source = Symbol('_source');
   let UnmodifiableListView$ = dart.generic(function(E) {
@@ -6015,4 +6016,4 @@ var math = dart.lazyImport(math);
   exports.LinkedHashSetCell = LinkedHashSetCell;
   exports.LinkedHashSetIterator$ = LinkedHashSetIterator$;
   exports.LinkedHashSetIterator = LinkedHashSetIterator;
-})(collection, _internal, core, _js_helper, math);
+});

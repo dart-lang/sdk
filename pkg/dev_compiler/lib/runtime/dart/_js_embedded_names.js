@@ -1,5 +1,6 @@
-var _js_embedded_names = dart.defineLibrary(_js_embedded_names, {});
-(function(exports) {
+dart.library('dart/_js_embedded_names', null, /* Imports */[
+], /* Lazy imports */[
+], function(exports) {
   'use strict';
   let DISPATCH_PROPERTY_NAME = "dispatchPropertyName";
   let TYPE_INFORMATION = 'typeInformation';
@@ -64,4 +65,4 @@ var _js_embedded_names = dart.defineLibrary(_js_embedded_names, {});
   exports.TYPEDEF_PREDICATE_PROPERTY_NAME = TYPEDEF_PREDICATE_PROPERTY_NAME;
   exports.NATIVE_SUPERCLASS_TAG_NAME = NATIVE_SUPERCLASS_TAG_NAME;
   exports.MAP_TYPE_TO_INTERCEPTOR = MAP_TYPE_TO_INTERCEPTOR;
-})(_js_embedded_names);
+});

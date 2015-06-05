@@ -1,10 +1,11 @@
-var convert = dart.defineLibrary(convert, {});
-var core = dart.import(core);
-var async = dart.import(async);
-var typed_data = dart.import(typed_data);
-var _internal = dart.import(_internal);
-var collection = dart.import(collection);
-(function(exports, core, async, typed_data, _internal, collection) {
+dart.library('dart/convert', null, /* Imports */[
+  'dart/core',
+  'dart/async',
+  'dart/typed_data',
+  'dart/_internal',
+  'dart/collection'
+], /* Lazy imports */[
+], function(exports, core, async, typed_data, _internal, collection) {
   'use strict';
   let Codec$ = dart.generic(function(S, T) {
     class Codec extends core.Object {
@@ -2897,4 +2898,4 @@ var collection = dart.import(collection);
   exports.UTF8 = UTF8;
   exports.Utf8Encoder = Utf8Encoder;
   exports.Utf8Decoder = Utf8Decoder;
-})(convert, core, async, typed_data, _internal, collection);
+});

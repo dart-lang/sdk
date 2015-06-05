@@ -1,6 +1,7 @@
-var misc = dart.defineLibrary(misc, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('misc', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   class _Uninitialized extends core.Object {
     _Uninitialized() {
@@ -34,4 +35,4 @@ var core = dart.import(core);
   exports.Generic$ = Generic$;
   exports.Generic = Generic;
   exports.main = main;
-})(misc, core);
+});

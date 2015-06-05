@@ -55,6 +55,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   final TypeRules rules;
   final LibraryInfo libraryInfo;
 
+  /// Entry point uri
+  final Uri root;
+
   /// The global extension type table.
   final HashSet<ClassElement> _extensionTypes;
 
@@ -92,7 +95,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       this._extensionTypes, this._fieldsNeedingStorage)
       : compiler = compiler,
         options = compiler.options,
-        rules = compiler.rules {
+        rules = compiler.rules,
+        root = compiler.entryPointUri {
     _loader = new ModuleItemLoadOrder(_emitModuleItem);
   }
 
@@ -113,7 +117,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         jsDefaultValue = getConstantField(jsName, 'name', types.stringType);
       }
     }
-    if (jsDefaultValue == null) jsDefaultValue = '{}';
 
     // TODO(jmesserly): visit scriptTag, directives?
 
@@ -161,34 +164,46 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       _moduleItems.add(js.statement('#.# = #;', [_exportsVar, name, name]));
     }
 
-    var name = new JS.Identifier(jsLibraryName(currentLibrary));
+    var jsPath = js.string(jsOutputBase(currentLibrary, root), "'");
 
     // TODO(jmesserly): it would be great to run the renamer on the body,
     // then figure out if we really need each of these parameters.
     // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
-    var program = [
-      js.statement('var # = dart.defineLibrary(#, #);', [
-        name,
-        name,
-        js.call(jsDefaultValue)
-      ])
-    ];
-
     var params = [_exportsVar];
-    var args = [name];
-    _imports.forEach((library, temp) {
-      var name = new JS.Identifier(temp.name);
+    var processImport = (LibraryElement library, JS.TemporaryId temp,
+        List list) {
       params.add(temp);
-      args.add(name);
-      var helper = _loader.libraryIsLoaded(library) ? 'import' : 'lazyImport';
-      program.add(js.statement('var # = dart.#(#);', [name, helper, name]));
+      list.add(js.string(jsOutputBase(library, root), "'"));
+    };
+
+    var imports = [];
+    _imports.forEach((library, temp) {
+      if (_loader.libraryIsLoaded(library)) {
+        processImport(library, temp, imports);
+      }
     });
 
-    program.add(js.statement("(function(#) { 'use strict'; #; })(#);", [
-      params,
-      _moduleItems,
-      args
-    ]));
+    var lazyImports = [];
+    _imports.forEach((library, temp) {
+      if (!_loader.libraryIsLoaded(library)) {
+        processImport(library, temp, lazyImports);
+      }
+    });
+
+    var module =
+        js.call("function(#) { 'use strict'; #; }", [params, _moduleItems]);
+
+    var program = [
+      js.statement("dart.library(#, #, #, #, #)", [
+        jsPath,
+        jsDefaultValue != null ? jsDefaultValue : new JS.LiteralNull(),
+        js.commentExpression(
+            "Imports", new JS.ArrayInitializer(imports, multiline: true)),
+        js.commentExpression("Lazy imports",
+            new JS.ArrayInitializer(lazyImports, multiline: true)),
+        module
+      ])
+    ];
 
     return new JS.Program(program);
   }
@@ -2685,7 +2700,7 @@ class JSGenerator extends CodeGenerator {
     var fields = findFieldsNeedingStorage(unit);
     var codegen = new JSCodegenVisitor(compiler, info, _extensionTypes, fields);
     var module = codegen.emitLibrary(unit);
-    var dir = path.join(outDir, jsOutputPath(info, root));
+    var dir = path.join(outDir, jsOutputPath(info.library, root));
     return writeJsLibrary(module, dir, emitSourceMaps: options.emitSourceMaps);
   }
 }
@@ -2704,9 +2719,13 @@ JS.LiteralString _propertyName(String name) => js.string(name, "'");
 /// Path to file that will be generated for [info]. In case it's url is a
 /// `file:` url, we use [root] to determine the relative path from the entry
 /// point file.
-String jsOutputPath(LibraryInfo info, Uri root) {
-  var uri = info.library.source.uri;
-  var filepath = '${path.withoutExtension(uri.path)}.js';
+String jsOutputPath(LibraryElement library, Uri root) {
+  return '${jsOutputBase(library, root)}.js';
+}
+
+String jsOutputBase(LibraryElement library, Uri root) {
+  var uri = library.source.uri;
+  var filepath = path.withoutExtension(uri.path);
   if (uri.scheme == 'dart') {
     filepath = 'dart/$filepath';
   } else if (uri.scheme == 'file') {

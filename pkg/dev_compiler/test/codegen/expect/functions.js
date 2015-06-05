@@ -1,6 +1,7 @@
-var functions = dart.defineLibrary(functions, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('functions', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   function bootstrap() {
     return dart.list([new Foo()], Foo);
@@ -27,4 +28,4 @@ var core = dart.import(core);
   exports.id = id;
   exports.Foo = Foo;
   exports.main = main;
-})(functions, core);
+});

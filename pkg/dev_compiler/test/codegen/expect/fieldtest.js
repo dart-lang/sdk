@@ -1,6 +1,7 @@
-var fieldtest = dart.defineLibrary(fieldtest, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('fieldtest', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   class A extends core.Object {
     A() {
@@ -112,4 +113,4 @@ var core = dart.import(core);
   exports.StaticFieldOrder1 = StaticFieldOrder1;
   exports.StaticFieldOrder2 = StaticFieldOrder2;
   exports.main = main;
-})(fieldtest, core);
+});

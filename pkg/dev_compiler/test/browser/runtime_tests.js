@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 var assert = chai.assert;
+var core = dart.import('dart/core');
+var collection = dart.import('dart/collection');
 
 suite('generic', () => {
   "use strict";

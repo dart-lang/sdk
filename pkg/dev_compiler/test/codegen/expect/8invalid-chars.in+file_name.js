@@ -1,9 +1,10 @@
-var $8invalid$45chars$46in$43file_name = dart.defineLibrary($8invalid$45chars$46in$43file_name, {});
-(function(exports) {
+dart.library('8invalid-chars.in+file_name', null, /* Imports */[
+], /* Lazy imports */[
+], function(exports) {
   'use strict';
   function main() {
   }
   dart.fn(main);
   // Exports:
   exports.main = main;
-})($8invalid$45chars$46in$43file_name);
+});

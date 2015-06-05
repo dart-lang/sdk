@@ -1,7 +1,8 @@
-var domtest = dart.defineLibrary(domtest, {});
-var dom = dart.import(dom);
-var core = dart.import(core);
-(function(exports, dom, core) {
+dart.library('domtest', null, /* Imports */[
+  'sunflower/dom',
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, dom, core) {
   'use strict';
   function testNativeIndexers() {
     let nodes = dom.document.querySelector('body').childNodes;
@@ -14,4 +15,4 @@ var core = dart.import(core);
   dart.fn(testNativeIndexers);
   // Exports:
   exports.testNativeIndexers = testNativeIndexers;
-})(domtest, dom, core);
+});

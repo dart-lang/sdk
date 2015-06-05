@@ -54,6 +54,10 @@ var dart, _js_helper, _js_primitives, dartx;
   }
   dart.dput = dput;
 
+  function throwRuntimeError(message) {
+    throw Error(message);
+  }
+
   // TODO(jmesserly): this should call noSuchMethod, not throw.
   function throwNoSuchMethod(obj, name, args, opt_func) {
     if (obj === void 0) obj = opt_func;
@@ -430,15 +434,15 @@ var dart, _js_helper, _js_primitives, dartx;
 
   /** Checks that `x` is not null or undefined. */
   function notNull(x) {
-    if (x == null) throw 'expected not-null value';
+    if (x == null) throwRuntimeError('expected not-null value');
     return x;
   }
   dart.notNull = notNull;
 
   function _typeName(type) {
-    if (type === void 0) throw "Undefined type";
+    if (type === void 0) throwRuntimeError('Undefined type');
     var name = type.name;
-    if (!name) throw 'Unexpected type: ' + type;
+    if (!name) throwRuntimeError('Unexpected type: ' + type);
     return name;
   }
 
@@ -726,7 +730,7 @@ var dart, _js_helper, _js_primitives, dartx;
     function lazyGetter() {
       // Clear the init function to detect circular initialization.
       let f = init;
-      if (f === null) throw 'circular initialization for field ' + name;
+      if (f === null) throwRuntimeError('circular initialization for field ' + name);
       init = null;
 
       // Compute and store the value.
@@ -963,8 +967,7 @@ var dart, _js_helper, _js_primitives, dartx;
   dart.map = map;
 
   function assert(condition) {
-    // TODO(jmesserly): throw assertion error.
-    if (!condition) throw 'assertion failed';
+    if (!condition) throw new core.AssertionError();
   }
   dart.assert = assert;
 
@@ -998,12 +1001,12 @@ var dart, _js_helper, _js_primitives, dartx;
   /** Memoize a generic type constructor function. */
   function generic(typeConstructor) {
     let length = typeConstructor.length;
-    if (length < 1) throw Error('must have at least one generic type argument');
+    if (length < 1) throwRuntimeError('must have at least one generic type argument');
 
     let resultMap = new Map();
     function makeGenericType(/*...arguments*/) {
       if (arguments.length != length && arguments.length != 0) {
-        throw Error('requires ' + length + ' or 0 type arguments');
+        throwRuntimeError('requires ' + length + ' or 0 type arguments');
       }
       let args = slice.call(arguments);
       // TODO(leafp): This should really be core.Object for
@@ -1016,7 +1019,7 @@ var dart, _js_helper, _js_primitives, dartx;
       for (let i = 0; i < length; i++) {
         let arg = args[i];
         if (arg == null) {
-          throw Error('type arguments should not be null: ' + typeConstructor);
+          throwRuntimeError('type arguments should not be null: ' + typeConstructor);
         }
         let map = value;
         value = map.get(arg);
@@ -1295,32 +1298,88 @@ var dart, _js_helper, _js_primitives, dartx;
   dart.global = window || global;
   dart.JsSymbol = Symbol;
 
-  function import_(value) {
+  // All libraries, including those that have referenced (lazyImport),
+  // but not yet loaded.
+  var libraries = new Map();
+
+  // Completed libraries.
+  var loadedLibraries = new Set();
+
+  // Import a library by name.
+  // This is exported for REPL / JS interop convenience.
+  function import_(name) {
+    let loaded = loadedLibraries.has(name);
+    let value = libraries[name];
     // TODO(vsm): Change this to a hard throw.
     // For now, we're missing some libraries.  E.g., dart:js:
     // https://github.com/dart-lang/dev_compiler/issues/168
-    if (!value) {
-      console.log('missing required module');
+    if (!loaded) {
+      console.warn('Missing required module: ' + name);
+    } else if (!value) {
+      throwRuntimeError('Library import error: ' + name)
     }
     return value;
   }
   dart.import = import_;
-  
-  function lazyImport(value) {
-    return defineLibrary(value, {});
-  }
-  dart.lazyImport = lazyImport;
 
-  function defineLibrary(value, defaultValue) {
-    return value ? value : defaultValue;
+  function initializeLibraryStub(name) {
+    // Create the library object if necessary.
+    if (!libraries[name]) {
+      libraries[name] = {};
+    }
+    return libraries[name];
   }
-  dart.defineLibrary = defineLibrary;
+  const lazyImport = initializeLibraryStub;
 
-  // TODO(jmesserly): hack to bootstrap the SDK
-  _js_helper = _js_helper || {};
+  function defineLibrary(name, defaultValue) {
+    if (loadedLibraries.has(name)) {
+      throwRuntimeError('Library is already defined: ' + name);
+    }
+    var value;
+    if (defaultValue) {
+      var oldValue = libraries[name];
+      if (oldValue && oldValue != defaultValue) {
+        throwRuntimeError(
+          `Library ${name} cannot be redefined to ${defaultValue}`);
+      }
+      libraries[name] = value = defaultValue;
+    } else {
+      value = initializeLibraryStub(name);
+    }
+    loadedLibraries.add(name);
+    return value;
+  }
+
+  function library(name, defaultValue, imports, lazyImports, module) {
+    var args = [];
+    var lib = defineLibrary(name, defaultValue);
+    args.push(lib);
+    for (var i = 0; i < imports.length; ++i) {
+      lib = import_(imports[i]);
+      args.push(lib);
+    }
+    for (var i = 0; i < lazyImports.length; ++i) {
+      lib = lazyImport(lazyImports[i]);
+      args.push(lib);
+    }
+    module.apply(null, args);
+  }
+  dart.library = library;
+
+  function start(libraryName) {
+    let lib = import_(libraryName);
+    _isolate_helper.startRootIsolate(lib.main, []);
+  }
+  dart.start = start;
+
+  let core = lazyImport('dart/core');
+  let collection = lazyImport('dart/collection');
+  let async = lazyImport('dart/async');
+  let _interceptors = lazyImport('dart/_interceptors');
+  let _isolate_helper = lazyImport('dart/_isolate_helper');
+  let _js_helper = lazyImport('dart/_js_helper');
   _js_helper.checkNum = notNull;
-
-  _js_primitives = _js_primitives || {};
+  let _js_primitives = lazyImport('dart/_js_primitives');
   _js_primitives.printString = (s) => console.log(s);
 
   // TODO(vsm): DOM facades?

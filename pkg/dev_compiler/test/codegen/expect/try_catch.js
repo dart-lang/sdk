@@ -1,6 +1,7 @@
-var try_catch = dart.defineLibrary(try_catch, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('try_catch', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   function foo() {
     try {
@@ -75,4 +76,4 @@ var core = dart.import(core);
   exports.qux = qux;
   exports.wub = wub;
   exports.main = main;
-})(try_catch, core);
+});

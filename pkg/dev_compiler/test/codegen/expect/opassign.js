@@ -1,6 +1,7 @@
-var opassign = dart.defineLibrary(opassign, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('opassign', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   dart.copyProperties(exports, {
     get index() {
@@ -54,4 +55,4 @@ var core = dart.import(core);
   exports.Foo = Foo;
   exports.main = main;
   exports.forcePostfix = forcePostfix;
-})(opassign, core);
+});

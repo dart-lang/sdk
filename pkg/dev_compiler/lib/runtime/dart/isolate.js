@@ -1,8 +1,9 @@
-var isolate = dart.defineLibrary(isolate, {});
-var core = dart.import(core);
-var _isolate_helper = dart.lazyImport(_isolate_helper);
-var async = dart.import(async);
-(function(exports, core, _isolate_helper, async) {
+dart.library('dart/isolate', null, /* Imports */[
+  'dart/core',
+  'dart/async'
+], /* Lazy imports */[
+  'dart/_isolate_helper'
+], function(exports, core, async, _isolate_helper) {
   'use strict';
   class Capability extends core.Object {
     static new() {
@@ -259,4 +260,4 @@ var async = dart.import(async);
   exports.ReceivePort = ReceivePort;
   exports.RawReceivePort = RawReceivePort;
   exports.RemoteError = RemoteError;
-})(isolate, core, _isolate_helper, async);
+});

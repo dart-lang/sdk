@@ -1,7 +1,8 @@
-var DeltaBlue = dart.defineLibrary(DeltaBlue, {});
-var BenchmarkBase = dart.import(BenchmarkBase);
-var core = dart.import(core);
-(function(exports, BenchmarkBase, core) {
+dart.library('DeltaBlue', null, /* Imports */[
+  'BenchmarkBase',
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, BenchmarkBase, core) {
   'use strict';
   function main() {
     new DeltaBlue().report();
@@ -562,4 +563,4 @@ var core = dart.import(core);
   exports.chainTest = chainTest;
   exports.projectionTest = projectionTest;
   exports.change = change;
-})(DeltaBlue, BenchmarkBase, core);
+});

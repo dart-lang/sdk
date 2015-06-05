@@ -1,10 +1,11 @@
-var async = dart.defineLibrary(async, {});
-var core = dart.import(core);
-var _internal = dart.import(_internal);
-var _isolate_helper = dart.lazyImport(_isolate_helper);
-var _js_helper = dart.import(_js_helper);
-var collection = dart.import(collection);
-(function(exports, core, _internal, _isolate_helper, _js_helper, collection) {
+dart.library('dart/async', null, /* Imports */[
+  'dart/core',
+  'dart/_internal',
+  'dart/_js_helper',
+  'dart/collection'
+], /* Lazy imports */[
+  'dart/_isolate_helper'
+], function(exports, core, _internal, _js_helper, collection, _isolate_helper) {
   'use strict';
   function _invokeErrorHandler(errorHandler, error, stackTrace) {
     if (dart.is(errorHandler, ZoneBinaryCallback)) {
@@ -5906,4 +5907,4 @@ var collection = dart.import(collection);
   exports.ZoneDelegate = ZoneDelegate;
   exports.Zone = Zone;
   exports.runZoned = runZoned;
-})(async, core, _internal, _isolate_helper, _js_helper, collection);
+});

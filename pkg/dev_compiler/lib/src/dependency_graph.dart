@@ -511,17 +511,17 @@ const corelibOrder = const [
   'dart.collection',
   'dart._internal',
   'dart.math',
+  'dart._interceptors',
   'dart.async',
   'dart._foreign_helper',
   'dart._js_embedded_names',
   'dart._js_helper',
   'dart.isolate',
   'dart.typed_data',
+  'dart._native_typed_data',
   'dart._isolate_helper',
   'dart._js_primitives',
-  'dart._interceptors',
   'dart.convert',
-  'dart._native_typed_data',
   // _foreign_helper is not included, as it only defines the JS builtin that
   // the compiler handles at compile time.
 ];

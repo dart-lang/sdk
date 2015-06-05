@@ -1,9 +1,10 @@
-var painter = dart.defineLibrary(painter, {});
-var math = dart.import(math);
-var dom = dart.import(dom);
-var core = dart.import(core);
-var circle = dart.import(circle);
-(function(exports, math, dom, core, circle) {
+dart.library('painter', null, /* Imports */[
+  'dart/math',
+  'dom',
+  'dart/core',
+  'circle'
+], /* Lazy imports */[
+], function(exports, math, dom, core, circle) {
   'use strict';
   let ORANGE = "orange";
   let RED = "red";
@@ -47,4 +48,4 @@ var circle = dart.import(circle);
   exports.TAU = TAU;
   exports.querySelector = querySelector;
   exports.CirclePainter = CirclePainter;
-})(painter, math, dom, core, circle);
+});

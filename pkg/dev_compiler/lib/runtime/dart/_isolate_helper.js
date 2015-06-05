@@ -1,14 +1,15 @@
-var _isolate_helper = dart.defineLibrary(_isolate_helper, {});
-var core = dart.import(core);
-var _native_typed_data = dart.import(_native_typed_data);
-var _interceptors = dart.import(_interceptors);
-var _js_helper = dart.import(_js_helper);
-var isolate = dart.import(isolate);
-var _foreign_helper = dart.import(_foreign_helper);
-var _js_embedded_names = dart.import(_js_embedded_names);
-var collection = dart.import(collection);
-var async = dart.import(async);
-(function(exports, core, _native_typed_data, _interceptors, _js_helper, isolate, _foreign_helper, _js_embedded_names, collection, async) {
+dart.library('dart/_isolate_helper', null, /* Imports */[
+  'dart/core',
+  'dart/_native_typed_data',
+  'dart/_interceptors',
+  'dart/_js_helper',
+  'dart/isolate',
+  'dart/_foreign_helper',
+  'dart/_js_embedded_names',
+  'dart/collection',
+  'dart/async'
+], /* Lazy imports */[
+], function(exports, core, _native_typed_data, _interceptors, _js_helper, isolate, _foreign_helper, _js_embedded_names, collection, async) {
   'use strict';
   function _serializeMessage(message) {
     return new _Serializer().serialize(message);
@@ -1557,4 +1558,4 @@ var async = dart.import(async);
   exports.TimerImpl = TimerImpl;
   exports.hasTimer = hasTimer;
   exports.CapabilityImpl = CapabilityImpl;
-})(_isolate_helper, core, _native_typed_data, _interceptors, _js_helper, isolate, _foreign_helper, _js_embedded_names, collection, async);
+});

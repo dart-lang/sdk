@@ -1,10 +1,11 @@
-var _interceptors = dart.defineLibrary(_interceptors, {});
-var core = dart.import(core);
-var _internal = dart.import(_internal);
-var _js_helper = dart.lazyImport(_js_helper);
-var collection = dart.import(collection);
-var math = dart.import(math);
-(function(exports, core, _internal, _js_helper, collection, math) {
+dart.library('dart/_interceptors', null, /* Imports */[
+  'dart/core',
+  'dart/_internal',
+  'dart/collection',
+  'dart/math'
+], /* Lazy imports */[
+  'dart/_js_helper'
+], function(exports, core, _internal, collection, math, _js_helper) {
   'use strict';
   let JSArray$ = dart.generic(function(E) {
     dart.defineExtensionNames([
@@ -1543,4 +1544,4 @@ var math = dart.import(math);
   exports.JavaScriptObject = JavaScriptObject;
   exports.PlainJavaScriptObject = PlainJavaScriptObject;
   exports.UnknownJavaScriptObject = UnknownJavaScriptObject;
-})(_interceptors, core, _internal, _js_helper, collection, math);
+});

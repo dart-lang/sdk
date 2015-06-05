@@ -1,10 +1,11 @@
-var sunflower = dart.defineLibrary(sunflower, {});
-var dom = dart.import(dom);
-var core = dart.import(core);
-var math = dart.import(math);
-var painter = dart.import(painter);
-var circle = dart.import(circle);
-(function(exports, dom, core, math, painter, circle) {
+dart.library('sunflower', null, /* Imports */[
+  'dom',
+  'dart/core',
+  'dart/math',
+  'painter',
+  'circle'
+], /* Lazy imports */[
+], function(exports, dom, core, math, painter, circle) {
   'use strict';
   let SEED_RADIUS = 2;
   let SCALE_FACTOR = 4;
@@ -73,4 +74,4 @@ var circle = dart.import(circle);
   exports.main = main;
   exports.draw = draw;
   exports.SunflowerSeed = SunflowerSeed;
-})(sunflower, dom, core, math, painter, circle);
+});

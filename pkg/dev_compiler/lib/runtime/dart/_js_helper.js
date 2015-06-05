@@ -1,9 +1,10 @@
-var _js_helper = dart.defineLibrary(_js_helper, {});
-var core = dart.import(core);
-var collection = dart.import(collection);
-var _interceptors = dart.lazyImport(_interceptors);
-var _foreign_helper = dart.import(_foreign_helper);
-(function(exports, core, collection, _interceptors, _foreign_helper) {
+dart.library('dart/_js_helper', null, /* Imports */[
+  'dart/core',
+  'dart/collection',
+  'dart/_foreign_helper'
+], /* Lazy imports */[
+  'dart/_interceptors'
+], function(exports, core, collection, _foreign_helper, _interceptors) {
   'use strict';
   class NoThrows extends core.Object {
     NoThrows() {
@@ -1202,4 +1203,4 @@ var _foreign_helper = dart.import(_foreign_helper);
   exports.RuntimeError = RuntimeError;
   exports.random64 = random64;
   exports.jsonEncodeNative = jsonEncodeNative;
-})(_js_helper, core, collection, _interceptors, _foreign_helper);
+});

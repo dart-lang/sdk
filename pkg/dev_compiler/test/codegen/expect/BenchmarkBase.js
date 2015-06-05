@@ -1,6 +1,7 @@
-var BenchmarkBase = dart.defineLibrary(BenchmarkBase, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('BenchmarkBase', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   class Expect extends core.Object {
     static equals(expected, actual) {
@@ -89,4 +90,4 @@ var core = dart.import(core);
   // Exports:
   exports.Expect = Expect;
   exports.BenchmarkBase = BenchmarkBase;
-})(BenchmarkBase, core);
+});

@@ -1,7 +1,8 @@
-var math = dart.defineLibrary(math, {});
-var core = dart.import(core);
-var _js_helper = dart.lazyImport(_js_helper);
-(function(exports, core, _js_helper) {
+dart.library('dart/math', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+  'dart/_js_helper'
+], function(exports, core, _js_helper) {
   'use strict';
   class _JenkinsSmiHash extends core.Object {
     static combine(hash, value) {
@@ -521,4 +522,4 @@ var _js_helper = dart.lazyImport(_js_helper);
   exports.sqrt = sqrt;
   exports.exp = exp;
   exports.log = log;
-})(math, core, _js_helper);
+});

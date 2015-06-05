@@ -1,6 +1,7 @@
-var constructors = dart.defineLibrary(constructors, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('constructors', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   class A extends core.Object {}
   class B extends core.Object {
@@ -213,4 +214,4 @@ var core = dart.import(core);
   exports.P = P;
   exports.Q$ = Q$;
   exports.Q = Q;
-})(constructors, core);
+});

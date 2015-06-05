@@ -1,6 +1,7 @@
-var cascade = dart.defineLibrary(cascade, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('cascade', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   class A extends core.Object {
     A() {
@@ -119,4 +120,4 @@ var core = dart.import(core);
   exports.Base$ = Base$;
   exports.Base = Base;
   exports.Foo = Foo;
-})(cascade, core);
+});

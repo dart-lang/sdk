@@ -1,6 +1,7 @@
-var circle = dart.defineLibrary(circle, {});
-var core = dart.import(core);
-(function(exports, core) {
+dart.library('circle', null, /* Imports */[
+  'dart/core'
+], /* Lazy imports */[
+], function(exports, core) {
   'use strict';
   class Circle extends core.Object {
     Circle(x, y, radius) {
@@ -14,4 +15,4 @@ var core = dart.import(core);
   });
   // Exports:
   exports.Circle = Circle;
-})(circle, core);
+});
