@@ -23,6 +23,7 @@ external Document get document;
 
 @JsName(name: 'Document')
 abstract class Document {
+  Element createElement(String name);
   Element querySelector(String selector);
 }
 
@@ -30,10 +31,26 @@ abstract class Document {
 abstract class Element {
   void addEventListener(String type, EventListener callback, [bool capture]);
   String textContent;
+  NodeList get childNodes;
+}
+
+@JsName()
+class Node {}
+
+@JsName()
+class NodeList {
+  external NodeList();
+  external num get length;
+  external set length(num _);
+  external Node item(num index);
+
+  external Node operator [](num index);
+  external void operator []=(num index, Node);
 }
 
 typedef void EventListener(Event e);
 
+@JsName()
 abstract class Event {}
 
 @JsName(name: 'HTMLInputElement')

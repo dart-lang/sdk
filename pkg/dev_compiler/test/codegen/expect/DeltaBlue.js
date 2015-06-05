@@ -34,10 +34,10 @@ var core = dart.import(core);
       return dart.notNull(s1.value) > dart.notNull(s2.value);
     }
     static weakest(s1, s2) {
-      return Strength.weaker(s1, s2) ? s1 : s2;
+      return dart.notNull(Strength.weaker(s1, s2)) ? s1 : s2;
     }
     static strongest(s1, s2) {
-      return Strength.stronger(s1, s2) ? s1 : s2;
+      return dart.notNull(Strength.stronger(s1, s2)) ? s1 : s2;
     }
   }
   dart.setSignature(Strength, {
@@ -86,7 +86,7 @@ var core = dart.import(core);
       return overridden;
     }
     destroyConstraint() {
-      if (this.isSatisfied())
+      if (dart.notNull(this.isSatisfied()))
         exports.planner.incrementalRemove(this);
       this.removeFromGraph();
     }
@@ -127,7 +127,7 @@ var core = dart.import(core);
     recalculate() {
       this.myOutput.walkStrength = this.strength;
       this.myOutput.stay = !dart.notNull(this.isInput());
-      if (this.myOutput.stay)
+      if (dart.notNull(this.myOutput.stay))
         this.execute();
     }
     markUnsatisfied() {
@@ -197,10 +197,10 @@ var core = dart.import(core);
       if (this.v2.mark == mark) {
         this.direction = this.v1.mark != mark && dart.notNull(Strength.stronger(this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
       }
-      if (Strength.weaker(this.v1.walkStrength, this.v2.walkStrength)) {
-        this.direction = Strength.stronger(this.strength, this.v1.walkStrength) ? BACKWARD : NONE;
+      if (dart.notNull(Strength.weaker(this.v1.walkStrength, this.v2.walkStrength))) {
+        this.direction = dart.notNull(Strength.stronger(this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
       } else {
-        this.direction = Strength.stronger(this.strength, this.v2.walkStrength) ? FORWARD : BACKWARD;
+        this.direction = dart.notNull(Strength.stronger(this.strength, this.v2.walkStrength)) ? FORWARD : BACKWARD;
       }
     }
     addToGraph() {
@@ -224,7 +224,7 @@ var core = dart.import(core);
       let ihn = this.input(), out = this.output();
       out.walkStrength = Strength.weakest(this.strength, ihn.walkStrength);
       out.stay = ihn.stay;
-      if (out.stay)
+      if (dart.notNull(out.stay))
         this.execute();
     }
     markUnsatisfied() {
@@ -232,7 +232,7 @@ var core = dart.import(core);
     }
     inputsKnown(mark) {
       let i = this.input();
-      return i.mark == mark || dart.notNull(i.stay) || dart.notNull(i.determinedBy == null);
+      return i.mark == mark || dart.notNull(i.stay) || i.determinedBy == null;
     }
     removeFromGraph() {
       if (this.v1 != null)
@@ -290,7 +290,7 @@ var core = dart.import(core);
       let ihn = this.input(), out = this.output();
       out.walkStrength = Strength.weakest(this.strength, ihn.walkStrength);
       out.stay = dart.notNull(ihn.stay) && dart.notNull(this.scale.stay) && dart.notNull(this.offset.stay);
-      if (out.stay)
+      if (dart.notNull(out.stay))
         this.execute();
     }
   }
@@ -415,7 +415,7 @@ var core = dart.import(core);
         let determining = v.determinedBy;
         for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); i = dart.notNull(i) + 1) {
           let next = v.constraints[dartx.get](i);
-          if (dart.notNull(!dart.equals(next, determining)) && dart.notNull(next.isSatisfied())) {
+          if (!dart.equals(next, determining) && dart.notNull(next.isSatisfied())) {
             next.recalculate();
             todo[dartx.add](next.output());
           }
@@ -427,7 +427,7 @@ var core = dart.import(core);
       let determining = v.determinedBy;
       for (let i = 0; dart.notNull(i) < dart.notNull(v.constraints.length); i = dart.notNull(i) + 1) {
         let c = v.constraints[dartx.get](i);
-        if (dart.notNull(!dart.equals(c, determining)) && dart.notNull(c.isSatisfied()))
+        if (!dart.equals(c, determining) && dart.notNull(c.isSatisfied()))
           coll[dartx.add](c);
       }
     }

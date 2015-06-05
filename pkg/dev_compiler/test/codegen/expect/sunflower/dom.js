@@ -20,7 +20,6 @@ var core = dart.import(core);
   });
   let overload = dart.const(new Overload());
   let EventListener = dart.typedef('EventListener', () => dart.functionType(dart.void, [Event]));
-  class Event extends core.Object {}
   let InputElement = HTMLInputElement;
   let CanvasElement = HTMLCanvasElement;
   class RenderingContext extends core.Object {}
@@ -42,7 +41,6 @@ var core = dart.import(core);
   exports.Overload = Overload;
   exports.overload = overload;
   exports.EventListener = EventListener;
-  exports.Event = Event;
   exports.InputElement = InputElement;
   exports.CanvasElement = CanvasElement;
   exports.RenderingContext = RenderingContext;
