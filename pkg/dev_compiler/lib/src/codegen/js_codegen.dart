@@ -541,6 +541,18 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
       String jsPeerName) {
     var name = classElem.name;
     var body = <JS.Statement>[];
+
+    if (jsPeerName != null) {
+      var dartxNames = [];
+      for (var m in methods) {
+        if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
+          dartxNames.add(_elementMemberName(m.element, allowExtensions: false));
+        }
+      }
+      body.add(js.statement('dart.defineExtensionNames(#)',
+          [new JS.ArrayInitializer(dartxNames, multiline: true)]));
+    }
+
     body.add(new JS.ClassDeclaration(cls));
 
     // TODO(jmesserly): we should really just extend native Array.
@@ -558,21 +570,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         new JS.ArrayInitializer(
             classElem.interfaces.map(_emitTypeName).toList())
       ]));
-
-      // If a concrete class implements one of our extensions, we might need to
-      // add forwarders.
-      var extensions = _extensionsToImplement(classElem);
-      if (extensions.isNotEmpty) {
-        var methodNames = [];
-        for (var e in extensions) {
-          methodNames.add(_emitMemberDeclarationName(e));
-        }
-        body.add(js.statement('dart.defineExtensionMembers(#, #);', [
-          name,
-          new JS.ArrayInitializer(methodNames,
-              multiline: methodNames.length > 4)
-        ]));
-      }
     }
 
     // Named constructors
@@ -608,7 +605,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
               classElem.lookUpInheritedConcreteMethod(name, currentLibrary);
           if (inheritedElement != null &&
               inheritedElement.type == element.type) continue;
-          var memberName = _emitMemberDeclarationName(element);
+          var memberName = _elementMemberName(element);
           var parts =
               _emitFunctionTypeParts(element.type, dynamicIsBottom: false);
           var property =
@@ -653,6 +650,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         var classExpr = new JS.Identifier(name);
         body.add(js.statement('dart.setSignature(#, #);', [classExpr, sig]));
       }
+    }
+
+    // If a concrete class implements one of our extensions, we might need to
+    // add forwarders.
+    var extensions = _extensionsToImplement(classElem);
+    if (extensions.isNotEmpty) {
+      var methodNames = [];
+      for (var e in extensions) {
+        methodNames.add(_elementMemberName(e));
+      }
+      body.add(js.statement('dart.defineExtensionMembers(#, #);', [
+        name,
+        new JS.ArrayInitializer(methodNames, multiline: methodNames.length > 4)
+      ]));
     }
 
     return _statement(body);
@@ -1048,8 +1059,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     var params = _visit(node.parameters);
     if (params == null) params = [];
 
-    return new JS.Method(_emitMemberDeclarationName(node.element),
-        new JS.Fun(params, _visit(node.body)),
+    return new JS.Method(
+        _elementMemberName(node.element), new JS.Fun(params, _visit(node.body)),
         isGetter: node.isGetter,
         isSetter: node.isSetter,
         isStatic: node.isStatic);
@@ -2545,7 +2556,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   ///
   /// Unlike call sites, we always have an element available, so we can use it
   /// directly rather than computing the relevant options for [_emitMemberName].
-  JS.Expression _emitMemberDeclarationName(ExecutableElement e) {
+  JS.Expression _elementMemberName(ExecutableElement e,
+      {bool allowExtensions: true}) {
     String name;
     if (e is PropertyAccessorElement) {
       name = e.variable.name;
@@ -2556,7 +2568,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
         type: (e.enclosingElement as ClassElement).type,
         unary: e.parameters.isEmpty,
         isStatic: e.isStatic,
-        declaration: true);
+        allowExtensions: allowExtensions);
   }
 
   /// This handles member renaming for private names and operators.
@@ -2601,7 +2613,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   /// helper, that checks for null. The user defined method is called '=='.
   ///
   JS.Expression _emitMemberName(String name, {DartType type, bool unary: false,
-      bool isStatic: false, bool declaration: false}) {
+      bool isStatic: false, bool allowExtensions: true}) {
 
     // Static members skip the rename steps.
     if (isStatic) return _propertyName(name);
@@ -2620,7 +2632,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     }
 
     // Dart "extension" methods. Used for JS Array, Boolean, Number, String.
-    if (!declaration && _extensionTypes.contains(type.element)) {
+    if (allowExtensions && _extensionTypes.contains(type.element)) {
       // Special case `length`. We can call it directly.
       if (name != 'length') return js.call('dartx.#', _propertyName(name));
     }

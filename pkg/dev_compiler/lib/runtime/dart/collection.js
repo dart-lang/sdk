@@ -22,6 +22,7 @@ var math = dart.lazyImport(math);
       constructors: () => ({UnmodifiableListView: [exports.UnmodifiableListView$(E), [core.Iterable$(E)]]}),
       methods: () => ({get: [E, [core.int]]})
     });
+    dart.defineExtensionMembers(UnmodifiableListView, ['get', 'length']);
     return UnmodifiableListView;
   });
   dart.defineLazyClassGeneric(exports, 'UnmodifiableListView', {get: UnmodifiableListView$});
@@ -379,31 +380,6 @@ var math = dart.lazyImport(math);
       }
     }
     SetMixin[dart.implements] = () => [core.Set$(E)];
-    dart.defineExtensionMembers(SetMixin, [
-      'toList',
-      'map',
-      'where',
-      'expand',
-      'forEach',
-      'reduce',
-      'fold',
-      'every',
-      'join',
-      'any',
-      'take',
-      'takeWhile',
-      'skip',
-      'skipWhile',
-      'firstWhere',
-      'lastWhere',
-      'singleWhere',
-      'elementAt',
-      'isEmpty',
-      'isNotEmpty',
-      'single',
-      'first',
-      'last'
-    ]);
     dart.setSignature(SetMixin, {
       methods: () => ({
         clear: [dart.void, []],
@@ -436,6 +412,31 @@ var math = dart.lazyImport(math);
         elementAt: [E, [core.int]]
       })
     });
+    dart.defineExtensionMembers(SetMixin, [
+      'toList',
+      'map',
+      'where',
+      'expand',
+      'forEach',
+      'reduce',
+      'fold',
+      'every',
+      'join',
+      'any',
+      'take',
+      'takeWhile',
+      'skip',
+      'skipWhile',
+      'firstWhere',
+      'lastWhere',
+      'singleWhere',
+      'elementAt',
+      'isEmpty',
+      'isNotEmpty',
+      'single',
+      'first',
+      'last'
+    ]);
     return SetMixin;
   });
   let SetMixin = SetMixin$();
@@ -486,6 +487,7 @@ var math = dart.lazyImport(math);
         toSet: [core.Set$(E), []]
       })
     });
+    dart.defineExtensionMembers(_HashSetBase, ['toSet']);
     return _HashSetBase;
   });
   let _HashSetBase = _HashSetBase$();
@@ -754,6 +756,30 @@ var math = dart.lazyImport(math);
       }
     }
     IterableMixin[dart.implements] = () => [core.Iterable$(E)];
+    dart.setSignature(IterableMixin, {
+      methods: () => ({
+        map: [core.Iterable, [dart.functionType(core.Object, [E])]],
+        where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        expand: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
+        contains: [core.bool, [core.Object]],
+        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
+        reduce: [E, [dart.functionType(E, [E, E])]],
+        fold: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
+        every: [core.bool, [dart.functionType(core.bool, [E])]],
+        join: [core.String, [], [core.String]],
+        any: [core.bool, [dart.functionType(core.bool, [E])]],
+        toList: [core.List$(E), [], {growable: core.bool}],
+        toSet: [core.Set$(E), []],
+        take: [core.Iterable$(E), [core.int]],
+        takeWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        skip: [core.Iterable$(E), [core.int]],
+        skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        singleWhere: [E, [dart.functionType(core.bool, [E])]],
+        elementAt: [E, [core.int]]
+      })
+    });
     dart.defineExtensionMembers(IterableMixin, [
       'map',
       'where',
@@ -782,30 +808,6 @@ var math = dart.lazyImport(math);
       'last',
       'single'
     ]);
-    dart.setSignature(IterableMixin, {
-      methods: () => ({
-        map: [core.Iterable, [dart.functionType(core.Object, [E])]],
-        where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        expand: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
-        contains: [core.bool, [core.Object]],
-        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
-        reduce: [E, [dart.functionType(E, [E, E])]],
-        fold: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
-        every: [core.bool, [dart.functionType(core.bool, [E])]],
-        join: [core.String, [], [core.String]],
-        any: [core.bool, [dart.functionType(core.bool, [E])]],
-        toList: [core.List$(E), [], {growable: core.bool}],
-        toSet: [core.Set$(E), []],
-        take: [core.Iterable$(E), [core.int]],
-        takeWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        skip: [core.Iterable$(E), [core.int]],
-        skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        singleWhere: [E, [dart.functionType(core.bool, [E])]],
-        elementAt: [E, [core.int]]
-      })
-    });
     return IterableMixin;
   });
   let IterableMixin = IterableMixin$();
@@ -1152,34 +1154,6 @@ var math = dart.lazyImport(math);
       }
     }
     IterableBase[dart.implements] = () => [core.Iterable$(E)];
-    dart.defineExtensionMembers(IterableBase, [
-      'map',
-      'where',
-      'expand',
-      'contains',
-      'forEach',
-      'reduce',
-      'fold',
-      'every',
-      'join',
-      'any',
-      'toList',
-      'toSet',
-      'take',
-      'takeWhile',
-      'skip',
-      'skipWhile',
-      'firstWhere',
-      'lastWhere',
-      'singleWhere',
-      'elementAt',
-      'length',
-      'isEmpty',
-      'isNotEmpty',
-      'first',
-      'last',
-      'single'
-    ]);
     dart.setSignature(IterableBase, {
       constructors: () => ({IterableBase: [IterableBase$(E), []]}),
       methods: () => ({
@@ -1212,6 +1186,34 @@ var math = dart.lazyImport(math);
       }),
       names: ['iterableToShortString', 'iterableToFullString', '_isToStringVisiting', '_iterablePartsToStrings']
     });
+    dart.defineExtensionMembers(IterableBase, [
+      'map',
+      'where',
+      'expand',
+      'contains',
+      'forEach',
+      'reduce',
+      'fold',
+      'every',
+      'join',
+      'any',
+      'toList',
+      'toSet',
+      'take',
+      'takeWhile',
+      'skip',
+      'skipWhile',
+      'firstWhere',
+      'lastWhere',
+      'singleWhere',
+      'elementAt',
+      'length',
+      'isEmpty',
+      'isNotEmpty',
+      'first',
+      'last',
+      'single'
+    ]);
     return IterableBase;
   });
   let IterableBase = IterableBase$();
@@ -1506,15 +1508,6 @@ var math = dart.lazyImport(math);
       }
     }
     LinkedList[dart.implements] = () => [_LinkedListLink];
-    dart.defineExtensionMembers(LinkedList, [
-      'forEach',
-      'iterator',
-      'length',
-      'first',
-      'last',
-      'single',
-      'isEmpty'
-    ]);
     dart.setSignature(LinkedList, {
       constructors: () => ({LinkedList: [LinkedList$(E), []]}),
       methods: () => ({
@@ -1528,6 +1521,15 @@ var math = dart.lazyImport(math);
         [_unlink]: [dart.void, [LinkedListEntry$(E)]]
       })
     });
+    dart.defineExtensionMembers(LinkedList, [
+      'forEach',
+      'iterator',
+      'length',
+      'first',
+      'last',
+      'single',
+      'isEmpty'
+    ]);
     return LinkedList;
   });
   let LinkedList = LinkedList$();
@@ -2098,6 +2100,54 @@ var math = dart.lazyImport(math);
       }
     }
     ListMixin[dart.implements] = () => [core.List$(E)];
+    dart.setSignature(ListMixin, {
+      methods: () => ({
+        elementAt: [E, [core.int]],
+        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
+        contains: [core.bool, [core.Object]],
+        every: [core.bool, [dart.functionType(core.bool, [E])]],
+        any: [core.bool, [dart.functionType(core.bool, [E])]],
+        firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        singleWhere: [E, [dart.functionType(core.bool, [E])]],
+        join: [core.String, [], [core.String]],
+        where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        map: [core.Iterable, [dart.functionType(core.Object, [E])]],
+        expand: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
+        reduce: [E, [dart.functionType(E, [E, E])]],
+        fold: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
+        skip: [core.Iterable$(E), [core.int]],
+        skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        take: [core.Iterable$(E), [core.int]],
+        takeWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        toList: [core.List$(E), [], {growable: core.bool}],
+        toSet: [core.Set$(E), []],
+        add: [dart.void, [E]],
+        addAll: [dart.void, [core.Iterable$(E)]],
+        remove: [core.bool, [core.Object]],
+        removeWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        retainWhere: [dart.void, [dart.functionType(core.bool, [E])]],
+        clear: [dart.void, []],
+        removeLast: [E, []],
+        sort: [dart.void, [], [dart.functionType(core.int, [E, E])]],
+        shuffle: [dart.void, [], [math.Random]],
+        asMap: [core.Map$(core.int, E), []],
+        sublist: [core.List$(E), [core.int], [core.int]],
+        getRange: [core.Iterable$(E), [core.int, core.int]],
+        removeRange: [dart.void, [core.int, core.int]],
+        fillRange: [dart.void, [core.int, core.int], [E]],
+        setRange: [dart.void, [core.int, core.int, core.Iterable$(E)], [core.int]],
+        replaceRange: [dart.void, [core.int, core.int, core.Iterable$(E)]],
+        indexOf: [core.int, [core.Object], [core.int]],
+        lastIndexOf: [core.int, [core.Object], [core.int]],
+        insert: [dart.void, [core.int, E]],
+        removeAt: [E, [core.int]],
+        insertAll: [dart.void, [core.int, core.Iterable$(E)]],
+        setAll: [dart.void, [core.int, core.Iterable$(E)]]
+      }),
+      statics: () => ({_filter: [dart.void, [core.List, dart.functionType(core.bool, [dart.bottom]), core.bool]]}),
+      names: ['_filter']
+    });
     dart.defineExtensionMembers(ListMixin, [
       'elementAt',
       'forEach',
@@ -2149,54 +2199,6 @@ var math = dart.lazyImport(math);
       'single',
       'reversed'
     ]);
-    dart.setSignature(ListMixin, {
-      methods: () => ({
-        elementAt: [E, [core.int]],
-        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
-        contains: [core.bool, [core.Object]],
-        every: [core.bool, [dart.functionType(core.bool, [E])]],
-        any: [core.bool, [dart.functionType(core.bool, [E])]],
-        firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        singleWhere: [E, [dart.functionType(core.bool, [E])]],
-        join: [core.String, [], [core.String]],
-        where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        map: [core.Iterable, [dart.functionType(core.Object, [E])]],
-        expand: [core.Iterable, [dart.functionType(core.Iterable, [E])]],
-        reduce: [E, [dart.functionType(E, [E, E])]],
-        fold: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
-        skip: [core.Iterable$(E), [core.int]],
-        skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        take: [core.Iterable$(E), [core.int]],
-        takeWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        toList: [core.List$(E), [], {growable: core.bool}],
-        toSet: [core.Set$(E), []],
-        add: [dart.void, [E]],
-        addAll: [dart.void, [core.Iterable$(E)]],
-        remove: [core.bool, [core.Object]],
-        removeWhere: [dart.void, [dart.functionType(core.bool, [E])]],
-        retainWhere: [dart.void, [dart.functionType(core.bool, [E])]],
-        clear: [dart.void, []],
-        removeLast: [E, []],
-        sort: [dart.void, [], [dart.functionType(core.int, [E, E])]],
-        shuffle: [dart.void, [], [math.Random]],
-        asMap: [core.Map$(core.int, E), []],
-        sublist: [core.List$(E), [core.int], [core.int]],
-        getRange: [core.Iterable$(E), [core.int, core.int]],
-        removeRange: [dart.void, [core.int, core.int]],
-        fillRange: [dart.void, [core.int, core.int], [E]],
-        setRange: [dart.void, [core.int, core.int, core.Iterable$(E)], [core.int]],
-        replaceRange: [dart.void, [core.int, core.int, core.Iterable$(E)]],
-        indexOf: [core.int, [core.Object], [core.int]],
-        lastIndexOf: [core.int, [core.Object], [core.int]],
-        insert: [dart.void, [core.int, E]],
-        removeAt: [E, [core.int]],
-        insertAll: [dart.void, [core.int, core.Iterable$(E)]],
-        setAll: [dart.void, [core.int, core.Iterable$(E)]]
-      }),
-      statics: () => ({_filter: [dart.void, [core.List, dart.functionType(core.bool, [dart.bottom]), core.bool]]}),
-      names: ['_filter']
-    });
     return ListMixin;
   });
   let ListMixin = ListMixin$();
@@ -2350,6 +2352,9 @@ var math = dart.lazyImport(math);
       }
     }
     _MapBaseValueIterable[dart.implements] = () => [_internal.EfficientLength];
+    dart.setSignature(_MapBaseValueIterable, {
+      constructors: () => ({_MapBaseValueIterable: [_MapBaseValueIterable$(V), [core.Map]]})
+    });
     dart.defineExtensionMembers(_MapBaseValueIterable, [
       'length',
       'isEmpty',
@@ -2359,9 +2364,6 @@ var math = dart.lazyImport(math);
       'last',
       'iterator'
     ]);
-    dart.setSignature(_MapBaseValueIterable, {
-      constructors: () => ({_MapBaseValueIterable: [_MapBaseValueIterable$(V), [core.Map]]})
-    });
     return _MapBaseValueIterable;
   });
   let _MapBaseValueIterable = _MapBaseValueIterable$();
@@ -2835,14 +2837,6 @@ var math = dart.lazyImport(math);
       }
     }
     DoubleLinkedQueue[dart.implements] = () => [Queue$(E)];
-    dart.defineExtensionMembers(DoubleLinkedQueue, [
-      'length',
-      'first',
-      'last',
-      'single',
-      'isEmpty',
-      'iterator'
-    ]);
     dart.setSignature(DoubleLinkedQueue, {
       constructors: () => ({
         DoubleLinkedQueue: [DoubleLinkedQueue$(E), []],
@@ -2865,6 +2859,14 @@ var math = dart.lazyImport(math);
         forEachEntry: [dart.void, [dart.functionType(dart.void, [DoubleLinkedQueueEntry$(E)])]]
       })
     });
+    dart.defineExtensionMembers(DoubleLinkedQueue, [
+      'length',
+      'first',
+      'last',
+      'single',
+      'isEmpty',
+      'iterator'
+    ]);
     return DoubleLinkedQueue;
   });
   let DoubleLinkedQueue = DoubleLinkedQueue$();
@@ -3193,17 +3195,6 @@ var math = dart.lazyImport(math);
       }
     }
     ListQueue[dart.implements] = () => [Queue$(E)];
-    dart.defineExtensionMembers(ListQueue, [
-      'forEach',
-      'elementAt',
-      'toList',
-      'iterator',
-      'isEmpty',
-      'length',
-      'first',
-      'last',
-      'single'
-    ]);
     dart.setSignature(ListQueue, {
       constructors: () => ({
         ListQueue: [ListQueue$(E), [], [core.int]],
@@ -3237,6 +3228,17 @@ var math = dart.lazyImport(math);
       }),
       names: ['_isPowerOf2', '_nextPowerOf2']
     });
+    dart.defineExtensionMembers(ListQueue, [
+      'forEach',
+      'elementAt',
+      'toList',
+      'iterator',
+      'isEmpty',
+      'length',
+      'first',
+      'last',
+      'single'
+    ]);
     return ListQueue;
   });
   let ListQueue = ListQueue$();
@@ -3828,11 +3830,11 @@ var math = dart.lazyImport(math);
       }
     }
     _SplayTreeKeyIterable[dart.implements] = () => [_internal.EfficientLength];
-    dart.defineExtensionMembers(_SplayTreeKeyIterable, ['toSet', 'length', 'isEmpty', 'iterator']);
     dart.setSignature(_SplayTreeKeyIterable, {
       constructors: () => ({_SplayTreeKeyIterable: [_SplayTreeKeyIterable$(K), [_SplayTree$(K)]]}),
       methods: () => ({toSet: [core.Set$(K), []]})
     });
+    dart.defineExtensionMembers(_SplayTreeKeyIterable, ['toSet', 'length', 'isEmpty', 'iterator']);
     return _SplayTreeKeyIterable;
   });
   let _SplayTreeKeyIterable = _SplayTreeKeyIterable$();
@@ -3853,10 +3855,10 @@ var math = dart.lazyImport(math);
       }
     }
     _SplayTreeValueIterable[dart.implements] = () => [_internal.EfficientLength];
-    dart.defineExtensionMembers(_SplayTreeValueIterable, ['length', 'isEmpty', 'iterator']);
     dart.setSignature(_SplayTreeValueIterable, {
       constructors: () => ({_SplayTreeValueIterable: [_SplayTreeValueIterable$(K, V), [SplayTreeMap$(K, V)]]})
     });
+    dart.defineExtensionMembers(_SplayTreeValueIterable, ['length', 'isEmpty', 'iterator']);
     return _SplayTreeValueIterable;
   });
   let _SplayTreeValueIterable = _SplayTreeValueIterable$();
@@ -4094,6 +4096,17 @@ var math = dart.lazyImport(math);
         toSet: [core.Set$(E), []]
       })
     });
+    dart.defineExtensionMembers(SplayTreeSet, [
+      'contains',
+      'toSet',
+      'iterator',
+      'length',
+      'isEmpty',
+      'isNotEmpty',
+      'first',
+      'last',
+      'single'
+    ]);
     return SplayTreeSet;
   });
   let SplayTreeSet = SplayTreeSet$();
@@ -4534,6 +4547,10 @@ var math = dart.lazyImport(math);
       }
     }
     HashMapKeyIterable[dart.implements] = () => [_internal.EfficientLength];
+    dart.setSignature(HashMapKeyIterable, {
+      constructors: () => ({HashMapKeyIterable: [HashMapKeyIterable$(E), [core.Object]]}),
+      methods: () => ({forEach: [dart.void, [dart.functionType(dart.void, [E])]]})
+    });
     dart.defineExtensionMembers(HashMapKeyIterable, [
       'contains',
       'forEach',
@@ -4541,10 +4558,6 @@ var math = dart.lazyImport(math);
       'isEmpty',
       'iterator'
     ]);
-    dart.setSignature(HashMapKeyIterable, {
-      constructors: () => ({HashMapKeyIterable: [HashMapKeyIterable$(E), [core.Object]]}),
-      methods: () => ({forEach: [dart.void, [dart.functionType(dart.void, [E])]]})
-    });
     return HashMapKeyIterable;
   });
   let HashMapKeyIterable = HashMapKeyIterable$();
@@ -5026,6 +5039,10 @@ var math = dart.lazyImport(math);
       }
     }
     LinkedHashMapKeyIterable[dart.implements] = () => [_internal.EfficientLength];
+    dart.setSignature(LinkedHashMapKeyIterable, {
+      constructors: () => ({LinkedHashMapKeyIterable: [LinkedHashMapKeyIterable$(E), [core.Object]]}),
+      methods: () => ({forEach: [dart.void, [dart.functionType(dart.void, [E])]]})
+    });
     dart.defineExtensionMembers(LinkedHashMapKeyIterable, [
       'contains',
       'forEach',
@@ -5033,10 +5050,6 @@ var math = dart.lazyImport(math);
       'isEmpty',
       'iterator'
     ]);
-    dart.setSignature(LinkedHashMapKeyIterable, {
-      constructors: () => ({LinkedHashMapKeyIterable: [LinkedHashMapKeyIterable$(E), [core.Object]]}),
-      methods: () => ({forEach: [dart.void, [dart.functionType(dart.void, [E])]]})
-    });
     return LinkedHashMapKeyIterable;
   });
   let LinkedHashMapKeyIterable = LinkedHashMapKeyIterable$();
@@ -5309,13 +5322,6 @@ var math = dart.lazyImport(math);
       }
     }
     _HashSet[dart.implements] = () => [HashSet$(E)];
-    dart.defineExtensionMembers(_HashSet, [
-      'contains',
-      'iterator',
-      'length',
-      'isEmpty',
-      'isNotEmpty'
-    ]);
     dart.setSignature(_HashSet, {
       constructors: () => ({_HashSet: [_HashSet$(E), []]}),
       methods: () => ({
@@ -5346,6 +5352,13 @@ var math = dart.lazyImport(math);
       }),
       names: ['_isStringElement', '_isNumericElement', '_hasTableEntry', '_setTableEntry', '_deleteTableEntry', '_newHashTable']
     });
+    dart.defineExtensionMembers(_HashSet, [
+      'contains',
+      'iterator',
+      'length',
+      'isEmpty',
+      'isNotEmpty'
+    ]);
     return _HashSet;
   });
   let _HashSet = _HashSet$();
@@ -5431,6 +5444,7 @@ var math = dart.lazyImport(math);
         lookup: [E, [core.Object]]
       })
     });
+    dart.defineExtensionMembers(_CustomHashSet, ['contains']);
     return _CustomHashSet;
   });
   let _CustomHashSet = _CustomHashSet$();
@@ -5744,16 +5758,6 @@ var math = dart.lazyImport(math);
       }
     }
     _LinkedHashSet[dart.implements] = () => [LinkedHashSet$(E)];
-    dart.defineExtensionMembers(_LinkedHashSet, [
-      'contains',
-      'forEach',
-      'iterator',
-      'length',
-      'isEmpty',
-      'isNotEmpty',
-      'first',
-      'last'
-    ]);
     dart.setSignature(_LinkedHashSet, {
       constructors: () => ({_LinkedHashSet: [_LinkedHashSet$(E), []]}),
       methods: () => ({
@@ -5790,6 +5794,16 @@ var math = dart.lazyImport(math);
       }),
       names: ['_isStringElement', '_isNumericElement', '_getTableEntry', '_setTableEntry', '_deleteTableEntry', '_newHashTable']
     });
+    dart.defineExtensionMembers(_LinkedHashSet, [
+      'contains',
+      'forEach',
+      'iterator',
+      'length',
+      'isEmpty',
+      'isNotEmpty',
+      'first',
+      'last'
+    ]);
     return _LinkedHashSet;
   });
   let _LinkedHashSet = _LinkedHashSet$();
@@ -5889,6 +5903,7 @@ var math = dart.lazyImport(math);
         lookup: [E, [core.Object]]
       })
     });
+    dart.defineExtensionMembers(_LinkedCustomHashSet, ['contains']);
     return _LinkedCustomHashSet;
   });
   let _LinkedCustomHashSet = _LinkedCustomHashSet$();

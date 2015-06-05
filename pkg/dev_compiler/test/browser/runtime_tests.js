@@ -75,8 +75,8 @@ suite('generic', () => {
 
   test('proper type constructor is called', () => {
     // This tests https://github.com/dart-lang/dev_compiler/issues/178
-    let l = dart.setType([1, 2, 3], core.List$(core.int));
-    let s = l[core.$join]();
+    let l = dart.list([1, 2, 3], core.int);
+    let s = l[dartx.join]();
     assert.equal(s, '123');
   });
 });
@@ -600,9 +600,9 @@ suite('instanceOf', () => {
 
     // Tear off of a method with a symbol name
     let listB = new (c.ListBase$(core.int))();
-    checkType(dart.bind(listB, core.$add),
+    checkType(dart.bind(listB, dartx.add),
               dart.functionType(dart.void, [core.int]));
-    checkType(dart.bind(listB, core.$add),
+    checkType(dart.bind(listB, dartx.add),
               dart.functionType(dart.void, [core.String]), false);
 
     // Tear off of a static method

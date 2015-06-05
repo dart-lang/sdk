@@ -238,6 +238,27 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
     }
     ListIterable[dart.implements] = () => [EfficientLength];
+    dart.setSignature(ListIterable, {
+      constructors: () => ({ListIterable: [ListIterable$(E), []]}),
+      methods: () => ({
+        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
+        every: [core.bool, [dart.functionType(core.bool, [E])]],
+        any: [core.bool, [dart.functionType(core.bool, [E])]],
+        firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        singleWhere: [E, [dart.functionType(core.bool, [E])]],
+        where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        map: [core.Iterable, [dart.functionType(core.Object, [E])]],
+        reduce: [E, [dart.functionType(E, [dart.bottom, E])]],
+        fold: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
+        skip: [core.Iterable$(E), [core.int]],
+        skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        take: [core.Iterable$(E), [core.int]],
+        takeWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        toList: [core.List$(E), [], {growable: core.bool}],
+        toSet: [core.Set$(E), []]
+      })
+    });
     dart.defineExtensionMembers(ListIterable, [
       'forEach',
       'contains',
@@ -263,27 +284,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       'last',
       'single'
     ]);
-    dart.setSignature(ListIterable, {
-      constructors: () => ({ListIterable: [ListIterable$(E), []]}),
-      methods: () => ({
-        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
-        every: [core.bool, [dart.functionType(core.bool, [E])]],
-        any: [core.bool, [dart.functionType(core.bool, [E])]],
-        firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        singleWhere: [E, [dart.functionType(core.bool, [E])]],
-        where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        map: [core.Iterable, [dart.functionType(core.Object, [E])]],
-        reduce: [E, [dart.functionType(E, [dart.bottom, E])]],
-        fold: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
-        skip: [core.Iterable$(E), [core.int]],
-        skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        take: [core.Iterable$(E), [core.int]],
-        takeWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        toList: [core.List$(E), [], {growable: core.bool}],
-        toSet: [core.Set$(E), []]
-      })
-    });
     return ListIterable;
   });
   let ListIterable = ListIterable$();
@@ -385,6 +385,13 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         toList: [core.List$(E), [], {growable: core.bool}]
       })
     });
+    dart.defineExtensionMembers(SubListIterable, [
+      'elementAt',
+      'skip',
+      'take',
+      'toList',
+      'length'
+    ]);
     return SubListIterable;
   });
   let SubListIterable = SubListIterable$();
@@ -473,6 +480,15 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }),
       methods: () => ({elementAt: [T, [core.int]]})
     });
+    dart.defineExtensionMembers(MappedIterable, [
+      'elementAt',
+      'iterator',
+      'length',
+      'isEmpty',
+      'first',
+      'last',
+      'single'
+    ]);
     return MappedIterable;
   });
   let MappedIterable = MappedIterable$();
@@ -532,11 +548,11 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
     }
     MappedListIterable[dart.implements] = () => [EfficientLength];
-    dart.defineExtensionMembers(MappedListIterable, ['elementAt', 'length']);
     dart.setSignature(MappedListIterable, {
       constructors: () => ({MappedListIterable: [MappedListIterable$(S, T), [core.Iterable$(S), dart.functionType(T, [S])]]}),
       methods: () => ({elementAt: [T, [core.int]]})
     });
+    dart.defineExtensionMembers(MappedListIterable, ['elementAt', 'length']);
     return MappedListIterable;
   });
   let MappedListIterable = MappedListIterable$();
@@ -559,6 +575,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     dart.setSignature(WhereIterable, {
       constructors: () => ({WhereIterable: [WhereIterable$(E), [core.Iterable$(E), dart.functionType(core.bool, [E])]]})
     });
+    dart.defineExtensionMembers(WhereIterable, ['iterator']);
     return WhereIterable;
   });
   let WhereIterable = WhereIterable$();
@@ -606,6 +623,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     dart.setSignature(ExpandIterable, {
       constructors: () => ({ExpandIterable: [ExpandIterable$(S, T), [core.Iterable$(S), dart.functionType(core.Iterable$(T), [S])]]})
     });
+    dart.defineExtensionMembers(ExpandIterable, ['iterator']);
     return ExpandIterable;
   });
   let ExpandIterable = ExpandIterable$();
@@ -678,6 +696,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         _: [TakeIterable$(E), [core.Iterable$(E), core.int]]
       })
     });
+    dart.defineExtensionMembers(TakeIterable, ['iterator']);
     return TakeIterable;
   });
   let TakeIterable = TakeIterable$();
@@ -694,10 +713,10 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
     }
     EfficientLengthTakeIterable[dart.implements] = () => [EfficientLength];
-    dart.defineExtensionMembers(EfficientLengthTakeIterable, ['length']);
     dart.setSignature(EfficientLengthTakeIterable, {
       constructors: () => ({EfficientLengthTakeIterable: [EfficientLengthTakeIterable$(E), [core.Iterable$(E), core.int]]})
     });
+    dart.defineExtensionMembers(EfficientLengthTakeIterable, ['length']);
     return EfficientLengthTakeIterable;
   });
   let EfficientLengthTakeIterable = EfficientLengthTakeIterable$();
@@ -744,6 +763,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     dart.setSignature(TakeWhileIterable, {
       constructors: () => ({TakeWhileIterable: [TakeWhileIterable$(E), [core.Iterable$(E), dart.functionType(core.bool, [E])]]})
     });
+    dart.defineExtensionMembers(TakeWhileIterable, ['iterator']);
     return TakeWhileIterable;
   });
   let TakeWhileIterable = TakeWhileIterable$();
@@ -814,6 +834,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }),
       methods: () => ({skip: [core.Iterable$(E), [core.int]]})
     });
+    dart.defineExtensionMembers(SkipIterable, ['skip', 'iterator']);
     return SkipIterable;
   });
   let SkipIterable = SkipIterable$();
@@ -830,10 +851,10 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
     }
     EfficientLengthSkipIterable[dart.implements] = () => [EfficientLength];
-    dart.defineExtensionMembers(EfficientLengthSkipIterable, ['length']);
     dart.setSignature(EfficientLengthSkipIterable, {
       constructors: () => ({EfficientLengthSkipIterable: [EfficientLengthSkipIterable$(E), [core.Iterable$(E), core.int]]})
     });
+    dart.defineExtensionMembers(EfficientLengthSkipIterable, ['length']);
     return EfficientLengthSkipIterable;
   });
   let EfficientLengthSkipIterable = EfficientLengthSkipIterable$();
@@ -875,6 +896,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     dart.setSignature(SkipWhileIterable, {
       constructors: () => ({SkipWhileIterable: [SkipWhileIterable$(E), [core.Iterable$(E), dart.functionType(core.bool, [E])]]})
     });
+    dart.defineExtensionMembers(SkipWhileIterable, ['iterator']);
     return SkipWhileIterable;
   });
   let SkipWhileIterable = SkipWhileIterable$();
@@ -1017,6 +1039,28 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
     }
     EmptyIterable[dart.implements] = () => [EfficientLength];
+    dart.setSignature(EmptyIterable, {
+      constructors: () => ({EmptyIterable: [EmptyIterable$(E), []]}),
+      methods: () => ({
+        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
+        elementAt: [E, [core.int]],
+        every: [core.bool, [dart.functionType(core.bool, [E])]],
+        any: [core.bool, [dart.functionType(core.bool, [E])]],
+        firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        singleWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
+        where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        map: [core.Iterable, [dart.functionType(core.Object, [E])]],
+        reduce: [E, [dart.functionType(E, [E, E])]],
+        fold: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
+        skip: [core.Iterable$(E), [core.int]],
+        skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        take: [core.Iterable$(E), [core.int]],
+        takeWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
+        toList: [core.List$(E), [], {growable: core.bool}],
+        toSet: [core.Set$(E), []]
+      })
+    });
     dart.defineExtensionMembers(EmptyIterable, [
       'forEach',
       'elementAt',
@@ -1044,28 +1088,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       'last',
       'single'
     ]);
-    dart.setSignature(EmptyIterable, {
-      constructors: () => ({EmptyIterable: [EmptyIterable$(E), []]}),
-      methods: () => ({
-        forEach: [dart.void, [dart.functionType(dart.void, [E])]],
-        elementAt: [E, [core.int]],
-        every: [core.bool, [dart.functionType(core.bool, [E])]],
-        any: [core.bool, [dart.functionType(core.bool, [E])]],
-        firstWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        singleWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
-        where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        map: [core.Iterable, [dart.functionType(core.Object, [E])]],
-        reduce: [E, [dart.functionType(E, [E, E])]],
-        fold: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
-        skip: [core.Iterable$(E), [core.int]],
-        skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        take: [core.Iterable$(E), [core.int]],
-        takeWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        toList: [core.List$(E), [], {growable: core.bool}],
-        toSet: [core.Set$(E), []]
-      })
-    });
     return EmptyIterable;
   });
   let EmptyIterable = EmptyIterable$();
@@ -1716,27 +1738,6 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       }
     }
     UnmodifiableListMixin[dart.implements] = () => [core.List$(E)];
-    dart.defineExtensionMembers(UnmodifiableListMixin, [
-      'set',
-      'setAll',
-      'add',
-      'insert',
-      'insertAll',
-      'addAll',
-      'remove',
-      'removeWhere',
-      'retainWhere',
-      'sort',
-      'shuffle',
-      'clear',
-      'removeAt',
-      'removeLast',
-      'setRange',
-      'removeRange',
-      'replaceRange',
-      'fillRange',
-      'length'
-    ]);
     dart.setSignature(UnmodifiableListMixin, {
       methods: () => ({
         set: [dart.void, [core.int, E]],
@@ -1759,6 +1760,27 @@ var _js_primitives = dart.lazyImport(_js_primitives);
         fillRange: [dart.void, [core.int, core.int], [E]]
       })
     });
+    dart.defineExtensionMembers(UnmodifiableListMixin, [
+      'set',
+      'setAll',
+      'add',
+      'insert',
+      'insertAll',
+      'addAll',
+      'remove',
+      'removeWhere',
+      'retainWhere',
+      'sort',
+      'shuffle',
+      'clear',
+      'removeAt',
+      'removeLast',
+      'setRange',
+      'removeRange',
+      'replaceRange',
+      'fillRange',
+      'length'
+    ]);
     return UnmodifiableListMixin;
   });
   let UnmodifiableListMixin = UnmodifiableListMixin$();
@@ -1790,6 +1812,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
     constructors: () => ({_ListIndicesIterable: [_ListIndicesIterable, [core.List]]}),
     methods: () => ({elementAt: [core.int, [core.int]]})
   });
+  dart.defineExtensionMembers(_ListIndicesIterable, ['elementAt', 'length']);
   let _values = dart.JsSymbol('_values');
   let ListMapView$ = dart.generic(function(E) {
     class ListMapView extends core.Object {
@@ -1887,6 +1910,7 @@ var _js_primitives = dart.lazyImport(_js_primitives);
       constructors: () => ({ReversedListIterable: [ReversedListIterable$(E), [core.Iterable$(E)]]}),
       methods: () => ({elementAt: [E, [core.int]]})
     });
+    dart.defineExtensionMembers(ReversedListIterable, ['elementAt', 'length']);
     return ReversedListIterable;
   });
   let ReversedListIterable = ReversedListIterable$();

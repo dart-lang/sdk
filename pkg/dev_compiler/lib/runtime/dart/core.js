@@ -72,7 +72,7 @@ var convert = dart.lazyImport(convert);
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : false;
       throw new UnsupportedError('bool.fromEnvironment can only be used as a const constructor');
     }
-    toString() {
+    [dartx.toString]() {
       return this ? "true" : "false";
     }
   }
@@ -342,7 +342,6 @@ var convert = dart.lazyImport(convert);
     }
   }
   DateTime[dart.implements] = () => [Comparable];
-  dart.defineExtensionMembers(DateTime, ['compareTo']);
   dart.defineNamedConstructor(DateTime, 'utc');
   dart.defineNamedConstructor(DateTime, 'now');
   dart.defineNamedConstructor(DateTime, 'fromMillisecondsSinceEpoch');
@@ -379,6 +378,7 @@ var convert = dart.lazyImport(convert);
     }),
     names: ['parse', '_fourDigits', '_sixDigits', '_threeDigits', '_twoDigits', '_brokenDownDateToMillisecondsSinceEpoch']
   });
+  dart.defineExtensionMembers(DateTime, ['compareTo']);
   DateTime.MONDAY = 1;
   DateTime.TUESDAY = 2;
   DateTime.WEDNESDAY = 3;
@@ -561,7 +561,6 @@ var convert = dart.lazyImport(convert);
     }
   }
   Duration[dart.implements] = () => [Comparable$(Duration)];
-  dart.defineExtensionMembers(Duration, ['compareTo']);
   dart.defineNamedConstructor(Duration, '_microseconds');
   dart.setSignature(Duration, {
     constructors: () => ({
@@ -582,6 +581,7 @@ var convert = dart.lazyImport(convert);
       'unary-': [Duration, []]
     })
   });
+  dart.defineExtensionMembers(Duration, ['compareTo']);
   Duration.MICROSECONDS_PER_MILLISECOND = 1000;
   Duration.MILLISECONDS_PER_SECOND = 1000;
   Duration.SECONDS_PER_MINUTE = 60;
@@ -1266,7 +1266,7 @@ var convert = dart.lazyImport(convert);
       [dart.JsSymbol.iterator]() {
         return new dart.JsIterator(this[dartx.iterator]);
       }
-      join(separator) {
+      [dartx.join](separator) {
         if (separator === void 0)
           separator = "";
         let buffer = new StringBuffer();
@@ -1279,7 +1279,7 @@ var convert = dart.lazyImport(convert);
         Iterable: [Iterable$(E), []],
         generate: [Iterable$(E), [int], [dart.functionType(E, [int])]]
       }),
-      methods: () => ({join: [String, [], [String]]})
+      methods: () => ({[dartx.join]: [String, [], [String]]})
     });
     return Iterable;
   });
@@ -1335,7 +1335,6 @@ var convert = dart.lazyImport(convert);
       }
     }
     _GeneratorIterable[dart.implements] = () => [_internal.EfficientLength];
-    dart.defineExtensionMembers(_GeneratorIterable, ['skip', 'take', 'iterator', 'length']);
     dart.defineNamedConstructor(_GeneratorIterable, 'slice');
     dart.setSignature(_GeneratorIterable, {
       constructors: () => ({
@@ -1349,6 +1348,7 @@ var convert = dart.lazyImport(convert);
       statics: () => ({_id: [int, [int]]}),
       names: ['_id']
     });
+    dart.defineExtensionMembers(_GeneratorIterable, ['skip', 'take', 'iterator', 'length']);
     return _GeneratorIterable;
   });
   dart.defineLazyClassGeneric(exports, '_GeneratorIterable', {get: _GeneratorIterable$});
@@ -1722,6 +1722,7 @@ var convert = dart.lazyImport(convert);
       dart.setSignature(Runes, {
         constructors: () => ({Runes: [exports.Runes, [String]]})
       });
+      dart.defineExtensionMembers(Runes, ['iterator', 'last']);
       return Runes;
     }
   });

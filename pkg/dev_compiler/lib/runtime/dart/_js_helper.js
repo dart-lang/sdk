@@ -187,7 +187,6 @@ var _foreign_helper = dart.import(_foreign_helper);
     }
   }
   JSSyntaxRegExp[dart.implements] = () => [core.RegExp];
-  dart.defineExtensionMembers(JSSyntaxRegExp, ['allMatches', 'matchAsPrefix']);
   dart.setSignature(JSSyntaxRegExp, {
     constructors: () => ({JSSyntaxRegExp: [JSSyntaxRegExp, [core.String], {multiLine: core.bool, caseSensitive: core.bool}]}),
     methods: () => ({
@@ -202,6 +201,7 @@ var _foreign_helper = dart.import(_foreign_helper);
     statics: () => ({makeNative: [core.Object, [core.String, core.bool, core.bool, core.bool]]}),
     names: ['makeNative']
   });
+  dart.defineExtensionMembers(JSSyntaxRegExp, ['allMatches', 'matchAsPrefix']);
   let _match = Symbol('_match');
   class _MatchImplementation extends core.Object {
     _MatchImplementation(pattern, match) {
@@ -262,6 +262,7 @@ var _foreign_helper = dart.import(_foreign_helper);
   dart.setSignature(_AllMatchesIterable, {
     constructors: () => ({_AllMatchesIterable: [_AllMatchesIterable, [JSSyntaxRegExp, core.String, core.int]]})
   });
+  dart.defineExtensionMembers(_AllMatchesIterable, ['iterator']);
   let _regExp = Symbol('_regExp');
   let _nextIndex = Symbol('_nextIndex');
   let _current = Symbol('_current');

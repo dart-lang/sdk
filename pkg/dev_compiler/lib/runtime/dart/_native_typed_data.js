@@ -237,7 +237,6 @@ var math = dart.import(math);
     }
   }
   NativeFloat32x4List[dart.implements] = () => [typed_data.Float32x4List];
-  dart.defineExtensionMembers(NativeFloat32x4List, ['get', 'set', 'sublist', 'length']);
   dart.defineNamedConstructor(NativeFloat32x4List, '_externalStorage');
   dart.defineNamedConstructor(NativeFloat32x4List, '_slowFromList');
   dart.setSignature(NativeFloat32x4List, {
@@ -256,6 +255,7 @@ var math = dart.import(math);
       sublist: [core.List$(typed_data.Float32x4), [core.int], [core.int]]
     })
   });
+  dart.defineExtensionMembers(NativeFloat32x4List, ['get', 'set', 'sublist', 'length']);
   class NativeInt32x4List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Int32x4), _internal.FixedLengthListMixin$(typed_data.Int32x4)) {
     NativeInt32x4List(length) {
       this[_storage] = NativeInt32List.new(dart.notNull(length) * 4);
@@ -345,7 +345,6 @@ var math = dart.import(math);
     }
   }
   NativeInt32x4List[dart.implements] = () => [typed_data.Int32x4List];
-  dart.defineExtensionMembers(NativeInt32x4List, ['get', 'set', 'sublist', 'length']);
   dart.defineNamedConstructor(NativeInt32x4List, '_externalStorage');
   dart.defineNamedConstructor(NativeInt32x4List, '_slowFromList');
   dart.setSignature(NativeInt32x4List, {
@@ -364,6 +363,7 @@ var math = dart.import(math);
       sublist: [core.List$(typed_data.Int32x4), [core.int], [core.int]]
     })
   });
+  dart.defineExtensionMembers(NativeInt32x4List, ['get', 'set', 'sublist', 'length']);
   class NativeFloat64x2List extends dart.mixin(core.Object, collection.ListMixin$(typed_data.Float64x2), _internal.FixedLengthListMixin$(typed_data.Float64x2)) {
     NativeFloat64x2List(length) {
       this[_storage] = NativeFloat64List.new(dart.notNull(length) * 2);
@@ -447,7 +447,6 @@ var math = dart.import(math);
     }
   }
   NativeFloat64x2List[dart.implements] = () => [typed_data.Float64x2List];
-  dart.defineExtensionMembers(NativeFloat64x2List, ['get', 'set', 'sublist', 'length']);
   dart.defineNamedConstructor(NativeFloat64x2List, '_externalStorage');
   dart.defineNamedConstructor(NativeFloat64x2List, '_slowFromList');
   dart.setSignature(NativeFloat64x2List, {
@@ -466,6 +465,7 @@ var math = dart.import(math);
       sublist: [core.List$(typed_data.Float64x2), [core.int], [core.int]]
     })
   });
+  dart.defineExtensionMembers(NativeFloat64x2List, ['get', 'set', 'sublist', 'length']);
   class NativeTypedData extends core.Object {
     NativeTypedData() {
       this.buffer = null;
@@ -757,6 +757,7 @@ var math = dart.import(math);
       setRange: [dart.void, [core.int, core.int, core.Iterable$(core.double)], [core.int]]
     })
   });
+  dart.defineExtensionMembers(NativeTypedArrayOfDouble, ['get', 'set', 'setRange', 'length']);
   class NativeTypedArrayOfInt extends dart.mixin(NativeTypedArray, collection.ListMixin$(core.int), _internal.FixedLengthListMixin$(core.int)) {
     get length() {
       return dart.as(this.length, core.int);
@@ -776,13 +777,13 @@ var math = dart.import(math);
     }
   }
   NativeTypedArrayOfInt[dart.implements] = () => [core.List$(core.int)];
-  dart.defineExtensionMembers(NativeTypedArrayOfInt, ['set', 'setRange', 'length']);
   dart.setSignature(NativeTypedArrayOfInt, {
     methods: () => ({
       set: [dart.void, [core.int, core.int]],
       setRange: [dart.void, [core.int, core.int, core.Iterable$(core.int)], [core.int]]
     })
   });
+  dart.defineExtensionMembers(NativeTypedArrayOfInt, ['set', 'setRange', 'length']);
   class NativeFloat32List extends NativeTypedArrayOfDouble {
     static new(length) {
       return NativeFloat32List._create1(_checkLength(length));
@@ -815,7 +816,6 @@ var math = dart.import(math);
     }
   }
   NativeFloat32List[dart.implements] = () => [typed_data.Float32List];
-  dart.defineExtensionMembers(NativeFloat32List, ['sublist']);
   dart.setSignature(NativeFloat32List, {
     constructors: () => ({
       new: [NativeFloat32List, [core.int]],
@@ -830,6 +830,7 @@ var math = dart.import(math);
     }),
     names: ['_create1', '_create2', '_create3']
   });
+  dart.defineExtensionMembers(NativeFloat32List, ['sublist']);
   class NativeFloat64List extends NativeTypedArrayOfDouble {
     static new(length) {
       return NativeFloat64List._create1(_checkLength(length));
@@ -862,7 +863,6 @@ var math = dart.import(math);
     }
   }
   NativeFloat64List[dart.implements] = () => [typed_data.Float64List];
-  dart.defineExtensionMembers(NativeFloat64List, ['sublist']);
   dart.setSignature(NativeFloat64List, {
     constructors: () => ({
       new: [NativeFloat64List, [core.int]],
@@ -877,6 +877,7 @@ var math = dart.import(math);
     }),
     names: ['_create1', '_create2', '_create3']
   });
+  dart.defineExtensionMembers(NativeFloat64List, ['sublist']);
   class NativeInt16List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeInt16List._create1(_checkLength(length));
@@ -913,7 +914,6 @@ var math = dart.import(math);
     }
   }
   NativeInt16List[dart.implements] = () => [typed_data.Int16List];
-  dart.defineExtensionMembers(NativeInt16List, ['get', 'sublist']);
   dart.setSignature(NativeInt16List, {
     constructors: () => ({
       new: [NativeInt16List, [core.int]],
@@ -931,6 +931,7 @@ var math = dart.import(math);
     }),
     names: ['_create1', '_create2', '_create3']
   });
+  dart.defineExtensionMembers(NativeInt16List, ['get', 'sublist']);
   class NativeInt32List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeInt32List._create1(_checkLength(length));
@@ -967,7 +968,6 @@ var math = dart.import(math);
     }
   }
   NativeInt32List[dart.implements] = () => [typed_data.Int32List];
-  dart.defineExtensionMembers(NativeInt32List, ['get', 'sublist']);
   dart.setSignature(NativeInt32List, {
     constructors: () => ({
       new: [NativeInt32List, [core.int]],
@@ -985,6 +985,7 @@ var math = dart.import(math);
     }),
     names: ['_create1', '_create2', '_create3']
   });
+  dart.defineExtensionMembers(NativeInt32List, ['get', 'sublist']);
   class NativeInt8List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeInt8List._create1(_checkLength(length));
@@ -1021,7 +1022,6 @@ var math = dart.import(math);
     }
   }
   NativeInt8List[dart.implements] = () => [typed_data.Int8List];
-  dart.defineExtensionMembers(NativeInt8List, ['get', 'sublist']);
   dart.setSignature(NativeInt8List, {
     constructors: () => ({
       new: [NativeInt8List, [core.int]],
@@ -1039,6 +1039,7 @@ var math = dart.import(math);
     }),
     names: ['_create1', '_create2', '_create3']
   });
+  dart.defineExtensionMembers(NativeInt8List, ['get', 'sublist']);
   class NativeUint16List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeUint16List._create1(_checkLength(length));
@@ -1075,7 +1076,6 @@ var math = dart.import(math);
     }
   }
   NativeUint16List[dart.implements] = () => [typed_data.Uint16List];
-  dart.defineExtensionMembers(NativeUint16List, ['get', 'sublist']);
   dart.setSignature(NativeUint16List, {
     constructors: () => ({
       new: [NativeUint16List, [core.int]],
@@ -1093,6 +1093,7 @@ var math = dart.import(math);
     }),
     names: ['_create1', '_create2', '_create3']
   });
+  dart.defineExtensionMembers(NativeUint16List, ['get', 'sublist']);
   class NativeUint32List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeUint32List._create1(_checkLength(length));
@@ -1129,7 +1130,6 @@ var math = dart.import(math);
     }
   }
   NativeUint32List[dart.implements] = () => [typed_data.Uint32List];
-  dart.defineExtensionMembers(NativeUint32List, ['get', 'sublist']);
   dart.setSignature(NativeUint32List, {
     constructors: () => ({
       new: [NativeUint32List, [core.int]],
@@ -1147,6 +1147,7 @@ var math = dart.import(math);
     }),
     names: ['_create1', '_create2', '_create3']
   });
+  dart.defineExtensionMembers(NativeUint32List, ['get', 'sublist']);
   class NativeUint8ClampedList extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeUint8ClampedList._create1(_checkLength(length));
@@ -1186,7 +1187,6 @@ var math = dart.import(math);
     }
   }
   NativeUint8ClampedList[dart.implements] = () => [typed_data.Uint8ClampedList];
-  dart.defineExtensionMembers(NativeUint8ClampedList, ['get', 'sublist', 'length']);
   dart.setSignature(NativeUint8ClampedList, {
     constructors: () => ({
       new: [NativeUint8ClampedList, [core.int]],
@@ -1204,6 +1204,7 @@ var math = dart.import(math);
     }),
     names: ['_create1', '_create2', '_create3']
   });
+  dart.defineExtensionMembers(NativeUint8ClampedList, ['get', 'sublist', 'length']);
   class NativeUint8List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeUint8List._create1(_checkLength(length));
@@ -1243,7 +1244,6 @@ var math = dart.import(math);
     }
   }
   NativeUint8List[dart.implements] = () => [typed_data.Uint8List];
-  dart.defineExtensionMembers(NativeUint8List, ['get', 'sublist', 'length']);
   dart.setSignature(NativeUint8List, {
     constructors: () => ({
       new: [NativeUint8List, [core.int]],
@@ -1261,6 +1261,7 @@ var math = dart.import(math);
     }),
     names: ['_create1', '_create2', '_create3']
   });
+  dart.defineExtensionMembers(NativeUint8List, ['get', 'sublist', 'length']);
   class NativeFloat32x4 extends core.Object {
     static _truncate(x) {
       NativeFloat32x4._list.set(0, dart.as(x, core.num));

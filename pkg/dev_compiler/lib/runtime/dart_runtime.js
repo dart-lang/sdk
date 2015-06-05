@@ -18,6 +18,10 @@ var dart, _js_helper, _js_primitives, dartx;
   const hasOwnProperty = Object.prototype.hasOwnProperty;
   const slice = [].slice;
 
+  let _constructorSig = Symbol('sigCtor');
+  let _methodSig = Symbol("sig");
+  let _staticSig = Symbol("sigStatic");
+
   function getOwnNamesAndSymbols(obj) {
     return getOwnPropertyNames(obj).concat(getOwnPropertySymbols(obj));
   }
@@ -754,7 +758,7 @@ var dart, _js_helper, _js_primitives, dartx;
       get = null;
       return cache;
     }
-    defineProperty(obj, name, {get : getter});
+    defineProperty(obj, name, {get: getter, configurable: true});
   }
 
   function copyPropertiesHelper(to, from, names) {
@@ -779,6 +783,11 @@ var dart, _js_helper, _js_primitives, dartx;
     return sym;
   }
 
+  function defineExtensionNames(names) {
+    names.forEach(getExtensionSymbol);
+  }
+  dart.defineExtensionNames = defineExtensionNames;
+
   /**
    * Copy symbols from the prototype of the source to destination.
    * These are the only properties safe to copy onto an existing public
@@ -791,10 +800,7 @@ var dart, _js_helper, _js_primitives, dartx;
     // Mark the JS type's instances so we can easily check for extensions.
     assert(jsProto[_extensionType] === void 0);
     jsProto[_extensionType] = extProto;
-    for (let name of getOwnPropertyNames(extProto)) {
-      let symbol = getExtensionSymbol(name);
-      defineProperty(jsProto, symbol, getOwnPropertyDescriptor(extProto, name));
-    }
+    copyPropertiesHelper(jsProto, extProto, getOwnPropertySymbols(extProto));
   }
   dart.registerExtension = registerExtension;
 
@@ -815,7 +821,7 @@ var dart, _js_helper, _js_primitives, dartx;
    */
   // TODO(jmesserly): essentially this gives two names to the same method.
   // This benefit is roughly equivalent call performance either way, but the
-  // cost is we need to call implementExtension any time a subclass overrides
+  // cost is we need to call defineExtensionMEmbers any time a subclass overrides
   // one of these methods.
   function defineExtensionMembers(type, methodNames) {
     let proto = type.prototype;
@@ -823,6 +829,20 @@ var dart, _js_helper, _js_primitives, dartx;
       let method = getOwnPropertyDescriptor(proto, name);
       defineProperty(proto, getExtensionSymbol(name), method);
     }
+    // Ensure the signature is available too.
+    // TODO(jmesserly): not sure if we can do this in a cleaner way. Essentially
+    // we need to copy the signature (and in the future, other data like
+    // annotations) any time we copy a method as part of our metaprogramming.
+    // It might be more friendly to JS metaprogramming if we include this info
+    // on the function.
+    var originalSigFn = getOwnPropertyDescriptor(type, _methodSig).get;
+    defineMemoizedGetter(type, _methodSig, function() {
+      var sig = originalSigFn();
+      for (let name of methodNames) {
+        sig[getExtensionSymbol(name)] = sig[name];
+      }
+      return sig;
+    });
   }
   dart.defineExtensionMembers = defineExtensionMembers;
 
@@ -896,7 +916,7 @@ var dart, _js_helper, _js_primitives, dartx;
     // Set the signature of the Mixin class to be the composition
     // of the signatures of the mixins.
     dart.setSignature(Mixin, {
-      methods : () => {
+      methods: () => {
         let s = {};
         for (let m of mixins) {
           copyProperties(s, m[_methodSig]);
@@ -1019,10 +1039,6 @@ var dart, _js_helper, _js_primitives, dartx;
     return makeGenericType;
   }
   dart.generic = generic;
-
-  let _constructorSig = Symbol('sigCtor');
-  let _methodSig = Symbol("sig");
-  let _staticSig = Symbol("sigStatic");
 
   /// Get the type of a function using the store runtime type
   function _getFunctionType(f) {

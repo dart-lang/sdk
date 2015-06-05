@@ -2838,6 +2838,7 @@ var collection = dart.import(collection);
     constructors: () => ({_JsonMapKeyIterable: [_JsonMapKeyIterable, [_JsonMap]]}),
     methods: () => ({elementAt: [core.String, [core.int]]})
   });
+  dart.defineExtensionMembers(_JsonMapKeyIterable, ['elementAt', 'contains', 'length', 'iterator']);
   class _JsonDecoderSink extends _StringSinkConversionSink {
     _JsonDecoderSink(reviver, sink) {
       this[_reviver] = reviver;
