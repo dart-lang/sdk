@@ -5490,10 +5490,15 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of getPrioritySources");
     return null;
   }
-
   @override
   List<AnalysisTarget> get priorityTargets {
     fail("Unexpected invocation of visitCacheItems");
+    return null;
+  }
+
+  @override
+  CachePartition get privateAnalysisCachePartition {
+    fail("Unexpected invocation of privateAnalysisCachePartition");
     return null;
   }
 

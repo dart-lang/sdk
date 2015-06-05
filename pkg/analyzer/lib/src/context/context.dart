@@ -254,7 +254,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
     if (needsRecompute) {
-      _invalidateAllLocalResolutionInformation(false);
+      dartWorkManager.onAnalysisOptionsChanged();
     }
   }
 
@@ -366,7 +366,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     factory.context = this;
     _sourceFactory = factory;
     _cache = createCacheFromSourceFactory(factory);
-    _invalidateAllLocalResolutionInformation(true);
+    dartWorkManager.onSourceFactoryChanged();
   }
 
   @override
@@ -1543,36 +1543,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Invalidate all of the resolution results computed by this context. The flag
-   * [invalidateUris] should be `true` if the cached results of converting URIs
-   * to source files should also be invalidated.
-   */
-  void _invalidateAllLocalResolutionInformation(bool invalidateUris) {
-    HashMap<Source, List<Source>> oldPartMap =
-        new HashMap<Source, List<Source>>();
-    // TODO(brianwilkerson) Implement this
-//    MapIterator<AnalysisTarget, cache.CacheEntry> iterator =
-//        _privatePartition.iterator();
-//    while (iterator.moveNext()) {
-//      AnalysisTarget target = iterator.key;
-//      cache.CacheEntry entry = iterator.value;
-//      if (entry is HtmlEntry) {
-//        HtmlEntry htmlEntry = entry;
-//        htmlEntry.invalidateAllResolutionInformation(invalidateUris);
-//        iterator.value = htmlEntry;
-//        _workManager.add(target, SourcePriority.HTML);
-//      } else if (entry is DartEntry) {
-//        DartEntry dartEntry = entry;
-//        oldPartMap[target] = dartEntry.getValue(DartEntry.INCLUDED_PARTS);
-//        dartEntry.invalidateAllResolutionInformation(invalidateUris);
-//        iterator.value = dartEntry;
-//        _workManager.add(target, _computePriority(dartEntry));
-//      }
-//    }
-    _removeFromPartsUsingMap(oldPartMap);
-  }
-
-  /**
    * Log the given debugging [message].
    */
   void _logInformation(String message) {
@@ -1591,28 +1561,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  /**
-   * Remove the given libraries that are keys in the given map from the list of
-   * containing libraries for each of the parts in the corresponding value.
-   */
-  void _removeFromPartsUsingMap(HashMap<Source, List<Source>> oldPartMap) {
-    // TODO(brianwilkerson) Figure out whether we still need this.
-//    oldPartMap.forEach((Source librarySource, List<Source> oldParts) {
-//      for (int i = 0; i < oldParts.length; i++) {
-//        Source partSource = oldParts[i];
-//        if (partSource != librarySource) {
-//          DartEntry partEntry = _getReadableDartEntry(partSource);
-//          if (partEntry != null) {
-//            partEntry.removeContainingLibrary(librarySource);
-//            if (partEntry.containingLibraries.length == 0 &&
-//                !exists(partSource)) {
-//              _cache.remove(partSource);
-//            }
-//          }
-//        }
-//      }
-//    });
-  }
+  @override
+  CachePartition get privateAnalysisCachePartition => _privatePartition;
 
   /**
    * Remove the given [source] from the priority order if it is in the list.

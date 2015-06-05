@@ -179,15 +179,6 @@ class DartWorkManagerTest {
     expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.INVALID);
   }
 
-  CacheEntry _getOrCreateEntry(Source source) {
-    CacheEntry entry = cache.get(source);
-    if (entry == null) {
-      entry = new CacheEntry(source);
-      cache.put(entry);
-    }
-    return entry;
-  }
-
   void test_applyChange_updatePartsLibraries_removeLibrary() {
     Source part1 = new TestSource('part1.dart');
     Source part2 = new TestSource('part2.dart');
@@ -420,6 +411,58 @@ class DartWorkManagerTest {
     expect(manager.getNextResultPriority(), WorkOrderPriority.NONE);
   }
 
+  void test_onAnalysisOptionsChanged() {
+    when(context.exists(anyObject)).thenReturn(true);
+    // set cache values
+    entry1.setValue(PARSED_UNIT, AstFactory.compilationUnit(), []);
+    entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(EXPLICITLY_IMPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(EXPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(INCLUDED_PARTS, <Source>[], []);
+    // configure LibrarySpecificUnit
+    LibrarySpecificUnit unitTarget = new LibrarySpecificUnit(source2, source3);
+    CacheEntry unitEntry = new CacheEntry(unitTarget);
+    cache.put(unitEntry);
+    unitEntry.setValue(BUILD_LIBRARY_ERRORS, <AnalysisError>[], []);
+    expect(unitEntry.getState(BUILD_LIBRARY_ERRORS), CacheState.VALID);
+    // notify
+    manager.onAnalysisOptionsChanged();
+    // resolution is invalidated
+    expect(unitEntry.getState(BUILD_LIBRARY_ERRORS), CacheState.INVALID);
+    // ...but URIs are still value
+    expect(entry1.getState(PARSED_UNIT), CacheState.VALID);
+    expect(entry1.getState(IMPORTED_LIBRARIES), CacheState.VALID);
+    expect(entry1.getState(EXPLICITLY_IMPORTED_LIBRARIES), CacheState.VALID);
+    expect(entry1.getState(EXPORTED_LIBRARIES), CacheState.VALID);
+    expect(entry1.getState(INCLUDED_PARTS), CacheState.VALID);
+  }
+
+  void test_onSourceFactoryChanged() {
+    when(context.exists(anyObject)).thenReturn(true);
+    // set cache values
+    entry1.setValue(PARSED_UNIT, AstFactory.compilationUnit(), []);
+    entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(EXPLICITLY_IMPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(EXPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(INCLUDED_PARTS, <Source>[], []);
+    // configure LibrarySpecificUnit
+    LibrarySpecificUnit unitTarget = new LibrarySpecificUnit(source2, source3);
+    CacheEntry unitEntry = new CacheEntry(unitTarget);
+    cache.put(unitEntry);
+    unitEntry.setValue(BUILD_LIBRARY_ERRORS, <AnalysisError>[], []);
+    expect(unitEntry.getState(BUILD_LIBRARY_ERRORS), CacheState.VALID);
+    // notify
+    manager.onSourceFactoryChanged();
+    // resolution is invalidated
+    expect(unitEntry.getState(BUILD_LIBRARY_ERRORS), CacheState.INVALID);
+    // ...and URIs resolution too
+    expect(entry1.getState(PARSED_UNIT), CacheState.INVALID);
+    expect(entry1.getState(IMPORTED_LIBRARIES), CacheState.INVALID);
+    expect(entry1.getState(EXPLICITLY_IMPORTED_LIBRARIES), CacheState.INVALID);
+    expect(entry1.getState(EXPORTED_LIBRARIES), CacheState.INVALID);
+    expect(entry1.getState(INCLUDED_PARTS), CacheState.INVALID);
+  }
+
   void test_resultsComputed_errors_forLibrarySpecificUnit() {
     AnalysisError error1 =
         new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
@@ -539,17 +582,30 @@ class DartWorkManagerTest {
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source1, source3]);
   }
+
+  CacheEntry _getOrCreateEntry(Source source) {
+    CacheEntry entry = cache.get(source);
+    if (entry == null) {
+      entry = new CacheEntry(source);
+      cache.put(entry);
+    }
+    return entry;
+  }
 }
 
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
+  @override
+  CachePartition privateAnalysisCachePartition;
+
   @override
   AnalysisCache analysisCache;
 
   Map<Source, ChangeNoticeImpl> _pendingNotices = <Source, ChangeNoticeImpl>{};
 
   _InternalAnalysisContextMock() {
-    analysisCache = new AnalysisCache([new UniversalCachePartition(this)]);
+    privateAnalysisCachePartition = new UniversalCachePartition(this);
+    analysisCache = new AnalysisCache([privateAnalysisCachePartition]);
   }
 
   @override
