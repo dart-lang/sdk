@@ -414,12 +414,12 @@ class AnalysisContextHelper {
   /**
    * Creates new [AnalysisContext] using [AnalysisContextFactory.contextWithCore].
    */
-  AnalysisContextHelper() {
-    context = AnalysisContextFactory.contextWithCore();
-    AnalysisOptionsImpl options =
-        new AnalysisOptionsImpl.from(context.analysisOptions);
+  AnalysisContextHelper([AnalysisOptionsImpl options]) {
+    if (options == null) {
+      options = new AnalysisOptionsImpl();
+    }
     options.cacheSize = 256;
-    context.analysisOptions = options;
+    context = AnalysisContextFactory.contextWithCoreAndOptions(options);
   }
 
   Source addSource(String path, String code) {

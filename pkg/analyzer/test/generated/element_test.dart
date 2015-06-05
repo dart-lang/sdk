@@ -10,7 +10,7 @@ library engine.element_test;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisContextImpl;
+    show AnalysisContext, AnalysisContextImpl, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -3867,6 +3867,38 @@ class LibraryElementImplTest extends EngineTestCase {
 class MethodElementImplTest extends EngineTestCase {
   void test_computeNode() {
     AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource("/test.dart", r'''
+abstract class A {
+  String m1() => null;
+  m2();
+}
+''');
+    // prepare CompilationUnitElement
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
+    // m1
+    {
+      MethodElement m1Element = unitElement.getType("A").getMethod('m1');
+      MethodDeclaration m1Node = m1Element.computeNode();
+      expect(m1Node, isNotNull);
+      expect(m1Node.name.name, "m1");
+      expect(m1Node.element, same(m1Element));
+    }
+    // m2
+    {
+      MethodElement m2Element = unitElement.getType("A").getMethod('m2');
+      MethodDeclaration m2Node = m2Element.computeNode();
+      expect(m2Node, isNotNull);
+      expect(m2Node.name.name, "m2");
+      expect(m2Node.element, same(m2Element));
+    }
+  }
+
+  void test_computeNode_withoutFunctionBody() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.analyzeFunctionBodies = false;
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper(options);
     AnalysisContext context = contextHelper.context;
     Source source = contextHelper.addSource("/test.dart", r'''
 abstract class A {
