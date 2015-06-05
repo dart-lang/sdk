@@ -38,7 +38,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_tag" : "@1.1.0",
+  "analyzer_cli_rev" : "@090c4859a2f88e62ae71a11583ba31e9999c74f6",
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
   "charcode_tag": "@1.1.0",
@@ -175,7 +175,7 @@ deps = {
       Var("dart_services_rev"),
 
   Var("dart_root") + "/third_party/pkg/analyzer_cli":
-      (Var("github_mirror") % "analyzer_cli") + Var("analyzer_cli_tag"),
+      (Var("github_mirror") % "analyzer_cli") + Var("analyzer_cli_rev"),
   Var("dart_root") + "/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async_await":
