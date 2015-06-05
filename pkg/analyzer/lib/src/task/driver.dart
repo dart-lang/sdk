@@ -126,6 +126,7 @@ class AnalysisDriver {
       }
       // Create a new WorkOrder.
       TargetedResult request = highestManager.getNextResult();
+//      print('request: $request');
       if (request != null) {
         WorkOrder workOrder =
             createWorkOrderForResult(request.target, request.result);

@@ -981,7 +981,12 @@ library lib;
 part 'no-such-file.dart';
 '''
     });
-    expect(libraryElement.parts, isEmpty);
+    expect(libraryElement.parts, hasLength(1));
+    CompilationUnitElement part = libraryElement.parts[0];
+    expect(part, isNotNull);
+    expect(part.source, isNotNull);
+    expect(part.library, same(libraryElement));
+    expect(context.exists(part.source), isFalse);
   }
 
   test_perform_patchTopLevelAccessors() {

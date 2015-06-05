@@ -473,6 +473,8 @@ library lib;
 part 'part.dart';''');
     // run all tasks without part
     _analyzeAll_assertFinished();
+    expect(_hasAnalysisErrorWithErrorSeverity(context.getErrors(libSource)),
+        isTrue, reason: "lib has errors");
     // add part and run all tasks
     Source partSource = addSource("/part.dart", r'''
 part of lib;
@@ -481,6 +483,11 @@ part of lib;
     // "libSource" should be here
     List<Source> librariesWithPart = context.getLibrariesContaining(partSource);
     expect(librariesWithPart, unorderedEquals([libSource]));
+    expect(_hasAnalysisErrorWithErrorSeverity(context.getErrors(libSource)),
+        isFalse, reason: "lib doesn't have errors");
+    expect(
+        context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
+        reason: "part resolved");
   }
 
   void test_performAnalysisTask_changeLibraryContents() {
