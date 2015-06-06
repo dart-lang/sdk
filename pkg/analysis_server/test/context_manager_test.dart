@@ -926,7 +926,7 @@ class TestContextManager extends ContextManager {
   /**
    * The analysis context that was created.
    */
-  AnalysisContextImpl currentContext;
+  AnalysisContext currentContext;
 
   /**
    * Map from context to the timestamp when the context was created.
@@ -970,7 +970,7 @@ class TestContextManager extends ContextManager {
     currentContextFilePaths[path] = <String, int>{};
     currentContextSources[path] = new HashSet<Source>();
     currentContextPackageUriResolvers[path] = packageUriResolver;
-    currentContext = new AnalysisContextImpl();
+    currentContext = AnalysisEngine.instance.createAnalysisContext();
     currentContext.sourceFactory = new SourceFactory(
         packageUriResolver == null ? [] : [packageUriResolver]);
     return currentContext;

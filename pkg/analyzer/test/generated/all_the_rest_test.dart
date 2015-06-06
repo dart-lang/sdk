@@ -7881,7 +7881,7 @@ class HtmlTagInfoBuilderTest extends HtmlParserTest {
 
 @reflectiveTest
 class HtmlUnitBuilderTest extends EngineTestCase {
-  AnalysisContextImpl _context;
+  InternalAnalysisContext _context;
   @override
   void setUp() {
     _context = AnalysisContextFactory.contextWithCore();
@@ -8010,14 +8010,9 @@ class HtmlUnitBuilderTest_ExpectedVariable {
 @reflectiveTest
 class HtmlWarningCodeTest extends EngineTestCase {
   /**
-   * The source factory used to create the sources to be resolved.
-   */
-  SourceFactory _sourceFactory;
-
-  /**
    * The analysis context used to resolve the HTML files.
    */
-  AnalysisContextImpl _context;
+  InternalAnalysisContext _context;
 
   /**
    * The contents of the 'test.html' file.
@@ -8030,14 +8025,11 @@ class HtmlWarningCodeTest extends EngineTestCase {
   List<AnalysisError> _errors;
   @override
   void setUp() {
-    _sourceFactory = new SourceFactory([new FileUriResolver()]);
-    _context = new AnalysisContextImpl();
-    _context.sourceFactory = _sourceFactory;
+    _context = AnalysisContextFactory.contextWithCore();
   }
 
   @override
   void tearDown() {
-    _sourceFactory = null;
     _context = null;
     _contents = null;
     _errors = null;

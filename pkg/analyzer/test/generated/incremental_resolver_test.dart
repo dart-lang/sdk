@@ -2471,6 +2471,17 @@ class IncrementalResolverTest extends ResolverTestCase {
   LibraryElement library;
   CompilationUnit unit;
 
+  @override
+  void reset() {
+    analysisContext2 = AnalysisContextFactory.oldContextWithCore();
+  }
+
+  @override
+  void resetWithOptions(AnalysisOptions options) {
+    analysisContext2 =
+        AnalysisContextFactory.oldContextWithCoreAndOptions(options);
+  }
+
   void setUp() {
     super.setUp();
     test_resolveApiChanges = true;
@@ -2802,8 +2813,9 @@ class B {
     int updateEndOld = updateOffset + edit.length;
     int updateOldNew = updateOffset + edit.replacement.length;
     IncrementalResolver resolver = new IncrementalResolver(
-        analysisContext2.getReadableSourceEntryOrNull(source), null, null,
-        unit.element, updateOffset, updateEndOld, updateOldNew);
+        (analysisContext2 as AnalysisContextImpl)
+            .getReadableSourceEntryOrNull(source), null, null, unit.element,
+        updateOffset, updateEndOld, updateOldNew);
     bool success = resolver.resolve(newNode);
     expect(success, isTrue);
     List<AnalysisError> newErrors = analysisContext.computeErrors(source);

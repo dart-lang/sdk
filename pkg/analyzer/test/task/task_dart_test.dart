@@ -63,8 +63,7 @@ class BuildUnitElementTaskTest extends EngineTestCase {
   void test_perform_exception() {
     TestSource source = new TestSource();
     source.generateExceptionOnRead = true;
-    InternalAnalysisContext context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory([new FileUriResolver()]);
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     CompilationUnit unit = parseUnit(context, source, "");
     BuildUnitElementTask task =
         new BuildUnitElementTask(context, null, source, unit);

@@ -6,6 +6,7 @@ library engine.resolver_test;
 
 import 'dart:collection';
 
+import 'package:analyzer/src/context/context.dart' as newContext;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -75,23 +76,28 @@ class AnalysisContextFactory {
 
   /**
    * Create an analysis context that has a fake core library already resolved.
-   *
-   * @return the analysis context that was created
+   * Return the context that was created.
    */
-  static AnalysisContextImpl contextWithCore() {
+  static InternalAnalysisContext contextWithCore() {
+    if (AnalysisEngine.instance.useTaskModel) {
+      NewAnalysisContextForTests context = new NewAnalysisContextForTests();
+      return initContextWithCore(context);
+    }
     AnalysisContextForTests context = new AnalysisContextForTests();
     return initContextWithCore(context);
   }
 
   /**
-   * Create an analysis context that uses the given options and has a fake core library already
-   * resolved.
-   *
-   * @param options the options to be applied to the context
-   * @return the analysis context that was created
+   * Create an analysis context that uses the given [options] and has a fake
+   * core library already resolved. Return the context that was created.
    */
-  static AnalysisContextImpl contextWithCoreAndOptions(
+  static InternalAnalysisContext contextWithCoreAndOptions(
       AnalysisOptions options) {
+    if (AnalysisEngine.instance.useTaskModel) {
+      NewAnalysisContextForTests context = new NewAnalysisContextForTests();
+      context._internalSetAnalysisOptions(options);
+      return initContextWithCore(context);
+    }
     AnalysisContextForTests context = new AnalysisContextForTests();
     context._internalSetAnalysisOptions(options);
     return initContextWithCore(context);
@@ -103,7 +109,8 @@ class AnalysisContextFactory {
    * @param context the context to be initialized (not `null`)
    * @return the analysis context that was created
    */
-  static AnalysisContextImpl initContextWithCore(AnalysisContextImpl context) {
+  static InternalAnalysisContext initContextWithCore(
+      InternalAnalysisContext context) {
     DirectoryBasedDartSdk sdk = new _AnalysisContextFactory_initContextWithCore(
         new JavaFile("/fake/sdk"));
     SourceFactory sourceFactory =
@@ -346,6 +353,26 @@ class AnalysisContextFactory {
     context.recordLibraryElements(elementMap);
     return context;
   }
+
+  /**
+   * Create an analysis context that has a fake core library already resolved.
+   * Return the context that was created.
+   */
+  static AnalysisContextImpl oldContextWithCore() {
+    AnalysisContextForTests context = new AnalysisContextForTests();
+    return initContextWithCore(context);
+  }
+
+  /**
+   * Create an analysis context that uses the given [options] and has a fake
+   * core library already resolved. Return the context that was created.
+   */
+  static AnalysisContextImpl oldContextWithCoreAndOptions(
+      AnalysisOptions options) {
+    AnalysisContextForTests context = new AnalysisContextForTests();
+    context._internalSetAnalysisOptions(options);
+    return initContextWithCore(context);
+  }
 }
 
 /**
@@ -412,7 +439,7 @@ class AnalysisContextHelper {
   AnalysisContext context;
 
   /**
-   * Creates new [AnalysisContext] using [AnalysisContextFactory.contextWithCore].
+   * Creates new [AnalysisContext] using [AnalysisContextFactory].
    */
   AnalysisContextHelper([AnalysisOptionsImpl options]) {
     if (options == null) {
@@ -1888,10 +1915,7 @@ class ElementResolverTest extends EngineTestCase {
    * @return the resolver that was created
    */
   ElementResolver _createResolver() {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
-    context.sourceFactory = sourceFactory;
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     FileBasedSource source =
         new FileBasedSource(FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
@@ -5709,7 +5733,7 @@ class InheritanceManagerTest extends EngineTestCase {
    * @return the inheritance manager that was created
    */
   InheritanceManager _createInheritanceManager() {
-    AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
     FileBasedSource source =
         new FileBasedSource(FileUtilities2.createFile("/test.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
@@ -5727,7 +5751,7 @@ class LibraryElementBuilderTest extends EngineTestCase {
   /**
    * The analysis context used to analyze sources.
    */
-  AnalysisContextImpl _context;
+  InternalAnalysisContext _context;
 
   /**
    * Add a source file to the content provider. The file path should be absolute.
@@ -5744,12 +5768,7 @@ class LibraryElementBuilderTest extends EngineTestCase {
 
   @override
   void setUp() {
-    SourceFactory sourceFactory = new SourceFactory([
-      new DartUriResolver(DirectoryBasedDartSdk.defaultSdk),
-      new FileUriResolver()
-    ]);
-    _context = new AnalysisContextImpl();
-    _context.sourceFactory = sourceFactory;
+    _context = AnalysisContextFactory.contextWithCore();
   }
 
   @override
@@ -5909,8 +5928,7 @@ class A {}''');
 @reflectiveTest
 class LibraryImportScopeTest extends ResolverTestCase {
   void test_conflictingImports() {
-    AnalysisContext context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory([]);
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
     String typeNameA = "A";
     String typeNameB = "B";
     String typeNameC = "C";
@@ -5976,8 +5994,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_creation_nonEmpty() {
-    AnalysisContext context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory([]);
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
     String importedTypeName = "A";
     ClassElement importedType =
         new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
@@ -6028,8 +6045,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_nonConflictingImports_sameElement() {
-    AnalysisContext context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory([]);
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
     String typeNameA = "A";
     String typeNameB = "B";
     ClassElement typeA = ElementFactory.classElement2(typeNameA);
@@ -6053,8 +6069,7 @@ class LibraryImportScopeTest extends ResolverTestCase {
   }
 
   void test_prefixedAndNonPrefixed() {
-    AnalysisContext context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory([]);
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
     String typeName = "C";
     String prefixName = "p";
     ClassElement prefixedType = ElementFactory.classElement2(typeName);
@@ -6195,8 +6210,7 @@ class LibraryScopeTest extends ResolverTestCase {
   }
 
   void test_creation_nonEmpty() {
-    AnalysisContext context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory([]);
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
     String importedTypeName = "A";
     ClassElement importedType =
         new ClassElementImpl.forNode(AstFactory.identifier3(importedTypeName));
@@ -6231,14 +6245,9 @@ class LibraryTest extends EngineTestCase {
   GatheringErrorListener _errorListener;
 
   /**
-   * The source factory used to create libraries.
-   */
-  SourceFactory _sourceFactory;
-
-  /**
    * The analysis context to pass in to all libraries created by the tests.
    */
-  AnalysisContextImpl _analysisContext;
+  InternalAnalysisContext _analysisContext;
 
   /**
    * The library used by the tests.
@@ -6247,9 +6256,7 @@ class LibraryTest extends EngineTestCase {
 
   @override
   void setUp() {
-    _sourceFactory = new SourceFactory([new FileUriResolver()]);
-    _analysisContext = new AnalysisContextImpl();
-    _analysisContext.sourceFactory = _sourceFactory;
+    _analysisContext = AnalysisContextFactory.contextWithCore();
     _errorListener = new GatheringErrorListener();
     _library = _createLibrary("/lib.dart");
   }
@@ -6257,7 +6264,6 @@ class LibraryTest extends EngineTestCase {
   @override
   void tearDown() {
     _errorListener = null;
-    _sourceFactory = null;
     _analysisContext = null;
     _library = null;
     super.tearDown();
@@ -6378,6 +6384,63 @@ class MemberMapTest {
     map.put(m1.name, m1);
     expect(map.size, 1);
     expect(map.get("m1"), m1);
+  }
+}
+
+/**
+ * An analysis context that has a fake SDK that is much smaller and faster for
+ * testing purposes.
+ */
+class NewAnalysisContextForTests extends newContext.AnalysisContextImpl {
+  @override
+  void set analysisOptions(AnalysisOptions options) {
+    AnalysisOptions currentOptions = analysisOptions;
+    bool needsRecompute = currentOptions.analyzeFunctionBodiesPredicate !=
+            options.analyzeFunctionBodiesPredicate ||
+        currentOptions.generateImplicitErrors !=
+            options.generateImplicitErrors ||
+        currentOptions.generateSdkErrors != options.generateSdkErrors ||
+        currentOptions.dart2jsHint != options.dart2jsHint ||
+        (currentOptions.hint && !options.hint) ||
+        currentOptions.preserveComments != options.preserveComments ||
+        currentOptions.enableNullAwareOperators !=
+            options.enableNullAwareOperators ||
+        currentOptions.enableStrictCallChecks != options.enableStrictCallChecks;
+    if (needsRecompute) {
+      fail(
+          "Cannot set options that cause the sources to be reanalyzed in a test context");
+    }
+    super.analysisOptions = options;
+  }
+
+  @override
+  bool exists(Source source) =>
+      super.exists(source) || sourceFactory.dartSdk.context.exists(source);
+
+  @override
+  TimestampedData<String> getContents(Source source) {
+    if (source.isInSystemLibrary) {
+      return sourceFactory.dartSdk.context.getContents(source);
+    }
+    return super.getContents(source);
+  }
+
+  @override
+  int getModificationStamp(Source source) {
+    if (source.isInSystemLibrary) {
+      return sourceFactory.dartSdk.context.getModificationStamp(source);
+    }
+    return super.getModificationStamp(source);
+  }
+
+  /**
+   * Set the analysis options, even if they would force re-analysis. This method should only be
+   * invoked before the fake SDK is initialized.
+   *
+   * @param options the analysis options to be set
+   */
+  void _internalSetAnalysisOptions(AnalysisOptions options) {
+    super.analysisOptions = options;
   }
 }
 
@@ -7661,7 +7724,7 @@ class ResolverTestCase extends EngineTestCase {
   /**
    * The analysis context used to parse the compilation units being resolved.
    */
-  AnalysisContextImpl analysisContext2;
+  InternalAnalysisContext analysisContext2;
 
   /**
    * Specifies if [assertErrors] should check for [HintCode.UNUSED_ELEMENT] and
@@ -7771,7 +7834,7 @@ class ResolverTestCase extends EngineTestCase {
    * @return the library element that was created
    */
   LibraryElementImpl createDefaultTestLibrary() =>
-      createTestLibrary(new AnalysisContextImpl(), "test");
+      createTestLibrary(AnalysisContextFactory.contextWithCore(), "test");
 
   /**
    * Create a library element that represents a library with the given name containing a single
@@ -10994,10 +11057,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    * @return the analyzer to be used by the tests
    */
   StaticTypeAnalyzer _createAnalyzer() {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    SourceFactory sourceFactory = new SourceFactory(
-        [new DartUriResolver(DirectoryBasedDartSdk.defaultSdk)]);
-    context.sourceFactory = sourceFactory;
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     FileBasedSource source =
         new FileBasedSource(FileUtilities2.createFile("/lib.dart"));
     CompilationUnitElementImpl definingCompilationUnit =
@@ -11502,7 +11562,7 @@ class SubtypeManagerTest extends EngineTestCase {
   @override
   void setUp() {
     super.setUp();
-    AnalysisContextImpl context = AnalysisContextFactory.contextWithCore();
+    AnalysisContext context = AnalysisContextFactory.contextWithCore();
     FileBasedSource source =
         new FileBasedSource(FileUtilities2.createFile("/test.dart"));
     _definingCompilationUnit = new CompilationUnitElementImpl("test.dart");
@@ -13210,7 +13270,7 @@ class TypeProviderImplTest extends EngineTestCase {
     CompilationUnitElementImpl asyncUnit =
         new CompilationUnitElementImpl("async.dart");
     asyncUnit.types = <ClassElement>[futureType.element, streamType.element];
-    AnalysisContextImpl context = new AnalysisContextImpl();
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
     LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
         context, AstFactory.libraryIdentifier2(["dart.core"]));
     coreLibrary.definingCompilationUnit = coreUnit;
@@ -13333,9 +13393,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
   @override
   void setUp() {
     _listener = new GatheringErrorListener();
-    SourceFactory factory = new SourceFactory([new FileUriResolver()]);
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    context.sourceFactory = factory;
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
     Source librarySource =
         new FileBasedSource(FileUtilities2.createFile("/lib.dart"));
     _library = new Library(context, _listener, librarySource);

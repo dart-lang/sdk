@@ -10,7 +10,7 @@ library engine.element_test;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisContextImpl, AnalysisOptionsImpl;
+    show AnalysisContext, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
@@ -1064,7 +1064,7 @@ class ElementImplTest extends EngineTestCase {
   }
 
   void test_isAccessibleIn_private_differentLibrary() {
-    AnalysisContextImpl context = createAnalysisContext();
+    AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library1 = ElementFactory.library(context, "lib1");
     ClassElement classElement = ElementFactory.classElement2("_C");
     (library1.definingCompilationUnit as CompilationUnitElementImpl).types =
@@ -1083,7 +1083,7 @@ class ElementImplTest extends EngineTestCase {
   }
 
   void test_isAccessibleIn_public_differentLibrary() {
-    AnalysisContextImpl context = createAnalysisContext();
+    AnalysisContext context = createAnalysisContext();
     LibraryElementImpl library1 = ElementFactory.library(context, "lib1");
     ClassElement classElement = ElementFactory.classElement2("C");
     (library1.definingCompilationUnit as CompilationUnitElementImpl).types =
@@ -1960,27 +1960,27 @@ class FunctionTypeImplTest extends EngineTestCase {
 @reflectiveTest
 class HtmlElementImplTest extends EngineTestCase {
   void test_equals_differentSource() {
-    AnalysisContextImpl context = createAnalysisContext();
+    AnalysisContext context = createAnalysisContext();
     HtmlElementImpl elementA = ElementFactory.htmlUnit(context, "indexA.html");
     HtmlElementImpl elementB = ElementFactory.htmlUnit(context, "indexB.html");
     expect(elementA == elementB, isFalse);
   }
 
   void test_equals_null() {
-    AnalysisContextImpl context = createAnalysisContext();
+    AnalysisContext context = createAnalysisContext();
     HtmlElementImpl element = ElementFactory.htmlUnit(context, "index.html");
     expect(element == null, isFalse);
   }
 
   void test_equals_sameSource() {
-    AnalysisContextImpl context = createAnalysisContext();
+    AnalysisContext context = createAnalysisContext();
     HtmlElementImpl elementA = ElementFactory.htmlUnit(context, "index.html");
     HtmlElementImpl elementB = ElementFactory.htmlUnit(context, "index.html");
     expect(elementA == elementB, isTrue);
   }
 
   void test_equals_self() {
-    AnalysisContextImpl context = createAnalysisContext();
+    AnalysisContext context = createAnalysisContext();
     HtmlElementImpl element = ElementFactory.htmlUnit(context, "index.html");
     expect(element == element, isTrue);
   }
