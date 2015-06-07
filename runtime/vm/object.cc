@@ -65,7 +65,6 @@ DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 DEFINE_FLAG(bool, trace_field_guards, false, "Trace changes in field's cids.");
 
-DECLARE_FLAG(bool, error_on_bad_override);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
@@ -5115,6 +5114,7 @@ bool Function::HasCode() const {
 
 
 void Function::ClearCode() const {
+  ASSERT(ic_data_array() == Array::null());
   StorePointer(&raw_ptr()->unoptimized_code_, Code::null());
   StubCode* stub_code = Isolate::Current()->stub_code();
   StorePointer(&raw_ptr()->instructions_,
@@ -5141,8 +5141,9 @@ void Function::SwitchToUnoptimizedCode() const {
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
-  AttachCode(Code::Handle(zone, unoptimized_code()));
-  CodePatcher::RestoreEntry(Code::Handle(zone, unoptimized_code()));
+  const Code& unopt_code = Code::Handle(zone, unoptimized_code());
+  AttachCode(unopt_code);
+  CodePatcher::RestoreEntry(unopt_code);
   isolate->TrackDeoptimizedCode(current_code);
 }
 
@@ -5906,7 +5907,7 @@ const char* Function::ToQualifiedCString() const {
 
 bool Function::HasCompatibleParametersWith(const Function& other,
                                            Error* bound_error) const {
-  ASSERT(Isolate::Current()->ErrorOnBadOverrideEnabled());
+  ASSERT(Isolate::Current()->flags().error_on_bad_override());
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
@@ -6198,13 +6199,13 @@ RawFunction* Function::Clone(const Class& new_owner) const {
   const PatchClass& clone_owner =
       PatchClass::Handle(PatchClass::New(new_owner, origin));
   clone.set_owner(clone_owner);
+  clone.ClearICDataArray();
   clone.ClearCode();
   clone.set_usage_counter(0);
   clone.set_deoptimization_counter(0);
   clone.set_regexp_cid(kIllegalCid);
   clone.set_optimized_instruction_count(0);
   clone.set_optimized_call_site_count(0);
-  clone.set_ic_data_array(Array::Handle());
   if (new_owner.NumTypeParameters() > 0) {
     // Adjust uninstantiated types to refer to type parameters of the new owner.
     AbstractType& type = AbstractType::Handle(clone.result_type());
@@ -6755,7 +6756,7 @@ RawArray* Function::ic_data_array() const {
 }
 
 void Function::ClearICDataArray() const {
-  set_ic_data_array(Array::Handle());
+  set_ic_data_array(Array::null_array());
 }
 
 
@@ -13952,7 +13953,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     const AbstractType& instantiated_other = AbstractType::Handle(
         isolate, other.InstantiateFrom(other_instantiator, bound_error));
     if ((bound_error != NULL) && !bound_error->IsNull()) {
-      ASSERT(Isolate::Current()->TypeChecksEnabled());
+      ASSERT(Isolate::Current()->flags().type_checks());
       return false;
     }
     other_class = instantiated_other.type_class();
@@ -14619,14 +14620,14 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // type and/or malbounded parameter types, which will then be encountered here
   // at run time.
   if (IsMalbounded()) {
-    ASSERT(Isolate::Current()->TypeChecksEnabled());
+    ASSERT(Isolate::Current()->flags().type_checks());
     if ((bound_error != NULL) && bound_error->IsNull()) {
       *bound_error = error();
     }
     return false;
   }
   if (other.IsMalbounded()) {
-    ASSERT(Isolate::Current()->TypeChecksEnabled());
+    ASSERT(Isolate::Current()->flags().type_checks());
     if ((bound_error != NULL) && bound_error->IsNull()) {
       *bound_error = other.error();
     }
@@ -14833,7 +14834,7 @@ bool Type::IsMalformed() const {
 
 
 bool Type::IsMalbounded() const {
-  if (!Isolate::Current()->TypeChecksEnabled()) {
+  if (!Isolate::Current()->flags().type_checks()) {
     return false;
   }
   if (raw_ptr()->error_ == LanguageError::null()) {
@@ -14853,7 +14854,7 @@ bool Type::IsMalformedOrMalbounded() const {
     return true;
   }
   ASSERT(type_error.kind() == Report::kMalboundedType);
-  return Isolate::Current()->TypeChecksEnabled();
+  return Isolate::Current()->flags().type_checks();
 }
 
 
@@ -15857,7 +15858,7 @@ RawAbstractType* BoundedType::InstantiateFrom(
                                                 bound_error,
                                                 trail);
   }
-  if ((Isolate::Current()->TypeChecksEnabled()) &&
+  if ((Isolate::Current()->flags().type_checks()) &&
       (bound_error != NULL) && bound_error->IsNull()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
     ASSERT(!upper_bound.IsObjectType() && !upper_bound.IsDynamicType());

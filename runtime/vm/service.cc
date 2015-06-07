@@ -2605,8 +2605,8 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
   // pids > 53-bits (when consumed by JavaScript).
   // TODO(johnmccutchan): Codify how integers are sent across the service.
   jsobj.AddPropertyF("pid", "%" Pd "", OS::ProcessId());
-  jsobj.AddProperty("_assertsEnabled", isolate->AssertsEnabled());
-  jsobj.AddProperty("_typeChecksEnabled", isolate->TypeChecksEnabled());
+  jsobj.AddProperty("_assertsEnabled", isolate->flags().asserts());
+  jsobj.AddProperty("_typeChecksEnabled", isolate->flags().type_checks());
   int64_t start_time_millis = (Dart::vm_isolate()->start_time() /
                                kMicrosecondsPerMillisecond);
   jsobj.AddProperty64("startTime", start_time_millis);

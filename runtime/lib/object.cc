@@ -271,7 +271,7 @@ DEFINE_NATIVE_ENTRY(Object_as, 4) {
           location, instance_type_name, type_name,
           dst_name, Object::null_string());
     } else {
-      ASSERT(Isolate::Current()->TypeChecksEnabled());
+      ASSERT(isolate->flags().type_checks());
       bound_error_message = String::New(bound_error.ToErrorCString());
       Exceptions::CreateAndThrowTypeError(
           location, instance_type_name, Symbols::Empty(),

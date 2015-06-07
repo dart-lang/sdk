@@ -554,7 +554,8 @@ int main(int argc, char** argv) {
   }
 
   char* error;
-  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, NULL, &error);
+  Dart_Isolate isolate = Dart_CreateIsolate(
+      NULL, NULL, NULL, NULL, NULL, &error);
   if (isolate == NULL) {
     Log::PrintErr("Error: %s", error);
     free(error);
@@ -600,7 +601,7 @@ int main(int argc, char** argv) {
 
     // Now we create an isolate into which we load all the code that needs to
     // be in the snapshot.
-    if (Dart_CreateIsolate(NULL, NULL, NULL, NULL, &error) == NULL) {
+    if (Dart_CreateIsolate(NULL, NULL, NULL, NULL, NULL, &error) == NULL) {
       fprintf(stderr, "%s", error);
       free(error);
       exit(255);

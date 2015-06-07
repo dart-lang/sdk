@@ -685,6 +685,23 @@ DART_EXPORT Dart_Handle Dart_VisitPrologueWeakHandles(
  */
 DART_EXPORT const char* Dart_VersionString();
 
+
+/**
+ * Isolate specific flags are set when creating a new isolate using the
+ * Dart_IsolateFlags structure.
+ *
+ * Current version of flags is encoded in a 32-bit integer with 16 bits used
+ * for each part.
+ */
+
+#define DART_FLAGS_CURRENT_VERSION (0x00000001)
+
+typedef struct {
+  int32_t version;
+  bool enable_type_checks;
+  bool enable_asserts;
+} Dart_IsolateFlags;
+
 /**
  * An isolate creation and initialization callback function.
  *
@@ -723,6 +740,9 @@ DART_EXPORT const char* Dart_VersionString();
  * \param package_root The package root path for this isolate to resolve
  *   package imports against. If this parameter is NULL, the package root path
  *   of the parent isolate should be used.
+ * \param flags Default flags for this isolate being spawned. Either inherited
+ *   from the spawning isolate or passed as parameters when spawning the
+ *   isolate from Dart code.
  * \param callback_data The callback data which was passed to the
  *   parent isolate when it was created by calling Dart_CreateIsolate().
  * \param error A structure into which the embedder can place a
@@ -734,6 +754,7 @@ DART_EXPORT const char* Dart_VersionString();
 typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
                                                    const char* main,
                                                    const char* package_root,
+                                                   Dart_IsolateFlags* flags,
                                                    void* callback_data,
                                                    char** error);
 
@@ -894,6 +915,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *   Provided only for advisory purposes to improve debugging messages.
  * \param snapshot A buffer containing a snapshot of the isolate or
  *   NULL if no snapshot is provided.
+ * \param flags Pointer to VM specific flags or NULL for default flags.
  * \param callback_data Embedder data.  This data will be passed to
  *   the Dart_IsolateCreateCallback when new isolates are spawned from
  *   this parent isolate.
@@ -905,6 +927,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
 DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
                                             const char* main,
                                             const uint8_t* snapshot,
+                                            Dart_IsolateFlags* flags,
                                             void* callback_data,
                                             char** error);
 /* TODO(turnidge): Document behavior when there is already a current

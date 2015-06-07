@@ -171,21 +171,20 @@ static bool CreateIsolate(Isolate* parent_isolate,
     return false;
   }
 
+  Dart_IsolateFlags api_flags;
+  state->isolate_flags()->CopyTo(&api_flags);
+
   void* init_data = parent_isolate->init_callback_data();
   Isolate* child_isolate = reinterpret_cast<Isolate*>(
       (callback)(state->script_url(),
                  state->function_name(),
                  state->package_root(),
+                 &api_flags,
                  init_data,
                  error));
   if (child_isolate == NULL) {
     return false;
   }
-  // TODO(iposva): Evaluate whether it's ok to override the embedder's setup.
-  // Currently the strict_compilation flag is ignored if it's false and
-  // checked-mode was enabled using a command-line flag. The command-line flag
-  // overrides the user code's request.
-  child_isolate->set_strict_compilation(state->checked_mode());
   if (!state->is_spawn_uri()) {
     // For isolates spawned using the spawn semantics we set
     // the origin_id to the origin_id of the parent isolate.
@@ -234,12 +233,10 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 4) {
 #endif
       // Get the parent function so that we get the right function name.
       func = func.parent_function();
-      bool checkedFlag = isolate->strict_compilation();
       Spawn(isolate, new IsolateSpawnState(port.Id(),
                                            func,
                                            message,
-                                           paused.value(),
-                                           checkedFlag));
+                                           paused.value()));
       return Object::null();
     }
   }
@@ -278,20 +275,19 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 7) {
     utf8_package_root[len] = '\0';
   }
 
-  bool checkedFlag;
-  if (checked.IsNull()) {
-    checkedFlag = isolate->strict_compilation();
-  } else {
-    checkedFlag = checked.value();
+  IsolateSpawnState* state = new IsolateSpawnState(port.Id(),
+                                                   canonical_uri,
+                                                   utf8_package_root,
+                                                   args,
+                                                   message,
+                                                   paused.value());
+  // If we were passed a value then override the default flags state for
+  // checked mode.
+  if (!checked.IsNull()) {
+    state->isolate_flags()->set_checked(checked.value());
   }
 
-  Spawn(isolate, new IsolateSpawnState(port.Id(),
-                                       canonical_uri,
-                                       utf8_package_root,
-                                       args,
-                                       message,
-                                       paused.value(),
-                                       checkedFlag));
+  Spawn(isolate, state);
   return Object::null();
 }
 

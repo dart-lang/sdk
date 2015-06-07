@@ -15,10 +15,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, error_on_bad_override, false,
-            "Report error for bad overrides.");
-DEFINE_FLAG(bool, error_on_bad_type, false,
-            "Report error for malformed types.");
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
@@ -377,7 +373,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     return;
   }
 
-  if (Isolate::Current()->ErrorOnBadOverrideEnabled()) {
+  if (Isolate::Current()->flags().error_on_bad_override()) {
     // Verify that the target is compatible with the redirecting factory.
     Error& error = Error::Handle();
     if (!target.HasCompatibleParametersWith(factory, &error)) {
@@ -1000,7 +996,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(
       TypeArguments::Handle(isolate, parameterized_type.arguments());
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     // Wrong number of type arguments. The type is mapped to the raw type.
-    if (Isolate::Current()->ErrorOnBadTypeEnabled()) {
+    if (Isolate::Current()->flags().error_on_bad_type()) {
       const String& type_class_name =
           String::Handle(isolate, type_class.Name());
       ReportError(cls, parameterized_type.token_pos(),
@@ -1371,7 +1367,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
            !const_value.IsInstanceOf(type,
                                      Object::null_type_arguments(),
                                      &error))) {
-        if (Isolate::Current()->ErrorOnBadTypeEnabled()) {
+        if (Isolate::Current()->flags().error_on_bad_type()) {
           const AbstractType& const_value_type = AbstractType::Handle(
               I, const_value.GetType());
           const String& const_value_type_name = String::Handle(
@@ -1435,7 +1431,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     ResolveAndFinalizeSignature(cls, function);
     name = function.name();
     // Report signature conflicts only.
-    if (Isolate::Current()->ErrorOnBadOverrideEnabled() &&
+    if (Isolate::Current()->flags().error_on_bad_override() &&
         !function.is_static() && !function.IsGenerativeConstructor()) {
       // A constructor cannot override anything.
       for (intptr_t i = 0; i < interfaces.Length(); i++) {
@@ -2595,7 +2591,7 @@ void ClassFinalizer::CollectTypeArguments(
       }
       return;
     }
-    if (Isolate::Current()->ErrorOnBadTypeEnabled()) {
+    if (Isolate::Current()->flags().error_on_bad_type()) {
       const String& type_class_name = String::Handle(type_class.Name());
       ReportError(cls, type.token_pos(),
                   "wrong number of type arguments for class '%s'",
@@ -3018,7 +3014,7 @@ void ClassFinalizer::MarkTypeMalformed(const Error& prev_error,
           prev_error, script, type.token_pos(),
           Report::kMalformedType, Heap::kOld,
           format, args));
-  if (Isolate::Current()->ErrorOnBadTypeEnabled()) {
+  if (Isolate::Current()->flags().error_on_bad_type()) {
     ReportError(error);
   }
   type.set_error(error);
@@ -3080,7 +3076,7 @@ void ClassFinalizer::FinalizeMalboundedType(const Error& prev_error,
           Report::kMalboundedType, Heap::kOld,
           format, args));
   va_end(args);
-  if (Isolate::Current()->ErrorOnBadTypeEnabled()) {
+  if (Isolate::Current()->flags().error_on_bad_type()) {
     ReportError(error);
   }
   type.set_error(error);

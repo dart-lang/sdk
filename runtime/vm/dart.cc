@@ -118,7 +118,13 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
     Thread::EnsureInit();
-    vm_isolate_ = Isolate::Init("vm-isolate", is_vm_isolate);
+
+    // Setup default flags for the VM isolate.
+    Isolate::Flags vm_flags;
+    Dart_IsolateFlags api_flags;
+    vm_flags.CopyTo(&api_flags);
+    vm_isolate_ = Isolate::Init("vm-isolate", api_flags, is_vm_isolate);
+
     StackZone zone(vm_isolate_);
     HandleScope handle_scope(vm_isolate_);
     Heap::Init(vm_isolate_,
@@ -226,9 +232,10 @@ const char* Dart::Cleanup() {
 }
 
 
-Isolate* Dart::CreateIsolate(const char* name_prefix) {
+Isolate* Dart::CreateIsolate(const char* name_prefix,
+                             const Dart_IsolateFlags& api_flags) {
   // Create a new isolate.
-  Isolate* isolate = Isolate::Init(name_prefix);
+  Isolate* isolate = Isolate::Init(name_prefix, api_flags);
   ASSERT(isolate != NULL);
   return isolate;
 }

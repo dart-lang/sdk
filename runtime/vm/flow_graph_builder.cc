@@ -951,8 +951,9 @@ BlockEntryInstr* TestGraphVisitor::CreateFalseSuccessor() const {
 
 
 void TestGraphVisitor::ReturnValue(Value* value) {
-  if (Isolate::Current()->TypeChecksEnabled() ||
-      Isolate::Current()->AssertsEnabled()) {
+  Isolate* isolate = Isolate::Current();
+  if (isolate->flags().type_checks() ||
+      isolate->flags().asserts()) {
     value = Bind(new(Z) AssertBooleanInstr(condition_token_pos(), value));
   }
   Value* constant_true = Bind(new(Z) ConstantInstr(Bool::True()));
@@ -987,7 +988,7 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
         false));  // No number check.
   } else {
     branch = new(Z) BranchInstr(comp);
-    branch->set_is_checked(Isolate::Current()->TypeChecksEnabled());
+    branch->set_is_checked(Isolate::Current()->flags().type_checks());
   }
   AddInstruction(branch);
   CloseFragment();
@@ -997,7 +998,7 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
 
 
 void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
-  ASSERT(!Isolate::Current()->TypeChecksEnabled());
+  ASSERT(!Isolate::Current()->flags().type_checks());
   Value* constant_true = Bind(new(Z) ConstantInstr(Bool::True()));
   StrictCompareInstr* comp =
       new(Z) StrictCompareInstr(condition_token_pos(),
@@ -1019,7 +1020,7 @@ void TestGraphVisitor::ReturnDefinition(Definition* definition) {
     MergeBranchWithComparison(comp);
     return;
   }
-  if (!Isolate::Current()->TypeChecksEnabled()) {
+  if (!Isolate::Current()->flags().type_checks()) {
     BooleanNegateInstr* neg = definition->AsBooleanNegate();
     if (neg != NULL) {
       MergeBranchWithNegate(neg);
@@ -1111,7 +1112,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     return_value = Bind(BuildLoadLocal(*temp));
   }
 
-  if (Isolate::Current()->TypeChecksEnabled()) {
+  if (Isolate::Current()->flags().type_checks()) {
     const bool is_implicit_dynamic_getter =
         (!function.is_static() &&
         ((function.kind() == RawFunction::kImplicitGetter) ||
@@ -1311,8 +1312,9 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     TestGraphVisitor for_left(owner(), node->left()->token_pos());
     node->left()->Visit(&for_left);
     EffectGraphVisitor empty(owner());
-    if (Isolate::Current()->TypeChecksEnabled() ||
-        Isolate::Current()->AssertsEnabled()) {
+    Isolate* isolate = Isolate::Current();
+    if (isolate->flags().type_checks() ||
+        isolate->flags().asserts()) {
       ValueGraphVisitor for_right(owner());
       node->right()->Visit(&for_right);
       Value* right_value = for_right.value();
@@ -1377,8 +1379,9 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     ValueGraphVisitor for_right(owner());
     node->right()->Visit(&for_right);
     Value* right_value = for_right.value();
-    if (Isolate::Current()->TypeChecksEnabled() ||
-        Isolate::Current()->AssertsEnabled()) {
+    Isolate* isolate = Isolate::Current();
+    if (isolate->flags().type_checks() ||
+        isolate->flags().asserts()) {
       right_value =
           for_right.Bind(new(Z) AssertBooleanInstr(node->right()->token_pos(),
                                                    right_value));
@@ -1914,8 +1917,9 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
         kNumArgsChecked,
         owner()->ic_data_array());
     if (node->kind() == Token::kNE) {
-      if (Isolate::Current()->TypeChecksEnabled() ||
-          Isolate::Current()->AssertsEnabled()) {
+      Isolate* isolate = Isolate::Current();
+      if (isolate->flags().type_checks() ||
+          isolate->flags().asserts()) {
         Value* value = Bind(result);
         result = new(Z) AssertBooleanInstr(node->token_pos(), value);
       }
@@ -1961,8 +1965,9 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     node->operand()->Visit(&for_value);
     Append(for_value);
     Value* value = for_value.value();
-    if (Isolate::Current()->TypeChecksEnabled() ||
-        Isolate::Current()->AssertsEnabled()) {
+    Isolate* isolate = Isolate::Current();
+    if (isolate->flags().type_checks() ||
+        isolate->flags().asserts()) {
       value =
           Bind(new(Z) AssertBooleanInstr(node->operand()->token_pos(), value));
     }
@@ -3565,7 +3570,7 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* store_value = for_value.value();
-  if (Isolate::Current()->TypeChecksEnabled()) {
+  if (Isolate::Current()->flags().type_checks()) {
     store_value = BuildAssignableValue(node->value()->token_pos(),
                                        store_value,
                                        node->local().type(),
@@ -3606,7 +3611,7 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* store_value = for_value.value();
-  if (Isolate::Current()->TypeChecksEnabled()) {
+  if (Isolate::Current()->flags().type_checks()) {
     const AbstractType& type =
         AbstractType::ZoneHandle(Z, node->field().type());
     const String& dst_name = String::ZoneHandle(Z, node->field().name());
@@ -3997,7 +4002,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
-  if (Isolate::Current()->TypeChecksEnabled() && is_top_level_sequence) {
+  if (Isolate::Current()->flags().type_checks() && is_top_level_sequence) {
     const int num_params = function.NumParameters();
     int pos = 0;
     if (function.IsGenerativeConstructor()) {

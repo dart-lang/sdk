@@ -286,7 +286,8 @@ class TestCase : TestCaseBase {
   static Dart_Isolate CreateIsolate(const uint8_t* buffer,
                                     const char* name) {
     char* err;
-    Dart_Isolate isolate = Dart_CreateIsolate(name, NULL, buffer, NULL, &err);
+    Dart_Isolate isolate = Dart_CreateIsolate(
+        name, NULL, buffer, NULL, NULL, &err);
     if (isolate == NULL) {
       OS::Print("Creation of isolate failed '%s'\n", err);
       free(err);

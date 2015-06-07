@@ -225,7 +225,7 @@ DEFINE_RUNTIME_ENTRY(InstantiateTypeArguments, 2) {
   // Code inlined in the caller should have optimized the case where the
   // instantiator can be reused as type argument vector.
   ASSERT(instantiator.IsNull() || !type_arguments.IsUninstantiatedIdentity());
-  if (Isolate::Current()->TypeChecksEnabled()) {
+  if (isolate->flags().type_checks()) {
     Error& bound_error = Error::Handle();
     type_arguments =
         type_arguments.InstantiateAndCanonicalizeFrom(instantiator,
@@ -530,7 +530,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
     }
     String& bound_error_message =  String::Handle();
     if (!bound_error.IsNull()) {
-      ASSERT(Isolate::Current()->TypeChecksEnabled());
+      ASSERT(isolate->flags().type_checks());
       bound_error_message = String::New(bound_error.ToErrorCString());
     }
     if (src_type_name.Equals(dst_type_name)) {

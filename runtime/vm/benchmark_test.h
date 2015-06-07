@@ -81,7 +81,7 @@ class Benchmark {
 
   Dart_Isolate CreateIsolate(const uint8_t* buffer) {
     char* err = NULL;
-    isolate_ = Dart_CreateIsolate(NULL, NULL, buffer, NULL, &err);
+    isolate_ = Dart_CreateIsolate(NULL, NULL, buffer, NULL, NULL, &err);
     EXPECT(isolate_ != NULL);
     free(err);
     return isolate_;

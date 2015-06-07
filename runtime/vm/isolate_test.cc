@@ -10,7 +10,10 @@
 namespace dart {
 
 UNIT_TEST_CASE(IsolateCurrent) {
-  Isolate* isolate = Isolate::Init(NULL);
+  Isolate::Flags vm_flags;
+  Dart_IsolateFlags api_flags;
+  vm_flags.CopyTo(&api_flags);
+  Isolate* isolate = Isolate::Init(NULL, api_flags);
   EXPECT_EQ(isolate, Isolate::Current());
   isolate->Shutdown();
   EXPECT_EQ(reinterpret_cast<Isolate*>(NULL), Isolate::Current());

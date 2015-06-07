@@ -25,7 +25,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, emit_edge_counters);
-DECLARE_FLAG(bool, enable_asserts);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, use_osr);
 
@@ -374,13 +373,13 @@ static void EmitAssertBoolean(Register reg,
   ASSERT(locs->always_calls());
   Label done;
 
-  if (Isolate::Current()->TypeChecksEnabled()) {
+  if (Isolate::Current()->flags().type_checks()) {
     __ CompareObject(reg, Bool::True());
     __ b(&done, EQ);
     __ CompareObject(reg, Bool::False());
     __ b(&done, EQ);
   } else {
-    ASSERT(FLAG_enable_asserts);
+    ASSERT(Isolate::Current()->flags().asserts());
     __ CompareObject(reg, Object::null_instance());
     __ b(&done, NE);
   }

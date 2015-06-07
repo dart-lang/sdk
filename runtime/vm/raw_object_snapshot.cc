@@ -722,8 +722,8 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   }
 
   // Initialize all fields that are not part of the snapshot.
+  func.ClearICDataArray();
   func.ClearCode();
-  func.set_ic_data_array(Object::null_array());
   return func.raw();
 }
 

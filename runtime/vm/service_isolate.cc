@@ -625,10 +625,15 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
+    Isolate::Flags default_flags;
+    Dart_IsolateFlags api_flags;
+    default_flags.CopyTo(&api_flags);
+
     isolate =
         reinterpret_cast<Isolate*>(create_callback(ServiceIsolate::kName,
                                                    NULL,
                                                    NULL,
+                                                   &api_flags,
                                                    NULL,
                                                    &error));
     if (isolate == NULL) {
