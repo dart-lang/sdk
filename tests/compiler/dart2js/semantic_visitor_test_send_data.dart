@@ -306,7 +306,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test.clazz(
         '''
         class C {
-          static static get o => 42;
+          static get o => 42;
           m() { o = 42; }
         }
         ''',
@@ -316,7 +316,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test.clazz(
         '''
         class C {
-          static static get o => 42;
+          static get o => 42;
           m() { C.o = 42; }
         }
         ''',
@@ -326,7 +326,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test.prefix(
         '''
         class C {
-          static static get o => 42;
+          static get o => 42;
         }
         ''',
         'm() { p.C.o = 42; }',
@@ -1382,6 +1382,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() { assert(false); }
         ''',
         const Visit(VisitKind.VISIT_ASSERT, expression: 'false')),
+    const Test(
+        '''
+        m() { assert(); }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_ASSERT, arguments: '()')),
+    const Test(
+        '''
+        m() { assert(42, true); }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_ASSERT, arguments: '(42,true)')),
   ],
   'Logical and': const [
     // Logical and
@@ -1541,6 +1551,18 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_BINARY,
                     operator: '+',
                     right: '42')),
+    const Test(
+        '''
+        m() => 2 === 3;
+        ''',
+        const Visit(VisitKind.ERROR_UNDEFINED_BINARY_EXPRESSION,
+                    left: '2', operator: '===', right: '3')),
+    const Test(
+        '''
+        m() => 2 !== 3;
+        ''',
+        const Visit(VisitKind.ERROR_UNDEFINED_BINARY_EXPRESSION,
+                    left: '2', operator: '!==', right: '3')),
   ],
   'Index': const [
     // Index
@@ -1782,6 +1804,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => !0;
         ''',
         const Visit(VisitKind.VISIT_NOT, expression: '0')),
+    const Test(
+        '''
+        m() => +false;
+        ''',
+        // TODO(johnniwinther): Should this be an
+        // ERROR_UNDEFINED_UNARY_EXPRESSION? Currently the parser just skips
+        // the `+`.
+        const []),
   ],
   'Index set': const [
     // Index set
@@ -1851,7 +1881,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test(
         '''
         m() {
-          final a;
+          final a = 0;
           a += 42;
         }
         ''',
@@ -2125,7 +2155,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           var a;
         }
         class B extends A {
-          final a;
+          final a = 0;
         }
 
         class C extends B {
@@ -3366,5 +3396,117 @@ const Map<String, List<Test>> SEND_TESTS = const {
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
+  ],
+  'If not null expressions': const [
+    const Test(
+        '''
+        m(a) => a?.b;
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_GET,
+              receiver: 'a',
+              name: 'b'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a) => a?.b = 42;
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET,
+              receiver: 'a',
+              name: 'b',
+              rhs: '42'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a) => a?.b(42, true);
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_INVOKE,
+              receiver: 'a',
+              arguments: '(42,true)',
+              selector: 'Selector(call, b, arity=2)'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a) => ++a?.b;
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_PREFIX,
+              receiver: 'a',
+              getter: 'Selector(getter, b, arity=0)',
+              setter: 'Selector(setter, b, arity=1)',
+              operator: '++'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a) => a?.b--;
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_POSTFIX,
+              receiver: 'a',
+              getter: 'Selector(getter, b, arity=0)',
+              setter: 'Selector(setter, b, arity=1)',
+              operator: '--'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a) => a?.b *= 42;
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_COMPOUND,
+              receiver: 'a',
+              getter: 'Selector(getter, b, arity=0)',
+              setter: 'Selector(setter, b, arity=1)',
+              operator: '*=',
+              rhs: '42'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a, b) => a ?? b;
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_IF_NULL,
+                      left: 'a', right: 'b'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#b)'),
+       ]),
+    const Test(
+        '''
+        m(a) => a ??= 42;
+        ''',
+        const Visit(
+            VisitKind.VISIT_PARAMETER_COMPOUND,
+            element: 'parameter(m#a)',
+            operator: '??=',
+            rhs: '42')),
   ],
 };

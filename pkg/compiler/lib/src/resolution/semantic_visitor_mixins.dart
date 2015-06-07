@@ -4078,6 +4078,7 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Selector selector,
       Node rhs,
       A arg) {
+    apply(receiver, arg);
     apply(rhs, arg);
     return null;
   }
