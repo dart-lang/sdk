@@ -836,7 +836,7 @@ class IncrementalResolver {
   /**
    * The context the compilation unit being resolved in.
    */
-  AnalysisContextImpl _context;
+  AnalysisContext _context;
 
   /**
    * The object used to access the types from the core library.
