@@ -546,8 +546,7 @@ abstract class Enqueuer {
    */
   void registerStaticUse(Element element) {
     if (element == null) return;
-    assert(invariant(element, element.isDeclaration,
-        message: "Element ${element} is not the declaration."));
+    assert(invariant(element, element.isDeclaration));
     if (Elements.isStaticOrTopLevel(element) && element.isField) {
       universe.registerStaticFieldUse(element);
     }

@@ -350,9 +350,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => o;
         }
         ''',
-        const Visit(VisitKind.VISIT_STATIC_SETTER_GET,
-                    element: 'setter(C#o)')),
-
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                    name: 'o')),
     const Test.clazz(
         '''
         class C {
@@ -463,8 +462,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { o(null, 42); }
         }
         ''',
-        const Visit(VisitKind.VISIT_STATIC_SETTER_INVOKE,
-                    element: 'setter(C#o)',
+        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                    name: 'o',
                     arguments: '(null,42)')),
     const Test.clazz(
         '''
@@ -721,8 +720,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         set o(_) {}
         m() => o;
         ''',
-        const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
-                    element: 'setter(o)')),
+        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
+                    name: 'o')),
     const Test.prefix(
         '''
         set o(_) {}
@@ -787,8 +786,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         set o(_) {}
         m() => o(null, 42);
         ''',
-        const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_INVOKE,
-                    element: 'setter(o)',
+        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
+                    name: 'o',
                     arguments: '(null,42)')),
     const Test.prefix(
         '''

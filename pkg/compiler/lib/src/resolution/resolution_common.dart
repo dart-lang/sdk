@@ -983,7 +983,7 @@ class CommonResolverVisitor<R> extends Visitor<R> {
     compiler.reportWarning(node, kind, arguments);
   }
 
-  internalError(Spannable node, message) {
+  void internalError(Spannable node, message) {
     compiler.internalError(node, message);
   }
 

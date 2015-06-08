@@ -1322,12 +1322,9 @@ class SsaBuilder extends NewResolvedVisitor {
     bool meetsHardConstraints() {
       if (compiler.disableInlining) return false;
 
-      assert(invariant(
-          currentNode != null ? currentNode : element,
-          selector != null ||
-          Elements.isStaticOrTopLevel(element) ||
-          element.isGenerativeConstructorBody,
-          message: "Missing selector for inlining of $element."));
+      assert(selector != null
+             || Elements.isStaticOrTopLevel(element)
+             || element.isGenerativeConstructorBody);
       if (selector != null && !selector.applies(function, compiler.world)) {
         return false;
       }
@@ -3249,7 +3246,8 @@ class SsaBuilder extends NewResolvedVisitor {
     return pop();
   }
 
-  String noSuchMethodTargetSymbolString(Element error, [String prefix]) {
+  String noSuchMethodTargetSymbolString(ErroneousElement error,
+                                        [String prefix]) {
     String result = error.name;
     if (prefix == "set") return "$result=";
     return result;
@@ -3290,18 +3288,14 @@ class SsaBuilder extends NewResolvedVisitor {
         node);
   }
 
-  void handleInvalidStaticGet(ast.Send node, Element element) {
-    generateThrowNoSuchMethod(
-        node,
-        noSuchMethodTargetSymbolString(element, 'get'),
-        argumentNodes: const Link<ast.Node>());
-  }
-
   /// Generate read access of an unresolved static or top level entity.
   void generateStaticUnresolvedGet(ast.Send node, Element element) {
     if (element is ErroneousElement) {
       // An erroneous element indicates an unresolved static getter.
-      handleInvalidStaticGet(node, element);
+      generateThrowNoSuchMethod(
+          node,
+          noSuchMethodTargetSymbolString(element, 'get'),
+          argumentNodes: const Link<ast.Node>());
     } else {
       // This happens when [element] has parse errors.
       assert(invariant(node, element == null || element.isErroneous));
@@ -5153,53 +5147,11 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
-  void visitTopLevelSetterGet(
-      ast.Send node,
-      MethodElement setter,
-      _) {
-    handleInvalidStaticGet(node, setter);
-  }
-
-  @override
-  void visitStaticSetterGet(
-      ast.Send node,
-      MethodElement setter,
-      _) {
-    handleInvalidStaticGet(node, setter);
-  }
-
-  @override
   void visitUnresolvedGet(
       ast.Send node,
       Element element,
       _) {
     generateStaticUnresolvedGet(node, element);
-  }
-
-  void handleInvalidStaticInvoke(ast.Send node, Element element) {
-    generateThrowNoSuchMethod(node,
-                              noSuchMethodTargetSymbolString(element),
-                              argumentNodes: node.arguments);
-  }
-
-  @override
-  void visitStaticSetterInvoke(
-      ast.Send node,
-      MethodElement setter,
-      ast.NodeList arguments,
-      CallStructure callStructure,
-      _) {
-    handleInvalidStaticInvoke(node, setter);
-  }
-
-  @override
-  void visitTopLevelSetterInvoke(
-      ast.Send node,
-      MethodElement setter,
-      ast.NodeList arguments,
-      CallStructure callStructure,
-      _) {
-    handleInvalidStaticInvoke(node, setter);
   }
 
   @override
@@ -5212,7 +5164,9 @@ class SsaBuilder extends NewResolvedVisitor {
     if (element is ErroneousElement) {
       // An erroneous element indicates that the funciton could not be
       // resolved (a warning has been issued).
-      handleInvalidStaticInvoke(node, element);
+      generateThrowNoSuchMethod(node,
+                                noSuchMethodTargetSymbolString(element),
+                                argumentNodes: node.arguments);
     } else {
       // TODO(ahe): Do something like [generateWrongArgumentCountError].
       stack.add(graph.addConstantNull(compiler));

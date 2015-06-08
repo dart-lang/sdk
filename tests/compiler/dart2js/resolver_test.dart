@@ -337,7 +337,7 @@ Future testLocalsThree() {
     Expect.equals(null, element);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
-    Expect.equals(2, map(visitor).length);
+    Expect.equals(3, map(visitor).length);
     List<Element> elements = map(visitor).values.toList();
     Expect.equals(elements[0], elements[1]);
   });
@@ -366,7 +366,7 @@ Future testLocalsFive() {
     Expect.equals(null, element);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
-    Expect.equals(4, map(visitor).length);
+    Expect.equals(6, map(visitor).length);
 
     Block thenPart = tree.thenPart;
     List statements1 = thenPart.statements.nodes.toList();
@@ -419,7 +419,7 @@ Future testFor() {
 
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
-    Expect.equals(7, map(visitor).length);
+    Expect.equals(9, map(visitor).length);
 
     VariableDefinitions initializer = tree.initializer;
     Node iNode = initializer.definitions.nodes.head;
@@ -437,27 +437,35 @@ Future testFor() {
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                 ^
-    checkSend(iElement, nodes[1], elements[1]);
+    checkIdentifier(iElement, nodes[1], elements[1]);
+
+    // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+    //                 ^
+    checkSend(iElement, nodes[2], elements[2]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                         ^
-    checkIdentifier(iElement, nodes[2], elements[2]);
+    checkIdentifier(iElement, nodes[3], elements[3]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                             ^
-    checkSend(iElement, nodes[3], elements[3]);
+    checkIdentifier(iElement, nodes[4], elements[4]);
+
+    // for (int i = 0; i < 10; i = i + 1) { i = 5; };
+    //                             ^
+    checkSend(iElement, nodes[5], elements[5]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                         ^^^^^^^^^
-    checkSendSet(iElement, nodes[4], elements[4]);
+    checkSendSet(iElement, nodes[6], elements[6]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                                      ^
-    checkIdentifier(iElement, nodes[5], elements[5]);
+    checkIdentifier(iElement, nodes[7], elements[7]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                                      ^^^^^
-    checkSendSet(iElement, nodes[6], elements[6]);
+    checkSendSet(iElement, nodes[8], elements[8]);
   });
 }
 
@@ -919,7 +927,7 @@ Future testInitializers() {
                int bar;
                A() : this.foo = bar;
              }""";
-      return resolveConstructor(script, "A a = new A();", "A", "", 2,
+      return resolveConstructor(script, "A a = new A();", "A", "", 3,
           expectedWarnings: [],
           expectedErrors: [MessageKind.NO_INSTANCE_AVAILABLE]);
     },

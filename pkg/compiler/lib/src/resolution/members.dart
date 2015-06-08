@@ -804,7 +804,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   /// Compute the [AccessSemantics] corresponding to a super access of [target].
-  AccessSemantics computeSuperAccessSemantics(Spannable node, Element target) {
+  AccessSemantics computeSuperAccess(Spannable node, Element target) {
     if (target.isErroneous) {
       return new StaticAccess.unresolvedSuper(target);
     } else if (target.isGetter) {
@@ -812,88 +812,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else if (target.isSetter) {
       return new StaticAccess.superSetter(target);
     } else if (target.isField) {
-      if (target.isFinal) {
-        return new StaticAccess.superFinalField(target);
-      } else {
-        return new StaticAccess.superField(target);
-      }
+      return new StaticAccess.superField(target);
     } else {
       assert(invariant(node, target.isFunction,
           message: "Unexpected super target '$target'."));
       return new StaticAccess.superMethod(target);
     }
-  }
-
-  /// Compute the [AccessSemantics] corresponding to a local access of [target].
-  AccessSemantics computeLocalAccessSemantics(Spannable node,
-                                              LocalElement target) {
-    if (target.isParameter) {
-      if (target.isFinal || target.isConst) {
-        return new StaticAccess.finalParameter(target);
-      } else {
-        return new StaticAccess.parameter(target);
-      }
-    } else if (target.isVariable) {
-      if (target.isFinal || target.isConst) {
-        return new StaticAccess.finalLocalVariable(target);
-      } else {
-        return new StaticAccess.localVariable(target);
-      }
-    } else {
-      assert(invariant(node, target.isFunction,
-          message: "Unexpected local target '$target'."));
-      return new StaticAccess.localFunction(target);
-    }
-  }
-
-  /// Compute the [AccessSemantics] corresponding to a static or toplevel access
-  /// of [target].
-  AccessSemantics computeStaticOrTopLevelAccessSemantics(
-      Spannable node,
-      Element target) {
-
-    target = target.declaration;
-    if (target.isErroneous) {
-      // This handles elements with parser errors.
-      // TODO(johnniwinther): Elements with parse error should not set
-      // [isErroneous] to `true`.
-      return new StaticAccess.unresolved(target);
-    }
-    if (target.isStatic) {
-      if (target.isGetter) {
-        return new StaticAccess.staticGetter(target);
-      } else if (target.isSetter) {
-        return new StaticAccess.staticSetter(target);
-      } else if (target.isField) {
-        if (target.isFinal || target.isConst) {
-          return new StaticAccess.finalStaticField(target);
-        } else {
-          return new StaticAccess.staticField(target);
-        }
-      } else {
-        assert(invariant(node, target.isFunction,
-            message: "Unexpected static target '$target'."));
-        return new StaticAccess.staticMethod(target);
-      }
-     } else {
-       assert(invariant(node, target.isTopLevel,
-           message: "Unexpected statically resolved target '$target'."));
-       if (target.isGetter) {
-         return new StaticAccess.topLevelGetter(target);
-       } else if (target.isSetter) {
-         return new StaticAccess.topLevelSetter(target);
-       } else if (target.isField) {
-         if (target.isFinal) {
-           return new StaticAccess.finalTopLevelField(target);
-         } else {
-           return new StaticAccess.topLevelField(target);
-         }
-       } else {
-         assert(invariant(node, target.isFunction,
-             message: "Unexpected top level target '$target'."));
-         return new StaticAccess.topLevelMethod(target);
-       }
-     }
   }
 
   /// Compute the [AccessSemantics] for accessing the name of [selector] on the
@@ -912,11 +836,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ///       foo => super.name; // Access to the setter.
   ///     }
   ///
-  AccessSemantics computeSuperAccessSemanticsForSelector(
-      Spannable node,
-      Selector selector,
-      {Name alternateName}) {
-
+  AccessSemantics computeSuperSemantics(Spannable node,
+                                        Selector selector,
+                                        {Name alternateName}) {
     Name name = selector.memberName;
     // TODO(johnniwinther): Ensure correct behavior if currentClass is a
     // patch.
@@ -938,7 +860,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registry.registerDynamicInvocation(selector);
       registry.registerSuperNoSuchMethod();
     }
-    return computeSuperAccessSemantics(node, target);
+    return computeSuperAccess(node, target);
   }
 
   /// Resolve [node] as subexpression that is _not_ the prefix of a member
@@ -1016,7 +938,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     AccessSemantics semantics;
     if (node.isSuperCall) {
       if (checkSuperAccess(node)) {
-        semantics = computeSuperAccessSemanticsForSelector(node, selector);
+        semantics = computeSuperSemantics(node, selector);
         // TODO(johnniwinther): Add information to [AccessSemantics] about
         // whether it is erroneous.
         if (semantics.kind == AccessKind.SUPER_METHOD) {
@@ -1115,7 +1037,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     if (node.isSuperCall) {
       if (checkSuperAccess(node)) {
-        semantics = computeSuperAccessSemanticsForSelector(node, selector);
+        semantics = computeSuperSemantics(node, selector);
         // TODO(johnniwinther): Add information to [AccessSemantics] about
         // whether it is erroneous.
         if (semantics.kind == AccessKind.SUPER_METHOD) {
@@ -1279,7 +1201,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       selector = new Selector(SelectorKind.GETTER, name, callStructure);
     }
     if (checkSuperAccess(node)) {
-      AccessSemantics semantics = computeSuperAccessSemanticsForSelector(
+      AccessSemantics semantics = computeSuperSemantics(
           node, selector, alternateName: name.setter);
       if (node.isCall) {
         bool isIncompatibleInvoke = false;
@@ -1297,7 +1219,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             }
             break;
           case AccessKind.SUPER_FIELD:
-          case AccessKind.SUPER_FINAL_FIELD:
           case AccessKind.SUPER_GETTER:
             registry.registerStaticUse(semantics.element);
             selector = callStructure.callSelector;
@@ -1323,7 +1244,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             registry.registerStaticUse(semantics.element);
             break;
           case AccessKind.SUPER_FIELD:
-          case AccessKind.SUPER_FINAL_FIELD:
           case AccessKind.SUPER_GETTER:
             registry.registerStaticUse(semantics.element);
             break;
@@ -1433,12 +1353,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // TODO(johnniwinther): Support unresolved top level access as an
     // [AccessSemantics].
     AccessSemantics accessSemantics = new StaticAccess.unresolved(element);
-    return handleErroneousAccess(node, name, element, accessSemantics);
-  }
-
-  /// Handle erroneous access of [element] of the given [accessSemantics].
-  ResolutionResult handleErroneousAccess(
-      Send node, Name name, Element element, AccessSemantics accessSemantics) {
     SendStructure sendStructure;
     Selector selector;
     if (node.isCall) {
@@ -1459,242 +1373,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     registry.useElement(node, element);
     registry.registerSendStructure(node, sendStructure);
     return null;
-  }
-
-  /// Handle access to an ambiguous element, that is, a name imported twice.
-  ResolutionResult handleAmbiguousSend(
-      Send node,
-      Name name,
-      AmbiguousElement element) {
-
-    compiler.reportError(
-        node, element.messageKind, element.messageArguments);
-    element.diagnose(enclosingElement, compiler);
-
-    ErroneousElement error = new ErroneousElementX(
-        element.messageKind,
-        element.messageArguments,
-        name.text,
-        enclosingElement);
-
-    // TODO(johnniwinther): Support ambiguous access as an [AccessSemantics].
-    AccessSemantics accessSemantics = new StaticAccess.unresolved(error);
-    return handleErroneousAccess(node, name, error, accessSemantics);
-  }
-
-  /// Handle access of an instance [member] from a non-instance context.
-  ResolutionResult handleStaticInstanceSend(
-      Send node, Name name, MemberElement member) {
-    compiler.reportError(
-        node, MessageKind.NO_INSTANCE_AVAILABLE, {'name': member.name});
-    ErroneousElement error = new ErroneousElementX(
-        MessageKind.NO_INSTANCE_AVAILABLE,
-        {'name': name},
-        name.text,
-        enclosingElement);
-
-    // TODO(johnniwinther): Support static instance access as an
-    // [AccessSemantics].
-    AccessSemantics accessSemantics = new StaticAccess.unresolved(error);
-    return handleErroneousAccess(node, name, error, accessSemantics);
-  }
-
-  /// Handle access of a parameter, local variable or local function.
-  ResolutionResult handleLocalAccess(Send node, Name name, Element element) {
-    AccessSemantics semantics = computeLocalAccessSemantics(node, element);
-    Selector selector;
-    CallStructure callStructure = CallStructure.NO_ARGS;
-    if (node.isCall) {
-      callStructure = resolveArguments(node.argumentsNode);
-      selector = new Selector(SelectorKind.CALL, name, callStructure);
-    } else {
-      selector = new Selector(SelectorKind.GETTER, name, callStructure);
-    }
-    if (node.isCall) {
-      bool isIncompatibleInvoke = false;
-      switch (semantics.kind) {
-        case AccessKind.LOCAL_FUNCTION:
-          LocalFunctionElementX function = semantics.element;
-          function.computeSignature(compiler);
-          if (!callStructure.signatureApplies(function)) {
-            registry.registerThrowNoSuchMethod();
-            registry.registerDynamicInvocation(selector);
-            isIncompatibleInvoke = true;
-          }
-          break;
-        case AccessKind.PARAMETER:
-        case AccessKind.FINAL_PARAMETER:
-        case AccessKind.LOCAL_VARIABLE:
-        case AccessKind.FINAL_LOCAL_VARIABLE:
-          selector = callStructure.callSelector;
-          registry.registerDynamicInvocation(selector);
-          break;
-        default:
-          internalError(node,
-              "Unexpected local access $semantics.");
-          break;
-      }
-      registry.registerSendStructure(node,
-          isIncompatibleInvoke
-              ? new IncompatibleInvokeStructure(semantics, selector)
-              : new InvokeStructure(semantics, selector));
-    } else {
-      registry.registerSendStructure(node,
-          new GetStructure(semantics, selector));
-    }
-
-    // TODO(johnniwinther): Remove these when all information goes through
-    // the [SendStructure].
-    registry.useElement(node, element);
-    registry.setSelector(node, selector);
-
-    registerPotentialAccessInClosure(node, element);
-
-    return node.isPropertyAccess ? new ElementResult(element) : null;
-  }
-
-  /// Handle access of a static or top level [element].
-  ResolutionResult handleStaticOrTopLevelAccess(
-        Send node, Name name, Element element) {
-
-    if (element.isAbstractField) {
-      AbstractFieldElement abstractField = element;
-      if (abstractField.getter != null) {
-        element = abstractField.getter;
-      } else {
-        element = abstractField.setter;
-      }
-    }
-
-    Selector selector;
-    CallStructure callStructure = CallStructure.NO_ARGS;
-    if (node.isCall) {
-      callStructure = resolveArguments(node.argumentsNode);
-      selector = new Selector(SelectorKind.CALL, name, callStructure);
-    } else {
-      selector = new Selector(SelectorKind.GETTER, name, callStructure);
-    }
-    AccessSemantics semantics =
-        computeStaticOrTopLevelAccessSemantics(node, element);
-    if (node.isCall) {
-      bool isIncompatibleInvoke = false;
-      switch (semantics.kind) {
-        case AccessKind.STATIC_METHOD:
-        case AccessKind.TOPLEVEL_METHOD:
-          MethodElementX method = semantics.element;
-          method.computeSignature(compiler);
-          if (!callStructure.signatureApplies(method)) {
-            registry.registerThrowNoSuchMethod();
-            registry.registerDynamicInvocation(selector);
-            isIncompatibleInvoke = true;
-          } else {
-            registry.registerStaticUse(semantics.element);
-            handleForeignCall(node, semantics.element, selector);
-          }
-          break;
-        case AccessKind.STATIC_FIELD:
-        case AccessKind.FINAL_STATIC_FIELD:
-        case AccessKind.STATIC_GETTER:
-        case AccessKind.TOPLEVEL_FIELD:
-        case AccessKind.FINAL_TOPLEVEL_FIELD:
-        case AccessKind.TOPLEVEL_GETTER:
-          registry.registerStaticUse(semantics.element);
-          selector = callStructure.callSelector;
-          registry.registerDynamicInvocation(selector);
-          break;
-        case AccessKind.STATIC_SETTER:
-        case AccessKind.TOPLEVEL_SETTER:
-        case AccessKind.UNRESOLVED:
-          registry.registerThrowNoSuchMethod();
-          element = reportAndCreateErroneousElement(
-              node.selector, name.text,
-              MessageKind.CANNOT_RESOLVE_GETTER, const {});
-          break;
-        default:
-          internalError(node,
-              "Unexpected statically resolved access $semantics.");
-          break;
-      }
-      registry.registerSendStructure(node,
-          isIncompatibleInvoke
-              ? new IncompatibleInvokeStructure(semantics, selector)
-              : new InvokeStructure(semantics, selector));
-    } else {
-      switch (semantics.kind) {
-        case AccessKind.STATIC_METHOD:
-        case AccessKind.TOPLEVEL_METHOD:
-          // TODO(johnniwinther): Method this should be registered as a
-          // closurization.
-          registry.registerStaticUse(semantics.element);
-          registry.registerGetOfStaticFunction(semantics.element);
-          break;
-        case AccessKind.STATIC_FIELD:
-        case AccessKind.FINAL_STATIC_FIELD:
-        case AccessKind.STATIC_GETTER:
-        case AccessKind.TOPLEVEL_FIELD:
-        case AccessKind.FINAL_TOPLEVEL_FIELD:
-        case AccessKind.TOPLEVEL_GETTER:
-          registry.registerStaticUse(semantics.element);
-          break;
-        case AccessKind.STATIC_SETTER:
-        case AccessKind.TOPLEVEL_SETTER:
-        case AccessKind.UNRESOLVED:
-          registry.registerThrowNoSuchMethod();
-          element = reportAndCreateErroneousElement(
-              node.selector, name.text,
-              MessageKind.CANNOT_RESOLVE_GETTER, const {});
-          break;
-        default:
-          internalError(node,
-              "Unexpected statically resolved access $semantics.");
-          break;
-      }
-      registry.registerSendStructure(node,
-          new GetStructure(semantics, selector));
-    }
-
-    // TODO(johnniwinther): Remove these when all information goes through
-    // the [SendStructure].
-    registry.useElement(node, element);
-    registry.setSelector(node, selector);
-
-    return node.isPropertyAccess ? new ElementResult(element) : null;
-  }
-
-  /// Handle access to resolved [element].
-  ResolutionResult handleResolvedSend(Send node, Name name, Element element) {
-    if (element.isAmbiguous) {
-      return handleAmbiguousSend(node, name, element);
-    }
-    if (element.isErroneous) {
-      // This handles elements with parser errors.
-      // TODO(johnniwinther): Elements with parse error should not set
-      // [isErroneous] to `true`.
-      assert(invariant(node, element is! ErroneousElement,
-          message: "Unexpected erroneous element $element."));
-      return handleErroneousAccess(node, name, element,
-          new StaticAccess.unresolved(element));
-    }
-    if (element.isInstanceMember) {
-      if (inInstanceContext) {
-        // TODO(johnniwinther): Maybe use the found [element].
-        return handleThisPropertyAccess(node, name);
-      } else {
-        return handleStaticInstanceSend(node, name, element);
-      }
-    }
-    if (element.isClass || element.isTypedef) {
-      return oldVisitSend(node);
-    } else if (element.isTypeVariable) {
-      return oldVisitSend(node);
-    } else if (element.isPrefix) {
-      return oldVisitSend(node);
-    } else if (element.isLocal) {
-      return handleLocalAccess(node, name, element);
-    } else if (element.isStatic || element.isTopLevel) {
-      return handleStaticOrTopLevelAccess(node, name, element);
-    }
-    return internalError(node, "Unexpected resolved send: $element");
   }
 
   /// Handle an unqualified [Send], that is where the `node.receiver` is null,
@@ -1729,33 +1407,19 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         ErroneousElement error = reportCannotResolve(node, text);
         return handleUnresolvedAccess(node, name, error);
       }
-    } else {
-      return handleResolvedSend(node, name, element);
     }
+    return oldVisitSend(node);
   }
 
   ResolutionResult visitSend(Send node) {
     if (node.isOperator) {
-      // `a && b`, `a + b`, `-a`, or `a is T`.
       return handleOperatorSend(node);
     } else if (node.receiver != null) {
-      // `a.b`.
       return handleQualifiedSend(node);
     } else {
-      // `a`.
       return handleUnqualifiedSend(node);
     }
-  }
-
-  /// Regigster read access of [target] inside a closure.
-  void registerPotentialAccessInClosure(Send node, Element target) {
-    if (isPotentiallyMutableTarget(target)) {
-      if (enclosingElement != target.enclosingElement) {
-        for (Node scope in promotionScope) {
-          registry.setAccessedByClosureIn(scope, target, node);
-        }
-      }
-    }
+    return oldVisitSend(node);
   }
 
   ResolutionResult oldVisitSend(Send node) {
@@ -1803,7 +1467,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else if (target.impliesType && (!sendIsMemberAccess || node.isCall)) {
         registerTypeLiteralAccess(node, target);
       }
-      registerPotentialAccessInClosure(node, target);
+      if (isPotentiallyMutableTarget(target)) {
+        if (enclosingElement != target.enclosingElement) {
+          for (Node scope in promotionScope) {
+            registry.setAccessedByClosureIn(scope, target, node);
+          }
+        }
+      }
     }
 
     bool resolvedArguments = false;
@@ -1841,7 +1511,23 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         }
       }
 
-      handleForeignCall(node, target, selector);
+      if (target != null && compiler.backend.isForeign(target)) {
+        if (selector.name == 'JS') {
+          registry.registerJsCall(node, this);
+        } else if (selector.name == 'JS_EMBEDDED_GLOBAL') {
+          registry.registerJsEmbeddedGlobalCall(node, this);
+        } else if (selector.name == 'JS_BUILTIN') {
+          registry.registerJsBuiltinCall(node, this);
+        } else if (selector.name == 'JS_INTERCEPTOR_CONSTANT') {
+          if (!node.argumentsNode.isEmpty) {
+            Node argument = node.argumentsNode.nodes.head;
+            if (argumentsToJsInterceptorConstant == null) {
+              argumentsToJsInterceptorConstant = new Set<Node>();
+            }
+            argumentsToJsInterceptorConstant.add(argument);
+          }
+        }
+      }
     }
 
     registry.useElement(node, target);
@@ -1850,27 +1536,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registry.registerGetOfStaticFunction(target.declaration);
     }
     return node.isPropertyAccess ? new ElementResult(target) : null;
-  }
-
-  // TODO(johnniwinther): Move this to the backend resolution callbacks.
-  void handleForeignCall(Send node, Element target, Selector selector) {
-    if (target != null && compiler.backend.isForeign(target)) {
-      if (selector.name == 'JS') {
-        registry.registerJsCall(node, this);
-      } else if (selector.name == 'JS_EMBEDDED_GLOBAL') {
-        registry.registerJsEmbeddedGlobalCall(node, this);
-      } else if (selector.name == 'JS_BUILTIN') {
-        registry.registerJsBuiltinCall(node, this);
-      } else if (selector.name == 'JS_INTERCEPTOR_CONSTANT') {
-        if (!node.argumentsNode.isEmpty) {
-          Node argument = node.argumentsNode.nodes.head;
-          if (argumentsToJsInterceptorConstant == null) {
-            argumentsToJsInterceptorConstant = new Set<Node>();
-          }
-          argumentsToJsInterceptorConstant.add(argument);
-        }
-      }
-    }
   }
 
   /// Callback for native enqueuer to parse a type.  Returns [:null:] on error.

@@ -618,7 +618,7 @@ main() {
   returnNum1(true);
   returnNum2(true);
   returnInt1(true);
-  returnInt2();
+  returnInt2(true);
   returnInt3(true);
   returnInt4();
   returnDouble(true);
@@ -667,7 +667,7 @@ main() {
   returnAsTypedef();
   returnTopLevelGetter();
   testDeadCode();
-  testLabeledIf(true);
+  testLabeledIf();
   testSwitch1();
   testSwitch2();
   testSwitch3();
@@ -727,7 +727,6 @@ main() {
 void main() {
   Uri uri = new Uri(scheme: 'source');
   var compiler = compilerFor(TEST, uri);
-  compiler.diagnosticHandler = createHandler(compiler, TEST);
   asyncTest(() => compiler.runCompiler(uri).then((_) {
     var typesTask = compiler.typesTask;
     var typesInferrer = typesTask.typesInferrer;
