@@ -1071,25 +1071,6 @@ void main() {
     });
   });
 
-  test('Closure wrapping of literals', () {
-    testChecker({
-      '/main.dart': '''
-      typedef T F<T>(T t1, T t2);
-      typedef dynamic D(t1, t2);
-
-      void main() {
-        F f1 = (x, y) => /*info:DynamicInvoke*/x + y;
-        F<int> f2 = /*warning:ClosureWrapLiteral*/(x, y) => /*info:DynamicInvoke*/x + y;
-        D f3 = (x, y) => /*info:DynamicInvoke*/x + y;
-        Function f4 = (x, y) => /*info:DynamicInvoke*/x + y;
-        f2 = /*warning:ClosureWrap*/f1;
-        f1 = (int x, int y) => x + y;
-        f2 = /*severe:StaticTypeError*/(int x) => -x;
-      }
-   '''
-    }, wrapClosures: true, inferDownwards: false);
-  });
-
   test('Generic subtyping: invariance', () {
     testChecker({
       '/main.dart': '''

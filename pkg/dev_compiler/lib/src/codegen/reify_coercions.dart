@@ -146,29 +146,10 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
     return null;
   }
 
-  // TODO(leafp): Bind the coercions at the top level
-  @override
-  Object visitClosureWrapBase(ClosureWrapBase node) {
-    Expression newE = _cm.coerceExpression(node.node, node.wrapper);
-    if (!NodeReplacer.replace(node, newE)) {
-      _log.severe("Failed to replace node for Closure Wrap");
-    }
-    newE.accept(this);
-    return null;
-  }
-
   Object visitCompilationUnit(CompilationUnit unit) {
     _cm.enterCompilationUnit(unit);
     Object ret = super.visitCompilationUnit(unit);
     _cm.exitCompilationUnit(unit);
-    return ret;
-  }
-
-  @override
-  Object visitClassDeclaration(ClassDeclaration cl) {
-    _cm.enterClass();
-    Object ret = super.visitClassDeclaration(cl);
-    _cm.exitClass(cl);
     return ret;
   }
 }
@@ -195,57 +176,20 @@ class VariableManager {
 
 // This class manages the reification of coercions as dart code.  Given a
 // coercion c and an expression e it will produce an expression e' which
-// is the result of coercing e using c.  For closure wrappers, it maintains
-// a table of wrapper functions to be hoisted out to either the enclosing
-// class level, or to the top level if not in a class (hoisting only to the
-// class level avoids having to close over type variables, which is not
-// easily done given the lack of generic functions).  Generating the coercions
-// inline is possible as well, but is quite a bit messier and harder to read
-// since in general we need to bind the coerced expression to a lambda
-// bound variable, both in order to deal with side-effects and to be
-// able to properly record the return type of the wrapper function.
+// is the result of coercing e using c.
 class CoercionManager {
   VariableManager _vm;
   TypeManager _tm;
-  bool _hoistWrappers = false;
 
-  // A map containing all of the wrappers collected but not yet discharged
-  final Map<Identifier, Wrapper> _topWrappers = <Identifier, Wrapper>{};
-  final Map<Identifier, Wrapper> _classWrappers = <Identifier, Wrapper>{};
-  Map<Identifier, Wrapper> _wrappers;
-
-  CoercionManager(this._vm, this._tm) {
-    _wrappers = _topWrappers;
-  }
+  CoercionManager(this._vm, this._tm);
 
   // Call on entry to and exit from a compilation unit in order to properly
   // discharge the accumulated wrappers.
   void enterCompilationUnit(CompilationUnit unit) {
     _tm.enterCompilationUnit(unit);
-    _wrappers = _topWrappers;
   }
   void exitCompilationUnit(CompilationUnit unit) {
-    for (Identifier i in _wrappers.keys) {
-      FunctionDeclaration f = _buildCoercion(i, _wrappers[i], true);
-      unit.declarations.add(f);
-    }
-    _wrappers.clear();
-    _wrappers = _topWrappers;
     _tm.exitCompilationUnit(unit);
-  }
-
-  // Call on entry to and exit from a class in order to properly
-  // discharge the accumulated wrappers.
-  void enterClass() {
-    _wrappers = _classWrappers;
-  }
-  void exitClass(ClassDeclaration cl) {
-    for (Identifier i in _wrappers.keys) {
-      ClassMember f = _buildCoercion(i, _wrappers[i], false);
-      cl.members.add(f);
-    }
-    _wrappers.clear();
-    _wrappers = _topWrappers;
   }
 
   // The main entry point.  Coerce e using c, returning a new expression,
@@ -259,152 +203,17 @@ class CoercionManager {
       return new NamedExpression(e.name, inner);
     }
     if (c is Cast) return _castExpression(e, c);
-    if (c is Wrapper) return _wrapExpression(e, c);
     assert(c is Identity);
     return e;
   }
 
   ///////////////// Private //////////////////////////////////
 
-  Expression _wrapExpression(Expression e, Wrapper w) {
-    var q = _addWrapper(w);
-    var app = AstBuilder.application(q, <Expression>[e]);
-    app.staticType = w.toType;
-    return app;
-  }
-
   Expression _castExpression(Expression e, Cast c) {
     var ttName = _tm.typeNameFromDartType(c.toType);
     var cast = AstBuilder.asExpression(e, ttName);
     cast.staticType = c.toType;
     return cast;
-  }
-
-  Expression _addWrapper(Wrapper w) {
-    if (_hoistWrappers) {
-      var q = _vm.freshIdentifier("q");
-      _wrappers[q] = w;
-      return q;
-    } else {
-      return _buildCoercionExpression(w);
-    }
-  }
-
-  // Choose a canonical name for the ith coercion parameter
-  // with name "name".
-  Identifier _coercionParameter(String name, int index) {
-    String s = name + index.toString();
-    return AstBuilder.identifierFromString(s);
-  }
-
-  List<FormalParameter> _wrapperFormalParameters(Wrapper wrapper) {
-    var namedParameters = wrapper.namedParameters;
-    var normalParameters = wrapper.normalParameters;
-    var optionalParameters = wrapper.optionalParameters;
-    var params = new List<FormalParameter>();
-    for (int i = 0; i < normalParameters.length; i++) {
-      Identifier x = _coercionParameter("x", i);
-      // We use the toType to avoid changing the reified type
-      FormalParameter fp = _tm.typedFormal(x, normalParameters[i].toType);
-      params.add(AstBuilder.requiredFormal(fp));
-    }
-    for (int i = 0; i < optionalParameters.length; i++) {
-      Identifier y = _coercionParameter("y", i);
-      // We use the toType to avoid changing the reified type
-      FormalParameter fp = _tm.typedFormal(y, optionalParameters[i].toType);
-      params.add(AstBuilder.optionalFormal(fp));
-    }
-    for (String k in namedParameters.keys) {
-      // TODO(leafp): These could collide with the generated names.
-      Identifier z = AstBuilder.identifierFromString(k);
-      // We use the toType to avoid changing the reified type
-      FormalParameter fp = _tm.typedFormal(z, namedParameters[k].toType);
-      params.add(AstBuilder.namedFormal(fp));
-    }
-    return params;
-  }
-
-  List<Expression> _wrapperCoercedArguments(Wrapper wrapper) {
-    var namedParameters = wrapper.namedParameters;
-    var normalParameters = wrapper.normalParameters;
-    var optionalParameters = wrapper.optionalParameters;
-    var args = new List<Expression>();
-    for (int i = 0; i < normalParameters.length; i++) {
-      Identifier x = _coercionParameter("x", i);
-      Expression e = coerceExpression(x, normalParameters[i]);
-      args.add(e);
-    }
-    for (int i = 0; i < optionalParameters.length; i++) {
-      Identifier y = _coercionParameter("y", i);
-      Expression e = coerceExpression(y, optionalParameters[i]);
-      args.add(e);
-    }
-    for (String k in namedParameters.keys) {
-      // TODO(leafp): These could collide with the generated names.
-      Identifier z = AstBuilder.identifierFromString(k);
-      Expression e = coerceExpression(z, namedParameters[k]);
-      args.add(AstBuilder.namedParameter(k, e));
-    }
-    return args;
-  }
-
-  // Given an identifier c, a value f and a coercion q : T0 -> T1 => S0 -> S1
-  // wrap f using q and bind it to variable c
-  // T1 c(T0 x) => (f(x as T0) as S1)
-  // Note that we use the "fromType" to decorate the wrapper
-  // rather than the "toType" to avoid changing the reified type
-  // TODO(leafp): If we wrap non-function literals, we can still
-  // end up changing the runtime reified type, since we build a function
-  // literal based on the static type.
-  FunctionDeclarationStatement _wrapperMkInner(
-      Identifier c, Expression f, Wrapper wrapper) {
-    List<FormalParameter> params = _wrapperFormalParameters(wrapper);
-    List<Expression> args = _wrapperCoercedArguments(wrapper);
-    Expression app = AstBuilder.application(f, args);
-    Expression body = coerceExpression(app, wrapper.ret);
-    FunctionExpression ce = AstBuilder.expressionFunction(params, body, true);
-    TypeName rt =
-        _tm.typeNameFromDartType((wrapper.fromType as FunctionType).returnType);
-    Statement cDec = AstBuilder.functionDeclarationStatement(rt, c, ce);
-    return cDec;
-  }
-
-  Tuple2<List<FormalParameter>, List<Statement>> _buildCoercionBody(
-      Wrapper wrapper) {
-    var f = AstBuilder.identifierFromString("f");
-    var c = AstBuilder.identifierFromString("c");
-    var cDec = _wrapperMkInner(c, f, wrapper);
-    var comp = AstBuilder.binaryExpression(f, "==", AstBuilder.nullLiteral());
-    var n = AstBuilder.nullLiteral();
-    var cond = AstBuilder.conditionalExpression(comp, n, c);
-    var stmts = <Statement>[cDec, AstBuilder.returnExpression(cond)];
-    var fp = _tm.typedFormal(f, wrapper.fromType);
-    var params = <FormalParameter>[fp];
-    return new Tuple2<List<FormalParameter>, List<Statement>>(params, stmts);
-  }
-
-  Expression _buildCoercionExpression(Wrapper wrapper) {
-    var tup = _buildCoercionBody(wrapper);
-    return AstBuilder.blockFunction(tup.e0, tup.e1);
-  }
-
-  // Given a name g and coercion q : T0 -> T1 => S0 -> S1
-  // Bind g to a function or static method which maps
-  // T0 -> T1 functions to S0 -> S1 functions.
-  // T0 -> T1 g(S1 f(S0)) {
-  //   T1 c(T0 x) => (f(x as T0) as S1);
-  //   return (f == null) ? null : c;
-  // }
-  Declaration _buildCoercion(Identifier q, Wrapper wrapper, bool top) {
-    var tup = _buildCoercionBody(wrapper);
-    var params = tup.e0;
-    var stmts = tup.e1;
-    TypeName rt = _tm.typeNameFromDartType(wrapper.toType);
-    if (top) {
-      return AstBuilder.blockFunctionDeclaration(rt, q, params, stmts);
-    } else {
-      return AstBuilder.blockMethodDeclaration(rt, q, params, stmts);
-    }
   }
 }
 

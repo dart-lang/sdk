@@ -75,29 +75,6 @@ abstract class Coercion {
   static Coercion cast(DartType fromT, DartType toT) => new Cast(fromT, toT);
   static Coercion identity(DartType type) => new Identity(type);
   static Coercion error() => new CoercionError();
-  static Coercion wrapper(DartType fromType, DartType toType,
-      List<Coercion> normalParameters, List<Coercion> optionalParameters,
-      Map<String, Coercion> namedParameters, Coercion ret) {
-    {
-      // If any sub coercion is error, return error
-      bool isError(Coercion c) => c is CoercionError;
-      if (ret is CoercionError) return error();
-      if (namedParameters.values.any(isError)) return error();
-      if (normalParameters.any(isError)) return error();
-      if (optionalParameters.any(isError)) return error();
-    }
-    {
-      // If all sub coercions are the identity, return identity
-      bool folder(bool id, Coercion c) => id && (c is Identity);
-      bool id = (ret is CoercionError);
-      id = namedParameters.values.fold(id, folder);
-      id = normalParameters.fold(id, folder);
-      id = optionalParameters.fold(id, folder);
-      if (id) return identity(fromType);
-    }
-    return new Wrapper(fromType, toType, normalParameters, optionalParameters,
-        namedParameters, ret);
-  }
 }
 
 // Coercion which casts one type to another
@@ -108,23 +85,6 @@ class Cast extends Coercion {
 // The identity coercion
 class Identity extends Coercion {
   Identity(DartType fromType) : super(fromType, fromType);
-}
-
-// A closure wrapper coercion.
-// The parameter coercions are the coercions which should
-// be applied to coerce the wrapper parameters to the
-// appropriate type for the wrapped closure.
-// The return coercion is appropriate to coerce the return
-// value of the wrapped function to the type expected by the
-// context.
-class Wrapper extends Coercion {
-  final Map<String, Coercion> namedParameters;
-  final List<Coercion> normalParameters;
-  final List<Coercion> optionalParameters;
-  final Coercion ret;
-  Wrapper(DartType fromType, DartType toType, this.normalParameters,
-      this.optionalParameters, this.namedParameters, this.ret)
-      : super(fromType, toType);
 }
 
 // The error coercion.  This coercion signals that a coercion
@@ -413,63 +373,6 @@ class InferredTypeClosure extends InferredTypeBase {
       : super._internal(rules, expression, type);
 }
 
-// TODO(vsm): Remove these.
-
-// A wrapped closure coerces the underlying type to the desired type.
-class ClosureWrapBase extends Conversion {
-  FunctionType _wrappedType;
-  Wrapper _wrapper;
-
-  ClosureWrapBase._internal(
-      TypeRules rules, Expression expression, this._wrapper, this._wrappedType)
-      : super(rules, expression) {
-    assert(baseType is FunctionType);
-    assert(!rules.isSubTypeOf(baseType, _wrappedType));
-  }
-
-  DartType _getConvertedType() => _wrappedType;
-
-  String get message => '$expression ($baseType) will need to be wrapped '
-      'with a closure of type $convertedType';
-
-  Level get level => Level.WARNING;
-
-  Wrapper get wrapper => _wrapper;
-
-  accept(AstVisitor visitor) {
-    if (visitor is ConversionVisitor) {
-      return visitor.visitClosureWrapBase(this);
-    } else {
-      return expression.accept(visitor);
-    }
-  }
-}
-
-// Standard closure wrapping.
-class ClosureWrap extends ClosureWrapBase {
-  ClosureWrap(TypeRules rules, Expression expression, Wrapper wrapper,
-      FunctionType wrappedType)
-      : super._internal(rules, expression, wrapper, wrappedType);
-
-  static ClosureWrapBase create(TypeRules rules, Expression expression,
-      Wrapper wrapper, FunctionType wrappedType) {
-    // Specialized wrappers:
-    if (expression is FunctionExpression) {
-      // The expression is a function literal / inline closure.
-      return new ClosureWrapLiteral(rules, expression, wrapper, wrappedType);
-    }
-    return new ClosureWrap(rules, expression, wrapper, wrappedType);
-  }
-}
-
-// "Wrapping" of an inline closure.  This could be optimized and / or we
-// could propagate the types into the literal.
-class ClosureWrapLiteral extends ClosureWrapBase {
-  ClosureWrapLiteral(TypeRules rules, Expression expression, Wrapper wrapper,
-      FunctionType wrappedType)
-      : super._internal(rules, expression, wrapper, wrappedType);
-}
-
 class DynamicInvoke extends Conversion {
   DynamicInvoke(TypeRules rules, Expression expression)
       : super(rules, expression);
@@ -665,8 +568,6 @@ abstract class ConversionVisitor<R> implements AstVisitor<R> {
 
   // Methods for conversion subtypes:
   R visitDownCast(DownCast node) => visitConversion(node);
-  R visitClosureWrapBase(ClosureWrapBase node) => visitConversion(node);
-  R visitClosureWrap(ClosureWrap node) => visitClosureWrapBase(node);
   R visitDynamicInvoke(DynamicInvoke node) => visitConversion(node);
   R visitInferredTypeBase(InferredTypeBase node) => visitConversion(node);
 }

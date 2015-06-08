@@ -410,91 +410,18 @@ class RestrictedRules extends TypeRules {
     return isSubTypeOf(t1, t2);
   }
 
-  // If fromT <: toT, returns the identity coercion.
-  // Otherwise, creates a coercion wrapping a function of
-  // type fromT as a function of type toT, if:
-  //  1) this can be done without changing the reified type
-  //  2) The arguments can be coerced (see _coerceTo below)
-  //  3) The return value can be coerced or wrapped
-  // Otherwise, returns the error coercion
-  Coercion _wrapTo(FunctionType fromT, FunctionType toT) {
-    final r1s = fromT.normalParameterTypes;
-    final o1s = fromT.optionalParameterTypes;
-    final n1s = fromT.namedParameterTypes;
-    final ret1 = fromT.returnType;
-
-    final r2s = toT.normalParameterTypes;
-    final o2s = toT.optionalParameterTypes;
-    final n2s = toT.namedParameterTypes;
-    final ret2 = toT.returnType;
-
-    Coercion ret = _coerceTo(ret1, ret2, options.wrapClosures);
-
-    // Reject if one has named and the other has optional
-    if (n1s.length > 0 && o2s.length > 0) return Coercion.error();
-    if (n2s.length > 0 && o1s.length > 0) return Coercion.error();
-
-    Map<String, Coercion> ns = new Map<String, Coercion>();
-    // toT has named parameters
-    if (n2s.length > 0) {
-      // Coerce each named parameter from toT to the expected
-      // type in fromT (note the contravariance)
-      for (String k2 in n2s.keys) {
-        if (!n1s.containsKey(k2)) return Coercion.error();
-        ns[k2] = _coerceTo(n2s[k2], n1s[k2]);
-      }
-    }
-
-    // If fromT has more required parameters, reject
-    if (r1s.length > r2s.length) return Coercion.error();
-
-    // If toT has more required + optional parameters, reject
-    if (r2s.length + o2s.length > r1s.length + o1s.length) {
-      return Coercion.error();
-    }
-
-    // The parameter lists must look like the following at this point
-    // where rrr is a region of required, and ooo is a region of optionals.
-    // fromT: rrr ooo ooo ooo
-    // toT  : rrr rrr ooo
-    int rr = r1s.length; // required in both
-    int or = r2s.length - r1s.length; // optional in fromT, required in toT
-    int oo = o2s.length; // optional in both
-
-    List<Coercion> rs = new List<Coercion>(r1s.length);
-    for (int i = 0; i < rr; ++i) {
-      rs[i] = _coerceTo(r2s[i], r1s[i]);
-    }
-    List<Coercion> os = new List<Coercion>(o1s.length);
-    for (int i = 0, j = rr; i < or; ++i, ++j) {
-      os[i] = _coerceTo(r2s[j], o1s[i]);
-    }
-    for (int i = or, j = 0; i < oo; ++i, ++j) {
-      os[i] = _coerceTo(o2s[j], o1s[i]);
-    }
-    for (int i = oo; i < o1s.length; ++i) {
-      os[i] = Coercion.identity(o1s[i]);
-    }
-    return Coercion.wrapper(fromT, toT, rs, os, ns, ret);
-  }
-
   // Produce a coercion which coerces something of type fromT
   // to something of type toT.
   // If wrap is true and both are function types, a closure
   // wrapper coercion is produced using _wrapTo (see above)
   // Returns the error coercion if the types cannot be coerced
   // according to our current criteria.
-  Coercion _coerceTo(DartType fromT, DartType toT, [bool wrap = false]) {
+  Coercion _coerceTo(DartType fromT, DartType toT) {
     // We can use anything as void
     if (toT.isVoid) return Coercion.identity(toT);
 
     // fromT <: toT, no coercion needed
     if (isSubTypeOf(fromT, toT)) return Coercion.identity(toT);
-
-    // For now, we always wrap closures.
-    if (wrap && fromT is FunctionType && toT is FunctionType) {
-      return _wrapTo(fromT, toT);
-    }
 
     // For now, reject conversions between function types and
     // call method objects.  We could choose to allow casts here.
@@ -523,7 +450,7 @@ class RestrictedRules extends TypeRules {
 
   StaticInfo checkAssignment(Expression expr, DartType toT, bool constContext) {
     final fromT = getStaticType(expr);
-    final Coercion c = _coerceTo(fromT, toT, options.wrapClosures);
+    final Coercion c = _coerceTo(fromT, toT);
     if (c is Identity) return null;
     if (c is CoercionError) return new StaticTypeError(this, expr, toT);
     var reason = null;
@@ -534,7 +461,6 @@ class RestrictedRules extends TypeRules {
       reason = (errors.isNotEmpty) ? errors.first : null;
     }
     if (c is Cast) return DownCast.create(this, expr, c, reason: reason);
-    if (c is Wrapper) return ClosureWrap.create(this, expr, c, toT);
     assert(false);
     return null;
   }

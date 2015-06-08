@@ -86,13 +86,9 @@ class RulesOptions extends TypeOptions {
   /// Whether to use static types for code generation.
   final bool ignoreTypes;
 
-  /// Whether to wrap closures for compatibility.
-  final bool wrapClosures;
-  static const wrapClosuresDefault = false;
-
   RulesOptions({this.covariantGenerics: true,
       this.inferDownwards: inferDownwardsDefault, this.relaxedCasts: true,
-      this.ignoreTypes: false, this.wrapClosures: wrapClosuresDefault});
+      this.ignoreTypes: false});
 }
 
 class JSCodeOptions {
@@ -204,10 +200,6 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   @override
   final bool ignoreTypes;
 
-  /// Whether to wrap closures for compatibility.
-  @override
-  final bool wrapClosures;
-
   /// Whether to emit the source map files.
   @override
   final bool emitSourceMaps;
@@ -222,8 +214,7 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
 
   CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
       this.dumpInfoFile, this.forceCompile: false, this.ignoreTypes: false,
-      this.wrapClosures: RulesOptions.wrapClosuresDefault, this.outputDir,
-      this.useColors: true, this.covariantGenerics: true,
+      this.outputDir, this.useColors: true, this.covariantGenerics: true,
       this.relaxedCasts: true, this.useMultiPackage: false,
       this.packageRoot: 'packages/', this.packagePaths: const <String>[],
       this.resources: const <String>[],
@@ -291,7 +282,6 @@ CompilerOptions parseOptions(List<String> argv) {
       dumpInfoFile: args['dump-info-file'],
       forceCompile: args['force-compile'] || serverMode,
       ignoreTypes: args['ignore-types'],
-      wrapClosures: args['wrap-closures'],
       outputDir: outputDir,
       covariantGenerics: args['covariant-generics'],
       relaxedCasts: args['relaxed-casts'],
@@ -334,9 +324,6 @@ final ArgParser argParser = new ArgParser()
       help: 'Use covariant generics', defaultsTo: true)
   ..addFlag('ignore-types',
       help: 'Ignore types during codegen', defaultsTo: false)
-  ..addFlag('wrap-closures',
-      help: 'wrap closures implicitly',
-      defaultsTo: RulesOptions.wrapClosuresDefault)
   ..addFlag('relaxed-casts',
       help: 'Cast between Dart assignable types', defaultsTo: true)
   ..addOption('nonnullable',

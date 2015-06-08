@@ -1513,6 +1513,6 @@ void main() {
         }
       }
       '''
-    }, inferDownwards: true, wrapClosures: false);
+    }, inferDownwards: true);
   });
 }

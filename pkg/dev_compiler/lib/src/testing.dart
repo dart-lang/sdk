@@ -53,8 +53,7 @@ CheckerResults testChecker(Map<String, String> testFiles, {String sdkDir,
     inferDownwards: RulesOptions.inferDownwardsDefault,
     inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
     inferTransitively: ResolverOptions.inferTransitivelyDefault,
-    nonnullableTypes: TypeOptions.NONNULLABLE_TYPES,
-    wrapClosures: RulesOptions.wrapClosuresDefault}) {
+    nonnullableTypes: TypeOptions.NONNULLABLE_TYPES}) {
   expect(testFiles.containsKey('/main.dart'), isTrue,
       reason: '`/main.dart` is missing in testFiles');
 
@@ -68,7 +67,6 @@ CheckerResults testChecker(Map<String, String> testFiles, {String sdkDir,
       inferFromOverrides: inferFromOverrides,
       inferTransitively: inferTransitively,
       nonnullableTypes: nonnullableTypes,
-      wrapClosures: wrapClosures,
       useMockSdk: sdkDir == null,
       dartSdkPath: sdkDir,
       runtimeDir: '/dev_compiler_runtime/',
