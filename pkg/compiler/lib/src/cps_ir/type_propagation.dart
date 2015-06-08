@@ -28,15 +28,22 @@ abstract class TypeSystem<T> {
   T get stringType;
   T get listType;
   T get mapType;
+  T get nonNullType;
 
   T getReturnType(FunctionElement element);
   T getSelectorReturnType(Selector selector);
   T getParameterType(ParameterElement element);
+  T getFieldType(FieldElement element);
   T join(T a, T b);
-  T typeOf(ConstantValue constant);
+  T exact(ClassElement element);
+  T getTypeOf(ConstantValue constant);
+
+  bool areDisjoint(T leftType, T rightType);
 
   /// True if all values satisfying [type] are booleans (null is not a boolean).
   bool isDefinitelyBool(T type);
+
+  bool isDefinitelyNotNull(T type);
 }
 
 class UnitTypeSystem implements TypeSystem<String> {
@@ -50,14 +57,23 @@ class UnitTypeSystem implements TypeSystem<String> {
   get mapType => UNIT;
   get stringType => UNIT;
   get typeType => UNIT;
+  get nonNullType => UNIT;
 
   getParameterType(_) => UNIT;
   getReturnType(_) => UNIT;
   getSelectorReturnType(_) => UNIT;
+  getFieldType(_) => UNIT;
   join(a, b) => UNIT;
-  typeOf(_) => UNIT;
+  exact(_) => UNIT;
+  getTypeOf(_) => UNIT;
 
   bool isDefinitelyBool(_) => false;
+
+  bool isDefinitelyNotNull(_) => false;
+
+  bool areDisjoint(String leftType, String rightType) {
+    return false;
+  }
 }
 
 class TypeMaskSystem implements TypeSystem<TypeMask> {
@@ -72,6 +88,7 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   TypeMask get stringType => inferrer.stringType;
   TypeMask get listType => inferrer.listType;
   TypeMask get mapType => inferrer.mapType;
+  TypeMask get nonNullType => inferrer.nonNullType;
 
   // TODO(karlklose): remove compiler here.
   TypeMaskSystem(dart2js.Compiler compiler)
@@ -90,18 +107,38 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return inferrer.getGuaranteedTypeOfSelector(selector);
   }
 
+  TypeMask getFieldType(FieldElement field) {
+    return inferrer.getGuaranteedTypeOfElement(field);
+  }
+
   @override
   TypeMask join(TypeMask a, TypeMask b) {
     return a.union(b, classWorld);
   }
 
   @override
-  TypeMask typeOf(ConstantValue constant) {
+  TypeMask getTypeOf(ConstantValue constant) {
     return computeTypeMask(inferrer.compiler, constant);
+  }
+
+  TypeMask exact(ClassElement element) {
+    // The class world does not know about classes created by
+    // closure conversion, so just treat those as a subtypes of Function.
+    // TODO(asgerf): Maybe closure conversion should create a new ClassWorld?
+    if (element.isClosure) return functionType;
+    return new TypeMask.exact(element, classWorld);
   }
 
   bool isDefinitelyBool(TypeMask t) {
     return t.containsOnlyBool(classWorld) && !t.isNullable;
+  }
+
+  bool isDefinitelyNotNull(TypeMask t) => !t.isNullable;
+
+  @override
+  bool areDisjoint(TypeMask leftType, TypeMask rightType) {
+    TypeMask intersection = leftType.intersection(rightType, classWorld);
+    return intersection.isEmpty && !intersection.isNullable;
   }
 }
 
@@ -197,7 +234,7 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
     PrimitiveConstantValue primitiveConstant = value.constant;
     ConstantExpression constExp =
         const ConstantExpressionCreator().convert(primitiveConstant);
-    Constant constant = new Constant(constExp);
+    Constant constant = new Constant(constExp, primitiveConstant);
     LetPrim letPrim = new LetPrim(constant);
     InvokeContinuation invoke =
         new InvokeContinuation(continuation, <Primitive>[constant]);
@@ -274,6 +311,8 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
     });
 
     if (letPrim == null) {
+      _AbstractValue<T> receiver = getValue(node.receiver.definition);
+      node.receiverIsNotNull = receiver.isDefinitelyNotNull(typeSystem);
       super.visitInvokeMethod(node);
     } else {
       visitLetPrim(letPrim);
@@ -453,7 +492,8 @@ class _TypePropagationVisitor<T> implements Visitor {
 
   void visitFunctionDefinition(FunctionDefinition node) {
     if (node.thisParameter != null) {
-      setValue(node.thisParameter, nonConstant());
+      // TODO(asgerf): Use a more precise type for 'this'.
+      setValue(node.thisParameter, nonConstant(typeSystem.nonNullType));
     }
     node.parameters.forEach(visit);
     setReachable(node.body);
@@ -575,7 +615,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     if (result == null) {
       setValues(nonConstant());
     } else {
-      T type = typeSystem.typeOf(result);
+      T type = typeSystem.getTypeOf(result);
       setValues(constantValue(result, type));
     }
    }
@@ -596,7 +636,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
     assert(cont.parameters.length == 1);
     Parameter returnValue = cont.parameters[0];
-    setValue(returnValue, nonConstant());
+    setValue(returnValue, nonConstant(typeSystem.getReturnType(node.target)));
   }
 
   void visitConcatenateStrings(ConcatenateStrings node) {
@@ -735,7 +775,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
   void visitConstant(Constant node) {
     ConstantValue value = node.value;
-    setValue(node, constantValue(value, typeSystem.typeOf(value)));
+    setValue(node, constantValue(value, typeSystem.getTypeOf(value)));
   }
 
   void visitCreateFunction(CreateFunction node) {
@@ -794,7 +834,11 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitGetStatic(GetStatic node) {
-    setValue(node, nonConstant());
+    if (node.element.isFunction) {
+      setValue(node, nonConstant(typeSystem.functionType));
+    } else {
+      setValue(node, nonConstant(typeSystem.getFieldType(node.element)));
+    }
   }
 
   void visitSetStatic(SetStatic node) {
@@ -807,7 +851,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
     assert(cont.parameters.length == 1);
     Parameter returnValue = cont.parameters[0];
-    setValue(returnValue, nonConstant());
+    setValue(returnValue, nonConstant(typeSystem.getFieldType(node.element)));
   }
 
   void visitIsTrue(IsTrue node) {
@@ -826,7 +870,12 @@ class _TypePropagationVisitor<T> implements Visitor {
     } else if (!leftConst.isConstant || !rightConst.isConstant) {
       T leftType = leftConst.type;
       T rightType = rightConst.type;
-      setValue(node, nonConstant(typeSystem.boolType));
+      if (typeSystem.areDisjoint(leftType, rightType)) {
+        setValue(node,
+            constantValue(new FalseConstantValue(), typeSystem.boolType));
+      } else {
+        setValue(node, nonConstant(typeSystem.boolType));
+      }
     } else if (leftValue.isPrimitive && rightValue.isPrimitive) {
       assert(leftConst.isConstant && rightConst.isConstant);
       PrimitiveConstantValue left = leftValue;
@@ -841,12 +890,12 @@ class _TypePropagationVisitor<T> implements Visitor {
     setReachable(node.input.definition);
     _AbstractValue<T> value = getValue(node.input.definition);
     if (!value.isNothing) {
-      setValue(node, nonConstant());
+      setValue(node, nonConstant(typeSystem.nonNullType));
     }
   }
 
   void visitGetField(GetField node) {
-    setValue(node, nonConstant());
+    setValue(node, nonConstant(typeSystem.getFieldType(node.field)));
   }
 
   void visitSetField(SetField node) {
@@ -854,11 +903,11 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitCreateBox(CreateBox node) {
-    setValue(node, nonConstant());
+    setValue(node, nonConstant(typeSystem.nonNullType));
   }
 
   void visitCreateInstance(CreateInstance node) {
-    setValue(node, nonConstant());
+    setValue(node, nonConstant(typeSystem.exact(node.classElement)));
   }
 
   void visitReifyRuntimeType(ReifyRuntimeType node) {
@@ -879,7 +928,8 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitCreateInvocationMirror(CreateInvocationMirror node) {
-    setValue(node, nonConstant());
+    // TODO(asgerf): Expose [Invocation] type.
+    setValue(node, nonConstant(typeSystem.nonNullType));
   }
 }
 
@@ -960,6 +1010,13 @@ class _AbstractValue<T> {
     if (kind == NOTHING) return true;
     return typeSystem.isDefinitelyBool(type);
   }
+
+  /// True if null is not a member of this value.
+  bool isDefinitelyNotNull(TypeSystem<T> typeSystem) {
+    if (kind == NOTHING) return true;
+    if (kind == CONSTANT) return !constant.isNull;
+    return typeSystem.isDefinitelyNotNull(type);
+  }
 }
 
 class ConstantExpressionCreator
@@ -971,7 +1028,7 @@ class ConstantExpressionCreator
 
   @override
   ConstantExpression visitBool(BoolConstantValue constant, _) {
-    return new BoolConstantExpression(constant.primitiveValue, constant);
+    return new BoolConstantExpression(constant.primitiveValue);
   }
 
   @override
@@ -986,7 +1043,7 @@ class ConstantExpressionCreator
 
   @override
   ConstantExpression visitDouble(DoubleConstantValue constant, arg) {
-    return new DoubleConstantExpression(constant.primitiveValue, constant);
+    return new DoubleConstantExpression(constant.primitiveValue);
   }
 
   @override
@@ -1001,7 +1058,7 @@ class ConstantExpressionCreator
 
   @override
   ConstantExpression visitInt(IntConstantValue constant, arg) {
-    return new IntConstantExpression(constant.primitiveValue, constant);
+    return new IntConstantExpression(constant.primitiveValue);
   }
 
   @override
@@ -1021,13 +1078,13 @@ class ConstantExpressionCreator
 
   @override
   ConstantExpression visitNull(NullConstantValue constant, arg) {
-    return new NullConstantExpression(constant);
+    return new NullConstantExpression();
   }
 
   @override
   ConstantExpression visitString(StringConstantValue constant, arg) {
     return new StringConstantExpression(
-        constant.primitiveValue.slowToString(), constant);
+        constant.primitiveValue.slowToString());
   }
 
   @override

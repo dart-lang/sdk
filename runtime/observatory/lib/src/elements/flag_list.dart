@@ -13,6 +13,16 @@ import 'package:observatory/service.dart';
 class FlagListElement extends ObservatoryElement {
   @published ServiceMap flagList;
 
+  void flagListChanged(oldValue) {
+    modifiedFlags =
+        flagList['flags'].where((flag) => flag['modified']).toList();
+    unmodifiedFlags =
+        flagList['flags'].where((flag) => !flag['modified']).toList();
+  }
+
+  @observable List<ServiceMap> modifiedFlags = new List<ServiceMap>();
+  @observable List<ServiceMap> unmodifiedFlags = new List<ServiceMap>();
+
   FlagListElement.created() : super.created();
 
   Future refresh() {

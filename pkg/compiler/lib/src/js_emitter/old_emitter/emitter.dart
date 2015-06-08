@@ -551,7 +551,7 @@ class OldEmitter implements Emitter {
     if (fields != null) {
       for (Element element in fields) {
         compiler.withCurrentElement(element, () {
-          ConstantValue constant = handler.getInitialValueFor(element).value;
+          ConstantValue constant = handler.getInitialValueFor(element);
           parts.add(buildInitialization(element, constantReference(constant)));
         });
       }

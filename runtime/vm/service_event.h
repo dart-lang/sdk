@@ -24,13 +24,12 @@ class ServiceEvent {
     kPauseInterrupted,
     kPauseException,
     kResume,
-
     kBreakpointAdded,
     kBreakpointResolved,
     kBreakpointRemoved,
+    kInspect,
 
     kGC,
-    kInspect,
 
     kIllegal,
   };
@@ -49,6 +48,8 @@ class ServiceEvent {
   Isolate* isolate() const { return isolate_; }
 
   EventType type() const { return type_; }
+
+  const char* stream_id() const;
 
   Breakpoint* breakpoint() const {
     return breakpoint_;

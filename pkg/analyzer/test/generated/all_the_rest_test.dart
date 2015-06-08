@@ -31,6 +31,7 @@ import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/html_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
+import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -5154,6 +5155,30 @@ class ElementBuilderTest extends EngineTestCase {
     expect(type.typeParameters[0].name, equals('T'));
   }
 
+  void test_visitConstructorDeclaration_external() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String className = "A";
+    ConstructorDeclaration constructorDeclaration = AstFactory
+        .constructorDeclaration2(null, null, AstFactory.identifier3(className),
+            null, AstFactory.formalParameterList(), null,
+            AstFactory.blockFunctionBody2());
+    constructorDeclaration.externalKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+    constructorDeclaration.accept(builder);
+    List<ConstructorElement> constructors = holder.constructors;
+    expect(constructors, hasLength(1));
+    ConstructorElement constructor = constructors[0];
+    expect(constructor, isNotNull);
+    expect(constructor.isExternal, isTrue);
+    expect(constructor.isFactory, isFalse);
+    expect(constructor.name, "");
+    expect(constructor.functions, hasLength(0));
+    expect(constructor.labels, hasLength(0));
+    expect(constructor.localVariables, hasLength(0));
+    expect(constructor.parameters, hasLength(0));
+  }
+
   void test_visitConstructorDeclaration_factory() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
@@ -5168,6 +5193,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
+    expect(constructor.isExternal, isFalse);
     expect(constructor.isFactory, isTrue);
     expect(constructor.name, "");
     expect(constructor.functions, hasLength(0));
@@ -5189,6 +5215,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
+    expect(constructor.isExternal, isFalse);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
     expect(constructor.functions, hasLength(0));
@@ -5211,6 +5238,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
+    expect(constructor.isExternal, isFalse);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, constructorName);
     expect(constructor.functions, hasLength(0));
@@ -5234,6 +5262,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
+    expect(constructor.isExternal, isFalse);
     expect(constructor.isFactory, isFalse);
     expect(constructor.name, "");
     expect(constructor.functions, hasLength(0));
@@ -5343,6 +5372,27 @@ class ElementBuilderTest extends EngineTestCase {
     expect(parameters[1].name, secondParameterName);
   }
 
+  void test_visitFunctionDeclaration_external() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String functionName = "f";
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(null, null,
+        functionName, AstFactory.functionExpression2(
+            AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
+    declaration.externalKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+    declaration.accept(builder);
+    List<FunctionElement> functions = holder.functions;
+    expect(functions, hasLength(1));
+    FunctionElement function = functions[0];
+    expect(function, isNotNull);
+    expect(function.name, functionName);
+    expect(declaration.element, same(function));
+    expect(declaration.functionExpression.element, same(function));
+    expect(function.isExternal, isTrue);
+    expect(function.isSynthetic, isFalse);
+  }
+
   void test_visitFunctionDeclaration_getter() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = new ElementBuilder(holder);
@@ -5359,6 +5409,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(declaration.element, same(accessor));
     expect(declaration.functionExpression.element, same(accessor));
     expect(accessor.isGetter, isTrue);
+    expect(accessor.isExternal, isFalse);
     expect(accessor.isSetter, isFalse);
     expect(accessor.isSynthetic, isFalse);
     PropertyInducingElement variable = accessor.variable;
@@ -5382,6 +5433,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(function.name, functionName);
     expect(declaration.element, same(function));
     expect(declaration.functionExpression.element, same(function));
+    expect(function.isExternal, isFalse);
     expect(function.isSynthetic, isFalse);
   }
 
@@ -5401,6 +5453,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(declaration.element, same(accessor));
     expect(declaration.functionExpression.element, same(accessor));
     expect(accessor.isGetter, isFalse);
+    expect(accessor.isExternal, isFalse);
     expect(accessor.isSetter, isTrue);
     expect(accessor.isSynthetic, isFalse);
     PropertyInducingElement variable = accessor.variable;
@@ -5502,6 +5555,32 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.isAbstract, isTrue);
+    expect(method.isExternal, isFalse);
+    expect(method.isStatic, isFalse);
+    expect(method.isSynthetic, isFalse);
+  }
+
+  void test_visitMethodDeclaration_external() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
+        null, null, null, AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(), AstFactory.emptyFunctionBody());
+    methodDeclaration.externalKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
+    methodDeclaration.accept(builder);
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    MethodElement method = methods[0];
+    expect(method, isNotNull);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
+    expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isTrue);
     expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
   }
@@ -5524,6 +5603,7 @@ class ElementBuilderTest extends EngineTestCase {
     PropertyAccessorElement getter = field.getter;
     expect(getter, isNotNull);
     expect(getter.isAbstract, isFalse);
+    expect(getter.isExternal, isFalse);
     expect(getter.isGetter, isTrue);
     expect(getter.isSynthetic, isFalse);
     expect(getter.name, methodName);
@@ -5552,6 +5632,7 @@ class ElementBuilderTest extends EngineTestCase {
     PropertyAccessorElement getter = field.getter;
     expect(getter, isNotNull);
     expect(getter.isAbstract, isTrue);
+    expect(getter.isExternal, isFalse);
     expect(getter.isGetter, isTrue);
     expect(getter.isSynthetic, isFalse);
     expect(getter.name, methodName);
@@ -5569,6 +5650,8 @@ class ElementBuilderTest extends EngineTestCase {
     MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(null,
         null, Keyword.GET, null, AstFactory.identifier3(methodName),
         AstFactory.formalParameterList());
+    methodDeclaration.externalKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
@@ -5580,6 +5663,7 @@ class ElementBuilderTest extends EngineTestCase {
     PropertyAccessorElement getter = field.getter;
     expect(getter, isNotNull);
     expect(getter.isAbstract, isFalse);
+    expect(getter.isExternal, isTrue);
     expect(getter.isGetter, isTrue);
     expect(getter.isSynthetic, isFalse);
     expect(getter.name, methodName);
@@ -5608,6 +5692,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
   }
@@ -5632,6 +5717,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(1));
     expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
   }
@@ -5654,6 +5740,7 @@ class ElementBuilderTest extends EngineTestCase {
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
     expect(setter.isAbstract, isFalse);
+    expect(setter.isExternal, isFalse);
     expect(setter.isSetter, isTrue);
     expect(setter.isSynthetic, isFalse);
     expect(setter.name, "$methodName=");
@@ -5683,6 +5770,7 @@ class ElementBuilderTest extends EngineTestCase {
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
     expect(setter.isAbstract, isTrue);
+    expect(setter.isExternal, isFalse);
     expect(setter.isSetter, isTrue);
     expect(setter.isSynthetic, isFalse);
     expect(setter.name, "$methodName=");
@@ -5701,6 +5789,8 @@ class ElementBuilderTest extends EngineTestCase {
     MethodDeclaration methodDeclaration = AstFactory.methodDeclaration(null,
         null, Keyword.SET, null, AstFactory.identifier3(methodName),
         AstFactory.formalParameterList());
+    methodDeclaration.externalKeyword =
+        TokenFactory.tokenFromKeyword(Keyword.EXTERNAL);
     methodDeclaration.accept(builder);
     List<FieldElement> fields = holder.fields;
     expect(fields, hasLength(1));
@@ -5712,6 +5802,7 @@ class ElementBuilderTest extends EngineTestCase {
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
     expect(setter.isAbstract, isFalse);
+    expect(setter.isExternal, isTrue);
     expect(setter.isSetter, isTrue);
     expect(setter.isSynthetic, isFalse);
     expect(setter.name, "$methodName=");
@@ -5741,6 +5832,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(0));
     expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isFalse);
     expect(method.isStatic, isTrue);
     expect(method.isSynthetic, isFalse);
   }
@@ -5772,6 +5864,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method, isNotNull);
     expect(method.name, methodName);
     expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
     List<VariableElement> parameters = method.parameters;
@@ -7788,7 +7881,7 @@ class HtmlTagInfoBuilderTest extends HtmlParserTest {
 
 @reflectiveTest
 class HtmlUnitBuilderTest extends EngineTestCase {
-  AnalysisContextImpl _context;
+  InternalAnalysisContext _context;
   @override
   void setUp() {
     _context = AnalysisContextFactory.contextWithCore();
@@ -7917,14 +8010,9 @@ class HtmlUnitBuilderTest_ExpectedVariable {
 @reflectiveTest
 class HtmlWarningCodeTest extends EngineTestCase {
   /**
-   * The source factory used to create the sources to be resolved.
-   */
-  SourceFactory _sourceFactory;
-
-  /**
    * The analysis context used to resolve the HTML files.
    */
-  AnalysisContextImpl _context;
+  InternalAnalysisContext _context;
 
   /**
    * The contents of the 'test.html' file.
@@ -7937,14 +8025,11 @@ class HtmlWarningCodeTest extends EngineTestCase {
   List<AnalysisError> _errors;
   @override
   void setUp() {
-    _sourceFactory = new SourceFactory([new FileUriResolver()]);
-    _context = new AnalysisContextImpl();
-    _context.sourceFactory = _sourceFactory;
+    _context = AnalysisContextFactory.contextWithCore();
   }
 
   @override
   void tearDown() {
-    _sourceFactory = null;
     _context = null;
     _contents = null;
     _errors = null;

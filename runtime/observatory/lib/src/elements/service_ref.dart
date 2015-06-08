@@ -121,7 +121,7 @@ class AnyServiceRefElement extends ObservatoryElement {
       Logger.root.info('Viewing null object.');
       return;
     }
-    var type = ref.vmType;
+    var type = ref.type;
     var element = _constructElementForRef();
     if (element == null) {
       Logger.root.info('Unable to find a ref element for \'${type}\'');

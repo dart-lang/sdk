@@ -7,6 +7,7 @@
 WebPlatformTest/html/semantics/forms/the-textarea-element/textarea-type_t01: fail
 LayoutTests/fast/forms/checkValidity-001_t01: fail
 Language/12_Expressions/29_Assignable_Expressions_A01_t08: StaticWarning
+Language/14_Libraries_and_Scripts/3_Parts_A03_t11: fail, pass # Issue 23595
 
 # TBF: Static members should not be accessible via subclasses.
 Language/07_Classes/9_Superclasses/1_Inheritance_and_Overriding_A01_t05: MissingStaticWarning

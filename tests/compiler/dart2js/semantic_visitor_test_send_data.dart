@@ -306,7 +306,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test.clazz(
         '''
         class C {
-          static static get o => 42;
+          static get o => 42;
           m() { o = 42; }
         }
         ''',
@@ -316,7 +316,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test.clazz(
         '''
         class C {
-          static static get o => 42;
+          static get o => 42;
           m() { C.o = 42; }
         }
         ''',
@@ -326,7 +326,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test.prefix(
         '''
         class C {
-          static static get o => 42;
+          static get o => 42;
         }
         ''',
         'm() { p.C.o = 42; }',
@@ -1382,6 +1382,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() { assert(false); }
         ''',
         const Visit(VisitKind.VISIT_ASSERT, expression: 'false')),
+    const Test(
+        '''
+        m() { assert(); }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_ASSERT, arguments: '()')),
+    const Test(
+        '''
+        m() { assert(42, true); }
+        ''',
+        const Visit(VisitKind.ERROR_INVALID_ASSERT, arguments: '(42,true)')),
   ],
   'Logical and': const [
     // Logical and
@@ -1541,6 +1551,18 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_UNRESOLVED_SUPER_BINARY,
                     operator: '+',
                     right: '42')),
+    const Test(
+        '''
+        m() => 2 === 3;
+        ''',
+        const Visit(VisitKind.ERROR_UNDEFINED_BINARY_EXPRESSION,
+                    left: '2', operator: '===', right: '3')),
+    const Test(
+        '''
+        m() => 2 !== 3;
+        ''',
+        const Visit(VisitKind.ERROR_UNDEFINED_BINARY_EXPRESSION,
+                    left: '2', operator: '!==', right: '3')),
   ],
   'Index': const [
     // Index
@@ -1782,6 +1804,14 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => !0;
         ''',
         const Visit(VisitKind.VISIT_NOT, expression: '0')),
+    const Test(
+        '''
+        m() => +false;
+        ''',
+        // TODO(johnniwinther): Should this be an
+        // ERROR_UNDEFINED_UNARY_EXPRESSION? Currently the parser just skips
+        // the `+`.
+        const []),
   ],
   'Index set': const [
     // Index set
@@ -1851,7 +1881,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
     const Test(
         '''
         m() {
-          final a;
+          final a = 0;
           a += 42;
         }
         ''',
@@ -2125,7 +2155,7 @@ const Map<String, List<Test>> SEND_TESTS = const {
           var a;
         }
         class B extends A {
-          final a;
+          final a = 0;
         }
 
         class C extends B {
@@ -3089,6 +3119,44 @@ const Map<String, List<Test>> SEND_TESTS = const {
             constant: 'const Class(true, 42)')),
     const Test(
         '''
+        m() => const bool.fromEnvironment('foo');
+        ''',
+        const Visit(VisitKind.VISIT_BOOL_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+            constant:
+                'const bool.fromEnvironment("foo")')),
+    const Test(
+        '''
+        m() => const bool.fromEnvironment('foo', defaultValue: true);
+        ''',
+        const Visit(VisitKind.VISIT_BOOL_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+            constant: 'const bool.fromEnvironment("foo", defaultValue: true)')),
+    const Test(
+        '''
+        m() => const int.fromEnvironment('foo');
+        ''',
+        const Visit(VisitKind.VISIT_INT_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+            constant: 'const int.fromEnvironment("foo")')),
+    const Test(
+        '''
+        m() => const String.fromEnvironment('foo');
+        ''',
+        const Visit(VisitKind.VISIT_STRING_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+            constant:
+                'const String.fromEnvironment("foo")')),
+    const Test(
+        '''
+        class Class {
+          Class(a, b);
+        }
+        m() => const Class(true, 42);
+        ''',
+        const Visit(VisitKind.ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
+            element: 'generative_constructor(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
         class Class {}
         m() => new Class();
         ''',
@@ -3123,6 +3191,16 @@ const Map<String, List<Test>> SEND_TESTS = const {
             selector: 'CallStructure(arity=2)')),
     const Test(
         '''
+        class Class {}
+        m() => new Class(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
+            element: 'generative_constructor(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
         class Class {
           Class(a, b) : this._(a, b);
           Class._(a, b);
@@ -3130,6 +3208,19 @@ const Map<String, List<Test>> SEND_TESTS = const {
         m() => new Class(true, 42);
         ''',
         const Visit(VisitKind.VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_INVOKE,
+            element: 'generative_constructor(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
+        class Class {
+          Class() : this._(true, 42);
+          Class._(a, b);
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
             element: 'generative_constructor(Class#)',
             arguments: '(true,42)',
             type: 'Class',
@@ -3149,6 +3240,19 @@ const Map<String, List<Test>> SEND_TESTS = const {
             selector: 'CallStructure(arity=2)')),
     const Test(
         '''
+        class Class {
+          factory Class() => new Class._(true, 42);
+          Class._(a, b);
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
         class Class<T> {
           factory Class(a, b) = Class<int>.a;
           factory Class.a(a, b) = Class<Class<T>>.b;
@@ -3162,6 +3266,51 @@ const Map<String, List<Test>> SEND_TESTS = const {
             type: 'Class<double>',
             target: 'generative_constructor(Class#b)',
             targetType: 'Class<Class<int>>',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
+        class Class<T> {
+          factory Class(a) = Class<int>.a;
+          factory Class.a(a, [b]) = Class<Class<T>>.b;
+          Class.b(a, [b]);
+        }
+        m() => new Class<double>(true, 42);
+        ''',
+        const Visit(VisitKind.VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class<double>',
+            target: 'generative_constructor(Class#b)',
+            targetType: 'Class<Class<int>>',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
+        class Class {
+          factory Class() = Class._;
+          Class._();
+        }
+        m() => new Class(true, 42);
+        ''',
+        const Visit(
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class',
+            selector: 'CallStructure(arity=2)')),
+    const Test(
+        '''
+        class Class<T> {
+          factory Class(a, b) = Class<int>.a;
+          factory Class.a(a, b) = Class<Class<T>>.b;
+          Class.b(a);
+        }
+        m() => new Class<double>(true, 42);
+        ''',
+        const Visit(
+            VisitKind.VISIT_UNRESOLVED_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+            element: 'function(Class#)',
+            arguments: '(true,42)',
+            type: 'Class<double>',
             selector: 'CallStructure(arity=2)')),
     const Test(
         '''
@@ -3247,5 +3396,117 @@ const Map<String, List<Test>> SEND_TESTS = const {
             arguments: '(true,42)',
             type: 'Class',
             selector: 'CallStructure(arity=2)')),
+  ],
+  'If not null expressions': const [
+    const Test(
+        '''
+        m(a) => a?.b;
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_GET,
+              receiver: 'a',
+              name: 'b'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a) => a?.b = 42;
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET,
+              receiver: 'a',
+              name: 'b',
+              rhs: '42'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a) => a?.b(42, true);
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_INVOKE,
+              receiver: 'a',
+              arguments: '(42,true)',
+              selector: 'Selector(call, b, arity=2)'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a) => ++a?.b;
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_PREFIX,
+              receiver: 'a',
+              getter: 'Selector(getter, b, arity=0)',
+              setter: 'Selector(setter, b, arity=1)',
+              operator: '++'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a) => a?.b--;
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_POSTFIX,
+              receiver: 'a',
+              getter: 'Selector(getter, b, arity=0)',
+              setter: 'Selector(setter, b, arity=1)',
+              operator: '--'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a) => a?.b *= 42;
+        ''',
+        const [
+          const Visit(
+              VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_COMPOUND,
+              receiver: 'a',
+              getter: 'Selector(getter, b, arity=0)',
+              setter: 'Selector(setter, b, arity=1)',
+              operator: '*=',
+              rhs: '42'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+        ]),
+    const Test(
+        '''
+        m(a, b) => a ?? b;
+        ''',
+        const [
+          const Visit(VisitKind.VISIT_IF_NULL,
+                      left: 'a', right: 'b'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#a)'),
+          const Visit(
+              VisitKind.VISIT_PARAMETER_GET,
+              element: 'parameter(m#b)'),
+       ]),
+    const Test(
+        '''
+        m(a) => a ??= 42;
+        ''',
+        const Visit(
+            VisitKind.VISIT_PARAMETER_COMPOUND,
+            element: 'parameter(m#a)',
+            operator: '??=',
+            rhs: '42')),
   ],
 };

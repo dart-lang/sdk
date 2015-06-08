@@ -45,7 +45,7 @@ class ClassViewElement extends ObservatoryElement {
   }
 
   void attached() {
-    library.variables.forEach((variable) => variable.reload());
+    cls.fields.forEach((field) => field.reload());
   }
 
   Future refresh() {
@@ -54,7 +54,7 @@ class ClassViewElement extends ObservatoryElement {
     mostRetained = null;
     var loads = [];
     loads.add(cls.reload());
-    cls.variables.forEach((variable) => loads.add(variable.reload()));
+    cls.fields.forEach((field) => loads.add(field.reload()));
     return Future.wait(loads);
   }
 

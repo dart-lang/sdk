@@ -3711,7 +3711,7 @@ UNIT_TEST_CASE(CurrentIsolateData) {
   intptr_t mydata = 12345;
   char* err;
   Dart_Isolate isolate =
-      Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer,
+      Dart_CreateIsolate(NULL, NULL, bin::isolate_snapshot_buffer, NULL,
                          reinterpret_cast<void*>(mydata),
                          &err);
   EXPECT(isolate != NULL);
@@ -7311,6 +7311,7 @@ UNIT_TEST_CASE(NewNativePort) {
 static Dart_Isolate RunLoopTestCallback(const char* script_name,
                                         const char* main,
                                         const char* package_root,
+                                        Dart_IsolateFlags* flags,
                                         void* data,
                                         char** error) {
   const char* kScriptChars =
@@ -7383,7 +7384,8 @@ static void RunLoopTest(bool throw_exception_child,
   Dart_IsolateCreateCallback saved = Isolate::CreateCallback();
   Isolate::SetCreateCallback(RunLoopTestCallback);
   Isolate::SetUnhandledExceptionCallback(RunLoopUnhandledExceptionCallback);
-  Dart_Isolate isolate = RunLoopTestCallback(NULL, NULL, NULL, NULL, NULL);
+  Dart_Isolate isolate = RunLoopTestCallback(
+      NULL, NULL, NULL, NULL, NULL, NULL);
 
   Dart_EnterIsolate(isolate);
   Dart_EnterScope();
@@ -7485,6 +7487,7 @@ void BusyLoop_start(uword unused) {
     char* error = NULL;
     shared_isolate = Dart_CreateIsolate(NULL, NULL,
                                         bin::isolate_snapshot_buffer,
+                                        NULL,
                                         NULL, &error);
     EXPECT(shared_isolate != NULL);
     Dart_EnterScope();
@@ -7613,6 +7616,7 @@ UNIT_TEST_CASE(IsolateShutdown) {
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
                                             bin::isolate_snapshot_buffer,
+                                            NULL,
                                             my_data, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);
@@ -7663,6 +7667,7 @@ UNIT_TEST_CASE(IsolateShutdownRunDartCode) {
   char* err;
   Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL,
                                             bin::isolate_snapshot_buffer,
+                                            NULL,
                                             NULL, &err);
   if (isolate == NULL) {
     OS::Print("Creation of isolate failed '%s'\n", err);

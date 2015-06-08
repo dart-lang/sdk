@@ -413,8 +413,12 @@ class FixProcessor {
     if (node is SimpleStringLiteral && node.parent is PartDirective) {
       PartDirective directive = node.parent;
       Source partSource = directive.source;
-      CompilationUnit partUnit =
-          context.getResolvedCompilationUnit2(partSource, unitSource);
+      CompilationUnit partUnit;
+      if (AnalysisEngine.instance.useTaskModel) {
+        partUnit = context.getResolvedCompilationUnit2(partSource, partSource);
+      } else {
+        partUnit = context.getResolvedCompilationUnit2(partSource, unitSource);
+      }
       if (partUnit != null) {
         CorrectionUtils partUtils = new CorrectionUtils(partUnit);
         CorrectionUtils_InsertDesc desc = partUtils.getInsertDescTop();

@@ -254,7 +254,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.lint = options.lint;
     this._options.preserveComments = options.preserveComments;
     if (needsRecompute) {
-      _invalidateAllLocalResolutionInformation(false);
+      dartWorkManager.onAnalysisOptionsChanged();
     }
   }
 
@@ -350,6 +350,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<AnalysisTarget> get priorityTargets => prioritySources;
 
   @override
+  CachePartition get privateAnalysisCachePartition => _privatePartition;
+
+  @override
   SourceFactory get sourceFactory => _sourceFactory;
 
   @override
@@ -366,7 +369,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     factory.context = this;
     _sourceFactory = factory;
     _cache = createCacheFromSourceFactory(factory);
-    _invalidateAllLocalResolutionInformation(true);
+    dartWorkManager.onSourceFactoryChanged();
   }
 
   @override
@@ -767,38 +770,39 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> getHtmlFilesReferencing(Source source) {
+    // TODO(brianwilkerson) Implement this.
     SourceKind sourceKind = getKindOf(source);
     if (sourceKind == null) {
       return Source.EMPTY_LIST;
     }
     List<Source> htmlSources = <Source>[];
-    while (true) {
-      if (sourceKind == SourceKind.PART) {
-        List<Source> librarySources = getLibrariesContaining(source);
-        for (Source source in _cache.sources) {
-          CacheEntry entry = _cache.get(source);
-          if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
-            List<Source> referencedLibraries =
-                (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
-            if (_containsAny(referencedLibraries, librarySources)) {
-              htmlSources.add(source);
-            }
-          }
-        }
-      } else {
-        for (Source source in _cache.sources) {
-          CacheEntry entry = _cache.get(source);
-          if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
-            List<Source> referencedLibraries =
-                (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
-            if (_contains(referencedLibraries, source)) {
-              htmlSources.add(source);
-            }
-          }
-        }
-      }
-      break;
-    }
+//    while (true) {
+//      if (sourceKind == SourceKind.PART) {
+//        List<Source> librarySources = getLibrariesContaining(source);
+//        for (Source source in _cache.sources) {
+//          CacheEntry entry = _cache.get(source);
+//          if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
+//            List<Source> referencedLibraries =
+//                (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
+//            if (_containsAny(referencedLibraries, librarySources)) {
+//              htmlSources.add(source);
+//            }
+//          }
+//        }
+//      } else {
+//        for (Source source in _cache.sources) {
+//          CacheEntry entry = _cache.get(source);
+//          if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
+//            List<Source> referencedLibraries =
+//                (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
+//            if (_contains(referencedLibraries, source)) {
+//              htmlSources.add(source);
+//            }
+//          }
+//        }
+//      }
+//      break;
+//    }
     if (htmlSources.isEmpty) {
       return Source.EMPTY_LIST;
     }
@@ -821,10 +825,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     SourceKind kind = getKindOf(source);
     if (kind == SourceKind.LIBRARY) {
       return <Source>[source];
-    } else if (kind == SourceKind.PART) {
-      return dartWorkManager.getLibrariesContainingPart(source);
     }
-    return Source.EMPTY_ARRAY;
+    return dartWorkManager.getLibrariesContainingPart(source);
   }
 
   @override
@@ -1176,8 +1178,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
-    // TODO(brianwilkerson) Figure out where this is used and adjust the call
-    // sites to use CacheEntry's.
+    // TODO(brianwilkerson) Figure out where this is used and either remove it
+    // or adjust the call sites to use CacheEntry's.
 //    bool hintsEnabled = _options.hint;
 //    bool lintsEnabled = _options.lint;
 //    MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
@@ -1545,36 +1547,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Invalidate all of the resolution results computed by this context. The flag
-   * [invalidateUris] should be `true` if the cached results of converting URIs
-   * to source files should also be invalidated.
-   */
-  void _invalidateAllLocalResolutionInformation(bool invalidateUris) {
-    HashMap<Source, List<Source>> oldPartMap =
-        new HashMap<Source, List<Source>>();
-    // TODO(brianwilkerson) Implement this
-//    MapIterator<AnalysisTarget, cache.CacheEntry> iterator =
-//        _privatePartition.iterator();
-//    while (iterator.moveNext()) {
-//      AnalysisTarget target = iterator.key;
-//      cache.CacheEntry entry = iterator.value;
-//      if (entry is HtmlEntry) {
-//        HtmlEntry htmlEntry = entry;
-//        htmlEntry.invalidateAllResolutionInformation(invalidateUris);
-//        iterator.value = htmlEntry;
-//        _workManager.add(target, SourcePriority.HTML);
-//      } else if (entry is DartEntry) {
-//        DartEntry dartEntry = entry;
-//        oldPartMap[target] = dartEntry.getValue(DartEntry.INCLUDED_PARTS);
-//        dartEntry.invalidateAllResolutionInformation(invalidateUris);
-//        iterator.value = dartEntry;
-//        _workManager.add(target, _computePriority(dartEntry));
-//      }
-//    }
-    _removeFromPartsUsingMap(oldPartMap);
-  }
-
-  /**
    * Log the given debugging [message].
    */
   void _logInformation(String message) {
@@ -1591,29 +1563,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (int i = 0; i < count; i++) {
       _listeners[i].computedErrors(this, source, errors, lineInfo);
     }
-  }
-
-  /**
-   * Remove the given libraries that are keys in the given map from the list of
-   * containing libraries for each of the parts in the corresponding value.
-   */
-  void _removeFromPartsUsingMap(HashMap<Source, List<Source>> oldPartMap) {
-    // TODO(brianwilkerson) Figure out whether we still need this.
-//    oldPartMap.forEach((Source librarySource, List<Source> oldParts) {
-//      for (int i = 0; i < oldParts.length; i++) {
-//        Source partSource = oldParts[i];
-//        if (partSource != librarySource) {
-//          DartEntry partEntry = _getReadableDartEntry(partSource);
-//          if (partEntry != null) {
-//            partEntry.removeContainingLibrary(librarySource);
-//            if (partEntry.containingLibraries.length == 0 &&
-//                !exists(partSource)) {
-//              _cache.remove(partSource);
-//            }
-//          }
-//        }
-//      }
-//    });
   }
 
   /**

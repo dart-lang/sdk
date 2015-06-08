@@ -2064,10 +2064,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
       sc.Token property = node.propertyKeyword;
       SimpleIdentifier methodName = node.name;
       String nameOfMethod = methodName.name;
-      if (nameOfMethod == sc.TokenType.MINUS.lexeme &&
-          node.parameters.parameters.length == 0) {
-        nameOfMethod = "unary-";
-      }
       if (property == null) {
         _enclosingExecutable = _findWithNameAndOffset(
             _enclosingClass.methods, nameOfMethod, methodName.offset);
@@ -2284,7 +2280,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
   Element _findWithNameAndOffset(
       List<Element> elements, String name, int offset) {
     for (Element element in elements) {
-      if (element.displayName == name && element.nameOffset == offset) {
+      if (element.nameOffset == offset && element.displayName == name) {
         return element;
       }
     }
@@ -2536,6 +2532,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier constructorName = node.name;
     ConstructorElementImpl element =
         new ConstructorElementImpl.forNode(constructorName);
+    if (node.externalKeyword != null) {
+      element.external = true;
+    }
     if (node.factoryKeyword != null) {
       element.factory = true;
     }
@@ -2695,6 +2694,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
+        if (node.externalKeyword != null) {
+          element.external = true;
+        }
         element.functions = holder.functions;
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
@@ -2734,6 +2736,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            getter.external = true;
+          }
           getter.functions = holder.functions;
           getter.labels = holder.labels;
           getter.localVariables = holder.localVariables;
@@ -2753,6 +2758,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            setter.external = true;
+          }
           setter.functions = holder.functions;
           setter.labels = holder.labels;
           setter.localVariables = holder.localVariables;
@@ -2904,6 +2912,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         MethodElementImpl element =
             new MethodElementImpl(nameOfMethod, methodName.offset);
         element.abstract = node.isAbstract;
+        if (node.externalKeyword != null) {
+          element.external = true;
+        }
         element.functions = holder.functions;
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
@@ -2932,6 +2943,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            getter.external = true;
+          }
           getter.functions = holder.functions;
           getter.labels = holder.labels;
           getter.localVariables = holder.localVariables;
@@ -2951,6 +2965,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          if (node.externalKeyword != null) {
+            setter.external = true;
+          }
           setter.functions = holder.functions;
           setter.labels = holder.labels;
           setter.localVariables = holder.localVariables;

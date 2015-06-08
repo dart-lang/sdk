@@ -3813,7 +3813,7 @@ abstract class SemanticSendVisitor<R, A> {
       Node right,
       A arg);
 
-  /// Const invocation of a [constructor].
+  /// Const invocation of a [constant] constructor.
   ///
   /// For instance
   ///   class C<T> {
@@ -3824,6 +3824,36 @@ abstract class SemanticSendVisitor<R, A> {
   R visitConstConstructorInvoke(
       NewExpression node,
       ConstructedConstantExpression constant,
+      A arg);
+
+  /// Const invocation of the `bool.fromEnvironment` constructor.
+  ///
+  /// For instance
+  ///   m() => const bool.fromEnvironment('foo', defaultValue: false);
+  ///
+  R visitBoolFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      BoolFromEnvironmentConstantExpression constant,
+      A arg);
+
+  /// Const invocation of the `int.fromEnvironment` constructor.
+  ///
+  /// For instance
+  ///   m() => const int.fromEnvironment('foo', defaultValue: 42);
+  ///
+  R visitIntFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      IntFromEnvironmentConstantExpression constant,
+      A arg);
+
+  /// Const invocation of the `String.fromEnvironment` constructor.
+  ///
+  /// For instance
+  ///   m() => const String.fromEnvironment('foo', defaultValue: 'bar');
+  ///
+  R visitStringFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      StringFromEnvironmentConstantExpression constant,
       A arg);
 
   /// Invocation of a generative [constructor] on [type] with [arguments].
@@ -3989,6 +4019,22 @@ abstract class SemanticSendVisitor<R, A> {
   ///   m2() => new C.a(true, 42);
   ///
   R visitUnresolvedRedirectingFactoryConstructorInvoke(
+      NewExpression node,
+      ConstructorElement constructor,
+      InterfaceType type,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg);
+
+  /// Invocation of [constructor] on [type] with incompatible [arguments].
+  ///
+  /// For instance
+  ///   class C {
+  ///     C(a);
+  ///   }
+  ///   m() => C(true, 42);
+  ///
+  R visitConstructorIncompatibleInvoke(
       NewExpression node,
       ConstructorElement constructor,
       InterfaceType type,

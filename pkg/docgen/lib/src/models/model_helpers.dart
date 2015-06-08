@@ -229,6 +229,12 @@ class AnnotationCreator
   }
 
   @override
+  Annotation visitStringLength(StringLengthConstantExpression exp,
+                               AnnotationInfo context) {
+    return null;
+  }
+
+  @override
   Annotation visitDeferred(DeferredConstantExpression exp,
                            AnnotationInfo context) {
     return exp.expression.accept(this, context);

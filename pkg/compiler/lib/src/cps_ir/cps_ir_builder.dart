@@ -4,9 +4,10 @@
 
 library dart2js.ir_builder;
 
+import '../compile_time_constants.dart' show BackendConstantEnvironment;
 import '../constants/constant_system.dart';
 import '../constants/expressions.dart';
-import '../constants/values.dart' show PrimitiveConstantValue;
+import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../dart_types.dart';
 import '../dart2jslib.dart';
 import '../elements/elements.dart';
@@ -384,7 +385,9 @@ abstract class IrBuilderMixin<N> {
 
 /// Shared state between delimited IrBuilders within the same function.
 class IrBuilderSharedState {
-  final ConstantSystem constantSystem;
+  final BackendConstantEnvironment constants;
+
+  ConstantSystem get constantSystem => constants.constantSystem;
 
   /// A stack of collectors for breaks.
   final List<JumpCollector> breakCollectors = <JumpCollector>[];
@@ -402,7 +405,7 @@ class IrBuilderSharedState {
 
   final List<ir.Parameter> functionParameters = <ir.Parameter>[];
 
-  IrBuilderSharedState(this.constantSystem, this.currentElement);
+  IrBuilderSharedState(this.constants, this.currentElement);
 
   ir.Parameter get thisParameter => _thisParameter;
   void set thisParameter(ir.Parameter value) {
@@ -548,8 +551,9 @@ abstract class IrBuilder {
   ir.Expression _current = null;
 
   /// Initialize a new top-level IR builder.
-  void _init(ConstantSystem constantSystem, ExecutableElement currentElement) {
-    state = new IrBuilderSharedState(constantSystem, currentElement);
+  void _init(BackendConstantEnvironment constants,
+             ExecutableElement currentElement) {
+    state = new IrBuilderSharedState(constants, currentElement);
     environment = new Environment.empty();
     mutableVariables = <Local, ir.MutableVariable>{};
   }
@@ -668,50 +672,53 @@ abstract class IrBuilder {
 
 
   /// Create a [ir.Constant] from [constant] and add it to the CPS term.
-  ir.Constant buildConstant(ConstantExpression constant) {
+  // TODO(johnniwinther): Remove [value] when [ConstantValue] can be computed
+  // directly from [constant].
+  ir.Constant buildConstant(ConstantExpression constant, ConstantValue value) {
     assert(isOpen);
-    return addPrimitive(new ir.Constant(constant));
+    return addPrimitive(new ir.Constant(constant, value));
   }
 
   /// Create an integer constant and add it to the CPS term.
   ir.Constant buildIntegerConstant(int value) {
-    return buildConstant(new IntConstantExpression(
-        value,
-        state.constantSystem.createInt(value)));
+    return buildConstant(
+        new IntConstantExpression(value),
+        state.constantSystem.createInt(value));
   }
 
   /// Create a double constant and add it to the CPS term.
   ir.Constant buildDoubleConstant(double value) {
-    return buildConstant(new DoubleConstantExpression(
-        value,
-        state.constantSystem.createDouble(value)));
+    return buildConstant(
+        new DoubleConstantExpression(value),
+        state.constantSystem.createDouble(value));
   }
 
   /// Create a Boolean constant and add it to the CPS term.
   ir.Constant buildBooleanConstant(bool value) {
-    return buildConstant(new BoolConstantExpression(
-        value,
-        state.constantSystem.createBool(value)));
+    return buildConstant(
+        new BoolConstantExpression(value),
+        state.constantSystem.createBool(value));
   }
 
   /// Create a null constant and add it to the CPS term.
   ir.Constant buildNullConstant() {
-    return buildConstant(new NullConstantExpression(
-        state.constantSystem.createNull()));
+    return buildConstant(
+        new NullConstantExpression(),
+        state.constantSystem.createNull());
   }
 
   /// Create a string constant and add it to the CPS term.
   ir.Constant buildStringConstant(String value) {
-    return buildConstant(new StringConstantExpression(
-        value,
-        state.constantSystem.createString(new ast.DartString.literal(value))));
+    return buildConstant(
+        new StringConstantExpression(value),
+        state.constantSystem.createString(new ast.DartString.literal(value)));
   }
 
   /// Create a string constant and add it to the CPS term.
   ir.Constant buildDartStringConstant(ast.DartString value) {
-    return buildConstant(new StringConstantExpression(
-        value.slowToString(),
-        state.constantSystem.createString(value)));
+    return buildConstant(
+        new StringConstantExpression(value.slowToString()),
+        state.constantSystem.createString(value));
   }
 
   /// Creates a non-constant list literal of the provided [type] and with the
@@ -1918,9 +1925,9 @@ abstract class IrBuilder {
     ir.Continuation elseContinuation = new ir.Continuation([]);
 
     ir.Constant makeBoolConstant(bool value) {
-      return new ir.Constant(new BoolConstantExpression(
-          value,
-          state.constantSystem.createBool(value)));
+      return new ir.Constant(
+          new BoolConstantExpression(value),
+          state.constantSystem.createBool(value));
     }
 
     ir.Constant trueConstant = makeBoolConstant(true);
@@ -2055,10 +2062,10 @@ class JsIrBuilder extends IrBuilder {
   IrBuilder _makeInstance() => new JsIrBuilder._blank(program, jsState);
   JsIrBuilder._blank(this.program, this.jsState);
 
-  JsIrBuilder(this.program, ConstantSystem constantSystem,
+  JsIrBuilder(this.program, BackendConstantEnvironment constants,
       ExecutableElement currentElement)
       : jsState = new JsIrBuilderSharedState() {
-    _init(constantSystem, currentElement);
+    _init(constants, currentElement);
   }
 
   void enterInitializers() {

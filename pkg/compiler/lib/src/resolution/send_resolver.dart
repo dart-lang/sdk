@@ -541,6 +541,7 @@ abstract class SendResolverMixin {
 
   ConstructorAccessSemantics computeConstructorAccessSemantics(
         ConstructorElement constructor,
+        CallStructure callStructure,
         DartType type,
         {bool mustBeConstant: false}) {
     if (mustBeConstant && !constructor.isConst) {
@@ -570,6 +571,7 @@ abstract class SendResolverMixin {
       ConstructorAccessSemantics effectiveTargetSemantics =
           computeConstructorAccessSemantics(
               effectiveTarget,
+              callStructure,
               constructor.computeEffectiveTargetType(type));
       if (effectiveTargetSemantics.isErroneous) {
         return new RedirectingFactoryConstructorAccessSemantics(
@@ -583,22 +585,29 @@ abstract class SendResolverMixin {
           constructor,
           type,
           effectiveTargetSemantics);
-    } else if (constructor.isFactoryConstructor) {
-      return new ConstructorAccessSemantics(
-          ConstructorAccessKind.FACTORY, constructor, type);
-    } else if (constructor.isRedirectingGenerative) {
-      if (constructor.enclosingClass.isAbstract) {
-          return new ConstructorAccessSemantics(
-              ConstructorAccessKind.ABSTRACT, constructor, type);
-      }
-      return new ConstructorAccessSemantics(
-          ConstructorAccessKind.REDIRECTING_GENERATIVE, constructor, type);
-    } else if (constructor.enclosingClass.isAbstract) {
-      return new ConstructorAccessSemantics(
-          ConstructorAccessKind.ABSTRACT, constructor, type);
     } else {
-      return new ConstructorAccessSemantics(
-          ConstructorAccessKind.GENERATIVE, constructor, type);
+      if (!callStructure.signatureApplies(constructor)) {
+        return new ConstructorAccessSemantics(
+            ConstructorAccessKind.INCOMPATIBLE,
+            constructor,
+            type);
+      } else if (constructor.isFactoryConstructor) {
+        return new ConstructorAccessSemantics(
+            ConstructorAccessKind.FACTORY, constructor, type);
+      } else if (constructor.isRedirectingGenerative) {
+        if (constructor.enclosingClass.isAbstract) {
+            return new ConstructorAccessSemantics(
+                ConstructorAccessKind.ABSTRACT, constructor, type);
+        }
+        return new ConstructorAccessSemantics(
+            ConstructorAccessKind.REDIRECTING_GENERATIVE, constructor, type);
+      } else if (constructor.enclosingClass.isAbstract) {
+        return new ConstructorAccessSemantics(
+            ConstructorAccessKind.ABSTRACT, constructor, type);
+      } else {
+        return new ConstructorAccessSemantics(
+            ConstructorAccessKind.GENERATIVE, constructor, type);
+      }
     }
   }
 
@@ -609,17 +618,37 @@ abstract class SendResolverMixin {
 
     ConstructorAccessSemantics constructorAccessSemantics =
         computeConstructorAccessSemantics(
-            element, type, mustBeConstant: node.isConst);
+            element, selector.callStructure, type,
+            mustBeConstant: node.isConst);
     if (node.isConst) {
       ConstantExpression constant = elements.getConstant(node);
       if (constructorAccessSemantics.isErroneous ||
-          constant is! ConstructedConstantExpression) {
+          constant == null ||
+          constant.kind == ConstantExpressionKind.ERRONEOUS) {
         // This is a non-constant constant constructor invocation, like
         // `const Const(method())`.
         constructorAccessSemantics = new ConstructorAccessSemantics(
             ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR, element, type);
       } else {
-        return new ConstInvokeStructure(constant);
+        ConstantInvokeKind kind;
+        switch (constant.kind) {
+          case ConstantExpressionKind.CONSTRUCTED:
+            kind = ConstantInvokeKind.CONSTRUCTED;
+            break;
+          case ConstantExpressionKind.BOOL_FROM_ENVIRONMENT:
+            kind = ConstantInvokeKind.BOOL_FROM_ENVIRONMENT;
+            break;
+          case ConstantExpressionKind.INT_FROM_ENVIRONMENT:
+            kind = ConstantInvokeKind.INT_FROM_ENVIRONMENT;
+            break;
+          case ConstantExpressionKind.STRING_FROM_ENVIRONMENT:
+            kind = ConstantInvokeKind.STRING_FROM_ENVIRONMENT;
+            break;
+          default:
+            return internalError(
+                node, "Unexpected constant kind $kind: ${constant.getText()}");
+        }
+        return new ConstInvokeStructure(kind, constant);
       }
     }
     return new NewInvokeStructure(constructorAccessSemantics, selector);

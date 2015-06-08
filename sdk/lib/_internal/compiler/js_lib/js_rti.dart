@@ -105,8 +105,8 @@ getRuntimeTypeInfo(Object target) {
  * Returns the type arguments of [target] as an instance of [substitutionName].
  */
 getRuntimeTypeArguments(target, substitutionName) {
-  var substitution =
-      getField(target, '${JS_OPERATOR_AS_PREFIX()}$substitutionName');
+  var substitution = getField(target,
+      '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}$substitutionName');
   return substitute(substitution, getRuntimeTypeInfo(target));
 }
 
@@ -392,7 +392,8 @@ bool checkSubtypeOfRuntimeType(o, t) {
   } else if (isDartFunctionType(t)) {
     // Functions are treated specially and have their type information stored
     // directly in the instance.
-    var targetSignatureFunction = getField(o, '${JS_SIGNATURE_NAME()}');
+    var targetSignatureFunction =
+        getField(o, '${JS_GET_NAME(JsGetName.SIGNATURE_NAME)}');
     if (targetSignatureFunction == null) return false;
     type = invokeOn(targetSignatureFunction, o, null);
     return isFunctionSubtype(type, t);
@@ -459,7 +460,8 @@ bool isSubtype(var s, var t) {
       return false;
     }
     var typeOfSPrototype = JS('', '#.prototype', typeOfS);
-    var field = '${JS_OPERATOR_AS_PREFIX()}${runtimeTypeToString(typeOfT)}';
+    var field = '${JS_GET_NAME(JsGetName.OPERATOR_AS_PREFIX)}'
+        '${runtimeTypeToString(typeOfT)}';
     substitution = getField(typeOfSPrototype, field);
   }
   // The class of [s] is a subclass of the class of [t].  If [s] has no type
@@ -531,25 +533,26 @@ bool areAssignableMaps(var s, var t) {
 bool isFunctionSubtype(var s, var t) {
   assert(isDartFunctionType(t));
   if (!isDartFunctionType(s)) return false;
-  if (hasField(s, '${JS_FUNCTION_TYPE_VOID_RETURN_TAG()}')) {
-    if (hasNoField(t, '${JS_FUNCTION_TYPE_VOID_RETURN_TAG()}') &&
-        hasField(t, '${JS_FUNCTION_TYPE_RETURN_TYPE_TAG()}')) {
+  var voidReturnTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG);
+  var returnTypeTag = JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG);
+  if (hasField(s, voidReturnTag)) {
+    if (hasNoField(t, voidReturnTag) && hasField(t, returnTypeTag)) {
       return false;
     }
-  } else if (hasNoField(t, '${JS_FUNCTION_TYPE_VOID_RETURN_TAG()}')) {
-    var sReturnType = getField(s, '${JS_FUNCTION_TYPE_RETURN_TYPE_TAG()}');
-    var tReturnType = getField(t, '${JS_FUNCTION_TYPE_RETURN_TYPE_TAG()}');
+  } else if (hasNoField(t, voidReturnTag)) {
+    var sReturnType = getField(s, returnTypeTag);
+    var tReturnType = getField(t, returnTypeTag);
     if (!isAssignable(sReturnType, tReturnType)) return false;
   }
-  var sParameterTypes =
-      getField(s, '${JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG()}');
-  var tParameterTypes =
-      getField(t, '${JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG()}');
+  var requiredParametersTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG);
+  var sParameterTypes = getField(s, requiredParametersTag);
+  var tParameterTypes = getField(t, requiredParametersTag);
 
-  var sOptionalParameterTypes =
-      getField(s, '${JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()}');
-  var tOptionalParameterTypes =
-      getField(t, '${JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG()}');
+  var optionalParametersTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG);
+  var sOptionalParameterTypes = getField(s, optionalParametersTag);
+  var tOptionalParameterTypes = getField(t, optionalParametersTag);
 
   int sParametersLen = sParameterTypes != null ? getLength(sParameterTypes) : 0;
   int tParametersLen = tParameterTypes != null ? getLength(tParameterTypes) : 0;
@@ -606,10 +609,10 @@ bool isFunctionSubtype(var s, var t) {
     }
   }
 
-  var sNamedParameters =
-      getField(s, '${JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG()}');
-  var tNamedParameters =
-      getField(t, '${JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG()}');
+  var namedParametersTag =
+      JS_GET_NAME(JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG);
+  var sNamedParameters = getField(s, namedParametersTag);
+  var tNamedParameters = getField(t, namedParametersTag);
   return areAssignableMaps(sNamedParameters, tNamedParameters);
 }
 

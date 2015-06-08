@@ -6,6 +6,9 @@
 browser/*: SkipByDesign  # Browser specific tests
 isolate_stress_test: Fail # Issue 12588: This should be able to pass when we have wrapper-less tests.
 
+[ $runtime != vm ]
+checked_test: Skip # Unsupported.
+
 [ $runtime == vm && $arch == mips && $mode == debug ]
 mandel_isolate_test: Skip # Uses 600 MB Ram on our 1 GB test device.
 
@@ -123,17 +126,15 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-bool_from_environment_default_value_test: RuntimeError # Please triage this failure.
 count_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 cross_isolate_message_test: Crash #  Unhandled node
-deferred_in_isolate2_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+deferred_in_isolate2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 function_send_test: Crash # (try {p.send(func);}finally {p.send(0);}): try/finally
 handle_error2_test: Crash #  Unhandled node
 handle_error3_test: Crash #  Unhandled node
 handle_error_test: Crash #  Unhandled node
 illegal_msg_function_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 illegal_msg_mirror_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-int_from_environment_default_value_test: RuntimeError # Please triage this failure.
 isolate_complex_messages_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 isolate_current_test: Crash #  Unhandled node
 mandel_isolate_test: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -158,6 +159,5 @@ spawn_uri_multi_test/01: Crash # Instance of 'TypeOperator': type casts not impl
 spawn_uri_multi_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
 stacktrace_message_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 static_function_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-string_from_environment_default_value_test: RuntimeError # Please triage this failure.
 timer_isolate_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 unresolved_ports_test: Crash # Instance of 'TypeOperator': type casts not implemented.

@@ -38,7 +38,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_tag" : "@1.0.1",
+  "analyzer_cli_rev" : "@090c4859a2f88e62ae71a11583ba31e9999c74f6",
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
   "charcode_tag": "@1.1.0",
@@ -65,7 +65,7 @@ vars = {
   "intl_rev": "@32047558bd220a53c1f4d93a26d54b83533b1475",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "@a38eefd116d910199de205f962af92fed87c164c",
-  "linter_tag": "@0.0.2+3",
+  "linter_tag": "@0.1.0",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@56b0fd6c018d6103862d07e8e27407b9ea3b963d",
   "matcher_tag": "@0.12.0",
@@ -82,7 +82,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
-  "pub_rev": "@f6d3dceb51789b6ba7ae28e87b667663792a7aa9",
+  "pub_rev": "@6f8ae035883550bfaa690be3aa96f0d2dd8787d7",
   "pub_semver_tag": "@1.2.1",
   "scheduled_test_tag": "@0.11.8+1",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
@@ -174,8 +174,8 @@ deps = {
       (Var("github_mirror") % "dart-services") +
       Var("dart_services_rev"),
 
-  Var("dart_root") + "/third_party/pkg_tested/analyzer_cli":
-      (Var("github_mirror") % "analyzer_cli") + Var("analyzer_cli_tag"),
+  Var("dart_root") + "/third_party/pkg/analyzer_cli":
+      (Var("github_mirror") % "analyzer_cli") + Var("analyzer_cli_rev"),
   Var("dart_root") + "/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
   Var("dart_root") + "/third_party/pkg/async_await":

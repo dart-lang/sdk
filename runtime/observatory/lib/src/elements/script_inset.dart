@@ -162,9 +162,16 @@ class CallSiteAnnotation extends Annotation {
 abstract class DeclarationAnnotation extends Annotation {
   DeclarationAnnotation(decl) {
     assert(decl.loaded);
-    var script = decl.script;
-    line = script.tokenToLine(decl.tokenPos);
-    columnStart = script.tokenToCol(decl.tokenPos);
+    SourceLocation location = decl.location;
+    if (location == null) {
+      line = 0;
+      columnStart = 0;
+      columnStop = 0;
+      return;
+    }
+    Script script = location.script;
+    line = script.tokenToLine(location.tokenPos);
+    columnStart = script.tokenToCol(location.tokenPos);
     if ((line == null) || (columnStart == null)) {
       line = 0;
       columnStart = 0;
@@ -309,14 +316,14 @@ class FunctionDeclarationAnnotation extends DeclarationAnnotation {
 @CustomTag('script-inset')
 class ScriptInsetElement extends ObservatoryElement {
   @published Script script;
+  @published int startPos;
+  @published int endPos;
 
   /// Set the height to make the script inset scroll.  Otherwise it
   /// will show from startPos to endPos.
   @published String height = null;
 
   @published int currentPos;
-  @published int startPos;
-  @published int endPos;
   @published bool inDebuggerContext = false;
   @published ObservableList variables;
 
@@ -491,7 +498,7 @@ class ScriptInsetElement extends ObservatoryElement {
 
   void addClassAnnotations() {
     for (var cls in script.library.classes) {
-      if (cls.script == script) {
+      if ((cls.location != null) && (cls.location.script == script)) {
         annotations.add(new ClassDeclarationAnnotation(cls));
       }
     }
@@ -499,13 +506,13 @@ class ScriptInsetElement extends ObservatoryElement {
 
   void addFieldAnnotations() {
     for (var field in script.library.variables) {
-      if (field.script == script) {
+      if ((field.location != null) && (field.location.script == script)) {
         annotations.add(new FieldDeclarationAnnotation(field));
       }
     }
     for (var cls in script.library.classes) {
       for (var field in cls.fields) {
-        if (field.script == script) {
+        if ((field.location != null) && (field.location.script == script)) {
           annotations.add(new FieldDeclarationAnnotation(field));
         }
       }
@@ -514,13 +521,13 @@ class ScriptInsetElement extends ObservatoryElement {
 
   void addFunctionAnnotations() {
     for (var func in script.library.functions) {
-      if (func.script == script) {
+      if ((func.location != null) && (func.location.script == script)) {
         annotations.add(new FunctionDeclarationAnnotation(func));
       }
     }
     for (var cls in script.library.classes) {
       for (var func in cls.functions) {
-        if (func.script == script) {
+        if ((func.location != null) && (func.location.script == script)) {
           annotations.add(new FunctionDeclarationAnnotation(func));
         }
       }
@@ -540,7 +547,9 @@ class ScriptInsetElement extends ObservatoryElement {
       for (var variable in variables) {
         // Find variable usage locations.
         var locations = script.scanForLocalVariableLocations(
-              variable['name'], variable['tokenPos'], variable['endTokenPos']);
+              variable['name'],
+              variable['_tokenPos'],
+              variable['_endTokenPos']);
 
         // Annotate locations.
         for (var location in locations) {
@@ -747,3 +756,15 @@ class ScriptInsetElement extends ObservatoryElement {
     _updateTask = new Task(update);
   }
 }
+
+@CustomTag('source-inset')
+class SourceInsetElement extends PolymerElement {
+  SourceInsetElement.created() : super.created();
+
+  @published SourceLocation location;
+  @published String height = null;
+  @published int currentPos;
+  @published bool inDebuggerContext = false;
+  @published ObservableList variables;
+}
+

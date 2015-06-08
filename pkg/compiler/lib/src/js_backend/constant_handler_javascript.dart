@@ -23,10 +23,25 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
 
   String get name => 'ConstantHandler';
 
+  @override
+  ConstantSystem get constantSystem => dartConstantCompiler.constantSystem;
+
+  @override
+  ConstantValue getConstantValue(ConstantExpression expression) {
+    return dartConstantCompiler.getConstantValue(expression);
+  }
+
+  @override
+  ConstantValue getConstantValueForVariable(VariableElement element) {
+    return dartConstantCompiler.getConstantValueForVariable(element);
+  }
+
+  @override
   ConstantExpression getConstantForVariable(VariableElement element) {
     return dartConstantCompiler.getConstantForVariable(element);
   }
 
+  @override
   ConstantExpression compileConstant(VariableElement element) {
     return measure(() {
       ConstantExpression result = dartConstantCompiler.compileConstant(element);
@@ -62,6 +77,16 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
       jsConstantCompiler.compileMetadata(metadata, node, elements);
       return constant;
     });
+  }
+
+  // TODO(johnniwinther): Remove this when values are computed from the
+  // expressions.
+  @override
+  void copyConstantValues(JavaScriptConstantTask task) {
+    jsConstantCompiler.constantValueMap.addAll(
+        task.jsConstantCompiler.constantValueMap);
+    dartConstantCompiler.constantValueMap.addAll(
+        task.dartConstantCompiler.constantValueMap);
   }
 }
 
@@ -157,13 +182,13 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return result;
   }
 
-  ConstantExpression getInitialValueFor(VariableElement element) {
+  ConstantValue getInitialValueFor(VariableElement element) {
     ConstantExpression initialValue =
         initialVariableValues[element.declaration];
     if (initialValue == null) {
       compiler.internalError(element, "No initial value for given element.");
     }
-    return initialValue;
+    return getConstantValue(initialValue);
   }
 
   ConstantExpression compileNode(Node node, TreeElements elements,
@@ -186,6 +211,10 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return constant;
   }
 
+  ConstantValue getConstantValueForNode(Node node, TreeElements definitions) {
+    return getConstantValue(getConstantForNode(node, definitions));
+  }
+
   ConstantExpression getConstantForNode(Node node, TreeElements definitions) {
     ConstantExpression constant = nodeConstantMap[node];
     if (constant != null) {
@@ -194,13 +223,14 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
     return definitions.getConstant(node);
   }
 
-  ConstantExpression getConstantForMetadata(MetadataAnnotation metadata) {
-    return metadataConstantMap[metadata];
+  ConstantValue getConstantValueForMetadata(MetadataAnnotation metadata) {
+    return getConstantValue(metadataConstantMap[metadata]);
   }
 
-  ConstantExpression compileMetadata(MetadataAnnotation metadata,
-                           Node node,
-                           TreeElements elements) {
+  ConstantExpression compileMetadata(
+      MetadataAnnotation metadata,
+      Node node,
+      TreeElements elements) {
     ConstantExpression constant =
         super.compileMetadata(metadata, node, elements);
     metadataConstantMap[metadata] = constant;

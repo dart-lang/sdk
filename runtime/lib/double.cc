@@ -300,6 +300,14 @@ DEFINE_NATIVE_ENTRY(Double_getIsNegative, 1) {
   return Bool::Get(signbit(dval) && !isnan(dval)).raw();
 }
 
+
+DEFINE_NATIVE_ENTRY(Double_flipSignBit, 1) {
+  const Double& arg = Double::CheckedHandle(arguments->NativeArgAt(0));
+  const double in_val = arg.value();
+  const int64_t bits = bit_cast<int64_t, double>(in_val) ^ kSignBitDouble;
+  return Double::New(bit_cast<double, int64_t>(bits));
+}
+
 // Add here only functions using/referring to old-style casts.
 
 }  // namespace dart

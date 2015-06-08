@@ -46,9 +46,7 @@
         <div class="memberItem">
           <div class="memberName">script</div>
           <div class="memberValue">
-            <script-ref ref="{{ function.script }}"
-                        pos="{{ function.tokenPos }}">
-            </script-ref>
+            <source-link location="{{ function.location }}"></source-link>
           </div>
         </div>
 
@@ -98,10 +96,7 @@
 
     <div class="content-centered-big">
       <hr>
-      <script-inset script="{{ function.script }}"
-                    startPos="{{ function.tokenPos }}"
-                    endPos="{{ function.endTokenPos }}">
-      </script-inset>
+      <source-inset location="{{ function.location }}"></source-inset>
     </div>
 
     <view-footer></view-footer>

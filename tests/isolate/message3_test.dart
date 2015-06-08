@@ -211,12 +211,36 @@ void runTests(SendPort ping, Queue checks) {
     Expect.isTrue(x is LinkedHashMap);
     Expect.listEquals(["foo", "bar"], x.keys.toList());
     Expect.listEquals([499, 32], x.values.toList());
+    Expect.equals(499, x["foo"]);
+    Expect.equals(32, x["bar"]);
     // Must be mutable.
     x["foo"] = 22;
     Expect.equals(22, x["foo"]);
     // Must be extendable.
     x["gee"] = 499;
     Expect.equals(499, x["gee"]);
+  });
+
+  Map<String, int> mapWithRemovedKey = {"foo": 499, "bar": 32};
+  mapWithRemovedKey.remove("foo");
+  ping.send(mapWithRemovedKey);
+  checks.add((x) {
+    Expect.isTrue(x is LinkedHashMap);
+    Expect.listEquals(["bar"], x.keys.toList());
+    Expect.listEquals([32], x.values.toList());
+    Expect.equals(32, x["bar"]);
+  });
+
+  // Test map where a key does not define ==/hashCode.
+  Map<A, int> mapWithIdentityKey = new Map<A, int>();
+  mapWithIdentityKey[new A()] = 499;
+  ping.send(mapWithIdentityKey);
+  checks.add((x) {
+    Expect.isTrue(x is LinkedHashMap);
+    int value = x.values.first;
+    Expect.equals(499, value);
+    A key = x.keys.first;
+    Expect.equals(499, x[key]);
   });
 
   ping.send({0: 499, 1: 32});

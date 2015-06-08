@@ -32,7 +32,8 @@ class Dart : public AllStatic {
       Dart_EntropySource entropy_source);
   static const char* Cleanup();
 
-  static Isolate* CreateIsolate(const char* name_prefix);
+  static Isolate* CreateIsolate(const char* name_prefix,
+                                const Dart_IsolateFlags& api_flags);
   static RawError* InitializeIsolate(const uint8_t* snapshot, void* data);
   static void RunShutdownCallback();
   static void ShutdownIsolate();

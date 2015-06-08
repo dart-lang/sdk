@@ -790,6 +790,9 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           }
         }
       }
+      // Mark that this isolate now has compiled code.
+      isolate->set_has_compiled(true);
+      // Exit the loop and the function with the correct result value.
       is_compiled = true;
       done = true;
     } else {
@@ -1191,6 +1194,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
       if (!error.IsNull()) {
         return error.raw();
       }
+      func.ClearICDataArray();
       func.ClearCode();
     }
   }
@@ -1207,6 +1211,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
         if (!error.IsNull()) {
           return error.raw();
         }
+        func.ClearICDataArray();
         func.ClearCode();
       }
     }

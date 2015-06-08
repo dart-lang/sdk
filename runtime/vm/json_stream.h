@@ -21,13 +21,18 @@ class JSONObject;
 class MessageQueue;
 class Metric;
 class Object;
+class Script;
 class ServiceEvent;
 class Breakpoint;
 class String;
 class Zone;
 
 
-// Keep this in sync with runtime/observatory/lib/src/service/object.dart.
+// Keep this enum in sync with:
+//
+//  - runtime/vm/service/vmservice.dart
+//  - runtime/observatory/lib/src/service/object.dart
+//
 enum JSONRpcErrorCode {
   kParseError     = -32700,
   kInvalidRequest = -32600,
@@ -35,9 +40,11 @@ enum JSONRpcErrorCode {
   kInvalidParams  = -32602,
   kInternalError  = -32603,
 
-  kFeatureDisabled     = 100,
-  kVMMustBePaused      = 101,
-  kCannotAddBreakpoint = 102,
+  kFeatureDisabled         = 100,
+  kVMMustBePaused          = 101,
+  kCannotAddBreakpoint     = 102,
+  kStreamAlreadySubscribed = 103,
+  kStreamNotSubscribed     = 104,
 };
 
 
@@ -185,6 +192,10 @@ class JSONObject : public ValueObject {
   }
 
   void AddFixedServiceId(const char* format, ...) const PRINTF_ATTRIBUTE(2, 3);
+
+  void AddLocation(const Script& script,
+                   intptr_t token_pos,
+                   intptr_t end_token_pos = -1);
 
   void AddProperty(const char* name, bool b) const {
     stream_->PrintPropertyBool(name, b);

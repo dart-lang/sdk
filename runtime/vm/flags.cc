@@ -427,6 +427,7 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
   JSONObject jsflag(jsarr);
   jsflag.AddProperty("name", flag->name_);
   jsflag.AddProperty("comment", flag->comment_);
+  jsflag.AddProperty("modified", flag->changed_);
   switch (flag->type_) {
     case Flag::kBoolean: {
       jsflag.AddProperty("_flagType", "Bool");
@@ -463,23 +464,9 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
 void Flags::PrintJSON(JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "FlagList");
-  {
-    JSONArray jsarr(&jsobj, "unmodifiedFlags");
-    for (intptr_t i = 0; i < num_flags_; ++i) {
-      Flag* flag = flags_[i];
-      if (!flag->changed_) {
-        PrintFlagToJSONArray(&jsarr, flag);
-      }
-    }
-  }
-  {
-    JSONArray jsarr(&jsobj, "modifiedFlags");
-    for (intptr_t i = 0; i < num_flags_; ++i) {
-      Flag* flag = flags_[i];
-      if (flag->changed_) {
-        PrintFlagToJSONArray(&jsarr, flag);
-      }
-    }
+  JSONArray jsarr(&jsobj, "flags");
+  for (intptr_t i = 0; i < num_flags_; ++i) {
+    PrintFlagToJSONArray(&jsarr, flags_[i]);
   }
 }
 

@@ -72,27 +72,24 @@ class TypeVariableHandler {
     for (TypeVariableType currentTypeVariable in cls.typeVariables) {
       TypeVariableElement typeVariableElement = currentTypeVariable.element;
 
-      AstConstant wrapConstant(ConstantExpression constant) {
-        return new AstConstant(typeVariableElement,
-                               typeVariableElement.node,
-                               constant);
-      }
-
-      ConstantExpression name = new StringConstantExpression(
-          currentTypeVariable.name,
+      AstConstant name = new AstConstant(
+          typeVariableElement,
+          typeVariableElement.node,
+          new StringConstantExpression(currentTypeVariable.name),
           _backend.constantSystem.createString(
               new DartString.literal(currentTypeVariable.name)));
       int boundIndex = _metadataCollector.reifyType(typeVariableElement.bound);
-      ConstantExpression bound = new IntConstantExpression(
-          boundIndex,
+      AstConstant bound = new AstConstant(
+          typeVariableElement,
+          typeVariableElement.node,
+          new IntConstantExpression(boundIndex),
           _backend.constantSystem.createInt(boundIndex));
-      ConstantExpression type =
-          new TypeConstantExpression(
-              _backend.constantSystem.createType(
-                  _backend.compiler, cls.rawType),
-              cls.rawType);
-      List<AstConstant> arguments =
-          [wrapConstant(type), wrapConstant(name), wrapConstant(bound)];
+      AstConstant type = new AstConstant(
+          typeVariableElement,
+          typeVariableElement.node,
+          new TypeConstantExpression(cls.rawType),
+          _backend.constantSystem.createType(_backend.compiler, cls.rawType));
+      List<AstConstant> arguments = [type, name, bound];
 
       // TODO(johnniwinther): Support a less front-end specific creation of
       // constructed constants.

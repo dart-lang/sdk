@@ -17,7 +17,7 @@
 package com.google.dart.server.generated;
 
 import com.google.dart.server.*;
-import com.google.dart.server.generated.types.*;
+import org.dartlang.analysis.server.protocol.*;
 
 import java.util.List;
 import java.util.Map;

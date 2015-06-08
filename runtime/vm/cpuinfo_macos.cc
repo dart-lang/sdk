@@ -85,7 +85,7 @@ bool CpuInfo::HasField(const char* field) {
   ASSERT(method_ != kCpuInfoDefault);
   ASSERT(field != NULL);
   int ret = sysctlbyname(field, NULL, NULL, NULL, 0);
-  return (ret != ENOENT);
+  return (ret == 0);
 }
 
 }  // namespace dart

@@ -131,7 +131,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
 
   void emitType(TypeDecl type, dom.Element html) {
     outputHeader(javaStyle: true);
-    writeln('package com.google.dart.server.generated.types;');
+    writeln('package org.dartlang.analysis.server.protocol;');
     writeln();
     if (type is TypeObject) {
       _writeTypeObject(type, html);

@@ -44,8 +44,8 @@ class Glue {
     _compiler.internalError(_compiler.currentElement, message);
   }
 
-  ConstantExpression getConstantForVariable(VariableElement variable) {
-    return _backend.constants.getConstantForVariable(variable);
+  ConstantValue getConstantValueForVariable(VariableElement variable) {
+    return _backend.constants.getConstantValueForVariable(variable);
   }
 
   js.Expression staticFunctionAccess(FunctionElement element) {

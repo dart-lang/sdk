@@ -141,7 +141,7 @@ class SsaBuilderTask extends CompilerTask {
           signature.forEachOptionalParameter((ParameterElement parameter) {
             // This ensures the default value will be computed.
             ConstantValue constant =
-                backend.constants.getConstantForVariable(parameter).value;
+                backend.constants.getConstantValueForVariable(parameter);
             CodegenRegistry registry = work.registry;
             registry.registerCompileTimeConstant(constant);
           });
@@ -1505,11 +1505,11 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   HInstruction handleConstantForOptionalParameter(Element parameter) {
-    ConstantExpression constant =
-        backend.constants.getConstantForVariable(parameter);
-    assert(invariant(parameter, constant != null,
+    ConstantValue constantValue =
+        backend.constants.getConstantValueForVariable(parameter);
+    assert(invariant(parameter, constantValue != null,
         message: 'No constant computed for $parameter'));
-    return graph.addConstant(constant.value, compiler);
+    return graph.addConstant(constantValue, compiler);
   }
 
   Element get currentNonClosureClass {
@@ -1545,11 +1545,11 @@ class SsaBuilder extends NewResolvedVisitor {
   bool inTryStatement = false;
 
   ConstantValue getConstantForNode(ast.Node node) {
-    ConstantExpression constant =
-        backend.constants.getConstantForNode(node, elements);
-    assert(invariant(node, constant != null,
+    ConstantValue constantValue =
+        backend.constants.getConstantValueForNode(node, elements);
+    assert(invariant(node, constantValue != null,
         message: 'No constant computed for $node'));
-    return constant.value;
+    return constantValue;
   }
 
   HInstruction addConstant(ast.Node node) {
@@ -3310,7 +3310,7 @@ class SsaBuilder extends NewResolvedVisitor {
       ast.Send node,
       FieldElement field,
       ConstantExpression constant) {
-    ConstantValue value = constant.value;
+    ConstantValue value = backend.constants.getConstantValue(constant);
     HConstant instruction;
     // Constants that are referred via a deferred prefix should be referred
     // by reference.
@@ -4258,36 +4258,6 @@ class SsaBuilder extends NewResolvedVisitor {
       handleForeignRawFunctionRef(node, 'RAW_DART_FUNCTION_REF');
     } else if (name == 'JS_SET_CURRENT_ISOLATE') {
       handleForeignSetCurrentIsolate(node);
-    } else if (name == 'JS_OPERATOR_AS_PREFIX') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.operatorAsPrefix));
-    } else if (name == 'JS_SIGNATURE_NAME') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.operatorSignature));
-    } else if (name == 'JS_TYPEDEF_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.typedefTag));
-    } else if (name == 'JS_FUNCTION_TYPE_VOID_RETURN_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.functionTypeVoidReturnTag));
-    } else if (name == 'JS_FUNCTION_TYPE_RETURN_TYPE_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(backend.namer.functionTypeReturnTypeTag));
-    } else if (name ==
-               'JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(
-          backend.namer.functionTypeRequiredParametersTag));
-    } else if (name ==
-               'JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(
-          backend.namer.functionTypeOptionalParametersTag));
-    } else if (name ==
-               'JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG') {
-      // TODO(floitsch): this should be a JS_NAME.
-      stack.add(addConstantString(
-          backend.namer.functionTypeNamedParametersTag));
     } else if (name == 'JS_IS_INDEXABLE_FIELD_NAME') {
       // TODO(floitsch): this should be a JS_NAME.
       Element element = backend.findHelper('JavaScriptIndexingBehavior');
@@ -4309,7 +4279,7 @@ class SsaBuilder extends NewResolvedVisitor {
     } else if (name == 'JS_STRING_CONCAT') {
       handleJsStringConcat(node);
     } else {
-      throw "Unknown foreign: ${element}";
+      compiler.internalError(node, "Unknown foreign: ${element}");
     }
   }
 

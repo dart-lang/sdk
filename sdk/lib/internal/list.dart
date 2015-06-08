@@ -123,7 +123,7 @@ abstract class UnmodifiableListMixin<E> implements List<E> {
   }
 
   /** This operation is not supported by an unmodifiable list. */
-  E insert(int index, E value) {
+  void insert(int index, E element) {
     throw new UnsupportedError(
         "Cannot add to an unmodifiable list");
   }

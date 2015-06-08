@@ -25,7 +25,16 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       Node expression,
       arg) {
     visits.add(new Visit(VisitKind.VISIT_ASSERT, expression: expression));
-    apply(expression, arg);
+    super.visitAssert(node, expression, arg);
+  }
+
+  @override
+  errorInvalidAssert(
+      Send node,
+      NodeList arguments,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_INVALID_ASSERT, arguments: arguments));
+    super.errorInvalidAssert(node, arguments, arg);
   }
 
   @override
@@ -37,8 +46,19 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_BINARY,
         left: left, operator: operator, right: right));
-    apply(left, arg);
-    apply(right, arg);
+    super.visitBinary(node, left, operator, right, arg);
+  }
+
+  @override
+  errorUndefinedBinaryExpression(
+      Send node,
+      Node left,
+      Operator operator,
+      Node right,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_UNDEFINED_BINARY_EXPRESSION,
+        left: left, operator: operator, right: right));
+    super.errorUndefinedBinaryExpression(node, left, operator, right, arg);
   }
 
   @override
@@ -848,7 +868,18 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_UNARY,
         expression: expression, operator: operator));
-    apply(expression, arg);
+    super.visitUnary(node, operator, expression, arg);
+  }
+
+  @override
+  errorUndefinedUnaryExpression(
+      Send node,
+      Operator operator,
+      Node expression,
+      arg) {
+    visits.add(new Visit(VisitKind.ERROR_UNDEFINED_UNARY_EXPRESSION,
+        expression: expression, operator: operator));
+    super.errorUndefinedUnaryExpression(node, operator, expression, arg);
   }
 
   @override
@@ -2338,6 +2369,70 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_CONST_CONSTRUCTOR_INVOKE,
                          constant: constant.getText()));
+    super.visitConstConstructorInvoke(node, constant, arg);
+  }
+
+  @override
+  visitBoolFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      BoolFromEnvironmentConstantExpression constant,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_BOOL_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+        constant: constant.getText()));
+    super.visitBoolFromEnvironmentConstructorInvoke(node, constant, arg);
+  }
+
+  @override
+  visitIntFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      IntFromEnvironmentConstantExpression constant,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_INT_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+        constant: constant.getText()));
+    super.visitIntFromEnvironmentConstructorInvoke(node, constant, arg);
+  }
+
+  @override
+  visitStringFromEnvironmentConstructorInvoke(
+      NewExpression node,
+      StringFromEnvironmentConstantExpression constant,
+      arg) {
+    visits.add(new Visit(
+        VisitKind.VISIT_STRING_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+        constant: constant.getText()));
+    super.visitStringFromEnvironmentConstructorInvoke(node, constant, arg);
+  }
+
+  @override
+  errorNonConstantConstructorInvoke(
+        NewExpression node,
+        Element element,
+        DartType type,
+        NodeList arguments,
+        CallStructure callStructure,
+        arg) {
+    visits.add(new Visit(VisitKind.ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
+        element: element, type: type,
+        arguments: arguments, selector: callStructure));
+    super.errorNonConstantConstructorInvoke(
+        node, element, type, arguments, callStructure, arg);
+  }
+
+  @override
+  visitConstructorIncompatibleInvoke(
+        NewExpression node,
+        ConstructorElement constructor,
+        InterfaceType type,
+        NodeList arguments,
+        CallStructure callStructure,
+        arg) {
+    visits.add(new Visit(VisitKind.VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
+        element: constructor, type: type,
+        arguments: arguments, selector: callStructure));
+    super.visitConstructorIncompatibleInvoke(
+        node, constructor, type, arguments, callStructure, arg);
   }
 
   @override
@@ -2716,5 +2811,119 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_UNRESOLVED_SUPER_SETTER_PREFIX,
         getter: getter, operator: operator));
+  }
+
+  @override
+  visitIfNotNullDynamicPropertyGet(
+      Send node,
+      Node receiver,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_GET,
+        receiver: receiver, name: selector.name));
+    super.visitIfNotNullDynamicPropertyGet(node, receiver, selector, arg);
+  }
+
+  @override
+  visitIfNotNullDynamicPropertySet(
+      Send node,
+      Node receiver,
+      Selector selector,
+      Node rhs,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET,
+        receiver: receiver, name: selector.name, rhs: rhs));
+    super.visitIfNotNullDynamicPropertySet(node, receiver, selector, rhs, arg);
+  }
+
+  @override
+  visitIfNotNullDynamicPropertyInvoke(
+      Send node,
+      Node receiver,
+      NodeList arguments,
+      Selector selector,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_INVOKE,
+        receiver: receiver, selector: selector, arguments: arguments));
+    super.visitIfNotNullDynamicPropertyInvoke(
+        node, receiver, arguments, selector, arg);
+  }
+
+  @override
+  visitIfNotNullDynamicPropertyPrefix(
+      Send node,
+      Node receiver,
+      IncDecOperator operator,
+      Selector getterSelector,
+      Selector setterSelector,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_PREFIX,
+        receiver: receiver, operator: operator,
+        getter: getterSelector, setter: setterSelector));
+    super.visitIfNotNullDynamicPropertyPrefix(
+        node, receiver, operator, getterSelector, setterSelector, arg);
+  }
+
+  @override
+  visitIfNotNullDynamicPropertyPostfix(
+      Send node,
+      Node receiver,
+      IncDecOperator operator,
+      Selector getterSelector,
+      Selector setterSelector,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_POSTFIX,
+        receiver: receiver, operator: operator,
+        getter: getterSelector, setter: setterSelector));
+    super.visitIfNotNullDynamicPropertyPostfix(
+        node, receiver, operator, getterSelector, setterSelector, arg);
+  }
+
+  @override
+  visitIfNotNullDynamicPropertyCompound(
+      Send node,
+      Node receiver,
+      AssignmentOperator operator,
+      Node rhs,
+      Selector getterSelector,
+      Selector setterSelector,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_COMPOUND,
+        receiver: receiver, operator: operator, rhs: rhs,
+        getter: getterSelector, setter: setterSelector));
+    super.visitIfNotNullDynamicPropertyCompound(
+        node, receiver, operator, rhs, getterSelector, setterSelector, arg);
+  }
+
+  @override
+  visitIfNull(
+      Send node,
+      Node left,
+      Node right,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_IF_NULL, left: left, right: right));
+    super.visitIfNull(node, left, right, arg);
+  }
+
+  @override
+  visitConstantGet(
+      Send node,
+      ConstantExpression constant,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_CONSTANT_GET,
+        constant: constant.getText()));
+    super.visitConstantGet(node, constant, arg);
+  }
+
+  @override
+  visitConstantInvoke(
+      Send node,
+      ConstantExpression constant,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_CONSTANT_INVOKE,
+        constant: constant.getText()));
+    super.visitConstantInvoke(node, constant, arguments, callStructure, arg);
   }
 }

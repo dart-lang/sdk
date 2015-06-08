@@ -1380,8 +1380,9 @@ abstract class Compiler implements DiagnosticListener {
       functionApplyMethod = functionClass.lookupLocalMember('apply');
 
       proxyConstant =
-          resolver.constantCompiler.compileConstant(
-              coreLibrary.find('proxy')).value;
+          constants.getConstantValue(
+              resolver.constantCompiler.compileConstant(
+                  coreLibrary.find('proxy')));
 
       if (preserveComments) {
         return libraryLoader.loadLibrary(DART_MIRRORS)
@@ -1508,14 +1509,6 @@ abstract class Compiler implements DiagnosticListener {
     }).then((_) {
       compileLoadedLibraries();
     });
-  }
-
-  bool irEnabled() {
-    // TODO(sigurdm,kmillikin): Support checked-mode checks.
-    return useCpsIr &&
-        backend is DartBackend &&
-        !enableTypeAssertions &&
-        !enableConcreteTypeInference;
   }
 
   void computeMain() {
@@ -1648,11 +1641,6 @@ abstract class Compiler implements DiagnosticListener {
     backend.onResolutionComplete();
 
     deferredLoadTask.onResolutionComplete(mainFunction);
-
-    if (irEnabled()) {
-      log('Building IR...');
-      irBuilder.buildNodes();
-    }
 
     log('Inferring types...');
     typesTask.onResolutionComplete(mainFunction);

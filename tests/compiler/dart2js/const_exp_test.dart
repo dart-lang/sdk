@@ -31,12 +31,13 @@ test(String constantInitializer, [String expectedOutput]) {
      var element = env.getElement('constant');
      Expect.isNotNull(element, "Element 'constant' not found.");
      var constant = env.compiler.constants.getConstantForVariable(element);
+     var value = env.compiler.constants.getConstantValue(constant);
      Expect.isNotNull(constant,
                       "No constant computed for '$element'.");
      Expect.equals(expectedOutput, constant.getText(),
          "Unexpected to string '${constant.getText()}' for constant "
          "'$constantInitializer' of value "
-         "${constant.value.toStructuredString()}");
+         "${value.toStructuredString()}");
    });
 }
 

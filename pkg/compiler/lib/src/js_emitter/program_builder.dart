@@ -210,7 +210,7 @@ class ProgramBuilder {
 
   StaticField _buildStaticField(Element element) {
     JavaScriptConstantCompiler handler = backend.constants;
-    ConstantValue initialValue = handler.getInitialValueFor(element).value;
+    ConstantValue initialValue = handler.getInitialValueFor(element);
     // TODO(zarah): The holder should not be registered during building of
     // a static field.
     _registry.registerHolder(namer.globalObjectForConstant(initialValue));
@@ -466,16 +466,16 @@ class ProgramBuilder {
     if (signature.optionalParametersAreNamed) {
       optionalParameterDefaultValues = new Map<String, ConstantValue>();
       signature.forEachOptionalParameter((ParameterElement parameter) {
-        ConstantExpression def =
-            backend.constants.getConstantForVariable(parameter);
-        optionalParameterDefaultValues[parameter.name] = def.value;
+        ConstantValue def =
+            backend.constants.getConstantValueForVariable(parameter);
+        optionalParameterDefaultValues[parameter.name] = def;
       });
     } else {
       optionalParameterDefaultValues = <ConstantValue>[];
       signature.forEachOptionalParameter((ParameterElement parameter) {
-        ConstantExpression def =
-            backend.constants.getConstantForVariable(parameter);
-        optionalParameterDefaultValues.add(def.value);
+        ConstantValue def =
+            backend.constants.getConstantValueForVariable(parameter);
+        optionalParameterDefaultValues.add(def);
       });
     }
     return optionalParameterDefaultValues;

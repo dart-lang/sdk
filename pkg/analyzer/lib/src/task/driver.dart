@@ -17,6 +17,9 @@ import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/model.dart';
 
+final PerformanceTag workOrderMoveNextPerfTag =
+    new PerformanceTag('WorkOrder.moveNext');
+
 /**
  * An object that is used to cause analysis to be performed until all of the
  * required analysis information has been computed.
@@ -123,6 +126,7 @@ class AnalysisDriver {
       }
       // Create a new WorkOrder.
       TargetedResult request = highestManager.getNextResult();
+//      print('request: $request');
       if (request != null) {
         WorkOrder workOrder =
             createWorkOrderForResult(request.target, request.result);
@@ -716,29 +720,31 @@ class WorkOrder implements Iterator<WorkItem> {
 
   @override
   bool moveNext() {
-    if (currentItems != null && currentItems.length > 1) {
-      // Yield more items.
-      currentItems.removeLast();
-      return true;
-    } else {
-      // Get a new strongly connected component.
-      StronglyConnectedComponent<WorkItem> nextStronglyConnectedComponent =
-          _dependencyWalker.getNextStronglyConnectedComponent();
-      if (nextStronglyConnectedComponent == null) {
-        currentItems = null;
-        return false;
-      }
-      currentItems = nextStronglyConnectedComponent.nodes;
-      if (nextStronglyConnectedComponent.containsCycle) {
-        // A cycle has been found.
-        for (WorkItem item in currentItems) {
-          item.dependencyCycle = currentItems.toList();
-        }
+    return workOrderMoveNextPerfTag.makeCurrentWhile(() {
+      if (currentItems != null && currentItems.length > 1) {
+        // Yield more items.
+        currentItems.removeLast();
+        return true;
       } else {
-        assert(currentItems.length == 1);
+        // Get a new strongly connected component.
+        StronglyConnectedComponent<WorkItem> nextStronglyConnectedComponent =
+            _dependencyWalker.getNextStronglyConnectedComponent();
+        if (nextStronglyConnectedComponent == null) {
+          currentItems = null;
+          return false;
+        }
+        currentItems = nextStronglyConnectedComponent.nodes;
+        if (nextStronglyConnectedComponent.containsCycle) {
+          // A cycle has been found.
+          for (WorkItem item in currentItems) {
+            item.dependencyCycle = currentItems.toList();
+          }
+        } else {
+          assert(currentItems.length == 1);
+        }
+        return true;
       }
-      return true;
-    }
+    });
   }
 }
 

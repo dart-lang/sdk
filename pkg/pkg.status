@@ -118,6 +118,7 @@ crypto/test/sha256_test: Slow, Pass
 crypto/test/sha1_test: Slow, Pass
 
 [ $browser ]
+analyzer_cli/*: SkipByDesign # Uses dart:io.
 */test/analyzer_test: SkipByDesign # No need to run analysis tests on browser bots
 analysis_server/test/*: SkipByDesign # Uses dart:io.
 analysis_server/tool/spec/check_all_test: SkipByDesign # Uses dart:io.
@@ -144,43 +145,45 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 analyzer/test/*: PubGetError
 
 [ $compiler == dart2js && $cps_ir ]
+analyzer_cli/test/error_test: Crash # (try {return fn(tempDir);}finally {new Directory(tempDir).deleteSync(recursive:true);}): try/finally
+analyzer_cli/test/options_test: Crash #  try/finally
 analysis_server/tool/spec/check_all_test: Crash #  Unhandled node
-analyzer/test/cancelable_future_test: Crash #  try/finally
-analyzer/test/enum_test: Crash #  try/finally
-analyzer/test/file_system/memory_file_system_test: Crash #  try/finally
-analyzer/test/file_system/physical_resource_provider_test: Crash #  try/finally
-analyzer/test/file_system/resource_uri_resolver_test: Crash #  try/finally
+analyzer/test/cancelable_future_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/enum_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/file_system/memory_file_system_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/file_system/physical_resource_provider_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/file_system/resource_uri_resolver_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
 analyzer/test/generated/all_the_rest_test: Crash #  try/finally
-analyzer/test/generated/ast_test: Crash #  try/finally
-analyzer/test/generated/compile_time_error_code_test: Crash #  try/finally
-analyzer/test/generated/element_test: Crash #  try/finally
-analyzer/test/generated/incremental_resolver_test: Crash #  try/finally
-analyzer/test/generated/incremental_scanner_test: Crash #  try/finally
+analyzer/test/generated/ast_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/generated/compile_time_error_code_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/generated/element_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/generated/incremental_resolver_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/generated/incremental_scanner_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
 analyzer/test/generated/java_core_test: Crash #  try/finally
 analyzer/test/generated/java_io_test: Crash #  try/finally
-analyzer/test/generated/non_error_resolver_test: Crash #  try/finally
-analyzer/test/generated/parser_test: Crash #  try/finally
-analyzer/test/generated/resolver_test: Crash #  try/finally
-analyzer/test/generated/scanner_test: Crash #  try/finally
-analyzer/test/generated/static_type_warning_code_test: Crash #  try/finally
-analyzer/test/generated/static_warning_code_test: Crash #  try/finally
-analyzer/test/generated/utilities_test: Crash #  try/finally
+analyzer/test/generated/non_error_resolver_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/generated/parser_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/generated/resolver_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/generated/scanner_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/generated/static_type_warning_code_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/generated/static_warning_code_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/generated/utilities_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
 analyzer/test/instrumentation/instrumentation_test: Crash #  try/finally
 analyzer/test/parse_compilation_unit_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 analyzer/test/source/package_map_provider_test: Crash #  try/finally
-analyzer/test/source/package_map_resolver_test: Crash #  try/finally
+analyzer/test/source/package_map_resolver_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
 analyzer/test/src/context/cache_test: Crash #  try/finally
 analyzer/test/src/context/context_test: Crash #  try/finally
-analyzer/test/src/task/dart_test: Crash #  try/finally
+analyzer/test/src/task/dart_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
 analyzer/test/src/task/dart_work_manager_test: Crash #  try/finally
 analyzer/test/src/task/driver_test: Crash #  try/finally
 analyzer/test/src/task/general_test: Crash #  try/finally
-analyzer/test/src/task/incremental_element_builder_test: Crash #  try/finally
-analyzer/test/src/task/inputs_test: Crash #  try/finally
-analyzer/test/src/task/manager_test: Crash #  try/finally
-analyzer/test/src/task/model_test: Crash #  try/finally
-analyzer/test/src/util/asserts_test: Crash #  try/finally
-analyzer/test/src/util/lru_map_test: Crash #  try/finally
+analyzer/test/src/task/incremental_element_builder_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/src/task/inputs_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/src/task/manager_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/src/task/model_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/src/util/asserts_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
+analyzer/test/src/util/lru_map_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
 fixnum/test/int_32_test: Crash #  try/finally
 fixnum/test/int_64_test: Crash #  try/finally
 js_ast/test/printer_callback_test: Crash #  Unhandled node

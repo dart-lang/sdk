@@ -103,6 +103,9 @@ class IsolateViewElement extends ObservatoryElement {
     super.attached();
     // Start a timer to update the isolate summary once a second.
     _updateTimer = new Timer(new Duration(seconds: 1), _updateTagProfile);
+    if (isolate.topFrame != null) {
+      isolate.topFrame.function.load();
+    }
   }
 
   @override
@@ -121,8 +124,11 @@ class IsolateViewElement extends ObservatoryElement {
     }
   }
 
-  Future refresh() {
-    return isolate.reload();
+  Future refresh() async {
+    await isolate.reload();
+    if (isolate.topFrame != null) {
+      await isolate.topFrame.function.load();
+    }
   }
 
   Future refreshCoverage() {

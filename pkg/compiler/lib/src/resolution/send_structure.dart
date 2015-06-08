@@ -2359,21 +2359,47 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
         return visitor.visitUnresolvedRedirectingFactoryConstructorInvoke(
             node, semantics.element, semantics.type,
             node.send.argumentsNode, callStructure, arg);
+      case ConstructorAccessKind.INCOMPATIBLE:
+        return visitor.visitConstructorIncompatibleInvoke(
+            node, semantics.element, semantics.type,
+            node.send.argumentsNode, callStructure, arg);
     }
     throw new SpannableAssertionFailure(node,
         "Unhandled constructor invocation kind: ${semantics.kind}");
   }
+
+  String toString() => 'new($semantics,$selector)';
+}
+
+enum ConstantInvokeKind {
+  CONSTRUCTED,
+  BOOL_FROM_ENVIRONMENT,
+  INT_FROM_ENVIRONMENT,
+  STRING_FROM_ENVIRONMENT,
 }
 
 /// The structure for a [NewExpression] of a constant invocation. For instance
 /// `const C()`.
 class ConstInvokeStructure<R, A> extends NewStructure<R, A> {
-  final ConstructedConstantExpression constant;
+  final ConstantInvokeKind kind;
+  final ConstantExpression constant;
 
-  ConstInvokeStructure(this.constant);
+  ConstInvokeStructure(this.kind, this.constant);
 
   R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg) {
-    return visitor.visitConstConstructorInvoke(node, constant, arg);
+    switch (kind) {
+      case ConstantInvokeKind.CONSTRUCTED:
+        return visitor.visitConstConstructorInvoke(node, constant, arg);
+      case ConstantInvokeKind.BOOL_FROM_ENVIRONMENT:
+        return visitor.visitBoolFromEnvironmentConstructorInvoke(
+            node, constant, arg);
+      case ConstantInvokeKind.INT_FROM_ENVIRONMENT:
+        return visitor.visitIntFromEnvironmentConstructorInvoke(
+            node, constant, arg);
+      case ConstantInvokeKind.STRING_FROM_ENVIRONMENT:
+        return visitor.visitStringFromEnvironmentConstructorInvoke(
+            node, constant, arg);
+    }
   }
 }
 

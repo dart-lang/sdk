@@ -10,6 +10,8 @@ import 'dart:async';
 import 'package:compiler/src/dart2jslib.dart' show
     Compiler,
     MessageKind;
+import 'package:compiler/src/dart_backend/dart_backend.dart' show
+    DartBackend;
 
 import 'memory_compiler.dart';
 
@@ -69,12 +71,21 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
       messages.add(message);
     }
 
+    bool oldBackendIsDart;
+    if (cachedCompiler != null) {
+      oldBackendIsDart = cachedCompiler.backend is DartBackend;
+    }
+    bool newBackendIsDart = kind.options.contains('--output-type=dart');
+
     Compiler compiler = compilerFor(
         example,
         diagnosticHandler: collect,
         options: ['--analyze-only',
                   '--enable-experimental-mirrors']..addAll(kind.options),
-        cachedCompiler: cachedCompiler);
+        cachedCompiler:
+             // TODO(johnniwinther): Remove this restriction when constant
+             // values can be computed directly from the expressions.
+             oldBackendIsDart == newBackendIsDart ? cachedCompiler : null);
 
     return compiler.run(Uri.parse('memory:main.dart')).then((_) {
 

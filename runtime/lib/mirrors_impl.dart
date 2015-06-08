@@ -75,9 +75,6 @@ List _metadata(reflectee)
 bool _subtypeTest(Type a, Type b)
     native 'TypeMirror_subtypeTest';
 
-bool _moreSpecificTest(Type a, Type b)
-    native 'TypeMirror_moreSpecificTest';
-
 class _AccessorCacheAssociation {
   String key;
   Function value;
@@ -392,7 +389,7 @@ class _LocalInstanceMirror extends _LocalObjectMirror
   }
 
   // LocalInstanceMirrors always reflect local instances
-  bool hasReflectee = true;
+  bool get hasReflectee => true;
 
   get reflectee => _reflectee;
 
@@ -878,8 +875,8 @@ class _LocalClassMirror extends _LocalObjectMirror
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _moreSpecificTest(_reflectedType, other._reflectedType)
-        || _moreSpecificTest(other._reflectedType, _reflectedType);
+    return _subtypeTest(_reflectedType, other._reflectedType)
+        || _subtypeTest(other._reflectedType, _reflectedType);
   }
 
   bool isSubclassOf(ClassMirror other) {
@@ -1093,8 +1090,8 @@ class _LocalTypeVariableMirror extends _LocalDeclarationMirror
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _moreSpecificTest(_reflectedType, other._reflectedType)
-        || _moreSpecificTest(other._reflectedType, _reflectedType);
+    return _subtypeTest(_reflectedType, other._reflectedType)
+        || _subtypeTest(other._reflectedType, _reflectedType);
   }
 
   static DeclarationMirror _TypeVariableMirror_owner(reflectee)
@@ -1198,8 +1195,8 @@ class _LocalTypedefMirror extends _LocalDeclarationMirror
   bool isAssignableTo(TypeMirror other) {
     if (other == currentMirrorSystem().dynamicType) return true;
     if (other == currentMirrorSystem().voidType) return false;
-    return _moreSpecificTest(_reflectedType, other._reflectedType)
-        || _moreSpecificTest(other._reflectedType, _reflectedType);
+    return _subtypeTest(_reflectedType, other._reflectedType)
+        || _subtypeTest(other._reflectedType, _reflectedType);
   }
 
   static _nativeReferent(reflectedType)

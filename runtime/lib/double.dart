@@ -47,12 +47,11 @@ class _Double extends _Num implements double {
   }
   double _remainder(double other) native "Double_remainder";
   double operator -() {
-    if (this == 0.0) {
-      // -0.0 is canonicalized by the VM's parser, therefore no cycles.
-      return isNegative ? 0.0 : -0.0;
-    }
-    return 0.0 - this;
+    // Handles properly 0.0, NAN, and other doubles.
+    return this._flipSignBit;
   }
+  double get _flipSignBit native "Double_flipSignBit";
+
   bool operator ==(other) {
     if (!(other is num)) return false;
     return _equal(other.toDouble());

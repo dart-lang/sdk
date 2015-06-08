@@ -14,8 +14,7 @@ import "runtime_configuration.dart" show RuntimeConfiguration;
 const List<String> defaultTestSelectors =
     const ['samples', 'standalone', 'corelib', 'co19', 'language',
            'isolate', 'vm', 'html', 'benchmark_smoke',
-           'utils', 'lib', 'pkg', 'analyze_library', 'service',
-           'pkg_tested'];
+           'utils', 'lib', 'pkg', 'analyze_library', 'service'];
 
 /**
  * Specification of a single test option.
@@ -344,13 +343,6 @@ Note: currently only implemented for dart2js.''',
               'Write the outcome of all tests executed to a '
               '"${TestUtils.flakyFileName()}" file.',
               ['--write-test-outcome-log'],
-              [],
-              false,
-              type: 'bool'),
-          new _TestOptionSpecification(
-              'clear_safari_cache',
-              'Clear the safari cache (i.e., delete it).',
-              ['--clear_safari_cache'],
               [],
               false,
               type: 'bool'),
@@ -723,12 +715,6 @@ Note: currently only implemented for dart2js.''',
 
     // Allow suppression that is valid for all ie versions
     configuration['ie'] = runtime.startsWith('ie');
-
-    // Temporary grace period for clear_safaci_cache
-    // See issue 18478
-    if (configuration['clear_safari_cache']) {
-      configuration['clear_browser_cache'] = true;
-    }
 
     // Expand the test selectors into a suite name and a simple
     // regular expressions to be used on the full path of a test file

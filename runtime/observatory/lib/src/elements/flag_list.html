@@ -13,10 +13,10 @@
     </nav-bar>
 
     <div class="content-centered">
-      <template if="{{ flagList['modifiedFlags'].isNotEmpty }}">
+      <template if="{{ modifiedFlags.isNotEmpty }}">
         <h1>Modified Flags</h1>
         <br>
-        <template repeat="{{ flag in flagList['modifiedFlags'] }}">
+        <template repeat="{{ flag in modifiedFlags }}">
           <flag-item flag="{{ flag }}"></flag-item>
           <br>
         </template>
@@ -25,11 +25,11 @@
 
       <h1>Unmodified Flags</h1>
       <br>
-      <template if="{{ flagList['unmodifiedFlags'].isEmpty }}">
+      <template if="{{ unmodifiedFlags.isEmpty }}">
         <em>None</em>
       </template>
-      <template if="{{ flagList['unmodifiedFlags'].isNotEmpty }}">
-        <template repeat="{{ flag in flagList['unmodifiedFlags'] }}">
+      <template if="{{ unmodifiedFlags.isNotEmpty }}">
+        <template repeat="{{ flag in unmodifiedFlags }}">
           <flag-item flag="{{ flag }}"></flag-item>
           <br>
         </template>

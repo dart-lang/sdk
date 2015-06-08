@@ -5,6 +5,7 @@
 library simple_types_inferrer;
 
 import '../closure.dart' show ClosureClassMap, ClosureScope;
+import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
 import '../dart_types.dart'
     show DartType, InterfaceType, FunctionType, TypeKind;
@@ -1474,10 +1475,11 @@ class SimpleTypeInferrerVisitor<T>
                && element.isField
                && Elements.isStaticOrTopLevelField(element)
                && compiler.world.fieldNeverChanges(element)) {
-      var constant =
-          compiler.backend.constants.getConstantForVariable(element);
-      if (constant != null && constant.value.isInt) {
-        return constant.value.primitiveValue;
+      ConstantValue value =
+          compiler.backend.constants.getConstantValueForVariable(element);
+      if (value != null && value.isInt) {
+        IntConstantValue intValue = value;
+        return intValue.primitiveValue;
       }
     }
     return null;

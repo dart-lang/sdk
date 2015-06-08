@@ -474,6 +474,17 @@ enum ConstructorAccessKind {
   ///     m() => new C();
   ///
   ERRONEOUS_REDIRECTING_FACTORY,
+
+
+  /// An invocation of a constructor with incompatible arguments.
+  ///
+  /// For instance
+  ///     class C {
+  ///       C();
+  ///     }
+  ///     m() => new C(true);
+  ///
+  INCOMPATIBLE,
 }
 
 /// Data structure used to classify the semantics of a constructor invocation.
@@ -499,8 +510,11 @@ class ConstructorAccessSemantics {
            kind == ConstructorAccessKind.UNRESOLVED_TYPE ||
            kind == ConstructorAccessKind.UNRESOLVED_CONSTRUCTOR ||
            kind == ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR ||
-           kind == ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY;
+           kind == ConstructorAccessKind.ERRONEOUS_REDIRECTING_FACTORY ||
+           kind == ConstructorAccessKind.INCOMPATIBLE;
   }
+
+  String toString() => 'ConstructorAccessSemantics($kind, $element, $type)';
 }
 
 /// Data structure used to classify the semantics of a redirecting factory

@@ -18,6 +18,8 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
+import 'resolver_test.dart';
+
 /**
  * The class `EngineTestCase` defines utility methods for making assertions.
  */
@@ -54,10 +56,8 @@ class EngineTestCase {
     expect(elements, hasLength(names.length));
   }
 
-  AnalysisContextImpl createAnalysisContext() {
-    AnalysisContextImpl context = new AnalysisContextImpl();
-    context.sourceFactory = new SourceFactory([]);
-    return context;
+  AnalysisContext createAnalysisContext() {
+    return AnalysisContextFactory.contextWithCore();
   }
 
   /**
@@ -594,8 +594,6 @@ class TestSource extends Source {
   UriKind get uriKind {
     throw new UnsupportedOperationException();
   }
-  @override
-  String toString() => '$_name';
   bool operator ==(Object other) {
     if (other is TestSource) {
       return other._name == _name;
@@ -616,6 +614,8 @@ class TestSource extends Source {
     modificationStamp = new DateTime.now().millisecondsSinceEpoch;
     _contents = value;
   }
+  @override
+  String toString() => '$_name';
 }
 
 class TestSourceWithUri extends TestSource {

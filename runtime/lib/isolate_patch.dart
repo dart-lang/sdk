@@ -303,8 +303,7 @@ patch class Isolate {
 
   /* patch */ static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message,
-      { bool paused: false, Uri packageRoot }) {
-    // `paused` isn't handled yet.
+      { bool paused: false, bool checked, Uri packageRoot }) {
     RawReceivePort readyPort;
     try {
       // The VM will invoke [_startIsolate] and not `main`.
@@ -312,7 +311,7 @@ patch class Isolate {
       var packageRootString =
           (packageRoot == null) ? null : packageRoot.toString();
       _spawnUri(readyPort.sendPort, uri.toString(), args, message,
-                paused, packageRootString);
+                paused, checked, packageRootString);
       Completer completer = new Completer<Isolate>.sync();
       readyPort.handler = (readyMessage) {
         readyPort.close();
@@ -354,7 +353,7 @@ patch class Isolate {
 
   static void _spawnUri(SendPort readyPort, String uri,
                         List<String> args, var message,
-                        bool paused, String packageRoot)
+                        bool paused, bool checked, String packageRoot)
       native "Isolate_spawnUri";
 
   static void _sendOOB(port, msg) native "Isolate_sendOOB";

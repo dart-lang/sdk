@@ -8,4 +8,4 @@ import 'dart:async';
 import 'package:observatory/service.dart';
 
 part 'src/debugger/debugger.dart';
-part 'src/debugger/source_location.dart';
+part 'src/debugger/debugger_location.dart';

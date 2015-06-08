@@ -37,6 +37,7 @@ main() {
 @reflectiveTest
 class DartWorkManagerTest {
   InternalAnalysisContext context = new _InternalAnalysisContextMock();
+  AnalysisCache cache;
   DartWorkManager manager;
 
   CaughtException caughtException = new CaughtException(null, null);
@@ -59,6 +60,7 @@ class DartWorkManagerTest {
   }
 
   void setUp() {
+    cache = context.analysisCache;
     manager = new DartWorkManager(context);
     entry1 = context.getCacheEntry(source1);
     entry2 = context.getCacheEntry(source2);
@@ -143,6 +145,8 @@ class DartWorkManagerTest {
     manager.partLibrariesMap[part3] = [library1];
     manager.libraryPartsMap[library1] = [part1, part3];
     manager.libraryPartsMap[library2] = [part1, part2];
+    _getOrCreateEntry(part1).setValue(CONTAINING_LIBRARIES, [], []);
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.VALID);
     // change library1
     manager.applyChange([], [library1], []);
     expect(manager.partLibrariesMap[part1], unorderedEquals([library2]));
@@ -150,6 +154,7 @@ class DartWorkManagerTest {
     expect(manager.partLibrariesMap[part3], unorderedEquals([]));
     expect(manager.libraryPartsMap[library1], isNull);
     expect(manager.libraryPartsMap[library2], [part1, part2]);
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.INVALID);
   }
 
   void test_applyChange_updatePartsLibraries_changePart() {
@@ -163,12 +168,15 @@ class DartWorkManagerTest {
     manager.partLibrariesMap[part3] = [library1];
     manager.libraryPartsMap[library1] = [part1, part3];
     manager.libraryPartsMap[library2] = [part1, part2];
+    _getOrCreateEntry(part1).setValue(CONTAINING_LIBRARIES, [], []);
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.VALID);
     // change part1
     manager.applyChange([], [part1], []);
     expect(manager.partLibrariesMap[part2], unorderedEquals([library2]));
     expect(manager.partLibrariesMap[part3], unorderedEquals([library1]));
     expect(manager.libraryPartsMap[library1], [part1, part3]);
     expect(manager.libraryPartsMap[library2], [part1, part2]);
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.INVALID);
   }
 
   void test_applyChange_updatePartsLibraries_removeLibrary() {
@@ -403,6 +411,58 @@ class DartWorkManagerTest {
     expect(manager.getNextResultPriority(), WorkOrderPriority.NONE);
   }
 
+  void test_onAnalysisOptionsChanged() {
+    when(context.exists(anyObject)).thenReturn(true);
+    // set cache values
+    entry1.setValue(PARSED_UNIT, AstFactory.compilationUnit(), []);
+    entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(EXPLICITLY_IMPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(EXPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(INCLUDED_PARTS, <Source>[], []);
+    // configure LibrarySpecificUnit
+    LibrarySpecificUnit unitTarget = new LibrarySpecificUnit(source2, source3);
+    CacheEntry unitEntry = new CacheEntry(unitTarget);
+    cache.put(unitEntry);
+    unitEntry.setValue(BUILD_LIBRARY_ERRORS, <AnalysisError>[], []);
+    expect(unitEntry.getState(BUILD_LIBRARY_ERRORS), CacheState.VALID);
+    // notify
+    manager.onAnalysisOptionsChanged();
+    // resolution is invalidated
+    expect(unitEntry.getState(BUILD_LIBRARY_ERRORS), CacheState.INVALID);
+    // ...but URIs are still value
+    expect(entry1.getState(PARSED_UNIT), CacheState.VALID);
+    expect(entry1.getState(IMPORTED_LIBRARIES), CacheState.VALID);
+    expect(entry1.getState(EXPLICITLY_IMPORTED_LIBRARIES), CacheState.VALID);
+    expect(entry1.getState(EXPORTED_LIBRARIES), CacheState.VALID);
+    expect(entry1.getState(INCLUDED_PARTS), CacheState.VALID);
+  }
+
+  void test_onSourceFactoryChanged() {
+    when(context.exists(anyObject)).thenReturn(true);
+    // set cache values
+    entry1.setValue(PARSED_UNIT, AstFactory.compilationUnit(), []);
+    entry1.setValue(IMPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(EXPLICITLY_IMPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(EXPORTED_LIBRARIES, <Source>[], []);
+    entry1.setValue(INCLUDED_PARTS, <Source>[], []);
+    // configure LibrarySpecificUnit
+    LibrarySpecificUnit unitTarget = new LibrarySpecificUnit(source2, source3);
+    CacheEntry unitEntry = new CacheEntry(unitTarget);
+    cache.put(unitEntry);
+    unitEntry.setValue(BUILD_LIBRARY_ERRORS, <AnalysisError>[], []);
+    expect(unitEntry.getState(BUILD_LIBRARY_ERRORS), CacheState.VALID);
+    // notify
+    manager.onSourceFactoryChanged();
+    // resolution is invalidated
+    expect(unitEntry.getState(BUILD_LIBRARY_ERRORS), CacheState.INVALID);
+    // ...and URIs resolution too
+    expect(entry1.getState(PARSED_UNIT), CacheState.INVALID);
+    expect(entry1.getState(IMPORTED_LIBRARIES), CacheState.INVALID);
+    expect(entry1.getState(EXPLICITLY_IMPORTED_LIBRARIES), CacheState.INVALID);
+    expect(entry1.getState(EXPORTED_LIBRARIES), CacheState.INVALID);
+    expect(entry1.getState(INCLUDED_PARTS), CacheState.INVALID);
+  }
+
   void test_resultsComputed_errors_forLibrarySpecificUnit() {
     AnalysisError error1 =
         new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
@@ -443,12 +503,14 @@ class DartWorkManagerTest {
     expect(notice.lineInfo, lineInfo);
   }
 
-  void test_resultsComputed_includedParts() {
+  void test_resultsComputed_includedParts_updatePartLibraries() {
     Source part1 = new TestSource('part1.dart');
     Source part2 = new TestSource('part2.dart');
     Source part3 = new TestSource('part3.dart');
     Source library1 = new TestSource('library1.dart');
     Source library2 = new TestSource('library2.dart');
+    _getOrCreateEntry(part1).setValue(CONTAINING_LIBRARIES, [], []);
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.VALID);
     // library1 parts
     manager.resultsComputed(library1, {INCLUDED_PARTS: [part1, part2]});
     expect(manager.partLibrariesMap[part1], [library1]);
@@ -463,6 +525,8 @@ class DartWorkManagerTest {
     expect(manager.partLibrariesMap[part3], [library2]);
     expect(manager.libraryPartsMap[library1], [part1, part2]);
     expect(manager.libraryPartsMap[library2], [part2, part3]);
+    // part1 CONTAINING_LIBRARIES
+    expect(cache.getState(part1, CONTAINING_LIBRARIES), CacheState.INVALID);
   }
 
   void test_resultsComputed_noSourceKind() {
@@ -518,17 +582,30 @@ class DartWorkManagerTest {
     expect_librarySourceQueue([]);
     expect_unknownSourceQueue([source1, source3]);
   }
+
+  CacheEntry _getOrCreateEntry(Source source) {
+    CacheEntry entry = cache.get(source);
+    if (entry == null) {
+      entry = new CacheEntry(source);
+      cache.put(entry);
+    }
+    return entry;
+  }
 }
 
 class _InternalAnalysisContextMock extends TypedMock
     implements InternalAnalysisContext {
+  @override
+  CachePartition privateAnalysisCachePartition;
+
   @override
   AnalysisCache analysisCache;
 
   Map<Source, ChangeNoticeImpl> _pendingNotices = <Source, ChangeNoticeImpl>{};
 
   _InternalAnalysisContextMock() {
-    analysisCache = new AnalysisCache([new UniversalCachePartition(this)]);
+    privateAnalysisCachePartition = new UniversalCachePartition(this);
+    analysisCache = new AnalysisCache([privateAnalysisCachePartition]);
   }
 
   @override

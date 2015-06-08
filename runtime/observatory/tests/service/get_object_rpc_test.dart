@@ -100,10 +100,41 @@ var tests = [
     expect(result['size'], isPositive);
     expect(result['fields'], isEmpty);
     expect(result['elements'].length, equals(3));
-    expect(result['elements'][0]['index'], equals(0));
-    expect(result['elements'][0]['value']['type'], equals('@Instance'));
-    expect(result['elements'][0]['value']['kind'], equals('Int'));
-    expect(result['elements'][0]['value']['valueAsString'], equals('3'));
+    expect(result['elements'][0]['type'], equals('@Instance'));
+    expect(result['elements'][0]['kind'], equals('Int'));
+    expect(result['elements'][0]['valueAsString'], equals('3'));
+  },
+
+  // A built-in Map.
+  (Isolate isolate) async {
+    // Call eval to get a Dart map.
+    var evalResult = await eval(isolate, '{"x": 3, "y": 4}');
+    var params = {
+      'objectId': evalResult['id'],
+    };
+    var result = await isolate.invokeRpcNoUpgrade('getObject', params);
+    expect(result['type'], equals('Instance'));
+    expect(result['kind'], equals('Map'));
+    expect(result['_vmType'], equals('LinkedHashMap'));
+    expect(result['id'], startsWith('objects/'));
+    expect(result['valueAsString'], isNull);
+    expect(result['class']['type'], equals('@Class'));
+    expect(result['class']['name'], equals('_InternalLinkedHashMap'));
+    expect(result['size'], isPositive);
+    expect(result['fields'], isEmpty);
+    expect(result['associations'].length, equals(2));
+    expect(result['associations'][0]['key']['type'], equals('@Instance'));
+    expect(result['associations'][0]['key']['kind'], equals('String'));
+    expect(result['associations'][0]['key']['valueAsString'], equals('x'));
+    expect(result['associations'][0]['value']['type'], equals('@Instance'));
+    expect(result['associations'][0]['value']['kind'], equals('Int'));
+    expect(result['associations'][0]['value']['valueAsString'], equals('3'));
+    expect(result['associations'][1]['key']['type'], equals('@Instance'));
+    expect(result['associations'][1]['key']['kind'], equals('String'));
+    expect(result['associations'][1]['key']['valueAsString'], equals('y'));
+    expect(result['associations'][1]['value']['type'], equals('@Instance'));
+    expect(result['associations'][1]['value']['kind'], equals('Int'));
+    expect(result['associations'][1]['value']['valueAsString'], equals('4'));
   },
 
   // An expired object.
@@ -222,7 +253,7 @@ var tests = [
     expect(result['_implemented'], equals(false));
     expect(result['_patch'], equals(false));
     expect(result['library']['type'], equals('@Library'));
-    expect(result['script']['type'], equals('@Script'));
+    expect(result['location']['type'], equals('SourceLocation'));
     expect(result['super']['type'], equals('@Class'));
     expect(result['interfaces'].length, isZero);
     expect(result['fields'].length, isPositive);
@@ -306,8 +337,7 @@ var tests = [
     expect(result['_kind'], equals('RegularFunction'));
     expect(result['static'], equals(false));
     expect(result['const'], equals(false));
-    expect(result['script']['type'], equals('@Script'));
-    expect(result['tokenPos'], isPositive);
+    expect(result['location']['type'], equals('SourceLocation'));
     expect(result['code']['type'], equals('@Code'));
     expect(result['_optimizable'], equals(true));
     expect(result['_inlinable'], equals(true));
@@ -352,8 +382,7 @@ var tests = [
     expect(result['const'], equals(false));
     expect(result['static'], equals(true));
     expect(result['final'], equals(false));
-    expect(result['script']['type'], equals('@Script'));
-    expect(result['tokenPos'], isPositive);
+    expect(result['location']['type'], equals('SourceLocation'));
     expect(result['staticValue']['valueAsString'], equals('11'));
     expect(result['_guardNullable'], isNotNull);
     expect(result['_guardClass'], isNotNull);

@@ -350,9 +350,10 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Statement visitInvokeMethod(cps_ir.InvokeMethod node) {
-    Expression invoke = new InvokeMethod(getVariableUse(node.receiver),
-                                         node.selector,
-                                         translateArguments(node.arguments));
+    InvokeMethod invoke = new InvokeMethod(getVariableUse(node.receiver),
+                                           node.selector,
+                                           translateArguments(node.arguments));
+    invoke.receiverIsNotNull = node.receiverIsNotNull;
     return continueWithExpression(node.continuation, invoke);
   }
 
@@ -490,7 +491,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitConstant(cps_ir.Constant node) {
-    return new Constant(node.expression);
+    return new Constant(node.expression, node.value);
   }
 
   Expression visitLiteralList(cps_ir.LiteralList node) {

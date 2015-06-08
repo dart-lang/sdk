@@ -579,6 +579,7 @@ static Dart_Handle EnvironmentCallback(Dart_Handle name) {
 static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
                                                 const char* main,
                                                 const char* package_root,
+                                                Dart_IsolateFlags* flags,
                                                 char** error,
                                                 int* exit_code) {
   ASSERT(script_uri != NULL);
@@ -588,6 +589,7 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   isolate = Dart_CreateIsolate(script_uri,
                                main,
                                isolate_snapshot_buffer,
+                               flags,
                                isolate_data,
                                error);
 
@@ -673,7 +675,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
 static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
                                           const char* main,
                                           const char* package_root,
+                                          Dart_IsolateFlags* flags,
                                           void* data, char** error) {
+  // The VM should never call the isolate helper with a NULL flags.
+  ASSERT(flags != NULL);
+  ASSERT(flags->version == DART_FLAGS_CURRENT_VERSION);
   IsolateData* parent_isolate_data = reinterpret_cast<IsolateData*>(data);
   int exit_code = 0;
   if (script_uri == NULL) {
@@ -697,6 +703,7 @@ static Dart_Isolate CreateIsolateAndSetup(const char* script_uri,
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
                                      package_root,
+                                     flags,
                                      error,
                                      &exit_code);
 }
@@ -834,8 +841,8 @@ class DartScope {
 };
 
 
-static const char* ServiceRequestHandler(
-    const char* name,
+static const char* ServiceGetIOHandler(
+    const char* method,
     const char** param_keys,
     const char** param_values,
     intptr_t num_params,
@@ -957,7 +964,7 @@ void main(int argc, char** argv) {
   }
 
   Dart_RegisterIsolateServiceRequestCallback(
-        "io", &ServiceRequestHandler, NULL);
+        "getIO", &ServiceGetIOHandler, NULL);
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.
@@ -967,6 +974,7 @@ void main(int argc, char** argv) {
   Dart_Isolate isolate = CreateIsolateAndSetupHelper(script_name,
                                                      "main",
                                                      commandline_package_root,
+                                                     NULL,
                                                      &error,
                                                      &exit_code);
   if (isolate == NULL) {

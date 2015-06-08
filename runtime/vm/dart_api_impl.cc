@@ -47,7 +47,7 @@ DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
 #if defined(DART_NO_SNAPSHOT)
-DEFINE_FLAG(bool, check_function_fingerprints, false,
+DEFINE_FLAG(bool, check_function_fingerprints, true,
             "Check function fingerprints");
 #endif  // defined(DART_NO_SNAPSHOT).
 DEFINE_FLAG(bool, trace_api, false,
@@ -1287,12 +1287,21 @@ static char* BuildIsolateName(const char* script_uri,
 DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
                                             const char* main,
                                             const uint8_t* snapshot,
+                                            Dart_IsolateFlags* flags,
                                             void* callback_data,
                                             char** error) {
   CHECK_NO_ISOLATE(Isolate::Current());
   char* isolate_name = BuildIsolateName(script_uri, main);
   Thread::EnsureInit();
-  Isolate* isolate = Dart::CreateIsolate(isolate_name);
+
+  // Setup default flags in case none were passed.
+  Dart_IsolateFlags api_flags;
+  if (flags == NULL) {
+    Isolate::Flags vm_flags;
+    vm_flags.CopyTo(&api_flags);
+    flags = &api_flags;
+  }
+  Isolate* isolate = Dart::CreateIsolate(isolate_name, *flags);
   free(isolate_name);
   StackZone zone(isolate);
   HANDLESCOPE(isolate);
@@ -1405,6 +1414,7 @@ DART_EXPORT void Dart_ExitIsolate() {
 }
 
 
+// TODO(iposva): Remove this API and instead expose the underlying flags.
 DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value) {
   CHECK_ISOLATE(Isolate::Current());
   Isolate* isolate = Isolate::Current();
@@ -1412,7 +1422,11 @@ DART_EXPORT Dart_Handle Dart_IsolateSetStrictCompilation(bool value) {
     return Api::NewError(
         "%s expects that the isolate has not yet compiled code.", CURRENT_FUNC);
   }
-  Isolate::Current()->set_strict_compilation(value);
+  if (!value) {
+    return Api::NewError(
+        "%s expects that the value is set to true only.", CURRENT_FUNC);
+  }
+  Isolate::Current()->set_strict_compilation();
   return Api::Null();
 }
 
@@ -3998,8 +4012,6 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
   // TODO(turnidge): This is a bit simplistic.  It overcounts when
   // other operations (gc, compilation) are active.
   TIMERSCOPE(isolate, time_dart_execution);
-
-  isolate->set_has_compiled(true);
 
   const String& function_name = Api::UnwrapStringHandle(isolate, name);
   if (function_name.IsNull()) {

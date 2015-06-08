@@ -173,6 +173,21 @@ Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
   return completer.future;  // Will complete when breakpoint hit.
 }
 
+
+Future<Isolate> resumeIsolate(Isolate isolate) {
+  Completer completer = new Completer();
+  var subscription;
+  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+    if (event.kind == ServiceEvent.kResume) {
+      subscription.cancel();
+      completer.complete();
+    }
+  });
+  isolate.resume();
+  return completer.future;
+}
+
+
 /// Runs [tests] in sequence, each of which should take an [Isolate] and
 /// return a [Future]. Code for setting up state can run before and/or
 /// concurrently with the tests. Uses [mainArgs] to determine whether

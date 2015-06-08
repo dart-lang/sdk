@@ -90,6 +90,13 @@ class DartWorkManager implements WorkManager {
   AnalysisCache get analysisCache => context.analysisCache;
 
   /**
+   * The partition that contains analysis results that are not shared with other
+   * contexts.
+   */
+  CachePartition get privateAnalysisCachePartition =>
+      context.privateAnalysisCachePartition;
+
+  /**
    * Specifies that the client want the given [result] of the given [target]
    * to be computed with priority.
    */
@@ -243,8 +250,18 @@ class DartWorkManager implements WorkManager {
     return WorkOrderPriority.NONE;
   }
 
-  void unitIncrementallyResolved(Source librarySource, Source unitSource) {
-    librarySourceQueue.add(librarySource);
+  /**
+   * Notifies the manager about analysis options changes.
+   */
+  void onAnalysisOptionsChanged() {
+    _invalidateAllLocalResolutionInformation(false);
+  }
+
+  /**
+   * Notifies the manager about [SourceFactory] changes.
+   */
+  void onSourceFactoryChanged() {
+    _invalidateAllLocalResolutionInformation(true);
   }
 
   @override
@@ -272,6 +289,7 @@ class DartWorkManager implements WorkManager {
               partLibrariesMap.putIfAbsent(part, () => <Source>[]);
           if (!libraries.contains(library)) {
             libraries.add(library);
+            _invalidateContainingLibraries(part);
           }
         }
       }
@@ -309,6 +327,66 @@ class DartWorkManager implements WorkManager {
     }
   }
 
+  void unitIncrementallyResolved(Source librarySource, Source unitSource) {
+    librarySourceQueue.add(librarySource);
+  }
+
+  /**
+   * Invalidate all of the resolution results computed by this context. The flag
+   * [invalidateUris] should be `true` if the cached results of converting URIs
+   * to source files should also be invalidated.
+   */
+  void _invalidateAllLocalResolutionInformation(bool invalidateUris) {
+    CachePartition partition = privateAnalysisCachePartition;
+    // Prepare targets and values to invalidate.
+    List<Source> dartSources = <Source>[];
+    List<LibrarySpecificUnit> unitTargets = <LibrarySpecificUnit>[];
+    MapIterator<AnalysisTarget, CacheEntry> iterator = partition.iterator();
+    while (iterator.moveNext()) {
+      AnalysisTarget target = iterator.key;
+      // Optionally gather Dart sources to invalidate URIs resolution.
+      if (invalidateUris && _isDartSource(target)) {
+        dartSources.add(target);
+      }
+      // LibrarySpecificUnit(s) are roots of Dart resolution.
+      // When one is invalidated, invalidation is propagated to all resolution.
+      if (target is LibrarySpecificUnit) {
+        unitTargets.add(target);
+        Source library = target.library;
+        if (context.exists(library)) {
+          librarySourceQueue.add(library);
+        }
+      }
+    }
+    // Invalidate targets and values.
+    unitTargets.forEach(partition.remove);
+    for (Source dartSource in dartSources) {
+      CacheEntry entry = partition.get(dartSource);
+      if (dartSource != null) {
+        // TODO(scheglov) we invalidate too much.
+        // Would be nice to invalidate just URLs resolution.
+        entry.setState(PARSED_UNIT, CacheState.INVALID);
+        entry.setState(IMPORTED_LIBRARIES, CacheState.INVALID);
+        entry.setState(EXPLICITLY_IMPORTED_LIBRARIES, CacheState.INVALID);
+        entry.setState(EXPORTED_LIBRARIES, CacheState.INVALID);
+        entry.setState(INCLUDED_PARTS, CacheState.INVALID);
+      }
+    }
+  }
+
+  /**
+   * Invalidate  [CONTAINING_LIBRARIES] for the given [source].
+   * [CONTAINING_LIBRARIES] does not have dependencies, so we manage it here.
+   * The [source] may be a part, or a library whose contents is updated so
+   * will be a part.
+   */
+  void _invalidateContainingLibraries(Source source) {
+    CacheEntry entry = analysisCache.get(source);
+    if (entry != null) {
+      entry.setState(CONTAINING_LIBRARIES, CacheState.INVALID);
+    }
+  }
+
   /**
    * Returns `true` if the given [result] of the given [target] needs
    * computing, i.e. it is not in the valid and not in the error state.
@@ -329,9 +407,11 @@ class DartWorkManager implements WorkManager {
         List<Source> libraries = partLibrariesMap[part];
         if (libraries != null) {
           libraries.remove(library);
+          _invalidateContainingLibraries(part);
         }
       }
     }
+    _invalidateContainingLibraries(library);
   }
 
   static bool _isDartSource(AnalysisTarget target) {

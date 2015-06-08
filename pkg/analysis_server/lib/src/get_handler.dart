@@ -30,6 +30,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
+import 'package:analyzer/task/model.dart' as newTask;
 import 'package:plugin/plugin.dart';
 
 /**
@@ -262,6 +263,9 @@ class GetHandler {
           (StringBuffer buffer) {
         buffer.write('<h3>Analysis Performance</h3>');
 
+        //
+        // Write performance tags.
+        //
         {
           buffer.write('<p><b>Time spent in each phase of analysis</b></p>');
           buffer.write(
@@ -288,30 +292,74 @@ class GetHandler {
           buffer.write('</table>');
         }
 
-        Map<DataDescriptor, Map<CacheState, int>> transitionMap =
-            SourceEntry.transitionMap;
-        buffer.write(
-            '<p><b>Number of times a state transitioned to VALID (grouped by descriptor)</b></p>');
-        if (transitionMap.isEmpty) {
-          buffer.write('<p>none</p>');
-        } else {
-          List<DataDescriptor> descriptors = transitionMap.keys.toList();
-          descriptors.sort((DataDescriptor first, DataDescriptor second) =>
+        //
+        // Write new task model timing information.
+        //
+        if (AnalysisEngine.instance.useTaskModel) {
+          buffer.write('<p><b>Task performace data</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(buffer, [
+            'Task Name',
+            'Count',
+            'Total Time (in ms)',
+            'Average Time (in ms)'
+          ], header: true);
+
+          Map<Type, int> countMap = newTask.AnalysisTask.countMap;
+          Map<Type, Stopwatch> stopwatchMap = newTask.AnalysisTask.stopwatchMap;
+          List<Type> taskClasses = stopwatchMap.keys.toList();
+          taskClasses.sort((Type first, Type second) =>
               first.toString().compareTo(second.toString()));
-          for (DataDescriptor key in descriptors) {
-            Map<CacheState, int> countMap = transitionMap[key];
-            List<CacheState> oldStates = countMap.keys.toList();
-            oldStates.sort((CacheState first, CacheState second) =>
-                first.toString().compareTo(second.toString()));
-            buffer.write('<p>${key.toString()}</p>');
-            buffer.write(
-                '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
-            _writeRow(buffer, ['Count', 'Previous State'], header: true);
-            for (CacheState state in oldStates) {
-              _writeRow(buffer, [countMap[state], state.toString()],
-                  classes: ["right", null]);
+          int totalTime = 0;
+          taskClasses.forEach((Type taskClass) {
+            int count = countMap[taskClass];
+            if (count == null) {
+              count = 0;
             }
-            buffer.write('</table>');
+            int taskTime = stopwatchMap[taskClass].elapsedMilliseconds;
+            totalTime += taskTime;
+            _writeRow(buffer, [
+              taskClass.toString(),
+              count,
+              taskTime,
+              count <= 0 ? '-' : (taskTime / count).toStringAsFixed(3)
+            ], classes: [null, "right", "right", "right"]);
+          });
+          _writeRow(buffer, ['Total', '-', totalTime, '-'],
+              classes: [null, "right", "right", "right"]);
+          buffer.write('</table>');
+        }
+
+        //
+        // Write old task model transition information.
+        //
+        {
+          Map<DataDescriptor, Map<CacheState, int>> transitionMap =
+              SourceEntry.transitionMap;
+          buffer.write(
+              '<p><b>Number of times a state transitioned to VALID (grouped by descriptor)</b></p>');
+          if (transitionMap.isEmpty) {
+            buffer.write('<p>none</p>');
+          } else {
+            List<DataDescriptor> descriptors = transitionMap.keys.toList();
+            descriptors.sort((DataDescriptor first, DataDescriptor second) =>
+                first.toString().compareTo(second.toString()));
+            for (DataDescriptor key in descriptors) {
+              Map<CacheState, int> countMap = transitionMap[key];
+              List<CacheState> oldStates = countMap.keys.toList();
+              oldStates.sort((CacheState first, CacheState second) =>
+                  first.toString().compareTo(second.toString()));
+              buffer.write('<p>${key.toString()}</p>');
+              buffer.write(
+                  '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+              _writeRow(buffer, ['Count', 'Previous State'], header: true);
+              for (CacheState state in oldStates) {
+                _writeRow(buffer, [countMap[state], state.toString()],
+                    classes: ["right", null]);
+              }
+              buffer.write('</table>');
+            }
           }
         }
       });

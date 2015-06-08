@@ -49,8 +49,8 @@ var tests = [
 
   // Sanity check.
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
-  Script script = stack['frames'][0]['script'];
-  expect(script.tokenToLine(stack['frames'][0]['tokenPos']),
+  Script script = stack['frames'][0].location.script;
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos),
          equals(stoppedAtLine));
 
   // Iterate over frames.
@@ -58,11 +58,10 @@ var tests = [
   for (var frame in stack['frames']) {
     print('checking frame $frameDepth');
     expect(frame.type, equals('Frame'));
-    expect(frame['index'], equals(frameDepth++));
-    expect(frame['code'].type, equals('Code'));
-    expect(frame['function'].type, equals('Function'));
-    expect(frame['script'].type, equals('Script'));
-    expect(frame['tokenPos'], isNotNull);
+    expect(frame.index, equals(frameDepth++));
+    expect(frame.code.type, equals('Code'));
+    expect(frame.function.type, equals('Function'));
+    expect(frame.location.type, equals('SourceLocation'));
   }
 
   // Sanity check.
@@ -74,14 +73,12 @@ var tests = [
   var msgHandlerObjectId;
   for (var message in stack['messages']) {
     print('checking message $messageDepth');
-    expect(message['index'], equals(messageDepth++));
-    expect(message['name'], isNotNull);
-    expect(message['size'], greaterThanOrEqualTo(1));
-    expect(message['_priority'], isNotNull);
-    expect(message['_destinationPort'], isNotNull);
-    expect(message['handlerFunction'].type, equals('Function'));
-    if (message['handlerFunction'].name.contains('msgHandler')) {
-      msgHandlerObjectId = message['messageObjectId'];
+    expect(message.index, equals(messageDepth++));
+    expect(message.size, greaterThanOrEqualTo(1));
+    expect(message.handler.type, equals('Function'));
+    expect(message.location.type, equals('SourceLocation'));
+    if (message.handler.name.contains('msgHandler')) {
+      msgHandlerObjectId = message.messageObjectId;
     }
   }
   expect(msgHandlerObjectId, isNotNull);

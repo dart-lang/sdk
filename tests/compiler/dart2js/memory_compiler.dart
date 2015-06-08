@@ -6,6 +6,8 @@ library dart2js.test.memory_compiler;
 
 import 'memory_source_file_helper.dart';
 
+import 'package:compiler/src/compile_time_constants.dart';
+
 import 'package:compiler/src/dart2jslib.dart'
        show NullSink;
 
@@ -155,6 +157,8 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     // this call.
     compiler.onLibrariesLoaded(new MemoryLoadedLibraries(copiedLibraries));
 
+    compiler.backend.constantCompilerTask.copyConstantValues(
+        cachedCompiler.backend.constantCompilerTask);
     compiler.symbolConstructor = cachedCompiler.symbolConstructor;
     compiler.mirrorSystemClass = cachedCompiler.mirrorSystemClass;
     compiler.mirrorsUsedClass = cachedCompiler.mirrorsUsedClass;

@@ -89,6 +89,7 @@ namespace dart {
   V(Double_toStringAsFixed, 2)                                                 \
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
+  V(Double_flipSignBit, 1)                                                     \
   V(JSSyntaxRegExp_factory, 4)                                                 \
   V(JSSyntaxRegExp_getPattern, 1)                                              \
   V(JSSyntaxRegExp_getIsMultiLine, 1)                                          \
@@ -293,7 +294,7 @@ namespace dart {
   V(Int32x4_setFlagW, 2)                                                       \
   V(Int32x4_select, 3)                                                         \
   V(Isolate_spawnFunction, 4)                                                  \
-  V(Isolate_spawnUri, 6)                                                       \
+  V(Isolate_spawnUri, 7)                                                       \
   V(Isolate_getPortAndCapabilitiesOfCurrentIsolate, 0)                         \
   V(Isolate_sendOOB, 2)                                                        \
   V(Mirrors_evalInLibraryWithPrivateKey, 2)                                    \
@@ -309,7 +310,6 @@ namespace dart {
   V(InstanceMirror_computeType, 1)                                             \
   V(ClosureMirror_function, 1)                                                 \
   V(TypeMirror_subtypeTest, 2)                                                 \
-  V(TypeMirror_moreSpecificTest, 2)                                            \
   V(ClassMirror_libraryUri, 1)                                                 \
   V(ClassMirror_supertype, 1)                                                  \
   V(ClassMirror_supertype_instantiated, 1)                                     \

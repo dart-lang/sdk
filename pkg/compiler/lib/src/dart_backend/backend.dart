@@ -424,18 +424,41 @@ class DartConstantTask extends ConstantCompilerTask
 
   String get name => 'ConstantHandler';
 
+  @override
+  ConstantSystem get constantSystem => constantCompiler.constantSystem;
+
+  @override
+  ConstantValue getConstantValue(ConstantExpression expression) {
+    return constantCompiler.getConstantValue(expression);
+  }
+
+  @override
+  ConstantValue getConstantValueForVariable(VariableElement element) {
+    return constantCompiler.getConstantValueForVariable(element);
+  }
+
+  @override
   ConstantExpression getConstantForVariable(VariableElement element) {
     return constantCompiler.getConstantForVariable(element);
   }
 
+  @override
   ConstantExpression getConstantForNode(Node node, TreeElements elements) {
     return constantCompiler.getConstantForNode(node, elements);
   }
 
-  ConstantExpression getConstantForMetadata(MetadataAnnotation metadata) {
-    return metadata.constant;
+  @override
+  ConstantValue getConstantValueForNode(Node node, TreeElements elements) {
+    return getConstantValue(
+        constantCompiler.getConstantForNode(node, elements));
   }
 
+  @override
+  ConstantValue getConstantValueForMetadata(MetadataAnnotation metadata) {
+    return getConstantValue(metadata.constant);
+  }
+
+  @override
   ConstantExpression compileConstant(VariableElement element) {
     return measure(() {
       return constantCompiler.compileConstant(element);
@@ -448,20 +471,33 @@ class DartConstantTask extends ConstantCompilerTask
     });
   }
 
-  ConstantExpression compileNode(Node node, TreeElements elements,
-                                 {bool enforceConst: true}) {
+  @override
+  ConstantExpression compileNode(
+      Node node,
+      TreeElements elements,
+      {bool enforceConst: true}) {
     return measure(() {
       return constantCompiler.compileNodeWithDefinitions(node, elements,
           isConst: enforceConst);
     });
   }
 
-  ConstantExpression compileMetadata(MetadataAnnotation metadata,
-                           Node node,
-                           TreeElements elements) {
+  @override
+  ConstantExpression compileMetadata(
+      MetadataAnnotation metadata,
+      Node node,
+      TreeElements elements) {
     return measure(() {
       return constantCompiler.compileMetadata(metadata, node, elements);
     });
+  }
+
+  // TODO(johnniwinther): Remove this when values are computed from the
+  // expressions.
+  @override
+  void copyConstantValues(DartConstantTask task) {
+    constantCompiler.constantValueMap.addAll(
+        task.constantCompiler.constantValueMap);
   }
 }
 

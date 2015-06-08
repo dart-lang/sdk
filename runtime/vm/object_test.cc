@@ -4500,7 +4500,8 @@ TEST_CASE(PrintJSONPrimitives) {
         "\"class\":{\"type\":\"@Class\",\"fixedId\":true,\"id\":\"\","
         "\"name\":\"_InternalLinkedHashMap\",\"_vmName\":\"\"},"
         "\"kind\":\"Map\","
-        "\"id\":\"\"}",
+        "\"id\":\"\","
+        "\"length\":0}",
         buffer);
   }
   // UserTag reference
@@ -4704,6 +4705,48 @@ TEST_CASE(LinkedHashMap) {
 
   // 3. Expect them to have identical structure.
   CheckIdenticalHashStructure(dart_map, cc_map);
+}
+
+
+TEST_CASE(LinkedHashMap_iteration) {
+  const char* kScript =
+      "makeMap() {\n"
+      "  var map = {'x': 3, 'y': 4, 'z': 5, 'w': 6};\n"
+      "  map.remove('y');\n"
+      "  map.remove('w');\n"
+      "  return map;\n"
+      "}";
+  Dart_Handle h_lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(h_lib);
+  Library& lib = Library::Handle();
+  lib ^= Api::UnwrapHandle(h_lib);
+  EXPECT(!lib.IsNull());
+  Dart_Handle h_result = Dart_Invoke(h_lib, NewString("makeMap"), 0, NULL);
+  EXPECT_VALID(h_result);
+
+  Instance& dart_map = Instance::Handle();
+  dart_map ^= Api::UnwrapHandle(h_result);
+  ASSERT(dart_map.IsLinkedHashMap());
+  const LinkedHashMap& cc_map = LinkedHashMap::Cast(dart_map);
+
+  EXPECT_EQ(2, cc_map.Length());
+
+  LinkedHashMap::Iterator iterator(cc_map);
+  Object& object = Object::Handle();
+
+  EXPECT(iterator.MoveNext());
+  object = iterator.CurrentKey();
+  EXPECT_STREQ("x", object.ToCString());
+  object = iterator.CurrentValue();
+  EXPECT_STREQ("3", object.ToCString());
+
+  EXPECT(iterator.MoveNext());
+  object = iterator.CurrentKey();
+  EXPECT_STREQ("z", object.ToCString());
+  object = iterator.CurrentValue();
+  EXPECT_STREQ("5", object.ToCString());
+
+  EXPECT(!iterator.MoveNext());
 }
 
 }  // namespace dart

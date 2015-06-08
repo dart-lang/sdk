@@ -685,6 +685,23 @@ DART_EXPORT Dart_Handle Dart_VisitPrologueWeakHandles(
  */
 DART_EXPORT const char* Dart_VersionString();
 
+
+/**
+ * Isolate specific flags are set when creating a new isolate using the
+ * Dart_IsolateFlags structure.
+ *
+ * Current version of flags is encoded in a 32-bit integer with 16 bits used
+ * for each part.
+ */
+
+#define DART_FLAGS_CURRENT_VERSION (0x00000001)
+
+typedef struct {
+  int32_t version;
+  bool enable_type_checks;
+  bool enable_asserts;
+} Dart_IsolateFlags;
+
 /**
  * An isolate creation and initialization callback function.
  *
@@ -723,6 +740,9 @@ DART_EXPORT const char* Dart_VersionString();
  * \param package_root The package root path for this isolate to resolve
  *   package imports against. If this parameter is NULL, the package root path
  *   of the parent isolate should be used.
+ * \param flags Default flags for this isolate being spawned. Either inherited
+ *   from the spawning isolate or passed as parameters when spawning the
+ *   isolate from Dart code.
  * \param callback_data The callback data which was passed to the
  *   parent isolate when it was created by calling Dart_CreateIsolate().
  * \param error A structure into which the embedder can place a
@@ -734,6 +754,7 @@ DART_EXPORT const char* Dart_VersionString();
 typedef Dart_Isolate (*Dart_IsolateCreateCallback)(const char* script_uri,
                                                    const char* main,
                                                    const char* package_root,
+                                                   Dart_IsolateFlags* flags,
                                                    void* callback_data,
                                                    char** error);
 
@@ -894,6 +915,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
  *   Provided only for advisory purposes to improve debugging messages.
  * \param snapshot A buffer containing a snapshot of the isolate or
  *   NULL if no snapshot is provided.
+ * \param flags Pointer to VM specific flags or NULL for default flags.
  * \param callback_data Embedder data.  This data will be passed to
  *   the Dart_IsolateCreateCallback when new isolates are spawned from
  *   this parent isolate.
@@ -905,6 +927,7 @@ DART_EXPORT bool Dart_IsVMFlagSet(const char* flag_name);
 DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
                                             const char* main,
                                             const uint8_t* snapshot,
+                                            Dart_IsolateFlags* flags,
                                             void* callback_data,
                                             char** error);
 /* TODO(turnidge): Document behavior when there is already a current
@@ -2817,35 +2840,36 @@ typedef const char* (*Dart_ServiceRequestCallback)(
     void* user_data);
 
 /**
- * Register a Dart_ServiceRequestCallback to be called to handle requests
- * with name on a specific isolate. The callback will be invoked with the
- * current isolate set to the request target.
+ * Register a Dart_ServiceRequestCallback to be called to handle
+ * requests for the named rpc on a specific isolate. The callback will
+ * be invoked with the current isolate set to the request target.
  *
- * \param name The name of the command that this callback is responsible for.
+ * \param method The name of the method that this callback is responsible for.
  * \param callback The callback to invoke.
  * \param user_data The user data passed to the callback.
  *
- * NOTE: If multiple callbacks with the same name are registered, only the
- * last callback registered will be remembered.
+ * NOTE: If multiple callbacks with the same name are registered, only
+ * the last callback registered will be remembered.
  */
 DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
-    const char* name,
+    const char* method,
     Dart_ServiceRequestCallback callback,
     void* user_data);
 
 /**
- * Register a Dart_ServiceRequestCallback to be called to handle requests
- * with name. The callback will be invoked without a current isolate.
+ * Register a Dart_ServiceRequestCallback to be called to handle
+ * requests for the named rpc. The callback will be invoked without a
+ * current isolate.
  *
- * \param name The name of the command that this callback is responsible for.
+ * \param method The name of the command that this callback is responsible for.
  * \param callback The callback to invoke.
  * \param user_data The user data passed to the callback.
  *
- * NOTE: If multiple callbacks with the same name are registered, only the
- * last callback registered will be remembered.
+ * NOTE: If multiple callbacks with the same name are registered, only
+ * the last callback registered will be remembered.
  */
 DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
-    const char* name,
+    const char* method,
     Dart_ServiceRequestCallback callback,
     void* user_data);
 

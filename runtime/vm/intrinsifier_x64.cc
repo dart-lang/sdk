@@ -32,7 +32,7 @@ intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->TypeChecksEnabled()) {
+  if (Isolate::Current()->flags().type_checks()) {
     return;
   }
   __ movq(RDX, Address(RSP, + 1 * kWordSize));  // Value.
@@ -101,7 +101,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+2), value (+1), return-address (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to check the incoming argument.
-  if (Isolate::Current()->TypeChecksEnabled()) return;
+  if (Isolate::Current()->flags().type_checks()) return;
   Label fall_through;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
   __ movq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));

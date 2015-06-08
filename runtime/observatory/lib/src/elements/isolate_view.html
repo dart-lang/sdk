@@ -54,10 +54,10 @@
     <template if="{{ isolate.topFrame != null }}">
       <br>
       <div class="content-centered-big">
-         <script-inset script="{{ isolate.topFrame['script'] }}"
-                       currentPos="{{ isolate.topFrame['tokenPos'] }}"
-                       height="200px">
-         </script-inset>
+        <source-inset location="{{ isolate.topFrame.function.location }}"
+                      currentPos="{{ isolate.topFrame.location.tokenPos }}"
+                      height="200px">
+        </source-inset>
       </div>
     </template>
 

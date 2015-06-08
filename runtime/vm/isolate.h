@@ -23,11 +23,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, enable_asserts);
-DECLARE_FLAG(bool, error_on_bad_type);
-DECLARE_FLAG(bool, error_on_bad_override);
-
 // Forward declarations.
 class AbstractType;
 class ApiState;
@@ -126,7 +121,9 @@ class Isolate : public BaseIsolate {
   }
 
   static void InitOnce();
-  static Isolate* Init(const char* name_prefix, bool is_vm_isolate = false);
+  static Isolate* Init(const char* name_prefix,
+                       const Dart_IsolateFlags& api_flags,
+                       bool is_vm_isolate = false);
   void Shutdown();
 
   // Register a newly introduced class.
@@ -383,19 +380,51 @@ class Isolate : public BaseIsolate {
   void set_has_compiled(bool value) { has_compiled_ = value; }
   bool has_compiled() const { return has_compiled_; }
 
-  void set_strict_compilation(bool value) { strict_compilation_ = value; }
-  bool strict_compilation() const { return strict_compilation_; }
-  bool TypeChecksEnabled() {
-    return FLAG_enable_type_checks || strict_compilation_;
-  }
-  bool AssertsEnabled() {
-    return FLAG_enable_asserts || strict_compilation_;
-  }
-  bool ErrorOnBadTypeEnabled() {
-    return FLAG_error_on_bad_type || strict_compilation_;
-  }
-  bool ErrorOnBadOverrideEnabled() {
-    return FLAG_error_on_bad_override || strict_compilation_;
+  // TODO(iposva): Evaluate whether two different isolate flag structures are
+  // needed. Currently it serves as a separation between publicly visible flags
+  // and VM internal flags.
+  class Flags : public ValueObject {
+   public:
+    // Construct default flags as specified by the options.
+    Flags();
+
+    bool type_checks() const { return type_checks_; }
+    bool asserts() const { return asserts_; }
+    bool error_on_bad_type() const { return error_on_bad_type_; }
+    bool error_on_bad_override() const { return error_on_bad_override_; }
+
+    void set_checked(bool val) {
+      type_checks_ = val;
+      asserts_ = val;
+    }
+
+    void CopyFrom(const Flags& orig);
+    void CopyFrom(const Dart_IsolateFlags& api_flags);
+    void CopyTo(Dart_IsolateFlags* api_flags) const;
+
+   private:
+    bool type_checks_;
+    bool asserts_;
+    bool error_on_bad_type_;
+    bool error_on_bad_override_;
+
+    friend class Isolate;
+
+    DISALLOW_ALLOCATION();
+    DISALLOW_COPY_AND_ASSIGN(Flags);
+  };
+
+  const Flags& flags() const { return flags_; }
+
+  // Set the checks in the compiler to the highest level. Statically and when
+  // executing generated code. Needs to be called before any code has been
+  // compiled.
+  void set_strict_compilation() {
+    ASSERT(!has_compiled());
+    flags_.type_checks_ = true;
+    flags_.asserts_ = true;
+    flags_.error_on_bad_type_ = true;
+    flags_.error_on_bad_override_ = true;
   }
 
   // Requests that the debugger resume execution.
@@ -677,7 +706,7 @@ class Isolate : public BaseIsolate {
   void PauseEventHandler();
 
  private:
-  Isolate();
+  explicit Isolate(const Dart_IsolateFlags& api_flags);
 
   void BuildName(const char* name_prefix);
   void PrintInvokedFunctions();
@@ -720,7 +749,7 @@ class Isolate : public BaseIsolate {
   bool single_step_;
   bool resume_request_;
   bool has_compiled_;
-  bool strict_compilation_;
+  Flags flags_;
   Random random_;
   Simulator* simulator_;
   LongJumpScope* long_jump_base_;
@@ -946,6 +975,7 @@ class IsolateSpawnState {
   char* function_name() const { return function_name_; }
   bool is_spawn_uri() const { return library_url_ == NULL; }
   bool paused() const { return paused_; }
+  Isolate::Flags* isolate_flags() { return &isolate_flags_; }
 
   RawObject* ResolveFunction();
   RawInstance* BuildArgs(Zone* zone);
@@ -964,6 +994,7 @@ class IsolateSpawnState {
   intptr_t serialized_args_len_;
   uint8_t* serialized_message_;
   intptr_t serialized_message_len_;
+  Isolate::Flags isolate_flags_;
   bool paused_;
 };
 

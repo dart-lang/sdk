@@ -168,38 +168,52 @@ class Test {
 }
 
 const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
+  // A final field shadowing a non-final field is currently not supported in
+  // resolution.
+  VisitKind.VISIT_SUPER_FIELD_FIELD_COMPOUND,
+  VisitKind.VISIT_SUPER_FIELD_FIELD_PREFIX,
+  VisitKind.VISIT_SUPER_FIELD_FIELD_POSTFIX,
+  // Combination of method and setter with the same name is currently not
+  // supported by the element model.
   VisitKind.VISIT_STATIC_METHOD_SETTER_COMPOUND,
   VisitKind.VISIT_STATIC_METHOD_SETTER_PREFIX,
   VisitKind.VISIT_STATIC_METHOD_SETTER_POSTFIX,
   VisitKind.VISIT_TOP_LEVEL_METHOD_SETTER_COMPOUND,
   VisitKind.VISIT_TOP_LEVEL_METHOD_SETTER_PREFIX,
   VisitKind.VISIT_TOP_LEVEL_METHOD_SETTER_POSTFIX,
-  VisitKind.VISIT_SUPER_FIELD_FIELD_COMPOUND,
-  VisitKind.VISIT_SUPER_FIELD_FIELD_PREFIX,
-  VisitKind.VISIT_SUPER_FIELD_FIELD_POSTFIX,
   VisitKind.VISIT_SUPER_METHOD_SETTER_COMPOUND,
   VisitKind.VISIT_SUPER_METHOD_SETTER_PREFIX,
   VisitKind.VISIT_SUPER_METHOD_SETTER_POSTFIX,
+  // Invalid use of setters is currently reported through an erroneous element.
+  VisitKind.VISIT_STATIC_SETTER_INVOKE,
+  VisitKind.VISIT_STATIC_SETTER_GET,
+  VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
+  VisitKind.VISIT_TOP_LEVEL_SETTER_INVOKE,
+  // The constant expressions of assignment to constant type literals cannot be
+  // handled the compile constant evaluator.
   VisitKind.VISIT_CLASS_TYPE_LITERAL_SET,
   VisitKind.VISIT_TYPEDEF_TYPE_LITERAL_SET,
-  VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET,
   VisitKind.VISIT_DYNAMIC_TYPE_LITERAL_SET,
+  // Invalid assignments is currently report through an erroneous element.
+  VisitKind.VISIT_TYPE_VARIABLE_TYPE_LITERAL_SET,
   VisitKind.VISIT_FINAL_PARAMETER_SET,
   VisitKind.VISIT_FINAL_LOCAL_VARIABLE_SET,
   VisitKind.VISIT_LOCAL_FUNCTION_SET,
   VisitKind.VISIT_STATIC_GETTER_SET,
-  VisitKind.VISIT_STATIC_SETTER_GET,
-  VisitKind.VISIT_STATIC_SETTER_INVOKE,
   VisitKind.VISIT_FINAL_STATIC_FIELD_SET,
   VisitKind.VISIT_STATIC_FUNCTION_SET,
   VisitKind.VISIT_FINAL_TOP_LEVEL_FIELD_SET,
   VisitKind.VISIT_TOP_LEVEL_GETTER_SET,
-  VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
-  VisitKind.VISIT_TOP_LEVEL_SETTER_INVOKE,
   VisitKind.VISIT_TOP_LEVEL_FUNCTION_SET,
   VisitKind.VISIT_FINAL_SUPER_FIELD_SET,
   VisitKind.VISIT_SUPER_GETTER_SET,
   VisitKind.VISIT_SUPER_METHOD_SET,
+  // The only undefined unary, `+`, is currently handled and skipped in the
+  // parser.
+  VisitKind.ERROR_UNDEFINED_UNARY_EXPRESSION,
+  // Constant expression are currently not computed during resolution.
+  VisitKind.VISIT_CONSTANT_GET,
+  VisitKind.VISIT_CONSTANT_INVOKE,
 ];
 
 main(List<String> arguments) {
@@ -245,7 +259,8 @@ main(List<String> arguments) {
                             m.simpleName != #apply)
               .map((m) => m.simpleName).toSet();
       symbols2.removeAll(symbols1);
-      print("Untested visit methods:\n  ${symbols2.join(',\n  ')},\n");
+      Expect.isTrue(symbols2.isEmpty,
+          "Untested visit methods:\n  ${symbols2.join(',\n  ')},\n");
     }
   ], (f) => f()));
 }
@@ -281,15 +296,13 @@ Future test(Set<VisitKind> unvisitedKinds,
   sourceFiles['main.dart'] = mainSource.toString();
 
   Compiler compiler = compilerFor(sourceFiles,
-      options: ['--analyze-all', '--analyze-only']);
+      options: ['--analyze-all',
+                '--analyze-only',
+                '--enable-null-aware-operators']);
   return compiler.run(Uri.parse('memory:main.dart')).then((_) {
     testMap.forEach((String filename, Test test) {
       LibraryElement library = compiler.libraryLoader.lookupLibrary(
           Uri.parse('memory:$filename'));
-      var expectedVisits = test.expectedVisits;
-      if (expectedVisits is! List) {
-        expectedVisits = [expectedVisits];
-      }
       Element element;
       String cls = test.cls;
       String method = test.method;
@@ -302,6 +315,18 @@ Future test(Set<VisitKind> unvisitedKinds,
                          "${library.compilationUnit.script.text}");
         element = classElement.localLookup(method);
       }
+      var expectedVisits = test.expectedVisits;
+      if (expectedVisits == null) {
+        Expect.isTrue(element.isErroneous,
+            "Element '$method' expected to be have parse errors in:\n"
+            "${library.compilationUnit.script.text}");
+        return;
+      } else if (expectedVisits is! List) {
+        expectedVisits = [expectedVisits];
+      }
+      Expect.isFalse(element.isErroneous,
+          "Element '$method' is not expected to be have parse errors in:\n"
+          "${library.compilationUnit.script.text}");
 
       void testAstElement(AstElement astElement) {
         Expect.isNotNull(astElement, "Element '$method' not found in:\n"
@@ -622,10 +647,15 @@ enum VisitKind {
   VISIT_AS,
 
   VISIT_CONST_CONSTRUCTOR_INVOKE,
+  VISIT_BOOL_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+  VISIT_INT_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
+  VISIT_STRING_FROM_ENVIRONMENT_CONSTRUCTOR_INVOKE,
   VISIT_GENERATIVE_CONSTRUCTOR_INVOKE,
   VISIT_REDIRECTING_GENERATIVE_CONSTRUCTOR_INVOKE,
   VISIT_FACTORY_CONSTRUCTOR_INVOKE,
   VISIT_REDIRECTING_FACTORY_CONSTRUCTOR_INVOKE,
+  VISIT_CONSTRUCTOR_INCOMPATIBLE_INVOKE,
+  ERROR_NON_CONSTANT_CONSTRUCTOR_INVOKE,
 
   VISIT_SUPER_CONSTRUCTOR_INVOKE,
   VISIT_IMPLICIT_SUPER_CONSTRUCTOR_INVOKE,
@@ -661,5 +691,18 @@ enum VisitKind {
   VISIT_UNRESOLVED_PREFIX,
   VISIT_UNRESOLVED_POSTFIX,
 
-  // TODO(johnniwinther): Add tests for more error cases.
+  VISIT_IF_NULL,
+  VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_GET,
+  VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_SET,
+  VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_INVOKE,
+  VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_COMPOUND,
+  VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_PREFIX,
+  VISIT_IF_NOT_NULL_DYNAMIC_PROPERTY_POSTFIX,
+
+  ERROR_INVALID_ASSERT,
+  ERROR_UNDEFINED_UNARY_EXPRESSION,
+  ERROR_UNDEFINED_BINARY_EXPRESSION,
+
+  VISIT_CONSTANT_GET,
+  VISIT_CONSTANT_INVOKE,
 }

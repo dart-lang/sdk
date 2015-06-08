@@ -130,12 +130,6 @@ class ObservatoryElement extends PolymerElement {
 
   String formatSize(int bytes) => Utils.formatSize(bytes);
 
-  String fileAndLine(Map frame) {
-    var file = frame['script'].name;
-    var shortFile = file.substring(file.lastIndexOf('/') + 1);
-    return "${shortFile}:${frame['line']}";
-  }
-
   int parseInt(String value) => int.parse(value);
 
   String asStringLiteral(String value, [bool wasTruncated=false]) {

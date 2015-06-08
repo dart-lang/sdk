@@ -2631,41 +2631,51 @@ class JsFunctionTypeMirror extends BrokenClassMirror
   JsFunctionTypeMirror(this._typeData, this.owner);
 
   bool get _hasReturnType {
-    return JS('bool', '# in #', JS_FUNCTION_TYPE_RETURN_TYPE_TAG(), _typeData);
+    return JS('bool', '# in #',
+        JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG), _typeData);
   }
+
   get _returnType {
-    return JS('', '#[#]', _typeData, JS_FUNCTION_TYPE_RETURN_TYPE_TAG());
+    return JS('', '#[#]', _typeData,
+        JS_GET_NAME(JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG));
   }
 
   bool get _isVoid {
-    return JS('bool', '!!#[#]', _typeData, JS_FUNCTION_TYPE_VOID_RETURN_TAG());
+    return JS('bool', '!!#[#]', _typeData,
+        JS_GET_NAME(JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG));
   }
 
   bool get _hasArguments {
     return JS('bool', '# in #',
-              JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG(), _typeData);
+              JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG),
+               _typeData);
   }
   List get _arguments {
     return JS('JSExtendableArray', '#[#]',
-              _typeData, JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG());
+              _typeData,
+              JS_GET_NAME(JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG));
   }
 
   bool get _hasOptionalArguments {
     return JS('bool', '# in #',
-              JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG(), _typeData);
+              JS_GET_NAME(JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG),
+              _typeData);
   }
   List get _optionalArguments {
     return JS('JSExtendableArray', '#[#]',
-              _typeData, JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG());
+              _typeData,
+              JS_GET_NAME(JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG));
   }
 
   bool get _hasNamedArguments {
     return JS('bool', '# in #',
-              JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG(), _typeData);
+              JS_GET_NAME(JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG),
+              _typeData);
   }
   get _namedArguments {
     return JS('=Object', '#[#]',
-              _typeData, JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG());
+              _typeData,
+              JS_GET_NAME(JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG));
   }
 
   bool get isOriginalDeclaration => true;
@@ -2854,7 +2864,7 @@ TypeMirror typeMirrorFromRuntimeTypeRepresentation(
     return reflectClassByMangledName(
         getMangledTypeName(createRuntimeType(representation)));
   }
-  String typedefPropertyName = JS_TYPEDEF_TAG();
+  String typedefPropertyName = JS_GET_NAME(JsGetName.TYPEDEF_TAG);
   if (type != null && JS('', '#[#]', type, typedefPropertyName) != null) {
     return typeMirrorFromRuntimeTypeRepresentation(
         owner, JS('', '#[#]', type, typedefPropertyName));

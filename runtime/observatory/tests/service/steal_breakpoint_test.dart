@@ -52,10 +52,10 @@ var tests = [
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
-  Script script = stack['frames'][0]['script'];
+  Script script = stack['frames'][0].location.script;
   await script.load();
   expect(script.name,endsWith('steal_breakpoint_test.dart'));
-  expect(script.tokenToLine(stack['frames'][0]['tokenPos']), equals(14));
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(14));
 },
 
 // Resume

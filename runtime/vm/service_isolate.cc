@@ -296,6 +296,26 @@ class ServiceIsolateNatives : public AllStatic {
       }
     }
   }
+
+  static void ListenStream(Dart_NativeArguments args) {
+    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+    Isolate* isolate = arguments->thread()->isolate();
+    StackZone stack_zone(isolate);
+    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
+    HANDLESCOPE(isolate);
+    GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
+    Service::ListenStream(stream_id.ToCString());
+  }
+
+  static void CancelStream(Dart_NativeArguments args) {
+    NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
+    Isolate* isolate = arguments->thread()->isolate();
+    StackZone stack_zone(isolate);
+    Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
+    HANDLESCOPE(isolate);
+    GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
+    Service::CancelStream(stream_id.ToCString());
+  }
 };
 
 
@@ -315,6 +335,10 @@ static ServiceNativeEntry _ServiceNativeEntries[] = {
     ServiceIsolateNatives::OnStart },
   {"VMService_OnExit", 0,
     ServiceIsolateNatives::OnExit },
+  {"VMService_ListenStream", 1,
+    ServiceIsolateNatives::ListenStream },
+  {"VMService_CancelStream", 1,
+    ServiceIsolateNatives::CancelStream },
 };
 
 
@@ -601,10 +625,15 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
+    Isolate::Flags default_flags;
+    Dart_IsolateFlags api_flags;
+    default_flags.CopyTo(&api_flags);
+
     isolate =
         reinterpret_cast<Isolate*>(create_callback(ServiceIsolate::kName,
                                                    NULL,
                                                    NULL,
+                                                   &api_flags,
                                                    NULL,
                                                    &error));
     if (isolate == NULL) {

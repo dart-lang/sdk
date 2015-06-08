@@ -14,7 +14,10 @@
 namespace dart {
 
 UNIT_TEST_CASE(Metric_Simple) {
-  Isolate* isolate = Isolate::Init(NULL);
+  Isolate::Flags vm_flags;
+  Dart_IsolateFlags api_flags;
+  vm_flags.CopyTo(&api_flags);
+  Isolate* isolate = Isolate::Init(NULL, api_flags);
   EXPECT_EQ(isolate, Isolate::Current());
   Metric metric;
 
@@ -40,7 +43,10 @@ class MyMetric : public Metric {
 };
 
 UNIT_TEST_CASE(Metric_OnDemand) {
-  Isolate* isolate = Isolate::Init(NULL);
+  Isolate::Flags vm_flags;
+  Dart_IsolateFlags api_flags;
+  vm_flags.CopyTo(&api_flags);
+  Isolate* isolate = Isolate::Init(NULL, api_flags);
   EXPECT_EQ(isolate, Isolate::Current());
   MyMetric metric;
 

@@ -122,7 +122,7 @@ class ConstantConstructorComputer extends SemanticVisitor
     CallStructure callStructure = new CallStructure(index, argumentNames);
 
     return new RedirectingFactoryConstantConstructor(
-        new ConstructedConstantExpression(null,
+        new ConstructedConstantExpression(
             redirectionType,
             redirectionTarget,
             callStructure,
@@ -252,7 +252,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       _) {
     List<ConstantExpression> argumentExpression =
         arguments.nodes.map((a) => apply(a)).toList();
-    return new ConstructedConstantExpression(null,
+    return new ConstructedConstantExpression(
         type,
         superConstructor,
         callStructure,
@@ -264,7 +264,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       ConstructorElement superConstructor,
       InterfaceType type,
       _) {
-     return new ConstructedConstantExpression(null,
+     return new ConstructedConstantExpression(
          type,
          superConstructor,
          CallStructure.NO_ARGS,
@@ -279,7 +279,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       _) {
     List<ConstantExpression> argumentExpression =
         arguments.nodes.map((a) => apply(a)).toList();
-    return new ConstructedConstantExpression(null,
+    return new ConstructedConstantExpression(
         currentClass.thisType,
         thisConstructor,
         callStructure,
@@ -293,7 +293,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       BinaryOperator operator,
       Node right,
       _) {
-    return new BinaryConstantExpression(null,
+    return new BinaryConstantExpression(
         apply(left), operator, apply(right));
   }
 
@@ -304,7 +304,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       UnaryOperator operator,
       Node expression,
       _) {
-    return new UnaryConstantExpression(null,
+    return new UnaryConstantExpression(
         operator, apply(expression));
   }
 
@@ -313,7 +313,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       Send node,
       FieldElement field,
       _) {
-    return new VariableConstantExpression(null, field);
+    return new VariableConstantExpression(field);
   }
 
   @override
@@ -321,33 +321,32 @@ class ConstantConstructorComputer extends SemanticVisitor
       Send node,
       FieldElement field,
       _) {
-    return new VariableConstantExpression(null, field);
+    return new VariableConstantExpression(field);
   }
 
   @override
   ConstantExpression visitLiteralInt(LiteralInt node) {
-    return new IntConstantExpression(
-        node.value, new IntConstantValue(node.value));
+    return new IntConstantExpression(node.value);
   }
 
   @override
   ConstantExpression visitLiteralBool(LiteralBool node) {
-    return new BoolConstantExpression(node.value, null);
+    return new BoolConstantExpression(node.value);
   }
 
   @override
   ConstantExpression visitLiteralNull(LiteralNull node) {
-    return new NullConstantExpression(new NullConstantValue());
+    return new NullConstantExpression();
   }
 
   @override
   ConstantExpression visitLiteralString(LiteralString node) {
-    return new StringConstantExpression(node.dartString.slowToString(), null);
+    return new StringConstantExpression(node.dartString.slowToString());
   }
 
   @override
   ConstantExpression visitConditional(Conditional node) {
-    return new ConditionalConstantExpression(null,
+    return new ConditionalConstantExpression(
         apply(node.condition),
         apply(node.thenExpression),
         apply(node.elseExpression));
@@ -369,7 +368,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       throw new UnsupportedError("Unexpected function call: $function");
     }
     return new IdenticalConstantExpression(
-        null, apply(arguments.nodes.head), apply(arguments.nodes.tail.head));
+        apply(arguments.nodes.head), apply(arguments.nodes.tail.head));
   }
 
   @override

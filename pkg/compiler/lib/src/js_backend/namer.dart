@@ -435,6 +435,19 @@ class Namer {
       case JsGetName.DEFAULT_VALUES_PROPERTY: return defaultValuesField;
       case JsGetName.CALL_NAME_PROPERTY: return callNameField;
       case JsGetName.DEFERRED_ACTION_PROPERTY: return deferredAction;
+      case JsGetName.OPERATOR_AS_PREFIX: return operatorAsPrefix;
+      case JsGetName.SIGNATURE_NAME: return operatorSignature;
+      case JsGetName.TYPEDEF_TAG: return typedefTag;
+      case JsGetName.FUNCTION_TYPE_VOID_RETURN_TAG:
+        return functionTypeVoidReturnTag;
+      case JsGetName.FUNCTION_TYPE_RETURN_TYPE_TAG:
+        return functionTypeReturnTypeTag;
+      case JsGetName.FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG:
+        return functionTypeRequiredParametersTag;
+      case JsGetName.FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG:
+        return functionTypeOptionalParametersTag;
+      case JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG:
+        return functionTypeNamedParametersTag;
       default:
         compiler.reportError(
           node, MessageKind.GENERIC,

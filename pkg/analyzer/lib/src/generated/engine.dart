@@ -1352,6 +1352,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<AnalysisTarget> get priorityTargets => prioritySources;
 
   @override
+  CachePartition get privateAnalysisCachePartition => _privatePartition;
+
+  @override
   SourceFactory get sourceFactory => _sourceFactory;
 
   @override
@@ -9057,6 +9060,14 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * Return a list of the priority targets being analyzed by this context.
    */
   List<AnalysisTarget> get priorityTargets;
+
+  /**
+   * The partition that contains analysis results that are not shared with other
+   * contexts.
+   *
+   * TODO(scheglov) add the type, once we have only one cache.
+   */
+  dynamic get privateAnalysisCachePartition;
 
   /**
    * A factory to override how [ResolverVisitor] is created.

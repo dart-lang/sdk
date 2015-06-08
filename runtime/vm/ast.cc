@@ -517,7 +517,7 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
   if (field().is_final()) {
     return NULL;
   }
-  if (Isolate::Current()->TypeChecksEnabled()) {
+  if (Isolate::Current()->flags().type_checks()) {
     rhs = new AssignableNode(
         field().token_pos(),
         rhs,
@@ -557,11 +557,14 @@ AstNode* LoadIndexedNode::MakeAssignmentNode(AstNode* rhs) {
 
 
 AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   if (is_super_getter()) {
     ASSERT(receiver() != NULL);
     const String& setter_name =
-        String::ZoneHandle(Field::SetterSymbol(field_name_));
-    Function& setter = Function::ZoneHandle(
+        String::ZoneHandle(zone, Field::SetterSymbol(field_name_));
+    Function& setter = Function::ZoneHandle(zone,
         Resolver::ResolveDynamicAnyArgs(cls(), setter_name));
     if (setter.IsNull() || setter.is_abstract()) {
       // No instance setter found in super class chain,
@@ -591,14 +594,14 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
       return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
     }
 
-    Object& obj = Object::Handle(prefix.LookupObject(field_name_));
+    Object& obj = Object::Handle(zone, prefix.LookupObject(field_name_));
     if (obj.IsField()) {
-      const Field& field = Field::ZoneHandle(Field::Cast(obj).raw());
+      const Field& field = Field::ZoneHandle(zone, Field::Cast(obj).raw());
       if (!field.is_final()) {
-        if (Isolate::Current()->TypeChecksEnabled()) {
+        if (isolate->flags().type_checks()) {
           rhs = new AssignableNode(field.token_pos(),
                                    rhs,
-                                   AbstractType::ZoneHandle(field.type()),
+                                   AbstractType::ZoneHandle(zone, field.type()),
                                    field_name_);
         }
         return new StoreStaticFieldNode(token_pos(), field, rhs);
@@ -606,10 +609,12 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     }
 
     // No field found in prefix. Look for a setter function.
-    const String& setter_name = String::Handle(Field::SetterName(field_name_));
+    const String& setter_name = String::Handle(zone,
+                                               Field::SetterName(field_name_));
     obj = prefix.LookupObject(setter_name);
     if (obj.IsFunction()) {
-      const Function& setter = Function::ZoneHandle(Function::Cast(obj).raw());
+      const Function& setter = Function::ZoneHandle(zone,
+                                                    Function::Cast(obj).raw());
       ASSERT(setter.is_static() && setter.IsSetterFunction());
       return new StaticSetterNode(
           token_pos(), NULL, field_name_, setter, rhs);
@@ -622,14 +627,14 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
 
   if (owner().IsLibrary()) {
     const Library& library = Library::Cast(owner());
-    Object& obj = Object::Handle(library.ResolveName(field_name_));
+    Object& obj = Object::Handle(zone, library.ResolveName(field_name_));
     if (obj.IsField()) {
-      const Field& field = Field::ZoneHandle(Field::Cast(obj).raw());
+      const Field& field = Field::ZoneHandle(zone, Field::Cast(obj).raw());
       if (!field.is_final()) {
-        if (Isolate::Current()->TypeChecksEnabled()) {
+        if (isolate->flags().type_checks()) {
           rhs = new AssignableNode(field.token_pos(),
                                    rhs,
-                                   AbstractType::ZoneHandle(field.type()),
+                                   AbstractType::ZoneHandle(zone, field.type()),
                                    field_name_);
         }
         return new StoreStaticFieldNode(token_pos(), field, rhs);
@@ -637,10 +642,12 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     }
 
     // No field found in library. Look for a setter function.
-    const String& setter_name = String::Handle(Field::SetterName(field_name_));
+    const String& setter_name = String::Handle(zone,
+                                               Field::SetterName(field_name_));
     obj = library.ResolveName(setter_name);
     if (obj.IsFunction()) {
-      const Function& setter = Function::ZoneHandle(Function::Cast(obj).raw());
+      const Function& setter = Function::ZoneHandle(zone,
+                                                    Function::Cast(obj).raw());
       ASSERT(setter.is_static() && setter.IsSetterFunction());
       return new StaticSetterNode(token_pos(), NULL, field_name_, setter, rhs);
     }
@@ -651,7 +658,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   }
 
   const Function& setter =
-      Function::ZoneHandle(cls().LookupSetterFunction(field_name_));
+      Function::ZoneHandle(zone, cls().LookupSetterFunction(field_name_));
   if (!setter.IsNull() && setter.IsStaticFunction()) {
     return new StaticSetterNode(token_pos(), NULL, field_name_, setter, rhs);
   }
@@ -659,7 +666,8 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   // Access to a lazily initialized static field that has not yet been
   // initialized is compiled to a static implicit getter.
   // A setter may not exist for such a field.
-  const Field& field = Field::ZoneHandle(cls().LookupStaticField(field_name_));
+  const Field& field = Field::ZoneHandle(zone,
+                                         cls().LookupStaticField(field_name_));
   if (!field.IsNull()) {
     if (field.is_final()) {
       // Attempting to assign to a final variable will cause a NoSuchMethodError
@@ -668,18 +676,19 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
       return new StaticSetterNode(token_pos(), NULL, cls(), field_name_, rhs);
     }
 #if defined(DEBUG)
-    const String& getter_name = String::Handle(Field::GetterName(field_name_));
+    const String& getter_name = String::Handle(zone,
+                                               Field::GetterName(field_name_));
     const Function& getter =
-        Function::Handle(cls().LookupStaticFunction(getter_name));
+        Function::Handle(zone, cls().LookupStaticFunction(getter_name));
     ASSERT(!getter.IsNull() &&
            (getter.kind() == RawFunction::kImplicitStaticFinalGetter));
 #endif
-    if (Isolate::Current()->TypeChecksEnabled()) {
+    if (isolate->flags().type_checks()) {
       rhs = new AssignableNode(
           field.token_pos(),
           rhs,
-          AbstractType::ZoneHandle(field.type()),
-          String::ZoneHandle(field.name()));
+          AbstractType::ZoneHandle(zone, field.type()),
+          String::ZoneHandle(zone, field.name()));
     }
     return new StoreStaticFieldNode(token_pos(), field, rhs);
   }

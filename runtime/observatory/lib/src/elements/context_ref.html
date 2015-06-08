@@ -16,11 +16,12 @@
               <any-service-ref ref="{{ ref.parentContext }}"></any-service-ref>
             </div>
           </div>
-          <template repeat="{{ variable in ref.variables }}">
+          <template repeat="{{ index in ref.variables.asMap().keys }}">
             <div class="memberItem">
-              <div class="memberName">[{{ variable['index']}}]</div>
+              <div class="memberName">[{{ index }}]</div>
               <div class="memberValue">
-                <any-service-ref ref="{{ variable['value'] }}"></any-service-ref>
+                <any-service-ref ref="{{ ref.variables[index]['value'] }}">
+                </any-service-ref>
               </div>
             </div>
           </template>

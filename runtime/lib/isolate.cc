@@ -171,18 +171,22 @@ static bool CreateIsolate(Isolate* parent_isolate,
     return false;
   }
 
+  Dart_IsolateFlags api_flags;
+  state->isolate_flags()->CopyTo(&api_flags);
+
   void* init_data = parent_isolate->init_callback_data();
   Isolate* child_isolate = reinterpret_cast<Isolate*>(
       (callback)(state->script_url(),
                  state->function_name(),
                  state->package_root(),
+                 &api_flags,
                  init_data,
                  error));
   if (child_isolate == NULL) {
     return false;
   }
   if (!state->is_spawn_uri()) {
-    // For isolates spawned using the spawnFunction semantics we set
+    // For isolates spawned using the spawn semantics we set
     // the origin_id to the origin_id of the parent isolate.
     child_isolate->set_origin_id(parent_isolate->origin_id());
   }
@@ -243,13 +247,14 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 4) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 6) {
+DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 7) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, uri, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, args, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, message, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, paused, arguments->NativeArgAt(4));
-  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(5));
+  GET_NATIVE_ARGUMENT(Bool, checked, arguments->NativeArgAt(5));
+  GET_NATIVE_ARGUMENT(String, package_root, arguments->NativeArgAt(6));
 
   // Canonicalize the uri with respect to the current isolate.
   char* error = NULL;
@@ -270,12 +275,19 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 6) {
     utf8_package_root[len] = '\0';
   }
 
-  Spawn(isolate, new IsolateSpawnState(port.Id(),
-                                       canonical_uri,
-                                       utf8_package_root,
-                                       args,
-                                       message,
-                                       paused.value()));
+  IsolateSpawnState* state = new IsolateSpawnState(port.Id(),
+                                                   canonical_uri,
+                                                   utf8_package_root,
+                                                   args,
+                                                   message,
+                                                   paused.value());
+  // If we were passed a value then override the default flags state for
+  // checked mode.
+  if (!checked.IsNull()) {
+    state->isolate_flags()->set_checked(checked.value());
+  }
+
+  Spawn(isolate, state);
   return Object::null();
 }
 

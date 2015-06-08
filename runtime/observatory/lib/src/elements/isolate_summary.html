@@ -83,19 +83,18 @@
           by exception
         </template>
         at
-        <function-ref ref="{{ isolate.topFrame['function'] }}">
+        <function-ref ref="{{ isolate.topFrame.function }}">
         </function-ref>
-        (<script-ref ref="{{ isolate.topFrame['script'] }}"
-                     pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+        (<source-link location="{{ isolate.topFrame.location }}">
+        </source-link>)
       </template>
     </template>
 
     <template if="{{ isolate.running }}">
       at
-      <function-ref ref="{{ isolate.topFrame['function'] }}">
+      <function-ref ref="{{ isolate.topFrame.function }}">
       </function-ref>
-      (<script-ref ref="{{ isolate.topFrame['script'] }}"
-                   pos="{{ isolate.topFrame['tokenPos'] }}"></script-ref>)
+      (<source-link location="{{ isolate.topFrame.location }}"></source-link>)
     </template>
 
   </template>

@@ -19,6 +19,7 @@ await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 
 [ $compiler == dart2js ]
+nan_identical_test: Fail # Issue 11551
 symbol_literal_test/*: Fail # Issue 21825
 constructor_duplicate_final_test/01: Fail # Issue 13363
 constructor_duplicate_final_test/02: Fail # Issue 13363
@@ -380,9 +381,9 @@ cast_test/13: Crash # Instance of 'TypeOperator': type casts not implemented.
 cast_test/14: Crash # Instance of 'TypeOperator': type casts not implemented.
 cast_test/15: Crash # Instance of 'TypeOperator': type casts not implemented.
 cast_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
-cha_deopt1_test: Crash # (d.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-cha_deopt2_test: Crash # (d.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-cha_deopt3_test: Crash # (d.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+cha_deopt1_test: RuntimeError # Please triage this failure.
+cha_deopt2_test: RuntimeError # Please triage this failure.
+cha_deopt3_test: RuntimeError # Please triage this failure.
 checked_null_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 checked_setter2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 checked_setter3_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -453,9 +454,7 @@ constructor10_test/01: Crash # Please triage this failure.
 constructor10_test/02: Crash # Please triage this failure.
 constructor11_test: Crash # Please triage this failure.
 constructor12_test: RuntimeError # Please triage this failure.
-constructor3_negative_test: Crash # Please triage this failure.
 constructor5_test: Crash # Please triage this failure.
-constructor_call_wrong_argument_count_negative_test: Crash # Please triage this failure.
 constructor_initializer_test/01: Crash # Please triage this failure.
 constructor_with_mixin_test: Crash # Please triage this failure.
 continue_test: Crash # (switch (0){case 0:i=22;continue;default:i=25;break;}): Unhandled node
@@ -464,59 +463,58 @@ crash_6725_test/01: Crash # Please triage this failure.
 custom_await_stack_trace_test: Crash #  cannot handle async/sync*/async* functions
 deferred_call_empty_before_load_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred_closurize_load_library_test: RuntimeError # Please triage this failure.
-deferred_constant_list_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_constants_test/constructor1: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_constants_test/constructor2: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_constants_test/default_argument1: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_constants_test/default_argument2: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_constants_test/metadata1: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_constants_test/metadata2: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_constants_test/metadata3: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_constants_test/none: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_constants_test/reference1: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_constants_test/reference2: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_constants_test/reference_after_load: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/as_operation: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/catch_check: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/is_check: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/new: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/new_before_load: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/new_generic1: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/new_generic2: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/new_generic3: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/none: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/static_method: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/type_annotation1: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/type_annotation_null: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_function_type_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_global_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+deferred_constant_list_test: RuntimeError # Please triage this failure.
+deferred_constraints_constants_test/constructor1: Crash # (const lib.Const()): Unexpected constant kind null: null
+deferred_constraints_constants_test/constructor2: Crash # (const lib.Const.namedConstructor()): Unexpected constant kind null: null
+deferred_constraints_constants_test/default_argument1: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_constants_test/default_argument2: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_constants_test/metadata1: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_constants_test/metadata2: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_constants_test/metadata3: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_constants_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_constants_test/reference1: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_constants_test/reference2: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_constants_test/reference_after_load: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_type_annotation_test/as_operation: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_type_annotation_test/catch_check: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_type_annotation_test/is_check: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_type_annotation_test/new: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/new_before_load: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/new_generic2: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/new_generic3: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/none: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/static_method: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # Please triage this failure.
+deferred_function_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for F.
+deferred_global_test: RuntimeError # Please triage this failure.
 deferred_inheritance_constraints_test/redirecting_constructor: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_inlined_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_load_constants_test/01: Crash # (foo.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_load_constants_test/02: Crash # (foo.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_load_constants_test/03: Crash # (foo.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_load_constants_test/04: Crash # (foo.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_load_constants_test/05: Crash # (foo.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_load_constants_test/none: Crash # (foo.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_load_inval_code_test: Crash # (d.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_load_library_wrong_args_test/01: Crash # (lib.loadLibrary(10)): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_load_library_wrong_args_test/none: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_mixin_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_no_such_method_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+deferred_inlined_test: RuntimeError # Please triage this failure.
+deferred_load_constants_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_load_constants_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_load_constants_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_load_constants_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_load_constants_test/05: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_load_constants_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_load_inval_code_test: RuntimeError # Please triage this failure.
+deferred_load_library_wrong_args_test/none: RuntimeError # Please triage this failure.
+deferred_mixin_test: RuntimeError # Please triage this failure.
+deferred_no_such_method_test: RuntimeError # Please triage this failure.
 deferred_not_loaded_check_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_only_constant_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_optimized_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+deferred_only_constant_test: RuntimeError # Please triage this failure.
+deferred_optimized_test: RuntimeError # Please triage this failure.
 deferred_redirecting_factory_test: Crash #  cannot handle async/sync*/async* functions
-deferred_regression_22995_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_shadow_load_library_test: Crash # (lib.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_shared_and_unshared_classes_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
-deferred_static_seperate_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+deferred_regression_22995_test: Crash # Instance of 'TypeOperator': type check unimplemented for Ti.
+deferred_shadow_load_library_test: RuntimeError # Please triage this failure.
+deferred_shared_and_unshared_classes_test: RuntimeError # Please triage this failure.
+deferred_static_seperate_test: RuntimeError # Please triage this failure.
 deopt_inlined_function_lazy_test: Crash # (try {return x+12342353257893275483274832;}finally {}): try/finally
 div_with_power_of_two2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 double_to_string_as_exponential2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -543,8 +541,6 @@ execute_finally8_test: Crash # (try {sum+= 1;return 'hi';}finally {sum+= 1;throw
 execute_finally9_test: Crash #  try/finally
 factory_redirection3_cyclic_test/01: Crash # Please triage this failure.
 factory_redirection_test/04: Crash # Please triage this failure.
-factory_redirection_test/05: MissingRuntimeError # Please triage this failure.
-factory_redirection_test/06: MissingRuntimeError # Please triage this failure.
 factory_return_type_checked_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 factory_type_parameter2_test: Crash # Please triage this failure.
 factory_type_parameter_test: Crash # Please triage this failure.
@@ -725,7 +721,7 @@ issue13474_test: Crash # Instance of 'TypeOperator': type check unimplemented fo
 issue14014_3_test: Crash # Instance of 'TypeOperator': type check unimplemented for foo<T>.
 issue20476_test: Crash # (try {try {return 1;}catch (e1){}finally {return 3;}}catch (e2){}finally {return 5;}): try/finally
 issue7525_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-issue_1751477_test: Crash # (lib1.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+issue_1751477_test: RuntimeError # Please triage this failure.
 label_test: Crash # (switch (i){case 111:while(doAgain()){break L;}default:i-- ;}): Unhandled node
 large_class_declaration_test: Crash # Please triage this failure.
 lazy_static3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -758,8 +754,6 @@ mixin_extends_method_test: Crash # Instance of 'TypeOperator': type check unimpl
 mixin_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mixin_forwarding_constructor1_test: Crash # Please triage this failure.
 mixin_forwarding_constructor3_test: Crash # Please triage this failure.
-mixin_illegal_constructor_test/13: MissingRuntimeError # Please triage this failure.
-mixin_illegal_constructor_test/15: MissingRuntimeError # Please triage this failure.
 mixin_illegal_cycles_test/02: Crash # Please triage this failure.
 mixin_illegal_cycles_test/03: Crash # Please triage this failure.
 mixin_illegal_cycles_test/04: Crash # Please triage this failure.
@@ -796,13 +790,9 @@ named_parameters_aggregated_test/05: Crash # Instance of 'TypeOperator': type ch
 naming_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 nested_switch_label_test: Crash #  Unhandled node
 no_such_constructor2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-no_such_constructor_test/01: MissingRuntimeError # Please triage this failure.
 no_such_method_dispatcher_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 no_such_method_empty_selector_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 no_such_method_test: RuntimeError # Please triage this failure.
-non_const_super_negative_test: Crash # Please triage this failure.
-not_enough_positional_arguments_test/00: MissingRuntimeError # Please triage this failure.
-not_enough_positional_arguments_test/03: Crash # Please triage this failure.
 null_inline_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 null_no_such_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 null_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
@@ -847,7 +837,7 @@ regress_18435_test: Crash # Please triage this failure.
 regress_18535_test: Crash # Please triage this failure.
 regress_21795_test: Crash # (try {foo(t);}finally {if(t==0){try {}catch (err,st){}}}): try/finally
 regress_22438_test: Crash #  cannot handle async/sync*/async* functions
-regress_22443_test: Crash # (D.loadLibrary()): handleStaticGetterInvoke: foreign: getter(loadLibrary)
+regress_22443_test: RuntimeError # Please triage this failure.
 regress_22445_test: Crash #  cannot handle async/sync*/async* functions
 regress_22579_test: Crash #  cannot handle async/sync*/async* functions
 regress_22700_test: Crash # Please triage this failure.
@@ -860,6 +850,7 @@ regress_23498_test: Crash #  cannot handle async/sync*/async* functions
 regress_23500_test/01: Crash #  cannot handle async/sync*/async* functions
 regress_23500_test/02: Crash #  cannot handle async/sync*/async* functions
 regress_23500_test/none: Crash #  cannot handle async/sync*/async* functions
+regress_23537_test: Crash # try/finally
 reify_typevar_static_test/01: Crash # Please triage this failure.
 return_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 side_effect_throw_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

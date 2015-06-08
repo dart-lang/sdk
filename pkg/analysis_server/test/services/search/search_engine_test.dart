@@ -352,8 +352,8 @@ part 'unitB.dart';
     LibraryElement element = testLibraryElement;
     CompilationUnitElement elementA = element.parts[0];
     CompilationUnitElement elementB = element.parts[1];
-    index.indexUnit(context, elementA.node);
-    index.indexUnit(context, elementB.node);
+    index.indexUnit(context, elementA.computeNode());
+    index.indexUnit(context, elementB.computeNode());
     var expected = [
       new ExpectedMatch(elementA, MatchKind.REFERENCE,
           codeA.indexOf('lib; // A'), 'lib'.length),

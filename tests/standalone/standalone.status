@@ -194,7 +194,6 @@ io/file_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check u
 io/file_read_encoded_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_system_delete_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_system_links_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/file_system_watcher_test: Crash #  Unhandled node
 io/file_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/file_typed_data_test: Crash # Please triage this failure.
 io/file_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

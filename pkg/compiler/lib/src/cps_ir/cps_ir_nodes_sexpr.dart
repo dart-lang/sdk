@@ -203,8 +203,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String visitConstant(Constant node) {
-    String value =
-        node.expression.value.accept(new ConstantStringifier(), null);
+    String value = node.value.accept(new ConstantStringifier(), null);
     return '(Constant $value)';
   }
 

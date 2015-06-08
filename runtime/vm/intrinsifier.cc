@@ -594,7 +594,7 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
 
 
 bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
-  if (Isolate::Current()->TypeChecksEnabled()) {
+  if (Isolate::Current()->flags().type_checks()) {
     return false;
   }
 

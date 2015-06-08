@@ -12,7 +12,10 @@ namespace dart {
 
 UNIT_TEST_CASE(Mutex) {
   // This unit test case needs a running isolate.
-  Isolate* isolate = Isolate::Init(NULL);
+  Isolate::Flags vm_flags;
+  Dart_IsolateFlags api_flags;
+  vm_flags.CopyTo(&api_flags);
+  Isolate* isolate = Isolate::Init(NULL, api_flags);
 
   Mutex* mutex = new Mutex();
   mutex->Lock();
@@ -34,7 +37,10 @@ UNIT_TEST_CASE(Mutex) {
 
 UNIT_TEST_CASE(Monitor) {
   // This unit test case needs a running isolate.
-  Isolate* isolate = Isolate::Init(NULL);
+  Isolate::Flags vm_flags;
+  Dart_IsolateFlags api_flags;
+  vm_flags.CopyTo(&api_flags);
+  Isolate* isolate = Isolate::Init(NULL, api_flags);
   // Thread interrupter interferes with this test, disable interrupts.
   isolate->set_thread_state(NULL);
   Profiler::EndExecution(isolate);

@@ -43,7 +43,7 @@ fi
 
 DART_ROOT="$(cd "${SDK_DIR}/.." ; pwd -P)"
 
-ANALYZER="$DART_ROOT/third_party/pkg_tested/analyzer_cli/bin/analyzer.dart"
+ANALYZER="$DART_ROOT/third_party/pkg/analyzer_cli/bin/analyzer.dart"
 
 if [ -z "$DART_CONFIGURATION" ];
 then

@@ -347,8 +347,17 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitInvokeMethod(InvokeMethod node) {
-    _rewriteList(node.arguments);
-    node.receiver = visitExpression(node.receiver);
+    if (node.receiverIsNotNull) {
+      _rewriteList(node.arguments);
+      node.receiver = visitExpression(node.receiver);
+    } else {
+      // Impure expressions cannot be propagated across the method lookup,
+      // because it throws when the receiver is null.
+      inEmptyEnvironment(() {
+        _rewriteList(node.arguments);
+      });
+      node.receiver = visitExpression(node.receiver);
+    }
     return node;
   }
 

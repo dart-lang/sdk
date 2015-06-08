@@ -16,7 +16,10 @@ UNIT_TEST_CASE(AllocateZone) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Isolate* isolate = Isolate::Init(NULL);
+  Isolate::Flags vm_flags;
+  Dart_IsolateFlags api_flags;
+  vm_flags.CopyTo(&api_flags);
+  Isolate* isolate = Isolate::Init(NULL, api_flags);
   EXPECT(Isolate::Current() == isolate);
   EXPECT(isolate->current_zone() == NULL);
   {
@@ -78,7 +81,10 @@ UNIT_TEST_CASE(AllocGeneric_Success) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Isolate* isolate = Isolate::Init(NULL);
+  Isolate::Flags vm_flags;
+  Dart_IsolateFlags api_flags;
+  vm_flags.CopyTo(&api_flags);
+  Isolate* isolate = Isolate::Init(NULL, api_flags);
   EXPECT(Isolate::Current() == isolate);
   EXPECT(isolate->current_zone() == NULL);
   {
@@ -102,7 +108,10 @@ UNIT_TEST_CASE(AllocGeneric_Overflow) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Isolate* isolate = Isolate::Init(NULL);
+  Isolate::Flags vm_flags;
+  Dart_IsolateFlags api_flags;
+  vm_flags.CopyTo(&api_flags);
+  Isolate* isolate = Isolate::Init(NULL, api_flags);
   EXPECT(Isolate::Current() == isolate);
   EXPECT(isolate->current_zone() == NULL);
   {
@@ -121,7 +130,10 @@ UNIT_TEST_CASE(ZoneAllocated) {
 #if defined(DEBUG)
   FLAG_trace_zones = true;
 #endif
-  Isolate* isolate = Isolate::Init(NULL);
+  Isolate::Flags vm_flags;
+  Dart_IsolateFlags api_flags;
+  vm_flags.CopyTo(&api_flags);
+  Isolate* isolate = Isolate::Init(NULL, api_flags);
   EXPECT(Isolate::Current() == isolate);
   EXPECT(isolate->current_zone() == NULL);
   static int marker;

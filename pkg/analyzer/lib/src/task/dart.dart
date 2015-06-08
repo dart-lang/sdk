@@ -172,6 +172,15 @@ final ListResultDescriptor<AnalysisError> HINTS =
         'HINT_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
+ * The sources representing the combined import/export closure of a library.
+ * The [Source]s include only library sources, not their units.
+ *
+ * The result is only available for [Source]s representing a library.
+ */
+final ListResultDescriptor<Source> IMPORT_EXPORT_SOURCE_CLOSURE =
+    new ListResultDescriptor<Source>('IMPORT_EXPORT_SOURCE_CLOSURE', null);
+
+/**
  * The sources representing the import closure of a library.
  * The [Source]s include only library sources, not their units.
  *
@@ -1322,38 +1331,42 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         Source partSource = partDirective.source;
         hasPartDirective = true;
         CompilationUnit partUnit = partUnitMap[partSource];
-        CompilationUnitElementImpl partElement = partUnit.element;
-        partElement.uriOffset = partUri.offset;
-        partElement.uriEnd = partUri.end;
-        partElement.uri = partDirective.uriContent;
-        //
-        // Validate that the part contains a part-of directive with the same
-        // name as the library.
-        //
-        String partLibraryName =
-            _getPartLibraryName(partSource, partUnit, directivesToResolve);
-        if (partLibraryName == null) {
-          errors.add(new AnalysisError(librarySource, partUri.offset,
-              partUri.length, CompileTimeErrorCode.PART_OF_NON_PART,
-              [partUri.toSource()]));
-        } else if (libraryNameNode == null) {
-          if (partsLibraryName == _UNKNOWN_LIBRARY_NAME) {
-            partsLibraryName = partLibraryName;
-          } else if (partsLibraryName != partLibraryName) {
-            partsLibraryName = null;
+        if (partUnit != null) {
+          CompilationUnitElementImpl partElement = partUnit.element;
+          partElement.uriOffset = partUri.offset;
+          partElement.uriEnd = partUri.end;
+          partElement.uri = partDirective.uriContent;
+          //
+          // Validate that the part contains a part-of directive with the same
+          // name as the library.
+          //
+          if (context.exists(partSource)) {
+            String partLibraryName =
+                _getPartLibraryName(partSource, partUnit, directivesToResolve);
+            if (partLibraryName == null) {
+              errors.add(new AnalysisError(librarySource, partUri.offset,
+                  partUri.length, CompileTimeErrorCode.PART_OF_NON_PART,
+                  [partUri.toSource()]));
+            } else if (libraryNameNode == null) {
+              if (partsLibraryName == _UNKNOWN_LIBRARY_NAME) {
+                partsLibraryName = partLibraryName;
+              } else if (partsLibraryName != partLibraryName) {
+                partsLibraryName = null;
+              }
+            } else if (libraryNameNode.name != partLibraryName) {
+              errors.add(new AnalysisError(librarySource, partUri.offset,
+                  partUri.length, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [
+                libraryNameNode.name,
+                partLibraryName
+              ]));
+            }
           }
-        } else if (libraryNameNode.name != partLibraryName) {
-          errors.add(new AnalysisError(librarySource, partUri.offset,
-              partUri.length, StaticWarningCode.PART_OF_DIFFERENT_LIBRARY, [
-            libraryNameNode.name,
-            partLibraryName
-          ]));
+          if (entryPoint == null) {
+            entryPoint = _findEntryPoint(partElement);
+          }
+          directive.element = partElement;
+          sourcedCompilationUnits.add(partElement);
         }
-        if (entryPoint == null) {
-          entryPoint = _findEntryPoint(partElement);
-        }
-        directive.element = partElement;
-        sourcedCompilationUnits.add(partElement);
       }
     }
     if (hasPartDirective && libraryNameNode == null) {
@@ -1574,10 +1587,10 @@ class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'BuildExportSourceClosureTask', createTask, buildInputs,
-      <ResultDescriptor>[
+      'BuildSourceClosuresTask', createTask, buildInputs, <ResultDescriptor>[
     IMPORT_SOURCE_CLOSURE,
     EXPORT_SOURCE_CLOSURE,
+    IMPORT_EXPORT_SOURCE_CLOSURE,
     IS_CLIENT
   ]);
 
@@ -1599,6 +1612,7 @@ class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
     //
     outputs[IMPORT_SOURCE_CLOSURE] = importClosure;
     outputs[EXPORT_SOURCE_CLOSURE] = exportClosure;
+    outputs[IMPORT_EXPORT_SOURCE_CLOSURE] = importExportClosure;
     outputs[IS_CLIENT] = importExportClosure.contains(htmlSource);
   }
 
@@ -2577,6 +2591,12 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   static const String LINE_INFO_INPUT_NAME = 'LINE_INFO_INPUT_NAME';
 
   /**
+   * The name of the input whose value is the modification time of the file.
+   */
+  static const String MODIFICATION_TIME_INPUT_NAME =
+      'MODIFICATION_TIME_INPUT_NAME';
+
+  /**
    * The name of the input whose value is the token stream produced for the file.
    */
   static const String TOKEN_STREAM_INPUT_NAME = 'TOKEN_STREAM_INPUT_NAME';
@@ -2610,6 +2630,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   void internalPerform() {
     Source source = getRequiredSource();
     LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT_NAME);
+    int modificationTime = getRequiredInput(MODIFICATION_TIME_INPUT_NAME);
     Token tokenStream = getRequiredInput(TOKEN_STREAM_INPUT_NAME);
 
     RecordingErrorListener errorListener = new RecordingErrorListener();
@@ -2660,7 +2681,9 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     // Compute kind.
     //
     SourceKind sourceKind = SourceKind.LIBRARY;
-    if (!hasNonPartOfDirective && hasPartOfDirective) {
+    if (modificationTime == -1) {
+      sourceKind = SourceKind.UNKNOWN;
+    } else if (hasPartOfDirective && !hasNonPartOfDirective) {
       sourceKind = SourceKind.PART;
     }
     //
@@ -2691,6 +2714,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(Source source) {
     return <String, TaskInput>{
       LINE_INFO_INPUT_NAME: LINE_INFO.of(source),
+      MODIFICATION_TIME_INPUT_NAME: MODIFICATION_TIME.of(source),
       TOKEN_STREAM_INPUT_NAME: TOKEN_STREAM.of(source)
     };
   }
@@ -2821,11 +2845,11 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(Source libSource) {
     return <String, TaskInput>{
       LIBRARY_INPUT: LIBRARY_ELEMENT4.of(libSource),
-      'resolvedUnits': IMPORT_SOURCE_CLOSURE
+      'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE
           .of(libSource)
           .toMapOf(UNITS)
           .toFlattenList((Source library, Source unit) =>
-              RESOLVED_UNIT4.of(new LibrarySpecificUnit(library, unit)))
+              RESOLVED_UNIT4.of(new LibrarySpecificUnit(library, unit))),
     };
   }
 

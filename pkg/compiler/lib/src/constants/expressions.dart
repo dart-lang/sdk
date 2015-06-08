@@ -38,6 +38,7 @@ enum ConstantExpressionKind {
   NULL,
   STRING,
   STRING_FROM_ENVIRONMENT,
+  STRING_LENGTH,
   SYMBOL,
   TYPE,
   UNARY,
@@ -260,11 +261,6 @@ abstract class ConstantExpression {
 
   ConstantExpressionKind get kind;
 
-  /// Returns the value of this constant expression.
-  // TODO(johnniwinther): Replace this with an evaluation method that takes
-  // a constant system and an environment.
-  ConstantValue get value;
-
   // TODO(johnniwinther): Unify precedence handled between constants, front-end
   // and back-end.
   int get precedence => 16;
@@ -313,8 +309,6 @@ abstract class ConstantExpression {
 
 /// A synthetic constant used to recover from errors.
 class ErroneousConstantExpression extends ConstantExpression {
-  final PrimitiveConstantValue value = new NullConstantValue();
-
   ConstantExpressionKind get kind => ConstantExpressionKind.ERRONEOUS;
 
   accept(ConstantExpressionVisitor visitor, [context]) {
@@ -325,7 +319,7 @@ class ErroneousConstantExpression extends ConstantExpression {
   ConstantValue evaluate(Environment environment,
                          ConstantSystem constantSystem) {
     // TODO(johnniwinther): Use non-constant values for errors.
-    return value;
+    return new NonConstantValue();
   }
 
   @override
@@ -337,10 +331,6 @@ class ErroneousConstantExpression extends ConstantExpression {
 
 /// A boolean, int, double, string, or null constant.
 abstract class PrimitiveConstantExpression extends ConstantExpression {
-  final PrimitiveConstantValue value;
-
-  PrimitiveConstantExpression(this.value);
-
   /// The primitive value of this contant expression.
   get primitiveValue;
 }
@@ -349,8 +339,7 @@ abstract class PrimitiveConstantExpression extends ConstantExpression {
 class BoolConstantExpression extends PrimitiveConstantExpression {
   final bool primitiveValue;
 
-  BoolConstantExpression(this.primitiveValue,
-                         PrimitiveConstantValue value) : super(value);
+  BoolConstantExpression(this.primitiveValue);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.BOOL;
 
@@ -377,8 +366,7 @@ class BoolConstantExpression extends PrimitiveConstantExpression {
 class IntConstantExpression extends PrimitiveConstantExpression {
   final int primitiveValue;
 
-  IntConstantExpression(this.primitiveValue,
-                        PrimitiveConstantValue value) : super(value);
+  IntConstantExpression(this.primitiveValue);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.INT;
 
@@ -405,8 +393,7 @@ class IntConstantExpression extends PrimitiveConstantExpression {
 class DoubleConstantExpression extends PrimitiveConstantExpression {
   final double primitiveValue;
 
-  DoubleConstantExpression(this.primitiveValue,
-                           PrimitiveConstantValue value) : super(value);
+  DoubleConstantExpression(this.primitiveValue);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.DOUBLE;
 
@@ -433,8 +420,7 @@ class DoubleConstantExpression extends PrimitiveConstantExpression {
 class StringConstantExpression extends PrimitiveConstantExpression {
   final String primitiveValue;
 
-  StringConstantExpression(this.primitiveValue,
-                           PrimitiveConstantValue value) : super(value);
+  StringConstantExpression(this.primitiveValue);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.STRING;
 
@@ -459,7 +445,7 @@ class StringConstantExpression extends PrimitiveConstantExpression {
 
 /// Null literal constant.
 class NullConstantExpression extends PrimitiveConstantExpression {
-  NullConstantExpression(PrimitiveConstantValue value) : super(value);
+  NullConstantExpression();
 
   ConstantExpressionKind get kind => ConstantExpressionKind.NULL;
 
@@ -484,11 +470,10 @@ class NullConstantExpression extends PrimitiveConstantExpression {
 
 /// Literal list constant.
 class ListConstantExpression extends ConstantExpression {
-  final ListConstantValue value;
   final InterfaceType type;
   final List<ConstantExpression> values;
 
-  ListConstantExpression(this.value, this.type, this.values);
+  ListConstantExpression(this.type, this.values);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.LIST;
 
@@ -504,8 +489,8 @@ class ListConstantExpression extends ConstantExpression {
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
-    return new ListConstantExpression(null, type,
-        values.map((v) => v.apply(arguments)).toList());
+    return new ListConstantExpression(
+        type, values.map((v) => v.apply(arguments)).toList());
   }
 
   @override
@@ -530,12 +515,11 @@ class ListConstantExpression extends ConstantExpression {
 
 /// Literal map constant.
 class MapConstantExpression extends ConstantExpression {
-  final MapConstantValue value;
   final InterfaceType type;
   final List<ConstantExpression> keys;
   final List<ConstantExpression> values;
 
-  MapConstantExpression(this.value, this.type, this.keys, this.values);
+  MapConstantExpression(this.type, this.keys, this.values);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.MAP;
 
@@ -553,7 +537,8 @@ class MapConstantExpression extends ConstantExpression {
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
-    return new MapConstantExpression(null, type,
+    return new MapConstantExpression(
+        type,
         keys.map((k) => k.apply(arguments)).toList(),
         values.map((v) => v.apply(arguments)).toList());
   }
@@ -581,14 +566,12 @@ class MapConstantExpression extends ConstantExpression {
 
 /// Invocation of a const constructor.
 class ConstructedConstantExpression extends ConstantExpression {
-  final ConstantValue value;
   final InterfaceType type;
   final ConstructorElement target;
   final CallStructure callStructure;
   final List<ConstantExpression> arguments;
 
   ConstructedConstantExpression(
-      this.value,
       this.type,
       this.target,
       this.callStructure,
@@ -613,7 +596,7 @@ class ConstructedConstantExpression extends ConstantExpression {
   }
 
   ConstructedConstantExpression apply(NormalizedArguments arguments) {
-    return new ConstructedConstantExpression(null,
+    return new ConstructedConstantExpression(
         type, target, callStructure,
         this.arguments.map((a) => a.apply(arguments)).toList());
   }
@@ -656,10 +639,9 @@ class ConstructedConstantExpression extends ConstantExpression {
 
 /// String literal with juxtaposition and/or interpolations.
 class ConcatenateConstantExpression extends ConstantExpression {
-  final StringConstantValue value;
   final List<ConstantExpression> expressions;
 
-  ConcatenateConstantExpression(this.value, this.expressions);
+  ConcatenateConstantExpression(this.expressions);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.CONCATENATE;
 
@@ -668,7 +650,7 @@ class ConcatenateConstantExpression extends ConstantExpression {
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
-    return new ConcatenateConstantExpression(null,
+    return new ConcatenateConstantExpression(
         expressions.map((a) => a.apply(arguments)).toList());
   }
 
@@ -721,10 +703,9 @@ class ConcatenateConstantExpression extends ConstantExpression {
 
 /// Symbol literal.
 class SymbolConstantExpression extends ConstantExpression {
-  final ConstructedConstantValue value;
   final String name;
 
-  SymbolConstantExpression(this.value, this.name);
+  SymbolConstantExpression(this.name);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.SYMBOL;
 
@@ -750,11 +731,10 @@ class SymbolConstantExpression extends ConstantExpression {
 
 /// Type literal.
 class TypeConstantExpression extends ConstantExpression {
-  final TypeConstantValue value;
   /// Either [DynamicType] or a raw [GenericType].
   final DartType type;
 
-  TypeConstantExpression(this.value, this.type) {
+  TypeConstantExpression(this.type) {
     assert(type is GenericType || type is DynamicType);
   }
 
@@ -781,10 +761,9 @@ class TypeConstantExpression extends ConstantExpression {
 
 /// Reference to a constant local, top-level, or static variable.
 class VariableConstantExpression extends ConstantExpression {
-  final ConstantValue value;
   final VariableElement element;
 
-  VariableConstantExpression(this.value, this.element);
+  VariableConstantExpression(this.element);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.VARIABLE;
 
@@ -809,10 +788,9 @@ class VariableConstantExpression extends ConstantExpression {
 
 /// Reference to a top-level or static function.
 class FunctionConstantExpression extends ConstantExpression {
-  final FunctionConstantValue value;
   final FunctionElement element;
 
-  FunctionConstantExpression(this.value, this.element);
+  FunctionConstantExpression(this.element);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.FUNCTION;
 
@@ -837,12 +815,11 @@ class FunctionConstantExpression extends ConstantExpression {
 
 /// A constant binary expression like `a * b`.
 class BinaryConstantExpression extends ConstantExpression {
-  final ConstantValue value;
   final ConstantExpression left;
   final BinaryOperator operator;
   final ConstantExpression right;
 
-  BinaryConstantExpression(this.value, this.left, this.operator, this.right) {
+  BinaryConstantExpression(this.left, this.operator, this.right) {
     assert(PRECEDENCE_MAP[operator.kind] != null);
   }
 
@@ -862,7 +839,6 @@ class BinaryConstantExpression extends ConstantExpression {
 
   ConstantExpression apply(NormalizedArguments arguments) {
     return new BinaryConstantExpression(
-        value,
         left.apply(arguments),
         operator,
         right.apply(arguments));
@@ -909,11 +885,10 @@ class BinaryConstantExpression extends ConstantExpression {
 
 /// A constant identical invocation like `identical(a, b)`.
 class IdenticalConstantExpression extends ConstantExpression {
-  final ConstantValue value;
   final ConstantExpression left;
   final ConstantExpression right;
 
-  IdenticalConstantExpression(this.value, this.left, this.right);
+  IdenticalConstantExpression(this.left, this.right);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.IDENTICAL;
 
@@ -931,7 +906,6 @@ class IdenticalConstantExpression extends ConstantExpression {
 
   ConstantExpression apply(NormalizedArguments arguments) {
     return new IdenticalConstantExpression(
-        value,
         left.apply(arguments),
         right.apply(arguments));
   }
@@ -953,11 +927,10 @@ class IdenticalConstantExpression extends ConstantExpression {
 
 /// A unary constant expression like `-a`.
 class UnaryConstantExpression extends ConstantExpression {
-  final ConstantValue value;
   final UnaryOperator operator;
   final ConstantExpression expression;
 
-  UnaryConstantExpression(this.value, this.operator, this.expression) {
+  UnaryConstantExpression(this.operator, this.expression) {
     assert(PRECEDENCE_MAP[operator.kind] != null);
   }
 
@@ -976,7 +949,6 @@ class UnaryConstantExpression extends ConstantExpression {
 
   ConstantExpression apply(NormalizedArguments arguments) {
     return new UnaryConstantExpression(
-        value,
         operator,
         expression.apply(arguments));
   }
@@ -1002,15 +974,54 @@ class UnaryConstantExpression extends ConstantExpression {
   };
 }
 
+
+/// A string length constant expression like `a.length`.
+class StringLengthConstantExpression extends ConstantExpression {
+  final ConstantExpression expression;
+
+  StringLengthConstantExpression(this.expression);
+
+  ConstantExpressionKind get kind => ConstantExpressionKind.STRING_LENGTH;
+
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    return visitor.visitStringLength(this, context);
+  }
+
+  @override
+  ConstantValue evaluate(Environment environment,
+                         ConstantSystem constantSystem) {
+    ConstantValue value = expression.evaluate(environment, constantSystem);
+    if (value.isString) {
+      StringConstantValue stringValue = value;
+      return constantSystem.createInt(stringValue.primitiveValue.length);
+    }
+    return new NonConstantValue();
+  }
+
+  ConstantExpression apply(NormalizedArguments arguments) {
+    return new StringLengthConstantExpression(expression.apply(arguments));
+  }
+
+  int get precedence => 15;
+
+  @override
+  int _computeHashCode() {
+    return 23 * expression.hashCode;
+  }
+
+  @override
+  bool _equals(StringLengthConstantExpression other) {
+    return expression == other.expression;
+  }
+}
+
 /// A constant conditional expression like `a ? b : c`.
 class ConditionalConstantExpression extends ConstantExpression {
-  final ConstantValue value;
   final ConstantExpression condition;
   final ConstantExpression trueExp;
   final ConstantExpression falseExp;
 
-  ConditionalConstantExpression(this.value,
-                                this.condition,
+  ConditionalConstantExpression(this.condition,
                                 this.trueExp,
                                 this.falseExp);
 
@@ -1022,7 +1033,6 @@ class ConditionalConstantExpression extends ConstantExpression {
 
   ConstantExpression apply(NormalizedArguments arguments) {
     return new ConditionalConstantExpression(
-        value,
         condition.apply(arguments),
         trueExp.apply(arguments),
         falseExp.apply(arguments));
@@ -1077,10 +1087,6 @@ class PositionalArgumentReference extends ConstantExpression {
     return visitor.visitPositional(this, context);
   }
 
-  ConstantValue get value {
-    throw new UnsupportedError('PositionalArgumentReference.value');
-  }
-
   ConstantExpression apply(NormalizedArguments arguments) {
     return arguments.getPositionalArgument(index);
   }
@@ -1112,10 +1118,6 @@ class NamedArgumentReference extends ConstantExpression {
     return visitor.visitNamed(this, context);
   }
 
-  ConstantValue get value {
-    throw new UnsupportedError('NamedArgumentReference.value');
-  }
-
   ConstantExpression apply(NormalizedArguments arguments) {
     return arguments.getNamedArgument(name);
   }
@@ -1134,11 +1136,10 @@ class NamedArgumentReference extends ConstantExpression {
 }
 
 abstract class FromEnvironmentConstantExpression extends ConstantExpression {
-  final ConstantValue value;
-  final String name;
+  final ConstantExpression name;
   final ConstantExpression defaultValue;
 
-  FromEnvironmentConstantExpression(this.value, this.name, this.defaultValue);
+  FromEnvironmentConstantExpression(this.name, this.defaultValue);
 
   @override
   int _computeHashCode() {
@@ -1158,10 +1159,9 @@ class BoolFromEnvironmentConstantExpression
     extends FromEnvironmentConstantExpression {
 
   BoolFromEnvironmentConstantExpression(
-      ConstantValue value,
-      String name,
+      ConstantExpression name,
       ConstantExpression defaultValue)
-      : super(value, name, defaultValue);
+      : super(name, defaultValue);
 
   ConstantExpressionKind get kind {
     return ConstantExpressionKind.BOOL_FROM_ENVIRONMENT;
@@ -1174,19 +1174,34 @@ class BoolFromEnvironmentConstantExpression
   @override
   ConstantValue evaluate(Environment environment,
                          ConstantSystem constantSystem) {
-    String text = environment.readFromEnvironment(name);
+    ConstantValue nameConstantValue =
+        name.evaluate(environment, constantSystem);
+    ConstantValue defaultConstantValue;
+    if (defaultValue != null) {
+      defaultConstantValue =
+          defaultValue.evaluate(environment, constantSystem);
+    } else {
+      defaultConstantValue = constantSystem.createBool(false);
+    }
+    if (!nameConstantValue.isString) {
+      return new NonConstantValue();
+    }
+    StringConstantValue nameStringConstantValue = nameConstantValue;
+    String text = environment.readFromEnvironment(
+        nameStringConstantValue.primitiveValue.slowToString());
     if (text == 'true') {
       return constantSystem.createBool(true);
     } else if (text == 'false') {
       return constantSystem.createBool(false);
     } else {
-      return defaultValue.evaluate(environment, constantSystem);
+      return defaultConstantValue;
     }
   }
 
   ConstantExpression apply(NormalizedArguments arguments) {
     return new BoolFromEnvironmentConstantExpression(
-        null, name, defaultValue.apply(arguments));
+        name.apply(arguments),
+        defaultValue != null ? defaultValue.apply(arguments) : null);
   }
 }
 
@@ -1195,10 +1210,9 @@ class IntFromEnvironmentConstantExpression
     extends FromEnvironmentConstantExpression {
 
   IntFromEnvironmentConstantExpression(
-      ConstantValue value,
-      String name,
+      ConstantExpression name,
       ConstantExpression defaultValue)
-      : super(value, name, defaultValue);
+      : super(name, defaultValue);
 
   ConstantExpressionKind get kind {
     return ConstantExpressionKind.INT_FROM_ENVIRONMENT;
@@ -1211,13 +1225,27 @@ class IntFromEnvironmentConstantExpression
   @override
   ConstantValue evaluate(Environment environment,
                          ConstantSystem constantSystem) {
+    ConstantValue nameConstantValue =
+        name.evaluate(environment, constantSystem);
+    ConstantValue defaultConstantValue;
+    if (defaultValue != null) {
+      defaultConstantValue =
+          defaultValue.evaluate(environment, constantSystem);
+    } else {
+      defaultConstantValue = constantSystem.createNull();
+    }
+    if (!nameConstantValue.isString) {
+      return new NonConstantValue();
+    }
+    StringConstantValue nameStringConstantValue = nameConstantValue;
+    String text = environment.readFromEnvironment(
+        nameStringConstantValue.primitiveValue.slowToString());
     int value;
-    String text = environment.readFromEnvironment(name);
     if (text != null) {
       value = int.parse(text, onError: (_) => null);
     }
     if (value == null) {
-      return defaultValue.evaluate(environment, constantSystem);
+      return defaultConstantValue;
     } else {
       return constantSystem.createInt(value);
     }
@@ -1225,7 +1253,8 @@ class IntFromEnvironmentConstantExpression
 
   ConstantExpression apply(NormalizedArguments arguments) {
     return new IntFromEnvironmentConstantExpression(
-        null, name, defaultValue.apply(arguments));
+        name.apply(arguments),
+        defaultValue != null ? defaultValue.apply(arguments) : null);
   }
 }
 
@@ -1234,10 +1263,9 @@ class StringFromEnvironmentConstantExpression
     extends FromEnvironmentConstantExpression {
 
   StringFromEnvironmentConstantExpression(
-      ConstantValue value,
-      String name,
+      ConstantExpression name,
       ConstantExpression defaultValue)
-      : super(value, name, defaultValue);
+      : super(name, defaultValue);
 
   ConstantExpressionKind get kind {
     return ConstantExpressionKind.STRING_FROM_ENVIRONMENT;
@@ -1250,9 +1278,23 @@ class StringFromEnvironmentConstantExpression
   @override
   ConstantValue evaluate(Environment environment,
                          ConstantSystem constantSystem) {
-    String text = environment.readFromEnvironment(name);
+    ConstantValue nameConstantValue =
+        name.evaluate(environment, constantSystem);
+    ConstantValue defaultConstantValue;
+    if (defaultValue != null) {
+      defaultConstantValue =
+          defaultValue.evaluate(environment, constantSystem);
+    } else {
+      defaultConstantValue = constantSystem.createNull();
+    }
+    if (!nameConstantValue.isString) {
+      return new NonConstantValue();
+    }
+    StringConstantValue nameStringConstantValue = nameConstantValue;
+    String text = environment.readFromEnvironment(
+        nameStringConstantValue.primitiveValue.slowToString());
     if (text == null) {
-      return defaultValue.evaluate(environment, constantSystem);
+      return defaultConstantValue;
     } else {
       return constantSystem.createString(new DartString.literal(text));
     }
@@ -1260,18 +1302,18 @@ class StringFromEnvironmentConstantExpression
 
   ConstantExpression apply(NormalizedArguments arguments) {
     return new StringFromEnvironmentConstantExpression(
-        null, name, defaultValue.apply(arguments));
+        name.apply(arguments),
+        defaultValue != null ? defaultValue.apply(arguments) : null);
   }
 }
 
 /// A constant expression referenced with a deferred prefix.
 /// For example `lib.C`.
 class DeferredConstantExpression extends ConstantExpression {
-  final ConstantValue value;
   final ConstantExpression expression;
   final PrefixElement prefix;
 
-  DeferredConstantExpression(this.value, this.expression, this.prefix);
+  DeferredConstantExpression(this.expression, this.prefix);
 
   ConstantExpressionKind get kind => ConstantExpressionKind.DEFERRED;
 
@@ -1284,6 +1326,11 @@ class DeferredConstantExpression extends ConstantExpression {
   @override
   int _computeHashCode() {
     return 13 * expression.hashCode;
+  }
+
+  ConstantExpression apply(NormalizedArguments arguments) {
+    return new DeferredConstantExpression(
+        expression.apply(arguments), prefix);
   }
 
   @override
@@ -1320,6 +1367,7 @@ abstract class ConstantExpressionVisitor<R, A> {
   R visitBinary(BinaryConstantExpression exp, A context);
   R visitIdentical(IdenticalConstantExpression exp, A context);
   R visitUnary(UnaryConstantExpression exp, A context);
+  R visitStringLength(StringLengthConstantExpression exp, A context);
   R visitConditional(ConditionalConstantExpression exp, A context);
   R visitBoolFromEnvironment(BoolFromEnvironmentConstantExpression exp,
                              A context);
@@ -1346,8 +1394,8 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   final StringBuffer sb = new StringBuffer();
 
   void write(ConstantExpression parent,
-        ConstantExpression child,
-        {bool leftAssociative: true}) {
+             ConstantExpression child,
+             {bool leftAssociative: true}) {
     if (child.precedence < parent.precedence ||
         !leftAssociative && child.precedence == parent.precedence) {
       sb.write('(');
@@ -1443,11 +1491,11 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   void visitConstructed(ConstructedConstantExpression exp, [_]) {
     sb.write('const ');
     sb.write(exp.target.enclosingClass.name);
+    writeTypeArguments(exp.type);
     if (exp.target.name != '') {
       sb.write('.');
       sb.write(exp.target.name);
     }
-    writeTypeArguments(exp.type);
     sb.write('(');
     bool needsComma = false;
 
@@ -1473,7 +1521,20 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
 
   @override
   void visitConcatenate(ConcatenateConstantExpression exp, [_]) {
-    sb.write(exp.value.unparse());
+    sb.write('"');
+    for (ConstantExpression expression in exp.expressions) {
+      if (expression.kind == ConstantExpressionKind.STRING) {
+        StringConstantExpression string = expression;
+        // TODO(johnniwinther): Ensure correct escaping.
+        sb.write('${string.primitiveValue}');
+      } else {
+        sb.write(r"${");
+        visit(expression);
+        sb.write("}");
+      }
+
+    }
+    sb.write('"');
   }
 
   @override
@@ -1530,6 +1591,12 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   }
 
   @override
+  void visitStringLength(StringLengthConstantExpression exp, [_]) {
+    write(exp, exp.expression, leftAssociative: false);
+    sb.write('.length');
+  }
+
+  @override
   void visitConditional(ConditionalConstantExpression exp, [_]) {
     write(exp, exp.condition, leftAssociative: false);
     sb.write(' ? ');
@@ -1560,23 +1627,35 @@ class ConstExpPrinter extends ConstantExpressionVisitor {
   @override
   void visitBoolFromEnvironment(BoolFromEnvironmentConstantExpression exp,
                                 [_]) {
-    sb.write('const bool.fromEnvironment("${exp.name}", defaultValue: ');
-    visit(exp.defaultValue);
+    sb.write('const bool.fromEnvironment(');
+    visit(exp.name);
+    if (exp.defaultValue != null) {
+      sb.write(', defaultValue: ');
+      visit(exp.defaultValue);
+    }
     sb.write(')');
   }
 
   @override
   void visitIntFromEnvironment(IntFromEnvironmentConstantExpression exp, [_]) {
-    sb.write('const int.fromEnvironment("${exp.name}", defaultValue: ');
-    visit(exp.defaultValue);
+    sb.write('const int.fromEnvironment(');
+    visit(exp.name);
+    if (exp.defaultValue != null) {
+      sb.write(', defaultValue: ');
+      visit(exp.defaultValue);
+    }
     sb.write(')');
   }
 
   @override
   void visitStringFromEnvironment(StringFromEnvironmentConstantExpression exp,
                                   [_]) {
-    sb.write('const String.fromEnvironment("${exp.name}", defaultValue: ');
-    visit(exp.defaultValue);
+    sb.write('const String.fromEnvironment(');
+    visit(exp.name);
+    if (exp.defaultValue != null) {
+      sb.write(', defaultValue: ');
+      visit(exp.defaultValue);
+    }
     sb.write(')');
   }
 

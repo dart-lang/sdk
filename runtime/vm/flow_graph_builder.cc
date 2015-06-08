@@ -113,6 +113,7 @@ class NestedStatement : public ValueObject {
   JoinEntryInstr* break_target() const { return break_target_; }
 
   virtual intptr_t ContextLevel() const;
+  virtual void AdjustContextLevel(intptr_t context_level);
 
   virtual JoinEntryInstr* BreakTargetFor(SourceLabel* label);
   virtual JoinEntryInstr* ContinueTargetFor(SourceLabel* label);
@@ -152,6 +153,13 @@ intptr_t NestedStatement::ContextLevel() const {
 }
 
 
+void NestedStatement::AdjustContextLevel(intptr_t context_level) {
+  // There must be a NestedContextAdjustment on the nesting stack.
+  ASSERT(outer() != NULL);
+  outer()->AdjustContextLevel(context_level);
+}
+
+
 intptr_t FlowGraphBuilder::context_level() const {
   return (nesting_stack() == NULL) ? 0 : nesting_stack()->ContextLevel();
 }
@@ -162,7 +170,7 @@ JoinEntryInstr* NestedStatement::BreakTargetFor(SourceLabel* label) {
   if (break_target_ == NULL) {
     break_target_ =
         new(owner()->zone()) JoinEntryInstr(owner()->AllocateBlockId(),
-                                               owner()->try_index());
+                                            owner()->try_index());
   }
   return break_target_;
 }
@@ -191,6 +199,24 @@ intptr_t NestedBlock::ContextLevel() const {
       ? NestedStatement::ContextLevel()
       : scope_->context_level();
 }
+
+
+// A nested statement reflecting a context level adjustment.
+class NestedContextAdjustment : public NestedStatement {
+ public:
+  NestedContextAdjustment(FlowGraphBuilder* owner, intptr_t context_level)
+      : NestedStatement(owner, NULL), context_level_(context_level) { }
+
+  virtual intptr_t ContextLevel() const { return context_level_; }
+
+  virtual void AdjustContextLevel(intptr_t context_level) {
+    ASSERT(context_level <= context_level_);
+    context_level_ = context_level;
+  }
+
+ private:
+  intptr_t context_level_;
+};
 
 
 // A nested statement that can be the target of a continue as well as a
@@ -925,8 +951,9 @@ BlockEntryInstr* TestGraphVisitor::CreateFalseSuccessor() const {
 
 
 void TestGraphVisitor::ReturnValue(Value* value) {
-  if (Isolate::Current()->TypeChecksEnabled() ||
-      Isolate::Current()->AssertsEnabled()) {
+  Isolate* isolate = Isolate::Current();
+  if (isolate->flags().type_checks() ||
+      isolate->flags().asserts()) {
     value = Bind(new(Z) AssertBooleanInstr(condition_token_pos(), value));
   }
   Value* constant_true = Bind(new(Z) ConstantInstr(Bool::True()));
@@ -961,7 +988,7 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
         false));  // No number check.
   } else {
     branch = new(Z) BranchInstr(comp);
-    branch->set_is_checked(Isolate::Current()->TypeChecksEnabled());
+    branch->set_is_checked(Isolate::Current()->flags().type_checks());
   }
   AddInstruction(branch);
   CloseFragment();
@@ -971,7 +998,7 @@ void TestGraphVisitor::MergeBranchWithComparison(ComparisonInstr* comp) {
 
 
 void TestGraphVisitor::MergeBranchWithNegate(BooleanNegateInstr* neg) {
-  ASSERT(!Isolate::Current()->TypeChecksEnabled());
+  ASSERT(!Isolate::Current()->flags().type_checks());
   Value* constant_true = Bind(new(Z) ConstantInstr(Bool::True()));
   StrictCompareInstr* comp =
       new(Z) StrictCompareInstr(condition_token_pos(),
@@ -993,7 +1020,7 @@ void TestGraphVisitor::ReturnDefinition(Definition* definition) {
     MergeBranchWithComparison(comp);
     return;
   }
-  if (!Isolate::Current()->TypeChecksEnabled()) {
+  if (!Isolate::Current()->flags().type_checks()) {
     BooleanNegateInstr* neg = definition->AsBooleanNegate();
     if (neg != NULL) {
       MergeBranchWithNegate(neg);
@@ -1055,6 +1082,20 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
   Append(for_value);
   Value* return_value = for_value.value();
 
+  // Call to stub that checks whether the debugger is in single
+  // step mode. This call must happen before the contexts are
+  // unchained so that captured variables can be inspected.
+  // No debugger check is done in native functions or for return
+  // statements for which there is no associated source position.
+  const Function& function = owner()->function();
+  if (FLAG_support_debugger &&
+      (node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
+    AddInstruction(new(Z) DebugStepCheckInstr(node->token_pos(),
+                                              RawPcDescriptors::kRuntimeCall));
+  }
+
+  NestedContextAdjustment context_adjustment(owner(), owner()->context_level());
+
   if (node->inlined_finally_list_length() > 0) {
     LocalVariable* temp = owner()->parsed_function().finally_return_temp_var();
     ASSERT(temp != NULL);
@@ -1071,19 +1112,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     return_value = Bind(BuildLoadLocal(*temp));
   }
 
-  // Call to stub that checks whether the debugger is in single
-  // step mode. This call must happen before the contexts are
-  // unchained so that captured variables can be inspected.
-  // No debugger check is done in native functions or for return
-  // statements for which there is no associated source position.
-  const Function& function = owner()->function();
-  if (FLAG_support_debugger &&
-      (node->token_pos() != Scanner::kNoSourcePos) && !function.is_native()) {
-    AddInstruction(new(Z) DebugStepCheckInstr(node->token_pos(),
-                                              RawPcDescriptors::kRuntimeCall));
-  }
-
-  if (Isolate::Current()->TypeChecksEnabled()) {
+  if (Isolate::Current()->flags().type_checks()) {
     const bool is_implicit_dynamic_getter =
         (!function.is_static() &&
         ((function.kind() == RawFunction::kImplicitGetter) ||
@@ -1283,8 +1312,9 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     TestGraphVisitor for_left(owner(), node->left()->token_pos());
     node->left()->Visit(&for_left);
     EffectGraphVisitor empty(owner());
-    if (Isolate::Current()->TypeChecksEnabled() ||
-        Isolate::Current()->AssertsEnabled()) {
+    Isolate* isolate = Isolate::Current();
+    if (isolate->flags().type_checks() ||
+        isolate->flags().asserts()) {
       ValueGraphVisitor for_right(owner());
       node->right()->Visit(&for_right);
       Value* right_value = for_right.value();
@@ -1349,8 +1379,9 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     ValueGraphVisitor for_right(owner());
     node->right()->Visit(&for_right);
     Value* right_value = for_right.value();
-    if (Isolate::Current()->TypeChecksEnabled() ||
-        Isolate::Current()->AssertsEnabled()) {
+    Isolate* isolate = Isolate::Current();
+    if (isolate->flags().type_checks() ||
+        isolate->flags().asserts()) {
       right_value =
           for_right.Bind(new(Z) AssertBooleanInstr(node->right()->token_pos(),
                                                    right_value));
@@ -1886,8 +1917,9 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
         kNumArgsChecked,
         owner()->ic_data_array());
     if (node->kind() == Token::kNE) {
-      if (Isolate::Current()->TypeChecksEnabled() ||
-          Isolate::Current()->AssertsEnabled()) {
+      Isolate* isolate = Isolate::Current();
+      if (isolate->flags().type_checks() ||
+          isolate->flags().asserts()) {
         Value* value = Bind(result);
         result = new(Z) AssertBooleanInstr(node->token_pos(), value);
       }
@@ -1933,8 +1965,9 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     node->operand()->Visit(&for_value);
     Append(for_value);
     Value* value = for_value.value();
-    if (Isolate::Current()->TypeChecksEnabled() ||
-        Isolate::Current()->AssertsEnabled()) {
+    Isolate* isolate = Isolate::Current();
+    if (isolate->flags().type_checks() ||
+        isolate->flags().asserts()) {
       value =
           Bind(new(Z) AssertBooleanInstr(node->operand()->token_pos(), value));
     }
@@ -2295,6 +2328,8 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
 
 void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
+  NestedContextAdjustment context_adjustment(owner(), owner()->context_level());
+
   for (intptr_t i = 0; i < node->inlined_finally_list_length(); i++) {
     EffectGraphVisitor for_effect(owner());
     node->InlinedFinallyNodeAt(i)->Visit(&for_effect);
@@ -2306,27 +2341,7 @@ void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
   // contains the destination label.
   SourceLabel* label = node->label();
   ASSERT(label->owner() != NULL);
-  int target_context_level = 0;
-  LocalScope* target_scope = label->owner();
-  if (target_scope->num_context_variables() > 0) {
-    // The scope of the target label allocates a context, therefore its outer
-    // scope is at a lower context level.
-    target_context_level = target_scope->context_level() - 1;
-  } else {
-    // The scope of the target label does not allocate a context, so its outer
-    // scope is at the same context level. Find it.
-    while ((target_scope != NULL) &&
-           (target_scope->num_context_variables() == 0)) {
-      target_scope = target_scope->parent();
-    }
-    if (target_scope != NULL) {
-      target_context_level = target_scope->context_level();
-    }
-  }
-  ASSERT(target_context_level >= 0);
-  intptr_t current_context_level = owner()->context_level();
-  ASSERT(current_context_level >= target_context_level);
-  UnchainContexts(current_context_level - target_context_level);
+  AdjustContextLevel(label->owner());
 
   JoinEntryInstr* jump_target = NULL;
   NestedStatement* current = owner()->nesting_stack();
@@ -3450,7 +3465,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         return ReturnDefinition(BuildNativeGetter(
             node, kind, LinkedHashMap::index_offset(),
             Type::ZoneHandle(Z, Type::DynamicType()),
-            kTypedDataUint32ArrayCid));
+            kDynamicCid));
       }
       case MethodRecognizer::kLinkedHashMap_setIndex: {
         return ReturnDefinition(DoNativeSetterStoreValue(
@@ -3555,7 +3570,7 @@ void EffectGraphVisitor::VisitStoreLocalNode(StoreLocalNode* node) {
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* store_value = for_value.value();
-  if (Isolate::Current()->TypeChecksEnabled()) {
+  if (Isolate::Current()->flags().type_checks()) {
     store_value = BuildAssignableValue(node->value()->token_pos(),
                                        store_value,
                                        node->local().type(),
@@ -3596,7 +3611,7 @@ void EffectGraphVisitor::VisitStoreInstanceFieldNode(
   node->value()->Visit(&for_value);
   Append(for_value);
   Value* store_value = for_value.value();
-  if (Isolate::Current()->TypeChecksEnabled()) {
+  if (Isolate::Current()->flags().type_checks()) {
     const AbstractType& type =
         AbstractType::ZoneHandle(Z, node->field().type());
     const String& dst_name = String::ZoneHandle(Z, node->field().name());
@@ -3867,6 +3882,33 @@ void EffectGraphVisitor::UnchainContexts(intptr_t n) {
 }
 
 
+void EffectGraphVisitor::AdjustContextLevel(LocalScope* target_scope) {
+  ASSERT(target_scope != NULL);
+  intptr_t target_context_level = 0;
+  if (target_scope->num_context_variables() > 0) {
+    // The scope of the target label allocates a context, therefore its outer
+    // scope is at a lower context level.
+    target_context_level = target_scope->context_level() - 1;
+  } else {
+    // The scope of the target label does not allocate a context, so its outer
+    // scope is at the same context level. Find it.
+    while ((target_scope != NULL) &&
+           (target_scope->num_context_variables() == 0)) {
+      target_scope = target_scope->parent();
+    }
+    if (target_scope != NULL) {
+      target_context_level = target_scope->context_level();
+    }
+  }
+  ASSERT(target_context_level >= 0);
+  intptr_t current_context_level = owner()->context_level();
+  ASSERT(current_context_level >= target_context_level);
+  UnchainContexts(current_context_level - target_context_level);
+  // Record adjusted context level.
+  owner()->nesting_stack()->AdjustContextLevel(target_context_level);
+}
+
+
 // <Statement> ::= Sequence { scope: LocalScope
 //                            nodes: <Statement>*
 //                            label: SourceLabel }
@@ -3960,7 +4002,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     }
   }
 
-  if (Isolate::Current()->TypeChecksEnabled() && is_top_level_sequence) {
+  if (Isolate::Current()->flags().type_checks() && is_top_level_sequence) {
     const int num_params = function.NumParameters();
     int pos = 0;
     if (function.IsGenerativeConstructor()) {
@@ -4406,12 +4448,15 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
   }
 
   // Note: do not restore the saved_try_context here since the inlined
-  // code is running at he context level of the return or jump instruction
-  // that follows the inlined code. See issue 22822.
+  // code is not reached via an exception handler, therefore the context is
+  // always properly set on entry. In other words, the inlined finally clause is
+  // never the target of a long jump that would find an uninitialized current
+  // context variable.
 
   JoinEntryInstr* finally_entry =
       new(Z) JoinEntryInstr(owner()->AllocateBlockId(), owner()->try_index());
   EffectGraphVisitor for_finally_block(owner());
+  for_finally_block.AdjustContextLevel(node->finally_block()->scope());
   node->finally_block()->Visit(&for_finally_block);
 
   if (try_index >= 0) {

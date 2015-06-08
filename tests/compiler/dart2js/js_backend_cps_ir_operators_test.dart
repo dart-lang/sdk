@@ -16,7 +16,18 @@ main() {
   print(foo() ? "hello world" : "bad bad");
 }""",
 """function() {
-  P.print(P.identical(V.foo(), true) ? "hello world" : "bad bad");
+  V.foo();
+  P.print("bad bad");
+  return null;
+}"""),
+  const TestEntry("""
+foo() => null;
+main() {
+  print(foo() ? "hello world" : "bad bad");
+}""",
+"""function() {
+  V.foo();
+  P.print("bad bad");
   return null;
 }"""),
   const TestEntry("""
@@ -25,21 +36,25 @@ main() {
   print(foo ? "hello world" : "bad bad");
 }""",
 """function() {
-  P.print(P.identical(V.foo(), true) ? "hello world" : "bad bad");
+  V.foo();
+  P.print("bad bad");
   return null;
 }"""),
   const TestEntry("""
 get foo => foo;
 main() { print(foo && foo); }""",
 """function() {
-  P.print(P.identical(V.foo(), true) && P.identical(V.foo(), true));
+  V.foo();
+  P.print(false);
   return null;
 }"""),
   const TestEntry("""
 get foo => foo;
 main() { print(foo || foo); }""",
 """function() {
-  P.print(P.identical(V.foo(), true) || P.identical(V.foo(), true));
+  V.foo();
+  V.foo();
+  P.print(false);
   return null;
 }"""),
 

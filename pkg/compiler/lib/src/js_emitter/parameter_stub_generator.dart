@@ -100,12 +100,11 @@ class ParameterStubGenerator {
           parametersBuffer[optionalParameterStart + index] =
               new jsAst.Parameter(jsName);
         } else {
-          ConstantExpression constant = handler.getConstantForVariable(element);
-          if (constant == null) {
+          ConstantValue value = handler.getConstantValueForVariable(element);
+          if (value == null) {
             argumentsBuffer[count] =
                 emitter.constantReference(new NullConstantValue());
           } else {
-            ConstantValue value = constant.value;
             if (!value.isNull) {
               // If the value is the null constant, we should not pass it
               // down to the native method.

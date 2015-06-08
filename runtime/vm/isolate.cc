@@ -54,6 +54,32 @@ DEFINE_FLAG(charp, isolate_log_filter, NULL,
             "Log isolates whose name include the filter. "
             "Default: service isolate log messages are suppressed.");
 
+// TODO(iposva): Make these isolate specific flags inaccessible using the
+// regular FLAG_xyz pattern.
+// These flags are per-isolate and only influence the defaults.
+DEFINE_FLAG(bool, enable_asserts, false, "Enable assert statements.");
+DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
+DEFINE_FLAG(bool, error_on_bad_override, false,
+            "Report error for bad overrides.");
+DEFINE_FLAG(bool, error_on_bad_type, false,
+            "Report error for malformed types.");
+
+static void CheckedModeHandler(bool value) {
+  FLAG_enable_asserts = value;
+  FLAG_enable_type_checks = value;
+}
+
+// --enable-checked-mode and --checked both enable checked mode which is
+// equivalent to setting --enable-asserts and --enable-type-checks.
+DEFINE_FLAG_HANDLER(CheckedModeHandler,
+                    enable_checked_mode,
+                    "Enable checked mode.");
+
+DEFINE_FLAG_HANDLER(CheckedModeHandler,
+                    checked,
+                    "Enable checked mode.");
+
+
 // Quick access to the locally defined isolate() method.
 #define I (isolate())
 
@@ -450,20 +476,24 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
 
 void IsolateMessageHandler::NotifyPauseOnStart() {
-  StartIsolateScope start_isolate(isolate());
-  StackZone zone(I);
-  HandleScope handle_scope(I);
-  ServiceEvent pause_event(isolate(), ServiceEvent::kPauseStart);
-  Service::HandleEvent(&pause_event);
+  if (Service::NeedsDebugEvents()) {
+    StartIsolateScope start_isolate(isolate());
+    StackZone zone(I);
+    HandleScope handle_scope(I);
+    ServiceEvent pause_event(isolate(), ServiceEvent::kPauseStart);
+    Service::HandleEvent(&pause_event);
+  }
 }
 
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
-  StartIsolateScope start_isolate(isolate());
-  StackZone zone(I);
-  HandleScope handle_scope(I);
-  ServiceEvent pause_event(isolate(), ServiceEvent::kPauseExit);
-  Service::HandleEvent(&pause_event);
+  if (Service::NeedsDebugEvents()) {
+    StartIsolateScope start_isolate(isolate());
+    StackZone zone(I);
+    HandleScope handle_scope(I);
+    ServiceEvent pause_event(isolate(), ServiceEvent::kPauseExit);
+    Service::HandleEvent(&pause_event);
+  }
 }
 
 
@@ -532,6 +562,35 @@ bool IsolateMessageHandler::ProcessUnhandledException(const Error& result) {
 }
 
 
+Isolate::Flags::Flags()
+  : type_checks_(FLAG_enable_type_checks),
+    asserts_(FLAG_enable_asserts),
+    error_on_bad_type_(FLAG_error_on_bad_type),
+    error_on_bad_override_(FLAG_error_on_bad_override) {}
+
+
+void Isolate::Flags::CopyFrom(const Flags& orig) {
+  type_checks_ = orig.type_checks();
+  asserts_ = orig.asserts();
+  error_on_bad_type_ = orig.error_on_bad_type();
+  error_on_bad_override_ = orig.error_on_bad_override();
+}
+
+
+void Isolate::Flags::CopyFrom(const Dart_IsolateFlags& api_flags) {
+  type_checks_ = api_flags.enable_type_checks;
+  asserts_ = api_flags.enable_asserts;
+  // Leave others at defaults.
+}
+
+
+void Isolate::Flags::CopyTo(Dart_IsolateFlags* api_flags) const {
+  api_flags->version = DART_FLAGS_CURRENT_VERSION;
+  api_flags->enable_type_checks = type_checks();
+  api_flags->enable_asserts = asserts();
+}
+
+
 #if defined(DEBUG)
 // static
 void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
@@ -549,7 +608,7 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
 #define REUSABLE_HANDLE_INITIALIZERS(object)                                   \
   object##_handle_(NULL),
 
-Isolate::Isolate()
+Isolate::Isolate(const Dart_IsolateFlags& api_flags)
   :   mutator_thread_(NULL),
       vm_tag_(0),
       store_buffer_(),
@@ -574,7 +633,7 @@ Isolate::Isolate()
       single_step_(false),
       resume_request_(false),
       has_compiled_(false),
-      strict_compilation_(false),
+      flags_(),
       random_(),
       simulator_(NULL),
       long_jump_base_(NULL),
@@ -616,6 +675,7 @@ Isolate::Isolate()
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       reusable_handles_() {
+  flags_.CopyFrom(api_flags);
   set_vm_tag(VMTag::kEmbedderTagId);
   set_user_tag(UserTags::kDefaultUserTag);
 }
@@ -667,8 +727,10 @@ void Isolate::InitOnce() {
 }
 
 
-Isolate* Isolate::Init(const char* name_prefix, bool is_vm_isolate) {
-  Isolate* result = new Isolate();
+Isolate* Isolate::Init(const char* name_prefix,
+                       const Dart_IsolateFlags& api_flags,
+                       bool is_vm_isolate) {
+  Isolate* result = new Isolate(api_flags);
   ASSERT(result != NULL);
 
   // Initialize metrics.
@@ -1811,6 +1873,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_args_len_(0),
       serialized_message_(NULL),
       serialized_message_len_(0),
+      isolate_flags_(),
       paused_(paused) {
   script_url_ = NULL;
   const Class& cls = Class::Handle(func.Owner());
@@ -1829,6 +1892,8 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                   &serialized_message_,
                   &serialized_message_len_,
                   can_send_any_object);
+  // Inherit flags from spawning isolate.
+  isolate_flags()->CopyFrom(Isolate::Current()->flags());
 }
 
 
@@ -1848,6 +1913,7 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
       serialized_args_len_(0),
       serialized_message_(NULL),
       serialized_message_len_(0),
+      isolate_flags_(),
       paused_(paused) {
   script_url_ = strdup(script_url);
   if (package_root != NULL) {
@@ -1864,6 +1930,9 @@ IsolateSpawnState::IsolateSpawnState(Dart_Port parent_port,
                   &serialized_message_,
                   &serialized_message_len_,
                   can_send_any_object);
+  // By default inherit flags from spawning isolate. These can be overridden
+  // from the calling code.
+  isolate_flags()->CopyFrom(Isolate::Current()->flags());
 }
 
 

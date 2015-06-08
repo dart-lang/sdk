@@ -473,6 +473,8 @@ library lib;
 part 'part.dart';''');
     // run all tasks without part
     _analyzeAll_assertFinished();
+    expect(_hasAnalysisErrorWithErrorSeverity(context.getErrors(libSource)),
+        isTrue, reason: "lib has errors");
     // add part and run all tasks
     Source partSource = addSource("/part.dart", r'''
 part of lib;
@@ -481,6 +483,11 @@ part of lib;
     // "libSource" should be here
     List<Source> librariesWithPart = context.getLibrariesContaining(partSource);
     expect(librariesWithPart, unorderedEquals([libSource]));
+    expect(_hasAnalysisErrorWithErrorSeverity(context.getErrors(libSource)),
+        isFalse, reason: "lib doesn't have errors");
+    expect(
+        context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
+        reason: "part resolved");
   }
 
   void test_performAnalysisTask_changeLibraryContents() {
@@ -554,10 +561,7 @@ part of lib;
         reason: "part resolved 3");
   }
 
-  void fail_performAnalysisTask_changePartContents_makeItAPart() {
-    // TODO(paulberry): fix this.  It appears to be broken because of broken
-    // dependency handling with part files (see TODO comment in
-    // ContainingLibrariesTask.internalPeform)
+  void test_performAnalysisTask_changePartContents_makeItAPart() {
     Source libSource = addSource("/lib.dart", r'''
 library lib;
 part 'part.dart';
@@ -567,7 +571,7 @@ void f(x) {}''');
     expect(context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
         reason: "library resolved 1");
     expect(
-        context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
+        context.getResolvedCompilationUnit2(partSource, partSource), isNotNull,
         reason: "part resolved 1");
     // update and analyze
     context.setContents(partSource, r'''
@@ -575,7 +579,7 @@ part of lib;
 void g() { f(null); }''');
     expect(context.getResolvedCompilationUnit2(libSource, libSource), isNull,
         reason: "library changed 2");
-    expect(context.getResolvedCompilationUnit2(partSource, libSource), isNull,
+    expect(context.getResolvedCompilationUnit2(partSource, partSource), isNull,
         reason: "part changed 2");
     _analyzeAll_assertFinished();
     expect(context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,

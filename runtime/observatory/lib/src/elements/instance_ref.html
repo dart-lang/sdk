@@ -42,8 +42,7 @@
         </a>
       </template>
 
-      <!-- TODO(rmacnak): Specialized view for maps. -->
-      <template if="{{ ref.isPlainInstance || ref.isMap }}">
+      <template if="{{ ref.isPlainInstance }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
@@ -65,11 +64,30 @@
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
         <curly-block callback="{{ expander() }}">
           <div class="memberList">
-            <template repeat="{{ element in ref.elements }}">
+            <template repeat="{{ index in ref.elements.asMap().keys }}">
               <div class="memberItem">
-                <div class="memberName">[{{ element['index']}}]</div>
+                <div class="memberName">[{{ index }}]</div>
                 <div class="memberValue">
-                  <any-service-ref ref="{{ element['value'] }}"></any-service-ref>
+                  <any-service-ref ref="{{ ref.elements[index] }}">
+                  </any-service-ref>
+                </div>
+              </div>
+            </template>
+          </div>
+        </curly-block>
+      </template>
+
+      <template if="{{ ref.isMap }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
+        <curly-block callback="{{ expander() }}">
+          <div class="memberList">
+            <template repeat="{{ association in ref.associations }}">
+              <div class="memberItem">
+                <div class="memberName">
+                  [<any-service-ref ref="{{ association['key'] }}"></any-service-ref>]
+                </div>
+                <div class="memberValue">
+                  <any-service-ref ref="{{ association['value'] }}"></any-service-ref>
                 </div>
               </div>
             </template>

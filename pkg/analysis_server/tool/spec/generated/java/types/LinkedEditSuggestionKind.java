@@ -14,7 +14,7 @@
  * This file has been automatically generated.  Please do not edit it manually.
  * To regenerate the file, use the script "pkg/analysis_server/tool/spec/generate_files".
  */
-package com.google.dart.server.generated.types;
+package org.dartlang.analysis.server.protocol;
 
 /**
  * An enumeration of the kind of values that can be suggested for a linked edit.

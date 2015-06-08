@@ -37,6 +37,7 @@ class Isolate {
   @patch
   static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message, { bool paused: false,
+                                                 bool checked,
                                                  Uri packageRoot }) {
     if (packageRoot != null) throw new UnimplementedError("packageRoot");
     try {

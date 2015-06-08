@@ -276,6 +276,7 @@ class A {}
 library my.lib;
 part 'part.dart';
 ''');
+    _performAnalysis();
     AnalysisError error = _findErrorToFix();
     fix = _assertHasFix(DartFixKind.ADD_PART_OF, error);
     change = fix.change;
@@ -3914,5 +3915,9 @@ main() {
       positions.add(new Position(testFile, offset));
     }
     return positions;
+  }
+
+  void _performAnalysis() {
+    while (context.performAnalysisTask().hasMoreWork);
   }
 }

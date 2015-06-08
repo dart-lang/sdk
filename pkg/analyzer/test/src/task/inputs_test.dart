@@ -564,7 +564,6 @@ class SimpleTaskInputBuilderTest extends EngineTestCase {
   test_inputValue_afterCurrentValueNotAvailable() {
     SimpleTaskInputBuilder builder = new SimpleTaskInputBuilder(input);
     builder.moveNext();
-    String value = 'value';
     builder.currentValueNotAvailable();
     builder.moveNext();
     expect(builder.inputValue, isNull);

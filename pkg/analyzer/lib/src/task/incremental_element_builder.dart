@@ -13,35 +13,68 @@ import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 /**
+ * The change of a single [CompilationUnitElement].
+ */
+class CompilationUnitElementDelta {
+  /**
+   * One or more directives were added/removed.
+   */
+  bool hasDirectiveChange = false;
+
+  /**
+   * The list of added top-level element.
+   */
+  final List<Element> addedDeclarations = <Element>[];
+
+  /**
+   * The list of removed top-level elements.
+   */
+  final List<Element> removedDeclarations = <Element>[];
+}
+
+/**
  * Incrementally updates the existing [unitElement] and builds elements for
  * the [newUnit].
  */
 class IncrementalCompilationUnitElementBuilder {
-  final Source source;
+  final Source unitSource;
   final Source librarySource;
   final CompilationUnit oldUnit;
   final CompilationUnitElementImpl unitElement;
   final CompilationUnit newUnit;
   final ElementHolder holder = new ElementHolder();
 
-  IncrementalCompilationUnitElementBuilder(
-      CompilationUnit oldUnit, this.newUnit)
-      : oldUnit = oldUnit,
-        unitElement = oldUnit.element,
-        source = oldUnit.element.source,
-        librarySource = (oldUnit.element as CompilationUnitElementImpl).librarySource;
+  /**
+   * The change between element models of [oldUnit] and [newUnit].
+   */
+  final CompilationUnitElementDelta unitDelta =
+      new CompilationUnitElementDelta();
 
+  factory IncrementalCompilationUnitElementBuilder(
+      CompilationUnit oldUnit, CompilationUnit newUnit) {
+    CompilationUnitElementImpl unitElement = oldUnit.element;
+    return new IncrementalCompilationUnitElementBuilder._(unitElement.source,
+        unitElement.librarySource, oldUnit, newUnit, unitElement);
+  }
+
+  IncrementalCompilationUnitElementBuilder._(this.unitSource,
+      this.librarySource, this.oldUnit, this.newUnit, this.unitElement);
+
+  /**
+   * Updates [oldUnit] to have the same directives and declarations, in the
+   * same order as in [newUnit]. Existing resolution is kept where possible.
+   *
+   * Updates [unitElement] by adding/removing elements as needed.
+   *
+   * Fills [unitDelta] with added/remove elements.
+   */
   void build() {
     new CompilationUnitBuilder().buildCompilationUnit(
-        source, newUnit, librarySource);
+        unitSource, newUnit, librarySource);
     _processDirectives();
     _processUnitMembers();
     newUnit.element = unitElement;
-  }
-
-  void _addElementsToHolder(CompilationUnitMember node) {
-    List<Element> elements = _getElements(node);
-    elements.forEach(_addElementToHolder);
+    _replaceUnitContents(oldUnit, newUnit);
   }
 
   void _addElementToHolder(Element element) {
@@ -69,11 +102,13 @@ class IncrementalCompilationUnitElementBuilder {
       oldDirectiveMap[code] = oldDirective;
     }
     // Replace new nodes with the identical old nodes.
+    Set<Directive> removedDirectives = oldUnit.directives.toSet();
     for (Directive newDirective in newUnit.directives) {
       String code = TokenUtils.getFullCode(newDirective);
       // Prepare an old directive.
       Directive oldDirective = oldDirectiveMap[code];
       if (oldDirective == null) {
+        unitDelta.hasDirectiveChange = true;
         continue;
       }
       // URI's must be resolved to the same sources.
@@ -85,6 +120,11 @@ class IncrementalCompilationUnitElementBuilder {
       }
       // Do replacement.
       _replaceNode(newDirective, oldDirective);
+      removedDirectives.remove(oldDirective);
+    }
+    // If there are any directives left, then these directives were removed.
+    if (removedDirectives.isNotEmpty) {
+      unitDelta.hasDirectiveChange = true;
     }
   }
 
@@ -95,19 +135,32 @@ class IncrementalCompilationUnitElementBuilder {
       String code = TokenUtils.getFullCode(oldNode);
       oldNodeMap[code] = oldNode;
     }
+    // Prepare all old top-level elements.
+    Set<Element> removedElements = new Set<Element>();
+    removedElements.addAll(unitElement.accessors);
+    removedElements.addAll(unitElement.enums);
+    removedElements.addAll(unitElement.functions);
+    removedElements.addAll(unitElement.functionTypeAliases);
+    removedElements.addAll(unitElement.types);
+    removedElements.addAll(unitElement.topLevelVariables);
     // Replace new nodes with the identical old nodes.
     for (CompilationUnitMember newNode in newUnit.declarations) {
       String code = TokenUtils.getFullCode(newNode);
       // Prepare an old node.
       CompilationUnitMember oldNode = oldNodeMap[code];
       if (oldNode == null) {
-        _addElementsToHolder(newNode);
+        List<Element> elements = _getElements(newNode);
+        elements.forEach(_addElementToHolder);
+        elements.forEach(unitDelta.addedDeclarations.add);
         continue;
       }
       // Do replacement.
       _replaceNode(newNode, oldNode);
-      _addElementsToHolder(oldNode);
+      List<Element> elements = _getElements(oldNode);
+      elements.forEach(_addElementToHolder);
+      elements.forEach(removedElements.remove);
     }
+    unitDelta.removedDeclarations.addAll(removedElements);
     // Update CompilationUnitElement.
     unitElement.accessors = holder.accessors;
     unitElement.enums = holder.enums;
@@ -176,6 +229,20 @@ class IncrementalCompilationUnitElementBuilder {
       }
     }
     return elements;
+  }
+
+  /**
+   * Replaces contents of the [to] unit with the contenxts of the [from] unit.
+   */
+  static void _replaceUnitContents(CompilationUnit to, CompilationUnit from) {
+    to.directives.clear();
+    to.declarations.clear();
+    to.beginToken = from.beginToken;
+    to.scriptTag = from.scriptTag;
+    to.directives.addAll(from.directives);
+    to.declarations.addAll(from.declarations);
+    to.element = to.element;
+    to.lineInfo = from.lineInfo;
   }
 }
 

@@ -38,7 +38,7 @@ class CodegenAnalysisServer extends CodegenJavaVisitor {
     writeln('package com.google.dart.server.generated;');
     writeln();
     writeln('import com.google.dart.server.*;');
-    writeln('import com.google.dart.server.generated.types.*;');
+    writeln('import org.dartlang.analysis.server.protocol.*;');
     writeln();
     writeln('import java.util.List;');
     writeln('import java.util.Map;');

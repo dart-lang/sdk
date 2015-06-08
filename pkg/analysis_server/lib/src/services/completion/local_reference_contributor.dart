@@ -357,48 +357,28 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   @override
   void declaredClass(ClassDeclaration declaration) {
     if (optype.includeTypeNameSuggestions) {
-      bool deprecated = isDeprecated(declaration);
-      CompletionSuggestion suggestion = _addSuggestion(
-          declaration.name, NO_RETURN_TYPE, deprecated, DART_RELEVANCE_DEFAULT);
-      if (suggestion != null) {
-        suggestion.element = createElement(
-            protocol.ElementKind.CLASS, declaration.name,
-            returnType: NO_RETURN_TYPE,
-            isAbstract: declaration.isAbstract,
-            isDeprecated: deprecated);
-      }
+      _addSuggestion(
+          declaration.name, NO_RETURN_TYPE, protocol.ElementKind.CLASS,
+          isAbstract: declaration.isAbstract,
+          isDeprecated: isDeprecated(declaration));
     }
   }
 
   @override
   void declaredClassTypeAlias(ClassTypeAlias declaration) {
     if (optype.includeTypeNameSuggestions) {
-      bool deprecated = isDeprecated(declaration);
-      CompletionSuggestion suggestion = _addSuggestion(
-          declaration.name, NO_RETURN_TYPE, deprecated, DART_RELEVANCE_DEFAULT);
-      if (suggestion != null) {
-        suggestion.element = createElement(
-            protocol.ElementKind.CLASS_TYPE_ALIAS, declaration.name,
-            returnType: NO_RETURN_TYPE,
-            isAbstract: true,
-            isDeprecated: deprecated);
-      }
+      _addSuggestion(declaration.name, NO_RETURN_TYPE,
+          protocol.ElementKind.CLASS_TYPE_ALIAS,
+          isAbstract: true, isDeprecated: isDeprecated(declaration));
     }
   }
 
   @override
   void declaredEnum(EnumDeclaration declaration) {
-    SimpleIdentifier enumId = declaration.name;
-    if (enumId != null) {
-      bool deprecated = isDeprecated(declaration);
-      if (optype.includeTypeNameSuggestions) {
-        CompletionSuggestion suggestion = _addSuggestion(
-            enumId, NO_RETURN_TYPE, deprecated, DART_RELEVANCE_DEFAULT);
-        if (suggestion != null) {
-          suggestion.element = createElement(protocol.ElementKind.ENUM, enumId,
-              returnType: NO_RETURN_TYPE, isDeprecated: deprecated);
-        }
-      }
+    if (optype.includeTypeNameSuggestions) {
+      _addSuggestion(
+          declaration.name, NO_RETURN_TYPE, protocol.ElementKind.ENUM,
+          isDeprecated: isDeprecated(declaration));
     }
   }
 
@@ -417,56 +397,40 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredFunction(FunctionDeclaration declaration) {
     if (optype.includeReturnValueSuggestions ||
         optype.includeVoidReturnSuggestions) {
-      TypeName returnType = declaration.returnType;
-      bool deprecated = isDeprecated(declaration);
-      protocol.ElementKind kind;
-      int defaultRelevance = DART_RELEVANCE_DEFAULT;
+      TypeName typeName = declaration.returnType;
+      protocol.ElementKind elemKind;
+      int relevance = DART_RELEVANCE_DEFAULT;
       if (declaration.isGetter) {
-        kind = protocol.ElementKind.GETTER;
-        defaultRelevance = DART_RELEVANCE_LOCAL_ACCESSOR;
+        elemKind = protocol.ElementKind.GETTER;
+        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
       } else if (declaration.isSetter) {
         if (!optype.includeVoidReturnSuggestions) {
           return;
         }
-        kind = protocol.ElementKind.SETTER;
-        returnType = NO_RETURN_TYPE;
-        defaultRelevance = DART_RELEVANCE_LOCAL_ACCESSOR;
+        elemKind = protocol.ElementKind.SETTER;
+        typeName = NO_RETURN_TYPE;
+        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
       } else {
-        if (!optype.includeVoidReturnSuggestions && _isVoid(returnType)) {
+        if (!optype.includeVoidReturnSuggestions && _isVoid(typeName)) {
           return;
         }
-        kind = protocol.ElementKind.FUNCTION;
-        defaultRelevance = DART_RELEVANCE_LOCAL_FUNCTION;
+        elemKind = protocol.ElementKind.FUNCTION;
+        relevance = DART_RELEVANCE_LOCAL_FUNCTION;
       }
-      CompletionSuggestion suggestion = _addSuggestion(
-          declaration.name, returnType, deprecated, defaultRelevance);
-      if (suggestion != null) {
-        FormalParameterList param = declaration.functionExpression.parameters;
-        suggestion.element = createElement(kind, declaration.name,
-            parameters: param != null ? param.toSource() : null,
-            returnType: returnType,
-            isDeprecated: deprecated);
-        if (kind == protocol.ElementKind.FUNCTION) {
-          _addParameterInfo(
-              suggestion, declaration.functionExpression.parameters);
-        }
-      }
+      _addSuggestion(declaration.name, typeName, elemKind,
+          isDeprecated: isDeprecated(declaration),
+          param: declaration.functionExpression.parameters,
+          relevance: relevance);
     }
   }
 
   @override
   void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
     if (optype.includeTypeNameSuggestions) {
-      bool deprecated = isDeprecated(declaration);
-      TypeName returnType = declaration.returnType;
-      CompletionSuggestion suggestion = _addSuggestion(
-          declaration.name, returnType, deprecated, DART_RELEVANCE_DEFAULT);
-      if (suggestion != null) {
-        // TODO (danrubel) determine parameters and return type
-        suggestion.element = createElement(
-            protocol.ElementKind.FUNCTION_TYPE_ALIAS, declaration.name,
-            returnType: returnType, isAbstract: true, isDeprecated: deprecated);
-      }
+      // TODO (danrubel) determine parameters and return type
+      _addSuggestion(declaration.name, declaration.returnType,
+          protocol.ElementKind.FUNCTION_TYPE_ALIAS,
+          isAbstract: true, isDeprecated: isDeprecated(declaration));
     }
   }
 
@@ -476,14 +440,10 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredLocalVar(SimpleIdentifier name, TypeName type) {
+  void declaredLocalVar(SimpleIdentifier id, TypeName typeName) {
     if (optype.includeReturnValueSuggestions) {
-      CompletionSuggestion suggestion =
-          _addSuggestion(name, type, false, DART_RELEVANCE_LOCAL_VARIABLE);
-      if (suggestion != null) {
-        suggestion.element = createElement(
-            protocol.ElementKind.LOCAL_VARIABLE, name, returnType: type);
-      }
+      _addSuggestion(id, typeName, protocol.ElementKind.LOCAL_VARIABLE,
+          relevance: DART_RELEVANCE_LOCAL_VARIABLE);
     }
   }
 
@@ -491,55 +451,43 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredMethod(MethodDeclaration declaration) {
     if (optype.includeReturnValueSuggestions ||
         optype.includeVoidReturnSuggestions) {
-      protocol.ElementKind kind;
-      String parameters;
-      TypeName returnType = declaration.returnType;
-      int defaultRelevance = DART_RELEVANCE_DEFAULT;
+      protocol.ElementKind elemKind;
+      FormalParameterList param;
+      TypeName typeName = declaration.returnType;
+      int relevance = DART_RELEVANCE_DEFAULT;
       if (declaration.isGetter) {
-        kind = protocol.ElementKind.GETTER;
-        parameters = null;
-        defaultRelevance = DART_RELEVANCE_LOCAL_ACCESSOR;
+        elemKind = protocol.ElementKind.GETTER;
+        param = null;
+        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
       } else if (declaration.isSetter) {
         if (!optype.includeVoidReturnSuggestions) {
           return;
         }
-        kind = protocol.ElementKind.SETTER;
-        returnType = NO_RETURN_TYPE;
-        defaultRelevance = DART_RELEVANCE_LOCAL_ACCESSOR;
+        elemKind = protocol.ElementKind.SETTER;
+        typeName = NO_RETURN_TYPE;
+        relevance = DART_RELEVANCE_LOCAL_ACCESSOR;
       } else {
-        if (!optype.includeVoidReturnSuggestions && _isVoid(returnType)) {
+        if (!optype.includeVoidReturnSuggestions && _isVoid(typeName)) {
           return;
         }
-        kind = protocol.ElementKind.METHOD;
-        parameters = declaration.parameters.toSource();
-        defaultRelevance = DART_RELEVANCE_LOCAL_METHOD;
+        elemKind = protocol.ElementKind.METHOD;
+        param = declaration.parameters;
+        relevance = DART_RELEVANCE_LOCAL_METHOD;
       }
-      bool deprecated = isDeprecated(declaration);
-      CompletionSuggestion suggestion = _addSuggestion(
-          declaration.name, returnType, deprecated, defaultRelevance,
-          classDecl: declaration.parent);
-      if (suggestion != null) {
-        suggestion.element = createElement(kind, declaration.name,
-            parameters: parameters,
-            returnType: returnType,
-            isAbstract: declaration.isAbstract,
-            isDeprecated: deprecated);
-        if (kind == protocol.ElementKind.METHOD) {
-          _addParameterInfo(suggestion, declaration.parameters);
-        }
-      }
+      _addSuggestion(declaration.name, typeName, elemKind,
+          isAbstract: declaration.isAbstract,
+          isDeprecated: isDeprecated(declaration),
+          classDecl: declaration.parent,
+          param: param,
+          relevance: relevance);
     }
   }
 
   @override
-  void declaredParam(SimpleIdentifier name, TypeName type) {
+  void declaredParam(SimpleIdentifier id, TypeName typeName) {
     if (optype.includeReturnValueSuggestions) {
-      CompletionSuggestion suggestion =
-          _addSuggestion(name, type, false, DART_RELEVANCE_PARAMETER);
-      if (suggestion != null) {
-        suggestion.element = createElement(protocol.ElementKind.PARAMETER, name,
-            returnType: type);
-      }
+      _addSuggestion(id, typeName, protocol.ElementKind.PARAMETER,
+          relevance: DART_RELEVANCE_PARAMETER);
     }
   }
 
@@ -547,14 +495,10 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   void declaredTopLevelVar(
       VariableDeclarationList varList, VariableDeclaration varDecl) {
     if (optype.includeReturnValueSuggestions) {
-      bool deprecated = isDeprecated(varList) || isDeprecated(varDecl);
-      CompletionSuggestion suggestion = _addSuggestion(varDecl.name,
-          varList.type, deprecated, DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
-      if (suggestion != null) {
-        suggestion.element = createElement(
-            protocol.ElementKind.TOP_LEVEL_VARIABLE, varDecl.name,
-            returnType: varList.type, isDeprecated: deprecated);
-      }
+      _addSuggestion(
+          varDecl.name, varList.type, protocol.ElementKind.TOP_LEVEL_VARIABLE,
+          isDeprecated: isDeprecated(varList) || isDeprecated(varDecl),
+          relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
     }
   }
 
@@ -594,14 +538,26 @@ class _LocalVisitor extends LocalDeclarationVisitor {
         .any((FormalParameter param) => param.kind == ParameterKind.NAMED);
   }
 
-  CompletionSuggestion _addSuggestion(SimpleIdentifier id, TypeName returnType,
-      bool isDeprecated, int defaultRelevance, {ClassDeclaration classDecl}) {
+  void _addSuggestion(
+      SimpleIdentifier id, TypeName typeName, protocol.ElementKind elemKind,
+      {bool isAbstract: false, bool isDeprecated: false,
+      ClassDeclaration classDecl, FormalParameterList param,
+      int relevance: DART_RELEVANCE_DEFAULT}) {
     CompletionSuggestion suggestion = createSuggestion(
-        id, isDeprecated, defaultRelevance, returnType, classDecl: classDecl);
+        id, isDeprecated, relevance, typeName, classDecl: classDecl);
     if (suggestion != null) {
       request.addSuggestion(suggestion);
+      suggestion.element = createElement(elemKind, id,
+          isAbstract: isAbstract,
+          isDeprecated: isDeprecated,
+          parameters: param != null ? param.toSource() : null,
+          returnType: typeName);
+      if ((elemKind == protocol.ElementKind.METHOD ||
+              elemKind == protocol.ElementKind.FUNCTION) &&
+          param != null) {
+        _addParameterInfo(suggestion, param);
+      }
     }
-    return suggestion;
   }
 
   bool _isVoid(TypeName returnType) {
