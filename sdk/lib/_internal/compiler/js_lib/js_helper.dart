@@ -2052,7 +2052,11 @@ StackTrace getTraceFromException(exception) {
   if (exception is ExceptionAndStackTrace) {
     return exception.stackTrace;
   }
-  return new _StackTrace(exception);
+  if (exception == null) return new _StackTrace(exception);
+  _StackTrace trace = JS('_StackTrace|Null', r'#.$cachedTrace', exception);
+  if (trace != null) return trace;
+  trace = new _StackTrace(exception);
+  return JS('_StackTrace', r'#.$cachedTrace = #', exception, trace);
 }
 
 class _StackTrace implements StackTrace {
