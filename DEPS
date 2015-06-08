@@ -119,7 +119,7 @@ deps = {
       (Var("googlecode_url") % "gyp") + "/trunk" + Var("gyp_rev"),
 
   Var("dart_root") + "/tests/co19/src":
-      "https://github.com/dart-lang/co19.git" + Var("co19_rev"),
+      (Var("github_mirror") % "co19") + Var("co19_rev"),
 
   Var("dart_root") + "/third_party/nss":
       Var("chromium_git") + "/chromium/deps/nss.git" + Var("nss_rev"),
@@ -183,9 +183,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg/barback":
       (Var("github_mirror") % "barback") + Var("barback_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
-      "https://github.com/dart-lang/charcode.git" + Var("charcode_tag"),
+      (Var("github_mirror") % "charcode") + Var("charcode_tag"),
   Var("dart_root") + "/third_party/pkg/cli_util":
-      "https://github.com/dart-lang/cli_util.git" + Var("cli_util_tag"),
+      (Var("github_mirror") % "cli_util") + Var("cli_util_tag"),
   Var("dart_root") + "/third_party/pkg/collection":
       (Var("github_mirror") % "collection") + Var("collection_rev"),
   Var("dart_root") + "/third_party/pkg/crypto":
@@ -217,7 +217,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/logging":
       (Var("github_mirror") % "logging") + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
-      "https://github.com/dpeek/dart-markdown.git" + Var("markdown_rev"),
+      "https://chromium.googlesource.com/external/github.com" +
+      "/dpeek/dart-markdown.git" + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/matcher":
       (Var("github_mirror") % "matcher") + Var("matcher_tag"),
   Var("dart_root") + "/third_party/pkg/metatest":
@@ -280,9 +281,9 @@ deps = {
       (Var("github_mirror") % "web-components") +
       Var("web_components_rev"),
   Var("dart_root") + "/third_party/pkg/when":
-      "https://github.com/dart-lang/when.git" + Var("when_tag"),
+      (Var("github_mirror") % "when") + Var("when_tag"),
   Var("dart_root") + "/third_party/pkg/which":
-      "https://github.com/dart-lang/which.git"+ Var("which_tag"),
+      (Var("github_mirror") % "which") + Var("which_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
       (Var("github_mirror") % "yaml") + Var("yaml_rev"),
 
