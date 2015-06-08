@@ -49,30 +49,10 @@ popd &> /dev/null
 # run self host and analyzer after other tests, because they're ~seconds to run.
 pub run test:test test/checker/self_host_test.dart || fail
 
-# Run analyzer on bin/devc.dart, as it includes most of the code we care about
-# via transitive dependencies. This seems to be the only fast way to avoid
-# repeated analysis of the same code.
-# TODO(jmesserly): ideally we could do test/all_tests.dart, but
-# dart_runtime_test.dart creates invalid generic type instantiation AA.
-echo "Running dartanalyzer to check for errors/warnings/hints..."
-dartanalyzer --fatal-warnings --package-warnings bin/devc.dart | (! grep $PWD) \
-    || fail
-
 {
   fc=`find test -name "*.dart" |\
       xargs grep "/\*\S* should be \S*\*/" | wc -l`
   echo "There are" $fc "tests marked as known failures."
 }
-
-# Run formatter in rewrite mode on all files that are part of the project.
-# This checks that all files are commited first to git, so no state is lost.
-# The formatter ignores:
-#   * local files that have never been added to git,
-#   * subdirectories of test/ and tool/, unless explicitly added. Those dirs
-#     contain a lot of generated or external source we should not reformat.
-(files=`git ls-files 'bin/*.dart' 'lib/*.dart' test/*.dart test/checker/*.dart \
-  tool/*.dart | grep -v lib/src/js/`; git status -s $files | grep -q . \
-  && echo "Did not run the formatter, please commit edited files first." \
-  || (echo "Running dart formatter" ; pub run dart_style:format -w $files))
 
 echo -e "[32mAll tests pass[0m"
