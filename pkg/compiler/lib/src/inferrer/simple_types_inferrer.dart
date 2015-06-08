@@ -1696,6 +1696,26 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitStaticSetterInvoke(
+      ast.Send node,
+      MethodElement setter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleInvalidStaticInvoke(node);
+  }
+
+  @override
+  T visitTopLevelSetterInvoke(
+      ast.Send node,
+      MethodElement setter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleInvalidStaticInvoke(node);
+  }
+
+  @override
   T visitUnresolvedInvoke(
       ast.Send node,
       Element element,
@@ -1868,6 +1888,22 @@ class SimpleTypeInferrerVisitor<T>
       FunctionElement getter,
       _) {
     return handleStaticGetterGet(node, getter);
+  }
+
+  @override
+  T visitStaticSetterGet(
+      ast.Send node,
+      MethodElement setter,
+      _) {
+    return types.dynamicType;
+  }
+
+  @override
+  T visitTopLevelSetterGet(
+      ast.Send node,
+      MethodElement setter,
+      _) {
+    return types.dynamicType;
   }
 
   @override
