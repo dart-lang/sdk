@@ -1696,6 +1696,26 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitStaticSetterInvoke(
+      ast.Send node,
+      MethodElement setter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleInvalidStaticInvoke(node);
+  }
+
+  @override
+  T visitTopLevelSetterInvoke(
+      ast.Send node,
+      MethodElement setter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    return handleInvalidStaticInvoke(node);
+  }
+
+  @override
   T visitUnresolvedInvoke(
       ast.Send node,
       Element element,
@@ -1871,6 +1891,22 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitStaticSetterGet(
+      ast.Send node,
+      MethodElement setter,
+      _) {
+    return types.dynamicType;
+  }
+
+  @override
+  T visitTopLevelSetterGet(
+      ast.Send node,
+      MethodElement setter,
+      _) {
+    return types.dynamicType;
+  }
+
+  @override
   T visitUnresolvedGet(
       ast.Send node,
       Element element,
@@ -1935,13 +1971,23 @@ class SimpleTypeInferrerVisitor<T>
       _) {
     ArgumentsTypes argumentTypes = analyzeArguments(node.arguments);
     Selector selector = elements.getSelector(node);
-    if (!selector.applies(function, compiler.world)) return types.dynamicType;
     // This only works for function statements. We need a
     // more sophisticated type system with function types to support
     // more.
     return inferrer.registerCalledElement(
         node, selector, outermostElement, function, argumentTypes,
         sideEffects, inLoop);
+  }
+
+  @override
+  T visitLocalFunctionIncompatibleInvoke(
+      ast.Send node,
+      LocalFunctionElement function,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    analyzeArguments(node.arguments);
+    return types.dynamicType;
   }
 
   T handleStaticSend(ast.Node node,

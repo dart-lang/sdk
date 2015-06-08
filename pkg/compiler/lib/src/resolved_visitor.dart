@@ -805,4 +805,14 @@ class ResolvedSemanticDispatcher<R> extends Object
       ResolvedKindVisitor<R> visitor) {
     return visitor.visitSuperSend(node);
   }
+
+  @override
+  R visitLocalFunctionIncompatibleInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      ResolvedKindVisitor<R> visitor) {
+    return visitor.visitClosureSend(node);
+  }
 }

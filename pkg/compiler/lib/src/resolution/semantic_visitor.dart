@@ -287,6 +287,21 @@ abstract class SemanticSendVisitor<R, A> {
       CallStructure callStructure,
       A arg);
 
+  /// Invocation of the local [function] with incompatible [arguments].
+  ///
+  /// For instance:
+  ///     m() {
+  ///       o(a) {}
+  ///       return o(null, 42);
+  ///     }
+  ///
+  R visitLocalFunctionIncompatibleInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg);
+
   /// Getter call on [receiver] of the property defined by [selector].
   ///
   /// For instance

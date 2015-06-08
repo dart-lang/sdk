@@ -423,6 +423,13 @@ class IncompatibleInvokeStructure<R, A> implements SendStructure<R, A> {
             node.argumentsNode,
             callStructure,
             arg);
+      case AccessKind.LOCAL_FUNCTION:
+        return visitor.visitLocalFunctionIncompatibleInvoke(
+            node,
+            semantics.element,
+            node.argumentsNode,
+            callStructure,
+            arg);
      default:
         // TODO(johnniwinther): Support more variants of this invoke structure.
         break;

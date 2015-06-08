@@ -60,6 +60,11 @@ const Map<String, List<Test>> SEND_TESTS = const {
                     element: 'function(m#o)',
                     arguments: '(null,42)',
                     selector: 'CallStructure(arity=2)')),
+    const Test('m() { o(a) {}; o(null, 42); }',
+        const Visit(VisitKind.VISIT_LOCAL_FUNCTION_INCOMPATIBLE_INVOKE,
+                    element: 'function(m#o)',
+                    arguments: '(null,42)',
+                    selector: 'CallStructure(arity=2)')),
     // TODO(johnniwinther): Expect [VISIT_LOCAL_FUNCTION_SET] instead.
     const Test('m() { o(a, b) {}; o = 42; }',
         const Visit(VisitKind.VISIT_UNRESOLVED_SET,
@@ -350,8 +355,9 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() => o;
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
-                    name: 'o')),
+        const Visit(VisitKind.VISIT_STATIC_SETTER_GET,
+                    element: 'setter(C#o)')),
+
     const Test.clazz(
         '''
         class C {
@@ -462,8 +468,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
           m() { o(null, 42); }
         }
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_STATIC_SETTER_INVOKE,
+                    element: 'setter(C#o)',
                     arguments: '(null,42)')),
     const Test.clazz(
         '''
@@ -720,8 +726,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         set o(_) {}
         m() => o;
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
-                    name: 'o')),
+        const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
+                    element: 'setter(o)')),
     const Test.prefix(
         '''
         set o(_) {}
@@ -786,8 +792,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         set o(_) {}
         m() => o(null, 42);
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_INVOKE,
+                    element: 'setter(o)',
                     arguments: '(null,42)')),
     const Test.prefix(
         '''
