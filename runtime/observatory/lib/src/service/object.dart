@@ -2819,7 +2819,8 @@ class Code extends ServiceObject {
     if (function == null) {
       return;
     }
-    if (function.location.script == null) {
+    if ((function.location == null) ||
+        (function.location.script == null)) {
       // Attempt to load the function.
       function.load().then((func) {
         var script = function.location.script;
