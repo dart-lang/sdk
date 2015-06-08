@@ -48,8 +48,7 @@ import 'utils.dart';
 ///
 CheckerResults testChecker(Map<String, String> testFiles, {String sdkDir,
     customUrlMappings: const {},
-    CheckerReporter createReporter(AnalysisContext context),
-    covariantGenerics: true, relaxedCasts: true,
+    CheckerReporter createReporter(AnalysisContext context), relaxedCasts: true,
     inferDownwards: RulesOptions.inferDownwardsDefault,
     inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
     inferTransitively: ResolverOptions.inferTransitivelyDefault,
@@ -61,7 +60,6 @@ CheckerResults testChecker(Map<String, String> testFiles, {String sdkDir,
   var uriResolver = new TestUriResolver(provider);
 
   var options = new CompilerOptions(
-      covariantGenerics: covariantGenerics,
       relaxedCasts: relaxedCasts,
       inferDownwards: inferDownwards,
       inferFromOverrides: inferFromOverrides,

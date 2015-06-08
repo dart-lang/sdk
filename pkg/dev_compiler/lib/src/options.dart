@@ -73,9 +73,6 @@ class ResolverOptions {
 // TODO(vsm): Merge RulesOptions and TypeOptions
 /// Options used by our RestrictedRules.
 class RulesOptions extends TypeOptions {
-  /// Whether to use covariant generics
-  final bool covariantGenerics;
-
   /// Whether to infer types downwards from local context
   final bool inferDownwards;
   static const inferDownwardsDefault = true;
@@ -86,9 +83,8 @@ class RulesOptions extends TypeOptions {
   /// Whether to use static types for code generation.
   final bool ignoreTypes;
 
-  RulesOptions({this.covariantGenerics: true,
-      this.inferDownwards: inferDownwardsDefault, this.relaxedCasts: true,
-      this.ignoreTypes: false});
+  RulesOptions({this.inferDownwards: inferDownwardsDefault,
+      this.relaxedCasts: true, this.ignoreTypes: false});
 }
 
 class JSCodeOptions {
@@ -150,10 +146,6 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// Host name or address for HTTP server when [serverMode] is on.
   final String host;
 
-  /// Whether to use covariant generics
-  @override
-  final bool covariantGenerics;
-
   /// Whether to inject casts between Dart assignable types.
   @override
   final bool relaxedCasts;
@@ -214,10 +206,9 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
 
   CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
       this.dumpInfoFile, this.forceCompile: false, this.ignoreTypes: false,
-      this.outputDir, this.useColors: true, this.covariantGenerics: true,
-      this.relaxedCasts: true, this.useMultiPackage: false,
-      this.packageRoot: 'packages/', this.packagePaths: const <String>[],
-      this.resources: const <String>[],
+      this.outputDir, this.useColors: true, this.relaxedCasts: true,
+      this.useMultiPackage: false, this.packageRoot: 'packages/',
+      this.packagePaths: const <String>[], this.resources: const <String>[],
       this.inferDownwards: RulesOptions.inferDownwardsDefault,
       this.inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
       this.inferTransitively: ResolverOptions.inferTransitivelyDefault,
@@ -283,7 +274,6 @@ CompilerOptions parseOptions(List<String> argv) {
       forceCompile: args['force-compile'] || serverMode,
       ignoreTypes: args['ignore-types'],
       outputDir: outputDir,
-      covariantGenerics: args['covariant-generics'],
       relaxedCasts: args['relaxed-casts'],
       useColors: useColors,
       customUrlMappings: customUrlMappings,
@@ -320,8 +310,6 @@ final ArgParser argParser = new ArgParser()
       abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
   ..addFlag('mock-sdk',
       abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
-  ..addFlag('covariant-generics',
-      help: 'Use covariant generics', defaultsTo: true)
   ..addFlag('ignore-types',
       help: 'Ignore types during codegen', defaultsTo: false)
   ..addFlag('relaxed-casts',

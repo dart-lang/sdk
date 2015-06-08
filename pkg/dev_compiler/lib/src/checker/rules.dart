@@ -297,11 +297,7 @@ class RestrictedRules extends TypeRules {
       for (int i = 0; i < tArgs1.length; i++) {
         DartType t1 = tArgs1[i];
         DartType t2 = tArgs2[i];
-        if (options.covariantGenerics) {
-          if (!isSubTypeOf(t1, t2)) return false;
-        } else {
-          if ((t1 != t2) && !t2.isDynamic) return false;
-        }
+        if (!isSubTypeOf(t1, t2)) return false;
       }
       return true;
     }
