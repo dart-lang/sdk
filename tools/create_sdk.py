@@ -251,7 +251,7 @@ def Main():
   versionFile.close()
 
   # Write the 'revision' file
-  revision = utils.GetSVNRevision()
+  revision = utils.GetGitRevision()
 
   if revision is not None:
     with open(os.path.join(SDK_tmp, 'revision'), 'w') as f:

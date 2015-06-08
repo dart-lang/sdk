@@ -40,7 +40,7 @@ def CreateUploadVersionFile():
 
 def DartArchiveUploadVersionFile(version_file):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
-  revision = utils.GetSVNRevision()
+  revision = utils.GetArchiveVersion()
   for revision in [revision, 'latest']:
     destination = namer.version_filepath(revision)
     DartArchiveFile(version_file, destination, checksum_files=False)
@@ -68,7 +68,7 @@ def CreateUploadSDKZips():
 
 def DartArchiveUploadSDKs(system, sdk32_zip, sdk64_zip):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
-  revision = utils.GetSVNRevision()
+  revision = utils.GetArchiveVersion()
   for revision in [revision, 'latest']:
     path32 = namer.sdk_zipfilepath(revision, system, 'ia32', 'release')
     path64 = namer.sdk_zipfilepath(revision, system, 'x64', 'release')
@@ -95,7 +95,7 @@ def CreateUploadAPIDocs():
 
 def DartArchiveUploadAPIDocs(api_zip):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
-  revision = utils.GetSVNRevision()
+  revision = utils.GetArchiveVersion()
   for revision in [revision, 'latest']:
     destination = (namer.apidocs_directory(revision) + '/' +
         namer.apidocs_zipfilename())
@@ -103,7 +103,7 @@ def DartArchiveUploadAPIDocs(api_zip):
 
 def UploadApiDocs(dir_name):
   apidocs_namer = bot_utils.GCSNamerApiDocs(CHANNEL)
-  revision = utils.GetSVNRevision()
+  revision = utils.GetArchiveVersion()
   apidocs_destination_gcsdir = apidocs_namer.docs_dirpath(revision)
   apidocs_destination_latestfile = apidocs_namer.docs_latestpath(revision)
 

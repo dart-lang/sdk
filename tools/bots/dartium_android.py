@@ -52,7 +52,7 @@ def UploadAPKs(options):
     # Archive content shell
     local = os.path.join(options.build_products_dir, CS_LOCATION)
 
-    for revision in [utils.GetSVNRevision(), 'latest']:
+    for revision in [utils.GetArchiveVersion(), 'latest']:
       # TODO(whesse): pass in arch and mode from reciepe
       remote = namer.dartium_android_apk_filepath(revision,
                                                   'content_shell-android',
