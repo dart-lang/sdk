@@ -3628,10 +3628,15 @@ class SsaBuilder extends NewResolvedVisitor {
       bool first = true;
       List<js.Expression> templates = <js.Expression>[];
       for (DartType argument in interface.typeArguments) {
-        templates.add(rti.getTypeRepresentationWithPlaceholders(argument, (variable) {
-          HInstruction runtimeType = addTypeVariableReference(variable);
-          inputs.add(runtimeType);
-        }, firstPlaceholderIndex : inputs.length));
+        // As we construct the template in stages, we have to make sure that for
+        // each part the generated sub-template's holes match the index of the
+        // inputs that are later used to instantiate it. We do this by starting
+        // the indexing with the number of inputs from previous sub-templates.
+        templates.add(
+            rti.getTypeRepresentationWithPlaceholders(argument, (variable) {
+              HInstruction runtimeType = addTypeVariableReference(variable);
+              inputs.add(runtimeType);
+            }, firstPlaceholderIndex: inputs.length));
       }
       // TODO(sra): This is a fresh template each time.  We can't let the
       // template manager build them.
