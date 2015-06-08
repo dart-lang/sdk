@@ -1879,10 +1879,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var leftType = getStaticType(left);
     var rightType = getStaticType(right);
 
-    // TODO(jmesserly): this may not work correctly with options.ignoreTypes,
-    // because that results in unreliable type annotations. See issue #134,
-    // probably the checker/resolver is the right place to implement that, by
-    // replacing staticTypes with `dynamic` as needed, so codegen "just works".
     var code;
     if (op.type.isEqualityOperator) {
       // If we statically know LHS or RHS is null we can generate a clean check.

@@ -80,11 +80,8 @@ class RulesOptions extends TypeOptions {
   /// Whether to inject casts between Dart assignable types.
   final bool relaxedCasts;
 
-  /// Whether to use static types for code generation.
-  final bool ignoreTypes;
-
-  RulesOptions({this.inferDownwards: inferDownwardsDefault,
-      this.relaxedCasts: true, this.ignoreTypes: false});
+  RulesOptions(
+      {this.inferDownwards: inferDownwardsDefault, this.relaxedCasts: true});
 }
 
 class JSCodeOptions {
@@ -188,10 +185,6 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   @override
   final List<String> nonnullableTypes;
 
-  /// Whether to use static types for code generation.
-  @override
-  final bool ignoreTypes;
-
   /// Whether to emit the source map files.
   @override
   final bool emitSourceMaps;
@@ -205,8 +198,8 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   final Map<String, String> customUrlMappings;
 
   CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
-      this.dumpInfoFile, this.forceCompile: false, this.ignoreTypes: false,
-      this.outputDir, this.useColors: true, this.relaxedCasts: true,
+      this.dumpInfoFile, this.forceCompile: false, this.outputDir,
+      this.useColors: true, this.relaxedCasts: true,
       this.useMultiPackage: false, this.packageRoot: 'packages/',
       this.packagePaths: const <String>[], this.resources: const <String>[],
       this.inferDownwards: RulesOptions.inferDownwardsDefault,
@@ -272,7 +265,6 @@ CompilerOptions parseOptions(List<String> argv) {
       dumpInfo: dumpInfo,
       dumpInfoFile: args['dump-info-file'],
       forceCompile: args['force-compile'] || serverMode,
-      ignoreTypes: args['ignore-types'],
       outputDir: outputDir,
       relaxedCasts: args['relaxed-casts'],
       useColors: useColors,
@@ -310,8 +302,6 @@ final ArgParser argParser = new ArgParser()
       abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
   ..addFlag('mock-sdk',
       abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
-  ..addFlag('ignore-types',
-      help: 'Ignore types during codegen', defaultsTo: false)
   ..addFlag('relaxed-casts',
       help: 'Cast between Dart assignable types', defaultsTo: true)
   ..addOption('nonnullable',

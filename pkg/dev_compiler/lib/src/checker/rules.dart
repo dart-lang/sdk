@@ -75,11 +75,11 @@ abstract class TypeRules {
 
   DartType elementType(Element e);
 
-  bool isDynamic(DartType t);
   bool isDynamicTarget(Expression expr);
   bool isDynamicCall(Expression call);
 }
 
+// TODO(jmesserly): this is unused.
 class DartRules extends TypeRules {
   DartRules(TypeProvider provider) : super(provider);
 
@@ -465,16 +465,13 @@ class RestrictedRules extends TypeRules {
     return (e as dynamic).type;
   }
 
-  bool isDynamic(DartType t) => options.ignoreTypes || t.isDynamic;
-
   /// Returns `true` if the target expression is dynamic.
-  bool isDynamicTarget(Expression target) =>
-      options.ignoreTypes || utils.isDynamicTarget(target);
+  // TODO(jmesserly): remove this in favor of utils? Or a static method here?
+  bool isDynamicTarget(Expression target) => utils.isDynamicTarget(target);
 
   /// Returns `true` if the expression is a dynamic function call or method
   /// invocation.
   bool isDynamicCall(Expression call) {
-    if (options.ignoreTypes) return true;
     var t = getTypeAsCaller(call);
     // TODO(leafp): This will currently return true if t is Function
     // This is probably the most correct thing to do for now, since
