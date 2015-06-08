@@ -1495,6 +1495,21 @@ const d = a;
 ''');
   }
 
+  test_const_constructor_calls_implicit_super_constructor_implicitly() {
+    // Note: the situation below is a compile-time error (since the synthetic
+    // constructor for Base is non-const), but we need to handle it without
+    // throwing an exception.
+    EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
+        'x', '''
+class Base {}
+class Derived extends Base {
+  const Derived();
+}
+const x = const Derived();
+''');
+    expect(evaluationResult, isNotNull);
+  }
+
   test_dependency() {
     EvaluationResultImpl evaluationResult = _computeTopLevelVariableConstValue(
         'x', '''

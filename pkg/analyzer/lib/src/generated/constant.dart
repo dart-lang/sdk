@@ -457,7 +457,7 @@ class ConstantEvaluationEngine {
         if (superclass != null && !superclass.isObject) {
           ConstructorElement unnamedConstructor = ConstantEvaluationEngine
               ._getConstructorBase(superclass.element.unnamedConstructor);
-          if (unnamedConstructor != null) {
+          if (unnamedConstructor != null && unnamedConstructor.isConst) {
             callback(unnamedConstructor);
           }
         }
