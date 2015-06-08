@@ -380,6 +380,10 @@ class Builder implements cps_ir.Visitor<Node> {
     return new Rethrow();
   }
 
+  Statement visitUnreachable(cps_ir.Unreachable node) {
+    return new Unreachable();
+  }
+
   Expression visitNonTailThrow(cps_ir.NonTailThrow node) {
     unexpectedNode(node);
   }
@@ -415,13 +419,18 @@ class Builder implements cps_ir.Visitor<Node> {
     return Assign.makeStatement(variable, value, visit(node.body));
   }
 
-  Statement visitTypeOperator(cps_ir.TypeOperator node) {
+  Statement visitTypeCast(cps_ir.TypeCast node) {
     Expression value = getVariableUse(node.value);
     List<Expression> typeArgs = translateArguments(node.typeArguments);
-    Expression concat =
-        new TypeOperator(value, node.type, typeArgs,
-                         isTypeTest: node.isTypeTest);
-    return continueWithExpression(node.continuation, concat);
+    Expression expression =
+        new TypeOperator(value, node.type, typeArgs, isTypeTest: false);
+    return continueWithExpression(node.continuation, expression);
+  }
+
+  Expression visitTypeTest(cps_ir.TypeTest node) {
+    Expression value = getVariableUse(node.value);
+    List<Expression> typeArgs = translateArguments(node.typeArguments);
+    return new TypeOperator(value, node.type, typeArgs, isTypeTest: true);
   }
 
   Statement visitInvokeConstructor(cps_ir.InvokeConstructor node) {

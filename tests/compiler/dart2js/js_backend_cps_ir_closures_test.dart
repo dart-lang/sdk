@@ -93,7 +93,7 @@ main() {
 r"""
 function() {
   var a = null, i = 0;
-  while (J.getInterceptor$n(i).$lt(i, 10)) {
+  while (P.identical(J.getInterceptor$n(i).$lt(i, 10), true)) {
     a = new V.main_closure(i);
     i = J.getInterceptor$ns(i).$add(i, 1);
   }

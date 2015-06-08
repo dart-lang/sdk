@@ -86,6 +86,10 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
   }
 
+  visitUnreachable(Unreachable node) {
+    _addStatement(node);
+  }
+
   visitBreak(Break node) {
     _addStatement(node);
     blocks.last.addEdgeTo(breakTargets[node.target]);
@@ -259,6 +263,10 @@ class TreeTracer extends TracerUtil with StatementVisitor {
 
   visitRethrow(Rethrow node) {
     printStatement(null, "rethrow");
+  }
+
+  visitUnreachable(Unreachable node) {
+    printStatement(null, "unreachable");
   }
 
   visitBreak(Break node) {

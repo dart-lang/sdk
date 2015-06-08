@@ -38,10 +38,10 @@ function() {
   var l = ["hest", ["h", "e", "s", "t"]], i, x, j;
   P.print(J.getInterceptor$as(l).get$length(l));
   i = 0;
-  while (J.getInterceptor$n(i).$lt(i, J.getInterceptor$as(l).get$length(l))) {
+  while (P.identical(J.getInterceptor$n(i).$lt(i, J.getInterceptor$as(l).get$length(l)), true)) {
     x = J.getInterceptor$as(l).$index(l, i);
     j = 0;
-    while (J.getInterceptor$n(j).$lt(j, J.getInterceptor$as(x).get$length(x))) {
+    while (P.identical(J.getInterceptor$n(j).$lt(j, J.getInterceptor$as(x).get$length(x)), true)) {
       P.print(J.getInterceptor$as(x).$index(x, j));
       j = J.getInterceptor$ns(j).$add(j, 1);
     }

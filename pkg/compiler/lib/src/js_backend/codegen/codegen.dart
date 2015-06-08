@@ -355,23 +355,21 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression visitTypeOperator(tree_ir.TypeOperator node) {
     js.Expression value = visitExpression(node.value);
     List<js.Expression> typeArguments = visitExpressionList(node.typeArguments);
-    if (!node.isTypeTest) {
-      giveup(node, 'type casts not implemented.');
-    }
     DartType type = node.type;
-    // Note that the trivial (but special) cases of Object, dynamic, and Null
-    // are handled at build-time and must not occur in a TypeOperator.
-    assert(!type.isObject && !type.isDynamic);
     if (type is InterfaceType) {
       glue.registerIsCheck(type, registry);
       ClassElement clazz = type.element;
 
-      // We use the helper:
+      // We use one of the two helpers:
       //
       //     checkSubtype(value, $isT, typeArgs, $asT)
+      //     subtypeCast(value, $isT, typeArgs, $asT)
       //
       // Any of the last two arguments may be null if there are no type
       // arguments, and/or if no substitution is required.
+      Element function = node.isTypeTest
+          ? glue.getCheckSubtype()
+          : glue.getSubtypeCast();
 
       js.Expression isT = js.string(glue.getTypeTestTag(type));
 
@@ -384,14 +382,20 @@ class CodeGenerator extends tree_ir.StatementVisitor
           : new js.LiteralNull();
 
       return buildStaticHelperInvocation(
-          glue.getCheckSubtype(),
+          function,
           <js.Expression>[value, isT, typeArgumentArray, asT]);
     } else if (type is TypeVariableType) {
       glue.registerIsCheck(type, registry);
+
+      Element function = node.isTypeTest
+          ? glue.getCheckSubtypeOfRuntimeType()
+          : glue.getSubtypeOfRuntimeTypeCast();
+
       // The only type argument is the type held in the type variable.
       js.Expression typeValue = typeArguments.single;
+
       return buildStaticHelperInvocation(
-          glue.getCheckSubtypeOfRuntime(),
+          function,
           <js.Expression>[value, typeValue]);
     }
     return giveup(node, 'type check unimplemented for $type.');
@@ -544,6 +548,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   void visitRethrow(tree_ir.Rethrow node) {
     glue.reportInternalError('rethrow seen in JavaScript output');
+  }
+
+  @override
+  void visitUnreachable(tree_ir.Unreachable node) {
+    // Output nothing.
+    // TODO(asgerf): Emit a throw/return to assist local analysis in the VM?
   }
 
   @override

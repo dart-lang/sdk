@@ -1232,6 +1232,10 @@ abstract class DartTypes {
 
   /// Returns `true` if [t] is a subtype of [s].
   bool isSubtype(DartType t, DartType s);
+
+  /// Returns `true` if [t] might be a subtype of [s] for some values of
+  /// type variables in [s] and [t].
+  bool isPotentialSubtype(DartType t, DartType s);
 }
 
 class Types implements DartTypes {

@@ -1766,16 +1766,24 @@ class JavaScriptBackend extends Backend {
     return findHelper('assertSubtype');
   }
 
+  Element getSubtypeCast() {
+    return findHelper('subtypeCast');
+  }
+
   Element getCheckSubtypeOfRuntimeType() {
     return findHelper('checkSubtypeOfRuntimeType');
   }
 
-  Element getCheckDeferredIsLoaded() {
-    return findHelper('checkDeferredIsLoaded');
-  }
-
   Element getAssertSubtypeOfRuntimeType() {
     return findHelper('assertSubtypeOfRuntimeType');
+  }
+
+  Element getSubtypeOfRuntimeTypeCast() {
+    return findHelper('subtypeOfRuntimeTypeCast');
+  }
+
+  Element getCheckDeferredIsLoaded() {
+    return findHelper('checkDeferredIsLoaded');
   }
 
   Element getThrowNoSuchMethod() {

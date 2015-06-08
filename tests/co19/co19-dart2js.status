@@ -9614,7 +9614,6 @@ WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please tria
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $cps_ir ]
-Language/03_Overview/1_Scoping_A01_t39: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/03_Overview/1_Scoping_A02_t19: Crash # (switch (1){case 1:var x;break;case 2:var x;break;}): Unhandled node
 Language/07_Classes/07_Classes_A02_t17: Crash # Please triage this failure.
 Language/07_Classes/07_Classes_A02_t18: Crash # Please triage this failure.
@@ -9641,18 +9640,8 @@ Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: Runtime
 Language/12_Expressions/22_Equality_A03_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/30_Identifier_Reference_A09_t03: Crash # (i=0): For-loop variable captured in loop header
 Language/12_Expressions/33_Type_Cast_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A01_t04: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A02_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/33_Type_Cast_A02_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/12_Expressions/33_Type_Cast_A02_t03: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A02_t06: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A02_t07: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A02_t08: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A02_t09: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A04_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A04_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/Expressions_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/Expressions_A01_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
 Language/13_Statements/06_For_A01_t07: Crash # Please triage this failure.
 Language/13_Statements/09_Switch_A01_t01: Crash # (switch (1){case 0:case 1:}): Unhandled node
 Language/13_Statements/09_Switch_A01_t02: Crash # (switch (1){l1:l2:l3:case (1):}): Unhandled node
@@ -9705,26 +9694,12 @@ Language/13_Statements/14_Continue_A03_t05: Crash #  Unhandled node
 Language/13_Statements/14_Continue_A03_t06: Crash #  try/finally
 Language/13_Statements/14_Continue_A03_t07: Crash #  try/finally
 Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Crash # Instance of 'TypeOperator': type check unimplemented for _td.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t26: Crash # Instance of 'TypeOperator': type check unimplemented for prefix.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t27: Crash # Instance of 'TypeOperator': type check unimplemented for bar.
-Language/14_Libraries_and_Scripts/1_Imports_A02_t28: Crash # Instance of 'TypeOperator': type check unimplemented for bar.
-Language/14_Libraries_and_Scripts/1_Imports_A03_t04: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/1_Imports_A03_t24: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/1_Imports_A03_t44: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/1_Imports_A03_t45: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/1_Imports_A03_t64: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/1_Imports_A03_t65: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/14_Libraries_and_Scripts/2_Exports_A06_t02: Crash # Instance of 'TypeOperator': type check unimplemented for foo.
-Language/15_Types/3_Type_Declarations/1_Typedef_A01_t03: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/15_Types/3_Type_Declarations/1_Typedef_A02_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f_t.
 Language/15_Types/3_Type_Declarations/1_Typedef_A02_t02: Crash # Instance of 'TypeOperator': type check unimplemented for f_t.
 Language/15_Types/3_Type_Declarations/1_Typedef_A02_t03: Crash # Instance of 'TypeOperator': type check unimplemented for f_t.
 Language/15_Types/3_Type_Declarations/1_Typedef_A03_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f1.
 Language/15_Types/3_Type_Declarations/1_Typedef_A04_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f1.
 Language/15_Types/3_Type_Declarations/1_Typedef_A04_t02: Crash # Instance of 'TypeOperator': type check unimplemented for f1.
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t05: Crash # Instance of 'TypeOperator': type check unimplemented for f.
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t06: Crash # Instance of 'TypeOperator': type check unimplemented for f.
-Language/15_Types/3_Type_Declarations/1_Typedef_A07_t07: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 Language/15_Types/4_Interface_Types_A05_t04: Crash # type expression t1 (typedef)
 Language/15_Types/4_Interface_Types_A10_t04: Crash # type expression param1 (typedef)
 Language/15_Types/4_Interface_Types_A10_t06: Crash # type expression f (typedef)
@@ -9775,41 +9750,11 @@ LayoutTests/fast/canvas/webgl/index-validation_t01: Crash #  Unhandled node
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Crash #  Unhandled node
 LayoutTests/fast/canvas/webgl/read-pixels-pack-alignment_t01: Crash #  Unhandled node
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: Crash #  Unhandled node
-LayoutTests/fast/css/css-keyframe-style-crash_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/first-line-parent-style-different_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/media-rule-dyn_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/parsing-css-allowed-string-characters_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/parsing-css-comment_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/parsing-css-escapes_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/parsing-css-nonascii_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/parsing-css-nth-child_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/parsing-css-surrogate-pairs_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/pseudo-out-of-range_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/pseudo-valid-dynamic_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/readonly-pseudoclass-opera-005_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/css/visited-link-hang_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/dom/location-hash_t01: Crash #  Unhandled node
-LayoutTests/fast/dynamic/inline-to-block-crash_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/encoding/css-charset-dom_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/events/event-attributes-after-exception_t01: Crash #  try/finally
 LayoutTests/fast/files/file-reader-methods-illegal-arguments_t01: Crash #  Unhandled node
-LayoutTests/fast/forms/autofocus-focus-only-once_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/forms/datalist/datalist-child-validation_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/forms/datalist/datalist_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/forms/date/date-pseudo-classes_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-required_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/forms/datetimelocal/datetimelocal-pseudo-classes_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/forms/fieldset/fieldset-elements_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/forms/search-popup-crasher_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/loader/hashchange-event-properties_t01: Crash #  Unhandled node
-LayoutTests/fast/media/media-query-list-syntax_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/mediastream/getusermedia_t01: Crash # Please triage this failure.
-LayoutTests/fast/multicol/hit-test-above-or-below_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/parser/parse-wbr_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/replaced/table-replaced-element_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/selectors/style-sharing-last-child_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/svg/getbbox_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LayoutTests/fast/svg/tabindex-focus_t01: Crash #  try/finally
 LayoutTests/fast/svg/whitespace-angle_t01: Crash #  try/finally
 LayoutTests/fast/svg/whitespace-integer_t01: Crash #  try/finally
@@ -9820,47 +9765,9 @@ LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: Crash #  Unhandled nod
 LayoutTests/fast/table/hittest-tablecell-right-edge_t01: Crash #  Unhandled node
 LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: Crash #  Unhandled node
 LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Crash #  Unhandled node
-LayoutTests/fast/table/incorrect-colgroup-span-values_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/table/rowindex-comment-nodes_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/text/font-ligature-letter-spacing_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/anchor_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/file-http-base_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/file_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/host-lowercase-per-scheme_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/host_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/idna2003_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/idna2008_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/invalid-urls-utf8_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/ipv4_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/ipv6_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/mailto_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/path-url_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/path_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/port_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/query_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/relative-unix_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/relative-win_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/relative_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/safari-extension_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/scheme_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/segments-from-data-url_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/segments_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/standard-url_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/trivial-segments_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/url/trivial_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/xpath/name-null-namespace_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/xsl/default-html_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LayoutTests/fast/xsl/extra-lf-at-end_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError # Please triage this failure.
 LibTest/async/Stream/Stream.periodic_A01_t01: Crash # Please triage this failure.
-LibTest/async/Stream/drain_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/Stream/drain_A02_t01: Crash # Please triage this failure.
-LibTest/async/Stream/elementAt_A02_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/handleError_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/handleError_A03_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/listen_A03_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/listen_A04_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/async/Stream/take_A01_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/async/Zone/registerBinaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneBinaryCallback.
 LibTest/async/Zone/registerCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneCallback.
 LibTest/async/Zone/registerUnaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneUnaryCallback.
@@ -9877,8 +9784,6 @@ LibTest/core/Invocation/memberName_A01_t01: Crash # Please triage this failure.
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/List/List_class_A01_t02: Crash # Please triage this failure.
 LibTest/core/Map/Map_A01_t01: Crash # type expression SomeFunction (typedef)
-LibTest/core/Object/operator_equality_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-LibTest/core/Object/toString_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Crash #  Unhandled node
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Crash #  Unhandled node
 LibTest/core/Set/add_A01_t03: RuntimeError # Please triage this failure.
@@ -9900,7 +9805,6 @@ LibTest/html/Window/moveTo_A02_t01: Crash #  try/finally
 LibTest/html/Window/resizeBy_A01_t01: Crash #  try/finally
 LibTest/html/Window/resizeTo_A01_t01: Crash #  try/finally
 LibTest/isolate/ReceivePort/drain_A02_t01: Crash # Please triage this failure.
-LibTest/isolate/ReceivePort/take_A01_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
 Utils/tests/Expect/approxEquals_A04_t01: RuntimeError # Please triage this failure.
 Utils/tests/Expect/stringEquals_A02_t01: RuntimeError # Please triage this failure.
 WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: Crash #  Unhandled node
@@ -9911,5 +9815,4 @@ WebPlatformTest/custom-elements/instantiating/createElement_A03_t01: Crash #  Un
 WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: Crash #  Unhandled node
 WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: Crash #  Unhandled node
 WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: Crash #  Unhandled node
-WebPlatformTest/html/semantics/forms/the-input-element/datetime_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
 WebPlatformTest/html/semantics/forms/the-input-element/valueMode_t01: Crash #  Unhandled node

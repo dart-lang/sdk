@@ -28,6 +28,8 @@ abstract class Node {
 /// that can be obtained without side-effects, divergence, or throwing
 /// exceptions can be built using a [LetPrim].
 abstract class Expression extends Node {
+  InteriorNode get parent; // Only InteriorNodes may contain expressions.
+
   Expression plug(Expression expr) => throw 'impossible';
 }
 
@@ -357,10 +359,47 @@ class InvokeConstructor extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
 }
 
-// TODO(asgerf): Make a Primitive for "is" and an Expression for "as".
+/// An "is" type test.
+///
+/// Returns `true` if [value] not `null` and is an instance of [type].
+///
+/// [type] must not be the [Object], `dynamic` or [Null] types (though it might
+/// be a type variable containing one of these types). This design is chosen
+/// to simplify code generation for type tests.
+class TypeTest extends Primitive {
+  Reference<Primitive> value;
+  final DartType type;
 
-/// An "as" cast or an "is" check.
-class TypeOperator extends Expression {
+  /// If [type] is an [InterfaceType], this holds the internal representation of
+  /// the type arguments to [type]. Since these may reference type variables
+  /// from the enclosing class, they are not constant.
+  ///
+  /// If [type] is a [TypeVariableType], this is a singleton list with
+  /// the internal representation of the type held in that type variable.
+  ///
+  /// Otherwise the list is empty.
+  final List<Reference<Primitive>> typeArguments;
+
+  TypeTest(Primitive value,
+           this.type,
+           List<Primitive> typeArguments)
+  : this.value = new Reference<Primitive>(value),
+    this.typeArguments = _referenceList(typeArguments);
+
+  accept(Visitor visitor) => visitor.visitTypeTest(this);
+}
+
+/// An "as" type cast.
+///
+/// If [value] is `null` or is an instance of [type], [continuation] is invoked
+/// with [value] as argument. Otherwise, a [CastError] is thrown.
+///
+/// Discussion:
+/// The parameter to [continuation] is redundant since it will always equal
+/// [value], which is typically in scope in the continuation. However, it might
+/// simplify type propagation, since a better type can be computed for the
+/// continuation parameter without needing flow-sensitive analysis.
+class TypeCast extends Expression {
   Reference<Primitive> value;
   final DartType type;
 
@@ -374,22 +413,16 @@ class TypeOperator extends Expression {
   /// Otherwise the list is empty.
   final List<Reference<Primitive>> typeArguments;
   final Reference<Continuation> continuation;
-  final bool isTypeTest;
 
-  TypeOperator(Primitive value,
-               this.type,
-               List<Primitive> typeArguments,
-               Continuation cont,
-               {bool this.isTypeTest})
+  TypeCast(Primitive value,
+           this.type,
+           List<Primitive> typeArguments,
+           Continuation cont)
       : this.value = new Reference<Primitive>(value),
         this.typeArguments = _referenceList(typeArguments),
-        this.continuation = new Reference<Continuation>(cont) {
-    assert(isTypeTest != null);
-  }
+        this.continuation = new Reference<Continuation>(cont);
 
-  bool get isTypeCast => !isTypeTest;
-
-  accept(Visitor visitor) => visitor.visitTypeOperator(this);
+  accept(Visitor visitor) => visitor.visitTypeCast(this);
 }
 
 /// Invoke [toString] on each argument and concatenate the results.
@@ -437,6 +470,14 @@ class NonTailThrow extends Primitive {
   NonTailThrow(Primitive value) : value = new Reference<Primitive>(value);
 
   accept(Visitor visitor) => visitor.visitNonTailThrow(this);
+}
+
+/// An expression that is known to be unreachable.
+///
+/// This can be placed as the body of a call continuation, when the caller is
+/// known never to invoke it, e.g. because the calling expression always throws.
+class Unreachable extends Expression {
+  accept(Visitor visitor) => visitor.visitUnreachable(this);
 }
 
 /// Gets the value from a [MutableVariable].
@@ -494,6 +535,14 @@ class InvokeContinuation extends Expression {
     assert(cont.parameters == null || cont.parameters.length == args.length);
     if (isRecursive) cont.isRecursive = true;
   }
+
+  /// Build a one-argument InvokeContinuation using existing reference objects.
+  ///
+  /// This is useful for converting call continuations to local continuations.
+  InvokeContinuation.fromCall(this.continuation,
+                              Reference<Primitive> argument)
+    : arguments = <Reference<Primitive>>[argument],
+      isRecursive = false;
 
   /// A continuation invocation whose target and arguments will be filled
   /// in later.
@@ -875,11 +924,12 @@ abstract class Visitor<T> {
   T visitThrow(Throw node);
   T visitRethrow(Rethrow node);
   T visitBranch(Branch node);
-  T visitTypeOperator(TypeOperator node);
+  T visitTypeCast(TypeCast node);
   T visitSetMutableVariable(SetMutableVariable node);
   T visitSetStatic(SetStatic node);
   T visitGetLazyStatic(GetLazyStatic node);
   T visitSetField(SetField node);
+  T visitUnreachable(Unreachable node);
 
   // Definitions.
   T visitLiteralList(LiteralList node);
@@ -901,6 +951,7 @@ abstract class Visitor<T> {
   T visitReadTypeVariable(ReadTypeVariable node);
   T visitTypeExpression(TypeExpression node);
   T visitCreateInvocationMirror(CreateInvocationMirror node);
+  T visitTypeTest(TypeTest node);
 
   // Conditions.
   T visitIsTrue(IsTrue node);
@@ -1018,10 +1069,17 @@ class RecursiveVisitor implements Visitor {
     visit(node.condition);
   }
 
-  processTypeOperator(TypeOperator node) {}
-  visitTypeOperator(TypeOperator node) {
-    processTypeOperator(node);
+  processTypeCast(TypeCast node) {}
+  visitTypeCast(TypeCast node) {
+    processTypeCast(node);
     processReference(node.continuation);
+    processReference(node.value);
+    node.typeArguments.forEach(processReference);
+  }
+
+  processTypeTest(TypeTest node) {}
+  visitTypeTest(TypeTest node) {
+    processTypeTest(node);
     processReference(node.value);
     node.typeArguments.forEach(processReference);
   }
@@ -1174,5 +1232,23 @@ class RecursiveVisitor implements Visitor {
   visitCreateInvocationMirror(CreateInvocationMirror node) {
     processCreateInvocationMirror(node);
     node.arguments.forEach(processReference);
+  }
+
+  processUnreachable(Unreachable node) {}
+  visitUnreachable(Unreachable node) {
+    processUnreachable(node);
+  }
+}
+
+/// Visit a just-deleted subterm and unlink all [Reference]s in it.
+class RemovalVisitor extends RecursiveVisitor {
+  const RemovalVisitor();
+
+  processReference(Reference reference) {
+    reference.unlink();
+  }
+
+  static void remove(Node node) {
+    (const RemovalVisitor()).visit(node);
   }
 }

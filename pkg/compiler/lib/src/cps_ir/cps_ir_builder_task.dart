@@ -2810,13 +2810,11 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 ///   - Replace [ir.LetPrim] binding a [ir.NonTailThrow] with a [ir.Throw]
 ///     expression.
 class CleanupPass extends ir.RecursiveVisitor {
-  RemovalVisitor _remover = new RemovalVisitor();
-
   ir.Expression replacementFor(ir.Expression expression) {
     if (expression != null && expression is ir.LetPrim) {
       ir.Primitive primitive = expression.primitive;
       if (primitive is ir.NonTailThrow) {
-        _remover.visit(expression);
+        ir.RemovalVisitor.remove(expression);
         return new ir.Throw(primitive.value.definition);
       }
     }
@@ -2857,12 +2855,5 @@ class CleanupPass extends ir.RecursiveVisitor {
 
   processContinuation(ir.Continuation node) {
     node.body = replacementFor(node.body);
-  }
-}
-
-/// Visit a just-deleted subterm and unlink all [Reference]s in it.
-class RemovalVisitor extends ir.RecursiveVisitor {
-  processReference(ir.Reference reference) {
-    reference.unlink();
   }
 }

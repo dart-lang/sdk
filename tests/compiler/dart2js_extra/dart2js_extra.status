@@ -62,8 +62,6 @@ deferred_fail_and_retry_test: SkipByDesign # Uses eval to simulate failed loadin
 deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed loading.
 
 [ $compiler == dart2js && $cps_ir ]
-10216a_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-10216b_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 12320_test: Crash #  Unhandled node
 16407_test: Pass # Please triage this failure.
 17094_test: RuntimeError # Please triage this failure.

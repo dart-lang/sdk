@@ -237,7 +237,6 @@ io/regress_21160_test: Crash #  Unhandled node
 io/secure_client_raw_server_test: Crash #  Unhandled node
 io/secure_server_closing_test: Crash # Please triage this failure.
 io/secure_server_socket_test: Crash # Please triage this failure.
-io/secure_socket_alpn_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 io/secure_socket_argument_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/secure_socket_bad_data_test: Crash #  Unhandled node
 io/skipping_dart2js_compilations_test: Crash #  Unhandled node

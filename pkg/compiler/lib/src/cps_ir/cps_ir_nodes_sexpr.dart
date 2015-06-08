@@ -202,6 +202,10 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '$indentation(Branch $condition $trueCont $falseCont)';
   }
 
+  String visitUnreachable(Unreachable node) {
+    return '$indentation(Unreachable)';
+  }
+
   String visitConstant(Constant node) {
     String value = node.value.accept(new ConstantStringifier(), null);
     return '(Constant $value)';
@@ -229,13 +233,17 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
            '$value\n$body)';
   }
 
-  String visitTypeOperator(TypeOperator node) {
+  String visitTypeCast(TypeCast node) {
     String value = access(node.value);
     String cont = access(node.continuation);
-    String operator = node.isTypeTest ? 'is' : 'as';
     String typeArguments = node.typeArguments.map(access).join(' ');
-    return '$indentation(TypeOperator $operator $value ${node.type} '
-           '($typeArguments) $cont)';
+    return '$indentation(TypeCast $value ${node.type} ($typeArguments) $cont)';
+  }
+
+  String visitTypeTest(TypeTest node) {
+    String value = access(node.value);
+    String typeArguments = node.typeArguments.map(access).join(' ');
+    return '(TypeTest $value ${node.type} ($typeArguments))';
   }
 
   String visitLiteralList(LiteralList node) {

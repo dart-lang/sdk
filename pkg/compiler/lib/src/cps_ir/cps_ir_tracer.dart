@@ -193,6 +193,11 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     printStmt(dummy, "Rethrow");
   }
 
+  visitUnreachable(cps_ir.Unreachable node) {
+    String dummy = names.name(node);
+    printStmt(dummy, 'Unreachable');
+  }
+
   visitLiteralList(cps_ir.LiteralList node) {
     String dummy = names.name(node);
     String values = node.values.map(formatReference).join(', ');
@@ -210,13 +215,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     printStmt(dummy, "LiteralMap (${entries.join(', ')})");
   }
 
-  visitTypeOperator(cps_ir.TypeOperator node) {
+  visitTypeCast(cps_ir.TypeCast node) {
     String dummy = names.name(node);
-    String operator = node.isTypeTest ? 'is' : 'as';
-    List<String> entries = new List<String>();
     String value = formatReference(node.value);
+    String args = node.typeArguments.map(formatReference).join(', ');
     String kont = formatReference(node.continuation);
-    printStmt(dummy, "TypeOperator ($operator $value ${node.type}) $kont");
+    printStmt(dummy, "TypeCast ($value ${node.type} ($args)) $kont");
   }
 
   visitInvokeContinuation(cps_ir.InvokeContinuation node) {
@@ -361,6 +365,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String args = node.arguments.map(formatReference).join(', ');
     return "CreateInvocationMirror(${node.selector.name}, $args)";
   }
+
+  visitTypeTest(cps_ir.TypeTest node) {
+    String value = formatReference(node.value);
+    String args = node.typeArguments.map(formatReference).join(', ');
+    return "TypeTest ($value ${node.type} ($args))";
+  }
 }
 
 /**
@@ -497,6 +507,9 @@ class BlockCollector implements cps_ir.Visitor {
   visitRethrow(cps_ir.Rethrow exp) {
   }
 
+  visitUnreachable(cps_ir.Unreachable node) {
+  }
+
   visitSetMutableVariable(cps_ir.SetMutableVariable exp) {
     visit(exp.body);
   }
@@ -524,7 +537,7 @@ class BlockCollector implements cps_ir.Visitor {
     }
   }
 
-  visitTypeOperator(cps_ir.TypeOperator exp) {
+  visitTypeCast(cps_ir.TypeCast exp) {
     addEdgeToContinuation(exp.continuation);
   }
 
@@ -601,6 +614,10 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
+    unexpectedNode(node);
+  }
+
+  visitTypeTest(cps_ir.TypeTest node) {
     unexpectedNode(node);
   }
 }

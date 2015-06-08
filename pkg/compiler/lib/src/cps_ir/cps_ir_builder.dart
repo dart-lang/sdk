@@ -2407,11 +2407,18 @@ class JsIrBuilder extends IrBuilder {
           <ir.Primitive>[message]);
     }
 
+    List<ir.Primitive> typeArguments = const <ir.Primitive>[];
+    if (type is GenericType && type.typeArguments.isNotEmpty) {
+      typeArguments = type.typeArguments.map(buildTypeExpression).toList();
+    } else if (type is TypeVariableType) {
+      typeArguments = <ir.Primitive>[buildTypeVariableAccess(type)];
+    }
+
     if (isTypeTest) {
       // For type tests, we must treat specially the rare cases where `null`
       // satisfies the test (which otherwise never satisfies a type test).
       // This is not an optimization: the TypeOperator assumes that `null`
-      // cannot satisfy the type test.
+      // cannot satisfy the type test unless the type is a type variable.
       if (type.isObject || type.isDynamic) {
         // `x is Object` and `x is dynamic` are always true, even if x is null.
         return buildBooleanConstant(true);
@@ -2420,17 +2427,11 @@ class JsIrBuilder extends IrBuilder {
         // `x is Null` is true if and only if x is null.
         return addPrimitive(new ir.Identical(value, buildNullConstant()));
       }
+      return addPrimitive(new ir.TypeTest(value, type, typeArguments));
+    } else {
+      return _continueWithExpression(
+              (k) => new ir.TypeCast(value, type, typeArguments, k));
     }
-    List<ir.Primitive> typeArguments = const <ir.Primitive>[];
-    if (type is GenericType && type.typeArguments.isNotEmpty) {
-      typeArguments = type.typeArguments.map(buildTypeExpression).toList();
-    } else if (type is TypeVariableType) {
-      typeArguments = <ir.Primitive>[buildTypeVariableAccess(type)];
-    }
-    ir.Primitive check = _continueWithExpression(
-            (k) => new ir.TypeOperator(value,
-                       type, typeArguments, k, isTypeTest: isTypeTest));
-    return check;
   }
 
   @override

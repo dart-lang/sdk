@@ -78,8 +78,7 @@ class Label {
 /**
  * A local variable in the tree IR.
  *
- * All tree IR variables are mutable, and may in Dart-mode be referenced inside
- * nested functions.
+ * All tree IR variables are mutable.
  *
  * To use a variable as an expression, reference it from a [VariableUse], with
  * one [VariableUse] per expression.
@@ -324,6 +323,10 @@ class LiteralMap extends Expression {
   }
 }
 
+/// Type test or type cast.
+///
+/// Note that if this is a type test, then [type] cannot be `Object`, `dynamic`,
+/// or the `Null` type. These cases are compiled to other node types.
 class TypeOperator extends Expression {
   Expression value;
   final DartType type;
@@ -618,6 +621,17 @@ class Try extends Statement {
   }
 }
 
+/// A statement that is known to be unreachable.
+class Unreachable extends Statement {
+  Statement get next => null;
+  void set next(Statement value) => throw 'UNREACHABLE';
+
+  accept(StatementVisitor visitor) => visitor.visitUnreachable(this);
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitUnreachable(this, arg);
+  }
+}
+
 class FunctionDefinition extends Node {
   final ExecutableElement element;
   final List<Variable> parameters;
@@ -828,6 +842,7 @@ abstract class StatementVisitor<S> {
   S visitWhileCondition(WhileCondition node);
   S visitExpressionStatement(ExpressionStatement node);
   S visitTry(Try node);
+  S visitUnreachable(Unreachable node);
 }
 
 abstract class StatementVisitor1<S, A> {
@@ -843,6 +858,7 @@ abstract class StatementVisitor1<S, A> {
   S visitWhileCondition(WhileCondition node, A arg);
   S visitExpressionStatement(ExpressionStatement node, A arg);
   S visitTry(Try node, A arg);
+  S visitUnreachable(Unreachable node, A arg);
 }
 
 abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
@@ -1007,6 +1023,8 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitCreateInvocationMirror(CreateInvocationMirror node) {
     node.arguments.forEach(visitExpression);
   }
+
+  visitUnreachable(Unreachable node) {}
 }
 
 abstract class Transformer implements ExpressionVisitor<Expression>,
@@ -1201,6 +1219,10 @@ class RecursiveTransformer extends Transformer {
 
   visitCreateInvocationMirror(CreateInvocationMirror node) {
     _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitUnreachable(Unreachable node) {
     return node;
   }
 }

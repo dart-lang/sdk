@@ -456,7 +456,6 @@ mirrors/hot_set_field_test: Crash # Instance of 'TypeOperator': type check unimp
 mirrors/immutable_collections_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/inference_and_no_such_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/inherit_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/inherited_metadata_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 mirrors/initializing_formals_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/initializing_formals_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/initializing_formals_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

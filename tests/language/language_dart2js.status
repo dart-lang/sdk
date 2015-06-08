@@ -155,6 +155,7 @@ metadata_test: CompileTimeError # Issue 5841
 infinity_test: RuntimeError # Issue 4984
 mixin_mixin2_test: RuntimeError # Issue 13109.
 mixin_mixin3_test: RuntimeError # Issue 13109.
+mixin_mixin7_test: RuntimeError # Issue 13109.
 mixin_regress_13688_test: RuntimeError # Issue 13109.
 modulo_test: RuntimeError # Issue 15246
 truncdiv_test: RuntimeError # Issue 15246
@@ -218,7 +219,6 @@ regress_22443_test: Pass,RuntimeError # Issue 17458
 [ $compiler == dart2js && $cps_ir == false ]
 generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
-mixin_mixin7_test: RuntimeError # Issue 13109.
 
 [ $compiler == dart2js && $cps_ir ]
 aborting_switch_case_test: Crash # (switch (42){case 42:foo();foo();break;}): Unhandled node
@@ -366,21 +366,6 @@ call_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nul
 call_through_null_getter_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 call_type_literal_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 cascade2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-cast2_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast2_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/02: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/03: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/04: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/05: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/07: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/08: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/10: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/12: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/13: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/14: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/15: Crash # Instance of 'TypeOperator': type casts not implemented.
-cast_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
 cha_deopt1_test: RuntimeError # Please triage this failure.
 cha_deopt2_test: RuntimeError # Please triage this failure.
 cha_deopt3_test: RuntimeError # Please triage this failure.
@@ -430,8 +415,6 @@ conditional_method_invocation_test/11: Crash # Instance of 'TypeOperator': type 
 conditional_property_access_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 conditional_property_access_test/08: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 conditional_property_access_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-conditional_property_assignment_test/06: Crash # Instance of 'TypeOperator': type casts not implemented.
-conditional_property_assignment_test/11: Crash # Instance of 'TypeOperator': type casts not implemented.
 conditional_property_assignment_test/14: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 conditional_property_assignment_test/15: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 conditional_property_assignment_test/16: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -710,17 +693,14 @@ is_nan_test: Crash # Instance of 'TypeOperator': type check unimplemented for _N
 is_not_class2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 isnot_malformed_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue10581_test: Crash #  Unhandled node
-issue10721_test: RuntimeError # Please triage this failure.
 issue10747_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue10783_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue11724_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue12023_test: Crash #  Unhandled node
 issue12284_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-issue12336_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 issue13474_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue14014_3_test: Crash # Instance of 'TypeOperator': type check unimplemented for foo<T>.
 issue20476_test: Crash # (try {try {return 1;}catch (e1){}finally {return 3;}}catch (e2){}finally {return 5;}): try/finally
-issue7525_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 issue_1751477_test: RuntimeError # Please triage this failure.
 label_test: Crash # (switch (i){case 111:while(doAgain()){break L;}default:i-- ;}): Unhandled node
 large_class_declaration_test: Crash # Please triage this failure.
@@ -735,7 +715,6 @@ list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nul
 malbounded_type_cast2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 malbounded_type_cast_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 malbounded_type_test2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-malformed2_test/00: Crash # Instance of 'TypeOperator': type casts not implemented.
 malformed_inheritance_test/03: Crash # Please triage this failure.
 malformed_inheritance_test/09: Crash # Please triage this failure.
 malformed_inheritance_test/10: Crash # Please triage this failure.
@@ -762,8 +741,6 @@ mixin_illegal_static_access_test: Crash # Instance of 'TypeOperator': type check
 mixin_invalid_inheritance1_test/01: Crash # Please triage this failure.
 mixin_invalid_inheritance1_test/02: Crash # Please triage this failure.
 mixin_invalid_inheritance1_test/03: Crash # Please triage this failure.
-mixin_issue10216_2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mixin_issue10216_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 mixin_lib_extends_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mixin_lib_extends_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mixin_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -802,7 +779,6 @@ null_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
 number_identifier_test/05: Crash # Instance of 'TypeOperator': type casts not implemented.
 number_identifier_test/08: Crash # Instance of 'TypeOperator': type casts not implemented.
 number_identifier_test/09: Crash # Instance of 'TypeOperator': type casts not implemented.
-number_identifier_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
 on_catch_malformed_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 operator_equals_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 optimized_constant_array_string_access_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -934,7 +910,6 @@ try_catch_test/01: Crash # Please triage this failure.
 try_catch_test/none: Crash # Please triage this failure.
 type_argument_in_super_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_check_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-type_error_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 type_literal_prefix_call_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_parameter_test/01: Crash # Please triage this failure.
 type_parameter_test/02: Crash # Please triage this failure.
@@ -968,7 +943,6 @@ type_variable_conflict2_test/07: Crash # Instance of 'TypeOperator': type check 
 type_variable_conflict2_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_variable_function_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for Func<S>.
 type_variable_typedef_test: Crash # type expression Foo<T> (typedef)
-typed_equality_test: Crash # Instance of 'TypeOperator': type casts not implemented.
 typedef_is_test: Crash # Instance of 'TypeOperator': type check unimplemented for Func1.
 typevariable_substitution2_test/01: Crash # Please triage this failure.
 typevariable_substitution2_test/02: Crash # Please triage this failure.
