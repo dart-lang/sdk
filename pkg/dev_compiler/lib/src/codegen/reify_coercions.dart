@@ -12,7 +12,6 @@ import 'package:logging/logging.dart' as logger;
 import 'package:dev_compiler/devc.dart' show AbstractCompiler;
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
-import 'package:dev_compiler/src/options.dart' show CompilerOptions;
 
 import 'ast_builder.dart';
 
@@ -97,20 +96,17 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   final TypeManager _tm;
   final VariableManager _vm;
   final LibraryUnit _library;
-  bool _skipCoercions = false;
   final _Inference _inferrer;
-  final CompilerOptions _options;
 
-  CoercionReifier._(this._cm, this._tm, this._vm, this._library, this._inferrer,
-      this._options);
+  CoercionReifier._(
+      this._cm, this._tm, this._vm, this._library, this._inferrer);
 
   factory CoercionReifier(LibraryUnit library, AbstractCompiler compiler) {
     var vm = new VariableManager();
     var tm = new TypeManager(library.library.element.enclosingElement, vm);
     var cm = new CoercionManager(vm, tm);
     var inferrer = new _Inference(compiler.rules, tm);
-    var options = compiler.options;
-    return new CoercionReifier._(cm, tm, vm, library, inferrer, options);
+    return new CoercionReifier._(cm, tm, vm, library, inferrer);
   }
 
   // This should be the entry point for this class.  Entering via the
@@ -142,10 +138,6 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
 
   @override
   Object visitDownCast(DownCast node) {
-    if (_skipCoercions && !_options.allowConstCasts) {
-      _log.severe("Skipping runtime downcast in constant context");
-      return null;
-    }
     Expression castNode = _cm.coerceExpression(node.node, node.cast);
     if (!NodeReplacer.replace(node, castNode)) {
       _log.severe("Failed to replace node for DownCast");
@@ -157,37 +149,12 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   // TODO(leafp): Bind the coercions at the top level
   @override
   Object visitClosureWrapBase(ClosureWrapBase node) {
-    if (_skipCoercions && !_options.allowConstCasts) {
-      _log.severe("Skipping coercion wrap in constant context");
-      return null;
-    }
     Expression newE = _cm.coerceExpression(node.node, node.wrapper);
     if (!NodeReplacer.replace(node, newE)) {
       _log.severe("Failed to replace node for Closure Wrap");
     }
     newE.accept(this);
     return null;
-  }
-
-  @override
-  Object visitNode(AstNode n) {
-    var o = _skipCoercions;
-    if (!o) {
-      if (n is VariableDeclarationList) {
-        _skipCoercions = o || n.isConst;
-      } else if (n is VariableDeclaration) {
-        _skipCoercions = o || n.isConst;
-      } else if (n is FormalParameter) {
-        _skipCoercions = o || n.isConst;
-      } else if (n is InstanceCreationExpression) {
-        _skipCoercions = o || n.isConst;
-      } else if (n is ConstructorDeclaration) {
-        _skipCoercions = o || n.element.isConst;
-      }
-    }
-    Object ret = super.visitNode(n);
-    _skipCoercions = o;
-    return ret;
   }
 
   Object visitCompilationUnit(CompilationUnit unit) {

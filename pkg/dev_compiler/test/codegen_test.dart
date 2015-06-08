@@ -62,7 +62,6 @@ main(arguments) {
     // they're more self-contained.
     var runtimeDir = path.join(path.dirname(testDirectory), 'lib', 'runtime');
     var options = new CompilerOptions(
-        allowConstCasts: true,
         outputDir: subDir == null ? actualDir : path.join(actualDir, subDir),
         useColors: false,
         emitSourceMaps: sourceMaps,

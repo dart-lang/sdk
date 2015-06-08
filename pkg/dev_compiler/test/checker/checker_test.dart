@@ -1718,11 +1718,7 @@ void main() {
           }
      ''';
     testChecker(
-        {'/main.dart': mk("severe:StaticTypeError", "severe:StaticTypeError")},
-        allowConstCasts: false);
-    testChecker(
-        {'/main.dart': mk("warning:DownCastImplicit", "info:AssignmentCast")},
-        allowConstCasts: true);
+        {'/main.dart': mk("warning:DownCastImplicit", "info:AssignmentCast")});
   });
 
   test('casts in conditionals', () {

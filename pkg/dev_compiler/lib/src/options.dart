@@ -73,9 +73,6 @@ class ResolverOptions {
 // TODO(vsm): Merge RulesOptions and TypeOptions
 /// Options used by our RestrictedRules.
 class RulesOptions extends TypeOptions {
-  /// Whether to allow casts in constant contexts.
-  final bool allowConstCasts;
-
   /// Whether to use covariant generics
   final bool covariantGenerics;
 
@@ -93,7 +90,7 @@ class RulesOptions extends TypeOptions {
   final bool wrapClosures;
   static const wrapClosuresDefault = false;
 
-  RulesOptions({this.allowConstCasts: true, this.covariantGenerics: true,
+  RulesOptions({this.covariantGenerics: true,
       this.inferDownwards: inferDownwardsDefault, this.relaxedCasts: true,
       this.ignoreTypes: false, this.wrapClosures: wrapClosuresDefault});
 }
@@ -141,10 +138,6 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
 
   /// File where to start compilation from.
   final String entryPointFile;
-
-  /// Whether to allow casts in constant contexts.
-  @override
-  final bool allowConstCasts;
 
   /// Whether to run as a development server.
   final bool serverMode;
@@ -227,9 +220,8 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// Custom URI mappings, such as "dart:foo" -> "path/to/foo.dart"
   final Map<String, String> customUrlMappings;
 
-  CompilerOptions({this.allowConstCasts: true, this.checkSdk: false,
-      this.dumpInfo: false, this.dumpInfoFile, this.forceCompile: false,
-      this.ignoreTypes: false,
+  CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
+      this.dumpInfoFile, this.forceCompile: false, this.ignoreTypes: false,
       this.wrapClosures: RulesOptions.wrapClosuresDefault, this.outputDir,
       this.useColors: true, this.covariantGenerics: true,
       this.relaxedCasts: true, this.useMultiPackage: false,
@@ -294,7 +286,6 @@ CompilerOptions parseOptions(List<String> argv) {
   var entryPointFile = args.rest.length == 0 ? null : args.rest.first;
 
   return new CompilerOptions(
-      allowConstCasts: args['allow-const-casts'],
       checkSdk: args['sdk-check'],
       dumpInfo: dumpInfo,
       dumpInfoFile: args['dump-info-file'],
@@ -335,8 +326,6 @@ CompilerOptions parseOptions(List<String> argv) {
 
 final ArgParser argParser = new ArgParser()
   // resolver/checker options
-  ..addFlag('allow-const-casts',
-      help: 'Allow casts in const contexts', defaultsTo: true)
   ..addFlag('sdk-check',
       abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
   ..addFlag('mock-sdk',

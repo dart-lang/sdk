@@ -533,10 +533,6 @@ class RestrictedRules extends TypeRules {
       if (ok) return InferredType.create(this, expr, toT);
       reason = (errors.isNotEmpty) ? errors.first : null;
     }
-    if (constContext && !options.allowConstCasts) {
-      reason = (reason == null) ? "Cast not allowed in const context" : reason;
-      return new StaticTypeError(this, expr, toT, reason: reason);
-    }
     if (c is Cast) return DownCast.create(this, expr, c, reason: reason);
     if (c is Wrapper) return ClosureWrap.create(this, expr, c, toT);
     assert(false);

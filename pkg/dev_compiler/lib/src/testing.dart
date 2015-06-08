@@ -46,8 +46,8 @@ import 'utils.dart';
 ///       '''
 ///     });
 ///
-CheckerResults testChecker(Map<String, String> testFiles,
-    {bool allowConstCasts: true, String sdkDir, customUrlMappings: const {},
+CheckerResults testChecker(Map<String, String> testFiles, {String sdkDir,
+    customUrlMappings: const {},
     CheckerReporter createReporter(AnalysisContext context),
     covariantGenerics: true, relaxedCasts: true,
     inferDownwards: RulesOptions.inferDownwardsDefault,
@@ -62,7 +62,6 @@ CheckerResults testChecker(Map<String, String> testFiles,
   var uriResolver = new TestUriResolver(provider);
 
   var options = new CompilerOptions(
-      allowConstCasts: allowConstCasts,
       covariantGenerics: covariantGenerics,
       relaxedCasts: relaxedCasts,
       inferDownwards: inferDownwards,
