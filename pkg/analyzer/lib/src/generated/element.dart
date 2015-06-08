@@ -128,7 +128,7 @@ class CircularTypeImpl extends DynamicTypeImpl {
 /**
  * An element that represents a class.
  */
-abstract class ClassElement implements Element {
+abstract class ClassElement implements TypeDefiningElement {
   /**
    * An empty list of class elements.
    */
@@ -265,9 +265,7 @@ abstract class ClassElement implements Element {
    */
   InterfaceType get supertype;
 
-  /**
-   * Return the type defined by the class.
-   */
+  @override
   InterfaceType get type;
 
   /**
@@ -2154,16 +2152,14 @@ class DefaultParameterElementImpl extends ParameterElementImpl
 /**
  * The synthetic element representing the declaration of the type `dynamic`.
  */
-class DynamicElementImpl extends ElementImpl {
+class DynamicElementImpl extends ElementImpl implements TypeDefiningElement {
   /**
    * Return the unique instance of this class.
    */
   static DynamicElementImpl get instance =>
       DynamicTypeImpl.instance.element as DynamicElementImpl;
 
-  /**
-   * The type defined by this element.
-   */
+  @override
   DynamicTypeImpl type;
 
   /**
@@ -4371,7 +4367,7 @@ abstract class FunctionType implements ParameterizedType {
 /**
  * A function type alias (`typedef`).
  */
-abstract class FunctionTypeAliasElement implements Element {
+abstract class FunctionTypeAliasElement implements TypeDefiningElement {
   /**
    * An empty array of type alias elements.
    */
@@ -4394,9 +4390,7 @@ abstract class FunctionTypeAliasElement implements Element {
    */
   DartType get returnType;
 
-  /**
-   * Return the type of function defined by this type alias.
-   */
+  @override
   FunctionType get type;
 
   /**
@@ -9621,6 +9615,16 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   VariableDeclaration computeNode() =>
       getNodeMatching((node) => node is VariableDeclaration);
+}
+
+/**
+ * An element that defines a type.
+ */
+abstract class TypeDefiningElement implements Element {
+  /**
+   * Return the type defined by this element.
+   */
+  DartType get type;
 }
 
 /**
