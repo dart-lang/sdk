@@ -7,14 +7,12 @@ library dev_compiler.src.codegen.reify_coercions;
 import 'package:analyzer/analyzer.dart' as analyzer;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:logging/logging.dart' as logger;
 
 import 'package:dev_compiler/devc.dart' show AbstractCompiler;
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/options.dart' show CompilerOptions;
-import 'package:dev_compiler/src/utils.dart' as utils;
 
 import 'ast_builder.dart';
 
@@ -38,20 +36,6 @@ class NewTypeIdDesc {
   /// True => not a source variable
   bool synthetic;
   NewTypeIdDesc({this.fromCurrent, this.importedFrom, this.synthetic});
-}
-
-class _LocatedWrapper {
-  final String loc;
-  final Wrapper wrapper;
-  _LocatedWrapper(this.wrapper, this.loc);
-}
-
-abstract class InstrumentedRuntime {
-  Expression wrap(Expression coercion, Expression e, Expression fromType,
-      Expression toType, Expression dartIs, String kind, String location);
-  Expression cast(Expression e, Expression fromType, Expression toType,
-      Expression dartIs, String kind, String location, bool ground);
-  Expression type(Expression witnessFunction);
 }
 
 class _Inference extends DownwardsInference {
@@ -109,34 +93,24 @@ class _Inference extends DownwardsInference {
 // abstract coercion nodes with their dart implementations.
 class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
     with ConversionVisitor<Object> {
-  final AnalysisContext _context;
   final CoercionManager _cm;
   final TypeManager _tm;
   final VariableManager _vm;
   final LibraryUnit _library;
   bool _skipCoercions = false;
-  final TypeRules _rules;
   final _Inference _inferrer;
-  final InstrumentedRuntime _runtime;
   final CompilerOptions _options;
 
-  CompilationUnit _unit;
+  CoercionReifier._(this._cm, this._tm, this._vm, this._library, this._inferrer,
+      this._options);
 
-  CoercionReifier._(this._cm, this._tm, this._vm, this._library, this._rules,
-      this._inferrer, this._runtime, this._context, this._options);
-
-  factory CoercionReifier(LibraryUnit library, AbstractCompiler compiler,
-      [InstrumentedRuntime runtime]) {
+  factory CoercionReifier(LibraryUnit library, AbstractCompiler compiler) {
     var vm = new VariableManager();
-    var tm =
-        new TypeManager(library.library.element.enclosingElement, vm, runtime);
-    var rules = compiler.rules;
-    var cm = new CoercionManager(vm, tm, rules, runtime);
-    var inferrer = new _Inference(rules, tm);
-    var context = compiler.context;
+    var tm = new TypeManager(library.library.element.enclosingElement, vm);
+    var cm = new CoercionManager(vm, tm);
+    var inferrer = new _Inference(compiler.rules, tm);
     var options = compiler.options;
-    return new CoercionReifier._(
-        cm, tm, vm, library, rules, inferrer, runtime, context, options);
+    return new CoercionReifier._(cm, tm, vm, library, inferrer, options);
   }
 
   // This should be the entry point for this class.  Entering via the
@@ -149,52 +123,10 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
   }
 
   void generateUnit(CompilationUnit unit) {
-    _unit = unit;
     visitCompilationUnit(unit);
-    _unit = null;
   }
 
   ///////////////// Private //////////////////////////////////
-
-  String _locationInfo(Expression e) {
-    if (_unit != null) {
-      final begin = e is AnnotatedNode
-          ? (e as AnnotatedNode).firstTokenAfterCommentAndMetadata.offset
-          : e.offset;
-      if (begin != 0 && e.end > begin) {
-        var span = utils.createSpan(_context, _unit, begin, e.end);
-        var s = span.message("Cast");
-        return s.substring(0, s.indexOf("Cast"));
-      }
-    }
-    return null;
-  }
-
-  static String _conversionKind(Conversion node) {
-    if (node is ClosureWrapLiteral) return "WrapLiteral";
-    if (node is ClosureWrap) return "Wrap";
-    if (node is DynamicCast) return "DynamicCast";
-    if (node is AssignmentCast) return "AssignmentCast";
-    if (node is UninferredClosure) return "InferableClosure";
-    if (node is DownCastComposite) return "CompositeCast";
-    if (node is DownCastImplicit) return "ImplicitCast";
-    assert(false);
-    return "";
-  }
-
-  @override
-  Object visitAsExpression(AsExpression e) {
-    if (_runtime == null) return super.visitAsExpression(e);
-    var cast = Coercion.cast(_rules.getStaticType(e.expression), e.type.type);
-    var loc = _locationInfo(e);
-    Expression castNode =
-        _cm.coerceExpression(e.expression, cast, "CastUser", loc);
-    if (!NodeReplacer.replace(e, castNode)) {
-      _log.severe("Failed to replace node for DownCast");
-    }
-    castNode.accept(this);
-    return null;
-  }
 
   @override
   Object visitInferredTypeBase(InferredTypeBase node) {
@@ -214,9 +146,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
       _log.severe("Skipping runtime downcast in constant context");
       return null;
     }
-    String kind = _conversionKind(node);
-    var loc = _locationInfo(node);
-    Expression castNode = _cm.coerceExpression(node.node, node.cast, kind, loc);
+    Expression castNode = _cm.coerceExpression(node.node, node.cast);
     if (!NodeReplacer.replace(node, castNode)) {
       _log.severe("Failed to replace node for DownCast");
     }
@@ -231,9 +161,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
       _log.severe("Skipping coercion wrap in constant context");
       return null;
     }
-    String kind = _conversionKind(node);
-    var loc = _locationInfo(node);
-    Expression newE = _cm.coerceExpression(node.node, node.wrapper, kind, loc);
+    Expression newE = _cm.coerceExpression(node.node, node.wrapper);
     if (!NodeReplacer.replace(node, newE)) {
       _log.severe("Failed to replace node for Closure Wrap");
     }
@@ -313,17 +241,13 @@ class CoercionManager {
   VariableManager _vm;
   TypeManager _tm;
   bool _hoistWrappers = false;
-  TypeRules _rules;
-  InstrumentedRuntime _runtime;
 
   // A map containing all of the wrappers collected but not yet discharged
-  final Map<Identifier, _LocatedWrapper> _topWrappers =
-      <Identifier, _LocatedWrapper>{};
-  final Map<Identifier, _LocatedWrapper> _classWrappers =
-      <Identifier, _LocatedWrapper>{};
-  Map<Identifier, _LocatedWrapper> _wrappers;
+  final Map<Identifier, Wrapper> _topWrappers = <Identifier, Wrapper>{};
+  final Map<Identifier, Wrapper> _classWrappers = <Identifier, Wrapper>{};
+  Map<Identifier, Wrapper> _wrappers;
 
-  CoercionManager(this._vm, this._tm, this._rules, [this._runtime]) {
+  CoercionManager(this._vm, this._tm) {
     _wrappers = _topWrappers;
   }
 
@@ -335,8 +259,7 @@ class CoercionManager {
   }
   void exitCompilationUnit(CompilationUnit unit) {
     for (Identifier i in _wrappers.keys) {
-      FunctionDeclaration f =
-          _buildCoercion(i, _wrappers[i].wrapper, _wrappers[i].loc, true);
+      FunctionDeclaration f = _buildCoercion(i, _wrappers[i], true);
       unit.declarations.add(f);
     }
     _wrappers.clear();
@@ -351,8 +274,7 @@ class CoercionManager {
   }
   void exitClass(ClassDeclaration cl) {
     for (Identifier i in _wrappers.keys) {
-      ClassMember f =
-          _buildCoercion(i, _wrappers[i].wrapper, _wrappers[i].loc, false);
+      ClassMember f = _buildCoercion(i, _wrappers[i], false);
       cl.members.add(f);
     }
     _wrappers.clear();
@@ -362,93 +284,42 @@ class CoercionManager {
   // The main entry point.  Coerce e using c, returning a new expression,
   // possibly recording additional coercions functions and typedefs to
   // be discharged at a higher level.
-  Expression coerceExpression(
-      Expression e, Coercion c, String kind, String loc) {
-    return _coerceExpression(e, c, kind, loc);
-  }
-
-  ///////////////// Private //////////////////////////////////
-  Tuple2<Identifier, Function1<Expression, Expression>> _bindExpression(
-      String hint, Expression e1) {
-    if (e1 is Identifier) {
-      return new Tuple2(e1, (e2) => e2);
-    }
-    var id = _vm.freshIdentifier(hint);
-    var fp = AstBuilder.simpleFormal(id, null);
-    Expression f(Expression e2) =>
-        AstBuilder.parenthesize(AstBuilder.letExpression(fp, e1, e2));
-    return new Tuple2(id, f);
-  }
-
-  Expression _wrapExpression(Expression e, Wrapper w, String k, String loc) {
-    var q = _addWrapper(w, loc);
-    if (_runtime == null) {
-      var app = AstBuilder.application(q, <Expression>[e]);
-      app.staticType = w.toType;
-      return app;
-    }
-    var ttName = _tm.typeNameFromDartType(w.toType);
-    var tt = _tm.typeExpression(ttName);
-    var ft = _tm.typeExpressionFromDartType(w.fromType);
-    if (w.fromType.element.library != null &&
-        utils.isDartPrivateLibrary(w.fromType.element.library)) {
-      ft = AstBuilder.nullLiteral();
-    }
-    var tup = _bindExpression("x", e);
-    var id = tup.e0;
-    var binder = tup.e1;
-    var dartIs = AstBuilder.isExpression(AstBuilder.parenthesize(id), ttName);
-    var oper = _runtime.wrap(q, id, ft, tt, dartIs, k, loc);
-    return binder(oper);
-  }
-
-  Expression _castExpression(Expression e, Cast c, String k, String loc) {
-    var ttName = _tm.typeNameFromDartType(c.toType);
-    if (_runtime == null) {
-      var cast = AstBuilder.asExpression(e, ttName);
-      cast.staticType = c.toType;
-      return cast;
-    }
-    var tt = _tm.typeExpression(ttName);
-    var ft = _tm.typeExpressionFromDartType(c.fromType);
-    if (c.fromType.element == null) {
-      // Replace bottom with Null type.
-      var ftType = _rules.provider.nullType;
-      ft = _tm.typeExpressionFromDartType(ftType);
-    } else if (c.fromType.element.library != null &&
-        utils.isDartPrivateLibrary(c.fromType.element.library)) {
-      ft = AstBuilder.nullLiteral();
-    }
-    var tup = _bindExpression("x", e);
-    var id = tup.e0;
-    var binder = tup.e1;
-    var dartIs = AstBuilder.isExpression(AstBuilder.parenthesize(id), ttName);
-    var ground = _rules.isGroundType(c.toType);
-    var oper = _runtime.cast(id, ft, tt, dartIs, k, loc, ground);
-    return binder(oper);
-  }
-
-  Expression _coerceExpression(
-      Expression e, Coercion c, String kind, String loc) {
+  Expression coerceExpression(Expression e, Coercion c) {
     assert(c != null);
     assert(c is! CoercionError);
     if (e is NamedExpression) {
-      Expression inner = _coerceExpression(e.expression, c, kind, loc);
+      Expression inner = coerceExpression(e.expression, c);
       return new NamedExpression(e.name, inner);
     }
-    if (c is Cast) return _castExpression(e, c, kind, loc);
-    if (c is Wrapper) return _wrapExpression(e, c, kind, loc);
+    if (c is Cast) return _castExpression(e, c);
+    if (c is Wrapper) return _wrapExpression(e, c);
     assert(c is Identity);
     return e;
   }
 
-  Expression _addWrapper(Wrapper w, String loc) {
+  ///////////////// Private //////////////////////////////////
+
+  Expression _wrapExpression(Expression e, Wrapper w) {
+    var q = _addWrapper(w);
+    var app = AstBuilder.application(q, <Expression>[e]);
+    app.staticType = w.toType;
+    return app;
+  }
+
+  Expression _castExpression(Expression e, Cast c) {
+    var ttName = _tm.typeNameFromDartType(c.toType);
+    var cast = AstBuilder.asExpression(e, ttName);
+    cast.staticType = c.toType;
+    return cast;
+  }
+
+  Expression _addWrapper(Wrapper w) {
     if (_hoistWrappers) {
       var q = _vm.freshIdentifier("q");
-      _wrappers[q] = new _LocatedWrapper(w, loc);
+      _wrappers[q] = w;
       return q;
     } else {
-      return _buildCoercionExpression(w, loc);
+      return _buildCoercionExpression(w);
     }
   }
 
@@ -486,27 +357,25 @@ class CoercionManager {
     return params;
   }
 
-  List<Expression> _wrapperCoercedArguments(Wrapper wrapper, String loc) {
+  List<Expression> _wrapperCoercedArguments(Wrapper wrapper) {
     var namedParameters = wrapper.namedParameters;
     var normalParameters = wrapper.normalParameters;
     var optionalParameters = wrapper.optionalParameters;
     var args = new List<Expression>();
     for (int i = 0; i < normalParameters.length; i++) {
       Identifier x = _coercionParameter("x", i);
-      Expression e =
-          _coerceExpression(x, normalParameters[i], "CastParam", loc);
+      Expression e = coerceExpression(x, normalParameters[i]);
       args.add(e);
     }
     for (int i = 0; i < optionalParameters.length; i++) {
       Identifier y = _coercionParameter("y", i);
-      Expression e =
-          _coerceExpression(y, optionalParameters[i], "CastParam", loc);
+      Expression e = coerceExpression(y, optionalParameters[i]);
       args.add(e);
     }
     for (String k in namedParameters.keys) {
       // TODO(leafp): These could collide with the generated names.
       Identifier z = AstBuilder.identifierFromString(k);
-      Expression e = _coerceExpression(z, namedParameters[k], "CastParam", loc);
+      Expression e = coerceExpression(z, namedParameters[k]);
       args.add(AstBuilder.namedParameter(k, e));
     }
     return args;
@@ -521,11 +390,11 @@ class CoercionManager {
   // end up changing the runtime reified type, since we build a function
   // literal based on the static type.
   FunctionDeclarationStatement _wrapperMkInner(
-      Identifier c, Expression f, Wrapper wrapper, String loc) {
+      Identifier c, Expression f, Wrapper wrapper) {
     List<FormalParameter> params = _wrapperFormalParameters(wrapper);
-    List<Expression> args = _wrapperCoercedArguments(wrapper, loc);
+    List<Expression> args = _wrapperCoercedArguments(wrapper);
     Expression app = AstBuilder.application(f, args);
-    Expression body = _coerceExpression(app, wrapper.ret, "CastResult", loc);
+    Expression body = coerceExpression(app, wrapper.ret);
     FunctionExpression ce = AstBuilder.expressionFunction(params, body, true);
     TypeName rt =
         _tm.typeNameFromDartType((wrapper.fromType as FunctionType).returnType);
@@ -534,10 +403,10 @@ class CoercionManager {
   }
 
   Tuple2<List<FormalParameter>, List<Statement>> _buildCoercionBody(
-      Wrapper wrapper, String loc) {
+      Wrapper wrapper) {
     var f = AstBuilder.identifierFromString("f");
     var c = AstBuilder.identifierFromString("c");
-    var cDec = _wrapperMkInner(c, f, wrapper, loc);
+    var cDec = _wrapperMkInner(c, f, wrapper);
     var comp = AstBuilder.binaryExpression(f, "==", AstBuilder.nullLiteral());
     var n = AstBuilder.nullLiteral();
     var cond = AstBuilder.conditionalExpression(comp, n, c);
@@ -547,8 +416,8 @@ class CoercionManager {
     return new Tuple2<List<FormalParameter>, List<Statement>>(params, stmts);
   }
 
-  Expression _buildCoercionExpression(Wrapper wrapper, String loc) {
-    var tup = _buildCoercionBody(wrapper, loc);
+  Expression _buildCoercionExpression(Wrapper wrapper) {
+    var tup = _buildCoercionBody(wrapper);
     return AstBuilder.blockFunction(tup.e0, tup.e1);
   }
 
@@ -559,9 +428,8 @@ class CoercionManager {
   //   T1 c(T0 x) => (f(x as T0) as S1);
   //   return (f == null) ? null : c;
   // }
-  Declaration _buildCoercion(
-      Identifier q, Wrapper wrapper, String loc, bool top) {
-    var tup = _buildCoercionBody(wrapper, loc);
+  Declaration _buildCoercion(Identifier q, Wrapper wrapper, bool top) {
+    var tup = _buildCoercionBody(wrapper);
     var params = tup.e0;
     var stmts = tup.e1;
     TypeName rt = _tm.typeNameFromDartType(wrapper.toType);
@@ -584,14 +452,13 @@ class TypeManager {
   final VariableManager _vm;
   final LibraryElement _currentLibrary;
   final Map<Identifier, NewTypeIdDesc> addedTypes = {};
-  final InstrumentedRuntime _runtime;
   CompilationUnitElement _currentUnit;
 
   /// A map containing new function typedefs to be introduced at the top level
   /// This uses LinkedHashMap to emit code in a consistent order.
   final Map<FunctionType, FunctionTypeAlias> _typedefs = {};
 
-  TypeManager(this._currentLibrary, this._vm, [this._runtime]);
+  TypeManager(this._currentLibrary, this._vm);
 
   void enterCompilationUnit(CompilationUnit unit) {
     _currentUnit = unit.element;
@@ -609,11 +476,6 @@ class TypeManager {
   NormalFormalParameter typedFormal(Identifier v, DartType type) {
     return _typedFormal(v, type);
   }
-
-  Expression typeExpressionFromDartType(DartType t) =>
-      typeExpression(typeNameFromDartType(t));
-
-  Expression typeExpression(TypeName t) => _typeExpression(t);
 
   ///////////////// Private //////////////////////////////////
   List<TypeParameterType> _freeTypeVariables(DartType type) {
@@ -857,16 +719,5 @@ class TypeManager {
     var t = AstBuilder.typeName(id, args);
     t.type = type;
     return t;
-  }
-
-  Expression _typeExpression(TypeName t) {
-    assert(_runtime != null);
-    if (t.typeArguments != null && t.typeArguments.length > 0) {
-      var w = AstBuilder.identifierFromString("_");
-      var fp = AstBuilder.simpleFormal(w, t);
-      var f = AstBuilder.blockFunction(<FormalParameter>[fp], <Statement>[]);
-      return _runtime.type(f);
-    }
-    return t.name;
   }
 }
