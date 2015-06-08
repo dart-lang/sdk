@@ -350,6 +350,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<AnalysisTarget> get priorityTargets => prioritySources;
 
   @override
+  CachePartition get privateAnalysisCachePartition => _privatePartition;
+
+  @override
   SourceFactory get sourceFactory => _sourceFactory;
 
   @override
@@ -767,38 +770,39 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> getHtmlFilesReferencing(Source source) {
+    // TODO(brianwilkerson) Implement this.
     SourceKind sourceKind = getKindOf(source);
     if (sourceKind == null) {
       return Source.EMPTY_LIST;
     }
     List<Source> htmlSources = <Source>[];
-    while (true) {
-      if (sourceKind == SourceKind.PART) {
-        List<Source> librarySources = getLibrariesContaining(source);
-        for (Source source in _cache.sources) {
-          CacheEntry entry = _cache.get(source);
-          if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
-            List<Source> referencedLibraries =
-                (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
-            if (_containsAny(referencedLibraries, librarySources)) {
-              htmlSources.add(source);
-            }
-          }
-        }
-      } else {
-        for (Source source in _cache.sources) {
-          CacheEntry entry = _cache.get(source);
-          if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
-            List<Source> referencedLibraries =
-                (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
-            if (_contains(referencedLibraries, source)) {
-              htmlSources.add(source);
-            }
-          }
-        }
-      }
-      break;
-    }
+//    while (true) {
+//      if (sourceKind == SourceKind.PART) {
+//        List<Source> librarySources = getLibrariesContaining(source);
+//        for (Source source in _cache.sources) {
+//          CacheEntry entry = _cache.get(source);
+//          if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
+//            List<Source> referencedLibraries =
+//                (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
+//            if (_containsAny(referencedLibraries, librarySources)) {
+//              htmlSources.add(source);
+//            }
+//          }
+//        }
+//      } else {
+//        for (Source source in _cache.sources) {
+//          CacheEntry entry = _cache.get(source);
+//          if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
+//            List<Source> referencedLibraries =
+//                (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
+//            if (_contains(referencedLibraries, source)) {
+//              htmlSources.add(source);
+//            }
+//          }
+//        }
+//      }
+//      break;
+//    }
     if (htmlSources.isEmpty) {
       return Source.EMPTY_LIST;
     }
@@ -1174,8 +1178,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
-    // TODO(brianwilkerson) Figure out where this is used and adjust the call
-    // sites to use CacheEntry's.
+    // TODO(brianwilkerson) Figure out where this is used and either remove it
+    // or adjust the call sites to use CacheEntry's.
 //    bool hintsEnabled = _options.hint;
 //    bool lintsEnabled = _options.lint;
 //    MapIterator<AnalysisTarget, cache.CacheEntry> iterator = _cache.iterator();
@@ -1560,9 +1564,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _listeners[i].computedErrors(this, source, errors, lineInfo);
     }
   }
-
-  @override
-  CachePartition get privateAnalysisCachePartition => _privatePartition;
 
   /**
    * Remove the given [source] from the priority order if it is in the list.

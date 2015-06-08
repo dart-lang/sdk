@@ -15,7 +15,9 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart';
 
@@ -516,8 +518,16 @@ class ElementFactory {
 
   static TopLevelVariableElementImpl topLevelVariableElement3(
       String name, bool isConst, bool isFinal, DartType type) {
-    TopLevelVariableElementImpl variable =
-        new TopLevelVariableElementImpl(name, -1);
+    TopLevelVariableElementImpl variable;
+    if (isConst) {
+      ConstTopLevelVariableElementImpl constant =
+          new ConstTopLevelVariableElementImpl(AstFactory.identifier3(name));
+      constant.constantInitializer = AstFactory.instanceCreationExpression2(
+          Keyword.CONST, AstFactory.typeName(type.element));
+      variable = constant;
+    } else {
+      variable = new TopLevelVariableElementImpl(name, -1);
+    }
     variable.const3 = isConst;
     variable.final2 = isFinal;
     variable.synthetic = true;

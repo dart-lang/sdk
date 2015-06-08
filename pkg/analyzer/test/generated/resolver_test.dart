@@ -127,6 +127,7 @@ class AnalysisContextFactory {
     coreContext.setContents(coreSource, "");
     coreUnit.librarySource = coreUnit.source = coreSource;
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
+    ClassElement objectClassElement = provider.objectType.element;
     coreUnit.types = <ClassElement>[
       provider.boolType.element,
       provider.deprecatedType.element,
@@ -139,7 +140,7 @@ class AnalysisContextFactory {
       provider.mapType.element,
       provider.nullType.element,
       provider.numType.element,
-      provider.objectType.element,
+      objectClassElement,
       proxyClassElement,
       provider.stackTraceType.element,
       provider.stringType.element,
@@ -148,18 +149,19 @@ class AnalysisContextFactory {
     ];
     coreUnit.functions = <FunctionElement>[
       ElementFactory.functionElement3("identical", provider.boolType.element,
-          <ClassElement>[
-        provider.objectType.element,
-        provider.objectType.element
-      ], null),
+          <ClassElement>[objectClassElement, objectClassElement], null),
       ElementFactory.functionElement3("print", VoidTypeImpl.instance.element,
-          <ClassElement>[provider.objectType.element], null)
+          <ClassElement>[objectClassElement], null)
     ];
     TopLevelVariableElement proxyTopLevelVariableElt = ElementFactory
         .topLevelVariableElement3("proxy", true, false, proxyClassElement.type);
-    TopLevelVariableElement deprecatedTopLevelVariableElt = ElementFactory
-        .topLevelVariableElement3(
+    ConstTopLevelVariableElementImpl deprecatedTopLevelVariableElt =
+        ElementFactory.topLevelVariableElement3(
             "deprecated", true, false, provider.deprecatedType);
+    deprecatedTopLevelVariableElt.constantInitializer = AstFactory
+        .instanceCreationExpression2(Keyword.CONST,
+            AstFactory.typeName(provider.deprecatedType.element),
+            [AstFactory.string2('next release')]);
     coreUnit.accessors = <PropertyAccessorElement>[
       proxyTopLevelVariableElt.getter,
       deprecatedTopLevelVariableElt.getter
@@ -7998,27 +8000,25 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * Verify that all of the identifiers in the compilation units associated with the given sources
-   * have been resolved.
-   *
-   * @param resolvedElementMap a table mapping the AST nodes that have been resolved to the element
-   *          to which they were resolved
-   * @param sources the sources identifying the compilation units to be verified
-   * @throws Exception if the contents of the compilation unit cannot be accessed
+   * Verify that all of the identifiers in the compilation units associated with
+   * the given [sources] have been resolved.
    */
   void verify(List<Source> sources) {
     ResolutionVerifier verifier = new ResolutionVerifier();
     for (Source source in sources) {
-      analysisContext2.parseCompilationUnit(source).accept(verifier);
+      List<Source> libraries = analysisContext2.getLibrariesContaining(source);
+      for (Source library in libraries) {
+        analysisContext2
+            .resolveCompilationUnit2(source, library)
+            .accept(verifier);
+      }
     }
     verifier.assertResolved();
   }
 
   /**
-   * Create a source object representing a file with the given name and give it an empty content.
-   *
-   * @param fileName the name of the file for which a source is to be created
-   * @return the source that was created
+   * Create a source object representing a file with the given [fileName] and
+   * give it an empty content. Return the source that was created.
    */
   FileBasedSource _createNamedSource(String fileName) {
     FileBasedSource source =
