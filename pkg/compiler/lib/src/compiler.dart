@@ -1947,6 +1947,10 @@ abstract class Compiler implements DiagnosticListener {
     if (element == null) {
       element = currentElement;
     }
+    if (element == null) {
+      return null;
+    }
+
     if (element.sourcePosition != null) {
       return element.sourcePosition;
     }
