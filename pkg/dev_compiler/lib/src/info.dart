@@ -11,8 +11,6 @@ import 'dart:mirrors';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart' as analyzer;
-import 'package:analyzer/src/generated/scanner.dart'
-    show Token, TokenType, SyntheticStringToken;
 import 'package:logging/logging.dart' show Level;
 
 import 'package:dev_compiler/src/checker/rules.dart';
@@ -109,26 +107,17 @@ abstract class StaticInfo implements Message {
 }
 
 /// Implicitly injected expression conversion.
-// TODO(jmesserly): rename to have Expression suffix?
-abstract class Conversion extends Expression with StaticInfo {
+abstract class CoercionInfo extends StaticInfo {
   final TypeRules rules;
 
-  // TODO(jmesserly): should probably rename this "operand" for consistency with
-  // analyzer's unary expressions (e.g. PrefixExpression).
-  final Expression expression;
+  final Expression node;
 
-  AstNode get node => expression;
-  DartType _convertedType;
+  DartType get convertedType;
 
-  Conversion(this.rules, this.expression) {
-    this._convertedType = _getConvertedType();
-  }
+  CoercionInfo(this.rules, this.node);
 
-  DartType get baseType => rules.getStaticType(expression);
-  DartType get convertedType => _convertedType;
-  DartType get staticType => _convertedType;
-
-  DartType _getConvertedType();
+  DartType get baseType => rules.getStaticType(node);
+  DartType get staticType => convertedType;
 
   // safe iff this cannot throw
   bool get safe => false;
@@ -137,23 +126,20 @@ abstract class Conversion extends Expression with StaticInfo {
 
   String get description => '${this.runtimeType}: $baseType to $convertedType';
 
-  Token get beginToken => expression.beginToken;
-  Token get endToken => expression.endToken;
+  static const String _propertyName = 'dev_compiler.Conversion';
 
-  @override
-  void visitChildren(AstVisitor visitor) {
-    expression.accept(visitor);
+  /// Gets the coercion info associated with this node.
+  static CoercionInfo get(AstNode node) => node.getProperty(_propertyName);
+
+  /// Sets the coercion info associated with this node.
+  static CoercionInfo set(AstNode node, CoercionInfo info) {
+    node.setProperty(_propertyName, info);
+    return info;
   }
-
-  // Use same precedence as MethodInvocation.
-  int get precedence => 15;
-
-  @override
-  Iterable get childEntities => new ChildEntities()..add(expression);
 }
 
 // Base class for all casts from base type to sub type.
-abstract class DownCast extends Conversion {
+abstract class DownCast extends CoercionInfo {
   Cast _cast;
 
   DownCast._internal(TypeRules rules, Expression expression, this._cast)
@@ -168,9 +154,9 @@ abstract class DownCast extends Conversion {
 
   Cast get cast => _cast;
 
-  DartType _getConvertedType() => _cast.toType;
+  DartType get convertedType => _cast.toType;
 
-  String get message => '$expression ($baseType) will need runtime check '
+  String get message => '$node ($baseType) will need runtime check '
       'to cast to type $convertedType';
 
   // Factory to create correct DownCast variant.
@@ -234,14 +220,6 @@ abstract class DownCast extends Conversion {
 
     // Other casts
     return new DownCastImplicit(rules, expression, cast);
-  }
-
-  accept(AstVisitor visitor) {
-    if (visitor is ConversionVisitor) {
-      return visitor.visitDownCast(this);
-    } else {
-      return expression.accept(visitor);
-    }
   }
 }
 
@@ -309,27 +287,16 @@ class DownCastImplicit extends DownCast {
 
 // An inferred type for the wrapped expression, which may need to be
 // reified into the term
-abstract class InferredTypeBase extends Conversion {
-  DartType _type;
+abstract class InferredTypeBase extends CoercionInfo {
+  final DartType _type;
 
   InferredTypeBase._internal(TypeRules rules, Expression expression, this._type)
       : super(rules, expression);
 
   DartType get type => _type;
-
-  DartType _getConvertedType() => type;
-
-  String get message => '$expression has inferred type $type';
-
+  DartType get convertedType => type;
+  String get message => '$node has inferred type $type';
   Level get level => Level.INFO;
-
-  accept(AstVisitor visitor) {
-    if (visitor is ConversionVisitor) {
-      return visitor.visitInferredTypeBase(this);
-    } else {
-      return expression.accept(visitor);
-    }
-  }
 }
 
 // Standard / unspecialized inferred type
@@ -373,22 +340,13 @@ class InferredTypeClosure extends InferredTypeBase {
       : super._internal(rules, expression, type);
 }
 
-class DynamicInvoke extends Conversion {
+class DynamicInvoke extends CoercionInfo {
   DynamicInvoke(TypeRules rules, Expression expression)
       : super(rules, expression);
 
-  DartType _getConvertedType() => rules.provider.dynamicType;
-
-  String get message => '$expression requires dynamic invoke';
+  DartType get convertedType => rules.provider.dynamicType;
+  String get message => '$node requires dynamic invoke';
   Level get level => Level.INFO;
-
-  accept(AstVisitor visitor) {
-    if (visitor is ConversionVisitor) {
-      return visitor.visitDynamicInvoke(this);
-    } else {
-      return expression.accept(visitor);
-    }
-  }
 }
 
 abstract class StaticError extends StaticInfo {
@@ -554,22 +512,6 @@ class InvalidSuperInvocation extends StaticError {
 
   String get message => "super call must be last in an initializer list "
       "(see http://goo.gl/q1T4BB): $node";
-}
-
-/// A simple generalizing visitor interface for the conversion nodes.
-/// This can be mixed in to your visitor if the AST can contain these nodes.
-abstract class ConversionVisitor<R> implements AstVisitor<R> {
-  /// This method must be implemented. It is typically supplied by the base
-  /// GeneralizingAstVisitor<R>.
-  R visitNode(AstNode node);
-
-  /// The catch-all for any kind of conversion
-  R visitConversion(Conversion node) => visitNode(node);
-
-  // Methods for conversion subtypes:
-  R visitDownCast(DownCast node) => visitConversion(node);
-  R visitDynamicInvoke(DynamicInvoke node) => visitConversion(node);
-  R visitInferredTypeBase(InferredTypeBase node) => visitConversion(node);
 }
 
 /// Automatically infer list of types by scanning this library using mirrors.

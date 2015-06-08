@@ -49,7 +49,7 @@ const DSETINDEX = 'dsetindex';
 const DCALL = 'dcall';
 const DSEND = 'dsend';
 
-class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
+class JSCodegenVisitor extends GeneralizingAstVisitor {
   final AbstractCompiler compiler;
   final CompilerOptions options;
   final TypeRules rules;
@@ -232,12 +232,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
   }
 
   bool isPublic(String name) => !name.startsWith('_');
-
-  /// Conversions that we don't handle end up here.
-  @override
-  visitConversion(Conversion node) {
-    throw 'Unlowered conversion ${node.runtimeType}: $node';
-  }
 
   @override
   visitAsExpression(AsExpression node) {
@@ -1817,9 +1811,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor with ConversionVisitor {
     if (expr is ThisExpression) return true;
     if (expr is SuperExpression) return true;
     if (expr is ParenthesizedExpression) {
-      return _isNonNullableExpression(expr.expression);
-    }
-    if (expr is Conversion) {
       return _isNonNullableExpression(expr.expression);
     }
     if (expr is SimpleIdentifier) {

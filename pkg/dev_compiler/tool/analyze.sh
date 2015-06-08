@@ -4,6 +4,11 @@ set -e
 # Switch to the root directory of dev_compiler
 cd $( dirname "${BASH_SOURCE[0]}" )/..
 
+function fail {
+  echo -e "[31mAnalyzer found problems[0m"
+  return 1
+}
+
 # Run analyzer on bin/devc.dart, as it includes most of the code we care about
 # via transitive dependencies. This seems to be the only fast way to avoid
 # repeated analysis of the same code.

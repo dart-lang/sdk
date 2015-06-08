@@ -534,7 +534,6 @@ class DownwardsInference {
     if (e is ParenthesizedExpression) {
       return _inferParenthesizedExpression(e, t, errors);
     }
-    if (e is Conversion) return _inferExpression(e.node, t, errors);
     if (rules.isSubTypeOf(rules.getStaticType(e), t)) return true;
     if (cast && rules.getStaticType(e).isDynamic) {
       annotateCastFromDynamic(e, t);

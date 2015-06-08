@@ -241,8 +241,7 @@ class _ErrorMarkerVisitor extends UnifyingAstVisitor {
       while (comment.next != null) {
         comment = comment.next;
       }
-      if (comment.end == token.offset &&
-          _realParent(node).beginToken != token) {
+      if (comment.end == token.offset && node.parent.beginToken != token) {
         var commentText = '$comment';
         var start = commentText.lastIndexOf('/*');
         var end = commentText.lastIndexOf('*/');
@@ -255,13 +254,6 @@ class _ErrorMarkerVisitor extends UnifyingAstVisitor {
       }
     }
     return super.visitNode(node);
-  }
-
-  /// Get the node's parent, ignoring fake conversion nodes.
-  AstNode _realParent(AstNode node) {
-    var p = node.parent;
-    while (p is Conversion) p = p.parent;
-    return p;
   }
 }
 

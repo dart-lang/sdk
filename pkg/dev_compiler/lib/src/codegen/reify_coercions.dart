@@ -45,10 +45,8 @@ class _Inference extends DownwardsInference {
   @override
   void annotateCastFromDynamic(Expression e, DartType t) {
     var cast = Coercion.cast(e.staticType, t);
-    var node = new DynamicCast(rules, e, cast);
-    if (!NodeReplacer.replace(e, node)) {
-      _log.severe("Failed to replace node for DownCast");
-    }
+    var info = new DynamicCast(rules, e, cast);
+    CoercionInfo.set(e, info);
   }
 
   @override
@@ -90,8 +88,7 @@ class _Inference extends DownwardsInference {
 
 // This class implements a pass which modifies (in place) the ast replacing
 // abstract coercion nodes with their dart implementations.
-class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
-    with ConversionVisitor<Object> {
+class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
   final CoercionManager _cm;
   final TypeManager _tm;
   final VariableManager _vm;
@@ -122,27 +119,38 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object>
     visitCompilationUnit(unit);
   }
 
+  @override
+  Object visitExpression(Expression node) {
+    var info = CoercionInfo.get(node);
+    if (info is InferredTypeBase) {
+      return _visitInferredTypeBase(info);
+    } else if (info is DownCast) {
+      return _visitDownCast(info);
+    }
+    return super.visitExpression(node);
+  }
+
   ///////////////// Private //////////////////////////////////
 
-  @override
-  Object visitInferredTypeBase(InferredTypeBase node) {
+  Object _visitInferredTypeBase(InferredTypeBase node) {
     var expr = node.node;
-    var b = _inferrer.inferExpression(expr, node.type, <String>[]);
-    assert(b);
-    if (!NodeReplacer.replace(node, expr)) {
-      _log.severe("Failed to replace node for InferredType");
-    }
-    expr.accept(this);
+    var success = _inferrer.inferExpression(expr, node.type, <String>[]);
+    assert(success);
+    expr.visitChildren(this);
     return null;
   }
 
-  @override
-  Object visitDownCast(DownCast node) {
-    Expression castNode = _cm.coerceExpression(node.node, node.cast);
-    if (!NodeReplacer.replace(node, castNode)) {
-      _log.severe("Failed to replace node for DownCast");
+  Object _visitDownCast(DownCast node) {
+    var expr = node.node;
+    var parent = expr.parent;
+    expr.visitChildren(this);
+    Expression newE = _cm.coerceExpression(expr, node.cast);
+    if (!identical(expr, newE)) {
+      var replaced = parent.accept(new NodeReplacer(expr, newE));
+      // It looks like NodeReplacer will always return true.
+      // It does throw IllegalArgumentException though, if child is not found.
+      assert(replaced);
     }
-    castNode.accept(this);
     return null;
   }
 

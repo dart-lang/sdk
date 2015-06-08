@@ -398,7 +398,7 @@ class CodeChecker extends RecursiveAstVisitor {
       _checkCompoundAssignment(node);
     } else {
       DartType staticType = _rules.getStaticType(node.leftHandSide);
-      node.rightHandSide = checkAssignment(node.rightHandSide, staticType);
+      checkAssignment(node.rightHandSide, staticType);
     }
     node.visitChildren(this);
   }
@@ -423,7 +423,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
     var field = node.fieldName;
     DartType staticType = _rules.elementType(field.staticElement);
-    node.expression = checkAssignment(node.expression, staticType);
+    checkAssignment(node.expression, staticType);
     node.visitChildren(this);
   }
 
@@ -437,33 +437,33 @@ class CodeChecker extends RecursiveAstVisitor {
         : node.loopVariable.identifier;
     var iteratorType = loopVariable.staticType;
     var checkedType = iterableType.substitute4([iteratorType]);
-    node.iterable = checkAssignment(expr, checkedType);
+    checkAssignment(expr, checkedType);
     node.visitChildren(this);
   }
 
   @override
   void visitForStatement(ForStatement node) {
     if (node.condition != null) {
-      node.condition = checkBoolean(node.condition);
+      checkBoolean(node.condition);
     }
     node.visitChildren(this);
   }
 
   @override
   void visitIfStatement(IfStatement node) {
-    node.condition = checkBoolean(node.condition);
+    checkBoolean(node.condition);
     node.visitChildren(this);
   }
 
   @override
   void visitDoStatement(DoStatement node) {
-    node.condition = checkBoolean(node.condition);
+    checkBoolean(node.condition);
     node.visitChildren(this);
   }
 
   @override
   void visitWhileStatement(WhileStatement node) {
-    node.condition = checkBoolean(node.condition);
+    checkBoolean(node.condition);
     node.visitChildren(this);
   }
 
@@ -485,7 +485,7 @@ class CodeChecker extends RecursiveAstVisitor {
     }
     var elements = node.elements;
     for (int i = 0; i < elements.length; i++) {
-      elements[i] = checkArgument(elements[i], type);
+      checkArgument(elements[i], type);
     }
     super.visitListLiteral(node);
   }
@@ -502,14 +502,14 @@ class CodeChecker extends RecursiveAstVisitor {
     var entries = node.entries;
     for (int i = 0; i < entries.length; i++) {
       var entry = entries[i];
-      entry.key = checkArgument(entry.key, ktype);
-      entry.value = checkArgument(entry.value, vtype);
+      checkArgument(entry.key, ktype);
+      checkArgument(entry.value, vtype);
     }
     super.visitMapLiteral(node);
   }
 
   // Check invocations
-  bool checkArgumentList(ArgumentList node, FunctionType type) {
+  void checkArgumentList(ArgumentList node, FunctionType type) {
     NodeList<Expression> list = node.arguments;
     int len = list.length;
     for (int i = 0; i < len; ++i) {
@@ -527,19 +527,17 @@ class CodeChecker extends RecursiveAstVisitor {
       }
       DartType expectedType = _rules.elementType(element);
       if (expectedType == null) expectedType = _rules.provider.dynamicType;
-      list[i] = checkArgument(arg, expectedType);
+      checkArgument(arg, expectedType);
     }
-    return true;
   }
 
-  Expression checkArgument(Expression arg, DartType expectedType) {
+  void checkArgument(Expression arg, DartType expectedType) {
     // Preserve named argument structure, so their immediate parent is the
     // method invocation.
     if (arg is NamedExpression) {
-      arg.expression = checkAssignment(arg.expression, expectedType);
-      return arg;
+      arg = (arg as NamedExpression).expression;
     }
-    return checkAssignment(arg, expectedType);
+    checkAssignment(arg, expectedType);
   }
 
   void checkFunctionApplication(
@@ -569,8 +567,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     var type = node.staticElement.type;
-    bool checked = checkArgumentList(node.argumentList, type);
-    assert(checked);
+    checkArgumentList(node.argumentList, type);
     node.visitChildren(this);
   }
 
@@ -581,8 +578,7 @@ class CodeChecker extends RecursiveAstVisitor {
       _recordMessage(new MissingTypeError(node));
     } else {
       var type = node.staticElement.type;
-      bool checked = checkArgumentList(node.argumentList, type);
-      assert(checked);
+      checkArgumentList(node.argumentList, type);
     }
     node.visitChildren(this);
   }
@@ -606,22 +602,21 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  Expression _checkReturn(Expression expression, AstNode node) {
+  void _checkReturn(Expression expression, AstNode node) {
     var type = _getFunctionType(_getOwnerFunction(node)).returnType;
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
-    if (expression == null) return null;
-    return checkAssignment(expression, type);
+    if (expression != null) checkAssignment(expression, type);
   }
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    node.expression = _checkReturn(node.expression, node);
+    _checkReturn(node.expression, node);
     node.visitChildren(this);
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    node.expression = _checkReturn(node.expression, node);
+    _checkReturn(node.expression, node);
     node.visitChildren(this);
   }
 
@@ -657,8 +652,7 @@ class CodeChecker extends RecursiveAstVisitor {
           _recordMessage(staticInfo);
         }
       } else {
-        var staticInfo = checkAssignment(defaultValue, parameterType);
-        if (staticInfo is! StaticError) node.defaultValue = staticInfo;
+        checkAssignment(defaultValue, parameterType);
       }
 
       node.visitChildren(this);
@@ -711,7 +705,7 @@ class CodeChecker extends RecursiveAstVisitor {
         for (VariableDeclaration variable in node.variables) {
           var initializer = variable.initializer;
           if (initializer != null) {
-            variable.initializer = checkAssignment(initializer, dartType);
+            checkAssignment(initializer, dartType);
           } else if (_rules.maybeNonNullableType(dartType)) {
             var element = variable.element;
             if (element is FieldElement && !element.isStatic) {
@@ -761,7 +755,7 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitPrefixExpression(PrefixExpression node) {
     if (node.operator.type == TokenType.BANG) {
-      node.operand = checkBoolean(node.operand);
+      checkBoolean(node.operand);
     } else {
       _checkUnary(node);
     }
@@ -806,8 +800,7 @@ class CodeChecker extends RecursiveAstVisitor {
           // Analyzer should enforce number of parameter types, but check in
           // case we have erroneous input.
           if (type.normalParameterTypes.isNotEmpty) {
-            node.rightOperand =
-                checkArgument(node.rightOperand, type.normalParameterTypes[0]);
+            checkArgument(node.rightOperand, type.normalParameterTypes[0]);
           }
         } else {
           // TODO(vsm): Assert that the analyzer found an error here?
@@ -818,8 +811,8 @@ class CodeChecker extends RecursiveAstVisitor {
       switch (op.type) {
         case TokenType.AMPERSAND_AMPERSAND:
         case TokenType.BAR_BAR:
-          node.leftOperand = checkBoolean(node.leftOperand);
-          node.rightOperand = checkBoolean(node.rightOperand);
+          checkBoolean(node.leftOperand);
+          checkBoolean(node.rightOperand);
           break;
         case TokenType.BANG_EQ:
           break;
@@ -832,7 +825,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    node.condition = checkBoolean(node.condition);
+    checkBoolean(node.condition);
     node.visitChildren(this);
   }
 
@@ -847,7 +840,7 @@ class CodeChecker extends RecursiveAstVisitor {
         // Analyzer should enforce number of parameter types, but check in
         // case we have erroneous input.
         if (type.normalParameterTypes.isNotEmpty) {
-          node.index = checkArgument(node.index, type.normalParameterTypes[0]);
+          checkArgument(node.index, type.normalParameterTypes[0]);
         }
       } else {
         // TODO(vsm): Assert that the analyzer found an error here?
@@ -863,18 +856,15 @@ class CodeChecker extends RecursiveAstVisitor {
   /// Analyzer checks boolean conversions, but we need to check too, because
   /// it uses the default assignability rules that allow `dynamic` and `Object`
   /// to be assigned to bool with no message.
-  Expression checkBoolean(Expression expr) =>
+  void checkBoolean(Expression expr) =>
       checkAssignment(expr, _rules.provider.boolType);
 
-  Expression checkAssignment(Expression expr, DartType type) {
+  void checkAssignment(Expression expr, DartType type) {
     if (expr is ParenthesizedExpression) {
-      expr.expression = checkAssignment(expr.expression, type);
+      checkAssignment(expr.expression, type);
     } else {
-      final staticInfo = _rules.checkAssignment(expr, type, _constantContext);
-      _recordMessage(staticInfo);
-      if (staticInfo is Conversion) expr = staticInfo;
+      _recordMessage(_rules.checkAssignment(expr, type, _constantContext));
     }
-    return expr;
   }
 
   DartType _specializedBinaryReturnType(
@@ -933,9 +923,6 @@ class CodeChecker extends RecursiveAstVisitor {
           // compound operators in the int += num and num += dynamic cases.
           staticInfo = DownCast.create(
               _rules, expr.rightHandSide, Coercion.cast(rhsType, lhsType));
-          if (staticInfo is DownCast) {
-            expr.rightHandSide = staticInfo;
-          }
           rhsType = lhsType;
         } else {
           // Static type error
@@ -945,12 +932,11 @@ class CodeChecker extends RecursiveAstVisitor {
       }
 
       // Check the rhs type
-      if (staticInfo is! Conversion) {
+      if (staticInfo is! CoercionInfo) {
         var paramType = paramTypes.first;
         staticInfo = _rules.checkAssignment(
             expr.rightHandSide, paramType, _constantContext);
         _recordMessage(staticInfo);
-        if (staticInfo is Conversion) expr.rightHandSide = staticInfo;
       }
     }
   }
@@ -963,5 +949,9 @@ class CodeChecker extends RecursiveAstVisitor {
     if (info == null) return;
     if (info.level >= logger.Level.SEVERE) _failure = true;
     _reporter.log(info);
+    if (info is CoercionInfo) {
+      assert(CoercionInfo.get(info.node) == null);
+      CoercionInfo.set(info.node, info);
+    }
   }
 }
