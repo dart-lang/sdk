@@ -47,30 +47,34 @@ import 'test_support.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(AnalysisCacheTest);
-  runReflectiveTests(AnalysisContextImplTest);
-  runReflectiveTests(AnalysisTaskTest);
-  runReflectiveTests(AnalysisOptionsImplTest);
-  runReflectiveTests(DartEntryTest);
-  runReflectiveTests(GenerateDartErrorsTaskTest);
-  runReflectiveTests(GenerateDartHintsTaskTest);
-  runReflectiveTests(GenerateDartLintsTaskTest);
-  runReflectiveTests(GetContentTaskTest);
-  runReflectiveTests(HtmlEntryTest);
-  runReflectiveTests(IncrementalAnalysisCacheTest);
-  runReflectiveTests(IncrementalAnalysisTaskTest);
-  runReflectiveTests(LintGeneratorTest);
-  runReflectiveTests(ParseDartTaskTest);
-  runReflectiveTests(ParseHtmlTaskTest);
-  runReflectiveTests(PartitionManagerTest);
-  runReflectiveTests(ResolveDartLibraryTaskTest);
-  runReflectiveTests(ResolveDartUnitTaskTest);
-  runReflectiveTests(ResolveHtmlTaskTest);
-  runReflectiveTests(ScanDartTaskTest);
-  runReflectiveTests(SdkCachePartitionTest);
+  // Tests for the classes used in both old and new analysis implementations.
   runReflectiveTests(SourcesChangedEventTest);
-  runReflectiveTests(UniversalCachePartitionTest);
-  runReflectiveTests(WorkManagerTest);
+  // Tests for the classes used in the old analysis implementation.
+  if (!AnalysisEngine.instance.useTaskModel) {
+    runReflectiveTests(AnalysisCacheTest);
+    runReflectiveTests(AnalysisContextImplTest);
+    runReflectiveTests(AnalysisTaskTest);
+    runReflectiveTests(AnalysisOptionsImplTest);
+    runReflectiveTests(DartEntryTest);
+    runReflectiveTests(GenerateDartErrorsTaskTest);
+    runReflectiveTests(GenerateDartHintsTaskTest);
+    runReflectiveTests(GenerateDartLintsTaskTest);
+    runReflectiveTests(GetContentTaskTest);
+    runReflectiveTests(HtmlEntryTest);
+    runReflectiveTests(IncrementalAnalysisCacheTest);
+    runReflectiveTests(IncrementalAnalysisTaskTest);
+    runReflectiveTests(LintGeneratorTest);
+    runReflectiveTests(ParseDartTaskTest);
+    runReflectiveTests(ParseHtmlTaskTest);
+    runReflectiveTests(PartitionManagerTest);
+    runReflectiveTests(ResolveDartLibraryTaskTest);
+    runReflectiveTests(ResolveDartUnitTaskTest);
+    runReflectiveTests(ResolveHtmlTaskTest);
+    runReflectiveTests(ScanDartTaskTest);
+    runReflectiveTests(SdkCachePartitionTest);
+    runReflectiveTests(UniversalCachePartitionTest);
+    runReflectiveTests(WorkManagerTest);
+  }
 }
 
 @reflectiveTest

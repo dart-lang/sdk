@@ -43,9 +43,15 @@ main() {
   runReflectiveTests(ScopeTest);
   runReflectiveTests(ElementResolverTest);
   runReflectiveTests(InheritanceManagerTest);
-  runReflectiveTests(LibraryElementBuilderTest);
-  runReflectiveTests(LibraryResolver2Test);
-  runReflectiveTests(LibraryResolverTest);
+  if (!AnalysisEngine.instance.useTaskModel) {
+    runReflectiveTests(LibraryElementBuilderTest);
+  }
+  if (!AnalysisEngine.instance.useTaskModel) {
+    runReflectiveTests(LibraryResolver2Test);
+  }
+  if (!AnalysisEngine.instance.useTaskModel) {
+    runReflectiveTests(LibraryResolverTest);
+  }
   runReflectiveTests(LibraryTest);
   runReflectiveTests(StaticTypeAnalyzerTest);
   runReflectiveTests(StaticTypeAnalyzer2Test);
