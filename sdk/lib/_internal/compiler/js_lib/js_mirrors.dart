@@ -2170,7 +2170,7 @@ class JsVariableMirror extends JsDeclarationMirror implements VariableMirror {
         }
       }
     }
-    int type = int.parse(fieldInformation[1]);
+    int type = int.parse(fieldInformation[1], onError: (_) => null);
     return new JsVariableMirror(s(unmangledName),
                                 jsName,
                                 type,

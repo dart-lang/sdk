@@ -161,9 +161,19 @@ class ClassEmitter extends CodeEmitterHelper {
             fieldCode = FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE];
           }
         }
+        // Fields can only be reflected if their declaring class is reflectable
+        // (as they are only accessible via [ClassMirror.declarations]).
+        // However, set/get operations can be performed on them, so they are
+        // reflectable in some sense, which leads to [isAccessibleByReflection]
+        // reporting `true`.
         if (backend.isAccessibleByReflection(fieldElement)) {
-          DartType type = fieldElement.type;
-          reflectionMarker = '-${task.metadataCollector.reifyType(type)}';
+          if (fieldElement.isTopLevel ||
+              backend.isAccessibleByReflection(fieldElement.enclosingClass)) {
+            DartType type = fieldElement.type;
+            reflectionMarker = '-${task.metadataCollector.reifyType(type)}';
+          } else {
+            reflectionMarker = '-';
+          }
         }
         String builtFieldname = '$fieldName$fieldCode$reflectionMarker';
         builder.addField(builtFieldname);
