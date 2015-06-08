@@ -9,6 +9,7 @@ import 'dart:collection' show Queue;
 import '../compile_time_constants.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
+import '../core_types.dart';
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
 import '../dart2jslib.dart' hide DynamicAccess;

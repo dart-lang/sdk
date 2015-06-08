@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/js_backend.dart'
     show JavaScriptBackend;
@@ -359,6 +360,12 @@ class CollectingTreeElements extends TreeElementMapping {
 
   void remove(Node node) {
     map.remove(node);
+  }
+
+  List<ConstantExpression> get constants {
+    List<ConstantExpression> list = <ConstantExpression>[];
+    forEachConstantNode((_, c) => list.add(c));
+    return list;
   }
 }
 

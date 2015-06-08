@@ -2424,21 +2424,32 @@ class _CompilerCoreTypes implements CoreTypes {
   InterfaceType get doubleType => doubleClass.computeType(compiler);
 
   @override
-  InterfaceType get functionType =>  functionClass.computeType(compiler);
+  InterfaceType get functionType => functionClass.computeType(compiler);
 
   @override
   InterfaceType get intType => intClass.computeType(compiler);
 
   @override
-  InterfaceType listType([DartType elementType = const DynamicType()]) {
-    return listClass.computeType(compiler).createInstantiation([elementType]);
+  InterfaceType listType([DartType elementType]) {
+    InterfaceType type = listClass.computeType(compiler);
+    if (elementType == null) {
+      return listClass.rawType;
+    }
+    return type.createInstantiation([elementType]);
   }
 
   @override
-  InterfaceType mapType([DartType keyType = const DynamicType(),
-                         DartType valueType = const DynamicType()]) {
-    return mapClass.computeType(compiler)
-        .createInstantiation([keyType, valueType]);
+  InterfaceType mapType([DartType keyType,
+                         DartType valueType]) {
+    InterfaceType type = mapClass.computeType(compiler);
+    if (keyType == null && valueType == null) {
+      return mapClass.rawType;
+    } else if (keyType == null) {
+      keyType = const DynamicType();
+    } else if (valueType == null) {
+      valueType = const DynamicType();
+    }
+    return type.createInstantiation([keyType, valueType]);
   }
 
   @override
@@ -2451,22 +2462,36 @@ class _CompilerCoreTypes implements CoreTypes {
   InterfaceType get stringType => stringClass.computeType(compiler);
 
   @override
+  InterfaceType get symbolType => symbolClass.computeType(compiler);
+
+  @override
   InterfaceType get typeType => typeClass.computeType(compiler);
 
   @override
-  InterfaceType iterableType([DartType elementType = const DynamicType()]) {
-    return iterableClass.computeType(compiler)
-        .createInstantiation([elementType]);
+  InterfaceType iterableType([DartType elementType]) {
+    InterfaceType type = iterableClass.computeType(compiler);
+    if (elementType == null) {
+      return iterableClass.rawType;
+    }
+    return type.createInstantiation([elementType]);
   }
 
   @override
-  InterfaceType futureType([DartType elementType = const DynamicType()]) {
-    return futureClass.computeType(compiler).createInstantiation([elementType]);
+  InterfaceType futureType([DartType elementType]) {
+    InterfaceType type = futureClass.computeType(compiler);
+    if (elementType == null) {
+      return futureClass.rawType;
+    }
+    return type.createInstantiation([elementType]);
   }
 
   @override
-  InterfaceType streamType([DartType elementType = const DynamicType()]) {
-    return streamClass.computeType(compiler).createInstantiation([elementType]);
+  InterfaceType streamType([DartType elementType]) {
+    InterfaceType type = streamClass.computeType(compiler);
+    if (elementType == null) {
+      return streamClass.rawType;
+    }
+    return type.createInstantiation([elementType]);
   }
 }
 

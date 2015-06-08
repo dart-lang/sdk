@@ -248,6 +248,10 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     return expression;
   }
 
+  void cacheConstantValue(ConstantExpression expression, ConstantValue value) {
+    constantValueMap[expression] = value;
+  }
+
   ConstantExpression compileNodeWithDefinitions(Node node,
                                                 TreeElements definitions,
                                                 {bool isConst: true}) {
@@ -256,7 +260,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
         this, definitions, compiler, isConst: isConst);
     AstConstant constant = evaluator.evaluate(node);
     if (constant != null) {
-      constantValueMap[constant.expression] = constant.value;
+      cacheConstantValue(constant.expression, constant.value);
       return constant.expression;
     }
     return null;
@@ -302,7 +306,7 @@ class DartConstantCompiler extends ConstantCompilerBase {
                                                 TreeElements definitions,
                                                 {bool isConst: true}) {
     ConstantExpression constant = definitions.getConstant(node);
-    if (constant != null) {
+    if (constant != null && getConstantValue(constant) != null) {
       return constant;
     }
     constant =

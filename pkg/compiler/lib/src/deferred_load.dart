@@ -286,8 +286,13 @@ class DeferredLoadTask extends CompilerTask {
       }
       treeElements.forEachConstantNode((Node node, _) {
         // Explicitly depend on the backend constants.
-        constants.add(
-            backend.constants.getConstantValueForNode(node, treeElements));
+        ConstantValue value =
+            backend.constants.getConstantValueForNode(node, treeElements);
+        if (value != null) {
+          // TODO(johnniwinther): Assert that all constants have values when
+          // these are directly evaluated.
+          constants.add(value);
+        }
       });
       elements.addAll(treeElements.otherDependencies);
     }

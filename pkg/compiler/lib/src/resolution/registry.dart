@@ -279,6 +279,10 @@ class ResolutionRegistry implements Registry {
 
   ConstantExpression getConstant(Node node) => mapping.getConstant(node);
 
+  void setConstant(Node node, ConstantExpression constant) {
+    mapping.setConstant(node, constant);
+  }
+
   //////////////////////////////////////////////////////////////////////////////
   //  Target/Label functionality.
   //////////////////////////////////////////////////////////////////////////////

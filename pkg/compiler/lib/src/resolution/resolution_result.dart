@@ -4,33 +4,51 @@
 
 part of resolution;
 
-/// The result of resolving a node.
-abstract class ResolutionResult {
-  Element get element;
+enum ResultKind {
+  NONE,
+  ELEMENT,
+  TYPE,
+  ASSERT,
+  CONSTANT,
 }
 
-/// The result for the resolution of a node that points to an [Element].
-class ElementResult implements ResolutionResult {
-  final Element element;
+/// The result of resolving a node.
+abstract class ResolutionResult {
+  const ResolutionResult();
 
   // TODO(johnniwinther): Remove this factory constructor when `null` is never
   // passed as an element result.
-  factory ElementResult(Element element) {
-    return element != null ? new ElementResult.internal(element) : null;
+  factory ResolutionResult.forElement(Element element) {
+    return element != null ? new ElementResult(element) : const NoneResult();
   }
 
-  ElementResult.internal(this.element);
+  ResultKind get kind;
+  Element get element => null;
+  DartType get type => null;
+  ConstantExpression get constant => null;
+  bool get isConstant => false;
+}
+
+/// The result for the resolution of a node that points to an [Element].
+class ElementResult extends ResolutionResult {
+  final Element element;
+
+  ResultKind get kind => ResultKind.ELEMENT;
+
+  ElementResult(this.element);
 
   String toString() => 'ElementResult($element)';
 }
 
 /// The result for the resolution of a node that points to an [DartType].
-class TypeResult implements ResolutionResult {
+class TypeResult extends ResolutionResult {
   final DartType type;
 
   TypeResult(this.type) {
     assert(type != null);
   }
+
+  ResultKind get kind => ResultKind.TYPE;
 
   Element get element => type.element;
 
@@ -38,10 +56,31 @@ class TypeResult implements ResolutionResult {
 }
 
 /// The result for the resolution of the `assert` method.
-class AssertResult implements ResolutionResult {
+class AssertResult extends ResolutionResult {
   const AssertResult();
 
-  Element get element => null;
+  ResultKind get kind => ResultKind.ASSERT;
 
   String toString() => 'AssertResult()';
+}
+
+class ConstantResult extends ResolutionResult {
+  final Node node;
+  final ConstantExpression constant;
+
+  ConstantResult(this.node, this.constant);
+
+  bool get isConstant => true;
+
+  ResultKind get kind => ResultKind.CONSTANT;
+
+  String toString() => 'ConstantResult(${constant.getText()})';
+}
+
+class NoneResult extends ResolutionResult {
+  const NoneResult();
+
+  ResultKind get kind => ResultKind.NONE;
+
+  String toString() => 'NoneResult()';
 }

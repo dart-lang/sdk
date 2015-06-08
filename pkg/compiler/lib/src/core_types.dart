@@ -27,6 +27,9 @@ abstract class CoreTypes {
   /// The `String` type defined in 'dart:core'.
   InterfaceType get stringType;
 
+  /// The `Symbol` type defined in 'dart:core'.
+  InterfaceType get symbolType;
+
   /// The `Function` type defined in 'dart:core'.
   InterfaceType get functionType;
 
@@ -38,25 +41,34 @@ abstract class CoreTypes {
 
   /// Returns an instance of the `List` type defined in 'dart:core' with
   /// [elementType] as its type argument.
-  InterfaceType listType([DartType elementType = const DynamicType()]);
+  ///
+  /// If no type argument is provided, the canonical raw type is returned.
+  InterfaceType listType([DartType elementType]);
 
   /// Returns an instance of the `Map` type defined in 'dart:core' with
   /// [keyType] and [valueType] as its type arguments.
-  InterfaceType mapType([DartType keyType = const DynamicType(),
-                         DartType valueType = const DynamicType()]);
+  ///
+  /// If no type arguments are provided, the canonical raw type is returned.
+  InterfaceType mapType([DartType keyType, DartType valueType]);
 
   /// Returns an instance of the `Iterable` type defined in 'dart:core' with
   /// [elementType] as its type argument.
-  InterfaceType iterableType([DartType elementType = const DynamicType()]);
+  ///
+  /// If no type argument is provided, the canonical raw type is returned.
+  InterfaceType iterableType([DartType elementType]);
 
   /// The `Future` class declaration.
   ClassElement get futureClass;
 
   /// Returns an instance of the `Future` type defined in 'dart:async' with
   /// [elementType] as its type argument.
-  InterfaceType futureType([DartType elementType = const DynamicType()]);
+  ///
+  /// If no type argument is provided, the canonical raw type is returned.
+  InterfaceType futureType([DartType elementType]);
 
   /// Returns an instance of the `Stream` type defined in 'dart:async' with
   /// [elementType] as its type argument.
-  InterfaceType streamType([DartType elementType = const DynamicType()]);
+  ///
+  /// If no type argument is provided, the canonical raw type is returned.
+  InterfaceType streamType([DartType elementType]);
 }

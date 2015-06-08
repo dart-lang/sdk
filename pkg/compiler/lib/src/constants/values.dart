@@ -639,6 +639,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
       hashCode = Hashing.mapHash(fields, Hashing.objectHash(type)),
       super(type) {
     assert(type != null);
+    assert(!fields.containsValue(null));
   }
 
   bool get isConstructedObject => true;
