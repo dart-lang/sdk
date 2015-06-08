@@ -314,6 +314,10 @@ abstract class Backend {
   bool classNeedsRti(ClassElement cls);
   bool methodNeedsRti(FunctionElement function);
 
+  /// Register deferred loading. Returns `true` if the backend supports deferred
+  /// loading.
+  bool registerDeferredLoading(Spannable node, Registry registry);
+
   /// Called during codegen when [constant] has been used.
   void registerCompileTimeConstant(ConstantValue constant, Registry registry) {}
 

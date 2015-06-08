@@ -312,6 +312,13 @@ class DartBackend extends Backend {
     }
 
   }
+
+  @override
+  bool registerDeferredLoading(Spannable node, Registry registry) {
+    // TODO(sigurdm): Implement deferred loading for dart2dart.
+    compiler.reportWarning(node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
+    return false;
+  }
 }
 
 class DartResolutionCallbacks extends ResolutionCallbacks {

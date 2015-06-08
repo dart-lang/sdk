@@ -2669,6 +2669,12 @@ class JavaScriptBackend extends Backend {
       enqueue(enqueuer, getStreamIteratorConstructor(), registry);
     }
   }
+
+  @override
+  bool registerDeferredLoading(Spannable node, Registry registry) {
+    registerCheckDeferredIsLoaded(registry);
+    return true;
+  }
 }
 
 /// Handling of special annotations for tests.

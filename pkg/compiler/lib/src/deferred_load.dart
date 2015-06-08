@@ -770,16 +770,9 @@ class DeferredLoadTask extends CompilerTask {
         }
       });
     }
-    Backend backend = compiler.backend;
-    if (isProgramSplit && backend is JavaScriptBackend) {
-      backend.registerCheckDeferredIsLoaded(compiler.globalDependencies);
-    }
-    if (isProgramSplit && backend is DartBackend) {
-      // TODO(sigurdm): Implement deferred loading for dart2dart.
-      compiler.reportWarning(
-          lastDeferred,
-          MessageKind.DEFERRED_LIBRARY_DART_2_DART);
-      isProgramSplit = false;
+    if (isProgramSplit) {
+      isProgramSplit = compiler.backend.registerDeferredLoading(
+            lastDeferred, compiler.globalDependencies);
     }
   }
 
