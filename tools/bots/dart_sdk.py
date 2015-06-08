@@ -188,7 +188,7 @@ def Run(command):
 
 if __name__ == '__main__':
   # We always clobber the bot, to make sure releases are build from scratch
-  force = CHANNEL != bot_utils.Channel.BLEEDING_EDGE:
+  force = CHANNEL != bot_utils.Channel.BLEEDING_EDGE
   bot.Clobber(force=force)
 
   CreateUploadSDK()
