@@ -2383,6 +2383,14 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
+    AnalysisOptions analysisOptions = context.analysisOptions;
+    if (!analysisOptions.hint) {
+      outputs[HINTS] = AnalysisError.NO_ERRORS;
+      return;
+    }
+    //
+    // Prepare collectors.
+    //
     RecordingErrorListener errorListener = new RecordingErrorListener();
     Source source = getRequiredSource();
     ErrorReporter errorReporter = new ErrorReporter(errorListener, source);
@@ -2417,7 +2425,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       unitElement.accept(visitor);
     }
     // Dart2js analysis.
-    if (context.analysisOptions.dart2jsHint) {
+    if (analysisOptions.dart2jsHint) {
       unit.accept(new Dart2JSVerifier(errorReporter));
     }
     // Dart best practices.

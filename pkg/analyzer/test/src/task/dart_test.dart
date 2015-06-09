@@ -8,7 +8,8 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/engine.dart' show CacheState;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisOptionsImpl, CacheState;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -1896,6 +1897,21 @@ main() {
     // validate
     _fillErrorListener(HINTS);
     errorListener.assertErrorsWithCodes(<ErrorCode>[HintCode.DEAD_CODE]);
+  }
+
+  test_perform_disabled() {
+    context.analysisOptions =
+        new AnalysisOptionsImpl.from(context.analysisOptions)..hint = false;
+    Source source = newSource('/test.dart', '''
+int main() {
+}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    _computeResult(target, HINTS);
+    expect(task, new isInstanceOf<GenerateHintsTask>());
+    // validate
+    _fillErrorListener(HINTS);
+    errorListener.assertNoErrors();
   }
 
   test_perform_imports_duplicateImport() {
