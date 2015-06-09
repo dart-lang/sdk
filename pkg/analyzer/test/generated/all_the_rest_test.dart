@@ -66,10 +66,12 @@ main() {
   runReflectiveTests(ExitDetectorTest2);
   runReflectiveTests(FileBasedSourceTest);
   runReflectiveTests(FileUriResolverTest);
-  runReflectiveTests(HtmlParserTest);
-  runReflectiveTests(HtmlTagInfoBuilderTest);
-  runReflectiveTests(HtmlUnitBuilderTest);
-  runReflectiveTests(HtmlWarningCodeTest);
+  if (!AnalysisEngine.instance.useTaskModel) {
+    runReflectiveTests(HtmlParserTest);
+    runReflectiveTests(HtmlTagInfoBuilderTest);
+    runReflectiveTests(HtmlUnitBuilderTest);
+    runReflectiveTests(HtmlWarningCodeTest);
+  }
   runReflectiveTests(ReferenceFinderTest);
   runReflectiveTests(SDKLibrariesReaderTest);
   runReflectiveTests(SourceFactoryTest);
