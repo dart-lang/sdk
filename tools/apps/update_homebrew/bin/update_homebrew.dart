@@ -21,17 +21,13 @@ const GITHUB_REPO = 'dart-lang/homebrew-dart';
 
 const CHANNELS = const ['dev', 'stable'];
 
-const SDK_FILES = const [
-  'sdk/dartsdk-macos-x64-release.zip',
-  'sdk/dartsdk-macos-ia32-release.zip'
-];
+const FILES = const [x64File, ia32File, dartiumFile, contentShellFile];
 
-const DARTIUM_FILES = const [
-  'dartium/dartium-macos-ia32-release.zip',
-  'dartium/content_shell-macos-ia32-release.zip'
-];
-
-final FILES = []..addAll(SDK_FILES)..addAll(DARTIUM_FILES);
+const urlBase = 'https://storage.googleapis.com/dart-archive/channels';
+const x64File = 'sdk/dartsdk-macos-x64-release.zip';
+const ia32File = 'sdk/dartsdk-macos-ia32-release.zip';
+const dartiumFile = 'dartium/dartium-macos-ia32-release.zip';
+const contentShellFile = 'dartium/content_shell-macos-ia32-release.zip';
 
 Future<String> getHash256(
     String channel, String revision, String download) async {
@@ -65,7 +61,8 @@ Future<String> getVersion(String channel, String revision) async {
   }
 }
 
-Future setCurrentRevisions(Map revisions) async {
+Future<Map> getCurrentRevisions() async {
+  var revisions = <String, String>{};
   var lines = await (new File('$repository/dart.rb')).readAsLines();
 
   for (var channel in CHANNELS) {
@@ -82,50 +79,44 @@ Future setCurrentRevisions(Map revisions) async {
     revisions[channel] =
         regExp.firstMatch(lines.firstWhere(regExp.hasMatch)).group(1);
   }
+  return revisions;
 }
 
-Future setHashes(Map revisions, Map hashes) {
-  List waitOn = [];
+Future<Map> getHashes(Map revisions) async {
+  var hashes = <String, Map>{};
   for (var channel in CHANNELS) {
     hashes[channel] = {};
     for (var file in FILES) {
-      waitOn.add(getHash256(channel, revisions[channel], file).then((hash) {
-        hashes[channel][file] = hash;
-      }));
+      var hash = await getHash256(channel, revisions[channel], file);
+      hashes[channel][file] = hash;
     }
   }
-  return Future.wait(waitOn);
+  return hashes;
 }
 
 Future writeHomebrewInfo(String channel, String revision) async {
-  var revisions = {};
-  var hashes = {};
-
-  await setCurrentRevisions(revisions);
+  var revisions = await getCurrentRevisions();
 
   if (revisions[channel] == revision) {
     print("Channel $channel is already at revision $revision in homebrew.");
     exit(0);
   }
   revisions[channel] = revision;
-  await setHashes(revisions, hashes);
+  var hashes = await getHashes(revisions);
   var devVersion = await getVersion('dev', revisions['dev']);
 
   var stableVersion = await getVersion('stable', revisions['stable']);
 
-  await (new File('$repository/dartium.rb').openWrite()
-    ..write(DartiumFile(revisions, hashes, devVersion, stableVersion))).close();
-  await (new File('$repository/dart.rb').openWrite()
-    ..write(DartFile(revisions, hashes, devVersion, stableVersion))).close();
+  await new File('$repository/dartium.rb').writeAsString(
+      createDartiumFormula(revisions, hashes, devVersion, stableVersion),
+      flush: true);
+  await new File('$repository/dart.rb').writeAsString(
+      createDartFormula(revisions, hashes, devVersion, stableVersion),
+      flush: true);
 }
 
-String DartiumFile(
-    Map revisions, Map hashes, String devVersion, String stableVersion) {
-  final urlBase = 'https://storage.googleapis.com/dart-archive/channels';
-  final dartiumFile = 'dartium/dartium-macos-ia32-release.zip';
-  final contentShellFile = 'dartium/content_shell-macos-ia32-release.zip';
-
-  return '''
+String createDartiumFormula(
+    Map revisions, Map hashes, String devVersion, String stableVersion) => '''
 require 'formula'
 
 class Dartium < Formula
@@ -181,15 +172,9 @@ class Dartium < Formula
   end
 end
 ''';
-}
 
-String DartFile(
-    Map revisions, Map hashes, String devVersion, String stableVersion) {
-  final urlBase = 'https://storage.googleapis.com/dart-archive/channels';
-  final x64File = 'sdk/dartsdk-macos-x64-release.zip';
-  final ia32File = 'sdk/dartsdk-macos-ia32-release.zip';
-
-  return '''
+String createDartFormula(
+    Map revisions, Map hashes, String devVersion, String stableVersion) => '''
 require 'formula'
 
 class Dart < Formula
@@ -238,7 +223,6 @@ class Dart < Formula
   end
 end
 ''';
-}
 
 Future runGit(List<String> args) async {
   print("git ${args.join(' ')}");
