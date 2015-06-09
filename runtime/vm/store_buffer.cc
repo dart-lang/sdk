@@ -5,71 +5,106 @@
 #include "vm/store_buffer.h"
 
 #include "platform/assert.h"
+#include "vm/lockers.h"
 #include "vm/runtime_entry.h"
 
 namespace dart {
 
-DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, 1, Isolate* isolate) {
-  StoreBuffer* buffer = isolate->store_buffer();
-  buffer->Expand(true);
+DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, 1, Thread* thread) {
+  thread->StoreBufferBlockProcess(true);
 }
 END_LEAF_RUNTIME_ENTRY
 
 
+StoreBuffer::StoreBuffer() : mutex_(new Mutex()) {
+}
+
+
 StoreBuffer::~StoreBuffer() {
-  StoreBufferBlock* block = blocks_;
-  blocks_ = NULL;
-  while (block != NULL) {
-    StoreBufferBlock* next = block->next();
-    delete block;
-    block = next;
-  }
+  Reset();
+  delete mutex_;
 }
 
 
 void StoreBuffer::Reset() {
-  StoreBufferBlock* block = blocks_->next_;
-  while (block != NULL) {
-    StoreBufferBlock* next = block->next_;
-    delete block;
-    block = next;
+  MutexLocker ml(mutex_);
+  // TODO(koda): Reuse and share empty blocks between isolates.
+  while (!full_.IsEmpty()) {
+    delete full_.Pop();
   }
-  blocks_->next_ = NULL;
-  blocks_->top_ = 0;
-  full_count_ = 0;
+  while (!partial_.IsEmpty()) {
+    delete partial_.Pop();
+  }
 }
 
 
-bool StoreBuffer::Contains(RawObject* raw) {
-  StoreBufferBlock* block = blocks_;
-  while (block != NULL) {
-    intptr_t count = block->Count();
-    for (intptr_t i = 0; i < count; i++) {
-      if (block->At(i) == raw) {
-        return true;
-      }
-    }
-    block = block->next_;
+StoreBufferBlock* StoreBuffer::Blocks() {
+  MutexLocker ml(mutex_);
+  while (!partial_.IsEmpty()) {
+    full_.Push(partial_.Pop());
   }
-  return false;
+  return full_.PopAll();
 }
 
 
-void StoreBuffer::Expand(bool check) {
-  ASSERT(blocks_->Count() == StoreBufferBlock::kSize);
-  blocks_ = new StoreBufferBlock(blocks_);
-  full_count_++;
-  if (check) {
+void StoreBuffer::PushBlock(StoreBufferBlock* block, bool check_threshold) {
+  MutexLocker ml(mutex_);
+  List* list = block->IsFull() ? &full_ : &partial_;
+  list->Push(block);
+  if (check_threshold) {
     CheckThreshold();
   }
+}
+
+
+StoreBufferBlock* StoreBuffer::PopBlock() {
+  MutexLocker ml(mutex_);
+  return (!partial_.IsEmpty()) ? partial_.Pop() : PopEmptyBlock();
+}
+
+
+StoreBufferBlock* StoreBuffer::PopEmptyBlock() {
+  // TODO(koda): Reuse and share empty blocks between isolates.
+  return new StoreBufferBlock();
+}
+
+
+StoreBuffer::List::~List() {
+  while (!IsEmpty()) {
+    delete Pop();
+  }
+}
+
+
+StoreBufferBlock* StoreBuffer::List::Pop() {
+  StoreBufferBlock* result = head_;
+  head_ = head_->next_;
+  --length_;
+  result->next_ = NULL;
+  return result;
+}
+
+
+StoreBufferBlock* StoreBuffer::List::PopAll() {
+  StoreBufferBlock* result = head_;
+  head_ = NULL;
+  length_ = 0;
+  return result;
+}
+
+
+void StoreBuffer::List::Push(StoreBufferBlock* block) {
+  block->next_ = head_;
+  head_ = block;
+  ++length_;
 }
 
 
 void StoreBuffer::CheckThreshold() {
   // Schedule an interrupt if we have run over the max number of
   // StoreBufferBlocks.
-  // TODO(iposva): Fix magic number.
-  if (full_count_ > 100) {
+  // TODO(koda): Pass threshold and callback in constructor. Cap total?
+  if (full_.length() > 100) {
     Isolate::Current()->ScheduleInterrupts(Isolate::kStoreBufferInterrupt);
   }
 }

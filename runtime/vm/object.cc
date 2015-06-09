@@ -1717,8 +1717,8 @@ RawObject* Object::Allocate(intptr_t cls_id,
 
 class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
  public:
-  explicit StoreBufferUpdateVisitor(Isolate* isolate, RawObject* obj) :
-      ObjectPointerVisitor(isolate), old_obj_(obj) {
+  explicit StoreBufferUpdateVisitor(Thread* thread, RawObject* obj) :
+      ObjectPointerVisitor(thread->isolate()), thread_(thread), old_obj_(obj) {
     ASSERT(old_obj_->IsOldObject());
   }
 
@@ -1727,7 +1727,7 @@ class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
       RawObject* raw_obj = *curr;
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         old_obj_->SetRememberedBit();
-        isolate()->store_buffer()->AddObject(old_obj_);
+        thread_->StoreBufferAddObject(old_obj_);
         // Remembered this object. There is no need to continue searching.
         return;
       }
@@ -1735,6 +1735,7 @@ class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
   }
 
  private:
+  Thread* thread_;
   RawObject* old_obj_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreBufferUpdateVisitor);
@@ -1776,7 +1777,7 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
     // Old original doesn't need to be remembered, so neither does the clone.
     return raw_clone;
   }
-  StoreBufferUpdateVisitor visitor(Isolate::Current(), raw_clone);
+  StoreBufferUpdateVisitor visitor(Thread::Current(), raw_clone);
   raw_clone->VisitPointers(&visitor);
   return raw_clone;
 }

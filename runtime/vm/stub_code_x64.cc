@@ -993,15 +993,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ LockCmpxchgq(FieldAddress(RDX, Object::tags_offset()), RCX);
   __ j(NOT_EQUAL, &reload);
 
-  // Load the isolate.
-  // RDX: Address being stored
-  __ LoadIsolate(RAX);
-
-  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
   // RDX: Address being stored
-  // RAX: Isolate
-  __ movq(RAX, Address(RAX, Isolate::store_buffer_offset()));
+  __ movq(RAX, Address(THR, Thread::store_buffer_block_offset()));
   __ movl(RCX, Address(RAX, StoreBufferBlock::top_offset()));
   __ movq(Address(RAX, RCX, TIMES_8, StoreBufferBlock::pointers_offset()), RDX);
 
@@ -1022,7 +1017,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Bind(&L);
   // Setup frame, push callee-saved registers.
   __ EnterCallRuntimeFrame(0);
-  __ LoadIsolate(CallingConventions::kArg1Reg);
+  __ movq(CallingConventions::kArg1Reg, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
   __ ret();

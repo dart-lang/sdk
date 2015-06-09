@@ -80,6 +80,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
  public:
   explicit ScavengerVisitor(Isolate* isolate, Scavenger* scavenger)
       : ObjectPointerVisitor(isolate),
+        thread_(Thread::Current()),
         scavenger_(scavenger),
         from_start_(scavenger_->from_->start()),
         from_size_(scavenger_->from_->end() - scavenger_->from_->start()),
@@ -139,7 +140,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       return;
     }
     visiting_old_object_->SetRememberedBit();
-    isolate()->store_buffer()->AddObjectGC(visiting_old_object_);
+    thread_->StoreBufferAddObjectGC(visiting_old_object_);
   }
 
   void ScavengePointer(RawObject** p) {
@@ -239,6 +240,7 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     }
   }
 
+  Thread* thread_;
   Scavenger* scavenger_;
   uword from_start_;
   uword from_size_;
@@ -456,6 +458,7 @@ void Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
   }
+  Thread::PrepareForGC();
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
   from_ = to_;
@@ -513,17 +516,16 @@ void Scavenger::Epilogue(Isolate* isolate,
 
 void Scavenger::IterateStoreBuffers(Isolate* isolate,
                                     ScavengerVisitor* visitor) {
-  StoreBuffer* buffer = isolate->store_buffer();
-  heap_->RecordData(kStoreBufferEntries, buffer->Count());
-
   // Iterating through the store buffers.
-  // Grab the deduplication sets out of the store buffer.
+  // Grab the deduplication sets out of the isolate's consolidated store buffer.
   StoreBufferBlock* pending = isolate->store_buffer()->Blocks();
+  intptr_t total_count = 0;
   while (pending != NULL) {
     StoreBufferBlock* next = pending->next();
     // Generated code appends to store buffers; tell MemorySanitizer.
     MSAN_UNPOISON(pending, sizeof(*pending));
     intptr_t count = pending->Count();
+    total_count += count;
     for (intptr_t i = 0; i < count; i++) {
       RawObject* raw_object = pending->At(i);
       ASSERT(raw_object->IsRemembered());
@@ -534,6 +536,7 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     delete pending;
     pending = next;
   }
+  heap_->RecordData(kStoreBufferEntries, total_count);
   heap_->RecordData(kDataUnused1, 0);
   heap_->RecordData(kDataUnused2, 0);
   // Done iterating through old objects remembered in the store buffers.

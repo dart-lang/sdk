@@ -508,7 +508,7 @@ class RawObject {
     if (value->IsNewObject() && this->IsOldObject() &&
         !this->IsRemembered()) {
       this->SetRememberedBit();
-      Isolate::Current()->store_buffer()->AddObject(this);
+      Thread::Current()->StoreBufferAddObject(this);
     }
   }
 

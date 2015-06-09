@@ -1009,15 +1009,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
     __ b(&retry, EQ);
   }
 
-  // Load the isolate.
-  // Spilled: R1, R2, R3.
-  // R0: address being stored.
-  __ LoadIsolate(R1);
-
-  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
-  // R1: isolate.
-  __ ldr(R1, Address(R1, Isolate::store_buffer_offset()));
+  __ ldr(R1, Address(THR, Thread::store_buffer_block_offset()));
   __ ldr(R2, Address(R1, StoreBufferBlock::top_offset()));
   __ add(R3, R1, Operand(R2, LSL, 2));
   __ str(R0, Address(R3, StoreBufferBlock::pointers_offset()));
@@ -1039,7 +1033,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(0 * kWordSize);
-  __ LoadIsolate(R0);
+  __ mov(R0, Operand(THR));
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();

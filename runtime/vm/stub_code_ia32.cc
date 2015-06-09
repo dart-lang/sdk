@@ -954,17 +954,11 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ LockCmpxchgl(FieldAddress(EDX, Object::tags_offset()), ECX);
   __ j(NOT_EQUAL, &reload);
 
-  // Load the isolate.
-  // Spilled: EAX, ECX
-  // EDX: Address being stored
-  __ LoadIsolate(EAX);
-
-  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
   // Spilled: EAX, ECX
   // EDX: Address being stored
-  // EAX: Isolate
-  __ movl(EAX, Address(EAX, Isolate::store_buffer_offset()));
+  __ movl(EAX, Address(THR, Thread::store_buffer_block_offset()));
   __ movl(ECX, Address(EAX, StoreBufferBlock::top_offset()));
   __ movl(Address(EAX, ECX, TIMES_4, StoreBufferBlock::pointers_offset()), EDX);
 
@@ -988,8 +982,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(1 * kWordSize);
-  __ LoadIsolate(EDX);
-  __ movl(Address(ESP, 0), EDX);  // Push the isolate as the only argument.
+  __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();

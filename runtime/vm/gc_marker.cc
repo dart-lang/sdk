@@ -128,6 +128,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
                  MarkingStack* marking_stack,
                  bool visit_function_code)
       : ObjectPointerVisitor(isolate),
+        thread_(Thread::Current()),
         heap_(heap),
         vm_heap_(Dart::vm_isolate()->heap()),
         class_table_(isolate->class_table()),
@@ -136,6 +137,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
         visiting_old_object_(NULL),
         visit_function_code_(visit_function_code) {
     ASSERT(heap_ != vm_heap_);
+    ASSERT(thread_->isolate() == isolate);
   }
 
   MarkingStack* marking_stack() const { return marking_stack_; }
@@ -226,7 +228,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
           !visiting_old_object_->IsRemembered()) {
         ASSERT(p != NULL);
         visiting_old_object_->SetRememberedBitUnsynchronized();
-        isolate()->store_buffer()->AddObjectGC(visiting_old_object_);
+        thread_->StoreBufferAddObjectGC(visiting_old_object_);
       }
       return;
     }
@@ -285,6 +287,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
     }
   }
 
+  Thread* thread_;
   Heap* heap_;
   Heap* vm_heap_;
   ClassTable* class_table_;
@@ -338,6 +341,7 @@ void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
   }
+  Thread::PrepareForGC();
   // The store buffers will be rebuilt as part of marking, reset them now.
   isolate->store_buffer()->Reset();
 }
