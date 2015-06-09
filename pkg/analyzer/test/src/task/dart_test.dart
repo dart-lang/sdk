@@ -2505,6 +2505,20 @@ class ResolveVariableReferencesTaskTest extends _AbstractDartTaskTest {
     expect(variable.isPotentiallyMutatedInScope, mutatedInScope);
   }
 
+  test_perform_buildClosureLibraryElements() {
+    Source source = newSource('/test.dart', '''
+main() {
+}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    _computeResult(target, RESOLVED_UNIT5);
+    expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
+    // dart:core LIBRARY_ELEMENT is built
+    expect(analysisCache.getState(
+        context.sourceFactory.resolveUri(null, 'dart:core'),
+        LIBRARY_ELEMENT), CacheState.VALID);
+  }
+
   test_perform_local() {
     Source source = newSource('/test.dart', '''
 main() {

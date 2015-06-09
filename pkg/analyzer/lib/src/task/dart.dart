@@ -243,7 +243,7 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT4 =
 /**
  * The partial [LibraryElement] associated with a library.
  *
- * [LIBRARY_ELEMENT4] plus [RESOLVED_UNIT4] for every unit.
+ * [LIBRARY_ELEMENT4] plus resolved types for every element.
  *
  * The result is only available for [Source]s representing a library.
  */
@@ -3131,6 +3131,9 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(LibrarySpecificUnit target) {
     return <String, TaskInput>{
+      'fullyBuiltLibraryElements': IMPORT_EXPORT_SOURCE_CLOSURE
+          .of(target.library)
+          .toListOf(LIBRARY_ELEMENT),
       LIBRARY_INPUT: LIBRARY_ELEMENT.of(target.library),
       UNIT_INPUT: RESOLVED_UNIT4.of(target),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
