@@ -3256,10 +3256,10 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     RecordingErrorListener errorListener = new RecordingErrorListener();
     Source source = getRequiredSource();
     errorReporter = new ErrorReporter(errorListener, source);
-    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     //
     // Prepare inputs.
     //
+    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
@@ -3273,6 +3273,12 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter,
         libraryElement, typeProvider, new InheritanceManager(libraryElement));
     unit.accept(errorVerifier);
+    //
+    // Use the ConstantVerifier to compute errors.
+    //
+    ConstantVerifier constantVerifier = new ConstantVerifier(
+        errorReporter, libraryElement, typeProvider, context.declaredVariables);
+    unit.accept(constantVerifier);
     //
     // Record outputs.
     //
