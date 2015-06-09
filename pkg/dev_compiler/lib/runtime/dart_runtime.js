@@ -2,14 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-var dart, _js_helper, _js_primitives, dartx;
+var dart, dartx;
 (function (dart) {
   'use strict';
-
-  // TODO(vsm): This is referenced (as init.globalState) from
-  // isolate_helper.dart.  Where should it go?
-  // See: https://github.com/dart-lang/dev_compiler/issues/164
-  dart.globalState = null;
 
   const defineProperty = Object.defineProperty;
   const getOwnPropertyDescriptor = Object.getOwnPropertyDescriptor;
@@ -35,7 +30,7 @@ var dart, _js_helper, _js_primitives, dartx;
     // types.  hasOwnProperty doesn't chase the proto chain.
     // Also, do we want an NSM on regular JS objects?
     // See: https://github.com/dart-lang/dev_compiler/issues/169
-    var result = obj[field];
+    let result = obj[field];
 
     // TODO(vsm): Check this more robustly.
     if (typeof result == "function" && !hasOwnProperty.call(obj, field)) {
@@ -108,7 +103,7 @@ var dart, _js_helper, _js_primitives, dartx;
   let _extensionType = Symbol('extensionType');
   function _canonicalFieldName(obj, name, args, displayName) {
     if (obj[_extensionType]) {
-      var extension = dartx[name];
+      let extension = dartx[name];
       if (extension) return extension;
       // TODO(jmesserly): in the future we might have types that "overlay" Dart
       // methods while also exposing the full native API, e.g. dart:html vs
@@ -144,11 +139,11 @@ var dart, _js_helper, _js_primitives, dartx;
 
   function typeToString(type) {
     if (typeof(type) == "function") {
-      var name = type.name;
-      var args = type[dart.typeArguments];
+      let name = type.name;
+      let args = type[dart.typeArguments];
       if (args) {
         name += '<';
-        for (var i = 0; i < args.length; ++i) {
+        for (let i = 0; i < args.length; ++i) {
           if (i > 0) name += ', ';
           name += typeToString(args[i]);
         }
@@ -209,7 +204,7 @@ var dart, _js_helper, _js_primitives, dartx;
    * Currently this will return null for non-Dart objects.
    */
   function realRuntimeType(obj) {
-    var result = checkPrimitiveType(obj);
+    let result = checkPrimitiveType(obj);
     if (result !== null) return result;
     // TODO(vsm): Should we treat Dart and JS objects differently here?
     // E.g., we can check if obj instanceof core.Object to differentiate.
@@ -321,7 +316,7 @@ var dart, _js_helper, _js_primitives, dartx;
   }
 
   function safeGetOwnProperty(obj, name) {
-    var desc = getOwnPropertyDescriptor(obj, name);
+    let desc = getOwnPropertyDescriptor(obj, name);
     if (desc) return desc.value;
   }
 
@@ -402,7 +397,7 @@ var dart, _js_helper, _js_primitives, dartx;
       for (let i = 0; i < type.optionals.length; ++i) {
         if (!_isBottom(type.optionals[i], true)) return false;
       }
-      var names = getOwnPropertyNames(type.named);
+      let names = getOwnPropertyNames(type.named);
       for (let i = 0; i < names.length; ++i) {
         if (!_isBottom(type.named[names[i]], true)) return false;
       }
@@ -441,7 +436,7 @@ var dart, _js_helper, _js_primitives, dartx;
 
   function _typeName(type) {
     if (type === void 0) throwRuntimeError('Undefined type');
-    var name = type.name;
+    let name = type.name;
     if (!name) throwRuntimeError('Unexpected type: ' + type);
     return name;
   }
@@ -455,7 +450,7 @@ var dart, _js_helper, _js_primitives, dartx;
     /// actuals.
     checkApply(actuals) {
       if (actuals.length < this.args.length) return false;
-      var index = 0;
+      let index = 0;
       for(let i = 0; i < this.args.length; ++i) {
         if (!instanceOfOrNull(actuals[i], this.args[i])) return false;
         ++index;
@@ -491,7 +486,7 @@ var dart, _js_helper, _js_primitives, dartx;
     get name() {
       if (this._stringValue) return this._stringValue;
 
-      var buffer = '(';
+      let buffer = '(';
       for (let i = 0; i < this.args.length; ++i) {
         if (i > 0) {
           buffer += ', ';
@@ -550,7 +545,7 @@ var dart, _js_helper, _js_primitives, dartx;
       defineLazyProperty(closure, _runtimeType, {get : arguments[1]});
       return closure;
     }
-    var t;
+    let t;
     if (arguments.length == 1) {
       // No type arguments, it's all dynamic
       let len = closure.length;
@@ -574,8 +569,8 @@ var dart, _js_helper, _js_primitives, dartx;
 
   function functionType(returnType, args, extra) {
     // TODO(vsm): Cache / memomize?
-    var optionals;
-    var named;
+    let optionals;
+    let named;
     if (extra === void 0) {
       optionals = [];
       named = {};
@@ -638,7 +633,7 @@ var dart, _js_helper, _js_primitives, dartx;
 
   function getFunctionType(obj) {
     // TODO(vsm): Encode this properly on the function for Dart-generated code.
-    var args = Array.apply(null, new Array(obj.length)).map(() => core.Object);
+    let args = Array.apply(null, new Array(obj.length)).map(() => core.Object);
     return functionType(dart.bottom, args);
   }
 
@@ -682,7 +677,7 @@ var dart, _js_helper, _js_primitives, dartx;
       return false;
     }
 
-    var j = 0;
+    let j = 0;
     for (let i = args1.length; i < args2.length; ++i, ++j) {
       if (!isSubtype_(args2[i], optionals1[j], true)) {
         return false;
@@ -839,9 +834,9 @@ var dart, _js_helper, _js_primitives, dartx;
     // annotations) any time we copy a method as part of our metaprogramming.
     // It might be more friendly to JS metaprogramming if we include this info
     // on the function.
-    var originalSigFn = getOwnPropertyDescriptor(type, _methodSig).get;
+    let originalSigFn = getOwnPropertyDescriptor(type, _methodSig).get;
     defineMemoizedGetter(type, _methodSig, function() {
-      var sig = originalSigFn();
+      let sig = originalSigFn();
       for (let name of methodNames) {
         sig[getExtensionSymbol(name)] = sig[name];
       }
@@ -1148,7 +1143,7 @@ var dart, _js_helper, _js_primitives, dartx;
    * returns the result. If the value is not found, [valueFn] will be called to
    * add it. For example:
    *
-   *     var map = new Map();
+   *     let map = new Map();
    *     putIfAbsent(map, [1, 2, 'hi ', 'there '], () => 'world');
    *
    * ... will create a Map with a structure like:
@@ -1247,7 +1242,7 @@ var dart, _js_helper, _js_primitives, dartx;
   dart.hashCode = hashCode;
 
   function runtimeType(obj) {
-    var result = checkPrimitiveType(obj);
+    let result = checkPrimitiveType(obj);
     if (result !== null) return result;
     return obj.runtimeType;
   }
@@ -1283,7 +1278,7 @@ var dart, _js_helper, _js_primitives, dartx;
     }
     next() {
       let i = this.dartIterator;
-      var done = !i.moveNext();
+      let done = !i.moveNext();
       return { done: done, value: done ? void 0 : i.current };
     }
   }
@@ -1298,97 +1293,145 @@ var dart, _js_helper, _js_primitives, dartx;
   dart.global = window || global;
   dart.JsSymbol = Symbol;
 
-  // All libraries, including those that have referenced (lazyImport),
-  // but not yet loaded.
-  var libraries = new Map();
+  // Module support.  This is a simplified module system for Dart.
+  // Longer term, we can easily migrate to an existing JS module system:
+  // ES6, AMD, RequireJS, ....
 
-  // Completed libraries.
-  var loadedLibraries = new Set();
+  class LibraryLoader {
+    constructor(name, defaultValue, imports, lazyImports, loader) {
+      this._name = name;
+      this._library = defaultValue ? defaultValue : {};
+      this._imports = imports;
+      this._lazyImports = lazyImports;
+      this._loader = loader;
 
-  // Import a library by name.
-  // This is exported for REPL / JS interop convenience.
-  function import_(name) {
-    let loaded = loadedLibraries.has(name);
-    let value = libraries[name];
-    // TODO(vsm): Change this to a hard throw.
-    // For now, we're missing some libraries.  E.g., dart:js:
-    // https://github.com/dart-lang/dev_compiler/issues/168
-    if (!loaded) {
-      console.warn('Missing required module: ' + name);
-    } else if (!value) {
-      throwRuntimeError('Library import error: ' + name)
+      // Cyclic import detection
+      this._state = LibraryLoader.NOT_LOADED;
     }
-    return value;
-  }
-  dart.import = import_;
 
-  function initializeLibraryStub(name) {
-    // Create the library object if necessary.
-    if (!libraries[name]) {
-      libraries[name] = {};
+    loadImports(pendingSet) {
+      return this.handleImports(this._imports, (lib) => lib.load(pendingSet));
     }
-    return libraries[name];
-  }
-  const lazyImport = initializeLibraryStub;
 
-  function defineLibrary(name, defaultValue) {
-    if (loadedLibraries.has(name)) {
-      throwRuntimeError('Library is already defined: ' + name);
+    deferLazyImports(pendingSet) {
+      return this.handleImports(this._lazyImports,
+        (lib) => {
+          pendingSet.add(lib._name);
+          return lib.stub();
+      });
     }
-    var value;
-    if (defaultValue) {
-      var oldValue = libraries[name];
-      if (oldValue && oldValue != defaultValue) {
-        throwRuntimeError(
-          `Library ${name} cannot be redefined to ${defaultValue}`);
+
+    loadLazyImports(pendingSet) {
+      return this.handleImports(pendingSet, (lib) => lib.load());
+    }
+
+    handleImports(list, handler) {
+      let results = [];
+      for (let name of list) {
+        let lib = libraries[name];
+        if (!lib) {
+          throwRuntimeError('Library not available: ' + name);
+        }
+        results.push(handler(lib));
       }
-      libraries[name] = value = defaultValue;
-    } else {
-      value = initializeLibraryStub(name);
+      return results;
     }
-    loadedLibraries.add(name);
-    return value;
-  }
 
-  function library(name, defaultValue, imports, lazyImports, module) {
-    var args = [];
-    var lib = defineLibrary(name, defaultValue);
-    args.push(lib);
-    for (var i = 0; i < imports.length; ++i) {
-      lib = import_(imports[i]);
-      args.push(lib);
+    load(inheritedPendingSet) {
+      // Check for cycles
+      if (this._state == LibraryLoader.LOADING) {
+        throwRuntimeError('Circular dependence on library: ' + this._name);
+      } else if (this._state >= LibraryLoader.LOADED) {
+        return this._library;
+      }
+      this._state = LibraryLoader.LOADING;
+
+      // Handle imports and record lazy imports
+      let pendingSet = inheritedPendingSet ? inheritedPendingSet : new Set();
+      let args = this.loadImports(pendingSet);
+      args = args.concat(this.deferLazyImports(pendingSet));
+
+      // Load the library
+      args.unshift(this._library);
+      this._loader.apply(null, args);
+      this._state = LibraryLoader.LOADED;
+
+      // Handle lazy imports
+      if (inheritedPendingSet === void 0) {
+        // Drain the queue
+        this.loadLazyImports(pendingSet);
+      }
+      this._state = LibraryLoader.READY;
+      return this._library;
     }
-    for (var i = 0; i < lazyImports.length; ++i) {
-      lib = lazyImport(lazyImports[i]);
-      args.push(lib);
+
+    stub() {
+      return this._library;
     }
-    module.apply(null, args);
+  }
+  LibraryLoader.NOT_LOADED = 0;
+  LibraryLoader.LOADING = 1;
+  LibraryLoader.LOADED = 2;
+  LibraryLoader.READY = 3;
+
+  // Map from name to LibraryLoader
+  let libraries = new Map();
+
+  function library(name, defaultValue, imports, lazyImports, loader) {
+    libraries[name] =
+      new LibraryLoader(name, defaultValue, imports, lazyImports, loader);
   }
   dart.library = library;
 
+  function import_(libraryName) {
+    bootstrap();
+    let loader = libraries[libraryName];
+    return loader.load();
+  }
+  dart.import = import_;
+
   function start(libraryName) {
-    let lib = import_(libraryName);
-    _isolate_helper.startRootIsolate(lib.main, []);
+    let library = import_(libraryName);
+    _isolate_helper.startRootIsolate(library.main, []);
   }
   dart.start = start;
 
-  let core = lazyImport('dart/core');
-  let collection = lazyImport('dart/collection');
-  let async = lazyImport('dart/async');
-  let _interceptors = lazyImport('dart/_interceptors');
-  let _isolate_helper = lazyImport('dart/_isolate_helper');
-  let _js_helper = lazyImport('dart/_js_helper');
-  _js_helper.checkNum = notNull;
-  let _js_primitives = lazyImport('dart/_js_primitives');
-  _js_primitives.printString = (s) => console.log(s);
+  // Libraries used in this file.
+  let core;
+  let collection;
+  let async;
+  let _interceptors;
+  let _isolate_helper;
+  let _js_helper;
+  let _js_primitives;
 
-  // TODO(vsm): DOM facades?
-  // See: https://github.com/dart-lang/dev_compiler/issues/173
-  NodeList.prototype.get = function(i) { return this[i]; };
-  NamedNodeMap.prototype.get = function(i) { return this[i]; };
-  DOMTokenList.prototype.get = function(i) { return this[i]; };
+  function bootstrap() {
+    if (core) return;
 
-  /** Dart extension members. */
-  dartx = dartx || {};
+    let lazyImport = (name) => libraries[name].stub();
 
+    core = lazyImport('dart/core');
+    collection = lazyImport('dart/collection');
+    async = lazyImport('dart/async');
+    _interceptors = lazyImport('dart/_interceptors');
+    _isolate_helper = lazyImport('dart/_isolate_helper');
+    _js_helper = lazyImport('dart/_js_helper');
+    _js_helper.checkNum = notNull;
+    _js_primitives = lazyImport('dart/_js_primitives');
+    _js_primitives.printString = (s) => console.log(s);
+
+    // TODO(vsm): DOM facades?
+    // See: https://github.com/dart-lang/dev_compiler/issues/173
+    NodeList.prototype.get = function(i) { return this[i]; };
+    NamedNodeMap.prototype.get = function(i) { return this[i]; };
+    DOMTokenList.prototype.get = function(i) { return this[i]; };
+
+    // TODO(vsm): This is referenced (as init.globalState) from
+    // isolate_helper.dart.  Where should it go?
+    // See: https://github.com/dart-lang/dev_compiler/issues/164
+    dart.globalState = null;
+
+    /** Dart extension members. */
+    dartx = dartx || {};
+  }
 })(dart || (dart = {}));
