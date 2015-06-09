@@ -17,6 +17,7 @@ vars.update({
 
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
+  "charcode_tag": "@1.1.0",
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
@@ -126,6 +127,8 @@ deps.update({
 
   "src/dart/third_party/pkg/args":
       "https://github.com/dart-lang/args.git" + Var("args_tag"),
+  "src/dart/third_party/pkg/charcode":
+      "https://github.com/dart-lang/charcode.git" + Var("charcode_tag"),
   "src/dart/third_party/pkg/http_parser":
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
   "src/dart/third_party/pkg/matcher":
