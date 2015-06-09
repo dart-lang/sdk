@@ -7,6 +7,7 @@
 
 #include <mach-o/dyld.h>
 
+#include "bin/file.h"
 #include "bin/platform.h"
 
 #include <crt_externs.h>  // NOLINT
@@ -91,7 +92,10 @@ char* Platform::ResolveExecutablePath() {
     free(path);
     return NULL;
   }
-  return path;
+  // Return the canonical path as the returned path might contain symlinks.
+  char* canon_path = File::GetCanonicalPath(path);
+  free(path);
+  return canon_path;
 }
 
 }  // namespace bin
