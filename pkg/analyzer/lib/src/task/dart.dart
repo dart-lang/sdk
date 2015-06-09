@@ -415,6 +415,19 @@ final ListResultDescriptor<AnalysisError> VERIFY_ERRORS =
         'VERIFY_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
+ * Remove [CompileTimeErrorCode.DUPLICATE_DEFINITION] errors from the given
+ * [errors] list.
+ */
+void removeDuplicateDefinitionErrors(List<AnalysisError> errors) {
+  if (errors.isNotEmpty) {
+    errors.removeWhere((error) {
+      ErrorCode errorCode = error.errorCode;
+      return errorCode == CompileTimeErrorCode.DUPLICATE_DEFINITION;
+    });
+  }
+}
+
+/**
  * A task that builds implicit constructors for a [ClassElement], or keeps
  * the existing explicit constructors if the class has them.
  */
@@ -1161,9 +1174,14 @@ class BuildFunctionTypeAliasesTask extends SourceBasedAnalysisTask {
       }
     }
     //
+    // Prepare errors.
+    //
+    List<AnalysisError> errors = errorListener.errors;
+    removeDuplicateDefinitionErrors(errors);
+    //
     // Record outputs.
     //
-    outputs[BUILD_FUNCTION_TYPE_ALIASES_ERRORS] = errorListener.errors;
+    outputs[BUILD_FUNCTION_TYPE_ALIASES_ERRORS] = errors;
     outputs[RESOLVED_UNIT3] = unit;
   }
 
@@ -2997,9 +3015,14 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
         library, unitElement.source, typeProvider, errorListener);
     unit.accept(visitor);
     //
+    // Prepare errors.
+    //
+    List<AnalysisError> errors = errorListener.errors;
+    removeDuplicateDefinitionErrors(errors);
+    //
     // Record outputs.
     //
-    outputs[RESOLVE_TYPE_NAMES_ERRORS] = errorListener.errors;
+    outputs[RESOLVE_TYPE_NAMES_ERRORS] = errors;
     outputs[RESOLVED_UNIT4] = unit;
   }
 
