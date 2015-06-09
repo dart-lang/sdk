@@ -14,13 +14,13 @@
 
 /**
  * Basic reflection in Dart,
- * with support for introspection and dynamic evaluation.
+ * with support for introspection and dynamic invocation.
  *
  * *Introspection* is that subset of reflection by which a running
  * program can examine its own structure. For example, a function
  * that prints out the names of all the members of an arbitrary object.
  *
- * *Dynamic evaluation* refers the ability to evaluate code that
+ * *Dynamic invocation* refers the ability to evaluate code that
  * has not been literally specified at compile time, such as calling a method
  * whose name is provided as an argument (because it is looked up
  * in a database, or provided interactively by the user).
@@ -504,9 +504,16 @@ abstract class InstanceMirror implements ObjectMirror {
    * Perform [invocation] on [reflectee].
    * Equivalent to
    *
-   * this.invoke(invocation.memberName,
-   *             invocation.positionalArguments,
-   *             invocation.namedArguments);
+   *     if (invocation.isGetter) {
+   *        return this.getField(invocation.memberName).reflectee;
+   *     } else if (invocation.isSetter) {
+   *       return this.setField(invocation.memberName,
+   *                            invocation.positionArguments[0]).reflectee;
+   *     } else {
+   *       return this.invoke(invocation.memberName,
+   *                          invocation.positionalArguments,
+   *                          invocation.namedArguments).reflectee;
+   *     }
    */
   delegate(Invocation invocation);
 }
@@ -514,8 +521,8 @@ abstract class InstanceMirror implements ObjectMirror {
 /**
  * A [ClosureMirror] reflects a closure.
  *
- * A [ClosureMirror] provides access to its captured variables and
- * provides the ability to execute its reflectee.
+ * A [ClosureMirror] provides the ability to execute its reflectee and
+ * introspect its function.
  */
 abstract class ClosureMirror implements InstanceMirror {
   /**
