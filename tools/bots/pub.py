@@ -53,7 +53,7 @@ def PubSteps(build_info):
   pub_script_name = 'pub.bat' if build_info.system == 'windows' else 'pub'
   pub_bin = os.path.join(sdk_bin, pub_script_name)
 
-  pub_copy = os.path.join(utils.GetBuildRoot('linux'), 'pub_copy')
+  pub_copy = os.path.join(utils.GetBuildRoot(BUILD_OS), 'pub_copy')
   pub_location = os.path.join('third_party', 'pkg', 'pub')
 
   with bot.BuildStep('Make copy of pub for testing'):
