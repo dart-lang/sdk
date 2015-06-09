@@ -79,7 +79,9 @@ def main():
       return status
 
   name = GetName()
-  if name.startswith('pub-'):
+  if name.startswith('pkg-'):
+    status = ProcessBot(name, 'pkg')
+  elif name.startswith('pub-'):
     status = ProcessBot(name, 'pub')
   elif name.startswith('vm-android'):
     status = ProcessBot(name, 'android')

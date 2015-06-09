@@ -10,73 +10,66 @@ Pub buildbot steps.
 Runs tests for pub and the pub packages that are hosted in the main Dart repo.
 """
 
+import os
 import re
+import shutil
 import sys
 
 import bot
+import bot_utils
 
-PUB_BUILDER = r'pub-(linux|mac|win)(-(russian))?(-(debug))?'
+utils = bot_utils.GetUtils()
+
+BUILD_OS = utils.GuessOS()
+
+PUB_BUILDER = r'pub-(linux|mac|win)'
 
 def PubConfig(name, is_buildbot):
   """Returns info for the current buildbot based on the name of the builder.
 
   Currently, this is just:
-  - mode: "debug", "release"
+  - mode: always release, we don't run pub in debug mode
   - system: "linux", "mac", or "win"
+  - checked: always true
   """
   pub_pattern = re.match(PUB_BUILDER, name)
   if not pub_pattern:
     return None
 
   system = pub_pattern.group(1)
-  locale = pub_pattern.group(3)
-  mode = pub_pattern.group(5) or 'release'
+  mode = 'release'
   if system == 'win': system = 'windows'
 
-  return bot.BuildInfo('none', 'vm', mode, system, checked=True,
-                       builder_tag=locale)
+  return bot.BuildInfo('none', 'vm', mode, system, checked=True)
+
+def Run(command):
+  print "Running %s" % ' '.join(command)
+  return bot.RunProcess(command)
 
 def PubSteps(build_info):
-  with bot.BuildStep('Build package-root'):
-    args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
-            'packages']
-    print 'Building package-root: %s' % (' '.join(args))
-    bot.RunProcess(args)
+  sdk_bin = os.path.join(
+      bot_utils.DART_DIR,
+      utils.GetBuildSdkBin(BUILD_OS, build_info.mode, build_info.arch))
+  pub_script_name = 'pub.bat' if build_info.system == 'windows' else 'pub'
+  pub_bin = os.path.join(sdk_bin, pub_script_name)
 
-  common_args = ['--write-test-outcome-log']
-  if build_info.builder_tag:
-    common_args.append('--builder-tag=%s' % build_info.builder_tag)
+  pub_copy = os.path.join(utils.GetBuildRoot('linux'), 'pub_copy')
+  pub_location = os.path.join('third_party', 'pkg', 'pub')
 
-  # There are a number of big/integration tests in pkg, run with bigger timeout
-  common_args.append('--timeout=120')
-  # We have some unreproducible vm crashes on these bots
-  common_args.append('--copy-coredumps')
+  with bot.BuildStep('Make copy of pub for testing'):
+    print 'Removing old copy %s' % pub_copy
+    shutil.rmtree(pub_copy, ignore_errors=True)
+    print 'Copying %s to %s' % (pub_location, pub_copy)
+    shutil.copytree(pub_location, pub_copy)
 
-  if build_info.system == 'windows':
-    common_args.append('-j1')
-  if build_info.mode == 'release':
-    bot.RunTest('pub and pkg ', build_info,
-                common_args + ['pub', 'pkg', 'docs', 'pkg_tested'],
-                swallow_error=True)
-  else:
-    # Pub tests currently have a lot of timeouts when run in debug mode.
-    # See issue 18479
-    bot.RunTest('pub and pkg', build_info, common_args + ['pkg', 'docs'],
-                swallow_error=True)
+  # TODO(nweiz): add logic for testing pub.
+  with bot.BuildStep('Doing the magic ls'):
+    with utils.ChangedWorkingDirectory(pub_copy):
+      Run(['ls', '-l'])
 
-  if build_info.mode == 'release':
-    pkgbuild_build_info = bot.BuildInfo('none', 'vm', build_info.mode,
-                                        build_info.system, checked=False)
-    bot.RunTest('pkgbuild_repo_pkgs', pkgbuild_build_info,
-                common_args + ['--append_logs', '--use-repository-packages',
-                               'pkgbuild'],
-                swallow_error=True)
+  with bot.BuildStep('Running pub'):
+    Run([pub_bin, '--version'])
 
-    # We are seeing issues with pub get calls on the windows bots.
-    # Experiment with not running concurrent calls.
-    public_args = (common_args +
-                   ['--append_logs', '--use-public-packages', 'pkgbuild'])
-    bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info, public_args)
 
 if __name__ == '__main__':
   bot.RunBot(PubConfig, PubSteps)

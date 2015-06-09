@@ -82,7 +82,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
-  "pub_rev": "@68308887177ef3b78fdd52f068e4eaefe1b17e07",
+  "pub_rev": "@9d707158fedc86fc2b02f62cdfe804902b098d9d",
   "pub_semver_tag": "@1.2.1",
   "scheduled_test_tag": "@0.11.8+1",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
@@ -240,7 +240,7 @@ deps = {
       (Var("github_mirror") % "pool") + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
-  Var("dart_root") + "/third_party/pkg_tested/pub":
+  Var("dart_root") + "/third_party/pkg/pub":
       ("https://github.com/dart-lang/pub.git") + Var("pub_rev"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
       (Var("github_mirror") % "scheduled_test") +

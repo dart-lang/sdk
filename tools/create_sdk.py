@@ -229,7 +229,7 @@ def Main():
 
   RESOURCE = join(SDK_tmp, 'lib', '_internal', 'pub', 'asset')
   os.makedirs(os.path.dirname(RESOURCE))
-  copytree(join(HOME, 'third_party', 'pkg_tested', 'pub', 'lib', 'src',
+  copytree(join(HOME, 'third_party', 'pkg', 'pub', 'lib', 'src',
                 'asset'),
            join(RESOURCE),
            ignore=ignore_patterns('.svn'))

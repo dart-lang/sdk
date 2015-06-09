@@ -53,5 +53,5 @@ DART="$BUILD_DIR/dart-sdk/bin/dart"
 PACKAGES_DIR="$BUILD_DIR/packages/"
 
 # Run pub.
-PUB="$SDK_DIR/../third_party/pkg_tested/pub/bin/pub.dart"
+PUB="$SDK_DIR/../third_party/pkg/pub/bin/pub.dart"
 exec "$DART" "${VM_OPTIONS[@]}" "--package-root=$PACKAGES_DIR" "$PUB" "$@"
