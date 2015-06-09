@@ -63,6 +63,22 @@ regress_22976_test/02: CompileTimeError # Issue 23132
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
 
+conditional_method_invocation_test/11: MissingCompileTimeError # Issue 23611
+conditional_property_access_test/09: MissingCompileTimeError # Issue 23611
+conditional_property_assignment_test/20: MissingCompileTimeError # Issue 23611
+conditional_property_assignment_test/21: MissingCompileTimeError # Issue 23611
+conditional_property_assignment_test/22: MissingCompileTimeError # Issue 23611
+if_null_assignment_behavior_test/29: Crash # Issue 23611
+if_null_assignment_behavior_test/30: Crash # Issue 23611
+prefix_assignment_test/01: Crash # Issue 23611
+prefix_assignment_test/02: Crash # Issue 23611
+prefix_identifier_reference_test/01: MissingCompileTimeError # Issue 23611
+prefix_identifier_reference_test/02: MissingCompileTimeError # Issue 23611
+prefix_identifier_reference_test/03: MissingCompileTimeError # Issue 23611
+prefix_identifier_reference_test/04: Crash # Issue 23611
+prefix_identifier_reference_test/05: Crash # Issue 23611
+prefix_unqualified_invocation_test/01: RuntimeError # Issue 23611
+
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
 

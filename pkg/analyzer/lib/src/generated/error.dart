@@ -1949,6 +1949,14 @@ class CompileTimeErrorCode extends ErrorCode {
           "The name '{0}' is already used as an import prefix and cannot be used to name a top-level element");
 
   /**
+   * 16.32 Identifier Reference: If d is a prefix p, a compile-time error
+   * occurs unless the token immediately following d is '.'.
+   */
+  static const CompileTimeErrorCode PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT =
+      const CompileTimeErrorCode('PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
+          "The name '{0}' refers to an import prefix, so it must be followed by '.'");
+
+  /**
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named
    * optional parameter begins with an '_' character.
    */

@@ -54,6 +54,47 @@ f() {}''');
     assertErrors(source, [StaticWarningCode.AMBIGUOUS_IMPORT]);
   }
 
+  void test_assignment_to_prefix_in_method() {
+    // If p is an import prefix, then within a method body, p = expr should be
+    // considered equivalent to this.p = expr.
+    addNamedSource("/lib.dart", r'''
+library lib;
+''');
+    Source source = addSource(r'''
+import 'lib.dart' as p;
+class C {
+  f() {
+    p = 0;
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+      StaticWarningCode.UNDEFINED_IDENTIFIER,
+      HintCode.UNUSED_IMPORT
+    ]);
+  }
+
+  void test_assignment_to_prefix_not_in_method() {
+    // If p is an import prefix, then outside a method body, p = expr should be
+    // considered equivalent to this.p = expr (and hence should result in a
+    // static warning).
+    addNamedSource("/lib.dart", r'''
+library lib;
+''');
+    Source source = addSource(r'''
+import 'lib.dart' as p;
+f() {
+  p = 0;
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+      StaticWarningCode.UNDEFINED_IDENTIFIER,
+      HintCode.UNUSED_IMPORT
+    ]);
+  }
+
   void test_await_flattened() {
     Source source = addSource('''
 import 'dart:async';
@@ -1769,6 +1810,46 @@ class B extends A {
 }''');
     resolve(source);
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_SUPER_SETTER]);
+  }
+
+  void test_unqualified_invocation_of_prefix_in_method() {
+    // If p is an import prefix, then within a method body, p() should be
+    // considered equivalent to this.p().
+    addNamedSource("/lib.dart", r'''
+library lib;
+''');
+    Source source = addSource(r'''
+import 'lib.dart' as p;
+class C {
+  f() {
+    p();
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [
+      StaticTypeWarningCode.UNDEFINED_METHOD,
+      HintCode.UNUSED_IMPORT
+    ]);
+    verify([source]);
+  }
+
+  void test_unqualified_invocation_of_prefix_not_in_method() {
+    // If p is an import prefix, then outside a method body, p() should be
+    // considered equivalent to this.p() (and hence should result in a static
+    // warning).
+    addNamedSource("/lib.dart", r'''
+library lib;
+''');
+    Source source = addSource(r'''
+import 'lib.dart' as p;
+f() {
+  p();
+}
+''');
+    resolve(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_FUNCTION]);
+    verify([source]);
   }
 
   void test_unqualifiedReferenceToNonLocalStaticMember_getter() {

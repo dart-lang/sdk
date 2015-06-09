@@ -271,6 +271,28 @@ main() {
     verify([source]);
   }
 
+  void test_assignment_to_field_with_same_name_as_prefix() {
+    // If p is an import prefix, then within a method body, p = expr should be
+    // considered equivalent to this.p = expr.
+    addNamedSource("/lib.dart", r'''
+library lib;
+''');
+    Source source = addSource(r'''
+import 'lib.dart' as p;
+class Base {
+  var p;
+}
+class Derived extends Base {
+  f() {
+    p = 0;
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_IMPORT]);
+    verify([source]);
+  }
+
   void test_assignmentToFinal_prefixNegate() {
     Source source = addSource(r'''
 f() {
@@ -5154,6 +5176,28 @@ class B extends A {
 }''');
     resolve(source);
     assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_unqualified_invocation_of_method_with_same_name_as_prefix() {
+    // If p is an import prefix, then within a method body, p() should be
+    // considered equivalent to this.p().
+    addNamedSource("/lib.dart", r'''
+library lib;
+''');
+    Source source = addSource(r'''
+import 'lib.dart' as p;
+class Base {
+  p() {}
+}
+class Derived extends Base {
+  f() {
+    p();
+  }
+}
+''');
+    resolve(source);
+    assertErrors(source, [HintCode.UNUSED_IMPORT]);
     verify([source]);
   }
 

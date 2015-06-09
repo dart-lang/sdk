@@ -3371,35 +3371,8 @@ f(var l) {
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }
 
-  void test_undefinedIdentifier_function_prefix() {
-    addNamedSource("/lib.dart", r'''
-library lib;
-class C {}''');
-    Source source = addSource(r'''
-import 'lib.dart' as b;
-
-int a() => b;
-b.C c;''');
-    resolve(source);
-    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
-    verify([source]);
-  }
-
   void test_undefinedIdentifier_initializer() {
     Source source = addSource("var a = b;");
-    resolve(source);
-    assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
-  }
-
-  void test_undefinedIdentifier_initializer_prefix() {
-    addNamedSource("/lib.dart", r'''
-library lib;
-class C {}''');
-    Source source = addSource(r'''
-import 'lib.dart' as b;
-
-var a = b;
-b.C c;''');
     resolve(source);
     assertErrors(source, [StaticWarningCode.UNDEFINED_IDENTIFIER]);
   }

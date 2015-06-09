@@ -4,6 +4,7 @@
 
 library engine.compile_time_error_code_test;
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -4661,6 +4662,26 @@ part 'l2.dart';''');
     verify([source]);
   }
 
+  void test_prefix_conditionalPropertyAccess_call() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+g() {}
+''');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  p?.g();
+}
+''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
   void test_prefixCollidesWithTopLevelMembers_functionTypeAlias() {
     addNamedSource("/lib.dart", r'''
 library lib;
@@ -4714,6 +4735,54 @@ p.A a;''');
     computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER]);
+    verify([source]);
+  }
+
+  void test_prefixNotFollowedByDot() {
+    addNamedSource('/lib.dart', 'library lib;');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  return p;
+}
+''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefixNotFollowedByDot_compoundAssignment() {
+    addNamedSource('/lib.dart', 'library lib;');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  p += 1;
+}
+''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefixNotFollowedByDot_conditionalMethodInvocation() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+g() {}
+''');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  p?.g();
+}
+''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
   }
 
