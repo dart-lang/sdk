@@ -26,7 +26,9 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
                              Uri packageRoot,
                              api.CompilerInputProvider inputProvider,
                              api.DiagnosticHandler diagnosticHandler,
-                             [List<String> options = const <String>[]]) {
+                             [List<String> options = const <String>[],
+                              Uri packageConfig,
+                              api.PackagesDiscoveryProvider findPackages]) {
   if (!libraryRoot.path.endsWith("/")) {
     throw new ArgumentError("libraryRoot must end with a /");
   }
@@ -54,9 +56,12 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
   Compiler compiler = new apiimpl.Compiler(inputProvider,
                                            null,
                                            internalDiagnosticHandler,
-                                           libraryRoot, packageRoot,
+                                           libraryRoot,
+                                           packageRoot,
                                            options,
-                                           const {});
+                                           const {},
+                                           packageConfig,
+                                           findPackages);
   compiler.librariesToAnalyzeWhenRun = libraries;
   return compiler.run(null).then((bool success) {
     if (success && !compilationFailed) {

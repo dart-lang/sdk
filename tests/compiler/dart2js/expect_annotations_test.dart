@@ -49,7 +49,7 @@ void main(List<String> args) {
 
 main() {
   Compiler compiler = compilerFor(MEMORY_SOURCE_FILES);
-  asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
+  asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     Expect.isFalse(compiler.compilationFailed, 'Unsuccessful compilation');
     JavaScriptBackend backend = compiler.backend;
     Expect.isNotNull(backend.annotations.expectNoInlineClass,

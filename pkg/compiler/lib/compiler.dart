@@ -5,6 +5,7 @@
 library compiler;
 
 import 'dart:async';
+import 'package:package_config/packages.dart';
 import 'src/apiimpl.dart';
 
 // Unless explicitly allowed, passing [:null:] for any argument to the
@@ -58,12 +59,18 @@ typedef EventSink<String> CompilerOutputProvider(String name,
  * [:null:]. If [uri] is not [:null:], neither are [begin] and
  * [end]. [uri] indicates the compilation unit from where the
  * diagnostic originates. [begin] and [end] are zero-based character
- * offsets from the beginning of the compilaton unit. [message] is the
+ * offsets from the beginning of the compilation unit. [message] is the
  * diagnostic message, and [kind] indicates indicates what kind of
  * diagnostic it is.
  */
 typedef void DiagnosticHandler(Uri uri, int begin, int end,
                                String message, Diagnostic kind);
+
+/**
+ * Provides a package lookup mechanism in the case that no package root or
+ * package resolution configuration file are explicitly specified.
+ */
+typedef Future<Packages> PackagesDiscoveryProvider(Uri uri);
 
 /// Information resulting from the compilation.
 class CompilationResult {
@@ -103,7 +110,9 @@ Future<CompilationResult> compile(
     DiagnosticHandler handler,
     [List<String> options = const [],
      CompilerOutputProvider outputProvider,
-     Map<String, dynamic> environment = const {}]) {
+     Map<String, dynamic> environment = const {},
+     Uri packageConfig,
+     PackagesDiscoveryProvider packagesDiscoveryProvider]) {
   if (!libraryRoot.path.endsWith("/")) {
     throw new ArgumentError("libraryRoot must end with a /");
   }
@@ -118,7 +127,9 @@ Future<CompilationResult> compile(
                                    libraryRoot,
                                    packageRoot,
                                    options,
-                                   environment);
+                                   environment,
+                                   packageConfig,
+                                   packagesDiscoveryProvider);
   return compiler.run(script).then((bool success) {
     return new CompilationResult(compiler, isSuccess: success);
   });
