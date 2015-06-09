@@ -3301,9 +3301,15 @@ RawString* Class::GenerateUserVisibleName() const {
     case kTypedDataUint64ArrayCid:
     case kExternalTypedDataUint64ArrayCid:
       return Symbols::Uint64List().raw();
+    case kTypedDataInt32x4ArrayCid:
+    case kExternalTypedDataInt32x4ArrayCid:
+      return Symbols::Int32x4List().raw();
     case kTypedDataFloat32x4ArrayCid:
     case kExternalTypedDataFloat32x4ArrayCid:
       return Symbols::Float32x4List().raw();
+    case kTypedDataFloat64x2ArrayCid:
+    case kExternalTypedDataFloat64x2ArrayCid:
+      return Symbols::Float64x2List().raw();
     case kTypedDataFloat32ArrayCid:
     case kExternalTypedDataFloat32ArrayCid:
       return Symbols::Float32List().raw();
@@ -20108,7 +20114,23 @@ const char* TypedData::ToCString() const {
 
 
 void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  const Class& cls = Class::Handle(clazz());
+  const String& kind = String::Handle(cls.UserVisibleName());
+  jsobj.AddProperty("kind", kind.ToCString());
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+
+  {
+    NoSafepointScope no_safepoint;
+    jsobj.AddPropertyBase64("bytes",
+                            reinterpret_cast<const uint8_t*>(DataAddr(0)),
+                            LengthInBytes());
+  }
 }
 
 
@@ -20143,7 +20165,23 @@ const char* ExternalTypedData::ToCString() const {
 
 void ExternalTypedData::PrintJSONImpl(JSONStream* stream,
                                       bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  const Class& cls = Class::Handle(clazz());
+  const String& kind = String::Handle(cls.UserVisibleName());
+  jsobj.AddProperty("kind", kind.ToCString());
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+
+  {
+    NoSafepointScope no_safepoint;
+    jsobj.AddPropertyBase64("bytes",
+                            reinterpret_cast<const uint8_t*>(DataAddr(0)),
+                            LengthInBytes());
+  }
 }
 
 

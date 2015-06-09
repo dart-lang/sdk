@@ -117,6 +117,7 @@ abstract class ServiceObject extends Observable {
   bool get isInt => false;
   bool get isList => false;
   bool get isMap => false;
+  bool get isTypedData => false;
   bool get isMirrorReference => false;
   bool get isWeakProperty => false;
   bool get isClosure => false;
@@ -1854,13 +1855,14 @@ class Instance extends ServiceObject {
   @observable ServiceFunction function;  // If a closure.
   @observable Context context;  // If a closure.
   @observable String name;  // If a Type.
-  @observable int length; // If a List or Map.
+  @observable int length; // If a List, Map or TypedData.
 
   @observable var typeClass;
   @observable var fields;
   @observable var nativeFields;
   @observable var elements;  // If a List.
   @observable var associations;  // If a Map.
+  @observable var typedElements;  // If a TypedData.
   @observable var referent;  // If a MirrorReference.
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
@@ -1876,6 +1878,22 @@ class Instance extends ServiceObject {
   bool get isInt => kind == 'Int';
   bool get isList => kind == 'List';
   bool get isMap => kind == 'Map';
+  bool get isTypedData {
+    return kind == 'Uint8ClampedList'
+        || kind == 'Uint8List'
+        || kind == 'Uint16List'
+        || kind == 'Uint32List'
+        || kind == 'Uint64List'
+        || kind == 'Int8List'
+        || kind == 'Int16List'
+        || kind == 'Int32List'
+        || kind == 'Int64List'
+        || kind == 'Float32List'
+        || kind == 'Float64List'
+        || kind == 'Int32x4List'
+        || kind == 'Float32x4List'
+        || kind == 'Float64x2List';
+  }
   bool get isMirrorReference => kind == 'MirrorReference';
   bool get isWeakProperty => kind == 'WeakProperty';
   bool get isClosure => kind == 'Closure';
@@ -1909,6 +1927,39 @@ class Instance extends ServiceObject {
     fields = map['fields'];
     elements = map['elements'];
     associations = map['associations'];
+    if (map['bytes'] != null) {
+      var bytes = decodeBase64(map['bytes']);
+      switch (map['kind']) {
+        case "Uint8ClampedList":
+          typedElements = bytes.buffer.asUint8ClampedList(); break;
+        case "Uint8List":
+          typedElements = bytes.buffer.asUint8List(); break;
+        case "Uint16List":
+          typedElements = bytes.buffer.asUint16List(); break;
+        case "Uint32List":
+          typedElements = bytes.buffer.asUint32List(); break;
+        case "Uint64List":
+          typedElements = bytes.buffer.asUint64List(); break;
+        case "Int8List":
+          typedElements = bytes.buffer.asInt8List(); break;
+        case "Int16List":
+          typedElements = bytes.buffer.asInt16List(); break;
+        case "Int32List":
+          typedElements = bytes.buffer.asInt32List(); break;
+        case "Int64List":
+          typedElements = bytes.buffer.asInt64List(); break;
+        case "Float32List":
+          typedElements = bytes.buffer.asFloat32List(); break;
+        case "Float64List":
+          typedElements = bytes.buffer.asFloat64List(); break;
+        case "Int32x4List":
+          typedElements = bytes.buffer.asInt32x4List(); break;
+        case "Float32x4List":
+          typedElements = bytes.buffer.asFloat32x4List(); break;
+        case "Float64x2List":
+          typedElements = bytes.buffer.asFloat64x2List(); break;
+      }
+    }
     typeClass = map['typeClass'];
     referent = map['mirrorReferent'];
     key = map['propertyKey'];
@@ -2101,7 +2152,7 @@ class Field extends ServiceObject {
   @observable String vmName;
 
   @observable bool guardNullable;
-  @observable String guardClass;
+  @observable var /* Class | String */ guardClass;
   @observable String guardLength;
   @observable SourceLocation location;
 

@@ -277,6 +277,42 @@ void JSONStream::PrintValue(double d) {
 }
 
 
+static const char base64_digits[65] =
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char base64_pad = '=';
+
+
+void JSONStream::PrintValueBase64(const uint8_t* bytes, intptr_t length) {
+  PrintCommaIfNeeded();
+  buffer_.AddChar('"');
+
+  intptr_t odd_bits = length % 3;
+  intptr_t even_bits = length - odd_bits;
+  for (intptr_t i = 0; i < even_bits; i += 3) {
+    intptr_t triplet = (bytes[i] << 16) | (bytes[i + 1] << 8) | bytes[i + 2];
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_digits[(triplet >> 6) & 63]);
+    buffer_.AddChar(base64_digits[triplet & 63]);
+  }
+  if (odd_bits == 1) {
+    intptr_t triplet = bytes[even_bits] << 16;
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_pad);
+    buffer_.AddChar(base64_pad);
+  } else if (odd_bits == 2) {
+    intptr_t triplet = (bytes[even_bits] << 16) | (bytes[even_bits + 1] << 8);
+    buffer_.AddChar(base64_digits[triplet >> 18]);
+    buffer_.AddChar(base64_digits[(triplet >> 12) & 63]);
+    buffer_.AddChar(base64_digits[(triplet >> 6) & 63]);
+    buffer_.AddChar(base64_pad);
+  }
+
+  buffer_.AddChar('"');
+}
+
+
 void JSONStream::PrintValue(const char* s) {
   PrintCommaIfNeeded();
   buffer_.AddChar('"');
@@ -390,6 +426,14 @@ void JSONStream::PrintProperty(const char* name, double d) {
 void JSONStream::PrintProperty(const char* name, const char* s) {
   PrintPropertyName(name);
   PrintValue(s);
+}
+
+
+void JSONStream::PrintPropertyBase64(const char* name,
+                                     const uint8_t* b,
+                                     intptr_t len) {
+  PrintPropertyName(name);
+  PrintValueBase64(b, len);
 }
 
 

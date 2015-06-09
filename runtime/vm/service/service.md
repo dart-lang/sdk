@@ -1229,6 +1229,21 @@ class @Instance extends @Object {
   //
   // Provided for instance kinds:
   //   List
+  //   Map
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
   int length [optional];
 
   // The name of a Type instance.
@@ -1278,6 +1293,21 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   List
+  //   Map
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
   int length [optional];
 
   // The name of a Type instance.
@@ -1312,6 +1342,25 @@ class Instance extends Object {
   // Provided for instance kinds:
   //   Map
   MapAssociation[] associations [optional];
+
+  // The bytes of a TypedData instance.
+  //
+  // Provided for instance kinds:
+  //   Uint8ClampedList
+  //   Uint8List
+  //   Uint16List
+  //   Uint32List
+  //   Uint64List
+  //   Int8List
+  //   Int16List
+  //   Int32List
+  //   Int64List
+  //   Float32List
+  //   Float64List
+  //   Int32x4List
+  //   Float32x4List
+  //   Float64x2List
+  int[] bytes [optional];
 
   // The function associated with a Closure instance.
   //
@@ -1410,6 +1459,23 @@ enum {
   // An instance of the built-in VM Map implementation. User-defined
   // Maps will be PlainInstance.
   Map,
+
+  // An instance of the built-in VM TypedData implementations.  User-defined
+  // TypedDatas will be PlainInstance.
+  Uint8ClampedList,
+  Uint8List,
+  Uint16List,
+  Uint32List,
+  Uint64List,
+  Int8List,
+  Int16List,
+  Int32List,
+  Int64List,
+  Float32List,
+  Float64List,
+  Int32x4List,
+  Float32x4List,
+  Float64x2List,
 
   // An instance of the built-in VM Closure implementation. User-defined
   // Closures will be PlainInstance.

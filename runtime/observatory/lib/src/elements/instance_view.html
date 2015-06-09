@@ -199,6 +199,20 @@
           </curly-block><br><br>
         </template>
 
+        <template if="{{ instance.typedElements.isNotEmpty }}">
+          elements ({{ instance.typedElements.length }})
+          <curly-block expand="{{ instance.typedElements.length <= 100 }}">
+            <div class="memberList">
+              <template repeat="{{ index in instance.typedElements.asMap().keys }}">
+                <div class="memberItem">
+                  <div class="memberName">[{{ index }}]</div>
+                  <div class="memberValue">{{ instance.typedElements[index].toString() }}</div>
+                </div>
+              </template>
+            </div>
+          </curly-block><br><br>
+        </template>
+
       </div>
 
     </template>

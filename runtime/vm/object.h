@@ -6803,7 +6803,6 @@ class TypedData : public Instance {
     return ElementSizeInBytes(cid);
   }
 
-
   TypedDataElementType ElementType() const {
     intptr_t cid = raw()->GetClassId();
     return ElementType(cid);
