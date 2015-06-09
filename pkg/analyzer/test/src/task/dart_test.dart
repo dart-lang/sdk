@@ -2100,6 +2100,7 @@ class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
     expect(inputs, isNotNull);
     expect(inputs.keys, unorderedEquals([
       LibraryUnitErrorsTask.BUILD_FUNCTION_TYPE_ALIASES_ERRORS_INPUT,
+      LibraryUnitErrorsTask.CONSTRUCTORS_ERRORS_INPUT,
       LibraryUnitErrorsTask.HINTS_INPUT,
       LibraryUnitErrorsTask.RESOLVE_REFERENCES_ERRORS_INPUT,
       LibraryUnitErrorsTask.RESOLVE_TYPE_NAMES_ERRORS_INPUT,

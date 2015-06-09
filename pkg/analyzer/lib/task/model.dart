@@ -437,6 +437,12 @@ abstract class TaskInput<V> {
    * Create and return a builder that can be used to build this task input.
    */
   TaskInputBuilder<V> createBuilder();
+
+  /**
+   * Return a task input that can be used to compute a list whose elements are
+   * the result of passing the result of this input to the [mapper] function.
+   */
+  ListTaskInput /*<E>*/ mappedToList(List /*<E>*/ mapper(V value));
 }
 
 /**

@@ -23,6 +23,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/general.dart';
+import 'package:analyzer/src/task/inputs.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
@@ -2551,6 +2552,11 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
   static const String VERIFY_ERRORS_INPUT = 'VERIFY_ERRORS';
 
   /**
+   * The name of the [CONSTRUCTORS_ERRORS] input.
+   */
+  static const String CONSTRUCTORS_ERRORS_INPUT = 'CONSTRUCTORS_ERRORS';
+
+  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -2570,6 +2576,7 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     //
     List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
     errorLists.add(getRequiredInput(BUILD_FUNCTION_TYPE_ALIASES_ERRORS_INPUT));
+    errorLists.addAll(getRequiredInput(CONSTRUCTORS_ERRORS_INPUT));
     errorLists.add(getRequiredInput(HINTS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_REFERENCES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_TYPE_NAMES_ERRORS_INPUT));
@@ -2589,6 +2596,10 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       BUILD_FUNCTION_TYPE_ALIASES_ERRORS_INPUT:
           BUILD_FUNCTION_TYPE_ALIASES_ERRORS.of(unit),
+      CONSTRUCTORS_ERRORS_INPUT: COMPILATION_UNIT_ELEMENT
+          .of(unit)
+          .mappedToList((CompilationUnitElement element) => element.types)
+          .toListOf(CONSTRUCTORS_ERRORS),
       HINTS_INPUT: HINTS.of(unit),
       RESOLVE_REFERENCES_ERRORS_INPUT: RESOLVE_REFERENCES_ERRORS.of(unit),
       RESOLVE_TYPE_NAMES_ERRORS_INPUT: RESOLVE_TYPE_NAMES_ERRORS.of(unit),
@@ -3321,7 +3332,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
  * A [TaskInput] whose value is a list of library sources exported directly
  * or indirectly by the target [Source].
  */
-class _ExportSourceClosureTaskInput implements TaskInput<List<Source>> {
+class _ExportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
   final Source target;
 
   _ExportSourceClosureTaskInput(this.target);
@@ -3335,7 +3346,7 @@ class _ExportSourceClosureTaskInput implements TaskInput<List<Source>> {
  * A [TaskInput] whose value is a list of library sources imported or exported,
  * directly or indirectly by the target [Source].
  */
-class _ImportExportSourceClosureTaskInput implements TaskInput<List<Source>> {
+class _ImportExportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
   final Source target;
 
   _ImportExportSourceClosureTaskInput(this.target);
@@ -3350,7 +3361,7 @@ class _ImportExportSourceClosureTaskInput implements TaskInput<List<Source>> {
  * A [TaskInput] whose value is a list of library sources imported directly
  * or indirectly by the target [Source].
  */
-class _ImportSourceClosureTaskInput implements TaskInput<List<Source>> {
+class _ImportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
   final Source target;
 
   _ImportSourceClosureTaskInput(this.target);
