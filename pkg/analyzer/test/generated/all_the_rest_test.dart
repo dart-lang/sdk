@@ -8123,7 +8123,7 @@ class ReferenceFinderTest extends EngineTestCase {
   }
   void test_visitSimpleIdentifier_nonConst() {
     _visitNode(_makeTailVariable("v2", false));
-    _assertNoArcs();
+    _assertOneArc(_tail);
   }
   void test_visitSuperConstructorInvocation_const() {
     _visitNode(_makeTailSuperConstructorInvocation("A", true));
@@ -8131,7 +8131,7 @@ class ReferenceFinderTest extends EngineTestCase {
   }
   void test_visitSuperConstructorInvocation_nonConst() {
     _visitNode(_makeTailSuperConstructorInvocation("A", false));
-    _assertNoArcs();
+    _assertOneArc(_tail);
   }
   void test_visitSuperConstructorInvocation_unresolved() {
     SuperConstructorInvocation superConstructorInvocation =

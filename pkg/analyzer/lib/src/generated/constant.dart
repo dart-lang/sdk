@@ -329,33 +329,38 @@ class ConstantEvaluationEngine {
         }
       }
     } else if (constant is VariableElement) {
-      RecordingErrorListener errorListener = new RecordingErrorListener();
-      ErrorReporter errorReporter =
-          new ErrorReporter(errorListener, constant.source);
-      DartObjectImpl dartObject =
-          (constant as PotentiallyConstVariableElement).constantInitializer
-              .accept(new ConstantVisitor(this, errorReporter));
-      // Only check the type for truly const declarations (don't check final
-      // fields with initializers, since their types may be generic.  The type
-      // of the final field will be checked later, when the constructor is
-      // invoked).
-      if (dartObject != null && constant.isConst) {
-        if (!runtimeTypeMatch(dartObject, constant.type)) {
-          errorReporter.reportErrorForElement(
-              CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH, constant,
-              [dartObject.type, constant.type]);
+      Expression constantInitializer =
+          (constant as PotentiallyConstVariableElement).constantInitializer;
+      if (constantInitializer != null) {
+        RecordingErrorListener errorListener = new RecordingErrorListener();
+        ErrorReporter errorReporter =
+            new ErrorReporter(errorListener, constant.source);
+        DartObjectImpl dartObject = constantInitializer
+            .accept(new ConstantVisitor(this, errorReporter));
+        // Only check the type for truly const declarations (don't check final
+        // fields with initializers, since their types may be generic.  The type
+        // of the final field will be checked later, when the constructor is
+        // invoked).
+        if (dartObject != null && constant.isConst) {
+          if (!runtimeTypeMatch(dartObject, constant.type)) {
+            errorReporter.reportErrorForElement(
+                CheckedModeCompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+                constant, [dartObject.type, constant.type]);
+          }
         }
+        (constant as VariableElementImpl).evaluationResult =
+            new EvaluationResultImpl(dartObject, errorListener.errors);
       }
-      (constant as VariableElementImpl).evaluationResult =
-          new EvaluationResultImpl(dartObject, errorListener.errors);
     } else if (constant is ConstructorElement) {
-      // No evaluation needs to be done; constructor declarations are only in
-      // the dependency graph to ensure that any constants referred to in
-      // initializer lists and parameter defaults are evaluated before
-      // invocations of the constructor.  However we do need to annotate the
-      // element as being free of constant evaluation cycles so that later code
-      // will know that it is safe to evaluate.
-      (constant as ConstructorElementImpl).isCycleFree = true;
+      if (constant.isConst) {
+        // No evaluation needs to be done; constructor declarations are only in
+        // the dependency graph to ensure that any constants referred to in
+        // initializer lists and parameter defaults are evaluated before
+        // invocations of the constructor.  However we do need to annotate the
+        // element as being free of constant evaluation cycles so that later
+        // code will know that it is safe to evaluate.
+        (constant as ConstructorElementImpl).isCycleFree = true;
+      }
     } else if (constant is ConstantEvaluationTarget_Annotation) {
       Annotation constNode = constant.annotation;
       ElementAnnotationImpl elementAnnotation = constNode.elementAnnotation;
@@ -369,7 +374,15 @@ class ConstantEvaluationEngine {
           // Just copy the evaluation result.
           VariableElementImpl variableElement =
               element.variable as VariableElementImpl;
-          elementAnnotation.evaluationResult = variableElement.evaluationResult;
+          if (variableElement.evaluationResult != null) {
+            elementAnnotation.evaluationResult =
+                variableElement.evaluationResult;
+          } else {
+            // This could happen in the event that the annotation refers to a
+            // non-constant.  The error is detected elsewhere, so just silently
+            // ignore it here.
+            elementAnnotation.evaluationResult = new EvaluationResultImpl(null);
+          }
         } else if (element is ConstructorElementImpl &&
             element.isConst &&
             constNode.arguments != null) {
@@ -405,6 +418,13 @@ class ConstantEvaluationEngine {
    * Determine which constant elements need to have their values computed
    * prior to computing the value of [constant], and report them using
    * [callback].
+   *
+   * Note that it's possible (in erroneous code) for a constant to depend on a
+   * non-constant.  When this happens, we report the dependency anyhow so that
+   * if the non-constant changes to a constant, we will know to recompute the
+   * thing that depends on it.  [computeDependencies] and
+   * [computeConstantValue] are responsible for ignoring the request if they
+   * are asked to act on a non-constant target.
    */
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
@@ -423,56 +443,60 @@ class ConstantEvaluationEngine {
         initializer.accept(referenceFinder);
       }
     } else if (constant is ConstructorElementImpl) {
-      constant.isCycleFree = false;
-      ConstructorElement redirectedConstructor =
-          getConstRedirectedConstructor(constant);
-      if (redirectedConstructor != null) {
-        ConstructorElement redirectedConstructorBase =
-            ConstantEvaluationEngine._getConstructorBase(redirectedConstructor);
-        callback(redirectedConstructorBase);
-        return;
-      } else if (constant.isFactory) {
-        // Factory constructor, but getConstRedirectedConstructor returned
-        // null.  This can happen if we're visiting one of the special external
-        // const factory constructors in the SDK, or if the code contains
-        // errors (such as delegating to a non-const constructor, or delegating
-        // to a constructor that can't be resolved).  In any of these cases,
-        // we'll evaluate calls to this constructor without having to refer to
-        // any other constants.  So we don't need to report any dependencies.
-        return;
-      }
-      bool superInvocationFound = false;
-      List<ConstructorInitializer> initializers = constant.constantInitializers;
-      for (ConstructorInitializer initializer in initializers) {
-        if (initializer is SuperConstructorInvocation) {
-          superInvocationFound = true;
+      if (constant.isConst) {
+        constant.isCycleFree = false;
+        ConstructorElement redirectedConstructor =
+            getConstRedirectedConstructor(constant);
+        if (redirectedConstructor != null) {
+          ConstructorElement redirectedConstructorBase =
+              ConstantEvaluationEngine
+                  ._getConstructorBase(redirectedConstructor);
+          callback(redirectedConstructorBase);
+          return;
+        } else if (constant.isFactory) {
+          // Factory constructor, but getConstRedirectedConstructor returned
+          // null.  This can happen if we're visiting one of the special external
+          // const factory constructors in the SDK, or if the code contains
+          // errors (such as delegating to a non-const constructor, or delegating
+          // to a constructor that can't be resolved).  In any of these cases,
+          // we'll evaluate calls to this constructor without having to refer to
+          // any other constants.  So we don't need to report any dependencies.
+          return;
         }
-        initializer.accept(referenceFinder);
-      }
-      if (!superInvocationFound) {
-        // No explicit superconstructor invocation found, so we need to
-        // manually insert a reference to the implicit superconstructor.
-        InterfaceType superclass =
-            (constant.returnType as InterfaceType).superclass;
-        if (superclass != null && !superclass.isObject) {
-          ConstructorElement unnamedConstructor = ConstantEvaluationEngine
-              ._getConstructorBase(superclass.element.unnamedConstructor);
-          if (unnamedConstructor != null && unnamedConstructor.isConst) {
-            callback(unnamedConstructor);
+        bool superInvocationFound = false;
+        List<ConstructorInitializer> initializers =
+            constant.constantInitializers;
+        for (ConstructorInitializer initializer in initializers) {
+          if (initializer is SuperConstructorInvocation) {
+            superInvocationFound = true;
+          }
+          initializer.accept(referenceFinder);
+        }
+        if (!superInvocationFound) {
+          // No explicit superconstructor invocation found, so we need to
+          // manually insert a reference to the implicit superconstructor.
+          InterfaceType superclass =
+              (constant.returnType as InterfaceType).superclass;
+          if (superclass != null && !superclass.isObject) {
+            ConstructorElement unnamedConstructor = ConstantEvaluationEngine
+                ._getConstructorBase(superclass.element.unnamedConstructor);
+            if (unnamedConstructor != null) {
+              callback(unnamedConstructor);
+            }
           }
         }
-      }
-      for (FieldElement field in constant.enclosingElement.fields) {
-        // Note: non-static const isn't allowed but we handle it anyway so that
-        // we won't be confused by incorrect code.
-        if ((field.isFinal || field.isConst) &&
-            !field.isStatic &&
-            field.initializer != null) {
-          callback(field);
+        for (FieldElement field in constant.enclosingElement.fields) {
+          // Note: non-static const isn't allowed but we handle it anyway so
+          // that we won't be confused by incorrect code.
+          if ((field.isFinal || field.isConst) &&
+              !field.isStatic &&
+              field.initializer != null) {
+            callback(field);
+          }
         }
-      }
-      for (ParameterElement parameterElement in constant.parameters) {
-        callback(parameterElement);
+        for (ParameterElement parameterElement in constant.parameters) {
+          callback(parameterElement);
+        }
       }
     } else if (constant is ConstantEvaluationTarget_Annotation) {
       Annotation constNode = constant.annotation;
@@ -486,7 +510,7 @@ class ConstantEvaluationEngine {
           // The annotation is a reference to a compile-time constant variable,
           // so it depends on the variable.
           callback(element.variable);
-        } else if (element is ConstructorElementImpl && element.isConst) {
+        } else if (element is ConstructorElementImpl) {
           // The annotation is a constructor invocation, so it depends on the
           // constructor.
           callback(element);
@@ -4979,7 +5003,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     super.visitRedirectingConstructorInvocation(node);
     ConstructorElement target =
         ConstantEvaluationEngine._getConstructorBase(node.staticElement);
-    if (target != null && target.isConst) {
+    if (target != null) {
       _callback(target);
     }
     return null;
@@ -4992,9 +5016,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
       element = (element as PropertyAccessorElement).variable;
     }
     if (element is VariableElement) {
-      if (element.isConst) {
-        _callback(element);
-      }
+      _callback(element);
     }
     return null;
   }
@@ -5004,7 +5026,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     super.visitSuperConstructorInvocation(node);
     ConstructorElement constructor =
         ConstantEvaluationEngine._getConstructorBase(node.staticElement);
-    if (constructor != null && constructor.isConst) {
+    if (constructor != null) {
       _callback(constructor);
     }
     return null;
