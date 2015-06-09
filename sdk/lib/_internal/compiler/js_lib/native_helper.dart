@@ -258,7 +258,7 @@ patchInteriorProto(obj, interceptor) {
 
 
 makeLeafDispatchRecord(interceptor) {
-  var fieldName = JS_IS_INDEXABLE_FIELD_NAME();
+  var fieldName = JS_GET_NAME(JsGetName.IS_INDEXABLE_FIELD_NAME);
   bool indexability = JS('bool', r'!!#[#]', interceptor, fieldName);
   return makeDispatchRecord(interceptor, false, null, indexability);
 }

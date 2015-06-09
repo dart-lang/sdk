@@ -448,6 +448,9 @@ class Namer {
         return functionTypeOptionalParametersTag;
       case JsGetName.FUNCTION_TYPE_NAMED_PARAMETERS_TAG:
         return functionTypeNamedParametersTag;
+      case JsGetName.IS_INDEXABLE_FIELD_NAME:
+        Element cls = backend.findHelper('JavaScriptIndexingBehavior');
+        return operatorIs(cls);
       default:
         compiler.reportError(
           node, MessageKind.GENERIC,

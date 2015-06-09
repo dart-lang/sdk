@@ -4279,10 +4279,6 @@ class SsaBuilder extends NewResolvedVisitor {
       handleForeignRawFunctionRef(node, 'RAW_DART_FUNCTION_REF');
     } else if (name == 'JS_SET_CURRENT_ISOLATE') {
       handleForeignSetCurrentIsolate(node);
-    } else if (name == 'JS_IS_INDEXABLE_FIELD_NAME') {
-      // TODO(floitsch): this should be a JS_NAME.
-      Element element = backend.findHelper('JavaScriptIndexingBehavior');
-      stack.add(addConstantString(backend.namer.operatorIs(element)));
     } else if (name == 'JS_CURRENT_ISOLATE') {
       handleForeignJsCurrentIsolate(node);
     } else if (name == 'JS_GET_NAME') {

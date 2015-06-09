@@ -198,56 +198,9 @@ void JS_SET_CURRENT_ISOLATE(isolate) {}
 JS_INTERCEPTOR_CONSTANT(Type type) {}
 
 /**
- * Returns the prefix used for generated type argument substitutions on classes.
- */
-String JS_OPERATOR_AS_PREFIX() {}
-
-/**
- * Returns the field name used for determining if an object or its
- * interceptor has JavaScript indexing behavior.
- */
-String JS_IS_INDEXABLE_FIELD_NAME() {}
-
-/**
  * Returns the object corresponding to Namer.CURRENT_ISOLATE.
  */
 JS_CURRENT_ISOLATE() {}
-
-/// Returns the name used for generated function types on classes and methods.
-String JS_SIGNATURE_NAME() {}
-
-/// Returns the name used to tag typedefs.
-String JS_TYPEDEF_TAG() {}
-
-/**
- * Returns the name used to tag void return in function type representations
- * in JavaScript.
- */
-String JS_FUNCTION_TYPE_VOID_RETURN_TAG() {}
-
-/**
- * Returns the name used to tag return types in function type representations
- * in JavaScript.
- */
-String JS_FUNCTION_TYPE_RETURN_TYPE_TAG() {}
-
-/**
- * Returns the name used to tag required parameters in function type
- * representations in JavaScript.
- */
-String JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG() {}
-
-/**
- * Returns the name used to tag optional parameters in function type
- * representations in JavaScript.
- */
-String JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG() {}
-
-/**
- * Returns the name used to tag named parameters in function type
- * representations in JavaScript.
- */
-String JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG() {}
 
 /// Returns the JS name for [name] from the Namer.
 String JS_GET_NAME(JsGetName name) {}
