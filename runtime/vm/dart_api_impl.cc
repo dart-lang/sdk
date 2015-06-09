@@ -1475,8 +1475,9 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
 }
 
 
-DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
-                                                  intptr_t* size) {
+static Dart_Handle createLibrarySnapshot(Dart_Handle library,
+                                         uint8_t** buffer,
+                                         intptr_t* size) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   TIMERSCOPE(isolate, time_creating_snapshot);
@@ -1491,17 +1492,29 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
   if (::Dart_IsError(state)) {
     return state;
   }
-  Library& library =
-      Library::Handle(isolate, isolate->object_store()->root_library());
-  if (library.IsNull()) {
-    return
-        Api::NewError("%s expects the isolate to have a script loaded in it.",
-                      CURRENT_FUNC);
+  Library& lib = Library::Handle(isolate);
+  if (library == Dart_Null()) {
+    lib ^= isolate->object_store()->root_library();
+  } else {
+    lib ^= Api::UnwrapHandle(library);
   }
   ScriptSnapshotWriter writer(buffer, ApiReallocate);
-  writer.WriteScriptSnapshot(library);
+  writer.WriteScriptSnapshot(lib);
   *size = writer.BytesWritten();
   return Api::Success();
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
+                                                  intptr_t* size) {
+  return createLibrarySnapshot(Dart_Null(), buffer, size);
+}
+
+
+DART_EXPORT Dart_Handle Dart_CreateLibrarySnapshot(Dart_Handle library,
+                                                   uint8_t** buffer,
+                                                   intptr_t* size) {
+  return createLibrarySnapshot(library, buffer, size);
 }
 
 
