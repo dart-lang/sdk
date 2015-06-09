@@ -32,7 +32,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
   if ((kind == Snapshot::kFull) ||
       (kind == Snapshot::kScript && !RawObject::IsCreatedFromSnapshot(tags))) {
     // Read in the base information.
-    int32_t class_id = reader->Read<int32_t>();
+    classid_t class_id = reader->Read<classid_t>();
 
     // Allocate class object of specified kind.
     if (kind == Snapshot::kFull) {
@@ -96,8 +96,8 @@ void RawClass::WriteTo(SnapshotWriter* writer,
 
     // Write out all the non object pointer fields.
     // NOTE: cpp_vtable_ is not written.
-    int32_t class_id = ptr()->id_;
-    writer->Write<int32_t>(class_id);
+    classid_t class_id = ptr()->id_;
+    writer->Write<classid_t>(class_id);
     if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
       // We don't write the instance size of VM defined classes as they
       // are already setup during initialization as part of pre populating
@@ -106,8 +106,8 @@ void RawClass::WriteTo(SnapshotWriter* writer,
       writer->Write<int32_t>(ptr()->next_field_offset_in_words_);
     }
     writer->Write<int32_t>(ptr()->type_arguments_field_offset_in_words_);
-    writer->Write<int16_t>(ptr()->num_type_arguments_);
-    writer->Write<int16_t>(ptr()->num_own_type_arguments_);
+    writer->Write<uint16_t>(ptr()->num_type_arguments_);
+    writer->Write<uint16_t>(ptr()->num_own_type_arguments_);
     writer->Write<uint16_t>(ptr()->num_native_fields_);
     writer->Write<int32_t>(ptr()->token_pos_);
     writer->Write<uint16_t>(ptr()->state_bits_);
@@ -332,8 +332,8 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_tags(tags);
 
   // Set all non object fields.
-  type_parameter.set_index(reader->Read<int32_t>());
   type_parameter.set_token_pos(reader->Read<int32_t>());
+  type_parameter.set_index(reader->Read<int16_t>());
   type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -367,8 +367,8 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->Write<int32_t>(ptr()->index_);
   writer->Write<int32_t>(ptr()->token_pos_);
+  writer->Write<int16_t>(ptr()->index_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
@@ -706,7 +706,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_num_fixed_parameters(reader->Read<int16_t>());
   func.set_num_optional_parameters(reader->Read<int16_t>());
   func.set_deoptimization_counter(reader->Read<int16_t>());
-  func.set_regexp_cid(reader->Read<int16_t>());
+  func.set_regexp_cid(reader->Read<classid_t>());
   func.set_kind_tag(reader->Read<uint32_t>());
   func.set_optimized_instruction_count(reader->Read<uint16_t>());
   func.set_optimized_call_site_count(reader->Read<uint16_t>());
@@ -750,7 +750,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->Write<int16_t>(ptr()->num_fixed_parameters_);
   writer->Write<int16_t>(ptr()->num_optional_parameters_);
   writer->Write<int16_t>(ptr()->deoptimization_counter_);
-  writer->Write<int16_t>(ptr()->regexp_cid_);
+  writer->Write<classid_t>(ptr()->regexp_cid_);
   writer->Write<uint32_t>(ptr()->kind_tag_);
   writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
   writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
@@ -1039,19 +1039,19 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
 
     // Set all non object fields.
     library.StoreNonPointer(&library.raw_ptr()->index_,
-                            reader->Read<int32_t>());
-    library.StoreNonPointer(&library.raw_ptr()->num_imports_,
-                            reader->Read<int32_t>());
+                            reader->Read<classid_t>());
     library.StoreNonPointer(&library.raw_ptr()->num_anonymous_,
-                            reader->Read<int32_t>());
+                            reader->Read<classid_t>());
+    library.StoreNonPointer(&library.raw_ptr()->num_imports_,
+                            reader->Read<uint16_t>());
+    library.StoreNonPointer(&library.raw_ptr()->load_state_,
+                            reader->Read<int8_t>());
     library.StoreNonPointer(&library.raw_ptr()->corelib_imported_,
                             reader->Read<bool>());
     library.StoreNonPointer(&library.raw_ptr()->is_dart_scheme_,
                             reader->Read<bool>());
     library.StoreNonPointer(&library.raw_ptr()->debuggable_,
                             reader->Read<bool>());
-    library.StoreNonPointer(&library.raw_ptr()->load_state_,
-                            reader->Read<int8_t>());
     // The native resolver is not serialized.
     Dart_NativeEntryResolver resolver =
         reader->Read<Dart_NativeEntryResolver>();
@@ -1102,13 +1102,13 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     writer->WriteObjectImpl(ptr()->url_);
   } else {
     // Write out all non object fields.
-    writer->Write<int32_t>(ptr()->index_);
-    writer->Write<int32_t>(ptr()->num_imports_);
-    writer->Write<int32_t>(ptr()->num_anonymous_);
+    writer->Write<classid_t>(ptr()->index_);
+    writer->Write<classid_t>(ptr()->num_anonymous_);
+    writer->Write<uint16_t>(ptr()->num_imports_);
+    writer->Write<int8_t>(ptr()->load_state_);
     writer->Write<bool>(ptr()->corelib_imported_);
     writer->Write<bool>(ptr()->is_dart_scheme_);
     writer->Write<bool>(ptr()->debuggable_);
-    writer->Write<int8_t>(ptr()->load_state_);
     // We do not serialize the native resolver over, this needs to be explicitly
     // set after deserialization.
     writer->Write<Dart_NativeEntryResolver>(NULL);
@@ -1145,7 +1145,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   prefix.StoreNonPointer(&prefix.raw_ptr()->num_imports_,
-                         reader->Read<int32_t>());
+                         reader->Read<int16_t>());
   prefix.StoreNonPointer(&prefix.raw_ptr()->is_deferred_load_,
                          reader->Read<bool>());
   prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_, reader->Read<bool>());
@@ -1180,7 +1180,7 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all non object fields.
-  writer->Write<int32_t>(ptr()->num_imports_);
+  writer->Write<int16_t>(ptr()->num_imports_);
   writer->Write<bool>(ptr()->is_deferred_load_);
   writer->Write<bool>(ptr()->is_loaded_);
 

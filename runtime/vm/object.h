@@ -3419,9 +3419,7 @@ class Library : public Object {
 
   static RawLibrary* New();
 
-  void set_num_imports(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->num_imports_, value);
-  }
+  void set_num_imports(intptr_t value) const;
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
@@ -4728,7 +4726,7 @@ class LibraryPrefix : public Instance {
   virtual RawString* DictionaryName() const { return name(); }
 
   RawArray* imports() const { return raw_ptr()->imports_; }
-  int32_t num_imports() const { return raw_ptr()->num_imports_; }
+  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawLibrary* importer() const { return raw_ptr()->importer_; }
 
   RawInstance* LoadError() const;

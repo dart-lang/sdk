@@ -613,11 +613,11 @@ class RawClass : public RawObject {
   }
 
   cpp_vtable handle_vtable_;
-  int32_t id_;  // Class Id, also index in the class table.
   int32_t token_pos_;
   int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
+  classid_t id_;  // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flatten vector.
   int16_t num_own_type_arguments_;  // Number of non-overlapping type arguments.
   uint16_t num_native_fields_;  // Number of native fields in class.
@@ -756,7 +756,7 @@ class RawFunction : public RawObject {
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   int16_t deoptimization_counter_;
-  int16_t regexp_cid_;
+  classid_t regexp_cid_;
   uint32_t kind_tag_;  // See Function::KindTagBits.
   uint16_t optimized_instruction_count_;
   uint16_t optimized_call_site_count_;
@@ -813,6 +813,7 @@ class RawField : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
   }
 
+  // TODO(rmacnak): Make guarded_cid and is_nullable be cid_t.
   int32_t token_pos_;
   int32_t guarded_cid_;
   int32_t is_nullable_;  // kNullCid if field can contain null value and
@@ -915,15 +916,15 @@ class RawLibrary : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->load_error_);
   }
 
-  int32_t index_;               // Library id number.
-  int32_t num_imports_;         // Number of entries in imports_.
-  int32_t num_anonymous_;       // Number of entries in anonymous_classes_.
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
+  classid_t index_;             // Library id number.
+  classid_t num_anonymous_;     // Number of entries in anonymous_classes_.
+  uint16_t num_imports_;        // Number of entries in imports_.
+  int8_t load_state_;           // Of type LibraryState.
   bool corelib_imported_;
   bool is_dart_scheme_;
-  bool debuggable_;              // True if debugger can stop in library.
-  int8_t load_state_;            // Of type LibraryState.
+  bool debuggable_;             // True if debugger can stop in library.
 
   friend class Isolate;
 };
@@ -1399,7 +1400,7 @@ class RawLibraryPrefix : public RawInstance {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
   }
-  int32_t num_imports_;          // Number of library entries in libraries_.
+  uint16_t num_imports_;          // Number of library entries in libraries_.
   bool is_deferred_load_;
   bool is_loaded_;
 };
@@ -1465,8 +1466,8 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
-  int32_t index_;
   int32_t token_pos_;
+  int16_t index_;
   int8_t type_state_;
 };
 

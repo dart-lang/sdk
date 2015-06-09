@@ -341,6 +341,9 @@ const int64_t kSignBitDouble = DART_INT64_C(0x8000000000000000);
 typedef intptr_t word;
 typedef uintptr_t uword;
 
+// Size of a class id. We may make this 32-bit on 64-bit architectures.
+typedef uint16_t classid_t;
+
 // Byte sizes.
 const int kWordSize = sizeof(word);
 const int kDoubleSize = sizeof(double);  // NOLINT

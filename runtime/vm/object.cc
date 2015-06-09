@@ -8705,6 +8705,25 @@ void LibraryPrefixIterator::Advance() {
 }
 
 
+static void ReportTooManyImports(const Library& lib) {
+  const String& url = String::Handle(lib.url());
+  Report::MessageF(Report::kError,
+                   Script::Handle(lib.LookupScript(url)),
+                   Scanner::kNoSourcePos,
+                   "too many imports in library '%s'",
+                   url.ToCString());
+  UNREACHABLE();
+}
+
+
+void Library::set_num_imports(intptr_t value) const {
+  if (!Utils::IsUint(16, value)) {
+    ReportTooManyImports(*this);
+  }
+  StoreNonPointer(&raw_ptr()->num_imports_, value);
+}
+
+
 void Library::SetName(const String& name) const {
   // Only set name once.
   ASSERT(!Loaded());
@@ -10301,6 +10320,9 @@ void LibraryPrefix::set_imports(const Array& value) const {
 
 
 void LibraryPrefix::set_num_imports(intptr_t value) const {
+  if (!Utils::IsUint(16, value)) {
+    ReportTooManyImports(Library::Handle(importer()));
+  }
   StoreNonPointer(&raw_ptr()->num_imports_, value);
 }
 
@@ -15575,6 +15597,7 @@ void TypeParameter::set_parameterized_class(const Class& value) const {
 
 void TypeParameter::set_index(intptr_t value) const {
   ASSERT(value >= 0);
+  ASSERT(Utils::IsInt(16, value));
   StoreNonPointer(&raw_ptr()->index_, value);
 }
 
