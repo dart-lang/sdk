@@ -423,7 +423,10 @@ void removeDuplicateDefinitionErrors(List<AnalysisError> errors) {
   if (errors.isNotEmpty) {
     errors.removeWhere((error) {
       ErrorCode errorCode = error.errorCode;
-      return errorCode == CompileTimeErrorCode.DUPLICATE_DEFINITION;
+      return errorCode == CompileTimeErrorCode.DUPLICATE_DEFINITION ||
+          errorCode == CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME ||
+          errorCode ==
+              CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
     });
   }
 }
