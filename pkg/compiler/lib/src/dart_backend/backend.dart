@@ -49,7 +49,13 @@ class DartBackend extends Backend {
   final Set<ClassElement> _userImplementedPlatformClasses =
       new Set<ClassElement>();
 
-  bool get canHandleCompilationFailed => false;
+  bool enableCodegenWithErrorsIfSupported(Spannable node) {
+    compiler.reportHint(node,
+        MessageKind.GENERIC,
+        {'text': "Generation of code with compile time errors is not "
+                 "supported for dart2dart."});
+    return false;
+  }
 
   /**
    * Tells whether it is safe to remove type declarations from variables,
@@ -314,7 +320,7 @@ class DartBackend extends Backend {
   }
 
   @override
-  bool registerDeferredLoading(Spannable node, Registry registry) {
+  bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
     // TODO(sigurdm): Implement deferred loading for dart2dart.
     compiler.reportWarning(node, MessageKind.DEFERRED_LIBRARY_DART_2_DART);
     return false;

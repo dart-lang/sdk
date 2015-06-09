@@ -776,7 +776,7 @@ class DeferredLoadTask extends CompilerTask {
       });
     }
     if (isProgramSplit) {
-      isProgramSplit = compiler.backend.registerDeferredLoading(
+      isProgramSplit = compiler.backend.enableDeferredLoadingIfSupported(
             lastDeferred, compiler.globalDependencies);
     }
   }

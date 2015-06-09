@@ -2199,7 +2199,7 @@ class TestUtils {
     }
     String compiler = configuration["compiler"];
     if (compiler == "dart2js") {
-      args = [];
+      args = ['--generate-code-with-compile-time-errors', '--test-mode'];
       if (configuration["checked"]) {
         args.add('--enable-checked-mode');
       }

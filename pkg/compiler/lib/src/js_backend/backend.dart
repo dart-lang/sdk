@@ -608,8 +608,6 @@ class JavaScriptBackend extends Backend {
 
   PatchResolverTask patchResolverTask;
 
-  bool get canHandleCompilationFailed => true;
-
   bool enabledNoSuchMethod = false;
 
   JavaScriptBackend(Compiler compiler,
@@ -2679,8 +2677,21 @@ class JavaScriptBackend extends Backend {
   }
 
   @override
-  bool registerDeferredLoading(Spannable node, Registry registry) {
+  bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
     registerCheckDeferredIsLoaded(registry);
+    return true;
+  }
+
+  @override
+  bool enableCodegenWithErrorsIfSupported(Spannable node) {
+    if (compiler.useCpsIr) {
+      compiler.reportHint(
+          node,
+          MessageKind.GENERIC,
+          {'text': "Generation of code with compile time errors is currently "
+                   "not supported with the CPS IR."});
+      return false;
+    }
     return true;
   }
 }
