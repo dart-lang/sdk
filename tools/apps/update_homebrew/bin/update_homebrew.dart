@@ -133,14 +133,12 @@ class Dartium < Formula
 
     resource 'content_shell' do
       url '$urlBase/dev/release/${revisions['dev']}/$contentShellFile'
-      version '$devVersion'
       sha256 '${hashes['dev'][contentShellFile]}'
     end
   end
 
   resource 'content_shell' do
     url '$urlBase/stable/release/${revisions['stable']}/$contentShellFile'
-    version '$stableVersion'
     sha256 '${hashes['stable'][contentShellFile]}'
   end
 
@@ -162,7 +160,11 @@ class Dartium < Formula
   end
 
   def caveats; <<-EOS.undent
-     To use with IntelliJ, set the Dartium execute home to:
+    DEPRECATED
+      In the future, use the `dart` formula using
+      `--with-dartium` and/or `--with-content-shell`
+
+    To use with IntelliJ, set the Dartium execute home to:
         #{prefix}/Chromium.app
     EOS
   end
@@ -189,6 +191,9 @@ class Dart < Formula
     sha256 '${hashes['stable'][ia32File]}'
   end
 
+  option 'with-content-shell', 'Download and install content_shell -- headless Dartium for testing'
+  option 'with-dartium', 'Download and install Dartium -- Chromium with Dart'
+
   devel do
     version '$devVersion'
     if MacOS.prefer_64_bit?
@@ -198,17 +203,60 @@ class Dart < Formula
       url '$urlBase/dev/release/${revisions['dev']}/$ia32File'
       sha256 '${hashes['dev'][ia32File]}'
     end
+
+    resource 'content_shell' do
+      url '$urlBase/dev/release/${revisions['dev']}/$contentShellFile'
+      sha256 '${hashes['dev'][contentShellFile]}'
+    end
+
+    resource 'dartium' do
+      url '$urlBase/dev/release/${revisions['dev']}/$dartiumFile'
+      sha256 '${hashes['dev'][dartiumFile]}'
+    end
+  end
+
+  resource 'content_shell' do
+    url '$urlBase/stable/release/${revisions['stable']}/$contentShellFile'
+    sha256 '${hashes['stable'][contentShellFile]}'
+  end
+
+  resource 'dartium' do
+    url '$urlBase/stable/release/${revisions['stable']}/$dartiumFile'
+    sha256 '${hashes['stable'][dartiumFile]}'
   end
 
   def install
     libexec.install Dir['*']
     bin.install_symlink "#{libexec}/bin/dart"
     bin.write_exec_script Dir["#{libexec}/bin/{pub,docgen,dart?*}"]
+
+    if build.with? 'content-shell'
+      dartium_binary = 'Chromium.app/Contents/MacOS/Chromium'
+      prefix.install resource('dartium')
+      (bin+"dartium").write shim_script dartium_binary
+    end
+
+    if build.with? 'content-shell'
+      content_shell_binary = 'Content Shell.app/Contents/MacOS/Content Shell'
+      prefix.install resource('content_shell')
+      (bin+"content_shell").write shim_script content_shell_binary
+    end
+  end
+
+  def shim_script target
+    <<-EOS.undent
+      #!/bin/bash
+      exec "#{prefix}/#{target}" "\$@"
+    EOS
   end
 
   def caveats; <<-EOS.undent
     Please note the path to the Dart SDK:
       #{opt_libexec}
+
+    --with-dartium:
+      To use with IntelliJ, set the Dartium execute home to:
+        #{prefix}/Chromium.app
     EOS
   end
 
@@ -242,14 +290,17 @@ main(args) async {
   final options = parser.parse(args);
   final revision = options['revision'];
   final channel = options['channel'];
-  final key = options['key'];
-  if ([revision, channel, key].contains(null)) {
-    print("Usage: update_homebrew.dart -r revision -c channel -k ssh_key\n"
+  if ([revision, channel].contains(null)) {
+    print("Usage: update_homebrew.dart -r revision -c channel [-k ssh_key]\n"
         "  ssh_key should allow pushes to ${GITHUB_REPO} on github");
     return;
   }
-  final sshWrapper = Platform.script.resolve('ssh_with_key').toFilePath();
-  gitEnvironment = {'GIT_SSH': sshWrapper, 'SSH_KEY_PATH': key};
+
+  final key = options['key'];
+  if (key != null) {
+    final sshWrapper = Platform.script.resolve('ssh_with_key').toFilePath();
+    gitEnvironment = {'GIT_SSH': sshWrapper, 'SSH_KEY_PATH': key};
+  }
 
   Chain.capture(() async {
     var tempDir = await Directory.systemTemp.createTemp('update_homebrew');
