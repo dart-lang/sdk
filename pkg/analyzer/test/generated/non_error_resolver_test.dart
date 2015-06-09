@@ -795,7 +795,7 @@ abstract class A {
     resolve(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = analysisContext.parseCompilationUnit(source);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
     {
       SimpleIdentifier ref = EngineTestCase.findNode(
           unit, code, "p]", (node) => node is SimpleIdentifier);
@@ -813,7 +813,7 @@ foo(int p) {
     resolve(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = analysisContext.parseCompilationUnit(source);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
     SimpleIdentifier ref = EngineTestCase.findNode(
         unit, code, "p]", (node) => node is SimpleIdentifier);
     EngineTestCase.assertInstanceOf(
@@ -828,7 +828,7 @@ foo(int p) => null;''';
     resolve(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = analysisContext.parseCompilationUnit(source);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
     SimpleIdentifier ref = EngineTestCase.findNode(
         unit, code, "p]", (node) => node is SimpleIdentifier);
     EngineTestCase.assertInstanceOf(
@@ -847,7 +847,7 @@ abstract class A {
     resolve(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = analysisContext.parseCompilationUnit(source);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
     {
       SimpleIdentifier ref = EngineTestCase.findNode(
           unit, code, "p1]", (node) => node is SimpleIdentifier);
@@ -872,7 +872,7 @@ class A {
     resolve(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = analysisContext.parseCompilationUnit(source);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
     SimpleIdentifier ref = EngineTestCase.findNode(
         unit, code, "foo]", (node) => node is SimpleIdentifier);
     EngineTestCase.assertInstanceOf(
@@ -895,7 +895,7 @@ class B extends A {
     resolve(source);
     assertNoErrors(source);
     verify([source]);
-    CompilationUnit unit = analysisContext.parseCompilationUnit(source);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
     {
       SimpleIdentifier ref = EngineTestCase.findNode(
           unit, code, "x] in A", (node) => node is SimpleIdentifier);
@@ -5509,4 +5509,7 @@ class A {
   void _check_wrongNumberOfParametersForOperator1(String name) {
     _check_wrongNumberOfParametersForOperator(name, "a");
   }
+
+  CompilationUnit _getResolvedLibraryUnit(Source source) =>
+      analysisContext.getResolvedCompilationUnit2(source, source);
 }
