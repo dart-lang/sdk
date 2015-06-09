@@ -19,6 +19,7 @@ import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 import 'util/command_line.dart';
 import 'package:_internal/libraries.dart';
+import 'package:package_config/discovery.dart' show findPackages;
 
 const String LIBRARY_ROOT = '../../../../../sdk';
 const String OUTPUT_LANGUAGE_DART = 'Dart';
@@ -105,6 +106,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
   Uri libraryRoot = currentDirectory;
   Uri out = currentDirectory.resolve('out.js');
   Uri sourceMapOut = currentDirectory.resolve('out.js.map');
+  Uri packageConfig = null;
   Uri packageRoot = null;
   List<String> options = new List<String>();
   bool explicitOut = false;
@@ -138,6 +140,10 @@ Future<api.CompilationResult> compile(List<String> argv) {
 
   setPackageRoot(String argument) {
     packageRoot = currentDirectory.resolve(extractPath(argument));
+  }
+
+  setPackageConfig(String argument) {
+    packageConfig = currentDirectory.resolve(extractPath(argument));
   }
 
   setOutput(Iterator<String> arguments) {
@@ -329,6 +335,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
                       (_) => setTrustPrimitives(
                           '--trust-primitives')),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
+    new OptionHandler('--packages=.+', setPackageConfig),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
     new OptionHandler('--analyze-all', setAnalyzeAll),
     new OptionHandler('--analyze-only', setAnalyzeOnly),
@@ -403,9 +410,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
                 "checked mode.");
   }
 
-  Uri uri = currentDirectory.resolve(arguments[0]);
-  if (packageRoot == null) {
-    packageRoot = uri.resolve('./packages/');
+  if (packageRoot != null && packageConfig != null) {
+    helpAndFail("Cannot specify both '--package-root' and '--packages.");
   }
 
   if ((analyzeOnly || analyzeAll) && !optionsImplyCompilation.isEmpty) {
@@ -430,8 +436,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
     helpAndFail("Option '--dump-info' is not supported in "
                 "combination with the '--output-type=dart' option.");
   }
-
-  diagnosticHandler.info('Package root is $packageRoot');
 
   options.add('--out=$out');
   options.add('--source-map=$sourceMapOut');
@@ -467,9 +471,10 @@ Future<api.CompilationResult> compile(List<String> argv) {
     return result;
   }
 
-  return compileFunc(uri, libraryRoot, packageRoot,
-                     inputProvider, diagnosticHandler,
-                     options, outputProvider, environment)
+  Uri uri = currentDirectory.resolve(arguments[0]);
+  return compileFunc(uri, libraryRoot, packageRoot, inputProvider,
+                     diagnosticHandler, options, outputProvider, environment,
+                     packageConfig, findPackages)
             .then(compilationDone);
 }
 
@@ -551,7 +556,12 @@ Supported options:
     Display version information.
 
   -p<path>, --package-root=<path>
-    Where to find packages, that is, "package:..." imports.
+    Where to find packages, that is, "package:..." imports.  This option cannot
+    be used with --packages.
+
+  --packages=<path>
+    Path to the package resolution configuration file, which supplies a mapping
+    of package names to paths.  This option cannot be used with --package-root.
 
   --analyze-all
     Analyze all code.  Without this option, the compiler only analyzes
