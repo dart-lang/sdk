@@ -11,6 +11,7 @@ import utils
 
 def Main():
   build_root = utils.GetBuildRoot(utils.GuessOS())
+  print 'Deleting %s' % build_root
   shutil.rmtree(build_root, ignore_errors=True)
   return 0
 
