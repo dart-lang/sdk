@@ -301,7 +301,7 @@ class MapToFlattenListTaskInputBuilder<K, V, E>
  * An input to an [AnalysisTask] that is computed by mapping the value of
  * another task input to a list of values.
  */
-class ObjectToListTaskInput<E> extends TaskInputImpl with ListTaskInputMixin<E>
+class ObjectToListTaskInput<E> extends TaskInputImpl<List<E>> with ListTaskInputMixin<E>
     implements ListTaskInput<E> {
   /**
    * The input used to compute the value to be mapped.
@@ -333,7 +333,7 @@ class ObjectToListTaskInput<E> extends TaskInputImpl with ListTaskInputMixin<E>
   MapTaskInput<AnalysisTarget, dynamic /*V*/ > toMapOf(
       ResultDescriptor /*<V>*/ valueResult) {
     return new ListToMapTaskInput<AnalysisTarget, dynamic /*V*/ >(
-        this, valueResult.of);
+        this as dynamic, valueResult.of);
   }
 }
 
