@@ -9613,22 +9613,6 @@ WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please tr
 
 [ $compiler == dart2js && $cps_ir ]
 Language/03_Overview/1_Scoping_A02_t19: Crash # (switch (1){case 1:var x;break;case 2:var x;break;}): Unhandled node
-Language/07_Classes/07_Classes_A02_t17: Crash # Please triage this failure.
-Language/07_Classes/07_Classes_A02_t18: Crash # Please triage this failure.
-Language/07_Classes/07_Classes_A02_t19: Crash # Please triage this failure.
-Language/07_Classes/1_Instance_Methods/2_Operators_A02_t06: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t02: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t03: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t05: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t07: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t09: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t10: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t11: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/1_Generative_Constructors_A04_t16: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A09_t01: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A09_t02: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A09_t03: Crash # Please triage this failure.
-Language/07_Classes/6_Constructors/2_Factories_A09_t04: Crash # Please triage this failure.
 Language/10_Generics/09_Generics_A04_t03: Crash # Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: RuntimeError # Please triage this failure.
 Language/12_Expressions/13_Property_Extraction_A03_t01: RuntimeError # Please triage this failure.
@@ -9637,9 +9621,9 @@ Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Please tr
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/22_Equality_A03_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/30_Identifier_Reference_A09_t03: Crash # (i=0): For-loop variable captured in loop header
-Language/12_Expressions/33_Type_Cast_A01_t01: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A02_t02: Crash # Instance of 'TypeOperator': type casts not implemented.
-Language/12_Expressions/33_Type_Cast_A02_t03: Crash # Instance of 'TypeOperator': type casts not implemented.
+Language/12_Expressions/33_Type_Cast_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for func.
+Language/12_Expressions/33_Type_Cast_A02_t02: Crash # Instance of 'TypeOperator': type check unimplemented for func.
+Language/12_Expressions/33_Type_Cast_A02_t03: Crash # Instance of 'TypeOperator': type check unimplemented for func.
 Language/13_Statements/06_For_A01_t07: Crash # Please triage this failure.
 Language/13_Statements/09_Switch_A01_t01: Crash # (switch (1){case 0:case 1:}): Unhandled node
 Language/13_Statements/09_Switch_A01_t02: Crash # (switch (1){l1:l2:l3:case (1):}): Unhandled node
@@ -9698,12 +9682,12 @@ Language/15_Types/3_Type_Declarations/1_Typedef_A02_t03: Crash # Instance of 'Ty
 Language/15_Types/3_Type_Declarations/1_Typedef_A03_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f1.
 Language/15_Types/3_Type_Declarations/1_Typedef_A04_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f1.
 Language/15_Types/3_Type_Declarations/1_Typedef_A04_t02: Crash # Instance of 'TypeOperator': type check unimplemented for f1.
-Language/15_Types/4_Interface_Types_A05_t04: Crash # type expression t1 (typedef)
-Language/15_Types/4_Interface_Types_A10_t04: Crash # type expression param1 (typedef)
-Language/15_Types/4_Interface_Types_A10_t06: Crash # type expression f (typedef)
-Language/15_Types/4_Interface_Types_A10_t07: Crash # type expression f_1 (typedef)
-Language/15_Types/4_Interface_Types_A10_t08: Crash # type expression t1 (typedef)
-Language/15_Types/4_Interface_Types_A10_t09: Crash # type expression param1 (typedef)
+Language/15_Types/4_Interface_Types_A05_t04: Crash # Please triage this failure.
+Language/15_Types/4_Interface_Types_A10_t04: Crash # Please triage this failure.
+Language/15_Types/4_Interface_Types_A10_t06: Crash # Please triage this failure.
+Language/15_Types/4_Interface_Types_A10_t07: Crash # Please triage this failure.
+Language/15_Types/4_Interface_Types_A10_t08: Crash # Please triage this failure.
+Language/15_Types/4_Interface_Types_A10_t09: Crash # Please triage this failure.
 Language/15_Types/4_Interface_Types_A12_t18: Crash # Instance of 'TypeOperator': type check unimplemented for F1.
 Language/15_Types/5_Function_Types_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for check_t.
 Language/15_Types/5_Function_Types_A01_t02: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
@@ -9752,7 +9736,6 @@ LayoutTests/fast/dom/location-hash_t01: Crash #  Unhandled node
 LayoutTests/fast/events/event-attributes-after-exception_t01: Crash #  try/finally
 LayoutTests/fast/files/file-reader-methods-illegal-arguments_t01: Crash #  Unhandled node
 LayoutTests/fast/loader/hashchange-event-properties_t01: Crash #  Unhandled node
-LayoutTests/fast/mediastream/getusermedia_t01: Crash # Please triage this failure.
 LayoutTests/fast/svg/tabindex-focus_t01: Crash #  try/finally
 LayoutTests/fast/svg/whitespace-angle_t01: Crash #  try/finally
 LayoutTests/fast/svg/whitespace-integer_t01: Crash #  try/finally
@@ -9781,7 +9764,7 @@ LibTest/core/Invocation/isSetter_A01_t02: RuntimeError # Please triage this fail
 LibTest/core/Invocation/memberName_A01_t01: Crash # Please triage this failure.
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/List/List_class_A01_t02: Crash # Please triage this failure.
-LibTest/core/Map/Map_A01_t01: Crash # type expression SomeFunction (typedef)
+LibTest/core/Map/Map_A01_t01: Crash # Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Crash #  Unhandled node
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Crash #  Unhandled node
 LibTest/core/Set/add_A01_t03: RuntimeError # Please triage this failure.

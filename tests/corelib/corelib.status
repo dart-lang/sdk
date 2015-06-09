@@ -233,7 +233,7 @@ hash_map2_test: Crash # Instance of 'TypeOperator': type check unimplemented for
 hash_set_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 hash_set_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 hash_set_type_check_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-hashcode_test : RuntimeError
+hashcode_test: RuntimeError # Please triage this failure.
 int_parse_radix_test/01: Crash # Please triage this failure.
 int_parse_radix_test/02: Crash # Please triage this failure.
 int_parse_radix_test/none: Crash # Please triage this failure.
