@@ -4723,6 +4723,103 @@ f() {
     verify([source]);
   }
 
+  void test_prefix_conditionalPropertyAccess_call_loadLibrary() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+''');
+    Source source = addSource('''
+import 'lib.dart' deferred as p;
+f() {
+  p?.loadLibrary();
+}
+''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_conditionalPropertyAccess_get() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+var x;
+''');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  return p?.x;
+}
+''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_conditionalPropertyAccess_get_loadLibrary() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+''');
+    Source source = addSource('''
+import 'lib.dart' deferred as p;
+f() {
+  return p?.loadLibrary;
+}
+''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_conditionalPropertyAccess_set() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+var x;
+''');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  p?.x = null;
+}
+''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_conditionalPropertyAccess_set_loadLibrary() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableNullAwareOperators = true;
+    resetWithOptions(options);
+    addNamedSource('/lib.dart', '''
+library lib;
+''');
+    Source source = addSource('''
+import 'lib.dart' deferred as p;
+f() {
+  p?.loadLibrary = null;
+}
+''');
+    resolve(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
   void test_prefixCollidesWithTopLevelMembers_functionTypeAlias() {
     addNamedSource("/lib.dart", r'''
 library lib;

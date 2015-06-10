@@ -591,6 +591,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       propagatedElement = null;
     } else if (methodName.name == FunctionElement.LOAD_LIBRARY_NAME &&
         _isDeferredPrefix(target)) {
+      if (node.operator.type == sc.TokenType.QUESTION_PERIOD) {
+        _resolver.reportErrorForNode(
+            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, target,
+            [(target as SimpleIdentifier).name]);
+      }
       LibraryElement importedLibrary = _getImportedLibrary(target);
       methodName.staticElement = importedLibrary.loadLibraryFunction;
       return null;
