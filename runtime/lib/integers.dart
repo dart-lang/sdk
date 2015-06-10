@@ -297,6 +297,7 @@ class _IntegerImplementation extends _Num {
     if (m is _Bigint) {
       return _toBigint().modInverse(m);
     }
+    if (this == 0) return 0;
     bool ac = m.isEven;
     int u = m;
     int v = this;

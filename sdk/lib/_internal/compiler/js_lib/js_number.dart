@@ -415,6 +415,7 @@ class JSInt extends JSNumber implements int, double {
   int modInverse(int m) {
     if (m is! int) throw new ArgumentError(m);
     if (m <= 0) throw new RangeError(m);
+    if (this == 0) return 0;
     bool ac = m.isEven;
     int u = m;
     int v = this;

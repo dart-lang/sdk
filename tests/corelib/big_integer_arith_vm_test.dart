@@ -235,6 +235,9 @@ UnimplementedEvenModulusModInverse(x, m) {
 
 testBigintModInverse() {
   var x, m;
+  x = 0;
+  m = 1000000001;
+  Expect.equals(0, x.modInverse(m));  // Not coprime.
   x = 1234567890;
   m = 19;
   Expect.equals(11, x.modInverse(m));

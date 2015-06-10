@@ -1542,6 +1542,7 @@ class _Bigint extends _IntegerImplementation implements int {
   int modInverse(int m) {
     if (m is! int) throw new ArgumentError(m);
     if (m <= 0) throw new RangeError(m);
+    if (_used == 0) return 0;
     m = m._toBigint();
     // TODO(regis): Implement modInverse for an even modulus.
     if (m.isEven) throw new UnimplementedError();
