@@ -121,7 +121,7 @@ class PoolPointerCall : public ValueObject {
   }
 
   uword Target() const {
-    return reinterpret_cast<uword>(object_pool_.RawValueAt(pp_index()));
+    return object_pool_.RawValueAt(pp_index());
   }
 
   void SetTarget(uword target) const {
