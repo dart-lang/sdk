@@ -79,6 +79,9 @@ prefix_identifier_reference_test/04: Crash # Issue 23611
 prefix_identifier_reference_test/05: Crash # Issue 23611
 prefix_unqualified_invocation_test/01: RuntimeError # Issue 23611
 
+const_error_multiply_initialized_test/02: CompileTimeError # Issue 23618
+const_error_multiply_initialized_test/04: CompileTimeError # Issue 23618
+
 # VM specific tests that should not be run by dart2js.
 vm/*: Skip # Issue 12699
 

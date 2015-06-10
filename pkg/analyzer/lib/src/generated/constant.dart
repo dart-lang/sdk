@@ -747,6 +747,10 @@ class ConstantEvaluationEngine {
               }
             }
             String fieldName = field.name;
+            if (fieldMap.containsKey(fieldName)) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+            }
             fieldMap[fieldName] = argumentValue;
           }
         } else {
@@ -768,6 +772,10 @@ class ConstantEvaluationEngine {
             initializerExpression.accept(initializerVisitor);
         if (evaluationResult != null) {
           String fieldName = constructorFieldInitializer.fieldName.name;
+          if (fieldMap.containsKey(fieldName)) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, node);
+          }
           fieldMap[fieldName] = evaluationResult;
           PropertyAccessorElement getter = definingClass.getGetter(fieldName);
           if (getter != null) {

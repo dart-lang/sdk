@@ -1040,6 +1040,47 @@ const C = a.m;''');
     verify([source]);
   }
 
+  void test_constEvalThrowsException_finalAlreadySet_initializer() {
+    // If a final variable has an initializer at the site of its declaration,
+    // and at the site of the constructor, then invoking that constructor would
+    // produce a runtime error; hence invoking that constructor via the "const"
+    // keyword results in a compile-time error.
+    Source source = addSource('''
+class C {
+  final x = 1;
+  const C() : x = 2;
+}
+var x = const C();
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+      StaticWarningCode.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
+    ]);
+    verify([source]);
+  }
+
+  void test_constEvalThrowsException_finalAlreadySet_initializing_formal() {
+    // If a final variable has an initializer at the site of its declaration,
+    // and it is initialized using an initializing formal at the site of the
+    // constructor, then invoking that constructor would produce a runtime
+    // error; hence invoking that constructor via the "const" keyword results
+    // in a compile-time error.
+    Source source = addSource('''
+class C {
+  final x = 1;
+  const C(this.x);
+}
+var x = const C(2);
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+      StaticWarningCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR
+    ]);
+    verify([source]);
+  }
+
   void test_constEvalThrowsException_unaryBitNot_null() {
     Source source = addSource("const C = ~null;");
     computeLibrarySourceErrors(source);
