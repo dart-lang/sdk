@@ -569,15 +569,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var name = classElem.name;
     var body = <JS.Statement>[];
 
-    if (jsPeerName != null) {
+    if (_extensionTypes.contains(classElem)) {
       var dartxNames = [];
       for (var m in methods) {
         if (!m.isAbstract && !m.isStatic && m.element.isPublic) {
           dartxNames.add(_elementMemberName(m.element, allowExtensions: false));
         }
       }
-      body.add(js.statement('dart.defineExtensionNames(#)',
-          [new JS.ArrayInitializer(dartxNames, multiline: true)]));
+      if (dartxNames.isNotEmpty) {
+        body.add(js.statement('dart.defineExtensionNames(#)',
+        [new JS.ArrayInitializer(dartxNames, multiline: true)]));
+      }
     }
 
     body.add(new JS.ClassDeclaration(cls));

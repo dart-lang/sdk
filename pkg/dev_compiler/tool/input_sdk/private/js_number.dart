@@ -343,6 +343,8 @@ class JSNumber extends Interceptor implements num {
  */
 // TODO(jmesserly): for dev_compiler all numbers will get `int` members at
 // runtime for dynamic dispatch. We can fix by checking it at dispatch time.
+// TODO(jmesserly): merge with JSNumber? That would simplify generated code,
+// and dart_runtime's extension mechanism.
 @JsPeerInterface(name: 'Number')
 class JSInt extends JSNumber implements int, double {
   const JSInt();

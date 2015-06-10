@@ -68,6 +68,9 @@ dart.library('dart/core', null, /* Imports */[
     constructors: () => ({_Proxy: [_Proxy, []]})
   });
   let proxy = dart.const(new _Proxy());
+  dart.defineExtensionNames([
+    'toString'
+  ]);
   class bool extends Object {
     static fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : false;
@@ -1254,6 +1257,9 @@ dart.library('dart/core', null, /* Imports */[
     }
   }
   let Iterable$ = dart.generic(function(E) {
+    dart.defineExtensionNames([
+      'join'
+    ]);
     class Iterable extends Object {
       Iterable() {
       }

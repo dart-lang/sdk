@@ -799,7 +799,12 @@ var dart, dartx;
     // Mark the JS type's instances so we can easily check for extensions.
     assert(jsProto[_extensionType] === void 0);
     jsProto[_extensionType] = extProto;
-    copyPropertiesHelper(jsProto, extProto, getOwnPropertySymbols(extProto));
+
+    let dartObjProto = core.Object.prototype;
+    while (extProto !== dartObjProto && extProto !== jsProto) {
+      copyPropertiesHelper(jsProto, extProto, getOwnPropertySymbols(extProto));
+      extProto = extProto.__proto__;
+    }
   }
   dart.registerExtension = registerExtension;
 

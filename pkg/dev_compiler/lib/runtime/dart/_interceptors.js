@@ -487,6 +487,50 @@ dart.library('dart/_interceptors', null, /* Imports */[
   let _shrReceiverPositive = Symbol('_shrReceiverPositive');
   let _shrOtherPositive = Symbol('_shrOtherPositive');
   let _shrBothPositive = Symbol('_shrBothPositive');
+  dart.defineExtensionNames([
+    'compareTo',
+    'isNegative',
+    'isNaN',
+    'isInfinite',
+    'isFinite',
+    'remainder',
+    'abs',
+    'sign',
+    'toInt',
+    'truncate',
+    'ceil',
+    'floor',
+    'round',
+    'ceilToDouble',
+    'floorToDouble',
+    'roundToDouble',
+    'truncateToDouble',
+    'clamp',
+    'toDouble',
+    'toStringAsFixed',
+    'toStringAsExponential',
+    'toStringAsPrecision',
+    'toRadixString',
+    'toString',
+    'hashCode',
+    'unary-',
+    '+',
+    '-',
+    '/',
+    '*',
+    '%',
+    '~/',
+    '<<',
+    '>>',
+    '&',
+    '|',
+    '^',
+    '<',
+    '>',
+    '<=',
+    '>=',
+    'runtimeType'
+  ]);
   class JSNumber extends Interceptor {
     JSNumber() {
       super.Interceptor();
@@ -928,6 +972,9 @@ dart.library('dart/_interceptors', null, /* Imports */[
   });
   JSInt[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'Number'}))];
   dart.registerExtension(dart.global.Number, JSInt);
+  dart.defineExtensionNames([
+    'runtimeType'
+  ]);
   class JSDouble extends JSNumber {
     JSDouble() {
       super.JSNumber();
