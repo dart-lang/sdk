@@ -2833,7 +2833,7 @@ class CodeInlineInterval {
 
 class Code extends ServiceObject {
   @observable CodeKind kind;
-  @observable Instance objectPool;
+  @observable ServiceObject objectPool;
   @observable ServiceFunction function;
   @observable Script script;
   @observable bool isOptimized = false;
