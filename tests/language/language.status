@@ -32,7 +32,7 @@ this_conditional_operator_test/none: Fail
 deferred_redirecting_factory_test: Fail # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
-[ $compiler == none && $runtime != dartium ]
+[ $compiler == none && $runtime != dartium && $runtime != drt ]
 prefix_identifier_reference_test/01: MissingCompileTimeError # Issue 23612
 prefix_identifier_reference_test/02: MissingCompileTimeError # Issue 23612
 prefix_identifier_reference_test/03: MissingCompileTimeError # Issue 23612
