@@ -51,7 +51,6 @@ vars = {
   "async_await_rev" : "@8b401a9f2e5e81dca5f70dbe7564112a0823dee6",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.1.8",
-  "d8_rev" : "@39739",
   "fake_async_rev" : "@38614",
   "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
@@ -162,8 +161,6 @@ deps = {
       Var("third_party") + "/gsutil" + Var("gsutil_rev"),
   Var("dart_root") + "/third_party/pkg/petitparser":
       Var("third_party") + "/petitparser" + Var("petitparser_rev"),
-  Var("dart_root") + "/third_party/d8":
-      Var("third_party") + "/d8" + Var("d8_rev"),
   Var("dart_root") + "/third_party/WebCore":
       Var("third_party") + "/WebCore" + Var("WebCore_rev"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
@@ -341,4 +338,19 @@ hooks = [
       Var('dart_root') + '/tools/testing/bin',
     ],
   },
+  {
+    'name': 'd8_testing_binaries',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--bucket',
+      'dart-dependencies',
+      '-d',
+      '-r',
+      Var('dart_root') + '/third_party/d8',
+    ],
+  },
+
 ]
