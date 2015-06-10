@@ -209,11 +209,11 @@ class AnalysisError {
    * a single list of errors.
    */
   static List<AnalysisError> mergeLists(List<List<AnalysisError>> errorLists) {
-    List<AnalysisError> errors = <AnalysisError>[];
+    Set<AnalysisError> errors = new HashSet<AnalysisError>();
     for (List<AnalysisError> errorList in errorLists) {
       errors.addAll(errorList);
     }
-    return errors;
+    return errors.toList();
   }
 }
 

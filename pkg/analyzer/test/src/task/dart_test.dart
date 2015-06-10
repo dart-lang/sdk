@@ -2104,6 +2104,7 @@ class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
       LibraryUnitErrorsTask.HINTS_INPUT,
       LibraryUnitErrorsTask.RESOLVE_REFERENCES_ERRORS_INPUT,
       LibraryUnitErrorsTask.RESOLVE_TYPE_NAMES_ERRORS_INPUT,
+      LibraryUnitErrorsTask.VARIABLE_REFERENCE_ERRORS_INPUT,
       LibraryUnitErrorsTask.VERIFY_ERRORS_INPUT
     ]));
   }

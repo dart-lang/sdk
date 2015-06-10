@@ -405,6 +405,17 @@ final ResultDescriptor<UsedLocalElements> USED_LOCAL_ELEMENTS =
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
+ * The errors produced while resolving variable references in a compilation unit.
+ *
+ * The list will be empty if there were no errors, but will not be `null`.
+ *
+ * The result is only available for [LibrarySpecificUnit]s.
+ */
+final ListResultDescriptor<AnalysisError> VARIABLE_REFERENCE_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
+        'VARIABLE_REFERENCE_ERRORS', AnalysisError.NO_ERRORS);
+
+/**
  * The errors produced while verifying a compilation unit.
  *
  * The list will be empty if there were no errors, but will not be `null`.
@@ -416,20 +427,14 @@ final ListResultDescriptor<AnalysisError> VERIFY_ERRORS =
         'VERIFY_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
- * Remove [CompileTimeErrorCode.DUPLICATE_DEFINITION] errors from the given
- * [errors] list.
+ * Return a list of errors containing the errors from the given [errors] list
+ * but with duplications removed.
  */
-void removeDuplicateDefinitionErrors(List<AnalysisError> errors) {
-  if (errors.isNotEmpty) {
-    errors.removeWhere((error) {
-      ErrorCode errorCode = error.errorCode;
-      return errorCode == CompileTimeErrorCode.DUPLICATE_DEFINITION ||
-          errorCode == CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME ||
-          errorCode == CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME ||
-          errorCode ==
-              CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
-    });
+List<AnalysisError> removeDuplicateErrors(List<AnalysisError> errors) {
+  if (errors.isEmpty) {
+    return errors;
   }
+  return errors.toSet().toList();
 }
 
 /**
@@ -1179,14 +1184,10 @@ class BuildFunctionTypeAliasesTask extends SourceBasedAnalysisTask {
       }
     }
     //
-    // Prepare errors.
-    //
-    List<AnalysisError> errors = errorListener.errors;
-    removeDuplicateDefinitionErrors(errors);
-    //
     // Record outputs.
     //
-    outputs[BUILD_FUNCTION_TYPE_ALIASES_ERRORS] = errors;
+    outputs[BUILD_FUNCTION_TYPE_ALIASES_ERRORS] =
+        removeDuplicateErrors(errorListener.errors);
     outputs[RESOLVED_UNIT3] = unit;
   }
 
@@ -2551,6 +2552,12 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
       'RESOLVE_TYPE_NAMES_ERRORS';
 
   /**
+   * The name of the [VARIABLE_REFERENCE_ERRORS] input.
+   */
+  static const String VARIABLE_REFERENCE_ERRORS_INPUT =
+      'VARIABLE_REFERENCE_ERRORS';
+
+  /**
    * The name of the [VERIFY_ERRORS] input.
    */
   static const String VERIFY_ERRORS_INPUT = 'VERIFY_ERRORS';
@@ -2584,6 +2591,7 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     errorLists.add(getRequiredInput(HINTS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_REFERENCES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_TYPE_NAMES_ERRORS_INPUT));
+    errorLists.add(getRequiredInput(VARIABLE_REFERENCE_ERRORS_INPUT));
     errorLists.add(getRequiredInput(VERIFY_ERRORS_INPUT));
     //
     // Record outputs.
@@ -2607,6 +2615,7 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
       HINTS_INPUT: HINTS.of(unit),
       RESOLVE_REFERENCES_ERRORS_INPUT: RESOLVE_REFERENCES_ERRORS.of(unit),
       RESOLVE_TYPE_NAMES_ERRORS_INPUT: RESOLVE_TYPE_NAMES_ERRORS.of(unit),
+      VARIABLE_REFERENCE_ERRORS_INPUT: VARIABLE_REFERENCE_ERRORS.of(unit),
       VERIFY_ERRORS_INPUT: VERIFY_ERRORS.of(unit)
     };
   }
@@ -2735,7 +2744,8 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     List<Source> exportedSources = exportedSourceSet.toList();
     List<Source> importedSources = importedSourceSet.toList();
     List<Source> includedSources = includedSourceSet.toList();
-    List<AnalysisError> parseErrors = errorListener.errors;
+    List<AnalysisError> parseErrors =
+        removeDuplicateErrors(errorListener.errors);
     List<Source> unitSources = <Source>[source]..addAll(includedSourceSet);
     outputs[EXPLICITLY_IMPORTED_LIBRARIES] = explicitlyImportedSources;
     outputs[EXPORTED_LIBRARIES] = exportedSources;
@@ -2959,7 +2969,8 @@ class ResolveReferencesTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[RESOLVE_REFERENCES_ERRORS] = errorListener.errors;
+    outputs[RESOLVE_REFERENCES_ERRORS] =
+        removeDuplicateErrors(errorListener.errors);
     outputs[RESOLVED_UNIT6] = unit;
   }
 
@@ -3038,14 +3049,10 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
         library, unitElement.source, typeProvider, errorListener);
     unit.accept(visitor);
     //
-    // Prepare errors.
-    //
-    List<AnalysisError> errors = errorListener.errors;
-    removeDuplicateDefinitionErrors(errors);
-    //
     // Record outputs.
     //
-    outputs[RESOLVE_TYPE_NAMES_ERRORS] = errors;
+    outputs[RESOLVE_TYPE_NAMES_ERRORS] =
+        removeDuplicateErrors(errorListener.errors);
     outputs[RESOLVED_UNIT4] = unit;
   }
 
@@ -3096,7 +3103,7 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ResolveVariableReferencesTask', createTask, buildInputs,
-      <ResultDescriptor>[RESOLVED_UNIT5]);
+      <ResultDescriptor>[RESOLVED_UNIT5, VARIABLE_REFERENCE_ERRORS]);
 
   ResolveVariableReferencesTask(
       InternalAnalysisContext context, AnalysisTarget target)
@@ -3126,6 +3133,8 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
     // Record outputs.
     //
     outputs[RESOLVED_UNIT5] = unit;
+    outputs[VARIABLE_REFERENCE_ERRORS] =
+        removeDuplicateErrors(errorListener.errors);
   }
 
   /**
@@ -3195,12 +3204,9 @@ class ScanDartTask extends SourceBasedAnalysisTask {
     scanner.enableNullAwareOperators =
         context.analysisOptions.enableNullAwareOperators;
 
-    Token tokenStream = scanner.tokenize();
-    LineInfo lineInfo = new LineInfo(scanner.lineStarts);
-    List<AnalysisError> errors = errorListener.errors;
-    outputs[TOKEN_STREAM] = tokenStream;
-    outputs[LINE_INFO] = lineInfo;
-    outputs[SCAN_ERRORS] = errors;
+    outputs[TOKEN_STREAM] = scanner.tokenize();
+    outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
+    outputs[SCAN_ERRORS] = removeDuplicateErrors(errorListener.errors);
   }
 
   /**
@@ -3283,7 +3289,7 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     //
     // Record outputs.
     //
-    outputs[VERIFY_ERRORS] = errorListener.errors;
+    outputs[VERIFY_ERRORS] = removeDuplicateErrors(errorListener.errors);
   }
 
   /**
