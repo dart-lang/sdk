@@ -513,8 +513,6 @@ execute_finally7_test: Crash #  try/finally
 execute_finally8_test: Crash # (try {sum+= 1;return 'hi';}finally {sum+= 1;throw 'ball';sum+= 1;}): try/finally
 execute_finally9_test: Crash #  try/finally
 factory_return_type_checked_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-factory_type_parameter2_test: Crash # Please triage this failure.
-factory_type_parameter_test: Crash # Please triage this failure.
 final_super_field_set_test/01: RuntimeError # Please triage this failure.
 finally_test: Crash # (try {i=12;}finally {Expect.equals(12,i);executedFinally=true;}): try/finally
 first_class_types_literals_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -604,7 +602,6 @@ generic_constructor_mixin2_test: Crash # Please triage this failure.
 generic_constructor_mixin3_test: Crash # Please triage this failure.
 generic_constructor_mixin_test: Crash # Please triage this failure.
 generic_field_mixin3_test: RuntimeError # Please triage this failure.
-generic_instanceof2_test: Crash # Please triage this failure.
 generic_list_checked_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 if_null_assignment_behavior_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 if_null_assignment_static_test/01: RuntimeError # Please triage this failure.
@@ -760,7 +757,7 @@ optimized_string_charcodeat_test: Crash # Instance of 'TypeOperator': type check
 overridden_no_such_method_test: RuntimeError # Please triage this failure.
 phi_merge_test: Crash # (switch (value){case 42:break;case 43:break;}): Unhandled node
 prefix16_test: Crash # Instance of 'TypeOperator': type check unimplemented for myFunc.
-prefix_unqualified_invocation_test_02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+prefix_unqualified_invocation_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 private4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 private_access_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 private_access_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -789,7 +786,6 @@ regress_22438_test: Crash #  cannot handle async/sync*/async* functions
 regress_22443_test: RuntimeError # Please triage this failure.
 regress_22445_test: Crash #  cannot handle async/sync*/async* functions
 regress_22579_test: Crash #  cannot handle async/sync*/async* functions
-regress_22700_test: Crash # Please triage this failure.
 regress_22728_test: Crash #  cannot handle async/sync*/async* functions
 regress_22777_test: Crash #  cannot handle async/sync*/async* functions
 regress_22822_test: Crash # (try {for(int i=0;i<10;i++ ){return ()=>i+b;}}finally {b=10;}): try/finally
@@ -800,7 +796,6 @@ regress_23500_test/01: Crash #  cannot handle async/sync*/async* functions
 regress_23500_test/02: Crash #  cannot handle async/sync*/async* functions
 regress_23500_test/none: Crash #  cannot handle async/sync*/async* functions
 regress_23537_test: Crash #  try/finally
-reify_typevar_static_test/01: Crash # Please triage this failure.
 return_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 side_effect_throw_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 stack_trace_test: Crash #  try/finally

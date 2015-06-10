@@ -93,7 +93,6 @@ deferred/deferred_constant4_test: RuntimeError # Please triage this failure.
 deferred/deferred_function_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred/deferred_mirrors1_test: RuntimeError # Please triage this failure.
 deferred/deferred_overlapping_test: RuntimeError # Please triage this failure.
-generics_factories_test: Crash # Please triage this failure.
 inference_nsm_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_is_int_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 interface_type_optimization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -118,4 +117,3 @@ super_constructor1_test: RuntimeError # Please triage this failure.
 switch_test/none: Crash # (switch (val){}): Unhandled node
 this_phi_elimination_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_constant_switch_test/none: Crash # (switch (v){}): Unhandled node
-typevariable_factory_test: Crash # Please triage this failure.

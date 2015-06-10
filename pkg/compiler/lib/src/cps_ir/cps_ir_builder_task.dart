@@ -192,8 +192,15 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.FunctionDefinition _makeFunctionBody(FunctionElement element,
                                           ast.FunctionExpression node) {
     FunctionSignature signature = element.functionSignature;
-    List<ParameterElement> parameters = [];
-    signature.orderedForEachParameter(parameters.add);
+    List<Local> parameters = <Local>[];
+    signature.orderedForEachParameter((e) => parameters.add(e));
+
+    if (element.isFactoryConstructor) {
+      // Type arguments are passed in as extra parameters.
+      for (DartType typeVariable in element.enclosingClass.typeVariables) {
+        parameters.add(new TypeVariableLocal(typeVariable, element));
+      }
+    }
 
     irBuilder.buildFunctionHeader(parameters,
                                   closureScope: getClosureScopeForNode(node),

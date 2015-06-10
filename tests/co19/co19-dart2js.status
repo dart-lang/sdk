@@ -9612,7 +9612,6 @@ WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please tr
 
 [ $compiler == dart2js && $cps_ir ]
 Language/03_Overview/1_Scoping_A02_t19: Crash # (switch (1){case 1:var x;break;case 2:var x;break;}): Unhandled node
-Language/10_Generics/09_Generics_A04_t03: Crash # Please triage this failure.
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: RuntimeError # Please triage this failure.
 Language/12_Expressions/13_Property_Extraction_A03_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/13_Property_Extraction_A03_t02: RuntimeError # Please triage this failure.
@@ -9796,3 +9795,4 @@ WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: Crash #  Un
 WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: Crash #  Unhandled node
 WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: Crash #  Unhandled node
 WebPlatformTest/html/semantics/forms/the-input-element/valueMode_t01: Crash #  Unhandled node
+LayoutTests/fast/canvas/canvas-composite-image_t01 : Crash # Stack Overflow
