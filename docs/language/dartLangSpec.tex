@@ -6905,14 +6905,10 @@ This specification does not discuss the interpretation of URIs, with the followi
 A URI of the form \code{dart:$s$} is interpreted as a reference to a system library (\ref{imports}) $s$. 
  
 \LMHash{}
-A URI of the form \code{package:$s$} is interpreted as a URI of the form \code{packages/s} relative to an implementation specified location.
-
-\commentary{ 
-This location will often be the location of the root library presented to the Dart compiler. However, implementations may supply means to override or replace this choice.
-}
+A URI of the form \code{package:$s$} is interpreted in an implementation specific manner.
 
 \rationale{
-The intent is that, during development, Dart programmers can rely on a package manager to find elements of their program. Such package managers may provide a directory structure starting at a local directory \code{packages} where they place the required dart code (or links thereto).
+The intent is that, during development, Dart programmers can rely on a package manager to find elements of their program. 
 }
 
 \LMHash{}
