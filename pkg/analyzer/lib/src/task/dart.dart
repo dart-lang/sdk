@@ -425,6 +425,7 @@ void removeDuplicateDefinitionErrors(List<AnalysisError> errors) {
       ErrorCode errorCode = error.errorCode;
       return errorCode == CompileTimeErrorCode.DUPLICATE_DEFINITION ||
           errorCode == CompileTimeErrorCode.GETTER_AND_METHOD_WITH_SAME_NAME ||
+          errorCode == CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME ||
           errorCode ==
               CompileTimeErrorCode.PREFIX_COLLIDES_WITH_TOP_LEVEL_MEMBER;
     });
