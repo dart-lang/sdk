@@ -1142,7 +1142,8 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       }
       return false;
     }
-    return instruction is HForeignNew
+    return instruction.isAllocation
+        && instruction.isPure()
         && trivialDeadStoreReceivers.putIfAbsent(instruction,
             () => instruction.usedBy.every(isDeadUse));
   }
@@ -1156,14 +1157,14 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (!instruction.usedBy.isEmpty) return false;
     if (isTrivialDeadStore(instruction)) return true;
     if (instruction.sideEffects.hasSideEffects()) return false;
-    if (instruction.canThrow()
-        && instruction.onlyThrowsNSM()
-        && hasFollowingThrowingNSM(instruction)) {
+    if (instruction.canThrow() &&
+        instruction.onlyThrowsNSM() &&
+        hasFollowingThrowingNSM(instruction)) {
       return true;
     }
     return !instruction.canThrow()
-           && instruction is !HParameterValue
-           && instruction is !HLocalSet;
+        && instruction is !HParameterValue
+        && instruction is !HLocalSet;
   }
 
   void visitGraph(HGraph graph) {
