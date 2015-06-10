@@ -209,10 +209,17 @@ class MinifyNamer extends Namer {
     return h;
   }
 
+  /// Remember bad hashes to avoid using a the same character with long numbers
+  /// for frequent hashes. For example, `closure` is a very common name.
+  Map<int, int> _badNames = new Map<int, int>();
+
   /// If we can't find a hash based name in the three-letter space, then base
   /// the name on a letter and a counter.
   String _badName(int hash, Set<String> usedNames) {
-    String startLetter = new String.fromCharCodes([_letterNumber(hash)]);
+    int count = _badNames.putIfAbsent(hash, () => 0);
+    String startLetter =
+        new String.fromCharCodes([_letterNumber(hash + count)]);
+    _badNames[hash] = count + 1;
     String name;
     int i = 0;
     do {
