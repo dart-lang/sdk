@@ -111,6 +111,14 @@ abstract class int extends num {
    */
   int modPow(int exponent, int modulus);
 
+  /**
+   * Returns the modular multiplicative inverse of this integer
+   * modulo [modulus].
+   *
+   * The [modulus] must be positive.
+   */
+  int modInverse(int modulus);
+
   /** Returns true if and only if this integer is even. */
   bool get isEven;
 

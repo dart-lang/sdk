@@ -275,7 +275,6 @@ class _IntegerImplementation extends _Num {
     if (e is _Bigint || m is _Bigint) {
       return _toBigint().modPow(e, m);
     }
-    if (e < 1) return 1;
     int b = this;
     if (b < 0 || b > m) {
       b %= m;
@@ -289,6 +288,64 @@ class _IntegerImplementation extends _Num {
       b = (b * b) % m;
     }
     return r;
+  }
+
+  // Returns 1/this % m, with m > 0.
+  int modInverse(int m) {
+    if (m is! int) throw new ArgumentError(m);
+    if (m <= 0) throw new RangeError(m);
+    if (m is _Bigint) {
+      return _toBigint().modInverse(m);
+    }
+    bool ac = m.isEven;
+    int u = m;
+    int v = this;
+    int a = 1,
+        b = 0,
+        c = 0,
+        d = 1;
+    while (u != 0) {
+      while (u.isEven) {
+        u >>= 1;
+        if (ac) {
+          if (!a.isEven || !b.isEven) {
+            a += this;
+            b -= m;
+          }
+          a >>= 1;
+        } else if (!b.isEven) {
+          b -= m;
+        }
+        b >>= 1;
+      }
+      while (v.isEven) {
+        v >>= 1;
+        if (ac) {
+          if (!c.isEven || !d.isEven) {
+            c += this;
+            d -= m;
+          }
+          c >>= 1;
+        } else if (!d.isEven) {
+          d -= m;
+        }
+        d >>= 1;
+      }
+      if (u >= v) {
+        u -= v;
+        if (ac) a -= c;
+        b -= d;
+      } else {
+        v -= u;
+        if (ac) c -= a;
+        d -= b;
+      }
+    }
+    if (v != 1) return 0;
+    if (d > m) return d - m;
+    if (d < 0) d += m;
+    if (d < 0) d += m;
+    return d;
   }
 }
 
