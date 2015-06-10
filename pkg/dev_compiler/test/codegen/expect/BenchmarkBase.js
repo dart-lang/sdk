@@ -10,10 +10,10 @@ dart.library('BenchmarkBase', null, /* Imports */[
       }
     }
     static listEquals(expected, actual) {
-      if (expected.length != actual.length) {
-        throw `Lists have different lengths: ${expected.length} vs ${actual.length}`;
+      if (expected[dartx.length] != actual[dartx.length]) {
+        throw `Lists have different lengths: ${expected[dartx.length]} vs ${actual[dartx.length]}`;
       }
-      for (let i = 0; dart.notNull(i) < dart.notNull(actual.length); i = dart.notNull(i) + 1) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(actual[dartx.length]); i = dart.notNull(i) + 1) {
         Expect.equals(expected[dartx.get](i), actual[dartx.get](i));
       }
     }

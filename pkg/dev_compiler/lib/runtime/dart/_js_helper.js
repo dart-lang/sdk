@@ -148,8 +148,8 @@ dart.library('dart/_js_helper', null, /* Imports */[
         start = 0;
       checkString(string);
       checkInt(start);
-      if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(string.length)) {
-        throw new core.RangeError.range(start, 0, string.length);
+      if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(string[dartx.length])) {
+        throw new core.RangeError.range(start, 0, string[dartx.length]);
       }
       return new _AllMatchesIterable(this, string, start);
     }
@@ -167,16 +167,16 @@ dart.library('dart/_js_helper', null, /* Imports */[
       let match = dart.as(regexp.exec(string), core.List);
       if (match == null)
         return null;
-      if (match[dartx.get](dart.notNull(match.length) - 1) != null)
+      if (match[dartx.get](dart.notNull(match[dartx.length]) - 1) != null)
         return null;
-      match.length = dart.notNull(match.length) - 1;
+      match[dartx.length] = dart.notNull(match[dartx.length]) - 1;
       return new _MatchImplementation(this, dart.as(match, core.List$(core.String)));
     }
     matchAsPrefix(string, start) {
       if (start === void 0)
         start = 0;
-      if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(string.length)) {
-        throw new core.RangeError.range(start, 0, string.length);
+      if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(string[dartx.length])) {
+        throw new core.RangeError.range(start, 0, string[dartx.length]);
       }
       return this[_execAnchored](string, start);
     }
@@ -218,7 +218,7 @@ dart.library('dart/_js_helper', null, /* Imports */[
       return this[_match].index;
     }
     get end() {
-      return dart.notNull(this.start) + dart.notNull(this[_match][dartx.get](0).length);
+      return dart.notNull(this.start) + dart.notNull(this[_match][dartx.get](0)[dartx.length]);
     }
     group(index) {
       return this[_match][dartx.get](index);
@@ -227,7 +227,7 @@ dart.library('dart/_js_helper', null, /* Imports */[
       return this.group(index);
     }
     get groupCount() {
-      return dart.notNull(this[_match].length) - 1;
+      return dart.notNull(this[_match][dartx.length]) - 1;
     }
     groups(groups) {
       let out = dart.list([], core.String);
@@ -280,7 +280,7 @@ dart.library('dart/_js_helper', null, /* Imports */[
     moveNext() {
       if (this[_string] == null)
         return false;
-      if (dart.notNull(this[_nextIndex]) <= dart.notNull(this[_string].length)) {
+      if (dart.notNull(this[_nextIndex]) <= dart.notNull(this[_string][dartx.length])) {
         let match = this[_regExp][_execGlobal](this[_string], this[_nextIndex]);
         if (match != null) {
           this[_current] = match;
@@ -313,7 +313,7 @@ dart.library('dart/_js_helper', null, /* Imports */[
       this.pattern = pattern;
     }
     get end() {
-      return dart.notNull(this.start) + dart.notNull(this.pattern.length);
+      return dart.notNull(this.start) + dart.notNull(this.pattern[dartx.length]);
     }
     get(g) {
       return this.group(g);
@@ -346,8 +346,8 @@ dart.library('dart/_js_helper', null, /* Imports */[
   });
   function allMatchesInStringUnchecked(needle, haystack, startIndex) {
     let result = core.List$(core.Match).new();
-    let length = haystack.length;
-    let patternLength = needle.length;
+    let length = haystack[dartx.length];
+    let patternLength = needle[dartx.length];
     while (true) {
       let position = haystack[dartx.indexOf](needle, startIndex);
       if (position == -1) {
@@ -599,7 +599,7 @@ dart.library('dart/_js_helper', null, /* Imports */[
               maxCharCode = 97 + dart.notNull(radix) - 10 - 1;
             }
             let digitsPart = dart.as(dart.dindex(match, digitsIndex), core.String);
-            for (let i = 0; dart.notNull(i) < dart.notNull(digitsPart.length); i = dart.notNull(i) + 1) {
+            for (let i = 0; dart.notNull(i) < dart.notNull(digitsPart[dartx.length]); i = dart.notNull(i) + 1) {
               let characterCode = dart.notNull(digitsPart[dartx.codeUnitAt](0)) | 32;
               if (dart.notNull(digitsPart[dartx.codeUnitAt](i)) > dart.notNull(maxCharCode)) {
                 return handleError(source);
@@ -672,7 +672,7 @@ dart.library('dart/_js_helper', null, /* Imports */[
     static _fromCharCodeApply(array) {
       let result = "";
       let kMaxApply = 500;
-      let end = array.length;
+      let end = array[dartx.length];
       for (let i = 0; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + dart.notNull(kMaxApply)) {
         let subarray = null;
         if (dart.notNull(end) <= dart.notNull(kMaxApply)) {

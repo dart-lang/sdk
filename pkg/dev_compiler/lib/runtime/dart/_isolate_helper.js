@@ -106,14 +106,14 @@ dart.library('dart/_isolate_helper', null, /* Imports */[
     }
     serializeArray(x) {
       let serialized = [];
-      serialized.length = x.length;
-      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
+      serialized[dartx.length] = x[dartx.length];
+      for (let i = 0; dart.notNull(i) < dart.notNull(x[dartx.length]); i = dart.notNull(i) + 1) {
         serialized[dartx.set](i, this.serialize(x[dartx.get](i)));
       }
       return serialized;
     }
     serializeArrayInPlace(x) {
-      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(x[dartx.length]); i = dart.notNull(i) + 1) {
         x[dartx.set](i, this.serialize(x[dartx.get](i)));
       }
       return x;
@@ -128,8 +128,8 @@ dart.library('dart/_isolate_helper', null, /* Imports */[
       }
       let keys = dart.as(Object.keys(x), core.List);
       let values = [];
-      values.length = keys.length;
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+      values[dartx.length] = keys[dartx.length];
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys[dartx.length]); i = dart.notNull(i) + 1) {
         values[dartx.set](i, this.serialize(x[keys[dartx.get](i)]));
       }
       return ['js-object', keys, values];
@@ -282,7 +282,7 @@ dart.library('dart/_isolate_helper', null, /* Imports */[
       return result;
     }
     deserializeArrayInPlace(x) {
-      for (let i = 0; dart.notNull(i) < dart.notNull(x.length); i = dart.notNull(i) + 1) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(x[dartx.length]); i = dart.notNull(i) + 1) {
         x[dartx.set](i, this.deserialize(x[dartx.get](i)));
       }
       return x;
@@ -318,7 +318,7 @@ dart.library('dart/_isolate_helper', null, /* Imports */[
       let result = dart.map();
       this.deserializedObjects[dartx.add](result);
       keys = keys[dartx.map](dart.bind(this, 'deserialize'))[dartx.toList]();
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys[dartx.length]); i = dart.notNull(i) + 1) {
         result.set(keys[dartx.get](i), this.deserialize(values[dartx.get](i)));
       }
       return result;
@@ -355,7 +355,7 @@ dart.library('dart/_isolate_helper', null, /* Imports */[
       let values = dart.as(dart.dindex(x, 2), core.List);
       let o = {};
       this.deserializedObjects[dartx.add](o);
-      for (let i = 0; dart.notNull(i) < dart.notNull(keys.length); i = dart.notNull(i) + 1) {
+      for (let i = 0; dart.notNull(i) < dart.notNull(keys[dartx.length]); i = dart.notNull(i) + 1) {
         o[keys[dartx.get](i)] = this.deserialize(values[dartx.get](i));
       }
       return o;

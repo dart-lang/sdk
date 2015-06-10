@@ -158,8 +158,8 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
       this[_storage] = storage;
     }
     _slowFromList(list) {
-      this[_storage] = NativeFloat32List.new(dart.notNull(list.length) * 4);
-      for (let i = 0; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
+      this[_storage] = NativeFloat32List.new(dart.notNull(list[dartx.length]) * 4);
+      for (let i = 0; dart.notNull(i) < dart.notNull(list[dartx.length]); i = dart.notNull(i) + 1) {
         let e = list[dartx.get](i);
         this[_storage].set(dart.notNull(i) * 4 + 0, e.x);
         this[_storage].set(dart.notNull(i) * 4 + 1, e.y);
@@ -266,8 +266,8 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
       this[_storage] = storage;
     }
     _slowFromList(list) {
-      this[_storage] = NativeInt32List.new(dart.notNull(list.length) * 4);
-      for (let i = 0; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
+      this[_storage] = NativeInt32List.new(dart.notNull(list[dartx.length]) * 4);
+      for (let i = 0; dart.notNull(i) < dart.notNull(list[dartx.length]); i = dart.notNull(i) + 1) {
         let e = list[dartx.get](i);
         this[_storage].set(dart.notNull(i) * 4 + 0, e.x);
         this[_storage].set(dart.notNull(i) * 4 + 1, e.y);
@@ -374,8 +374,8 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
       this[_storage] = storage;
     }
     _slowFromList(list) {
-      this[_storage] = NativeFloat64List.new(dart.notNull(list.length) * 2);
-      for (let i = 0; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
+      this[_storage] = NativeFloat64List.new(dart.notNull(list[dartx.length]) * 2);
+      for (let i = 0; dart.notNull(i) < dart.notNull(list[dartx.length]); i = dart.notNull(i) + 1) {
         let e = list[dartx.get](i);
         this[_storage].set(dart.notNull(i) * 2 + 0, e.x);
         this[_storage].set(dart.notNull(i) * 2 + 1, e.y);
@@ -533,8 +533,8 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
   function _ensureNativeList(list) {
     if (dart.is(list, _interceptors.JSIndexable))
       return list;
-    let result = core.List.new(list.length);
-    for (let i = 0; dart.notNull(i) < dart.notNull(list.length); i = dart.notNull(i) + 1) {
+    let result = core.List.new(list[dartx.length]);
+    for (let i = 0; dart.notNull(i) < dart.notNull(list[dartx.length]); i = dart.notNull(i) + 1) {
       result[dartx.set](i, list[dartx.get](i));
     }
     return result;

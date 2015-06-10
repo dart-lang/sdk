@@ -50,7 +50,7 @@ dart.library('cascade', null, /* Imports */[
   dart.fn(test_mutate_outside_cascade, dart.void, []);
   function test_VariableDeclaration_single() {
     let a = [];
-    a.length = 2;
+    a[dartx.length] = 2;
     a[dartx.add](42);
     core.print(a);
   }
@@ -58,7 +58,7 @@ dart.library('cascade', null, /* Imports */[
   function test_VariableDeclaration_last() {
     let a = 42, b = (() => {
       let _ = [];
-      _.length = 2;
+      _[dartx.length] = 2;
       _[dartx.add](a);
       return _;
     })();
@@ -68,7 +68,7 @@ dart.library('cascade', null, /* Imports */[
   function test_VariableDeclaration_first() {
     let a = (() => {
       let _ = [];
-      _.length = 2;
+      _[dartx.length] = 2;
       _[dartx.add](3);
       return _;
     })(), b = 2;

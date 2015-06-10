@@ -2676,8 +2676,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
     // Dart "extension" methods. Used for JS Array, Boolean, Number, String.
     if (allowExtensions && _extensionTypes.contains(type.element)) {
-      // Special case `length`. We can call it directly.
-      if (name != 'length') return js.call('dartx.#', _propertyName(name));
+      return js.call('dartx.#', _propertyName(name));
     }
 
     return _propertyName(name);
