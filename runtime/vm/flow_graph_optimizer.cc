@@ -4088,7 +4088,8 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     // reported, so do not replace the instance call.
     return;
   }
-  if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
+  if ((unary_checks.NumberOfChecks() > 0) &&
+      (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
     ZoneGrowableArray<intptr_t>* results =
         new(Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
     Bool& as_bool =
@@ -4179,7 +4180,8 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     // reported, so do not replace the instance call.
     return;
   }
-  if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
+  if ((unary_checks.NumberOfChecks() > 0) &&
+      (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
     ZoneGrowableArray<intptr_t>* results =
         new(Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
     const Bool& as_bool = Bool::ZoneHandle(Z,
@@ -4213,22 +4215,41 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 }
 
 
-// Tries to optimize instance call by replacing it with a faster instruction
-// (e.g, binary op, field load, ..).
-void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  if (!instr->HasICData() || (instr->ic_data()->NumberOfUsedChecks() == 0)) {
-    return;
-  }
-
+// Special optimizations when running in --noopt mode.
+void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
+  // TODO(srdjan): Investigate other attempts, as they are not allowed to
+  // deoptimize.
   const Token::Kind op_kind = instr->token_kind();
-  if (Compiler::always_optimize()) {
-    // TODO(srdjan): Investigate other attempts, as they are not allowed to
-    // deoptimize.
+  if (instr->HasICData() && (instr->ic_data()->NumberOfUsedChecks() > 0)) {
     if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr, false)) {
       return;
     }
+  }
+
+  // Type test is special as it always gets converted into inlined code.
+  if (Token::IsTypeTestOperator(op_kind)) {
+    ReplaceWithInstanceOf(instr);
     return;
   }
+  if (Token::IsTypeCastOperator(op_kind)) {
+    ReplaceWithTypeCast(instr);
+    return;
+  }
+}
+
+
+// Tries to optimize instance call by replacing it with a faster instruction
+// (e.g, binary op, field load, ..).
+void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
+  if (Compiler::always_optimize()) {
+    InstanceCallNoopt(instr);
+    return;
+  }
+
+  if (!instr->HasICData() || (instr->ic_data()->NumberOfUsedChecks() == 0)) {
+    return;
+  }
+  const Token::Kind op_kind = instr->token_kind();
 
   // Type test is special as it always gets converted into inlined code.
   if (Token::IsTypeTestOperator(op_kind)) {

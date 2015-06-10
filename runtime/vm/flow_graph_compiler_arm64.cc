@@ -596,7 +596,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     // time, since an uninstantiated type at compile time could be Object or
     // dynamic at run time.
     __ CompareObject(R0, Object::null_object(), PP);
-    __ b(&is_not_instance, EQ);
+    __ b(type.IsNullType() ? &is_instance : &is_not_instance, EQ);
   }
 
   // Generate inline instanceof test.

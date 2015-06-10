@@ -591,7 +591,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     // We can only inline this null check if the type is instantiated at compile
     // time, since an uninstantiated type at compile time could be Object or
     // dynamic at run time.
-    __ BranchEqual(A0, Object::null_object(), &is_not_instance);
+    __ BranchEqual(A0, Object::null_object(),
+        type.IsNullType() ? &is_instance : &is_not_instance);
   }
 
   // Generate inline instanceof test.

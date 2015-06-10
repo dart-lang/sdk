@@ -613,7 +613,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     // time, since an uninstantiated type at compile time could be Object or
     // dynamic at run time.
     __ cmpl(EAX, raw_null);
-    __ j(EQUAL, &is_not_instance);
+    __ j(EQUAL, type.IsNullType() ? &is_instance : &is_not_instance);
   }
 
   // Generate inline instanceof test.
