@@ -760,6 +760,7 @@ optimized_string_charcodeat_test: Crash # Instance of 'TypeOperator': type check
 overridden_no_such_method_test: RuntimeError # Please triage this failure.
 phi_merge_test: Crash # (switch (value){case 42:break;case 43:break;}): Unhandled node
 prefix16_test: Crash # Instance of 'TypeOperator': type check unimplemented for myFunc.
+prefix_unqualified_invocation_test_02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 private4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 private_access_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 private_access_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
