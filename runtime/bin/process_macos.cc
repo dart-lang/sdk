@@ -452,7 +452,10 @@ class ProcessStarter {
     }
 
     if (program_environment_ != NULL) {
-      environ = program_environment_;
+      // On MacOS you have to do a bit of magic to get to the
+      // environment strings.
+      char*** environ = _NSGetEnviron();
+      *environ = program_environment_;
     }
 
     VOID_TEMP_FAILURE_RETRY(
@@ -653,10 +656,7 @@ class ProcessStarter {
 
 
   void SetChildOsErrorMessage() {
-    const int kBufferSize = 1024;
-    char error_message[kBufferSize];
-    strerror_r(errno, error_message, kBufferSize);
-    *os_error_message_ = strdup(error_message);
+    SetOSErrorMessage(errno);
   }
 
 
@@ -681,10 +681,10 @@ class ProcessStarter {
 
 
   void SetOSErrorMessage(int child_errno) {
-    const int kMaxMessageSize = 256;
-    char* message = static_cast<char*>(calloc(kMaxMessageSize, 0));
-    strerror_r(child_errno, message, kMaxMessageSize - 1);
-    *os_error_message_ = message;
+    const int kBufferSize = 1024;
+    char error_message[kBufferSize];
+    strerror_r(child_errno, error_message, kBufferSize);
+    *os_error_message_ = strdup(error_message);
   }
 
 
