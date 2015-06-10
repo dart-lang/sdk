@@ -9167,7 +9167,7 @@ main() {
     LibraryElement library = resolve(source);
     expect(library, isNotNull);
     CompilationUnit unit =
-        analysisContext.getResolvedCompilationUnit(source, library);
+        analysisContext.resolveCompilationUnit(source, library);
     expect(unit, isNotNull);
     List<bool> found = [false];
     List<CaughtException> thrownException = new List<CaughtException>(1);
