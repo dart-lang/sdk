@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library _isolate_helper;
+library dart._isolate_helper;
 
 import 'dart:_js_embedded_names' show
     CLASS_ID_EXTRACTOR,

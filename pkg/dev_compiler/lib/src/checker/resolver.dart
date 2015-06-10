@@ -595,9 +595,7 @@ class RestrictedStaticTypeAnalyzer extends StaticTypeAnalyzer {
     }
 
     var e = node.methodName.staticElement;
-    if (e is FunctionElement &&
-        e.library.name == '_foreign_helper' &&
-        e.name == 'JS') {
+    if (isInlineJS(e)) {
       // Fix types for JS builtin calls.
       //
       // This code was taken from analyzer. It's not super sophisticated:

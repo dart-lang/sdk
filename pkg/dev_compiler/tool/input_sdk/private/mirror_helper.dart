@@ -5,4 +5,4 @@
  * Helps dealing with reflection in the case that the source code has been
  * changed as a result of compiling with dart2dart.
  */
-library _mirror_helper;
+library dart._mirror_helper;

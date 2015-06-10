@@ -91,6 +91,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   ModuleItemLoadOrder _loader;
 
+  /// _interceptors.JSArray<E>, used for List literals.
+  ClassElement _jsArray;
+
   JSCodegenVisitor(AbstractCompiler compiler, this.libraryInfo,
       this._extensionTypes, this._fieldsNeedingStorage)
       : compiler = compiler,
@@ -98,6 +101,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         rules = compiler.rules,
         root = compiler.entryPointUri {
     _loader = new ModuleItemLoadOrder(_emitModuleItem);
+
+    var context = compiler.context;
+    var src = context.sourceFactory.forUri('dart:_interceptors');
+    var interceptors = context.computeLibraryElement(src);
+    _jsArray = interceptors.getType('JSArray');
   }
 
   LibraryElement get currentLibrary => libraryInfo.library;
@@ -1544,9 +1552,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   /// Emits code for the `JS(...)` builtin.
   _emitForeignJS(MethodInvocation node) {
     var e = node.methodName.staticElement;
-    if (e is FunctionElement &&
-        e.library.name == '_foreign_helper' &&
-        e.name == 'JS') {
+    if (isInlineJS(e)) {
       var args = node.argumentList.arguments;
       // arg[0] is static return type, used in `RestrictedStaticTypeAnalyzer`
       var code = args[1] as StringLiteral;
@@ -1875,9 +1881,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       // TODO(vsm): This logic overlaps with the resolver.
       // Where is the best place to put this?
       var e = expr.methodName.staticElement;
-      if (e is FunctionElement &&
-          e.library.name == '_foreign_helper' &&
-          e.name == 'JS') {
+      if (isInlineJS(e)) {
         // Fix types for JS builtin calls.
         //
         // This code was taken from analyzer. It's not super sophisticated:
@@ -2481,6 +2485,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       ParameterizedType type = node.staticType;
       var elementType = type.typeArguments.single;
       if (elementType != types.dynamicType) {
+        // dart.list helper internally depends on _interceptors.JSArray.
+        _loader.declareBeforeUse(_jsArray);
         list = js.call('dart.list(#, #)', [list, _emitTypeName(elementType)]);
       }
       return list;

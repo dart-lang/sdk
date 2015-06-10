@@ -1,10 +1,10 @@
 dart.library('dart/_js_helper', null, /* Imports */[
   'dart/core',
   'dart/collection',
+  'dart/_interceptors',
   'dart/_foreign_helper'
 ], /* Lazy imports */[
-  'dart/_interceptors'
-], function(exports, core, collection, _foreign_helper, _interceptors) {
+], function(exports, core, collection, _interceptors, _foreign_helper) {
   'use strict';
   class NoThrows extends core.Object {
     NoThrows() {
@@ -1071,12 +1071,7 @@ dart.library('dart/_js_helper', null, /* Imports */[
   dart.setSignature(JSName, {
     constructors: () => ({JSName: [JSName, [core.String]]})
   });
-  dart.defineLazyClass(exports, {
-    get JavaScriptIndexingBehavior() {
-      class JavaScriptIndexingBehavior extends _interceptors.JSMutableIndexable {}
-      return JavaScriptIndexingBehavior;
-    }
-  });
+  class JavaScriptIndexingBehavior extends _interceptors.JSMutableIndexable {}
   class TypeErrorImplementation extends core.Error {
     TypeErrorImplementation(value, type) {
       this.message = `type '${Primitives.objectTypeName(value)}' is not a subtype ` + `of type '${type}'`;
@@ -1197,6 +1192,7 @@ dart.library('dart/_js_helper', null, /* Imports */[
   exports.Creates = Creates;
   exports.Returns = Returns;
   exports.JSName = JSName;
+  exports.JavaScriptIndexingBehavior = JavaScriptIndexingBehavior;
   exports.TypeErrorImplementation = TypeErrorImplementation;
   exports.CastErrorImplementation = CastErrorImplementation;
   exports.FallThroughErrorImplementation = FallThroughErrorImplementation;

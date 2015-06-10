@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of _js_helper;
+part of dart._js_helper;
 
 // TODO(leafp): Maybe get rid of this?  Currently used by the interceptors
 // library, but that should probably be culled as well.

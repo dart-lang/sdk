@@ -465,3 +465,7 @@ SourceSpanWithContext createSpanHelper(
   var lineText = content.substring(lineStart, lineEnd);
   return new SourceSpanWithContext(startLoc, endLoc, text, lineText);
 }
+
+bool isInlineJS(Element e) => e is FunctionElement &&
+    e.library.source.uri.toString() == 'dart:_foreign_helper' &&
+    e.name == 'JS';
