@@ -50,8 +50,6 @@ const Map<String, List<String>> WHITE_LIST = const {
   "/lib/src/dart_backend/backend_ast_to_frontend_ast.dart": const [
     " is never "
   ],
-
-  "/lib/src/cps_ir/type_propagation.dart": const ["UnitTypeSystem"],
 };
 
 void main() {

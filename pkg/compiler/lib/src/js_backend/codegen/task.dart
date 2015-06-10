@@ -39,8 +39,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
   final Glue glue;
   final SourceInformationFactory sourceInformationFactory;
 
-  TypeSystem types;
-
   // TODO(karlklose,sigurm): remove and update dart-doc of [compile].
   final FunctionCompiler fallbackCompiler;
 
@@ -64,7 +62,6 @@ class CpsFunctionCompiler implements FunctionCompiler {
   /// features not implemented it will fall back to the ssa pipeline (for
   /// platform code) or will cancel compilation (for user code).
   js.Fun compile(CodegenWorkItem work) {
-    types = new TypeMaskSystem(compiler);
     AstElement element = work.element;
     JavaScriptBackend backend = compiler.backend;
     return compiler.withCurrentElement(element, () {
@@ -138,7 +135,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   void dumpTypedIR(cps.FunctionDefinition cpsNode,
-                   TypePropagator<TypeMask> typePropagator) {
+                   TypePropagator typePropagator) {
     if (PRINT_TYPED_IR_FILTER != null &&
         PRINT_TYPED_IR_FILTER.matchAsPrefix(cpsNode.element.name) != null) {
       String printType(nodeOrRef, String s) {
@@ -166,11 +163,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       assert(checkCpsIntegrity(cpsNode));
     }
 
-    TypePropagator typePropagator = new TypePropagator<TypeMask>(
-        compiler.types,
-        constantSystem,
-        new TypeMaskSystem(compiler),
-        compiler.internalError);
+    TypePropagator typePropagator = new TypePropagator(compiler);
     applyCpsPass(typePropagator);
     dumpTypedIR(cpsNode, typePropagator);
     applyCpsPass(new RedundantPhiEliminator());

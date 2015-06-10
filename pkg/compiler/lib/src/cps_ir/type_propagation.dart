@@ -19,76 +19,11 @@ import '../elements/elements.dart' show ClassElement, Element, Entity,
 import '../dart2jslib.dart' show ClassWorld;
 import '../universe/universe.dart';
 
-abstract class TypeSystem<T> {
-  T get dynamicType;
-  T get typeType;
-  T get functionType;
-  T get boolType;
-  T get intType;
-  T get numType;
-  T get stringType;
-  T get listType;
-  T get mapType;
-  T get nonNullType;
-
-  T getReturnType(FunctionElement element);
-  T getSelectorReturnType(Selector selector);
-  T getParameterType(ParameterElement element);
-  T getFieldType(FieldElement element);
-  T join(T a, T b);
-  T exact(ClassElement element);
-  T getTypeOf(ConstantValue constant);
-
-  bool areDisjoint(T leftType, T rightType);
-
-  /// True if all values satisfying [type] are booleans (null is not a boolean).
-  bool isDefinitelyBool(T type);
-
-  bool isDefinitelyNotNull(T type);
-
-  AbstractBool isSubtypeOf(T value, types.DartType type, {bool allowNull});
-}
-
-class UnitTypeSystem implements TypeSystem<String> {
-  static const String UNIT = 'unit';
-
-  get boolType => UNIT;
-  get dynamicType => UNIT;
-  get functionType => UNIT;
-  get intType => UNIT;
-  get numType => UNIT;
-  get listType => UNIT;
-  get mapType => UNIT;
-  get stringType => UNIT;
-  get typeType => UNIT;
-  get nonNullType => UNIT;
-
-  getParameterType(_) => UNIT;
-  getReturnType(_) => UNIT;
-  getSelectorReturnType(_) => UNIT;
-  getFieldType(_) => UNIT;
-  join(a, b) => UNIT;
-  exact(_) => UNIT;
-  getTypeOf(_) => UNIT;
-
-  bool areDisjoint(String leftType, String rightType) {
-    return false;
-  }
-
-  bool isDefinitelyBool(_) => false;
-
-  bool isDefinitelyNotNull(_) => false;
-
-  AbstractBool isSubtypeOf(value, type, {bool allowNull}) {
-    return AbstractBool.Maybe;
-  }
-}
-
 enum AbstractBool {
   True, False, Maybe, Nothing
 }
 
-class TypeMaskSystem implements TypeSystem<TypeMask> {
+class TypeMaskSystem {
   final TypesTask inferrer;
   final ClassWorld classWorld;
 
@@ -124,12 +59,10 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return inferrer.getGuaranteedTypeOfElement(field);
   }
 
-  @override
   TypeMask join(TypeMask a, TypeMask b) {
     return a.union(b, classWorld);
   }
 
-  @override
   TypeMask getTypeOf(ConstantValue constant) {
     return computeTypeMask(inferrer.compiler, constant);
   }
@@ -148,7 +81,6 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
 
   bool isDefinitelyNotNull(TypeMask t) => !t.isNullable;
 
-  @override
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {
     TypeMask intersection = leftType.intersection(rightType, classWorld);
     return intersection.isEmpty && !intersection.isNullable;
@@ -189,28 +121,56 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
   }
 }
 
-class ConstantPropagationLattice<T> {
-  final TypeSystem<T> typeSystem;
+class ConstantPropagationLattice {
+  final TypeMaskSystem typeSystem;
   final ConstantSystem constantSystem;
   final types.DartTypes dartTypes;
+  final AbstractValue anything;
 
-  ConstantPropagationLattice(this.typeSystem,
+  ConstantPropagationLattice(TypeMaskSystem typeSystem,
                              this.constantSystem,
-                             this.dartTypes);
+                             this.dartTypes)
+    : this.typeSystem = typeSystem,
+      anything = new AbstractValue.nonConstant(typeSystem.dynamicType);
 
-  final _AbstractValue<T> nothing = new _AbstractValue<T>.nothing();
+  final AbstractValue nothing = new AbstractValue.nothing();
 
-  _AbstractValue<T> constant(ConstantValue value) {
-    return new _AbstractValue<T>.constantValue(value,
-                                               typeSystem.getTypeOf(value));
+  AbstractValue constant(ConstantValue value, [TypeMask type]) {
+    if (type == null) type = typeSystem.getTypeOf(value);
+    return new AbstractValue.constantValue(value, type);
   }
 
-  _AbstractValue<T> nonConstant(T type) {
-    return new _AbstractValue<T>.nonConstant(type);
+  AbstractValue nonConstant([TypeMask type]) {
+    if (type == null) type = typeSystem.dynamicType;
+    return new AbstractValue.nonConstant(type);
   }
 
-  _AbstractValue<T> get anything {
-    return new _AbstractValue<T>.nonConstant(typeSystem.dynamicType);
+  /// Compute the join of two values in the lattice.
+  AbstractValue join(AbstractValue x, AbstractValue y) {
+    assert(x != null);
+    assert(y != null);
+
+    if (x.isNothing) {
+      return y;
+    } else if (y.isNothing) {
+      return x;
+    } else if (x.isConstant && y.isConstant && x.constant == y.constant) {
+      return x;
+    } else {
+      return new AbstractValue.nonConstant(typeSystem.join(x.type, y.type));
+    }
+  }
+
+  /// True if all members of this value are booleans.
+  bool isDefinitelyBool(AbstractValue value) {
+    return value.isNothing || typeSystem.isDefinitelyBool(value.type);
+  }
+
+  /// True if null is not a member of this value.
+  bool isDefinitelyNotNull(AbstractValue value) {
+    if (value.isNothing) return true;
+    if (value.isConstant) return !value.constant.isNull;
+    return typeSystem.isDefinitelyNotNull(value.type);
   }
 
   /// Returns whether the given [value] is an instance of [type].
@@ -223,7 +183,7 @@ class ConstantPropagationLattice<T> {
   /// If [allowNull] is true, `null` is considered to an instance of anything,
   /// otherwise it is only considered an instance of [Object], [dynamic], and
   /// [Null].
-  AbstractBool isSubtypeOf(_AbstractValue<T> value,
+  AbstractBool isSubtypeOf(AbstractValue value,
                            types.DartType type,
                            {bool allowNull}) {
     assert(allowNull != null);
@@ -261,8 +221,8 @@ class ConstantPropagationLattice<T> {
   /// Because we do not explicitly track thrown values, we currently use the
   /// convention that constant values are returned from this method only
   /// if the operation is known not to throw.
-  _AbstractValue<T> unaryOp(UnaryOperator operator,
-                            _AbstractValue<T> value) {
+  AbstractValue unaryOp(UnaryOperator operator,
+                        AbstractValue value) {
     // TODO(asgerf): Also return information about whether this can throw?
     if (value.isNothing) {
       return nothing;
@@ -282,9 +242,9 @@ class ConstantPropagationLattice<T> {
   /// Because we do not explicitly track thrown values, we currently use the
   /// convention that constant values are returned from this method only
   /// if the operation is known not to throw.
-  _AbstractValue<T> binaryOp(BinaryOperator operator,
-                             _AbstractValue<T> left,
-                             _AbstractValue<T> right) {
+  AbstractValue binaryOp(BinaryOperator operator,
+                         AbstractValue left,
+                         AbstractValue right) {
     if (left.isNothing || right.isNothing) {
       return nothing;
     }
@@ -308,37 +268,34 @@ class ConstantPropagationLattice<T> {
  * Implemented according to 'Constant Propagation with Conditional Branches'
  * by Wegman, Zadeck.
  */
-class TypePropagator<T> extends Pass {
+class TypePropagator extends Pass {
   String get passName => 'Sparse constant propagation';
-
-  final types.DartTypes _dartTypes;
 
   // The constant system is used for evaluation of expressions with constant
   // arguments.
-  final ConstantSystem _constantSystem;
-  final TypeSystem _typeSystem;
+  final ConstantPropagationLattice _lattice;
   final dart2js.InternalErrorFunction _internalError;
-  final Map<Primitive, _AbstractValue> _types = <Primitive, _AbstractValue>{};
+  final Map<Definition, AbstractValue> _values = <Definition, AbstractValue>{};
 
-  TypePropagator(this._dartTypes,
-                 this._constantSystem,
-                 this._typeSystem,
-                 this._internalError);
+  TypePropagator(dart2js.Compiler compiler)
+      : _internalError = compiler.internalError,
+        _lattice = new ConstantPropagationLattice(
+            new TypeMaskSystem(compiler),
+            compiler.backend.constantSystem,
+            compiler.types);
 
   @override
   void rewrite(FunctionDefinition root) {
     // Set all parent pointers.
     new ParentVisitor().visit(root);
 
-    ConstantPropagationLattice<T> lattice = new ConstantPropagationLattice<T>(
-      _typeSystem, _constantSystem, _dartTypes);
     Map<Expression, ConstantValue> replacements = <Expression, ConstantValue>{};
 
     // Analyze. In this phase, the entire term is analyzed for reachability
     // and the abstract value of each expression.
-    _TypePropagationVisitor<T> analyzer = new _TypePropagationVisitor<T>(
-        lattice,
-        _types,
+    TypePropagationVisitor analyzer = new TypePropagationVisitor(
+        _lattice,
+        _values,
         replacements,
         _internalError);
 
@@ -347,8 +304,8 @@ class TypePropagator<T> extends Pass {
     // Transform. Uses the data acquired in the previous analysis phase to
     // replace branches with fixed targets and side-effect-free expressions
     // with constant results or existing values that are in scope.
-    _TransformingVisitor<T> transformer = new _TransformingVisitor<T>(
-        lattice,
+    TransformingVisitor transformer = new TransformingVisitor(
+        _lattice,
         analyzer.reachableNodes,
         analyzer.values,
         replacements,
@@ -356,28 +313,28 @@ class TypePropagator<T> extends Pass {
     transformer.transform(root);
   }
 
-  getType(Node node) => _types[node];
+  getType(Node node) => _values[node];
 }
 
 /**
  * Uses the information from a preceding analysis pass in order to perform the
  * actual transformations on the CPS graph.
  */
-class _TransformingVisitor<T> extends RecursiveVisitor {
+class TransformingVisitor extends RecursiveVisitor {
   final Set<Node> reachable;
-  final Map<Node, _AbstractValue> values;
+  final Map<Node, AbstractValue> values;
   final Map<Expression, ConstantValue> replacements;
-  final ConstantPropagationLattice<T> valueLattice;
+  final ConstantPropagationLattice lattice;
 
-  TypeSystem<T> get typeSystem => valueLattice.typeSystem;
+  TypeMaskSystem get typeSystem => lattice.typeSystem;
 
   final dart2js.InternalErrorFunction internalError;
 
-  _TransformingVisitor(this.valueLattice,
-                       this.reachable,
-                       this.values,
-                       this.replacements,
-                       this.internalError);
+  TransformingVisitor(this.lattice,
+                      this.reachable,
+                      this.values,
+                      this.replacements,
+                      this.internalError);
 
   void transform(FunctionDefinition root) {
     visit(root);
@@ -387,7 +344,7 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
     ConstantExpression constExp =
         const ConstantExpressionCreator().convert(constant);
     Constant primitive = new Constant(constExp, constant);
-    values[primitive] = new _AbstractValue.constantValue(constant,
+    values[primitive] = new AbstractValue.constantValue(constant,
         typeSystem.getTypeOf(constant));
     return primitive;
   }
@@ -476,8 +433,8 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
     });
 
     if (letPrim == null) {
-      _AbstractValue<T> receiver = getValue(node.receiver.definition);
-      node.receiverIsNotNull = receiver.isDefinitelyNotNull(typeSystem);
+      AbstractValue receiver = getValue(node.receiver.definition);
+      node.receiverIsNotNull = lattice.isDefinitelyNotNull(receiver);
       super.visitInvokeMethod(node);
     } else {
       visitLetPrim(letPrim);
@@ -503,8 +460,8 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
     Continuation cont = node.continuation.definition;
     InteriorNode parent = node.parent;
 
-    _AbstractValue<T> value = getValue(node.value.definition);
-    switch (valueLattice.isSubtypeOf(value, node.type, allowNull: true)) {
+    AbstractValue value = getValue(node.value.definition);
+    switch (lattice.isSubtypeOf(value, node.type, allowNull: true)) {
       case AbstractBool.Maybe:
       case AbstractBool.Nothing:
         break;
@@ -529,18 +486,18 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
     super.visitTypeCast(node);
   }
 
-  _AbstractValue<T> getValue(Primitive primitive) {
-    _AbstractValue<T> value = values[primitive];
-    return value == null ? new _AbstractValue.nothing() : value;
+  AbstractValue getValue(Primitive primitive) {
+    AbstractValue value = values[primitive];
+    return value == null ? new AbstractValue.nothing() : value;
   }
 
   void visitIdentical(Identical node) {
     Primitive left = node.left.definition;
     Primitive right = node.right.definition;
-    _AbstractValue<T> leftValue = getValue(left);
-    _AbstractValue<T> rightValue = getValue(right);
+    AbstractValue leftValue = getValue(left);
+    AbstractValue rightValue = getValue(right);
     // Replace identical(x, true) by x when x is known to be a boolean.
-    if (leftValue.isDefinitelyBool(typeSystem) &&
+    if (lattice.isDefinitelyBool(leftValue) &&
         rightValue.isConstant &&
         rightValue.constant.isTrue) {
       left.substituteFor(node);
@@ -548,7 +505,7 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
   }
 
   void visitLetPrim(LetPrim node) {
-    _AbstractValue<T> value = getValue(node.primitive);
+    AbstractValue value = getValue(node.primitive);
     if (node.primitive is! Constant && value.isConstant) {
       // If the value is a known constant, compile it as a constant.
       Constant newPrim = makeConstantPrimitive(value.constant);
@@ -571,7 +528,7 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
  * const-ness as well as reachability, both of which are used in the subsequent
  * transformation pass.
  */
-class _TypePropagationVisitor<T> implements Visitor {
+class TypePropagationVisitor implements Visitor {
   // The node worklist stores nodes that are both reachable and need to be
   // processed, but have not been processed yet. Using a worklist avoids deep
   // recursion.
@@ -588,37 +545,31 @@ class _TypePropagationVisitor<T> implements Visitor {
   // since their lattice value has changed.
   final Set<Definition> defWorkset = new Set<Definition>();
 
-  final ConstantPropagationLattice<T> valueLattice;
+  final ConstantPropagationLattice lattice;
   final dart2js.InternalErrorFunction internalError;
 
-  TypeSystem get typeSystem => valueLattice.typeSystem;
+  TypeMaskSystem get typeSystem => lattice.typeSystem;
 
-  _AbstractValue<T> nothing = new _AbstractValue.nothing();
+  AbstractValue get nothing => lattice.nothing;
 
-  _AbstractValue<T> nonConstant([T type]) {
-    if (type == null) {
-      type = typeSystem.dynamicType;
-    }
-    return new _AbstractValue<T>.nonConstant(type);
+  AbstractValue nonConstant([TypeMask type]) => lattice.nonConstant(type);
+
+  AbstractValue constantValue(ConstantValue constant, [TypeMask type]) {
+    return lattice.constant(constant, type);
   }
 
-  _AbstractValue<T> constantValue(ConstantValue constant, T type) {
-    return new _AbstractValue<T>.constantValue(constant, type);
-  }
-
-  // Stores the current lattice value for nodes. Note that it contains not only
-  // definitions as keys, but also expressions such as method invokes.
+  // Stores the current lattice value for primitives and mutable variables.
   // Access through [getValue] and [setValue].
-  final Map<Primitive, _AbstractValue<T>> values;
+  final Map<Definition, AbstractValue> values;
 
   /// Expressions that invoke their call continuation with a constant value
   /// and without any side effects. These can be replaced by the constant.
   final Map<Expression, ConstantValue> replacements;
 
-  _TypePropagationVisitor(this.valueLattice,
-                          this.values,
-                          this.replacements,
-                          this.internalError);
+  TypePropagationVisitor(this.lattice,
+                         this.values,
+                         this.replacements,
+                         this.internalError);
 
   void analyze(FunctionDefinition root) {
     reachableNodes.clear();
@@ -662,17 +613,17 @@ class _TypePropagationVisitor<T> implements Visitor {
   /// Returns the lattice value corresponding to [node], defaulting to nothing.
   ///
   /// Never returns null.
-  _AbstractValue<T> getValue(Node node) {
-    _AbstractValue<T> value = values[node];
+  AbstractValue getValue(Node node) {
+    AbstractValue value = values[node];
     return (value == null) ? nothing : value;
   }
 
   /// Joins the passed lattice [updateValue] to the current value of [node],
   /// and adds it to the definition work set if it has changed and [node] is
   /// a definition.
-  void setValue(Node node, _AbstractValue<T> updateValue) {
-    _AbstractValue<T> oldValue = getValue(node);
-    _AbstractValue<T> newValue = updateValue.join(oldValue, typeSystem);
+  void setValue(Node node, AbstractValue updateValue) {
+    AbstractValue oldValue = getValue(node);
+    AbstractValue newValue = lattice.join(oldValue, updateValue);
     if (oldValue == newValue) {
       return;
     }
@@ -736,7 +687,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     assert(cont.parameters.length == 1);
     Parameter returnValue = cont.parameters[0];
     Entity target = node.target;
-    T returnType = target is FieldElement
+    TypeMask returnType = target is FieldElement
         ? typeSystem.dynamicType
         : typeSystem.getReturnType(node.target);
     setValue(returnValue, nonConstant(returnType));
@@ -750,7 +701,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     // continuation. Note that this is effectively a phi node in SSA terms.
     for (int i = 0; i < node.arguments.length; i++) {
       Definition def = node.arguments[i].definition;
-      _AbstractValue<T> cell = getValue(def);
+      AbstractValue cell = getValue(def);
       setValue(cont.parameters[i], cell);
     }
   }
@@ -761,7 +712,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
     /// Sets the value of the target continuation parameter, and possibly
     /// try to replace the whole invocation with a constant.
-    void setResult(_AbstractValue<T> updateValue, {bool canReplace: false}) {
+    void setResult(AbstractValue updateValue, {bool canReplace: false}) {
       Parameter returnValue = cont.parameters[0];
       setValue(returnValue, updateValue);
       if (canReplace && updateValue.isConstant) {
@@ -772,7 +723,7 @@ class _TypePropagationVisitor<T> implements Visitor {
       }
     }
 
-    _AbstractValue<T> lhs = getValue(node.receiver.definition);
+    AbstractValue lhs = getValue(node.receiver.definition);
     if (lhs.isNothing) {
       return;  // And come back later.
     }
@@ -785,7 +736,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     // TODO(asgerf): Support constant folding on intercepted calls!
 
     // Calculate the resulting constant if possible.
-    _AbstractValue<T> result;
+    AbstractValue result;
     String opname = node.selector.name;
     if (node.selector.argumentCount == 0) {
       // Unary operator.
@@ -793,12 +744,12 @@ class _TypePropagationVisitor<T> implements Visitor {
         opname = "-";
       }
       UnaryOperator operator = UnaryOperator.parse(opname);
-      result = valueLattice.unaryOp(operator, lhs);
+      result = lattice.unaryOp(operator, lhs);
     } else if (node.selector.argumentCount == 1) {
       // Binary operator.
-      _AbstractValue<T> rhs = getValue(node.arguments[0].definition);
+      AbstractValue rhs = getValue(node.arguments[0].definition);
       BinaryOperator operator = BinaryOperator.parse(opname);
-      result = valueLattice.binaryOp(operator, lhs, rhs);
+      result = lattice.binaryOp(operator, lhs, rhs);
     }
 
     // Update value of the continuation parameter. Again, this is effectively
@@ -835,7 +786,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
     /// Sets the value of the target continuation parameter, and possibly
     /// try to replace the whole invocation with a constant.
-    void setResult(_AbstractValue<T> updateValue, {bool canReplace: false}) {
+    void setResult(AbstractValue updateValue, {bool canReplace: false}) {
       Parameter returnValue = cont.parameters[0];
       setValue(returnValue, updateValue);
       if (canReplace && updateValue.isConstant) {
@@ -856,7 +807,7 @@ class _TypePropagationVisitor<T> implements Visitor {
       return constant != null && constant.value.isString;
     });
 
-    T type = typeSystem.stringType;
+    TypeMask type = typeSystem.stringType;
     assert(cont.parameters.length == 1);
     if (allStringConstants) {
       // All constant, we can concatenate ourselves.
@@ -888,7 +839,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
   void visitBranch(Branch node) {
     IsTrue isTrue = node.condition;
-    _AbstractValue<T> conditionCell = getValue(isTrue.value.definition);
+    AbstractValue conditionCell = getValue(isTrue.value.definition);
 
     if (conditionCell.isNothing) {
       return;  // And come back later.
@@ -910,9 +861,9 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitTypeTest(TypeTest node) {
-    _AbstractValue<T> input = getValue(node.value.definition);
-    T boolType = typeSystem.boolType;
-    switch(valueLattice.isSubtypeOf(input, node.type, allowNull: false)) {
+    AbstractValue input = getValue(node.value.definition);
+    TypeMask boolType = typeSystem.boolType;
+    switch(lattice.isSubtypeOf(input, node.type, allowNull: false)) {
       case AbstractBool.Nothing:
         break; // And come back later.
 
@@ -932,8 +883,8 @@ class _TypePropagationVisitor<T> implements Visitor {
 
   void visitTypeCast(TypeCast node) {
     Continuation cont = node.continuation.definition;
-    _AbstractValue<T> input = getValue(node.value.definition);
-    switch (valueLattice.isSubtypeOf(input, node.type, allowNull: true)) {
+    AbstractValue input = getValue(node.value.definition);
+    switch (lattice.isSubtypeOf(input, node.type, allowNull: true)) {
       case AbstractBool.Nothing:
         break; // And come back later.
 
@@ -994,7 +945,7 @@ class _TypePropagationVisitor<T> implements Visitor {
       // never constant.
       // TODO(karlklose): remove reference to the element model.
       Entity source = node.hint;
-      T type = (source is ParameterElement)
+      TypeMask type = (source is ParameterElement)
           ? typeSystem.getParameterType(source)
           : typeSystem.dynamicType;
       setValue(node, nonConstant(type));
@@ -1008,7 +959,7 @@ class _TypePropagationVisitor<T> implements Visitor {
   void visitParameter(Parameter node) {
     Entity source = node.hint;
     // TODO(karlklose): remove reference to the element model.
-    T type = (source is ParameterElement)
+    TypeMask type = (source is ParameterElement)
         ? typeSystem.getParameterType(source)
         : typeSystem.dynamicType;
     if (node.parent is FunctionDefinition) {
@@ -1057,16 +1008,16 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitIdentical(Identical node) {
-    _AbstractValue<T> leftConst = getValue(node.left.definition);
-    _AbstractValue<T> rightConst = getValue(node.right.definition);
+    AbstractValue leftConst = getValue(node.left.definition);
+    AbstractValue rightConst = getValue(node.right.definition);
     ConstantValue leftValue = leftConst.constant;
     ConstantValue rightValue = rightConst.constant;
     if (leftConst.isNothing || rightConst.isNothing) {
       // Come back later.
       return;
     } else if (!leftConst.isConstant || !rightConst.isConstant) {
-      T leftType = leftConst.type;
-      T rightType = rightConst.type;
+      TypeMask leftType = leftConst.type;
+      TypeMask rightType = rightConst.type;
       if (typeSystem.areDisjoint(leftType, rightType)) {
         setValue(node,
             constantValue(new FalseConstantValue(), typeSystem.boolType));
@@ -1085,7 +1036,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
   void visitInterceptor(Interceptor node) {
     setReachable(node.input.definition);
-    _AbstractValue<T> value = getValue(node.input.definition);
+    AbstractValue value = getValue(node.input.definition);
     if (!value.isNothing) {
       setValue(node, nonConstant(typeSystem.nonNullType));
     }
@@ -1139,26 +1090,26 @@ class _TypePropagationVisitor<T> implements Visitor {
 ///   CONSTANT: is a constant. The value is stored in the [constant] field,
 ///             and the type of the constant is in the [type] field.
 ///   NONCONST: not a constant, but [type] may hold some information.
-class _AbstractValue<T> {
+class AbstractValue {
   static const int NOTHING  = 0;
   static const int CONSTANT = 1;
   static const int NONCONST = 2;
 
   final int kind;
   final ConstantValue constant;
-  final T type;
+  final TypeMask type;
 
-  _AbstractValue._internal(this.kind, this.constant, this.type) {
+  AbstractValue._internal(this.kind, this.constant, this.type) {
     assert(kind != CONSTANT || constant != null);
   }
 
-  _AbstractValue.nothing()
+  AbstractValue.nothing()
       : this._internal(NOTHING, null, null);
 
-  _AbstractValue.constantValue(ConstantValue constant, T type)
+  AbstractValue.constantValue(ConstantValue constant, TypeMask type)
       : this._internal(CONSTANT, constant, type);
 
-  _AbstractValue.nonConstant(T type)
+  AbstractValue.nonConstant(TypeMask type)
       : this._internal(NONCONST, null, type);
 
   bool get isNothing  => (kind == NOTHING);
@@ -1170,7 +1121,7 @@ class _AbstractValue<T> {
     return hash & 0x3fffffff;
   }
 
-  bool operator ==(_AbstractValue that) {
+  bool operator ==(AbstractValue that) {
     return that.kind == this.kind &&
            that.constant == this.constant &&
            that.type == this.type;
@@ -1184,35 +1135,6 @@ class _AbstractValue<T> {
       default: assert(false);
     }
     return null;
-  }
-
-  /// Compute the join of two values in the lattice.
-  _AbstractValue join(_AbstractValue that, TypeSystem typeSystem) {
-    assert(that != null);
-
-    if (isNothing) {
-      return that;
-    } else if (that.isNothing) {
-      return this;
-    } else if (isConstant && that.isConstant && constant == that.constant) {
-      return this;
-    } else {
-      return new _AbstractValue.nonConstant(
-          typeSystem.join(this.type, that.type));
-    }
-  }
-
-  /// True if all members of this value are booleans.
-  bool isDefinitelyBool(TypeSystem<T> typeSystem) {
-    if (kind == NOTHING) return true;
-    return typeSystem.isDefinitelyBool(type);
-  }
-
-  /// True if null is not a member of this value.
-  bool isDefinitelyNotNull(TypeSystem<T> typeSystem) {
-    if (kind == NOTHING) return true;
-    if (kind == CONSTANT) return !constant.isNull;
-    return typeSystem.isDefinitelyNotNull(type);
   }
 }
 
