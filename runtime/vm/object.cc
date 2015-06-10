@@ -20586,6 +20586,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         char* chars = isolate->current_zone()->Alloc<char>(truncated_len);
         OS::SNPrint(chars, truncated_len, "%s", kTruncated);
         frame_strings.Add(chars);
+        total_len += truncated_len;
       }
     } else if (function.is_visible() || FLAG_show_invisible_frames) {
       code = CodeAtFrame(i);
