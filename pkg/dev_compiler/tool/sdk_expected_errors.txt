@@ -34,58 +34,58 @@ warning: line 91, column 14 of dart:_interceptors/js_number.dart: [DownCastImpli
 severe: line 110, column 17 of dart:_interceptors/js_number.dart: [StaticTypeError] Type check failed: this (JSNumber) is not of type double
   toDouble() => this;
                 ^^^^
-severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.abs (() → num) is not a subtype of int.abs (() → int).
+severe: line 349, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.abs (() → num) is not a subtype of int.abs (() → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.unary- (() → num) is not a subtype of int.unary- (() → int).
+severe: line 349, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.unary- (() → num) is not a subtype of int.unary- (() → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.<< ((num) → num) is not a subtype of int.<< ((int) → int).
+severe: line 349, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.<< ((num) → num) is not a subtype of int.<< ((int) → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.>> ((num) → num) is not a subtype of int.>> ((int) → int).
+severe: line 349, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.>> ((num) → num) is not a subtype of int.>> ((int) → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.& ((num) → num) is not a subtype of int.& ((int) → int).
+severe: line 349, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.& ((num) → num) is not a subtype of int.& ((int) → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.| ((num) → num) is not a subtype of int.| ((int) → int).
+severe: line 349, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.| ((num) → num) is not a subtype of int.| ((int) → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.^ ((num) → num) is not a subtype of int.^ ((int) → int).
+severe: line 349, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.^ ((num) → num) is not a subtype of int.^ ((int) → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-severe: line 347, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.sign (() → num) is not a subtype of int.sign (() → int).
+severe: line 349, column 13 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.sign (() → num) is not a subtype of int.sign (() → int).
 class JSInt extends JSNumber implements int, double {
             ^^^^^^^^^^^^^^^^
-warning: line 355, column 12 of dart:_interceptors/js_number.dart: [DownCastImplicit] this & ((1 << width) - 1) (num) will need runtime check to cast to type int
+warning: line 357, column 12 of dart:_interceptors/js_number.dart: [DownCastImplicit] this & ((1 << width) - 1) (num) will need runtime check to cast to type int
     return this & ((1 << width) - 1);
            ^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 360, column 12 of dart:_interceptors/js_number.dart: [DownCastImplicit] (this & (signMask - 1)) - (this & signMask) (num) will need runtime check to cast to type int
+warning: line 362, column 12 of dart:_interceptors/js_number.dart: [DownCastImplicit] (this & (signMask - 1)) - (this & signMask) (num) will need runtime check to cast to type int
     return (this & (signMask - 1)) - (this & signMask);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.remainder ((num) → num) is not a subtype of double.remainder ((num) → double).
+severe: line 420, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.remainder ((num) → num) is not a subtype of double.remainder ((num) → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.abs (() → num) is not a subtype of double.abs (() → double).
+severe: line 420, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.abs (() → num) is not a subtype of double.abs (() → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.unary- (() → num) is not a subtype of double.unary- (() → double).
+severe: line 420, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.unary- (() → num) is not a subtype of double.unary- (() → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.+ ((num) → num) is not a subtype of double.+ ((num) → double).
+severe: line 420, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.+ ((num) → num) is not a subtype of double.+ ((num) → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.- ((num) → num) is not a subtype of double.- ((num) → double).
+severe: line 420, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.- ((num) → num) is not a subtype of double.- ((num) → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.* ((num) → num) is not a subtype of double.* ((num) → double).
+severe: line 420, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.* ((num) → num) is not a subtype of double.* ((num) → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.% ((num) → num) is not a subtype of double.% ((num) → double).
+severe: line 420, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.% ((num) → num) is not a subtype of double.% ((num) → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-severe: line 418, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.sign (() → num) is not a subtype of double.sign (() → double).
+severe: line 420, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.sign (() → num) is not a subtype of double.sign (() → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
 warning: line 86, column 14 of dart:_interceptors/js_string.dart: [DownCastComposite] JS('JSExtendableArray', r'#.split(#)', this, pattern) (dynamic) will need runtime check to cast to type List<String>

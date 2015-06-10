@@ -21,9 +21,9 @@ dart.library('misc', null, /* Imports */[
   });
   let Generic = Generic$();
   function main() {
-    core.print(dart[dartx.toString](1));
-    core.print(dart[dartx.toString](1.0));
-    core.print(dart[dartx.toString](1.1));
+    core.print(dart.toString(1));
+    core.print(dart.toString(1.0));
+    core.print(dart.toString(1.1));
     let x = 42;
     core.print(dart.equals(x, core.Object));
     core.print(dart.equals(x, Generic));

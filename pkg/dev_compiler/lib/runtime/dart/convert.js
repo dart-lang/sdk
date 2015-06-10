@@ -1365,7 +1365,7 @@ dart.library('dart/convert', null, /* Imports */[
       dart.dsend(stringifier, 'writeObject', object);
     }
     writeNumber(number) {
-      this[_sink].write(dart[dartx.toString](number));
+      this[_sink].write(dart.toString(number));
     }
     writeString(string) {
       this[_sink].write(string);
@@ -1431,7 +1431,7 @@ dart.library('dart/convert', null, /* Imports */[
       this.index = 0;
     }
     writeNumber(number) {
-      this.writeAsciiString(dart[dartx.toString](number));
+      this.writeAsciiString(dart.toString(number));
     }
     writeAsciiString(string) {
       for (let i = 0; dart.notNull(i) < dart.notNull(string[dartx.length]); i = dart.notNull(i) + 1) {

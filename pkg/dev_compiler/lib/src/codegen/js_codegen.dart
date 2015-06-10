@@ -94,6 +94,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   /// _interceptors.JSArray<E>, used for List literals.
   ClassElement _jsArray;
 
+  Map<String, DartType> _objectMembers;
+
   JSCodegenVisitor(AbstractCompiler compiler, this.libraryInfo,
       this._extensionTypes, this._fieldsNeedingStorage)
       : compiler = compiler,
@@ -106,6 +108,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var src = context.sourceFactory.forUri('dart:_interceptors');
     var interceptors = context.computeLibraryElement(src);
     _jsArray = interceptors.getType('JSArray');
+
+    _objectMembers = getObjectMemberMap(types);
   }
 
   LibraryElement get currentLibrary => libraryInfo.library;
@@ -578,7 +582,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       }
       if (dartxNames.isNotEmpty) {
         body.add(js.statement('dart.defineExtensionNames(#)',
-        [new JS.ArrayInitializer(dartxNames, multiline: true)]));
+            [new JS.ArrayInitializer(dartxNames, multiline: true)]));
       }
     }
 
@@ -2677,7 +2681,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     }
 
     // Dart "extension" methods. Used for JS Array, Boolean, Number, String.
-    if (allowExtensions && _extensionTypes.contains(type.element)) {
+    if (allowExtensions &&
+        _extensionTypes.contains(type.element) &&
+        !_objectMembers.containsKey(name)) {
       return js.call('dartx.#', _propertyName(name));
     }
 

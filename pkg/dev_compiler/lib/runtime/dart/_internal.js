@@ -2319,7 +2319,7 @@ dart.library('dart/_internal', null, /* Imports */[
     }
     get hashCode() {
       let arbitraryPrime = 664597;
-      return 536870911 & dart.notNull(arbitraryPrime) * dart.notNull(dart[dartx.hashCode](this[_name]));
+      return 536870911 & dart.notNull(arbitraryPrime) * dart.notNull(dart.hashCode(this[_name]));
     }
     toString() {
       return `Symbol("${this[_name]}")`;

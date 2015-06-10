@@ -76,7 +76,7 @@ dart.library('dart/core', null, /* Imports */[
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : false;
       throw new UnsupportedError('bool.fromEnvironment can only be used as a const constructor');
     }
-    [dartx.toString]() {
+    toString() {
       return this ? "true" : "false";
     }
   }
@@ -520,7 +520,7 @@ dart.library('dart/core', null, /* Imports */[
       return dart.equals(this[_duration], dart.dload(other, _duration));
     }
     get hashCode() {
-      return dart[dartx.hashCode](this[_duration]);
+      return dart.hashCode(this[_duration]);
     }
     compareTo(other) {
       return this[_duration][dartx.compareTo](other[_duration]);

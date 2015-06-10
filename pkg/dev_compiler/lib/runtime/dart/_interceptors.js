@@ -340,7 +340,7 @@ dart.library('dart/_interceptors', null, /* Imports */[
       get [dartx.isNotEmpty]() {
         return !dart.notNull(this[dartx.isEmpty]);
       }
-      [dartx.toString]() {
+      toString() {
         return collection.ListBase.listToString(this);
       }
       [dartx.toList](opts) {
@@ -356,7 +356,7 @@ dart.library('dart/_interceptors', null, /* Imports */[
       get [dartx.iterator]() {
         return new (_internal.ListIterator$(E))(this);
       }
-      get [dartx.hashCode]() {
+      get hashCode() {
         return _js_helper.Primitives.objectHashCode(this);
       }
       get [dartx.length]() {
@@ -700,14 +700,14 @@ dart.library('dart/_interceptors', null, /* Imports */[
       }
       return dart.notNull(result) + "0"[dartx['*']](exponent);
     }
-    [dartx.toString]() {
+    toString() {
       if (dart.equals(this, 0) && 1 / this < 0) {
         return '-0.0';
       } else {
         return "" + this;
       }
     }
-    get [dartx.hashCode]() {
+    get hashCode() {
       return this & 0x1FFFFFFF;
     }
     [dartx['unary-']]() {
@@ -832,7 +832,7 @@ dart.library('dart/_interceptors', null, /* Imports */[
         throw new core.ArgumentError(other);
       return this >= other;
     }
-    get [dartx.runtimeType]() {
+    get runtimeType() {
       return core.num;
     }
   }
@@ -946,7 +946,7 @@ dart.library('dart/_interceptors', null, /* Imports */[
       i = JSInt._shru(JSInt._ors(i, JSInt._shrs(i, 16)), 0);
       return i;
     }
-    get [dartx.runtimeType]() {
+    get runtimeType() {
       return core.int;
     }
     [dartx['~']]() {
@@ -979,7 +979,7 @@ dart.library('dart/_interceptors', null, /* Imports */[
     JSDouble() {
       super.JSNumber();
     }
-    get [dartx.runtimeType]() {
+    get runtimeType() {
       return core.double;
     }
   }
@@ -1419,10 +1419,10 @@ dart.library('dart/_interceptors', null, /* Imports */[
         throw new core.ArgumentError(other);
       return dart.equals(this, other) ? 0 : this < other ? -1 : 1;
     }
-    [dartx.toString]() {
+    toString() {
       return this;
     }
-    get [dartx.hashCode]() {
+    get hashCode() {
       let hash = 0;
       for (let i = 0; dart.notNull(i) < dart.notNull(this[dartx.length]); i = dart.notNull(i) + 1) {
         hash = 536870911 & dart.notNull(hash) + this.charCodeAt(i);
@@ -1433,7 +1433,7 @@ dart.library('dart/_interceptors', null, /* Imports */[
       hash = hash ^ hash >> 11;
       return 536870911 & dart.notNull(hash) + ((16383 & dart.notNull(hash)) << 15);
     }
-    get [dartx.runtimeType]() {
+    get runtimeType() {
       return core.String;
     }
     get [dartx.length]() {
@@ -1517,13 +1517,13 @@ dart.library('dart/_interceptors', null, /* Imports */[
     JSBool() {
       super.Interceptor();
     }
-    [dartx.toString]() {
+    toString() {
       return String(this);
     }
-    get [dartx.hashCode]() {
+    get hashCode() {
       return this ? 2 * 3 * 23 * 3761 : 269 * 811;
     }
-    get [dartx.runtimeType]() {
+    get runtimeType() {
       return core.bool;
     }
   }
