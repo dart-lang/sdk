@@ -43,20 +43,10 @@ void testDartExecShouldNotBeInCurrentDir() {
   expectEquals(FileSystemEntityType.NOT_FOUND, type);
 }
 
-void testShouldFailOutsidePath() {
-  var threw = false;
-  try {
-    Process.runSync(platformExeName, ['--version'],
-                    includeParentEnvironment: false,
-                    environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
-  } catch (_) {
-    threw = true;
-  }
-
-  if (!threw) {
-    throw 'Expected running the dart executable – "$platformExeName" without'
-          ' the parent environment or path to fail.';
-  }
+void testShouldSucceedWithEmptyPathEnvironment() {
+  Process.runSync(platformExeName, ['--version'],
+                  includeParentEnvironment: false,
+                  environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
 }
 
 void testShouldSucceedWithSourcePlatformExecutable() {
@@ -149,5 +139,5 @@ void main() {
   testPathToSDKDir(); /// 03: ok
   withTempDir(testPathPointsToSymLinkedSDKPath); /// 04: ok
   withTempDir(testPathToDirWithExeSymLinked); /// 05: ok
-  testShouldFailOutsidePath(); /// 06: ok
+  testShouldSucceedWithEmptyPathEnvironment(); /// 06: ok
 }
