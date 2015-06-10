@@ -44,7 +44,8 @@ void testDartExecShouldNotBeInCurrentDir() {
 }
 
 void testShouldSucceedWithEmptyPathEnvironment() {
-  Process.runSync(platformExeName, ['--version'],
+  var command = Platform.isWindows ? 'dir' : 'ls';
+  Process.runSync(command, [],
                   includeParentEnvironment: false,
                   environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
 }
