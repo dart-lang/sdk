@@ -330,7 +330,7 @@ class _VarExtractor extends RecursiveAstVisitor {
 /// [LibraryResolverWithInference] above.
 ///
 /// Before inference, this visitor is used to resolve top-levels, classes, and
-/// fields, but nothing withihn method bodies. After inference, this visitor is
+/// fields, but nothing within method bodies. After inference, this visitor is
 /// used again to step into method bodies and complete resolution as a second
 /// phase.
 class RestrictedResolverVisitor extends ResolverVisitor {
@@ -452,6 +452,20 @@ class RestrictedResolverVisitor extends ResolverVisitor {
     } else {
       return super.visitConstructorDeclaration(node);
     }
+  }
+
+  @override
+  visitFieldFormalParameter(FieldFormalParameter node) {
+    // Ensure the field formal parameter's type is updated after inference.
+    // Normally this happens during TypeResolver, but that's before we've done
+    // inference on the field type.
+    var element = node.element;
+    if (element is FieldFormalParameterElement) {
+      if (element.type.isDynamic) {
+        element.type = element.field.type;
+      }
+    }
+    super.visitFieldFormalParameter(node);
   }
 }
 

@@ -259,12 +259,6 @@ warning: line 454, column 76 of dart:_internal/iterable.dart: [DownCastComposite
 warning: line 481, column 29 of dart:_internal/iterable.dart: [DownCastComposite] _f(_iterator.current).iterator (Iterator<dynamic>) will need runtime check to cast to type Iterator<T>
         _currentExpansion = _f(_iterator.current).iterator;
                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 555, column 57 of dart:_internal/iterable.dart: [DownCastComposite] _f ((dynamic) → bool) will need runtime check to cast to type (E) → bool
-    return new TakeWhileIterator<E>(_iterable.iterator, _f);
-                                                        ^^
-warning: line 648, column 57 of dart:_internal/iterable.dart: [DownCastComposite] _f ((dynamic) → bool) will need runtime check to cast to type (E) → bool
-    return new SkipWhileIterator<E>(_iterable.iterator, _f);
-                                                        ^^
 warning: line 961, column 33 of dart:_internal/iterable.dart: [DownCastComposite] iterable (Iterable<dynamic>) will need runtime check to cast to type Iterable<T>
     return new WhereIterable<T>(iterable, f);
                                 ^^^^^^^^

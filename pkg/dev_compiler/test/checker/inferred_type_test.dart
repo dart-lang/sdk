@@ -1515,4 +1515,12 @@ void main() {
       '''
     }, inferDownwards: true);
   });
+
+  test('inferred initializing formal checks default value', () => testChecker({
+    '/main.dart': '''
+      class Foo {
+        var x = 1;
+        Foo([this.x = /*severe:StaticTypeError*/"1"]);
+      }'''
+  }));
 }

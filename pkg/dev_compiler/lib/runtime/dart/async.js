@@ -5091,7 +5091,7 @@ dart.library('dart/async', null, /* Imports */[
   }
   _ZoneSpecification[dart.implements] = () => [ZoneSpecification];
   dart.setSignature(_ZoneSpecification, {
-    constructors: () => ({_ZoneSpecification: [_ZoneSpecification, [], {handleUncaughtError: core.Object, run: core.Object, runUnary: core.Object, runBinary: core.Object, registerCallback: core.Object, registerUnaryCallback: core.Object, registerBinaryCallback: core.Object, errorCallback: core.Object, scheduleMicrotask: core.Object, createTimer: core.Object, createPeriodicTimer: core.Object, print: core.Object, fork: core.Object}]})
+    constructors: () => ({_ZoneSpecification: [_ZoneSpecification, [], {handleUncaughtError: HandleUncaughtErrorHandler, run: RunHandler, runUnary: RunUnaryHandler, runBinary: RunBinaryHandler, registerCallback: RegisterCallbackHandler, registerUnaryCallback: RegisterUnaryCallbackHandler, registerBinaryCallback: RegisterBinaryCallbackHandler, errorCallback: ErrorCallbackHandler, scheduleMicrotask: ScheduleMicrotaskHandler, createTimer: CreateTimerHandler, createPeriodicTimer: CreatePeriodicTimerHandler, print: PrintHandler, fork: ForkHandler}]})
   });
   class ZoneDelegate extends core.Object {}
   class Zone extends core.Object {

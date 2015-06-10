@@ -758,7 +758,7 @@ dart.library('dart/_internal', null, /* Imports */[
         super.IterableBase();
       }
       get iterator() {
-        return new (TakeWhileIterator$(E))(this[_iterable][dartx.iterator], dart.as(this[_f], __CastType2));
+        return new (TakeWhileIterator$(E))(this[_iterable][dartx.iterator], this[_f]);
       }
     }
     dart.setSignature(TakeWhileIterable, {
@@ -779,7 +779,7 @@ dart.library('dart/_internal', null, /* Imports */[
       moveNext() {
         if (dart.notNull(this[_isFinished]))
           return false;
-        if (!dart.notNull(this[_iterator].moveNext()) || !dart.notNull(dart.dcall(this[_f], this[_iterator].current))) {
+        if (!dart.notNull(this[_iterator].moveNext()) || !dart.notNull(this[_f](this[_iterator].current))) {
           this[_isFinished] = true;
           return false;
         }
@@ -891,7 +891,7 @@ dart.library('dart/_internal', null, /* Imports */[
         super.IterableBase();
       }
       get iterator() {
-        return new (SkipWhileIterator$(E))(this[_iterable][dartx.iterator], dart.as(this[_f], __CastType4));
+        return new (SkipWhileIterator$(E))(this[_iterable][dartx.iterator], this[_f]);
       }
     }
     dart.setSignature(SkipWhileIterable, {
@@ -913,7 +913,7 @@ dart.library('dart/_internal', null, /* Imports */[
         if (!dart.notNull(this[_hasSkipped])) {
           this[_hasSkipped] = true;
           while (dart.notNull(this[_iterator].moveNext())) {
-            if (!dart.notNull(dart.dcall(this[_f], this[_iterator].current)))
+            if (!dart.notNull(this[_f](this[_iterator].current)))
               return true;
           }
         }
@@ -1315,7 +1315,7 @@ dart.library('dart/_internal', null, /* Imports */[
       }
       where(iterable, f) {
         dart.as(f, dart.functionType(core.bool, [dart.bottom]));
-        return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, __CastType6));
+        return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, __CastType2));
       }
       static map(iterable, f) {
         dart.as(f, dart.functionType(core.Object, [dart.bottom]));
@@ -1575,21 +1575,11 @@ dart.library('dart/_internal', null, /* Imports */[
     return __CastType0;
   });
   let __CastType0 = __CastType0$();
-  let __CastType2$ = dart.generic(function(E) {
-    let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.bool, [E]));
+  let __CastType2$ = dart.generic(function(T) {
+    let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.bool, [T]));
     return __CastType2;
   });
   let __CastType2 = __CastType2$();
-  let __CastType4$ = dart.generic(function(E) {
-    let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(core.bool, [E]));
-    return __CastType4;
-  });
-  let __CastType4 = __CastType4$();
-  let __CastType6$ = dart.generic(function(T) {
-    let __CastType6 = dart.typedef('__CastType6', () => dart.functionType(core.bool, [T]));
-    return __CastType6;
-  });
-  let __CastType6 = __CastType6$();
   let FixedLengthListMixin$ = dart.generic(function(E) {
     class FixedLengthListMixin extends core.Object {
       set length(newLength) {

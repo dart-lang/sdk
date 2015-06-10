@@ -547,7 +547,7 @@ class TakeIterator<E> extends Iterator<E> {
 
 class TakeWhileIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
-  final _ElementPredicate _f;
+  final _ElementPredicate<E> _f;
 
   TakeWhileIterable(this._iterable, bool this._f(E element));
 
@@ -558,7 +558,7 @@ class TakeWhileIterable<E> extends IterableBase<E> {
 
 class TakeWhileIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  final _ElementPredicate _f;
+  final _ElementPredicate<E> _f;
   bool _isFinished = false;
 
   TakeWhileIterator(this._iterator, bool this._f(E element));
@@ -640,7 +640,7 @@ class SkipIterator<E> extends Iterator<E> {
 
 class SkipWhileIterable<E> extends IterableBase<E> {
   final Iterable<E> _iterable;
-  final _ElementPredicate _f;
+  final _ElementPredicate<E> _f;
 
   SkipWhileIterable(this._iterable, bool this._f(E element));
 
@@ -651,7 +651,7 @@ class SkipWhileIterable<E> extends IterableBase<E> {
 
 class SkipWhileIterator<E> extends Iterator<E> {
   final Iterator<E> _iterator;
-  final _ElementPredicate _f;
+  final _ElementPredicate<E> _f;
   bool _hasSkipped = false;
 
   SkipWhileIterator(this._iterator, bool this._f(E element));
