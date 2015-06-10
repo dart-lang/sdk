@@ -423,7 +423,7 @@ var dart, dartx;
   function equals(x, y) {
     if (x == null || y == null) return x == y;
     let eq = x['=='];
-    return eq ? eq.call(x, y) : x == y;
+    return eq ? eq.call(x, y) : x === y;
   }
   dart.equals = equals;
 
