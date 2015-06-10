@@ -1265,15 +1265,9 @@ class _Bigint extends _IntegerImplementation implements int {
     return other._toBigintOrDouble()._mulFromInteger(this);
   }
   num operator ~/(num other) {
-    if ((other is int) && (other == 0)) {
-      throw const IntegerDivisionByZeroException();
-    }
     return other._toBigintOrDouble()._truncDivFromInteger(this);
   }
   num operator %(num other) {
-    if ((other is int) && (other == 0)) {
-      throw const IntegerDivisionByZeroException();
-    }
     return other._toBigintOrDouble()._moduloFromInteger(this);
   }
   int operator &(int other) {
@@ -1368,9 +1362,15 @@ class _Bigint extends _IntegerImplementation implements int {
     return other._toBigint()._mul(this)._toValidInt();
   }
   int _truncDivFromInteger(int other) {
+    if (_used == 0) {
+      throw const IntegerDivisionByZeroException();
+    }
     return other._toBigint()._div(this)._toValidInt();
   }
   int _moduloFromInteger(int other) {
+    if (_used == 0) {
+      throw const IntegerDivisionByZeroException();
+    }
     _Bigint result = other._toBigint()._rem(this);
     if (result._neg) {
       if (_neg) {
@@ -1382,6 +1382,9 @@ class _Bigint extends _IntegerImplementation implements int {
     return result._toValidInt();
   }
   int _remainderFromInteger(int other) {
+    if (_used == 0) {
+      throw const IntegerDivisionByZeroException();
+    }
     return other._toBigint()._rem(this)._toValidInt();
   }
   bool _greaterThanFromInteger(int other) {
@@ -1533,6 +1536,107 @@ class _Bigint extends _IntegerImplementation implements int {
     }
     assert(!is1);
     return z._revert(r_digits, r_used)._toValidInt();
+  }
+
+  // Returns 1/this % m, with m > 0.
+  int modInverse(int m) {
+    if (m is! int) throw new ArgumentError(m);
+    if (m <= 0) throw new RangeError(m);
+    m = m._toBigint();
+    // TODO(regis): Implement modInverse for an even modulus.
+    if (m.isEven) throw new UnimplementedError();
+    var t = this;
+    if ((t._compare(m) >= 0) || t._neg) {
+      t %= m;
+      t = t._toBigint();
+    }
+    final t_used = t._used;
+    if (t_used == 0) {
+      return 0;  // No inverse.
+    }
+    final m_digits = m._digits;
+    final m_used = m._used;
+    final uv_len = m_used + (m_used & 1);
+    var v_digits = _cloneDigits(t._digits, 0, t_used, uv_len);
+    var u_digits = _cloneDigits(m_digits, 0, m_used, uv_len);
+
+    // Variables b and d require one more digit for carry.
+    final bd_used = m_used + 1;
+    final bd_len = bd_used + (bd_used & 1);
+    var b_digits = new Uint32List(bd_len);
+    var d_digits = new Uint32List(bd_len);
+    bool b_neg = false;
+    bool d_neg = false;
+
+    d_digits[0] = 1;
+
+    while (true) {
+      while ((u_digits[0] & 1) == 0) {
+        _rsh(u_digits, m_used, 1, u_digits);
+        if ((b_digits[0] & 1) == 1) {
+          _absSub(m_digits, m_used, b_digits, m_used, b_digits);
+          b_neg = !b_neg;
+        }
+        _rsh(b_digits, m_used, 1, b_digits);
+      }
+      while ((v_digits[0] & 1) == 0) {
+        _rsh(v_digits, m_used, 1, v_digits);
+        if ((d_digits[0] & 1) == 1) {
+          _absSub(m_digits, m_used, d_digits, m_used, d_digits);
+          d_neg = !d_neg;
+        }
+        _rsh(d_digits, m_used, 1, d_digits);
+      }
+      if (_compareDigits(u_digits, m_used, v_digits, m_used) >= 0) {
+        _absSub(u_digits, m_used, v_digits, m_used, u_digits);
+        if (b_neg == d_neg) {
+          if (_compareDigits(b_digits, m_used, d_digits, m_used) >= 0) {
+            _absSub(b_digits, m_used, d_digits, m_used, b_digits);
+          } else {
+            _absSub(d_digits, m_used, b_digits, m_used, b_digits);
+            b_neg = !b_neg;
+          }
+        } else {
+          _absAdd(b_digits, m_used, d_digits, m_used, b_digits);
+          if ((b_digits[m_used] > 0) ||
+              (_compareDigits(b_digits, m_used, m_digits, m_used) > 0)) {
+            _absSub(b_digits, bd_used, m_digits, m_used, b_digits);
+          }
+        }
+      } else {
+        _absSub(v_digits, m_used, u_digits, m_used, v_digits);
+        if (b_neg == d_neg) {
+          if (_compareDigits(d_digits, m_used, b_digits, m_used) >= 0) {
+            _absSub(d_digits, m_used, b_digits, m_used, d_digits);
+          } else {
+            _absSub(b_digits, m_used, d_digits, m_used, d_digits);
+            d_neg = !d_neg;
+          }
+        } else {
+          _absAdd(d_digits, m_used, b_digits, m_used, d_digits);
+          if ((d_digits[m_used] > 0) ||
+              (_compareDigits(d_digits, m_used, m_digits, m_used) > 0)) {
+            _absSub(d_digits, bd_used, m_digits, m_used, d_digits);
+          }
+        }
+      }
+      // Exit loop if u == 0.
+      var i = m_used;
+      while ((i > 0) && (u_digits[i - 1] == 0)) {
+        --i;
+      }
+      if (i == 0) break;
+    }
+    // No inverse if v != 1.
+    for (var i = m_used - 1; i > 0; --i) {
+      if (v_digits[i] != 0) return 0;  // No inverse.
+    }
+    if (v_digits[0] != 1) return 0;  // No inverse.
+
+    if (d_neg) {
+      _absSub(m_digits, m_used, d_digits, m_used, d_digits);
+    }
+    return new _Bigint(false, m_used, d_digits)._toValidInt();
   }
 }
 
