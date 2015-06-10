@@ -1575,7 +1575,7 @@ void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
     const int32_t offset =
-        Array::element_offset(object_pool_.FindObject(object, kNotPatchable));
+        ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
   }
 }
@@ -2660,8 +2660,8 @@ void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
-  const int32_t offset =
-      Array::element_offset(object_pool_.FindExternalLabel(label, kPatchable));
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindExternalLabel(label, kPatchable));
   LoadWordFromPoolOffset(LR, offset - kHeapObjectTag);
   blx(LR);  // Use blx instruction so that the return branch prediction works.
 }

@@ -341,11 +341,11 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
 
-  const GrowableObjectArray& object_pool_data() const {
-    return object_pool_.data();
-  }
+  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
 
-  ObjectPool& object_pool() { return object_pool_; }
+  RawObjectPool* MakeObjectPool() {
+    return object_pool_wrapper_.MakeObjectPool();
+  }
 
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
@@ -961,7 +961,7 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPool object_pool_;  // Objects and patchable jump targets.
+  ObjectPoolWrapper object_pool_wrapper_;
 
   int32_t prologue_offset_;
 

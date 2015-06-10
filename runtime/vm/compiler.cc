@@ -880,15 +880,8 @@ static void DisassembleCode(const Function& function, bool optimized) {
     ISL_Print("}\n");
   }
 
-  const Array& object_pool = Array::Handle(code.ObjectPool());
-  if (object_pool.Length() > 0) {
-    ISL_Print("Object Pool: {\n");
-    for (intptr_t i = 0; i < object_pool.Length(); i++) {
-      ISL_Print("  %" Pd ": %s\n", i,
-          Object::Handle(object_pool.At(i)).ToCString());
-    }
-    ISL_Print("}\n");
-  }
+  const ObjectPool& object_pool = ObjectPool::Handle(code.GetObjectPool());
+  object_pool.DebugPrint();
 
   ISL_Print("Stackmaps for function '%s' {\n", function_fullname);
   if (code.stackmaps() != Array::null()) {

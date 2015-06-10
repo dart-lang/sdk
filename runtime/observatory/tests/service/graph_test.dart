@@ -71,7 +71,7 @@ var tests = [
                                       bVertex.shallowSize +
                                       rVertex.shallowSize));
 
-  const int fixedSizeListCid = 61;
+  const int fixedSizeListCid = 62;
   List<ObjectVertex> lists = new List.from(graph.vertices.where(
       (ObjectVertex obj) => obj.vmCid == fixedSizeListCid));
   expect(lists.length >= 2, isTrue);

@@ -902,11 +902,12 @@ class Assembler : public ValueObject {
   const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool_data() const {
-    return object_pool_.data();
-  }
 
-  ObjectPool& object_pool() { return object_pool_; }
+  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
+
+  RawObjectPool* MakeObjectPool() {
+    return object_pool_wrapper_.MakeObjectPool();
+  }
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
@@ -1033,8 +1034,7 @@ class Assembler : public ValueObject {
  private:
   AssemblerBuffer buffer_;
 
-  // Objects and jump targets.
-  ObjectPool object_pool_;
+  ObjectPoolWrapper object_pool_wrapper_;
 
   intptr_t prologue_offset_;
 

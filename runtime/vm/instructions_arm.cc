@@ -14,7 +14,7 @@
 namespace dart {
 
 CallPattern::CallPattern(uword pc, const Code& code)
-    : object_pool_(Array::Handle(code.ObjectPool())),
+    : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       end_(pc),
       args_desc_load_end_(0),
       ic_data_load_end_(0),
@@ -51,7 +51,7 @@ int CallPattern::LengthInBytes() {
 // and the loaded object in the output parameters 'reg' and 'obj'
 // respectively.
 uword InstructionPattern::DecodeLoadObject(uword end,
-                                           const Array& object_pool,
+                                           const ObjectPool& object_pool,
                                            Register* reg,
                                            Object* obj) {
   uword start = 0;
@@ -60,7 +60,7 @@ uword InstructionPattern::DecodeLoadObject(uword end,
     // ldr reg, [reg, #+offset]
     intptr_t index = 0;
     start = DecodeLoadWordFromPool(end, reg, &index);
-    *obj = object_pool.At(index);
+    *obj = object_pool.ObjectAt(index);
   } else {
     intptr_t value = 0;
     start = DecodeLoadWordImmediate(end, reg, &value);
@@ -186,20 +186,12 @@ RawArray* CallPattern::ClosureArgumentsDescriptor() {
 
 
 uword CallPattern::TargetAddress() const {
-  ASSERT(target_address_pool_index_ >= 0);
-  const Object& target_address =
-      Object::Handle(object_pool_.At(target_address_pool_index_));
-  ASSERT(target_address.IsSmi());
-  // The address is stored in the object array as a RawSmi.
-  return reinterpret_cast<uword>(target_address.raw());
+  return object_pool_.RawValueAt(target_address_pool_index_);
 }
 
 
 void CallPattern::SetTargetAddress(uword target_address) const {
-  ASSERT(Utils::IsAligned(target_address, 4));
-  // The address is stored in the object array as a RawSmi.
-  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target_address));
-  object_pool_.SetAt(target_address_pool_index_, smi);
+  object_pool_.SetRawValueAt(target_address_pool_index_, target_address);
   // No need to flush the instruction cache, since the code is not modified.
 }
 

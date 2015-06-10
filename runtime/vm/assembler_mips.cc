@@ -472,7 +472,7 @@ void Assembler::LoadObject(Register rd, const Object& object) {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
     const int32_t offset =
-        Array::element_offset(object_pool_.FindObject(object, kNotPatchable));
+        ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
   }
 }

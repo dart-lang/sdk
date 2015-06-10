@@ -27,7 +27,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
                            fpu_register_t* fpu_registers,
                            intptr_t* cpu_registers)
     : code_(code.raw()),
-      object_pool_(code.ObjectPool()),
+      object_pool_(code.GetObjectPool()),
       deopt_info_(TypedData::null()),
       dest_frame_is_allocated_(false),
       dest_frame_(NULL),
@@ -774,7 +774,7 @@ class DeoptMaterializeObjectInstr : public DeoptInstr {
 
 
 uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
-                                const Array& object_table,
+                                const ObjectPool& object_table,
                                 Code* code) {
   ASSERT(instr->kind() == kRetAddress);
   DeoptRetAddressInstr* ret_address_instr =
@@ -786,7 +786,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Function& function = Function::Handle(zone);
-  function ^= object_table.At(ret_address_instr->object_table_index());
+  function ^= object_table.ObjectAt(ret_address_instr->object_table_index());
   ASSERT(code != NULL);
   const Error& error = Error::Handle(zone,
       Compiler::EnsureUnoptimizedCode(thread, function));
@@ -937,7 +937,7 @@ DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
 
 
 intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
-  return assembler_->object_pool().FindObject(obj, kNotPatchable);
+  return assembler_->object_pool_wrapper().FindObject(obj);
 }
 
 

@@ -94,6 +94,7 @@ Instance* Object::null_instance_ = NULL;
 TypeArguments* Object::null_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
+ObjectPool* Object::empty_object_pool_ = NULL;
 PcDescriptors* Object::empty_descriptors_ = NULL;
 LocalVarDescriptors* Object::empty_var_descriptors_ = NULL;
 ExceptionHandlers* Object::empty_exception_handlers_ = NULL;
@@ -132,6 +133,7 @@ RawClass* Object::library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::var_descriptors_class_ =
@@ -402,6 +404,7 @@ void Object::InitOnce(Isolate* isolate) {
   null_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
   zero_array_ = Array::ReadOnlyHandle();
+  empty_object_pool_ = ObjectPool::ReadOnlyHandle();
   empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
   empty_var_descriptors_ = LocalVarDescriptors::ReadOnlyHandle();
   empty_exception_handlers_ = ExceptionHandlers::ReadOnlyHandle();
@@ -543,6 +546,9 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<Instructions>();
   instructions_class_ = cls.raw();
 
+  cls = Class::New<ObjectPool>();
+  object_pool_class_ = cls.raw();
+
   cls = Class::New<PcDescriptors>();
   pc_descriptors_class_ = cls.raw();
 
@@ -633,6 +639,20 @@ void Object::InitOnce(Isolate* isolate) {
     zero_array_->StoreSmi(&zero_array_->raw_ptr()->length_, Smi::New(1));
     smi = Smi::New(0);
     zero_array_->SetAt(0, smi);
+  }
+
+  // Allocate and initialize the canonical empty object pool object.
+  {
+    uword address =
+        heap->Allocate(ObjectPool::InstanceSize(0), Heap::kOld);
+    InitializeObject(address,
+                     kObjectPoolCid,
+                     ObjectPool::InstanceSize(0));
+    ObjectPool::initializeHandle(
+        empty_object_pool_,
+        reinterpret_cast<RawObjectPool*>(address + kHeapObjectTag));
+    empty_object_pool_->StoreNonPointer(
+        &empty_object_pool_->raw_ptr()->length_, 0);
   }
 
   // Allocate and initialize the empty_descriptors instance.
@@ -821,6 +841,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(namespace, Namespace);
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
+  SET_CLASS_NAME(object_pool, ObjectPool);
   SET_CLASS_NAME(pc_descriptors, PcDescriptors);
   SET_CLASS_NAME(stackmap, Stackmap);
   SET_CLASS_NAME(var_descriptors, LocalVarDescriptors);
@@ -3229,6 +3250,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::Code().raw();
     case kInstructionsCid:
       return Symbols::Instructions().raw();
+    case kObjectPoolCid:
+      return Symbols::ObjectPool().raw();
     case kPcDescriptorsCid:
       return Symbols::PcDescriptors().raw();
     case kStackmapCid:
@@ -10691,6 +10714,73 @@ intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
 }
 
 
+RawObjectPool* ObjectPool::New(intptr_t len) {
+  ASSERT(Object::object_pool_class() != Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ObjectPool::New: invalid length %" Pd "\n", len);
+  }
+  ObjectPool& result = ObjectPool::Handle();
+  {
+    uword size = ObjectPool::InstanceSize(len);
+    RawObject* raw = Object::Allocate(ObjectPool::kClassId,
+                                      size,
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(len);
+  }
+
+  // TODO(fschneider): Compress info array to just use just enough bits for
+  // the entry type enum.
+  const TypedData& info_array = TypedData::Handle(
+      TypedData::New(kTypedDataInt8ArrayCid, len, Heap::kOld));
+  result.set_info_array(info_array);
+  return result.raw();
+}
+
+
+void ObjectPool::set_info_array(const TypedData& info_array) const {
+  StorePointer(&raw_ptr()->info_array_, info_array.raw());
+}
+
+
+ObjectPool::EntryType ObjectPool::InfoAt(intptr_t index) const {
+  const TypedData& array = TypedData::Handle(info_array());
+  return static_cast<EntryType>(array.GetInt8(index));
+}
+
+
+void ObjectPool::SetInfoAt(intptr_t index, EntryType info) const {
+  const TypedData& array = TypedData::Handle(info_array());
+  array.SetInt8(index, static_cast<int8_t>(info));
+}
+
+const char* ObjectPool::ToCString() const {
+  return "ObjectPool";
+}
+
+
+void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  Object::PrintJSONImpl(stream, ref);
+}
+
+
+void ObjectPool::DebugPrint() const {
+  ISL_Print("Object Pool: {\n");
+  for (intptr_t i = 0; i < Length(); i++) {
+    if (InfoAt(i) == kTaggedObject) {
+      ISL_Print("  %" Pd ": 0x%" Px " %s (obj)\n", i,
+          reinterpret_cast<uword>(ObjectAt(i)),
+          Object::Handle(ObjectAt(i)).ToCString());
+    } else {
+      ISL_Print("  %" Pd ": 0x%" Px " (raw)\n", i, RawValueAt(i));
+    }
+  }
+  ISL_Print("}\n");
+}
+
+
 intptr_t PcDescriptors::Length() const {
   return raw_ptr()->length_;
 }
@@ -12488,6 +12578,8 @@ RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
                             bool optimized) {
   ASSERT(assembler != NULL);
+  const ObjectPool& object_pool =
+      ObjectPool::Handle(assembler->object_pool_wrapper().MakeObjectPool());
 
   // Allocate the Code and Instructions objects.  Code is allocated first
   // because a GC during allocation of the code will leave the instruction
@@ -12513,7 +12605,6 @@ RawCode* Code::FinalizeCode(const char* name,
                            assembler->prologue_offset(),
                            instrs.size(),
                            optimized);
-
   {
     NoSafepointScope no_safepoint;
     const ZoneGrowableArray<intptr_t>& pointer_offsets =
@@ -12538,17 +12629,10 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    const GrowableObjectArray& object_pool = assembler->object_pool_data();
-    if (object_pool.IsNull()) {
-      instrs.set_object_pool(Object::empty_array().raw());
-    } else {
-      INC_STAT(Isolate::Current(),
-               total_code_size, object_pool.Length() * sizeof(uintptr_t));
-      // TODO(regis): Once MakeArray takes a Heap::Space argument, call it here
-      // with Heap::kOld and change the ARM and MIPS assemblers to work with a
-      // GrowableObjectArray in new space.
-      instrs.set_object_pool(Array::MakeArray(object_pool));
-    }
+    INC_STAT(Isolate::Current(),
+             total_code_size, object_pool.Length() * sizeof(uintptr_t));
+    instrs.set_object_pool(object_pool.raw());
+
     if (FLAG_write_protect_code) {
       uword address = RawObject::ToAddr(instrs.raw());
       bool status = VirtualMemory::Protect(
@@ -12783,8 +12867,8 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddPropertyF("_startAddress", "%" Px "", EntryPoint());
   jsobj.AddPropertyF("_endAddress", "%" Px "", EntryPoint() + Size());
   jsobj.AddProperty("_alive", is_alive());
-  const Array& array = Array::Handle(ObjectPool());
-  jsobj.AddProperty("_objectPool", array);
+  const ObjectPool& object_pool = ObjectPool::Handle(GetObjectPool());
+  jsobj.AddProperty("_objectPool", object_pool);
   {
     JSONArray jsarr(&jsobj, "_disassembly");
     if (is_alive()) {

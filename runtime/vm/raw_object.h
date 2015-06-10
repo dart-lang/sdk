@@ -31,6 +31,7 @@ namespace dart {
   V(Namespace)                                                                 \
   V(Code)                                                                      \
   V(Instructions)                                                              \
+  V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
   V(Stackmap)                                                                  \
   V(LocalVarDescriptors)                                                       \
@@ -1003,6 +1004,27 @@ class RawCode : public RawObject {
 };
 
 
+class RawObjectPool : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ObjectPool);
+
+  intptr_t length_;
+  RawTypedData* info_array_;
+
+  struct Entry {
+    union {
+      RawObject* raw_obj_;
+      uword raw_value_;
+    };
+  };
+  Entry* data() { OPEN_ARRAY_START(Entry, Entry); }
+  Entry const* data() const { OPEN_ARRAY_START(Entry, Entry); }
+
+  Entry* first_entry() { return &ptr()->data()[0]; }
+
+  friend class Object;
+};
+
+
 class RawInstructions : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instructions);
 
@@ -1010,7 +1032,7 @@ class RawInstructions : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->code_);
   }
   RawCode* code_;
-  RawArray* object_pool_;
+  RawObjectPool* object_pool_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->object_pool_);
   }
@@ -1781,6 +1803,8 @@ class RawTypedData : public RawInstance {
   friend class Object;
   friend class Instance;
   friend class SnapshotReader;
+  friend class ObjectPool;
+  friend class RawObjectPool;
 };
 
 
@@ -2113,6 +2137,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          (index == kContextCid) ||
          (index == kTypeArgumentsCid) ||
          (index == kInstructionsCid) ||
+         (index == kObjectPoolCid) ||
          (index == kPcDescriptorsCid) ||
          (index == kStackmapCid) ||
          (index == kLocalVarDescriptorsCid) ||

@@ -1276,6 +1276,22 @@ void RawInstructions::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
+                                    intptr_t object_id,
+                                    intptr_t tags,
+                                    Snapshot::Kind kind) {
+  UNREACHABLE();
+  return ObjectPool::null();
+}
+
+
+void RawObjectPool::WriteTo(SnapshotWriter* writer,
+                            intptr_t object_id,
+                            Snapshot::Kind kind) {
+  UNREACHABLE();
+}
+
+
 RawPcDescriptors* PcDescriptors::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,

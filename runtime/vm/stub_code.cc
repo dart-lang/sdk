@@ -156,6 +156,9 @@ RawCode* StubCode::GetAllocationStubForClass(const Class& cls) {
       DisassembleToStdout formatter;
       stub.Disassemble(&formatter);
       ISL_Print("}\n");
+      const ObjectPool& object_pool = ObjectPool::Handle(
+          Instructions::Handle(stub.instructions()).object_pool());
+      object_pool.DebugPrint();
     }
     stub.set_entry_patch_pc_offset(entry_patch_offset);
     stub.set_patch_code_pc_offset(patch_code_offset);
@@ -190,6 +193,9 @@ RawCode* StubCode::Generate(const char* name,
     DisassembleToStdout formatter;
     code.Disassemble(&formatter);
     ISL_Print("}\n");
+    const ObjectPool& object_pool = ObjectPool::Handle(
+        Instructions::Handle(code.instructions()).object_pool());
+    object_pool.DebugPrint();
   }
   return code.raw();
 }
