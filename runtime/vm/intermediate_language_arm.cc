@@ -1612,16 +1612,16 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
-      __ ldr(IP, field_cid_operand);
+      __ ldrh(IP, field_cid_operand);
       __ cmp(value_cid_reg, Operand(IP));
       __ b(&ok, EQ);
-      __ ldr(IP, field_nullability_operand);
+      __ ldrh(IP, field_nullability_operand);
       __ cmp(value_cid_reg, Operand(IP));
     } else if (value_cid == kNullCid) {
-      __ ldr(value_cid_reg, field_nullability_operand);
+      __ ldrh(value_cid_reg, field_nullability_operand);
       __ CompareImmediate(value_cid_reg, value_cid);
     } else {
-      __ ldr(value_cid_reg, field_cid_operand);
+      __ ldrh(value_cid_reg, field_cid_operand);
       __ CompareImmediate(value_cid_reg, value_cid);
     }
     __ b(&ok, EQ);
@@ -1635,17 +1635,17 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!field().needs_length_check()) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ ldr(IP, field_cid_operand);
+      __ ldrh(IP, field_cid_operand);
       __ CompareImmediate(IP, kIllegalCid);
       __ b(fail, NE);
 
       if (value_cid == kDynamicCid) {
-        __ str(value_cid_reg, field_cid_operand);
-        __ str(value_cid_reg, field_nullability_operand);
+        __ strh(value_cid_reg, field_cid_operand);
+        __ strh(value_cid_reg, field_nullability_operand);
       } else {
         __ LoadImmediate(IP, value_cid);
-        __ str(IP, field_cid_operand);
-        __ str(IP, field_nullability_operand);
+        __ strh(IP, field_cid_operand);
+        __ strh(IP, field_nullability_operand);
       }
 
       if (deopt == NULL) {
@@ -1658,7 +1658,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(!compiler->is_optimizing());
       __ Bind(fail);
 
-      __ ldr(IP, FieldAddress(field_reg, Field::guarded_cid_offset()));
+      __ ldrh(IP, FieldAddress(field_reg, Field::guarded_cid_offset()));
       __ CompareImmediate(IP, kDynamicCid);
       __ b(&ok, EQ);
 
@@ -2108,7 +2108,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()));
 
-    __ ldr(temp2, FieldAddress(temp, Field::is_nullable_offset()));
+    __ ldrh(temp2, FieldAddress(temp, Field::is_nullable_offset()));
     __ CompareImmediate(temp2, kNullCid);
     __ b(&store_pointer, EQ);
 
@@ -2116,15 +2116,15 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ tst(temp2, Operand(1 << Field::kUnboxingCandidateBit));
     __ b(&store_pointer, EQ);
 
-    __ ldr(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
+    __ ldrh(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
     __ CompareImmediate(temp2, kDoubleCid);
     __ b(&store_double, EQ);
 
-    __ ldr(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
+    __ ldrh(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
     __ CompareImmediate(temp2, kFloat32x4Cid);
     __ b(&store_float32x4, EQ);
 
-    __ ldr(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
+    __ ldrh(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
     __ CompareImmediate(temp2, kFloat64x2Cid);
     __ b(&store_float64x2, EQ);
 
@@ -2473,19 +2473,19 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     FieldAddress field_nullability_operand(result_reg,
                                            Field::is_nullable_offset());
 
-    __ ldr(temp, field_nullability_operand);
+    __ ldrh(temp, field_nullability_operand);
     __ CompareImmediate(temp, kNullCid);
     __ b(&load_pointer, EQ);
 
-    __ ldr(temp, field_cid_operand);
+    __ ldrh(temp, field_cid_operand);
     __ CompareImmediate(temp, kDoubleCid);
     __ b(&load_double, EQ);
 
-    __ ldr(temp, field_cid_operand);
+    __ ldrh(temp, field_cid_operand);
     __ CompareImmediate(temp, kFloat32x4Cid);
     __ b(&load_float32x4, EQ);
 
-    __ ldr(temp, field_cid_operand);
+    __ ldrh(temp, field_cid_operand);
     __ CompareImmediate(temp, kFloat64x2Cid);
     __ b(&load_float64x2, EQ);
 

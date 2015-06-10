@@ -350,6 +350,16 @@ void Assembler::movw(const Address& dst, Register src) {
 }
 
 
+void Assembler::movw(const Address& dst, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandSizeOverride();
+  EmitUint8(0xC7);
+  EmitOperand(0, dst);
+  EmitUint8(imm.value() & 0xFF);
+  EmitUint8((imm.value() >> 8) & 0xFF);
+}
+
+
 void Assembler::movq(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   if (imm.is_int32()) {
@@ -1416,6 +1426,24 @@ void Assembler::cmpb(const Address& address, const Immediate& imm) {
   EmitOperand(7, address);
   ASSERT(imm.is_int8());
   EmitUint8(imm.value() & 0xFF);
+}
+
+
+void Assembler::cmpw(Register reg, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandSizeOverride();
+  EmitUint8(0x3B);
+  EmitOperand(reg, address);
+}
+
+
+void Assembler::cmpw(const Address& address, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandSizeOverride();
+  EmitUint8(0x81);
+  EmitOperand(7, address);
+  EmitUint8(imm.value() & 0xFF);
+  EmitUint8((imm.value() >> 8) & 0xFF);
 }
 
 

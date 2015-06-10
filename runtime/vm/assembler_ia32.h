@@ -356,6 +356,7 @@ class Assembler : public ValueObject {
   void movsxw(Register dst, const Address& src);
   void movw(Register dst, const Address& src);
   void movw(const Address& dst, Register src);
+  void movw(const Address& dst, const Immediate& imm);
 
   void leal(Register dst, const Address& src);
 
@@ -531,6 +532,8 @@ class Assembler : public ValueObject {
 
   void cmpl(const Address& address, Register reg);
   void cmpl(const Address& address, const Immediate& imm);
+  void cmpw(Register reg, const Address& address);
+  void cmpw(const Address& address, const Immediate& imm);
   void cmpb(const Address& address, const Immediate& imm);
 
   void testl(Register reg1, Register reg2);

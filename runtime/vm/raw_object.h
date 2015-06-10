@@ -814,11 +814,10 @@ class RawField : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
   }
 
-  // TODO(rmacnak): Make guarded_cid and is_nullable be cid_t.
   int32_t token_pos_;
-  int32_t guarded_cid_;
-  int32_t is_nullable_;  // kNullCid if field can contain null value and
-                         // any other value otherwise.
+  classid_t guarded_cid_;
+  classid_t is_nullable_;  // kNullCid if field can contain null value and
+                           // any other value otherwise.
   // Offset to the guarded length field inside an instance of class matching
   // guarded_cid_. Stored corrected by -kHeapObjectTag to simplify code
   // generated on platforms with weak addressing modes (ARM, MIPS).

@@ -1470,24 +1470,24 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(field_reg, Field::ZoneHandle(field().raw()), PP);
 
     FieldAddress field_cid_operand(
-        field_reg, Field::guarded_cid_offset(), kWord);
+        field_reg, Field::guarded_cid_offset(), kUnsignedHalfword);
     FieldAddress field_nullability_operand(
-        field_reg, Field::is_nullable_offset(), kWord);
+        field_reg, Field::is_nullable_offset(), kUnsignedHalfword);
 
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
       Label skip_length_check;
-      __ ldr(TMP, field_cid_operand, kWord);
+      __ ldr(TMP, field_cid_operand, kUnsignedHalfword);
       __ CompareRegisters(value_cid_reg, TMP);
       __ b(&ok, EQ);
-      __ ldr(TMP, field_nullability_operand, kWord);
+      __ ldr(TMP, field_nullability_operand, kUnsignedHalfword);
       __ CompareRegisters(value_cid_reg, TMP);
     } else if (value_cid == kNullCid) {
-      __ ldr(value_cid_reg, field_nullability_operand, kWord);
+      __ ldr(value_cid_reg, field_nullability_operand, kUnsignedHalfword);
       __ CompareImmediate(value_cid_reg, value_cid, PP);
     } else {
       Label skip_length_check;
-      __ ldr(value_cid_reg, field_cid_operand, kWord);
+      __ ldr(value_cid_reg, field_cid_operand, kUnsignedHalfword);
       __ CompareImmediate(value_cid_reg, value_cid, PP);
     }
     __ b(&ok, EQ);
@@ -1501,17 +1501,17 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!field().needs_length_check()) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ ldr(TMP, field_cid_operand, kWord);
+      __ ldr(TMP, field_cid_operand, kUnsignedHalfword);
       __ CompareImmediate(TMP, kIllegalCid, PP);
       __ b(fail, NE);
 
       if (value_cid == kDynamicCid) {
-        __ str(value_cid_reg, field_cid_operand, kWord);
-        __ str(value_cid_reg, field_nullability_operand, kWord);
+        __ str(value_cid_reg, field_cid_operand, kUnsignedHalfword);
+        __ str(value_cid_reg, field_nullability_operand, kUnsignedHalfword);
       } else {
         __ LoadImmediate(TMP, value_cid, PP);
-        __ str(TMP, field_cid_operand, kWord);
-        __ str(TMP, field_nullability_operand, kWord);
+        __ str(TMP, field_cid_operand, kUnsignedHalfword);
+        __ str(TMP, field_nullability_operand, kUnsignedHalfword);
       }
 
       if (deopt == NULL) {
@@ -1525,7 +1525,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ Bind(fail);
 
       __ LoadFieldFromOffset(
-          TMP, field_reg, Field::guarded_cid_offset(), PP, kWord);
+          TMP, field_reg, Field::guarded_cid_offset(), PP, kUnsignedHalfword);
       __ CompareImmediate(TMP, kDynamicCid, PP);
       __ b(&ok, EQ);
 
@@ -1844,7 +1844,8 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()), PP);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::is_nullable_offset(), PP, kWord);
+    __ LoadFieldFromOffset(temp2, temp, Field::is_nullable_offset(), PP,
+                           kUnsignedHalfword);
     __ CompareImmediate(temp2, kNullCid, PP);
     __ b(&store_pointer, EQ);
 
@@ -1854,15 +1855,18 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ tsti(temp2, Immediate(1 << Field::kUnboxingCandidateBit));
     __ b(&store_pointer, EQ);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP, kWord);
+    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP,
+                           kUnsignedHalfword);
     __ CompareImmediate(temp2, kDoubleCid, PP);
     __ b(&store_double, EQ);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP, kWord);
+    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP,
+                           kUnsignedHalfword);
     __ CompareImmediate(temp2, kFloat32x4Cid, PP);
     __ b(&store_float32x4, EQ);
 
-    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP, kWord);
+    __ LoadFieldFromOffset(temp2, temp, Field::guarded_cid_offset(), PP,
+                           kUnsignedHalfword);
     __ CompareImmediate(temp2, kFloat64x2Cid, PP);
     __ b(&store_float64x2, EQ);
 
@@ -2197,23 +2201,23 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ LoadObject(result_reg, Field::ZoneHandle(field()->raw()), PP);
 
     FieldAddress field_cid_operand(
-        result_reg, Field::guarded_cid_offset(), kWord);
+        result_reg, Field::guarded_cid_offset(), kUnsignedHalfword);
     FieldAddress field_nullability_operand(
-        result_reg, Field::is_nullable_offset(), kWord);
+        result_reg, Field::is_nullable_offset(), kUnsignedHalfword);
 
-    __ ldr(temp, field_nullability_operand, kWord);
+    __ ldr(temp, field_nullability_operand, kUnsignedHalfword);
     __ CompareImmediate(temp, kNullCid, PP);
     __ b(&load_pointer, EQ);
 
-    __ ldr(temp, field_cid_operand, kWord);
+    __ ldr(temp, field_cid_operand, kUnsignedHalfword);
     __ CompareImmediate(temp, kDoubleCid, PP);
     __ b(&load_double, EQ);
 
-    __ ldr(temp, field_cid_operand, kWord);
+    __ ldr(temp, field_cid_operand, kUnsignedHalfword);
     __ CompareImmediate(temp, kFloat32x4Cid, PP);
     __ b(&load_float32x4, EQ);
 
-    __ ldr(temp, field_cid_operand, kWord);
+    __ ldr(temp, field_cid_operand, kUnsignedHalfword);
     __ CompareImmediate(temp, kFloat64x2Cid, PP);
     __ b(&load_float64x2, EQ);
 
