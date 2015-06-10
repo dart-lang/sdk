@@ -448,6 +448,7 @@ dart.library('dart/_interceptors', null, /* Imports */[
       statics: () => ({markFixedList: [core.List, [core.List]]}),
       names: ['markFixedList']
     });
+    JSArray[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'Array'}))];
     return JSArray;
   });
   let JSArray = JSArray$();
@@ -925,6 +926,7 @@ dart.library('dart/_interceptors', null, /* Imports */[
     }),
     names: ['_bitCount', '_shru', '_shrs', '_ors', '_spread']
   });
+  JSInt[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'Number'}))];
   dart.registerExtension(dart.global.Number, JSInt);
   class JSDouble extends JSNumber {
     JSDouble() {
@@ -1436,6 +1438,7 @@ dart.library('dart/_interceptors', null, /* Imports */[
     }),
     names: ['_isWhitespace', '_skipLeadingWhitespace', '_skipTrailingWhitespace']
   });
+  JSString[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'String'}))];
   dart.registerExtension(dart.global.String, JSString);
   let _string = Symbol('_string');
   class _CodeUnits extends _internal.UnmodifiableListBase$(core.int) {
@@ -1481,6 +1484,7 @@ dart.library('dart/_interceptors', null, /* Imports */[
   dart.setSignature(JSBool, {
     constructors: () => ({JSBool: [JSBool, []]})
   });
+  JSBool[dart.metadata] = () => [dart.const(new _js_helper.JsPeerInterface({name: 'Boolean'}))];
   dart.registerExtension(dart.global.Boolean, JSBool);
   class JSIndexable extends core.Object {}
   class JSMutableIndexable extends JSIndexable {}

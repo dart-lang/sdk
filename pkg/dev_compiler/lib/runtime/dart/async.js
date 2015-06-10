@@ -1791,6 +1791,7 @@ dart.library('dart/async', null, /* Imports */[
     constructors: () => ({DeferredLibrary: [DeferredLibrary, [core.String], {uri: core.String}]}),
     methods: () => ({load: [Future$(core.Null), []]})
   });
+  DeferredLibrary[dart.metadata] = () => [dart.const(new core.Deprecated("Dart sdk v. 1.8"))];
   let _s = Symbol('_s');
   class DeferredLoadException extends core.Object {
     DeferredLoadException(s) {

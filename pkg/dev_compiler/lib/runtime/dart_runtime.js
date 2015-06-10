@@ -876,6 +876,7 @@ var dart, dartx;
   /** The Symbol for storing type arguments on a specialized generic type. */
   dart.mixins = Symbol('mixins');
   dart.implements = Symbol('implements');
+  dart.metadata = Symbol('metadata');
 
   /**
    * Returns a new type that mixes members from base and all mixins.

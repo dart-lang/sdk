@@ -3,11 +3,11 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
   'dart/typed_data',
   'dart/collection',
   'dart/_internal',
-  'dart/_js_helper',
   'dart/math'
 ], /* Lazy imports */[
+  'dart/_js_helper',
   'dart/_interceptors'
-], function(exports, core, typed_data, collection, _internal, _js_helper, math, _interceptors) {
+], function(exports, core, typed_data, collection, _internal, math, _js_helper, _interceptors) {
   'use strict';
   class NativeByteBuffer extends core.Object {
     NativeByteBuffer() {
@@ -145,6 +145,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
       asByteData: [typed_data.ByteData, [], [core.int, core.int]]
     })
   });
+  NativeByteBuffer[dart.metadata] = () => [dart.const(new _js_helper.Native("ArrayBuffer"))];
   let _storage = Symbol('_storage');
   let _invalidIndex = Symbol('_invalidIndex');
   let _checkIndex = Symbol('_checkIndex');
@@ -510,6 +511,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
       [_checkSublistArguments]: [core.int, [core.int, core.int, core.int]]
     })
   });
+  NativeTypedData[dart.metadata] = () => [dart.const(new _js_helper.Native("ArrayBufferView"))];
   function _checkLength(length) {
     if (!(typeof length == 'number'))
       throw new core.ArgumentError(`Invalid length ${length}`);
@@ -701,6 +703,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
     }),
     names: ['_create1', '_create2', '_create3']
   });
+  NativeByteData[dart.metadata] = () => [dart.const(new _js_helper.Native("DataView"))];
   let _setRangeFast = Symbol('_setRangeFast');
   class NativeTypedArray extends NativeTypedData {
     NativeTypedArray() {
@@ -832,6 +835,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
     names: ['_create1', '_create2', '_create3']
   });
   dart.defineExtensionMembers(NativeFloat32List, ['sublist']);
+  NativeFloat32List[dart.metadata] = () => [dart.const(new _js_helper.Native("Float32Array"))];
   class NativeFloat64List extends NativeTypedArrayOfDouble {
     static new(length) {
       return NativeFloat64List._create1(_checkLength(length));
@@ -879,6 +883,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
     names: ['_create1', '_create2', '_create3']
   });
   dart.defineExtensionMembers(NativeFloat64List, ['sublist']);
+  NativeFloat64List[dart.metadata] = () => [dart.const(new _js_helper.Native("Float64Array"))];
   class NativeInt16List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeInt16List._create1(_checkLength(length));
@@ -933,6 +938,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
     names: ['_create1', '_create2', '_create3']
   });
   dart.defineExtensionMembers(NativeInt16List, ['get', 'sublist']);
+  NativeInt16List[dart.metadata] = () => [dart.const(new _js_helper.Native("Int16Array"))];
   class NativeInt32List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeInt32List._create1(_checkLength(length));
@@ -987,6 +993,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
     names: ['_create1', '_create2', '_create3']
   });
   dart.defineExtensionMembers(NativeInt32List, ['get', 'sublist']);
+  NativeInt32List[dart.metadata] = () => [dart.const(new _js_helper.Native("Int32Array"))];
   class NativeInt8List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeInt8List._create1(_checkLength(length));
@@ -1041,6 +1048,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
     names: ['_create1', '_create2', '_create3']
   });
   dart.defineExtensionMembers(NativeInt8List, ['get', 'sublist']);
+  NativeInt8List[dart.metadata] = () => [dart.const(new _js_helper.Native("Int8Array"))];
   class NativeUint16List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeUint16List._create1(_checkLength(length));
@@ -1095,6 +1103,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
     names: ['_create1', '_create2', '_create3']
   });
   dart.defineExtensionMembers(NativeUint16List, ['get', 'sublist']);
+  NativeUint16List[dart.metadata] = () => [dart.const(new _js_helper.Native("Uint16Array"))];
   class NativeUint32List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeUint32List._create1(_checkLength(length));
@@ -1149,6 +1158,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
     names: ['_create1', '_create2', '_create3']
   });
   dart.defineExtensionMembers(NativeUint32List, ['get', 'sublist']);
+  NativeUint32List[dart.metadata] = () => [dart.const(new _js_helper.Native("Uint32Array"))];
   class NativeUint8ClampedList extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeUint8ClampedList._create1(_checkLength(length));
@@ -1206,6 +1216,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
     names: ['_create1', '_create2', '_create3']
   });
   dart.defineExtensionMembers(NativeUint8ClampedList, ['get', 'sublist', 'length']);
+  NativeUint8ClampedList[dart.metadata] = () => [dart.const(new _js_helper.Native("Uint8ClampedArray,CanvasPixelArray"))];
   class NativeUint8List extends NativeTypedArrayOfInt {
     static new(length) {
       return NativeUint8List._create1(_checkLength(length));
@@ -1263,6 +1274,7 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
     names: ['_create1', '_create2', '_create3']
   });
   dart.defineExtensionMembers(NativeUint8List, ['get', 'sublist', 'length']);
+  NativeUint8List[dart.metadata] = () => [dart.const(new _js_helper.Native("Uint8Array,!nonleaf"))];
   class NativeFloat32x4 extends core.Object {
     static _truncate(x) {
       NativeFloat32x4._list.set(0, dart.as(x, core.num));

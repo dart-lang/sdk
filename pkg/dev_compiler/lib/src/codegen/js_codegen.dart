@@ -363,8 +363,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       jsPeerName = getConstantField(jsPeer, 'name', types.stringType);
     }
 
-    var body = _finishClassMembers(
-        classElem, classExpr, ctors, fields, methods, jsPeerName);
+    var body = _finishClassMembers(classElem, classExpr, ctors, fields, methods,
+        node.metadata, jsPeerName);
 
     var result = _finishClassDef(type, body);
 
@@ -541,13 +541,23 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         [_emitMemberName('iterator', type: t)]));
   }
 
+  JS.Expression _instantiateAnnotation(Annotation node) {
+    var element = node.element;
+    if (element is ConstructorElement) {
+      return _emitInstanceCreationExpression(element, element.returnType,
+          node.constructorName, node.arguments, true);
+    } else {
+      return _visit(node.name);
+    }
+  }
+
   /// Emit class members that need to come after the class declaration, such
   /// as static fields. See [_emitClassMethods] for things that are emitted
   /// inside the ES6 `class { ... }` node.
   JS.Statement _finishClassMembers(ClassElement classElem,
       JS.ClassExpression cls, List<ConstructorDeclaration> ctors,
       List<FieldDeclaration> fields, List<MethodDeclaration> methods,
-      String jsPeerName) {
+      List<Annotation> metadata, String jsPeerName) {
     var name = classElem.name;
     var body = <JS.Statement>[];
 
@@ -627,6 +637,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
           }
         }
       }
+
       var tCtors = [];
       for (ConstructorDeclaration node in ctors) {
         var memberName = _constructorName(node.element);
@@ -637,6 +648,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
             new JS.Property(memberName, new JS.ArrayInitializer(parts));
         tCtors.add(property);
       }
+
       build(name, elements) {
         var o =
             new JS.ObjectInitializer(elements, multiline: elements.length > 1);
@@ -672,6 +684,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       body.add(js.statement('dart.defineExtensionMembers(#, #);', [
         name,
         new JS.ArrayInitializer(methodNames, multiline: methodNames.length > 4)
+      ]));
+    }
+
+    // Metadata
+    if (metadata.isNotEmpty) {
+      body.add(js.statement('#[dart.metadata] = () => #;', [
+        name,
+        new JS.ArrayInitializer(metadata.map(_instantiateAnnotation).toList())
       ]));
     }
 
@@ -1743,11 +1763,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     _properties.clear();
   }
 
-  @override
-  visitConstructorName(ConstructorName node) {
-    var typeName = _visit(node.type);
-    var element = node.staticElement;
-    if (node.name != null || element.isFactory) {
+  JS.Expression _emitConstructorName(
+      ConstructorElement element, DartType type, SimpleIdentifier name) {
+    var typeName = _emitTypeName(type);
+    if (name != null || element.isFactory) {
       var namedCtor = _constructorName(element);
       return new JS.PropertyAccess(typeName, namedCtor);
     }
@@ -1755,28 +1774,43 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitInstanceCreationExpression(InstanceCreationExpression node) {
+  visitConstructorName(ConstructorName node) {
+    return _emitConstructorName(node.staticElement, node.type.type, node.name);
+  }
+
+  JS.Expression _emitInstanceCreationExpression(ConstructorElement element,
+      DartType type, SimpleIdentifier name, ArgumentList argumentList,
+      bool isConst) {
     emitNew() {
       JS.Expression ctor;
       bool isFactory = false;
-      var element = node.staticElement;
+      // var element = node.staticElement;
       if (element == null) {
         // TODO(jmesserly): this only happens if we had a static error.
         // Should we generate a throw instead?
-        ctor = _visit(node.constructorName.type);
-        var ctorName = node.constructorName.name;
-        if (ctorName != null) {
-          ctor = new JS.PropertyAccess(ctor, _propertyName(ctorName.name));
+        ctor = _emitTypeName(type);
+        if (name != null) {
+          ctor = new JS.PropertyAccess(ctor, _propertyName(name.name));
         }
       } else {
-        ctor = _visit(node.constructorName);
+        ctor = _emitConstructorName(element, type, name);
         isFactory = element.isFactory;
       }
-      var args = _visit(node.argumentList);
+      var args = _visit(argumentList);
       return isFactory ? new JS.Call(ctor, args) : new JS.New(ctor, args);
     }
-    if (node.isConst) return _emitConst(node, emitNew);
+    if (isConst) return _emitConst(emitNew);
     return emitNew();
+  }
+
+  @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    var element = node.staticElement;
+    var constructor = node.constructorName;
+    var name = constructor.name;
+    var type = constructor.type.type;
+    return _emitInstanceCreationExpression(
+        element, type, name, node.argumentList, node.isConst);
   }
 
   /// True if this type is built-in to JS, and we use the values unwrapped.
@@ -1876,6 +1910,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     var op = node.operator;
     var left = node.leftOperand;
     var right = node.rightOperand;
+
     var leftType = getStaticType(left);
     var rightType = getStaticType(right);
 
@@ -1945,7 +1980,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     return id;
   }
 
-  JS.Expression _emitConst(Expression node, JS.Expression expr()) {
+  JS.Expression _emitConst(JS.Expression expr()) {
     // TODO(jmesserly): emit the constants at top level if possible.
     // This wasn't quite working, so disabled for now.
     return js.call('dart.const(#)', expr());
@@ -2436,7 +2471,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       var name = js.string(node.components.join('.'), "'");
       return new JS.New(_emitTypeName(types.symbolType), [name]);
     }
-    return _emitConst(node, emitSymbol);
+    return _emitConst(emitSymbol);
   }
 
   @override
@@ -2450,7 +2485,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       }
       return list;
     }
-    if (node.constKeyword != null) return _emitConst(node, emitList);
+    if (node.constKeyword != null) return _emitConst(emitList);
     return emitList();
   }
 
@@ -2482,7 +2517,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       // TODO(jmesserly): add generic types args.
       return js.call('dart.map(#)', [mapArguments]);
     }
-    if (node.constKeyword != null) return _emitConst(node, emitMap);
+    if (node.constKeyword != null) return _emitConst(emitMap);
     return emitMap();
   }
 
