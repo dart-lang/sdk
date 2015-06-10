@@ -25,6 +25,9 @@
 #include "platform/signal_blocker.h"
 
 
+extern char** environ;
+
+
 namespace dart {
 namespace bin {
 
@@ -449,13 +452,11 @@ class ProcessStarter {
     }
 
     if (program_environment_ != NULL) {
-      VOID_TEMP_FAILURE_RETRY(
-          execvpe(path_, const_cast<char* const*>(program_arguments_),
-                  program_environment_));
-    } else {
-      VOID_TEMP_FAILURE_RETRY(
-          execvp(path_, const_cast<char* const*>(program_arguments_)));
+      environ = program_environment_;
     }
+
+    VOID_TEMP_FAILURE_RETRY(
+        execvp(path_, const_cast<char* const*>(program_arguments_)));
 
     ReportChildError();
   }
@@ -682,14 +683,8 @@ class ProcessStarter {
   void SetOSErrorMessage(int child_errno) {
     const int kMaxMessageSize = 256;
     char* message = static_cast<char*>(calloc(kMaxMessageSize, 0));
-    char* os_error_message = strerror_r(
-        child_errno, message, kMaxMessageSize - 1);
-    if (message == os_error_message) {
-      *os_error_message_ = message;
-    } else {
-      free(message);
-      *os_error_message_ = strdup(os_error_message);
-    }
+    strerror_r(child_errno, message, kMaxMessageSize - 1);
+    *os_error_message_ = message;
   }
 
 
