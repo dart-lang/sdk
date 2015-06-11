@@ -2521,8 +2521,6 @@ class LibraryErrorsReadyTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(Source library) {
     return <String, TaskInput>{
-      'allLibraryElements':
-          IMPORT_EXPORT_SOURCE_CLOSURE.of(library).toListOf(LIBRARY_ELEMENT),
       'allErrors': UNITS.of(library).toListOf(DART_ERRORS)
     };
   }
@@ -3403,7 +3401,11 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(LibrarySpecificUnit target) {
     return <String, TaskInput>{
-      'libraryElement': LIBRARY_ELEMENT.of(target.library),
+      'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE
+          .of(target.library)
+          .toMapOf(UNITS)
+          .toFlattenList((Source library, Source unit) =>
+              RESOLVED_UNIT.of(new LibrarySpecificUnit(library, unit))),
       UNIT_INPUT: RESOLVED_UNIT.of(target),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };

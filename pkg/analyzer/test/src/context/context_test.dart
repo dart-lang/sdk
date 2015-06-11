@@ -809,8 +809,7 @@ void g() { f(null); }''');
     expect(libraryElementUris, contains('file:///test.dart'));
     expect(parsedUnitUris, contains('dart:core'));
     expect(parsedUnitUris, contains('file:///test.dart'));
-    // TODO(scheglov) uncomment after computing all RESOLVED_UNIT(s)
-//    expect(resolvedUnitUris, contains('dart:core'));
+    expect(resolvedUnitUris, contains('dart:core'));
     expect(resolvedUnitUris, contains('file:///test.dart'));
   }
 

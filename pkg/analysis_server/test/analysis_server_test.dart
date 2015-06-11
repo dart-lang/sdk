@@ -320,12 +320,12 @@ import "../foo/foo.dart";
       subscriptions[service] = <String>[bar.path].toSet();
     }
     server.setAnalysisSubscriptions(subscriptions);
-    await pumpEventQueue(200);
+    await pumpEventQueue(500);
     expect(server.statusAnalyzing, isFalse);
     channel.notificationsReceived.clear();
     server.updateContent(
         '0', {bar.path: new AddContentOverlay('library bar; void f() {}')});
-    await pumpEventQueue(200);
+    await pumpEventQueue(500);
     expect(server.statusAnalyzing, isFalse);
     expect(channel.notificationsReceived, isNotEmpty);
     Set<String> notificationTypesReceived = new Set<String>();
