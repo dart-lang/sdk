@@ -28,8 +28,8 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
   var document = root.document.clone(true);
   var scripts = document.querySelectorAll('script[type="application/dart"]');
   if (scripts.isEmpty) {
-    _log.severe('No <script type="application/dart"> found in ${root.uri}');
-    return null;
+    _log.warning('No <script type="application/dart"> found in ${root.uri}');
+    return '${document.outerHtml}\n';
   }
   scripts.skip(1).forEach((s) {
     // TODO(sigmund): allow more than one Dart script tags?

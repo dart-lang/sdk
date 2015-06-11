@@ -488,6 +488,8 @@ var dart, dartx;
       return true;
     }
 
+    toString() { return this.name; }
+
     get name() {
       if (this._stringValue) return this._stringValue;
 
@@ -1295,11 +1297,17 @@ var dart, dartx;
   }
   dart.JsIterator = JsIterator;
 
-  // TODO(jmesserly): right now this is a sentinel. It should be a type object
-  // of some sort, assuming we keep around `dynamic` at runtime.
-  dart.dynamic = { toString() { return 'dynamic'; }, get name() {return toString();}};
-  dart.void = { toString() { return 'void'; }, get name() {return toString();}};
-  dart.bottom = { toString() { return 'bottom'; }, get name() {return toString();}};
+  // TODO(jmesserly/vsm): Right now these are sentinels. They should be type
+  // objects of some sort, assuming we keep them at runtime.
+  function _sentinel(_name) {
+    return {
+      toString() { return _name; },
+      get name() { return this.toString(); }
+    };
+  }
+  dart.dynamic = _sentinel('dynamic');
+  dart.void = _sentinel('void');
+  dart.bottom = _sentinel('bottom');
 
   dart.global = window || global;
   dart.JsSymbol = Symbol;
@@ -1389,7 +1397,7 @@ var dart, dartx;
   let libraries = new Map();
 
   function library(name, defaultValue, imports, lazyImports, loader) {
-    libraries[name] =
+    return libraries[name] =
       new LibraryLoader(name, defaultValue, imports, lazyImports, loader);
   }
   dart.library = library;
@@ -1416,11 +1424,13 @@ var dart, dartx;
   let _js_helper;
   let _js_primitives;
 
+  let _bootstrapped = false;
   function bootstrap() {
-    if (core) return;
+    if (_bootstrapped) return;
+    _bootstrapped = true;
 
+    // Setup stubs for top-level symbols.
     let lazyImport = (name) => libraries[name].stub();
-
     core = lazyImport('dart/core');
     collection = lazyImport('dart/collection');
     async = lazyImport('dart/async');
@@ -1431,18 +1441,22 @@ var dart, dartx;
     _js_primitives = lazyImport('dart/_js_primitives');
     _js_primitives.printString = (s) => console.log(s);
 
+    // Create namespace for dart extension members.
+    dartx = dartx || {};
+
+    // Force import of core.
+    import_('dart/core');
+
     // TODO(vsm): DOM facades?
     // See: https://github.com/dart-lang/dev_compiler/issues/173
     NodeList.prototype.get = function(i) { return this[i]; };
     NamedNodeMap.prototype.get = function(i) { return this[i]; };
     DOMTokenList.prototype.get = function(i) { return this[i]; };
+    HTMLCollection.prototype.get = function(i) { return this[i]; };
 
     // TODO(vsm): This is referenced (as init.globalState) from
     // isolate_helper.dart.  Where should it go?
     // See: https://github.com/dart-lang/dev_compiler/issues/164
     dart.globalState = null;
-
-    /** Dart extension members. */
-    dartx = dartx || {};
   }
 })(dart || (dart = {}));
