@@ -7,6 +7,7 @@ library analyzer.src.plugin.engine_plugin;
 import 'package:analyzer/plugin/task.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/general.dart';
+import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/plugin.dart';
 
@@ -93,6 +94,7 @@ class EnginePlugin implements Plugin {
     //
     // Register HTML tasks.
     //
+    registerExtension(taskId, ParseHtmlTask.DESCRIPTOR);
   }
 
   /**

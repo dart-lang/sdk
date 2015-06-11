@@ -7,6 +7,7 @@ environment:
   sdk: '>=0.8.10+6 <2.0.0'
 dependencies:
   args: <0.14.0
+  html: '>= 0.12.1 < 0.13.0'
   path: '>=0.9.0 <2.0.0'
   plugin: <0.2.0
   watcher: '>=0.9.0 <0.10.0'
