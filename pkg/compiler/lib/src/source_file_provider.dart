@@ -176,7 +176,7 @@ class FormattingDiagnosticHandler {
     // [lastKind] records the previous non-INFO kind we saw.
     // This is used to suppress info about a warning when warnings are
     // suppressed, and similar for hints.
-     if (kind != api.Diagnostic.INFO) {
+    if (kind != api.Diagnostic.INFO) {
       lastKind = kind;
     }
     var color;

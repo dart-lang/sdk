@@ -82,8 +82,6 @@ void main(List<String> arguments) {
 useApi(api.ReadStringFromUri uri) {
 }
 
-
-
 void useConstant(constants.ConstantValue constant,
                  constants.ConstantExpression expression,
                  constants.ConstructedConstantExpression constructedConstant,
