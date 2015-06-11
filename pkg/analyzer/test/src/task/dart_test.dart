@@ -729,9 +729,9 @@ class C2 = C1 with M2;
 class C1 = B with M1;
 class C3 = B with M2;
 ''');
-    _computeResult(source, LIBRARY_ELEMENT);
+    _computeResult(source, LIBRARY_ELEMENT6);
     expect(task, new isInstanceOf<BuildLibraryConstructorsTask>());
-    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT];
+    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT6];
     // C1
     {
       ClassElement classElement = libraryElement.getType('C2');
@@ -2391,7 +2391,7 @@ main(A a) {
     BlockFunctionBody body = function.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
     MethodInvocation invocation = statement.expression;
-    expect(task, new isInstanceOf<ResolveReferencesTask>());
+    expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
     expect(unit, same(outputs[RESOLVED_UNIT6]));
     // a.m() is resolved now
     expect(invocation.methodName.staticElement, isNotNull);
@@ -2407,7 +2407,7 @@ main(A a) {
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, RESOLVED_UNIT6);
-    expect(task, new isInstanceOf<ResolveReferencesTask>());
+    expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
     // validate
     _fillErrorListener(RESOLVE_REFERENCES_ERRORS);
     errorListener.assertErrorsWithCodes(
@@ -2433,7 +2433,7 @@ main() {
 }
 ''');
     _computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT6);
-    expect(task, new isInstanceOf<ResolveReferencesTask>());
+    expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
     // validate
     CompilationUnit unit = outputs[RESOLVED_UNIT6];
     expect(unit, isNotNull);
@@ -2514,10 +2514,6 @@ main() {
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     _computeResult(target, RESOLVED_UNIT5);
     expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
-    // dart:core LIBRARY_ELEMENT is built
-    expect(analysisCache.getState(
-        context.sourceFactory.resolveUri(null, 'dart:core'),
-        LIBRARY_ELEMENT), CacheState.VALID);
   }
 
   test_perform_local() {

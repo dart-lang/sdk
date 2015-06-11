@@ -1087,6 +1087,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       setValue(LIBRARY_ELEMENT3, library);
       setValue(LIBRARY_ELEMENT4, library);
       setValue(LIBRARY_ELEMENT5, library);
+      setValue(LIBRARY_ELEMENT6, library);
       setValue(LINE_INFO, new LineInfo(<int>[0]));
       setValue(PARSE_ERRORS, AnalysisError.NO_ERRORS);
       entry.setState(PARSED_UNIT, CacheState.FLUSHED);
