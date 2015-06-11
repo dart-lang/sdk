@@ -65,17 +65,17 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 21724_test: Crash # Please triage this failure.
 
 [ $compiler == dart2js && $cps_ir ]
-12320_test: Crash #  Unhandled node
+12320_test: Crash # (switch (x){case 0:l...  Unhandled node
 16407_test: Pass # Please triage this failure.
 17094_test: RuntimeError # Please triage this failure.
 21666_test: Crash # Instance of 'TypeOperator': type check unimplemented for fInt.
-22868_test: Crash #  cannot handle async/sync*/async* functions
-22895_test: Crash #  cannot handle async/sync*/async* functions
+22868_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
+22895_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
 22917_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 23264_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 23486_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-async_stacktrace_test/asyncStar: Crash #  cannot handle async/sync*/async* functions
-async_stacktrace_test/none: Crash #  cannot handle async/sync*/async* functions
+async_stacktrace_test/asyncStar: Crash # (runTests()async{awa...  cannot handle async/sync*/async* functions
+async_stacktrace_test/none: Crash # (runTests()async{awa...  cannot handle async/sync*/async* functions
 bailout8_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 bound_closure_interceptor_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for IntToT<String>.
 checked_accessor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

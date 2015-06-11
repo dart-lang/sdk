@@ -107,7 +107,7 @@ native_wrapping_function3_frog_test: Crash # unsupported element kind: foo2:func
 native_wrapping_function_frog_test: Crash # unsupported element kind: foo2:function
 oddly_named_fields_test: Crash # unsupported element kind: makeNativeClassWithOddNames:function
 optimization_hints_test: Crash # (JS('','String("in main function")')): handleStaticFunctionInvoke: foreign: function(JS)
-rti_only_native_test: Crash #  try/finally
+rti_only_native_test: Crash # (try {map.values.for...  try/finally
 runtimetype_test: Crash # (JS('A','#',makeA())): handleStaticFunctionInvoke: foreign: function(JS)
 static_methods_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 subclassing_1_test: Crash # unsupported element kind: makeC:function

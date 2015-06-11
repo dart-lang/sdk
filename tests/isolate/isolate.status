@@ -126,19 +126,19 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-count_test: Crash #  Unhandled node
-cross_isolate_message_test: Crash #  Unhandled node
-deferred_in_isolate2_test: Crash #  Unhandled node
+count_test: Crash # (switch (testCase.re...  Unhandled node
+cross_isolate_message_test: Crash # (switch (msg[0]){cas...  Unhandled node
+deferred_in_isolate2_test: Crash # (switch (testCase.re...  Unhandled node
 function_send_test: Crash # (try {p.send(func);}finally {p.send(0);}): try/finally
-handle_error2_test: Crash #  Unhandled node
-handle_error3_test: Crash #  Unhandled node
-handle_error_test: Crash #  Unhandled node
-illegal_msg_function_test: Crash #  Unhandled node
-illegal_msg_mirror_test: Crash #  Unhandled node
-isolate_complex_messages_test: Crash #  Unhandled node
-isolate_current_test: Crash #  Unhandled node
-mandel_isolate_test: Crash #  Unhandled node
-message2_test: Crash #  Unhandled node
+handle_error2_test: Crash # (switch (state){case...  Unhandled node
+handle_error3_test: Crash # (switch (state2){cas...  Unhandled node
+handle_error_test: Crash # (switch (state){case...  Unhandled node
+illegal_msg_function_test: Crash # (switch (testCase.re...  Unhandled node
+illegal_msg_mirror_test: Crash # (switch (testCase.re...  Unhandled node
+isolate_complex_messages_test: Crash # (switch (testCase.re...  Unhandled node
+isolate_current_test: Crash # (switch (state){case...  Unhandled node
+mandel_isolate_test: Crash # (switch (testCase.re...  Unhandled node
+message2_test: Crash # (switch (testCase.re...  Unhandled node
 message3_test/byteBuffer: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 message3_test/constInstance: Crash # Please triage this failure.
 message3_test/constList: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -147,17 +147,17 @@ message3_test/constMap: Crash # Instance of 'TypeOperator': type check unimpleme
 message3_test/fun: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 message3_test/int32x4: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 message3_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message_test: Crash #  Unhandled node
-mint_maker_test: Crash #  Unhandled node
-nested_spawn2_test: Crash #  Unhandled node
-nested_spawn_test: Crash #  Unhandled node
-raw_port_test: Crash #  Unhandled node
-request_reply_test: Crash #  Unhandled node
-spawn_function_custom_class_test: Crash #  Unhandled node
-spawn_function_test: Crash #  Unhandled node
-spawn_uri_multi_test/01: Crash #  Unhandled node
-spawn_uri_multi_test/none: Crash #  Unhandled node
-stacktrace_message_test: Crash #  Unhandled node
-static_function_test: Crash #  Unhandled node
-timer_isolate_test: Crash #  Unhandled node
-unresolved_ports_test: Crash #  Unhandled node
+message_test: Crash # (switch (testCase.re...  Unhandled node
+mint_maker_test: Crash # (switch (testCase.re...  Unhandled node
+nested_spawn2_test: Crash # (switch (testCase.re...  Unhandled node
+nested_spawn_test: Crash # (switch (testCase.re...  Unhandled node
+raw_port_test: Crash # (switch (testCase.re...  Unhandled node
+request_reply_test: Crash # (switch (testCase.re...  Unhandled node
+spawn_function_custom_class_test: Crash # (switch (testCase.re...  Unhandled node
+spawn_function_test: Crash # (switch (testCase.re...  Unhandled node
+spawn_uri_multi_test/01: Crash # (switch (testCase.re...  Unhandled node
+spawn_uri_multi_test/none: Crash # (switch (testCase.re...  Unhandled node
+stacktrace_message_test: Crash # (switch (testCase.re...  Unhandled node
+static_function_test: Crash # (switch (testCase.re...  Unhandled node
+timer_isolate_test: Crash # (switch (testCase.re...  Unhandled node
+unresolved_ports_test: Crash # (switch (testCase.re...  Unhandled node
