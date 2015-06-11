@@ -990,6 +990,18 @@ class A {
     verify([source]);
   }
 
+  void test_const_constructor_with_named_generic_parameter() {
+    Source source = addSource('''
+class C<T> {
+  const C({T t});
+}
+const c = const C(t: 1);
+''');
+    resolve(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_const_dynamic() {
     Source source = addSource('''
 const Type d = dynamic;

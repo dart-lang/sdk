@@ -5006,6 +5006,16 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitLabel(Label node) {
+    // We are visiting the "label" part of a named expression in a function
+    // call (presumably a constructor call), e.g. "const C(label: ...)".  We
+    // don't want to visit the SimpleIdentifier for the label because that's a
+    // reference to a function parameter that needs to be filled in; it's not a
+    // constant whose value we depend on.
+    return null;
+  }
+
+  @override
   Object visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     super.visitRedirectingConstructorInvocation(node);
