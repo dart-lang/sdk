@@ -5822,7 +5822,11 @@ class AnalysisEngine {
    */
   List<Plugin> get supportedPlugins {
     if (_supportedPlugins == null) {
-      _supportedPlugins = <Plugin>[enginePlugin, commandLinePlugin, optionsPlugin];
+      _supportedPlugins = <Plugin>[
+        enginePlugin,
+        commandLinePlugin,
+        optionsPlugin
+      ];
     }
     return _supportedPlugins;
   }
