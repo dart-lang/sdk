@@ -2873,7 +2873,7 @@ class PublicNamespaceBuilder {
 }
 
 /**
- * A task that finishes resolution by requesting [RESOLVED_UNIT6] for every
+ * A task that finishes resolution by requesting [RESOLVED_UNIT_NO_CONSTANTS] for every
  * unit in the libraries closure and produces [LIBRARY_ELEMENT].
  */
 class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {

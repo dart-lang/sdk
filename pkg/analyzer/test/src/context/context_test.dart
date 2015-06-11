@@ -783,6 +783,37 @@ void g() { f(null); }''');
         reason: "htmlSource has an error");
   }
 
+  void test_performAnalysisTask_onResultComputed() {
+    Set<String> libraryElementUris = new Set<String>();
+    Set<String> parsedUnitUris = new Set<String>();
+    Set<String> resolvedUnitUris = new Set<String>();
+    // listen
+    context.onResultComputed(LIBRARY_ELEMENT).listen((event) {
+      Source librarySource = event.target;
+      libraryElementUris.add(librarySource.uri.toString());
+    });
+    context.onResultComputed(PARSED_UNIT).listen((event) {
+      Source source = event.target;
+      parsedUnitUris.add(source.uri.toString());
+    });
+    context.onResultComputed(RESOLVED_UNIT).listen((event) {
+      LibrarySpecificUnit target = event.target;
+      Source librarySource = target.library;
+      resolvedUnitUris.add(librarySource.uri.toString());
+    });
+    // analyze
+    addSource('/test.dart', 'main() {}');
+    _analyzeAll_assertFinished();
+    // verify
+    expect(libraryElementUris, contains('dart:core'));
+    expect(libraryElementUris, contains('file:///test.dart'));
+    expect(parsedUnitUris, contains('dart:core'));
+    expect(parsedUnitUris, contains('file:///test.dart'));
+    // TODO(scheglov) uncomment after computing all RESOLVED_UNIT(s)
+//    expect(resolvedUnitUris, contains('dart:core'));
+    expect(resolvedUnitUris, contains('file:///test.dart'));
+  }
+
   void fail_performAnalysisTask_IOException() {
     TestSource source = _addSourceWithException2("/test.dart", "library test;");
     int oldTimestamp = context.getModificationStamp(source);

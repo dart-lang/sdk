@@ -5741,6 +5741,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return false;
   }
   @override
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
+    fail("Unexpected invocation of onResultComputed");
+    return null;
+  }
+  @override
   CompilationUnit parseCompilationUnit(Source source) {
     fail("Unexpected invocation of parseCompilationUnit");
     return null;

@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/context/context.dart' show ResultComputedEvent;
 import 'package:analyzer/src/generated/engine.dart'
     hide AnalysisTask, AnalysisContextImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -43,10 +42,10 @@ class AnalysisDriver {
   final InternalAnalysisContext context;
 
   /**
-   * The map of [ResultComputedEvent] controllers.
+   * The map of [ComputedResult] controllers.
    */
-  final Map<ResultDescriptor, StreamController<ResultComputedEvent>> resultComputedControllers =
-      <ResultDescriptor, StreamController<ResultComputedEvent>>{};
+  final Map<ResultDescriptor, StreamController<ComputedResult>> resultComputedControllers =
+      <ResultDescriptor, StreamController<ComputedResult>>{};
 
   /**
    * The work order that was previously computed but that has not yet been
@@ -197,9 +196,9 @@ class AnalysisDriver {
    * Return the stream that is notified when a new value for the given
    * [descriptor] is computed.
    */
-  Stream<ResultComputedEvent> onResultComputed(ResultDescriptor descriptor) {
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
     return resultComputedControllers.putIfAbsent(descriptor, () =>
-        new StreamController<ResultComputedEvent>.broadcast(sync: true)).stream;
+        new StreamController<ComputedResult>.broadcast(sync: true)).stream;
   }
 
   /**
@@ -270,11 +269,11 @@ class AnalysisDriver {
         entry.setValue(result, outputs[result], dependedOn);
       }
       outputs.forEach((ResultDescriptor descriptor, value) {
-        StreamController<ResultComputedEvent> controller =
+        StreamController<ComputedResult> controller =
             resultComputedControllers[descriptor];
         if (controller != null) {
-          ResultComputedEvent event =
-              new ResultComputedEvent(context, descriptor, target, value);
+          ComputedResult event =
+              new ComputedResult(context, descriptor, target, value);
           controller.add(event);
         }
       });

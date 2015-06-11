@@ -742,6 +742,12 @@ abstract class AnalysisContext {
   bool isServerLibrary(Source librarySource);
 
   /**
+   * Return the stream that is notified when a new value for the given
+   * [descriptor] is computed.
+   */
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor);
+
+  /**
    * Parse the content of the given [source] to produce an AST structure. The
    * resulting AST structure may or may not be resolved, and may have a slightly
    * different structure depending upon whether it is resolved.
@@ -767,6 +773,21 @@ abstract class AnalysisContext {
    * Perform the next unit of work required to keep the analysis results
    * up-to-date and return information about the consequent changes to the
    * analysis results. This method can be long running.
+   *
+   * The implementation that uses the task model notifies subscribers of
+   * [onResultComputed] about computed results.
+   *
+   * The following results are computed for Dart sources.
+   *
+   * 1. For explicit and implicit sources:
+   *    [PARSED_UNIT]
+   *    [RESOLVED_UNIT]
+   *
+   * 2. For explicit sources:
+   *    [DART_ERRORS].
+   *
+   * 3. For explicit and implicit library sources:
+   *    [LIBRARY_ELEMENT].
    */
   AnalysisResult performAnalysisTask();
 
@@ -2204,6 +2225,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           dartEntry.getValue(DartEntry.IS_LAUNCHABLE);
     }
     return false;
+  }
+
+  @override
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
+    throw new NotImplementedException('In not task-based AnalysisContext.');
   }
 
   @override
@@ -5729,7 +5755,7 @@ class AnalysisEngine {
    * A flag indicating whether the (new) task model should be used to perform
    * analysis.
    */
-  bool useTaskModel = false;
+  bool useTaskModel = true;
 
   /**
    * The task manager used to manage the tasks used to analyze code.
@@ -7180,6 +7206,36 @@ class ChangeSet_ContentChange {
    */
   ChangeSet_ContentChange(
       this.contents, this.offset, this.oldLength, this.newLength);
+}
+
+/**
+ * [ComputedResult] describes a value computed for a [ResultDescriptor].
+ */
+class ComputedResult<V> {
+  /**
+   * The context in which the value was computed.
+   */
+  final AnalysisContext context;
+
+  /**
+   * The descriptor of the result which was computed.
+   */
+  final ResultDescriptor<V> descriptor;
+
+  /**
+   * The target for which the result was computed.
+   */
+  final AnalysisTarget target;
+
+  /**
+   * The computed value.
+   */
+  final V value;
+
+  ComputedResult(this.context, this.descriptor, this.target, this.value);
+
+  @override
+  String toString() => '$descriptor of $target in $context';
 }
 
 /**
