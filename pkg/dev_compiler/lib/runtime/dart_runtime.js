@@ -137,7 +137,7 @@ var dart, dartx;
   }
   dart.dsetindex = dsetindex;
 
-  function typeToString(type) {
+  function _typeName(type) {
     if (typeof(type) == "function") {
       let name = type.name;
       let args = type[dart.typeArguments];
@@ -145,7 +145,7 @@ var dart, dartx;
         name += '<';
         for (let i = 0; i < args.length; ++i) {
           if (i > 0) name += ', ';
-          name += typeToString(args[i]);
+          name += _typeName(args[i]);
         }
         name += '>';
       }
@@ -154,22 +154,29 @@ var dart, dartx;
       return type.toString();
     }
   }
-  dart.typeName = typeToString;
+  dart.typeName = _typeName;
+
+  function _ignoreTypeFailure(actual, type) {
+    // TODO(vsm): Remove this hack ...
+    // This is primarily due to the lack of generic methods,
+    // but we need to triage all the errors.
+    if (isSubtype(type, core.Iterable) && isSubtype(actual, core.Iterable) ||
+        isSubtype(type, async.Future) && isSubtype(actual, async.Future) ||
+        isSubtype(type, core.Map) && isSubtype(actual, core.Map) ||
+        isSubtype(type, core.Function) && isSubtype(actual, core.Function)) {
+      console.error('Ignoring cast fail from ' + _typeName(actual) +
+        ' to ' + _typeName(type));
+      return true;
+    }
+    return false;
+  }
 
   function cast(obj, type) {
     // TODO(vsm): handle non-nullable types
     if (obj == null) return obj;
     let actual = realRuntimeType(obj);
     if (isSubtype(actual, type)) return obj;
-    // TODO(vsm): Remove this hack ... due to
-    // lack of generic methods.
-    if (isSubtype(type, core.Iterable) && isSubtype(actual, core.Iterable) ||
-        isSubtype(type, async.Future) && isSubtype(actual, async.Future) ||
-        isSubtype(type, core.Map) && isSubtype(actual, core.Map)) {
-      console.log('Warning: ignoring cast fail from ' + typeToString(actual) + ' to ' + typeToString(type));
-      return obj;
-    }
-    // console.log('Error: cast fail from ' + typeToString(actual) + ' to ' + typeToString(type));
+    if (_ignoreTypeFailure(actual, type)) return obj;
     throw new _js_helper.CastErrorImplementation(actual, type);
   }
   dart.as = cast;
@@ -224,7 +231,12 @@ var dart, dartx;
   dart.is = instanceOf;
 
   function instanceOfOrNull(obj, type) {
-    return (obj == null) || instanceOf(obj, type);
+    // FIXME(vsm): This is used only in checkApply.
+    // Just log failures due to generics for now.
+    if ((obj == null) || instanceOf(obj, type)) return true;
+    let actual = realRuntimeType(obj);
+    if (_ignoreTypeFailure(actual, type)) return true;
+    return false;
   }
 
   /**
@@ -433,13 +445,6 @@ var dart, dartx;
     return x;
   }
   dart.notNull = notNull;
-
-  function _typeName(type) {
-    if (type === void 0) throwRuntimeError('Undefined type');
-    let name = type.name;
-    if (!name) throwRuntimeError('Unexpected type: ' + type);
-    return name;
-  }
 
   class AbstractFunctionType {
     constructor() {
