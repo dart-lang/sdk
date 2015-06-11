@@ -1914,6 +1914,36 @@ class PendingFuture<T> {
 }
 
 /**
+ * [ResultComputedEvent] describes a value computed for a [ResultDescriptor].
+ */
+class ResultComputedEvent<V> {
+  /**
+   * The context in which the value was computed.
+   */
+  final AnalysisContext context;
+
+  /**
+   * The descriptor of the result which was computed.
+   */
+  final ResultDescriptor<V> descriptor;
+
+  /**
+   * The target for which the result was computed.
+   */
+  final AnalysisTarget target;
+
+  /**
+   * The computed value.
+   */
+  final V value;
+
+  ResultComputedEvent(this.context, this.descriptor, this.target, this.value);
+
+  @override
+  String toString() => '$value for $descriptor of $target in $context';
+}
+
+/**
  * An [AnalysisContext] that only contains sources for a Dart SDK.
  */
 class SdkAnalysisContext extends AnalysisContextImpl {

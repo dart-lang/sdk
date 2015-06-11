@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/context/context.dart' show ResultComputedEvent;
 import 'package:analyzer/src/generated/engine.dart'
     hide AnalysisTask, AnalysisContextImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -40,6 +41,12 @@ class AnalysisDriver {
    * The context in which analysis is to be performed.
    */
   final InternalAnalysisContext context;
+
+  /**
+   * The map of [ResultComputedEvent] controllers.
+   */
+  final Map<ResultDescriptor, StreamController<ResultComputedEvent>> resultComputedControllers =
+      <ResultDescriptor, StreamController<ResultComputedEvent>>{};
 
   /**
    * The work order that was previously computed but that has not yet been
@@ -187,6 +194,15 @@ class AnalysisDriver {
   }
 
   /**
+   * Return the stream that is notified when a new value for the given
+   * [descriptor] is computed.
+   */
+  Stream<ResultComputedEvent> onResultComputed(ResultDescriptor descriptor) {
+    return resultComputedControllers.putIfAbsent(descriptor, () =>
+        new StreamController<ResultComputedEvent>.broadcast(sync: true)).stream;
+  }
+
+  /**
    * Perform the next analysis task, and return `true` if there is more work to
    * be done in order to compute all of the required analysis information.
    */
@@ -243,7 +259,8 @@ class AnalysisDriver {
     AnalysisTask task = item.buildTask();
     _onTaskStartedController.add(task);
     task.perform();
-    CacheEntry entry = context.getCacheEntry(task.target);
+    AnalysisTarget target = task.target;
+    CacheEntry entry = context.getCacheEntry(target);
     if (task.caughtException == null) {
       List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
       Map<ResultDescriptor, dynamic> outputs = task.outputs;
@@ -252,8 +269,17 @@ class AnalysisDriver {
         // and throw an exception if not (unless we want to allow null values).
         entry.setValue(result, outputs[result], dependedOn);
       }
+      outputs.forEach((ResultDescriptor descriptor, value) {
+        StreamController<ResultComputedEvent> controller =
+            resultComputedControllers[descriptor];
+        if (controller != null) {
+          ResultComputedEvent event =
+              new ResultComputedEvent(context, descriptor, target, value);
+          controller.add(event);
+        }
+      });
       for (WorkManager manager in workManagers) {
-        manager.resultsComputed(task.target, outputs);
+        manager.resultsComputed(target, outputs);
       }
     } else {
       entry.setErrorState(task.caughtException, item.descriptor.results);

@@ -28,8 +28,8 @@ main() {
   groupSep = ' | ';
   runReflectiveTests(AnalysisDriverTest);
   runReflectiveTests(CycleAwareDependencyWalkerTest);
-  runReflectiveTests(WorkOrderTest);
   runReflectiveTests(WorkItemTest);
+  runReflectiveTests(WorkOrderTest);
 }
 
 class AbstractDriverTest {
@@ -330,6 +330,28 @@ class AnalysisDriverTest extends AbstractDriverTest {
     expect(context.getCacheEntry(target).getValue(resultB), 20);
     // done
     expect(analysisDriver.performAnalysisTask(), false);
+  }
+
+  test_performAnalysisTask_onResultComputed() {
+    AnalysisTarget target = new TestSource();
+    ResultDescriptor result = new ResultDescriptor('result', null);
+    TestAnalysisTask task;
+    TaskDescriptor descriptor = new TaskDescriptor(
+        'task', (context, target) => task, (target) => {}, [result]);
+    task = new TestAnalysisTask(context, target,
+        descriptor: descriptor, value: 42);
+    WorkItem item = new WorkItem(context, target, descriptor, null);
+
+    bool streamNotified = false;
+    analysisDriver.onResultComputed(result).listen((event) {
+      streamNotified = true;
+      expect(event.context, same(context));
+      expect(event.target, same(target));
+      expect(event.descriptor, same(result));
+      expect(event.value, 42);
+    });
+    analysisDriver.performWorkItem(item);
+    expect(streamNotified, isTrue);
   }
 
   test_performWorkItem_exceptionInTask() {
