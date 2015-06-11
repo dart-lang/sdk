@@ -188,16 +188,6 @@ abstract class Element implements Entity {
   Element get enclosingElement;
   Link<MetadataAnnotation> get metadata;
 
-  /// Do not use [computeType] outside of the resolver; instead retrieve the
-  /// type from the corresponding field:
-  /// - `type` for fields, variables, type variable, and function elements.
-  /// - `thisType` or `rawType` for [TypeDeclarationElement]s (classes and
-  ///    typedefs), depending on the use case.
-  /// Trying to access a type that has not been computed in resolution is an
-  /// error and calling [computeType] covers that error.
-  /// This method will go away!
-  @deprecated DartType computeType(Compiler compiler);
-
   /// `true` if this element is a library.
   bool get isLibrary;
 
@@ -1089,8 +1079,8 @@ abstract class InitializingFormalElement extends ParameterElement {
  * field named "x", a getter named "x", and a setter named "x=".
  */
 abstract class AbstractFieldElement extends Element {
-  FunctionElement get getter;
-  FunctionElement get setter;
+  GetterElement get getter;
+  SetterElement get setter;
 }
 
 abstract class FunctionSignature {
@@ -1283,6 +1273,15 @@ abstract class ConstructorBodyElement extends MethodElement {
 /// [TypeDeclarationElement] defines the common interface for class/interface
 /// declarations and typedefs.
 abstract class TypeDeclarationElement extends Element implements AstElement {
+  /// Do not use [computeType] outside of the resolver; instead retrieve the
+  /// type from the [thisType] or [rawType], depending on the use case.
+  ///
+  /// Trying to access a type that has not been computed in resolution is an
+  /// error and calling [computeType] covers that error.
+  /// This method will go away!
+  @deprecated
+  GenericType computeType(Compiler compiler);
+
   /**
    * The `this type` for this type declaration.
    *
@@ -1515,6 +1514,15 @@ abstract class MetadataAnnotation implements Spannable {
 
 /// An [Element] that has a type.
 abstract class TypedElement extends Element {
+  /// Do not use [computeType] outside of the resolver; instead retrieve the
+  /// type from  [type] property.
+  ///
+  /// Trying to access a type that has not been computed in resolution is an
+  /// error and calling [computeType] covers that error.
+  /// This method will go away!
+  @deprecated
+  DartType computeType(Compiler compiler);
+
   DartType get type;
 }
 

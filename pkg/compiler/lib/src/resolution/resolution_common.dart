@@ -734,9 +734,9 @@ class ResolverTask extends CompilerTask {
     }
     AbstractFieldElement field = lookupElement;
 
-    MethodElementX getter = field.getter;
+    GetterElementX getter = field.getter;
     if (getter == null) return;
-    MethodElementX setter = field.setter;
+    SetterElementX setter = field.setter;
     if (setter == null) return;
     int getterFlags = getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
     int setterFlags = setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;

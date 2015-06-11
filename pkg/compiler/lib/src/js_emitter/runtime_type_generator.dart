@@ -212,6 +212,7 @@ class RuntimeTypeGenerator {
         call = cls.lookupBackendMember(Compiler.CALL_OPERATOR_NAME);
       }
       if (call != null && call.isFunction) {
+        FunctionElement callFunction = call;
         // A superclass might already implement the Function interface. In such
         // a case, we can avoid emiting the is test here.
         if (!cls.superclass.implementsFunction(compiler)) {
@@ -220,8 +221,8 @@ class RuntimeTypeGenerator {
                                     generateSubstitution,
                                     generated);
         }
-        FunctionType callType = call.computeType(compiler);
-        generateFunctionTypeSignature(call, callType);
+        FunctionType callType = callFunction.computeType(compiler);
+        generateFunctionTypeSignature(callFunction, callType);
       }
     }
 

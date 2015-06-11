@@ -66,12 +66,6 @@ abstract class ElementX extends Element with ElementCommon {
     return null;
   }
 
-  DartType computeType(Compiler compiler) {
-    compiler.internalError(this,
-        "computeType not implemented on $this.");
-    return null;
-  }
-
   void addMetadata(MetadataAnnotationX annotation) {
     assert(annotation.annotatedElement == null);
     annotation.annotatedElement = this;
@@ -301,6 +295,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   bool get isRedirectingFactory => unsupported();
 
   computeSignature(compiler) => unsupported();
+  computeType(compiler) => unsupported();
 
   bool get hasFunctionSignature => false;
 

@@ -27,7 +27,8 @@ import '../elements/elements.dart' show
     FieldElement,
     ParameterElement,
     TypeVariableElement,
-    MethodElement;
+    MethodElement,
+    MemberElement;
 
 import '../hash/sha1.dart' show Hasher;
 

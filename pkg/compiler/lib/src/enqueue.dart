@@ -613,14 +613,15 @@ abstract class Enqueuer {
     universe.callMethodsWithFreeTypeVariables.add(element);
   }
 
-  void registerClosurizedMember(Element element, Registry registry) {
+  void registerClosurizedMember(TypedElement element, Registry registry) {
     assert(element.isInstanceMember);
     registerClosureIfFreeTypeVariables(element, registry);
     compiler.backend.registerBoundClosure(this);
     universe.closurizedMembers.add(element);
   }
 
-  void registerClosureIfFreeTypeVariables(Element element, Registry registry) {
+  void registerClosureIfFreeTypeVariables(TypedElement element,
+                                          Registry registry) {
     if (element.computeType(compiler).containsTypeVariables) {
       compiler.backend.registerClosureWithFreeTypeVariables(
           element, this, registry);

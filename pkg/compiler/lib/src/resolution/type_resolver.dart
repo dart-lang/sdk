@@ -138,7 +138,7 @@ class TypeResolver {
         // TODO(johnniwinther): [_ensureClassWillBeResolved] should imply
         // [computeType].
         compiler.resolver._ensureClassWillBeResolved(cls);
-        element.computeType(compiler);
+        cls.computeType(compiler);
         List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
             visitor, node, cls.typeVariables, arguments);
@@ -158,7 +158,7 @@ class TypeResolver {
         TypedefElement typdef = element;
         // TODO(johnniwinther): [ensureResolved] should imply [computeType].
         typdef.ensureResolved(compiler);
-        element.computeType(compiler);
+        typdef.computeType(compiler);
         List<DartType> arguments = <DartType>[];
         bool hasTypeArgumentMismatch = resolveTypeArguments(
             visitor, node, typdef.typeVariables, arguments);
@@ -174,6 +174,7 @@ class TypeResolver {
           }
         }
       } else if (element.isTypeVariable) {
+        TypeVariableElement typeVariable = element;
         Element outer =
             visitor.enclosingElement.outermostEnclosingMemberOrTopLevel;
         if (!outer.isClass &&
@@ -183,9 +184,9 @@ class TypeResolver {
           type = reportFailureAndCreateType(
               MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
               {'typeVariableName': node},
-              userProvidedBadType: element.computeType(compiler));
+              userProvidedBadType: typeVariable.type);
         } else {
-          type = element.computeType(compiler);
+          type = typeVariable.type;
         }
         type = checkNoTypeArguments(type);
       } else {

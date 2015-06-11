@@ -343,22 +343,7 @@ class NativeEmitter {
     return statements;
   }
 
-  bool isSupertypeOfNativeClass(Element element) {
-    if (element.isTypeVariable) {
-      compiler.internalError(element, "Is check for type variable.");
-      return false;
-    }
-    if (element.computeType(compiler).unalias(compiler) is FunctionType) {
-      // The element type is a function type either directly or through
-      // typedef(s).
-      return false;
-    }
-
-    if (!element.isClass) {
-      compiler.internalError(element, "Is check does not handle element.");
-      return false;
-    }
-
+  bool isSupertypeOfNativeClass(ClassElement element) {
     if (backend.classesMixedIntoInterceptedClasses.contains(element)) {
       return true;
     }

@@ -759,7 +759,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       type = registry.getType(node.selector);
     }
     if (type == null) {
-      type = target.computeType(compiler);
+      if (target.isTypedef || target.isClass) {
+        TypeDeclarationElement typeDeclaration = target;
+        typeDeclaration.computeType(compiler);
+        type = typeDeclaration.rawType;
+      } else {
+        TypeVariableElement typeVariable = target;
+        type = typeVariable.type;
+      }
     }
     registry.registerTypeLiteral(node, type);
 
@@ -1719,17 +1726,20 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult handleStaticOrTopLevelAccess(
         Send node, Name name, Element element) {
 
+    MemberElement member;
     if (element.isAbstractField) {
       AbstractFieldElement abstractField = element;
       if (abstractField.getter != null) {
-        element = abstractField.getter;
+        member = abstractField.getter;
       } else {
-        element = abstractField.setter;
+        member = abstractField.setter;
       }
+    } else {
+      member = element;
     }
     // TODO(johnniwinther): Needed to provoke a parsing and with it discovery
     // of parse errors to make [element] erroneous. Fix this!
-    element.computeType(compiler);
+    member.computeType(compiler);
 
     Selector selector;
     CallStructure callStructure = CallStructure.NO_ARGS;
@@ -1740,7 +1750,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       selector = new Selector(SelectorKind.GETTER, name, callStructure);
     }
     AccessSemantics semantics =
-        computeStaticOrTopLevelAccessSemantics(node, element);
+        computeStaticOrTopLevelAccessSemantics(node, member);
     if (node.isCall) {
       bool isIncompatibleInvoke = false;
       switch (semantics.kind) {
@@ -1771,7 +1781,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.TOPLEVEL_SETTER:
         case AccessKind.UNRESOLVED:
           registry.registerThrowNoSuchMethod();
-          element = reportAndCreateErroneousElement(
+          member = reportAndCreateErroneousElement(
               node.selector, name.text,
               MessageKind.CANNOT_RESOLVE_GETTER, const {});
           break;
@@ -1805,7 +1815,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.TOPLEVEL_SETTER:
         case AccessKind.UNRESOLVED:
           registry.registerThrowNoSuchMethod();
-          element = reportAndCreateErroneousElement(
+          member = reportAndCreateErroneousElement(
               node.selector, name.text,
               MessageKind.CANNOT_RESOLVE_GETTER, const {});
           break;
@@ -1820,11 +1830,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     // TODO(johnniwinther): Remove these when all information goes through
     // the [SendStructure].
-    registry.useElement(node, element);
+    registry.useElement(node, member);
     registry.setSelector(node, selector);
 
     return node.isPropertyAccess
-        ? new ElementResult(element) : const NoneResult();
+        ? new ElementResult(member) : const NoneResult();
   }
 
   /// Handle access to resolved [element].
