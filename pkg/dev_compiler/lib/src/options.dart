@@ -9,16 +9,19 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
-import 'package:dev_compiler/config.dart';
 import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
 import 'package:yaml/yaml.dart';
 
-/// Options used by our checker.
-// TODO(jmesserly): move useMultiPackage/packageRoot to CompilerOptions.
-class ResolverOptions {
+import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
+
+/// Options used to set up Source URI resolution in the analysis context.
+class SourceResolverOptions {
   /// Whether to resolve 'package:' uris using the multi-package resolver.
   final bool useMultiPackage;
+
+  /// Custom URI mappings, such as "dart:foo" -> "path/to/foo.dart"
+  final Map<String, String> customUrlMappings;
 
   /// Package root when resolving 'package:' urls the standard way.
   final String packageRoot;
@@ -29,70 +32,51 @@ class ResolverOptions {
   /// List of additional non-Dart resources to resolve and serve.
   final List<String> resources;
 
-  /// Whether to infer return types and field types from overriden members.
-  final bool inferFromOverrides;
-  static const inferFromOverridesDefault = true;
-
-  /// Whether to infer types for consts and fields by looking at initializers on
-  /// the RHS. For example, in a constant declaration like:
-  ///
-  ///      const A = B;
-  ///
-  /// We can infer the type of `A` based on the type of `B`.
-  ///
-  /// The inference algorithm determines what variables depend on others, and
-  /// computes types by visiting the variable dependency graph in topological
-  /// order. This ensures that the inferred type is deterministic when applying
-  /// inference on library cycles.
-  ///
-  /// When this feature is turned off, we don't use the type of `B` to infer the
-  /// type of `A`, even if `B` has a declared type.
-  final bool inferTransitively;
-  static const inferTransitivelyDefault = true;
-
-  /// Restrict inference of fields and top-levels to those that are final and
-  /// const.
-  final bool onlyInferConstsAndFinalFields;
-  static const onlyInferConstAndFinalFieldsDefault = false;
-
   /// File where to start compilation from.
+  // TODO(jmesserly): this is used to configure SourceFactory resolvers only
+  // when [useImplicitHtml] is set. Probably useImplicitHtml should be factored
+  // out into ServerOptions or something along those lines.
   final String entryPointFile;
 
   // True if the resolver should implicitly provide an html entry point.
   final bool useImplicitHtml;
   static const String implicitHtmlFile = 'index.html';
 
-  ResolverOptions({this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const <String>[], this.resources: const <String>[],
-      this.inferFromOverrides: inferFromOverridesDefault,
-      this.inferTransitively: inferTransitivelyDefault,
-      this.onlyInferConstsAndFinalFields: onlyInferConstAndFinalFieldsDefault,
-      this.entryPointFile: null, this.useImplicitHtml: false});
+  /// Whether to use a mock-sdk during compilation.
+  final bool useMockSdk;
+
+  /// Path to the dart-sdk. Null if `useMockSdk` is true or if the path couldn't
+  /// be determined
+  final String dartSdkPath;
+
+  const SourceResolverOptions({this.useMockSdk: false, this.dartSdkPath,
+      this.useMultiPackage: false, this.customUrlMappings: const {},
+      this.packageRoot: 'packages/', this.packagePaths: const <String>[],
+      this.resources: const <String>[], this.entryPointFile: null,
+      this.useImplicitHtml: false});
 }
 
-// TODO(vsm): Merge RulesOptions and TypeOptions
-/// Options used by our RestrictedRules.
-class RulesOptions extends TypeOptions {
-  /// Whether to infer types downwards from local context
-  final bool inferDownwards;
-  static const inferDownwardsDefault = true;
-
-  /// Whether to inject casts between Dart assignable types.
-  final bool relaxedCasts;
-
-  RulesOptions(
-      {this.inferDownwards: inferDownwardsDefault, this.relaxedCasts: true});
-}
-
-class JSCodeOptions {
+// TODO(jmesserly): refactor all codegen options here.
+class CodegenOptions {
   /// Whether to emit the source map files.
   final bool emitSourceMaps;
 
-  JSCodeOptions({this.emitSourceMaps: true});
+  /// Whether to force compilation of code with static errors.
+  final bool forceCompile;
+
+  /// Output directory for generated code.
+  final String outputDir;
+
+  const CodegenOptions(
+      {this.emitSourceMaps: true, this.forceCompile: false, this.outputDir});
 }
 
-/// General options used by the dev compiler.
-class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
+/// General options used by the dev compiler and server.
+class CompilerOptions {
+  final StrongModeOptions strongOptions;
+  final SourceResolverOptions sourceOptions;
+  final CodegenOptions codegenOptions;
+
   /// Whether to check the sdk libraries.
   final bool checkSdk;
 
@@ -103,36 +87,17 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// summary information (only used if [dumpInfo] is true).
   final String dumpInfoFile;
 
-  /// Whether to force compilation of code with static errors.
-  final bool forceCompile;
-
-  /// Output directory for generated code.
-  final String outputDir;
-
   /// Whether to use colors when interacting on the console.
   final bool useColors;
 
   /// Whether the user asked for help.
   final bool help;
 
-  /// Whether to use a mock-sdk during compilation.
-  final bool useMockSdk;
-
-  /// Path to the dart-sdk. Null if `useMockSdk` is true or if the path couldn't
-  /// be determined
-  final String dartSdkPath;
-
   /// Minimum log-level reported on the command-line.
   final Level logLevel;
 
-  /// File where to start compilation from.
-  final String entryPointFile;
-
   /// Whether to run as a development server.
   final bool serverMode;
-
-  /// Whether to create an implicit HTML entry file in server mode.
-  final bool useImplicitHtml;
 
   /// Whether to enable hash-based caching of files.
   final bool enableHashing;
@@ -143,75 +108,18 @@ class CompilerOptions implements RulesOptions, ResolverOptions, JSCodeOptions {
   /// Host name or address for HTTP server when [serverMode] is on.
   final String host;
 
-  /// Whether to inject casts between Dart assignable types.
-  @override
-  final bool relaxedCasts;
-
-  /// Whether to resolve 'package:' uris using the multi-package resolver.
-  @override
-  final bool useMultiPackage;
-
-  /// Package root when resolving 'package:' urls the standard way.
-  @override
-  final String packageRoot;
-
-  /// List of paths used for the multi-package resolver.
-  @override
-  final List<String> packagePaths;
-
-  /// List of additional non-Dart resources to resolve and serve.
-  @override
-  final List<String> resources;
-
-  /// Whether to infer types downwards from local context
-  @override
-  final bool inferDownwards;
-
-  /// Whether to infer return types and field types from overriden members.
-  @override
-  final bool inferFromOverrides;
-
-  /// Whether to infer types for consts and static fields by looking at
-  /// identifiers on the RHS.
-  @override
-  final bool inferTransitively;
-
-  /// Restrict inference of fields and top-levels to those that are final and
-  /// const.
-  @override
-  final bool onlyInferConstsAndFinalFields;
-
-  /// List of non-nullable types.
-  @override
-  final List<String> nonnullableTypes;
-
-  /// Whether to emit the source map files.
-  @override
-  final bool emitSourceMaps;
-
   /// Location for runtime files, such as `dart_runtime.js`. By default this is
   /// inferred to be under `lib/runtime/` in the location of the `dev_compiler`
   /// package (if we can infer where that is located).
   final String runtimeDir;
 
-  /// Custom URI mappings, such as "dart:foo" -> "path/to/foo.dart"
-  final Map<String, String> customUrlMappings;
-
-  CompilerOptions({this.checkSdk: false, this.dumpInfo: false,
-      this.dumpInfoFile, this.forceCompile: false, this.outputDir,
-      this.useColors: true, this.relaxedCasts: true,
-      this.useMultiPackage: false, this.packageRoot: 'packages/',
-      this.packagePaths: const <String>[], this.resources: const <String>[],
-      this.inferDownwards: RulesOptions.inferDownwardsDefault,
-      this.inferFromOverrides: ResolverOptions.inferFromOverridesDefault,
-      this.inferTransitively: ResolverOptions.inferTransitivelyDefault,
-      this.onlyInferConstsAndFinalFields: ResolverOptions.onlyInferConstAndFinalFieldsDefault,
-      this.nonnullableTypes: TypeOptions.NONNULLABLE_TYPES, this.help: false,
-      this.useMockSdk: false, this.dartSdkPath, this.logLevel: Level.SEVERE,
-      this.emitSourceMaps: true, this.entryPointFile: null,
-      this.serverMode: false, this.useImplicitHtml: false,
+  CompilerOptions({this.strongOptions: const StrongModeOptions(),
+      this.sourceOptions: const SourceResolverOptions(),
+      this.codegenOptions: const CodegenOptions(), this.checkSdk: false,
+      this.dumpInfo: false, this.dumpInfoFile, this.useColors: true,
+      this.help: false, this.logLevel: Level.SEVERE, this.serverMode: false,
       this.enableHashing: false, this.host: 'localhost', this.port: 8080,
-      this.runtimeDir, this.customUrlMappings: const {}});
+      this.runtimeDir});
 }
 
 /// Parses options from the command-line
@@ -261,66 +169,42 @@ CompilerOptions parseOptions(List<String> argv) {
   var entryPointFile = args.rest.length == 0 ? null : args.rest.first;
 
   return new CompilerOptions(
+      codegenOptions: new CodegenOptions(
+          emitSourceMaps: args['source-maps'],
+          forceCompile: args['force-compile'] || serverMode,
+          outputDir: outputDir),
+      sourceOptions: new SourceResolverOptions(
+          useMockSdk: args['mock-sdk'],
+          dartSdkPath: sdkPath,
+          entryPointFile: entryPointFile,
+          useImplicitHtml: serverMode && entryPointFile.endsWith('.dart'),
+          customUrlMappings: customUrlMappings,
+          useMultiPackage: args['use-multi-package'],
+          packageRoot: args['package-root'],
+          packagePaths: args['package-paths'].split(','),
+          resources: args['resources']
+              .split(',')
+              .where((s) => s.isNotEmpty)
+              .toList()),
+      strongOptions: new StrongModeOptions.fromArguments(args),
       checkSdk: args['sdk-check'],
       dumpInfo: dumpInfo,
       dumpInfoFile: args['dump-info-file'],
-      forceCompile: args['force-compile'] || serverMode,
-      outputDir: outputDir,
-      relaxedCasts: args['relaxed-casts'],
       useColors: useColors,
-      customUrlMappings: customUrlMappings,
-      useMultiPackage: args['use-multi-package'],
-      packageRoot: args['package-root'],
-      packagePaths: args['package-paths'].split(','),
-      resources: args['resources']
-          .split(',')
-          .where((s) => s.isNotEmpty)
-          .toList(),
-      inferDownwards: args['infer-downwards'],
-      inferFromOverrides: args['infer-from-overrides'],
-      inferTransitively: args['infer-transitively'],
-      onlyInferConstsAndFinalFields: args['infer-only-finals'],
-      nonnullableTypes: optionsToList(args['nonnullable'],
-          defaultValue: TypeOptions.NONNULLABLE_TYPES),
       help: showUsage,
-      useMockSdk: args['mock-sdk'],
-      dartSdkPath: sdkPath,
       logLevel: logLevel,
-      emitSourceMaps: args['source-maps'],
-      entryPointFile: entryPointFile,
       serverMode: serverMode,
-      useImplicitHtml: serverMode && entryPointFile.endsWith('.dart'),
       enableHashing: enableHashing,
       host: args['host'],
       port: int.parse(args['port']),
       runtimeDir: runtimeDir);
 }
 
-final ArgParser argParser = new ArgParser()
-  // resolver/checker options
+final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
   ..addFlag('sdk-check',
       abbr: 's', help: 'Typecheck sdk libs', defaultsTo: false)
   ..addFlag('mock-sdk',
       abbr: 'm', help: 'Use a mock Dart SDK', defaultsTo: false)
-  ..addFlag('relaxed-casts',
-      help: 'Cast between Dart assignable types', defaultsTo: true)
-  ..addOption('nonnullable',
-      abbr: 'n',
-      help: 'Comma separated string of non-nullable types',
-      defaultsTo: null)
-  ..addFlag('infer-downwards',
-      help: 'Infer types downwards from local context',
-      defaultsTo: RulesOptions.inferDownwardsDefault)
-  ..addFlag('infer-from-overrides',
-      help: 'Infer unspecified types of fields and return types from\n'
-      'definitions in supertypes',
-      defaultsTo: ResolverOptions.inferFromOverridesDefault)
-  ..addFlag('infer-transitively',
-      help: 'Infer consts/fields from definitions in other libraries',
-      defaultsTo: ResolverOptions.inferTransitivelyDefault)
-  ..addFlag('infer-only-finals',
-      help: 'Do not infer non-const or non-final fields',
-      defaultsTo: ResolverOptions.onlyInferConstAndFinalFieldsDefault)
 
   // input/output options
   ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
@@ -368,7 +252,7 @@ final ArgParser argParser = new ArgParser()
   ..addOption('dump-info-file',
       abbr: 'f',
       help: 'Dump info json file (requires dump-info)',
-      defaultsTo: null);
+      defaultsTo: null));
 
 /// Tries to find the `lib/runtime/` directory of the dev_compiler package. This
 /// works when running devc from it's sources or from a snapshot that is

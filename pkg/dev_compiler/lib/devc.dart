@@ -53,7 +53,7 @@ abstract class AbstractCompiler {
 class Compiler implements AbstractCompiler {
   final CompilerOptions options;
   final AnalysisContext context;
-  final CheckerReporter _reporter;
+  final CompilerReporter _reporter;
   final TypeRules rules;
   final CodeChecker _checker;
   final SourceNode _entryNode;
@@ -63,8 +63,12 @@ class Compiler implements AbstractCompiler {
   bool _failure = false;
 
   factory Compiler(CompilerOptions options,
-      {AnalysisContext context, CheckerReporter reporter}) {
-    if (context == null) context = createAnalysisContext(options);
+      {AnalysisContext context, CompilerReporter reporter}) {
+    var strongOpts = options.strongOptions;
+    var sourceOpts = options.sourceOptions;
+    if (context == null) {
+      context = createAnalysisContextWithSources(strongOpts, sourceOpts);
+    }
 
     if (reporter == null) {
       reporter = options.dumpInfo
@@ -72,15 +76,16 @@ class Compiler implements AbstractCompiler {
           : new LogReporter(context, useColors: options.useColors);
     }
     var graph = new SourceGraph(context, reporter, options);
-    var rules = new RestrictedRules(context.typeProvider, options: options);
-    var checker = new CodeChecker(rules, reporter, options);
+    var rules = new RestrictedRules(context.typeProvider,
+        options: options.strongOptions);
+    var checker = new CodeChecker(rules, reporter, strongOpts);
 
-    var inputFile = options.entryPointFile;
+    var inputFile = sourceOpts.entryPointFile;
     var inputUri = inputFile.startsWith('dart:') ||
             inputFile.startsWith('package:')
         ? Uri.parse(inputFile)
-        : new Uri.file(path.absolute(options.useImplicitHtml
-            ? ResolverOptions.implicitHtmlFile
+        : new Uri.file(path.absolute(sourceOpts.useImplicitHtml
+            ? SourceResolverOptions.implicitHtmlFile
             : inputFile));
     var entryNode = graph.nodeFromUri(inputUri);
 
@@ -90,7 +95,7 @@ class Compiler implements AbstractCompiler {
 
   Compiler._(this.options, this.context, this._reporter, this.rules,
       this._checker, this._entryNode) {
-    if (options.outputDir != null) {
+    if (outputDir != null) {
       _generators.add(new JSGenerator(this));
     }
     // TODO(sigmund): refactor to support hashing of the dart output?
@@ -98,6 +103,7 @@ class Compiler implements AbstractCompiler {
   }
 
   Uri get entryPointUri => _entryNode.uri;
+  String get outputDir => options.codegenOptions.outputDir;
 
   bool _buildSource(SourceNode node) {
     if (node is HtmlSourceNode) {
@@ -116,7 +122,7 @@ class Compiler implements AbstractCompiler {
   }
 
   void _buildHtmlFile(HtmlSourceNode node) {
-    if (options.outputDir == null) return;
+    if (outputDir == null) return;
     var uri = node.source.uri;
     _reporter.enterHtml(uri);
     var output = generateEntryHtml(node, options);
@@ -126,7 +132,7 @@ class Compiler implements AbstractCompiler {
     }
     _reporter.leaveHtml();
     var filename = path.basename(node.uri.path);
-    String outputFile = path.join(options.outputDir, filename);
+    String outputFile = path.join(outputDir, filename);
     new File(outputFile).writeAsStringSync(output);
   }
 
@@ -134,10 +140,10 @@ class Compiler implements AbstractCompiler {
     // ResourceSourceNodes files that just need to be copied over to the output
     // location. These can be external dependencies or pieces of the
     // dev_compiler runtime.
-    if (options.outputDir == null) return;
+    if (outputDir == null) return;
     var filepath = resourceOutputPath(node.uri, _entryNode.uri);
     assert(filepath != null);
-    filepath = path.join(options.outputDir, filepath);
+    filepath = path.join(outputDir, filepath);
     var dir = path.dirname(filepath);
     new Directory(dir).createSync(recursive: true);
     new File.fromUri(node.source.uri).copySync(filepath);
@@ -182,7 +188,7 @@ class Compiler implements AbstractCompiler {
     }
     if (failureInLib) {
       _failure = true;
-      if (!options.forceCompile) return;
+      if (!options.codegenOptions.forceCompile) return;
     }
 
     for (var cg in _generators) {
@@ -221,7 +227,7 @@ class Compiler implements AbstractCompiler {
     var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
     _log.fine('Compiled ${_libraries.length} libraries in ${time} s\n');
     return new CheckerResults(
-        _libraries, rules, _failure || options.forceCompile);
+        _libraries, rules, _failure || options.codegenOptions.forceCompile);
   }
 
   void _runAgain() {
@@ -245,7 +251,7 @@ class Compiler implements AbstractCompiler {
     var result = (_reporter as SummaryReporter).result;
     if (!options.serverMode) print(summaryToString(result));
     var filepath = options.serverMode
-        ? path.join(options.outputDir, 'messages.json')
+        ? path.join(outputDir, 'messages.json')
         : options.dumpInfoFile;
     if (filepath == null) return;
     new File(filepath).writeAsStringSync(JSON.encode(result.toJsonMap()));
@@ -260,15 +266,15 @@ class CompilerServer {
   final String _entryPath;
 
   factory CompilerServer(CompilerOptions options) {
-    var entryPath = path.basename(options.entryPointFile);
+    var entryPath = path.basename(options.sourceOptions.entryPointFile);
     var extension = path.extension(entryPath);
-    if (extension != '.html' && !options.useImplicitHtml) {
+    if (extension != '.html' && !options.sourceOptions.useImplicitHtml) {
       print('error: devc in server mode requires an HTML or Dart entry point.');
       exit(1);
     }
 
     // TODO(sigmund): allow running without a dir, but keep output in memory?
-    var outDir = options.outputDir;
+    var outDir = options.codegenOptions.outputDir;
     if (outDir == null) {
       print('error: devc in server mode also requires specifying and '
           'output location for generated code.');
@@ -283,8 +289,9 @@ class CompilerServer {
   CompilerServer._(
       Compiler compiler, this.outDir, this.host, this.port, String entryPath)
       : this.compiler = compiler,
-        this._entryPath = compiler.options.useImplicitHtml
-            ? ResolverOptions.implicitHtmlFile
+        // TODO(jmesserly): this logic is duplicated in a few places
+        this._entryPath = compiler.options.sourceOptions.useImplicitHtml
+            ? SourceResolverOptions.implicitHtmlFile
             : entryPath;
 
   Future start() async {

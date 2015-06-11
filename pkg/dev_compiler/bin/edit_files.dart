@@ -135,7 +135,7 @@ void main(List<String> argv) {
   }
 
   var filename = args.rest.first;
-  var options = new CompilerOptions(
+  var options = new SourceResolverOptions(
       dartSdkPath: sdkDir.path,
       useMultiPackage: args['use-multi-package'],
       packageRoot: args['package-root'],
@@ -150,7 +150,8 @@ void main(List<String> argv) {
       ? new RegExp(args['include-pattern'])
       : null;
 
-  var context = createAnalysisContext(options);
+  var context =
+      createAnalysisContextWithSources(new StrongModeOptions(), options);
   var visitor = new EditFileSummaryVisitor(context, args['level'],
       args['checkout-files-executable'], args['checkout-files-arg'],
       includePattern, excludePattern);

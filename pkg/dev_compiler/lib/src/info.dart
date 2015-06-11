@@ -6,8 +6,6 @@
 /// emitters to generate code.
 library dev_compiler.src.info;
 
-import 'dart:mirrors';
-
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart' as analyzer;
@@ -410,7 +408,7 @@ abstract class InvalidOverride extends StaticError {
   /// Type (class or interface) that provides the base declaration.
   final InterfaceType base;
 
-  /// Actual type of the overriden member.
+  /// Actual type of the overridden member.
   final DartType subType;
 
   /// Actual type of the base member.
@@ -513,24 +511,6 @@ class InvalidSuperInvocation extends StaticError {
   String get message => "super call must be last in an initializer list "
       "(see http://goo.gl/q1T4BB): $node";
 }
-
-/// Automatically infer list of types by scanning this library using mirrors.
-final List<Type> infoTypes = () {
-  var allTypes = new Set();
-  var baseTypes = new Set();
-  var infoMirror = reflectClass(StaticInfo);
-  var libMirror = infoMirror.owner as LibraryMirror;
-  var declarations = libMirror.declarations.values;
-  for (ClassMirror cls in declarations.where((d) => d is ClassMirror)) {
-    if (cls.isSubtypeOf(infoMirror)) {
-      allTypes.add(cls);
-      baseTypes.add(cls.superclass);
-    }
-  }
-  allTypes.removeAll(baseTypes);
-  return new List<Type>.from(allTypes.map((mirror) => mirror.reflectedType))
-    ..sort((t1, t2) => '$t1'.compareTo('$t2'));
-}();
 
 class AnalyzerError extends Message {
   factory AnalyzerError.from(analyzer.AnalysisError error) {

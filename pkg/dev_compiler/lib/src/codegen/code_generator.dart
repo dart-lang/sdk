@@ -16,7 +16,7 @@ import 'package:dev_compiler/devc.dart' show AbstractCompiler;
 import 'package:dev_compiler/src/info.dart';
 import 'package:dev_compiler/src/utils.dart' show canonicalLibraryName;
 import 'package:dev_compiler/src/checker/rules.dart';
-import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/options.dart' show CodegenOptions;
 
 abstract class CodeGenerator {
   final AbstractCompiler compiler;
@@ -24,15 +24,15 @@ abstract class CodeGenerator {
   final Uri root;
   final TypeRules rules;
   final AnalysisContext context;
-  final CompilerOptions options;
+  final CodegenOptions options;
 
   CodeGenerator(AbstractCompiler compiler)
       : compiler = compiler,
-        outDir = path.absolute(compiler.options.outputDir),
+        outDir = path.absolute(compiler.options.codegenOptions.outputDir),
         root = compiler.entryPointUri,
         rules = compiler.rules,
         context = compiler.context,
-        options = compiler.options;
+        options = compiler.options.codegenOptions;
 
   /// Return a hash, if any, that can be used for caching purposes. When two
   /// invocations to this function return the same hash, the underlying

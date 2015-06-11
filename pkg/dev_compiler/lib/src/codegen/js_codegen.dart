@@ -26,7 +26,7 @@ import 'package:dev_compiler/src/js/js_ast.dart' show js;
 import 'package:dev_compiler/devc.dart' show AbstractCompiler;
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/info.dart';
-import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/options.dart' show CodegenOptions;
 import 'package:dev_compiler/src/utils.dart';
 
 import 'code_generator.dart';
@@ -51,7 +51,7 @@ const DSEND = 'dsend';
 
 class JSCodegenVisitor extends GeneralizingAstVisitor {
   final AbstractCompiler compiler;
-  final CompilerOptions options;
+  final CodegenOptions options;
   final TypeRules rules;
   final LibraryInfo libraryInfo;
 
@@ -99,7 +99,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   JSCodegenVisitor(AbstractCompiler compiler, this.libraryInfo,
       this._extensionTypes, this._fieldsNeedingStorage)
       : compiler = compiler,
-        options = compiler.options,
+        options = compiler.options.codegenOptions,
         rules = compiler.rules,
         root = compiler.entryPointUri {
     _loader = new ModuleItemLoadOrder(_emitModuleItem);

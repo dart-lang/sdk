@@ -18,7 +18,8 @@ import 'package:path/path.dart' as path;
 
 void main() {
   var options = new CompilerOptions(
-      runtimeDir: '/dev_compiler_runtime/', useMockSdk: true);
+      runtimeDir: '/dev_compiler_runtime/',
+      sourceOptions: new SourceResolverOptions(useMockSdk: true));
   MemoryResourceProvider testResourceProvider;
   ResourceUriResolver testUriResolver;
   var context;
@@ -62,7 +63,9 @@ void main() {
     /// tests (since some tests modify the state of the files).
     testResourceProvider = createTestResourceProvider(testFiles);
     testUriResolver = new ResourceUriResolver(testResourceProvider);
-    context = createAnalysisContext(options, fileResolvers: [testUriResolver]);
+    context = createAnalysisContextWithSources(
+        options.strongOptions, options.sourceOptions,
+        fileResolvers: [testUriResolver]);
     graph = new SourceGraph(context, new LogReporter(context), options);
   });
 
@@ -639,13 +642,14 @@ void main() {
 
   group('server-mode', () {
     setUp(() {
-      var options2 = new CompilerOptions(
+      var opts = new CompilerOptions(
           runtimeDir: '/dev_compiler_runtime/',
-          useMockSdk: true,
+          sourceOptions: new SourceResolverOptions(useMockSdk: true),
           serverMode: true);
-      context =
-          createAnalysisContext(options2, fileResolvers: [testUriResolver]);
-      graph = new SourceGraph(context, new LogReporter(context), options2);
+      context = createAnalysisContextWithSources(
+          opts.strongOptions, opts.sourceOptions,
+          fileResolvers: [testUriResolver]);
+      graph = new SourceGraph(context, new LogReporter(context), opts);
     });
 
     test('messages widget is automatically included', () {
@@ -1086,8 +1090,9 @@ void main() {
 
     group('null for non-existing files', () {
       setUp(() {
-        context =
-            createAnalysisContext(options, fileResolvers: [testUriResolver]);
+        context = createAnalysisContextWithSources(
+            options.strongOptions, options.sourceOptions,
+            fileResolvers: [testUriResolver]);
         graph = new SourceGraph(context, new LogReporter(context), options);
       });
 

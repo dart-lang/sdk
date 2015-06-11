@@ -17,8 +17,8 @@ import 'package:analyzer/src/generated/utilities_collection.dart'
     show DirectedGraph;
 import 'package:logging/logging.dart' as logger;
 
-import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart';
+import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
 
 final _log = new logger.Logger('dev_compiler.src.resolver');
 
@@ -26,7 +26,7 @@ final _log = new logger.Logger('dev_compiler.src.resolver');
 /// on the value of the initializer, and on fields and methods based on
 /// overridden members in super classes.
 class LibraryResolverWithInference extends LibraryResolver {
-  final ResolverOptions _options;
+  final StrongModeOptions _options;
 
   LibraryResolverWithInference(context, this._options) : super(context);
 
@@ -213,7 +213,7 @@ class LibraryResolverWithInference extends LibraryResolver {
         continue;
       }
 
-      // When field is final and overriden getter is dynamic, we can infer from
+      // When field is final and overridden getter is dynamic, we can infer from
       // the RHS without breaking subtyping rules (return type is covariant).
       if (type.returnType.isDynamic) {
         if (variables.isFinal && variable.initializer != null) {
@@ -356,7 +356,7 @@ class RestrictedResolverVisitor extends ResolverVisitor {
   final _visitedInitializers = new Set<VariableDeclaration>();
 
   RestrictedResolverVisitor(Library library, Source source,
-      TypeProvider typeProvider, ResolverOptions options)
+      TypeProvider typeProvider, StrongModeOptions options)
       : _typeProvider = typeProvider,
         super.con1(library, source, typeProvider,
             typeAnalyzerFactory: RestrictedStaticTypeAnalyzer.constructor);

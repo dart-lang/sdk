@@ -9,8 +9,8 @@ import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 import 'package:dev_compiler/src/info.dart';
-import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/utils.dart' as utils;
+import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
 
 abstract class TypeRules {
   final TypeProvider provider;
@@ -116,7 +116,7 @@ typedef void MissingTypeReporter(Expression expr);
 
 class RestrictedRules extends TypeRules {
   MissingTypeReporter reportMissingType = null;
-  final RulesOptions options;
+  final StrongModeOptions options;
   final List<DartType> _nonnullableTypes;
   DownwardsInference inferrer;
 

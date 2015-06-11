@@ -16,8 +16,9 @@ import '../test_util.dart' show testDirectory;
 void main() {
   test('checker can run on itself ', () {
     var options = new CompilerOptions(
-        entryPointFile: '$testDirectory/all_tests.dart',
-        dartSdkPath: getSdkDir().path);
+        sourceOptions: new SourceResolverOptions(
+            entryPointFile: '$testDirectory/all_tests.dart',
+            dartSdkPath: getSdkDir().path));
     new Compiler(options).run();
   });
 }

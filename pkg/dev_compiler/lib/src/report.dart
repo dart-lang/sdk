@@ -42,11 +42,16 @@ class Message {
 
 // Interface used to report error messages from the checker.
 abstract class CheckerReporter {
+  void log(Message message);
+}
+
+// Interface used to report error messages from the compiler.
+abstract class CompilerReporter extends CheckerReporter {
   final AnalysisContext _context;
   CompilationUnit _unit;
   Source _unitSource;
 
-  CheckerReporter(this._context);
+  CompilerReporter(this._context);
 
   /// Called when starting to process a library.
   void enterLibrary(Uri uri);
@@ -67,8 +72,6 @@ abstract class CheckerReporter {
     _unitSource = null;
   }
 
-  void log(Message message);
-
   // Called in server-mode.
   void clearLibrary(Uri uri);
   void clearHtml(Uri uri);
@@ -81,7 +84,7 @@ abstract class CheckerReporter {
 final _checkerLogger = new Logger('dev_compiler.checker');
 
 /// Simple reporter that logs checker messages as they are seen.
-class LogReporter extends CheckerReporter {
+class LogReporter extends CompilerReporter {
   final bool useColors;
   Source _current;
 
@@ -112,7 +115,7 @@ class LogReporter extends CheckerReporter {
 }
 
 /// A reporter that gathers all the information in a [GlobalSummary].
-class SummaryReporter extends CheckerReporter {
+class SummaryReporter extends CompilerReporter {
   GlobalSummary result = new GlobalSummary();
   IndividualSummary _current;
   final Level _level;
@@ -189,10 +192,9 @@ String summaryToString(GlobalSummary summary) {
   // Declare columns and add header
   table.declareColumn('package');
   table.declareColumn('AnalyzerError', abbreviate: true);
-  var activeInfoTypes =
-      infoTypes.where((type) => counter.totals['$type'] != null);
-  activeInfoTypes
-      .forEach((type) => table.declareColumn('$type', abbreviate: true));
+
+  var activeInfoTypes = counter.totals.keys;
+  activeInfoTypes.forEach((t) => table.declareColumn(t, abbreviate: true));
   table.declareColumn('LinesOfCode', abbreviate: true);
   table.addHeader();
 
@@ -201,8 +203,7 @@ String summaryToString(GlobalSummary summary) {
   for (var package in counter.errorCount.keys) {
     appendCount(package);
     appendCount(counter.errorCount[package]['AnalyzerError']);
-    activeInfoTypes
-        .forEach((e) => appendCount(counter.errorCount[package]['$e']));
+    activeInfoTypes.forEach((t) => appendCount(counter.errorCount[package][t]));
     appendCount(counter.linesOfCode[package]);
   }
 
@@ -211,7 +212,7 @@ String summaryToString(GlobalSummary summary) {
   table.addHeader();
   table.addEntry('total');
   appendCount(counter.totals['AnalyzerError']);
-  activeInfoTypes.forEach((type) => appendCount(counter.totals['$type']));
+  activeInfoTypes.forEach((t) => appendCount(counter.totals[t]));
   appendCount(counter.totalLinesOfCode);
 
   appendPercent(count, total) {
@@ -223,8 +224,7 @@ String summaryToString(GlobalSummary summary) {
   var totalLOC = counter.totalLinesOfCode;
   table.addEntry('%');
   appendPercent(counter.totals['AnalyzerError'], totalLOC);
-  activeInfoTypes
-      .forEach((type) => appendPercent(counter.totals['$type'], totalLOC));
+  activeInfoTypes.forEach((t) => appendPercent(counter.totals[t], totalLOC));
   appendCount(100);
 
   return table.toString();

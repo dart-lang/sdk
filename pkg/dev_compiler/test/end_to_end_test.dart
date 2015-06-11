@@ -14,7 +14,8 @@ import 'test_util.dart' show testDirectory;
 main() {
   _check(testFile) {
     var options = new CompilerOptions(
-        entryPointFile: '$testDirectory/$testFile.dart', useMockSdk: true);
+        sourceOptions: new SourceResolverOptions(
+            useMockSdk: true, entryPointFile: '$testDirectory/$testFile.dart'));
     new Compiler(options).run();
   }
 

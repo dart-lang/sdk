@@ -13,23 +13,40 @@ import 'package:analyzer/src/generated/source.dart' show DartUriResolver;
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:path/path.dart' as path;
 
+import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
+
 import 'checker/resolver.dart';
 import 'dart_sdk.dart';
 import 'multi_package_resolver.dart';
 import 'options.dart';
 
-/// Creates an AnalysisContext with dev_compiler type rules and inference.
+/// Creates an [AnalysisContext] with dev_compiler type rules and inference,
+/// using [createSourceFactory] to set up its [SourceFactory].
+AnalysisContext createAnalysisContextWithSources(
+    StrongModeOptions strongOptions, SourceResolverOptions srcOptions,
+    {DartUriResolver sdkResolver, List fileResolvers}) {
+  var srcFactory = createSourceFactory(srcOptions,
+      sdkResolver: sdkResolver, fileResolvers: fileResolvers);
+  return createAnalysisContext(strongOptions)..sourceFactory = srcFactory;
+}
+
+/// Creates an analysis context that contains our restricted typing rules.
+AnalysisContext createAnalysisContext(StrongModeOptions options) {
+  AnalysisContextImpl res = AnalysisEngine.instance.createAnalysisContext();
+  res.libraryResolverFactory =
+      (context) => new LibraryResolverWithInference(context, options);
+  return res;
+}
+
+/// Creates a SourceFactory configured by the [options].
 ///
 /// Use [options.useMockSdk] to specify the SDK mode, or use [sdkResolver]
 /// to entirely override the DartUriResolver.
 ///
 /// If supplied, [fileResolvers] will override the default `file:` and
 /// `package:` URI resolvers.
-///
-AnalysisContext createAnalysisContext(CompilerOptions options,
+SourceFactory createSourceFactory(SourceResolverOptions options,
     {DartUriResolver sdkResolver, List fileResolvers}) {
-  var context = _initContext(options);
-
   var sdkResolver = options.useMockSdk
       ? createMockSdkResolver(mockSdkSources)
       : createSdkPathResolver(options.dartSdkPath);
@@ -49,8 +66,7 @@ AnalysisContext createAnalysisContext(CompilerOptions options,
         : new PackageUriResolver([new JavaFile(options.packageRoot)]));
   }
   resolvers.addAll(fileResolvers);
-  context.sourceFactory = new SourceFactory(resolvers);
-  return context;
+  return new SourceFactory(resolvers);
 }
 
 /// Creates a [DartUriResolver] that uses a mock 'dart:' library contents.
@@ -61,8 +77,8 @@ DartUriResolver createMockSdkResolver(Map<String, String> mockSources) =>
 DartUriResolver createSdkPathResolver(String sdkPath) =>
     new DartUriResolver(new DirectoryBasedDartSdk(new JavaFile(sdkPath)));
 
-UriResolver _createImplicitEntryResolver(ResolverOptions options) {
-  var entry = path.absolute(ResolverOptions.implicitHtmlFile);
+UriResolver _createImplicitEntryResolver(SourceResolverOptions options) {
+  var entry = path.absolute(SourceResolverOptions.implicitHtmlFile);
   var src = path.absolute(options.entryPointFile);
   var provider = new MemoryResourceProvider();
   provider.newFile(
@@ -82,14 +98,4 @@ class ExistingSourceUriResolver implements UriResolver {
     return src.exists() ? src : null;
   }
   Uri restoreAbsolute(Source source) => resolver.restoreAbsolute(source);
-}
-
-/// Creates an analysis context that contains our restricted typing rules.
-AnalysisContext _initContext(ResolverOptions options) {
-  var analysisOptions = new AnalysisOptionsImpl()..cacheSize = 512;
-  AnalysisContextImpl res = AnalysisEngine.instance.createAnalysisContext();
-  res.analysisOptions = analysisOptions;
-  res.libraryResolverFactory =
-      (context) => new LibraryResolverWithInference(context, options);
-  return res;
 }

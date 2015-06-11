@@ -11,9 +11,9 @@ import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
 import 'package:logging/logging.dart' as logger;
 
 import 'package:dev_compiler/src/info.dart';
-import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart' show CheckerReporter;
 import 'package:dev_compiler/src/utils.dart' show getMemberType;
+import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
 import 'rules.dart';
 
 /// Checks for overriding declarations of fields and methods. This is used to
@@ -24,7 +24,7 @@ class _OverrideChecker {
   final TypeRules _rules;
   final CheckerReporter _reporter;
   final bool _inferFromOverrides;
-  _OverrideChecker(this._rules, this._reporter, CompilerOptions options)
+  _OverrideChecker(this._rules, this._reporter, StrongModeOptions options)
       : _inferFromOverrides = options.inferFromOverrides;
 
   void check(ClassDeclaration node) {
@@ -342,7 +342,7 @@ class CodeChecker extends RecursiveAstVisitor {
   bool get failure => _failure || _overrideChecker._failure;
 
   CodeChecker(
-      TypeRules rules, CheckerReporter reporter, CompilerOptions options)
+      TypeRules rules, CheckerReporter reporter, StrongModeOptions options)
       : _rules = rules,
         _reporter = reporter,
         _overrideChecker = new _OverrideChecker(rules, reporter, options);

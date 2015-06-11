@@ -955,7 +955,7 @@ void main() {
     }, inferFromOverrides: true);
   });
 
-  test('do not infer overriden fields that explicitly say dynamic', () {
+  test('do not infer overridden fields that explicitly say dynamic', () {
     for (bool infer in [true, false]) {
       testChecker({
         '/main.dart': '''

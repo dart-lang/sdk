@@ -7,9 +7,14 @@ library dev_compiler.test.report_test;
 
 import 'package:test/test.dart';
 
-import 'package:dev_compiler/src/testing.dart';
+import 'package:dev_compiler/devc.dart';
+import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
+
+import 'package:dev_compiler/src/analysis_context.dart';
+import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart';
 import 'package:dev_compiler/src/summary.dart';
+import 'package:dev_compiler/src/testing.dart';
 
 void main() {
   test('toJson/parse', () {
@@ -28,11 +33,16 @@ void main() {
           }
       '''.replaceAll('\n          ', '\n'),
     };
-    testChecker(files);
 
-    SummaryReporter reporter;
-    testChecker(files,
-        createReporter: (x) => reporter = new SummaryReporter(x));
+    var provider = createTestResourceProvider(files);
+    var uriResolver = new TestUriResolver(provider);
+    var srcOpts = new SourceResolverOptions(
+        entryPointFile: '/main.dart', useMockSdk: true);
+    var context = createAnalysisContextWithSources(
+        new StrongModeOptions(), srcOpts, fileResolvers: [uriResolver]);
+    var reporter = new SummaryReporter(context);
+    new Compiler(new CompilerOptions(sourceOptions: srcOpts),
+        context: context, reporter: reporter).run();
 
     _verifySummary(GlobalSummary summary) {
       var mainLib = summary.loose['file:///main.dart'];

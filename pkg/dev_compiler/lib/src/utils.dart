@@ -79,7 +79,7 @@ String _toIdentifier(String name) {
 final _invalidCharInIdentifier = new RegExp(r'[^A-Za-z_$0-9]');
 
 /// Returns all libraries transitively imported or exported from [start].
-Iterable<LibraryElement> reachableLibraries(LibraryElement start) {
+List<LibraryElement> reachableLibraries(LibraryElement start) {
   var results = <LibraryElement>[];
   var seen = new Set();
   void find(LibraryElement lib) {

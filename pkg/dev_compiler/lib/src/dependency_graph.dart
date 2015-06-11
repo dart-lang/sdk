@@ -44,7 +44,7 @@ class SourceGraph {
 
   /// Analyzer used to resolve source files.
   final AnalysisContext _context;
-  final CheckerReporter _reporter;
+  final CompilerReporter _reporter;
   final CompilerOptions _options;
 
   SourceGraph(this._context, this._reporter, this._options) {
@@ -78,7 +78,7 @@ class SourceGraph {
     });
   }
 
-  List<String> get resources => _options.resources;
+  List<String> get resources => _options.sourceOptions.resources;
 }
 
 /// A node in the import graph representing a source file.

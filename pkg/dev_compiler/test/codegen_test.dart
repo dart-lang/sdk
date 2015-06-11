@@ -62,13 +62,16 @@ main(arguments) {
     // they're more self-contained.
     var runtimeDir = path.join(path.dirname(testDirectory), 'lib', 'runtime');
     var options = new CompilerOptions(
-        outputDir: subDir == null ? actualDir : path.join(actualDir, subDir),
+        sourceOptions: new SourceResolverOptions(
+            entryPointFile: entryPoint, dartSdkPath: sdkPath),
+        codegenOptions: new CodegenOptions(
+            outputDir: subDir == null
+                ? actualDir
+                : path.join(actualDir, subDir),
+            emitSourceMaps: sourceMaps,
+            forceCompile: checkSdk),
         useColors: false,
-        emitSourceMaps: sourceMaps,
-        forceCompile: checkSdk,
         checkSdk: checkSdk,
-        entryPointFile: entryPoint,
-        dartSdkPath: sdkPath,
         runtimeDir: runtimeDir,
         serverMode: serverMode,
         enableHashing: serverMode);

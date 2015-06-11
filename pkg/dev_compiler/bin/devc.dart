@@ -23,13 +23,14 @@ void main(List<String> args) {
   var options = parseOptions(args);
   if (options.help) _showUsageAndExit();
 
-  if (!options.useMockSdk && options.dartSdkPath == null) {
+  var srcOpts = options.sourceOptions;
+  if (!srcOpts.useMockSdk && srcOpts.dartSdkPath == null) {
     print('Could not automatically find dart sdk path.');
     print('Please pass in explicitly: --dart-sdk <path>');
     exit(1);
   }
 
-  if (options.entryPointFile == null) {
+  if (srcOpts.entryPointFile == null) {
     print('Expected filename.');
     _showUsageAndExit();
   }

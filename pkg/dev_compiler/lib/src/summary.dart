@@ -16,7 +16,7 @@ abstract class Summary {
 
 /// Summary for the entire program.
 class GlobalSummary implements Summary {
-  /// Summary from the system libaries.
+  /// Summary from the system libraries.
   final Map<String, LibrarySummary> system = <String, LibrarySummary>{};
 
   /// Summary for libraries in packages.
