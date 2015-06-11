@@ -48,7 +48,7 @@ class ElementVisitor extends elements_visitor.BaseElementVisitor {
 }
 
 void main(List<String> arguments) {
-  useApi();
+  useApi(null);
   dart2js.main(arguments);
   dart2jslib.isPublicName(null);
   useConstant(null, null, null, null, null);
@@ -79,9 +79,10 @@ void main(List<String> arguments) {
   useTreeVisitors();
 }
 
-useApi() {
-  api.ReadStringFromUri uri;
+useApi(api.ReadStringFromUri uri) {
 }
+
+
 
 void useConstant(constants.ConstantValue constant,
                  constants.ConstantExpression expression,

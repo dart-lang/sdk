@@ -1334,7 +1334,6 @@ abstract class Compiler implements DiagnosticListener {
         // The maximum number of imports chains to show.
         final int compactChainLimit = verbose ? 20 : 10;
         int chainCount = 0;
-        bool limitExceeded = false;
         loadedLibraries.forEachImportChain(DART_MIRRORS,
             callback: (Link<Uri> importChainReversed) {
           Link<CodeLocation> compactImportChain = const Link<CodeLocation>();

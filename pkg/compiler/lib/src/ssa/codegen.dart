@@ -1507,7 +1507,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     use(node.receiver);
     js.Expression object = pop();
-    String name = node.selector.name;
     String methodName;
     List<js.Expression> arguments = visitArguments(node.inputs);
     Element target = node.element;
@@ -1892,7 +1891,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (instruction is !HRelational) return false;
 
       HRelational relational = instruction;
-      BinaryOperation operation = relational.operation(backend.constantSystem);
 
       HInstruction left = relational.left;
       HInstruction right = relational.right;
@@ -2460,7 +2458,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       assert(node.isRawCheck);
       HInstruction interceptor = node.interceptor;
-      LibraryElement coreLibrary = compiler.coreLibrary;
       ClassElement objectClass = compiler.objectClass;
       Element element = type.element;
       if (element == compiler.nullClass) {

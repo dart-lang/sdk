@@ -16,7 +16,6 @@ import '../io/source_information.dart';
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../resolution/semantic_visitor.dart';
 import '../resolution/operators.dart' as op;
-import '../scanner/scannerlib.dart' show Token, isUserDefinableOperator;
 import '../tree/tree.dart' as ast;
 import '../universe/universe.dart' show SelectorKind, CallStructure;
 import 'cps_ir_nodes.dart' as ir;
@@ -193,7 +192,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                                           ast.FunctionExpression node) {
     FunctionSignature signature = element.functionSignature;
     List<Local> parameters = <Local>[];
-    signature.orderedForEachParameter((e) => parameters.add(e));
+    signature.orderedForEachParameter(
+        (LocalParameterElement e) => parameters.add(e));
 
     if (element.isFactoryConstructor) {
       // Type arguments are passed in as extra parameters.

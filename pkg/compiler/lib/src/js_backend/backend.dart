@@ -1064,7 +1064,6 @@ class JavaScriptBackend extends Backend {
     if (cls == closureClass) {
       enqueue(enqueuer, findHelper('closureFromTearOff'), registry);
     }
-    ClassElement result = null;
     if (cls == compiler.stringClass || cls == jsStringClass) {
       addInterceptors(jsStringClass, enqueuer, registry);
     } else if (cls == compiler.listClass ||
@@ -2022,10 +2021,6 @@ class JavaScriptBackend extends Backend {
     }).then((_) {
       Uri uri = library.canonicalUri;
 
-      VariableElement findVariable(String name) {
-        return find(library, name);
-      }
-
       FunctionElement findMethod(String name) {
         return find(library, name);
       }
@@ -2037,29 +2032,25 @@ class JavaScriptBackend extends Backend {
       if (uri == DART_INTERCEPTORS) {
         getInterceptorMethod = findMethod('getInterceptor');
         getNativeInterceptorMethod = findMethod('getNativeInterceptor');
-
-        List<ClassElement> classes = [
-          jsInterceptorClass = findClass('Interceptor'),
-          jsStringClass = findClass('JSString'),
-          jsArrayClass = findClass('JSArray'),
-          // The int class must be before the double class, because the
-          // emitter relies on this list for the order of type checks.
-          jsIntClass = findClass('JSInt'),
-          jsPositiveIntClass = findClass('JSPositiveInt'),
-          jsUInt32Class = findClass('JSUInt32'),
-          jsUInt31Class = findClass('JSUInt31'),
-          jsDoubleClass = findClass('JSDouble'),
-          jsNumberClass = findClass('JSNumber'),
-          jsNullClass = findClass('JSNull'),
-          jsBoolClass = findClass('JSBool'),
-          jsMutableArrayClass = findClass('JSMutableArray'),
-          jsFixedArrayClass = findClass('JSFixedArray'),
-          jsExtendableArrayClass = findClass('JSExtendableArray'),
-          jsUnmodifiableArrayClass = findClass('JSUnmodifiableArray'),
-          jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject'),
-          jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject'),
-        ];
-
+        jsInterceptorClass = findClass('Interceptor');
+        jsStringClass = findClass('JSString');
+        jsArrayClass = findClass('JSArray');
+        // The int class must be before the double class, because the
+        // emitter relies on this list for the order of type checks.
+        jsIntClass = findClass('JSInt');
+        jsPositiveIntClass = findClass('JSPositiveInt');
+        jsUInt32Class = findClass('JSUInt32');
+        jsUInt31Class = findClass('JSUInt31');
+        jsDoubleClass = findClass('JSDouble');
+        jsNumberClass = findClass('JSNumber');
+        jsNullClass = findClass('JSNull');
+        jsBoolClass = findClass('JSBool');
+        jsMutableArrayClass = findClass('JSMutableArray');
+        jsFixedArrayClass = findClass('JSFixedArray');
+        jsExtendableArrayClass = findClass('JSExtendableArray');
+        jsUnmodifiableArrayClass = findClass('JSUnmodifiableArray');
+        jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject');
+        jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject');
         jsIndexableClass = findClass('JSIndexable');
         jsMutableIndexableClass = findClass('JSMutableIndexable');
       } else if (uri == DART_JS_HELPER) {

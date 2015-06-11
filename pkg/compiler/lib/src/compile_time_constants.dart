@@ -12,7 +12,6 @@ import 'dart_types.dart';
 import 'dart2jslib.dart' show Compiler, CompilerTask, MessageKind, WorldImpact, invariant;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show FunctionElementX;
-import 'helpers/helpers.dart';
 import 'resolution/resolution.dart';
 import 'resolution/operators.dart';
 import 'tree/tree.dart';

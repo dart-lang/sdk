@@ -5,7 +5,6 @@
 library tree_ir_builder;
 
 import '../dart2jslib.dart' as dart2js;
-import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import '../util/util.dart' show CURRENT_ELEMENT_SPANNABLE;
@@ -385,7 +384,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitNonTailThrow(cps_ir.NonTailThrow node) {
-    unexpectedNode(node);
+    return unexpectedNode(node);
   }
 
   Statement continueWithExpression(cps_ir.Reference continuation,
@@ -526,8 +525,6 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Expression visitCreateFunction(cps_ir.CreateFunction node) {
     FunctionDefinition def = makeSubFunction(node.definition);
-    FunctionType type = node.definition.element.type;
-    bool hasReturnType = !type.returnType.treatAsDynamic;
     return new FunctionExpression(def);
   }
 

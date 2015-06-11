@@ -6,7 +6,6 @@ library dart2js.new_js_emitter.model_emitter;
 
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../dart2jslib.dart' show Compiler;
-import '../../dart_types.dart' show DartType;
 import '../../elements/elements.dart' show ClassElement, FunctionElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show
@@ -478,17 +477,6 @@ class ModelEmitter {
   }
 
   List<js.Property> emitMetadata(Program program) {
-    // Unparses all given js-expressions (suitable for `expressionCompile`) and
-    // returns the result in a js-array.
-    // If the given [expressions] is null returns the empty js-array.
-    js.ArrayInitializer unparseExpressions(List<js.Expression> expressions) {
-      if (expressions == null) expressions = <js.Expression>[];
-      List<js.LiteralString> unparsedExpressions = expressions
-          .map((expr) => unparse(compiler, expr, protectForEval: false))
-          .toList();
-      return new js.ArrayInitializer(unparsedExpressions);
-    }
-
     List<js.Property> metadataGlobals = <js.Property>[];
 
     js.Property createGlobal(js.Expression metadata, String global) {

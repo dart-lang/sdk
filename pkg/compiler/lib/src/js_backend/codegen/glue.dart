@@ -10,7 +10,6 @@ import '../../js_emitter/js_emitter.dart';
 import '../../js/js.dart' as js;
 import '../../constants/values.dart';
 import '../../elements/elements.dart';
-import '../../constants/expressions.dart';
 import '../../dart_types.dart' show DartType, TypeVariableType, InterfaceType;
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,

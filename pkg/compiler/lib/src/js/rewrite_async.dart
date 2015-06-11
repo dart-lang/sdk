@@ -15,8 +15,6 @@ import "js.dart" as js;
 import '../util/util.dart';
 import '../dart2jslib.dart' show DiagnosticListener;
 
-import "../helpers/helpers.dart";
-
 /// Rewrites a [js.Fun] with async/sync*/async* functions and await and yield
 /// (with dart-like semantics) to an equivalent function without these.
 /// await-for is not handled and must be rewritten before. (Currently handled

@@ -426,8 +426,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     int inputPosition = 1;  // Skip receiver.
     bool canInline = true;
     signature.forEachParameter((ParameterElement element) {
-      if (inputPosition < inputs.length && canInline) {
-        HInstruction input = inputs[inputPosition++];
+      if (inputPosition++ < inputs.length && canInline) {
         DartType type = element.type.unalias(compiler);
         if (type is FunctionType) {
           canInline = false;
@@ -697,7 +696,6 @@ class SsaInstructionSimplifier extends HBaseVisitor
   }
 
   HInstruction visitTypeConversion(HTypeConversion node) {
-    HInstruction value = node.inputs[0];
     DartType type = node.typeExpression;
     if (type != null) {
       if (type.isMalformed) {

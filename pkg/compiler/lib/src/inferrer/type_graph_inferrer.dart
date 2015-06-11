@@ -6,7 +6,6 @@ library type_graph_inferrer;
 
 import 'dart:collection' show Queue, IterableBase;
 
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir
     show Node;

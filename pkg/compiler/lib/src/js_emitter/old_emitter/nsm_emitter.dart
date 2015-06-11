@@ -151,7 +151,6 @@ class NsmEmitter extends CodeEmitterHelper {
     // Get the short names (JS names, perhaps minified).
     Iterable<String> shorts = trivialNsmHandlers.map((selector) =>
          namer.invocationMirrorInternalName(selector));
-    final diffShorts = <String>[];
     var diffEncoding = new StringBuffer();
 
     // Treat string as a number in base 88 with digits in ASCII order from # to
@@ -219,7 +218,6 @@ class NsmEmitter extends CodeEmitterHelper {
     ClassElement objectClass = compiler.objectClass;
     jsAst.Expression createInvocationMirror = backend.emitter
         .staticFunctionAccess(backend.getCreateInvocationMirror());
-    var type = 0;
     if (useDiffEncoding) {
       statements.add(js.statement('''{
           var objectClassObject = processedClasses.collected[#objectClass],

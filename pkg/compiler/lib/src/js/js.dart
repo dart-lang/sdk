@@ -7,7 +7,6 @@ library js;
 import 'package:js_ast/js_ast.dart';
 export 'package:js_ast/js_ast.dart';
 
-import '../helpers/helpers.dart';
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformation;
 import '../js_emitter/js_emitter.dart' show USE_NEW_EMITTER;

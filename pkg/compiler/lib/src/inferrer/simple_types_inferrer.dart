@@ -448,7 +448,7 @@ class SimpleTypeInferrerVisitor<T>
   SideEffects sideEffects = new SideEffects.empty();
   final Element outermostElement;
   final InferrerEngine<T, TypeSystem<T>> inferrer;
-  final Setlet<Element> capturedVariables = new Setlet<Element>();
+  final Setlet<Entity> capturedVariables = new Setlet<Entity>();
 
   SimpleTypeInferrerVisitor.internal(analyzedElement,
                                      this.outermostElement,
@@ -595,7 +595,7 @@ class SimpleTypeInferrerVisitor<T>
       }
       returnType = types.nonNullExact(cls);
     } else {
-      signature.forEachParameter((element) {
+      signature.forEachParameter((LocalParameterElement element) {
         locals.update(element, inferrer.typeOfElement(element), node);
       });
       visit(node.body);
@@ -807,13 +807,12 @@ class SimpleTypeInferrerVisitor<T>
     }
 
     T rhsType;
-    T indexType;
 
     if (isIncrementOrDecrement) {
       rhsType = types.uint31Type;
-      if (node.isIndex) indexType = visit(node.arguments.head);
+      if (node.isIndex) visit(node.arguments.head);
     } else if (node.isIndex) {
-      indexType = visit(node.arguments.head);
+      visit(node.arguments.head);
       rhsType = visit(node.arguments.tail.head);
     } else {
       rhsType = visit(node.arguments.head);

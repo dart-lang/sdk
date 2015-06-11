@@ -390,7 +390,6 @@ class ClassEmitter extends CodeEmitterHelper {
 
     void visitField(Element holder, FieldElement field) {
       assert(invariant(element, field.isDeclaration));
-      String name = field.name;
 
       // Keep track of whether or not we're dealing with a field mixin
       // into a native class.

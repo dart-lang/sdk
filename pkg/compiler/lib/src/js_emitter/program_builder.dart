@@ -28,7 +28,6 @@ import '../elements/elements.dart' show ParameterElement, MethodElement;
 
 import '../universe/universe.dart' show Universe;
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
-import '../constants/expressions.dart' show ConstantExpression, ConstantValue;
 
 part 'registry.dart';
 
@@ -494,7 +493,6 @@ class ProgramBuilder {
     bool isNotApplyTarget = !element.isFunction || element.isAccessor;
 
     bool canBeReflected = _methodCanBeReflected(element);
-    bool needsStubs = _methodNeedsStubs(element);
     bool canBeApplied = _methodCanBeApplied(element);
 
     String aliasName = backend.isAliasedSuperMember(element)

@@ -88,7 +88,7 @@ class ClosureTask extends CompilerTask {
 
 /// Common interface for [BoxFieldElement] and [ClosureFieldElement] as
 /// non-elements.
-abstract class CapturedVariable {}
+abstract class CapturedVariable implements Element {}
 
 // TODO(ahe): These classes continuously cause problems.  We need to
 // find a more general solution.

@@ -14,7 +14,6 @@ import '../resolution/send_structure.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart' show CallStructure;
 import 'expressions.dart';
-import 'values.dart';
 
 ConstantConstructor computeConstantConstructor(ResolvedAst resolvedAst) {
   ConstantConstructorComputer visitor =

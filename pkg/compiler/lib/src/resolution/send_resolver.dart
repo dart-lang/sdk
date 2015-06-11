@@ -212,7 +212,6 @@ abstract class SendResolverMixin {
     }
 
     AssignmentOperator assignmentOperator;
-    UnaryOperator unaryOperator;
     BinaryOperator binaryOperator;
     IncDecOperator incDecOperator;
 

@@ -2261,7 +2261,6 @@ class SsaBuilder extends NewResolvedVisitor {
       }
       bodyCallInputs.add(newObject);
       ResolvedAst resolvedAst = constructor.resolvedAst;
-      TreeElements elements = resolvedAst.elements;
       ast.Node node = resolvedAst.node;
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
@@ -2786,7 +2785,6 @@ class SsaBuilder extends NewResolvedVisitor {
       localsHandler =
           continueHandlers[0].mergeMultiple(continueHandlers, updateBlock);
 
-      HLabeledBlockInformation labelInfo;
       List<LabelDefinition> labels = jumpHandler.labels();
       JumpTarget target = elements.getTargetDefinition(loop);
       if (!labels.isEmpty) {
@@ -2922,7 +2920,7 @@ class SsaBuilder extends NewResolvedVisitor {
         assert(!isAborted());
         // The result of the update instruction isn't used, and can just
         // be dropped.
-        HInstruction updateInstruction = pop();
+        pop();
       }
     }
     void buildBody() {
@@ -3631,7 +3629,6 @@ class SsaBuilder extends NewResolvedVisitor {
       assert(type.element.isClass);
       InterfaceType interface = type;
       List<HInstruction> inputs = <HInstruction>[];
-      bool first = true;
       List<js.Expression> templates = <js.Expression>[];
       for (DartType argument in interface.typeArguments) {
         // As we construct the template in stages, we have to make sure that for
@@ -6529,7 +6526,6 @@ class SsaBuilder extends NewResolvedVisitor {
 
     if (backend.classNeedsRti(cls)) {
       List<HInstruction> typeInputs = <HInstruction>[];
-      List<DartType> typeVariable = cls.typeVariables;
       expectedType.typeArguments.forEach((DartType argument) {
         typeInputs.add(analyzeTypeArgument(argument));
       });
@@ -6826,9 +6822,6 @@ class SsaBuilder extends NewResolvedVisitor {
       Iterable<ConstantValue> getConstants(ast.SwitchCase switchCase),
       bool isDefaultCase(ast.SwitchCase switchCase),
       void buildSwitchCase(ast.SwitchCase switchCase)) {
-
-    Map<ast.CaseMatch, ConstantValue> constants =
-        new Map<ast.CaseMatch, ConstantValue>();
 
     HBasicBlock expressionStart = openNewBlock();
     HInstruction expression = buildExpression();

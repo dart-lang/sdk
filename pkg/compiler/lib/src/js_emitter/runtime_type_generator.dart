@@ -161,7 +161,6 @@ class RuntimeTypeGenerator {
       }
     }
 
-    RuntimeTypes rti = backend.rti;
     ClassElement superclass = cls.superclass;
 
     bool haveSameTypeVariables(ClassElement a, ClassElement b) {
@@ -267,7 +266,6 @@ class RuntimeTypeGenerator {
 
   List<StubMethod> generateTypeVariableReaderStubs(ClassElement classElement) {
     List<StubMethod> stubs = <StubMethod>[];
-    List typeVariables = [];
     ClassElement superclass = classElement;
     while (superclass != null) {
         for (TypeVariableType parameter in superclass.typeVariables) {

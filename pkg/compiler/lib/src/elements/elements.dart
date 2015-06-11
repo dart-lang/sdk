@@ -27,7 +27,6 @@ import '../dart2jslib.dart' show InterfaceType,
                                  isPrivateName;
 
 import '../dart_types.dart';
-import '../helpers/helpers.dart';
 
 import '../scanner/scannerlib.dart' show Token,
                                          isUserDefinableOperator,

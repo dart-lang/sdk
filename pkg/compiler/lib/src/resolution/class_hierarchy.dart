@@ -102,7 +102,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           'cyclic resolution of class $element');
     }
 
-    InterfaceType type = element.computeType(compiler);
+    element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
     // TODO(ahe): It is not safe to call resolveTypeVariableBounds yet.
     // As a side-effect, this may get us back here trying to
@@ -243,7 +243,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX);
     }
 
-    InterfaceType type = element.computeType(compiler);
+    element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
     resolveTypeVariableBounds(node.typeParameters);
 

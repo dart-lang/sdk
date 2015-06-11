@@ -150,9 +150,6 @@ class DartBackend extends Backend {
   }
 
   int assembleProgram() {
-    ElementAstCreationContext context =
-        new _ElementAstCreationContext(compiler, constantSystem);
-
     ElementAst computeElementAst(AstElement element) {
       return new ElementAst(element.resolvedAst.node,
                             element.resolvedAst.elements);
@@ -512,21 +509,4 @@ class DartConstantTask extends ConstantCompilerTask
     constantCompiler.constantValueMap.addAll(
         task.constantCompiler.constantValueMap);
   }
-}
-
-abstract class ElementAstCreationContext {
-  DartTypes get dartTypes;
-  ConstantSystem get constantSystem;
-  InternalErrorFunction get internalError;
-}
-
-class _ElementAstCreationContext implements ElementAstCreationContext {
-  final Compiler compiler;
-  final ConstantSystem constantSystem;
-
-  _ElementAstCreationContext(this.compiler, this.constantSystem);
-
-  DartTypes get dartTypes => compiler.types;
-
-  InternalErrorFunction get internalError => compiler.internalError;
 }

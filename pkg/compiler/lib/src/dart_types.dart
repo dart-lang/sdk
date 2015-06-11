@@ -15,7 +15,6 @@ import 'elements/modelx.dart'
          TypeDeclarationElementX,
          TypedefElementX;
 import 'elements/elements.dart';
-import 'helpers/helpers.dart';  // Included for debug helpers.
 import 'ordered_typeset.dart' show OrderedTypeSet;
 import 'util/util.dart' show CURRENT_ELEMENT_SPANNABLE, equalElements;
 
@@ -1594,8 +1593,6 @@ class Types implements DartTypes {
     List<DartType> bNamedParameterTypes = b.namedParameterTypes;
     int aIndex = 0;
     int bIndex = 0;
-    int prefixLength =
-        min(aNamedParameterTypes.length, bNamedParameterTypes.length);
     while (aIndex < aNamedParameters.length &&
            bIndex < bNamedParameters.length) {
       String aNamedParameter = aNamedParameters[aIndex];

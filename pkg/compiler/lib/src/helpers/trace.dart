@@ -155,7 +155,7 @@ class StackTraceLines {
           columnNo = line.substring(lastColon+1, rightParenPos);
           try {
             int.parse(lineNo);
-          } on FormatException catch (e) {
+          } on FormatException {
             lineNo = columnNo;
             columnNo = '';
             nextToLastColon = lastColon;

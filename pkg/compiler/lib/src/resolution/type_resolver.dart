@@ -15,7 +15,6 @@ class TypeResolver {
                           Scope scope,
                           {bool deferredIsMalformed: true}) {
     Element element;
-    bool deferredTypeAnnotation = false;
     if (prefixName != null) {
       Element prefixElement =
           lookupInScope(compiler, prefixName, scope, prefixName.source);
@@ -40,7 +39,6 @@ class TypeResolver {
         element = null;
       }
     } else {
-      String stringValue = typeName.source;
       element = lookupInScope(compiler, typeName, scope, typeName.source);
     }
     return element;
@@ -178,8 +176,6 @@ class TypeResolver {
       } else if (element.isTypeVariable) {
         Element outer =
             visitor.enclosingElement.outermostEnclosingMemberOrTopLevel;
-        bool isInFactoryConstructor =
-            outer != null && outer.isFactoryConstructor;
         if (!outer.isClass &&
             !outer.isTypedef &&
             !Elements.hasAccessToTypeVariables(visitor.enclosingElement)) {

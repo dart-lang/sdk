@@ -5,11 +5,9 @@
 library dart2js.js_emitter;
 
 import 'dart:convert';
-import 'dart:collection' show LinkedHashMap;
 
 import '../common.dart';
 
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 
 import '../closure.dart' show
@@ -32,8 +30,6 @@ import '../elements/elements.dart' show
     MethodElement;
 
 import '../hash/sha1.dart' show Hasher;
-
-import '../helpers/helpers.dart';  // Included for debug helpers.
 
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show

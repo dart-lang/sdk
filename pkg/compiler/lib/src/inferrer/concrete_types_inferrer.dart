@@ -707,7 +707,6 @@ class ConcreteTypeCartesianProductIterator
       _current = null;
       return false;
     }
-    Element keyToIncrement = null;
     for (final key in concreteTypes.keys) {
       final iterator = state[key];
       if (iterator != null && iterator.moveNext()) {

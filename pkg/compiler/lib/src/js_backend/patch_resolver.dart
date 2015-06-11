@@ -8,9 +8,7 @@ import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/modelx.dart';
-import '../resolution/resolution.dart';
 import '../tree/tree.dart';
-import '../util/util.dart';
 
 class PatchResolverTask extends CompilerTask {
   PatchResolverTask(Compiler compiler) : super(compiler);

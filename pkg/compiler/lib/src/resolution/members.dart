@@ -1972,7 +1972,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registerPotentialAccessInClosure(node, target);
     }
 
-    bool resolvedArguments = false;
     resolveArguments(node.argumentsNode);
 
     // If the selector is null, it means that we will not be generating
@@ -2467,7 +2466,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitNewExpression(NewExpression node) {
-    Node selector = node.send.selector;
     FunctionElement constructor = resolveConstructor(node);
     final bool isSymbolConstructor = constructor == compiler.symbolConstructor;
     final bool isMirrorsUsedConstant =

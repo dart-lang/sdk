@@ -391,10 +391,6 @@ class Namer {
   final Map<String, String> suggestedGlobalNames = <String, String>{};
   final Map<String, String> suggestedInstanceNames = <String, String>{};
 
-  // All alphanumeric characters.
-  static const String _alphaNumeric =
-      'abcdefghijklmnopqrstuvwxyzABZDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-
   Namer(Compiler compiler)
       : compiler = compiler,
         constantHasher = new ConstantCanonicalHasher(compiler),

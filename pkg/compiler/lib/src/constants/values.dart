@@ -15,7 +15,6 @@ import '../elements/elements.dart'
          FunctionElement,
          PrefixElement;
 import '../tree/tree.dart' hide unparse;
-import '../types/types.dart' as ti show TypeMask;
 import '../util/util.dart' show Hashing;
 
 abstract class ConstantValueVisitor<R, A> {
