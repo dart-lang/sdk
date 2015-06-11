@@ -5012,47 +5012,56 @@ Postfix expressions invoke the postfix operators on objects.
  A {\em postfix expression} is either a primary expression, a function, method or getter invocation, or an invocation of a postfix operator on an expression $e$.
 
 \LMHash{}
-A postfix expression of the form \code{$v$++}, where $v$ is an identifier, is equivalent to \code{()\{var r = $v$; $v$ = r + 1; return r\}()}.
+A postfix expression of the form \code{$v$++}, where $v$ is an identifier, is equivalent to \code{()\{\VAR{} r = $v$; $v$ = r + 1; \RETURN{} r\}()}.
 
 \rationale{The above ensures that if $v$ is a field, the getter gets called exactly once. Likewise in the cases below. 
 }
-%what about e?.x++ 
 
 \LMHash{}
 A postfix expression of the form \code{$C.v$ ++} is equivalent to 
 
-\code{()\{var r = $C.v$; $C.v$ = r + 1; return r\}()}.
+\code{()\{\VAR{} r = $C.v$; $C.v$ = r + 1; \RETURN{} r\}()}.
 
 \LMHash{}
 A postfix expression of the form \code{$e_1.v$++} is equivalent to 
 
-\code{(x)\{var r = x.v; x.v = r + 1; \RETURN{} r\}($e_1$)}.
+\code{(x)\{\VAR{} r = x.v; x.v = r + 1; \RETURN{} r\}($e_1$)}.
 
 \LMHash{}
 A postfix expression of the form \code{$e_1[e_2]$++},  is equivalent to 
 
-\code{(a, i)\{var r = a[i]; a[i] = r + 1; return r\}($e_1$, $e_2$)}.
+\code{(a, i)\{\VAR{} r = a[i]; a[i] = r + 1; \RETURN{} r\}($e_1$, $e_2$)}.
 
 \LMHash{}
 A postfix expression of the form \code{$v$-{}-}, where $v$ is an identifier, is equivalent to 
 
-\code{()\{var r = $v$; $v$ = r - 1; return r\}()}.
+\code{()\{\VAR{} r = $v$; $v$ = r - 1; \RETURN{} r\}()}.
 
 \LMHash{}
 A postfix expression of the form \code{$C.v$-{}-} is equivalent to 
 
-\code{()\{var r = $C.v$; $C.v$ = r - 1; return r\}()}.
+\code{()\{\VAR{} r = $C.v$; $C.v$ = r - 1; \RETURN{} r\}()}.
 
 \LMHash{}
 A postfix expression of the form \code{$e_1.v$-{}-} is equivalent to 
 
-\code{(x)\{var r = x.v; x.v = r - 1; \RETURN{} r\}($e_1$)}.
+\code{(x)\{\VAR{} r = x.v; x.v = r - 1; \RETURN{} r\}($e_1$)}.
 
 \LMHash{}
 A postfix expression of the form \code{$e_1[e_2]$-{}-},  is equivalent to 
 
-\code{(a, i)\{var r = a[i]; a[i] = r - 1; return r\}($e_1$, $e_2$)}.
- 
+\code{(a, i)\{\VAR{} r = a[i]; a[i] = r - 1; \RETURN{} r\}($e_1$, $e_2$)}.
+
+\LMHash{}
+A postfix expression of the form \code{$e_1?.v$++} is equivalent to 
+
+\code{((x) =$>$ x == \NULL? \NULL : x.v++)($e_1$)}.
+
+\LMHash{}
+A postfix expression of the form \code{$e_1?.v$-{}-} is equivalent to 
+
+\code{((x) =$>$ x == \NULL? \NULL : x.v-{}-)($e_1$)}.
+
 
 \subsection{ Assignable Expressions}
 \LMLabel{assignableExpressions}

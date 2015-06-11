@@ -39,4 +39,4 @@ cleanish:
 
 clean: cleanish
 	rm -f *.dvi *.pdf $(HASH) $(LIST)
-
+ 
