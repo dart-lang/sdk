@@ -142,14 +142,13 @@ import 'dart:_js_embedded_names' show JsGetName, JsBuiltin;
  */
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-JS(String typeDescription, String codeTemplate,
-    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11])
-{}
+external JS(String typeDescription, String codeTemplate,
+    [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11]);
 
 /**
  * Returns the isolate in which this code is running.
  */
-IsolateContext JS_CURRENT_ISOLATE_CONTEXT() {}
+external IsolateContext JS_CURRENT_ISOLATE_CONTEXT();
 
 abstract class IsolateContext {
   /// Holds a (native) JavaScript instance of Isolate, see
@@ -160,7 +159,7 @@ abstract class IsolateContext {
 /**
  * Invokes [function] in the context of [isolate].
  */
-JS_CALL_IN_ISOLATE(isolate, Function function) {}
+external JS_CALL_IN_ISOLATE(isolate, Function function);
 
 /**
  * Converts the Dart closure [function] into a JavaScript closure.
@@ -168,7 +167,7 @@ JS_CALL_IN_ISOLATE(isolate, Function function) {}
  * Warning: This is no different from [RAW_DART_FUNCTION_REF] which means care
  * must be taken to store the current isolate.
  */
-DART_CLOSURE_TO_JS(Function function) {}
+external DART_CLOSURE_TO_JS(Function function);
 
 /**
  * Returns a raw reference to the JavaScript function which implements
@@ -182,12 +181,12 @@ DART_CLOSURE_TO_JS(Function function) {}
  * to V8's Error.captureStackTrace. See
  * https://code.google.com/p/v8/wiki/JavaScriptStackTraceApi.
  */
-RAW_DART_FUNCTION_REF(Function function) {}
+external RAW_DART_FUNCTION_REF(Function function);
 
 /**
  * Sets the current isolate to [isolate].
  */
-void JS_SET_CURRENT_ISOLATE(isolate) {}
+external void JS_SET_CURRENT_ISOLATE(isolate);
 
 /**
  * Returns the interceptor for class [type].  The interceptor is the type's
@@ -195,20 +194,20 @@ void JS_SET_CURRENT_ISOLATE(isolate) {}
  * an interface, e.g. `JS_INTERCEPTOR_CONSTANT(JSInt)`, not
  * `JS_INTERCEPTOR_CONSTANT(int)`.
  */
-JS_INTERCEPTOR_CONSTANT(Type type) {}
+external JS_INTERCEPTOR_CONSTANT(Type type);
 
 /**
  * Returns the object corresponding to Namer.CURRENT_ISOLATE.
  */
-JS_CURRENT_ISOLATE() {}
+external JS_CURRENT_ISOLATE();
 
 /// Returns the JS name for [name] from the Namer.
-String JS_GET_NAME(JsGetName name) {}
+external String JS_GET_NAME(JsGetName name);
 
 /// Reads an embedded global.
 ///
 /// The [name] should be a constant defined in the `_embedded_names` library.
-JS_EMBEDDED_GLOBAL(String typeDescription, String name) {}
+external JS_EMBEDDED_GLOBAL(String typeDescription, String name);
 
 /// Instructs the compiler to execute the [builtinName] action at the call-site.
 ///
@@ -216,13 +215,13 @@ JS_EMBEDDED_GLOBAL(String typeDescription, String name) {}
 /// library.
 // Add additional optional arguments if needed. The method is treated internally
 // as a variable argument method.
-JS_BUILTIN(String typeDescription, JsBuiltin builtin,
-           [arg0, arg1, arg2, arg3, arg4, arg5, arg6,
-            arg7, arg8, arg9, arg10, arg11]) {}
+external JS_BUILTIN(String typeDescription, JsBuiltin builtin,
+                    [arg0, arg1, arg2, arg3, arg4, arg5, arg6,
+                     arg7, arg8, arg9, arg10, arg11]);
 
 /// Returns the state of a flag that is determined by the state of the compiler
 /// when the program has been analyzed.
-bool JS_GET_FLAG(String name) {}
+external bool JS_GET_FLAG(String name);
 
 /**
  * Pretend [code] is executed.  Generates no executable code.  This is used to
