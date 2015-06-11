@@ -56,7 +56,7 @@ class CommandLinePlugin implements Plugin {
    * Return a list containing all of the result processors that were
    * contributed.
    */
-  List<ArgParserContributor> get resultProcessors =>
+  List<ArgResultsProcessor> get resultProcessors =>
       resultProcessorExtensionPoint.extensions;
 
   @override
