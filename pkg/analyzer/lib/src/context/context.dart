@@ -1311,19 +1311,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Return `true` if the given list of [sources] contains any of the given
-   * [targetSources].
-   */
-  bool _containsAny(List<Source> sources, List<Source> targetSources) {
-    for (Source targetSource in targetSources) {
-      if (_contains(sources, targetSource)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  /**
    * Set the contents of the given [source] to the given [contents] and mark the
    * source as having changed. The additional [offset], [oldLength] and
    * [newLength] information is used by the context to determine what reanalysis
