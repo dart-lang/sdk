@@ -10,8 +10,8 @@ import 'package:analyzer/src/task/general.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
-import 'package:html/dom.dart';
-import 'package:html/parser.dart';
+//import 'package:html/dom.dart';
+//import 'package:html/parser.dart';
 
 /**
  * A task that scans the content of a file, producing a set of Dart tokens.
@@ -26,7 +26,8 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('ParseHtmlTask',
-      createTask, buildInputs, <ResultDescriptor>[DOCUMENT, DOCUMENT_ERRORS]);
+      createTask, buildInputs,
+      <ResultDescriptor>[/*DOCUMENT, DOCUMENT_ERRORS*/]);
 
   /**
    * Initialize a newly created task to access the content of the source
@@ -40,14 +41,14 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    String content = getRequiredInput(CONTENT_INPUT_NAME);
-
-    HtmlParser parser = new HtmlParser(content);
-    Document document = parser.parse();
-    List<ParseError> errors = parser.errors;
-
-    outputs[DOCUMENT] = document;
-    outputs[DOCUMENT_ERRORS] = errors;
+//    String content = getRequiredInput(CONTENT_INPUT_NAME);
+//
+//    HtmlParser parser = new HtmlParser(content);
+//    Document document = parser.parse();
+//    List<ParseError> errors = parser.errors;
+//
+//    outputs[DOCUMENT] = document;
+//    outputs[DOCUMENT_ERRORS] = errors;
   }
 
   /**
