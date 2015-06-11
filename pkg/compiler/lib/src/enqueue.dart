@@ -189,7 +189,7 @@ abstract class Enqueuer {
       }
     } else if (member.kind == ElementKind.FUNCTION) {
       FunctionElement function = member;
-      function.computeSignature(compiler);
+      function.computeType(compiler);
       if (function.name == Compiler.NO_SUCH_METHOD) {
         registerNoSuchMethod(function);
       }
@@ -215,7 +215,7 @@ abstract class Enqueuer {
       }
     } else if (member.kind == ElementKind.GETTER) {
       FunctionElement getter = member;
-      getter.computeSignature(compiler);
+      getter.computeType(compiler);
       if (universe.hasInvokedGetter(getter, compiler.world)) {
         addToWorkList(getter);
         return;
@@ -228,7 +228,7 @@ abstract class Enqueuer {
       }
     } else if (member.kind == ElementKind.SETTER) {
       FunctionElement setter = member;
-      setter.computeSignature(compiler);
+      setter.computeType(compiler);
       if (universe.hasInvokedSetter(setter, compiler.world)) {
         addToWorkList(setter);
         return;

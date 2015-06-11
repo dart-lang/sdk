@@ -2141,6 +2141,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
               Modifiers.EMPTY,
               enclosing) {
     typeCache = new FunctionType.synthesized(enclosingClass.thisType);
+    functionSignatureCache = new FunctionSignatureX(type: type);
   }
 
   FunctionExpression parseNode(DiagnosticListener listener) => null;
@@ -2165,18 +2166,16 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
 
   FunctionSignature computeSignature(compiler) {
     if (functionSignatureCache != null) return functionSignatureCache;
-    if (isDefaultConstructor) {
-      return functionSignatureCache = new FunctionSignatureX(
-          type: type);
-    }
     if (definingConstructor.isErroneous) {
       return functionSignatureCache =
           compiler.objectClass.localLookup('').computeSignature(compiler);
     }
     // TODO(johnniwinther): Ensure that the function signature (and with it the
     // function type) substitutes type variables correctly.
-    return functionSignatureCache =
-        definingConstructor.computeSignature(compiler);
+    definingConstructor.computeType(compiler);
+    functionSignatureCache = definingConstructor.functionSignature;
+    typeCache = definingConstructor.type;
+    return functionSignatureCache;
   }
 
   accept(ElementVisitor visitor, arg) {

@@ -1996,7 +1996,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else {
         if (target is FunctionElement) {
           FunctionElement function = target;
-          function.computeSignature(compiler);
+          function.computeType(compiler);
         }
         if (!selector.applies(target, compiler.world)) {
           registry.registerThrowNoSuchMethod();
@@ -2359,10 +2359,10 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               {'fromType': targetType, 'toType': constructorType});
     }
 
-    FunctionSignature targetSignature =
-        redirectionTarget.computeSignature(compiler);
-    FunctionSignature constructorSignature =
-        constructor.computeSignature(compiler);
+    redirectionTarget.computeType(compiler);
+    FunctionSignature targetSignature = redirectionTarget.functionSignature;
+    constructor.computeType(compiler);
+    FunctionSignature constructorSignature = constructor.functionSignature;
     if (!targetSignature.isCompatibleWith(constructorSignature)) {
       assert(!isSubtype);
       registry.registerThrowNoSuchMethod();
@@ -2476,7 +2476,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (Elements.isUnresolved(constructor)) {
       return new ResolutionResult.forElement(constructor);
     }
-    constructor.computeSignature(compiler);
+    constructor.computeType(compiler);
     if (!callSelector.applies(constructor, compiler.world)) {
       registry.registerThrowNoSuchMethod();
     }

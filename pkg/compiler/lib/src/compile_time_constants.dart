@@ -788,7 +788,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       return new AstConstant.fromDefaultValue(
           element, constant, handler.getConstantValue(constant));
     }
-    target.computeSignature(compiler);
+    target.computeType(compiler);
 
     if (!callStructure.signatureApplies(target)) {
       String name = Elements.constructorNameForDiagnostics(

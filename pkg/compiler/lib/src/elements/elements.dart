@@ -1128,14 +1128,6 @@ abstract class FunctionElement extends Element
   FunctionElement get patch;
   FunctionElement get origin;
 
-  /// Do not use [computeSignature] outside of the resolver; instead retrieve
-  /// the signature through the [functionSignature] field.
-  /// Trying to access a function signature that has not been computed in
-  /// resolution is an error and calling [computeSignature] covers that error.
-  /// This method will go away!
-  // TODO(johnniwinther): Rename to `ensureFunctionSignature`.
-  @deprecated FunctionSignature computeSignature(Compiler compiler);
-
   bool get hasFunctionSignature;
 
   /// The parameters of this functions.

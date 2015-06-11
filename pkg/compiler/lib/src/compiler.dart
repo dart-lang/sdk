@@ -1550,7 +1550,8 @@ abstract class Compiler implements DiagnosticListener {
       mainFunction = backend.helperForBadMain();
     } else {
       mainFunction = main;
-      FunctionSignature parameters = mainFunction.computeSignature(this);
+      mainFunction.computeType(this);
+      FunctionSignature parameters = mainFunction.functionSignature;
       if (parameters.requiredParameterCount > 2) {
         int index = 0;
         parameters.orderedForEachParameter((Element parameter) {
@@ -1719,7 +1720,8 @@ abstract class Compiler implements DiagnosticListener {
     world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
     if (main != null && !main.isErroneous) {
       FunctionElement mainMethod = main;
-      if (mainMethod.computeSignature(this).parameterCount != 0) {
+      mainMethod.computeType(this);
+      if (mainMethod.functionSignature.parameterCount != 0) {
         // The first argument could be a list of strings.
         backend.listImplementation.ensureResolved(this);
         world.registerInstantiatedType(

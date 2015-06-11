@@ -293,13 +293,11 @@ class DartBackend extends Backend {
             // Register selectors for all instance methods since these might
             // be called on user classes from within the platform
             // implementation.
-            superclass.forEachLocalMember((Element element) {
+            superclass.forEachLocalMember((MemberElement element) {
               if (element.isConstructor || element.isStatic) return;
 
               FunctionElement function = element.asFunctionElement();
-              if (function != null) {
-                function.computeSignature(compiler);
-              }
+              element.computeType(compiler);
               Selector selector = new Selector.fromElement(element);
               if (selector.isGetter) {
                 registry.registerDynamicGetter(selector);
