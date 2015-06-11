@@ -63,8 +63,6 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 
 [ $host_checked && $compiler == dart2js && $cps_ir ]
 21724_test: Crash # Please triage this failure.
-identical_trace_test: Crash # Please triage this failure.
-regress/4515_3_test: Crash # Please triage this failure.
 
 [ $compiler == dart2js && $cps_ir ]
 12320_test: Crash #  Unhandled node
