@@ -681,11 +681,7 @@ class OldEmitter implements Emitter {
   jsAst.Statement buildMetadata(Program program, OutputUnit outputUnit) {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
-    jsAst.Expression constructList(List<jsAst.Expression> list) {
-      return new jsAst.ArrayInitializer(list == null ? [] : list);
-    }
-
-    List<jsAst.Expression> types = program.metadataTypes[outputUnit];
+    jsAst.Expression types = program.metadataTypesForOutputUnit(outputUnit);
 
     if (outputUnit == compiler.deferredLoadTask.mainOutputUnit) {
       jsAst.Expression metadataAccess =
@@ -693,12 +689,11 @@ class OldEmitter implements Emitter {
       jsAst.Expression typesAccess =
           generateEmbeddedGlobalAccess(embeddedNames.TYPES);
 
-      parts..add(js.statement('# = #;', [metadataAccess,
-                                         constructList(program.metadata)]))
-           ..add(js.statement('# = #;', [typesAccess, constructList(types)]));
+      parts..add(js.statement('# = #;', [metadataAccess, program.metadata]))
+           ..add(js.statement('# = #;', [typesAccess, types]));
     } else if (types != null) {
       parts.add(js.statement('var ${namer.deferredTypesName} = #;',
-                             constructList(types)));
+                             types));
     }
     return new jsAst.Block(parts);
   }
@@ -1075,11 +1070,10 @@ class OldEmitter implements Emitter {
       DartType type = typedef.alias;
       // TODO(zarah): reify type variables once reflection on type arguments of
       // typedefs is supported.
-      int typeIndex =
+      jsAst.Expression typeIndex =
           task.metadataCollector.reifyType(type, ignoreTypeVariables: true);
       ClassBuilder builder = new ClassBuilder(typedef, namer);
-      builder.addProperty(embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME,
-                          js.number(typeIndex));
+      builder.addProperty(embeddedNames.TYPEDEF_TYPE_PROPERTY_NAME, typeIndex);
       builder.addProperty(embeddedNames.TYPEDEF_PREDICATE_PROPERTY_NAME,
                           js.boolean(true));
 
@@ -1266,23 +1260,10 @@ class OldEmitter implements Emitter {
     assembleTypedefs(program);
   }
 
-  void emitMainOutputUnit(Program program,
-                          Map<OutputUnit, String> deferredLoadHashes) {
-    MainFragment mainFragment = program.fragments.first;
+  jsAst.Program buildOutputAstForMain(Program program,
+      Map<OutputUnit, _DeferredOutputUnitHash> deferredLoadHashes) {
+    MainFragment mainFragment = program.mainFragment;
     OutputUnit mainOutputUnit = mainFragment.outputUnit;
-
-    LineColumnCollector lineColumnCollector;
-    List<CodeOutputListener> codeOutputListeners;
-    if (generateSourceMap) {
-      lineColumnCollector = new LineColumnCollector();
-      codeOutputListeners = <CodeOutputListener>[lineColumnCollector];
-    }
-
-    CodeOutput mainOutput =
-        new StreamCodeOutput(compiler.outputProvider('', 'js'),
-                             codeOutputListeners);
-    outputBuffers[mainOutputUnit] = mainOutput;
-
     bool isProgramSplit = program.isSplit;
 
     List<jsAst.Statement> statements = <jsAst.Statement>[];
@@ -1487,7 +1468,24 @@ class OldEmitter implements Emitter {
       "main": buildMain(mainFragment.invokeMain)
     }));
 
-    mainOutput.addBuffer(jsAst.prettyPrint(new jsAst.Program(statements),
+    return new jsAst.Program(statements);
+  }
+
+  void emitMainOutputUnit(OutputUnit mainOutputUnit, jsAst.Program program) {
+    LineColumnCollector lineColumnCollector;
+    List<CodeOutputListener> codeOutputListeners;
+    if (generateSourceMap) {
+      lineColumnCollector = new LineColumnCollector();
+      codeOutputListeners = <CodeOutputListener>[lineColumnCollector];
+    }
+
+    CodeOutput mainOutput =
+        new StreamCodeOutput(compiler.outputProvider('', 'js'),
+                             codeOutputListeners);
+    outputBuffers[mainOutputUnit] = mainOutput;
+
+
+    mainOutput.addBuffer(jsAst.prettyPrint(program,
                                            compiler,
                                            monitor: compiler.dumpInfoTask));
 
@@ -1654,6 +1652,13 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     return outputs;
   }
 
+  void finalizeTokensInAst(jsAst.Program main,
+                           Iterable<jsAst.Program> deferredParts) {
+    task.metadataCollector.countTokensInProgram(main);
+    deferredParts.forEach(task.metadataCollector.countTokensInProgram);
+    task.metadataCollector.finalizeTokens();
+  }
+
   int emitProgram(ProgramBuilder programBuilder) {
     Program program = programBuilder.buildProgram(
         storeFunctionTypesInMetadata: true);
@@ -1664,6 +1669,19 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     Map<OutputUnit, jsAst.Program> deferredParts =
         buildOutputAstForDeferredCode(program);
 
+    Map<OutputUnit, _DeferredOutputUnitHash> deferredHashTokens =
+        new Map<OutputUnit, _DeferredOutputUnitHash>.fromIterables(
+          deferredParts.keys,
+          deferredParts.keys.map((OutputUnit unit) {
+            return new _DeferredOutputUnitHash(unit);
+          })
+        );
+
+    jsAst.Program mainOutput =
+        buildOutputAstForMain(program, deferredHashTokens);
+
+    finalizeTokensInAst(mainOutput, deferredParts.values);
+
     // Emit deferred units first, so we have their hashes.
     // Map from OutputUnit to a hash of its content. The hash uniquely
     // identifies the code of the output-unit. It does not include
@@ -1671,7 +1689,11 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     // itself.
     Map<OutputUnit, String> deferredLoadHashes =
         emitDeferredOutputUnits(deferredParts);
-    emitMainOutputUnit(program, deferredLoadHashes);
+
+    deferredHashTokens.forEach((OutputUnit key, _DeferredOutputUnitHash token) {
+      token.setHash(deferredLoadHashes[key]);
+    });
+    emitMainOutputUnit(program.mainFragment.outputUnit, mainOutput);
 
     if (backend.requiresPreamble &&
         !backend.htmlLibraryIsLoaded) {
@@ -1717,7 +1739,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
   /// Emits support-code for deferred loading into [output].
   jsAst.Statement buildDeferredBoilerPlate(
-      Map<OutputUnit, String> deferredLoadHashes) {
+      Map<OutputUnit, _DeferredOutputUnitHash> deferredLoadHashes) {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
     parts.add(js.statement('''
@@ -1751,17 +1773,19 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     // from the import prefix.) to a list of lists of uris of hunks to load,
     // and a corresponding mapping to a list of hashes used by
     // INITIALIZE_LOADED_HUNK and IS_HUNK_LOADED.
-    Map<String, List<String>> deferredLibraryUris =
-        new Map<String, List<String>>();
-    Map<String, List<String>> deferredLibraryHashes =
-        new Map<String, List<String>>();
+    Map<String, List<jsAst.LiteralString>> deferredLibraryUris =
+        new Map<String, List<jsAst.LiteralString>>();
+    Map<String, List<_DeferredOutputUnitHash>> deferredLibraryHashes =
+        new Map<String, List<_DeferredOutputUnitHash>>();
     compiler.deferredLoadTask.hunksToLoad.forEach(
                   (String loadId, List<OutputUnit>outputUnits) {
-      List<String> uris = new List<String>();
-      List<String> hashes = new List<String>();
-      deferredLibraryHashes[loadId] = new List<String>();
+      List<jsAst.LiteralString> uris = new List<jsAst.LiteralString>();
+      List<_DeferredOutputUnitHash> hashes =
+          new List<_DeferredOutputUnitHash>();
+      deferredLibraryHashes[loadId] = new List<_DeferredOutputUnitHash>();
       for (OutputUnit outputUnit in outputUnits) {
-        uris.add(backend.deferredPartFileName(outputUnit.name));
+        uris.add(js.escapedString(
+            backend.deferredPartFileName(outputUnit.name)));
         hashes.add(deferredLoadHashes[outputUnit]);
       }
 
@@ -1769,12 +1793,11 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       deferredLibraryHashes[loadId] = hashes;
     });
 
-    void emitMapping(String name, Map<String, List<String>> mapping) {
+    void emitMapping(String name, Map<String, List<jsAst.Expression>> mapping) {
       List<jsAst.Property> properties = new List<jsAst.Property>();
-      mapping.forEach((String key, List<String> values) {
+      mapping.forEach((String key, List<jsAst.Expression> values) {
         properties.add(new jsAst.Property(js.escapedString(key),
-            new jsAst.ArrayInitializer(
-                values.map(js.escapedString).toList())));
+            new jsAst.ArrayInitializer(values)));
       });
       jsAst.Node initializer =
           new jsAst.ObjectInitializer(properties, isOneLiner: true);
@@ -1833,11 +1856,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
             js.statement('$setupProgramName(dart, ${typesAccess}.length);'));
       }
 
-      if (task.metadataCollector.types[outputUnit] != null) {
-        body..add(buildMetadata(program, outputUnit))
-            ..add(js.statement('${typesAccess}.push.apply(${typesAccess}, '
-                               '${namer.deferredTypesName});'));
-      }
+      body..add(buildMetadata(program, outputUnit))
+          ..add(js.statement('${typesAccess}.push.apply(${typesAccess}, '
+                             '${namer.deferredTypesName});'));
 
       // Set the currentIsolate variable to the current isolate (which is
       // provided as second argument).

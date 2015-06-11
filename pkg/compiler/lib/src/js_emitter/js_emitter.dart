@@ -5,6 +5,7 @@
 library dart2js.js_emitter;
 
 import 'dart:convert';
+import 'dart:collection' show LinkedHashMap;
 
 import '../common.dart';
 
@@ -37,6 +38,8 @@ import '../helpers/helpers.dart';  // Included for debug helpers.
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show
     js;
+
+import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../js_backend/js_backend.dart' show
     CheckedModeHelper,

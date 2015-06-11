@@ -263,8 +263,18 @@ class ConstantEmitter
   }
 
   @override
-  jsAst.Expression visitDummy(DummyConstantValue constant, [_]) {
-    return new jsAst.LiteralNumber('0');
+  jsAst.Expression visitSynthetic(SyntheticConstantValue constant, [_]) {
+    switch (constant.kind) {
+      case SyntheticConstantKind.DUMMY_INTERCEPTOR:
+      case SyntheticConstantKind.EMPTY_VALUE:
+        return new jsAst.LiteralNumber('0');
+      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
+        return constant.payload;
+      default:
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+                               "Unexpected DummyConstantKind ${constant.kind}");
+        return null;
+    }
   }
 
   @override

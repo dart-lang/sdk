@@ -952,7 +952,32 @@ class Printer implements NodeVisitor {
   }
 
   @override
-  void visitLiteralBool(LiteralBool node) {
+  visitDeferredExpression(DeferredExpression node) {
+    // Continue printing with the expression value.
+    assert(node.precedenceLevel == node.value.precedenceLevel);
+    node.value.accept(this);
+  }
+
+  outputNumberWithRequiredWhitespace(String number) {
+    int charCode = number.codeUnitAt(0);
+    if (charCode == charCodes.$MINUS && lastCharCode == charCodes.$MINUS) {
+      out(" ", isWhitespace: true);
+    }
+    out(number);
+  }
+
+  @override
+  visitDeferredNumber(DeferredNumber node) {
+    outputNumberWithRequiredWhitespace("${node.value}");
+  }
+
+  @override
+  visitDeferredString(DeferredString node) {
+    out(node.value);
+  }
+
+  @override
+  visitLiteralBool(LiteralBool node) {
     out(node.value ? "true" : "false");
   }
 
@@ -962,12 +987,13 @@ class Printer implements NodeVisitor {
   }
 
   @override
-  void visitLiteralNumber(LiteralNumber node) {
-    int charCode = node.value.codeUnitAt(0);
-    if (charCode == charCodes.$MINUS && lastCharCode == charCodes.$MINUS) {
-      out(" ", isWhitespace: true);
-    }
-    out(node.value);
+  visitStringConcatenation(StringConcatenation node) {
+    node.visitChildren(this);
+  }
+
+  @override
+  visitLiteralNumber(LiteralNumber node) {
+    outputNumberWithRequiredWhitespace(node.value);
   }
 
   @override
@@ -1013,7 +1039,6 @@ class Printer implements NodeVisitor {
     out("{");
     indentMore();
     for (int i = 0; i < properties.length; i++) {
-      Expression value = properties[i].value;
       if (i != 0) {
         out(",");
         if (node.isOneLiner) spaceOut();

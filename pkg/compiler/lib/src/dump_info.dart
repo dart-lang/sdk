@@ -414,7 +414,6 @@ class DumpInfoTask extends CompilerTask {
   // A mapping from Javascript AST Nodes to the size of their
   // pretty-printed contents.
   final Map<jsAst.Node, int> _nodeToSize = <jsAst.Node, int>{};
-  final Map<Element, int> _fieldNameToSize = <Element, int>{};
 
   final Map<Element, Set<Selector>> selectorsFromElement = {};
   final Map<Element, int> inlineCount = <Element, int>{};
@@ -494,19 +493,10 @@ class DumpInfoTask extends CompilerTask {
     }
   }
 
-  // Field names are treated differently by the dart compiler
-  // so they must be recorded seperately.
-  void recordFieldNameSize(Element element, int size) {
-    _fieldNameToSize[element] = size;
-  }
-
   // Returns the size of the source code that
   // was generated for an element.  If no source
   // code was produced, return 0.
   int sizeOf(Element element) {
-    if (_fieldNameToSize.containsKey(element)) {
-      return _fieldNameToSize[element];
-    }
     if (_elementToNodes.containsKey(element)) {
       return _elementToNodes[element]
         .map(sizeOfNode)

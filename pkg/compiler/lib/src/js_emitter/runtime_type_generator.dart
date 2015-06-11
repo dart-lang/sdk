@@ -12,7 +12,7 @@ class TypeTestProperties {
   /// If the is tests were generated with `storeFunctionTypeInMetadata` set to
   /// `false`, this field is `null`, and the [properties] contain a property
   /// that encodes the function type.
-  int functionTypeIndex;
+  jsAst.Expression functionTypeIndex;
 
   /// The properties that must be installed on the prototype of the
   /// JS constructor of the [ClassElement] for which the is checks were

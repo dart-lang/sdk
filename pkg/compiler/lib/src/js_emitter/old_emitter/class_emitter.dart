@@ -128,19 +128,19 @@ class ClassEmitter extends CodeEmitterHelper {
         fieldMetadata.add(metadata);
         recordMangledField(fieldElement, accessorName,
             namer.privateName(fieldElement.memberName));
-        String fieldName = name;
-        String fieldCode = '';
-        String reflectionMarker = '';
+        List<jsAst.Literal> fieldNameParts = <jsAst.Literal>[];
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);
+          fieldNameParts.add(js.stringPart(name));
         } else {
           // Emit (possibly renaming) field name so we can add accessors at
           // runtime.
           if (name != accessorName) {
-            fieldName = '$accessorName:$name';
+            fieldNameParts.add(js.stringPart(accessorName));
+            fieldNameParts.add(js.stringPart(':'));
           }
-
+          fieldNameParts.add(js.stringPart(name));
           if (field.needsInterceptedGetter) {
             emitter.interceptorEmitter.interceptorInvocationNames.add(
                 namer.getterForElement(fieldElement));
@@ -157,9 +157,9 @@ class ClassEmitter extends CodeEmitterHelper {
           if (code == 0) {
             compiler.internalError(fieldElement,
                 'Field code is 0 ($fieldElement).');
-          } else {
-            fieldCode = FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE];
           }
+          fieldNameParts.add(
+              js.stringPart(FIELD_CODE_CHARACTERS[code - FIRST_FIELD_CODE]));
         }
         // Fields can only be reflected if their declaring class is reflectable
         // (as they are only accessible via [ClassMirror.declarations]).
@@ -167,19 +167,17 @@ class ClassEmitter extends CodeEmitterHelper {
         // reflectable in some sense, which leads to [isAccessibleByReflection]
         // reporting `true`.
         if (backend.isAccessibleByReflection(fieldElement)) {
+          fieldNameParts.add(new jsAst.LiteralString('-'));
           if (fieldElement.isTopLevel ||
               backend.isAccessibleByReflection(fieldElement.enclosingClass)) {
             DartType type = fieldElement.type;
-            reflectionMarker = '-${task.metadataCollector.reifyType(type)}';
-          } else {
-            reflectionMarker = '-';
+            fieldNameParts.add(task.metadataCollector.reifyType(type));
           }
         }
-        String builtFieldname = '$fieldName$fieldCode$reflectionMarker';
-        builder.addField(builtFieldname);
+        jsAst.Literal fieldNameAst = js.concatenateStrings(fieldNameParts);
+        builder.addField(fieldNameAst);
         // Add 1 because adding a field to the class also requires a comma
-        compiler.dumpInfoTask.recordFieldNameSize(fieldElement,
-            builtFieldname.length + 1);
+        compiler.dumpInfoTask.registerElementAst(fieldElement, fieldNameAst);
         fieldsAdded = true;
       }
     }
@@ -267,7 +265,7 @@ class ClassEmitter extends CodeEmitterHelper {
   void emitRuntimeTypeInformation(Class cls, ClassBuilder builder) {
     assert(builder.functionType == null);
     if (cls.functionTypeIndex != null) {
-      builder.functionType = '${cls.functionTypeIndex}';
+      builder.functionType = cls.functionTypeIndex;
     }
 
     for (Method method in cls.isChecks) {
@@ -296,7 +294,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (backend.isAccessibleByReflection(classElement)) {
       List<DartType> typeVars = classElement.typeVariables;
       Iterable typeVariableProperties = emitter.typeVariableHandler
-          .typeVariablesOf(classElement).map(js.number);
+          .typeVariablesOf(classElement);
 
       ClassElement superclass = classElement.superclass;
       bool hasSuper = superclass != null;
@@ -331,7 +329,8 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
-    jsAst.ObjectInitializer propertyValue = classBuilder.toObjectInitializer();
+    jsAst.ObjectInitializer propertyValue =
+        classBuilder.toObjectInitializer();
     compiler.dumpInfoTask.registerElementAst(classBuilder.element, propertyValue);
     enclosingBuilder.addProperty(className, propertyValue);
 
@@ -340,14 +339,15 @@ class ClassEmitter extends CodeEmitterHelper {
       if (!backend.isAccessibleByReflection(classElement)) {
         enclosingBuilder.addProperty("+$reflectionName", js.number(0));
       } else {
-        List<int> types = <int>[];
+        List<jsAst.Expression> types = <jsAst.Expression>[];
         if (classElement.supertype != null) {
           types.add(task.metadataCollector.reifyType(classElement.supertype));
         }
         for (DartType interface in classElement.interfaces) {
           types.add(task.metadataCollector.reifyType(interface));
         }
-        enclosingBuilder.addProperty("+$reflectionName", js.numArray(types));
+        enclosingBuilder.addProperty("+$reflectionName",
+            new jsAst.ArrayInitializer(types));
       }
     }
   }

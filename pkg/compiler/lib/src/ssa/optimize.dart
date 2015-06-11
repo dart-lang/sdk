@@ -1037,6 +1037,7 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   Map<HInstruction, bool> trivialDeadStoreReceivers =
       new Maplet<HInstruction, bool>();
   bool eliminatedSideEffects = false;
+
   SsaDeadCodeEliminator(this.compiler, this.optimizer);
 
   HInstruction zapInstructionCache;
@@ -1044,7 +1045,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
     if (zapInstructionCache == null) {
       // A constant with no type does not pollute types at phi nodes.
       ConstantValue constant =
-          new DummyConstantValue(const TypeMask.nonNullEmpty());
+          new SyntheticConstantValue(
+              SyntheticConstantKind.EMPTY_VALUE,
+              const TypeMask.nonNullEmpty());
       zapInstructionCache = analyzer.graph.addConstant(constant, compiler);
     }
     return zapInstructionCache;

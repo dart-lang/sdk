@@ -1546,8 +1546,18 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
-  void visitDummy(DummyConstantValue constant, [_]) {
-    add('dummy_receiver');
+  void visitSynthetic(SyntheticConstantValue constant, [_]) {
+    switch (constant.kind) {
+      case SyntheticConstantKind.DUMMY_INTERCEPTOR:
+        add('dummy_receiver');
+        break;
+      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
+        add('type_variable_reference');
+        break;
+      default:
+        compiler.internalError(compiler.currentElement,
+                               "Unexpected SyntheticConstantValue");
+    }
   }
 
   @override
@@ -1649,9 +1659,16 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   }
 
   @override
-  visitDummy(DummyConstantValue constant, [_]) {
-    compiler.internalError(NO_LOCATION_SPANNABLE,
-        'DummyReceiverConstant should never be named and never be subconstant');
+  visitSynthetic(SyntheticConstantValue constant, [_]) {
+    switch (constant.kind) {
+      case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
+        return constant.payload.hashCode;
+      default:
+        compiler.internalError(NO_LOCATION_SPANNABLE,
+                               'SyntheticConstantValue should never be named and '
+                               'never be subconstant');
+        return null;
+    }
   }
 
   @override

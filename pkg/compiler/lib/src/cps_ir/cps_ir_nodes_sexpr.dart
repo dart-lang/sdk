@@ -403,7 +403,7 @@ class ConstantStringifier extends ConstantValueVisitor<String, Null> {
     return _failWith(constant);
   }
 
-  String visitDummy(DummyConstantValue constant, _) {
+  String visitSynthetic(SyntheticConstantValue constant, _) {
     return _failWith(constant);
   }
 

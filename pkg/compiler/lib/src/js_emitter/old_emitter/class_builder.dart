@@ -9,10 +9,10 @@ part of dart2js.js_emitter;
  */
 class ClassBuilder {
   final List<jsAst.Property> properties = <jsAst.Property>[];
-  final List<String> fields = <String>[];
+  final List<jsAst.Literal> fields = <jsAst.Literal>[];
 
   String superName;
-  String functionType;
+  jsAst.Node functionType;
   List<jsAst.Node> fieldMetadata;
 
   final Element element;
@@ -26,7 +26,7 @@ class ClassBuilder {
     return property;
   }
 
-  void addField(String field) {
+  void addField(jsAst.Literal field) {
     fields.add(field);
   }
 
@@ -41,18 +41,19 @@ class ClassBuilder {
 
   jsAst.ObjectInitializer toObjectInitializer(
       {bool emitClassDescriptor: true}) {
-    StringBuffer buffer = new StringBuffer();
+    List<jsAst.Literal> parts = <jsAst.Literal>[];
     if (superName != null) {
-      buffer.write(superName);
+      parts.add(js.stringPart(superName));
       if (functionType != null) {
         // See [functionTypeEncodingDescription] above.
-        buffer.write(':$functionType');
+        parts.add(js.stringPart(':'));
+        parts.add(functionType);
       }
-      buffer.write(';');
+      parts.add(js.stringPart(';'));
     }
     // See [fieldEncodingDescription] above.
-    buffer.writeAll(fields, ',');
-    var classData = js.string('$buffer');
+    parts.addAll(js.joinLiterals(fields, js.stringPart(',')));
+    var classData = js.concatenateStrings(parts, addQuotes: true);
     if (fieldMetadata != null) {
       // If we need to store fieldMetadata, classData is turned into an array,
       // and the field metadata is appended. So if classData is just a string,

@@ -1166,8 +1166,8 @@ class ConstantExpressionCreator
   }
 
   @override
-  ConstantExpression visitDummy(DummyConstantValue constant, arg) {
-    throw new UnsupportedError("ConstantExpressionCreator.visitDummy");
+  ConstantExpression visitSynthetic(SyntheticConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitSynthetic");
   }
 
   @override

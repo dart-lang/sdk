@@ -1183,9 +1183,21 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.Expression visitLiteralString(js.LiteralString node) => node;
 
   @override
+  js.Expression visitStringConcatenation(js.StringConcatenation node) => node;
+
+  @override
   visitNamedFunction(js.NamedFunction node) {
     unsupported(node);
   }
+
+  @override
+  js.Expression visitDeferredExpression(js.DeferredExpression node) => node;
+
+  @override
+  js.Expression visitDeferredNumber(js.DeferredNumber node) => node;
+
+  @override
+  js.Expression visitDeferredString(js.DeferredString node) => node;
 
   @override
   js.Expression visitNew(js.New node) {
@@ -2385,6 +2397,21 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   }
 
   @override
+  bool visitDeferredExpression(js.DeferredExpression node) {
+    return false;
+  }
+
+  @override
+  bool visitDeferredNumber(js.DeferredNumber node) {
+    return false;
+  }
+
+  @override
+  bool visitDeferredString(js.DeferredString node) {
+    return false;
+  }
+
+  @override
   bool visitLiteralBool(js.LiteralBool node) {
     return false;
   }
@@ -2412,6 +2439,11 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   @override
   bool visitLiteralString(js.LiteralString node) {
     return false;
+  }
+
+  @override
+  bool visitStringConcatenation(js.StringConcatenation node) {
+    return true;
   }
 
   @override

@@ -212,6 +212,12 @@ class FunctionInlineCache {
   }
 }
 
+enum SyntheticConstantKind {
+  DUMMY_INTERCEPTOR,
+  EMPTY_VALUE,
+  TYPEVARIABLE_REFERENCE,
+}
+
 class JavaScriptBackend extends Backend {
   static final Uri DART_JS_HELPER = new Uri(scheme: 'dart', path: '_js_helper');
   static final Uri DART_INTERCEPTORS =
@@ -1418,6 +1424,7 @@ class JavaScriptBackend extends Backend {
         compiler.enqueuer.codegen.registerStaticUse(getCyclicThrowHelper());
       }
     }
+
     generatedCode[element] = functionCompiler.compile(work);
     return const WorldImpact();
   }

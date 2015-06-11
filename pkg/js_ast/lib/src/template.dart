@@ -654,6 +654,13 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  Instantiator visitDeferredExpression(DeferredExpression node) => same(node);
+
+  Instantiator visitDeferredNumber(DeferredNumber node) => same(node);
+
+  Instantiator visitDeferredString(DeferredString node) =>
+      (arguments) => node;
+
   Instantiator visitLiteralBool(LiteralBool node) =>
       (arguments) => new LiteralBool(node.value);
 
@@ -665,6 +672,18 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
 
   Instantiator visitLiteralNull(LiteralNull node) =>
       (arguments) => new LiteralNull();
+
+  Instantiator visitStringConcatenation(StringConcatenation node) {
+    List<Instantiator> partMakers = node.parts
+        .map(visit)
+        .toList(growable: false);
+    return (arguments) {
+      List<Literal> parts = partMakers
+          .map((Instantiator instantiator) => instantiator(arguments))
+          .toList(growable: false);
+      return new StringConcatenation(parts);
+    };
+  }
 
   Instantiator visitArrayInitializer(ArrayInitializer node) {
     // TODO(sra): Implement splicing?

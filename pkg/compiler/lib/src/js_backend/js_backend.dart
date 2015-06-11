@@ -28,6 +28,7 @@ import '../js_emitter/js_emitter.dart'
          CodeEmitterTask,
          ClassBuilder,
          MetadataCollector,
+         Placeholder,
          USE_NEW_EMITTER;
 
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;

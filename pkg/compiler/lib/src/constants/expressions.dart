@@ -41,6 +41,7 @@ enum ConstantExpressionKind {
   STRING_FROM_ENVIRONMENT,
   STRING_LENGTH,
   SYMBOL,
+  SYNTHETIC,
   TYPE,
   UNARY,
   VARIABLE,
@@ -333,6 +334,35 @@ class ErroneousConstantExpression extends ConstantExpression {
   @override
   bool _equals(ErroneousConstantExpression other) => true;
 }
+
+// TODO(johnniwinther): Avoid the need for this class.
+class SyntheticConstantExpression extends ConstantExpression {
+  final SyntheticConstantValue value;
+
+  SyntheticConstantExpression(this.value);
+
+  @override
+  ConstantValue evaluate(Environment environment,
+                         ConstantSystem constantSystem) {
+    return value;
+  }
+
+  @override
+  int _computeHashCode() => 13 * value.hashCode;
+
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    throw "unsupported";
+  }
+
+  @override
+  bool _equals(SyntheticConstantExpression other) {
+    return value == other.value;
+  }
+
+  ConstantExpressionKind get kind => ConstantExpressionKind.SYNTHETIC;
+}
+
+
 
 /// A boolean, int, double, string, or null constant.
 abstract class PrimitiveConstantExpression extends ConstantExpression {

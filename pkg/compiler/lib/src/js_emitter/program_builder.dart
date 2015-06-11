@@ -572,8 +572,8 @@ class ProgramBuilder {
       js.Expression thisAccess = js.js(r'this.$receiver');
       return backend.rti.getSignatureEncoding(type, thisAccess);
     } else {
-      return js.number(backend.emitter.metadataCollector.
-          reifyTypeForOutputUnit(type, outputUnit));
+      return backend.emitter.metadataCollector
+          .reifyTypeForOutputUnit(type, outputUnit);
     }
   }
 

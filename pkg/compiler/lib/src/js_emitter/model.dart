@@ -53,21 +53,20 @@ class Program {
   /// list must not be emitted before all operations on it are done. For
   /// example, the old emitter generates metadata when emitting reflection
   /// data.
-  List<js.Expression> get metadata => _metadataCollector.globalMetadata;
+  js.Expression get metadata => _metadataCollector.globalMetadata;
 
-  /// A map with lists of type expressions.
+  /// Accessor for the list of metadata entries for a given [OutputUnit].
   ///
   /// There is one list for each output unit. The list belonging to the main
   /// unit must be emitted in the `TYPES` embedded global. The list references
   /// constants and must hence be emitted after constants have been initialized.
   ///
   /// Note: the metadata is derived from the task's `metadataCollector`. The
-  /// list must not be emitted before all operations on it are done. For
-  /// example, the old emitter generates metadata when emitting reflection
-  /// data.
-  Map<OutputUnit, List<js.Expression>> get metadataTypes
-      => _metadataCollector.types;
-
+  /// list is only a placeholder and will be filled in once metadata collection
+  /// is finalized.
+  js.Expression metadataTypesForOutputUnit(OutputUnit unit) {
+    return _metadataCollector.getTypesForOutputUnit(unit);
+  }
 
   bool get isSplit => fragments.length > 1;
   Iterable<Fragment> get deferredFragments => fragments.skip(1);
@@ -236,7 +235,7 @@ class Class implements FieldContainer {
 
   // If the class implements a function type, and the type is encoded in the
   // metatada table, then this field contains the index into that field.
-  final int functionTypeIndex;
+  final js.Expression functionTypeIndex;
 
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
@@ -283,7 +282,7 @@ class MixinApplication extends Class {
                    List<StubMethod> callStubs,
                    List<StubMethod> typeVariableReaderStubs,
                    List<StubMethod> isChecks,
-                   int functionTypeIndex,
+                   js.Expression functionTypeIndex,
                    {bool onlyForRti,
                     bool isDirectlyInstantiated})
       : super(element,
