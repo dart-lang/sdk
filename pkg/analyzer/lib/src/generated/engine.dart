@@ -15,13 +15,16 @@ import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' as cache;
 import 'package:analyzer/src/context/context.dart' as newContext;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
+import 'package:analyzer/src/plugin/command_line_plugin.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
+import 'package:analyzer/src/plugin/options_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 
 import '../../instrumentation/instrumentation.dart';
 import 'ast.dart';
@@ -5729,16 +5732,34 @@ class AnalysisEngine {
   Logger _logger = Logger.NULL;
 
   /**
+   * The plugin that defines the extension points and extensions that are defined by
+   * command-line applications using the analysis engine.
+   */
+  final CommandLinePlugin commandLinePlugin = new CommandLinePlugin();
+
+  /**
    * The plugin that defines the extension points and extensions that are
    * inherently defined by the analysis engine.
    */
   final EnginePlugin enginePlugin = new EnginePlugin();
+
+  /***
+   * The plugin that defines the extension points and extensions that are defined
+   * by applications that want to consume options defined in the analysis
+   * options file.
+   */
+  final OptionsPlugin optionsPlugin = new OptionsPlugin();
 
   /**
    * The instrumentation service that is to be used by this analysis engine.
    */
   InstrumentationService _instrumentationService =
       InstrumentationService.NULL_SERVICE;
+
+  /**
+   * The list of supported plugins for processing by clients.
+   */
+  List<Plugin> _supportedPlugins;
 
   /**
    * The partition manager being used to manage the shared partitions.
@@ -5794,6 +5815,16 @@ class AnalysisEngine {
    */
   void set logger(Logger logger) {
     this._logger = logger == null ? Logger.NULL : logger;
+  }
+
+  /**
+   * Return the list of supported plugins for processing by clients.
+   */
+  List<Plugin> get supportedPlugins {
+    if (_supportedPlugins == null) {
+      _supportedPlugins = <Plugin>[enginePlugin, commandLinePlugin, optionsPlugin];
+    }
+    return _supportedPlugins;
   }
 
   /**
