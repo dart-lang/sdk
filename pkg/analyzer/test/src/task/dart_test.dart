@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptionsImpl, CacheState;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
@@ -396,6 +397,22 @@ library libB;
     {
       HideElementCombinator combinator = combinators[1];
       expect(combinator.hiddenNames, ['C', 'D']);
+    }
+  }
+
+  test_perform_dartCoreContext() {
+    List<Source> sources = newSources({'/libA.dart': ''});
+    Source source = sources[0];
+    // perform task
+    _computeResult(source, LIBRARY_ELEMENT2);
+    expect(task, new isInstanceOf<BuildDirectiveElementsTask>());
+    // prepare outputs
+    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT2];
+    // verify that dart:core has SDK context
+    {
+      LibraryElement coreLibrary = libraryElement.importedLibraries[0];
+      DartSdk dartSdk = context.sourceFactory.dartSdk;
+      expect(coreLibrary.context, same(dartSdk.context));
     }
   }
 

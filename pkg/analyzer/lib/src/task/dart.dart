@@ -1420,8 +1420,13 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
     //
     // Create and populate the library element.
     //
+    AnalysisContext owningContext = context;
+    if (context is InternalAnalysisContext) {
+      InternalAnalysisContext internalContext = context;
+      owningContext = internalContext.getContextFor(librarySource);
+    }
     LibraryElementImpl libraryElement =
-        new LibraryElementImpl.forNode(context, libraryNameNode);
+        new LibraryElementImpl.forNode(owningContext, libraryNameNode);
     libraryElement.definingCompilationUnit = definingCompilationUnitElement;
     libraryElement.entryPoint = entryPoint;
     libraryElement.parts = sourcedCompilationUnits;
