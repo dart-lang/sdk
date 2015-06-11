@@ -110,7 +110,7 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     expando[readStringFromUri] = provider;
   } else {
     // When using a cached compiler, it has read a number of files from disk
-    // already (and will not attemp to read them again due to caching). These
+    // already (and will not attempt to read them again due to caching). These
     // files must be available to the new diagnostic handler.
     provider = expando[cachedCompiler.provider];
     readStringFromUri = cachedCompiler.provider;

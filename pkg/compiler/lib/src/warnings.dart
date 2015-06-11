@@ -1599,6 +1599,27 @@ import '../../Udyn[mic ils/expect.dart';
 main() {}
 """]);
 
+  static const MessageKind INVALID_PACKAGE_URI = const MessageKind(
+      "'#{uri}' is not a valid package URI (#{exception}).",
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const [
+        """
+// can't have a 'top level' package URI
+import 'package:foo.dart';
+
+main() {}
+""", """
+// can't have 2 slashes
+import 'package://foo/foo.dart';
+
+main() {}
+""", """
+// package name must be a valid identifier
+import 'package:not-valid/foo.dart';
+
+main() {}
+"""]);
+
   static const MessageKind READ_SCRIPT_ERROR = const MessageKind(
       "Can't read '#{uri}' (#{exception}).",
       // Don't know how to fix since the underlying error is unknown.

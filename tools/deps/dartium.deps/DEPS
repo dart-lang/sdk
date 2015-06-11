@@ -17,6 +17,7 @@ vars.update({
 
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
+  "charcode_tag": "@1.1.0",
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
@@ -31,6 +32,7 @@ vars.update({
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observatory_pub_packages_rev": "@45565",
+  "package_config_tag": "@0.0.3+1",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
@@ -125,6 +127,8 @@ deps.update({
 
   "src/dart/third_party/pkg/args":
       "https://github.com/dart-lang/args.git" + Var("args_tag"),
+  "src/dart/third_party/pkg/charcode":
+      "https://github.com/dart-lang/charcode.git" + Var("charcode_tag"),
   "src/dart/third_party/pkg/http_parser":
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
   "src/dart/third_party/pkg/matcher":
@@ -133,6 +137,9 @@ deps.update({
       "https://github.com/dart-lang/metatest.git" + Var("metatest_rev"),
   "src/dart/third_party/pkg/path":
       "https://github.com/dart-lang/path.git" + Var("path_rev"),
+  "src/dart/third_party/pkg/package_config":
+      "https://github.com/dart-lang/package_config.git" +
+      Var("package_config_tag"),
   "src/dart/third_party/pkg/source_span":
       "https://github.com/dart-lang/source_span.git" + Var("source_span_rev"),
   "src/dart/third_party/pkg/stack_trace":

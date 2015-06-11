@@ -87,6 +87,8 @@ int_array_load_elimination_test: Skip  # This is a VM test
 medium_integer_test: RuntimeError, OK # Test fails with JS number semantics: issue 1533.
 io/process_exit_negative_test: Fail, OK # relies on a static error that is a warning now.
 package/package_isolate_test: Skip # spawnUri does not work in dart2js. See issue 3051
+package/package_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
+package/package1_test: Fail, OK # dart2js does not support 'package:foo.dart' imports
 debugger/*: Skip # Do not run standalone vm debugger tests with dart2js.
 full_coverage_test: Skip
 left_shift_bit_and_op_test: Skip # Integers exceed dart2js precision.

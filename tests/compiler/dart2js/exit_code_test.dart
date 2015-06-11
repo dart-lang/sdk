@@ -34,11 +34,13 @@ class TestCompiler extends apiimpl.Compiler {
                 Uri packageRoot,
                 List<String> options,
                 Map<String, dynamic> environment,
+                Uri packageConfig,
+                api.PackagesDiscoveryProvider findPackages,
                 String this.testMarker,
                 String this.testType,
                 Function this.onTest)
       : super(inputProvider, outputProvider, handler, libraryRoot,
-              packageRoot, options, environment) {
+              packageRoot, options, environment, packageConfig, findPackages) {
     scanner = new TestScanner(this);
     resolver = new TestResolver(this, backend.constantCompilerTask);
     test('Compiler');
@@ -156,7 +158,9 @@ Future testExitCode(
         api.DiagnosticHandler handler,
         [List<String> options = const [],
          api.CompilerOutputProvider outputProvider,
-         Map<String, dynamic> environment = const {}]) {
+         Map<String, dynamic> environment = const {},
+         Uri packageConfig,
+         api.PackagesDiscoveryProvider findPackages]) {
       libraryRoot = Platform.script.resolve('../../../sdk/');
       outputProvider = NullSink.outputProvider;
       // Use this to silence the test when debugging:
@@ -168,6 +172,8 @@ Future testExitCode(
                                            packageRoot,
                                            options,
                                            environment,
+                                           packageConfig,
+                                           findPackages,
                                            marker,
                                            type,
                                            onTest);
