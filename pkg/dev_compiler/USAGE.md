@@ -11,8 +11,8 @@ With those caveats, we welcome feedback.
 
 You can install DDC via pub:
 
-    $ pub global activate -sgit https://github.com/dart-lang/dev_compiler.git
-
+    $ pub global activate dev_compiler
+    
 The above will install a `dartdevc` executable.  To update to the
 latest DDC, you can just re-run this step.
 
