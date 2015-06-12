@@ -26,4 +26,4 @@ DDC is still in a very early stage as highlighted by our choice of ES6.  ES6 its
 
 We are initially targeting the subset of ES6 supported in Chrome Canary.
 
-To try out DDC and/or give feedback, please read our [Usage](USAGE.md) page.
+To try out DDC and/or give feedback, please read our [Usage](https://github.com/dart-lang/dev_compiler/blob/master/USAGE.md) page.
