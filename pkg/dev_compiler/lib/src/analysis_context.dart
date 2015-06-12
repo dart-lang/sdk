@@ -74,8 +74,9 @@ DartUriResolver createMockSdkResolver(Map<String, String> mockSources) =>
     new MockDartSdk(mockSources, reportMissing: true).resolver;
 
 /// Creates a [DartUriResolver] that uses the SDK at the given [sdkPath].
-DartUriResolver createSdkPathResolver(String sdkPath) =>
-    new DartUriResolver(new DirectoryBasedDartSdk(new JavaFile(sdkPath)));
+DartUriResolver createSdkPathResolver(String sdkPath) => new DartUriResolver(
+    new DirectoryBasedDartSdk(
+        new JavaFile(sdkPath), /*useDart2jsPaths:*/ true));
 
 UriResolver _createImplicitEntryResolver(SourceResolverOptions options) {
   var entry = path.absolute(SourceResolverOptions.implicitHtmlFile);
