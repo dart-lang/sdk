@@ -240,16 +240,14 @@ import 'libB.dart';''';
     });
   }
 
-  Future fail_computeResolvedCompilationUnitAsync_unrelatedLibrary() {
+  Future test_computeResolvedCompilationUnitAsync_noCacheEntry() {
     Source librarySource = addSource("/lib.dart", "library lib;");
     Source partSource = addSource("/part.dart", "part of foo;");
     bool completed = false;
     context
         .computeResolvedCompilationUnitAsync(partSource, librarySource)
-        .then((_) {
-      fail('Expected resolution to fail');
-    }, onError: (e) {
-      expect(e, new isInstanceOf<AnalysisNotScheduledError>());
+        .then((CompilationUnit unit) {
+      expect(unit, isNotNull);
       completed = true;
     });
     return pumpEventQueue().then((_) {
@@ -1957,7 +1955,7 @@ int a = 0;''');
     expect(context.sourcesNeedingProcessing.contains(source), isFalse);
   }
 
-  Future xtest_computeResolvedCompilationUnitAsync() {
+  Future test_computeResolvedCompilationUnitAsync() {
     Source source = addSource("/lib.dart", "library lib;");
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
@@ -1978,7 +1976,7 @@ int a = 0;''');
     });
   }
 
-  Future xtest_computeResolvedCompilationUnitAsync_cancel() {
+  Future test_computeResolvedCompilationUnitAsync_cancel() {
     Source source = addSource("/lib.dart", "library lib;");
     // Complete all pending analysis tasks and flush the AST so that it won't
     // be available immediately.
@@ -2084,8 +2082,8 @@ int a = 0;''');
   }
 
   void _flushAst(Source source) {
-    CacheEntry entry = context
-        .getReadableSourceEntryOrNull(new LibrarySpecificUnit(source, source));
+    CacheEntry entry =
+        context.getCacheEntry(new LibrarySpecificUnit(source, source));
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 

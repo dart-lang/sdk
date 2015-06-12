@@ -608,8 +608,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         !AnalysisEngine.isDartFileName(librarySource.shortName)) {
       return new CancelableFuture.error(new AnalysisNotScheduledError());
     }
+    var unitTarget = new LibrarySpecificUnit(librarySource, unitSource);
     return new _AnalysisFutureHelper<CompilationUnit>(this).computeAsync(
-        new LibrarySpecificUnit(librarySource, unitSource), (CacheEntry entry) {
+        unitTarget, (CacheEntry entry) {
       CacheState state = entry.getState(RESOLVED_UNIT);
       if (state == CacheState.ERROR) {
         throw entry.exception;
@@ -617,6 +618,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         return null;
       }
       return entry.getValue(RESOLVED_UNIT);
+    }, () {
+      dartWorkManager.addPriorityResult(unitTarget, RESOLVED_UNIT);
     });
   }
 
@@ -899,13 +902,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return builder.createPublicNamespaceForLibrary(library);
   }
 
-  /**
-   * Return the cache entry associated with the given [target], or `null` if
-   * there is no entry associated with the target.
-   */
-  CacheEntry getReadableSourceEntryOrNull(AnalysisTarget target) =>
-      _cache.get(target);
-
   @override
   CompilationUnit getResolvedCompilationUnit(
       Source unitSource, LibraryElement library) {
@@ -1045,6 +1041,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   AnalysisResult performAnalysisTask() {
     return PerformanceStatistics.performAnaysis.makeCurrentWhile(() {
+      _evaluatePendingFutures();
       bool done = !driver.performAnalysisTask();
       if (done) {
         done = !_validateCacheConsistency();
@@ -1059,6 +1056,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       return new AnalysisResult(notices, -1, '', -1);
     });
+  }
+
+  void _evaluatePendingFutures() {
+    for (AnalysisTarget target in _pendingFutureTargets.keys) {
+      CacheEntry cacheEntry = _cache.get(target);
+      List<PendingFuture> pendingFutures = _pendingFutureTargets[target];
+      for (int i = 0; i < pendingFutures.length;) {
+        if (pendingFutures[i].evaluate(cacheEntry)) {
+          pendingFutures.removeAt(i);
+        } else {
+          i++;
+        }
+      }
+    }
   }
 
   @override
@@ -1926,8 +1937,8 @@ class SdkAnalysisContext extends AnalysisContextImpl {
 }
 
 /**
- * A helper class used to create futures for AnalysisContextImpl. Using a helper
- * class allows us to preserve the generic parameter T.
+ * A helper class used to create futures for [AnalysisContextImpl].
+ * Using a helper class allows us to preserve the generic parameter T.
  */
 class _AnalysisFutureHelper<T> {
   final AnalysisContextImpl _context;
@@ -1936,11 +1947,13 @@ class _AnalysisFutureHelper<T> {
 
   /**
    * Return a future that will be completed with the result of calling
-   * [computeValue].  If [computeValue] returns non-`null`, the future will be
-   * completed immediately with the resulting value.  If it returns `null`, then
-   * it will be re-executed in the future, after the next time the cached
-   * information for [target] has changed.  If [computeValue] throws an
-   * exception, the future will fail with that exception.
+   * [computeValue]. If [computeValue] returns non-`null`, the future will be
+   * completed immediately with the resulting value. If it returns `null`, then
+   * [scheduleComputation] is invoked to schedule analysis that will produce
+   * the required result, and [computeValue] will be re-executed in the future,
+   * after the next time the cached information for [target] has changed. If
+   * [computeValue] throws an exception, the future will fail with that
+   * exception.
    *
    * If the [computeValue] still returns `null` after there is no further
    * analysis to be done for [target], then the future will be completed with
@@ -1950,23 +1963,21 @@ class _AnalysisFutureHelper<T> {
    * updated, it should be free of side effects so that it doesn't cause
    * reentrant changes to the analysis state.
    */
-  CancelableFuture<T> computeAsync(
-      AnalysisTarget target, T computeValue(CacheEntry entry)) {
+  CancelableFuture<T> computeAsync(AnalysisTarget target,
+      T computeValue(CacheEntry entry), void scheduleComputation()) {
     if (_context.isDisposed) {
       // No further analysis is expected, so return a future that completes
       // immediately with AnalysisNotScheduledError.
       return new CancelableFuture.error(new AnalysisNotScheduledError());
     }
-    CacheEntry entry = _context.getReadableSourceEntryOrNull(target);
-    if (entry == null) {
-      return new CancelableFuture.error(new AnalysisNotScheduledError());
-    }
+    CacheEntry entry = _context.getCacheEntry(target);
     PendingFuture pendingFuture =
         new PendingFuture<T>(_context, target, computeValue);
     if (!pendingFuture.evaluate(entry)) {
       _context._pendingFutureTargets
           .putIfAbsent(target, () => <PendingFuture>[])
           .add(pendingFuture);
+      scheduleComputation();
     }
     return pendingFuture.future;
   }
