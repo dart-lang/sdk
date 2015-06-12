@@ -339,7 +339,9 @@ Future test(Set<VisitKind> unvisitedKinds,
         }
         Expect.listEquals(expectedVisits, visitor.visits,
             "In test:\n"
-            "${library.compilationUnit.script.text}");
+            "${library.compilationUnit.script.text}\n\n"
+            "Expected: $expectedVisits\n"
+            "Found: ${visitor.visits}");
         unvisitedKinds.removeAll(visitor.visits.map((visit) => visit.method));
       }
       if (element.isAbstractField) {
