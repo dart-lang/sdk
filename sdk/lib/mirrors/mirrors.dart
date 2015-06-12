@@ -371,7 +371,7 @@ abstract class ObjectMirror implements Mirror {
    * of *o* (if *o* is a class or library) or the private members of the
    * class of *o* (otherwise).
    * If the invocation returns a result *r*, this method returns
-   * the result of calling [reflect](*r*).
+   * the result of calling [reflect]\(*r*\).
    * If the invocation causes a compilation error
    * the effect is the same as if a non-reflective compilation error
    * had been encountered.
@@ -412,7 +412,7 @@ abstract class ObjectMirror implements Mirror {
    * mirror on a closure corresponding to that method.
    *
    * If the invocation returns a result *r*, this method returns
-   * the result of calling [reflect](*r*).
+   * the result of calling [reflect]\(*r*\).
    * If the invocation causes a compilation error
    * the effect is the same as if a non-reflective compilation error
    * had been encountered.
@@ -437,7 +437,7 @@ abstract class ObjectMirror implements Mirror {
    * of *o* (if *o* is a class or library) or the private members of the
    * class of *o* (otherwise).
    * If the invocation returns a result *r*, this method returns
-   * the result of calling [reflect]([value]).
+   * the result of calling [reflect]\([value]\).
    * If the invocation causes a compilation error
    * the effect is the same as if a non-reflective compilation error
    * had been encountered.
@@ -505,7 +505,7 @@ abstract class InstanceMirror implements ObjectMirror {
    * Equivalent to
    *
    *     if (invocation.isGetter) {
-   *        return this.getField(invocation.memberName).reflectee;
+   *       return this.getField(invocation.memberName).reflectee;
    *     } else if (invocation.isSetter) {
    *       return this.setField(invocation.memberName,
    *                            invocation.positionArguments[0]).reflectee;
@@ -556,7 +556,7 @@ abstract class ClosureMirror implements InstanceMirror {
    * Then this method will perform the method invocation
    *  *f(a1, ..., an, k1: v1, ..., km: vm)*
    * If the invocation returns a result *r*, this method returns
-   * the result of calling [reflect](*r*).
+   * the result of calling [reflect]\(*r*\).
    * If the invocation causes a compilation error
    * the effect is the same as if a non-reflective compilation error
    * had been encountered.
@@ -837,7 +837,7 @@ abstract class ClassMirror implements TypeMirror, ObjectMirror {
    * of *c*.
    * In either case:
    * If the expression evaluates to a result *r*, this method returns
-   * the result of calling [reflect](*r*).
+   * the result of calling [reflect]\(*r*\).
    * If evaluating the expression causes a compilation error
    * the effect is the same as if a non-reflective compilation error
    * had been encountered.
