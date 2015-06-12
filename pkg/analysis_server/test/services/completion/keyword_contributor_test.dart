@@ -646,6 +646,30 @@ class A {
     assertSuggestKeywords(STMT_START_OUTSIDE_CLASS, pseudoKeywords: ['await']);
   }
 
+  test_if_expression_in_class() {
+    addTestSource('class A {foo() {if (^) }}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
+  }
+
+  test_if_expression_in_class2() {
+    addTestSource('class A {foo() {if (n^) }}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_INSTANCE);
+  }
+
+  test_if_expression_in_function() {
+    addTestSource('foo() {if (^) }');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
+  test_if_expression_in_function2() {
+    addTestSource('foo() {if (n^) }');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords(EXPRESSION_START_NO_INSTANCE);
+  }
+
   test_if_in_class() {
     addTestSource('class A {foo() {if (true) ^}}');
     expect(computeFast(), isTrue);

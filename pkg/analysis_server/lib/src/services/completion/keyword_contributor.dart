@@ -191,6 +191,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   visitIfStatement(IfStatement node) {
     if (entity == node.thenStatement) {
       _addStatementKeywords(node);
+    } else if (entity == node.condition) {
+      _addExpressionKeywords(node);
     }
   }
 
