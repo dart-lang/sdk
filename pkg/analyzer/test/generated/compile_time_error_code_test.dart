@@ -3289,7 +3289,9 @@ class A<E> {
   }
 
   void test_invalidUri_part() {
-    Source source = addSource("part 'ht:';");
+    Source source = addSource(r'''
+library lib;
+part 'ht:';''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.INVALID_URI]);
   }
@@ -5804,7 +5806,9 @@ main() {
   }
 
   void test_uriDoesNotExist_part() {
-    Source source = addSource("part 'unknown.dart';");
+    Source source = addSource(r'''
+library lib;
+part 'unknown.dart';''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
