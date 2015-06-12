@@ -17,6 +17,10 @@ import '../dart_types.dart';
 /// Enum representing the different kinds of destinations which a property
 /// access or method or function invocation might refer to.
 enum AccessKind {
+  /// The destination of the conditional access is an instance method, property,
+  /// or field of a class, and thus must be determined dynamically.
+  CONDITIONAL_DYNAMIC_PROPERTY,
+
   /// The destination of the access is an instance method, property, or field
   /// of a class, and thus must be determined dynamically.
   DYNAMIC_PROPERTY,
@@ -256,6 +260,9 @@ class DynamicAccess extends AccessSemantics {
 
   DynamicAccess.dynamicProperty(this.target)
       : super._(AccessKind.DYNAMIC_PROPERTY);
+
+  DynamicAccess.ifNotNullProperty(this.target)
+      : super._(AccessKind.CONDITIONAL_DYNAMIC_PROPERTY);
 }
 
 class ConstantAccess extends AccessSemantics {
