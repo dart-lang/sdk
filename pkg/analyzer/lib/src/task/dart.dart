@@ -859,6 +859,9 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
           // directive was invalid.
           LibraryElement importedLibrary = importLibraryMap[importedSource];
           if (importedLibrary != null) {
+            if (importedLibrary.isDartCore) {
+              explicitlyImportsCore = true;
+            }
             ImportElementImpl importElement =
                 new ImportElementImpl(directive.offset);
             StringLiteral uriLiteral = importDirective.uri;

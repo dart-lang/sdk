@@ -360,6 +360,7 @@ library libC;
       List<ImportElement> imports = libraryElementA.imports;
       expect(imports, hasLength(2));
       expect(imports[1].importedLibrary.isDartCore, isTrue);
+      expect(imports[1].isSynthetic, isTrue);
     }
   }
 
@@ -450,6 +451,28 @@ part of notLib;
     expect(task, new isInstanceOf<BuildDirectiveElementsTask>());
     // validate errors
     _assertErrorsWithCodes([CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY]);
+  }
+
+  test_perform_explicitDartCoreImport() {
+    List<Source> sources = newSources({
+      '/lib.dart': '''
+library lib;
+import 'dart:core' show List;
+'''
+    });
+    Source source = sources[0];
+    // perform task
+    computeResult(source, LIBRARY_ELEMENT2);
+    expect(task, new isInstanceOf<BuildDirectiveElementsTask>());
+    // prepare outputs
+    LibraryElement libraryElement = outputs[LIBRARY_ELEMENT2];
+    // has an explicit "dart:core" import
+    {
+      List<ImportElement> imports = libraryElement.imports;
+      expect(imports, hasLength(1));
+      expect(imports[0].importedLibrary.isDartCore, isTrue);
+      expect(imports[0].isSynthetic, isFalse);
+    }
   }
 
   test_perform_hasExtUri() {
