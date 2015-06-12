@@ -32,7 +32,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
   if ((kind == Snapshot::kFull) ||
       (kind == Snapshot::kScript && !RawObject::IsCreatedFromSnapshot(tags))) {
     // Read in the base information.
-    classid_t class_id = reader->Read<classid_t>();
+    classid_t class_id = reader->ReadClassIDValue();
 
     // Allocate class object of specified kind.
     if (kind == Snapshot::kFull) {
@@ -706,7 +706,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_num_fixed_parameters(reader->Read<int16_t>());
   func.set_num_optional_parameters(reader->Read<int16_t>());
   func.set_deoptimization_counter(reader->Read<int16_t>());
-  func.set_regexp_cid(reader->Read<classid_t>());
+  func.set_regexp_cid(reader->ReadClassIDValue());
   func.set_kind_tag(reader->Read<uint32_t>());
   func.set_optimized_instruction_count(reader->Read<uint16_t>());
   func.set_optimized_call_site_count(reader->Read<uint16_t>());
@@ -750,7 +750,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->Write<int16_t>(ptr()->num_fixed_parameters_);
   writer->Write<int16_t>(ptr()->num_optional_parameters_);
   writer->Write<int16_t>(ptr()->deoptimization_counter_);
-  writer->Write<classid_t>(ptr()->regexp_cid_);
+  writer->WriteClassIDValue(ptr()->regexp_cid_);
   writer->Write<uint32_t>(ptr()->kind_tag_);
   writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
   writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
@@ -1039,9 +1039,9 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
 
     // Set all non object fields.
     library.StoreNonPointer(&library.raw_ptr()->index_,
-                            reader->Read<classid_t>());
+                            reader->ReadClassIDValue());
     library.StoreNonPointer(&library.raw_ptr()->num_anonymous_,
-                            reader->Read<classid_t>());
+                            reader->ReadClassIDValue());
     library.StoreNonPointer(&library.raw_ptr()->num_imports_,
                             reader->Read<uint16_t>());
     library.StoreNonPointer(&library.raw_ptr()->load_state_,
@@ -1052,16 +1052,9 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
                             reader->Read<bool>());
     library.StoreNonPointer(&library.raw_ptr()->debuggable_,
                             reader->Read<bool>());
-    // The native resolver is not serialized.
-    Dart_NativeEntryResolver resolver =
-        reader->Read<Dart_NativeEntryResolver>();
-    ASSERT(resolver == NULL);
-    library.set_native_entry_resolver(resolver);
-    // The symbol resolver is not serialized.
-    Dart_NativeEntrySymbol symbol_resolver =
-        reader->Read<Dart_NativeEntrySymbol>();
-    ASSERT(symbol_resolver == NULL);
-    library.set_native_entry_symbol_resolver(symbol_resolver);
+    // The native resolver and symbolizer are not serialized.
+    library.set_native_entry_resolver(NULL);
+    library.set_native_entry_symbol_resolver(NULL);
     // The cache of loaded scripts is not serialized.
     library.StorePointer(&library.raw_ptr()->loaded_scripts_, Array::null());
 
@@ -1102,19 +1095,15 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     writer->WriteObjectImpl(ptr()->url_);
   } else {
     // Write out all non object fields.
-    writer->Write<classid_t>(ptr()->index_);
-    writer->Write<classid_t>(ptr()->num_anonymous_);
+    writer->WriteClassIDValue(ptr()->index_);
+    writer->WriteClassIDValue(ptr()->num_anonymous_);
     writer->Write<uint16_t>(ptr()->num_imports_);
     writer->Write<int8_t>(ptr()->load_state_);
     writer->Write<bool>(ptr()->corelib_imported_);
     writer->Write<bool>(ptr()->is_dart_scheme_);
     writer->Write<bool>(ptr()->debuggable_);
-    // We do not serialize the native resolver over, this needs to be explicitly
-    // set after deserialization.
-    writer->Write<Dart_NativeEntryResolver>(NULL);
-    // We do not serialize the native entry symbol, this needs to be explicitly
-    // set after deserialization.
-    writer->Write<Dart_NativeEntrySymbol>(NULL);
+    // We do not serialize the native resolver or symbolizer. These need to be
+    // explicitly set after deserialization.
     // We do not write the loaded_scripts_ cache to the snapshot. It gets
     // set to NULL when reading the library from the snapshot, and will
     // be rebuilt lazily.

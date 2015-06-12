@@ -238,13 +238,26 @@ class RawObject {
     kCanonicalBit = 2,
     kFromSnapshotBit = 3,
     kRememberedBit = 4,
-    kReservedTagPos = 5,  // kReservedBit{10K,100K,1M,10M}
+#if defined(ARCH_IS_32_BIT)
+    kReservedTagPos = 5,  // kReservedBit{100K,1M,10M}
     kReservedTagSize = 3,
     kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
+#elif defined(ARCH_IS_64_BIT)
+    kReservedTagPos = 5,  // kReservedBit{100K,1M,10M}
+    kReservedTagSize = 11,
+    kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 16
+    kSizeTagSize = 16,
+    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 32
+    kClassIdTagSize = 32,
+#else
+#error Unexpected architecture word size
+#endif
   };
+
+  COMPILE_ASSERT(kClassIdTagSize == (sizeof(classid_t) * kBitsPerByte));
 
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {

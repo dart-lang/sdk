@@ -729,11 +729,6 @@ int X86Decoder::PrintImmediateOp(uint8_t* data, bool size_override) {
     default: UNIMPLEMENTED();
   }
   Print(mnem);
-  if (size_override) {
-    Print("_w");
-  } else if (sign_extension_bit) {
-    Print("_b");
-  }
   Print(" ");
   int count = PrintRightOperand(data+1);
   Print(",");

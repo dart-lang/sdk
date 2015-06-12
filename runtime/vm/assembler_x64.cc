@@ -3745,11 +3745,12 @@ void Assembler::EmitGenericShift(bool wide,
 
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(RawObject::kClassIdTagPos == 16);
-  ASSERT(RawObject::kClassIdTagSize == 16);
+  ASSERT(RawObject::kClassIdTagPos == kBitsPerInt32);
+  ASSERT(RawObject::kClassIdTagSize == kBitsPerInt32);
+  ASSERT(sizeof(classid_t) == sizeof(uint32_t));
   const intptr_t class_id_offset = Object::tags_offset() +
       RawObject::kClassIdTagPos / kBitsPerByte;
-  movzxw(result, FieldAddress(object, class_id_offset));
+  movl(result, FieldAddress(object, class_id_offset));
 }
 
 
@@ -3778,8 +3779,9 @@ void Assembler::SmiUntagOrCheckClass(Register object,
                                      intptr_t class_id,
                                      Label* is_smi) {
   ASSERT(kSmiTagShift == 1);
-  ASSERT(RawObject::kClassIdTagPos == 16);
-  ASSERT(RawObject::kClassIdTagSize == 16);
+  ASSERT(RawObject::kClassIdTagPos == kBitsPerInt32);
+  ASSERT(RawObject::kClassIdTagSize == kBitsPerInt32);
+  ASSERT(sizeof(classid_t) == sizeof(uint32_t));
   const intptr_t class_id_offset = Object::tags_offset() +
       RawObject::kClassIdTagPos / kBitsPerByte;
 
@@ -3788,7 +3790,7 @@ void Assembler::SmiUntagOrCheckClass(Register object,
   j(NOT_CARRY, is_smi, kNearJump);
   // Load cid: can't use LoadClassId, object is untagged. Use TIMES_2 scale
   // factor in the addressing mode to compensate for this.
-  movzxw(TMP, Address(object, TIMES_2, class_id_offset));
+  movl(TMP, Address(object, TIMES_2, class_id_offset));
   cmpl(TMP, Immediate(class_id));
 }
 

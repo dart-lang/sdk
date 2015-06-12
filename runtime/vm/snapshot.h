@@ -195,6 +195,12 @@ class BaseReader {
     return static_cast<intptr_t>(value);
   }
 
+  classid_t ReadClassIDValue() {
+    uint32_t value = Read<uint32_t>();
+    return static_cast<classid_t>(value);
+  }
+  COMPILE_ASSERT(sizeof(uint32_t) >= sizeof(classid_t));
+
   void ReadBytes(uint8_t* addr, intptr_t len) {
     stream_.ReadBytes(addr, len);
   }
@@ -510,6 +516,11 @@ class BaseWriter : public StackResource {
   void WriteRawPointerValue(intptr_t value) {
     Write<int64_t>(value);
   }
+
+  void WriteClassIDValue(classid_t value) {
+    Write<uint32_t>(value);
+  }
+  COMPILE_ASSERT(sizeof(uint32_t) >= sizeof(classid_t));
 
   // Write an object that is serialized as an Id (singleton in object store,
   // or an object that was already serialized before).
