@@ -2726,9 +2726,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
             } else if (directive is ImportDirective) {
               explicitlyImportedSourceSet.add(referencedSource);
             } else if (directive is PartDirective) {
-              if (referencedSource != source) {
-                includedSourceSet.add(referencedSource);
-              }
+              includedSourceSet.add(referencedSource);
             } else {
               throw new AnalysisException(
                   '$runtimeType failed to handle a ${directive.runtimeType}');

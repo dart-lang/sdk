@@ -4696,6 +4696,15 @@ part 'l2.dart';''');
     verify([source]);
   }
 
+  void test_partOfNonPart_self() {
+    Source source = addSource(r'''
+library lib;
+part 'test.dart';''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.PART_OF_NON_PART]);
+    verify([source]);
+  }
+
   void test_prefix_conditionalPropertyAccess_call() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableNullAwareOperators = true;

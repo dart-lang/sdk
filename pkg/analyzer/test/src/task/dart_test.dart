@@ -2177,6 +2177,8 @@ class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
 
 @reflectiveTest
 class ParseDartTaskTest extends _AbstractDartTaskTest {
+  Source source;
+
   test_buildInputs() {
     Map<String, TaskInput> inputs = ParseDartTask.buildInputs(emptySource);
     expect(inputs, isNotNull);
@@ -2292,6 +2294,14 @@ class A {''');
     expect(outputs[UNITS], hasLength(2));
   }
 
+  test_perform_library_selfReferenceAsPart() {
+    _performParseTask(r'''
+library lib;
+part 'test.dart';
+''');
+    expect(outputs[INCLUDED_PARTS], unorderedEquals(<Source>[source]));
+  }
+
   test_perform_part() {
     _performParseTask(r'''
 part of lib;
@@ -2308,8 +2318,8 @@ class B {}''');
   }
 
   void _performParseTask(String content) {
-    AnalysisTarget target = newSource('/test.dart', content);
-    computeResult(target, PARSED_UNIT);
+    source = newSource('/test.dart', content);
+    computeResult(source, PARSED_UNIT);
     expect(task, new isInstanceOf<ParseDartTask>());
   }
 
