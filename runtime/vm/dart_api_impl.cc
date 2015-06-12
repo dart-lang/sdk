@@ -3241,9 +3241,19 @@ DART_EXPORT Dart_TypedData_Type Dart_GetTypeOfExternalTypedData(
     Dart_Handle object) {
   TRACE_API_CALL(CURRENT_FUNC);
   intptr_t class_id = Api::ClassId(object);
-  if (RawObject::IsExternalTypedDataClassId(class_id) ||
-      RawObject::IsTypedDataViewClassId(class_id)) {
+  if (RawObject::IsExternalTypedDataClassId(class_id)) {
     return GetType(class_id);
+  }
+  if (RawObject::IsTypedDataViewClassId(class_id)) {
+    // Check if data object of the view is external.
+    Isolate* isolate = Isolate::Current();
+    const Instance& view_obj = Api::UnwrapInstanceHandle(isolate, object);
+    ASSERT(!view_obj.IsNull());
+    const Instance& data_obj =
+        Instance::Handle(isolate, TypedDataView::Data(view_obj));
+    if (ExternalTypedData::IsExternalTypedData(data_obj)) {
+      return GetType(class_id);
+    }
   }
   return Dart_TypedData_kInvalid;
 }
