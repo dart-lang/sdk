@@ -1806,7 +1806,8 @@ abstract class Compiler implements DiagnosticListener {
     Node tree = parser.parse(element);
     assert(invariant(element, !element.isSynthesized || tree == null));
     WorldImpact worldImpact = resolver.resolve(element);
-    if (tree != null && !analyzeSignaturesOnly && !suppressWarnings) {
+    if (tree != null && !analyzeSignaturesOnly &&
+        !suppressWarnings) {
       // Only analyze nodes with a corresponding [TreeElements].
       checker.check(element);
     }

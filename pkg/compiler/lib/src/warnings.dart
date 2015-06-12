@@ -530,9 +530,6 @@ main() => new C(0);"""]);
   static const MessageKind NOT_INSTANCE_FIELD = const MessageKind(
       "'#{fieldName}' is not an instance field.");
 
-  static const MessageKind THIS_PROPERTY = const MessageKind(
-      "Expected an identifier.");
-
   static const MessageKind NO_CATCH_NOR_FINALLY = const MessageKind(
       "Expected 'catch' or 'finally'.");
 

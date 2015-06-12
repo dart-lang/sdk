@@ -13,13 +13,7 @@ class ResolverTask extends CompilerTask {
 
   WorldImpact resolve(Element element) {
     return measure(() {
-      if (Elements.isErroneous(element)) {
-        // TODO(johnniwinther): Add a predicate for this.
-        assert(invariant(element, element is! ErroneousElement,
-            message: "Element $element expected to have parse errors."));
-        _ensureTreeElements(element);
-        return const WorldImpact();
-      }
+      if (Elements.isErroneous(element)) return null;
 
       WorldImpact processMetadata([WorldImpact result]) {
         for (MetadataAnnotation metadata in element.metadata) {
