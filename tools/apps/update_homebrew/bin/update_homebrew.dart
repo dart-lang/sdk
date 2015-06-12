@@ -205,22 +205,26 @@ class Dart < Formula
     end
 
     resource 'content_shell' do
+      version '$devVersion'
       url '$urlBase/dev/release/${revisions['dev']}/$contentShellFile'
       sha256 '${hashes['dev'][contentShellFile]}'
     end
 
     resource 'dartium' do
+      version '$devVersion'
       url '$urlBase/dev/release/${revisions['dev']}/$dartiumFile'
       sha256 '${hashes['dev'][dartiumFile]}'
     end
   end
 
   resource 'content_shell' do
+    version '$stableVersion'
     url '$urlBase/stable/release/${revisions['stable']}/$contentShellFile'
     sha256 '${hashes['stable'][contentShellFile]}'
   end
 
   resource 'dartium' do
+    version '$stableVersion'
     url '$urlBase/stable/release/${revisions['stable']}/$dartiumFile'
     sha256 '${hashes['stable'][dartiumFile]}'
   end
