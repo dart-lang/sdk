@@ -147,6 +147,11 @@ class Unmarker : public ObjectVisitor {
   }
 
   static void UnmarkAll(Isolate* isolate) {
+    PageSpace* old_space = isolate->heap()->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    while (old_space->tasks() > 0) {
+      ml.Wait();
+    }
     Unmarker unmarker(isolate);
     isolate->heap()->VisitObjects(&unmarker);
   }
