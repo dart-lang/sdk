@@ -20,6 +20,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, load_deferred_eagerly);
+DECLARE_FLAG(bool, concurrent_sweep);
 
 // Check if serialized and deserialized objects are equal.
 static bool Equals(const Object& expected, const Object& actual) {
@@ -1235,7 +1236,10 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 
   bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
   FLAG_load_deferred_eagerly = true;
-
+  // Workaround until issue 21620 is fixed.
+  // (https://github.com/dart-lang/sdk/issues/21620)
+  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
+  FLAG_concurrent_sweep = false;
   {
     // Start an Isolate, and create a full snapshot of it.
     TestIsolateScope __test_isolate__;
@@ -1251,8 +1255,8 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
   }
-
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
+  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
 
   // Test for Dart_CreateScriptSnapshot.
   {
@@ -1379,6 +1383,8 @@ UNIT_TEST_CASE(ScriptSnapshot1) {
 
   bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
   FLAG_load_deferred_eagerly = true;
+  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
+  FLAG_concurrent_sweep = false;
   {
     // Start an Isolate, and create a full snapshot of it.
     TestIsolateScope __test_isolate__;
@@ -1394,6 +1400,7 @@ UNIT_TEST_CASE(ScriptSnapshot1) {
     memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
   }
+  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
 
   {
     // Create an Isolate using the full snapshot, load a script and create
@@ -1469,7 +1476,8 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
   FLAG_enable_type_checks = false;
   bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
   FLAG_load_deferred_eagerly = true;
-
+  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
+  FLAG_concurrent_sweep = false;
   {
     // Start an Isolate, and create a full snapshot of it.
     TestIsolateScope __test_isolate__;
@@ -1485,6 +1493,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
     memmove(full_snapshot, isolate_snapshot, isolate_snapshot_size);
     Dart_ExitScope();
   }
+  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
 
   {
     // Create an Isolate using the full snapshot, load a script and create

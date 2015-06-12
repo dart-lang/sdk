@@ -393,6 +393,9 @@ class RawObject {
   bool IsScript() {
     return ((GetClassId() == kScriptCid));
   }
+  bool IsFunction() {
+    return ((GetClassId() == kFunctionCid));
+  }
 
   intptr_t Size() const {
     uword tags = ptr()->tags_;

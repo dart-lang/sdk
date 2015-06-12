@@ -344,6 +344,12 @@ RawError* Compiler::CompileClass(const Class& cls) {
       ClassFinalizer::FinalizeClass(parse_class);
       parse_class.reset_is_marked_for_parsing();
     }
+    for (intptr_t i = (patch_list.Length() - 1); i >=0 ; i--) {
+      parse_class ^= patch_list.At(i);
+      ASSERT(!parse_class.IsNull());
+      ClassFinalizer::FinalizeClass(parse_class);
+      parse_class.reset_is_marked_for_parsing();
+    }
 
     return Error::null();
   } else {

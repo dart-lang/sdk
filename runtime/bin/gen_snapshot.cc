@@ -516,7 +516,7 @@ static void SetupForGenericSnapshotCreation() {
 
 
 int main(int argc, char** argv) {
-  const int EXTRA_VM_ARGUMENTS = 1;
+  const int EXTRA_VM_ARGUMENTS = 2;
   CommandLineOptions vm_options(argc + EXTRA_VM_ARGUMENTS);
 
   // Initialize the URL mapping array.
@@ -536,7 +536,9 @@ int main(int argc, char** argv) {
   DartUtils::SetOriginalWorkingDirectory();
 
   vm_options.AddArgument("--load_deferred_eagerly");
-
+  // Workaround until issue 21620 is fixed.
+  // (https://github.com/dart-lang/sdk/issues/21620)
+  vm_options.AddArgument("--no-concurrent_sweep");
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Initialize the Dart VM.
