@@ -5775,14 +5775,15 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
     ns.AddMetadata(metadata_pos, current_class());
   }
 
+  // Ensure that private dart:_ libraries are only imported into dart:
+  // libraries, including indirectly through exports.
+  const String& lib_url = String::Handle(Z, library_.url());
+  if (canon_url.StartsWith(Symbols::DartSchemePrivate()) &&
+      !lib_url.StartsWith(Symbols::DartScheme())) {
+    ReportError(import_pos, "private library is not accessible");
+  }
+
   if (is_import) {
-    // Ensure that private dart:_ libraries are only imported into dart:
-    // libraries.
-    const String& lib_url = String::Handle(Z, library_.url());
-    if (canon_url.StartsWith(Symbols::DartSchemePrivate()) &&
-        !lib_url.StartsWith(Symbols::DartScheme())) {
-      ReportError(import_pos, "private library is not accessible");
-    }
     if (prefix.IsNull() || (prefix.Length() == 0)) {
       ASSERT(!is_deferred_import);
       library_.AddImport(ns);
