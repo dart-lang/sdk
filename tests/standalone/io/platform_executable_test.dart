@@ -44,14 +44,13 @@ void testDartExecShouldNotBeInCurrentDir() {
 }
 
 void testShouldSucceedWithEmptyPathEnvironment() {
-  var command = Platform.isWindows ? 'dir' : 'ls';
+  var command = Platform.isWindows ? 'cmd' : 'ls';
   Process.runSync(command, [],
                   includeParentEnvironment: false,
                   environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
 }
 
 void testShouldSucceedWithSourcePlatformExecutable() {
-  //print('*** Running normally');
   verify(Platform.executable);
 }
 
@@ -59,7 +58,6 @@ void testExeSymLinked(Directory dir) {
   var dirUri = new Uri.directory(dir.path);
   var link = new Link.fromUri(dirUri.resolve('dart_exe_link'));
   link.createSync(Platform.executable);
-  //print('*** Creating a sym-link to the executable');
   verify(link.path);
 }
 
@@ -67,7 +65,6 @@ void testPathToDirWithExeSymLinked(Directory dir) {
   var dirUri = new Uri.directory(dir.path);
   var link = new Link.fromUri(dirUri.resolve('dart_exe_link'));
   link.createSync(Platform.executable);
-  //print('*** Path to a directory that contains a sym-link to dart bin');
   verify('dart_exe_link', altPath: dir.path);
 }
 
@@ -85,7 +82,6 @@ void testExeDirSymLinked(Directory dir) {
   var linkedBin =
       new Uri.directory(linkDirUri.toFilePath()).resolve(platformExeName);
 
-  //print('*** Running in a sym-linked directory');
   verify(linkedBin.toFilePath());
 }
 
@@ -99,7 +95,6 @@ void testPathPointsToSymLinkedSDKPath(Directory dir) {
 
   link.createSync(exeFile.parent.path);
 
-  //print('*** Path points to a sym-linked SDK dir');
   verify(platformExeName, altPath: link.path);
 }
 
@@ -107,7 +102,6 @@ void testPathToSDKDir() {
   var exeFile = new File(Platform.executable);
   var binDirPath = exeFile.parent.path;
 
-  //print('*** Running with PATH env set to environment - fixed in 16994 - thanks!');
   verify(platformExeName, altPath: binDirPath);
 }
 
@@ -135,10 +129,16 @@ void main() {
 
   testDartExecShouldNotBeInCurrentDir();
   testShouldSucceedWithSourcePlatformExecutable(); /// 00: ok
-  withTempDir(testExeSymLinked); /// 01: ok
+  // dart:io does not support linking to files in Windows.
+  if (!Platform.isWindows) {
+    withTempDir(testExeSymLinked); /// 01: ok
+  }
   withTempDir(testExeDirSymLinked); /// 02: ok
   testPathToSDKDir(); /// 03: ok
   withTempDir(testPathPointsToSymLinkedSDKPath); /// 04: ok
-  withTempDir(testPathToDirWithExeSymLinked); /// 05: ok
+  // dart:io does not support linking to files in Windows.
+  if (!Platform.isWindows) {
+    withTempDir(testPathToDirWithExeSymLinked); /// 05: ok
+  }
   testShouldSucceedWithEmptyPathEnvironment(); /// 06: ok
 }

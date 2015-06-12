@@ -5,6 +5,7 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
+#include "bin/file.h"
 #include "bin/platform.h"
 #include "bin/log.h"
 #include "bin/socket.h"
@@ -97,7 +98,10 @@ char* Platform::ResolveExecutablePath() {
   }
   char* path = StringUtils::WideToUtf8(tmp_buffer);
   free(tmp_buffer);
-  return path;
+  // Return the canonical path as the returned path might contain symlinks.
+  char* canon_path = File::GetCanonicalPath(path);
+  free(path);
+  return canon_path;
 }
 
 }  // namespace bin
