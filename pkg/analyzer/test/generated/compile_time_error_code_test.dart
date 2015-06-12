@@ -20,15 +20,6 @@ main() {
 
 @reflectiveTest
 class CompileTimeErrorCodeTest extends ResolverTestCase {
-  /**
-   * Computes errors for the given [librarySource].
-   * This assumes that the given [librarySource] and its parts have already
-   * been added to the content provider using the method [addNamedSource].
-   */
-  void computeLibrarySourceErrors(Source librarySource) {
-    analysisContext.computeErrors(librarySource);
-  }
-
   void fail_awaitInWrongContext_sync() {
     // This test requires better error recovery than we currently have. In
     // particular, we need to be able to distinguish between an await expression
@@ -4719,7 +4710,7 @@ f() {
   p?.g();
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
@@ -4738,7 +4729,7 @@ f() {
   p?.loadLibrary();
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
@@ -4758,7 +4749,7 @@ f() {
   return p?.x;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
@@ -4777,7 +4768,7 @@ f() {
   return p?.loadLibrary;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
@@ -4797,7 +4788,7 @@ f() {
   p?.x = null;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
@@ -4816,7 +4807,7 @@ f() {
   p?.loadLibrary = null;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
@@ -4886,7 +4877,7 @@ f() {
   return p;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
@@ -4900,7 +4891,7 @@ f() {
   p += 1;
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);
@@ -4920,7 +4911,7 @@ f() {
   p?.g();
 }
 ''');
-    resolve(source);
+    computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
     verify([source]);

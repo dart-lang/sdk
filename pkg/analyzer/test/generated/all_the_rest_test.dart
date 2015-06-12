@@ -878,7 +878,7 @@ class ConstantEvaluatorTest extends ResolverTestCase {
 
   EvaluationResult _getExpressionValue(String contents) {
     Source source = addSource("var x = $contents;");
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(source, library);
     expect(unit, isNotNull);
@@ -1266,7 +1266,7 @@ class C {
 const int a = c;
 const int b = a;
 const int c = b;''');
-    LibraryElement libraryElement = resolve(librarySource);
+    LibraryElement libraryElement = resolve2(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     analysisContext.computeErrors(librarySource);
@@ -1285,7 +1285,7 @@ const int c = b;''');
     Source librarySource = addSource(r'''
 const int b = a;
 const int a = 0;''');
-    LibraryElement libraryElement = resolve(librarySource);
+    LibraryElement libraryElement = resolve2(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     expect(unit, isNotNull);
@@ -1313,7 +1313,7 @@ const int a = 0;''');
 part of lib;
 const int b = a;
 const int d = c;''');
-    LibraryElement libraryElement = resolve(librarySource);
+    LibraryElement libraryElement = resolve2(librarySource);
     CompilationUnit libraryUnit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     expect(libraryUnit, isNotNull);
@@ -1338,7 +1338,7 @@ const int d = c;''');
 
   void test_computeValues_singleVariable() {
     Source librarySource = addSource("const int a = 0;");
-    LibraryElement libraryElement = resolve(librarySource);
+    LibraryElement libraryElement = resolve2(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     expect(unit, isNotNull);
@@ -1355,7 +1355,7 @@ const int d = c;''');
 enum E { id0, id1 }
 const E e = E.id0;
 ''');
-    LibraryElement libraryElement = resolve(librarySource);
+    LibraryElement libraryElement = resolve2(librarySource);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(librarySource, libraryElement);
     expect(unit, isNotNull);
@@ -2171,7 +2171,7 @@ const A a = const A();
   void _assertProperDependencies(String sourceText,
       [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     Source source = addSource(sourceText);
-    LibraryElement element = resolve(source);
+    LibraryElement element = resolve2(source);
     CompilationUnit unit =
         analysisContext.resolveCompilationUnit(source, element);
     expect(unit, isNotNull);
@@ -6593,7 +6593,7 @@ core.int value;''');
    */
   CompilationUnit _resolveContents(String code) {
     Source source = addSource(code);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     assertNoErrors(source);
     verify([source]);
     return analysisContext.resolveCompilationUnit(source, library);
@@ -7332,7 +7332,7 @@ String f(E e) {
   return x;
 }
 ''');
-    LibraryElement element = resolve(source);
+    LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
@@ -7354,7 +7354,7 @@ String f(E e) {
   return x;
 }
 ''');
-    LibraryElement element = resolve(source);
+    LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
@@ -7374,7 +7374,7 @@ String f(E e) {
   }
 }
 ''');
-    LibraryElement element = resolve(source);
+    LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;
@@ -7394,7 +7394,7 @@ String f(E e) {
   }
 }
 ''');
-    LibraryElement element = resolve(source);
+    LibraryElement element = resolve2(source);
     CompilationUnit unit = resolveCompilationUnit(source, element);
     FunctionDeclaration function = unit.declarations.last;
     BlockFunctionBody body = function.functionExpression.body;

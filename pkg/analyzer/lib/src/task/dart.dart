@@ -3349,17 +3349,17 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     //
     validateDirectives(unit);
     //
-    // Use the ErrorVerifier to compute errors.
-    //
-    ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter,
-        libraryElement, typeProvider, new InheritanceManager(libraryElement));
-    unit.accept(errorVerifier);
-    //
     // Use the ConstantVerifier to compute errors.
     //
     ConstantVerifier constantVerifier = new ConstantVerifier(
         errorReporter, libraryElement, typeProvider, context.declaredVariables);
     unit.accept(constantVerifier);
+    //
+    // Use the ErrorVerifier to compute errors.
+    //
+    ErrorVerifier errorVerifier = new ErrorVerifier(errorReporter,
+        libraryElement, typeProvider, new InheritanceManager(libraryElement));
+    unit.accept(errorVerifier);
     //
     // Record outputs.
     //
