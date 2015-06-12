@@ -20,6 +20,7 @@ import 'package:analyzer/src/task/dart.dart'
         SCAN_ERRORS,
         USED_IMPORTED_ELEMENTS,
         USED_LOCAL_ELEMENTS,
+        VARIABLE_REFERENCE_ERRORS,
         VERIFY_ERRORS;
 import 'package:analyzer/task/dart.dart'
     show DART_ERRORS, LibrarySpecificUnit, PARSED_UNIT, TOKEN_STREAM;
@@ -1133,10 +1134,11 @@ class IncrementalResolver {
   }
 
   void _shiftEntryErrors_NEW() {
-    _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
-    _shiftErrors_NEW(RESOLVE_REFERENCES_ERRORS);
-    _shiftErrors_NEW(VERIFY_ERRORS);
     _shiftErrors_NEW(HINTS);
+    _shiftErrors_NEW(RESOLVE_REFERENCES_ERRORS);
+    _shiftErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS);
+    _shiftErrors_NEW(VARIABLE_REFERENCE_ERRORS);
+    _shiftErrors_NEW(VERIFY_ERRORS);
   }
 
   void _shiftEntryErrors_OLD() {
@@ -1185,8 +1187,9 @@ class IncrementalResolver {
   }
 
   void _updateEntry_NEW() {
-    _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
     _updateErrors_NEW(RESOLVE_REFERENCES_ERRORS, _resolveErrors);
+    _updateErrors_NEW(RESOLVE_TYPE_NAMES_ERRORS, []);
+    _updateErrors_NEW(VARIABLE_REFERENCE_ERRORS, []);
     _updateErrors_NEW(VERIFY_ERRORS, _verifyErrors);
     // invalidate results we don't update incrementally
     newUnitEntry.setState(USED_IMPORTED_ELEMENTS, CacheState.INVALID);

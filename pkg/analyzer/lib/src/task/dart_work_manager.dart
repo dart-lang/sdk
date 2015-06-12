@@ -46,6 +46,7 @@ class DartWorkManager implements WorkManager {
     HINTS,
     RESOLVE_REFERENCES_ERRORS,
     RESOLVE_TYPE_NAMES_ERRORS,
+    VARIABLE_REFERENCE_ERRORS,
     VERIFY_ERRORS
   ];
 
@@ -179,6 +180,11 @@ class DartWorkManager implements WorkManager {
    * errors in the source. The errors contained in the list can be incomplete.
    */
   AnalysisErrorInfo getErrors(Source source) {
+    if (analysisCache.getState(source, DART_ERRORS) == CacheState.VALID) {
+      List<AnalysisError> errors = analysisCache.getValue(source, DART_ERRORS);
+      LineInfo lineInfo = analysisCache.getValue(source, LINE_INFO);
+      return new AnalysisErrorInfoImpl(errors, lineInfo);
+    }
     List<AnalysisError> errors = <AnalysisError>[];
     for (ResultDescriptor descriptor in _SOURCE_ERRORS) {
       errors.addAll(analysisCache.getValue(source, descriptor));

@@ -307,6 +307,20 @@ class DartWorkManagerTest {
     expect(errorInfo.lineInfo, lineInfo);
   }
 
+  void test_getErrors_hasFullList() {
+    AnalysisError error1 =
+        new AnalysisError(source1, 1, 0, ScannerErrorCode.MISSING_DIGIT);
+    AnalysisError error2 =
+        new AnalysisError(source1, 2, 0, ScannerErrorCode.MISSING_DIGIT);
+    when(context.getLibrariesContaining(source1)).thenReturn([source2]);
+    LineInfo lineInfo = new LineInfo([0]);
+    entry1.setValue(LINE_INFO, lineInfo, []);
+    entry1.setValue(DART_ERRORS, <AnalysisError>[error1, error2], []);
+    AnalysisErrorInfo errorInfo = manager.getErrors(source1);
+    expect(errorInfo.errors, unorderedEquals([error1, error2]));
+    expect(errorInfo.lineInfo, lineInfo);
+  }
+
   void test_getLibrariesContainingPart() {
     Source part1 = new TestSource('part1.dart');
     Source part2 = new TestSource('part2.dart');
