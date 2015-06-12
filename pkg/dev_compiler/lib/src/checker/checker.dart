@@ -545,15 +545,35 @@ class CodeChecker extends RecursiveAstVisitor {
     if (_rules.isDynamicCall(f)) {
       // If f is Function and this is a method invocation, we should have
       // gotten an analyzer error, so no need to issue another error.
-      _recordDynamicInvoke(node);
+      _recordDynamicInvoke(node, f);
     } else {
       checkArgumentList(list, _rules.getTypeAsCaller(f));
     }
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    checkFunctionApplication(node, node.methodName, node.argumentList);
+  visitMethodInvocation(MethodInvocation node) {
+    var target = node.realTarget;
+    if (_rules.isDynamicTarget(target)) {
+      _recordDynamicInvoke(node, target);
+
+      // Mark the tear-off as being dynamic, too. This lets us distinguish
+      // cases like:
+      //
+      //     dynamic d;
+      //     d.someMethod(...); // the whole method call must be a dynamic send.
+      //
+      // ... from case like:
+      //
+      //     SomeType s;
+      //     s.someDynamicField(...); // static get, followed by dynamic call.
+      //
+      // The first case is handled here, the second case is handled below when
+      // we call [checkFunctionApplication].
+      DynamicInvoke.set(node.methodName, true);
+    } else {
+      checkFunctionApplication(node, node.methodName, node.argumentList);
+    }
     node.visitChildren(this);
   }
 
@@ -622,8 +642,9 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (node.staticType.isDynamic && _rules.isDynamicTarget(node.realTarget)) {
-      _recordDynamicInvoke(node);
+    var target = node.realTarget;
+    if (_rules.isDynamicTarget(target)) {
+      _recordDynamicInvoke(node, target);
     }
     node.visitChildren(this);
   }
@@ -632,7 +653,7 @@ class CodeChecker extends RecursiveAstVisitor {
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     final target = node.prefix;
     if (_rules.isDynamicTarget(target)) {
-      _recordDynamicInvoke(node);
+      _recordDynamicInvoke(node, target);
     }
     node.visitChildren(this);
   }
@@ -774,7 +795,7 @@ class CodeChecker extends RecursiveAstVisitor {
         op.type == TokenType.PLUS_PLUS ||
         op.type == TokenType.MINUS_MINUS) {
       if (_rules.isDynamicTarget(node.operand)) {
-        _recordDynamicInvoke(node);
+        _recordDynamicInvoke(node, node.operand);
       }
       // For ++ and --, even if it is not dynamic, we still need to check
       // that the user defined method accepts an `int` as the RHS.
@@ -790,7 +811,7 @@ class CodeChecker extends RecursiveAstVisitor {
         // Dynamic invocation
         // TODO(vsm): Move this logic to the resolver?
         if (op.type != TokenType.EQ_EQ && op.type != TokenType.BANG_EQ) {
-          _recordDynamicInvoke(node);
+          _recordDynamicInvoke(node, node.leftOperand);
         }
       } else {
         var element = node.staticElement;
@@ -831,8 +852,9 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitIndexExpression(IndexExpression node) {
-    if (_rules.isDynamicTarget(node.target)) {
-      _recordDynamicInvoke(node);
+    var target = node.realTarget;
+    if (_rules.isDynamicTarget(target)) {
+      _recordDynamicInvoke(node, target);
     } else {
       var element = node.staticElement;
       if (element is MethodElement) {
@@ -897,7 +919,7 @@ class CodeChecker extends RecursiveAstVisitor {
     var methodElement = expr.staticElement;
     if (methodElement == null) {
       // Dynamic invocation
-      _recordDynamicInvoke(expr);
+      _recordDynamicInvoke(expr, expr.leftHandSide);
     } else {
       // Sanity check the operator
       assert(methodElement.isOperator);
@@ -941,8 +963,13 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  void _recordDynamicInvoke(AstNode node) {
-    _reporter.log(new DynamicInvoke(_rules, node));
+  void _recordDynamicInvoke(AstNode node, AstNode target) {
+    var dinvoke = new DynamicInvoke(_rules, node);
+    _reporter.log(dinvoke);
+    // TODO(jmesserly): we may eventually want to record if the whole operation
+    // (node) was dynamic, rather than the target, but this is an easier fit
+    // with what we used to do.
+    DynamicInvoke.set(target, true);
   }
 
   void _recordMessage(StaticInfo info) {

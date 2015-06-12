@@ -1484,7 +1484,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       id = lhs.identifier;
     }
 
-    if (target != null && rules.isDynamicTarget(target)) {
+    if (target != null && DynamicInvoke.get(target)) {
       return js.call('dart.$DPUT(#, #, #)', [
         _visit(target),
         _emitMemberName(id.name, type: getStaticType(target)),
@@ -1525,7 +1525,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
     String code;
     if (target == null || isLibraryPrefix(target)) {
-      if (rules.isDynamicCall(node.methodName)) {
+      if (DynamicInvoke.get(node.methodName)) {
         code = 'dart.$DCALL(#, #)';
       } else {
         code = '#(#)';
@@ -1540,9 +1540,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     bool isStatic = element is ExecutableElement && element.isStatic;
     var memberName = _emitMemberName(name, type: type, isStatic: isStatic);
 
-    if (rules.isDynamicTarget(target)) {
+    if (DynamicInvoke.get(target)) {
       code = 'dart.$DSEND(#, #, #)';
-    } else if (rules.isDynamicCall(node.methodName)) {
+    } else if (DynamicInvoke.get(node.methodName)) {
       // This is a dynamic call to a statically know target. For example:
       //     class Foo { Function bar; }
       //     new Foo().bar(); // dynamic call
@@ -1584,7 +1584,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   JS.Expression visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
     var code;
-    if (rules.isDynamicCall(node.function)) {
+    if (DynamicInvoke.get(node.function)) {
       code = 'dart.$DCALL(#, #)';
     } else {
       code = '#(#)';
@@ -1995,6 +1995,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
         new SimpleIdentifier(new StringToken(TokenType.IDENTIFIER, name, -1));
     id.staticElement = new TemporaryVariableElement.forNode(id);
     id.staticType = type;
+    DynamicInvoke.set(id, type.isDynamic);
     return id;
   }
 
@@ -2022,25 +2023,30 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   /// needed.
   Expression _bindLeftHandSide(
       Map<String, JS.Expression> scope, Expression expr, {Expression context}) {
+    Expression result;
     if (expr is IndexExpression) {
       IndexExpression index = expr;
-      return new IndexExpression.forTarget(
+      result = new IndexExpression.forTarget(
           _bindValue(scope, 'o', index.target, context: context),
           index.leftBracket,
           _bindValue(scope, 'i', index.index, context: context),
-          index.rightBracket)..staticType = expr.staticType;
+          index.rightBracket);
     } else if (expr is PropertyAccess) {
       PropertyAccess prop = expr;
-      return new PropertyAccess(
+      result = new PropertyAccess(
           _bindValue(scope, 'o', _getTarget(prop), context: context),
-          prop.operator, prop.propertyName)..staticType = expr.staticType;
+          prop.operator, prop.propertyName);
     } else if (expr is PrefixedIdentifier) {
       PrefixedIdentifier ident = expr;
-      return new PrefixedIdentifier(
+      result = new PrefixedIdentifier(
           _bindValue(scope, 'o', ident.prefix, context: context), ident.period,
-          ident.identifier)..staticType = expr.staticType;
+          ident.identifier);
+    } else {
+      return expr as SimpleIdentifier;
     }
-    return expr as SimpleIdentifier;
+    result.staticType = expr.staticType;
+    DynamicInvoke.set(result, DynamicInvoke.get(expr));
+    return result;
   }
 
   /// Creates a temporary to contain the value of [expr]. The temporary can be
@@ -2216,7 +2222,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     }
     var name = _emitMemberName(memberId.name,
         type: getStaticType(target), isStatic: isStatic);
-    if (rules.isDynamicTarget(target)) {
+    if (DynamicInvoke.get(target)) {
       return js.call('dart.$DLOAD(#, #)', [_visit(target), name]);
     }
 
@@ -2246,7 +2252,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       Expression target, String name, List<Expression> args) {
     var type = getStaticType(target);
     var memberName = _emitMemberName(name, unary: args.isEmpty, type: type);
-    if (rules.isDynamicTarget(target)) {
+    if (DynamicInvoke.get(target)) {
       // dynamic dispatch
       var dynamicHelper = const {'[]': DINDEX, '[]=': DSETINDEX}[name];
       if (dynamicHelper != null) {

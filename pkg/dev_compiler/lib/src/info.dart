@@ -124,7 +124,7 @@ abstract class CoercionInfo extends StaticInfo {
 
   String get description => '${this.runtimeType}: $baseType to $convertedType';
 
-  static const String _propertyName = 'dev_compiler.Conversion';
+  static const String _propertyName = 'dev_compiler.src.info.CoercionInfo';
 
   /// Gets the coercion info associated with this node.
   static CoercionInfo get(AstNode node) => node.getProperty(_propertyName);
@@ -345,6 +345,22 @@ class DynamicInvoke extends CoercionInfo {
   DartType get convertedType => rules.provider.dynamicType;
   String get message => '$node requires dynamic invoke';
   Level get level => Level.INFO;
+
+  static const String _propertyName = 'dev_compiler.src.info.DynamicInvoke';
+
+  /// Whether this [node] is the target of a dynamic operation.
+  static bool get(AstNode node) {
+    var value = node.getProperty(_propertyName);
+    return value != null ? value : false;
+  }
+
+  /// Sets whether this node is the target of a dynamic operation.
+  static bool set(AstNode node, bool value) {
+    // Free the storage for things that aren't dynamic.
+    if (value == false) value = null;
+    node.setProperty(_propertyName, value);
+    return value;
+  }
 }
 
 abstract class StaticError extends StaticInfo {
