@@ -5,6 +5,10 @@
 import 'dart:typed_data';
 import 'package:expect/expect.dart';
 
+@AssumeDynamic()
+@NoInline()
+confuse(x) => x;
+
 void testListFunctions(list, first, last, toElementType) {
   assert(list.length > 0);
 
@@ -106,6 +110,17 @@ void testListFunctions(list, first, last, toElementType) {
                     list.sublist(1, list.length - 1));
   Expect.listEquals(list.getRange(1, list.length).toList(), list.sublist(1));
   Expect.listEquals(list, list.sublist(0));
+
+  Expect.listEquals([], list.sublist(0, 0));
+  Expect.listEquals([], list.sublist(list.length));
+  Expect.listEquals([], list.sublist(list.length, list.length));
+
+  Expect.throws(() => list.sublist(list.length + 1),
+      (e) => e is RangeError);
+  Expect.throws(() => list.sublist(0, list.length + 1),
+      (e) => e is RangeError);
+  Expect.throws(() => list.sublist(1, 0),
+      (e) => e is RangeError);
 }
 
 void emptyChecks(list) {

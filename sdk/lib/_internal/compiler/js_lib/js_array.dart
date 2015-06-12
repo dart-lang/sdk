@@ -575,21 +575,28 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   void set length(int newLength) {
     checkGrowable('set length');
-    if (newLength is !int) throw new ArgumentError(newLength);
-    if (newLength < 0) throw new RangeError.value(newLength);
+    if (newLength is !int) {
+      throw new ArgumentError.value(newLength, 'newLength');
+    }
+    // TODO(sra): Remove this test and let JavaScript throw an error.
+    if (newLength < 0) {
+      throw new RangeError.range(newLength, 0, null, 'newLength');
+    }
+    // JavaScript with throw a RangeError for numbers that are too big. The
+    // message does not contain the value.
     JS('void', r'#.length = #', this, newLength);
   }
 
   E operator [](int index) {
-    if (index is !int) throw new ArgumentError(index);
-    if (index >= length || index < 0) throw new RangeError.value(index);
+    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
     return JS('var', '#[#]', this, index);
   }
 
   void operator []=(int index, E value) {
     checkMutable('indexed set');
-    if (index is !int) throw new ArgumentError(index);
-    if (index >= length || index < 0) throw new RangeError.value(index);
+    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
     JS('void', r'#[#] = #', this, index, value);
   }
 
