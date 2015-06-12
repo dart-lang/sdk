@@ -83,6 +83,7 @@ void HeapPage::Deallocate() {
 
 
 void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
+  NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
   while (obj_addr < end_addr) {
@@ -95,6 +96,7 @@ void HeapPage::VisitObjects(ObjectVisitor* visitor) const {
 
 
 void HeapPage::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
+  NoSafepointScope no_safepoint;
   uword obj_addr = object_start();
   uword end_addr = object_end();
   while (obj_addr < end_addr) {
