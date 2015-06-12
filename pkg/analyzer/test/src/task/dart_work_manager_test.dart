@@ -219,7 +219,9 @@ class DartWorkManagerTest {
     expect(manager.libraryPartsMap[library2], [part1, part2]);
   }
 
-  void test_applyPriorityTargets_library() {
+  void test_applyPriorityTargets_isLibrary_computeErrors() {
+    when(context.shouldErrorsBeAnalyzed(source2, null)).thenReturn(true);
+    when(context.shouldErrorsBeAnalyzed(source3, null)).thenReturn(true);
     entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     entry2.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     entry3.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
@@ -239,7 +241,27 @@ class DartWorkManagerTest {
     expect(request.result, LIBRARY_ERRORS_READY);
   }
 
-  void test_applyPriorityTargets_part() {
+  void test_applyPriorityTargets_isLibrary_computeUnit() {
+    when(context.shouldErrorsBeAnalyzed(source2, null)).thenReturn(false);
+    when(context.shouldErrorsBeAnalyzed(source3, null)).thenReturn(false);
+    entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    entry2.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    entry3.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    manager.priorityResultQueue
+        .add(new TargetedResult(source1, LIBRARY_ERRORS_READY));
+    manager.priorityResultQueue
+        .add(new TargetedResult(source2, LIBRARY_ERRORS_READY));
+    // -source1 +source3
+    manager.applyPriorityTargets([source2, source3]);
+    expect(manager.priorityResultQueue, unorderedEquals([
+      new TargetedResult(
+          new LibrarySpecificUnit(source2, source2), RESOLVED_UNIT),
+      new TargetedResult(
+          new LibrarySpecificUnit(source3, source3), RESOLVED_UNIT),
+    ]));
+  }
+
+  void test_applyPriorityTargets_isPart() {
     entry1.setValue(SOURCE_KIND, SourceKind.PART, []);
     entry2.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
     entry3.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
@@ -255,6 +277,18 @@ class DartWorkManagerTest {
     TargetedResult request = manager.getNextResult();
     expect(request.target, source2);
     expect(request.result, LIBRARY_ERRORS_READY);
+  }
+
+  void test_applyPriorityTargets_isUnknown() {
+    manager.applyPriorityTargets([source2, source3]);
+    expect(manager.priorityResultQueue, unorderedEquals([
+      new TargetedResult(source2, SOURCE_KIND),
+      new TargetedResult(source3, SOURCE_KIND)
+    ]));
+    // get next request
+    TargetedResult request = manager.getNextResult();
+    expect(request.target, source2);
+    expect(request.result, SOURCE_KIND);
   }
 
   void test_getErrors() {
@@ -570,10 +604,33 @@ class DartWorkManagerTest {
 
   void test_resultsComputed_sourceKind_isLibrary() {
     manager.unknownSourceQueue.addAll([source1, source2, source3]);
+    when(context.prioritySources).thenReturn(<Source>[]);
     when(context.shouldErrorsBeAnalyzed(source2, null)).thenReturn(true);
     manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.LIBRARY});
     expect_librarySourceQueue([source2]);
     expect_unknownSourceQueue([source1, source3]);
+  }
+
+  void test_resultsComputed_sourceKind_isLibrary_isPriority_computeErrors() {
+    manager.unknownSourceQueue.addAll([source1, source2, source3]);
+    when(context.prioritySources).thenReturn(<Source>[source2]);
+    when(context.shouldErrorsBeAnalyzed(source2, null)).thenReturn(true);
+    manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.LIBRARY});
+    expect_unknownSourceQueue([source1, source3]);
+    expect(manager.priorityResultQueue,
+        unorderedEquals([new TargetedResult(source2, LIBRARY_ERRORS_READY)]));
+  }
+
+  void test_resultsComputed_sourceKind_isLibrary_isPriority_computeUnit() {
+    manager.unknownSourceQueue.addAll([source1, source2, source3]);
+    when(context.prioritySources).thenReturn(<Source>[source2]);
+    when(context.shouldErrorsBeAnalyzed(source2, null)).thenReturn(false);
+    manager.resultsComputed(source2, {SOURCE_KIND: SourceKind.LIBRARY});
+    expect_unknownSourceQueue([source1, source3]);
+    expect(manager.priorityResultQueue, unorderedEquals([
+      new TargetedResult(
+          new LibrarySpecificUnit(source2, source2), RESOLVED_UNIT)
+    ]));
   }
 
   void test_resultsComputed_sourceKind_isPart() {

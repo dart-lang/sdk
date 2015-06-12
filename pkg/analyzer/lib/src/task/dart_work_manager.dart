@@ -158,8 +158,10 @@ class DartWorkManager implements WorkManager {
     for (AnalysisTarget target in targets) {
       if (_isDartSource(target)) {
         SourceKind sourceKind = analysisCache.getValue(target, SOURCE_KIND);
-        if (sourceKind == SourceKind.LIBRARY) {
-          addPriorityResult(target, LIBRARY_ERRORS_READY);
+        if (sourceKind == SourceKind.UNKNOWN) {
+          addPriorityResult(target, SOURCE_KIND);
+        } else if (sourceKind == SourceKind.LIBRARY) {
+          _schedulePriorityLibrarySourceAnalysis(target);
         } else if (sourceKind == SourceKind.PART) {
           List<Source> libraries = context.getLibrariesContaining(target);
           for (Source library in libraries) {
@@ -269,12 +271,19 @@ class DartWorkManager implements WorkManager {
       AnalysisTarget target, Map<ResultDescriptor, dynamic> outputs) {
     // Organize sources.
     if (_isDartSource(target)) {
+      Source source = target;
       SourceKind kind = outputs[SOURCE_KIND];
       if (kind != null) {
-        unknownSourceQueue.remove(target);
-        if (kind == SourceKind.LIBRARY &&
-            context.shouldErrorsBeAnalyzed(target, null)) {
-          librarySourceQueue.add(target);
+        unknownSourceQueue.remove(source);
+        if (kind == SourceKind.LIBRARY) {
+          if (context.prioritySources.contains(source)) {
+            _schedulePriorityLibrarySourceAnalysis(source);
+          } else {
+            bool needErrors = _shouldErrorsBeComputed(source);
+            if (needErrors) {
+              librarySourceQueue.add(target);
+            }
+          }
         }
       }
     }
@@ -413,6 +422,24 @@ class DartWorkManager implements WorkManager {
     }
     _invalidateContainingLibraries(library);
   }
+
+  /**
+   * Schedule computing [RESOLVED_UNIT] for the given [librarySource].
+   * If errors should be computed, then schedule [LIBRARY_ERRORS_READY] instead,
+   * it also computes [RESOLVED_UNIT] in process.
+   */
+  void _schedulePriorityLibrarySourceAnalysis(Source librarySource) {
+    bool needErrors = _shouldErrorsBeComputed(librarySource);
+    if (needErrors) {
+      addPriorityResult(librarySource, LIBRARY_ERRORS_READY);
+    } else {
+      var target = new LibrarySpecificUnit(librarySource, librarySource);
+      addPriorityResult(target, RESOLVED_UNIT);
+    }
+  }
+
+  bool _shouldErrorsBeComputed(Source source) =>
+      context.shouldErrorsBeAnalyzed(source, null);
 
   static bool _isDartSource(AnalysisTarget target) {
     return target is Source && AnalysisEngine.isDartFileName(target.fullName);
