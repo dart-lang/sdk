@@ -799,6 +799,24 @@ class A {
         relevance: DART_RELEVANCE_HIGH);
   }
 
+  test_library_declaration() {
+    addTestSource('library ^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_library_declaration2() {
+    addTestSource('library a^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_library_declaration3() {
+    addTestSource('library a.^');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
   test_library_name() {
     addTestSource('library ^');
     expect(computeFast(), isTrue);
@@ -996,6 +1014,12 @@ class A {
     assertSuggestKeywords([]);
   }
 
+  test_prefixed_library() {
+    addTestSource('import "b" as b; class A { foo() {b.^}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
   test_prefixed_local() {
     addTestSource('class A { foo() {int x; x.^}}');
     expect(computeFast(), isTrue);
@@ -1004,6 +1028,12 @@ class A {
 
   test_prefixed_local2() {
     addTestSource('class A { foo() {int x; x.^ print("foo");}}');
+    expect(computeFast(), isTrue);
+    assertSuggestKeywords([]);
+  }
+
+  test_property_access() {
+    addTestSource('class A { get x => 7; foo() {new A().^}}');
     expect(computeFast(), isTrue);
     assertSuggestKeywords([]);
   }

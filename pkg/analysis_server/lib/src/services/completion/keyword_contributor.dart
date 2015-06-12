@@ -145,26 +145,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitPropertyAccess(PropertyAccess node) {
+    // suggestions before '.' but not after
+    if (entity != node.propertyName) {
+      super.visitPropertyAccess(node);
+    }
+  }
+
+  @override
   visitExpression(Expression node) {
     _addExpressionKeywords(node);
-  }
-
-  @override
-  visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (entity == node.constructorName) {
-      // no keywords in 'new ^' expression
-    } else {
-      super.visitInstanceCreationExpression(node);
-    }
-  }
-
-  @override
-  visitMethodInvocation(MethodInvocation node) {
-    if (entity == node.methodName) {
-      // no keywords in '.' expression
-    } else {
-      super.visitMethodInvocation(node);
-    }
   }
 
   @override
@@ -217,6 +207,20 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (entity == node.constructorName) {
+      // no keywords in 'new ^' expression
+    } else {
+      super.visitInstanceCreationExpression(node);
+    }
+  }
+
+  @override
+  visitLibraryIdentifier(LibraryIdentifier node) {
+    // no suggestions
+  }
+
+  @override
   visitMethodDeclaration(MethodDeclaration node) {
     if (entity == node.body) {
       if (node.body is EmptyFunctionBody) {
@@ -225,6 +229,15 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       } else {
         _addSuggestion2(ASYNC, relevance: DART_RELEVANCE_HIGH);
       }
+    }
+  }
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    if (entity == node.methodName) {
+      // no keywords in '.' expression
+    } else {
+      super.visitMethodInvocation(node);
     }
   }
 
