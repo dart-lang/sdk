@@ -3,8 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 var assert = chai.assert;
-var core = dart.import('dart/core');
-var collection = dart.import('dart/collection');
+var core = dart_library.import('dart/core');
+var collection = dart_library.import('dart/collection');
+var dart = dart_library.import('dart_runtime/dart');
+var dartx = dart.dartx;
+
+// TODO(leafp): These are here to test some things not
+// currently exposed through the main dart entry point.
+// If we decide to expose them, this can go away.
+var classes = dart_library.import('dart_runtime/_classes');
+var types = dart_library.import('dart_runtime/_types');
 
 suite('generic', () => {
   "use strict";
@@ -71,8 +79,8 @@ suite('generic', () => {
   test('type constructor is reflectable', () => {
     let SomeType = generic(function(x, y) { return Object.create(null); });
     let someValue = SomeType('hi', 123);
-    assert.equal(someValue[dart.originalDeclaration], SomeType);
-    assert.deepEqual(someValue[dart.typeArguments], ['hi', 123]);
+    assert.equal(classes.getGenericClass(someValue), SomeType);
+    assert.deepEqual(classes.getGenericArgs(someValue), ['hi', 123]);
   });
 
   test('proper type constructor is called', () => {
@@ -88,7 +96,7 @@ suite('instanceOf', () => {
   "use strict";
 
   let expect = assert.equal;
-  let isGroundType = dart.isGroundType;
+  let isGroundType = types.isGroundType;
   let generic = dart.generic;
   let intIsNonNullable = false;
   let cast = dart.as;
@@ -96,7 +104,7 @@ suite('instanceOf', () => {
   let runtimeType = dart.realRuntimeType;
   let functionType = dart.functionType;
   let typedef = dart.typedef;
-  let isSubtype = dart.isSubtype;
+  let isSubtype = types.isSubtype;
 
   let Object = core.Object;
   let String = core.String;
@@ -364,6 +372,24 @@ suite('instanceOf', () => {
     checkType(s1, c.SetMixin$(String));
     checkType(s1, c.SetMixin$(int), false);
   });
+
+  test('Type', () => {
+    checkType(int, core.Type, true);
+    checkType(num, core.Type, true);
+    checkType(bool, core.Type, true);
+    checkType(String, core.Type, true);
+    checkType(dynamic, core.Type, true);
+    checkType(Object, core.Type, true);
+    checkType(List, core.Type, true);
+    checkType(Map, core.Type, true);
+    checkType(Map$(int, String), core.Type, true);
+    checkType(Func2, core.Type, true);
+    checkType(functionType(dynamic, [dynamic]), core.Type, true);
+    checkType(core.Type, core.Type, true);
+
+    checkType(3, core.Type, false);
+    checkType("hello", core.Type, false);
+  })
 
   test('Functions', () => {
     // - return type: Dart is bivariant.  We're covariant.

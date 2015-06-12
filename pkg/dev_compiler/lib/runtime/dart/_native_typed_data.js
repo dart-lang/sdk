@@ -1,4 +1,5 @@
-dart.library('dart/_native_typed_data', null, /* Imports */[
+dart_library.library('dart/_native_typed_data', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core',
   'dart/typed_data',
   'dart/_js_helper',
@@ -7,8 +8,9 @@ dart.library('dart/_native_typed_data', null, /* Imports */[
   'dart/_interceptors',
   'dart/math'
 ], /* Lazy imports */[
-], function(exports, core, typed_data, _js_helper, collection, _internal, _interceptors, math) {
+], function(exports, dart, core, typed_data, _js_helper, collection, _internal, _interceptors, math) {
   'use strict';
+  let dartx = dart.dartx;
   class NativeByteBuffer extends core.Object {
     NativeByteBuffer() {
       this.lengthInBytes = null;

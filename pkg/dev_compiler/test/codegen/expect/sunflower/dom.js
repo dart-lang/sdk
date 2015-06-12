@@ -1,8 +1,10 @@
-dart.library('dom', window, /* Imports */[
+dart_library.library('dom', window, /* Imports */[
+  "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[
-], function(exports, core) {
+], function(exports, dart, core) {
   'use strict';
+  let dartx = dart.dartx;
   class JsName extends core.Object {
     JsName(opts) {
       let name = opts && 'name' in opts ? opts.name : null;

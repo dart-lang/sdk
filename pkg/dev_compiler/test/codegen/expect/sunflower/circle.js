@@ -1,8 +1,10 @@
-dart.library('circle', null, /* Imports */[
+dart_library.library('circle', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[
-], function(exports, core) {
+], function(exports, dart, core) {
   'use strict';
+  let dartx = dart.dartx;
   class Circle extends core.Object {
     Circle(x, y, radius) {
       this.x = x;

@@ -1,12 +1,14 @@
-dart.library('dart/core', null, /* Imports */[
+dart_library.library('dart/core', null, /* Imports */[
+  "dart_runtime/dart"
 ], /* Lazy imports */[
   'dart/_js_helper',
   'dart/_internal',
   'dart/collection',
   'dart/_interceptors',
   'dart/convert'
-], function(exports, _js_helper, _internal, collection, _interceptors, convert) {
+], function(exports, dart, _js_helper, _internal, collection, _interceptors, convert) {
   'use strict';
+  let dartx = dart.dartx;
   class Object {
     constructor() {
       let name = this.constructor.name;

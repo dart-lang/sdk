@@ -1,8 +1,10 @@
-dart.library('temps', null, /* Imports */[
+dart_library.library('temps', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[
-], function(exports, core) {
+], function(exports, dart, core) {
   'use strict';
+  let dartx = dart.dartx;
   let _x = Symbol('_x');
   let __x = Symbol('__x');
   let _function = Symbol('_function');

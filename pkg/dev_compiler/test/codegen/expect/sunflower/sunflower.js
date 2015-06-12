@@ -1,12 +1,14 @@
-dart.library('sunflower', null, /* Imports */[
+dart_library.library('sunflower', null, /* Imports */[
+  "dart_runtime/dart",
   'dom',
   'dart/core',
   'dart/math',
   'painter',
   'circle'
 ], /* Lazy imports */[
-], function(exports, dom, core, math, painter, circle) {
+], function(exports, dart, dom, core, math, painter, circle) {
   'use strict';
+  let dartx = dart.dartx;
   let SEED_RADIUS = 2;
   let SCALE_FACTOR = 4;
   let MAX_D = 300;

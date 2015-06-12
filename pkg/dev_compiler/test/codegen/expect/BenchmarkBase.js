@@ -1,8 +1,10 @@
-dart.library('BenchmarkBase', null, /* Imports */[
+dart_library.library('BenchmarkBase', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[
-], function(exports, core) {
+], function(exports, dart, core) {
   'use strict';
+  let dartx = dart.dartx;
   class Expect extends core.Object {
     static equals(expected, actual) {
       if (!dart.equals(expected, actual)) {

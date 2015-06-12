@@ -1,10 +1,12 @@
-dart.library('dart/isolate', null, /* Imports */[
+dart_library.library('dart/isolate', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core',
   'dart/async'
 ], /* Lazy imports */[
   'dart/_isolate_helper'
-], function(exports, core, async, _isolate_helper) {
+], function(exports, dart, core, async, _isolate_helper) {
   'use strict';
+  let dartx = dart.dartx;
   class Capability extends core.Object {
     static new() {
       return new _isolate_helper.CapabilityImpl();

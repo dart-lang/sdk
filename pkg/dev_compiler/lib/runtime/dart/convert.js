@@ -1,12 +1,14 @@
-dart.library('dart/convert', null, /* Imports */[
+dart_library.library('dart/convert', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core',
   'dart/async',
   'dart/typed_data',
   'dart/_internal',
   'dart/collection'
 ], /* Lazy imports */[
-], function(exports, core, async, typed_data, _internal, collection) {
+], function(exports, dart, core, async, typed_data, _internal, collection) {
   'use strict';
+  let dartx = dart.dartx;
   let Codec$ = dart.generic(function(S, T) {
     class Codec extends core.Object {
       Codec() {

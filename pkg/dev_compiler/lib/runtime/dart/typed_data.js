@@ -1,9 +1,11 @@
-dart.library('dart/typed_data', null, /* Imports */[
+dart_library.library('dart/typed_data', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[
   'dart/_native_typed_data'
-], function(exports, core, _native_typed_data) {
+], function(exports, dart, core, _native_typed_data) {
   'use strict';
+  let dartx = dart.dartx;
   class ByteBuffer extends core.Object {}
   class TypedData extends core.Object {}
   let _littleEndian = Symbol('_littleEndian');

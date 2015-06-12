@@ -673,12 +673,12 @@ warning: line 20, column 39 of dart:async/async_error.dart: [DownCastImplicit] e
 severe: line 211, column 38 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
       assert(!identical(subscription._next, subscription));
                                      ^^^^^
-severe: line 207, column 36 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
-    assert(!identical(subscription._next, subscription));
-                                   ^^^^^
 severe: line 209, column 20 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The method '_setRemoveAfterFiring' is not defined for the class 'StreamSubscription<T>'
       subscription._setRemoveAfterFiring();
                    ^^^^^^^^^^^^^^^^^^^^^
+severe: line 207, column 36 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_next' is not defined for the class 'StreamSubscription<T>'
+    assert(!identical(subscription._next, subscription));
+                                   ^^^^^
 severe: line 208, column 22 of dart:async/broadcast_stream_controller.dart: [AnalyzerError] The getter '_isFiring' is not defined for the class 'StreamSubscription<T>'
     if (subscription._isFiring) {
                      ^^^^^^^^^
@@ -775,15 +775,15 @@ warning: line 71, column 60 of dart:async/schedule_microtask.dart: [DownCastComp
 warning: line 84, column 55 of dart:async/schedule_microtask.dart: [DownCastComposite] callback (dynamic) will need runtime check to cast to type () → void
   _AsyncCallbackEntry entry = new _AsyncCallbackEntry(callback);
                                                       ^^^^^^^^
-severe: line 321, column 34 of dart:async/stream.dart: [AnalyzerError] The getter '_addError' is not defined for the class 'StreamController'
-      final addError = eventSink._addError;
-                                 ^^^^^^^^^
 severe: line 1227, column 17 of dart:async/stream.dart: [AnalyzerError] The method '_addError' is not defined for the class 'StreamController'
       eventSink._addError(error, stackTrace);  // Avoid Zone error replacement.
                 ^^^^^^^^^
 severe: line 396, column 30 of dart:async/stream.dart: [AnalyzerError] The getter '_addError' is not defined for the class 'StreamController'
           onError: eventSink._addError,  // Avoid Zone error replacement.
                              ^^^^^^^^^
+severe: line 321, column 34 of dart:async/stream.dart: [AnalyzerError] The getter '_addError' is not defined for the class 'StreamController'
+      final addError = eventSink._addError;
+                                 ^^^^^^^^^
 warning: line 90, column 25 of dart:async/stream.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type T
         controller._add(value);
                         ^^^^^

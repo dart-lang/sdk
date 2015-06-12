@@ -1,7 +1,9 @@
-dart.library('dart/_js_embedded_names', null, /* Imports */[
+dart_library.library('dart/_js_embedded_names', null, /* Imports */[
+  "dart_runtime/dart"
 ], /* Lazy imports */[
-], function(exports) {
+], function(exports, dart) {
   'use strict';
+  let dartx = dart.dartx;
   let DISPATCH_PROPERTY_NAME = "dispatchPropertyName";
   let TYPE_INFORMATION = 'typeInformation';
   let GLOBAL_FUNCTIONS = 'globalFunctions';

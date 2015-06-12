@@ -1,12 +1,14 @@
-dart.library('dart/_internal', null, /* Imports */[
+dart_library.library('dart/_internal', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core',
   'dart/collection'
 ], /* Lazy imports */[
   'dart/math',
   'dart/_interceptors',
   'dart/_js_primitives'
-], function(exports, core, collection, math, _interceptors, _js_primitives) {
+], function(exports, dart, core, collection, math, _interceptors, _js_primitives) {
   'use strict';
+  let dartx = dart.dartx;
   class EfficientLength extends core.Object {}
   let ListIterable$ = dart.generic(function(E) {
     class ListIterable extends collection.IterableBase$(E) {

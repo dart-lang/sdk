@@ -1,12 +1,14 @@
-dart.library('dart/async', null, /* Imports */[
+dart_library.library('dart/async', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core',
   'dart/_internal',
   'dart/collection'
 ], /* Lazy imports */[
   'dart/_isolate_helper',
   'dart/_js_helper'
-], function(exports, core, _internal, collection, _isolate_helper, _js_helper) {
+], function(exports, dart, core, _internal, collection, _isolate_helper, _js_helper) {
   'use strict';
+  let dartx = dart.dartx;
   function _invokeErrorHandler(errorHandler, error, stackTrace) {
     if (dart.is(errorHandler, ZoneBinaryCallback)) {
       return dart.dcall(errorHandler, error, stackTrace);

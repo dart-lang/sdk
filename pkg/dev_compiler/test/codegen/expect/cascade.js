@@ -1,8 +1,10 @@
-dart.library('cascade', null, /* Imports */[
+dart_library.library('cascade', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[
-], function(exports, core) {
+], function(exports, dart, core) {
   'use strict';
+  let dartx = dart.dartx;
   class A extends core.Object {
     A() {
       this.x = null;

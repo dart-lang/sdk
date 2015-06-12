@@ -1,8 +1,10 @@
-dart.library('dart/_foreign_helper', null, /* Imports */[
+dart_library.library('dart/_foreign_helper', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[
-], function(exports, core) {
+], function(exports, dart, core) {
   'use strict';
+  let dartx = dart.dartx;
   function JS(typeDescription, codeTemplate, arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8, arg9, arg10, arg11) {
     if (arg0 === void 0)
       arg0 = null;

@@ -499,7 +499,17 @@ bool _same(Set a, Set b) => a.length == b.length && a.containsAll(b);
 /// Runtime files added to all applications when running the compiler in the
 /// command line.
 final defaultRuntimeFiles = () {
-  var files = ['harmony_feature_check.js', 'dart_runtime.js',];
+  var files = [
+    'harmony_feature_check.js',
+    'dart_utils.js',
+    'dart_library.js',
+    '_errors.js',
+    '_types.js',
+    '_rtti.js',
+    '_classes.js',
+    '_operations.js',
+    'dart_runtime.js',
+  ];
   files.addAll(corelibOrder.map((l) => l.replaceAll('.', '/') + '.js'));
   return files;
 }();

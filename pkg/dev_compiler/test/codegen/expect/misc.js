@@ -1,8 +1,10 @@
-dart.library('misc', null, /* Imports */[
+dart_library.library('misc', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[
-], function(exports, core) {
+], function(exports, dart, core) {
   'use strict';
+  let dartx = dart.dartx;
   class _Uninitialized extends core.Object {
     _Uninitialized() {
     }

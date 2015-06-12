@@ -1,9 +1,11 @@
-dart.library('map_keys', null, /* Imports */[
+dart_library.library('map_keys', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core',
   'dart/math'
 ], /* Lazy imports */[
-], function(exports, core, math) {
+], function(exports, dart, core, math) {
   'use strict';
+  let dartx = dart.dartx;
   function main() {
     core.print(dart.map({'1': 2, '3': 4, '5': 6}));
     core.print(dart.map([1, 2, 3, 4, 5, 6]));

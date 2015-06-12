@@ -1,11 +1,13 @@
-dart.library('painter', null, /* Imports */[
+dart_library.library('painter', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/math',
   'dom',
   'dart/core',
   'circle'
 ], /* Lazy imports */[
-], function(exports, math, dom, core, circle) {
+], function(exports, dart, math, dom, core, circle) {
   'use strict';
+  let dartx = dart.dartx;
   let ORANGE = "orange";
   let RED = "red";
   let BLUE = "blue";

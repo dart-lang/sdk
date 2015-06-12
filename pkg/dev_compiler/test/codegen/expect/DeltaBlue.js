@@ -1,9 +1,11 @@
-dart.library('DeltaBlue', null, /* Imports */[
+dart_library.library('DeltaBlue', null, /* Imports */[
+  "dart_runtime/dart",
   'BenchmarkBase',
   'dart/core'
 ], /* Lazy imports */[
-], function(exports, BenchmarkBase, core) {
+], function(exports, dart, BenchmarkBase, core) {
   'use strict';
+  let dartx = dart.dartx;
   function main() {
     new DeltaBlue().report();
   }

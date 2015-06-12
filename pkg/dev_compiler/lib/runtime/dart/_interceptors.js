@@ -1,12 +1,14 @@
-dart.library('dart/_interceptors', null, /* Imports */[
+dart_library.library('dart/_interceptors', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core',
   'dart/_internal',
   'dart/collection',
   'dart/math'
 ], /* Lazy imports */[
   'dart/_js_helper'
-], function(exports, core, _internal, collection, math, _js_helper) {
+], function(exports, dart, core, _internal, collection, math, _js_helper) {
   'use strict';
+  let dartx = dart.dartx;
   let JSArray$ = dart.generic(function(E) {
     dart.defineExtensionNames([
       'checkGrowable',

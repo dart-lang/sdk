@@ -1,11 +1,13 @@
-dart.library('dart/collection', null, /* Imports */[
+dart_library.library('dart/collection', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[
   'dart/_internal',
   'dart/_js_helper',
   'dart/math'
-], function(exports, core, _internal, _js_helper, math) {
+], function(exports, dart, core, _internal, _js_helper, math) {
   'use strict';
+  let dartx = dart.dartx;
   let _source = Symbol('_source');
   let UnmodifiableListView$ = dart.generic(function(E) {
     class UnmodifiableListView extends _internal.UnmodifiableListBase$(E) {

@@ -1,4 +1,5 @@
-dart.library('dart/_isolate_helper', null, /* Imports */[
+dart_library.library('dart/_isolate_helper', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core',
   'dart/_interceptors',
   'dart/_js_helper',
@@ -9,8 +10,9 @@ dart.library('dart/_isolate_helper', null, /* Imports */[
 ], /* Lazy imports */[
   'dart/_native_typed_data',
   'dart/_js_embedded_names'
-], function(exports, core, _interceptors, _js_helper, isolate, _foreign_helper, collection, async, _native_typed_data, _js_embedded_names) {
+], function(exports, dart, core, _interceptors, _js_helper, isolate, _foreign_helper, collection, async, _native_typed_data, _js_embedded_names) {
   'use strict';
+  let dartx = dart.dartx;
   function _serializeMessage(message) {
     return new _Serializer().serialize(message);
   }

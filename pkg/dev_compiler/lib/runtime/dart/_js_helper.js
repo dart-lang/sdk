@@ -1,11 +1,13 @@
-dart.library('dart/_js_helper', null, /* Imports */[
+dart_library.library('dart/_js_helper', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core',
   'dart/collection',
   'dart/_interceptors',
   'dart/_foreign_helper'
 ], /* Lazy imports */[
-], function(exports, core, collection, _interceptors, _foreign_helper) {
+], function(exports, dart, core, collection, _interceptors, _foreign_helper) {
   'use strict';
+  let dartx = dart.dartx;
   class NoThrows extends core.Object {
     NoThrows() {
     }

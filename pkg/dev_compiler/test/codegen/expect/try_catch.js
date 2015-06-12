@@ -1,8 +1,10 @@
-dart.library('try_catch', null, /* Imports */[
+dart_library.library('try_catch', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[
-], function(exports, core) {
+], function(exports, dart, core) {
   'use strict';
+  let dartx = dart.dartx;
   function foo() {
     try {
       throw "hi there";

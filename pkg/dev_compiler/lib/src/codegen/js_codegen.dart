@@ -84,7 +84,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   /// The name for the library's exports inside itself.
   /// `exports` was chosen as the most similar to ES module patterns.
+  final _dartxVar = new JS.Identifier('dartx');
   final _exportsVar = new JS.TemporaryId('exports');
+  final _runtimeLibVar = new JS.Identifier('dart');
   final _namedArgTemp = new JS.TemporaryId('opts');
 
   ConstFieldVisitor _constField;
@@ -181,14 +183,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     // TODO(jmesserly): it would be great to run the renamer on the body,
     // then figure out if we really need each of these parameters.
     // See ES6 modules: https://github.com/dart-lang/dev_compiler/issues/34
-    var params = [_exportsVar];
+    var params = [_exportsVar, _runtimeLibVar];
     var processImport = (LibraryElement library, JS.TemporaryId temp,
         List list) {
       params.add(temp);
       list.add(js.string(jsOutputBase(library, root), "'"));
     };
 
-    var imports = [];
+    var imports = [js.string('dart_runtime/dart')];
     _imports.forEach((library, temp) {
       if (_loader.libraryIsLoaded(library)) {
         processImport(library, temp, imports);
@@ -202,11 +204,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       }
     });
 
-    var module =
-        js.call("function(#) { 'use strict'; #; }", [params, _moduleItems]);
+    var dartxImport =
+        js.statement("let # = #.dartx;", [_dartxVar, _runtimeLibVar]);
+
+    var module = js.call("function(#) { 'use strict'; #; #; }", [
+      params,
+      dartxImport,
+      _moduleItems
+    ]);
 
     var program = [
-      js.statement("dart.library(#, #, #, #, #)", [
+      js.statement("dart_library.library(#, #, #, #, #)", [
         jsPath,
         jsDefaultValue != null ? jsDefaultValue : new JS.LiteralNull(),
         js.commentExpression(

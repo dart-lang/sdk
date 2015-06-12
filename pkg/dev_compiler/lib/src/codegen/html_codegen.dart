@@ -104,7 +104,7 @@ Node _invokeMain(String mainLibraryName) {
       ? 'console.error("dev_compiler error: main was not generated");'
       // TODO(vsm): Can we simplify this?
       // See: https://github.com/dart-lang/dev_compiler/issues/164
-      : "dart.start('$mainLibraryName');";
+      : "dart_library.start('$mainLibraryName');";
   return parseFragment('<script>$code</script>\n');
 }
 

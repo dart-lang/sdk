@@ -1,9 +1,11 @@
-dart.library('dart/math', null, /* Imports */[
+dart_library.library('dart/math', null, /* Imports */[
+  "dart_runtime/dart",
   'dart/core'
 ], /* Lazy imports */[
   'dart/_js_helper'
-], function(exports, core, _js_helper) {
+], function(exports, dart, core, _js_helper) {
   'use strict';
+  let dartx = dart.dartx;
   class _JenkinsSmiHash extends core.Object {
     static combine(hash, value) {
       hash = 536870911 & dart.notNull(hash) + dart.notNull(value);
