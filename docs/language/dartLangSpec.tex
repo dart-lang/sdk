@@ -3670,6 +3670,8 @@ where $id$ is an identifier.
 \LMHash{}
 If there exists a lexically visible declaration named $id$, let $f_{id}$ be the innermost such declaration. Then:
 \begin{itemize}
+\item 
+If $f_{id}$ is a prefix object, a compile-time error occurs.
 \item
  If $f_{id}$ is a local function, a library function, a library or static getter or a variable then $i$ is interpreted as a function expression invocation (\ref{functionExpressionInvocation}).
  \item
@@ -3677,17 +3679,12 @@ Otherwise, if $f_{id}$ is a static method of the enclosing class $C$, $i$ is equ
 \item Otherwise, $f_{id}$ is considered equivalent to the ordinary method invocation $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 \end{itemize}
 
-%Otherwise, if there is an accessible (\ref{privacy}) static method named $id$ declared in a superclass $S$ of the immediately enclosing class $C$ then i is equivalent to the static method invocation $S.id(a_1, \ldots, a_n, x_{n+1}: a_{n+1}, \ldots, x_{n+k}: a_{n+k})$.  
-
-%\rationale{
-%Unqualified access to static methods of superclasses is inconsistent with the idea that static methods are not inherited. It is not particularly necessary and  may be restricted in future versions.
-%}
-
 \LMHash{}
 Otherwise, if $i$ occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer, evaluation of $i$ causes a \cd{NoSuchMethodError} to be thrown.
 
 \LMHash{}
 If $i$ does not occur inside a top level or static function, $i$ is equivalent to $\THIS{}.id(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
+
 
 % Should also say:
 % It is a static warning if $i$  occurs inside a top level or static function (be it function, method, getter,  or setter) or variable initializer and there is no lexically visible declaration named $id$ in scope.
@@ -4406,6 +4403,7 @@ Evaluation of an assignment $a$ of the form $v$ \code{=} $e$ proceeds as follows
 
 \LMHash{}
 Let $d$ be the innermost declaration whose name is $v$ or $v=$, if it exists.
+It is a compile-time error if $d$ denotes a prefix object.
 
 \LMHash{}
 If $d$ is the declaration of a local variable, the expression $e$ is evaluated to an object $o$. Then, the variable $v$ is bound to $o$ unless $v$ is \FINAL{} or \CONST{}, in which case a dynamic error occurs.
