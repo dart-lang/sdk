@@ -208,7 +208,7 @@ source_set("embedded_dart_io") {
     "builtin.cc",
     "builtin_gen_snapshot.cc",
   ]
-  if (!is_mac) {
+  if (!is_mac && !is_ios) {
     # Dart tree uses *_macos.* instead of *_mac.*
     custom_sources_filter += [
       "*_macos.h",

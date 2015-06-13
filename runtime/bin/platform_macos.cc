@@ -57,6 +57,16 @@ bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
 
 
 char** Platform::Environment(intptr_t* count) {
+#if defined(TARGET_OS_IOS)
+  // TODO(iposva): On Mac (desktop), _NSGetEnviron() is used to access the
+  // environ from shared libraries or bundles. This is present in crt_externs.h
+  // which is unavailable on iOS. On iOS, everything is statically linked for
+  // now. So arguably, accessing the environ directly with a "extern char
+  // **environ" will work. But this approach is brittle as the target with this
+  // CU could be a dynamic framework (introduced in iOS 8). A more elegant
+  // approach needs to be devised.
+  return NULL;
+#else
   // Using environ directly is only safe as long as we do not
   // provide access to modifying environment variables.
   // On MacOS you have to do a bit of magic to get to the
@@ -71,6 +81,7 @@ char** Platform::Environment(intptr_t* count) {
     result[current] = environ[current];
   }
   return result;
+#endif
 }
 
 
