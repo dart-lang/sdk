@@ -11,8 +11,9 @@ library dart.typed_data.implementation;
 import 'dart:collection';
 import 'dart:_internal';
 import 'dart:_interceptors' show JSIndexable, JSUInt32, JSUInt31;
-import 'dart:_js_helper'
-show Creates, JavaScriptIndexingBehavior, JSName, Native, Null, Returns;
+import 'dart:_js_helper' show
+    Creates, JavaScriptIndexingBehavior, JSName, Native, Null, Returns,
+    diagnoseIndexError;
 import 'dart:_foreign_helper' show JS;
 import 'dart:math' as Math;
 
@@ -445,35 +446,34 @@ class NativeTypedData implements TypedData {
   @JSName('BYTES_PER_ELEMENT')
   final int elementSizeInBytes;
 
-  void _invalidIndex(int index, int length) {
-    if (index < 0 || index >= length) {
-      if (this is List) {
-        var list = this;  // Typed as dynamic to avoid warning.
-        if (length == list.length) {
-          throw new RangeError.index(index, this);
-        }
-      }
-      throw new RangeError.range(index, 0, length - 1);
-    } else {
-      throw new ArgumentError('Invalid list index $index');
-    }
-  }
-
   void _checkIndex(int index, int length) {
     if (JS('bool', '(# >>> 0) !== #', index, index) ||
         JS('int', '#', index) >= length) {  // 'int' guaranteed by above test.
-      _invalidIndex(index, length);
+      throw diagnoseIndexError(this, index);
+    }
+  }
+
+  void _invalidPosition(int position, int length) {
+    if (position is !int) {
+      throw new ArgumentError.value(position, null, 'Invalid list position');
+    } else {
+      throw new RangeError.range(position, 0, length);
+    }
+  }
+
+  void _checkPosition(int position, int length) {
+    if (JS('bool', '(# >>> 0) !== #', position, position) ||
+        JS('int', '#', position) > length) {  // 'int' guaranteed by above test.
+      _invalidPosition(position, length);
     }
   }
 
   int _checkSublistArguments(int start, int end, int length) {
     // For `sublist` the [start] and [end] indices are allowed to be equal to
-    // [length]. However, [_checkIndex] only allows indices in the range
-    // 0 .. length - 1. We therefore increment the [length] argument by one
-    // for the [_checkIndex] checks.
-    _checkIndex(start, length + 1);
+    // [length].
+    _checkPosition(start, length);
     if (end == null) return length;
-    _checkIndex(end, length + 1);
+    _checkPosition(end, length);
     if (start > end) throw new RangeError.range(start, 0, end);
     return end;
   }
@@ -862,8 +862,8 @@ abstract class NativeTypedArray extends NativeTypedData
   void _setRangeFast(int start, int end,
       NativeTypedArray source, int skipCount) {
     int targetLength = this.length;
-    _checkIndex(start, targetLength + 1);
-    _checkIndex(end, targetLength + 1);
+    _checkPosition(start, targetLength);
+    _checkPosition(end, targetLength);
     if (start > end) throw new RangeError.range(start, 0, end);
     int count = end - start;
 

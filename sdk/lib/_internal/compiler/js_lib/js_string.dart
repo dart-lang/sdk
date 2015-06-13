@@ -14,9 +14,9 @@ class JSString extends Interceptor implements String, JSIndexable {
   const JSString();
 
   int codeUnitAt(int index) {
-    if (index is !int) throw new ArgumentError(index);
-    if (index < 0) throw new RangeError.value(index);
-    if (index >= length) throw new RangeError.value(index);
+    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index < 0) throw diagnoseIndexError(this, index);
+    if (index >= length) throw diagnoseIndexError(this, index);
     return JS('JSUInt31', r'#.charCodeAt(#)', this, index);
   }
 
@@ -44,7 +44,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   }
 
   String operator +(String other) {
-    if (other is !String) throw new ArgumentError(other);
+    if (other is !String) throw new ArgumentError.value(other);
     return JS('String', r'# + #', this, other);
   }
 
@@ -469,8 +469,8 @@ class JSString extends Interceptor implements String, JSIndexable {
   int get length => JS('int', r'#.length', this);
 
   String operator [](int index) {
-    if (index is !int) throw new ArgumentError(index);
-    if (index >= length || index < 0) throw new RangeError.value(index);
+    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
     return JS('String', '#[#]', this, index);
   }
 }

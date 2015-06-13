@@ -282,7 +282,8 @@ class RangeError extends ArgumentError {
   static void checkValidIndex(int index, var indexable,
                               [String name, int length, String message]) {
     if (length == null) length = indexable.length;
-    if (index < 0 || index >= length) {
+    // Comparing with `0` as receiver produces better dart2js type inference.
+    if (0 > index || index >= length) {
       if (name == null) name = "index";
       throw new RangeError.index(index, indexable, name, message, length);
     }

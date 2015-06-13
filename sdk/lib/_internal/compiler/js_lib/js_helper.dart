@@ -1388,22 +1388,40 @@ class JsCache {
  * for example, if a non-integer index is given to an optimized
  * indexed access.
  */
+@NoInline()
 iae(argument) {
   throw _argumentError(argument);
 }
 
 /**
- * Called by generated code to throw an index-out-of-range exception,
- * for example, if a bounds check fails in an optimized indexed
- * access.  This may also be called when the index is not an integer, in
- * which case it throws an illegal-argument exception instead, like
- * [iae], or when the receiver is null.
+ * Called by generated code to throw an index-out-of-range exception, for
+ * example, if a bounds check fails in an optimized indexed access.  This may
+ * also be called when the index is not an integer, in which case it throws an
+ * illegal-argument exception instead, like [iae], or when the receiver is null.
  */
+@NoInline()
 ioore(receiver, index) {
   if (receiver == null) receiver.length; // Force a NoSuchMethodError.
-  if (index is !int) iae(index);
-  throw new RangeError.value(index);
+  throw diagnoseIndexError(receiver, index);
 }
+
+/**
+ * Diagnoses an indexing error. Returns the ArgumentError or RangeError that
+ * describes the problem.
+ */
+@NoInline()
+Error diagnoseIndexError(indexable, index) {
+  if (index is !int) return new ArgumentError.value(index, 'index');
+  int length = indexable.length;
+  // The following returns the same error that would be thrown by calling
+  // [RangeError.checkValidIndex] with no optional parameters provided.
+  if (index < 0 || index >= length) {
+    return new RangeError.index(index, indexable, 'index', null, length);
+  }
+  // The above should always match, but if it does not, use the following.
+  return new RangeError.value(index, 'index');
+}
+
 
 stringLastIndexOfUnchecked(receiver, element, start)
   => JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
@@ -2015,10 +2033,15 @@ unwrapException(ex) {
       return new StackOverflowError();
     }
 
-    // In general, a RangeError is thrown when trying to pass a number
-    // as an argument to a function that does not allow a range that
-    // includes that number.
-    return saveStackTrace(new ArgumentError());
+    // In general, a RangeError is thrown when trying to pass a number as an
+    // argument to a function that does not allow a range that includes that
+    // number. Translate to a Dart ArgumentError with the same message.
+    // TODO(sra): Translate to RangeError.
+    String message = tryStringifyException(ex);
+    if (message is String) {
+      message = JS('String', r'#.replace(/^RangeError:\s*/, "")', message);
+    }
+    return saveStackTrace(new ArgumentError(message));
   }
 
   // Check for the Firefox specific stack overflow signal.
@@ -2034,6 +2057,20 @@ unwrapException(ex) {
   // the exception comes from the DOM, it is a JavaScript
   // object backed by a native Dart class.
   return ex;
+}
+
+String tryStringifyException(ex) {
+  // Since this function is called from [unwrapException] which is called from
+  // code injected into a catch-clause, use JavaScript try-catch to avoid a
+  // potential loop if stringifying crashes.
+  return JS('String|Null', r'''
+    (function(ex) {
+      try {
+        return String(ex);
+      } catch (e) {}
+      return null;
+    })(#)
+    ''', ex);
 }
 
 /**
