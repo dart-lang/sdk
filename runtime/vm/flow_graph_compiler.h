@@ -414,10 +414,10 @@ class FlowGraphCompiler : public ValueObject {
                                    LocationSummary* locs);
 
   void EmitTestAndCall(const ICData& ic_data,
-                       Register class_id_reg,
                        intptr_t arg_count,
                        const Array& arg_names,
-                       Label* deopt,
+                       Label* failed,
+                       Label* match_found,
                        intptr_t deopt_id,
                        intptr_t token_index,
                        LocationSummary* locs);

@@ -1540,35 +1540,77 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
-                                        Register class_id_reg,
                                         intptr_t argument_count,
                                         const Array& argument_names,
-                                        Label* deopt,
+                                        Label* failed,
+                                        Label* match_found,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
                                         LocationSummary* locs) {
   ASSERT(is_optimizing());
-  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfUsedChecks() > 0));
-  Label match_found;
-  const intptr_t len = ic_data.NumberOfChecks();
-  GrowableArray<CidTarget> sorted(len);
-  SortICDataByCount(ic_data, &sorted, /* drop_smi = */ false);
-  ASSERT(class_id_reg != S4);
-  ASSERT(len > 0);  // Why bother otherwise.
+  __ Comment("EmitTestAndCall");
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names));
   StubCode* stub_code = isolate()->stub_code();
 
-  __ Comment("EmitTestAndCall");
+  // Load receiver into T0.
+  __ LoadFromOffset(T0, SP, (argument_count - 1) * kWordSize);
   __ LoadObject(S4, arguments_descriptor);
-  for (intptr_t i = 0; i < len; i++) {
-    const bool is_last_check = (i == (len - 1));
-    Label next_test;
-    if (is_last_check) {
-      __ BranchNotEqual(class_id_reg, Immediate(sorted[i].cid), deopt);
+
+  const bool kFirstCheckIsSmi = ic_data.GetReceiverClassIdAt(0) == kSmiCid;
+  const intptr_t kNumChecks = ic_data.NumberOfChecks();
+
+  ASSERT(!ic_data.IsNull() && (kNumChecks > 0));
+
+  Label after_smi_test;
+  __ andi(CMPRES1, T0, Immediate(kSmiTagMask));
+  if (kFirstCheckIsSmi) {
+    // Jump if receiver is not Smi.
+    if (kNumChecks == 1) {
+      __ bne(CMPRES1, ZR, failed);
     } else {
-      __ BranchNotEqual(class_id_reg, Immediate(sorted[i].cid), &next_test);
+      __ bne(CMPRES1, ZR, &after_smi_test);
+    }
+    // Do not use the code from the function, but let the code be patched so
+    // that we can record the outgoing edges to other code.
+    GenerateDartCall(deopt_id,
+                     token_index,
+                     &stub_code->CallStaticFunctionLabel(),
+                     RawPcDescriptors::kOther,
+                     locs);
+    const Function& function = Function::Handle(ic_data.GetTargetAt(0));
+    AddStaticCallTarget(function);
+    __ Drop(argument_count);
+    if (kNumChecks > 1) {
+      __ b(match_found);
+    }
+  } else {
+    // Receiver is Smi, but Smi is not a valid class therefore fail.
+    // (Smi class must be first in the list).
+    __ beq(CMPRES1, ZR, failed);
+  }
+
+  __ Bind(&after_smi_test);
+
+  GrowableArray<CidTarget> sorted(kNumChecks);
+  SortICDataByCount(ic_data, &sorted, /* drop_smi = */ true);
+
+  // Value is not Smi,
+  const intptr_t kSortedLen = sorted.length();
+  // If kSortedLen is 0 then only a Smi check was needed; the Smi check above
+  // will fail if there was only one check and receiver is not Smi.
+  if (kSortedLen == 0) return;
+
+  __ LoadClassId(T2, T0);
+  for (intptr_t i = 0; i < kSortedLen; i++) {
+    const bool kIsLastCheck = (i == (kSortedLen - 1));
+    ASSERT(sorted[i].cid != kSmiCid);
+    Label next_test;
+    if (kIsLastCheck) {
+      __ BranchNotEqual(T2, Immediate(sorted[i].cid), failed);
+    } else {
+      __ BranchNotEqual(T2, Immediate(sorted[i].cid), &next_test);
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
@@ -1580,12 +1622,11 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     const Function& function = *sorted[i].target;
     AddStaticCallTarget(function);
     __ Drop(argument_count);
-    if (!is_last_check) {
-      __ b(&match_found);
+    if (!kIsLastCheck) {
+      __ b(match_found);
     }
     __ Bind(&next_test);
   }
-  __ Bind(&match_found);
 }
 
 

@@ -4602,22 +4602,19 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
 
-  // Load receiver into T0.
-  __ LoadFromOffset(T0, SP, (instance_call()->ArgumentCount() - 1) * kWordSize);
 
   Label* deopt = compiler->AddDeoptStub(
       deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail);
-  LoadValueCid(compiler, T2, T0,
-               (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
-
+  Label ok;
   compiler->EmitTestAndCall(ic_data(),
-                            T2,  // Class id register.
                             instance_call()->ArgumentCount(),
                             instance_call()->argument_names(),
                             deopt,
+                            &ok,
                             deopt_id(),
                             instance_call()->token_pos(),
                             locs());
+  __ Bind(&ok);
 }
 
 
