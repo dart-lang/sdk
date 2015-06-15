@@ -94,7 +94,7 @@ deps.update({
   "src/dart/third_party/pkg/glob":
       "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
   "src/dart/third_party/pkg/html":
-      "https://github.com/dart-lang/html.git” + Var("html_tag"),
+      "https://github.com/dart-lang/html.git" + Var("html_tag"),
   "src/dart/third_party/pkg/json_rpc_2":
       "https://github.com/dart-lang/json_rpc_2.git" + Var("json_rpc_2_rev"),
   "src/dart/third_party/pkg/http":
