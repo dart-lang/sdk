@@ -21,6 +21,7 @@ vars.update({
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
+  "html_tag" : "@0.12.1+1",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
   "http_multi_server_tag" : "@1.3.2",
   "http_parser_rev" : "@8b179e36aba985208e4c5fb15cfddd386b6370a4",
@@ -92,6 +93,8 @@ deps.update({
       "https://github.com/dart-lang/collection.git" + Var("collection_rev"),
   "src/dart/third_party/pkg/glob":
       "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
+  "src/dart/third_party/pkg/html":
+      "https://github.com/dart-lang/html.”git + Var("html_tag"),
   "src/dart/third_party/pkg/json_rpc_2":
       "https://github.com/dart-lang/json_rpc_2.git" + Var("json_rpc_2_rev"),
   "src/dart/third_party/pkg/http":
