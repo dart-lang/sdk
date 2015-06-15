@@ -43,11 +43,20 @@ void testDartExecShouldNotBeInCurrentDir() {
   expectEquals(FileSystemEntityType.NOT_FOUND, type);
 }
 
-void testShouldSucceedWithEmptyPathEnvironment() {
-  var command = Platform.isWindows ? 'cmd' : 'ls';
-  Process.runSync(command, [],
-                  includeParentEnvironment: false,
-                  environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
+void testShouldFailOutsidePath() {
+  var threw = false;
+  try {
+    Process.runSync(platformExeName, ['--version'],
+                    includeParentEnvironment: false,
+                    environment: {_SCRIPT_KEY: 'yes', 'PATH': ''});
+  } catch (_) {
+    threw = true;
+  }
+
+  if (!threw) {
+    throw 'Expected running the dart executable – "$platformExeName" without'
+          ' the parent environment or path to fail.';
+  }
 }
 
 void testShouldSucceedWithSourcePlatformExecutable() {
@@ -144,5 +153,5 @@ void main() {
   if (!Platform.isWindows) {
     withTempDir(testPathToDirWithExeSymLinked); /// 05: ok
   }
-  testShouldSucceedWithEmptyPathEnvironment(); /// 06: ok
+  testShouldFailOutsidePath(); /// 06: ok
 }

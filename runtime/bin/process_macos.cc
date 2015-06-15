@@ -27,8 +27,6 @@
 #include "platform/signal_blocker.h"
 
 
-extern char** environ;
-
 
 namespace dart {
 namespace bin {
@@ -157,7 +155,7 @@ class ExitCodeHandler {
 
     // Fork to wake up waitpid.
     if (TEMP_FAILURE_RETRY(fork()) == 0) {
-      _exit(0);
+      exit(0);
     }
 
     monitor_->Notify();
@@ -425,7 +423,7 @@ class ProcessStarter {
     int bytes_read = FDUtils::ReadFromBlocking(read_in_[0], &msg, sizeof(msg));
     if (bytes_read != sizeof(msg)) {
       perror("Failed receiving notification message");
-      _exit(1);
+      exit(1);
     }
     if (mode_ == kNormal) {
       ExecProcess();
@@ -516,13 +514,13 @@ class ProcessStarter {
               execvp(path_, const_cast<char* const*>(program_arguments_)));
           ReportChildError();
         } else {
-          // Exit the intermediate process.
-          _exit(0);
+          // Exit the intermeiate process.
+          exit(0);
         }
       }
     } else {
-      // Exit the intermediate process.
-      _exit(0);
+      // Exit the intermeiate process.
+      exit(0);
     }
   }
 
@@ -554,7 +552,7 @@ class ProcessStarter {
         FDUtils::ReadFromBlocking(
             exec_control_[0], &child_errno, sizeof(child_errno));
     if (bytes_read == sizeof(child_errno)) {
-      SetOSErrorMessage(child_errno);
+      ReadChildError();
       return child_errno;
     } else if (bytes_read == -1) {
       return errno;
@@ -578,7 +576,7 @@ class ProcessStarter {
     } else if (bytes_read == 2 * sizeof(int)) {
       *pid = result[0];
       child_errno = result[1];
-      SetOSErrorMessage(child_errno);
+      ReadChildError();
       return child_errno;
     } else if (bytes_read == -1) {
       return errno;
@@ -660,17 +658,29 @@ class ProcessStarter {
 
 
   void SetChildOsErrorMessage() {
-    SetOSErrorMessage(errno);
+    const int kBufferSize = 1024;
+    char error_message[kBufferSize];
+    strerror_r(errno, error_message, kBufferSize);
+    *os_error_message_ = strdup(error_message);
   }
 
 
   void ReportChildError() {
-    // In the case of failure in the child process write the errno to the exec
-    // control pipe and exit.
+    // In the case of failure in the child process write the errno and
+    // the OS error message to the exec control pipe and exit.
     int child_errno = errno;
-    FDUtils::WriteToBlocking(
-        exec_control_[1], &child_errno, sizeof(child_errno));
-    _exit(1);
+    const int kBufferSize = 1024;
+    char os_error_message[kBufferSize];
+    strerror_r(errno, os_error_message, kBufferSize);
+    int bytes_written =
+        FDUtils::WriteToBlocking(
+            exec_control_[1], &child_errno, sizeof(child_errno));
+    if (bytes_written == sizeof(child_errno)) {
+      FDUtils::WriteToBlocking(
+          exec_control_[1], os_error_message, strlen(os_error_message) + 1);
+    }
+    VOID_TEMP_FAILURE_RETRY(close(exec_control_[1]));
+    exit(1);
   }
 
 
@@ -684,11 +694,17 @@ class ProcessStarter {
   }
 
 
-  void SetOSErrorMessage(int child_errno) {
-    const int kBufferSize = 1024;
-    char error_message[kBufferSize];
-    strerror_r(child_errno, error_message, kBufferSize);
-    *os_error_message_ = strdup(error_message);
+  void ReadChildError() {
+    const int kMaxMessageSize = 256;
+    char* message = static_cast<char*>(malloc(kMaxMessageSize));
+    if (message != NULL) {
+      FDUtils::ReadFromBlocking(exec_control_[0], message, kMaxMessageSize);
+      message[kMaxMessageSize - 1] = '\0';
+      *os_error_message_ = message;
+    } else {
+      // Could not get error message. It will be NULL.
+      ASSERT(*os_error_message_ == NULL);
+    }
   }
 
 
