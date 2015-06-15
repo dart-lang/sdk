@@ -509,6 +509,12 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     String args = node.arguments.map(visitExpression).join(', ');
     return 'CreateInvocationMirror(${node.selector.name}, $args)';
   }
+
+  @override
+  String visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    String args = node.arguments.map(visitExpression).join(', ');
+    return 'ApplyBuiltinOperator ${node.operator} ($args)';
+  }
 }
 
 /**

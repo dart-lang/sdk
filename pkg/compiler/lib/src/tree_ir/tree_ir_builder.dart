@@ -583,5 +583,13 @@ class Builder implements cps_ir.Visitor<Node> {
         node.sourceInformation);
     return new ExpressionStatement(setStatic, visit(node.body));
   }
+
+  Expression visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
+    if (node.operator == BuiltinOperator.IsFalsy) {
+      return new Not(getVariableUse(node.arguments.single));
+    }
+    return new ApplyBuiltinOperator(node.operator,
+                                    translateArguments(node.arguments));
+  }
 }
 

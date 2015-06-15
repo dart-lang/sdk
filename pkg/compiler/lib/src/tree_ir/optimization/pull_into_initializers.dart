@@ -325,4 +325,9 @@ class PullIntoInitializers extends ExpressionVisitor<Expression>
     rewriteList(node.arguments);
     return node;
   }
+
+  Expression visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    rewriteList(node.arguments);
+    return node;
+  }
 }

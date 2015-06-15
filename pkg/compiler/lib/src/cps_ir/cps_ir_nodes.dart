@@ -10,6 +10,9 @@ import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart' show Selector, SelectorKind;
 
+import 'builtin_operator.dart';
+export 'builtin_operator.dart';
+
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
   Node parent;
@@ -119,7 +122,7 @@ class Reference<T extends Definition<T>> {
 /// During one-pass construction a LetPrim with an empty body is used to
 /// represent the one-hole context `let val x = V in []`.
 class LetPrim extends Expression implements InteriorNode {
-  final Primitive primitive;
+  Primitive primitive;
   Expression body;
 
   LetPrim(this.primitive, [this.body = null]);
@@ -437,6 +440,19 @@ class ConcatenateStrings extends Expression {
   accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
 }
 
+/// Apply a built-in operator.
+///
+/// It must be known that the arguments have the proper types.
+class ApplyBuiltinOperator extends Primitive {
+  BuiltinOperator operator;
+  List<Reference<Primitive>> arguments;
+
+  ApplyBuiltinOperator(this.operator, List<Primitive> arguments)
+      : this.arguments = _referenceList(arguments);
+
+  accept(Visitor visitor) => visitor.visitApplyBuiltinOperator(this);
+}
+
 /// Throw a value.
 ///
 /// Throw is an expression, i.e., it always occurs in tail position with
@@ -535,14 +551,6 @@ class InvokeContinuation extends Expression {
     assert(cont.parameters == null || cont.parameters.length == args.length);
     if (isRecursive) cont.isRecursive = true;
   }
-
-  /// Build a one-argument InvokeContinuation using existing reference objects.
-  ///
-  /// This is useful for converting call continuations to local continuations.
-  InvokeContinuation.fromCall(this.continuation,
-                              Reference<Primitive> argument)
-    : arguments = <Reference<Primitive>>[argument],
-      isRecursive = false;
 
   /// A continuation invocation whose target and arguments will be filled
   /// in later.
@@ -952,6 +960,7 @@ abstract class Visitor<T> {
   T visitTypeExpression(TypeExpression node);
   T visitCreateInvocationMirror(CreateInvocationMirror node);
   T visitTypeTest(TypeTest node);
+  T visitApplyBuiltinOperator(ApplyBuiltinOperator node);
 
   // Conditions.
   T visitIsTrue(IsTrue node);
@@ -1231,6 +1240,12 @@ class RecursiveVisitor implements Visitor {
   processCreateInvocationMirror(CreateInvocationMirror node) {}
   visitCreateInvocationMirror(CreateInvocationMirror node) {
     processCreateInvocationMirror(node);
+    node.arguments.forEach(processReference);
+  }
+
+  processApplyBuiltinOperator(ApplyBuiltinOperator node) {}
+  visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    processApplyBuiltinOperator(node);
     node.arguments.forEach(processReference);
   }
 

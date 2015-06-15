@@ -762,10 +762,13 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildNegation(check);
   }
 
-  ir.Primitive translateBinary(ast.Node left,
+  ir.Primitive translateBinary(ast.Send node,
+                               ast.Node left,
                                op.BinaryOperator operator,
                                ast.Node right) {
-    Selector selector = new Selector.binaryOperator(operator.selectorName);
+    Selector selector = useSelectorTypeOfNode(
+        new Selector.binaryOperator(operator.selectorName),
+        node);
     ir.Primitive receiver = visit(left);
     List<ir.Primitive> arguments = <ir.Primitive>[visit(right)];
     arguments = normalizeDynamicArguments(selector.callStructure, arguments);
@@ -777,14 +780,14 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                            ast.Node left,
                            op.BinaryOperator operator,
                            ast.Node right, _) {
-    return translateBinary(left, operator, right);
+    return translateBinary(node, left, operator, right);
   }
 
   @override
   ir.Primitive visitIndex(ast.Send node,
                           ast.Node receiver,
                           ast.Node index, _) {
-    Selector selector = new Selector.index();
+    Selector selector = useSelectorTypeOfNode(new Selector.index(), node);
     ir.Primitive target = visit(receiver);
     List<ir.Primitive> arguments = <ir.Primitive>[visit(index)];
     arguments = normalizeDynamicArguments(selector.callStructure, arguments);
@@ -826,7 +829,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node left,
       ast.Node right,
       _) {
-    return translateBinary(left, op.BinaryOperator.EQ, right);
+    return translateBinary(node, left, op.BinaryOperator.EQ, right);
   }
 
   @override
@@ -853,7 +856,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node right,
       _) {
     return irBuilder.buildNegation(
-        translateBinary(left, op.BinaryOperator.NOT_EQ, right));
+        translateBinary(node, left, op.BinaryOperator.NOT_EQ, right));
   }
 
   @override

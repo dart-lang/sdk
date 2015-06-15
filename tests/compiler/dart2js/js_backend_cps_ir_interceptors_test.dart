@@ -18,8 +18,7 @@ main() {
 }""",
 r"""
 function() {
-  var g = 1;
-  P.print(J.getInterceptor$ns(g).$add(g, 3));
+  P.print(4);
   return null;
 }"""),
   const TestEntry("""
@@ -38,10 +37,10 @@ function() {
   var l = ["hest", ["h", "e", "s", "t"]], i, x, j;
   P.print(J.getInterceptor$as(l).get$length(l));
   i = 0;
-  while (P.identical(J.getInterceptor$n(i).$lt(i, J.getInterceptor$as(l).get$length(l)), true)) {
+  while (J.getInterceptor$n(i).$lt(i, J.getInterceptor$as(l).get$length(l))) {
     x = J.getInterceptor$as(l).$index(l, i);
     j = 0;
-    while (P.identical(J.getInterceptor$n(j).$lt(j, J.getInterceptor$as(x).get$length(x)), true)) {
+    while (J.getInterceptor$n(j).$lt(j, J.getInterceptor$as(x).get$length(x))) {
       P.print(J.getInterceptor$as(x).$index(x, j));
       j = J.getInterceptor$ns(j).$add(j, 1);
     }

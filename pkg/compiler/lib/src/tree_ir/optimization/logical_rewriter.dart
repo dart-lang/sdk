@@ -210,7 +210,47 @@ class LogicalRewriter extends RecursiveTransformer
   /// applied to the result of [visitExpression] conditionals will have been
   /// rewritten anyway.
   bool isBooleanValued(Expression e) {
-    return isTrue(e) || isFalse(e) || e is Not || e is LogicalOperator;
+    return isTrue(e) ||
+           isFalse(e) ||
+           e is Not ||
+           e is LogicalOperator ||
+           e is ApplyBuiltinOperator && operatorReturnsBool(e.operator);
+  }
+
+  /// True if the given operator always returns `true` or `false`.
+  bool operatorReturnsBool(BuiltinOperator operator) {
+    switch (operator) {
+      case BuiltinOperator.StrictEq:
+      case BuiltinOperator.StrictNeq:
+      case BuiltinOperator.LooseEq:
+      case BuiltinOperator.LooseNeq:
+      case BuiltinOperator.NumLt:
+      case BuiltinOperator.NumLe:
+      case BuiltinOperator.NumGt:
+      case BuiltinOperator.NumGe:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  BuiltinOperator negateBuiltin(BuiltinOperator operator) {
+    switch (operator) {
+      case BuiltinOperator.StrictEq: return BuiltinOperator.StrictNeq;
+      case BuiltinOperator.StrictNeq: return BuiltinOperator.StrictEq;
+      case BuiltinOperator.LooseEq: return BuiltinOperator.LooseNeq;
+      case BuiltinOperator.LooseNeq: return BuiltinOperator.LooseEq;
+
+      // Because of NaN, these do not have a negated form.
+      case BuiltinOperator.NumLt:
+      case BuiltinOperator.NumLe:
+      case BuiltinOperator.NumGt:
+      case BuiltinOperator.NumGe:
+        return null;
+
+      default:
+        return null;
+    }
   }
 
   /// Rewrite an expression that was originally processed in a non-boolean
@@ -256,6 +296,15 @@ class LogicalRewriter extends RecursiveTransformer
         return new Not(e);
       }
       return e;
+    }
+    if (e is ApplyBuiltinOperator && polarity == false) {
+      BuiltinOperator negated = negateBuiltin(e.operator);
+      if (negated != null) {
+        e.operator = negated;
+        return visitExpression(e);
+      } else {
+        return new Not(visitExpression(e));
+      }
     }
     if (e is Conditional) {
       // Handle polarity by: !(x ? y : z) ==> x ? !y : !z

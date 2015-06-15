@@ -371,6 +371,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String args = node.typeArguments.map(formatReference).join(', ');
     return "TypeTest ($value ${node.type} ($args))";
   }
+
+  visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
+    String operator = node.operator.toString();
+    String args = node.arguments.map(formatReference).join(', ');
+    return 'ApplyBuiltinOperator $operator ($args)';
+  }
 }
 
 /**
@@ -596,28 +602,25 @@ class BlockCollector implements cps_ir.Visitor {
   visitInterceptor(cps_ir.Interceptor node) {
     unexpectedNode(node);
   }
-
   visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
     unexpectedNode(node);
   }
-
   visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
     unexpectedNode(node);
   }
-
   visitTypeExpression(cps_ir.TypeExpression node) {
     unexpectedNode(node);
   }
-
   visitNonTailThrow(cps_ir.NonTailThrow node) {
     unexpectedNode(node);
   }
-
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
     unexpectedNode(node);
   }
-
   visitTypeTest(cps_ir.TypeTest node) {
+    unexpectedNode(node);
+  }
+  visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
     unexpectedNode(node);
   }
 }

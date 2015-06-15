@@ -7,6 +7,7 @@ library code_generator;
 import 'glue.dart';
 
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
+import '../../tree_ir/tree_ir_nodes.dart' show BuiltinOperator;
 import '../../js/js.dart' as js;
 import '../../elements/elements.dart';
 import '../../io/source_information.dart' show SourceInformation;
@@ -693,6 +694,43 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression visitTypeExpression(tree_ir.TypeExpression node) {
     List<js.Expression> arguments = visitExpressionList(node.arguments);
     return glue.generateTypeRepresentation(node.dartType, arguments);
+  }
+
+  @override
+  js.Expression visitApplyBuiltinOperator(tree_ir.ApplyBuiltinOperator node) {
+    List<js.Expression> args = visitExpressionList(node.arguments);
+    switch (node.operator) {
+      case BuiltinOperator.NumAdd:
+        return new js.Binary('+', args[0], args[1]);
+      case BuiltinOperator.NumSubtract:
+        return new js.Binary('-', args[0], args[1]);
+      case BuiltinOperator.NumMultiply:
+        return new js.Binary('*', args[0], args[1]);
+      case BuiltinOperator.NumAnd:
+        return js.js('(# & #) >>> 0', <js.Expression>[args[0], args[1]]);
+      case BuiltinOperator.NumOr:
+        return js.js('(# | #) >>> 0', <js.Expression>[args[0], args[1]]);
+      case BuiltinOperator.NumXor:
+        return js.js('(# ^ #) >>> 0', <js.Expression>[args[0], args[1]]);
+      case BuiltinOperator.NumLt:
+        return new js.Binary('<', args[0], args[1]);
+      case BuiltinOperator.NumLe:
+        return new js.Binary('<=', args[0], args[1]);
+      case BuiltinOperator.NumGt:
+        return new js.Binary('>', args[0], args[1]);
+      case BuiltinOperator.NumGe:
+        return new js.Binary('>=', args[0], args[1]);
+      case BuiltinOperator.StrictEq:
+        return new js.Binary('===', args[0], args[1]);
+      case BuiltinOperator.StrictNeq:
+        return new js.Binary('!==', args[0], args[1]);
+      case BuiltinOperator.LooseEq:
+        return new js.Binary('==', args[0], args[1]);
+      case BuiltinOperator.LooseNeq:
+        return new js.Binary('!=', args[0], args[1]);
+      case BuiltinOperator.IsFalsy:
+        return new js.Prefix('!', args[0]);
+    }
   }
 
   visitFunctionExpression(tree_ir.FunctionExpression node) {

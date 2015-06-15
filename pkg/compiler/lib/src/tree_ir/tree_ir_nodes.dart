@@ -11,6 +11,9 @@ import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../universe/universe.dart' show Selector;
 
+import '../cps_ir/builtin_operator.dart';
+export '../cps_ir/builtin_operator.dart';
+
 // The Tree language is the target of translation out of the CPS-based IR.
 //
 // The translation from CPS to Dart consists of several stages.  Among the
@@ -344,6 +347,26 @@ class TypeOperator extends Expression {
   String get operator => isTypeTest ? 'is' : 'as';
 }
 
+/**
+ * Apply a built-in operator.
+ *
+ * It must be known that the arguments have the proper types.
+ * Null is not a valid argument to any of the built-in operators.
+ */
+class ApplyBuiltinOperator extends Expression {
+  BuiltinOperator operator;
+  List<Expression> arguments;
+
+  ApplyBuiltinOperator(this.operator, this.arguments);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitApplyBuiltinOperator(this);
+  }
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitApplyBuiltinOperator(this, arg);
+  }
+}
+
 /// A conditional expression.
 class Conditional extends Expression {
   Expression condition;
@@ -378,6 +401,8 @@ class LogicalOperator extends Expression {
 }
 
 /// Logical negation.
+// TODO(asgerf): Replace this class with the IsFalsy builtin operator?
+//               Right now the tree builder compiles IsFalsy to Not.
 class Not extends Expression {
   Expression operand;
 
@@ -797,6 +822,7 @@ abstract class ExpressionVisitor<E> {
   E visitReadTypeVariable(ReadTypeVariable node);
   E visitTypeExpression(TypeExpression node);
   E visitCreateInvocationMirror(CreateInvocationMirror node);
+  E visitApplyBuiltinOperator(ApplyBuiltinOperator node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
@@ -827,6 +853,7 @@ abstract class ExpressionVisitor1<E, A> {
   E visitReadTypeVariable(ReadTypeVariable node, A arg);
   E visitTypeExpression(TypeExpression node, A arg);
   E visitCreateInvocationMirror(CreateInvocationMirror node, A arg);
+  E visitApplyBuiltinOperator(ApplyBuiltinOperator node, A arg);
 }
 
 abstract class StatementVisitor<S> {
@@ -1025,6 +1052,10 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   }
 
   visitUnreachable(Unreachable node) {}
+
+  visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    node.arguments.forEach(visitExpression);
+  }
 }
 
 abstract class Transformer implements ExpressionVisitor<Expression>,
@@ -1223,6 +1254,11 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitUnreachable(Unreachable node) {
+    return node;
+  }
+
+  visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    _replaceExpressions(node.arguments);
     return node;
   }
 }

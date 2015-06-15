@@ -149,6 +149,7 @@ class SExpressionUnstringifier {
   static const String REIFY_TYPE_VAR = "ReifyTypeVar";
   static const String GET_STATIC = "GetStatic";
   static const String TYPE_TEST = "TypeTest";
+  static const String APPLY_BUILTIN_OPERATOR = "ApplyBuiltinOperator";
 
   // Other
   static const String FUNCTION_DEFINITION = "FunctionDefinition";
@@ -590,6 +591,25 @@ class SExpressionUnstringifier {
     return new TypeTest(value, type, typeArguments);
   }
 
+  /// (ApplyBuiltinOperator operator args)
+  ApplyBuiltinOperator parseApplyBuiltinOperator() {
+    tokens.consumeStart(APPLY_BUILTIN_OPERATOR);
+
+    String operatorName = tokens.read();
+    BuiltinOperator operator;
+    for (BuiltinOperator op in BuiltinOperator.values) {
+      if (op.toString() == operatorName) {
+        operator = op;
+        break;
+      }
+    }
+    assert(operator != null);
+    List<ir.Primitive> arguments = parsePrimitiveList();
+
+    tokens.consumeEnd();
+    return new ApplyBuiltinOperator(operator, arguments);
+  }
+
   /// (SetStatic field value body)
   SetStatic parseSetStatic() {
     tokens.consumeStart(SET_STATIC);
@@ -662,6 +682,8 @@ class SExpressionUnstringifier {
         return parseGetStatic();
       case TYPE_TEST:
         return parseTypeTest();
+      case APPLY_BUILTIN_OPERATOR:
+        return parseApplyBuiltinOperator();
       default:
         assert(false);
     }
