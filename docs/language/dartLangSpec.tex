@@ -5014,55 +5014,92 @@ Postfix expressions invoke the postfix operators on objects.
  A {\em postfix expression} is either a primary expression, a function, method or getter invocation, or an invocation of a postfix operator on an expression $e$.
 
 \LMHash{}
-A postfix expression of the form \code{$v$++}, where $v$ is an identifier, is equivalent to \code{()\{\VAR{} r = $v$; $v$ = r + 1; \RETURN{} r\}()}.
+Execution of a postfix expression of the form \code{$v$++}, where $v$ is an identifier, is equivalent to executing \code{()\{\VAR{} r = $v$; $v$ = r + 1; \RETURN{} r\}()}.
+
+\LMHash{}
+The static type of such an expression is the static type of $v$.
+
 
 \rationale{The above ensures that if $v$ is a field, the getter gets called exactly once. Likewise in the cases below. 
 }
 
 \LMHash{}
-A postfix expression of the form \code{$C.v$ ++} is equivalent to 
+Execution of a postfix expression of the form \code{$C.v$ ++} is equivalent to executing 
 
 \code{()\{\VAR{} r = $C.v$; $C.v$ = r + 1; \RETURN{} r\}()}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1.v$++} is equivalent to 
+The static type of such an expression is the static type of $C.v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1.v$++} is equivalent to executing 
 
 \code{(x)\{\VAR{} r = x.v; x.v = r + 1; \RETURN{} r\}($e_1$)}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1[e_2]$++},  is equivalent to 
+The static type of such an expression is the static type of $e_1.v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1[e_2]$++},  is equivalent to executing 
 
 \code{(a, i)\{\VAR{} r = a[i]; a[i] = r + 1; \RETURN{} r\}($e_1$, $e_2$)}.
 
 \LMHash{}
-A postfix expression of the form \code{$v$-{}-}, where $v$ is an identifier, is equivalent to 
+The static type of such an expression is the static type of $e_1[e_2]$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$v$-{}-}, where $v$ is an identifier, is equivalent to executing 
 
 \code{()\{\VAR{} r = $v$; $v$ = r - 1; \RETURN{} r\}()}.
 
 \LMHash{}
-A postfix expression of the form \code{$C.v$-{}-} is equivalent to 
+The static type of such an expression is the static type of $v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$C.v$-{}-} is equivalent to executing 
 
 \code{()\{\VAR{} r = $C.v$; $C.v$ = r - 1; \RETURN{} r\}()}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1.v$-{}-} is equivalent to 
+The static type of such an expression is the static type of $C.v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1.v$-{}-} is equivalent to executing 
 
 \code{(x)\{\VAR{} r = x.v; x.v = r - 1; \RETURN{} r\}($e_1$)}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1[e_2]$-{}-},  is equivalent to 
+The static type of such an expression is the static type of $e_1.v$.
+
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1[e_2]$-{}-},  is equivalent to executing 
 
 \code{(a, i)\{\VAR{} r = a[i]; a[i] = r - 1; \RETURN{} r\}($e_1$, $e_2$)}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1?.v$++} is equivalent to 
+The static type of such an expression is the static type of $e_1[e_2]$.
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1?.v$++} is equivalent to executing 
 
 \code{((x) =$>$ x == \NULL? \NULL : x.v++)($e_1$)}.
 
 \LMHash{}
-A postfix expression of the form \code{$e_1?.v$-{}-} is equivalent to 
+The static type of such an expression is the static type of $e_1.v$.
+
+\LMHash{}
+Execution of a postfix expression of the form \code{$e_1?.v$-{}-} is equivalent to executing 
 
 \code{((x) =$>$ x == \NULL? \NULL : x.v-{}-)($e_1$)}.
+
+\LMHash{}
+The static type of such an expression is the static type of $e_1.v$.
 
 
 \subsection{ Assignable Expressions}
