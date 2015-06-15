@@ -8,12 +8,15 @@
 dart_library.library('dart_runtime/_operations', null, /* Imports */[
 ], /* Lazy Imports */[
   'dart/async',
+  'dart/collection',
   'dart/core',
+  'dart/_js_helper',
   'dart_runtime/_classes',
   'dart_runtime/_errors',
   'dart_runtime/_rtti',
   'dart_runtime/_types'
-], function(exports, async, core, classes, errors, rtti, types) {
+], function(exports, async, collection, core, _js_helper, classes, errors, rtti,
+            types) {
   'use strict';
 
   const getOwnNamesAndSymbols = dart_utils.getOwnNamesAndSymbols;
@@ -146,7 +149,6 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
   }
   exports.dcall = dcall;
 
-
   /** Shared code for dsend, dindex, and dsetindex. */
   function callMethod(obj, name, args, displayName) {
     let symbol = _canonicalFieldName(obj, name, args, displayName);
@@ -159,6 +161,11 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
     return callMethod(obj, method, slice.call(arguments, 2));
   }
   exports.dsend = dsend;
+
+  function dsendArray(obj, method, args) {
+    return dsend(obj, method, ...args);
+  }
+  exports.dsendArray = dsendArray;
 
   function dindex(obj, index) {
     return callMethod(obj, 'get', [index], '[]');

@@ -16,7 +16,7 @@ fi
 # transitively. Ideally we could pass them explicitly, though:
 # https://github.com/dart-lang/dev_compiler/issues/219
 dart -c bin/devc.dart --no-source-maps --sdk-check --force-compile -l warning \
-    --dart-sdk tool/generated_sdk -o lib/runtime/ dart:js \
+    --dart-sdk tool/generated_sdk -o lib/runtime/ dart:mirrors \
     > tool/generated_sdk/sdk_errors.txt || true
 
 if [[ ! -f lib/runtime/dart/core.js ]] ; then

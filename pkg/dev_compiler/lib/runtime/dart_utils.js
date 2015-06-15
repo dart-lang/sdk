@@ -112,4 +112,10 @@ var dart_utils;
   }
   dart_utils.copyProperties = copyProperties;
 
+
+  function instantiate(type, args) {
+    return new type(...args);
+  }
+  dart_utils.instantiate = instantiate;
+
 })(dart_utils || (dart_utils = {}));
