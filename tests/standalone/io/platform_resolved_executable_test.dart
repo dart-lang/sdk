@@ -35,7 +35,7 @@ void verify(String exePath, {String altPath}) {
   }
 
   var result = processResult.stdout.trim();
-  expectEquals(Platform.executable, result);
+  expectEquals(Platform.resolvedExecutable, result);
 }
 
 void testDartExecShouldNotBeInCurrentDir() {
@@ -51,20 +51,20 @@ void testShouldSucceedWithEmptyPathEnvironment() {
 }
 
 void testShouldSucceedWithSourcePlatformExecutable() {
-  verify(Platform.executable);
+  verify(Platform.resolvedExecutable);
 }
 
 void testExeSymLinked(Directory dir) {
   var dirUri = new Uri.directory(dir.path);
   var link = new Link.fromUri(dirUri.resolve('dart_exe_link'));
-  link.createSync(Platform.executable);
+  link.createSync(Platform.resolvedExecutable);
   verify(link.path);
 }
 
 void testPathToDirWithExeSymLinked(Directory dir) {
   var dirUri = new Uri.directory(dir.path);
   var link = new Link.fromUri(dirUri.resolve('dart_exe_link'));
-  link.createSync(Platform.executable);
+  link.createSync(Platform.resolvedExecutable);
   verify('dart_exe_link', altPath: dir.path);
 }
 
@@ -75,7 +75,7 @@ void testExeDirSymLinked(Directory dir) {
   var linkDirUri = dirUri.resolve('dart_bin_dir_link');
   var link = new Link.fromUri(linkDirUri);
 
-  var exeFile = new File(Platform.executable);
+  var exeFile = new File(Platform.resolvedExecutable);
 
   link.createSync(exeFile.parent.path);
 
@@ -91,7 +91,7 @@ void testPathPointsToSymLinkedSDKPath(Directory dir) {
   var linkDirUri = dirUri.resolve('dart_bin_dir_link');
   var link = new Link.fromUri(linkDirUri);
 
-  var exeFile = new File(Platform.executable);
+  var exeFile = new File(Platform.resolvedExecutable);
 
   link.createSync(exeFile.parent.path);
 
@@ -99,7 +99,7 @@ void testPathPointsToSymLinkedSDKPath(Directory dir) {
 }
 
 void testPathToSDKDir() {
-  var exeFile = new File(Platform.executable);
+  var exeFile = new File(Platform.resolvedExecutable);
   var binDirPath = exeFile.parent.path;
 
   verify(platformExeName, altPath: binDirPath);
@@ -115,15 +115,19 @@ void withTempDir(void test(Directory dir)) {
 }
 
 String get platformExeName {
-  var raw = new Uri.file(Platform.executable);
+  var raw = new Uri.file(Platform.resolvedExecutable);
   return raw.pathSegments.last;
 }
 
 String get scriptPath => Platform.script.toFilePath();
 
 void main() {
+  // The same script is used for both running the tests and as for starting
+  // child verifying the value of Platform.resolvedExecutable. If the
+  // environment variable _SCRIPT_KEY is set this is a child process which
+  // should print the value of Platform.resolvedExecutable.
   if (Platform.environment.containsKey(_SCRIPT_KEY)) {
-    print(Platform.executable);
+    print(Platform.resolvedExecutable);
     return;
   }
 

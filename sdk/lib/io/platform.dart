@@ -131,12 +131,23 @@ class Platform {
    * Returns the path of the executable used to run the script in this
    * isolate.
    *
-   * If supported by the platform the returned path will be absolute.
+   * The path returned is the literal path used to run the script. This
+   * path might be relative or just be a name from which the executable
+   * was found by searching the `PATH`.
    *
-   * If the execution environment does not support [executable] an empty
-   * string is returned.
+   * To get the absolute path to the resolved executable use
+   * [resolvedExecutable].
    */
   static String get executable => _Platform.executable;
+
+  /**
+   * Returns the path of the executable used to run the script in this
+   * isolate after it has been resolved by the OS.
+   *
+   * This is the absolute path, with all symlinks resolved, to the
+   * executable used to run the script.
+   */
+  static String get resolvedExecutable => _Platform.resolvedExecutable;
 
   /**
    * Returns the absolute URI of the script being run in this

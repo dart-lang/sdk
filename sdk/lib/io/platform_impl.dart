@@ -10,6 +10,7 @@ class _Platform {
   external static String _operatingSystem();
   external static _localHostname();
   external static _executable();
+  external static _resolvedExecutable();
   /**
    * Retrieve the entries of the process environment.
    *
@@ -31,6 +32,7 @@ class _Platform {
   external static String _version();
 
   static String executable = _executable();
+  static String resolvedExecutable = _resolvedExecutable();
   static String packageRoot = _packageRoot();
 
   // Cache the OS environemnt. This can be an OSError instance if
