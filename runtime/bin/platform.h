@@ -46,15 +46,14 @@ class Platform {
     executable_name_ = executable_name;
   }
   static const char* GetExecutableName() {
-    if (!executable_name_resolved_) {
-      // Try to resolve the executable path using platform specific APIs.
-      char* path = Platform::ResolveExecutablePath();
-      if (path != NULL) {
-        executable_name_ = path;
-      }
-      executable_name_resolved_ = true;
-    }
     return executable_name_;
+  }
+  static const char* GetResolvedExecutableName() {
+    if (resolved_executable_name_ == NULL) {
+      // Try to resolve the executable path using platform specific APIs.
+      resolved_executable_name_ = Platform::ResolveExecutablePath();
+    }
+    return resolved_executable_name_;
   }
 
   // Stores and gets the package root.
@@ -80,8 +79,8 @@ class Platform {
  private:
   // The path to the executable.
   static const char* executable_name_;
-  // State to indicate whether the executable name has been resolved.
-  static bool executable_name_resolved_;
+  // The path to the resolved executable.
+  static const char* resolved_executable_name_;
 
   static const char* package_root_;
   static int script_index_;

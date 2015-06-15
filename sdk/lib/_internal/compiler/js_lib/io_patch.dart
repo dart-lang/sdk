@@ -221,6 +221,10 @@ class _Platform {
     throw new UnsupportedError("Platform._executable");
   }
   @patch
+  static _resolvedExecutable() {
+    throw new UnsupportedError("Platform._resolvedExecutable");
+  }
+  @patch
   static List<String> _executableArguments() {
     throw new UnsupportedError("Platform._executableArguments");
   }

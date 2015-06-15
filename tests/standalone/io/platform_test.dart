@@ -24,9 +24,15 @@ test() {
   Expect.isTrue(hostname is String && hostname != "");
   var environment = Platform.environment;
   Expect.isTrue(environment is Map<String, String>);
-  Expect.isTrue(Platform.executable.contains('dart'));
   if (!Platform.isWindows) {
-    Expect.isTrue(Platform.executable.startsWith('/'));
+    Expect.isTrue(Platform.executable.endsWith('dart'));
+    Expect.isTrue(Platform.resolvedExecutable.endsWith('dart'));
+  } else {
+    Expect.isTrue(Platform.executable.endsWith('dart.exe'));
+    Expect.isTrue(Platform.resolvedExecutable.endsWith('dart.exe'));
+  }
+  if (!Platform.isWindows) {
+    Expect.isTrue(Platform.resolvedExecutable.startsWith('/'));
   } else {
     // This assumes that tests (both locally and on the bots) are
     // running off a location referred to by a drive letter. If a UNC
