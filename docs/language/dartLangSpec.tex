@@ -7510,7 +7510,8 @@ where $depth(T)$ is the number of steps in the longest inheritance path from $T$
 \LMHash{}
 The least upper bound of \DYNAMIC{} and any type $T$ is \DYNAMIC{}.
 The least upper bound of \VOID{} and any type $T \ne \DYNAMIC{}$ is \VOID{}.
-Let $U$ be a type variable with upper bound $B$. The least upper bound of $U$ and a type $T$ is the least upper bound of $B$ and $T$. 
+The least upper bound of $\bot$ and any type $T$ is $T$.
+Let $U$ be a type variable with upper bound $B$. The least upper bound of $U$ and a type $T \ne \bot$ is the least upper bound of $B$ and $T$. 
 
 \LMHash{}
 The least upper bound relation is symmetric and reflexive.
