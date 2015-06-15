@@ -10,6 +10,8 @@ patch class _Platform {
       native "Platform_OperatingSystem";
   /* patch */ static _localHostname() native "Platform_LocalHostname";
   /* patch */ static _executable() native "Platform_ExecutableName";
+  /* patch */ static _resolvedExecutable()
+      native "Platform_ResolvedExecutableName";
   /* patch */ static _environment() native "Platform_Environment";
   /* patch */ static List<String> _executableArguments()
        native "Platform_ExecutableArguments";

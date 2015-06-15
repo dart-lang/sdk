@@ -17,15 +17,6 @@ javascript_compatibility_errors_test/none: Fail, OK  # Not possible to exclude o
 package/package_isolate_test: Fail # Issue 12474
 io/observatory_test: Fail
 
-[ $runtime == vm && ($system == macos || $system == windows) ]
-io/platform_executable_test/01: RuntimeError # Issue 16994
-io/platform_executable_test/02: RuntimeError # Issue 16994
-io/platform_executable_test/04: RuntimeError # Issue 16994
-io/platform_executable_test/05: RuntimeError # Issue 16994
-
-[ $runtime == vm && $system == windows ]
-io/platform_executable_test/06: RuntimeError # NEEDS TRIAGE (kevmoo)
-
 [ $runtime == vm && $checked ]
 # These tests have type errors on purpose.
 io/process_invalid_arguments_test: Fail, OK
@@ -167,6 +158,7 @@ package/package_test: CompileTimeError
 [ $system == windows ]
 io/skipping_dart2js_compilations_test: Fail # Issue 19551.
 verbose_gc_to_bmu_test: Skip
+io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 
 [ $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv5te && $mode == debug ]
 verified_mem_test: Skip  # Not yet implemented.
@@ -219,10 +211,10 @@ io/issue_22637_test: Crash #  cannot handle async/sync*/async* functions
 io/link_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/link_uri_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/observatory_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-io/platform_executable_test/01: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
-io/platform_executable_test/02: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
-io/platform_executable_test/04: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
-io/platform_executable_test/05: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_resolved_executable_test/01: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_resolved_executable_test/02: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_resolved_executable_test/04: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_resolved_executable_test/05: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
 io/platform_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/process_invalid_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 io/raw_datagram_socket_test: Crash #  Unhandled node
