@@ -117,10 +117,6 @@ def CreateUploadAPIDocs():
   UploadApiLatestFile()
   CreateZip(api_path, api_zip)
   DartArchiveUploadAPIDocs(api_zip)
-  BuildDartdocAPIDocs(dartdoc_dir)
-  UploadDartdocApiDocs(dartdoc_dir)
-  CreateZip(dartdoc_dir, dartdoc_zip)
-  DartArchiveUploadDartdocAPIDocs(dartdoc_zip)
 
 def DartArchiveUploadAPIDocs(api_zip):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
