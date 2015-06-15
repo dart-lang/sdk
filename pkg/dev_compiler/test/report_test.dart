@@ -46,9 +46,11 @@ void main() {
 
     _verifySummary(GlobalSummary summary) {
       var mainLib = summary.loose['file:///main.dart'];
-      expect(mainLib.messages.length, 1);
+      expect(mainLib.messages.length, 2);
+      var analyzerMsg = mainLib.messages[0];
+      expect(analyzerMsg.kind, "AnalyzerMessage");
 
-      var mainMessage = mainLib.messages[0];
+      var mainMessage = mainLib.messages[1];
       expect(mainMessage.kind, "StaticTypeError");
       expect(mainMessage.level, "severe");
       expect(mainMessage.span.text, '"hi"');

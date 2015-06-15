@@ -9,7 +9,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/src/generated/error.dart' as analyzer;
+import 'package:analyzer/src/generated/error.dart'
+    show AnalysisError, ErrorSeverity, ErrorType;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, ChangeSet;
 import 'package:analyzer/src/generated/source.dart' show Source;
@@ -27,7 +28,7 @@ import 'src/codegen/html_codegen.dart';
 import 'src/codegen/js_codegen.dart';
 import 'src/dependency_graph.dart';
 import 'src/info.dart'
-    show AnalyzerError, CheckerResults, LibraryInfo, LibraryUnit;
+    show AnalyzerMessage, CheckerResults, LibraryInfo, LibraryUnit;
 import 'src/options.dart';
 import 'src/report.dart';
 import 'src/utils.dart';
@@ -201,11 +202,21 @@ class Compiler implements AbstractCompiler {
   /// Log any errors encountered when resolving [source] and return whether any
   /// errors were found.
   bool logErrors(Source source) {
-    List<analyzer.AnalysisError> errors = context.getErrors(source).errors;
+    context.computeErrors(source);
+    List<AnalysisError> errors = context.getErrors(source).errors;
     bool failure = false;
     if (errors.isNotEmpty) {
       for (var error in errors) {
-        var message = new AnalyzerError.from(error);
+        // Always skip TODOs.
+        if (error.errorCode.type == ErrorType.TODO) continue;
+
+        // Skip hints for now. In the future these could be turned on via flags.
+        if (error.errorCode.errorSeverity.ordinal <
+            ErrorSeverity.WARNING.ordinal) {
+          continue;
+        }
+
+        var message = new AnalyzerMessage.from(error);
         if (message.level == Level.SEVERE) failure = true;
         _reporter.log(message);
       }

@@ -8,7 +8,8 @@ library dev_compiler.src.info;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/error.dart' as analyzer;
+import 'package:analyzer/src/generated/error.dart'
+    show AnalysisError, ErrorSeverity;
 import 'package:logging/logging.dart' show Level;
 
 import 'package:dev_compiler/src/checker/rules.dart';
@@ -528,16 +529,16 @@ class InvalidSuperInvocation extends StaticError {
       "(see http://goo.gl/q1T4BB): $node";
 }
 
-class AnalyzerError extends Message {
-  factory AnalyzerError.from(analyzer.AnalysisError error) {
+class AnalyzerMessage extends Message {
+  factory AnalyzerMessage.from(AnalysisError error) {
     var severity = error.errorCode.type.severity;
-    var isError = severity == analyzer.ErrorSeverity.WARNING;
+    var isError = severity == ErrorSeverity.WARNING;
     var level = isError ? Level.SEVERE : Level.WARNING;
     int begin = error.offset;
     int end = begin + error.length;
-    return new AnalyzerError(error.message, level, begin, end);
+    return new AnalyzerMessage(error.message, level, begin, end);
   }
 
-  const AnalyzerError(String message, Level level, int begin, int end)
+  const AnalyzerMessage(String message, Level level, int begin, int end)
       : super(message, level, begin, end);
 }
