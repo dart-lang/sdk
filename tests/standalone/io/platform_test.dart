@@ -38,7 +38,7 @@ test() {
     // running off a location referred to by a drive letter. If a UNC
     // location is used or long names ("\\?\" prefix) is used this
     // needs to be fixed.
-    Expect.equals(Platform.executable.substring(1, 3), ':\\');
+    Expect.equals(Platform.resolvedExecutable.substring(1, 3), ':\\');
   }
   // Move directory to be sure script is correct.
   var oldDir = Directory.current;
