@@ -1636,6 +1636,11 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     JSONArray breakpoints(&jsobj, "breakpoints");
     debugger()->PrintBreakpointsToJSONArray(&breakpoints);
   }
+
+  {
+    JSONObject jssettings(&jsobj, "_debuggerSettings");
+    debugger()->PrintSettingsToJSONObject(&jssettings);
+  }
 }
 
 

@@ -884,6 +884,7 @@ class RawScript : public RawObject {
     kLibraryTag,
     kSourceTag,
     kPatchTag,
+    kEvaluateTag,
   };
 
  private:

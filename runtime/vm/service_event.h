@@ -28,6 +28,7 @@ class ServiceEvent {
     kBreakpointResolved,
     kBreakpointRemoved,
     kInspect,
+    kDebuggerSettingsUpdate,
 
     kGC,
 

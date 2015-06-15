@@ -454,7 +454,7 @@ class Debugger {
   const DebuggerEvent* PauseEvent() const { return pause_event_; }
 
   void SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info);
-  Dart_ExceptionPauseInfo GetExceptionPauseInfo();
+  Dart_ExceptionPauseInfo GetExceptionPauseInfo() const;
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -516,6 +516,7 @@ class Debugger {
   uword GetPatchedStubAddress(uword breakpoint_address);
 
   void PrintBreakpointsToJSONArray(JSONArray* jsarr) const;
+  void PrintSettingsToJSONObject(JSONObject* jsobj) const;
 
   static bool IsDebuggable(const Function& func);
 

@@ -449,7 +449,7 @@ class ScriptInsetElement extends ObservatoryElement {
 
     addCurrentExecutionAnnotation();
 
-    if (!inDebuggerContext) {
+    if (!inDebuggerContext && script.library != null) {
       loadDeclarationsOfLibrary(script.library);
 
       // Add fields before functions so they beat out conflicting

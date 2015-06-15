@@ -84,6 +84,8 @@ const char* ServiceEvent::EventTypeToCString(EventType type) {
       return "GC";  // TODO(koda): Change to GarbageCollected.
     case kInspect:
       return "Inspect";
+    case kDebuggerSettingsUpdate:
+      return "_DebuggerSettingsUpdate";
     case kIllegal:
       return "Illegal";
     default:
@@ -110,6 +112,7 @@ const char* ServiceEvent::stream_id() const {
     case kBreakpointResolved:
     case kBreakpointRemoved:
     case kInspect:
+    case kDebuggerSettingsUpdate:
       return "Debug";
 
     case kGC:
@@ -138,6 +141,10 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     if (breakpoint() != NULL) {
       jsobj.AddProperty("breakpoint", breakpoint());
     }
+  }
+  if (type() == kDebuggerSettingsUpdate) {
+    JSONObject jssettings(&jsobj, "_debuggerSettings");
+    isolate()->debugger()->PrintSettingsToJSONObject(&jssettings);
   }
   if (top_frame() != NULL) {
     JSONObject jsFrame(&jsobj, "topFrame");

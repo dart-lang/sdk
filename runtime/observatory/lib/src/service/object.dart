@@ -131,7 +131,8 @@ abstract class ServiceObject extends Observable {
 
   /// Is this object cacheable?  That is, is it impossible for the [id]
   /// of this object to change?
-  bool get canCache => false;
+  bool _canCache;
+  bool get canCache => _canCache;
 
   /// Is this object immutable after it is [loaded]?
   bool get immutable => false;
@@ -304,6 +305,7 @@ abstract class ServiceObject extends Observable {
     var mapType = _stripRef(map['type']);
     assert(_type == null || _type == mapType);
 
+    _canCache = map['fixedId'] == true;
     if (_id != null && _id != map['id']) {
       // It is only safe to change an id when the object isn't cacheable.
       assert(!canCache);
@@ -1108,6 +1110,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
     updateHeapsFromMap(map['_heaps']);
     _updateBreakpoints(map['breakpoints']);
+    exceptionsPauseInfo = map['_debuggerSettings']['_exceptions'];
 
     pauseEvent = map['pauseEvent'];
     _updateRunState();
@@ -1128,6 +1131,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   }
 
   ObservableMap<int, Breakpoint> breakpoints = new ObservableMap();
+  String exceptionsPauseInfo;
 
   void _updateBreakpoints(List newBpts) {
     // Build a set of new breakpoints.
@@ -1170,6 +1174,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
       case ServiceEvent.kIsolateUpdate:
       case ServiceEvent.kBreakpointResolved:
+      case ServiceEvent.kDebuggerSettingsUpdate:
         // Update occurs as side-effect of caching.
         break;
 
@@ -1263,6 +1268,10 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   Future setName(String newName) {
     return invokeRpc('setName', {'name': newName});
+  }
+
+  Future setExceptionPauseInfo(String exceptions) {
+    return invokeRpc('_setExceptionPauseInfo', {'exceptions': exceptions});
   }
 
   Future<ServiceMap> getStack() {
@@ -1455,22 +1464,23 @@ class DartError extends ServiceObject {
 /// A [ServiceEvent] is an asynchronous event notification from the vm.
 class ServiceEvent extends ServiceObject {
   /// The possible 'kind' values.
-  static const kIsolateStart       = 'IsolateStart';
-  static const kIsolateExit        = 'IsolateExit';
-  static const kIsolateUpdate      = 'IsolateUpdate';
-  static const kPauseStart         = 'PauseStart';
-  static const kPauseExit          = 'PauseExit';
-  static const kPauseBreakpoint    = 'PauseBreakpoint';
-  static const kPauseInterrupted   = 'PauseInterrupted';
-  static const kPauseException     = 'PauseException';
-  static const kResume             = 'Resume';
-  static const kBreakpointAdded    = 'BreakpointAdded';
-  static const kBreakpointResolved = 'BreakpointResolved';
-  static const kBreakpointRemoved  = 'BreakpointRemoved';
-  static const kGraph              = '_Graph';
-  static const kGC                 = 'GC';
-  static const kInspect            = 'Inspect';
-  static const kConnectionClosed   = 'ConnectionClosed';
+  static const kIsolateStart           = 'IsolateStart';
+  static const kIsolateExit            = 'IsolateExit';
+  static const kIsolateUpdate          = 'IsolateUpdate';
+  static const kPauseStart             = 'PauseStart';
+  static const kPauseExit              = 'PauseExit';
+  static const kPauseBreakpoint        = 'PauseBreakpoint';
+  static const kPauseInterrupted       = 'PauseInterrupted';
+  static const kPauseException         = 'PauseException';
+  static const kResume                 = 'Resume';
+  static const kBreakpointAdded        = 'BreakpointAdded';
+  static const kBreakpointResolved     = 'BreakpointResolved';
+  static const kBreakpointRemoved      = 'BreakpointRemoved';
+  static const kGraph                  = '_Graph';
+  static const kGC                     = 'GC';
+  static const kInspect                = 'Inspect';
+  static const kDebuggerSettingsUpdate = '_DebuggerSettingsUpdate';
+  static const kConnectionClosed       = 'ConnectionClosed';
 
   ServiceEvent._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -1481,11 +1491,12 @@ class ServiceEvent extends ServiceObject {
   @observable String kind;
   @observable Breakpoint breakpoint;
   @observable Frame topFrame;
-  @observable ServiceMap exception;
+  @observable Instance exception;
   @observable ServiceObject inspectee;
   @observable ByteData data;
   @observable int count;
   @observable String reason;
+  @observable String exceptions;
   int chunkIndex, chunkCount, nodeCount;
 
   @observable bool get isPauseEvent {
@@ -1536,6 +1547,10 @@ class ServiceEvent extends ServiceObject {
     }
     if (map['count'] != null) {
       count = map['count'];
+    }
+    if (map['_debuggerSettings'] != null &&
+        map['_debuggerSettings']['_exceptions'] != null) {
+      exceptions = map['_debuggerSettings']['_exceptions'];
     }
   }
 
@@ -2091,7 +2106,6 @@ class ServiceFunction extends ServiceObject with Coverage {
   @observable bool isDart;
   @observable ProfileFunction profile;
 
-  bool get canCache => true;
   bool get immutable => false;
 
   ServiceFunction._empty(ServiceObject owner) : super._empty(owner);
@@ -2344,7 +2358,7 @@ class Script extends ServiceObject with Coverage {
   @observable int lineOffset;
   @observable int columnOffset;
   @observable Library library;
-  bool get canCache => true;
+
   bool get immutable => true;
 
   String _shortUri;
@@ -2845,7 +2859,7 @@ class Code extends ServiceObject {
       new List<CodeInlineInterval>();
   final ObservableList<ServiceFunction> inlinedFunctions =
       new ObservableList<ServiceFunction>();
-  bool get canCache => true;
+
   bool get immutable => true;
 
   Code._empty(ServiceObjectOwner owner) : super._empty(owner);
@@ -3254,6 +3268,8 @@ class Frame extends ServiceObject {
     this.code = map['code'];
     this.variables = map['vars'];
   }
+
+  String toString() => "Frame(${function.qualifiedName})";
 }
 
 

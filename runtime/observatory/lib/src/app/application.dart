@@ -93,6 +93,7 @@ class ObservatoryApplication extends Observable {
       case ServiceEvent.kBreakpointResolved:
       case ServiceEvent.kBreakpointRemoved:
       case ServiceEvent.kGC:
+      case ServiceEvent.kDebuggerSettingsUpdate:
         // Ignore for now.
         break;
 

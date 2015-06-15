@@ -480,6 +480,24 @@ void Debugger::PrintBreakpointsToJSONArray(JSONArray* jsarr) const {
 }
 
 
+void Debugger::PrintSettingsToJSONObject(JSONObject* jsobj) const {
+  // This won't cut it when we support filtering by class, etc.
+  switch (GetExceptionPauseInfo()) {
+    case kNoPauseOnExceptions:
+      jsobj->AddProperty("_exceptions", "none");
+      break;
+    case kPauseOnAllExceptions:
+      jsobj->AddProperty("_exceptions", "all");
+      break;
+    case kPauseOnUnhandledExceptions:
+      jsobj->AddProperty("_exceptions", "unhandled");
+      break;
+    default:
+      UNREACHABLE();
+  }
+}
+
+
 RawString* ActivationFrame::QualifiedFunctionName() {
   return String::New(Debugger::QualifiedFunctionName(function()));
 }
@@ -1507,7 +1525,7 @@ void Debugger::SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info) {
 }
 
 
-Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() {
+Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() const {
   return exc_pause_info_;
 }
 

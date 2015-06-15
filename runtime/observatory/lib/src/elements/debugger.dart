@@ -366,6 +366,35 @@ class FinishCommand extends DebuggerCommand {
       'Syntax: finish\n';
 }
 
+class SetCommand extends DebuggerCommand {
+  SetCommand(Debugger debugger)
+      : super(debugger, 'set', []);
+
+  Future run(List<String> args) async {
+    if (args.length == 2) {
+      var option = args[0].trim();
+      if (option == 'break-on-exceptions') {
+        var result = await debugger.isolate.setExceptionPauseInfo(args[1]);
+        if (result.isError) {
+          debugger.console.print(result.toString());
+        }
+      } else {
+        debugger.console.print("unknown option '$option'");
+      }
+    } else {
+      debugger.console.print("set expects 2 arguments");
+    }
+  }
+
+  String helpShort =
+      'Set a debugger option';
+
+  String helpLong =
+      'Set a debugger option'
+      '\n'
+      'Syntax: set break-on-exceptions "all" | "none" | "unhandled"\n';
+}
+
 class BreakCommand extends DebuggerCommand {
   BreakCommand(Debugger debugger) : super(debugger, 'break', []);
 
@@ -828,6 +857,7 @@ class ObservatoryDebugger extends Debugger {
   DebuggerConsoleElement console;
   DebuggerStackElement stackElement;
   ServiceMap stack;
+  String exceptions = "none";  // Last known setting.
 
   int get currentFrame => _currentFrame;
   void set currentFrame(int value) {
@@ -856,6 +886,7 @@ class ObservatoryDebugger extends Debugger {
         new StepCommand(this),
         new FinishCommand(this),
         new BreakCommand(this),
+        new SetCommand(this),
         new ClearCommand(this),
         new DeleteCommand(this),
         new InfoCommand(this),
@@ -869,6 +900,11 @@ class ObservatoryDebugger extends Debugger {
   void updateIsolate(Isolate iso) {
     _isolate = iso;
     if (_isolate != null) {
+      if (exceptions != iso.exceptionsPauseInfo) {
+        exceptions = iso.exceptionsPauseInfo;
+        console.print("Now pausing for $exceptions exceptions");
+      }
+
       _isolate.reload().then((response) {
         // TODO(turnidge): Currently the debugger relies on all libs
         // being loaded.  Fix this.
@@ -992,9 +1028,12 @@ class ObservatoryDebugger extends Debugger {
           console.print('Paused at breakpoint ${bpId} at '
                         '${script.name}:${line}:${col}');
         } else if (event.exception != null) {
-          // TODO(turnidge): Test this.
-          console.print('Paused due to exception ${event.exception} at '
+          console.print('Paused due to exception at '
                         '${script.name}:${line}:${col}');
+          // This seems to be missing if we are paused-at-exception after
+          // paused-at-isolate-exit. Maybe we shutdown part of the debugger too
+          // soon?
+          console.printRef(event.exception);
         } else {
           console.print('Paused at ${script.name}:${line}:${col}');
         }
@@ -1053,6 +1092,13 @@ class ObservatoryDebugger extends Debugger {
             console.print(
                 "Isolate ${iso.number} '${iso.name}' has exited");
           }
+        }
+        break;
+
+      case ServiceEvent.kDebuggerSettingsUpdate:
+        if (exceptions != event.exceptions) {
+          exceptions = event.exceptions;
+          console.print("Now pausing for $exceptions exceptions");
         }
         break;
 

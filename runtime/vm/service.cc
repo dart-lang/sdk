@@ -2620,6 +2620,43 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* set_exception_pause_info_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool SetExceptionPauseInfo(Isolate* isolate, JSONStream* js) {
+  const char* exceptions = js->LookupParam("exceptions");
+  if (exceptions == NULL) {
+    PrintMissingParamError(js, "exceptions");
+    return true;
+  }
+
+  Dart_ExceptionPauseInfo info = kNoPauseOnExceptions;
+  if (strcmp(exceptions, "none") == 0) {
+    info = kNoPauseOnExceptions;
+  } else if (strcmp(exceptions, "all") == 0) {
+    info = kPauseOnAllExceptions;
+  } else if (strcmp(exceptions, "unhandled") == 0) {
+    info = kPauseOnUnhandledExceptions;
+  } else {
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Error");
+    jsobj.AddProperty("message", "illegal value for parameter 'exceptions'");
+    return true;
+  }
+
+  isolate->debugger()->SetExceptionPauseInfo(info);
+  if (Service::NeedsDebugEvents()) {
+    ServiceEvent event(isolate, ServiceEvent::kDebuggerSettingsUpdate);
+    Service::HandleEvent(&event);
+  }
+  PrintSuccess(js);
+  return true;
+}
+
+
 static const MethodParameter* get_flag_list_params[] = {
   NO_ISOLATE_PARAMETER,
   NULL,
@@ -2738,7 +2775,7 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_coverage_params },
   { "_getCpuProfile", GetCpuProfile,
     get_cpu_profile_params },
-  { "getFlagList", GetFlagList ,
+  { "getFlagList", GetFlagList,
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,
     get_heap_map_params },
@@ -2782,6 +2819,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     resume_params },
   { "_requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
+  { "_setExceptionPauseInfo", SetExceptionPauseInfo,
+    set_exception_pause_info_params },
   { "_setFlag", SetFlag,
     set_flags_params },
   { "setLibraryDebuggable", SetLibraryDebuggable,

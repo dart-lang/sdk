@@ -2868,7 +2868,7 @@ static RawFunction* EvaluateHelper(const Class& cls,
   Script& script = Script::Handle();
   script = Script::New(Symbols::EvalSourceUri(),
                        func_src,
-                       RawScript::kSourceTag);
+                       RawScript::kEvaluateTag);
   // In order to tokenize the source, we need to get the key to mangle
   // private names from the library from which the class originates.
   const Library& lib = Library::Handle(cls.library());
@@ -6292,7 +6292,7 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
                     0));
   ASSERT(!script.IsNull());
   result.set_is_debuggable(false);
-  result.set_is_visible(false);
+  result.set_is_visible(true);
   result.set_eval_script(script);
   return result.raw();
 }
@@ -8317,6 +8317,8 @@ const char* Script::GetKindAsCString() const {
       return "source";
     case RawScript::kPatchTag:
       return "patch";
+    case RawScript::kEvaluateTag:
+      return "evaluate";
     default:
       UNIMPLEMENTED();
   }
@@ -8592,16 +8594,22 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& encoded_uri = String::Handle(String::EncodeIRI(uri));
   ASSERT(!encoded_uri.IsNull());
   const Library& lib = Library::Handle(FindLibrary());
-  // TODO(rmacnak): This can fail for eval scripts. Use a ring-id for those.
-  intptr_t lib_index = (lib.IsNull()) ? -1 : lib.index();
-  jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s",
-      lib_index, encoded_uri.ToCString());
+  if (lib.IsNull()) {
+    ASSERT(kind() == RawScript::kEvaluateTag);
+    jsobj.AddServiceId(*this);
+  } else {
+    ASSERT(kind() != RawScript::kEvaluateTag);
+    jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s",
+        lib.index(), encoded_uri.ToCString());
+  }
   jsobj.AddPropertyStr("uri", uri);
   jsobj.AddProperty("_kind", GetKindAsCString());
   if (ref) {
     return;
   }
-  jsobj.AddProperty("library", lib);
+  if (!lib.IsNull()) {
+    jsobj.AddProperty("library", lib);
+  }
   const String& source = String::Handle(Source());
   jsobj.AddProperty("lineOffset", line_offset());
   jsobj.AddProperty("columnOffset", col_offset());
