@@ -9613,16 +9613,16 @@ WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please tr
 [ $compiler == dart2js && $cps_ir ]
 Language/03_Overview/1_Scoping_A02_t19: Crash # (switch (1){case 1:var x;break;case 2:var x;break;}): Unhandled node
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: RuntimeError # Please triage this failure.
-Language/12_Expressions/13_Property_Extraction_A03_t01: RuntimeError # Please triage this failure.
-Language/12_Expressions/13_Property_Extraction_A03_t02: RuntimeError # Please triage this failure.
-Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Please triage this failure.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: RuntimeError # Please triage this failure.
+Language/12_Expressions/13_Property_Extraction_A03_t01: RuntimeError # Cannot read property 'call' of undefined
+Language/12_Expressions/13_Property_Extraction_A03_t02: RuntimeError # Cannot read property 'call' of undefined
+Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Cannot read property 'call' of undefined
+Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/22_Equality_A03_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/30_Identifier_Reference_A09_t03: Crash # (i=0): For-loop variable captured in loop header
 Language/12_Expressions/33_Type_Cast_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for func.
 Language/12_Expressions/33_Type_Cast_A02_t02: Crash # Instance of 'TypeOperator': type check unimplemented for func.
 Language/12_Expressions/33_Type_Cast_A02_t03: Crash # Instance of 'TypeOperator': type check unimplemented for func.
-Language/13_Statements/06_For_A01_t07: Crash # Please triage this failure.
+Language/13_Statements/06_For_A01_t07: Crash # unsupported operation on erroneous element
 Language/13_Statements/09_Switch_A01_t01: Crash # (switch (1){case 0:case 1:}): Unhandled node
 Language/13_Statements/09_Switch_A01_t02: Crash # (switch (1){l1:l2:l3:case (1):}): Unhandled node
 Language/13_Statements/09_Switch_A01_t03: Crash # (switch (value){case...  Unhandled node
@@ -9723,9 +9723,8 @@ Language/15_Types/5_Function_Types_A03_t12: Crash # Instance of 'TypeOperator': 
 Language/15_Types/5_Function_Types_A03_t13: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
 Language/15_Types/5_Function_Types_A06_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 LayoutTests/fast/backgrounds/multiple-backgrounds-computed-style_t01: Crash # (switch (property){c...  Unhandled node
-LayoutTests/fast/canvas/canvas-composite-image_t01: Crash # Please triage this failure.
-LayoutTests/fast/canvas/webgl/compressed-tex-image_t01: Crash # Please triage this failure.
-LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: Crash # Please triage this failure.
+LayoutTests/fast/canvas/webgl/compressed-tex-image_t01: Crash # Invalid argument(s)
+LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: Crash # Invalid argument(s)
 LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: Crash # (switch (ii){case 2:...  Unhandled node
 LayoutTests/fast/canvas/webgl/index-validation_t01: Crash # (switch (type){case ...  Unhandled node
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Crash # (switch (type){case ...  Unhandled node
@@ -9745,28 +9744,28 @@ LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: Crash # (switch (orgEl
 LayoutTests/fast/table/hittest-tablecell-right-edge_t01: Crash # (switch (orgElement)...  Unhandled node
 LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: Crash # (switch (orgElement)...  Unhandled node
 LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Crash # (switch (orgElement)...  Unhandled node
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError # Please triage this failure.
-LibTest/async/Stream/Stream.periodic_A01_t01: Crash # Please triage this failure.
-LibTest/async/Stream/drain_A02_t01: Crash # Please triage this failure.
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError # undefined is not a function
+LibTest/async/Stream/Stream.periodic_A01_t01: Crash # Invalid argument(s)
+LibTest/async/Stream/drain_A02_t01: Crash # Invalid argument(s)
 LibTest/async/Zone/registerBinaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneBinaryCallback.
 LibTest/async/Zone/registerCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneCallback.
 LibTest/async/Zone/registerUnaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneUnaryCallback.
-LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Please triage this failure.
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Please triage this failure.
+LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Stack Overflow
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Stack Overflow
 LibTest/core/FallThroughError/toString_A01_t02: Crash # (switch (2){case 1:p...  Unhandled node
-LibTest/core/Invocation/isAccessor_A01_t01: Crash # Please triage this failure.
+LibTest/core/Invocation/isAccessor_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/isGetter_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/Invocation/isGetter_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/Invocation/isMethod_A01_t02: Crash # Please triage this failure.
-LibTest/core/Invocation/isSetter_A01_t01: Crash # Please triage this failure.
+LibTest/core/Invocation/isMethod_A01_t02: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
+LibTest/core/Invocation/isSetter_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/isSetter_A01_t02: RuntimeError # Please triage this failure.
-LibTest/core/Invocation/memberName_A01_t01: Crash # Please triage this failure.
+LibTest/core/Invocation/memberName_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # Please triage this failure.
-LibTest/core/List/List_class_A01_t02: Crash # Please triage this failure.
+LibTest/core/List/List_class_A01_t02: Crash # Stack Overflow
 LibTest/core/Map/Map_A01_t01: Crash # type expression SomeFunction (typedef)
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Crash # (switch (alpha){case...  Unhandled node
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Crash # (switch (alpha){case...  Unhandled node
-LibTest/core/Set/add_A01_t03: RuntimeError # Please triage this failure.
+LibTest/core/Set/add_A01_t03: RuntimeError # undefined is not a function
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
@@ -9784,10 +9783,10 @@ LibTest/html/Window/moveTo_A01_t01: Crash # (try {check(nw,0,0);...  try/finally
 LibTest/html/Window/moveTo_A02_t01: Crash # (try {print("from ${...  try/finally
 LibTest/html/Window/resizeBy_A01_t01: Crash # (try {check(nw,0,0);...  try/finally
 LibTest/html/Window/resizeTo_A01_t01: Crash # (try {check(nw,0,0);...  try/finally
-LibTest/isolate/ReceivePort/drain_A02_t01: Crash # Please triage this failure.
+LibTest/isolate/ReceivePort/drain_A02_t01: Crash # Invalid argument(s)
 LibTest/math/sin_A01_t02: RuntimeError # Please triage this failure.
-Utils/tests/Expect/approxEquals_A04_t01: RuntimeError # Please triage this failure.
-Utils/tests/Expect/stringEquals_A02_t01: RuntimeError # Please triage this failure.
+Utils/tests/Expect/approxEquals_A04_t01: RuntimeError # undefined is not a function
+Utils/tests/Expect/stringEquals_A02_t01: RuntimeError # undefined is not a function
 WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: Crash # (switch (name){case ...  Unhandled node
 WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: Crash # (switch (name){case ...  Unhandled node
 WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: Crash # (switch (name){case ...  Unhandled node

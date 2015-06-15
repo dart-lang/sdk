@@ -140,7 +140,7 @@ isolate_current_test: Crash # (switch (state){case...  Unhandled node
 mandel_isolate_test: Crash # (switch (testCase.re...  Unhandled node
 message2_test: Crash # (switch (testCase.re...  Unhandled node
 message3_test/byteBuffer: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/constInstance: Crash # Please triage this failure.
+message3_test/constInstance: Crash # Invalid argument(s)
 message3_test/constList: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 message3_test/constList_identical: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 message3_test/constMap: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

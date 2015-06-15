@@ -376,9 +376,9 @@ call_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nul
 call_through_null_getter_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 call_type_literal_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 cascade2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-cha_deopt1_test: RuntimeError # Please triage this failure.
-cha_deopt2_test: RuntimeError # Please triage this failure.
-cha_deopt3_test: RuntimeError # Please triage this failure.
+cha_deopt1_test: RuntimeError # undefined is not a function
+cha_deopt2_test: RuntimeError # undefined is not a function
+cha_deopt3_test: RuntimeError # undefined is not a function
 checked_null_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 checked_setter2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 checked_setter3_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -413,10 +413,10 @@ class_literal_test/25: Crash # Instance of 'TypeOperator': type check unimplemen
 class_override_test/00: Crash # (try {instance.foo();}on NoSuchMethodError catch (error){}finally {}): try/finally
 class_override_test/none: Crash # (try {instance.foo();}finally {}): try/finally
 closure3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-closure_in_constructor_test: Crash # Please triage this failure.
+closure_in_constructor_test: Crash # Invalid argument(s)
 closure_internals_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 closure_self_reference_test: Crash # (try {return inner(value-1);}finally {counter++ ;}): try/finally
-closure_type_variables_test: Crash # Please triage this failure.
+closure_type_variables_test: Crash # Invalid argument(s)
 compile_time_constant_a_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 compile_time_constant_b_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 conditional_method_invocation_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -430,7 +430,7 @@ conditional_property_assignment_test/17: Crash # Instance of 'TypeOperator': typ
 conditional_property_assignment_test/18: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 conditional_property_assignment_test/19: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 const_evaluation_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-const_nested_test: Crash # Please triage this failure.
+const_nested_test: Crash # Invalid argument(s)
 const_objects_are_immutable_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 const_objects_are_immutable_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 const_switch2_test/none: Crash # (switch (a){case 1:print("OK");}): Unhandled node
@@ -438,54 +438,54 @@ const_switch_test/01: Crash # (switch (c){case con...  Unhandled node
 const_switch_test/02: Crash # (switch (c){case con...  Unhandled node
 const_switch_test/03: Crash # (switch (c){case con...  Unhandled node
 const_switch_test/04: Crash # (switch (c){case con...  Unhandled node
-constructor11_test: Crash # Please triage this failure.
+constructor11_test: Crash # Invalid argument(s)
 constructor12_test: RuntimeError # Please triage this failure.
-constructor5_test: Crash # Please triage this failure.
-constructor_with_mixin_test: Crash # Please triage this failure.
+constructor5_test: Crash # The null object does not have a getter 'namedArguments'.
+constructor_with_mixin_test: Crash # Internal Error: No default constructor available.
 continue_test: Crash # (switch (0){case 0:i=22;continue;default:i=25;break;}): Unhandled node
-crash_12118_test: Crash # Please triage this failure.
-crash_6725_test/01: Crash # Please triage this failure.
+crash_12118_test: Crash # Invalid argument(s)
+crash_6725_test/01: Crash # The null object does not have a getter '_element'.
 custom_await_stack_trace_test: Crash # (main()async{try {va...  cannot handle async/sync*/async* functions
 deferred_call_empty_before_load_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_closurize_load_library_test: RuntimeError # Please triage this failure.
-deferred_constant_list_test: RuntimeError # Please triage this failure.
+deferred_closurize_load_library_test: RuntimeError # undefined is not a function
+deferred_constant_list_test: RuntimeError # undefined is not a function
 deferred_constraints_constants_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred_constraints_constants_test/reference_after_load: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred_constraints_type_annotation_test/as_operation: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred_constraints_type_annotation_test/catch_check: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred_constraints_type_annotation_test/is_check: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_constraints_type_annotation_test/new: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/new: RuntimeError # undefined is not a function
 deferred_constraints_type_annotation_test/new_before_load: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/new_generic2: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/new_generic3: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/none: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/static_method: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # Please triage this failure.
-deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # Please triage this failure.
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/new_generic2: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/new_generic3: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/none: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/static_method: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # undefined is not a function
 deferred_function_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for F.
-deferred_global_test: RuntimeError # Please triage this failure.
+deferred_global_test: RuntimeError # undefined is not a function
 deferred_inheritance_constraints_test/redirecting_constructor: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_inlined_test: RuntimeError # Please triage this failure.
+deferred_inlined_test: RuntimeError # undefined is not a function
 deferred_load_constants_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_load_inval_code_test: RuntimeError # Please triage this failure.
-deferred_load_library_wrong_args_test/none: RuntimeError # Please triage this failure.
-deferred_mixin_test: RuntimeError # Please triage this failure.
-deferred_no_such_method_test: RuntimeError # Please triage this failure.
+deferred_load_inval_code_test: RuntimeError # undefined is not a function
+deferred_load_library_wrong_args_test/none: RuntimeError # undefined is not a function
+deferred_mixin_test: RuntimeError # undefined is not a function
+deferred_no_such_method_test: RuntimeError # undefined is not a function
 deferred_not_loaded_check_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_only_constant_test: RuntimeError # Please triage this failure.
-deferred_optimized_test: RuntimeError # Please triage this failure.
+deferred_only_constant_test: RuntimeError # undefined is not a function
+deferred_optimized_test: RuntimeError # undefined is not a function
 deferred_redirecting_factory_test: Crash # (test()async{await t...  cannot handle async/sync*/async* functions
 deferred_regression_22995_test: Crash # Instance of 'TypeOperator': type check unimplemented for Ti.
-deferred_shadow_load_library_test: RuntimeError # Please triage this failure.
-deferred_shared_and_unshared_classes_test: RuntimeError # Please triage this failure.
-deferred_static_seperate_test: RuntimeError # Please triage this failure.
+deferred_shadow_load_library_test: RuntimeError # undefined is not a function
+deferred_shared_and_unshared_classes_test: RuntimeError # undefined is not a function
+deferred_static_seperate_test: RuntimeError # undefined is not a function
 deopt_inlined_function_lazy_test: Crash # (try {return x+12342353257893275483274832;}finally {}): try/finally
 div_with_power_of_two2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 double_to_string_as_exponential2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -536,7 +536,7 @@ flatten_test/10: Crash # (test()async{Future<...  cannot handle async/sync*/asyn
 flatten_test/11: Crash # (test()async{Future<...  cannot handle async/sync*/async* functions
 flatten_test/12: Crash # (test()async{Future<...  cannot handle async/sync*/async* functions
 flatten_test/none: Crash # (test()async{}): cannot handle async/sync*/async* functions
-for2_test: Crash # Please triage this failure.
+for2_test: Crash # The null object does not have a getter 'field'.
 for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
 function_propagation_test: Crash # Instance of 'TypeOperator': type check unimplemented for F.
 function_subtype0_test: Crash # Instance of 'TypeOperator': type check unimplemented for t__.
@@ -596,47 +596,23 @@ function_type_alias6_test/none: Crash # Instance of 'TypeOperator': type check u
 function_type_alias_test: Crash # Instance of 'TypeOperator': type check unimplemented for Fun.
 function_type_call_getter_test: Crash # Instance of 'TypeOperator': type check unimplemented for F.
 generic_closure_test: Crash # Instance of 'TypeOperator': type check unimplemented for F.
-generic_constructor_mixin2_test: Crash # Please triage this failure.
-generic_constructor_mixin3_test: Crash # Please triage this failure.
-generic_constructor_mixin_test: Crash # Please triage this failure.
+generic_constructor_mixin2_test: Crash # Internal Error: No default constructor available.
+generic_constructor_mixin3_test: Crash # Internal Error: No default constructor available.
+generic_constructor_mixin_test: Crash # Internal Error: No default constructor available.
 generic_field_mixin3_test: RuntimeError # Please triage this failure.
 generic_list_checked_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 if_null_assignment_behavior_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/01: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/03: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/04: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/05: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/08: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/10: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/11: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/12: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/13: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/15: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/16: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/17: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/18: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/19: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/20: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/22: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/23: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/24: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/25: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/26: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/27: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/29: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/30: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/31: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/32: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/33: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/34: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/36: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/37: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-if_null_assignment_static_test/38: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/39: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/40: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/41: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 if_null_behavior_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 if_null_behavior_test/10: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -646,12 +622,12 @@ if_null_behavior_test/15: Crash # Instance of 'TypeOperator': type check unimple
 if_null_behavior_test/16: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 if_null_precedence_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 if_null_precedence_test/08: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-implicit_super_constructor_call_test: Crash # Please triage this failure.
+implicit_super_constructor_call_test: Crash # Invalid argument(s)
 import_self_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inference_captured_variable2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inference_captured_variable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inference_list_or_null_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-inference_mixin_field_test: Crash # Please triage this failure.
+inference_mixin_field_test: Crash # Internal Error: No default constructor available.
 inference_super_constructor_call_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_constructor2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_constructor3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -659,7 +635,7 @@ inferrer_constructor4_test: Crash # Instance of 'TypeOperator': type check unimp
 inferrer_constructor5_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_constructor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_synthesized_constructor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-inferrer_synthesized_super_constructor_test: Crash # Please triage this failure.
+inferrer_synthesized_super_constructor_test: Crash # Invalid argument(s)
 inferrer_this_access_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 infinite_switch_label_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inlined_throw_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -683,9 +659,9 @@ issue12284_test: Crash # Instance of 'TypeOperator': type check unimplemented fo
 issue13474_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue14014_3_test: Crash # Instance of 'TypeOperator': type check unimplemented for foo<T>.
 issue20476_test: Crash # (try {try {return 1;}catch (e1){}finally {return 3;}}catch (e2){}finally {return 5;}): try/finally
-issue_1751477_test: RuntimeError # Please triage this failure.
+issue_1751477_test: RuntimeError # undefined is not a function
 label_test: Crash # (switch (i){case 111:while(doAgain()){break L;}default:i-- ;}): Unhandled node
-large_class_declaration_test: Crash # Please triage this failure.
+large_class_declaration_test: Crash # Stack Overflow
 lazy_static3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 licm2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 licm3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -705,31 +681,31 @@ method_override4_test: Crash # Instance of 'TypeOperator': type check unimplemen
 method_override5_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 method_override_test: Crash # Instance of 'TypeOperator': type check unimplemented for RemoveFunctionType<String, String>.
 mint_arithmetic_test: Crash # (try {f(a,b){var s=b...  try/finally
-mixin_bound_test: Crash # Please triage this failure.
+mixin_bound_test: Crash # Internal Error: No default constructor available.
 mixin_extends_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mixin_extends_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mixin_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mixin_forwarding_constructor1_test: Crash # Please triage this failure.
-mixin_forwarding_constructor3_test: Crash # Please triage this failure.
+mixin_forwarding_constructor1_test: Crash # Internal Error: No default constructor available.
+mixin_forwarding_constructor3_test: Crash # Internal Error: No default constructor available.
 mixin_illegal_static_access_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mixin_lib_extends_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mixin_lib_extends_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mixin_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mixin_super_constructor2_test: Crash # Please triage this failure.
-mixin_super_constructor_default_test: Crash # Please triage this failure.
-mixin_super_constructor_multiple_test: Crash # Please triage this failure.
-mixin_super_constructor_named_test/01: Crash # Please triage this failure.
-mixin_super_constructor_named_test/none: Crash # Please triage this failure.
-mixin_super_constructor_positionals_test/01: Crash # Please triage this failure.
-mixin_super_constructor_positionals_test/none: Crash # Please triage this failure.
-mixin_super_constructor_test: Crash # Please triage this failure.
-mixin_type_parameter2_test: Crash # Please triage this failure.
-mixin_type_parameter3_test: Crash # Please triage this failure.
-mixin_type_parameters_mixin_extends_test: Crash # Please triage this failure.
-mixin_type_parameters_mixin_test: Crash # Please triage this failure.
-mixin_type_parameters_super_extends_test: Crash # Please triage this failure.
-mixin_type_parameters_super_test: Crash # Please triage this failure.
-mixin_typedef_constructor_test: Crash # Please triage this failure.
+mixin_super_constructor2_test: Crash # Internal Error: No default constructor available.
+mixin_super_constructor_default_test: Crash # Internal Error: No default constructor available.
+mixin_super_constructor_multiple_test: Crash # Internal Error: No default constructor available.
+mixin_super_constructor_named_test/01: Crash # Internal Error: No default constructor available.
+mixin_super_constructor_named_test/none: Crash # Internal Error: No default constructor available.
+mixin_super_constructor_positionals_test/01: Crash # Internal Error: No default constructor available.
+mixin_super_constructor_positionals_test/none: Crash # Internal Error: No default constructor available.
+mixin_super_constructor_test: Crash # Internal Error: No default constructor available.
+mixin_type_parameter2_test: Crash # Internal Error: No default constructor available.
+mixin_type_parameter3_test: Crash # Internal Error: No default constructor available.
+mixin_type_parameters_mixin_extends_test: Crash # The null object does not have a getter '_element'.
+mixin_type_parameters_mixin_test: Crash # The null object does not have a getter '_element'.
+mixin_type_parameters_super_extends_test: Crash # The null object does not have a getter '_element'.
+mixin_type_parameters_super_test: Crash # The null object does not have a getter '_element'.
+mixin_typedef_constructor_test: Crash # Internal Error: No default constructor available.
 mixin_with_two_implicit_constructors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 modulo_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 multiple_field_assignment_constructor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -777,18 +753,18 @@ ref_before_declaration_test/none: Crash # (switch (x){case 0:var x='Does fuzzy l
 refine_receiver_null_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 reg_exp_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 regress_12561_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-regress_18435_test: Crash # Please triage this failure.
-regress_18535_test: Crash # Please triage this failure.
+regress_18435_test: Crash # Invalid argument(s)
+regress_18535_test: Crash # Internal Error: No default constructor available.
 regress_21795_test: Crash # (try {foo(t);}finally {if(t==0){try {}catch (err,st){}}}): try/finally
 regress_22438_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
-regress_22443_test: RuntimeError # Please triage this failure.
+regress_22443_test: RuntimeError # undefined is not a function
 regress_22445_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22579_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22728_test: Crash # (main()async{bool fa...  cannot handle async/sync*/async* functions
 regress_22777_test: Crash # (test()async{try {te...  cannot handle async/sync*/async* functions
 regress_22822_test: Crash # (try {for(int i=0;i<10;i++ ){return ()=>i+b;}}finally {b=10;}): try/finally
-regress_22936_test/01: Crash # Please triage this failure.
-regress_22936_test/none: Crash # Please triage this failure.
+regress_22936_test/01: Crash # The null object does not have a getter '_element'.
+regress_22936_test/none: Crash # The null object does not have a getter '_element'.
 regress_23498_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/01: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/02: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
@@ -802,22 +778,22 @@ static_postfix_operator_test: Crash # (try {if(a++ ==0){inIt=true;}}finally {}):
 static_setter_get_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_charcode_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 string_optimizations_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-super_all_named_constructor_test: Crash # Please triage this failure.
-super_bound_closure_test/01: RuntimeError # Please triage this failure.
-super_bound_closure_test/none: RuntimeError # Please triage this failure.
+super_all_named_constructor_test: Crash # Invalid argument(s)
+super_bound_closure_test/01: RuntimeError # Cannot read property 'call' of undefined
+super_bound_closure_test/none: RuntimeError # Cannot read property 'call' of undefined
 super_call4_test: RuntimeError # Please triage this failure.
-super_getter_setter_test: Crash # Please triage this failure.
-super_implicit_closure_test: RuntimeError # Please triage this failure.
+super_getter_setter_test: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
+super_implicit_closure_test: RuntimeError # Cannot read property 'call' of undefined
 super_inferrer_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-super_operator_index2_test: RuntimeError # Please triage this failure.
+super_operator_index2_test: RuntimeError # undefined is not a function
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
-super_operator_index_test/01: Crash # Please triage this failure.
+super_operator_index_test/01: Crash # The null object does not have a getter 'isParameter'.
 super_operator_index_test/03: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-super_operator_index_test/04: Crash # Please triage this failure.
+super_operator_index_test/04: Crash # The null object does not have a getter 'isParameter'.
 super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-super_operator_index_test/06: Crash # Please triage this failure.
+super_operator_index_test/06: Crash # The null object does not have a getter 'isParameter'.
 super_operator_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 switch6_test: Crash # (switch (a){case 0:{x=0;break;}case 1:x=1;break;}): Unhandled node
 switch8_test: Crash # (switch (new List(1)[0]){case const A():throw 'Test failed';}): Unhandled node
@@ -856,17 +832,17 @@ try_catch4_test: Crash # (try {doThrow();}cat...  try/finally
 try_catch5_test: Crash # (try {try {a=8;return;}finally {b=8==a;entered=true;continue;}}finally {continue;}): try/finally
 try_catch_optimized2_test: Crash # (try {bar();}finally {}): try/finally
 try_catch_osr_test: Crash # (try {if(x==null)throw 42;return 99;}finally {}): try/finally
-try_catch_test/none: Crash # Please triage this failure.
+try_catch_test/none: Crash # The null object does not have a getter '_element'.
 type_argument_in_super_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_check_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 type_literal_prefix_call_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-type_parameter_test/01: Crash # Please triage this failure.
-type_parameter_test/02: Crash # Please triage this failure.
-type_parameter_test/03: Crash # Please triage this failure.
-type_parameter_test/04: Crash # Please triage this failure.
-type_parameter_test/05: Crash # Please triage this failure.
-type_parameter_test/06: Crash # Please triage this failure.
-type_parameter_test/none: Crash # Please triage this failure.
+type_parameter_test/01: Crash # Invalid argument(s)
+type_parameter_test/02: Crash # Invalid argument(s)
+type_parameter_test/03: Crash # Invalid argument(s)
+type_parameter_test/04: Crash # Invalid argument(s)
+type_parameter_test/05: Crash # Invalid argument(s)
+type_parameter_test/06: Crash # Invalid argument(s)
+type_parameter_test/none: Crash # Invalid argument(s)
 type_promotion_functions_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for FuncDynToDyn.
 type_promotion_functions_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for FuncDynToDyn.
 type_promotion_functions_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for FuncDynToDyn.
@@ -893,9 +869,9 @@ type_variable_conflict2_test/09: Crash # Instance of 'TypeOperator': type check 
 type_variable_function_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for Func<S>.
 type_variable_typedef_test: Crash # type expression Foo<T> (typedef)
 typedef_is_test: Crash # Instance of 'TypeOperator': type check unimplemented for Func1.
-typevariable_substitution2_test/01: Crash # Please triage this failure.
-typevariable_substitution2_test/02: Crash # Please triage this failure.
-typevariable_substitution2_test/none: Crash # Please triage this failure.
+typevariable_substitution2_test/01: Crash # Internal Error: No default constructor available.
+typevariable_substitution2_test/02: Crash # Internal Error: No default constructor available.
+typevariable_substitution2_test/none: Crash # Internal Error: No default constructor available.
 unresolved_default_constructor_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 value_range2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 value_range3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

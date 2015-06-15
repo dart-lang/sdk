@@ -176,6 +176,7 @@ analyzer/test/src/task/dart_test: Crash # (try {test(spec,body);}finally {enviro
 analyzer/test/src/task/dart_work_manager_test: Crash # (try {body();}catch ...  try/finally
 analyzer/test/src/task/driver_test: Crash # (try {body();}catch ...  try/finally
 analyzer/test/src/task/general_test: Crash # (try {body();}catch ...  try/finally
+analyzer/test/src/task/html_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
 analyzer/test/src/task/incremental_element_builder_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
 analyzer/test/src/task/inputs_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
 analyzer/test/src/task/manager_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally

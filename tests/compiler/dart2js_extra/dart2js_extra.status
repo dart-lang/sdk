@@ -85,12 +85,12 @@ conditional_send_test: Crash # Instance of 'TypeOperator': type check unimplemen
 constant_javascript_semantics2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 constant_javascript_semantics3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred/deferred_class_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred/deferred_constant2_test: RuntimeError # Please triage this failure.
-deferred/deferred_constant3_test: RuntimeError # Please triage this failure.
-deferred/deferred_constant4_test: RuntimeError # Please triage this failure.
+deferred/deferred_constant2_test: RuntimeError # undefined is not a function
+deferred/deferred_constant3_test: RuntimeError # undefined is not a function
+deferred/deferred_constant4_test: RuntimeError # undefined is not a function
 deferred/deferred_function_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred/deferred_mirrors1_test: RuntimeError # Please triage this failure.
-deferred/deferred_overlapping_test: RuntimeError # Please triage this failure.
+deferred/deferred_mirrors1_test: RuntimeError # undefined is not a function
+deferred/deferred_overlapping_test: RuntimeError # undefined is not a function
 inference_nsm_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_is_int_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 interface_type_optimization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
