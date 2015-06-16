@@ -66,4 +66,35 @@ rules:
       });
     });
   });
+
+  group('analysis options', () {
+    group('parsing', () {
+      test('basic', () {
+        var src = '''
+plugin_a:
+  option_a: false
+plugin_b:
+  option_b: true
+linter:
+  rules:
+    style_guide:
+      unnecessary_getters: false #disable
+      camel_case_types: true #enable
+''';
+        var config = processAnalysisOptionsFile(src);
+        var ruleNames = config.ruleConfigs.map((rc) => rc.name);
+        expect(ruleNames, hasLength(2));
+        expect(ruleNames, contains('unnecessary_getters'));
+        expect(ruleNames, contains('camel_case_types'));
+      });
+
+      test('empty file', () {
+        expect(processAnalysisOptionsFile(''), isNull);
+      });
+
+      test('bad format', () {
+        expect(processAnalysisOptionsFile('foo: '), isNull);
+      });
+    });
+  });
 }

@@ -154,7 +154,9 @@ class LinterOptions extends DriverOptions {
     }
   }
   void configure(LintConfig config) {
-    enabledLints = ruleRegistry.enabled(config);
+    // TODO(pquitslund): revisit these default-to-on semantics.
+    enabledLints = ruleRegistry.where((LintRule rule) =>
+        !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
     filter = new FileGlobFilter(config.fileIncludes, config.fileExcludes);
   }
 }

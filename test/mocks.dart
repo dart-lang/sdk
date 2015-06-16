@@ -20,6 +20,10 @@ class CollectingSink extends MockIOSink {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
+  String toString() => buffer.toString();
+
+  String trim() => toString().trim();
+  @override
   write(obj) {
     buffer.write(obj);
   }
@@ -28,10 +32,6 @@ class CollectingSink extends MockIOSink {
   writeln([Object obj = ""]) {
     buffer.writeln(obj);
   }
-  @override
-  String toString() => buffer.toString();
-
-  String trim() => toString().trim();
 }
 
 class MockAnalysisError extends Mock implements AnalysisError {

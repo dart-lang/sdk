@@ -4,8 +4,11 @@
 
 library linter.src.plugin.linter_plugin;
 
+import 'package:analyzer/plugin/options.dart';
 import 'package:linter/plugin/linter.dart';
+import 'package:linter/src/config.dart';
 import 'package:linter/src/linter.dart';
+import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
 import 'package:linter/src/rules/constant_identifier_names.dart';
 import 'package:linter/src/rules/empty_constructor_bodies.dart';
@@ -36,8 +39,29 @@ class LinterPlugin implements Plugin {
   /// The extension point that allows plugins to register new lint rules.
   ExtensionPoint lintRuleExtensionPoint;
 
-  /// Return a list containing all contributed lint rules.
-  List<LintRule> get lintRules => lintRuleExtensionPoint.extensions;
+  /// An options processor for creating lint configs from analysis options.
+  final AnalysisOptionsProcessor _optionsProcessor =
+      new AnalysisOptionsProcessor();
+
+  /// Return a list of all contributed lint rules.
+  List<LintRule> get contributedRules => lintRuleExtensionPoint.extensions;
+
+  /// Return a list of enabled lint rules.
+  ///
+  /// By default this list includes all [contributedRules].  Specific lints
+  /// can be enabled/disabled (and in the future further configured) through
+  /// a specified analysis options file.
+  List<LintRule> get lintRules {
+
+    // First check for an options-specified configuration.
+    LintConfig config = _optionsProcessor.createConfig();
+    if (config != null) {
+      return ruleRegistry.enabled(config).toList();
+    }
+
+    // Default to contributed rules.
+    return contributedRules;
+  }
 
   @override
   String get uniqueIdentifier => UNIQUE_IDENTIFIER;
@@ -50,7 +74,7 @@ class LinterPlugin implements Plugin {
 
   @override
   void registerExtensions(RegisterExtension registerExtension) {
-    /// A subset of rules that we are considering enabled by "default".
+    // A subset of rules that we are considering enabled by "default".
     [
       new CamelCaseTypes(),
       new ConstantIdentifierNames(),
@@ -65,6 +89,7 @@ class LinterPlugin implements Plugin {
       new UnnecessaryBraceInStringInterp()
     ].forEach((LintRule rule) =>
         registerExtension(LINT_RULE_EXTENSION_POINT_ID, rule));
+    registerExtension(OPTIONS_PROCESSOR_EXTENSION_POINT_ID, _optionsProcessor);
   }
 
   void _validateTaskExtension(Object extension) {
