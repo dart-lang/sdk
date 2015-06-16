@@ -5863,36 +5863,6 @@ LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
 }
 
 
-void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(ic_data().NumArgsTested() == 1);
-  if (!with_checks()) {
-    ASSERT(ic_data().HasOneTarget());
-    const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
-    compiler->GenerateStaticCall(deopt_id(),
-                                 instance_call()->token_pos(),
-                                 target,
-                                 instance_call()->ArgumentCount(),
-                                 instance_call()->argument_names(),
-                                 locs(),
-                                 ICData::Handle());
-    return;
-  }
-
-  Label* deopt = compiler->AddDeoptStub(
-      deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail);
-  Label ok;
-  compiler->EmitTestAndCall(ic_data(),
-                            instance_call()->ArgumentCount(),
-                            instance_call()->argument_names(),
-                            deopt,
-                            &ok,
-                            deopt_id(),
-                            instance_call()->token_pos(),
-                            locs());
-  __ Bind(&ok);
-}
-
-
 LocationSummary* BranchInstr::MakeLocationSummary(Zone* zone,
                                                   bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);

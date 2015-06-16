@@ -407,6 +407,13 @@ class FlowGraphCompiler : public ValueObject {
                         intptr_t token_pos,
                         LocationSummary* locs);
 
+  void EmitPolymorphicInstanceCall(const ICData& ic_data,
+                                   intptr_t argument_count,
+                                   const Array& argument_names,
+                                   intptr_t deopt_id,
+                                   intptr_t token_pos,
+                                   LocationSummary* locs);
+
   void EmitMegamorphicInstanceCall(const ICData& ic_data,
                                    intptr_t argument_count,
                                    intptr_t deopt_id,

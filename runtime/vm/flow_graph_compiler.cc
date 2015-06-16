@@ -30,15 +30,18 @@ namespace dart {
 
 DEFINE_FLAG(bool, always_megamorphic_calls, false,
     "Instance call always as megamorphic.");
-DEFINE_FLAG(bool, trace_inlining_intervals, false,
-    "Inlining interval diagnostics");
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
 DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
     "The minimum invocation count for a function.");
 DEFINE_FLAG(int, optimization_counter_scale, 2000,
     "The scale of invocation count, by size of the function.");
+DEFINE_FLAG(bool, polymorphic_with_deopt, true,
+    "Polymorphic calls can be generated so that failure either causes "
+    "deoptimization or falls through to a megamorphic call");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
+DEFINE_FLAG(bool, trace_inlining_intervals, false,
+    "Inlining interval diagnostics");
 DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
 DECLARE_FLAG(bool, code_comments);
@@ -1666,6 +1669,40 @@ RawArray* FlowGraphCompiler::InliningIdToFunction() const {
     res.SetAt(i, *inline_id_to_function_[i]);
   }
   return res.raw();
+}
+
+
+void FlowGraphCompiler::EmitPolymorphicInstanceCall(
+    const ICData& ic_data,
+    intptr_t argument_count,
+    const Array& argument_names,
+    intptr_t deopt_id,
+    intptr_t token_pos,
+    LocationSummary* locs) {
+  if (FLAG_polymorphic_with_deopt) {
+    Label* deopt = AddDeoptStub(deopt_id,
+                                ICData::kDeoptPolymorphicInstanceCallTestFail);
+    Label ok;
+    EmitTestAndCall(ic_data, argument_count, argument_names,
+                    deopt,  // No cid match.
+                    &ok,    // Found cid.
+                    deopt_id, token_pos, locs);
+    assembler()->Bind(&ok);
+  } else {
+    // Instead of deoptimizing, do a megamorphic call when no matching
+    // cid found.
+    Label megamorphic, ok;
+    EmitTestAndCall(ic_data, argument_count, argument_names,
+                    &megamorphic,  // No cid match.
+                    &ok,           // Found cid.
+                    deopt_id, token_pos, locs);
+    // Fall through if last test is match.
+    assembler()->Jump(&ok);
+    assembler()->Bind(&megamorphic);
+    EmitMegamorphicInstanceCall(ic_data, argument_count, deopt_id,
+                                token_pos, locs);
+    assembler()->Bind(&ok);
+  }
 }
 
 
