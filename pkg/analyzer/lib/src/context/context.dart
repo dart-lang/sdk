@@ -36,7 +36,9 @@ import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
+import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:html/dom.dart' show Document;
 
 /**
  * Type of callback functions used by PendingFuture. Functions of this type
@@ -560,16 +562,27 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  List<AnalysisError> computeErrors(Source source) =>
-      _computeResult(source, DART_ERRORS);
+  List<AnalysisError> computeErrors(Source source) {
+    String name = source.shortName;
+    if (AnalysisEngine.isDartFileName(name)) {
+      return _computeResult(source, DART_ERRORS);
+    } else if (AnalysisEngine.isHtmlFileName(name)) {
+      return _computeResult(source, HTML_ERRORS);
+    }
+    return AnalysisError.NO_ERRORS;
+  }
 
   @override
   List<Source> computeExportedLibraries(Source source) =>
       _computeResult(source, EXPORTED_LIBRARIES);
 
   @override
-  // TODO(brianwilkerson) Implement this.
-  HtmlElement computeHtmlElement(Source source) => null;
+  HtmlElement computeHtmlElement(Source source) {
+    // TODO(brianwilkerson) Implement this. For the time being, we compute the
+    // data that will implicitly be computed by creating an element.
+    _computeResult(source, REFERENCED_LIBRARIES);
+    return null;
+  }
 
   @override
   List<Source> computeImportedLibraries(Source source) =>
@@ -758,7 +771,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   AnalysisErrorInfo getErrors(Source source) {
-    return dartWorkManager.getErrors(source);
+    String name = source.shortName;
+    if (AnalysisEngine.isDartFileName(name)) {
+      return dartWorkManager.getErrors(source);
+    } else if (AnalysisEngine.isHtmlFileName(name)) {
+      List<AnalysisError> errors = analysisCache.getValue(source, HTML_ERRORS);
+      // TODO(brianwilkerson) We don't currently have line info for HTML files.
+      return new AnalysisErrorInfoImpl(errors, null);
+    }
+    return new AnalysisErrorInfoImpl(AnalysisError.NO_ERRORS, null);
   }
 
   @override
@@ -773,39 +794,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> getHtmlFilesReferencing(Source source) {
-    // TODO(brianwilkerson) Implement this.
-    SourceKind sourceKind = getKindOf(source);
-    if (sourceKind == null) {
+    if (!AnalysisEngine.isDartFileName(source.shortName)) {
       return Source.EMPTY_LIST;
     }
     List<Source> htmlSources = <Source>[];
-//    while (true) {
-//      if (sourceKind == SourceKind.PART) {
-//        List<Source> librarySources = getLibrariesContaining(source);
-//        for (Source source in _cache.sources) {
-//          CacheEntry entry = _cache.get(source);
-//          if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
-//            List<Source> referencedLibraries =
-//                (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
-//            if (_containsAny(referencedLibraries, librarySources)) {
-//              htmlSources.add(source);
-//            }
-//          }
-//        }
-//      } else {
-//        for (Source source in _cache.sources) {
-//          CacheEntry entry = _cache.get(source);
-//          if (entry.getValue(SOURCE_KIND) == SourceKind.HTML) {
-//            List<Source> referencedLibraries =
-//                (entry as HtmlEntry).getValue(HtmlEntry.REFERENCED_LIBRARIES);
-//            if (_contains(referencedLibraries, source)) {
-//              htmlSources.add(source);
-//            }
-//          }
-//        }
-//      }
-//      break;
-//    }
+    List<Source> librarySources = getLibrariesContaining(source);
+    for (Source source in _cache.sources) {
+      if (AnalysisEngine.isHtmlFileName(source.shortName)) {
+        List<Source> referencedLibraries =
+            analysisCache.getValue(source, REFERENCED_LIBRARIES);
+        if (_containsAny(referencedLibraries, librarySources)) {
+          htmlSources.add(source);
+        }
+      }
+    }
     if (htmlSources.isEmpty) {
       return Source.EMPTY_LIST;
     }
@@ -854,12 +856,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> getLibrariesReferencedFromHtml(Source htmlSource) {
-    // TODO(brianwilkerson) Implement this.
-//    cache.CacheEntry entry = getReadableSourceEntryOrNull(htmlSource);
-//    if (entry is HtmlEntry) {
-//      HtmlEntry htmlEntry = entry;
-//      return htmlEntry.getValue(HtmlEntry.REFERENCED_LIBRARIES);
-//    }
+    CacheEntry entry = _cache.get(htmlSource);
+    if (entry != null) {
+      return entry.getValue(REFERENCED_LIBRARIES);
+    }
     return Source.EMPTY_LIST;
   }
 
@@ -1030,12 +1030,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  ht.HtmlUnit parseHtmlUnit(Source source) {
+  Document parseHtmlDocument(Source source) {
     if (!AnalysisEngine.isHtmlFileName(source.shortName)) {
       return null;
     }
-    // TODO(brianwilkerson) Implement HTML analysis.
-    return null; //_computeResult(source, null);
+    return _computeResult(source, HTML_DOCUMENT);
+  }
+
+  @override
+  @deprecated // use parseHtmlDocument(source)
+  ht.HtmlUnit parseHtmlUnit(Source source) {
+    // TODO(brianwilkerson) Remove this method after switching to the new task
+    // model.
+    throw new UnimplementedError(
+        'Not supported in the new task model; use parseHtmlDocument instead.');
   }
 
   @override
@@ -1056,20 +1064,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
       return new AnalysisResult(notices, -1, '', -1);
     });
-  }
-
-  void _evaluatePendingFutures() {
-    for (AnalysisTarget target in _pendingFutureTargets.keys) {
-      CacheEntry cacheEntry = _cache.get(target);
-      List<PendingFuture> pendingFutures = _pendingFutureTargets[target];
-      for (int i = 0; i < pendingFutures.length;) {
-        if (pendingFutures[i].evaluate(cacheEntry)) {
-          pendingFutures.removeAt(i);
-        } else {
-          i++;
-        }
-      }
-    }
   }
 
   @override
@@ -1327,6 +1321,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
+   * Return `true` if the given list of [sources] contains any of the given
+   * [targetSources].
+   */
+  bool _containsAny(List<Source> sources, List<Source> targetSources) {
+    for (Source targetSource in targetSources) {
+      if (_contains(sources, targetSource)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Set the contents of the given [source] to the given [contents] and mark the
    * source as having changed. The additional [offset], [oldLength] and
    * [newLength] information is used by the context to determine what reanalysis
@@ -1402,6 +1409,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return entries;
   }
 
+  void _evaluatePendingFutures() {
+    for (AnalysisTarget target in _pendingFutureTargets.keys) {
+      CacheEntry cacheEntry = _cache.get(target);
+      List<PendingFuture> pendingFutures = _pendingFutureTargets[target];
+      for (int i = 0; i < pendingFutures.length;) {
+        if (pendingFutures[i].evaluate(cacheEntry)) {
+          pendingFutures.removeAt(i);
+        } else {
+          i++;
+        }
+      }
+    }
+  }
+
   /**
    * Return a list containing all of the change notices that are waiting to be
    * returned. If there are no notices, then return either `null` or an empty
@@ -1425,11 +1446,22 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   List<Source> _getSources(SourceKind kind) {
     List<Source> sources = <Source>[];
-    for (Source source in _cache.sources) {
-      CacheEntry entry = _cache.get(source);
-      if (entry.getValue(SOURCE_KIND) == kind) {
-        sources.add(source);
+    if (kind == SourceKind.LIBRARY || kind == SourceKind.PART) {
+      for (Source source in _cache.sources) {
+        CacheEntry entry = _cache.get(source);
+        if (entry.getValue(SOURCE_KIND) == kind) {
+          sources.add(source);
+        }
       }
+    } else if (kind == SourceKind.HTML) {
+      for (Source source in _cache.sources) {
+        if (AnalysisEngine.isHtmlFileName(source.shortName)) {
+          sources.add(source);
+        }
+      }
+    }
+    if (sources.isEmpty) {
+      return Source.EMPTY_LIST;
     }
     return sources;
   }

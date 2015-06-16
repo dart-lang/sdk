@@ -94,7 +94,9 @@ class EnginePlugin implements Plugin {
     //
     // Register HTML tasks.
     //
+    registerExtension(taskId, HtmlErrorsTask.DESCRIPTOR);
     registerExtension(taskId, ParseHtmlTask.DESCRIPTOR);
+    registerExtension(taskId, ReferencedLibrariesTask.DESCRIPTOR);
   }
 
   /**

@@ -35,6 +35,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/model.dart' hide AnalysisTask;
+import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
@@ -5751,6 +5752,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  Document parseHtmlDocument(Source source) {
+    fail("Unexpected invocation of parseHtmlDocument");
+    return null;
+  }
+  @override
   ht.HtmlUnit parseHtmlUnit(Source source) {
     fail("Unexpected invocation of parseHtmlUnit");
     return null;
@@ -5760,6 +5766,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of performAnalysisTask");
     return null;
   }
+
   @override
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     fail("Unexpected invocation of recordLibraryElements");
@@ -5800,12 +5807,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
   }
-
   @override
   bool shouldErrorsBeAnalyzed(Source source, Object entry) {
     fail("Unexpected invocation of shouldErrorsBeAnalyzed");
     return false;
   }
+
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {

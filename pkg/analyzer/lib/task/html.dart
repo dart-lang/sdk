@@ -4,18 +4,26 @@
 
 library analyzer.task.html;
 
-//import 'package:analyzer/task/model.dart';
-//import 'package:html/dom.dart';
-//import 'package:html/parser.dart';
+import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/task/model.dart';
+import 'package:html/dom.dart';
 
-///**
-// * The result of parsing an HTML file.
-// */
-//final ResultDescriptor<Document> DOCUMENT =
-//    new ResultDescriptor<Document>('DOCUMENT', null);
-//
-///**
-// * The errors found while parsing an HTML file.
-// */
-//final ListResultDescriptor<ParseError> DOCUMENT_ERRORS =
-//    new ListResultDescriptor<ParseError>('DOCUMENT_ERRORS', <ParseError>[]);
+/**
+ * The result of parsing an HTML file.
+ */
+final ResultDescriptor<Document> HTML_DOCUMENT =
+    new ResultDescriptor<Document>('HTML_DOCUMENT', null);
+
+/**
+ * The analysis errors associated with a [Source] representing an HTML file.
+ */
+final ListResultDescriptor<AnalysisError> HTML_ERRORS =
+    new ListResultDescriptor<AnalysisError>(
+        'HTML_ERRORS', AnalysisError.NO_ERRORS);
+
+/**
+ * The sources of the Dart libraries referenced by an HTML file.
+ */
+final ListResultDescriptor<Source> REFERENCED_LIBRARIES =
+    new ListResultDescriptor<Source>('REFERENCED_LIBRARIES', Source.EMPTY_LIST);

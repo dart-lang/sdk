@@ -43,6 +43,7 @@ import '../../generated/engine_test.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import 'abstract_context.dart';
+import 'package:html/dom.dart' show Document;
 
 main() {
   groupSep = ' | ';
@@ -159,8 +160,8 @@ import 'libB.dart';''';
     expect(errors.length > 0, isTrue);
   }
 
-  void fail_computeErrors_html_none() {
-    Source source = addSource("/test.html", "<html></html>");
+  void test_computeErrors_html_none() {
+    Source source = addSource("/test.html", "<!DOCTYPE html><html></html>");
     List<AnalysisError> errors = context.computeErrors(source);
     expect(errors, hasLength(0));
   }
@@ -332,7 +333,7 @@ class A {
     expect(errors, hasLength(0));
   }
 
-  void fail_getErrors_html_some() {
+  void test_getErrors_html_some() {
     Source source = addSource("/test.html", r'''
 <html><head>
 <script type='application/dart' src='test.dart'/>
@@ -341,9 +342,8 @@ class A {
     expect(errorInfo, isNotNull);
     List<AnalysisError> errors = errorInfo.errors;
     expect(errors, hasLength(0));
-    context.computeErrors(source);
-    errors = errorInfo.errors;
-    expect(errors, hasLength(1));
+    errors = context.computeErrors(source);
+    expect(errors, hasLength(3));
   }
 
   void fail_getHtmlElement_html() {
@@ -355,23 +355,26 @@ class A {
     expect(element, isNotNull);
   }
 
-  void fail_getHtmlFilesReferencing_library() {
+  void test_getHtmlFilesReferencing_library() {
     Source htmlSource = addSource("/test.html", r'''
+<!DOCTYPE html>
 <html><head>
 <script type='application/dart' src='test.dart'/>
 <script type='application/dart' src='test.js'/>
 </head></html>''');
     Source librarySource = addSource("/test.dart", "library lib;");
+    context.computeLibraryElement(librarySource);
     List<Source> result = context.getHtmlFilesReferencing(librarySource);
     expect(result, hasLength(0));
-    context.parseHtmlUnit(htmlSource);
+    context.computeHtmlElement(htmlSource);
     result = context.getHtmlFilesReferencing(librarySource);
     expect(result, hasLength(1));
     expect(result[0], htmlSource);
   }
 
-  void fail_getHtmlFilesReferencing_part() {
+  void test_getHtmlFilesReferencing_part() {
     Source htmlSource = addSource("/test.html", r'''
+<!DOCTYPE html>
 <html><head>
 <script type='application/dart' src='test.dart'/>
 <script type='application/dart' src='test.js'/>
@@ -382,31 +385,31 @@ class A {
     context.computeLibraryElement(librarySource);
     List<Source> result = context.getHtmlFilesReferencing(partSource);
     expect(result, hasLength(0));
-    context.parseHtmlUnit(htmlSource);
+    context.computeHtmlElement(htmlSource);
     result = context.getHtmlFilesReferencing(partSource);
     expect(result, hasLength(1));
     expect(result[0], htmlSource);
   }
 
-  void fail_getHtmlSources() {
+  void test_getHtmlSources() {
     List<Source> sources = context.htmlSources;
     expect(sources, hasLength(0));
     Source source = addSource("/test.html", "");
-    context.computeKindOf(source);
     sources = context.htmlSources;
     expect(sources, hasLength(1));
     expect(sources[0], source);
   }
 
-  void fail_getLibrariesReferencedFromHtml() {
+  void test_getLibrariesReferencedFromHtml() {
     Source htmlSource = addSource("/test.html", r'''
+<!DOCTYPE html>
 <html><head>
 <script type='application/dart' src='test.dart'/>
 <script type='application/dart' src='test.js'/>
 </head></html>''');
     Source librarySource = addSource("/test.dart", "library lib;");
     context.computeLibraryElement(librarySource);
-    context.parseHtmlUnit(htmlSource);
+    context.computeHtmlElement(htmlSource);
     List<Source> result = context.getLibrariesReferencedFromHtml(htmlSource);
     expect(result, hasLength(1));
     expect(result[0], librarySource);
@@ -432,6 +435,12 @@ class A {
     fail("Implement this");
   }
 
+  void test_parseDocument() {
+    Source source = addSource("/lib.html", "<!DOCTYPE html><html></html>");
+    Document unit = context.parseHtmlDocument(source);
+    expect(unit, isNotNull);
+  }
+
   void fail_parseHtmlUnit_noErrors() {
     Source source = addSource("/lib.html", "<html></html>");
     ht.HtmlUnit unit = context.parseHtmlUnit(source);
@@ -443,6 +452,7 @@ class A {
 library lib;
 class ClassA {}''');
     Source source = addSource("/lib.html", r'''
+<!DOCTYPE html>
 <html>
 <head>
   <script type='application/dart'>
@@ -1439,7 +1449,7 @@ part of lib;
     context.computeLibraryElement(librarySource);
     List<Source> result = context.getHtmlFilesReferencing(secondHtmlSource);
     expect(result, hasLength(0));
-    context.parseHtmlUnit(htmlSource);
+    context.parseHtmlDocument(htmlSource);
     result = context.getHtmlFilesReferencing(secondHtmlSource);
     expect(result, hasLength(0));
   }
@@ -1579,13 +1589,13 @@ export 'libA.dart';''');
     expect(result, unorderedEquals([lib1Source, lib2Source]));
   }
 
-  void test_getLibrariesReferencedFromHtml_no() {
+  void test_getLibrariesReferencedFromHtml_none() {
     Source htmlSource = addSource("/test.html", r'''
 <html><head>
 <script type='application/dart' src='test.js'/>
 </head></html>''');
     addSource("/test.dart", "library lib;");
-    context.parseHtmlUnit(htmlSource);
+    context.parseHtmlDocument(htmlSource);
     List<Source> result = context.getLibrariesReferencedFromHtml(htmlSource);
     expect(result, hasLength(0));
   }

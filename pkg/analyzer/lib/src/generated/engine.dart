@@ -23,6 +23,7 @@ import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:html/dom.dart' show Document;
 import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 
@@ -762,6 +763,15 @@ abstract class AnalysisContext {
   CompilationUnit parseCompilationUnit(Source source);
 
   /**
+   * Parse a single HTML [source] to produce a document model.
+   *
+   * Throws an [AnalysisException] if the analysis could not be performed
+   *
+   * <b>Note:</b> This method cannot be used in an async environment.
+   */
+  Document parseHtmlDocument(Source source);
+
+  /**
    * Parse a single HTML [source] to produce an AST structure. The resulting
    * HTML AST structure may or may not be resolved, and may have a slightly
    * different structure depending upon whether it is resolved.
@@ -770,6 +780,7 @@ abstract class AnalysisContext {
    *
    * <b>Note:</b> This method cannot be used in an async environment.
    */
+  @deprecated // use parseHtmlDocument(source)
   ht.HtmlUnit parseHtmlUnit(Source source);
 
   /**
@@ -2238,6 +2249,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   CompilationUnit parseCompilationUnit(Source source) =>
       _getDartParseData2(source, DartEntry.PARSED_UNIT, null);
+
+  @override
+  Document parseHtmlDocument(Source source) {
+    return null;
+  }
 
   @override
   ht.HtmlUnit parseHtmlUnit(Source source) =>
@@ -4026,18 +4042,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  /**
-   * Notify all of the analysis listeners that the errors associated with the
-   * given [source] has been updated to the given [errors].
-   */
-  void _notifyErrors(
-      Source source, List<AnalysisError> errors, LineInfo lineInfo) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].computedErrors(this, source, errors, lineInfo);
-    }
-  }
-
 //  /**
 //   * Notify all of the analysis listeners that the given source is no longer included in the set of
 //   * sources that are being analyzed.
@@ -4115,6 +4119,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
+
+  /**
+   * Notify all of the analysis listeners that the errors associated with the
+   * given [source] has been updated to the given [errors].
+   */
+  void _notifyErrors(
+      Source source, List<AnalysisError> errors, LineInfo lineInfo) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].computedErrors(this, source, errors, lineInfo);
+    }
+  }
 
   /**
    * Given that the given [source] (with the corresponding [sourceEntry]) has
