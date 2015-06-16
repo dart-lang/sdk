@@ -2446,7 +2446,8 @@ class SsaBuilder extends NewResolvedVisitor {
       String name = kind == HTypeConversion.CAST_TYPE_CHECK
           ? '_asCheck' : '_assertCheck';
 
-      List arguments = [buildFunctionType(type), original];
+      List<HInstruction> arguments =
+          <HInstruction>[buildFunctionType(type), original];
       pushInvokeDynamic(
           null,
           new Selector.call(name, backend.jsHelperLibrary, 1),

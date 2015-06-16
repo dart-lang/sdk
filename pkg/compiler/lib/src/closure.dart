@@ -651,7 +651,8 @@ class ClosureTranslator extends Visitor {
       // things in the builder.
       // Note that nested (named) functions are immutable.
       if (variable != closureData.thisLocal &&
-          variable != closureData.closureElement) {
+          variable != closureData.closureElement &&
+          variable is! TypeVariableLocal) {
         closureData.variablesUsedInTryOrGenerator.add(variable);
       }
     } else if (variable is LocalParameterElement &&
