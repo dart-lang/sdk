@@ -73,7 +73,6 @@ dart_library.library('dart_runtime/dart', null, /* Imports */[
     'dload',
     'dput',
     'dsend',
-    'dsendArray',
     'dsetindex',
     'equals',
     'hashCode',

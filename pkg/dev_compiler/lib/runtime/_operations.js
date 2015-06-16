@@ -162,11 +162,6 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
   }
   exports.dsend = dsend;
 
-  function dsendArray(obj, method, args) {
-    return dsend(obj, method, ...args);
-  }
-  exports.dsendArray = dsendArray;
-
   function dindex(obj, index) {
     return callMethod(obj, 'get', [index], '[]');
   }

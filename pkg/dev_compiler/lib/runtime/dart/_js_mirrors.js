@@ -45,7 +45,7 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
   }
   dart.fn(_dput, dart.void, [core.Object, core.String, core.Object]);
   function _dsend(obj, name, args) {
-    return exports._dart.dsendArray(obj, name, args);
+    return exports._dart.dsend(obj, name, ...args);
   }
   dart.fn(_dsend, core.Object, [core.Object, core.String, core.List]);
   let _toJsMap = Symbol('_toJsMap');

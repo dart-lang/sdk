@@ -450,12 +450,16 @@ class MiniJsParser {
   static const COLON = 14;
   static const SEMICOLON = 15;
   static const ARROW = 16;
-  static const HASH = 17;
-  static const WHITESPACE = 18;
-  static const OTHER = 19;
+  static const ELLIPSIS = 17;
+  static const HASH = 18;
+  static const WHITESPACE = 19;
+  static const OTHER = 20;
 
   // Make sure that ]] is two symbols.
-  bool singleCharCategory(int category) => category >= DOT;
+  // TODO(jmesserly): => and ... are not single char tokens, should we change
+  // their numbers? It shouldn't matter because this is only called on values
+  // from the [CATEGORIES] table.
+  bool singleCharCategory(int category) => category > DOT;
 
   static String categoryToString(int cat) {
     switch (cat) {
@@ -477,6 +481,7 @@ class MiniJsParser {
       case COLON: return "COLON";
       case SEMICOLON: return "SEMICOLON";
       case ARROW: return "ARROW";
+      case ELLIPSIS: return "ELLIPSIS";
       case HASH: return "HASH";
       case WHITESPACE: return "WHITESPACE";
       case OTHER: return "OTHER";
@@ -528,6 +533,7 @@ class MiniJsParser {
         .toSet();
 
   static final ARROW_TOKEN = '=>';
+  static final ELLIPSIS_TOKEN = '...';
 
   static final OPERATORS_THAT_LOOK_LIKE_IDENTIFIERS =
       ['typeof', 'void', 'delete', 'in', 'instanceof', 'await'].toSet();
@@ -642,6 +648,12 @@ class MiniJsParser {
         double.parse(lastToken, (_) {
           error("Unparseable number");
         });
+      } else if (cat == DOT && lastToken.length > 1) {
+        if (lastToken == ELLIPSIS_TOKEN) {
+          lastCategory = ELLIPSIS;
+        } else {
+          error("Unknown operator");
+        }
       } else if (cat == SYMBOL) {
         if (lastToken == ARROW_TOKEN) {
           lastCategory = ARROW;
@@ -792,26 +804,42 @@ class MiniJsParser {
   Expression parseExpressionOrArrowFunction() {
     if (acceptCategory(RPAREN)) {
       expectCategory(ARROW);
-      return parseArrowFunctionBody(<Identifier>[]);
+      return parseArrowFunctionBody(<Parameter>[]);
     }
-    Expression expression = parseExpression();
+    if (acceptCategory(ELLIPSIS)) {
+      var params = <Parameter>[new RestParameter(parseParameter())];
+      expectCategory(RPAREN);
+      expectCategory(ARROW);
+      return parseArrowFunctionBody(params);
+    }
+    Expression expression = parseAssignment();
+    while (acceptCategory(COMMA)) {
+      if (acceptCategory(ELLIPSIS)) {
+        var params = <Parameter>[];
+        _expressionToParameterList(expression, params);
+        params.add(new RestParameter(parseParameter()));
+        expectCategory(RPAREN);
+        expectCategory(ARROW);
+        return parseArrowFunctionBody(params);
+      }
+      Expression right = parseAssignment();
+      expression = new Binary(',', expression, right);
+    }
     expectCategory(RPAREN);
     if (acceptCategory(ARROW)) {
-      var params = <Identifier>[];
+      var params = <Parameter>[];
       _expressionToParameterList(expression, params);
       return parseArrowFunctionBody(params);
     }
     return expression;
-
   }
 
   /**
    * Converts a parenthesized expression into a list of parameters, issuing an
    * error if the conversion fails.
    */
-  void _expressionToParameterList(Expression node, List<Identifier> params) {
+  void _expressionToParameterList(Expression node, List<Parameter> params) {
     if (node is Identifier) {
-      // TODO(jmesserly): support default/rest parameters
       params.add(node);
     } else if (node is Binary && node.op == ',') {
       // TODO(jmesserly): this will allow illegal parens, such as
@@ -827,7 +855,7 @@ class MiniJsParser {
     }
   }
 
-  Expression parseArrowFunctionBody(List<Identifier> params) {
+  Expression parseArrowFunctionBody(List<Parameter> params) {
     Node body;
     if (acceptCategory(LBRACE)) {
       body = parseBlock();
@@ -848,25 +876,22 @@ class MiniJsParser {
   }
 
   Expression parseFun() {
-    List<Identifier> params = <Identifier>[];
+    List<Parameter> params = <Parameter>[];
 
     expectCategory(LPAREN);
     if (!acceptCategory(RPAREN)) {
       for (;;) {
-        if (acceptCategory(HASH)) {
-          var nameOrPosition = parseHash();
-          InterpolatedParameter parameter =
-              new InterpolatedParameter(nameOrPosition);
-          interpolatedValues.add(parameter);
-          params.add(parameter);
-        } else {
-          String argumentName = lastToken;
-          expectCategory(ALPHA);
-          params.add(new Identifier(argumentName));
+        if (acceptCategory(ELLIPSIS)) {
+          params.add(new RestParameter(parseParameter()));
+          expectCategory(RPAREN);
+          break;
         }
-        if (acceptCategory(COMMA)) continue;
-        expectCategory(RPAREN);
-        break;
+
+        params.add(parseParameter());
+        if (!acceptCategory(COMMA)) {
+          expectCategory(RPAREN);
+          break;
+        }
       }
     }
     AsyncModifier asyncModifier;
@@ -885,6 +910,21 @@ class MiniJsParser {
     expectCategory(LBRACE);
     Block block = parseBlock();
     return new Fun(params, block, asyncModifier: asyncModifier);
+  }
+
+  /** Parse parameter name or interpolated parameter. */
+  Identifier parseParameter() {
+    if (acceptCategory(HASH)) {
+      var nameOrPosition = parseHash();
+      var parameter = new InterpolatedParameter(nameOrPosition);
+      interpolatedValues.add(parameter);
+      return parameter;
+    } else {
+      // TODO(jmesserly): validate this is not a keyword
+      String argumentName = lastToken;
+      expectCategory(ALPHA);
+      return new Identifier(argumentName);
+    }
   }
 
   Expression parseObjectInitializer() {
@@ -928,8 +968,12 @@ class MiniJsParser {
         final arguments = <Expression>[];
         if (!acceptCategory(RPAREN)) {
           while (true) {
-            Expression argument = parseAssignment();
-            arguments.add(argument);
+            if (acceptCategory(ELLIPSIS)) {
+              arguments.add(new Spread(parseAssignment()));
+              expectCategory(RPAREN);
+              break;
+            }
+            arguments.add(parseAssignment());
             if (acceptCategory(RPAREN)) break;
             expectCategory(COMMA);
           }

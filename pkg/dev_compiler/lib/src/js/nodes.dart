@@ -40,11 +40,13 @@ abstract class NodeVisitor<T> {
   T visitBinary(Binary node);
   T visitPrefix(Prefix node);
   T visitPostfix(Postfix node);
+  T visitSpread(Spread node);
 
   T visitIdentifier(Identifier node);
   T visitThis(This node);
   T visitSuper(Super node);
   T visitAccess(PropertyAccess node);
+  T visitRestParameter(RestParameter node);
 
   T visitNamedFunction(NamedFunction node);
   T visitFun(Fun node);
@@ -137,11 +139,14 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitBinary(Binary node) => visitExpression(node);
   T visitPrefix(Prefix node) => visitExpression(node);
   T visitPostfix(Postfix node) => visitExpression(node);
+  T visitSpread(Spread node) => visitPrefix(node);
   T visitAccess(PropertyAccess node) => visitExpression(node);
 
   T visitIdentifier(Identifier node) => visitExpression(node);
   T visitThis(This node) => visitExpression(node);
   T visitSuper(Super node) => visitExpression(node);
+
+  T visitRestParameter(RestParameter node) => visitNode(node);
 
   T visitNamedFunction(NamedFunction node) => visitExpression(node);
   T visitFunctionExpression(FunctionExpression node) => visitExpression(node);
@@ -864,6 +869,17 @@ class Prefix extends Expression {
   int get precedenceLevel => UNARY;
 }
 
+// SpreadElement isn't really a prefix expression, as it can only appear in
+// certain places such as ArgumentList and destructuring, but we pretend
+// it is for simplicity's sake.
+class Spread extends Prefix {
+  Spread(Expression operand) : super('...', operand);
+  int get precedenceLevel => SPREAD;
+
+  accept(NodeVisitor visitor) => visitor.visitSpread(this);
+  Spread _clone() => new Spread(argument);
+}
+
 class Postfix extends Expression {
   final String op;
   final Expression argument;
@@ -881,7 +897,9 @@ class Postfix extends Expression {
   int get precedenceLevel => UNARY;
 }
 
-class Identifier extends Expression {
+abstract class Parameter implements Expression {}
+
+class Identifier extends Expression implements Parameter {
   final String name;
   final bool allowRename;
 
@@ -895,6 +913,20 @@ class Identifier extends Expression {
   accept(NodeVisitor visitor) => visitor.visitIdentifier(this);
   int get precedenceLevel => PRIMARY;
   void visitChildren(NodeVisitor visitor) {}
+}
+
+// This is an expression for convenience in the AST.
+class RestParameter extends Expression implements Parameter {
+  final Identifier parameter;
+
+  RestParameter(this.parameter);
+
+  RestParameter _clone() => new RestParameter(parameter);
+  accept(NodeVisitor visitor) => visitor.visitRestParameter(this);
+  void visitChildren(NodeVisitor visitor) {
+    parameter.accept(visitor);
+  }
+  int get precedenceLevel => SPREAD;
 }
 
 class This extends Expression {
@@ -931,12 +963,12 @@ class NamedFunction extends Expression {
 }
 
 abstract class FunctionExpression extends Expression {
-  List<Identifier> get params;
+  List<Parameter> get params;
   get body; // Expression or block
 }
 
 class Fun extends FunctionExpression {
-  final List<Identifier> params;
+  final List<Parameter> params;
   final Block body;
   final AsyncModifier asyncModifier;
 
@@ -945,7 +977,7 @@ class Fun extends FunctionExpression {
   accept(NodeVisitor visitor) => visitor.visitFun(this);
 
   void visitChildren(NodeVisitor visitor) {
-    for (Identifier param in params) param.accept(visitor);
+    for (Parameter param in params) param.accept(visitor);
     body.accept(visitor);
   }
 
@@ -955,7 +987,7 @@ class Fun extends FunctionExpression {
 }
 
 class ArrowFun extends FunctionExpression {
-  final List<Identifier> params;
+  final List<Parameter> params;
   final body; // Expression or Block
 
   ArrowFun(this.params, this.body);
@@ -963,7 +995,7 @@ class ArrowFun extends FunctionExpression {
   accept(NodeVisitor visitor) => visitor.visitArrowFun(this);
 
   void visitChildren(NodeVisitor visitor) {
-    for (Identifier param in params) param.accept(visitor);
+    for (Parameter param in params) param.accept(visitor);
     body.accept(visitor);
   }
 

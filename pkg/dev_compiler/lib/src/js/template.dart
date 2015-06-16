@@ -639,6 +639,12 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitIdentifier(Identifier node) =>
       (arguments) => new Identifier(node.name);
 
+  Instantiator visitSpread(Spread node) =>
+      (args) => new Spread(visit(node.argument)(args));
+
+  Instantiator visitRestParameter(RestParameter node) =>
+      (args) => new RestParameter(visit(node.parameter)(args));
+
   Instantiator visitAccess(PropertyAccess node) {
     Instantiator makeReceiver = visit(node.receiver);
     Instantiator makeSelector = visit(node.selector);
@@ -658,7 +664,7 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     Instantiator makeBody = visit(node.body);
     // TODO(sra): Avoid copying params if no interpolation or forced copying.
     return (arguments) {
-      List<Identifier> params = <Identifier>[];
+      List<Parameter> params = <Parameter>[];
       for (Instantiator instantiator in paramMakers) {
         var result = instantiator(arguments);
         if (result is Iterable) {

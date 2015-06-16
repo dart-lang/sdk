@@ -41,7 +41,7 @@ void _dput(obj, String name, val) {
 }
 
 dynamic _dsend(obj, String name, List args) {
-  return JS('', '#.dsendArray(#, #, #)', _dart, obj, name, args);
+  return JS('', '#.dsend(#, #, ...#)', _dart, obj, name, args);
 }
 
 class JsInstanceMirror implements InstanceMirror {

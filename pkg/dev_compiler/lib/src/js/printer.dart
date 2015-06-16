@@ -623,7 +623,7 @@ class Printer implements NodeVisitor {
                           newInForInit: inForInit, newAtStatementBegin: false);
     inNewTarget = false;
     out("(");
-    visitCommaSeparated(node.arguments, ASSIGNMENT,
+    visitCommaSeparated(node.arguments, SPREAD,
                         newInForInit: false, newAtStatementBegin: false);
     out(")");
   }
@@ -633,7 +633,7 @@ class Printer implements NodeVisitor {
                           newInForInit: inForInit,
                           newAtStatementBegin: atStatementBegin);
     out("(");
-    visitCommaSeparated(call.arguments, ASSIGNMENT,
+    visitCommaSeparated(call.arguments, SPREAD,
                         newInForInit: false, newAtStatementBegin: false);
     out(")");
   }
@@ -764,9 +764,11 @@ class Printer implements NodeVisitor {
       default:
         out(op);
     }
-    visitNestedExpression(unary.argument, UNARY,
+    visitNestedExpression(unary.argument, unary.precedenceLevel,
                           newInForInit: inForInit, newAtStatementBegin: false);
   }
+
+  visitSpread(Spread unary) => visitPrefix(unary);
 
   visitPostfix(Postfix postfix) {
     visitNestedExpression(postfix.argument, LEFT_HAND_SIDE,
@@ -785,6 +787,11 @@ class Printer implements NodeVisitor {
 
   visitIdentifier(Identifier node) {
     out(localNamer.getName(node));
+  }
+
+  visitRestParameter(RestParameter node) {
+    out('...');
+    visitIdentifier(node.parameter);
   }
 
   bool isDigit(int charCode) {
@@ -846,11 +853,11 @@ class Printer implements NodeVisitor {
   visitArrowFun(ArrowFun fun) {
     localNamer.enterScope(fun);
     if (fun.params.length == 1) {
-      visitNestedExpression(fun.params.single, PRIMARY,
+      visitNestedExpression(fun.params.single, SPREAD,
           newInForInit: false, newAtStatementBegin: false);
     } else {
       out("(");
-      visitCommaSeparated(fun.params, PRIMARY,
+      visitCommaSeparated(fun.params, SPREAD,
           newInForInit: false, newAtStatementBegin: false);
       out(")");
     }
@@ -1032,7 +1039,7 @@ class Printer implements NodeVisitor {
     localNamer.enterScope(fun);
     out("(");
     if (fun.params != null) {
-      visitCommaSeparated(fun.params, PRIMARY,
+      visitCommaSeparated(fun.params, SPREAD,
           newInForInit: false, newAtStatementBegin: false);
     }
     out(")");
@@ -1419,7 +1426,9 @@ abstract class VariableDeclarationVisitor<T> extends BaseVisitor<T> {
   declare(Identifier node);
 
   visitFunctionExpression(FunctionExpression node) {
-    for (Identifier param in node.params) declare(param);
+    for (var p in node.params) {
+      declare(p is RestParameter ? p.parameter : p);
+    }
     node.body.accept(this);
   }
 

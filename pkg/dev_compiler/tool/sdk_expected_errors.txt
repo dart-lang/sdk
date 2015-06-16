@@ -1201,6 +1201,9 @@ warning: line 571, column 12 of dart:js: [DownCastImplicit] _getDartProxy(o, _DA
 warning: line 574, column 12 of dart:js: [DownCastImplicit] _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME, (o) => new JsObject._fromJs(o)) (Object) will need runtime check to cast to type JsObject
     return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+severe: line 120, column 7 of dart:_js_mirrors: [AnalyzerMessage] Missing concrete implementation of getter 'TypeMirror.typeArguments', getter 'TypeMirror.isOriginalDeclaration', getter 'DeclarationMirror.owner', getter 'DeclarationMirror.location' and 10 more
+class JsTypeMirror implements TypeMirror {
+      ^^^^^^^^^^^^
 severe: line 47, column 7 of dart:_js_mirrors: [AnalyzerMessage] Missing concrete implementation of getter 'InstanceMirror.type', getter 'InstanceMirror.hasReflectee' and 'InstanceMirror.delegate'
 class JsInstanceMirror implements InstanceMirror {
       ^^^^^^^^^^^^^^^^
@@ -1213,9 +1216,6 @@ class JsClassMirror implements ClassMirror {
 severe: line 134, column 7 of dart:_js_mirrors: [AnalyzerMessage] Missing concrete implementation of getter 'MethodMirror.isSetter', getter 'MethodMirror.isConstructor', getter 'MethodMirror.isConstConstructor', getter 'MethodMirror.isAbstract' and 17 more
 class JsMethodMirror implements MethodMirror {
       ^^^^^^^^^^^^^^
-severe: line 120, column 7 of dart:_js_mirrors: [AnalyzerMessage] Missing concrete implementation of getter 'TypeMirror.typeArguments', getter 'TypeMirror.isOriginalDeclaration', getter 'DeclarationMirror.owner', getter 'DeclarationMirror.location' and 10 more
-class JsTypeMirror implements TypeMirror {
-      ^^^^^^^^^^^^
 severe: line 61, column 35 of dart:_js_mirrors: [AnalyzerMessage] The argument type 'void' cannot be assigned to the parameter type 'Object'
     return new JsInstanceMirror._(field);
                                   ^^^^^
