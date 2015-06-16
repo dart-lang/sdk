@@ -327,6 +327,7 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
 async/first_regression_test: Crash # (switch (testCase.re...  Unhandled node
+async/future_test/01: Crash # (()async=>new Future.value(value)): cannot handle async/sync*/async* functions
 async/future_timeout_test: Crash # (switch (testCase.re...  Unhandled node
 async/future_value_chain4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 async/multiple_timer_test: Crash # (switch (testCase.re...  Unhandled node
@@ -336,6 +337,7 @@ async/schedule_microtask5_test: Crash # (switch (testCase.re...  Unhandled node
 async/schedule_microtask_test: Crash # Invalid argument(s)
 async/stream_controller_async_test: Crash # (switch (testCase.re...  Unhandled node
 async/stream_controller_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+async/stream_empty_test: Crash # (Future runTest()asy...  cannot handle async/sync*/async* functions
 async/stream_first_where_test: Crash # (switch (testCase.re...  Unhandled node
 async/stream_from_iterable_test: Crash # (switch (testCase.re...  Unhandled node
 async/stream_iterator_test: Crash # (switch (testCase.re...  Unhandled node

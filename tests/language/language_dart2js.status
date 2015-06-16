@@ -770,6 +770,7 @@ regress_23500_test/01: Crash # (main()async{var err...  cannot handle async/sync
 regress_23500_test/02: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/none: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23537_test: Crash # (try {var b;try {for...  try/finally
+regress_23650_test: Crash # (try {return new C<T>.foo();}finally {}): try/finally
 return_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 side_effect_throw_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 stack_trace_test: Crash # (try {int j;i=func2(...  try/finally

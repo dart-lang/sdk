@@ -9728,7 +9728,7 @@ LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: Crash # Invalid
 LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: Crash # (switch (ii){case 2:...  Unhandled node
 LayoutTests/fast/canvas/webgl/index-validation_t01: Crash # (switch (type){case ...  Unhandled node
 LayoutTests/fast/canvas/webgl/oes-element-index-uint_t01: Crash # (switch (type){case ...  Unhandled node
-LayoutTests/fast/canvas/webgl/read-pixels-pack-alignment_t01: Crash # (switch (format){cas...  Unhandled node
+LayoutTests/fast/canvas/webgl/read-pixels-pack-alignment_t01: Crash # (switch (type){case ...  Unhandled node
 LayoutTests/fast/canvas/webgl/tex-image-and-sub-image-2d-with-array-buffer-view_t01: Crash # (switch (type){case ...  Unhandled node
 LayoutTests/fast/dom/location-hash_t01: Crash # (switch (state){case...  Unhandled node
 LayoutTests/fast/events/event-attributes-after-exception_t01: Crash # (try {document.body....  try/finally
@@ -9784,6 +9784,7 @@ LibTest/html/Window/moveTo_A02_t01: Crash # (try {print("from ${...  try/finally
 LibTest/html/Window/resizeBy_A01_t01: Crash # (try {check(nw,0,0);...  try/finally
 LibTest/html/Window/resizeTo_A01_t01: Crash # (try {check(nw,0,0);...  try/finally
 LibTest/isolate/ReceivePort/drain_A02_t01: Crash # Invalid argument(s)
+LibTest/math/sin_A01_t02: RuntimeError # Please triage this failure.
 Utils/tests/Expect/approxEquals_A04_t01: RuntimeError # undefined is not a function
 Utils/tests/Expect/stringEquals_A02_t01: RuntimeError # undefined is not a function
 WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: Crash # (switch (name){case ...  Unhandled node
