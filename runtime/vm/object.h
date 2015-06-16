@@ -6416,6 +6416,8 @@ class ExternalOneByteString : public AllStatic {
   static void SetExternalData(const String& str,
                               ExternalStringData<uint8_t>* data) {
     ASSERT(str.IsExternalOneByteString());
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data->data())));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
@@ -6492,6 +6494,8 @@ class ExternalTwoByteString : public AllStatic {
   static void SetExternalData(const String& str,
                               ExternalStringData<uint16_t>* data) {
     ASSERT(str.IsExternalTwoByteString());
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data->data())));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
@@ -7173,6 +7177,8 @@ class ExternalTypedData : public Instance {
   }
 
   void SetData(uint8_t* data) const {
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data)));
     StoreNonPointer(&raw_ptr()->data_, data);
   }
 

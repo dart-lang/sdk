@@ -3631,6 +3631,11 @@ DART_EXPORT Dart_Handle Dart_TypedDataAcquireData(Dart_Handle object,
     }
   }
   if (FLAG_verify_acquired_data) {
+    if (external) {
+      ASSERT(!isolate->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+    } else {
+      ASSERT(isolate->heap()->Contains(reinterpret_cast<uword>(data_tmp)));
+    }
     const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(object));
     WeakTable* table = isolate->api_state()->acquired_table();
     intptr_t current = table->GetValue(obj.raw());
