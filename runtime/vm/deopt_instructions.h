@@ -20,6 +20,7 @@ class Location;
 class Value;
 class MaterializeObjectInstr;
 class StackFrame;
+class TimelineEvent;
 
 // Holds all data relevant for execution of deoptimization instructions.
 class DeoptContext {
@@ -220,6 +221,7 @@ class DeoptContext {
   uint32_t deopt_flags_;
   intptr_t caller_fp_;
   Thread* thread_;
+  TimelineEvent* timeline_event_;
 
   DeferredSlot* deferred_slots_;
 

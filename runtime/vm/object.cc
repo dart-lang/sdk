@@ -6604,6 +6604,12 @@ RawString* Function::PrettyName() const {
 }
 
 
+const char* Function::QualifiedUserVisibleNameCString() const {
+  const String& str = String::Handle(QualifiedUserVisibleName());
+  return str.ToCString();
+}
+
+
 RawString* Function::UserVisibleName() const {
   return PrettyName();
 }

@@ -27,6 +27,7 @@
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
+#include "vm/timeline.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
@@ -323,6 +324,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Set up default UserTag.
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
   isolate->set_current_tag(default_tag);
+
+  isolate->SetTimelineEventBuffer(new TimelineEventBuffer());
 
   if (FLAG_keep_code) {
     isolate->set_deoptimized_code_array(

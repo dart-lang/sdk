@@ -9056,6 +9056,7 @@ TEST_CASE(ExternalStringIndexOf) {
   EXPECT_EQ(6, value);
 }
 
+
 TEST_CASE(StringFromExternalTypedData) {
   const char* kScriptChars =
     "test(external) {\n"
@@ -9150,6 +9151,78 @@ TEST_CASE(StringFromExternalTypedData) {
     EXPECT_VALID(result);
     EXPECT(Dart_IsString(result));
   }
+}
+
+
+TEST_CASE(Timeline_Dart_TimelineDuration) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  // Make sure it is enabled.
+  stream->set_enabled(true);
+  // Add a duration event.
+  Dart_TimelineDuration("testDurationEvent", 0, 1);
+  // Check that it is in the output.
+  TimelineEventBuffer* buffer = isolate->timeline_event_buffer();
+  JSONStream js;
+  buffer->PrintJSON(&js);
+  EXPECT_SUBSTRING("testDurationEvent", js.ToCString());
+}
+
+
+TEST_CASE(Timeline_Dart_TimelineInstant) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  // Make sure it is enabled.
+  stream->set_enabled(true);
+  Dart_TimelineInstant("testInstantEvent");
+  // Check that it is in the output.
+  TimelineEventBuffer* buffer = isolate->timeline_event_buffer();
+  JSONStream js;
+  buffer->PrintJSON(&js);
+  EXPECT_SUBSTRING("testInstantEvent", js.ToCString());
+}
+
+
+TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  // Make sure it is disabled.
+  stream->set_enabled(false);
+  int64_t async_id = -1;
+  Dart_TimelineAsyncBegin("testAsyncEvent", &async_id);
+  // Expect that the |async_id| is negative because the stream is disabled.
+  EXPECT(async_id < 0);
+  // Call Dart_TimelineAsyncEnd with a negative async_id.
+  Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
+  // Check that testAsync is not in the output.
+  TimelineEventBuffer* buffer = isolate->timeline_event_buffer();
+  JSONStream js;
+  buffer->PrintJSON(&js);
+  EXPECT_NOTSUBSTRING("testAsyncEvent", js.ToCString());
+}
+
+
+TEST_CASE(Timeline_Dart_TimelineAsync) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  // Make sure it is enabled.
+  stream->set_enabled(true);
+  int64_t async_id = -1;
+  Dart_TimelineAsyncBegin("testAsyncEvent", &async_id);
+  // Expect that the |async_id| is >= 0.
+  EXPECT(async_id >= 0);
+
+  Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
+
+  // Check that it is in the output.
+  TimelineEventBuffer* buffer = isolate->timeline_event_buffer();
+  JSONStream js;
+  buffer->PrintJSON(&js);
+  EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }
 
 }  // namespace dart

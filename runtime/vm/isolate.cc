@@ -35,6 +35,7 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
 
@@ -53,6 +54,10 @@ DEFINE_FLAG(bool, break_at_isolate_spawn, false,
 DEFINE_FLAG(charp, isolate_log_filter, NULL,
             "Log isolates whose name include the filter. "
             "Default: service isolate log messages are suppressed.");
+
+DEFINE_FLAG(charp, timeline_trace_dir, NULL,
+            "Enable all timeline trace streams and output traces "
+            "into specified directory.");
 
 // TODO(iposva): Make these isolate specific flags inaccessible using the
 // regular FLAG_xyz pattern.
@@ -368,6 +373,8 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
 bool IsolateMessageHandler::HandleMessage(Message* message) {
   StackZone zone(I);
   HandleScope handle_scope(I);
+  TimelineDurationScope tds(I, I->GetIsolateStream(), "HandleMessage");
+
   // TODO(turnidge): Rework collection total dart execution.  This can
   // overcount when other things (gc, compilation) are active.
   TIMERSCOPE(isolate_, time_dart_execution);
@@ -662,6 +669,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_allocationprofile_gc_timestamp_(0),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
+      timeline_event_buffer_(NULL),
       profiler_data_(NULL),
       thread_state_(NULL),
       tag_table_(GrowableObjectArray::null()),
@@ -710,6 +718,7 @@ Isolate::~Isolate() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
+  RemoveTimelineEventBuffer();
 }
 
 
@@ -738,6 +747,15 @@ Isolate* Isolate::Init(const char* name_prefix,
   result->metric_##variable##_.Init(result, name, NULL, Metric::unit);
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
+
+  const bool force_streams = FLAG_timeline_trace_dir != NULL;
+
+  // Initialize Timeline streams.
+#define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
+  result->stream_##name##_.Init(#name, force_streams || enabled_by_default);
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
+#undef ISOLATE_TIMELINE_STREAM_INIT
+
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
@@ -962,6 +980,12 @@ bool Isolate::MakeRunnable() {
   if (state != NULL) {
     ASSERT(this == state->isolate());
     Run();
+  }
+  TimelineStream* stream = GetIsolateStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->RecordEvent();
+  if (event != NULL) {
+    event->Instant(stream, "Runnable");
   }
   return true;
 }
@@ -1452,6 +1476,10 @@ void Isolate::Shutdown() {
       OS::Print("[-] Stopping isolate:\n"
                 "\tisolate:    %s\n", name());
     }
+
+    if ((timeline_event_buffer_ != NULL) && (FLAG_timeline_trace_dir != NULL)) {
+      timeline_event_buffer_->WriteTo(FLAG_timeline_trace_dir);
+    }
   }
 
   // TODO(5411455): For now just make sure there are no current isolates
@@ -1547,6 +1575,21 @@ void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
   if (api_state() != NULL) {
     api_state()->VisitPrologueWeakHandles(visitor);
   }
+}
+
+
+void Isolate::SetTimelineEventBuffer(
+    TimelineEventBuffer* timeline_event_buffer) {
+#define ISOLATE_TIMELINE_STREAM_SET_BUFFER(name, enabled_by_default)           \
+  stream_##name##_.set_buffer(timeline_event_buffer);
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_SET_BUFFER)
+#undef ISOLATE_TIMELINE_STREAM_SET_BUFFER
+  timeline_event_buffer_ = timeline_event_buffer;
+}
+
+void Isolate::RemoveTimelineEventBuffer() {
+  SetTimelineEventBuffer(NULL);
+  delete timeline_event_buffer_;
 }
 
 

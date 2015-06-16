@@ -1070,7 +1070,10 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 
 RawError* Compiler::CompileFunction(Thread* thread,
                                     const Function& function) {
-  VMTagScope tagScope(thread->isolate(), VMTag::kCompileUnoptimizedTagId);
+  Isolate* isolate = thread->isolate();
+  VMTagScope tagScope(isolate, VMTag::kCompileUnoptimizedTagId);
+  TIMELINE_FUNCTION_COMPILATION_DURATION(isolate, "Function", function);
+
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
 
@@ -1115,7 +1118,11 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
 RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
-  VMTagScope tagScope(thread->isolate(), VMTag::kCompileOptimizedTagId);
+  Isolate* isolate = thread->isolate();
+  VMTagScope tagScope(isolate, VMTag::kCompileOptimizedTagId);
+  TIMELINE_FUNCTION_COMPILATION_DURATION(isolate,
+                                         "OptimizedFunction", function);
+
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline, function, true, osr_id);

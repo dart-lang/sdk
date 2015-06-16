@@ -18,8 +18,9 @@
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/os_thread.h"
-#include "vm/trace_buffer.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
+#include "vm/trace_buffer.h"
 
 namespace dart {
 
@@ -552,6 +553,14 @@ class Isolate : public BaseIsolate {
     return trace_buffer_;
   }
 
+  void SetTimelineEventBuffer(TimelineEventBuffer* timeline_event_buffer);
+
+  TimelineEventBuffer* timeline_event_buffer() const {
+    return timeline_event_buffer_;
+  }
+
+  void RemoveTimelineEventBuffer();
+
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == NULL || deopt_context_ == NULL);
@@ -650,6 +659,11 @@ class Isolate : public BaseIsolate {
   type* Get##variable##Metric() { return &metric_##variable##_; }
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
+
+#define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, enabled_by_default)             \
+  TimelineStream* Get##name##Stream() { return &stream_##name##_; }
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
+#undef ISOLATE_TIMELINE_STREAM_ACCESSOR
 
   static intptr_t IsolateListLength();
 
@@ -787,6 +801,9 @@ class Isolate : public BaseIsolate {
   // Trace buffer support.
   TraceBuffer* trace_buffer_;
 
+  // TimelineEvent buffer.
+  TimelineEventBuffer* timeline_event_buffer_;
+
   IsolateProfilerData* profiler_data_;
   Mutex profiler_data_mutex_;
   InterruptableThreadState* thread_state_;
@@ -828,6 +845,11 @@ class Isolate : public BaseIsolate {
   type metric_##variable##_;
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
+
+#define ISOLATE_TIMELINE_STREAM_VARIABLE(name, enabled_by_default)             \
+  TimelineStream stream_##name##_;
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_VARIABLE)
+#undef ISOLATE_TIMELINE_STREAM_VARIABLE
 
   VMHandles reusable_handles_;
 

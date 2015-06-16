@@ -2039,6 +2039,7 @@ class Function : public Object {
   RawString* UserVisibleName() const;
   RawString* QualifiedPrettyName() const;
   RawString* QualifiedUserVisibleName() const;
+  const char* QualifiedUserVisibleNameCString() const;
   virtual RawString* DictionaryName() const { return name(); }
 
   RawString* GetSource() const;

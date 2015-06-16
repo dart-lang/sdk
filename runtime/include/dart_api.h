@@ -2895,4 +2895,78 @@ DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
     void* user_data);
 
 
+/**
+ * Add a duration timeline event to the embedder stream for the current isolate.
+ *
+ * \param label The name of the event.
+ * \param start_micros The start of the duration (in microseconds)
+ * \param end_micros The end of the duration (in microseconds)
+ *
+ * NOTE: On Posix platforms you should use gettimeofday and on Windows platforms
+ * you should use GetSystemTimeAsFileTime to get the time values.
+ */
+DART_EXPORT Dart_Handle Dart_TimelineDuration(const char* label,
+                                              int64_t start_micros,
+                                              int64_t end_micros);
+
+/**
+ * Add an instant timeline event to the embedder stream for the current isolate.
+ *
+ * \param label The name of event.
+ *
+ * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
+ * this call uses GetSystemTimeAsFileTime to get the current time.
+ */
+DART_EXPORT Dart_Handle Dart_TimelineInstant(const char* label);
+
+/**
+ * Adds an asynchronous begin timeline event to the embedder stream for the
+ * current isolate.
+ *
+ * \param label The name of event.
+ *
+ * \return Returns an asynchronous id that must be passed to
+ * Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd. If the asynchronous
+ * id is less than 0 the event was not added to the timeline and subsequent
+ * calls to Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd will become
+ * no-ops.
+ *
+ * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
+ * this call uses GetSystemTimeAsFileTime to get the current time.
+ */
+DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
+                                                int64_t* async_id);
+
+
+/**
+ * Adds an asynchronous instant timeline event to the embedder stream for the
+ * current isolate.
+ *
+ * \param label The name of event.
+ *
+ * \return Returns an asynchronous id that must be passed to
+ * Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd.
+ *
+ * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
+ * this call uses GetSystemTimeAsFileTime to get the current time.
+ */
+DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
+                                                  int64_t async_id);
+
+
+/**
+ * Adds an asynchronous end timeline event to the embedder stream for the
+ * current isolate.
+ *
+ * \param label The name of event.
+ *
+ * \return Returns an asynchronous id that must be passed to
+ * Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd.
+ *
+ * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
+ * this call uses GetSystemTimeAsFileTime to get the current time.
+ */
+DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
+                                              int64_t async_id);
+
 #endif  /* INCLUDE_DART_API_H_ */  /* NOLINT */
