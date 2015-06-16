@@ -642,7 +642,7 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
-    isolate->RemoveTimelineEventBuffer();
+    isolate->RemoveTimelineEventRecorder();
 
     Thread::ExitIsolate();
 

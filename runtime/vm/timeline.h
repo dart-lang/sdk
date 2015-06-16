@@ -14,9 +14,10 @@ class Object;
 class RawArray;
 class Thread;
 class TimelineEvent;
-class TimelineEventBuffer;
+class TimelineEventRecorder;
 class TimelineStream;
 
+// You should get a |TimelineEvent| from a |TimelineStream|.
 class TimelineEvent {
  public:
   // Keep in sync with StateBits below.
@@ -41,22 +42,19 @@ class TimelineEvent {
 
   // Marks the beginning of an asynchronous operation.
   // Returns |async_id| which must be passed to |AsyncInstant| and |AsyncEnd|.
-  int64_t AsyncBegin(TimelineStream* stream, const char* label);
+  int64_t AsyncBegin(const char* label);
   // Marks an instantaneous event associated with |async_id|.
-  void AsyncInstant(TimelineStream* stream,
-                    const char* label,
+  void AsyncInstant(const char* label,
                     int64_t async_id);
   // Marks the end of an asynchronous operation associated with |async_id|.
-  void AsyncEnd(TimelineStream* stream,
-                const char* label,
+  void AsyncEnd(const char* label,
                 int64_t async_id);
 
-  void DurationBegin(TimelineStream* stream, const char* label);
+  void DurationBegin(const char* label);
   void DurationEnd();
-  void Instant(TimelineStream* stream, const char* label);
+  void Instant(const char* label);
 
-  void Duration(TimelineStream* stream,
-                const char* label,
+  void Duration(const char* label,
                 int64_t start_micros,
                 int64_t end_micros);
 
@@ -70,6 +68,10 @@ class TimelineEvent {
   void FormatArgument(intptr_t i,
                       const char* name,
                       const char* fmt, ...) PRINTF_ATTRIBUTE(4, 5);
+
+  // Mandatory to call when this event is completely filled out.
+  void Complete();
+
   EventType event_type() const {
     return EventTypeField::decode(state_);
   }
@@ -97,7 +99,8 @@ class TimelineEvent {
 
   void FreeArguments();
 
-  void Init(EventType event_type, TimelineStream* stream, const char* label);
+  void StreamInit(TimelineStream* stream);
+  void Init(EventType event_type, const char* label);
 
   void set_event_type(EventType event_type) {
     state_ = EventTypeField::update(event_type, state_);
@@ -111,6 +114,8 @@ class TimelineEvent {
 
   class EventTypeField : public BitField<EventType, kEventTypeBit, 4> {};
 
+  friend class TimelineTestHelper;
+  friend class TimelineStream;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
 };
 
@@ -135,28 +140,30 @@ class TimelineStream {
     enabled_ = enabled;
   }
 
-  TimelineEventBuffer* buffer() const {
-    return buffer_;
+  TimelineEventRecorder* recorder() const {
+    return recorder_;
   }
 
-  void set_buffer(TimelineEventBuffer* buffer) {
-    buffer_ = buffer;
+  // TODO(johnmccutchan): Disallow setting recorder after Init?
+  void set_recorder(TimelineEventRecorder* recorder) {
+    recorder_ = recorder;
   }
 
   // Records an event. Will return |NULL| if not enabled. The returned
   // |TimelineEvent| is in an undefined state and must be initialized.
   // |obj| is associated with the returned |TimelineEvent|.
-  TimelineEvent* RecordEvent(const Object& obj);
+  TimelineEvent* StartEvent(const Object& obj);
 
   // Records an event. Will return |NULL| if not enabled. The returned
   // |TimelineEvent| is in an undefined state and must be initialized.
-  TimelineEvent* RecordEvent();
+  TimelineEvent* StartEvent();
+
+  void CompleteEvent(TimelineEvent* event);
 
   int64_t GetNextSeq();
 
  private:
-  // Buffer of TimelineEvents.
-  TimelineEventBuffer* buffer_;
+  TimelineEventRecorder* recorder_;
   const char* name_;
   bool enabled_;
   int64_t seq_;
@@ -190,11 +197,11 @@ class TimelineDurationScope : public StackResource {
                         TimelineStream* stream,
                         const char* label)
       : StackResource(isolate) {
-    event_ = stream->RecordEvent();
+    event_ = stream->StartEvent();
     if (event_ == NULL) {
       return;
     }
-    event_->DurationBegin(stream, label);
+    event_->DurationBegin(label);
   }
 
   bool enabled() const {
@@ -231,6 +238,7 @@ class TimelineDurationScope : public StackResource {
       return;
     }
     event_->DurationEnd();
+    event_->Complete();
   }
 
  private:
@@ -238,37 +246,83 @@ class TimelineDurationScope : public StackResource {
 };
 
 
-class TimelineEventBuffer {
+// Recorder of |TimelineEvent|s.
+class TimelineEventRecorder {
+ public:
+  TimelineEventRecorder();
+  virtual ~TimelineEventRecorder() {}
+
+  // Interface method(s) which must be implemented.
+  virtual void PrintJSON(JSONStream* js) const = 0;
+
+  void WriteTo(const char* directory);
+
+ protected:
+  // Interface method(s) which must be implemented.
+  virtual void VisitObjectPointers(ObjectPointerVisitor* visitor) = 0;
+  virtual TimelineEvent* StartEvent(const Object& object) = 0;
+  virtual TimelineEvent* StartEvent() = 0;
+  virtual void CompleteEvent(TimelineEvent* event) = 0;
+
+  // Utility method(s).
+  void PrintJSONMeta(JSONArray* array) const;
+
+  friend class TimelineStream;
+  friend class Isolate;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TimelineEventRecorder);
+};
+
+
+// A recorder that stores events in a ring buffer of fixed capacity.
+class TimelineEventRingRecorder : public TimelineEventRecorder {
  public:
   static const intptr_t kDefaultCapacity = 8192;
 
   static intptr_t SizeForCapacity(intptr_t capacity);
 
-  explicit TimelineEventBuffer(intptr_t capacity = kDefaultCapacity);
-  ~TimelineEventBuffer();
+  explicit TimelineEventRingRecorder(intptr_t capacity = kDefaultCapacity);
+  ~TimelineEventRingRecorder();
 
   void PrintJSON(JSONStream* js) const;
 
-  void WriteTo(const char* directory);
+ protected:
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+  TimelineEvent* StartEvent(const Object& object);
+  TimelineEvent* StartEvent();
+  void CompleteEvent(TimelineEvent* event);
 
- private:
+  void PrintJSONEvents(JSONArray* array) const;
+
+  intptr_t GetNextIndex();
+
   // events_[i] and event_objects_[i] are indexed together.
   TimelineEvent* events_;
   RawArray* event_objects_;
   uintptr_t cursor_;
   intptr_t capacity_;
+};
 
-  void PrintJSONMeta(JSONArray* array) const;
-  void PrintJSONEvents(JSONArray* array) const;
 
-  intptr_t GetNextIndex();
+// An abstract recorder that calls |StreamEvent| whenever an event is complete.
+// This recorder does not track Dart objects.
+class TimelineEventStreamingRecorder : public TimelineEventRecorder {
+ public:
+  TimelineEventStreamingRecorder();
+  ~TimelineEventStreamingRecorder();
+
+  void PrintJSON(JSONStream* js) const;
+
+  // Called when |event| is ready to be streamed. It is unsafe to keep a
+  // reference to |event| as it may be freed as soon as this function returns.
+  virtual void StreamEvent(TimelineEvent* event) = 0;
+
+ protected:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
-  TimelineEvent* RecordEvent(const Object& obj);
-  TimelineEvent* RecordEvent();
-
-  friend class TimelineStream;
-  friend class Isolate;
-  DISALLOW_COPY_AND_ASSIGN(TimelineEventBuffer);
+  TimelineEvent* StartEvent(const Object& object);
+  TimelineEvent* StartEvent();
+  void CompleteEvent(TimelineEvent* event);
 };
 
 }  // namespace dart

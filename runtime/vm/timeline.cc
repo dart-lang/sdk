@@ -40,38 +40,37 @@ void TimelineEvent::Reset() {
 }
 
 
-int64_t TimelineEvent::AsyncBegin(TimelineStream* stream, const char* label) {
-  Init(kAsyncBegin, stream, label);
+int64_t TimelineEvent::AsyncBegin(const char* label) {
+  Init(kAsyncBegin, label);
   timestamp0_ = OS::GetCurrentTimeMicros();
-  int64_t async_id = stream->GetNextSeq();
+  ASSERT(stream_ != NULL);
+  int64_t async_id = stream_->GetNextSeq();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
   return async_id;
 }
 
 
-void TimelineEvent::AsyncInstant(TimelineStream* stream,
-                                 const char* label,
+void TimelineEvent::AsyncInstant(const char* label,
                                  int64_t async_id) {
-  Init(kAsyncInstant, stream, label);
+  Init(kAsyncInstant, label);
   timestamp0_ = OS::GetCurrentTimeMicros();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
 }
 
 
-void TimelineEvent::AsyncEnd(TimelineStream* stream,
-                             const char* label,
+void TimelineEvent::AsyncEnd(const char* label,
                              int64_t async_id) {
-  Init(kAsyncEnd, stream, label);
+  Init(kAsyncEnd, label);
   timestamp0_ = OS::GetCurrentTimeMicros();
   // Overload timestamp1_ with the async_id.
   timestamp1_ = async_id;
 }
 
 
-void TimelineEvent::DurationBegin(TimelineStream* stream, const char* label) {
-  Init(kDuration, stream, label);
+void TimelineEvent::DurationBegin(const char* label) {
+  Init(kDuration, label);
   timestamp0_ = OS::GetCurrentTimeMicros();
 }
 
@@ -81,18 +80,16 @@ void TimelineEvent::DurationEnd() {
 }
 
 
-void TimelineEvent::Instant(TimelineStream* stream,
-                            const char* label) {
-  Init(kInstant, stream, label);
+void TimelineEvent::Instant(const char* label) {
+  Init(kInstant, label);
   timestamp0_ = OS::GetCurrentTimeMicros();
 }
 
 
-void TimelineEvent::Duration(TimelineStream* stream,
-                             const char* label,
+void TimelineEvent::Duration(const char* label,
                              int64_t start_micros,
                              int64_t end_micros) {
-  Init(kDuration, stream, label);
+  Init(kDuration, label);
   timestamp0_ = start_micros;
   timestamp1_ = end_micros;
 }
@@ -142,6 +139,11 @@ void TimelineEvent::CopyArgument(intptr_t i,
 }
 
 
+void TimelineEvent::Complete() {
+  stream_->CompleteEvent(this);
+}
+
+
 void TimelineEvent::FreeArguments() {
   if (arguments_ == NULL) {
     return;
@@ -154,16 +156,20 @@ void TimelineEvent::FreeArguments() {
   arguments_length_ = 0;
 }
 
-void TimelineEvent::Init(EventType event_type,
-                         TimelineStream* stream,
-                         const char* label) {
+
+void TimelineEvent::StreamInit(TimelineStream* stream) {
   ASSERT(stream != NULL);
+  stream_ = stream;
+}
+
+
+void TimelineEvent::Init(EventType event_type,
+                         const char* label) {
   ASSERT(label != NULL);
   set_event_type(event_type);
   timestamp0_ = 0;
   timestamp1_ = 0;
   thread_ = Thread::Current();
-  stream_ = stream;
   label_ = label;
   FreeArguments();
 }
@@ -252,7 +258,7 @@ int64_t TimelineEvent::TimeDuration() const {
 
 
 TimelineStream::TimelineStream()
-    : buffer_(NULL),
+    : recorder_(NULL),
       name_(NULL),
       enabled_(false),
       seq_(0) {
@@ -265,22 +271,38 @@ void TimelineStream::Init(const char* name, bool enabled) {
 }
 
 
-TimelineEvent* TimelineStream::RecordEvent(const Object& obj) {
-  if (!enabled_ || (buffer_ == NULL)) {
+TimelineEvent* TimelineStream::StartEvent(const Object& obj) {
+  if (!enabled_ || (recorder_ == NULL)) {
     return NULL;
   }
   ASSERT(name_ != NULL);
-  ASSERT(buffer_ != NULL);
-  return buffer_->RecordEvent(obj);
+  ASSERT(recorder_ != NULL);
+  TimelineEvent* event = recorder_->StartEvent(obj);
+  if (event != NULL) {
+    event->StreamInit(this);
+  }
+  return event;
 }
 
 
-TimelineEvent* TimelineStream::RecordEvent() {
-  if (!enabled_ || (buffer_ == NULL)) {
+TimelineEvent* TimelineStream::StartEvent() {
+  if (!enabled_ || (recorder_ == NULL)) {
     return NULL;
   }
   ASSERT(name_ != NULL);
-  return buffer_->RecordEvent();
+  TimelineEvent* event = recorder_->StartEvent();
+  if (event != NULL) {
+    event->StreamInit(this);
+  }
+  return event;
+}
+
+
+void TimelineStream::CompleteEvent(TimelineEvent* event) {
+  if (!enabled_ || (recorder_ == NULL)) {
+    return;
+  }
+  recorder_->CompleteEvent(event);
 }
 
 
@@ -314,43 +336,11 @@ void TimelineDurationScope::FormatArgument(intptr_t i,
 }
 
 
-intptr_t TimelineEventBuffer::SizeForCapacity(intptr_t capacity) {
-  return sizeof(TimelineEvent) * capacity;
+TimelineEventRecorder::TimelineEventRecorder() {
 }
 
 
-TimelineEventBuffer::TimelineEventBuffer(intptr_t capacity)
-    : events_(NULL),
-      event_objects_(Array::null()),
-      cursor_(0),
-      capacity_(capacity) {
-  if (FLAG_trace_timeline) {
-    // 32-bit: 262,144 bytes per isolate.
-    // 64-bit: 393,216 bytes per isolate.
-    // NOTE: Internal isolates (vm and service) do not have a timeline
-    // event buffer.
-    OS::Print("TimelineEventBuffer is %" Pd " bytes (%" Pd " events)\n",
-              SizeForCapacity(capacity),
-              capacity);
-  }
-  events_ =
-      reinterpret_cast<TimelineEvent*>(calloc(capacity, sizeof(TimelineEvent)));
-  const Array& array = Array::Handle(Array::New(capacity, Heap::kOld));
-  event_objects_ = array.raw();
-}
-
-
-TimelineEventBuffer::~TimelineEventBuffer() {
-  for (intptr_t i = 0; i < capacity_; i++) {
-    // Clear any extra data.
-    events_[i].Reset();
-  }
-  free(events_);
-  event_objects_ = Array::null();
-}
-
-
-void TimelineEventBuffer::PrintJSONMeta(JSONArray* events) const {
+void TimelineEventRecorder::PrintJSONMeta(JSONArray* events) const {
   Isolate* isolate = Isolate::Current();
   JSONObject obj(events);
   int64_t pid = GetPid(isolate);
@@ -364,27 +354,7 @@ void TimelineEventBuffer::PrintJSONMeta(JSONArray* events) const {
 }
 
 
-void TimelineEventBuffer::PrintJSONEvents(JSONArray* events) const {
-  for (intptr_t i = 0; i < capacity_; i++) {
-    if (events_[i].IsValid()) {
-      events->AddValue(&events_[i]);
-    }
-  }
-}
-
-
-void TimelineEventBuffer::PrintJSON(JSONStream* js) const {
-  JSONObject topLevel(js);
-  topLevel.AddProperty("type", "_Timeline");
-  {
-    JSONArray events(&topLevel, "traceEvents");
-    PrintJSONMeta(&events);
-    PrintJSONEvents(&events);
-  }
-}
-
-
-void TimelineEventBuffer::WriteTo(const char* directory) {
+void TimelineEventRecorder::WriteTo(const char* directory) {
   Isolate* isolate = Isolate::Current();
 
   Dart_FileOpenCallback file_open = Isolate::file_open_callback();
@@ -414,18 +384,75 @@ void TimelineEventBuffer::WriteTo(const char* directory) {
 }
 
 
-intptr_t TimelineEventBuffer::GetNextIndex() {
+intptr_t TimelineEventRingRecorder::SizeForCapacity(intptr_t capacity) {
+  return sizeof(TimelineEvent) * capacity;
+}
+
+
+TimelineEventRingRecorder::TimelineEventRingRecorder(intptr_t capacity)
+    : events_(NULL),
+      event_objects_(Array::null()),
+      cursor_(0),
+      capacity_(capacity) {
+  if (FLAG_trace_timeline) {
+    // 32-bit: 262,144 bytes per isolate.
+    // 64-bit: 393,216 bytes per isolate.
+    // NOTE: Internal isolates (vm and service) do not have a timeline
+    // event buffer.
+    OS::Print("TimelineEventRingRecorder is %" Pd " bytes (%" Pd " events)\n",
+              SizeForCapacity(capacity),
+              capacity);
+  }
+  events_ =
+      reinterpret_cast<TimelineEvent*>(calloc(capacity, sizeof(TimelineEvent)));
+  const Array& array = Array::Handle(Array::New(capacity, Heap::kOld));
+  event_objects_ = array.raw();
+}
+
+
+TimelineEventRingRecorder::~TimelineEventRingRecorder() {
+  for (intptr_t i = 0; i < capacity_; i++) {
+    // Clear any extra data.
+    events_[i].Reset();
+  }
+  free(events_);
+  event_objects_ = Array::null();
+}
+
+
+void TimelineEventRingRecorder::PrintJSONEvents(JSONArray* events) const {
+  for (intptr_t i = 0; i < capacity_; i++) {
+    if (events_[i].IsValid()) {
+      events->AddValue(&events_[i]);
+    }
+  }
+}
+
+
+void TimelineEventRingRecorder::PrintJSON(JSONStream* js) const {
+  JSONObject topLevel(js);
+  topLevel.AddProperty("type", "_Timeline");
+  {
+    JSONArray events(&topLevel, "traceEvents");
+    PrintJSONMeta(&events);
+    PrintJSONEvents(&events);
+  }
+}
+
+
+intptr_t TimelineEventRingRecorder::GetNextIndex() {
   uintptr_t cursor = AtomicOperations::FetchAndIncrement(&cursor_);
   return cursor % capacity_;
 }
 
 
-void TimelineEventBuffer::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+void TimelineEventRingRecorder::VisitObjectPointers(
+    ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&event_objects_));
 }
 
 
-TimelineEvent* TimelineEventBuffer::RecordEvent(const Object& obj) {
+TimelineEvent* TimelineEventRingRecorder::StartEvent(const Object& obj) {
   ASSERT(events_ != NULL);
   uintptr_t index = GetNextIndex();
   const Array& event_objects = Array::Handle(event_objects_);
@@ -434,10 +461,57 @@ TimelineEvent* TimelineEventBuffer::RecordEvent(const Object& obj) {
 }
 
 
-TimelineEvent* TimelineEventBuffer::RecordEvent() {
+TimelineEvent* TimelineEventRingRecorder::StartEvent() {
   ASSERT(events_ != NULL);
   uintptr_t index = GetNextIndex();
   return &events_[index];
+}
+
+void TimelineEventRingRecorder::CompleteEvent(TimelineEvent* event) {
+  ASSERT(events_ != NULL);
+  // no-op.
+}
+
+
+TimelineEventStreamingRecorder::TimelineEventStreamingRecorder() {
+}
+
+
+TimelineEventStreamingRecorder::~TimelineEventStreamingRecorder() {
+}
+
+
+void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js) const {
+  JSONObject topLevel(js);
+  topLevel.AddProperty("type", "_Timeline");
+  {
+    JSONArray events(&topLevel, "traceEvents");
+    PrintJSONMeta(&events);
+  }
+}
+
+void TimelineEventStreamingRecorder::VisitObjectPointers(
+    ObjectPointerVisitor* visitor) {
+  // no-op.
+}
+
+
+TimelineEvent* TimelineEventStreamingRecorder::StartEvent(
+    const Object& object) {
+  // The streaming recorder does not track Dart objects.
+  return StartEvent();
+}
+
+
+TimelineEvent* TimelineEventStreamingRecorder::StartEvent() {
+  TimelineEvent* event = new TimelineEvent();
+  return event;
+}
+
+
+void TimelineEventStreamingRecorder::CompleteEvent(TimelineEvent* event) {
+  StreamEvent(event);
+  delete event;
 }
 
 }  // namespace dart

@@ -669,7 +669,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_allocationprofile_gc_timestamp_(0),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
-      timeline_event_buffer_(NULL),
+      timeline_event_recorder_(NULL),
       profiler_data_(NULL),
       thread_state_(NULL),
       tag_table_(GrowableObjectArray::null()),
@@ -718,7 +718,7 @@ Isolate::~Isolate() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
-  RemoveTimelineEventBuffer();
+  RemoveTimelineEventRecorder();
 }
 
 
@@ -983,9 +983,10 @@ bool Isolate::MakeRunnable() {
   }
   TimelineStream* stream = GetIsolateStream();
   ASSERT(stream != NULL);
-  TimelineEvent* event = stream->RecordEvent();
+  TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
-    event->Instant(stream, "Runnable");
+    event->Instant("Runnable");
+    event->Complete();
   }
   return true;
 }
@@ -1477,8 +1478,9 @@ void Isolate::Shutdown() {
                 "\tisolate:    %s\n", name());
     }
 
-    if ((timeline_event_buffer_ != NULL) && (FLAG_timeline_trace_dir != NULL)) {
-      timeline_event_buffer_->WriteTo(FLAG_timeline_trace_dir);
+    if ((timeline_event_recorder_ != NULL) &&
+        (FLAG_timeline_trace_dir != NULL)) {
+      timeline_event_recorder_->WriteTo(FLAG_timeline_trace_dir);
     }
   }
 
@@ -1578,18 +1580,18 @@ void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
 }
 
 
-void Isolate::SetTimelineEventBuffer(
-    TimelineEventBuffer* timeline_event_buffer) {
+void Isolate::SetTimelineEventRecorder(
+    TimelineEventRecorder* timeline_event_recorder) {
 #define ISOLATE_TIMELINE_STREAM_SET_BUFFER(name, enabled_by_default)           \
-  stream_##name##_.set_buffer(timeline_event_buffer);
+  stream_##name##_.set_recorder(timeline_event_recorder);
   ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_SET_BUFFER)
 #undef ISOLATE_TIMELINE_STREAM_SET_BUFFER
-  timeline_event_buffer_ = timeline_event_buffer;
+  timeline_event_recorder_ = timeline_event_recorder;
 }
 
-void Isolate::RemoveTimelineEventBuffer() {
-  SetTimelineEventBuffer(NULL);
-  delete timeline_event_buffer_;
+void Isolate::RemoveTimelineEventRecorder() {
+  SetTimelineEventRecorder(NULL);
+  delete timeline_event_recorder_;
 }
 
 

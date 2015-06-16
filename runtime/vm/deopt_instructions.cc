@@ -100,9 +100,9 @@ DeoptContext::DeoptContext(const StackFrame* frame,
     Isolate* isolate = Isolate::Current();
     TimelineStream* compiler_stream = isolate->GetCompilerStream();
     ASSERT(compiler_stream != NULL);
-    timeline_event_ = compiler_stream->RecordEvent();
+    timeline_event_ = compiler_stream->StartEvent();
     if (timeline_event_ != NULL) {
-      timeline_event_->DurationBegin(compiler_stream, "Deoptimize");
+      timeline_event_->DurationBegin("Deoptimize");
       timeline_event_->SetNumArguments(3);
     }
   }
@@ -158,6 +158,7 @@ DeoptContext::~DeoptContext() {
         "%d",
         function.deoptimization_counter());
     timeline_event_->DurationEnd();
+    timeline_event_->Complete();
   }
 }
 

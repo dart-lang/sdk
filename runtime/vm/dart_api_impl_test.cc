@@ -9163,9 +9163,9 @@ TEST_CASE(Timeline_Dart_TimelineDuration) {
   // Add a duration event.
   Dart_TimelineDuration("testDurationEvent", 0, 1);
   // Check that it is in the output.
-  TimelineEventBuffer* buffer = isolate->timeline_event_buffer();
+  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
   JSONStream js;
-  buffer->PrintJSON(&js);
+  recorder->PrintJSON(&js);
   EXPECT_SUBSTRING("testDurationEvent", js.ToCString());
 }
 
@@ -9178,9 +9178,9 @@ TEST_CASE(Timeline_Dart_TimelineInstant) {
   stream->set_enabled(true);
   Dart_TimelineInstant("testInstantEvent");
   // Check that it is in the output.
-  TimelineEventBuffer* buffer = isolate->timeline_event_buffer();
+  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
   JSONStream js;
-  buffer->PrintJSON(&js);
+  recorder->PrintJSON(&js);
   EXPECT_SUBSTRING("testInstantEvent", js.ToCString());
 }
 
@@ -9198,9 +9198,9 @@ TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
   // Call Dart_TimelineAsyncEnd with a negative async_id.
   Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
   // Check that testAsync is not in the output.
-  TimelineEventBuffer* buffer = isolate->timeline_event_buffer();
+  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
   JSONStream js;
-  buffer->PrintJSON(&js);
+  recorder->PrintJSON(&js);
   EXPECT_NOTSUBSTRING("testAsyncEvent", js.ToCString());
 }
 
@@ -9219,9 +9219,9 @@ TEST_CASE(Timeline_Dart_TimelineAsync) {
   Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
 
   // Check that it is in the output.
-  TimelineEventBuffer* buffer = isolate->timeline_event_buffer();
+  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
   JSONStream js;
-  buffer->PrintJSON(&js);
+  recorder->PrintJSON(&js);
   EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }
 

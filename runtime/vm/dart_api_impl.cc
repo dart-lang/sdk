@@ -5689,9 +5689,10 @@ DART_EXPORT Dart_Handle Dart_TimelineDuration(const char* label,
   }
   TimelineStream* stream = isolate->GetEmbedderStream();
   ASSERT(stream != NULL);
-  TimelineEvent* event = stream->RecordEvent();
+  TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
-    event->Duration(stream, label, start_micros, end_micros);
+    event->Duration(label, start_micros, end_micros);
+    event->Complete();
   }
   return Api::Success();
 }
@@ -5705,9 +5706,10 @@ DART_EXPORT Dart_Handle Dart_TimelineInstant(const char* label) {
   }
   TimelineStream* stream = isolate->GetEmbedderStream();
   ASSERT(stream != NULL);
-  TimelineEvent* event = stream->RecordEvent();
+  TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
-    event->Instant(stream, label);
+    event->Instant(label);
+    event->Complete();
   }
   return Api::Success();
 }
@@ -5726,9 +5728,10 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
   *async_id = -1;
   TimelineStream* stream = isolate->GetEmbedderStream();
   ASSERT(stream != NULL);
-  TimelineEvent* event = stream->RecordEvent();
+  TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
-    *async_id = event->AsyncBegin(stream, label);
+    *async_id = event->AsyncBegin(label);
+    event->Complete();
   }
   return Api::Success();
 }
@@ -5746,9 +5749,10 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
   }
   TimelineStream* stream = isolate->GetEmbedderStream();
   ASSERT(stream != NULL);
-  TimelineEvent* event = stream->RecordEvent();
+  TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
-    event->AsyncInstant(stream, label, async_id);
+    event->AsyncInstant(label, async_id);
+    event->Complete();
   }
   return Api::Success();
 }
@@ -5766,9 +5770,10 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
   }
   TimelineStream* stream = isolate->GetEmbedderStream();
   ASSERT(stream != NULL);
-  TimelineEvent* event = stream->RecordEvent();
+  TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
-    event->AsyncEnd(stream, label, async_id);
+    event->AsyncEnd(label, async_id);
+    event->Complete();
   }
   return Api::Success();
 }

@@ -325,7 +325,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
   isolate->set_current_tag(default_tag);
 
-  isolate->SetTimelineEventBuffer(new TimelineEventBuffer());
+  isolate->SetTimelineEventRecorder(new TimelineEventRingRecorder());
 
   if (FLAG_keep_code) {
     isolate->set_deoptimized_code_array(

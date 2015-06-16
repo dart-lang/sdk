@@ -553,13 +553,13 @@ class Isolate : public BaseIsolate {
     return trace_buffer_;
   }
 
-  void SetTimelineEventBuffer(TimelineEventBuffer* timeline_event_buffer);
+  void SetTimelineEventRecorder(TimelineEventRecorder* timeline_event_recorder);
 
-  TimelineEventBuffer* timeline_event_buffer() const {
-    return timeline_event_buffer_;
+  TimelineEventRecorder* timeline_event_recorder() const {
+    return timeline_event_recorder_;
   }
 
-  void RemoveTimelineEventBuffer();
+  void RemoveTimelineEventRecorder();
 
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
@@ -802,7 +802,7 @@ class Isolate : public BaseIsolate {
   TraceBuffer* trace_buffer_;
 
   // TimelineEvent buffer.
-  TimelineEventBuffer* timeline_event_buffer_;
+  TimelineEventRecorder* timeline_event_recorder_;
 
   IsolateProfilerData* profiler_data_;
   Mutex profiler_data_mutex_;
