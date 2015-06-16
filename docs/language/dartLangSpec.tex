@@ -5772,7 +5772,7 @@ The {\em switch statement} supports dispatching control among a large number of 
 
 
 {\bf switchCase:}
-      label* (\CASE{} expression `{\escapegrammar :}') statements
+      label* \CASE{} expression `{\escapegrammar :}' statements
     .
 
 {\bf defaultCase:}
@@ -5784,21 +5784,21 @@ The {\em switch statement} supports dispatching control among a large number of 
  Given a switch statement of the form 
  
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
-   \DEFAULT{}: $s_{n+1}$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{dartCode}
  
  or the form 
  
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{dartCode}
  
@@ -5828,21 +5828,21 @@ The \SWITCH{}  statement should only be used in very limited situations (e.g., i
 Execution of a switch statement of the form
 
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
-   \DEFAULT{}: $s_{n+1}$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{dartCode}
  
 or the form 
  
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{dartCode}
 
@@ -5863,11 +5863,11 @@ A case clause introduces a new scope, nested in the lexically surrounding scope.
 Execution of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a  switch statement  
 
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$ 
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
-   \DEFAULT{}: $s_{n+1}$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
+   $label_{(n+1)1} \ldots label_{(n+1)j_{n+1}}$ \DEFAULT{}: $s_{n+1}$
 \}
 \end{dartCode}
 
@@ -5883,10 +5883,10 @@ If execution reaches the point after $s_h$  then  a runtime error occurs, unless
 Execution of a \CASE{} clause \CASE{} $e_{k}: s_{k}$ of a  switch statement  
 
 \begin{dartCode}
-\SWITCH{} ($e$) \{ 
-   \CASE{} $label_{11} \ldots label_{1j_1}$ $e_1: s_1$
-   $\ldots$  
-   \CASE{} $label_{n1} \ldots label_{nj_n}$ $e_n: s_n$ 
+\SWITCH{} ($e$) \{
+   $label_{11} \ldots label_{1j_1}$ \CASE{} $e_1: s_1$
+   $\ldots$
+   $label_{n1} \ldots label_{nj_n}$ \CASE{} $e_n: s_n$
 \}
 \end{dartCode}
 
@@ -5900,7 +5900,7 @@ If execution reaches the point after $s_h$  then  a runtime error occurs, unless
 
 
 \commentary{
-In other words, there is no implicit fall-through between cases. The last case in a switch (default or otherwise) can `fall-through' to the end of the statement.
+In other words, there is no implicit fall-through between non-empty cases. The last case in a switch (default or otherwise) can `fall-through' to the end of the statement.
 }
 
 \LMHash{}
