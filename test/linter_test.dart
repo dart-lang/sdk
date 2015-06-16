@@ -16,7 +16,6 @@ import 'package:linter/src/analysis.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/io.dart';
 import 'package:linter/src/linter.dart';
-import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:linter/src/pub.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/rules/camel_case_types.dart';
@@ -24,7 +23,6 @@ import 'package:linter/src/rules/package_prefixed_library_names.dart';
 import 'package:linter/src/util.dart';
 import 'package:mockito/mockito.dart';
 import 'package:path/path.dart' as p;
-import 'package:plugin/manager.dart';
 import 'package:unittest/unittest.dart';
 
 import '../bin/linter.dart' as dartlint;
@@ -35,7 +33,6 @@ main() {
 
   defineSanityTests();
   defineLinterEngineTests();
-  definePluginTests();
   defineRuleTests();
   defineRuleUnitTests();
 }
@@ -258,33 +255,6 @@ void defineLinterEngineTests() {
   });
 }
 
-/// Default contributed lint rules.
-var builtinRules = [
-  'camel_case_types',
-  'constant_identifier_names',
-  'empty_constructor_bodies',
-  'library_names',
-  'library_prefixes',
-  'non_constant_identifier_names',
-  'one_member_abstracts',
-  'slash_for_doc_comments',
-  'super_goes_last',
-  'type_init_formals',
-  'unnecessary_brace_in_string_interp'
-];
-
-/// Plugin tests
-definePluginTests() {
-  group('plugin', () {
-    test('contributed rules', () {
-      LinterPlugin linterPlugin = new LinterPlugin();
-      ExtensionManager manager = new ExtensionManager();
-      manager.processPlugins([linterPlugin]);
-      var contributedRules = linterPlugin.lintRules.map((rule) => rule.name);
-      expect(contributedRules, unorderedEquals(builtinRules));
-    });
-  });
-}
 
 /// Rule tests
 defineRuleTests() {

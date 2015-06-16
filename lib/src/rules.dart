@@ -54,8 +54,18 @@ class Registry extends Object with IterableMixin<LintRule> {
 
   LintRule operator [](String key) => _ruleMap[key];
 
+  /// All lint rules explicitly enabled by the given [config].
+  ///
+  /// For example:
+  ///     my_rule: true
+  ///
+  /// enables `my_rule`.
+  /// 
+  /// Unspecified rules are treated as disabled by default.
   Iterable<LintRule> enabled(LintConfig config) => rules
-      .where((rule) => !config.ruleConfigs.any((rc) => rc.disables(rule.name)));
+      .where((rule) => config.ruleConfigs.any((rc) => rc.enables(rule.name)));
 
-  register(LintRule rule) => _ruleMap[rule.name] = rule;
+  void register(LintRule rule) {
+    _ruleMap[rule.name] = rule;
+  }
 }

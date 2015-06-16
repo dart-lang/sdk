@@ -4,11 +4,51 @@
 
 library linter.src.config;
 
+import 'package:analyzer/plugin/options.dart';
 import 'package:yaml/yaml.dart';
+
+/// Process the given option [fileContents] and produce a corresponding
+/// [LintConfig].
+LintConfig processAnalysisOptionsFile(String fileContents, {String fileUrl}) {
+  var yaml = loadYamlNode(fileContents, sourceUrl: fileUrl);
+  if (yaml is YamlMap) {
+    return _parseConfig(yaml);
+  }
+  return null;
+}
+
+LintConfig _parseConfig(Map optionsMap) {
+  if (optionsMap != null) {
+    var options = optionsMap['linter'];
+    // Quick check of basic contract.
+    if (options is YamlMap) {
+      return new _LintConfig().._parseYaml(options);
+    }
+  }
+  return null;
+}
+
+/// Processes analysis options files and translates them into [LintConfig]s.
+class AnalysisOptionsProcessor extends OptionsProcessor {
+  Map<String, YamlNode> options;
+  Exception exception;
+
+  LintConfig createConfig() => _parseConfig(options);
+
+  @override
+  void onError(Exception exception) {
+    this.exception = exception;
+  }
+
+  @override
+  void optionsProcessed(Map<String, YamlNode> options) {
+    this.options = options;
+  }
+}
 
 abstract class LintConfig {
   factory LintConfig.parse(String source, {String sourceUrl}) =>
-      new _LintConfig(source, sourceUrl: sourceUrl);
+      new _LintConfig().._parse(source, sourceUrl: sourceUrl);
   List<String> get fileExcludes;
   List<String> get fileIncludes;
   List<RuleConfig> get ruleConfigs;
@@ -21,16 +61,15 @@ abstract class RuleConfig {
   /// Provisional
   bool disables(String ruleName) =>
       ruleName == name && args['enabled'] == false;
+  
+  bool enables(String ruleName) =>
+      ruleName == name && args['enabled'] == true;
 }
 
 class _LintConfig implements LintConfig {
   final fileIncludes = <String>[];
   final fileExcludes = <String>[];
   final ruleConfigs = <RuleConfig>[];
-
-  _LintConfig(String src, {String sourceUrl}) {
-    _parse(src, sourceUrl: sourceUrl);
-  }
 
   addAsListOrString(value, List<String> list) {
     if (value is YamlList) {
@@ -56,11 +95,14 @@ class _LintConfig implements LintConfig {
     return null;
   }
 
-  _parse(String src, {String sourceUrl}) {
+  void _parse(String src, {String sourceUrl}) {
     var yaml = loadYamlNode(src, sourceUrl: sourceUrl);
-    if (yaml is! YamlMap) {
-      return;
+    if (yaml is YamlMap) {
+      _parseYaml(yaml);
     }
+  }
+
+  void _parseYaml(YamlMap yaml) {
     yaml.nodes.forEach((k, v) {
       //TODO: add mis-format warnings
       if (k is! YamlScalar) {
