@@ -7,7 +7,12 @@ import "package:expect/expect.dart";
 import "dart:async";
 import 'package:async_helper/async_helper.dart';
 
-main() async {
+main() {
+  asyncStart();
+  runTest().whenComplete(asyncEnd);
+}
+
+Future runTest() async {
   unreachable([a,b]) { throw "UNREACHABLE"; }
   int tick = 0;
   ticker() { tick++; }
