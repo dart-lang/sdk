@@ -5683,18 +5683,8 @@ var n0 = $e$.iterator;
    $s$ 
 \}
 \end{dartCode}
-where \code{n0} is an identifier that does not occur anywhere in the program.
+where \code{n0} is an identifier that does not occur anywhere in the program, except that for purposes of static typechecking, it is checked under the assumption that $n0$ is declared to be of type $T$, where $T$ is the static type of $e.iterator$.
 
-\commentary{
-Note that in fact, using a  \CONST{} variable would give rise to a compile time error since \cd{n0.current} is not a constant expression.  
-}
-
-It is a static warning if the static type of $e$ does not have a member \cd{iterator}. It is a static warning if the static type of \cd{$e$.iterator} does not have a method \cd{moveNext}. It is a static warning if static return type of  \cd{$e$.iterator.moveNext()} is not assignable to the static type of \cd{id}.
-
-
-\commentary {
-One might have required that \cd{n0} had type \cd{Iterable$<T>$} where $T$ was the static type of \cd{id}. However, that would cause failure in checked mode if $e$ was merely emulating the  \cd{Iterable} interface. 
-}
  
  
 \subsubsection{Asynchronous For-in}
