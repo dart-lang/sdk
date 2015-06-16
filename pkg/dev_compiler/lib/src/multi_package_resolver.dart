@@ -20,13 +20,16 @@ class MultiPackageResolver extends UriResolver {
 
   @override
   Source resolveAbsolute(Uri uri) {
-    var path = _expandPath(uri);
-    if (path == null) return null;
+    var candidates = _expandPath(uri);
+    if (candidates == null) return null;
 
-    var resolvedPath = _resolve(path);
-    if (resolvedPath == null) return null;
-
-    return new FileBasedSource.con2(uri, new JavaFile(resolvedPath));
+    for (var path in candidates) {
+      var resolvedPath = _resolve(path);
+      if (resolvedPath != null) {
+        return new FileBasedSource.con2(uri, new JavaFile(resolvedPath));
+      }
+    }
+    return null;
   }
 
   /// Resolve [path] by looking at each prefix in [searchPaths] and returning
@@ -40,12 +43,12 @@ class MultiPackageResolver extends UriResolver {
   }
 
   /// Expand `uri.path`, replacing dots in the package name with slashes.
-  String _expandPath(Uri uri) {
+  List<String> _expandPath(Uri uri) {
     if (uri.scheme != 'package') return null;
     var path = uri.path;
     var slashPos = path.indexOf('/');
     var packagePath = path.substring(0, slashPos).replaceAll(".", "/");
     var filePath = path.substring(slashPos + 1);
-    return '${packagePath}/lib/${filePath}';
+    return ['$packagePath/lib/$filePath', '$packagePath/$filePath'];
   }
 }
