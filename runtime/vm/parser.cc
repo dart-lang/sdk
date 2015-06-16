@@ -44,7 +44,8 @@ DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-
+DEFINE_FLAG(bool, enable_mirrors, true,
+    "Disable to make importing dart:mirrors an error.");
 
 // Quick access to the current isolate and zone.
 #define I (isolate())
@@ -5781,6 +5782,11 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
   if (canon_url.StartsWith(Symbols::DartSchemePrivate()) &&
       !lib_url.StartsWith(Symbols::DartScheme())) {
     ReportError(import_pos, "private library is not accessible");
+  }
+
+  if (!FLAG_enable_mirrors && Symbols::DartMirrors().Equals(canon_url)) {
+    ReportError(import_pos,
+                "import of dart:mirrors with --enable-mirrors=false");
   }
 
   if (is_import) {
