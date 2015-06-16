@@ -20,6 +20,10 @@ class A {
   final finalInstance = 0;
   static final finalStatic = 0;
 }
+class B {
+  B(a, b);
+  factory B.fac(a, b) => new B(a, b);
+}
 
 testMessageContents() {
   var mirrors = currentMirrorSystem();
@@ -61,14 +65,18 @@ expectMatchingErrors(reflectiveAction, baseAction) {
   } catch(e) {
     reflectiveError = e;
   }
+
   try {
     baseAction();
   } catch(e) {
     baseError = e;
   }
-  print("\n==Base==\n $baseError");
-  print("\n==Reflective==\n $reflectiveError");
-  Expect.stringEquals(baseError.toString(), reflectiveError.toString());
+
+  if (baseError.toString() != reflectiveError.toString()) {
+    print("\n==Base==\n $baseError");
+    print("\n==Reflective==\n $reflectiveError");
+    throw "Expected matching errors";
+  }
 }
 
 testMatchingMessages() {
@@ -92,6 +100,8 @@ testMatchingMessages() {
                        () => A.foo= null);
   expectMatchingErrors(() => classMirror.setField(#finalStatic, null),
                        () => A.finalStatic= null);
+  expectMatchingErrors(() => classMirror.newInstance(#constructor, [1, 2, 3]),
+                       () => new A.constructor(1, 2, 3));
 
   var instanceMirror = reflect(new A());
   expectMatchingErrors(() => instanceMirror.invoke(#foo, []),

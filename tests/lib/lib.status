@@ -76,6 +76,7 @@ mirrors/method_mirror_source_line_ending_test : RuntimeError # Issue 6490
 mirrors/method_mirror_location_test: RuntimeError # Issue 6490
 mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this. When removing this line please change the "endsWith" to "/mirrors_test.dart".
 mirrors/mirrors_nsm_test/dart2js: RuntimeError # Issue 19353
+mirrors/mirrors_nsm_mismatch_test: RuntimeError # Issue 19353
 mirrors/mixin_test: RuntimeError # Issue 12464
 mirrors/mixin_application_test: RuntimeError # Issue 12464
 mirrors/other_declarations_location_test: CompileTimeError # Issue 10905
@@ -277,6 +278,7 @@ mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return 
 mirrors/immutable_collections_test: StaticWarning, OK # Expect failure for any type of Iterable.
 mirrors/inference_and_no_such_method_test: StaticWarning, OK # Expect to trigger noSuchMethod.
 mirrors/mirrors_nsm_test: StaticWarning, OK # Expect to trigger noSuchMethod.
+mirrors/mirrors_nsm_mismatch_test: StaticWarning, OK # Expect to trigger noSuchMethod.
 
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
