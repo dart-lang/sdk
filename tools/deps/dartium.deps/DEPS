@@ -110,6 +110,8 @@ deps.update({
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
   "src/dart/third_party/pkg/http_throttle":
       "https://github.com/dart-lang/http_throttle.git" + Var("http_throttle_rev"),
+  "src/dart/third_party/pkg/logging":
+      "https://github.com/dart-lang/logging.git" + Var("logging_rev"),
   "src/dart/third_party/pkg/mime":
       "https://github.com/dart-lang/mime.git" + Var("mime_rev"),
   "src/dart/third_party/pkg/oauth2":
