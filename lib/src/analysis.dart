@@ -27,7 +27,7 @@ import 'package:linter/src/rules.dart';
 
 
 Source createSource(Uri sourceUri) =>
-    new FileBasedSource.con1(new JavaFile(sourceUri.toFilePath()));
+    new FileBasedSource(new JavaFile(sourceUri.toFilePath()));
 
 AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
   AnalysisOptionsImpl analysisOptions = new AnalysisOptionsImpl();
@@ -95,12 +95,12 @@ class AnalysisDriver {
     ChangeSet changeSet = new ChangeSet();
     for (File file in files) {
       JavaFile sourceFile = new JavaFile(p.normalize(file.absolute.path));
-      Source source = new FileBasedSource.con2(sourceFile.toURI(), sourceFile);
+      Source source = new FileBasedSource(sourceFile, sourceFile.toURI());
       Uri uri = context.sourceFactory.restoreUri(source);
       if (uri != null) {
         // Ensure that we analyze the file using its canonical URI (e.g. if
         // it's in "/lib", analyze it using a "package:" URI).
-        source = new FileBasedSource.con2(uri, sourceFile);
+        source = new FileBasedSource(sourceFile, uri);
       }
       sources.add(source);
       changeSet.addedSource(source);

@@ -219,7 +219,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
     // Cache error and location info for creating AnalysisErrorInfos
     // Note that error columns are 1-based
-    var error = new AnalysisError.con2(source, node.span.start.column + 1,
+    var error = new AnalysisError(source, node.span.start.column + 1,
         node.span.length, new _LintCode(name, description));
 
     _locationInfo.add(new AnalysisErrorInfoImpl([error], new _LineInfo(node)));

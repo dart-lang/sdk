@@ -144,7 +144,7 @@ void defineLinterEngineTests() {
         expect(visited, isTrue);
       });
       test('error collecting', () {
-        var error = new AnalysisError.con1(new StringSource('foo', ''),
+        var error = new AnalysisError(new StringSource('foo', ''), 0, 0,
             new LintCode('MockLint', 'This is a test...'));
         var linter = new SourceLinter(new LinterOptions([]));
         linter.onError(error);
@@ -254,7 +254,6 @@ void defineLinterEngineTests() {
     });
   });
 }
-
 
 /// Rule tests
 defineRuleTests() {
