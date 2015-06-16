@@ -300,9 +300,11 @@ class JsBuilder {
     String escaped = value.replaceAll('\\', '\\\\');
     // Do not escape unicode characters and ' because they are allowed in the
     // string literal anyway.
-    escaped = escaped.replaceAllMapped(new RegExp('\n|$quote|\b|\t|\v'), (m) {
+    var re = new RegExp('\n|\r|$quote|\b|\f|\t|\v');
+    escaped = escaped.replaceAllMapped(re, (m) {
       switch (m.group(0)) {
         case "\n" : return r"\n";
+        case "\r" : return r"\r";
         // Quotes are only replaced if they conflict with the containing quote
         case '"':   return r'\"';
         case "'":   return r"\'";

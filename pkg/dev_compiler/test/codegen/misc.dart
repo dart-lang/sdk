@@ -11,6 +11,37 @@ class Generic<T> {
   Type get type => Generic;
 }
 
+// super ==
+// https://github.com/dart-lang/dev_compiler/issues/226
+class Base {
+  int x = 1, y = 2;
+  operator==(obj) {
+    return obj is Base && obj.x == x && obj.y == y;
+  }
+}
+class Derived {
+  int z = 3;
+  operator==(obj) {
+    return obj is Derived && obj.z == z && super == obj;
+  }
+}
+
+// string escape tests
+// https://github.com/dart-lang/dev_compiler/issues/227
+bool _isWhitespace(String ch) =>
+    ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
+
+const _escapeMap = const {
+  '\n': r'\n',
+  '\r': r'\r',
+  '\f': r'\f',
+  '\b': r'\b',
+  '\t': r'\t',
+  '\v': r'\v',
+  '\x7F': r'\x7F', // delete
+};
+
+
 main() {
   // Number literals in call expressions.
   print(1.toString());
@@ -24,4 +55,6 @@ main() {
 
   // Should be Generic<dynamic>
   print(new Generic<int>().type);
+
+  print(new Derived() == new Derived()); // true
 }

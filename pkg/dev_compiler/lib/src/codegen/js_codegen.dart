@@ -1938,6 +1938,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       // We can also do this if both sides are the same primitive type.
       if (_canUsePrimitiveEquality(left, right)) {
         code = op.type == TokenType.EQ_EQ ? '# == #' : '# != #';
+      } else if (left is SuperExpression) {
+        return _emitSend(left, op.lexeme, [right]);
       } else {
         var bang = op.type == TokenType.BANG_EQ ? '!' : '';
         code = '${bang}dart.equals(#, #)';
