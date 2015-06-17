@@ -26,8 +26,16 @@ class BaseIsolate {
   }
 
   // DEPRECATED: Use Thread::current_zone.
-  Zone* current_zone() const { return current_zone_; }
+  Zone* current_zone() const {
+    AssertCurrentThreadIsMutator();
+    return current_zone_;
+  }
   void set_current_zone(Zone* zone) { current_zone_ = zone; }
+#if defined(DEBUG)
+  void AssertCurrentThreadIsMutator() const;
+#else
+  void AssertCurrentThreadIsMutator() const {}
+#endif  // DEBUG
 
   HandleScope* top_handle_scope() const {
 #if defined(DEBUG)
