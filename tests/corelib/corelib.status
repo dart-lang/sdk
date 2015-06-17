@@ -211,7 +211,7 @@ big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
 apply2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-collection_removes_test: RuntimeError # undefined is not a function
+collection_removes_test: RuntimeError # receiver.get$_source is not a function
 const_list_remove_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 const_list_set_range_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 core_runtime_types_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -224,7 +224,7 @@ double_round2_test: Crash # Instance of 'TypeOperator': type check unimplemented
 double_truncate2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 duration2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 duration_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-error_stack_trace1_test: Pass # undefined is not a function
+error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a function
 error_stack_trace_test: Crash # (switch (5){case 5:nested();default:Expect.fail("Should not reach");}): Unhandled node
 expando_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 growable_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -274,7 +274,7 @@ list_sublist_test: Crash # Instance of 'TypeOperator': type check unimplemented 
 list_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 list_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 list_to_string2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-list_to_string_test: RuntimeError # undefined is not a function
+list_to_string_test: RuntimeError # receiver.get$list is not a function
 map_from_iterables_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 map_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 map_to_string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

@@ -368,14 +368,14 @@ async/timer_repeat_test: Crash # (switch (testCase.re...  Unhandled node
 async/timer_test: Crash # (switch (testCase.re...  Unhandled node
 collection/linked_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/ascii_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/chunked_conversion2_test: RuntimeError # undefined is not a function
+convert/chunked_conversion2_test: RuntimeError # receiver.get$accumulator is not a function
 convert/chunked_conversion_utf82_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/chunked_conversion_utf86_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/chunked_conversion_utf87_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/json_chunk_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/json_lib_test: Crash # (switch (testCase.re...  Unhandled node
 convert/json_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/json_toEncodable_reviver_test: RuntimeError # undefined is not a function
+convert/json_toEncodable_reviver_test: RuntimeError # J.getInterceptor$as(...).get$length is not a function
 convert/json_utf8_chunk_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/json_util_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/latin1_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -406,9 +406,9 @@ mirrors/constructor_kinds_test/none: Crash # Instance of 'TypeOperator': type ch
 mirrors/constructors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/dart2js_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/declarations_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/deferred_mirrors_metadata_test: RuntimeError # undefined is not a function
-mirrors/deferred_mirrors_metatarget_test: RuntimeError # undefined is not a function
-mirrors/deferred_mirrors_update_test: RuntimeError # undefined is not a function
+mirrors/deferred_mirrors_metadata_test: RuntimeError # U.loadLibrary is not a function
+mirrors/deferred_mirrors_metatarget_test: RuntimeError # X.loadLibrary is not a function
+mirrors/deferred_mirrors_update_test: RuntimeError # U.loadLibrary is not a function
 mirrors/deferred_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/delegate_call_through_getter_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/delegate_test: RuntimeError # Please triage this failure.
@@ -518,6 +518,7 @@ mirrors/method_mirror_properties_test: Crash # Instance of 'TypeOperator': type 
 mirrors/method_mirror_returntype_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/method_mirror_source_line_ending_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/method_mirror_source_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/mirrors_nsm_mismatch_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/mirrors_nsm_test/dart2js: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/mirrors_nsm_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/mirrors_reader_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -585,7 +586,7 @@ mirrors/type_variable_is_static_test: Crash # Instance of 'TypeOperator': type c
 mirrors/type_variable_owner_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/type_variable_owner_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/typearguments_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/typedef_deferred_library_test: RuntimeError # undefined is not a function
+mirrors/typedef_deferred_library_test: RuntimeError # G.loadLibrary is not a function
 mirrors/typedef_reflected_type_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/typedef_reflected_type_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/unnamed_library_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.

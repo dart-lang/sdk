@@ -376,9 +376,9 @@ call_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nul
 call_through_null_getter_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 call_type_literal_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 cascade2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-cha_deopt1_test: RuntimeError # undefined is not a function
-cha_deopt2_test: RuntimeError # undefined is not a function
-cha_deopt3_test: RuntimeError # undefined is not a function
+cha_deopt1_test: RuntimeError # V.loadLibrary is not a function
+cha_deopt2_test: RuntimeError # R.loadLibrary is not a function
+cha_deopt3_test: RuntimeError # K.loadLibrary is not a function
 checked_null_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 checked_setter2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 checked_setter3_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -447,45 +447,45 @@ crash_12118_test: Crash # Invalid argument(s)
 crash_6725_test/01: Crash # The null object does not have a getter '_element'.
 custom_await_stack_trace_test: Crash # (main()async{try {va...  cannot handle async/sync*/async* functions
 deferred_call_empty_before_load_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_closurize_load_library_test: RuntimeError # undefined is not a function
-deferred_constant_list_test: RuntimeError # undefined is not a function
+deferred_closurize_load_library_test: RuntimeError # D.loadLibrary is not a function
+deferred_constant_list_test: RuntimeError # K.loadLibrary is not a function
 deferred_constraints_constants_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred_constraints_constants_test/reference_after_load: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred_constraints_type_annotation_test/as_operation: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred_constraints_type_annotation_test/catch_check: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 deferred_constraints_type_annotation_test/is_check: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_constraints_type_annotation_test/new: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/new: RuntimeError # R.loadLibrary is not a function
 deferred_constraints_type_annotation_test/new_before_load: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/new_generic2: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/new_generic3: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/none: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/static_method: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # undefined is not a function
-deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # undefined is not a function
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError # R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic2: RuntimeError # X.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic3: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/none: RuntimeError # D.loadLibrary is not a function
+deferred_constraints_type_annotation_test/static_method: RuntimeError # F.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # T.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # Q.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # Q.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # U.loadLibrary is not a function
 deferred_function_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for F.
-deferred_global_test: RuntimeError # undefined is not a function
+deferred_global_test: RuntimeError # Y.loadLibrary is not a function
 deferred_inheritance_constraints_test/redirecting_constructor: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_inlined_test: RuntimeError # undefined is not a function
+deferred_inlined_test: RuntimeError # B.loadLibrary is not a function
 deferred_load_constants_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_load_inval_code_test: RuntimeError # undefined is not a function
-deferred_load_library_wrong_args_test/none: RuntimeError # undefined is not a function
-deferred_mixin_test: RuntimeError # undefined is not a function
-deferred_no_such_method_test: RuntimeError # undefined is not a function
+deferred_load_inval_code_test: RuntimeError # O.loadLibrary is not a function
+deferred_load_library_wrong_args_test/none: RuntimeError # Y.loadLibrary is not a function
+deferred_mixin_test: RuntimeError # X.loadLibrary is not a function
+deferred_no_such_method_test: RuntimeError # D.loadLibrary is not a function
 deferred_not_loaded_check_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-deferred_only_constant_test: RuntimeError # undefined is not a function
-deferred_optimized_test: RuntimeError # undefined is not a function
+deferred_only_constant_test: RuntimeError # O.loadLibrary is not a function
+deferred_optimized_test: RuntimeError # Q.loadLibrary is not a function
 deferred_redirecting_factory_test: Crash # (test()async{await t...  cannot handle async/sync*/async* functions
 deferred_regression_22995_test: Crash # Instance of 'TypeOperator': type check unimplemented for Ti.
-deferred_shadow_load_library_test: RuntimeError # undefined is not a function
-deferred_shared_and_unshared_classes_test: RuntimeError # undefined is not a function
-deferred_static_seperate_test: RuntimeError # undefined is not a function
+deferred_shadow_load_library_test: RuntimeError # Y.loadLibrary is not a function
+deferred_shared_and_unshared_classes_test: RuntimeError # U.loadLibrary is not a function
+deferred_static_seperate_test: RuntimeError # L.loadLibrary is not a function
 deopt_inlined_function_lazy_test: Crash # (try {return x+12342353257893275483274832;}finally {}): try/finally
 div_with_power_of_two2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 double_to_string_as_exponential2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -659,7 +659,7 @@ issue12284_test: Crash # Instance of 'TypeOperator': type check unimplemented fo
 issue13474_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue14014_3_test: Crash # Instance of 'TypeOperator': type check unimplemented for foo<T>.
 issue20476_test: Crash # (try {try {return 1;}catch (e1){}finally {return 3;}}catch (e2){}finally {return 5;}): try/finally
-issue_1751477_test: RuntimeError # undefined is not a function
+issue_1751477_test: RuntimeError # O.loadLibrary is not a function
 label_test: Crash # (switch (i){case 111:while(doAgain()){break L;}default:i-- ;}): Unhandled node
 large_class_declaration_test: Crash # Stack Overflow
 lazy_static3_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -757,7 +757,7 @@ regress_18435_test: Crash # Invalid argument(s)
 regress_18535_test: Crash # Internal Error: No default constructor available.
 regress_21795_test: Crash # (try {foo(t);}finally {if(t==0){try {}catch (err,st){}}}): try/finally
 regress_22438_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
-regress_22443_test: RuntimeError # undefined is not a function
+regress_22443_test: RuntimeError # M.loadLibrary is not a function
 regress_22445_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22579_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22728_test: Crash # (main()async{bool fa...  cannot handle async/sync*/async* functions
@@ -786,7 +786,7 @@ super_call4_test: RuntimeError # Please triage this failure.
 super_getter_setter_test: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 super_implicit_closure_test: RuntimeError # Cannot read property 'call' of undefined
 super_inferrer_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-super_operator_index2_test: RuntimeError # undefined is not a function
+super_operator_index2_test: RuntimeError # this.get$map is not a function
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet

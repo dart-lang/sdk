@@ -9744,7 +9744,7 @@ LayoutTests/fast/table/hittest-tablecell-bottom-edge_t01: Crash # (switch (orgEl
 LayoutTests/fast/table/hittest-tablecell-right-edge_t01: Crash # (switch (orgElement)...  Unhandled node
 LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: Crash # (switch (orgElement)...  Unhandled node
 LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Crash # (switch (orgElement)...  Unhandled node
-LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError # undefined is not a function
+LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError # E.loadLibrary is not a function
 LibTest/async/Stream/Stream.periodic_A01_t01: Crash # Invalid argument(s)
 LibTest/async/Stream/drain_A02_t01: Crash # Invalid argument(s)
 LibTest/async/Zone/registerBinaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneBinaryCallback.
@@ -9765,7 +9765,7 @@ LibTest/core/List/List_class_A01_t02: Crash # Stack Overflow
 LibTest/core/Map/Map_A01_t01: Crash # type expression SomeFunction (typedef)
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Crash # (switch (alpha){case...  Unhandled node
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Crash # (switch (alpha){case...  Unhandled node
-LibTest/core/Set/add_A01_t03: RuntimeError # undefined is not a function
+LibTest/core/Set/add_A01_t03: RuntimeError # receiver.get$x is not a function
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
@@ -9784,9 +9784,8 @@ LibTest/html/Window/moveTo_A02_t01: Crash # (try {print("from ${...  try/finally
 LibTest/html/Window/resizeBy_A01_t01: Crash # (try {check(nw,0,0);...  try/finally
 LibTest/html/Window/resizeTo_A01_t01: Crash # (try {check(nw,0,0);...  try/finally
 LibTest/isolate/ReceivePort/drain_A02_t01: Crash # Invalid argument(s)
-LibTest/math/sin_A01_t02: RuntimeError # Please triage this failure.
-Utils/tests/Expect/approxEquals_A04_t01: RuntimeError # undefined is not a function
-Utils/tests/Expect/stringEquals_A02_t01: RuntimeError # undefined is not a function
+Utils/tests/Expect/approxEquals_A04_t01: RuntimeError # v0.get$message is not a function
+Utils/tests/Expect/stringEquals_A02_t01: RuntimeError # v0.get$message is not a function
 WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: Crash # (switch (name){case ...  Unhandled node
 WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: Crash # (switch (name){case ...  Unhandled node
 WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: Crash # (switch (name){case ...  Unhandled node
