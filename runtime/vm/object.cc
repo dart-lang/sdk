@@ -13356,6 +13356,7 @@ RawMegamorphicCache* MegamorphicCache::New() {
   }
   const intptr_t capacity = kInitialCapacity;
   const Array& buckets = Array::Handle(Array::New(kEntryLength * capacity));
+  ASSERT(Isolate::Current()->megamorphic_cache_table()->miss_handler() != NULL);
   const Function& handler = Function::Handle(
       Isolate::Current()->megamorphic_cache_table()->miss_handler());
   for (intptr_t i = 0; i < capacity; ++i) {
