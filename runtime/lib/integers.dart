@@ -294,23 +294,27 @@ class _IntegerImplementation extends _Num {
   int modInverse(int m) {
     if (m is! int) throw new ArgumentError(m);
     if (m <= 0) throw new RangeError(m);
+    if (m == 1) return 0;
     if (m is _Bigint) {
       return _toBigint().modInverse(m);
     }
-    if (this == 0) return 0;
-    bool ac = m.isEven;
+    int t = this;
+    if ((t < 0) || (t >= m)) t %= m;
+    if (t == 1) return 1;
+    final bool ac = m.isEven;
+    if ((t == 0) || (ac && t.isEven)) throw new RangeError("Not coprime");
     int u = m;
-    int v = this;
+    int v = t;
     int a = 1,
         b = 0,
         c = 0,
         d = 1;
-    while (u != 0) {
+    do {
       while (u.isEven) {
         u >>= 1;
         if (ac) {
           if (!a.isEven || !b.isEven) {
-            a += this;
+            a += t;
             b -= m;
           }
           a >>= 1;
@@ -323,7 +327,7 @@ class _IntegerImplementation extends _Num {
         v >>= 1;
         if (ac) {
           if (!c.isEven || !d.isEven) {
-            c += this;
+            c += t;
             d -= m;
           }
           c >>= 1;
@@ -341,11 +345,15 @@ class _IntegerImplementation extends _Num {
         if (ac) c -= a;
         d -= b;
       }
+    } while (u != 0);
+    if (v != 1) throw new RangeError("Not coprime");
+    if (d < 0) {
+      d += m;
+      if (d < 0) d += m;
+    } else if (d > m) {
+      d -= m;
+      if (d > m) d -= m;
     }
-    if (v != 1) return 0;
-    if (d > m) return d - m;
-    if (d < 0) d += m;
-    if (d < 0) d += m;
     return d;
   }
 }
