@@ -9784,8 +9784,6 @@ LibTest/html/Window/moveTo_A02_t01: Crash # (try {print("from ${...  try/finally
 LibTest/html/Window/resizeBy_A01_t01: Crash # (try {check(nw,0,0);...  try/finally
 LibTest/html/Window/resizeTo_A01_t01: Crash # (try {check(nw,0,0);...  try/finally
 LibTest/isolate/ReceivePort/drain_A02_t01: Crash # Invalid argument(s)
-Utils/tests/Expect/approxEquals_A04_t01: RuntimeError # v0.get$message is not a function
-Utils/tests/Expect/stringEquals_A02_t01: RuntimeError # v0.get$message is not a function
 WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: Crash # (switch (name){case ...  Unhandled node
 WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: Crash # (switch (name){case ...  Unhandled node
 WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: Crash # (switch (name){case ...  Unhandled node
