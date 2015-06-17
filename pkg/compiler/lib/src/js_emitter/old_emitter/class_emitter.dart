@@ -482,11 +482,16 @@ class ClassEmitter extends CodeEmitterHelper {
             || compiler.codegenWorld.hasInvokedSetter(field, compiler.world));
   }
 
-  // We never access a field in a closure (a captured variable) without knowing
-  // that it is there.  Therefore we don't need to use a getter (that will throw
-  // if the getter method is missing), but can always access the field directly.
   static bool fieldAccessNeverThrows(VariableElement field) {
-    return field is ClosureFieldElement;
+    return
+        // Exceptions for missing static and top level fields are generated at
+        // compile time.
+        field.isStatic || field.isTopLevel ||
+        // We never access a field in a closure (a captured variable) without
+        // knowing that it is there.  Therefore we don't need to use a getter
+        // (that will throw if the getter method is missing), but can always
+        // access the field directly.
+        field is ClosureFieldElement;
   }
 
   bool canAvoidGeneratedCheckedSetter(VariableElement member) {

@@ -844,18 +844,6 @@ class TypedSelector extends Selector {
 
   bool appliesUnnamed(Element element, World world) {
     assert(sameNameHack(element, world));
-    // [TypedSelector] are only used after resolution.
-    if (!element.isClassMember) return false;
-
-    // A closure can be called through any typed selector:
-    // class A {
-    //   get foo => () => 42;
-    //   bar() => foo(); // The call to 'foo' is a typed selector.
-    // }
-    if (element.enclosingClass.isClosure) {
-      return appliesUntyped(element, world);
-    }
-
     if (!mask.canHit(element, this, world)) return false;
     return appliesUntyped(element, world);
   }
