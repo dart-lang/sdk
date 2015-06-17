@@ -367,7 +367,10 @@ class Isolate : public BaseIsolate {
 
   Mutex* mutex() const { return mutex_; }
 
-  Debugger* debugger() const { return debugger_; }
+  Debugger* debugger() const {
+    ASSERT(debugger_ != NULL);
+    return debugger_;
+  }
 
   void set_single_step(bool value) { single_step_ = value; }
   bool single_step() const { return single_step_; }

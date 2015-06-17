@@ -698,7 +698,6 @@ static void CheckResultError(const Object& result) {
 // Gets called from debug stub when code reaches a breakpoint
 // set on a runtime stub call.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
-  ASSERT(isolate->debugger() != NULL);
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
@@ -711,7 +710,6 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
-  ASSERT(isolate->debugger() != NULL);
   isolate->debugger()->DebuggerStepCallback();
 }
 

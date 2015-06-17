@@ -317,7 +317,6 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
 void Debugger::SignalIsolateInterrupted() {
   if (HasEventHandler()) {
     Debugger* debugger = Isolate::Current()->debugger();
-    ASSERT(debugger != NULL);
     debugger->SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
   }
 }

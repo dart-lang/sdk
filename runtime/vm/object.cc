@@ -380,12 +380,31 @@ static type SpecialCharacter(type value) {
 }
 
 
-void Object::InitOnce(Isolate* isolate) {
+void Object::InitNull(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
 
   // TODO(iposva): NoSafepointScope needs to be added here.
   ASSERT(class_class() == null_);
+
+  Heap* heap = isolate->heap();
+
+  // Allocate and initialize the null instance.
+  // 'null_' must be the first object allocated as it is used in allocation to
+  // clear the object.
+  {
+    uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
+    null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
+    // The call below is using 'null_' to initialize itself.
+    InitializeObject(address, kNullCid, Instance::InstanceSize());
+  }
+}
+
+
+void Object::InitOnce(Isolate* isolate) {
+  // Should only be run by the vm isolate.
+  ASSERT(isolate == Dart::vm_isolate());
+
   // Initialize the static vtable values.
   {
     Object fake_object;
@@ -420,17 +439,6 @@ void Object::InitOnce(Isolate* isolate) {
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
   branch_offset_error_ = LanguageError::ReadOnlyHandle();
   vm_isolate_snapshot_object_table_ = Array::ReadOnlyHandle();
-
-
-  // Allocate and initialize the null instance.
-  // 'null_' must be the first object allocated as it is used in allocation to
-  // clear the object.
-  {
-    uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
-    null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
-    // The call below is using 'null_' to initialize itself.
-    InitializeObject(address, kNullCid, Instance::InstanceSize());
-  }
 
   *null_object_ = Object::null();
   *null_array_ = Array::null();

@@ -538,6 +538,7 @@ class Object {
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
   // Initialize the VM isolate.
+  static void InitNull(Isolate* isolate);
   static void InitOnce(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
 

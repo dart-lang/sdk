@@ -132,6 +132,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                0,  // New gen size 0; VM isolate should only allocate in old.
                FLAG_old_gen_heap_size * MBInWords,
                FLAG_external_max_size * MBInWords);
+    Object::InitNull(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
     TargetCPUFeatures::InitOnce();
     Object::InitOnce(vm_isolate_);
