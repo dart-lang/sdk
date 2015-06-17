@@ -1044,7 +1044,8 @@ class OldEmitter implements Emitter {
     cspPrecompiledFunctionFor(outputUnit).add(js.statement(r'''
         {
           #constructorName.#typeNameProperty = #constructorNameString;
-          if (!"name" in #constructorName)
+          // IE does not have a name property.
+          if (!("name" in #constructorName))
               #constructorName.name = #constructorNameString;
           $desc = $collectedClasses$.#constructorName[1];
           #constructorName.prototype = $desc;
