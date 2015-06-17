@@ -3509,37 +3509,6 @@ class SsaBuilder extends NewResolvedVisitor {
     generateStaticGetterGet(node, getter);
   }
 
-  void generatePossiblyConditionalInstanceSetter(ast.Send send,
-                                                 HInstruction pushReceiver(),
-                                                 HInstruction pushValue(),
-                                                 {Selector selector,
-                                                  ast.Node location}) {
-    if (send.isConditional) {
-      SsaBranchBuilder brancher = new SsaBranchBuilder(this, send);
-      // compile e?.x = e2 to:
-      //
-      // t1 = e
-      // if (t1 == null)
-      //   result = t1 // same as result = null
-      // else
-      //   result = e.x = e2
-      HInstruction receiver;
-      brancher.handleConditional(
-          () {
-            receiver = pushReceiver();
-            pushCheckNull(receiver);
-          },
-          () => stack.add(receiver),
-          () => generateInstanceSetterWithCompiledReceiver(
-                    send, receiver, pushValue(),
-                    selector: selector, location: location));
-    } else {
-      generateInstanceSetterWithCompiledReceiver(
-          send, pushReceiver(), pushValue(),
-          selector: selector, location: location);
-    }
-  }
-
   void generateInstanceSetterWithCompiledReceiver(ast.Send send,
                                                   HInstruction receiver,
                                                   HInstruction value,
@@ -3987,7 +3956,7 @@ class SsaBuilder extends NewResolvedVisitor {
     }
   }
 
-  void handleForeingJsGetFlag(ast.Send node) {
+  void handleForeignJsGetFlag(ast.Send node) {
     List<ast.Node> arguments = node.arguments.toList();
      ast.Node argument;
      switch (arguments.length) {
@@ -4286,7 +4255,7 @@ class SsaBuilder extends NewResolvedVisitor {
     } else if (name == 'JS_BUILTIN') {
       handleForeignJsBuiltin(node);
     } else if (name == 'JS_GET_FLAG') {
-      handleForeingJsGetFlag(node);
+      handleForeignJsGetFlag(node);
     } else if (name == 'JS_EFFECT') {
       stack.add(graph.addConstantNull(compiler));
     } else if (name == 'JS_INTERCEPTOR_CONSTANT') {
@@ -5626,231 +5595,489 @@ class SsaBuilder extends NewResolvedVisitor {
                     location: node.assignmentOperator);
   }
 
+  void handleSuperSendSet(ast.SendSet node) {
+    Element element = elements[node];
+    List<HInstruction> setterInputs = <HInstruction>[];
+    void generateSuperSendSet() {
+      Selector setterSelector = elements.getSelector(node);
+      if (Elements.isUnresolved(element)
+          || !setterSelector.applies(element, compiler.world)) {
+        generateSuperNoSuchMethodSend(
+            node, setterSelector, setterInputs);
+        pop();
+      } else {
+        add(buildInvokeSuper(setterSelector, element, setterInputs));
+      }
+    }
+    if (identical(node.assignmentOperator.source, '=')) {
+      addDynamicSendArgumentsToList(node, setterInputs);
+      generateSuperSendSet();
+      stack.add(setterInputs.last);
+    } else {
+      Element getter = elements[node.selector];
+      List<HInstruction> getterInputs = <HInstruction>[];
+      Link<ast.Node> arguments = node.arguments;
+      if (node.isIndex) {
+        // If node is of the form [:super.foo[0] += 2:], the send has
+        // two arguments: the index and the left hand side. We get
+        // the index and add it as input of the getter and the
+        // setter.
+        visit(arguments.head);
+        arguments = arguments.tail;
+        HInstruction index = pop();
+        getterInputs.add(index);
+        setterInputs.add(index);
+      }
+      HInstruction getterInstruction;
+      Selector getterSelector =
+          elements.getGetterSelectorInComplexSendSet(node);
+      if (Elements.isUnresolved(getter)) {
+        generateSuperNoSuchMethodSend(
+            node,
+            getterSelector,
+            getterInputs);
+        getterInstruction = pop();
+      } else {
+        getterInstruction = buildInvokeSuper(
+            getterSelector, getter, getterInputs);
+        add(getterInstruction);
+      }
+
+      if (node.isIfNullAssignment) {
+        SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+        brancher.handleIfNull(() => stack.add(getterInstruction),
+            () {
+              addDynamicSendArgumentsToList(node, setterInputs);
+              generateSuperSendSet();
+              stack.add(setterInputs.last);
+            });
+      } else {
+        handleComplexOperatorSend(node, getterInstruction, arguments);
+        setterInputs.add(pop());
+        generateSuperSendSet();
+        stack.add(node.isPostfix ? getterInstruction : setterInputs.last);
+      }
+    }
+  }
+
+  @override
+  void visitIndexSet(
+      ast.SendSet node,
+      ast.Node receiver,
+      ast.Node index,
+      ast.Node rhs,
+      _) {
+    generateDynamicSend(node);
+  }
+
+  void handleIndexSendSet(ast.SendSet node) {
+    ast.Operator op = node.assignmentOperator;
+    if ("=" == op.source) {
+      internalError(node, "Unexpected index set.");
+    } else {
+      visit(node.receiver);
+      HInstruction receiver = pop();
+      Link<ast.Node> arguments = node.arguments;
+      HInstruction index;
+      if (node.isIndex) {
+        visit(arguments.head);
+        arguments = arguments.tail;
+        index = pop();
+      }
+
+      pushInvokeDynamic(
+          node,
+          elements.getGetterSelectorInComplexSendSet(node),
+          [receiver, index]);
+      HInstruction getterInstruction = pop();
+      if (node.isIfNullAssignment) {
+        // Compile x[i] ??= e as:
+        //   t1 = x[i]
+        //   if (t1 == null)
+        //      t1 = x[i] = e;
+        //   result = t1
+        SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+        brancher.handleIfNull(() => stack.add(getterInstruction),
+            () {
+              visit(arguments.head);
+              HInstruction value = pop();
+              pushInvokeDynamic(
+                  node, elements.getSelector(node), [receiver, index, value]);
+              pop();
+              stack.add(value);
+            });
+      } else {
+        handleComplexOperatorSend(node, getterInstruction, arguments);
+        HInstruction value = pop();
+        pushInvokeDynamic(
+            node, elements.getSelector(node), [receiver, index, value]);
+        pop();
+        if (node.isPostfix) {
+          stack.add(getterInstruction);
+        } else {
+          stack.add(value);
+        }
+      }
+    }
+  }
+
+  @override
+  void visitThisPropertySet(
+      ast.SendSet node,
+      Selector selector,
+      ast.Node rhs,
+      _) {
+    generateInstanceSetterWithCompiledReceiver(
+        node,
+        localsHandler.readThis(),
+        visitAndPop(rhs));
+  }
+
+  @override
+  void visitDynamicPropertySet(
+      ast.SendSet node,
+      ast.Node receiver,
+      Selector selector,
+      ast.Node rhs,
+      _) {
+    generateInstanceSetterWithCompiledReceiver(
+        node,
+        generateInstanceSendReceiver(node),
+        visitAndPop(rhs));
+  }
+
+  @override
+  void visitIfNotNullDynamicPropertySet(
+      ast.SendSet node,
+      ast.Node receiver,
+      Selector selector,
+      ast.Node rhs,
+      _) {
+    // compile e?.x = e2 to:
+    //
+    // t1 = e
+    // if (t1 == null)
+    //   result = t1 // same as result = null
+    // else
+    //   result = e.x = e2
+    HInstruction receiverInstruction;
+    SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+    brancher.handleConditional(
+        () {
+          receiverInstruction = generateInstanceSendReceiver(node);
+          pushCheckNull(receiverInstruction);
+        },
+        () => stack.add(receiverInstruction),
+        () {
+          generateInstanceSetterWithCompiledReceiver(
+              node,
+              receiverInstruction,
+              visitAndPop(rhs));
+        });
+  }
+
+  @override
+  void visitParameterSet(
+      ast.SendSet node,
+      ParameterElement parameter,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, parameter, visitAndPop(rhs));
+  }
+
+  @override
+  void visitFinalParameterSet(
+      ast.SendSet node,
+      ParameterElement parameter,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, parameter, visitAndPop(rhs));
+  }
+
+  @override
+  void visitLocalVariableSet(
+      ast.SendSet node,
+      LocalVariableElement variable,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, variable, visitAndPop(rhs));
+  }
+
+  @override
+  void visitFinalLocalVariableSet(
+      ast.SendSet node,
+      LocalVariableElement variable,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, variable, visitAndPop(rhs));
+  }
+
+  @override
+  void visitLocalFunctionSet(
+      ast.SendSet node,
+      LocalFunctionElement function,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, function, visitAndPop(rhs));
+  }
+
+  @override
+  void visitTopLevelFieldSet(
+      ast.SendSet node,
+      FieldElement field,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, field, visitAndPop(rhs));
+  }
+
+  @override
+  void visitFinalTopLevelFieldSet(
+      ast.SendSet node,
+      FieldElement field,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, field, visitAndPop(rhs));
+  }
+
+  @override
+  void visitTopLevelGetterSet(
+      ast.SendSet node,
+      GetterElement getter,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, getter, visitAndPop(rhs));
+  }
+
+  @override
+  void visitTopLevelSetterSet(
+      ast.SendSet node,
+      SetterElement setter,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, setter, visitAndPop(rhs));
+  }
+
+  @override
+  void visitTopLevelFunctionSet(
+      ast.SendSet node,
+      MethodElement function,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, function, visitAndPop(rhs));
+  }
+
+  @override
+  void visitStaticFieldSet(
+      ast.SendSet node,
+      FieldElement field,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, field, visitAndPop(rhs));
+  }
+
+  @override
+  void visitFinalStaticFieldSet(
+      ast.SendSet node,
+      FieldElement field,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, field, visitAndPop(rhs));
+  }
+
+  @override
+  void visitStaticGetterSet(
+      ast.SendSet node,
+      GetterElement getter,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, getter, visitAndPop(rhs));
+  }
+
+  @override
+  void visitStaticSetterSet(
+      ast.SendSet node,
+      SetterElement setter,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, setter, visitAndPop(rhs));
+  }
+
+  @override
+  void visitStaticFunctionSet(
+      ast.SendSet node,
+      MethodElement function,
+      ast.Node rhs,
+      _) {
+    generateNonInstanceSetter(node, function, visitAndPop(rhs));
+  }
+
+  @override
+  void visitUnresolvedSet(
+      ast.SendSet node,
+      Element element,
+      ast.Node rhs,
+      _) {
+    if (node.isSuperCall) {
+      // TODO(johnniwinther): Remove this when final super field assignment is
+      // not an unresolved set.
+      handleSuperSendSet(node);
+    } else {
+      generateNonInstanceSetter(node, element, visitAndPop(rhs));
+    }
+  }
+
+  @override
+  void visitClassTypeLiteralSet(
+      ast.SendSet node,
+      TypeConstantExpression constant,
+      ast.Node rhs,
+      _) {
+    generateThrowNoSuchMethod(node, constant.type.name,
+                              argumentNodes: node.arguments);
+  }
+
+  @override
+  void visitTypedefTypeLiteralSet(
+      ast.SendSet node,
+      TypeConstantExpression constant,
+      ast.Node rhs,
+      _) {
+    generateThrowNoSuchMethod(node, constant.type.name,
+                              argumentNodes: node.arguments);
+  }
+
+  @override
+  void visitDynamicTypeLiteralSet(
+      ast.SendSet node,
+      TypeConstantExpression constant,
+      ast.Node rhs,
+      _) {
+    generateThrowNoSuchMethod(node, constant.type.name,
+                              argumentNodes: node.arguments);
+  }
+
+  @override
+  void visitTypeVariableTypeLiteralSet(
+      ast.SendSet node,
+      TypeVariableElement element,
+      ast.Node rhs,
+      _) {
+    generateThrowNoSuchMethod(node, element.name,
+                              argumentNodes: node.arguments);
+  }
+
+  void handleCompoundSendSet(ast.SendSet node) {
+    Element element = elements[node];
+    Element getter = elements[node.selector];
+
+    if (!Elements.isUnresolved(getter) && getter.impliesType) {
+      if (node.isIfNullAssignment) {
+        // C ??= x is compiled just as C.
+        stack.add(addConstant(node.selector));
+      } else {
+        ast.Identifier selector = node.selector;
+        generateThrowNoSuchMethod(node, selector.source,
+                                  argumentNodes: node.arguments);
+      }
+      return;
+    }
+
+    if (Elements.isInstanceSend(node, elements)) {
+      void generateAssignment(HInstruction receiver) {
+        // desugars `e.x op= e2` to `e.x = e.x op e2`
+        generateInstanceGetterWithCompiledReceiver(
+            node, elements.getGetterSelectorInComplexSendSet(node), receiver);
+        HInstruction getterInstruction = pop();
+        if (node.isIfNullAssignment) {
+          SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+          brancher.handleIfNull(() => stack.add(getterInstruction),
+              () {
+                visit(node.arguments.head);
+                generateInstanceSetterWithCompiledReceiver(
+                    node, receiver, pop());
+              });
+        } else {
+          handleComplexOperatorSend(node, getterInstruction, node.arguments);
+          HInstruction value = pop();
+          generateInstanceSetterWithCompiledReceiver(node, receiver, value);
+        }
+        if (node.isPostfix) {
+          pop();
+          stack.add(getterInstruction);
+        }
+      }
+      if (node.isConditional) {
+        // generate `e?.x op= e2` as:
+        //   t1 = e
+        //   t1 == null ? t1 : (t1.x = t1.x op e2);
+        HInstruction receiver;
+        SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+        brancher.handleConditional(
+            () {
+              receiver = generateInstanceSendReceiver(node);
+              pushCheckNull(receiver);
+            },
+            () => stack.add(receiver),
+            () => generateAssignment(receiver));
+      } else {
+        generateAssignment(generateInstanceSendReceiver(node));
+      }
+      return;
+    }
+
+    if (getter.isErroneous) {
+      generateStaticUnresolvedGet(node, getter);
+    } else if (getter.isField) {
+      generateStaticFieldGet(node, getter);
+    } else if (getter.isGetter) {
+      generateStaticGetterGet(node, getter);
+    } else if (getter.isFunction) {
+      generateStaticFunctionGet(node, getter);
+    } else if (getter.isLocal) {
+      handleLocalGet(getter);
+    } else {
+      internalError(node, "Unexpected getter: $getter");
+    }
+    HInstruction getterInstruction = pop();
+    if (node.isIfNullAssignment) {
+      SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
+      brancher.handleIfNull(() => stack.add(getterInstruction),
+          () {
+            visit(node.arguments.head);
+            generateNonInstanceSetter(node, element, pop());
+          });
+    } else {
+      handleComplexOperatorSend(node, getterInstruction, node.arguments);
+      HInstruction value = pop();
+      generateNonInstanceSetter(node, element, value);
+    }
+    if (node.isPostfix) {
+      pop();
+      stack.add(getterInstruction);
+    }
+  }
+
   @override
   handleSendSet(ast.SendSet node) {
+    ast.Operator op = node.assignmentOperator;
     generateIsDeferredLoadedCheckOfSend(node);
     Element element = elements[node];
     if (!Elements.isUnresolved(element) && element.impliesType) {
       ast.Identifier selector = node.selector;
       generateThrowNoSuchMethod(node, selector.source,
                                 argumentNodes: node.arguments);
-      return;
-    }
-    ast.Operator op = node.assignmentOperator;
-    if (node.isSuperCall) {
-      List<HInstruction> setterInputs = <HInstruction>[];
-      void generateSuperSendSet() {
-        Selector setterSelector = elements.getSelector(node);
-        if (Elements.isUnresolved(element)
-            || !setterSelector.applies(element, compiler.world)) {
-          generateSuperNoSuchMethodSend(
-              node, setterSelector, setterInputs);
-          pop();
-        } else {
-          add(buildInvokeSuper(setterSelector, element, setterInputs));
-        }
-      }
-      if (identical(node.assignmentOperator.source, '=')) {
-        addDynamicSendArgumentsToList(node, setterInputs);
-        generateSuperSendSet();
-        stack.add(setterInputs.last);
-      } else {
-        Element getter = elements[node.selector];
-        List<HInstruction> getterInputs = <HInstruction>[];
-        Link<ast.Node> arguments = node.arguments;
-        if (node.isIndex) {
-          // If node is of the from [:super.foo[0] += 2:], the send has
-          // two arguments: the index and the left hand side. We get
-          // the index and add it as input of the getter and the
-          // setter.
-          visit(arguments.head);
-          arguments = arguments.tail;
-          HInstruction index = pop();
-          getterInputs.add(index);
-          setterInputs.add(index);
-        }
-        HInstruction getterInstruction;
-        Selector getterSelector =
-            elements.getGetterSelectorInComplexSendSet(node);
-        if (Elements.isUnresolved(getter)) {
-          generateSuperNoSuchMethodSend(
-              node,
-              getterSelector,
-              getterInputs);
-          getterInstruction = pop();
-        } else {
-          getterInstruction = buildInvokeSuper(
-              getterSelector, getter, getterInputs);
-          add(getterInstruction);
-        }
-
-        if (node.isIfNullAssignment) {
-          SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
-          brancher.handleIfNull(() => stack.add(getterInstruction),
-              () {
-                addDynamicSendArgumentsToList(node, setterInputs);
-                generateSuperSendSet();
-                stack.add(setterInputs.last);
-              });
-        } else {
-          handleComplexOperatorSend(node, getterInstruction, arguments);
-          setterInputs.add(pop());
-          generateSuperSendSet();
-          stack.add(node.isPostfix ? getterInstruction : setterInputs.last);
-        }
-      }
+    } else if (node.isSuperCall) {
+      handleSuperSendSet(node);
     } else if (node.isIndex) {
-      if ("=" == op.source) {
-        generateDynamicSend(node);
-      } else {
-        visit(node.receiver);
-        HInstruction receiver = pop();
-        Link<ast.Node> arguments = node.arguments;
-        HInstruction index;
-        if (node.isIndex) {
-          visit(arguments.head);
-          arguments = arguments.tail;
-          index = pop();
-        }
-
-        pushInvokeDynamic(
-            node,
-            elements.getGetterSelectorInComplexSendSet(node),
-            [receiver, index]);
-        HInstruction getterInstruction = pop();
-        if (node.isIfNullAssignment) {
-          // Compile x[i] ??= e as:
-          //   t1 = x[i]
-          //   if (t1 == null)
-          //      t1 = x[i] = e;
-          //   result = t1
-          SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
-          brancher.handleIfNull(() => stack.add(getterInstruction),
-              () {
-                visit(arguments.head);
-                HInstruction value = pop();
-                pushInvokeDynamic(
-                    node, elements.getSelector(node), [receiver, index, value]);
-                pop();
-                stack.add(value);
-              });
-        } else {
-          handleComplexOperatorSend(node, getterInstruction, arguments);
-          HInstruction value = pop();
-          pushInvokeDynamic(
-              node, elements.getSelector(node), [receiver, index, value]);
-          pop();
-          if (node.isPostfix) {
-            stack.add(getterInstruction);
-          } else {
-            stack.add(value);
-          }
-        }
-      }
+      handleIndexSendSet(node);
     } else if ("=" == op.source) {
-      Link<ast.Node> link = node.arguments;
-      assert(!link.isEmpty && link.tail.isEmpty);
-      if (Elements.isInstanceSend(node, elements)) {
-        generatePossiblyConditionalInstanceSetter(node,
-            () => generateInstanceSendReceiver(node),
-            () => visitAndPop(link.head));
-      } else {
-        visit(link.head);
-        generateNonInstanceSetter(node, element, pop());
-      }
+      internalError(node, "Unexpected assignment.");
     } else if (identical(op.source, "is")) {
       compiler.internalError(op, "is-operator as SendSet.");
     } else {
       assert("++" == op.source || "--" == op.source ||
              node.assignmentOperator.source.endsWith("="));
-
-      Element getter = elements[node.selector];
-
-      if (!Elements.isUnresolved(getter) && getter.impliesType) {
-        if (node.isIfNullAssignment) {
-          // C ??= x is compiled just as C.
-          stack.add(addConstant(node.selector));
-        } else {
-          ast.Identifier selector = node.selector;
-          generateThrowNoSuchMethod(node, selector.source,
-                                    argumentNodes: node.arguments);
-        }
-        return;
-      }
-
-      if (Elements.isInstanceSend(node, elements)) {
-        void generateAssignment(HInstruction receiver) {
-          // desugars `e.x op= e2` to `e.x = e.x op e2`
-          generateInstanceGetterWithCompiledReceiver(
-              node, elements.getGetterSelectorInComplexSendSet(node), receiver);
-          HInstruction getterInstruction = pop();
-          if (node.isIfNullAssignment) {
-            SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
-            brancher.handleIfNull(() => stack.add(getterInstruction),
-                () {
-                  visit(node.arguments.head);
-                  generateInstanceSetterWithCompiledReceiver(
-                      node, receiver, pop());
-                });
-          } else {
-            handleComplexOperatorSend(node, getterInstruction, node.arguments);
-            HInstruction value = pop();
-            generateInstanceSetterWithCompiledReceiver(node, receiver, value);
-          }
-          if (node.isPostfix) {
-            pop();
-            stack.add(getterInstruction);
-          }
-        }
-        if (node.isConditional) {
-          // generate `e?.x op= e2` as:
-          //   t1 = e
-          //   t1 == null ? t1 : (t1.x = t1.x op e2);
-          HInstruction receiver;
-          SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
-          brancher.handleConditional(
-              () {
-                receiver = generateInstanceSendReceiver(node);
-                pushCheckNull(receiver);
-              },
-              () => stack.add(receiver),
-              () => generateAssignment(receiver));
-        } else {
-          generateAssignment(generateInstanceSendReceiver(node));
-        }
-        return;
-      }
-
-      if (getter.isErroneous) {
-        generateStaticUnresolvedGet(node, getter);
-      } else if (getter.isField) {
-        generateStaticFieldGet(node, getter);
-      } else if (getter.isGetter) {
-        generateStaticGetterGet(node, getter);
-      } else if (getter.isFunction) {
-        generateStaticFunctionGet(node, getter);
-      } else if (getter.isLocal) {
-        handleLocalGet(getter);
-      } else {
-        internalError(node, "Unexpected getter: $getter");
-      }
-      HInstruction getterInstruction = pop();
-      if (node.isIfNullAssignment) {
-        SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
-        brancher.handleIfNull(() => stack.add(getterInstruction),
-            () {
-              visit(node.arguments.head);
-              generateNonInstanceSetter(node, element, pop());
-            });
-      } else {
-        handleComplexOperatorSend(node, getterInstruction, node.arguments);
-        HInstruction value = pop();
-        generateNonInstanceSetter(node, element, value);
-      }
-      if (node.isPostfix) {
-        pop();
-        stack.add(getterInstruction);
-      }
+      handleCompoundSendSet(node);
     }
   }
 
