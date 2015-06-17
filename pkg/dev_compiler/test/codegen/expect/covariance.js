@@ -22,8 +22,8 @@ dart_library.library('covariance', null, /* Imports */[
     }
     dart.setSignature(Foo, {
       methods: () => ({
-        add: [core.Object, [T]],
-        forEach: [core.Object, [dart.functionType(dart.void, [T])]]
+        add: [dart.dynamic, [T]],
+        forEach: [dart.dynamic, [dart.functionType(dart.void, [T])]]
       })
     });
     return Foo;
@@ -39,7 +39,7 @@ dart_library.library('covariance', null, /* Imports */[
     }
   }
   dart.setSignature(Bar, {
-    methods: () => ({add: [core.Object, [core.int]]})
+    methods: () => ({add: [dart.dynamic, [core.int]]})
   });
   function main() {
     let foo = new Bar();

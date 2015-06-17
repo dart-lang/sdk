@@ -58,26 +58,26 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   function defineProperty(obj, property, value) {
     Object.defineProperty(obj, property, {value: value, enumerable: false, writable: true, configurable: true});
   }
-  dart.fn(defineProperty, dart.void, [core.Object, core.String, core.Object]);
+  dart.fn(defineProperty, dart.void, [dart.dynamic, core.String, dart.dynamic]);
   let _nativeRegExp = Symbol('_nativeRegExp');
   function regExpGetNative(regexp) {
     return regexp[_nativeRegExp];
   }
-  dart.fn(regExpGetNative, () => dart.functionType(core.Object, [JSSyntaxRegExp]));
+  dart.fn(regExpGetNative, () => dart.definiteFunctionType(dart.dynamic, [JSSyntaxRegExp]));
   let _nativeGlobalVersion = Symbol('_nativeGlobalVersion');
   function regExpGetGlobalNative(regexp) {
     let nativeRegexp = regexp[_nativeGlobalVersion];
     nativeRegexp.lastIndex = 0;
     return nativeRegexp;
   }
-  dart.fn(regExpGetGlobalNative, () => dart.functionType(core.Object, [JSSyntaxRegExp]));
+  dart.fn(regExpGetGlobalNative, () => dart.definiteFunctionType(dart.dynamic, [JSSyntaxRegExp]));
   let _nativeAnchoredVersion = Symbol('_nativeAnchoredVersion');
   function regExpCaptureCount(regexp) {
     let nativeAnchoredRegExp = regexp[_nativeAnchoredVersion];
     let match = nativeAnchoredRegExp.exec('');
     return dart.as(dart.dsend(dart.dload(match, 'length'), '-', 2), core.int);
   }
-  dart.fn(regExpCaptureCount, () => dart.functionType(core.int, [JSSyntaxRegExp]));
+  dart.fn(regExpCaptureCount, () => dart.definiteFunctionType(core.int, [JSSyntaxRegExp]));
   let _nativeGlobalRegExp = Symbol('_nativeGlobalRegExp');
   let _nativeAnchoredRegExp = Symbol('_nativeAnchoredRegExp');
   let _isMultiLine = Symbol('_isMultiLine');
@@ -201,7 +201,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       [_execAnchored]: [core.Match, [core.String, core.int]],
       matchAsPrefix: [core.Match, [core.String], [core.int]]
     }),
-    statics: () => ({makeNative: [core.Object, [core.String, core.bool, core.bool, core.bool]]}),
+    statics: () => ({makeNative: [dart.dynamic, [core.String, core.bool, core.bool, core.bool]]}),
     names: ['makeNative']
   });
   dart.defineExtensionMembers(JSSyntaxRegExp, ['allMatches', 'matchAsPrefix']);
@@ -515,7 +515,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       throw "String.replace(Pattern) UNIMPLEMENTED";
     }
   }
-  dart.fn(stringReplaceFirstUnchecked, core.Object, [core.Object, core.Object, core.Object], [core.int]);
+  dart.fn(stringReplaceFirstUnchecked, dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic], [core.int]);
   function stringJoinUnchecked(array, separator) {
     return array.join(separator);
   }
@@ -523,21 +523,21 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   function getRuntimeType(object) {
     return dart.as(dart.realRuntimeType(object), core.Type);
   }
-  dart.fn(getRuntimeType, core.Type, [core.Object]);
+  dart.fn(getRuntimeType, core.Type, [dart.dynamic]);
   function getIndex(array, index) {
     dart.assert(isJsArray(array));
     return array[index];
   }
-  dart.fn(getIndex, core.Object, [core.Object, core.int]);
+  dart.fn(getIndex, dart.dynamic, [dart.dynamic, core.int]);
   function getLength(array) {
     dart.assert(isJsArray(array));
     return array.length;
   }
-  dart.fn(getLength, core.int, [core.Object]);
+  dart.fn(getLength, core.int, [dart.dynamic]);
   function isJsArray(value) {
     return dart.is(value, _interceptors.JSArray);
   }
-  dart.fn(isJsArray, core.bool, [core.Object]);
+  dart.fn(isJsArray, core.bool, [dart.dynamic]);
   class _Patch extends core.Object {
     _Patch() {
     }
@@ -565,7 +565,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     }
     static parseInt(source, radix, handleError) {
       if (handleError == null)
-        handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.int), core.int, [core.Object]);
+        handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.int), core.int, [dart.dynamic]);
       checkString(source);
       let match = /^\s*[+-]?((0x[a-f0-9]+)|(\d+)|([a-z0-9]+))\s*$/i.exec(source);
       let digitsIndex = 1;
@@ -617,7 +617,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     static parseDouble(source, handleError) {
       checkString(source);
       if (handleError == null)
-        handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.double), core.double, [core.Object]);
+        handleError = dart.fn(s => dart.as(Primitives._throwFormatException(dart.as(s, core.String)), core.double), core.double, [dart.dynamic]);
       if (!/^\s*[+-]?(?:Infinity|NaN|(?:\.\d+|\d+(?:\.\d*)?)(?:[eE][+-]?\d+)?)\s*$/.test(source)) {
         return handleError(source);
       }
@@ -843,8 +843,8 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   dart.setSignature(Primitives, {
     statics: () => ({
       initializeStatics: [dart.void, [core.int]],
-      objectHashCode: [core.int, [core.Object]],
-      _throwFormatException: [core.Object, [core.String]],
+      objectHashCode: [core.int, [dart.dynamic]],
+      _throwFormatException: [dart.dynamic, [core.String]],
       parseInt: [core.int, [core.String, core.int, dart.functionType(core.int, [core.String])]],
       parseDouble: [core.double, [core.String, dart.functionType(core.double, [core.String])]],
       objectTypeName: [core.String, [core.Object]],
@@ -853,28 +853,28 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       initTicker: [dart.void, []],
       currentUri: [core.String, []],
       _fromCharCodeApply: [core.String, [core.List$(core.int)]],
-      stringFromCodePoints: [core.String, [core.Object]],
-      stringFromCharCodes: [core.String, [core.Object]],
-      stringFromCharCode: [core.String, [core.Object]],
+      stringFromCodePoints: [core.String, [dart.dynamic]],
+      stringFromCharCodes: [core.String, [dart.dynamic]],
+      stringFromCharCode: [core.String, [dart.dynamic]],
       stringConcatUnchecked: [core.String, [core.String, core.String]],
       flattenString: [core.String, [core.String]],
-      getTimeZoneName: [core.String, [core.Object]],
-      getTimeZoneOffsetInMinutes: [core.int, [core.Object]],
-      valueFromDecomposedDate: [core.Object, [core.Object, core.Object, core.Object, core.Object, core.Object, core.Object, core.Object, core.Object]],
-      patchUpY2K: [core.Object, [core.Object, core.Object, core.Object]],
-      lazyAsJsDate: [core.Object, [core.Object]],
-      getYear: [core.Object, [core.Object]],
-      getMonth: [core.Object, [core.Object]],
-      getDay: [core.Object, [core.Object]],
-      getHours: [core.Object, [core.Object]],
-      getMinutes: [core.Object, [core.Object]],
-      getSeconds: [core.Object, [core.Object]],
-      getMilliseconds: [core.Object, [core.Object]],
-      getWeekday: [core.Object, [core.Object]],
-      valueFromDateString: [core.Object, [core.Object]],
-      getProperty: [core.Object, [core.Object, core.Object]],
-      setProperty: [dart.void, [core.Object, core.Object, core.Object]],
-      identicalImplementation: [core.bool, [core.Object, core.Object]],
+      getTimeZoneName: [core.String, [dart.dynamic]],
+      getTimeZoneOffsetInMinutes: [core.int, [dart.dynamic]],
+      valueFromDecomposedDate: [dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic, dart.dynamic]],
+      patchUpY2K: [dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      lazyAsJsDate: [dart.dynamic, [dart.dynamic]],
+      getYear: [dart.dynamic, [dart.dynamic]],
+      getMonth: [dart.dynamic, [dart.dynamic]],
+      getDay: [dart.dynamic, [dart.dynamic]],
+      getHours: [dart.dynamic, [dart.dynamic]],
+      getMinutes: [dart.dynamic, [dart.dynamic]],
+      getSeconds: [dart.dynamic, [dart.dynamic]],
+      getMilliseconds: [dart.dynamic, [dart.dynamic]],
+      getWeekday: [dart.dynamic, [dart.dynamic]],
+      valueFromDateString: [dart.dynamic, [dart.dynamic]],
+      getProperty: [dart.dynamic, [dart.dynamic, dart.dynamic]],
+      setProperty: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
+      identicalImplementation: [core.bool, [dart.dynamic, dart.dynamic]],
       extractStackTrace: [core.StackTrace, [core.Error]]
     }),
     names: ['initializeStatics', 'objectHashCode', '_throwFormatException', 'parseInt', 'parseDouble', 'objectTypeName', 'objectToString', 'dateNow', 'initTicker', 'currentUri', '_fromCharCodeApply', 'stringFromCodePoints', 'stringFromCharCodes', 'stringFromCharCode', 'stringConcatUnchecked', 'flattenString', 'getTimeZoneName', 'getTimeZoneOffsetInMinutes', 'valueFromDecomposedDate', 'patchUpY2K', 'lazyAsJsDate', 'getYear', 'getMonth', 'getDay', 'getHours', 'getMinutes', 'getSeconds', 'getMilliseconds', 'getWeekday', 'valueFromDateString', 'getProperty', 'setProperty', 'identicalImplementation', 'extractStackTrace']
@@ -946,7 +946,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   }
   NullError[dart.implements] = () => [core.NoSuchMethodError];
   dart.setSignature(NullError, {
-    constructors: () => ({NullError: [NullError, [core.String, core.Object]]})
+    constructors: () => ({NullError: [NullError, [core.String, dart.dynamic]]})
   });
   let _receiver = Symbol('_receiver');
   class JsNoSuchMethodError extends core.Error {
@@ -967,7 +967,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   }
   JsNoSuchMethodError[dart.implements] = () => [core.NoSuchMethodError];
   dart.setSignature(JsNoSuchMethodError, {
-    constructors: () => ({JsNoSuchMethodError: [JsNoSuchMethodError, [core.String, core.Object]]})
+    constructors: () => ({JsNoSuchMethodError: [JsNoSuchMethodError, [core.String, dart.dynamic]]})
   });
   class UnknownJsTypeError extends core.Error {
     UnknownJsTypeError(message) {
@@ -984,7 +984,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   function getTraceFromException(exception) {
     return new _StackTrace(exception);
   }
-  dart.fn(getTraceFromException, core.StackTrace, [core.Object]);
+  dart.fn(getTraceFromException, core.StackTrace, [dart.dynamic]);
   let _exception = Symbol('_exception');
   let _trace = Symbol('_trace');
   class _StackTrace extends core.Object {
@@ -1004,7 +1004,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   }
   _StackTrace[dart.implements] = () => [core.StackTrace];
   dart.setSignature(_StackTrace, {
-    constructors: () => ({_StackTrace: [_StackTrace, [core.Object]]})
+    constructors: () => ({_StackTrace: [_StackTrace, [dart.dynamic]]})
   });
   function objectHashCode(object) {
     if (object == null || typeof object != 'object') {
@@ -1013,7 +1013,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       return Primitives.objectHashCode(object);
     }
   }
-  dart.fn(objectHashCode, core.int, [core.Object]);
+  dart.fn(objectHashCode, core.int, [dart.dynamic]);
   function fillLiteralMap(keyValuePairs, result) {
     let index = 0;
     let length = getLength(keyValuePairs);
@@ -1032,19 +1032,19 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     }
     return result;
   }
-  dart.fn(fillLiteralMap, core.Object, [core.Object, core.Map]);
+  dart.fn(fillLiteralMap, dart.dynamic, [dart.dynamic, core.Map]);
   function convertDartClosureToJS(closure, arity) {
     return closure;
   }
-  dart.fn(convertDartClosureToJS, core.Object, [core.Object, core.int]);
+  dart.fn(convertDartClosureToJS, dart.dynamic, [dart.dynamic, core.int]);
   function jsHasOwnProperty(jsObject, property) {
     return jsObject.hasOwnProperty(property);
   }
-  dart.fn(jsHasOwnProperty, core.bool, [core.Object, core.String]);
+  dart.fn(jsHasOwnProperty, core.bool, [dart.dynamic, core.String]);
   function jsPropertyAccess(jsObject, property) {
     return jsObject[property];
   }
-  dart.fn(jsPropertyAccess, core.Object, [core.Object, core.String]);
+  dart.fn(jsPropertyAccess, dart.dynamic, [dart.dynamic, core.String]);
   function getFallThroughError() {
     return new FallThroughErrorImplementation();
   }
@@ -1129,7 +1129,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     }
   }
   dart.setSignature(RuntimeError, {
-    constructors: () => ({RuntimeError: [RuntimeError, [core.Object]]})
+    constructors: () => ({RuntimeError: [RuntimeError, [dart.dynamic]]})
   });
   function random64() {
     let int32a = Math.random() * 0x100000000 >>> 0;

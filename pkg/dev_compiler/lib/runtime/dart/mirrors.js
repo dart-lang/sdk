@@ -8,7 +8,7 @@ dart_library.library('dart/mirrors', null, /* Imports */[
   let dartx = dart.dartx;
   class MirrorSystem extends core.Object {
     findLibrary(libraryName) {
-      return this.libraries.values[dartx.singleWhere](dart.fn(library => dart.equals(dart.dload(library, 'simpleName'), libraryName), core.bool, [core.Object]));
+      return this.libraries.values[dartx.singleWhere](dart.fn(library => dart.equals(dart.dload(library, 'simpleName'), libraryName), core.bool, [dart.dynamic]));
     }
     static getName(symbol) {
       return _js_mirrors.getName(symbol);
@@ -34,9 +34,9 @@ dart_library.library('dart/mirrors', null, /* Imports */[
   function reflect(reflectee) {
     return _js_mirrors.reflect(reflectee);
   }
-  dart.fn(reflect, () => dart.functionType(InstanceMirror, [core.Object]));
+  dart.fn(reflect, () => dart.definiteFunctionType(InstanceMirror, [core.Object]));
   function reflectClass(key) {
-    if (!dart.is(key, core.Type) || dart.equals(key, core.Object)) {
+    if (!dart.is(key, core.Type) || dart.equals(key, dart.dynamic)) {
       throw new core.ArgumentError(`${key} does not denote a class`);
     }
     let tm = reflectType(key);
@@ -45,14 +45,14 @@ dart_library.library('dart/mirrors', null, /* Imports */[
     }
     return dart.as(dart.as(tm, ClassMirror).originalDeclaration, ClassMirror);
   }
-  dart.fn(reflectClass, () => dart.functionType(ClassMirror, [core.Type]));
+  dart.fn(reflectClass, () => dart.definiteFunctionType(ClassMirror, [core.Type]));
   function reflectType(key) {
-    if (dart.equals(key, core.Object)) {
+    if (dart.equals(key, dart.dynamic)) {
       return currentMirrorSystem().dynamicType;
     }
     return _js_mirrors.reflectType(key);
   }
-  dart.fn(reflectType, () => dart.functionType(TypeMirror, [core.Type]));
+  dart.fn(reflectType, () => dart.definiteFunctionType(TypeMirror, [core.Type]));
   class Mirror extends core.Object {}
   class IsolateMirror extends core.Object {}
   IsolateMirror[dart.implements] = () => [Mirror];
@@ -109,7 +109,7 @@ dart_library.library('dart/mirrors', null, /* Imports */[
     }
   }
   dart.setSignature(MirrorsUsed, {
-    constructors: () => ({MirrorsUsed: [MirrorsUsed, [], {symbols: core.Object, targets: core.Object, metaTargets: core.Object, override: core.Object}]})
+    constructors: () => ({MirrorsUsed: [MirrorsUsed, [], {symbols: dart.dynamic, targets: dart.dynamic, metaTargets: dart.dynamic, override: dart.dynamic}]})
   });
   // Exports:
   exports.MirrorSystem = MirrorSystem;

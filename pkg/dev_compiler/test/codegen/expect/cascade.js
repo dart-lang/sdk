@@ -107,7 +107,7 @@ dart_library.library('cascade', null, /* Imports */[
     }
   }
   dart.setSignature(Foo, {
-    methods: () => ({test_final_field_generic: [dart.void, [core.Object]]})
+    methods: () => ({test_final_field_generic: [dart.void, [dart.dynamic]]})
   });
   // Exports:
   exports.A = A;

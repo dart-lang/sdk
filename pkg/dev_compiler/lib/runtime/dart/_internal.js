@@ -175,11 +175,11 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return super.where(test);
       }
       map(f) {
-        dart.as(f, dart.functionType(core.Object, [E]));
+        dart.as(f, dart.functionType(dart.dynamic, [E]));
         return new MappedListIterable(this, f);
       }
       reduce(combine) {
-        dart.as(combine, dart.functionType(E, [dart.bottom, E]));
+        dart.as(combine, dart.functionType(E, [dart.dynamic, E]));
         let length = this.length;
         if (length == 0)
           throw IterableElementError.noElement();
@@ -193,7 +193,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return value;
       }
       fold(initialValue, combine) {
-        dart.as(combine, dart.functionType(core.Object, [dart.bottom, E]));
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
         let value = initialValue;
         let length = this.length;
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
@@ -251,9 +251,9 @@ dart_library.library('dart/_internal', null, /* Imports */[
         lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         singleWhere: [E, [dart.functionType(core.bool, [E])]],
         where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        map: [core.Iterable, [dart.functionType(core.Object, [E])]],
-        reduce: [E, [dart.functionType(E, [dart.bottom, E])]],
-        fold: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
+        map: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
+        reduce: [E, [dart.functionType(E, [dart.dynamic, E])]],
+        fold: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
         skip: [core.Iterable$(E), [core.int]],
         skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         take: [core.Iterable$(E), [core.int]],
@@ -1006,7 +1006,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return this;
       }
       map(f) {
-        dart.as(f, dart.functionType(core.Object, [E]));
+        dart.as(f, dart.functionType(dart.dynamic, [E]));
         return dart.const(new (EmptyIterable$())());
       }
       reduce(combine) {
@@ -1014,7 +1014,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         throw IterableElementError.noElement();
       }
       fold(initialValue, combine) {
-        dart.as(combine, dart.functionType(core.Object, [dart.bottom, E]));
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
         return initialValue;
       }
       skip(count) {
@@ -1053,9 +1053,9 @@ dart_library.library('dart/_internal', null, /* Imports */[
         lastWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         singleWhere: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         where: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
-        map: [core.Iterable, [dart.functionType(core.Object, [E])]],
+        map: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
         reduce: [E, [dart.functionType(E, [E, E])]],
-        fold: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
+        fold: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
         skip: [core.Iterable$(E), [core.int]],
         skipWhile: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         take: [core.Iterable$(E), [core.int]],
@@ -1129,13 +1129,13 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return false;
       }
       static forEach(iterable, f) {
-        dart.as(f, dart.functionType(dart.void, [dart.bottom]));
+        dart.as(f, dart.functionType(dart.void, [dart.dynamic]));
         for (let e of iterable) {
           dart.dcall(f, e);
         }
       }
       static any(iterable, f) {
-        dart.as(f, dart.functionType(core.bool, [dart.bottom]));
+        dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         for (let e of iterable) {
           if (dart.notNull(dart.dcall(f, e)))
             return true;
@@ -1143,7 +1143,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return false;
       }
       static every(iterable, f) {
-        dart.as(f, dart.functionType(core.bool, [dart.bottom]));
+        dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         for (let e of iterable) {
           if (!dart.notNull(dart.dcall(f, e)))
             return false;
@@ -1151,7 +1151,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return true;
       }
       static reduce(iterable, combine) {
-        dart.as(combine, dart.functionType(core.Object, [dart.bottom, dart.bottom]));
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
         let iterator = iterable[dartx.iterator];
         if (!dart.notNull(iterator.moveNext()))
           throw IterableElementError.noElement();
@@ -1162,14 +1162,14 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return value;
       }
       static fold(iterable, initialValue, combine) {
-        dart.as(combine, dart.functionType(core.Object, [dart.bottom, dart.bottom]));
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
         for (let element of iterable) {
           initialValue = dart.dcall(combine, initialValue, element);
         }
         return initialValue;
       }
       static removeWhereList(list, test) {
-        dart.as(test, dart.functionType(core.bool, [dart.bottom]));
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         let retained = [];
         let length = list[dartx.length];
         for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
@@ -1219,8 +1219,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return result;
       }
       static firstWhere(iterable, test, orElse) {
-        dart.as(test, dart.functionType(core.bool, [dart.bottom]));
-        dart.as(orElse, dart.functionType(core.Object, []));
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
+        dart.as(orElse, dart.functionType(dart.dynamic, []));
         for (let element of iterable) {
           if (dart.notNull(dart.dcall(test, element)))
             return element;
@@ -1230,8 +1230,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
         throw IterableElementError.noElement();
       }
       static lastWhere(iterable, test, orElse) {
-        dart.as(test, dart.functionType(core.bool, [dart.bottom]));
-        dart.as(orElse, dart.functionType(core.Object, []));
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
+        dart.as(orElse, dart.functionType(dart.dynamic, []));
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
@@ -1247,8 +1247,8 @@ dart_library.library('dart/_internal', null, /* Imports */[
         throw IterableElementError.noElement();
       }
       static lastWhereList(list, test, orElse) {
-        dart.as(test, dart.functionType(core.bool, [dart.bottom]));
-        dart.as(orElse, dart.functionType(core.Object, []));
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
+        dart.as(orElse, dart.functionType(dart.dynamic, []));
         for (let i = dart.notNull(list[dartx.length]) - 1; dart.notNull(i) >= 0; i = dart.notNull(i) - 1) {
           let element = list[dartx.get](i);
           if (dart.notNull(dart.dcall(test, element)))
@@ -1259,7 +1259,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         throw IterableElementError.noElement();
       }
       static singleWhere(iterable, test) {
-        dart.as(test, dart.functionType(core.bool, [dart.bottom]));
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         let result = null;
         let foundMatching = false;
         for (let element of iterable) {
@@ -1316,40 +1316,40 @@ dart_library.library('dart/_internal', null, /* Imports */[
         return dart.toString(buffer);
       }
       where(iterable, f) {
-        dart.as(f, dart.functionType(core.bool, [dart.bottom]));
+        dart.as(f, dart.functionType(core.bool, [dart.dynamic]));
         return new (WhereIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(f, __CastType2));
       }
       static map(iterable, f) {
-        dart.as(f, dart.functionType(core.Object, [dart.bottom]));
+        dart.as(f, dart.functionType(dart.dynamic, [dart.dynamic]));
         return MappedIterable.new(iterable, f);
       }
       static mapList(list, f) {
-        dart.as(f, dart.functionType(core.Object, [dart.bottom]));
+        dart.as(f, dart.functionType(dart.dynamic, [dart.dynamic]));
         return new MappedListIterable(list, f);
       }
       static expand(iterable, f) {
-        dart.as(f, dart.functionType(core.Iterable, [dart.bottom]));
+        dart.as(f, dart.functionType(core.Iterable, [dart.dynamic]));
         return new ExpandIterable(iterable, f);
       }
       takeList(list, n) {
         return new (SubListIterable$(T))(dart.as(list, core.Iterable$(T)), 0, n);
       }
       takeWhile(iterable, test) {
-        dart.as(test, dart.functionType(core.bool, [dart.bottom]));
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         return new (TakeWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, dart.functionType(core.bool, [T])));
       }
       skipList(list, n) {
         return new (SubListIterable$(T))(dart.as(list, core.Iterable$(T)), n, null);
       }
       skipWhile(iterable, test) {
-        dart.as(test, dart.functionType(core.bool, [dart.bottom]));
+        dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
         return new (SkipWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, dart.functionType(core.bool, [T])));
       }
       reversedList(list) {
         return new (ReversedListIterable$(T))(dart.as(list, core.Iterable$(T)));
       }
       static sortList(list, compare) {
-        dart.as(compare, dart.functionType(core.int, [dart.bottom, dart.bottom]));
+        dart.as(compare, dart.functionType(core.int, [dart.dynamic, dart.dynamic]));
         if (compare == null)
           compare = core.Comparable.compare;
         Sort.sort(list, compare);
@@ -1502,45 +1502,45 @@ dart_library.library('dart/_internal', null, /* Imports */[
     }
     dart.setSignature(IterableMixinWorkaround, {
       methods: () => ({
-        where: [core.Iterable$(T), [core.Iterable, dart.functionType(core.bool, [dart.bottom])]],
+        where: [core.Iterable$(T), [core.Iterable, dart.functionType(core.bool, [dart.dynamic])]],
         takeList: [core.Iterable$(T), [core.List, core.int]],
-        takeWhile: [core.Iterable$(T), [core.Iterable, dart.functionType(core.bool, [dart.bottom])]],
+        takeWhile: [core.Iterable$(T), [core.Iterable, dart.functionType(core.bool, [dart.dynamic])]],
         skipList: [core.Iterable$(T), [core.List, core.int]],
-        skipWhile: [core.Iterable$(T), [core.Iterable, dart.functionType(core.bool, [dart.bottom])]],
+        skipWhile: [core.Iterable$(T), [core.Iterable, dart.functionType(core.bool, [dart.dynamic])]],
         reversedList: [core.Iterable$(T), [core.List]],
         getRangeList: [core.Iterable$(T), [core.List, core.int, core.int]],
         asMapList: [core.Map$(core.int, T), [core.List]]
       }),
       statics: () => ({
-        contains: [core.bool, [core.Iterable, core.Object]],
-        forEach: [dart.void, [core.Iterable, dart.functionType(dart.void, [dart.bottom])]],
-        any: [core.bool, [core.Iterable, dart.functionType(core.bool, [dart.bottom])]],
-        every: [core.bool, [core.Iterable, dart.functionType(core.bool, [dart.bottom])]],
-        reduce: [core.Object, [core.Iterable, dart.functionType(core.Object, [dart.bottom, dart.bottom])]],
-        fold: [core.Object, [core.Iterable, core.Object, dart.functionType(core.Object, [dart.bottom, dart.bottom])]],
-        removeWhereList: [dart.void, [core.List, dart.functionType(core.bool, [dart.bottom])]],
+        contains: [core.bool, [core.Iterable, dart.dynamic]],
+        forEach: [dart.void, [core.Iterable, dart.functionType(dart.void, [dart.dynamic])]],
+        any: [core.bool, [core.Iterable, dart.functionType(core.bool, [dart.dynamic])]],
+        every: [core.bool, [core.Iterable, dart.functionType(core.bool, [dart.dynamic])]],
+        reduce: [dart.dynamic, [core.Iterable, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]],
+        fold: [dart.dynamic, [core.Iterable, dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]],
+        removeWhereList: [dart.void, [core.List, dart.functionType(core.bool, [dart.dynamic])]],
         isEmpty: [core.bool, [core.Iterable]],
-        first: [core.Object, [core.Iterable]],
-        last: [core.Object, [core.Iterable]],
-        single: [core.Object, [core.Iterable]],
-        firstWhere: [core.Object, [core.Iterable, dart.functionType(core.bool, [dart.bottom]), dart.functionType(core.Object, [])]],
-        lastWhere: [core.Object, [core.Iterable, dart.functionType(core.bool, [dart.bottom]), dart.functionType(core.Object, [])]],
-        lastWhereList: [core.Object, [core.List, dart.functionType(core.bool, [dart.bottom]), dart.functionType(core.Object, [])]],
-        singleWhere: [core.Object, [core.Iterable, dart.functionType(core.bool, [dart.bottom])]],
-        elementAt: [core.Object, [core.Iterable, core.int]],
+        first: [dart.dynamic, [core.Iterable]],
+        last: [dart.dynamic, [core.Iterable]],
+        single: [dart.dynamic, [core.Iterable]],
+        firstWhere: [dart.dynamic, [core.Iterable, dart.functionType(core.bool, [dart.dynamic]), dart.functionType(dart.dynamic, [])]],
+        lastWhere: [dart.dynamic, [core.Iterable, dart.functionType(core.bool, [dart.dynamic]), dart.functionType(dart.dynamic, [])]],
+        lastWhereList: [dart.dynamic, [core.List, dart.functionType(core.bool, [dart.dynamic]), dart.functionType(dart.dynamic, [])]],
+        singleWhere: [dart.dynamic, [core.Iterable, dart.functionType(core.bool, [dart.dynamic])]],
+        elementAt: [dart.dynamic, [core.Iterable, core.int]],
         join: [core.String, [core.Iterable], [core.String]],
         joinList: [core.String, [core.List], [core.String]],
-        map: [core.Iterable, [core.Iterable, dart.functionType(core.Object, [dart.bottom])]],
-        mapList: [core.Iterable, [core.List, dart.functionType(core.Object, [dart.bottom])]],
-        expand: [core.Iterable, [core.Iterable, dart.functionType(core.Iterable, [dart.bottom])]],
-        sortList: [dart.void, [core.List, dart.functionType(core.int, [dart.bottom, dart.bottom])]],
+        map: [core.Iterable, [core.Iterable, dart.functionType(dart.dynamic, [dart.dynamic])]],
+        mapList: [core.Iterable, [core.List, dart.functionType(dart.dynamic, [dart.dynamic])]],
+        expand: [core.Iterable, [core.Iterable, dart.functionType(core.Iterable, [dart.dynamic])]],
+        sortList: [dart.void, [core.List, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]],
         shuffleList: [dart.void, [core.List, math.Random]],
-        indexOfList: [core.int, [core.List, core.Object, core.int]],
-        lastIndexOfList: [core.int, [core.List, core.Object, core.int]],
+        indexOfList: [core.int, [core.List, dart.dynamic, core.int]],
+        lastIndexOfList: [core.int, [core.List, dart.dynamic, core.int]],
         _rangeCheck: [dart.void, [core.List, core.int, core.int]],
         setRangeList: [dart.void, [core.List, core.int, core.int, core.Iterable, core.int]],
         replaceRangeList: [dart.void, [core.List, core.int, core.int, core.Iterable]],
-        fillRangeList: [dart.void, [core.List, core.int, core.int, core.Object]],
+        fillRangeList: [dart.void, [core.List, core.int, core.int, dart.dynamic]],
         insertAllList: [dart.void, [core.List, core.int, core.Iterable]],
         setAllList: [dart.void, [core.List, core.int, core.Iterable]],
         setContainsAll: [core.bool, [core.Set, core.Iterable]],
@@ -2023,7 +2023,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
   dart.setSignature(Lists, {
     statics: () => ({
       copy: [dart.void, [core.List, core.int, core.List, core.int, core.int]],
-      areEqual: [core.bool, [core.List, core.Object]],
+      areEqual: [core.bool, [core.List, dart.dynamic]],
       indexOf: [core.int, [core.List, core.Object, core.int, core.int]],
       lastIndexOf: [core.int, [core.List, core.Object, core.int]],
       indicesCheck: [dart.void, [core.List, core.int, core.int]],
@@ -2296,11 +2296,11 @@ dart_library.library('dart/_internal', null, /* Imports */[
   }
   dart.setSignature(Sort, {
     statics: () => ({
-      sort: [dart.void, [core.List, dart.functionType(core.int, [dart.bottom, dart.bottom])]],
-      sortRange: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.bottom, dart.bottom])]],
-      _doSort: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.bottom, dart.bottom])]],
-      _insertionSort: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.bottom, dart.bottom])]],
-      _dualPivotQuicksort: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.bottom, dart.bottom])]]
+      sort: [dart.void, [core.List, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]],
+      sortRange: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]],
+      _doSort: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]],
+      _insertionSort: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]],
+      _dualPivotQuicksort: [dart.void, [core.List, core.int, core.int, dart.functionType(core.int, [dart.dynamic, dart.dynamic])]]
     }),
     names: ['sort', 'sortRange', '_doSort', '_insertionSort', '_dualPivotQuicksort']
   });

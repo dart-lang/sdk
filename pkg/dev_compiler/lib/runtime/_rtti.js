@@ -20,6 +20,38 @@ dart_library.library('dart_runtime/_rtti', null, /* Imports */[
   const slice = [].slice;
 
   /**
+   * Runtime type information.  This module defines the mapping from
+   * runtime objects to their runtime type information.  See the types
+   * module for the definition of how type information is represented.
+   *
+   * Runtime objects fall into four main categories:
+   *
+   *   - Things represented by javascript primitives, such as
+   *     null, numbers, booleans, strings, and symbols.  For these
+   *     we map directly from the javascript type (given by typeof)
+   *     to the appropriate class type from core, which serves as their
+   *     rtti.
+   *
+   *   - Functions, which are represented by javascript functions.
+   *     Representations of Dart functions always have a
+   *     _runtimeType property attached to them with the appropriate
+   *     rtti.
+   *
+   *   - Objects (instances) which are represented by instances of
+   *     javascript (ES6) classes.  Their types are given by their
+   *     classes, and the rtti is accessed by projecting out their
+   *     constructor field.
+   *
+   *   - Types objects, which are represented as described in the types
+   *     module.  Types always have a _runtimeType property attached to
+   *     them with the appropriate rtti.  The rtti for these is always
+   *     core.Type.  TODO(leafp): consider the possibility that we can
+   *     reliably recognize type objects and map directly to core.Type
+   *     rather than attaching this property everywhere.
+   *
+   */
+
+  /**
    *Tag a closure with a type, using one of three forms:
    * dart.fn(cls) marks cls has having no optional or named
    *  parameters, with all argument and return types as dynamic
@@ -27,6 +59,9 @@ dart_library.library('dart_runtime/_rtti', null, /* Imports */[
    *  runtime type as computed by func()
    * dart.fn(cls, rType, argsT, extras) marks cls as having the
    * runtime type dart.functionType(rType, argsT, extras)
+   *
+   * Note that since we are producing a type for a concrete function,
+   * it is sound to use the definite arrow type.
    */
   function fn(closure/* ...args*/) {
     // Closure and a lazy type constructor
@@ -38,18 +73,13 @@ dart_library.library('dart_runtime/_rtti', null, /* Imports */[
     if (arguments.length == 1) {
       // No type arguments, it's all dynamic
       let len = closure.length;
-      let build = () => {
-        let args = Array.apply(null, new Array(len)).map(() => core.Object);
-        return types.functionType(core.Object, args);
-      };
-      // We could be called before Object is defined.
-      if (core.Object === void 0) return fn(closure, build);
-      t = build();
+      let args = Array.apply(null, new Array(len)).map(() => types.dynamic);
+      t = types.definiteFunctionType(types.dynamic, args);
     } else {
       // We're passed the piecewise components of the function type,
       // construct it.
       let args = slice.call(arguments, 1);
-      t = types.functionType.apply(null, args);
+      t = types.definiteFunctionType.apply(null, args);
     }
     tag(closure, t);
     return closure;
@@ -87,8 +117,9 @@ dart_library.library('dart_runtime/_rtti', null, /* Imports */[
 
   function getFunctionType(obj) {
     // TODO(vsm): Encode this properly on the function for Dart-generated code.
-    let args = Array.apply(null, new Array(obj.length)).map(() => core.Object);
-    return types.functionType(types.bottom, args);
+    let args =
+      Array.apply(null, new Array(obj.length)).map(() => types.dynamic);
+    return types.definiteFunctionType(types.bottom, args);
   }
 
   /**

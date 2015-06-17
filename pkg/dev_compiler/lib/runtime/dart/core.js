@@ -37,9 +37,9 @@ dart_library.library('dart/core', null, /* Imports */[
   dart.setSignature(Object, {
     constructors: () => ({Object: [Object, []]}),
     methods: () => ({
-      '==': [bool, [Object]],
+      '==': [bool, [dart.dynamic]],
       toString: [String, []],
-      noSuchMethod: [Object, [Invocation]]
+      noSuchMethod: [dart.dynamic, [Invocation]]
     })
   });
   class Deprecated extends Object {
@@ -700,8 +700,8 @@ dart_library.library('dart/core', null, /* Imports */[
   dart.defineNamedConstructor(ArgumentError, 'notNull');
   dart.setSignature(ArgumentError, {
     constructors: () => ({
-      ArgumentError: [ArgumentError, [], [Object]],
-      value: [ArgumentError, [Object], [String, String]],
+      ArgumentError: [ArgumentError, [], [dart.dynamic]],
+      value: [ArgumentError, [dart.dynamic], [String, String]],
       notNull: [ArgumentError, [], [String]]
     })
   });
@@ -807,14 +807,14 @@ dart_library.library('dart/core', null, /* Imports */[
   dart.defineNamedConstructor(RangeError, 'range');
   dart.setSignature(RangeError, {
     constructors: () => ({
-      RangeError: [RangeError, [Object]],
+      RangeError: [RangeError, [dart.dynamic]],
       value: [RangeError, [num], [String, String]],
       range: [RangeError, [num, int, int], [String, String]],
-      index: [RangeError, [int, Object], [String, String, int]]
+      index: [RangeError, [int, dart.dynamic], [String, String, int]]
     }),
     statics: () => ({
       checkValueInInterval: [dart.void, [int, int, int], [String, String]],
-      checkValidIndex: [dart.void, [int, Object], [String, int, String]],
+      checkValidIndex: [dart.void, [int, dart.dynamic], [String, int, String]],
       checkValidRange: [dart.void, [int, int, int], [String, String, String]],
       checkNotNegative: [dart.void, [int], [String, String]]
     }),
@@ -850,7 +850,7 @@ dart_library.library('dart/core', null, /* Imports */[
   }
   IndexError[dart.implements] = () => [RangeError];
   dart.setSignature(IndexError, {
-    constructors: () => ({IndexError: [IndexError, [int, Object], [String, String, int]]})
+    constructors: () => ({IndexError: [IndexError, [int, dart.dynamic], [String, String, int]]})
   });
   class FallThroughError extends Error {
     FallThroughError() {
@@ -909,7 +909,7 @@ dart_library.library('dart/core', null, /* Imports */[
           sb.write(": ");
           sb.write(Error.safeToString(value));
           i = dart.notNull(i) + 1;
-        }, Object, [Symbol, Object]));
+        }, dart.dynamic, [Symbol, dart.dynamic]));
       }
       if (this[_existingArgumentNames] == null) {
         return `NoSuchMethodError : method not found: '${this[_memberName]}'\n` + `Receiver: ${Error.safeToString(this[_receiver])}\n` + `Arguments: [${sb}]`;
@@ -928,7 +928,7 @@ dart_library.library('dart/core', null, /* Imports */[
     }
   }
   dart.setSignature(NoSuchMethodError, {
-    constructors: () => ({NoSuchMethodError: [NoSuchMethodError, [Object, Symbol, List, Map$(Symbol, Object)], [List]]})
+    constructors: () => ({NoSuchMethodError: [NoSuchMethodError, [Object, Symbol, List, Map$(Symbol, dart.dynamic)], [List]]})
   });
   class UnsupportedError extends Error {
     UnsupportedError(message) {
@@ -1036,7 +1036,7 @@ dart_library.library('dart/core', null, /* Imports */[
     }
   }
   dart.setSignature(Exception, {
-    constructors: () => ({new: [Exception, [], [Object]]})
+    constructors: () => ({new: [Exception, [], [dart.dynamic]]})
   });
   class _ExceptionImplementation extends Object {
     _ExceptionImplementation(message) {
@@ -1052,7 +1052,7 @@ dart_library.library('dart/core', null, /* Imports */[
   }
   _ExceptionImplementation[dart.implements] = () => [Exception];
   dart.setSignature(_ExceptionImplementation, {
-    constructors: () => ({_ExceptionImplementation: [_ExceptionImplementation, [], [Object]]})
+    constructors: () => ({_ExceptionImplementation: [_ExceptionImplementation, [], [dart.dynamic]]})
   });
   class FormatException extends Object {
     FormatException(message, source, offset) {
@@ -1144,7 +1144,7 @@ dart_library.library('dart/core', null, /* Imports */[
   }
   FormatException[dart.implements] = () => [Exception];
   dart.setSignature(FormatException, {
-    constructors: () => ({FormatException: [FormatException, [], [String, Object, int]]})
+    constructors: () => ({FormatException: [FormatException, [], [String, dart.dynamic, int]]})
   });
   class IntegerDivisionByZeroException extends Object {
     IntegerDivisionByZeroException() {
@@ -1224,8 +1224,8 @@ dart_library.library('dart/core', null, /* Imports */[
   }
   dart.setSignature(Function, {
     statics: () => ({
-      apply: [Object, [Function, List], [Map$(Symbol, Object)]],
-      _toMangledNames: [Map$(String, Object), [Map$(Symbol, Object)]]
+      apply: [dart.dynamic, [Function, List], [Map$(Symbol, dart.dynamic)]],
+      _toMangledNames: [Map$(String, dart.dynamic), [Map$(Symbol, dart.dynamic)]]
     }),
     names: ['apply', '_toMangledNames']
   });
@@ -1236,7 +1236,7 @@ dart_library.library('dart/core', null, /* Imports */[
   function identityHashCode(object) {
     return _js_helper.objectHashCode(object);
   }
-  dart.fn(identityHashCode, () => dart.functionType(int, [Object]));
+  dart.fn(identityHashCode, () => dart.definiteFunctionType(int, [Object]));
   class int extends num {
     static fromEnvironment(name, opts) {
       let defaultValue = opts && 'defaultValue' in opts ? opts.defaultValue : null;
@@ -1492,7 +1492,7 @@ dart_library.library('dart/core', null, /* Imports */[
         new: [Map$(K, V), []],
         from: [Map$(K, V), [Map$()]],
         identity: [Map$(K, V), []],
-        fromIterable: [Map$(K, V), [Iterable], {key: dart.functionType(K, [dart.bottom]), value: dart.functionType(V, [dart.bottom])}],
+        fromIterable: [Map$(K, V), [Iterable], {key: dart.functionType(K, [dart.dynamic]), value: dart.functionType(V, [dart.dynamic])}],
         fromIterables: [Map$(K, V), [Iterable$(K), Iterable$(V)]]
       })
     });
@@ -1921,7 +1921,7 @@ dart_library.library('dart/core', null, /* Imports */[
       writeAll: [dart.void, [Iterable], [String]],
       writeln: [dart.void, [], [Object]],
       clear: [dart.void, []],
-      [_writeString]: [dart.void, [Object]]
+      [_writeString]: [dart.void, [dart.dynamic]]
     })
   });
   class StringSink extends Object {}
@@ -2556,7 +2556,7 @@ dart_library.library('dart/core', null, /* Imports */[
       if (path != null) {
         result = Uri._normalize(path, start, end, dart.as(Uri._pathCharOrSlashTable, List$(int)));
       } else {
-        result = pathSegments[dartx.map](dart.fn(s => Uri._uriEncode(dart.as(Uri._pathCharTable, List$(int)), dart.as(s, String)), String, [Object]))[dartx.join]("/");
+        result = pathSegments[dartx.map](dart.fn(s => Uri._uriEncode(dart.as(Uri._pathCharTable, List$(int)), dart.as(s, String)), String, [dart.dynamic]))[dartx.join]("/");
       }
       if (dart.notNull(dart.as(dart.dload(result, 'isEmpty'), bool))) {
         if (dart.notNull(isFile))
@@ -2954,7 +2954,7 @@ dart_library.library('dart/core', null, /* Imports */[
       let combine = (part, current) => {
         return dart.as(dart.dsend(dart.dsend(dart.dsend(current, '*', 31), '+', dart.hashCode(part)), '&', 1073741823), int);
       };
-      dart.fn(combine, int, [Object, Object]);
+      dart.fn(combine, int, [dart.dynamic, dart.dynamic]);
       return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }
     static _addIfNonEmpty(sb, test, first, second) {
@@ -3028,7 +3028,7 @@ dart_library.library('dart/core', null, /* Imports */[
           position = null;
         throw new FormatException(`Illegal IPv6 address, ${msg}`, host, dart.as(position, int));
       };
-      dart.fn(error, dart.void, [String], [Object]);
+      dart.fn(error, dart.void, [String], [dart.dynamic]);
       let parseHex = (start, end) => {
         if (dart.notNull(end) - dart.notNull(start) > 4) {
           error('an IPv6 part can only contain a maximum of 4 hex digits', start);
@@ -3221,11 +3221,11 @@ dart_library.library('dart/core', null, /* Imports */[
       parse: [Uri, [String]],
       _fail: [dart.void, [String, int, String]],
       _makeHttpUri: [Uri, [String, String, String, Map$(String, String)]],
-      _checkNonWindowsPathReservedCharacters: [Object, [List$(String), bool]],
-      _checkWindowsPathReservedCharacters: [Object, [List$(String), bool], [int]],
-      _checkWindowsDriveLetter: [Object, [int, bool]],
-      _makeFileUri: [Object, [String]],
-      _makeWindowsFileUrl: [Object, [String]],
+      _checkNonWindowsPathReservedCharacters: [dart.dynamic, [List$(String), bool]],
+      _checkWindowsPathReservedCharacters: [dart.dynamic, [List$(String), bool], [int]],
+      _checkWindowsDriveLetter: [dart.dynamic, [int, bool]],
+      _makeFileUri: [dart.dynamic, [String]],
+      _makeWindowsFileUrl: [dart.dynamic, [String]],
       _makePort: [int, [int, String]],
       _makeHost: [String, [String, int, int, bool]],
       _isRegNameChar: [bool, [int]],
@@ -3240,7 +3240,7 @@ dart_library.library('dart/core', null, /* Imports */[
       _hexValue: [int, [int]],
       _normalizeEscape: [String, [String, int, bool]],
       _isUnreservedChar: [bool, [int]],
-      _escapeChar: [String, [Object]],
+      _escapeChar: [String, [dart.dynamic]],
       _normalize: [String, [String, int, int, List$(int)]],
       _isSchemeCharacter: [bool, [int]],
       _isGeneralDelimiter: [bool, [int]],

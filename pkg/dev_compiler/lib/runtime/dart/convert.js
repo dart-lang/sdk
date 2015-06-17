@@ -22,8 +22,8 @@ dart_library.library('dart/convert', null, /* Imports */[
         return this.decoder.convert(encoded);
       }
       fuse(other) {
-        dart.as(other, Codec$(T, core.Object));
-        return new (_FusedCodec$(S, T, core.Object))(this, other);
+        dart.as(other, Codec$(T, dart.dynamic));
+        return new (_FusedCodec$(S, T, dart.dynamic))(this, other);
       }
       get inverted() {
         return new (_InvertedCodec$(T, S))(this);
@@ -34,7 +34,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       methods: () => ({
         encode: [T, [S]],
         decode: [S, [T]],
-        fuse: [Codec$(S, core.Object), [Codec$(T, core.Object)]]
+        fuse: [Codec$(S, dart.dynamic), [Codec$(T, dart.dynamic)]]
       })
     });
     return Codec;
@@ -48,7 +48,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       return dart.as(byteStream.transform(this.decoder).fold(new core.StringBuffer(), dart.fn((buffer, string) => ((() => {
         dart.dsend(buffer, 'write', string);
         return buffer;
-      })()))).then(dart.fn(buffer => dart.toString(buffer), core.String, [core.Object])), async.Future$(core.String));
+      })()))).then(dart.fn(buffer => dart.toString(buffer), core.String, [dart.dynamic])), async.Future$(core.String));
     }
     static getByName(name) {
       if (name == null)
@@ -101,8 +101,8 @@ dart_library.library('dart/convert', null, /* Imports */[
       Converter() {
       }
       fuse(other) {
-        dart.as(other, Converter$(T, core.Object));
-        return new (_FusedConverter$(S, T, core.Object))(this, other);
+        dart.as(other, Converter$(T, dart.dynamic));
+        return new (_FusedConverter$(S, T, dart.dynamic))(this, other);
       }
       startChunkedConversion(sink) {
         dart.as(sink, core.Sink$(T));
@@ -117,7 +117,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     dart.setSignature(Converter, {
       constructors: () => ({Converter: [Converter$(S, T), []]}),
       methods: () => ({
-        fuse: [Converter$(S, core.Object), [Converter$(T, core.Object)]],
+        fuse: [Converter$(S, dart.dynamic), [Converter$(T, dart.dynamic)]],
         startChunkedConversion: [ChunkedConversionSink, [core.Sink$(T)]],
         bind: [async.Stream$(T), [async.Stream$(S)]]
       })
@@ -796,7 +796,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
   }
   dart.setSignature(JsonUnsupportedObjectError, {
-    constructors: () => ({JsonUnsupportedObjectError: [JsonUnsupportedObjectError, [core.Object], {cause: core.Object}]})
+    constructors: () => ({JsonUnsupportedObjectError: [JsonUnsupportedObjectError, [dart.dynamic], {cause: dart.dynamic}]})
   });
   class JsonCyclicError extends JsonUnsupportedObjectError {
     JsonCyclicError(object) {
@@ -852,17 +852,17 @@ dart_library.library('dart/convert', null, /* Imports */[
   dart.defineNamedConstructor(JsonCodec, 'withReviver');
   dart.setSignature(JsonCodec, {
     constructors: () => ({
-      JsonCodec: [JsonCodec, [], {reviver: dart.functionType(core.Object, [dart.bottom, dart.bottom]), toEncodable: dart.functionType(core.Object, [dart.bottom])}],
-      withReviver: [JsonCodec, [dart.functionType(core.Object, [dart.bottom, dart.bottom])]]
+      JsonCodec: [JsonCodec, [], {reviver: dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]), toEncodable: dart.functionType(dart.dynamic, [dart.dynamic])}],
+      withReviver: [JsonCodec, [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]]
     }),
     methods: () => ({
-      decode: [core.Object, [core.String], {reviver: dart.functionType(core.Object, [dart.bottom, dart.bottom])}],
-      encode: [core.String, [core.Object], {toEncodable: dart.functionType(core.Object, [dart.bottom])}]
+      decode: [dart.dynamic, [core.String], {reviver: dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])}],
+      encode: [core.String, [core.Object], {toEncodable: dart.functionType(dart.dynamic, [dart.dynamic])}]
     })
   });
   let JSON = dart.const(new JsonCodec());
-  let _Reviver = dart.typedef('_Reviver', () => dart.functionType(core.Object, [dart.bottom, dart.bottom]));
-  let _ToEncodable = dart.typedef('_ToEncodable', () => dart.functionType(core.Object, [dart.bottom]));
+  let _Reviver = dart.typedef('_Reviver', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
+  let _ToEncodable = dart.typedef('_ToEncodable', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   class JsonEncoder extends Converter$(core.Object, core.String) {
     JsonEncoder(toEncodable) {
       if (toEncodable === void 0)
@@ -909,7 +909,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       convert: [core.String, [core.Object]],
       startChunkedConversion: [ChunkedConversionSink$(core.Object), [core.Sink$(core.String)]],
       bind: [async.Stream$(core.String), [async.Stream$(core.Object)]],
-      fuse: [Converter$(core.Object, core.Object), [Converter$(core.String, core.Object)]]
+      fuse: [Converter$(core.Object, dart.dynamic), [Converter$(core.String, dart.dynamic)]]
     })
   });
   let _indent = Symbol('_indent');
@@ -951,7 +951,7 @@ dart_library.library('dart/convert', null, /* Imports */[
         bytes[dartx.add](chunk);
       };
       dart.fn(addChunk, dart.void, [typed_data.Uint8List, core.int, core.int]);
-      _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(core.Object, [core.Object])), this[_bufferSize], addChunk);
+      _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])), this[_bufferSize], addChunk);
       if (bytes[dartx.length] == 1)
         return bytes[dartx.get](0);
       let length = 0;
@@ -984,12 +984,12 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
   }
   dart.setSignature(JsonUtf8Encoder, {
-    constructors: () => ({JsonUtf8Encoder: [JsonUtf8Encoder, [], [core.String, dart.functionType(core.Object, [core.Object]), core.int]]}),
+    constructors: () => ({JsonUtf8Encoder: [JsonUtf8Encoder, [], [core.String, dart.functionType(dart.dynamic, [core.Object]), core.int]]}),
     methods: () => ({
       convert: [core.List$(core.int), [core.Object]],
       startChunkedConversion: [ChunkedConversionSink$(core.Object), [core.Sink$(core.List$(core.int))]],
       bind: [async.Stream$(core.List$(core.int)), [async.Stream$(core.Object)]],
-      fuse: [Converter$(core.Object, core.Object), [Converter$(core.List$(core.int), core.Object)]]
+      fuse: [Converter$(core.Object, dart.dynamic), [Converter$(core.List$(core.int), dart.dynamic)]]
     }),
     statics: () => ({_utf8Encode: [core.List$(core.int), [core.String]]}),
     names: ['_utf8Encode']
@@ -1010,7 +1010,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       }
       this[_isDone] = true;
       let stringSink = this[_sink].asStringSink();
-      _JsonStringStringifier.printOn(o, stringSink, dart.as(this[_toEncodable$], dart.functionType(core.Object, [dart.bottom])), this[_indent]);
+      _JsonStringStringifier.printOn(o, stringSink, dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [dart.dynamic])), this[_indent]);
       stringSink.close();
     }
     close() {}
@@ -1040,7 +1040,7 @@ dart_library.library('dart/convert', null, /* Imports */[
         throw new core.StateError("Only one call to add allowed");
       }
       this[_isDone] = true;
-      _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(core.Object, [core.Object])), this[_bufferSize], dart.bind(this, _addChunk));
+      _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])), this[_bufferSize], dart.bind(this, _addChunk));
       this[_sink].close();
     }
     close() {
@@ -1076,9 +1076,9 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
   }
   dart.setSignature(JsonDecoder, {
-    constructors: () => ({JsonDecoder: [JsonDecoder, [], [dart.functionType(core.Object, [dart.bottom, dart.bottom])]]}),
+    constructors: () => ({JsonDecoder: [JsonDecoder, [], [dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]]}),
     methods: () => ({
-      convert: [core.Object, [core.String]],
+      convert: [dart.dynamic, [core.String]],
       startChunkedConversion: [StringConversionSink, [core.Sink$(core.Object)]],
       bind: [async.Stream$(core.Object), [async.Stream$(core.String)]]
     })
@@ -1099,11 +1099,11 @@ dart_library.library('dart/convert', null, /* Imports */[
       return _convertJsonToDart(parsed, reviver);
     }
   }
-  dart.fn(_parseJson, core.Object, [core.String, dart.functionType(core.Object, [dart.bottom, dart.bottom])]);
+  dart.fn(_parseJson, dart.dynamic, [core.String, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]);
   function _defaultToEncodable(object) {
     return dart.dsend(object, 'toJson');
   }
-  dart.fn(_defaultToEncodable, core.Object, [core.Object]);
+  dart.fn(_defaultToEncodable, core.Object, [dart.dynamic]);
   let _seen = Symbol('_seen');
   let _checkCycle = Symbol('_checkCycle');
   let _removeSeen = Symbol('_removeSeen');
@@ -1259,7 +1259,7 @@ dart_library.library('dart/convert', null, /* Imports */[
         this.writeStringContent(key);
         this.writeString('":');
         this.writeObject(value);
-      }, core.Object, [core.String, core.Object]));
+      }, dart.dynamic, [core.String, dart.dynamic]));
       this.writeString('}');
     }
   }
@@ -1267,10 +1267,10 @@ dart_library.library('dart/convert', null, /* Imports */[
     constructors: () => ({_JsonStringifier: [_JsonStringifier, [dart.functionType(core.Object, [core.Object])]]}),
     methods: () => ({
       writeStringContent: [dart.void, [core.String]],
-      [_checkCycle]: [dart.void, [core.Object]],
-      [_removeSeen]: [dart.void, [core.Object]],
-      writeObject: [dart.void, [core.Object]],
-      writeJsonValue: [core.bool, [core.Object]],
+      [_checkCycle]: [dart.void, [dart.dynamic]],
+      [_removeSeen]: [dart.void, [dart.dynamic]],
+      writeObject: [dart.void, [dart.dynamic]],
+      writeJsonValue: [core.bool, [dart.dynamic]],
       writeList: [dart.void, [core.List]],
       writeMap: [dart.void, [core.Map$(core.String, core.Object)]]
     }),
@@ -1332,7 +1332,7 @@ dart_library.library('dart/convert', null, /* Imports */[
           this.writeString('": ');
           this.writeObject(value);
           first = false;
-        }, core.Object, [core.String, core.Object]));
+        }, dart.dynamic, [core.String, core.Object]));
         this.writeString('\n');
         this[_indentLevel] = dart.notNull(this[_indentLevel]) - 1;
         this.writeIndentation(this[_indentLevel]);
@@ -1380,7 +1380,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
   }
   dart.setSignature(_JsonStringStringifier, {
-    constructors: () => ({_JsonStringStringifier: [_JsonStringStringifier, [core.StringSink, core.Object]]}),
+    constructors: () => ({_JsonStringStringifier: [_JsonStringStringifier, [core.StringSink, dart.dynamic]]}),
     methods: () => ({
       writeNumber: [dart.void, [core.num]],
       writeString: [dart.void, [core.String]],
@@ -1388,8 +1388,8 @@ dart_library.library('dart/convert', null, /* Imports */[
       writeCharCode: [dart.void, [core.int]]
     }),
     statics: () => ({
-      stringify: [core.String, [core.Object, dart.functionType(core.Object, [dart.bottom]), core.String]],
-      printOn: [dart.void, [core.Object, core.StringSink, dart.functionType(core.Object, [dart.bottom]), core.String]]
+      stringify: [core.String, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic]), core.String]],
+      printOn: [dart.void, [dart.dynamic, core.StringSink, dart.functionType(dart.dynamic, [dart.dynamic]), core.String]]
     }),
     names: ['stringify', 'printOn']
   });
@@ -1507,7 +1507,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
   }
   dart.setSignature(_JsonUtf8Stringifier, {
-    constructors: () => ({_JsonUtf8Stringifier: [_JsonUtf8Stringifier, [core.Object, core.int, core.Function]]}),
+    constructors: () => ({_JsonUtf8Stringifier: [_JsonUtf8Stringifier, [dart.dynamic, core.int, core.Function]]}),
     methods: () => ({
       flush: [dart.void, []],
       writeNumber: [dart.void, [core.num]],
@@ -1519,7 +1519,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       writeFourByteCharCode: [dart.void, [core.int]],
       writeByte: [dart.void, [core.int]]
     }),
-    statics: () => ({stringify: [dart.void, [core.Object, core.List$(core.int), dart.functionType(core.Object, [core.Object]), core.int, dart.functionType(dart.void, [typed_data.Uint8List, core.int, core.int])]]}),
+    statics: () => ({stringify: [dart.void, [core.Object, core.List$(core.int), dart.functionType(dart.dynamic, [core.Object]), core.int, dart.functionType(dart.void, [typed_data.Uint8List, core.int, core.int])]]}),
     names: ['stringify']
   });
   class _JsonUtf8StringifierPretty extends dart.mixin(_JsonUtf8Stringifier, _JsonPrettyPrintMixin) {
@@ -1553,12 +1553,12 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
   }
   dart.setSignature(_JsonUtf8StringifierPretty, {
-    constructors: () => ({_JsonUtf8StringifierPretty: [_JsonUtf8StringifierPretty, [core.Object, core.List$(core.int), core.Object, core.Object]]}),
+    constructors: () => ({_JsonUtf8StringifierPretty: [_JsonUtf8StringifierPretty, [dart.dynamic, core.List$(core.int), dart.dynamic, dart.dynamic]]}),
     methods: () => ({writeIndentation: [dart.void, [core.int]]})
   });
   let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Object, [core.Object]));
-  let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.Object, [dart.bottom]));
-  let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(core.Object, [core.Object]));
+  let __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  let __CastType4 = dart.typedef('__CastType4', () => dart.functionType(dart.dynamic, [core.Object]));
   class Latin1Codec extends Encoding {
     Latin1Codec(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;
@@ -2376,7 +2376,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       convert: [core.String, [core.List$(core.int)], [core.int, core.int]],
       startChunkedConversion: [ByteConversionSink, [core.Sink$(core.String)]],
       bind: [async.Stream$(core.String), [async.Stream$(core.List$(core.int))]],
-      fuse: [Converter$(core.List$(core.int), core.Object), [Converter$(core.String, core.Object)]]
+      fuse: [Converter$(core.List$(core.int), dart.dynamic), [Converter$(core.String, dart.dynamic)]]
     })
   });
   let _ONE_BYTE_LIMIT = 127;
@@ -2451,7 +2451,7 @@ dart_library.library('dart/convert', null, /* Imports */[
         }
         return dart.notNull(to) - dart.notNull(from);
       };
-      dart.fn(scanOneByteCharacters, core.int, [core.Object, core.int]);
+      dart.fn(scanOneByteCharacters, core.int, [dart.dynamic, core.int]);
       let addSingleBytes = (from, to) => {
         dart.assert(dart.notNull(from) >= dart.notNull(startIndex) && dart.notNull(from) <= dart.notNull(endIndex));
         dart.assert(dart.notNull(to) >= dart.notNull(startIndex) && dart.notNull(to) <= dart.notNull(endIndex));
@@ -2593,7 +2593,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     dart.fn(walk);
     return dart.dcall(reviver, null, walk(json));
   }
-  dart.fn(_convertJsonToDart, core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, dart.bottom])]);
+  dart.fn(_convertJsonToDart, dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic])]);
   function _convertJsonToDartLazy(object) {
     if (object == null)
       return null;
@@ -2793,28 +2793,28 @@ dart_library.library('dart/convert', null, /* Imports */[
   }
   _JsonMap[dart.implements] = () => [collection.LinkedHashMap];
   dart.setSignature(_JsonMap, {
-    constructors: () => ({_JsonMap: [_JsonMap, [core.Object]]}),
+    constructors: () => ({_JsonMap: [_JsonMap, [dart.dynamic]]}),
     methods: () => ({
-      get: [core.Object, [core.Object]],
-      set: [dart.void, [core.Object, core.Object]],
+      get: [dart.dynamic, [core.Object]],
+      set: [dart.void, [dart.dynamic, dart.dynamic]],
       addAll: [dart.void, [core.Map]],
       containsValue: [core.bool, [core.Object]],
       containsKey: [core.bool, [core.Object]],
-      putIfAbsent: [core.Object, [core.Object, dart.functionType(core.Object, [])]],
-      remove: [core.Object, [core.Object]],
+      putIfAbsent: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [])]],
+      remove: [dart.dynamic, [core.Object]],
       clear: [dart.void, []],
-      forEach: [dart.void, [dart.functionType(dart.void, [dart.bottom, dart.bottom])]],
+      forEach: [dart.void, [dart.functionType(dart.void, [dart.dynamic, dart.dynamic])]],
       [_computeKeys]: [core.List$(core.String), []],
       [_upgrade]: [core.Map, []],
-      [_process]: [core.Object, [core.String]]
+      [_process]: [dart.dynamic, [core.String]]
     }),
     statics: () => ({
-      _hasProperty: [core.bool, [core.Object, core.String]],
-      _getProperty: [core.Object, [core.Object, core.String]],
-      _setProperty: [core.Object, [core.Object, core.String, core.Object]],
-      _getPropertyNames: [core.List, [core.Object]],
-      _isUnprocessed: [core.bool, [core.Object]],
-      _newJavaScriptObject: [core.Object, []]
+      _hasProperty: [core.bool, [dart.dynamic, core.String]],
+      _getProperty: [dart.dynamic, [dart.dynamic, core.String]],
+      _setProperty: [dart.dynamic, [dart.dynamic, core.String, dart.dynamic]],
+      _getPropertyNames: [core.List, [dart.dynamic]],
+      _isUnprocessed: [core.bool, [dart.dynamic]],
+      _newJavaScriptObject: [dart.dynamic, []]
     }),
     names: ['_hasProperty', '_getProperty', '_setProperty', '_getPropertyNames', '_isUnprocessed', '_newJavaScriptObject']
   });

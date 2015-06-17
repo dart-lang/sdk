@@ -36,7 +36,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
   class _Serializer extends core.Object {
     _Serializer(opts) {
       let serializeSendPorts = opts && 'serializeSendPorts' in opts ? opts.serializeSendPorts : true;
-      this.serializedObjectIds = core.Map$(core.Object, core.int).identity();
+      this.serializedObjectIds = core.Map$(dart.dynamic, core.int).identity();
       this[_serializeSendPorts] = dart.as(serializeSendPorts, core.bool);
     }
     serialize(x) {
@@ -122,7 +122,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     serializeMap(x) {
       let serializeTearOff = dart.bind(this, 'serialize');
-      return ['map', x.keys[dartx.map](dart.as(serializeTearOff, __CastType0))[dartx.toList](), x.values[dartx.map](dart.as(serializeTearOff, dart.functionType(core.Object, [dart.bottom])))[dartx.toList]()];
+      return ['map', x.keys[dartx.map](dart.as(serializeTearOff, __CastType0))[dartx.toList](), x.values[dartx.map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[dartx.toList]()];
     }
     serializeJSObject(x) {
       if (!!x.constructor && x.constructor !== Object) {
@@ -168,25 +168,25 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
   }
   dart.setSignature(_Serializer, {
-    constructors: () => ({_Serializer: [_Serializer, [], {serializeSendPorts: core.Object}]}),
+    constructors: () => ({_Serializer: [_Serializer, [], {serializeSendPorts: dart.dynamic}]}),
     methods: () => ({
-      serialize: [core.Object, [core.Object]],
-      unsupported: [dart.void, [core.Object], [core.String]],
-      makeRef: [core.Object, [core.int]],
-      isPrimitive: [core.bool, [core.Object]],
-      serializePrimitive: [core.Object, [core.Object]],
-      serializeByteBuffer: [core.Object, [_native_typed_data.NativeByteBuffer]],
-      serializeTypedData: [core.Object, [_native_typed_data.NativeTypedData]],
-      serializeJSIndexable: [core.Object, [_interceptors.JSIndexable]],
-      serializeArray: [core.Object, [_interceptors.JSArray]],
-      serializeArrayInPlace: [core.Object, [_interceptors.JSArray]],
-      serializeMap: [core.Object, [core.Map]],
-      serializeJSObject: [core.Object, [_interceptors.JSObject]],
-      serializeWorkerSendPort: [core.Object, [_WorkerSendPort]],
-      serializeJsSendPort: [core.Object, [_NativeJsSendPort]],
-      serializeCapability: [core.Object, [CapabilityImpl]],
-      serializeClosure: [core.Object, [core.Function]],
-      serializeDartObject: [core.Object, [core.Object]]
+      serialize: [dart.dynamic, [dart.dynamic]],
+      unsupported: [dart.void, [dart.dynamic], [core.String]],
+      makeRef: [dart.dynamic, [core.int]],
+      isPrimitive: [core.bool, [dart.dynamic]],
+      serializePrimitive: [dart.dynamic, [dart.dynamic]],
+      serializeByteBuffer: [dart.dynamic, [_native_typed_data.NativeByteBuffer]],
+      serializeTypedData: [dart.dynamic, [_native_typed_data.NativeTypedData]],
+      serializeJSIndexable: [dart.dynamic, [_interceptors.JSIndexable]],
+      serializeArray: [dart.dynamic, [_interceptors.JSArray]],
+      serializeArrayInPlace: [dart.dynamic, [_interceptors.JSArray]],
+      serializeMap: [dart.dynamic, [core.Map]],
+      serializeJSObject: [dart.dynamic, [_interceptors.JSObject]],
+      serializeWorkerSendPort: [dart.dynamic, [_WorkerSendPort]],
+      serializeJsSendPort: [dart.dynamic, [_NativeJsSendPort]],
+      serializeCapability: [dart.dynamic, [CapabilityImpl]],
+      serializeClosure: [dart.dynamic, [core.Function]],
+      serializeDartObject: [dart.dynamic, [dart.dynamic]]
     })
   });
   let _adjustSendPorts = Symbol('_adjustSendPorts');
@@ -382,34 +382,34 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
   }
   dart.setSignature(_Deserializer, {
-    constructors: () => ({_Deserializer: [_Deserializer, [], {adjustSendPorts: core.Object}]}),
+    constructors: () => ({_Deserializer: [_Deserializer, [], {adjustSendPorts: dart.dynamic}]}),
     methods: () => ({
-      deserialize: [core.Object, [core.Object]],
-      isPrimitive: [core.bool, [core.Object]],
-      deserializePrimitive: [core.Object, [core.Object]],
-      deserializeRef: [core.Object, [core.Object]],
-      deserializeByteBuffer: [_native_typed_data.NativeByteBuffer, [core.Object]],
-      deserializeTypedData: [_native_typed_data.NativeTypedData, [core.Object]],
+      deserialize: [dart.dynamic, [dart.dynamic]],
+      isPrimitive: [core.bool, [dart.dynamic]],
+      deserializePrimitive: [dart.dynamic, [dart.dynamic]],
+      deserializeRef: [dart.dynamic, [dart.dynamic]],
+      deserializeByteBuffer: [_native_typed_data.NativeByteBuffer, [dart.dynamic]],
+      deserializeTypedData: [_native_typed_data.NativeTypedData, [dart.dynamic]],
       deserializeArrayInPlace: [core.List, [_interceptors.JSArray]],
-      deserializeFixed: [core.List, [core.Object]],
-      deserializeExtendable: [core.List, [core.Object]],
-      deserializeMutable: [core.List, [core.Object]],
-      deserializeConst: [core.List, [core.Object]],
-      deserializeMap: [core.Map, [core.Object]],
-      deserializeSendPort: [isolate.SendPort, [core.Object]],
-      deserializeRawSendPort: [isolate.SendPort, [core.Object]],
-      deserializeJSObject: [core.Object, [core.Object]],
-      deserializeClosure: [core.Function, [core.Object]],
-      deserializeDartObject: [core.Object, [core.Object]]
+      deserializeFixed: [core.List, [dart.dynamic]],
+      deserializeExtendable: [core.List, [dart.dynamic]],
+      deserializeMutable: [core.List, [dart.dynamic]],
+      deserializeConst: [core.List, [dart.dynamic]],
+      deserializeMap: [core.Map, [dart.dynamic]],
+      deserializeSendPort: [isolate.SendPort, [dart.dynamic]],
+      deserializeRawSendPort: [isolate.SendPort, [dart.dynamic]],
+      deserializeJSObject: [dart.dynamic, [dart.dynamic]],
+      deserializeClosure: [core.Function, [dart.dynamic]],
+      deserializeDartObject: [dart.dynamic, [dart.dynamic]]
     })
   });
-  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Object, [dart.bottom]));
+  let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   function _callInIsolate(isolate, func) {
     let result = isolate.eval(func);
     exports._globalState.topEventLoop.run();
     return result;
   }
-  dart.fn(_callInIsolate, () => dart.functionType(core.Object, [_IsolateContext, core.Function]));
+  dart.fn(_callInIsolate, () => dart.definiteFunctionType(dart.dynamic, [_IsolateContext, core.Function]));
   let _activeJsAsyncCount = Symbol('_activeJsAsyncCount');
   function enterJsAsync() {
     let o = exports._globalState.topEventLoop;
@@ -429,7 +429,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
   function _currentIsolate() {
     return exports._globalState.currentContext;
   }
-  dart.fn(_currentIsolate, () => dart.functionType(_IsolateContext, []));
+  dart.fn(_currentIsolate, () => dart.definiteFunctionType(_IsolateContext, []));
   function startRootIsolate(entry, args) {
     args = args;
     if (args == null)
@@ -456,7 +456,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     exports._globalState.topEventLoop.run();
   }
-  dart.fn(startRootIsolate, dart.void, [core.Object, core.Object]);
+  dart.fn(startRootIsolate, dart.void, [dart.dynamic, dart.dynamic]);
   dart.copyProperties(exports, {
     get _globalState() {
       return dart.as(dart.globalState, _Manager);
@@ -488,7 +488,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this[_nativeDetectEnvironment]();
       this.topEventLoop = new _EventLoop();
       this.isolates = core.Map$(core.int, _IsolateContext).new();
-      this.managers = core.Map$(core.int, core.Object).new();
+      this.managers = core.Map$(core.int, dart.dynamic).new();
       if (dart.notNull(this.isWorker)) {
         this.mainManager = new _MainManagerStub();
         this[_nativeInitWorkerMessageHandler]();
@@ -534,7 +534,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       [_nativeInitWorkerMessageHandler]: [dart.void, []],
       maybeCloseWorker: [dart.void, []]
     }),
-    statics: () => ({_serializePrintMessage: [core.Object, [core.Object]]}),
+    statics: () => ({_serializePrintMessage: [dart.dynamic, [dart.dynamic]]}),
     names: ['_serializePrintMessage']
   });
   let _scheduledControlEvents = Symbol('_scheduledControlEvents');
@@ -813,10 +813,10 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       handleKill: [dart.void, [isolate.Capability, core.int]],
       addErrorListener: [dart.void, [isolate.SendPort]],
       removeErrorListener: [dart.void, [isolate.SendPort]],
-      handleUncaughtError: [dart.void, [core.Object, core.StackTrace]],
-      eval: [core.Object, [core.Function]],
+      handleUncaughtError: [dart.void, [dart.dynamic, core.StackTrace]],
+      eval: [dart.dynamic, [core.Function]],
       [_setGlobals]: [dart.void, []],
-      handleControlMessage: [dart.void, [core.Object]],
+      handleControlMessage: [dart.void, [dart.dynamic]],
       lookup: [RawReceivePortImpl, [core.int]],
       [_addRegistration]: [dart.void, [core.int, RawReceivePortImpl]],
       register: [dart.void, [core.int, RawReceivePortImpl]],
@@ -889,7 +889,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
   dart.setSignature(_EventLoop, {
     constructors: () => ({_EventLoop: [_EventLoop, []]}),
     methods: () => ({
-      enqueue: [dart.void, [core.Object, core.Object, core.Object]],
+      enqueue: [dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]],
       prequeue: [dart.void, [_IsolateEvent]],
       dequeue: [_IsolateEvent, []],
       checkOpenReceivePortsFromCommandLine: [dart.void, []],
@@ -922,7 +922,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
   }
   dart.setSignature(_MainManagerStub, {
-    methods: () => ({postMessage: [dart.void, [core.Object]]})
+    methods: () => ({postMessage: [dart.void, [dart.dynamic]]})
   });
   let _SPAWNED_SIGNAL = "spawned";
   let _SPAWN_FAILED_SIGNAL = "spawn failed";
@@ -937,9 +937,9 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       return !!self.postMessage;
     }
   });
-  let _MainFunction = dart.typedef('_MainFunction', () => dart.functionType(core.Object, []));
-  let _MainFunctionArgs = dart.typedef('_MainFunctionArgs', () => dart.functionType(core.Object, [dart.bottom]));
-  let _MainFunctionArgsMessage = dart.typedef('_MainFunctionArgsMessage', () => dart.functionType(core.Object, [dart.bottom, dart.bottom]));
+  let _MainFunction = dart.typedef('_MainFunction', () => dart.functionType(dart.dynamic, []));
+  let _MainFunctionArgs = dart.typedef('_MainFunctionArgs', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  let _MainFunctionArgsMessage = dart.typedef('_MainFunctionArgsMessage', () => dart.functionType(dart.dynamic, [dart.dynamic, dart.dynamic]));
   class IsolateNatives extends core.Object {
     static computeThisScript() {
       let currentScript = document.currentScript;
@@ -1057,7 +1057,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         dart.dsend(replyPort, 'send', msg);
       }), {onError: dart.fn(errorMessage => {
           dart.dsend(replyPort, 'send', [_SPAWN_FAILED_SIGNAL, errorMessage]);
-        }, core.Object, [core.String])});
+        }, dart.dynamic, [core.String])});
     }
     static _log(msg) {
       if (dart.notNull(exports._globalState.isWorker)) {
@@ -1214,22 +1214,22 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       computeThisScriptJsshell: [core.String, []],
       computeThisScriptD8: [core.String, []],
       computeThisScriptFromTrace: [core.String, []],
-      _getEventData: [core.Object, [core.Object]],
-      _processWorkerMessage: [dart.void, [core.Object, core.Object]],
-      handleSpawnWorkerRequest: [core.Object, [core.Object]],
-      _log: [core.Object, [core.Object]],
-      _consoleLog: [dart.void, [core.Object]],
-      _getJSFunctionFromName: [core.Object, [core.String]],
+      _getEventData: [dart.dynamic, [dart.dynamic]],
+      _processWorkerMessage: [dart.void, [dart.dynamic, dart.dynamic]],
+      handleSpawnWorkerRequest: [dart.dynamic, [dart.dynamic]],
+      _log: [dart.dynamic, [dart.dynamic]],
+      _consoleLog: [dart.void, [dart.dynamic]],
+      _getJSFunctionFromName: [dart.dynamic, [core.String]],
       _getJSFunctionName: [core.String, [core.Function]],
-      _allocate: [core.Object, [core.Object]],
-      spawnFunction: [async.Future$(core.List), [dart.functionType(dart.void, [dart.bottom]), core.Object, core.bool]],
-      spawnUri: [async.Future$(core.List), [core.Uri, core.List$(core.String), core.Object, core.bool]],
-      spawn: [async.Future$(core.List), [core.String, core.String, core.List$(core.String), core.Object, core.bool, core.bool, core.bool]],
-      _startWorker: [dart.void, [core.String, core.String, core.List$(core.String), core.Object, core.bool, core.bool, isolate.SendPort, dart.functionType(dart.void, [core.String])]],
-      _startNonWorker: [dart.void, [core.String, core.String, core.List$(core.String), core.Object, core.bool, core.bool, isolate.SendPort]],
-      _startIsolate: [dart.void, [core.Function, core.List$(core.String), core.Object, core.bool, core.bool, isolate.SendPort]],
-      _spawnWorker: [dart.void, [core.Object, core.String, core.List$(core.String), core.Object, core.bool, core.bool, isolate.SendPort, dart.functionType(dart.void, [core.String])]],
-      workerOnError: [core.bool, [core.Object, core.String, dart.functionType(dart.void, [core.String])]]
+      _allocate: [dart.dynamic, [dart.dynamic]],
+      spawnFunction: [async.Future$(core.List), [dart.functionType(dart.void, [dart.dynamic]), dart.dynamic, core.bool]],
+      spawnUri: [async.Future$(core.List), [core.Uri, core.List$(core.String), dart.dynamic, core.bool]],
+      spawn: [async.Future$(core.List), [core.String, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, core.bool]],
+      _startWorker: [dart.void, [core.String, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, isolate.SendPort, dart.functionType(dart.void, [core.String])]],
+      _startNonWorker: [dart.void, [core.String, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, isolate.SendPort]],
+      _startIsolate: [dart.void, [core.Function, core.List$(core.String), dart.dynamic, core.bool, core.bool, isolate.SendPort]],
+      _spawnWorker: [dart.void, [dart.dynamic, core.String, core.List$(core.String), dart.dynamic, core.bool, core.bool, isolate.SendPort, dart.functionType(dart.void, [core.String])]],
+      workerOnError: [core.bool, [dart.dynamic, core.String, dart.functionType(dart.void, [core.String])]]
     }),
     names: ['computeThisScript', 'computeThisScriptJsshell', 'computeThisScriptD8', 'computeThisScriptFromTrace', '_getEventData', '_processWorkerMessage', 'handleSpawnWorkerRequest', '_log', '_consoleLog', '_getJSFunctionFromName', '_getJSFunctionName', '_allocate', 'spawnFunction', 'spawnUri', 'spawn', '_startWorker', '_startNonWorker', '_startIsolate', '_spawnWorker', 'workerOnError']
   });
@@ -1293,7 +1293,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
   _NativeJsSendPort[dart.implements] = () => [isolate.SendPort];
   dart.setSignature(_NativeJsSendPort, {
     constructors: () => ({_NativeJsSendPort: [_NativeJsSendPort, [RawReceivePortImpl, core.int]]}),
-    methods: () => ({send: [dart.void, [core.Object]]})
+    methods: () => ({send: [dart.void, [dart.dynamic]]})
   });
   class _WorkerSendPort extends _BaseSendPort {
     _WorkerSendPort(workerId, isolateId, receivePortId) {
@@ -1322,7 +1322,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
   _WorkerSendPort[dart.implements] = () => [isolate.SendPort];
   dart.setSignature(_WorkerSendPort, {
     constructors: () => ({_WorkerSendPort: [_WorkerSendPort, [core.int, core.int, core.int]]}),
-    methods: () => ({send: [dart.void, [core.Object]]})
+    methods: () => ({send: [dart.void, [dart.dynamic]]})
   });
   let _handler = Symbol('_handler');
   class RawReceivePortImpl extends core.Object {
@@ -1386,7 +1386,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     methods: () => ({
       [_close]: [dart.void, []],
       close: [dart.void, []],
-      [_add]: [dart.void, [core.Object]]
+      [_add]: [dart.void, [dart.dynamic]]
     })
   });
   RawReceivePortImpl._nextFreeId = 1;
@@ -1430,7 +1430,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       fromRawReceivePort: [ReceivePortImpl, [isolate.RawReceivePort]]
     }),
     methods: () => ({
-      listen: [async.StreamSubscription, [dart.functionType(dart.void, [dart.bottom])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
+      listen: [async.StreamSubscription, [dart.functionType(dart.void, [dart.dynamic])], {onError: core.Function, onDone: dart.functionType(dart.void, []), cancelOnError: core.bool}],
       close: [dart.void, []]
     })
   });

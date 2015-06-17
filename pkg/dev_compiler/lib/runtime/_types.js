@@ -19,6 +19,32 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
   const copyProperties = dart_utils.copyProperties;
   const safeGetOwnProperty = dart_utils.safeGetOwnProperty;
 
+  /**
+   * Types in dart are represented at runtime as follows.
+   *   - Normal nominal types, produced from classes, are represented
+   *     at runtime by the JS class of which they are an instance.
+   *     If the type is the result of instantiating a generic class,
+   *     then the "classes" module manages the association between the
+   *     instantiated class and the original class declaration
+   *     and the type arguments with which it was instantiated.  This 
+   *     assocation can be queried via the "classes" module".
+   *
+   *   - All other types are represented as instances of class TypeRep,
+   *     defined in this module.
+   *     - Dynamic, Void, and Bottom are singleton instances of sentinal 
+   *       classes.
+   *     - Function types are instances of subclasses of AbstractFunctionType.
+   *
+   * Function types are represented in one of two ways:
+   *   - As an instance of FunctionType.  These are eagerly computed.
+   *   - As an instance of TypeDef.  The TypeDef representation lazily
+   *     computes an instance of FunctionType, and delegates to that instance.
+   *
+   * All types satisfy the following interface:
+   *  get String name;
+   *  String toString();
+   *
+   */
   class TypeRep extends rtti.LazyTagged(() => core.Type) {
     get name() {return this.toString();}
   }
@@ -90,12 +116,51 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
   }
 
   class FunctionType extends AbstractFunctionType {
-    constructor(returnType, args, optionals, named) {
+    /**
+     * Construct a function type. There are two arrow constructors,
+     * distinguished by the "definite" flag.
+     *
+     * The fuzzy arrow (definite is false) treats any arguments
+     * of type dynamic as having type bottom, and will always be
+     * called with a dynamic invoke.
+     *
+     * The definite arrow (definite is true) leaves arguments unchanged.
+     *
+     * We eagerly canonize the argument types to avoid having to deal with
+     * this logic in multiple places.
+     *
+     * TODO(leafp): Figure out how to present this to the user.  How
+     * should these be printed out?
+     */
+    constructor(definite, returnType, args, optionals, named) {
       super();
+      this.definite = definite;
       this.returnType = returnType;
       this.args = args;
       this.optionals = optionals;
       this.named = named;
+      this._canonize();
+    }
+    _canonize() {
+      if (this.definite) return;
+
+      function replace(a) {
+        return (a == dynamicR) ? bottomR : a;
+      }
+
+      this.args = this.args.map(replace);
+
+      if (this.optionals.length > 0) {
+        this.optionals = this.optionals.map(replace);
+      }
+
+      if (Object.keys(this.named).length > 0) {
+        let r = {};
+        for (let name of getOwnPropertyNames(this.named)) {
+          r[name] = replace(this.named[name]);
+        }
+        this.named = r;
+      }
     }
   }
 
@@ -105,6 +170,10 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
       this._name = name;
       this._closure = closure;
       this._functionType = null;
+    }
+
+    get definite() {
+      return this._functionType.definite;
     }
 
     get name() {
@@ -135,7 +204,7 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
     }
   }
 
-  function functionType(returnType, args, extra) {
+  function _functionType(definite, returnType, args, extra) {
     // TODO(vsm): Cache / memomize?
     let optionals;
     let named;
@@ -149,9 +218,26 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
       optionals = [];
       named = extra;
     }
-    return new FunctionType(returnType, args, optionals, named);
+    return new FunctionType(definite, returnType, args, optionals, named);
+  }
+
+  /**
+   * Create a "fuzzy" function type.  If any arguments are dynamic
+   * they will be replaced with bottom.
+   */
+  function functionType(returnType, args, extra) {
+    return _functionType(false, returnType, args, extra);
   }
   exports.functionType = functionType;
+
+  /**
+   * Create a definite function type. No substitution of dynamic for
+   * bottom occurs.
+   */
+  function definiteFunctionType(returnType, args, extra) {
+    return _functionType(true, returnType, args, extra);
+  }
+  exports.definiteFunctionType = definiteFunctionType;
 
   function typedef(name, closure) {
     return new Typedef(name, closure);
@@ -218,7 +304,7 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
     }
 
     for (let i = 0; i < args1.length; ++i) {
-      if (!isSubtype_(args2[i], args1[i], true)) {
+      if (!isSubtype_(args2[i], args1[i])) {
         return false;
       }
     }
@@ -232,13 +318,13 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
 
     let j = 0;
     for (let i = args1.length; i < args2.length; ++i, ++j) {
-      if (!isSubtype_(args2[i], optionals1[j], true)) {
+      if (!isSubtype_(args2[i], optionals1[j])) {
         return false;
       }
     }
 
     for (let i = 0; i < optionals2.length; ++i, ++j) {
-      if (!isSubtype_(optionals2[i], optionals1[j], true)) {
+      if (!isSubtype_(optionals2[i], optionals1[j])) {
         return false;
       }
     }
@@ -254,7 +340,7 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
       if (n1 === void 0) {
         return false;
       }
-      if (!isSubtype_(n2, n1, true)) {
+      if (!isSubtype_(n2, n1)) {
         return false;
       }
     }
@@ -298,33 +384,26 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
   }
   exports.isSubtype = isSubtype;
 
-  function _isBottom(type, dynamicIsBottom) {
-    return (type == dynamicR && dynamicIsBottom) || type == bottomR;
+  function _isBottom(type) {
+    return type == bottomR;
   }
 
-  function _isTop(type, dynamicIsBottom) {
-    return type == core.Object || (type == dynamicR && !dynamicIsBottom);
+  function _isTop(type) {
+    return type == core.Object || (type == dynamicR);
   }
 
-  function isSubtype_(t1, t2, opt_dynamicIsBottom) {
-    let dynamicIsBottom =
-      opt_dynamicIsBottom === void 0 ? false : opt_dynamicIsBottom;
-
+  function isSubtype_(t1, t2) {
     t1 = canonicalType(t1);
     t2 = canonicalType(t2);
     if (t1 == t2) return true;
 
-    // In Dart, dynamic is effectively both top and bottom.
-    // Here, we treat dynamic as one or the other depending on context,
-    // but not both.
-
     // Trivially true.
-    if (_isTop(t2, dynamicIsBottom) || _isBottom(t1, dynamicIsBottom)) {
+    if (_isTop(t2) || _isBottom(t1)) {
       return true;
     }
 
     // Trivially false.
-    if (_isTop(t1, dynamicIsBottom) || _isBottom(t2, dynamicIsBottom)) {
+    if (_isTop(t1) || _isBottom(t2)) {
       return false;
     }
 
@@ -413,16 +492,16 @@ dart_library.library('dart_runtime/_types', null, /* Imports */[
     // TODO(vsm): Cache this if we start using it at runtime.
 
     if (type instanceof AbstractFunctionType) {
-      if (!_isTop(type.returnType, false)) return false;
+      if (!_isTop(type.returnType)) return false;
       for (let i = 0; i < type.args.length; ++i) {
-        if (!_isBottom(type.args[i], true)) return false;
+        if (!_isBottom(type.args[i])) return false;
       }
       for (let i = 0; i < type.optionals.length; ++i) {
-        if (!_isBottom(type.optionals[i], true)) return false;
+        if (!_isBottom(type.optionals[i])) return false;
       }
       let names = getOwnPropertyNames(type.named);
       for (let i = 0; i < names.length; ++i) {
-        if (!_isBottom(type.named[names[i]], true)) return false;
+        if (!_isBottom(type.named[names[i]])) return false;
       }
       return true;
     }

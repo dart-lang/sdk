@@ -37,7 +37,7 @@ dart_library.library('sunflower', null, /* Imports */[
     }
   });
   function main() {
-    exports.slider.addEventListener('change', dart.fn(e => draw(), dart.void, [core.Object]));
+    exports.slider.addEventListener('change', dart.fn(e => draw(), dart.void, [dart.dynamic]));
     draw();
   }
   dart.fn(main, dart.void, []);

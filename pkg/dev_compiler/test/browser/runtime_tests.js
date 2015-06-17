@@ -409,11 +409,10 @@ suite('instanceOf', () => {
     checkType(cls3, Foo);
     checkType(bar3, functionType(B, [B, String]));
     checkType(cls3, functionType(B, [B, String]));
-    checkType(bar4, Foo, false);
-    checkType(cls4, Foo, false);
-    // TODO(vsm): Revisit.  bar4 is (B, *) -> B.  Perhaps it should be treated as top for a reified object.
-    checkType(bar4, functionType(B, [B, String]), false);
-    checkType(cls4, functionType(B, [B, String]), false);
+    checkType(bar4, Foo, true);
+    checkType(cls4, Foo, true);
+    checkType(bar4, functionType(B, [B, String]), true);
+    checkType(cls4, functionType(B, [B, String]), true);
     checkType(bar5, Foo);
     checkType(cls5, Foo);
     checkType(bar5, functionType(B, [B, String]));

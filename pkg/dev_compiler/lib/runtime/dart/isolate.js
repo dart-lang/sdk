@@ -42,7 +42,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
     static spawn(entryPoint, message, opts) {
       let paused = opts && 'paused' in opts ? opts.paused : false;
       try {
-        return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [core.Object])), async.Future$(Isolate));
+        return dart.as(_isolate_helper.IsolateNatives.spawnFunction(entryPoint, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [dart.dynamic])), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
         return async.Future$(Isolate).error(e, st);
@@ -64,7 +64,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
         } else if (args != null) {
           throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
         }
-        return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [core.Object])), async.Future$(Isolate));
+        return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [dart.dynamic])), async.Future$(Isolate));
       } catch (e) {
         let st = dart.stackTrace(e);
         return async.Future$(Isolate).error(e, st);
@@ -146,7 +146,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
         let error = new RemoteError(errorDescription, stackDescription);
         controller.addError(error, error.stackTrace);
       };
-      dart.fn(handleError, dart.void, [core.Object]);
+      dart.fn(handleError, dart.void, [dart.dynamic]);
       controller = async.StreamController.broadcast({sync: true, onListen: dart.fn(() => {
           port = RawReceivePort.new(handleError);
           this.addErrorListener(port.sendPort);
@@ -173,8 +173,8 @@ dart_library.library('dart/isolate', null, /* Imports */[
       removeErrorListener: [dart.void, [SendPort]]
     }),
     statics: () => ({
-      spawn: [async.Future$(Isolate), [dart.functionType(dart.void, [dart.bottom]), core.Object], {paused: core.bool}],
-      spawnUri: [async.Future$(Isolate), [core.Uri, core.List$(core.String), core.Object], {paused: core.bool, packageRoot: core.Uri}]
+      spawn: [async.Future$(Isolate), [dart.functionType(dart.void, [dart.dynamic]), dart.dynamic], {paused: core.bool}],
+      spawnUri: [async.Future$(Isolate), [core.Uri, core.List$(core.String), dart.dynamic], {paused: core.bool, packageRoot: core.Uri}]
     }),
     names: ['spawn', 'spawnUri']
   });
@@ -211,7 +211,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
     }
   }
   dart.setSignature(RawReceivePort, {
-    constructors: () => ({new: [RawReceivePort, [], [dart.functionType(dart.void, [dart.bottom])]]})
+    constructors: () => ({new: [RawReceivePort, [], [dart.functionType(dart.void, [dart.dynamic])]]})
   });
   class _IsolateUnhandledException extends core.Object {
     _IsolateUnhandledException(message, source, stackTrace) {
@@ -225,7 +225,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
   }
   _IsolateUnhandledException[dart.implements] = () => [core.Exception];
   dart.setSignature(_IsolateUnhandledException, {
-    constructors: () => ({_IsolateUnhandledException: [_IsolateUnhandledException, [core.Object, core.Object, core.StackTrace]]})
+    constructors: () => ({_IsolateUnhandledException: [_IsolateUnhandledException, [dart.dynamic, dart.dynamic, core.StackTrace]]})
   });
   let _description = Symbol('_description');
   class RemoteError extends core.Object {

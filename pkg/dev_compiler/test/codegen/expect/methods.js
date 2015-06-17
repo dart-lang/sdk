@@ -61,7 +61,7 @@ dart_library.library('methods', null, /* Imports */[
     }
   }
   dart.setSignature(Bar, {
-    methods: () => ({call: [core.Object, [core.Object]]})
+    methods: () => ({call: [dart.dynamic, [dart.dynamic]]})
   });
   class Foo extends core.Object {
     Foo() {

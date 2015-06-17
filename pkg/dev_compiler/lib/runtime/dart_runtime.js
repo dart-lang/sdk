@@ -90,6 +90,7 @@ dart_library.library('dart_runtime/dart', null, /* Imports */[
   // From types
   exportFrom(types, [
     'bottom',
+    'definiteFunctionType',
     'dynamic',
     'functionType',
     'typedef',

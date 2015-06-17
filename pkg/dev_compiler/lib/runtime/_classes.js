@@ -118,10 +118,6 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
         throwError('requires ' + length + ' or 0 type arguments');
       }
       let args = slice.call(arguments);
-      // TODO(leafp): This should really be core.Object for
-      // consistency, but Object is not attached to core
-      // until the entire core library has been processed,
-      // which is too late.
       while (args.length < length) args.push(types.dynamic);
 
       let value = resultMap;
@@ -175,7 +171,7 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
     if (sigObj === void 0) return void 0;
     let parts = sigObj[name];
     if (parts === void 0) return void 0;
-    return types.functionType.apply(null, parts);
+    return types.definiteFunctionType.apply(null, parts);
   }
 
   /// Get the type of a constructor from a class using the stored signature
@@ -189,7 +185,7 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
     if (sigCtor === void 0) return void 0;
     let parts = sigCtor[name];
     if (parts === void 0) return void 0;
-    return types.functionType.apply(null, parts);
+    return types.definiteFunctionType.apply(null, parts);
   }
   exports.classGetConstructorType = _getConstructorType;
 
@@ -230,7 +226,7 @@ dart_library.library('dart_runtime/_classes', null, /* Imports */[
     for (let name of names) {
       rtti.tagMemoized(f[name], function() {
         let parts = f[_staticSig][name];
-        return types.functionType.apply(null, parts);
+        return types.definiteFunctionType.apply(null, parts);
       })
     }
   }

@@ -647,8 +647,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
           if (inheritedElement != null &&
               inheritedElement.type == element.type) continue;
           var memberName = _elementMemberName(element);
-          var parts =
-              _emitFunctionTypeParts(element.type, dynamicIsBottom: false);
+          var parts = _emitFunctionTypeParts(element.type);
           var property =
               new JS.Property(memberName, new JS.ArrayInitializer(parts));
           if (node.isStatic) {
@@ -664,8 +663,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       for (ConstructorDeclaration node in ctors) {
         var memberName = _constructorName(node.element);
         var element = node.element;
-        var parts =
-            _emitFunctionTypeParts(element.type, dynamicIsBottom: false);
+        var parts = _emitFunctionTypeParts(element.type);
         var property =
             new JS.Property(memberName, new JS.ArrayInitializer(parts));
         tCtors.add(property);
@@ -1185,10 +1183,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       if (lazy) {
         return js.call('dart.fn(#, () => #)', [clos, _emitFunctionRTTI(type)]);
       }
-      return js.call('dart.fn(#, #)', [
-        clos,
-        _emitFunctionTypeParts(type, dynamicIsBottom: false)
-      ]);
+      return js.call('dart.fn(#, #)', [clos, _emitFunctionTypeParts(type)]);
     }
     throw 'Function has non function type: $type';
   }
@@ -1321,18 +1316,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   JS.TemporaryId _getTemp(Object key, String name) =>
       _temps.putIfAbsent(key, () => new JS.TemporaryId(name));
 
-  JS.ArrayInitializer _emitTypeNames(List<DartType> types,
-      {dynamicIsBottom: false}) {
-    var build = (t) => _emitTypeName(t, dynamicIsBottom: dynamicIsBottom);
+  JS.ArrayInitializer _emitTypeNames(List<DartType> types) {
+    var build = (t) => _emitTypeName(t);
     return new JS.ArrayInitializer(types.map(build).toList());
   }
 
-  JS.ObjectInitializer _emitTypeProperties(Map<String, DartType> types,
-      {dynamicIsBottom: false}) {
+  JS.ObjectInitializer _emitTypeProperties(Map<String, DartType> types) {
     var properties = <JS.Property>[];
     types.forEach((name, type) {
       var key = _propertyName(name);
-      var value = _emitTypeName(type, dynamicIsBottom: dynamicIsBottom);
+      var value = _emitTypeName(type);
       properties.add(new JS.Property(key, value));
     });
     return new JS.ObjectInitializer(properties);
@@ -1340,33 +1333,29 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   /// Emit the pieces of a function type, as an array of return type,
   /// regular args, and optional/named args.
-  /// If [dynamicIsBottom] is true, then dynamics in argument positions
-  /// will be lowered to bottom instead of Object.
-  List<JS.Expression> _emitFunctionTypeParts(FunctionType type,
-      {bool dynamicIsBottom: true}) {
+  List<JS.Expression> _emitFunctionTypeParts(FunctionType type) {
     var returnType = type.returnType;
     var parameterTypes = type.normalParameterTypes;
     var optionalTypes = type.optionalParameterTypes;
     var namedTypes = type.namedParameterTypes;
     var rt = _emitTypeName(returnType);
-    var ra = _emitTypeNames(parameterTypes, dynamicIsBottom: dynamicIsBottom);
+    var ra = _emitTypeNames(parameterTypes);
     if (!namedTypes.isEmpty) {
       assert(optionalTypes.isEmpty);
-      var na =
-          _emitTypeProperties(namedTypes, dynamicIsBottom: dynamicIsBottom);
+      var na = _emitTypeProperties(namedTypes);
       return [rt, ra, na];
     }
     if (!optionalTypes.isEmpty) {
       assert(namedTypes.isEmpty);
-      var oa = _emitTypeNames(optionalTypes, dynamicIsBottom: dynamicIsBottom);
+      var oa = _emitTypeNames(optionalTypes);
       return [rt, ra, oa];
     }
     return [rt, ra];
   }
 
   JS.Expression _emitFunctionRTTI(FunctionType type) {
-    var parts = _emitFunctionTypeParts(type, dynamicIsBottom: false);
-    return js.call('dart.functionType(#)', [parts]);
+    var parts = _emitFunctionTypeParts(type);
+    return js.call('dart.definiteFunctionType(#)', [parts]);
   }
 
   /// Emits a Dart [type] into code.
@@ -1375,15 +1364,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   /// function type. Similarly if [lowerGeneric] is set, the `List$()` form
   /// will be used instead of `List`. These flags are used when generating
   /// the definitions for typedefs and generic types, respectively.
-  JS.Expression _emitTypeName(DartType type, {bool lowerTypedef: false,
-      bool lowerGeneric: false, bool dynamicIsBottom: false}) {
+  JS.Expression _emitTypeName(DartType type,
+      {bool lowerTypedef: false, bool lowerGeneric: false}) {
 
     // The void and dynamic types are not defined in core.
     if (type.isVoid) {
       return js.call('dart.void');
     } else if (type.isDynamic) {
-      if (dynamicIsBottom) return js.call('dart.bottom');
-      return _emitTypeName(types.objectType);
+      return js.call('dart.dynamic');
     } else if (type.isBottom) {
       return js.call('dart.bottom');
     }

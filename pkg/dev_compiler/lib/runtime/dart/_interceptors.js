@@ -174,7 +174,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         }
       }
       [dartx.map](f) {
-        dart.as(f, dart.functionType(core.Object, [E]));
+        dart.as(f, dart.functionType(dart.dynamic, [E]));
         return _internal.IterableMixinWorkaround.mapList(this, f);
       }
       [dartx.join](separator) {
@@ -205,7 +205,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         return dart.as(_internal.IterableMixinWorkaround.reduce(this, combine), E);
       }
       [dartx.fold](initialValue, combine) {
-        dart.as(combine, dart.functionType(core.Object, [dart.bottom, E]));
+        dart.as(combine, dart.functionType(dart.dynamic, [dart.dynamic, E]));
         return _internal.IterableMixinWorkaround.fold(this, initialValue, combine);
       }
       [dartx.firstWhere](test, opts) {
@@ -396,12 +396,12 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
     dart.setSignature(JSArray, {
       constructors: () => ({
         JSArray: [JSArray$(E), []],
-        typed: [JSArray$(E), [core.Object]],
-        markFixed: [JSArray$(E), [core.Object]],
-        markGrowable: [JSArray$(E), [core.Object]]
+        typed: [JSArray$(E), [dart.dynamic]],
+        markFixed: [JSArray$(E), [dart.dynamic]],
+        markGrowable: [JSArray$(E), [dart.dynamic]]
       }),
       methods: () => ({
-        [dartx.checkGrowable]: [core.Object, [core.Object]],
+        [dartx.checkGrowable]: [dart.dynamic, [dart.dynamic]],
         [dartx.add]: [dart.void, [E]],
         [dartx.removeAt]: [E, [core.int]],
         [dartx.insert]: [dart.void, [core.int, E]],
@@ -416,14 +416,14 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
         [dartx.addAll]: [dart.void, [core.Iterable$(E)]],
         [dartx.clear]: [dart.void, []],
         [dartx.forEach]: [dart.void, [dart.functionType(dart.void, [E])]],
-        [dartx.map]: [core.Iterable, [dart.functionType(core.Object, [E])]],
+        [dartx.map]: [core.Iterable, [dart.functionType(dart.dynamic, [E])]],
         [dartx.join]: [core.String, [], [core.String]],
         [dartx.take]: [core.Iterable$(E), [core.int]],
         [dartx.takeWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [dartx.skip]: [core.Iterable$(E), [core.int]],
         [dartx.skipWhile]: [core.Iterable$(E), [dart.functionType(core.bool, [E])]],
         [dartx.reduce]: [E, [dart.functionType(E, [E, E])]],
-        [dartx.fold]: [core.Object, [core.Object, dart.functionType(core.Object, [dart.bottom, E])]],
+        [dartx.fold]: [dart.dynamic, [dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic, E])]],
         [dartx.firstWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         [dartx.lastWhere]: [E, [dart.functionType(core.bool, [E])], {orElse: dart.functionType(E, [])}],
         [dartx.singleWhere]: [E, [dart.functionType(core.bool, [E])]],
@@ -866,7 +866,7 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       [dartx['/']]: [core.double, [core.num]],
       [dartx['*']]: [core.num, [core.num]],
       [dartx['%']]: [core.num, [core.num]],
-      [_isInt32]: [core.bool, [core.Object]],
+      [_isInt32]: [core.bool, [dart.dynamic]],
       [dartx['~/']]: [core.int, [core.num]],
       [_tdivFast]: [core.int, [core.num]],
       [_tdivSlow]: [core.int, [core.num]],

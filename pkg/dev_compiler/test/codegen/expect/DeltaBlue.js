@@ -101,7 +101,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     constructors: () => ({Constraint: [Constraint, [Strength]]}),
     methods: () => ({
       addConstraint: [dart.void, []],
-      satisfy: [Constraint, [core.Object]],
+      satisfy: [Constraint, [dart.dynamic]],
       destroyConstraint: [dart.void, []],
       isInput: [core.bool, []]
     })

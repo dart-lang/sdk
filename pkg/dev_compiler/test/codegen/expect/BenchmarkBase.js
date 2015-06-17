@@ -24,9 +24,9 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
     }
   }
   dart.setSignature(Expect, {
-    methods: () => ({fail: [core.Object, [core.Object]]}),
+    methods: () => ({fail: [dart.dynamic, [dart.dynamic]]}),
     statics: () => ({
-      equals: [dart.void, [core.Object, core.Object]],
+      equals: [dart.void, [dart.dynamic, dart.dynamic]],
       listEquals: [dart.void, [core.List, core.List]]
     }),
     names: ['equals', 'listEquals']

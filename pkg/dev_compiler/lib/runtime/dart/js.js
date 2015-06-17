@@ -22,7 +22,7 @@ dart_library.library('dart/js', null, /* Imports */[
       };
     }(_foreign_helper.DART_CLOSURE_TO_JS(_callDartFunction), f, captureThis);
   }
-  dart.fn(_convertDartFunction, core.Object, [core.Function], {captureThis: core.bool});
+  dart.fn(_convertDartFunction, dart.dynamic, [core.Function], {captureThis: core.bool});
   function _callDartFunction(callback, captureThis, self, arguments$) {
     if (dart.notNull(captureThis)) {
       let _ = [self];
@@ -32,7 +32,7 @@ dart_library.library('dart/js', null, /* Imports */[
     let dartArgs = core.List.from(arguments$[dartx.map](_convertToDart));
     return _convertToJS(core.Function.apply(dart.as(callback, core.Function), dartArgs));
   }
-  dart.fn(_callDartFunction, core.Object, [core.Object, core.bool, core.Object, core.List]);
+  dart.fn(_callDartFunction, dart.dynamic, [dart.dynamic, core.bool, dart.dynamic, core.List]);
   let _jsObject = Symbol('_jsObject');
   class JsObject extends core.Object {
     _fromJs(jsObject) {
@@ -143,20 +143,20 @@ dart_library.library('dart/js', null, /* Imports */[
   dart.defineNamedConstructor(JsObject, '_fromJs');
   dart.setSignature(JsObject, {
     constructors: () => ({
-      _fromJs: [JsObject, [core.Object]],
+      _fromJs: [JsObject, [dart.dynamic]],
       new: [JsObject, [JsFunction], [core.List]],
-      fromBrowserObject: [JsObject, [core.Object]],
-      jsify: [JsObject, [core.Object]]
+      fromBrowserObject: [JsObject, [dart.dynamic]],
+      jsify: [JsObject, [dart.dynamic]]
     }),
     methods: () => ({
-      get: [core.Object, [core.Object]],
-      set: [core.Object, [core.Object, core.Object]],
-      hasProperty: [core.bool, [core.Object]],
-      deleteProperty: [dart.void, [core.Object]],
+      get: [dart.dynamic, [dart.dynamic]],
+      set: [dart.dynamic, [dart.dynamic, dart.dynamic]],
+      hasProperty: [core.bool, [dart.dynamic]],
+      deleteProperty: [dart.void, [dart.dynamic]],
       instanceof: [core.bool, [JsFunction]],
-      callMethod: [core.Object, [core.Object], [core.List]]
+      callMethod: [dart.dynamic, [dart.dynamic], [core.List]]
     }),
-    statics: () => ({_convertDataTree: [core.Object, [core.Object]]}),
+    statics: () => ({_convertDataTree: [dart.dynamic, [dart.dynamic]]}),
     names: ['_convertDataTree']
   });
   class JsFunction extends JsObject {
@@ -176,9 +176,9 @@ dart_library.library('dart/js', null, /* Imports */[
   dart.setSignature(JsFunction, {
     constructors: () => ({
       withThis: [JsFunction, [core.Function]],
-      _fromJs: [JsFunction, [core.Object]]
+      _fromJs: [JsFunction, [dart.dynamic]]
     }),
-    methods: () => ({apply: [core.Object, [core.List], {thisArg: core.Object}]})
+    methods: () => ({apply: [dart.dynamic, [core.List], {thisArg: dart.dynamic}]})
   });
   let _checkIndex = Symbol('_checkIndex');
   let _checkInsertIndex = Symbol('_checkInsertIndex');
@@ -292,13 +292,13 @@ dart_library.library('dart/js', null, /* Imports */[
       constructors: () => ({
         JsArray: [JsArray$(E), []],
         from: [JsArray$(E), [core.Iterable$(E)]],
-        _fromJs: [JsArray$(E), [core.Object]]
+        _fromJs: [JsArray$(E), [dart.dynamic]]
       }),
       methods: () => ({
-        [_checkIndex]: [core.Object, [core.int]],
-        [_checkInsertIndex]: [core.Object, [core.int]],
-        get: [E, [core.Object]],
-        set: [dart.void, [core.Object, E]],
+        [_checkIndex]: [dart.dynamic, [core.int]],
+        [_checkInsertIndex]: [dart.dynamic, [core.int]],
+        get: [E, [dart.dynamic]],
+        set: [dart.void, [dart.dynamic, E]],
         add: [dart.void, [E]],
         addAll: [dart.void, [core.Iterable$(E)]],
         insert: [dart.void, [core.int, E]],
@@ -307,7 +307,7 @@ dart_library.library('dart/js', null, /* Imports */[
         setRange: [dart.void, [core.int, core.int, core.Iterable$(E)], [core.int]],
         sort: [dart.void, [], [dart.functionType(core.int, [E, E])]]
       }),
-      statics: () => ({_checkRange: [core.Object, [core.int, core.int, core.int]]}),
+      statics: () => ({_checkRange: [dart.dynamic, [core.int, core.int, core.int]]}),
       names: ['_checkRange']
     });
     dart.defineExtensionMembers(JsArray, [
@@ -348,26 +348,26 @@ dart_library.library('dart/js', null, /* Imports */[
     }
     return false;
   }
-  dart.fn(_defineProperty, core.bool, [core.Object, core.String, core.Object]);
+  dart.fn(_defineProperty, core.bool, [dart.dynamic, core.String, dart.dynamic]);
   function _hasOwnProperty(o, name) {
     return Object.prototype.hasOwnProperty.call(o, name);
   }
-  dart.fn(_hasOwnProperty, core.bool, [core.Object, core.String]);
+  dart.fn(_hasOwnProperty, core.bool, [dart.dynamic, core.String]);
   function _isExtensible(o) {
     return Object.isExtensible(o);
   }
-  dart.fn(_isExtensible, core.bool, [core.Object]);
+  dart.fn(_isExtensible, core.bool, [dart.dynamic]);
   function _getOwnProperty(o, name) {
     if (dart.notNull(_hasOwnProperty(o, name))) {
       return o[name];
     }
     return null;
   }
-  dart.fn(_getOwnProperty, core.Object, [core.Object, core.String]);
+  dart.fn(_getOwnProperty, core.Object, [dart.dynamic, core.String]);
   function _isLocalObject(o) {
     return o instanceof Object;
   }
-  dart.fn(_isLocalObject, core.bool, [core.Object]);
+  dart.fn(_isLocalObject, core.bool, [dart.dynamic]);
   dart.defineLazyProperties(exports, {
     get _dartProxyCtor() {
       return function DartObject(o) {
@@ -378,7 +378,7 @@ dart_library.library('dart/js', null, /* Imports */[
   function _convertToJS(o) {
     if (o == null || typeof o == 'string' || dart.is(o, core.num) || typeof o == 'boolean') {
       return o;
-    } else if (dart.is(o, core.Object) || dart.is(o, core.Object) || dart.is(o, core.Object) || dart.is(o, core.Object) || dart.is(o, core.Object) || dart.is(o, typed_data.TypedData) || dart.is(o, core.Object)) {
+    } else if (dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, typed_data.TypedData) || dart.is(o, dart.dynamic)) {
       return o;
     } else if (dart.is(o, core.DateTime)) {
       return _js_helper.Primitives.lazyAsJsDate(o);
@@ -404,11 +404,11 @@ dart_library.library('dart/js', null, /* Imports */[
     }
     return jsProxy;
   }
-  dart.fn(_getJsProxy, core.Object, [core.Object, core.String, dart.functionType(core.Object, [dart.bottom])]);
+  dart.fn(_getJsProxy, core.Object, [dart.dynamic, core.String, dart.functionType(dart.dynamic, [dart.dynamic])]);
   function _convertToDart(o) {
     if (o == null || typeof o == "string" || typeof o == "number" || typeof o == "boolean") {
       return o;
-    } else if (dart.notNull(_isLocalObject(o)) && (dart.is(o, core.Object) || dart.is(o, core.Object) || dart.is(o, core.Object) || dart.is(o, core.Object) || dart.is(o, core.Object) || dart.is(o, typed_data.TypedData) || dart.is(o, core.Object))) {
+    } else if (dart.notNull(_isLocalObject(o)) && (dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, typed_data.TypedData) || dart.is(o, dart.dynamic))) {
       return o;
     } else if (o instanceof Date) {
       let ms = o.getTime();
@@ -419,17 +419,17 @@ dart_library.library('dart/js', null, /* Imports */[
       return _wrapToDart(o);
     }
   }
-  dart.fn(_convertToDart, core.Object, [core.Object]);
+  dart.fn(_convertToDart, core.Object, [dart.dynamic]);
   function _wrapToDart(o) {
     if (typeof o == "function") {
-      return dart.as(_getDartProxy(o, exports._DART_CLOSURE_PROPERTY_NAME, dart.fn(o => new JsFunction._fromJs(o), JsFunction, [core.Object])), JsObject);
+      return dart.as(_getDartProxy(o, exports._DART_CLOSURE_PROPERTY_NAME, dart.fn(o => new JsFunction._fromJs(o), JsFunction, [dart.dynamic])), JsObject);
     } else if (o instanceof Array) {
-      return dart.as(_getDartProxy(o, exports._DART_OBJECT_PROPERTY_NAME, dart.fn(o => new JsArray._fromJs(o), JsArray, [core.Object])), JsObject);
+      return dart.as(_getDartProxy(o, exports._DART_OBJECT_PROPERTY_NAME, dart.fn(o => new JsArray._fromJs(o), JsArray, [dart.dynamic])), JsObject);
     } else {
-      return dart.as(_getDartProxy(o, exports._DART_OBJECT_PROPERTY_NAME, dart.fn(o => new JsObject._fromJs(o), JsObject, [core.Object])), JsObject);
+      return dart.as(_getDartProxy(o, exports._DART_OBJECT_PROPERTY_NAME, dart.fn(o => new JsObject._fromJs(o), JsObject, [dart.dynamic])), JsObject);
     }
   }
-  dart.fn(_wrapToDart, JsObject, [core.Object]);
+  dart.fn(_wrapToDart, JsObject, [dart.dynamic]);
   function _getDartProxy(o, propertyName, createProxy) {
     let dartProxy = _getOwnProperty(o, propertyName);
     if (dartProxy == null || !dart.notNull(_isLocalObject(o))) {
@@ -438,9 +438,9 @@ dart_library.library('dart/js', null, /* Imports */[
     }
     return dartProxy;
   }
-  dart.fn(_getDartProxy, core.Object, [core.Object, core.String, dart.functionType(core.Object, [dart.bottom])]);
+  dart.fn(_getDartProxy, core.Object, [dart.dynamic, core.String, dart.functionType(dart.dynamic, [dart.dynamic])]);
   let __CastType0$ = dart.generic(function(E) {
-    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Object, [E]));
+    let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [E]));
     return __CastType0;
   });
   let __CastType0 = __CastType0$();

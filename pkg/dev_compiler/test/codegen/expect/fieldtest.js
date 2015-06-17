@@ -30,11 +30,11 @@ dart_library.library('fieldtest', null, /* Imports */[
     core.print(dart.dload(a, 'x'));
     return dart.as(dart.dload(a, 'x'), core.int);
   }
-  dart.fn(bar, core.int, [core.Object]);
+  dart.fn(bar, core.int, [dart.dynamic]);
   function baz(a) {
     return a.x;
   }
-  dart.fn(baz, core.Object, [A]);
+  dart.fn(baz, dart.dynamic, [A]);
   function compute() {
     return 123;
   }
@@ -76,7 +76,7 @@ dart_library.library('fieldtest', null, /* Imports */[
       }
     }
     dart.setSignature(Generic, {
-      methods: () => ({foo: [core.Object, [T]]})
+      methods: () => ({foo: [dart.dynamic, [T]]})
     });
     return Generic;
   });

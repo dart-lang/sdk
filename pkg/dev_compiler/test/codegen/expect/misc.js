@@ -49,7 +49,7 @@ dart_library.library('misc', null, /* Imports */[
     core.print(dart.toString(1.0));
     core.print(dart.toString(1.1));
     let x = 42;
-    core.print(dart.equals(x, core.Object));
+    core.print(dart.equals(x, dart.dynamic));
     core.print(dart.equals(x, Generic));
     core.print(new (Generic$(core.int))().type);
     core.print(dart.equals(new Derived(), new Derived()));
