@@ -26,6 +26,7 @@ if_null_assignment_behavior_test: Fail, Pass
 if_null_assignment_static_test: Fail
 conditional_property_assignment_test: Fail, Pass
 conditional_property_access_test: Fail, Pass
+conditional_property_increment_decrement_test: Fail
 conditional_method_invocation_test: Fail, Pass
 this_conditional_operator_test/none: Fail
 
