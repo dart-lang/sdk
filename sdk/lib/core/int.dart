@@ -116,7 +116,7 @@ abstract class int extends num {
    * modulo [modulus].
    *
    * The [modulus] must be positive.
-   * Returns 0 if no modular inverse exists.
+   * Throws a RangeError if no modular inverse exists.
    */
   int modInverse(int modulus);
 
