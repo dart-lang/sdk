@@ -129,6 +129,10 @@ class LocalHandle {
   void set_raw(RawObject* raw) { raw_ = raw; }
   static intptr_t raw_offset() { return OFFSET_OF(LocalHandle, raw_); }
 
+  Dart_Handle apiHandle() {
+    return reinterpret_cast<Dart_Handle>(this);
+  }
+
  private:
   LocalHandle() { }
   ~LocalHandle() { }

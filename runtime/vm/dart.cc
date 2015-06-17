@@ -70,6 +70,7 @@ class ReadOnlyHandles {
 
  private:
   VMHandles handles_;
+  LocalHandles api_handles_;
 
   friend class Dart;
   DISALLOW_COPY_AND_ASSIGN(ReadOnlyHandles);
@@ -179,10 +180,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     vm_isolate_->heap()->Verify(kRequireMarked);
 #endif
   }
-  // There is a planned and known asymmetry here: We enter one scope for the VM
-  // isolate so that we can allocate the "persistent" scoped handles for the
-  // predefined API values (such as Dart_True, Dart_False and Dart_Null).
-  Dart_EnterScope();
+  // Allocate the "persistent" scoped handles for the predefined API
+  // values (such as Dart_True, Dart_False and Dart_Null).
   Api::InitHandles();
 
   Thread::ExitIsolate();  // Unregister the VM isolate from this thread.
@@ -358,6 +357,13 @@ uword Dart::AllocateReadOnlyHandle() {
   ASSERT(Isolate::Current() == Dart::vm_isolate());
   ASSERT(predefined_handles_ != NULL);
   return predefined_handles_->handles_.AllocateScopedHandle();
+}
+
+
+LocalHandle* Dart::AllocateReadOnlyApiHandle() {
+  ASSERT(Isolate::Current() == Dart::vm_isolate());
+  ASSERT(predefined_handles_ != NULL);
+  return predefined_handles_->api_handles_.AllocateHandle();
 }
 
 

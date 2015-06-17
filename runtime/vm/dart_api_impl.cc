@@ -350,7 +350,7 @@ Dart_Handle Api::InitNewHandle(Isolate* isolate, RawObject* raw) {
   ASSERT(local_handles != NULL);
   LocalHandle* ref = local_handles->AllocateHandle();
   ref->set_raw(raw);
-  return reinterpret_cast<Dart_Handle>(ref);
+  return ref->apiHandle();
 }
 
 
@@ -493,23 +493,32 @@ void Api::InitOnce() {
 }
 
 
+static Dart_Handle InitNewReadOnlyApiHandle(RawObject* raw) {
+  ASSERT(raw->IsVMHeapObject());
+  LocalHandle* ref = Dart::AllocateReadOnlyApiHandle();
+  ref->set_raw(raw);
+  return ref->apiHandle();
+}
+
+
 void Api::InitHandles() {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ASSERT(isolate == Dart::vm_isolate());
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
+
   ASSERT(true_handle_ == NULL);
-  true_handle_ = Api::InitNewHandle(isolate, Bool::True().raw());
+  true_handle_ = InitNewReadOnlyApiHandle(Bool::True().raw());
 
   ASSERT(false_handle_ == NULL);
-  false_handle_ = Api::InitNewHandle(isolate, Bool::False().raw());
+  false_handle_ = InitNewReadOnlyApiHandle(Bool::False().raw());
 
   ASSERT(null_handle_ == NULL);
-  null_handle_ = Api::InitNewHandle(isolate, Object::null());
+  null_handle_ = InitNewReadOnlyApiHandle(Object::null());
 
   ASSERT(empty_string_handle_ == NULL);
-  empty_string_handle_ = Api::InitNewHandle(isolate, Symbols::Empty().raw());
+  empty_string_handle_ = InitNewReadOnlyApiHandle(Symbols::Empty().raw());
 }
 
 
