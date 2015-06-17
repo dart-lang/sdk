@@ -4,9 +4,9 @@
 
 #include "bin/builtin.h"
 #include "include/dart_api.h"
-#include "include/dart_debugger_api.h"
 #include "include/dart_mirrors_api.h"
 #include "include/dart_native_api.h"
+#include "include/dart_tools_api.h"
 #include "platform/assert.h"
 #include "platform/json.h"
 #include "platform/utils.h"

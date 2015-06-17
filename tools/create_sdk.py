@@ -28,9 +28,9 @@
 # ........utils_wrapper.dart.snapshot
 # ....include/
 # ......dart_api.h
-# ......dart_debugger_api.h
 # ......dart_mirrors_api.h
 # ......dart_native_api.h
+# ......dart_tools_api.h
 # ....lib/
 # ......_internal/
 # ......async/
@@ -182,12 +182,12 @@ def Main():
   os.makedirs(INCLUDE)
   copyfile(join(HOME, 'runtime', 'include', 'dart_api.h'),
            join(INCLUDE, 'dart_api.h'))
-  copyfile(join(HOME, 'runtime', 'include', 'dart_debugger_api.h'),
-           join(INCLUDE, 'dart_debugger_api.h'))
   copyfile(join(HOME, 'runtime', 'include', 'dart_mirrors_api.h'),
            join(INCLUDE, 'dart_mirrors_api.h'))
   copyfile(join(HOME, 'runtime', 'include', 'dart_native_api.h'),
            join(INCLUDE, 'dart_native_api.h'))
+  copyfile(join(HOME, 'runtime', 'include', 'dart_tools_api.h'),
+           join(INCLUDE, 'dart_tools_api.h'))
 
   #
   # Create and populate sdk/lib.

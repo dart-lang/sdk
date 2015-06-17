@@ -5,7 +5,7 @@
 #ifndef VM_DEBUGGER_H_
 #define VM_DEBUGGER_H_
 
-#include "include/dart_debugger_api.h"
+#include "include/dart_tools_api.h"
 
 #include "vm/object.h"
 #include "vm/port.h"

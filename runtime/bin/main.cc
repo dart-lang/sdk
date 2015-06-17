@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #include "include/dart_api.h"
-#include "include/dart_debugger_api.h"
+#include "include/dart_tools_api.h"
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
