@@ -855,6 +855,7 @@ class ObservatoryDebugger extends Debugger {
   RootCommand cmd;
   DebuggerPageElement page;
   DebuggerConsoleElement console;
+  DebuggerInputElement input;
   DebuggerStackElement stackElement;
   ServiceMap stack;
   String exceptions = "none";  // Last known setting.
@@ -991,6 +992,7 @@ class ObservatoryDebugger extends Debugger {
       } else {
         currentFrame = null;
       }
+      input.focus();
     });
   }
 
@@ -1257,10 +1259,10 @@ class DebuggerPageElement extends ObservatoryElement {
     debugger.stackElement = stackElement;
     stackElement.debugger = debugger;
     debugger.console = $['console'];
-    $['commandline'].debugger = debugger;
+    debugger.input = $['commandline'];
+    debugger.input.debugger = debugger;
     debugger.init();
   }
-
 }
 
 @CustomTag('debugger-stack')
@@ -1711,6 +1713,10 @@ class DebuggerInputElement extends ObservatoryElement {
             break;
 	}
       });
+  }
+
+  void focus() {
+    $['textBox'].focus();
   }
 
   DebuggerInputElement.created() : super.created();
