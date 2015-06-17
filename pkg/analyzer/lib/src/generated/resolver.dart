@@ -10994,10 +10994,12 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
     //
-    // Resolve the metadata in the library scope.
+    // Resolve the metadata in the library scope
+    // and associate the annotations with the element.
     //
     if (node.metadata != null) {
       node.metadata.accept(this);
+      ElementResolver.setMetadata(node.element, node);
     }
     //
     // There is nothing else to do because everything else was resolved by the
