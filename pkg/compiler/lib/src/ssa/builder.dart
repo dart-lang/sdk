@@ -5827,6 +5827,7 @@ class SsaBuilder extends NewResolvedVisitor {
       FieldElement field,
       ast.Node rhs,
       _) {
+    generateIsDeferredLoadedCheckOfSend(node);
     generateNonInstanceSetter(node, field, visitAndPop(rhs));
   }
 
@@ -5836,6 +5837,7 @@ class SsaBuilder extends NewResolvedVisitor {
       FieldElement field,
       ast.Node rhs,
       _) {
+    generateIsDeferredLoadedCheckOfSend(node);
     generateNonInstanceSetter(node, field, visitAndPop(rhs));
   }
 
@@ -5845,6 +5847,7 @@ class SsaBuilder extends NewResolvedVisitor {
       GetterElement getter,
       ast.Node rhs,
       _) {
+    generateIsDeferredLoadedCheckOfSend(node);
     generateNonInstanceSetter(node, getter, visitAndPop(rhs));
   }
 
@@ -5854,6 +5857,7 @@ class SsaBuilder extends NewResolvedVisitor {
       SetterElement setter,
       ast.Node rhs,
       _) {
+    generateIsDeferredLoadedCheckOfSend(node);
     generateNonInstanceSetter(node, setter, visitAndPop(rhs));
   }
 
@@ -5863,6 +5867,7 @@ class SsaBuilder extends NewResolvedVisitor {
       MethodElement function,
       ast.Node rhs,
       _) {
+    generateIsDeferredLoadedCheckOfSend(node);
     generateNonInstanceSetter(node, function, visitAndPop(rhs));
   }
 
@@ -5872,6 +5877,7 @@ class SsaBuilder extends NewResolvedVisitor {
       FieldElement field,
       ast.Node rhs,
       _) {
+    generateIsDeferredLoadedCheckOfSend(node);
     generateNonInstanceSetter(node, field, visitAndPop(rhs));
   }
 
@@ -5881,6 +5887,7 @@ class SsaBuilder extends NewResolvedVisitor {
       FieldElement field,
       ast.Node rhs,
       _) {
+    generateIsDeferredLoadedCheckOfSend(node);
     generateNonInstanceSetter(node, field, visitAndPop(rhs));
   }
 
@@ -5890,6 +5897,7 @@ class SsaBuilder extends NewResolvedVisitor {
       GetterElement getter,
       ast.Node rhs,
       _) {
+    generateIsDeferredLoadedCheckOfSend(node);
     generateNonInstanceSetter(node, getter, visitAndPop(rhs));
   }
 
@@ -5899,6 +5907,7 @@ class SsaBuilder extends NewResolvedVisitor {
       SetterElement setter,
       ast.Node rhs,
       _) {
+    generateIsDeferredLoadedCheckOfSend(node);
     generateNonInstanceSetter(node, setter, visitAndPop(rhs));
   }
 
@@ -5908,6 +5917,7 @@ class SsaBuilder extends NewResolvedVisitor {
       MethodElement function,
       ast.Node rhs,
       _) {
+    generateIsDeferredLoadedCheckOfSend(node);
     generateNonInstanceSetter(node, function, visitAndPop(rhs));
   }
 
@@ -5922,6 +5932,7 @@ class SsaBuilder extends NewResolvedVisitor {
       // not an unresolved set.
       handleSuperSendSet(node);
     } else {
+      generateIsDeferredLoadedCheckOfSend(node);
       generateNonInstanceSetter(node, element, visitAndPop(rhs));
     }
   }
