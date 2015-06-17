@@ -20,7 +20,6 @@ class RawCode;
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
 #define VM_STUB_CODE_LIST(V)                                                   \
-  V(PrintStopMessage)                                                          \
   V(GetStackPointer)                                                           \
   V(JumpToExceptionHandler)                                                    \
 
@@ -35,6 +34,7 @@ class RawCode;
 // The initial stubs are needed for loading bootstrapping scripts and have to
 // be generated before Object::Init is called.
 #define BOOTSTRAP_STUB_CODE_LIST(V)                                            \
+  V(PrintStopMessage)                                                          \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
 

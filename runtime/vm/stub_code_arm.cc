@@ -43,9 +43,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t retval_offset = NativeArguments::retval_offset();
   const intptr_t exitframe_last_param_slot_from_fp = 2;
 
-  __ mov(IP, Operand(0));
-  __ Push(IP);  // Push 0 for the PC marker.
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R9)) != 0);
   __ LoadIsolate(R9);
@@ -104,9 +102,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ LoadImmediate(R2, 0);
   __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
 
-  __ LeaveFrame((1 << FP) | (1 << LR));
-  // Adjust SP for the empty PC marker.
-  __ AddImmediate(SP, kWordSize);
+  __ LeaveStubFrame();
   __ Ret();
 }
 
@@ -142,9 +138,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
-  __ mov(IP, Operand(0));
-  __ Push(IP);  // Push 0 for the PC marker.
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R9)) != 0);
   __ LoadIsolate(R9);
@@ -216,9 +210,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ LoadImmediate(R2, 0);
   __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
 
-  __ LeaveFrame((1 << FP) | (1 << LR));
-  // Adjust SP for the empty PC marker.
-  __ AddImmediate(SP, kWordSize);
+  __ LeaveStubFrame();
   __ Ret();
 }
 
@@ -235,9 +227,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
-  __ mov(IP, Operand(0));
-  __ Push(IP);  // Push 0 for the PC marker.
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R9)) != 0);
   __ LoadIsolate(R9);
@@ -300,9 +290,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ LoadImmediate(R2, 0);
   __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
 
-  __ LeaveFrame((1 << FP) | (1 << LR));
-  // Adjust SP for the empty PC marker.
-  __ AddImmediate(SP, kWordSize);
+  __ LeaveStubFrame();
   __ Ret();
 }
 
@@ -534,7 +522,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
-  __ EnterStubFrame(true);
+  __ EnterStubFrame();
   if (preserve_result) {
     __ Push(R1);  // Preserve result, it will be GC-d here.
   }
@@ -1157,7 +1145,7 @@ void StubCode::GenerateAllocationStubForClass(
   // R4: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
+  __ EnterStubFrame();  // Uses pool pointer to pass cls to runtime.
   __ LoadImmediate(R2, reinterpret_cast<intptr_t>(Object::null()));
   __ Push(R2);  // Setup space on stack for return value.
   __ PushObject(cls);  // Push class of object to be allocated.

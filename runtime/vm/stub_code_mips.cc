@@ -44,11 +44,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ Comment("CallToRuntimeStub");
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
   __ LoadIsolate(S6);
@@ -112,11 +108,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -153,11 +145,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ Comment("CallNativeCFunctionStub");
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
   __ LoadIsolate(S6);
@@ -229,11 +217,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -251,11 +235,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ Comment("CallNativeCFunctionStub");
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
   __ LoadIsolate(S6);
@@ -322,11 +302,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -591,7 +567,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
-  __ EnterStubFrame(true);
+  __ EnterStubFrame();
   if (preserve_result) {
     __ Push(T1);  // Preserve result, it will be GC-d here.
   }
@@ -1243,7 +1219,7 @@ void StubCode::GenerateAllocationStubForClass(
   // T1: new object type arguments (instantiated or not).
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
+  __ EnterStubFrame();  // Uses pool pointer to pass cls to runtime.
   __ LoadObject(TMP, cls);
 
   __ addiu(SP, SP, Immediate(-3 * kWordSize));

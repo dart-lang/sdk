@@ -3206,7 +3206,7 @@ void Assembler::Stop(const char* message, bool fixed_length_encoding) {
     } else {
       LoadImmediate(RDI, Immediate(message_address), PP);
     }
-    call(&StubCode::PrintStopMessageLabel());
+    call(&Isolate::Current()->stub_code()->PrintStopMessageLabel());
     popq(RDI);  // Restore RDI register.
     popq(TMP);  // Restore TMP register.
   } else {
@@ -3444,13 +3444,11 @@ void Assembler::EnterOsrFrame(intptr_t extra_size,
 }
 
 
-void Assembler::EnterStubFrame(bool load_pp) {
+void Assembler::EnterStubFrame() {
   EnterFrame(0);
   pushq(Immediate(0));  // Push 0 in the saved PC area for stub frames.
   pushq(PP);  // Save caller's pool pointer
-  if (load_pp) {
-    LoadPoolPointer(PP);
-  }
+  LoadPoolPointer(PP);
 }
 
 

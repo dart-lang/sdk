@@ -287,7 +287,7 @@ class Assembler : public ValueObject {
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame(bool load_pp = false);
+  void EnterStubFrame();
   void LeaveStubFrame();
   // A separate macro for when a Ret immediately follows, so that we can use
   // the branch delay slot.
@@ -926,13 +926,19 @@ class Assembler : public ValueObject {
     jalr(T9);
   }
 
-  void BranchLinkPatchable(const ExternalLabel* label) {
+  void BranchLink(const ExternalLabel* label, Patchability patchable) {
     ASSERT(!in_delay_slot_);
     const int32_t offset = ObjectPool::element_offset(
-        object_pool_wrapper_.FindExternalLabel(label, kPatchable));
+        object_pool_wrapper_.FindExternalLabel(label, patchable));
     LoadWordFromPoolOffset(T9, offset - kHeapObjectTag);
     jalr(T9);
-    delay_slot_available_ = false;  // CodePatcher expects a nop.
+    if (patchable == kPatchable) {
+      delay_slot_available_ = false;  // CodePatcher expects a nop.
+    }
+  }
+
+  void BranchLinkPatchable(const ExternalLabel* label) {
+    BranchLink(label, kPatchable);
   }
 
   void Drop(intptr_t stack_elements) {
@@ -1533,6 +1539,9 @@ class Assembler : public ValueObject {
 
   void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadObject(Register rd, const Object& object);
+  void LoadExternalLabel(Register rd,
+                         const ExternalLabel* label,
+                         Patchability patchable);
   void PushObject(const Object& object);
 
   void LoadIsolate(Register result);

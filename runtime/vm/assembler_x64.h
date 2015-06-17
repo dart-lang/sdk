@@ -762,6 +762,10 @@ class Assembler : public ValueObject {
   void LoadImmediate(Register reg, const Immediate& imm, Register pp);
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj, Register pp);
+  void LoadExternalLabel(Register dst,
+                         const ExternalLabel* label,
+                         Patchability patchable,
+                         Register pp);
   void JmpPatchable(const ExternalLabel* label, Register pp);
   void Jmp(const ExternalLabel* label, Register pp);
   void J(Condition condition, const ExternalLabel* label, Register pp);
@@ -962,7 +966,7 @@ class Assembler : public ValueObject {
   //   movq rbp, rsp
   //   pushq immediate(0)
   //   .....
-  void EnterStubFrame(bool load_pp = false);
+  void EnterStubFrame();
   void LeaveStubFrame();
 
   // Instruction pattern from entrypoint is used in dart frame prologues
@@ -1061,10 +1065,6 @@ class Assembler : public ValueObject {
   bool allow_constant_pool_;
 
   intptr_t FindImmediate(int64_t imm);
-  void LoadExternalLabel(Register dst,
-                         const ExternalLabel* label,
-                         Patchability patchable,
-                         Register pp);
   bool CanLoadFromObjectPool(const Object& object);
   void LoadWordFromPoolOffset(Register dst, Register pp, int32_t offset);
 

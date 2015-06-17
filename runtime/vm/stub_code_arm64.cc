@@ -44,7 +44,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ Comment("CallToRuntimeStub");
-  __ EnterFrame(0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
   __ LoadIsolate(R28, kNoPP);
@@ -122,7 +122,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ StoreToOffset(ZR, R28, Isolate::top_exit_frame_info_offset(), kNoPP);
 
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -144,7 +144,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
-  __ EnterFrame(0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
   __ LoadIsolate(R28, kNoPP);
@@ -229,7 +229,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ StoreToOffset(ZR, R28, Isolate::top_exit_frame_info_offset(), kNoPP);
 
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -246,7 +246,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
-  __ EnterFrame(0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
   __ LoadIsolate(R28, kNoPP);
@@ -322,7 +322,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ StoreToOffset(ZR, R28, Isolate::top_exit_frame_info_offset(), kNoPP);
 
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -542,7 +542,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
-  __ EnterStubFrame(true);
+  __ EnterStubFrame();
   if (preserve_result) {
     __ Push(ZR);  // Workaround for dropped stack slot during GC.
     __ Push(R1);  // Preserve result, it will be GC-d here.
@@ -1179,7 +1179,7 @@ void StubCode::GenerateAllocationStubForClass(
   // R1: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
+  __ EnterStubFrame();  // Uses pool pointer to pass cls to runtime.
   // Setup space on stack for return value.
   __ PushObject(Object::null_object(), PP);
   __ PushObject(cls, PP);  // Push class of object to be allocated.
@@ -1211,7 +1211,7 @@ void StubCode::GenerateAllocationStubForClass(
 //  SP : address of last argument.
 //  R4: arguments descriptor array.
 void StubCode::GenerateCallClosureNoSuchMethodStub(Assembler* assembler) {
-  __ EnterStubFrame(true);
+  __ EnterStubFrame();
 
   // Load the receiver.
   __ LoadFieldFromOffset(R2, R4, ArgumentsDescriptor::count_offset(), kNoPP);
@@ -2030,13 +2030,13 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ b(&reference_compare, NE);
   __ CompareClassId(right, kBigintCid, kNoPP);
   __ b(&done, NE);
-  __ EnterFrame(0);
+  __ EnterStubFrame();
   __ ReserveAlignedFrameSpace(2 * kWordSize);
   __ StoreToOffset(left, SP, 0 * kWordSize, kNoPP);
   __ StoreToOffset(right, SP, 1 * kWordSize, kNoPP);
   __ CallRuntime(kBigintCompareRuntimeEntry, 2);
   // Result in R0, 0 means equal.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ cmp(R0, Operand(0));
   __ b(&done);
 

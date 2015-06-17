@@ -478,6 +478,15 @@ void Assembler::LoadObject(Register rd, const Object& object) {
 }
 
 
+void Assembler::LoadExternalLabel(Register rd,
+                                  const ExternalLabel* label,
+                                  Patchability patchable) {
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindExternalLabel(label, patchable));
+  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
+}
+
+
 void Assembler::PushObject(const Object& object) {
   ASSERT(!in_delay_slot_);
   LoadObject(TMP, object);
@@ -734,7 +743,7 @@ void Assembler::LeaveFrameAndReturn() {
 }
 
 
-void Assembler::EnterStubFrame(bool load_pp) {
+void Assembler::EnterStubFrame() {
   ASSERT(!in_delay_slot_);
   SetPrologueOffset();
   addiu(SP, SP, Immediate(-4 * kWordSize));
@@ -743,10 +752,8 @@ void Assembler::EnterStubFrame(bool load_pp) {
   sw(FP, Address(SP, 1 * kWordSize));
   sw(PP, Address(SP, 0 * kWordSize));
   addiu(FP, SP, Immediate(1 * kWordSize));
-  if (load_pp) {
-    // Setup pool pointer for this stub.
-    LoadPoolPointer();
-  }
+  // Setup pool pointer for this stub.
+  LoadPoolPointer();
 }
 
 

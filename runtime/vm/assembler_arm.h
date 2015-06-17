@@ -615,6 +615,8 @@ class Assembler : public ValueObject {
   // Branch and link to an entry address. Call sequence is never patched.
   void BranchLink(const ExternalLabel* label);
 
+  void BranchLink(const ExternalLabel* label, Patchability patchable);
+
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const ExternalLabel* label);
 
@@ -664,6 +666,10 @@ class Assembler : public ValueObject {
   void LoadIsolate(Register rd);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
+  void LoadExternalLabel(Register dst,
+                         const ExternalLabel* label,
+                         Patchability patchable,
+                         Condition cond = AL);
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
 
@@ -886,7 +892,7 @@ class Assembler : public ValueObject {
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame(bool load_pp = false);
+  void EnterStubFrame();
   void LeaveStubFrame();
 
   // Instruction pattern from entrypoint is used in Dart frame prologs

@@ -1237,13 +1237,11 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 }
 
 
-void Assembler::EnterStubFrame(bool load_pp) {
+void Assembler::EnterStubFrame() {
   EnterFrame(0);
   // Save caller's pool pointer. Push 0 in the saved PC area for stub frames.
   TagAndPushPPAndPcMarker(ZR);
-  if (load_pp) {
-    LoadPoolPointer(PP);
-  }
+  LoadPoolPointer(PP);
 }
 
 

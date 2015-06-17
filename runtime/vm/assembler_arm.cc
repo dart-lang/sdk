@@ -1581,6 +1581,16 @@ void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
 }
 
 
+void Assembler::LoadExternalLabel(Register rd,
+                                  const ExternalLabel* label,
+                                  Patchability patchable,
+                                  Condition cond) {
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindExternalLabel(label, patchable));
+  LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
+}
+
+
 void Assembler::PushObject(const Object& object) {
   LoadObject(IP, object);
   Push(IP);
@@ -2655,15 +2665,20 @@ void Assembler::BranchLink(const ExternalLabel* label) {
 }
 
 
-void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
+void Assembler::BranchLink(const ExternalLabel* label, Patchability patchable) {
   // Make sure that class CallPattern is able to patch the label referred
   // to by this code sequence.
   // For added code robustness, use 'blx lr' in a patchable sequence and
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const int32_t offset = ObjectPool::element_offset(
-      object_pool_wrapper_.FindExternalLabel(label, kPatchable));
+      object_pool_wrapper_.FindExternalLabel(label, patchable));
   LoadWordFromPoolOffset(LR, offset - kHeapObjectTag);
   blx(LR);  // Use blx instruction so that the return branch prediction works.
+}
+
+
+void Assembler::BranchLinkPatchable(const ExternalLabel* label) {
+  BranchLink(label, kPatchable);
 }
 
 
@@ -3282,16 +3297,14 @@ void Assembler::LeaveDartFrame() {
 }
 
 
-void Assembler::EnterStubFrame(bool load_pp) {
+void Assembler::EnterStubFrame() {
   // Push 0 as saved PC for stub frames.
   mov(IP, Operand(LR));
   mov(LR, Operand(0));
   RegList regs = (1 << PP) | (1 << FP) | (1 << IP) | (1 << LR);
   EnterFrame(regs, 0);
-  if (load_pp) {
-    // Setup pool pointer for this stub.
-    LoadPoolPointer();
-  }
+  // Setup pool pointer for this stub.
+  LoadPoolPointer();
 }
 
 
