@@ -1,9 +1,16 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library input.transformer.instrumentation;
 
 import 'dart:convert';
 
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:logging/logging.dart';
 
+import 'input_converter.dart';
 import 'operation.dart';
 
 final int COLON = ':'.codeUnitAt(0);
@@ -12,87 +19,89 @@ final int COLON = ':'.codeUnitAt(0);
  * [InstrumentationInputConverter] converts an instrumentation stream
  * into a series of operations to be sent to the analysis server.
  */
-class InstrumentationInputConverter extends Converter<String, Operation> {
-  final Logger logger = new Logger('InstrumentationInputConverter');
-  final Set<String> _codesSeen = new Set<String>();
-  final Set<String> _methodsSeen = new Set<String>();
-  final Set<String> _eventsSeen = new Set<String>();
+class InstrumentationInputConverter extends CommonInputConverter {
+  final Set<String> codesSeen = new Set<String>();
+
+  /**
+   * [readBuffer] holds the contents of the file being read from disk
+   * as recorded in the instrumentation log
+   * or `null` if not converting a "Read" entry.
+   */
+  StringBuffer readBuffer = null;
+
+  InstrumentationInputConverter(Map<String, String> srcPathMap)
+      : super(srcPathMap);
 
   @override
   Operation convert(String line) {
+    List<String> fields;
     try {
-      List<String> fields = _parseFields(line);
+      fields = _parseFields(line);
       if (fields.length < 2) {
-        //return new InfoOperation('Ignored line:\n  $line');
-        return null;
-      }
-      // int timeStamp = int.parse(fields[0], onError: (_) => -1);
-      String opCode = fields[1];
-      if (opCode == 'Req') {
-        return convertRequest(line, fields);
-      }
-      if (opCode == 'Noti') {
-        return convertNotification(fields);
-      }
-      if (opCode == 'Ver') {
-        // 1433195174666:Ver:1421765742287333878467:org.dartlang.dartplugin:0.0.0:1.7.0:1.11.0-edge.131698
-        return new StartServerOperation();
-      }
-      if (_codesSeen.add(opCode)) {
-        logger.log(Level.INFO, 'Ignored op code: $opCode\n  $line');
-      }
-      return null;
-    } catch (e, s) {
-      throw 'Failed to parse line\n  $line\n$e\n$s';
-    }
-  }
-
-  /**
-   * Return an operation for the notification defined by [line] and [fields]
-   * or `null` if none.
-   */
-  Operation convertNotification(List<String> fields) {
-    //1433344448533:Noti:{"event"::"server.status","params"::{"analysis"::{"isAnalyzing"::false}}}
-    Map<String, dynamic> json = JSON.decode(fields[2]);
-    String event = json['event'];
-    if (event == 'server.status') {
-      Map<String, dynamic> params = json['params'];
-      if (params != null) {
-        Map<String, dynamic> analysis = params['analysis'];
-        if (analysis != null && analysis['isAnalyzing'] == false) {
-          return new WaitForAnalysisCompleteOperation();
+        if (readBuffer != null) {
+          readBuffer.writeln(fields.length == 1 ? fields[0] : '');
+          return null;
         }
+        throw 'Failed to process line:\n$line';
       }
+      if (readBuffer != null) {
+        readBuffer = null;
+      }
+    } catch (e, s) {
+      throw new AnalysisException(
+          'Failed to parse line\n$line', new CaughtException(e, s));
     }
-    if (event == 'server.connected') {
-      // Handled by the driver
+    // int timeStamp = int.parse(fields[0], onError: (_) => -1);
+    String opCode = fields[1];
+    if (opCode == InstrumentationService.TAG_NOTIFICATION) {
+      return convertNotification(decodeJson(line, fields[2]));
+    } else if (opCode == 'Read') {
+      // 1434096943209:Read:/some/file/path:1434095535000:<file content>
+      //String filePath = fields[2];
+      readBuffer = new StringBuffer(fields.length > 4 ? fields[4] : '');
+      return null;
+    } else if (opCode == InstrumentationService.TAG_REQUEST) {
+      return convertRequest(decodeJson(line, fields[2]));
+    } else if (opCode == InstrumentationService.TAG_RESPONSE) {
+      // 1434096937454:Res:{"id"::"0","result"::{"version"::"1.7.0"}}
+      recordResponse(decodeJson(line, fields[2]));
+      return null;
+    } else if (opCode == InstrumentationService.TAG_ANALYSIS_TASK) {
+      // 1434096943208:Task:/Users/
+      return null;
+    } else if (opCode == InstrumentationService.TAG_LOG_ENTRY) {
+      // 1434096937454:Res:{"id"::"0","result"::{"version"::"1.7.0"}}
+      return null;
+    } else if (opCode == InstrumentationService.TAG_PERFORMANCE) {
+      //1434096960092:Perf:analysis_full:16884:context_id=0
+      return null;
+    } else if (opCode == InstrumentationService.TAG_SUBPROCESS_START) {
+      // 1434096938634:SPStart:0:/Users/da
+      return null;
+    } else if (opCode == InstrumentationService.TAG_SUBPROCESS_RESULT) {
+      // 1434096939068:SPResult:0:0:"{\"packages\"::{\"rpi_lidar\"::\"/Users
+      return null;
+    } else if (opCode == InstrumentationService.TAG_VERSION) {
+      // 1434096937358:Ver:1421765742287333878467:org.dartlang.dartplugin
+      return null;
+    } else if (opCode == InstrumentationService.TAG_WATCH_EVENT) {
+      // 1434097460414:Watch:/some/file/path
       return null;
     }
-    if (_eventsSeen.add(event)) {
-      logger.log(Level.INFO, 'Ignored notification: $event');
+    if (codesSeen.add(opCode)) {
+      logger.log(
+          Level.WARNING, 'Ignored instrumentation op code: $opCode\n  $line');
     }
     return null;
   }
 
-  /**
-   * Return an operation for the request defined by [line] and [fields]
-   * or `null` if none.
-   */
-  Operation convertRequest(String line, List<String> fields) {
-    Map<String, dynamic> json = JSON.decode(fields[2]);
-    String method = json['method'];
-    if (method == 'analysis.setAnalysisRoots') {
-      // 1433343174749:Req:{"id"::"3","method"::"analysis.setAnalysisRoots","params"::{"included"::["/usr/local/google/home/danrubel/work/git/dart_sdk/sdk/pkg/analysis_server","/usr/local/google/home/danrubel/work/git/dart_sdk/sdk/pkg/analyzer"],"excluded"::[],"packageRoots"::{}},"clientRequestTime"::1433343174702}
-      return new RequestOperation(json);
+  Map<String, dynamic> decodeJson(String line, String text) {
+    try {
+      return JSON.decode(text);
+    } catch (e, s) {
+      throw new AnalysisException(
+          'Failed to decode JSON: $text\n$line', new CaughtException(e, s));
     }
-    if (method == 'server.setSubscriptions') {
-      // 1433343174741:Req:{"id"::"1","method"::"server.setSubscriptions","params"::{"subscriptions"::["STATUS"]},"clientRequestTime"::1433343172679}
-      return new RequestOperation(json);
-    }
-    if (_methodsSeen.add(method)) {
-      logger.log(Level.INFO, 'Ignored request: $method\n  $line');
-    }
-    return null;
   }
 
   /**
@@ -102,6 +111,7 @@ class InstrumentationInputConverter extends Converter<String, Operation> {
    */
   static bool isFormat(String line) {
     List<String> fields = _parseFields(line);
+    if (fields.length < 2) return false;
     int timeStamp = int.parse(fields[0], onError: (_) => -1);
     String opCode = fields[1];
     return timeStamp > 0 && opCode == 'Ver';
