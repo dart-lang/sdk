@@ -112,6 +112,8 @@ TEST_CASE(ObjectGraph) {
     {
       HANDLESCOPE(isolate);
       Array& path = Array::Handle(Array::New(6, Heap::kNew));
+      // Trigger a full GC to increase probability of concurrent tasks.
+      isolate->heap()->CollectAllGarbage();
       intptr_t length = graph.RetainingPath(&c, path);
       EXPECT_LE(3, length);
       Array& expected_c = Array::Handle();
