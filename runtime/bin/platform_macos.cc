@@ -6,6 +6,8 @@
 #if defined(TARGET_OS_MACOS)
 
 #include <mach-o/dyld.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
 
 #include "bin/file.h"
 #include "bin/platform.h"
@@ -37,7 +39,14 @@ bool Platform::Initialize() {
 
 
 int Platform::NumberOfProcessors() {
-  return sysconf(_SC_NPROCESSORS_ONLN);
+  int32_t cpus = -1;
+  size_t cpus_length = sizeof(cpus);
+  if (sysctlbyname("hw.logicalcpu", &cpus, &cpus_length, NULL, 0) == 0) {
+    return cpus;
+  } else {
+    // Failed, fallback to using sysconf.
+    return sysconf(_SC_NPROCESSORS_ONLN);
+  }
 }
 
 
