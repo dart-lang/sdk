@@ -18,7 +18,7 @@ import 'element.dart';
 import 'engine.dart' show AnalysisEngine, RecordingErrorListener;
 import 'error.dart';
 import 'java_core.dart';
-import 'resolver.dart' show TypeProvider;
+import 'resolver.dart' show TypeProvider, TypeSystem, TypeSystemImpl;
 import 'scanner.dart' show Token, TokenType;
 import 'source.dart' show Source;
 import 'utilities_collection.dart';
@@ -217,9 +217,10 @@ class ConstantEvaluationEngine {
       "^(?:${ConstantValueComputer._OPERATOR_RE}\$|$_PUBLIC_IDENTIFIER_RE(?:=?\$|[.](?!\$)))+?\$");
 
   /**
-   * The type provider used to access the known types.
+   * The type system.  This is used to gues the types of constants when their
+   * exact value is unknown.
    */
-  final TypeProvider typeProvider;
+  final TypeSystem typeSystem;
 
   /**
    * The set of variables declared on the command line using '-D'.
@@ -239,11 +240,17 @@ class ConstantEvaluationEngine {
    * given, is used to verify correct dependency analysis when running unit
    * tests.
    */
-  ConstantEvaluationEngine(this.typeProvider, this._declaredVariables,
+  ConstantEvaluationEngine(TypeProvider typeProvider, this._declaredVariables,
       {ConstantEvaluationValidator validator})
       : validator = validator != null
           ? validator
-          : new ConstantEvaluationValidator_ForProduction();
+          : new ConstantEvaluationValidator_ForProduction(),
+        typeSystem = new TypeSystemImpl(typeProvider);
+
+  /**
+   * The type provider used to access the known types.
+   */
+  TypeProvider get typeProvider => typeSystem.typeProvider;
 
   /**
    * Check that the arguments to a call to fromEnvironment() are correct. The
@@ -1431,6 +1438,11 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
    */
   TypeProvider get _typeProvider => evaluationEngine.typeProvider;
 
+  /**
+   * Convenience getter to gain access to the [evaluationEngine]'s type system.
+   */
+  TypeSystem get _typeSystem => evaluationEngine.typeSystem;
+
   @override
   DartObjectImpl visitAdjacentStrings(AdjacentStrings node) {
     DartObjectImpl result = null;
@@ -1543,7 +1555,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     ParameterizedType thenType = thenResult.type;
     ParameterizedType elseType = elseResult.type;
     return new DartObjectImpl.validWithUnknownValue(
-        thenType.getLeastUpperBound(elseType) as InterfaceType);
+        _typeSystem.getLeastUpperBound(thenType, elseType) as InterfaceType);
   }
 
   @override

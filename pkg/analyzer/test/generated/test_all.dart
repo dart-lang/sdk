@@ -21,6 +21,7 @@ import 'resolver_test.dart' as resolver_test;
 import 'scanner_test.dart' as scanner_test;
 import 'static_type_warning_code_test.dart' as static_type_warning_code_test;
 import 'static_warning_code_test.dart' as static_warning_code_test;
+import 'type_system_test.dart' as type_system_test;
 import 'utilities_test.dart' as utilities_test;
 
 /// Utility for manually running all tests.
@@ -42,6 +43,7 @@ main() {
     scanner_test.main();
     static_type_warning_code_test.main();
     static_warning_code_test.main();
+    type_system_test.main();
     utilities_test.main();
   });
 }

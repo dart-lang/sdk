@@ -2049,7 +2049,12 @@ abstract class DartType {
   /**
    * Return the least upper bound of this type and the given [type], or `null`
    * if there is no least upper bound.
+   *
+   * Deprecated, since it is impossible to implement the correct algorithm
+   * without access to a [TypeProvider].  Please use
+   * [TypeSystem.getLeastUpperBound] instead.
    */
+  @deprecated
   DartType getLeastUpperBound(DartType type);
 
   /**
@@ -5255,6 +5260,19 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       substitute2(argumentTypes, typeArguments);
 
   /**
+   * Compute the least upper bound of types [f] and [g], both of which are
+   * known to be function types.
+   *
+   * In the event that f and g have different numbers of required parameters,
+   * `null` is returned, in which case the least upper bound is the interface
+   * type `Function`.
+   */
+  static FunctionType computeLeastUpperBound(FunctionType f, FunctionType g) {
+    // TODO(paulberry): implement this.
+    return null;
+  }
+
+  /**
    * Return `true` if all of the name/type pairs in the first map ([firstTypes])
    * are equal to the corresponding name/type pairs in the second map
    * ([secondTypes]). The maps are expected to iterate over their entries in the
@@ -5810,6 +5828,7 @@ abstract class InterfaceType implements ParameterizedType {
    * and <i>J</i> is the sole element of <i>S<sub>q</sub></i>.
    */
   @override
+  @deprecated
   DartType getLeastUpperBound(DartType type);
 
   /**
@@ -6014,6 +6033,9 @@ abstract class InterfaceType implements ParameterizedType {
    */
   static InterfaceType getSmartLeastUpperBound(
       InterfaceType first, InterfaceType second) {
+    // TODO(paulberry): this needs to be deprecated and replaced with a method
+    // in [TypeSystem], since it relies on the deprecated functionality of
+    // [DartType.getLeastUpperBound].
     if (first.element == second.element) {
       return _leastUpperBound(first, second);
     }
@@ -6290,6 +6312,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       .from((element as ClassElementImpl).getGetter(getterName), this);
 
   @override
+  @deprecated
   DartType getLeastUpperBound(DartType type) {
     // quick check for self
     if (identical(type, this)) {
@@ -6305,45 +6328,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     if (type is! InterfaceType) {
       return null;
     }
-    // new names to match up with the spec
-    InterfaceType i = this;
-    InterfaceType j = type as InterfaceType;
-    // compute set of supertypes
-    Set<InterfaceType> si = computeSuperinterfaceSet(i);
-    Set<InterfaceType> sj = computeSuperinterfaceSet(j);
-    // union si with i and sj with j
-    si.add(i);
-    sj.add(j);
-    // compute intersection, reference as set 's'
-    List<InterfaceType> s = _intersection(si, sj);
-    // for each element in Set s, compute the largest inheritance path to Object
-    List<int> depths = new List<int>.filled(s.length, 0);
-    int maxDepth = 0;
-    for (int n = 0; n < s.length; n++) {
-      depths[n] = computeLongestInheritancePathToObject(s[n]);
-      if (depths[n] > maxDepth) {
-        maxDepth = depths[n];
-      }
-    }
-    // ensure that the currently computed maxDepth is unique,
-    // otherwise, decrement and test for uniqueness again
-    for (; maxDepth >= 0; maxDepth--) {
-      int indexOfLeastUpperBound = -1;
-      int numberOfTypesAtMaxDepth = 0;
-      for (int m = 0; m < depths.length; m++) {
-        if (depths[m] == maxDepth) {
-          numberOfTypesAtMaxDepth++;
-          indexOfLeastUpperBound = m;
-        }
-      }
-      if (numberOfTypesAtMaxDepth == 1) {
-        return s[indexOfLeastUpperBound];
-      }
-    }
-    // illegal state, log and return null- Object at maxDepth == 0 should always
-    // return itself as the least upper bound.
-    // TODO (jwren) log the error state
-    return null;
+    return computeLeastUpperBound(this, type);
   }
 
   @override
@@ -6690,10 +6675,57 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       substitute2(argumentTypes, typeArguments);
 
   /**
+   * Compute the least upper bound of types [i] and [j], both of which are
+   * known to be interface types.
+   *
+   * In the event that the algorithm fails (which might occur due to a bug in
+   * the analyzer), `null` is returned.
+   */
+  static InterfaceType computeLeastUpperBound(
+      InterfaceType i, InterfaceType j) {
+    // compute set of supertypes
+    Set<InterfaceType> si = computeSuperinterfaceSet(i);
+    Set<InterfaceType> sj = computeSuperinterfaceSet(j);
+    // union si with i and sj with j
+    si.add(i);
+    sj.add(j);
+    // compute intersection, reference as set 's'
+    List<InterfaceType> s = _intersection(si, sj);
+    // for each element in Set s, compute the largest inheritance path to Object
+    List<int> depths = new List<int>.filled(s.length, 0);
+    int maxDepth = 0;
+    for (int n = 0; n < s.length; n++) {
+      depths[n] = computeLongestInheritancePathToObject(s[n]);
+      if (depths[n] > maxDepth) {
+        maxDepth = depths[n];
+      }
+    }
+    // ensure that the currently computed maxDepth is unique,
+    // otherwise, decrement and test for uniqueness again
+    for (; maxDepth >= 0; maxDepth--) {
+      int indexOfLeastUpperBound = -1;
+      int numberOfTypesAtMaxDepth = 0;
+      for (int m = 0; m < depths.length; m++) {
+        if (depths[m] == maxDepth) {
+          numberOfTypesAtMaxDepth++;
+          indexOfLeastUpperBound = m;
+        }
+      }
+      if (numberOfTypesAtMaxDepth == 1) {
+        return s[indexOfLeastUpperBound];
+      }
+    }
+    // Should be impossible--there should always be exactly one type with the
+    // maximum depth.
+    assert(false);
+    return null;
+  }
+
+  /**
    * Return the length of the longest inheritance path from the given [type] to
    * Object.
    *
-   * See [InterfaceType.getLeastUpperBound].
+   * See [computeLeastUpperBound].
    */
   static int computeLongestInheritancePathToObject(InterfaceType type) =>
       _computeLongestInheritancePathToObject(
@@ -6702,7 +6734,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   /**
    * Returns the set of all superinterfaces of the given [type].
    *
-   * See [getLeastUpperBound].
+   * See [computeLeastUpperBound].
    */
   static Set<InterfaceType> computeSuperinterfaceSet(InterfaceType type) =>
       _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
@@ -6713,7 +6745,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * longest path from the subtype to this type. The set of [visitedTypes] is
    * used to prevent infinite recursion in the case of a cyclic type structure.
    *
-   * See [computeLongestInheritancePathToObject], and [getLeastUpperBound].
+   * See [computeLongestInheritancePathToObject], and [computeLeastUpperBound].
    */
   static int _computeLongestInheritancePathToObject(
       InterfaceType type, int depth, HashSet<ClassElement> visitedTypes) {
@@ -6757,7 +6789,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * Add all of the superinterfaces of the given [type] to the given [set].
    * Return the [set] as a convenience.
    *
-   * See [computeSuperinterfaceSet], and [getLeastUpperBound].
+   * See [computeSuperinterfaceSet], and [computeLeastUpperBound].
    */
   static Set<InterfaceType> _computeSuperinterfaceSet(
       InterfaceType type, HashSet<InterfaceType> set) {

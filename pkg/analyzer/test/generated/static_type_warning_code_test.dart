@@ -1567,6 +1567,12 @@ class C {
     assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
   }
 
+  void test_undefinedMethod_leastUpperBoundWithNull() {
+    Source source = addSource('f(bool b, int i) => (b ? null : i).foo();');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [StaticTypeWarningCode.UNDEFINED_METHOD]);
+  }
+
   void test_undefinedMethod_object_call() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableStrictCallChecks = true;

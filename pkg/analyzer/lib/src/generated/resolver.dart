@@ -14927,6 +14927,114 @@ class TypeResolverVisitor extends ScopedVisitor {
 }
 
 /**
+ * The interface `TypeSystem` defines the behavior of an object representing
+ * the type system.  This provides a common location to put methods that act on
+ * types but may need access to more global data structures, and it paves the
+ * way for a possible future where we may wish to make the type system
+ * pluggable.
+ */
+abstract class TypeSystem {
+  /**
+   * Return the [TypeProvider] associated with this [TypeSystem].
+   */
+  TypeProvider get typeProvider;
+
+  /**
+   * Compute the least upper bound of two types.
+   */
+  DartType getLeastUpperBound(DartType type1, DartType type2);
+}
+
+/**
+ * Implementation of [TypeSystem] using the rules in the Dart specification.
+ */
+class TypeSystemImpl implements TypeSystem {
+  @override
+  final TypeProvider typeProvider;
+
+  TypeSystemImpl(this.typeProvider);
+
+  @override
+  DartType getLeastUpperBound(DartType type1, DartType type2) {
+    // The least upper bound relation is reflexive.
+    if (identical(type1, type2)) {
+      return type1;
+    }
+    // The least upper bound of dynamic and any type T is dynamic.
+    if (type1.isDynamic) {
+      return type1;
+    }
+    if (type2.isDynamic) {
+      return type2;
+    }
+    // The least upper bound of void and any type T != dynamic is void.
+    if (type1.isVoid) {
+      return type1;
+    }
+    if (type2.isVoid) {
+      return type2;
+    }
+    // The least upper bound of bottom and any type T is T.
+    if (type1.isBottom) {
+      return type2;
+    }
+    if (type2.isBottom) {
+      return type1;
+    }
+    // Let U be a type variable with upper bound B.  The least upper bound of U
+    // and a type T is the least upper bound of B and T.
+    while (type1 is TypeParameterType) {
+      // TODO(paulberry): is this correct in the complex of F-bounded
+      // polymorphism?
+      DartType bound = (type1 as TypeParameterType).element.bound;
+      if (bound == null) {
+        bound = typeProvider.objectType;
+      }
+      type1 = bound;
+    }
+    while (type2 is TypeParameterType) {
+      // TODO(paulberry): is this correct in the context of F-bounded
+      // polymorphism?
+      DartType bound = (type2 as TypeParameterType).element.bound;
+      if (bound == null) {
+        bound = typeProvider.objectType;
+      }
+      type2 = bound;
+    }
+    // The least upper bound of a function type and an interface type T is the
+    // least upper bound of Function and T.
+    if (type1 is FunctionType && type2 is InterfaceType) {
+      type1 = typeProvider.functionType;
+    }
+    if (type2 is FunctionType && type1 is InterfaceType) {
+      type2 = typeProvider.functionType;
+    }
+
+    // At this point type1 and type2 should both either be interface types or
+    // function types.
+    if (type1 is InterfaceType && type2 is InterfaceType) {
+      InterfaceType result =
+          InterfaceTypeImpl.computeLeastUpperBound(type1, type2);
+      if (result == null) {
+        return typeProvider.dynamicType;
+      }
+      return result;
+    } else if (type1 is FunctionType && type2 is FunctionType) {
+      FunctionType result =
+          FunctionTypeImpl.computeLeastUpperBound(type1, type2);
+      if (result == null) {
+        return typeProvider.functionType;
+      }
+      return result;
+    } else {
+      // Should never happen.  As a defensive measure, return the dynamic type.
+      assert(false);
+      return typeProvider.dynamicType;
+    }
+  }
+}
+
+/**
  * Instances of the class [UnusedLocalElementsVerifier] traverse an element
  * structure looking for cases of [HintCode.UNUSED_ELEMENT],
  * [HintCode.UNUSED_FIELD], [HintCode.UNUSED_LOCAL_VARIABLE], etc.
