@@ -49,7 +49,7 @@ main(arguments) {
   });
 
   var inputDir = path.join(testDirectory, 'codegen');
-  var actualDir = path.join(inputDir, 'actual');
+  var expectDir = path.join(inputDir, 'expect');
   var paths = new Directory(inputDir)
       .listSync()
       .where((f) => f is File)
@@ -66,8 +66,8 @@ main(arguments) {
             entryPointFile: entryPoint, dartSdkPath: sdkPath),
         codegenOptions: new CodegenOptions(
             outputDir: subDir == null
-                ? actualDir
-                : path.join(actualDir, subDir),
+                ? expectDir
+                : path.join(expectDir, subDir),
             emitSourceMaps: sourceMaps,
             forceCompile: checkSdk),
         useColors: false,
@@ -80,7 +80,7 @@ main(arguments) {
   var realSdk = getSdkDir(arguments).path;
 
   // Remove old output, and `packages` symlinks which mess up the diff.
-  var dir = new Directory(actualDir);
+  var dir = new Directory(expectDir);
   if (dir.existsSync()) dir.deleteSync(recursive: true);
   var packagesDirs = new Directory(inputDir)
       .listSync(recursive: true)
@@ -100,10 +100,10 @@ main(arguments) {
       var success = !result.failure;
 
       // Write compiler messages to disk.
-      new File(path.join(actualDir, '$filename.txt'))
+      new File(path.join(expectDir, '$filename.txt'))
           .writeAsStringSync(compilerMessages.toString());
 
-      var outFile = new File(path.join(actualDir, '$filename.js'));
+      var outFile = new File(path.join(expectDir, '$filename.js'));
       expect(outFile.existsSync(), success,
           reason: '${outFile.path} was created iff compilation succeeds');
 
@@ -133,8 +133,8 @@ main(arguments) {
         // be generated against a specific SDK version.
         var testSdk = path.join(testDirectory, 'generated_sdk');
         var result = compile('dart:core', testSdk, checkSdk: true);
-        var outputDir = new Directory(path.join(actualDir, 'core'));
-        var outFile = new File(path.join(actualDir, 'dart/core.js'));
+        var outputDir = new Directory(path.join(expectDir, 'core'));
+        var outFile = new File(path.join(expectDir, 'dart/core.js'));
         expect(outFile.existsSync(), true,
             reason: '${outFile.path} was created for dart:core');
       });
@@ -152,7 +152,7 @@ main(arguments) {
     var success = !result.failure;
 
     // Write compiler messages to disk.
-    new File(path.join(actualDir, 'sunflower', 'sunflower.txt'))
+    new File(path.join(expectDir, 'sunflower', 'sunflower.txt'))
         .writeAsStringSync(compilerMessages.toString());
 
     var expectedFiles = [
@@ -163,7 +163,7 @@ main(arguments) {
     ]..addAll(expectedRuntime);
 
     for (var filepath in expectedFiles) {
-      var outFile = new File(path.join(actualDir, 'sunflower', filepath));
+      var outFile = new File(path.join(expectDir, 'sunflower', filepath));
       expect(outFile.existsSync(), success,
           reason: '${outFile.path} was created iff compilation succeeds');
     }
@@ -177,7 +177,7 @@ main(arguments) {
     var success = !result.failure;
 
     // Write compiler messages to disk.
-    new File(path.join(actualDir, 'html_input.txt'))
+    new File(path.join(expectDir, 'html_input.txt'))
         .writeAsStringSync(compilerMessages.toString());
 
     var expectedFiles = [
@@ -190,7 +190,7 @@ main(arguments) {
     ]..addAll(expectedRuntime);
 
     for (var filepath in expectedFiles) {
-      var outFile = new File(path.join(actualDir, filepath));
+      var outFile = new File(path.join(expectDir, filepath));
       expect(outFile.existsSync(), success,
           reason: '${outFile.path} was created iff compilation succeeds');
     }
@@ -200,7 +200,7 @@ main(arguments) {
       'dev_compiler/runtime/messages.css'
     ];
     for (var filepath in notExpectedFiles) {
-      var outFile = new File(path.join(actualDir, filepath));
+      var outFile = new File(path.join(expectDir, filepath));
       expect(outFile.existsSync(), isFalse,
           reason: '${outFile.path} should only be generated in server mode');
     }
@@ -215,7 +215,7 @@ main(arguments) {
     var success = !result.failure;
 
     // Write compiler messages to disk.
-    new File(path.join(actualDir, 'server_mode', 'html_input.txt'))
+    new File(path.join(expectDir, 'server_mode', 'html_input.txt'))
         .writeAsStringSync(compilerMessages.toString());
 
     var expectedFiles = [
@@ -229,11 +229,11 @@ main(arguments) {
     ]..addAll(expectedRuntime);
 
     // Parse the HTML file and verify its contents were expected.
-    var htmlPath = path.join(actualDir, 'server_mode', 'html_input.html');
+    var htmlPath = path.join(expectDir, 'server_mode', 'html_input.html');
     var doc = html.parse(new File(htmlPath).readAsStringSync());
 
     for (var filepath in expectedFiles) {
-      var outPath = path.join(actualDir, 'server_mode', filepath);
+      var outPath = path.join(expectDir, 'server_mode', filepath);
       expect(new File(outPath).existsSync(), success,
           reason: '$outPath was created iff compilation succeeds');
 
@@ -257,7 +257,7 @@ main(arguments) {
     }
 
     // Clean up the server mode folder, otherwise it causes diff churn.
-    var dir = new Directory(path.join(actualDir, 'server_mode'));
+    var dir = new Directory(path.join(expectDir, 'server_mode'));
     if (dir.existsSync()) dir.deleteSync(recursive: true);
   });
 }

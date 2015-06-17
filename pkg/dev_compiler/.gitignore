@@ -3,7 +3,7 @@
 build/
 packages
 
-# Or the files created by tools.
+# Ignore files created by tools.
 *.dart.precompiled.js
 *.js_
 *.js.deps
@@ -12,11 +12,12 @@ packages
 .pub/
 node_modules
 
+# Ignore test output
+test/codegen/expect/dev_compiler/
+test/codegen/expect/sunflower/dev_compiler/
+
 # Created by ./tool/build_sdk.sh
 tool/generated_sdk/
-
-# Or our test outputs
-test/codegen/actual/
 
 # Include when developing application packages.
 pubspec.lock
