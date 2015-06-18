@@ -707,11 +707,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
       case BuiltinOperator.NumMultiply:
         return new js.Binary('*', args[0], args[1]);
       case BuiltinOperator.NumAnd:
-        return js.js('(# & #) >>> 0', <js.Expression>[args[0], args[1]]);
+        return js.js('(# & #) >>> 0', args);
       case BuiltinOperator.NumOr:
-        return js.js('(# | #) >>> 0', <js.Expression>[args[0], args[1]]);
+        return js.js('(# | #) >>> 0', args);
       case BuiltinOperator.NumXor:
-        return js.js('(# ^ #) >>> 0', <js.Expression>[args[0], args[1]]);
+        return js.js('(# ^ #) >>> 0', args);
       case BuiltinOperator.NumLt:
         return new js.Binary('<', args[0], args[1]);
       case BuiltinOperator.NumLe:
@@ -730,6 +730,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
         return new js.Binary('!=', args[0], args[1]);
       case BuiltinOperator.IsFalsy:
         return new js.Prefix('!', args[0]);
+      case BuiltinOperator.IsNumber:
+        return js.js("typeof # === 'number'", args);
+      case BuiltinOperator.IsNotNumber:
+        return js.js("typeof # !== 'number'", args);
+      case BuiltinOperator.IsFloor:
+        return js.js("Math.floor(#) === #", args);
+      case BuiltinOperator.IsNumberAndFloor:
+        return js.js("typeof # === 'number' && Math.floor(#) === #", args);
     }
   }
 

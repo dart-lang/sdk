@@ -32,6 +32,7 @@ class TypeMaskSystem {
   TypeMask get functionType => inferrer.functionType;
   TypeMask get boolType => inferrer.boolType;
   TypeMask get intType => inferrer.intType;
+  TypeMask get doubleType => inferrer.doubleType;
   TypeMask get numType => inferrer.numType;
   TypeMask get stringType => inferrer.stringType;
   TypeMask get listType => inferrer.listType;
@@ -103,6 +104,20 @@ class TypeMaskSystem {
 
   bool isDefinitelyNotNumStringBool(TypeMask t) {
     return areDisjoint(t, numStringBoolType);
+  }
+
+  /// True if all values of [t] are either integers or not numbers at all.
+  ///
+  /// This does not imply that the value is an integer, since most other values
+  /// such as null are also not a non-integer double.
+  bool isDefinitelyNotNonIntegerDouble(TypeMask t) {
+    // Even though int is a subclass of double in the JS type system, we can
+    // still check this with disjointness, because [doubleType] is the *exact*
+    // double class, so this excludes things that are known to be instances of a
+    // more specific class.
+    // We currently exploit that there are no subclasses of double that are
+    // not integers (e.g. there is no UnsignedDouble class or whatever).
+    return areDisjoint(t, doubleType);
   }
 
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {
@@ -212,6 +227,16 @@ class ConstantPropagationLattice {
   bool isDefinitelyNotNumStringBool(AbstractValue value) {
     return value.isNothing ||
       typeSystem.isDefinitelyNotNumStringBool(value.type);
+  }
+
+  /// True if this value cannot be a non-integer double.
+  ///
+  /// In other words, if true is returned, and the value is a number, then
+  /// it is a whole number and is not NaN, Infinity, or minus Infinity.
+  bool isDefinitelyNotNonIntegerDouble(AbstractValue value) {
+    return value.isNothing ||
+      value.isConstant && !value.constant.isDouble ||
+      typeSystem.isDefinitelyNotNonIntegerDouble(value.type);
   }
 
   /// Returns whether the given [value] is an instance of [type].
@@ -400,6 +425,7 @@ class TransformingVisitor extends RecursiveVisitor {
   final ConstantPropagationLattice lattice;
 
   TypeMaskSystem get typeSystem => lattice.typeSystem;
+  types.DartTypes get dartTypes => lattice.dartTypes;
 
   final dart2js.InternalErrorFunction internalError;
 
@@ -670,6 +696,31 @@ class TransformingVisitor extends RecursiveVisitor {
     }
   }
 
+  Primitive visitTypeTest(TypeTest node) {
+    Primitive prim = node.value.definition;
+    AbstractValue value = getValue(prim);
+    if (node.type == dartTypes.coreTypes.intType) {
+      // Compile as typeof x === 'number' && Math.floor(x) === x
+      if (lattice.isDefinitelyNum(value, allowNull: true)) {
+        // If value is null or a number, we can skip the typeof test.
+        return new ApplyBuiltinOperator(
+            BuiltinOperator.IsFloor,
+            <Primitive>[prim, prim]);
+      }
+      if (lattice.isDefinitelyNotNonIntegerDouble(value)) {
+        // If the value cannot be a non-integer double, but might not be a
+        // number at all, we can skip the Math.floor test.
+        return new ApplyBuiltinOperator(
+            BuiltinOperator.IsNumber,
+            <Primitive>[prim]);
+      }
+      return new ApplyBuiltinOperator(
+          BuiltinOperator.IsNumberAndFloor,
+          <Primitive>[prim, prim, prim]);
+    }
+    return null;
+  }
+
   void visitLetPrim(LetPrim node) {
     AbstractValue value = getValue(node.primitive);
     if (node.primitive is! Constant && value.isConstant) {
@@ -678,8 +729,15 @@ class TransformingVisitor extends RecursiveVisitor {
       newPrim.substituteFor(node.primitive);
       RemovalVisitor.remove(node.primitive);
       node.primitive = newPrim;
+    } else {
+      Primitive newPrim = visit(node.primitive);
+      if (newPrim != null) {
+        newPrim.substituteFor(node.primitive);
+        RemovalVisitor.remove(node.primitive);
+        node.primitive = newPrim;
+      }
     }
-    super.visitLetPrim(node);
+    visit(node.body);
   }
 }
 

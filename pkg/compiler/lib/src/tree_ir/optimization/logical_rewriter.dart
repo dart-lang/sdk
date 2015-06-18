@@ -248,6 +248,10 @@ class LogicalRewriter extends RecursiveTransformer
       case BuiltinOperator.NumLe:
       case BuiltinOperator.NumGt:
       case BuiltinOperator.NumGe:
+      case BuiltinOperator.IsNumber:
+      case BuiltinOperator.IsNotNumber:
+      case BuiltinOperator.IsFloor:
+      case BuiltinOperator.IsNumberAndFloor:
         return true;
       default:
         return false;
@@ -260,6 +264,8 @@ class LogicalRewriter extends RecursiveTransformer
       case BuiltinOperator.StrictNeq: return BuiltinOperator.StrictEq;
       case BuiltinOperator.LooseEq: return BuiltinOperator.LooseNeq;
       case BuiltinOperator.LooseNeq: return BuiltinOperator.LooseEq;
+      case BuiltinOperator.IsNumber: return BuiltinOperator.IsNotNumber;
+      case BuiltinOperator.IsNotNumber: return BuiltinOperator.IsNumber;
 
       // Because of NaN, these do not have a negated form.
       case BuiltinOperator.NumLt:

@@ -17,6 +17,11 @@ library builtin_operator;
 ///
 /// In all cases, the word "null" refers to the Dart null object, corresponding
 /// to both JS null and JS undefined.
+///
+/// Some operators, notably [IsFloor] and [IsNumberAndFloor], take "repeated"
+/// arguments to reflect the number of times the given value is referenced
+/// by the generated code. The tree IR needs to know the number of references
+/// to safely propagate assignments.
 enum BuiltinOperator {
   /// The numeric binary operators must take two numbers as argument.
   /// The bitwise operators coerce the result to an unsigned integer, but
@@ -55,5 +60,30 @@ enum BuiltinOperator {
 
   /// Returns true if the argument is false, +0. -0, NaN, the empty string,
   /// or null.
-  IsFalsy
+  IsFalsy,
+
+  /// Returns true if the argument is a number.
+  ///
+  /// Compiles to `typeof x === 'number'`
+  IsNumber,
+
+  /// Returns true if the argument is not a number.
+  ///
+  /// Compiles to `typeof x !== 'number'`.
+  IsNotNumber,
+
+  /// Returns true if the argument is an integer, false if it is a double or
+  /// null, and unspecified if it is anything else.
+  ///
+  /// The argument must be repeated 2 times.
+  ///
+  /// Compiles to `Math.floor(x) === x`
+  IsFloor,
+
+  /// Returns true if the argument is an integer.
+  ///
+  /// The argument must be repeated 3 times.
+  ///
+  /// Compiles to `typeof x === 'number' && Math.floor(x) === x`
+  IsNumberAndFloor,
 }
