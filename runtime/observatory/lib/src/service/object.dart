@@ -1885,6 +1885,7 @@ class Instance extends ServiceObject {
   @observable var referent;  // If a MirrorReference.
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
+  @observable Breakpoint activationBreakpoint;  // If a Closure.
 
   bool get isAbstractType {
     return (kind == 'Type' || kind == 'TypeRef' ||
@@ -1983,6 +1984,7 @@ class Instance extends ServiceObject {
     referent = map['mirrorReferent'];
     key = map['propertyKey'];
     value = map['propertyValue'];
+    activationBreakpoint = map['_activationBreakpoint'];
 
     // We are fully loaded.
     _loaded = true;

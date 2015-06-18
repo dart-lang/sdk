@@ -75,6 +75,8 @@ var tests = [
   print("Added breakpoint $bpt1");
   expect(bpt1 is Breakpoint, isTrue);
   expect(breaksHit, equals(0));
+  await r1Ref.reload();
+  expect(r1Ref.activationBreakpoint, equals(bpt1));
   print("testeeDo()");
   var res = await rootLib.evaluate("testeeDo()");
   expect(res is Instance, isTrue); // Not error.
@@ -83,6 +85,8 @@ var tests = [
   await isolate.removeBreakpoint(bpt1);
   print("Removed breakpoint $bpt1");
   print("testeeDo()");
+  await r1Ref.reload();
+  expect(r1Ref.activationBreakpoint, equals(null));
   res = await rootLib.evaluate("testeeDo()");
   expect(res is Instance, isTrue); // Not error.
   expect(breaksHit, equals(1));
@@ -115,6 +119,8 @@ var tests = [
   print("Added breakpoint $bpt1");
   expect(bpt1 is Breakpoint, isTrue);
   expect(breaksHit, equals(0));
+  await r1Ref.reload();
+  expect(r1Ref.activationBreakpoint, equals(bpt1));
   print("testeeDoNamed()");
   var res = await rootLib.evaluate("testeeDoNamed()");
   expect(res is Instance, isTrue); // Not error.
@@ -122,6 +128,8 @@ var tests = [
 
   await isolate.removeBreakpoint(bpt1);
   print("Removed breakpoint $bpt1");
+  await r1Ref.reload();
+  expect(r1Ref.activationBreakpoint, equals(null));
   print("testeeDoNamed()");
   res = await rootLib.evaluate("testeeDoNamed()");
   expect(res is Instance, isTrue); // Not error.
@@ -156,6 +164,8 @@ var tests = [
   print("Added breakpoint $bpt1");
   expect(bpt1 is Breakpoint, isTrue);
   expect(breaksHit, equals(0));
+  await r1Ref.reload();
+  expect(r1Ref.activationBreakpoint, equals(bpt1));
   print("testeeDo()");
   var res = await rootLib.evaluate("testeeDo()");
   expect(res is Instance, isTrue); // Not error.
@@ -165,6 +175,8 @@ var tests = [
   print("Added breakpoint $bpt2");
   expect(bpt2 is Breakpoint, isTrue);
   expect(breaksHit, equals(1));
+  await r2Ref.reload();
+  expect(r2Ref.activationBreakpoint, equals(bpt2));
   print("testeeDo()");
   res = await rootLib.evaluate("testeeDo()");
   expect(res is Instance, isTrue); // Not error.
@@ -172,6 +184,8 @@ var tests = [
 
   await isolate.removeBreakpoint(bpt1);
   print("Removed breakpoint $bpt1");
+  await r1Ref.reload();
+  expect(r1Ref.activationBreakpoint, equals(null));
   print("testeeDo()");
   res = await rootLib.evaluate("testeeDo()");
   expect(res is Instance, isTrue); // Not error.
@@ -179,6 +193,8 @@ var tests = [
 
   await isolate.removeBreakpoint(bpt2);
   print("Removed breakpoint $bpt2");
+  await r2Ref.reload();
+  expect(r2Ref.activationBreakpoint, equals(null));
   print("testeeDo()");
   res = await rootLib.evaluate("testeeDo()");
   expect(res is Instance, isTrue); // Not error.

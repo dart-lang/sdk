@@ -14372,6 +14372,13 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (ref) {
     return;
   }
+  if (IsClosure()) {
+    Debugger* debugger = Isolate::Current()->debugger();
+    Breakpoint* bpt = debugger->BreakpointAtActivation(*this);
+    if (bpt != NULL) {
+      jsobj.AddProperty("_activationBreakpoint", bpt);
+    }
+  }
 }
 
 

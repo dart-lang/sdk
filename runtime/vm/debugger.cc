@@ -1966,17 +1966,39 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
 }
 
 
-Breakpoint* Debugger::SetBreakpointAtActivation(
-    const Instance& closure) {
+Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure) {
   if (!closure.IsClosure()) {
     return NULL;
   }
   const Function& func = Function::Handle(Closure::function(closure));
   const Script& script = Script::Handle(func.script());
-  BreakpointLocation* bpt = SetBreakpoint(script,
-                                          func.token_pos(),
-                                          func.end_token_pos());
-  return bpt->AddPerClosure(this, closure);
+  BreakpointLocation* bpt_location = SetBreakpoint(script,
+                                                   func.token_pos(),
+                                                   func.end_token_pos());
+  return bpt_location->AddPerClosure(this, closure);
+}
+
+
+Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
+  if (!closure.IsClosure()) {
+    return NULL;
+  }
+
+  BreakpointLocation* loc = breakpoint_locations_;
+  while (loc != NULL) {
+    Breakpoint* bpt = loc->breakpoints();
+    while (bpt != NULL) {
+      if (bpt->IsPerClosure()) {
+        if (closure.raw() == bpt->closure()) {
+          return bpt;
+        }
+      }
+      bpt = bpt->next();
+    }
+    loc = loc->next();
+  }
+
+  return NULL;
 }
 
 

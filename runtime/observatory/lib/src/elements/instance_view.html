@@ -95,6 +95,22 @@
                 </any-service-ref>
               </div>
             </div>
+            <div class="memberItem">
+              <div class="memberName">closure breakpoint</div>
+              <div class="memberValue">
+                <template if="{{ instance.activationBreakpoint == null }}">
+                  <action-link callback="{{ setBreakOnActivation }}"
+                               label="break on activation">
+                  </action-link>
+                </template>
+                <template if="{{ instance.activationBreakpoint != null }}">
+                  {{ instance.activationBreakpoint.toString() }}
+                  <action-link callback="{{ clearBreakOnActivation }}"
+                               label="remove">
+                  </action-link>
+                </template>
+              </div>
+            </div>
           </template>
 
           <template if="{{ instance.isWeakProperty }}">

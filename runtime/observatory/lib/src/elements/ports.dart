@@ -16,7 +16,7 @@ class PortsPageElement extends ObservatoryElement {
   PortsPageElement.created() : super.created();
 
   @observable Isolate isolate;
-  @observable ServiceObject ports;
+  @observable /*ObservableList | ServiceObject*/ ports;
 
   void isolateChanged(oldValue) {
     if (isolate != null) {
@@ -28,7 +28,7 @@ class PortsPageElement extends ObservatoryElement {
     return isolate.getPorts().then(_refreshView);
   }
 
-  _refreshView(ServiceObject object) {
+  _refreshView(/*ObservableList | ServiceObject*/ object) {
     ports = object['ports'];
   }
 }

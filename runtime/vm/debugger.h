@@ -427,6 +427,7 @@ class Debugger {
   Breakpoint* SetBreakpointAtEntry(const Function& target_function,
                                    bool single_shot);
   Breakpoint* SetBreakpointAtActivation(const Instance& closure);
+  Breakpoint* BreakpointAtActivation(const Instance& closure);
 
   // TODO(turnidge): script_url may no longer be specific enough.
   Breakpoint* SetBreakpointAtLine(const String& script_url,
