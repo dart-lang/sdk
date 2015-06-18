@@ -48,7 +48,6 @@ vars = {
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "async_await_rev" : "@8b401a9f2e5e81dca5f70dbe7564112a0823dee6",
   "dartdoc_tag" : "@v0.0.2+2",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.1.8",
@@ -179,8 +178,6 @@ deps = {
       (Var("github_mirror") % "analyzer_cli") + Var("analyzer_cli_rev"),
   Var("dart_root") + "/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
-  Var("dart_root") + "/third_party/pkg/async_await":
-      (Var("github_mirror") % "async_await") + Var("async_await_rev"),
   Var("dart_root") + "/third_party/pkg/barback":
       (Var("github_mirror") % "barback") + Var("barback_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
