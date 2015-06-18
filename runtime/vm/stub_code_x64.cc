@@ -28,6 +28,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, support_debugger);
+DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   RSP : points to return address.
@@ -527,6 +528,36 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 }
 
 
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ cmpq(RAX, raw_null);
+  __ j(NOT_EQUAL, call_target_function);
+  __ EnterStubFrame();
+  // Load the receiver.
+  __ movq(RDI, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  __ movq(RAX, Address(
+      RBP, RDI, TIMES_HALF_WORD_SIZE, kParamEndSlotFromFp * kWordSize));
+  __ pushq(raw_null);  // Setup space on stack for result.
+  __ pushq(RAX);  // Receiver.
+  __ pushq(RBX);
+  __ pushq(R10);  // Arguments descriptor array.
+  __ movq(R10, RDI);
+  // EDX: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+  const intptr_t kNumArgs = 4;
+  __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
+  __ Drop(4);
+  __ popq(RAX);  // Return value.
+  __ LeaveStubFrame();
+  __ ret();
+}
+
+
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Load the receiver into RAX.  The argument count in the arguments
@@ -554,6 +585,12 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ popq(R10);  // Restore arguments descriptor.
   __ popq(RBX);  // Restore IC data.
   __ LeaveStubFrame();
+
+  if (!FLAG_lazy_dispatchers) {
+    Label call_target_function;
+    GenerateDispatcherCode(assembler, &call_target_function);
+    __ Bind(&call_target_function);
+  }
 
   __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
@@ -1459,7 +1496,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
   Label call_target_function;
-  __ jmp(&call_target_function);
+  if (!FLAG_lazy_dispatchers) {
+    GenerateDispatcherCode(assembler, &call_target_function);
+  } else {
+    __ jmp(&call_target_function);
+  }
 
   __ Bind(&found);
   // R12: Pointer to an IC data check group.

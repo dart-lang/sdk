@@ -29,6 +29,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, support_debugger);
+DECLARE_FLAG(bool, lazy_dispatchers);
 
 #define INT32_SIZEOF(x) static_cast<int32_t>(sizeof(x))
 
@@ -505,6 +506,36 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 }
 
 
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ cmpl(EAX, raw_null);
+  __ j(NOT_EQUAL, call_target_function);
+  __ EnterStubFrame();
+  // Load the receiver.
+  __ movl(EDI, FieldAddress(EDX, ArgumentsDescriptor::count_offset()));
+  __ movl(EAX, Address(
+      EBP, EDI, TIMES_HALF_WORD_SIZE, kParamEndSlotFromFp * kWordSize));
+  __ pushl(raw_null);  // Setup space on stack for result.
+  __ pushl(EAX);  // Receiver.
+  __ pushl(ECX);
+  __ pushl(EDX);  // Arguments descriptor array.
+  __ movl(EDX, EDI);
+  // EDX: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+  const intptr_t kNumArgs = 4;
+  __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
+  __ Drop(4);
+  __ popl(EAX);  // Return value.
+  __ LeaveFrame();
+  __ ret();
+}
+
+
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Load the receiver into EAX.  The argument count in the arguments
@@ -532,6 +563,12 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ popl(EDX);  // Restore arguments descriptor.
   __ popl(ECX);  // Restore IC data.
   __ LeaveFrame();
+
+  if (!FLAG_lazy_dispatchers) {
+    Label call_target_function;
+    GenerateDispatcherCode(assembler, &call_target_function);
+    __ Bind(&call_target_function);
+  }
 
   __ movl(EBX, FieldAddress(EAX, Function::instructions_offset()));
   __ addl(EBX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
@@ -1370,7 +1407,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
       __ j(NOT_EQUAL, &update);  // Continue.
     } else {
       // Last check, all checks before matched.
-      __ j(EQUAL, &found, Assembler::kNearJump);  // Break.
+      __ j(EQUAL, &found);  // Break.
     }
   }
   __ Bind(&update);
@@ -1418,7 +1455,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ popl(EDX);  // Restore arguments descriptor array.
   __ LeaveFrame();
   Label call_target_function;
-  __ jmp(&call_target_function);
+  if (!FLAG_lazy_dispatchers) {
+    GenerateDispatcherCode(assembler, &call_target_function);
+  } else {
+    __ jmp(&call_target_function);
+  }
 
   __ Bind(&found);
 

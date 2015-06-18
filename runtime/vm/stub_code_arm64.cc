@@ -27,6 +27,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, support_debugger);
+DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   LR : return address.
@@ -577,6 +578,34 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 }
 
 
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  __ CompareObject(R0, Object::null_object(), PP);
+  __ b(call_target_function, NE);
+  __ EnterStubFrame();
+
+  // Load the receiver.
+  __ LoadFieldFromOffset(R2, R4, ArgumentsDescriptor::count_offset(), kNoPP);
+  __ add(TMP, FP, Operand(R2, LSL, 2));  // R2 is Smi.
+  __ LoadFromOffset(R6, TMP, kParamEndSlotFromFp * kWordSize, kNoPP);
+  __ PushObject(Object::null_object(), PP);
+  __ Push(R6);
+  __ Push(R5);
+  __ Push(R4);
+  // R2: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+  const intptr_t kNumArgs = 4;
+  __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
+  __ Drop(4);
+  __ Pop(R0);  // Return value.
+  __ LeaveStubFrame();
+  __ ret();
+}
+
+
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
 
@@ -607,6 +636,12 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ Pop(R5);
 
   __ LeaveStubFrame();
+
+  if (!FLAG_lazy_dispatchers) {
+    Label call_target_function;
+    GenerateDispatcherCode(assembler, &call_target_function);
+    __ Bind(&call_target_function);
+  }
 
   // Tail-call to target function.
   __ LoadFieldFromOffset(R2, R0, Function::instructions_offset(), kNoPP);
@@ -1518,7 +1553,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ Pop(R4);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
   Label call_target_function;
-  __ b(&call_target_function);
+  if (!FLAG_lazy_dispatchers) {
+    GenerateDispatcherCode(assembler, &call_target_function);
+  } else {
+    __ b(&call_target_function);
+  }
 
   __ Bind(&found);
   __ Comment("Update caller's counter");

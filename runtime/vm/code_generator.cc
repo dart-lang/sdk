@@ -69,6 +69,7 @@ DEFINE_FLAG(int, deoptimize_every, 0,
             "Deoptimize on every N stack overflow checks");
 DEFINE_FLAG(charp, deoptimize_filter, NULL,
             "Deoptimize in named function on stack overflow checks");
+DEFINE_FLAG(bool, lazy_dispatchers, true, "Lazily generate dispatchers");
 
 #ifdef DEBUG
 DEFINE_FLAG(charp, gc_at_instance_allocation, NULL,
@@ -774,6 +775,9 @@ RawFunction* InlineCacheMissHelper(
                                 target_name,
                                 args_descriptor,
                                 &result)) {
+    if (!FLAG_lazy_dispatchers) {
+      return result.raw();  // Return null.
+    }
     ArgumentsDescriptor desc(args_descriptor);
     const Function& target_function =
         Function::Handle(receiver_class.GetInvocationDispatcher(
@@ -809,7 +813,10 @@ static RawFunction* InlineCacheMissHandler(
     }
     target_function = InlineCacheMissHelper(receiver, ic_data);
   }
-  ASSERT(!target_function.IsNull());
+  if (target_function.IsNull()) {
+    ASSERT(!FLAG_lazy_dispatchers);
+    return target_function.raw();
+  }
   if (args.length() == 1) {
     ic_data.AddReceiverCheck(args[0]->GetClassId(), target_function);
   } else {
@@ -1010,14 +1017,41 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
   if (target_function.IsNull()) {
     target_function = InlineCacheMissHelper(receiver, ic_data);
   }
-
-  ASSERT(!target_function.IsNull());
+  if (target_function.IsNull()) {
+    ASSERT(!FLAG_lazy_dispatchers);
+    arguments.SetReturn(target_function);
+    return;
+  }
   // Insert function found into cache and return it.
   cache.EnsureCapacity();
   const Smi& class_id = Smi::Handle(Smi::New(cls.id()));
   cache.Insert(class_id, target_function);
   arguments.SetReturn(target_function);
 }
+
+
+// Invoke appropriate noSuchMethod or closure from getter.
+// Arg0: receiver
+// Arg1: IC data
+// Arg2: arguments descriptor array
+// Arg3: arguments array
+DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
+  ASSERT(!FLAG_lazy_dispatchers);
+  const Instance& receiver = Instance::CheckedHandle(arguments.ArgAt(0));
+  const ICData& ic_data = ICData::CheckedHandle(arguments.ArgAt(1));
+  const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
+  const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
+  const String& target_name = String::Handle(ic_data.target_name());
+  // Handle noSuchMethod invocation.
+  const Object& result = Object::Handle(
+      DartEntry::InvokeNoSuchMethod(receiver,
+                                    target_name,
+                                    orig_arguments,
+                                    orig_arguments_desc));
+  CheckResultError(result);
+  arguments.SetReturn(result);
+}
+
 
 
 // Invoke appropriate noSuchMethod function.

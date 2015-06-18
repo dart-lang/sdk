@@ -27,6 +27,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, support_debugger);
+DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   RA : return address.
@@ -600,6 +601,41 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 }
 
 
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  __ BranchNotEqual(T0, Object::null_object(), call_target_function);
+  __ EnterStubFrame();
+  // Load the receiver.
+  __ lw(A1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+  __ sll(TMP, A1, 1);  // A1 is a Smi.
+  __ addu(TMP, FP, TMP);
+  __ lw(T6, Address(TMP, kParamEndSlotFromFp * kWordSize));
+
+  // Push space for the return value.
+  // Push the receiver.
+  // Push IC data object.
+  // Push arguments descriptor array.
+  // Push original arguments array.
+  __ addiu(SP, SP, Immediate(-4 * kWordSize));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(TMP, Address(SP, 3 * kWordSize));
+  __ sw(T6, Address(SP, 2 * kWordSize));
+  __ sw(S5, Address(SP, 1 * kWordSize));
+  __ sw(S4, Address(SP, 0 * kWordSize));
+  // A1: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+  const intptr_t kNumArgs = 4;
+  __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
+  __ lw(V0, Address(SP, 4 * kWordSize));  // Return value.
+  __ addiu(SP, SP, Immediate(5 * kWordSize));
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
 
@@ -632,6 +668,12 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(6 * kWordSize));
 
   __ LeaveStubFrame();
+
+  if (!FLAG_lazy_dispatchers) {
+    Label call_target_function;
+    GenerateDispatcherCode(assembler, &call_target_function);
+    __ Bind(&call_target_function);
+  }
 
   __ lw(T2, FieldAddress(T0, Function::instructions_offset()));
   __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
@@ -1568,7 +1610,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ LeaveStubFrame();
 
   Label call_target_function;
-  __ b(&call_target_function);
+  if (!FLAG_lazy_dispatchers) {
+    __ mov(T0, T3);
+    GenerateDispatcherCode(assembler, &call_target_function);
+  } else {
+    __ b(&call_target_function);
+  }
 
   __ Bind(&found);
   __ Comment("Update caller's counter");

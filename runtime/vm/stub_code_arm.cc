@@ -28,6 +28,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, support_debugger);
+DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   LR : return address.
@@ -554,6 +555,33 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 }
 
 
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  __ CompareObject(R0, Object::null_object());
+  __ b(call_target_function, NE);
+  __ EnterStubFrame();
+  // Load the receiver.
+  __ ldr(R2, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  __ add(IP, FP, Operand(R2, LSL, 1));  // R2 is Smi.
+  __ ldr(R6, Address(IP, kParamEndSlotFromFp * kWordSize));
+  __ PushObject(Object::null_object());
+  __ Push(R6);
+  __ Push(R5);
+  __ Push(R4);
+  // R2: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+  const intptr_t kNumArgs = 4;
+  __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
+  __ Drop(4);
+  __ Pop(R0);  // Return value.
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
 
@@ -580,6 +608,12 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ PopList((1 << R4) | (1 << R5));
 
   __ LeaveStubFrame();
+
+  if (!FLAG_lazy_dispatchers) {
+    Label call_target_function;
+    GenerateDispatcherCode(assembler, &call_target_function);
+    __ Bind(&call_target_function);
+  }
 
   // Tail-call to target function.
   __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
@@ -1446,7 +1480,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ PopList((1 << R0) | (1 << R4) | (1 << R5));
   __ LeaveStubFrame();
   Label call_target_function;
-  __ b(&call_target_function);
+  if (!FLAG_lazy_dispatchers) {
+    GenerateDispatcherCode(assembler, &call_target_function);
+  } else {
+    __ b(&call_target_function);
+  }
 
   __ Bind(&found);
   // R6: pointer to an IC data check group.
