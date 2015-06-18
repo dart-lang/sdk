@@ -945,7 +945,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 // Declare deferred-initializer global.
 #deferredInitializer;
 
-!function(start, program) {
+(function(start, program) {
   // Initialize holder objects.
   #holders;
   var nativeInfos = Object.create(null);
@@ -1279,7 +1279,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 
   #invokeMain;  // Start main.
 
-}(Date.now(), #code)
+})(Date.now(), #code)
 }""";
 
 }
