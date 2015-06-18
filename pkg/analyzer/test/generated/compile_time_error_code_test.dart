@@ -4705,6 +4705,66 @@ part 'test.dart';''');
     verify([source]);
   }
 
+  void test_prefix_assignment_compound_in_method() {
+    addNamedSource('/lib.dart', 'library lib;');
+    Source source = addSource('''
+import 'lib.dart' as p;
+class C {
+  f() {
+    p += 1;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_assignment_compound_not_in_method() {
+    addNamedSource('/lib.dart', 'library lib;');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  p += 1;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_assignment_in_method() {
+    addNamedSource('/lib.dart', 'library lib;');
+    Source source = addSource('''
+import 'lib.dart' as p;
+class C {
+  f() {
+    p = 1;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_assignment_not_in_method() {
+    addNamedSource('/lib.dart', 'library lib;');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  p = 1;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
   void test_prefix_conditionalPropertyAccess_call() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.enableNullAwareOperators = true;
@@ -4814,6 +4874,36 @@ library lib;
 import 'lib.dart' deferred as p;
 f() {
   p?.loadLibrary = null;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_unqualified_invocation_in_method() {
+    addNamedSource('/lib.dart', 'librarylib;');
+    Source source = addSource('''
+import 'lib.dart' as p;
+class C {
+  f() {
+    p();
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(
+        source, [CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT]);
+    verify([source]);
+  }
+
+  void test_prefix_unqualified_invocation_not_in_method() {
+    addNamedSource('/lib.dart', 'librarylib;');
+    Source source = addSource('''
+import 'lib.dart' as p;
+f() {
+  p();
 }
 ''');
     computeLibrarySourceErrors(source);

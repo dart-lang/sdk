@@ -6,19 +6,8 @@
 // following spec text from section 16.19 (Assignment):
 //     Evaluation of an assignment a of the form v = e proceeds as follows:
 //     Let d be the innermost declaration whose name is v or v=, if it exists.
-//     If d is the declaration of a local variable, ...
-//     If d is the declaration of a library variable, ...
-//     Otherwise, if d is the declaration of a static variable, ...
-//     Otherwise, if a ocurs inside a top level or static function (be it
-//   function, method, getter, or setter) or variable initializer, evaluation
-//   of a causes e to be evaluated, after which a NoSuchMethodError is thrown.
-//     Otherwise, the assignment is equivalent to the assignment this.v = e.
-//
-// Therefore, if p is an import prefix, evaluation of "p = ..." should be
-// equivalent to "this.p = ..." inside a method, and should produce a
-// NoSuchMethodError outside a method.
+//     It is a compile-time error if d denotes a prefix object.
 
-import "package:expect/expect.dart";
 import "empty_library.dart" as p;
 
 class Base {
@@ -27,20 +16,11 @@ class Base {
 
 class Derived extends Base {
   void f() {
-    p = 1; Expect.equals(1, this.p); /// 01: ok
+    p = 1; /// 01: compile-time error
   }
 }
 
-bool gCalled = false;
-
-g() {
-  gCalled = true;
-  return 1;
-}
-
-noMethod(e) => e is NoSuchMethodError;
-
 main() {
   new Derived().f();
-  Expect.throws(() { p = g(); }, noMethod); Expect.isTrue(gCalled); /// 02: static type warning
+  p = 1; /// 02: compile-time error
 }

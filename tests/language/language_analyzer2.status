@@ -231,7 +231,6 @@ generic_test: StaticWarning
 getter_declaration_negative_test: CompileTimeError
 getter_no_setter2_test/01: StaticWarning
 getter_no_setter_test/01: StaticWarning
-illegal_invocation_test/01: StaticWarning
 implicit_this_test/02: StaticWarning
 implied_interface_test: StaticWarning
 import_combinators_test: StaticWarning

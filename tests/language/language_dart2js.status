@@ -201,6 +201,10 @@ canonical_const2_test: RuntimeError, OK # Issue 1533
 bit_operations_test: RuntimeError, OK # Issue 1533
 expect_test: RuntimeError, OK # Issue 13080
 
+illegal_invocation_test/01: MissingCompileTimeError # Issue 23611
+prefix_unqualified_invocation_test/01: MissingCompileTimeError # Issue 23611
+prefix_unqualified_invocation_test/02: MissingCompileTimeError # Issue 23611
+
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 

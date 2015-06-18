@@ -679,13 +679,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     }
     if (identical(
-        errorCode, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION)) {
-      _resolver.reportErrorForNode(
-          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, methodName,
-          [methodName.name]);
-    } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
-      _resolver.reportErrorForNode(StaticTypeWarningCode.UNDEFINED_FUNCTION,
-          methodName, [methodName.name]);
+            errorCode, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) ||
+        identical(errorCode,
+            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT) ||
+        identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
+      _resolver.reportErrorForNode(errorCode, methodName, [methodName.name]);
     } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_METHOD)) {
       String targetTypeName;
       if (target == null) {
@@ -1116,7 +1114,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Expression target, bool useStaticContext, Element element) {
     // Prefix is not declared, instead "prefix.id" are declared.
     if (element is PrefixElement) {
-      element = null;
+      return CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT;
     }
     if (element is PropertyAccessorElement) {
       //
@@ -2322,7 +2320,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     // Look first in the lexical scope.
     //
     Element element = _resolver.nameScope.lookup(methodName, _definingLibrary);
-    if (element == null || element is PrefixElement) {
+    if (element == null) {
       //
       // If it isn't defined in the lexical scope, and the invocation is within
       // a class, then look in the inheritance scope.
@@ -2574,10 +2572,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else if (element == null &&
         (identifier.inSetterContext() ||
             identifier.parent is CommentReference)) {
-      element = _resolver.nameScope.lookup(
-          new SyntheticIdentifier("${identifier.name}=", identifier),
-          _definingLibrary);
-    } else if (element is PrefixElement && !identifier.inGetterContext()) {
       element = _resolver.nameScope.lookup(
           new SyntheticIdentifier("${identifier.name}=", identifier),
           _definingLibrary);
