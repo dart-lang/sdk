@@ -470,23 +470,27 @@ class ClassEmitter extends CodeEmitterHelper {
   bool fieldNeedsGetter(VariableElement field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    return backend.shouldRetainGetter(field)
-        || compiler.codegenWorld.hasInvokedGetter(field, compiler.world);
+    if (backend.shouldRetainGetter(field)) return true;
+    return field.isClassMember &&
+           compiler.codegenWorld.hasInvokedGetter(field, compiler.world);
   }
 
   bool fieldNeedsSetter(VariableElement field) {
     assert(field.isField);
     if (fieldAccessNeverThrows(field)) return false;
-    return (!field.isFinal && !field.isConst)
-        && (backend.shouldRetainSetter(field)
-            || compiler.codegenWorld.hasInvokedSetter(field, compiler.world));
+    if (field.isFinal || field.isConst) return false;
+    if (backend.shouldRetainSetter(field)) return true;
+    return field.isClassMember &&
+           compiler.codegenWorld.hasInvokedSetter(field, compiler.world);
   }
 
-  // We never access a field in a closure (a captured variable) without knowing
-  // that it is there.  Therefore we don't need to use a getter (that will throw
-  // if the getter method is missing), but can always access the field directly.
   static bool fieldAccessNeverThrows(VariableElement field) {
-    return field is ClosureFieldElement;
+    return
+        // We never access a field in a closure (a captured variable) without
+        // knowing that it is there.  Therefore we don't need to use a getter
+        // (that will throw if the getter method is missing), but can always
+        // access the field directly.
+        field is ClosureFieldElement;
   }
 
   bool canAvoidGeneratedCheckedSetter(VariableElement member) {
