@@ -478,12 +478,22 @@ abstract class Stream<T> {
   }
 
   /**
-   * Binds this stream as the input of the provided [StreamConsumer].
+   * Pipe the events of this stream into [streamConsumer].
    *
-   * The `streamConsumer` is closed when the stream has been added to it.
+   * The events of this stream are added to `streamConsumer` using
+   * [StreamConsumer.addStream].
+   * The `streamConsumer` is closed when this stream has been successfully added
+   * to it - when the future returned by `addStream` completes without an error.
    *
    * Returns a future which completes when the stream has been consumed
    * and the consumer has been closed.
+   *
+   * The returned future completes with the same result as the future returned
+   * by [StreamConsumer.close].
+   * If the adding of the stream itself fails in some way,
+   * then the consumer is expected to be closed, and won't be closed again.
+   * In that case the returned future completes with the error from calling
+   * `addStream`.
    */
   Future pipe(StreamConsumer<T> streamConsumer) {
     return streamConsumer.addStream(this).then((_) => streamConsumer.close());
