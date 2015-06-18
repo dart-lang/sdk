@@ -364,7 +364,7 @@ class InvokeConstructor extends Expression implements Invoke {
 
 /// An "is" type test.
 ///
-/// Returns `true` if [value] not `null` and is an instance of [type].
+/// Returns `true` if [value] is an instance of [type].
 ///
 /// [type] must not be the [Object], `dynamic` or [Null] types (though it might
 /// be a type variable containing one of these types). This design is chosen
@@ -379,6 +379,9 @@ class TypeTest extends Primitive {
   ///
   /// If [type] is a [TypeVariableType], this is a singleton list with
   /// the internal representation of the type held in that type variable.
+  ///
+  /// If [type] is a [FunctionType], this is a singleton list with the
+  /// internal representation of that type,
   ///
   /// Otherwise the list is empty.
   final List<Reference<Primitive>> typeArguments;
@@ -406,14 +409,7 @@ class TypeCast extends Expression {
   Reference<Primitive> value;
   final DartType type;
 
-  /// If [type] is an [InterfaceType], this holds the internal representation of
-  /// the type arguments to [type]. Since these may reference type variables
-  /// from the enclosing class, they are not constant.
-  ///
-  /// If [type] is a [TypeVariableType], this is a singleton list with
-  /// the internal representation of the type held in that type variable.
-  ///
-  /// Otherwise the list is empty.
+  /// See the corresponding field on [TypeTest].
   final List<Reference<Primitive>> typeArguments;
   final Reference<Continuation> continuation;
 

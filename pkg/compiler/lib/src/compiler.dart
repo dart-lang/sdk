@@ -135,8 +135,8 @@ class CodegenRegistry extends Registry {
     backend.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
-  void registerClosureWithFreeTypeVariables(FunctionElement element) {
-    backend.registerClosureWithFreeTypeVariables(element, world, this);
+  void registerInstantiatedClosure(LocalFunctionElement element) {
+    backend.registerInstantiatedClosure(element, this);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {

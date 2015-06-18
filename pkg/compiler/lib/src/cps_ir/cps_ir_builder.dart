@@ -2333,9 +2333,10 @@ class JsIrBuilder extends IrBuilder {
   }
 
   ir.Primitive buildTypeExpression(DartType type) {
+    type = program.unaliasType(type);
     if (type is TypeVariableType) {
       return buildTypeVariableAccess(type);
-    } else if (type is InterfaceType) {
+    } else if (type is InterfaceType || type is FunctionType) {
       List<ir.Primitive> arguments = <ir.Primitive>[];
       type.forEachTypeVariable((TypeVariableType variable) {
         ir.Primitive value = buildTypeVariableAccess(variable);
@@ -2397,6 +2398,8 @@ class JsIrBuilder extends IrBuilder {
     assert(isOpen);
     assert(isTypeTest != null);
 
+    type = program.unaliasType(type);
+
     if (type.isMalformed) {
       FunctionElement helper = program.throwTypeErrorHelper;
       ErroneousElement element = type.element;
@@ -2412,6 +2415,8 @@ class JsIrBuilder extends IrBuilder {
       typeArguments = type.typeArguments.map(buildTypeExpression).toList();
     } else if (type is TypeVariableType) {
       typeArguments = <ir.Primitive>[buildTypeVariableAccess(type)];
+    } else if (type is FunctionType) {
+      typeArguments = <ir.Primitive>[buildTypeExpression(type)];
     }
 
     if (isTypeTest) {

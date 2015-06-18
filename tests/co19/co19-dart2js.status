@@ -9619,9 +9619,6 @@ Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Cannot re
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/22_Equality_A03_t01: RuntimeError # Please triage this failure.
 Language/12_Expressions/30_Identifier_Reference_A09_t03: Crash # (i=0): For-loop variable captured in loop header
-Language/12_Expressions/33_Type_Cast_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for func.
-Language/12_Expressions/33_Type_Cast_A02_t02: Crash # Instance of 'TypeOperator': type check unimplemented for func.
-Language/12_Expressions/33_Type_Cast_A02_t03: Crash # Instance of 'TypeOperator': type check unimplemented for func.
 Language/13_Statements/06_For_A01_t07: Crash # unsupported operation on erroneous element
 Language/13_Statements/09_Switch_A01_t01: Crash # (switch (1){case 0:case 1:}): Unhandled node
 Language/13_Statements/09_Switch_A01_t02: Crash # (switch (1){l1:l2:l3:case (1):}): Unhandled node
@@ -9673,56 +9670,9 @@ Language/13_Statements/14_Continue_A03_t04: Crash # (try {try {continue;...  try
 Language/13_Statements/14_Continue_A03_t05: Crash # (switch (1){case 1:c...  Unhandled node
 Language/13_Statements/14_Continue_A03_t06: Crash # (try {throw 1;}on in...  try/finally
 Language/13_Statements/14_Continue_A03_t07: Crash # (try {throw 1;}on in...  try/finally
-Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t02: Crash # Instance of 'TypeOperator': type check unimplemented for _td.
-Language/15_Types/3_Type_Declarations/1_Typedef_A02_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f_t.
-Language/15_Types/3_Type_Declarations/1_Typedef_A02_t02: Crash # Instance of 'TypeOperator': type check unimplemented for f_t.
-Language/15_Types/3_Type_Declarations/1_Typedef_A02_t03: Crash # Instance of 'TypeOperator': type check unimplemented for f_t.
-Language/15_Types/3_Type_Declarations/1_Typedef_A03_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f1.
-Language/15_Types/3_Type_Declarations/1_Typedef_A04_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f1.
-Language/15_Types/3_Type_Declarations/1_Typedef_A04_t02: Crash # Instance of 'TypeOperator': type check unimplemented for f1.
-Language/15_Types/4_Interface_Types_A05_t04: Crash # type expression t1 (typedef)
-Language/15_Types/4_Interface_Types_A10_t04: Crash # type expression param1 (typedef)
-Language/15_Types/4_Interface_Types_A10_t06: Crash # type expression f (typedef)
-Language/15_Types/4_Interface_Types_A10_t07: Crash # type expression f_1 (typedef)
-Language/15_Types/4_Interface_Types_A10_t08: Crash # type expression t1 (typedef)
-Language/15_Types/4_Interface_Types_A10_t09: Crash # type expression param1 (typedef)
-Language/15_Types/4_Interface_Types_A12_t18: Crash # Instance of 'TypeOperator': type check unimplemented for F1.
-Language/15_Types/5_Function_Types_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for check_t.
-Language/15_Types/5_Function_Types_A01_t02: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A01_t03: Crash # Instance of 'TypeOperator': type check unimplemented for returnsDynamic.
-Language/15_Types/5_Function_Types_A01_t04: Crash # Instance of 'TypeOperator': type check unimplemented for t8.
-Language/15_Types/5_Function_Types_A01_t05: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A01_t06: Crash # Instance of 'TypeOperator': type check unimplemented for classesFunc.
-Language/15_Types/5_Function_Types_A01_t07: Crash # Instance of 'TypeOperator': type check unimplemented for f.
-Language/15_Types/5_Function_Types_A01_t08: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A01_t09: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A01_t11: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A02_t01: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A02_t02: Crash # Instance of 'TypeOperator': type check unimplemented for classesFunc.
-Language/15_Types/5_Function_Types_A02_t03: Crash # Instance of 'TypeOperator': type check unimplemented for classesFunc.
-Language/15_Types/5_Function_Types_A02_t04: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A02_t05: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A02_t06: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A02_t07: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A02_t08: Crash # Instance of 'TypeOperator': type check unimplemented for t2.
-Language/15_Types/5_Function_Types_A02_t09: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A02_t10: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A02_t11: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A02_t12: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A03_t01: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A03_t02: Crash # Instance of 'TypeOperator': type check unimplemented for classesFunc.
-Language/15_Types/5_Function_Types_A03_t03: Crash # Instance of 'TypeOperator': type check unimplemented for classesFunc.
-Language/15_Types/5_Function_Types_A03_t04: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A03_t06: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A03_t07: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A03_t08: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A03_t09: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A03_t10: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A03_t11: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A03_t12: Crash # Instance of 'TypeOperator': type check unimplemented for classesFunc.
-Language/15_Types/5_Function_Types_A03_t13: Crash # Instance of 'TypeOperator': type check unimplemented for t1.
-Language/15_Types/5_Function_Types_A06_t01: Crash # Instance of 'TypeOperator': type check unimplemented for f.
 LayoutTests/fast/backgrounds/multiple-backgrounds-computed-style_t01: Crash # (switch (property){c...  Unhandled node
+LayoutTests/fast/canvas/canvas-composite-image_t01: Crash, Pass # Stack Overflow (sometimes)
+LayoutTests/fast/canvas/canvas-composite-canvas_t01: Crash, Pass # Stack Overflow (sometimes)
 LayoutTests/fast/canvas/webgl/compressed-tex-image_t01: Crash # Invalid argument(s)
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: Crash # Invalid argument(s)
 LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: Crash # (switch (ii){case 2:...  Unhandled node
@@ -9747,9 +9697,6 @@ LayoutTests/fast/table/hittest-tablecell-with-borders-right-edge_t01: Crash # (s
 LibTest/async/DeferredLibrary/DeferredLibrary_A01_t01: RuntimeError # E.loadLibrary is not a function
 LibTest/async/Stream/Stream.periodic_A01_t01: Crash # Invalid argument(s)
 LibTest/async/Stream/drain_A02_t01: Crash # Invalid argument(s)
-LibTest/async/Zone/registerBinaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneBinaryCallback.
-LibTest/async/Zone/registerCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneCallback.
-LibTest/async/Zone/registerUnaryCallback_A01_t01: Crash # Instance of 'TypeOperator': type check unimplemented for ZoneUnaryCallback.
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Stack Overflow
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Stack Overflow
 LibTest/core/FallThroughError/toString_A01_t02: Crash # (switch (2){case 1:p...  Unhandled node
@@ -9762,7 +9709,6 @@ LibTest/core/Invocation/isSetter_A01_t02: RuntimeError # Please triage this fail
 LibTest/core/Invocation/memberName_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/positionalArguments_A01_t01: RuntimeError # Please triage this failure.
 LibTest/core/List/List_class_A01_t02: Crash # Stack Overflow
-LibTest/core/Map/Map_A01_t01: Crash # type expression SomeFunction (typedef)
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Crash # (switch (alpha){case...  Unhandled node
 LibTest/core/RegExp/Pattern_semantics/splitQueryString_A02_t01: Crash # (switch (alpha){case...  Unhandled node
 LibTest/core/Set/add_A01_t03: RuntimeError # receiver.get$x is not a function

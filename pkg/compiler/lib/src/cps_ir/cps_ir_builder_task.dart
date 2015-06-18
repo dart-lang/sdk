@@ -2057,6 +2057,8 @@ class GlobalProgramInformation {
   FunctionElement get throwTypeErrorHelper => _backend.getThrowTypeError();
 
   ClassElement get nullClass => _compiler.nullClass;
+
+  DartType unaliasType(DartType type) => type.unalias(_compiler);
 }
 
 /// IR builder specific to the JavaScript backend, coupled to the [JsIrBuilder].

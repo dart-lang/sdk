@@ -15,6 +15,7 @@ import '../../util/maplet.dart';
 import '../../constants/values.dart';
 import '../../dart2jslib.dart';
 import '../../dart_types.dart';
+import '../../closure.dart' show ClosureClassElement;
 
 class CodegenBailout {
   final tree_ir.Node node;
@@ -385,7 +386,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       return buildStaticHelperInvocation(
           function,
           <js.Expression>[value, isT, typeArgumentArray, asT]);
-    } else if (type is TypeVariableType) {
+    } else if (type is TypeVariableType || type is FunctionType) {
       glue.registerIsCheck(type, registry);
 
       Element function = node.isTypeTest
@@ -575,19 +576,22 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitCreateInstance(tree_ir.CreateInstance node) {
-    ClassElement cls = node.classElement;
+    ClassElement classElement = node.classElement;
     // TODO(asgerf): To allow inlining of InvokeConstructor, CreateInstance must
     //               carry a DartType so we can register the instantiated type
     //               with its type arguments. Otherwise dataflow analysis is
     //               needed to reconstruct the instantiated type.
-    registry.registerInstantiatedClass(cls);
+    registry.registerInstantiatedClass(classElement);
+    if (classElement is ClosureClassElement) {
+      registry.registerInstantiatedClosure(classElement.methodElement);
+    }
     js.Expression instance = new js.New(
-        glue.constructorAccess(cls),
+        glue.constructorAccess(classElement),
         visitExpressionList(node.arguments));
 
     List<tree_ir.Expression> typeInformation = node.typeInformation;
     assert(typeInformation.isEmpty ||
-        typeInformation.length == cls.typeVariables.length);
+        typeInformation.length == classElement.typeVariables.length);
     if (typeInformation.isNotEmpty) {
       FunctionElement helper = glue.getAddRuntimeTypeInformation();
       js.Expression typeArguments = new js.ArrayInitializer(

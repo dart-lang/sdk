@@ -3107,9 +3107,7 @@ class SsaBuilder extends NewResolvedVisitor {
     push(new HForeignNew(closureClassElement, type, capturedVariables));
 
     Element methodElement = nestedClosureData.closureElement;
-    if (compiler.backend.methodNeedsRti(methodElement)) {
-      registry.registerClosureWithFreeTypeVariables(methodElement);
-    }
+    registry.registerInstantiatedClosure(methodElement);
   }
 
   visitFunctionDeclaration(ast.FunctionDeclaration node) {

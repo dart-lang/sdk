@@ -246,7 +246,7 @@ class ConstantPropagationLattice {
   ///
   /// [AbstractBool.Nothing] is returned if [value] is nothing.
   ///
-  /// If [allowNull] is true, `null` is considered to an instance of anything,
+  /// If [allowNull] is true, `null` is considered an instance of anything,
   /// otherwise it is only considered an instance of [Object], [dynamic], and
   /// [Null].
   AbstractBool isSubtypeOf(AbstractValue value,

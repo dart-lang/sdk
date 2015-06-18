@@ -1185,6 +1185,14 @@ class JavaScriptBackend extends Backend {
     }
   }
 
+  /// Call during codegen if an instance of [closure] is being created.
+  void registerInstantiatedClosure(LocalFunctionElement closure,
+                                   CodegenRegistry registry) {
+    if (methodNeedsRti(closure)) {
+      registerComputeSignature(compiler.enqueuer.codegen, registry);
+    }
+  }
+
   void registerBoundClosure(Enqueuer enqueuer) {
     boundClosureClass.ensureResolved(compiler);
     enqueuer.registerInstantiatedType(

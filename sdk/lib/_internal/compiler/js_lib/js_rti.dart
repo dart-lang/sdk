@@ -389,7 +389,8 @@ bool checkSubtypeOfRuntimeType(o, t) {
     rti = JS('JSExtendableArray', '#.slice()', rti);  // Make a copy.
     JS('', '#.splice(0, 0, #)', rti, type);  // Insert type at position 0.
     type = rti;
-  } else if (isDartFunctionType(t)) {
+  }
+  if (isDartFunctionType(t)) {
     // Functions are treated specially and have their type information stored
     // directly in the instance.
     var targetSignatureFunction =

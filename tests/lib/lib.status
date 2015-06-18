@@ -331,14 +331,12 @@ convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 async/first_regression_test: Crash # (switch (testCase.re...  Unhandled node
 async/future_test/01: Crash # (()async=>new Future.value(value)): cannot handle async/sync*/async* functions
 async/future_timeout_test: Crash # (switch (testCase.re...  Unhandled node
-async/future_value_chain4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 async/multiple_timer_test: Crash # (switch (testCase.re...  Unhandled node
 async/schedule_microtask2_test: Crash # (switch (testCase.re...  Unhandled node
 async/schedule_microtask3_test: Crash # (switch (testCase.re...  Unhandled node
 async/schedule_microtask5_test: Crash # (switch (testCase.re...  Unhandled node
 async/schedule_microtask_test: Crash # Invalid argument(s)
 async/stream_controller_async_test: Crash # (switch (testCase.re...  Unhandled node
-async/stream_controller_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 async/stream_empty_test: Crash # (Future runTest()asy...  cannot handle async/sync*/async* functions
 async/stream_first_where_test: Crash # (switch (testCase.re...  Unhandled node
 async/stream_from_iterable_test: Crash # (switch (testCase.re...  Unhandled node
@@ -366,126 +364,58 @@ async/timer_cancel_test: Crash # (switch (testCase.re...  Unhandled node
 async/timer_isActive_test: Crash # (switch (testCase.re...  Unhandled node
 async/timer_repeat_test: Crash # (switch (testCase.re...  Unhandled node
 async/timer_test: Crash # (switch (testCase.re...  Unhandled node
-collection/linked_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/ascii_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/chunked_conversion2_test: RuntimeError # receiver.get$accumulator is not a function
-convert/chunked_conversion_utf82_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/chunked_conversion_utf86_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/chunked_conversion_utf87_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/json_chunk_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/json_lib_test: Crash # (switch (testCase.re...  Unhandled node
 convert/json_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/json_toEncodable_reviver_test: RuntimeError # J.getInterceptor$as(...).get$length is not a function
-convert/json_utf8_chunk_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/json_util_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/latin1_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 convert/line_splitter_test: Crash # Invalid argument(s)
-convert/utf82_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/utf8_encode_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/utf8_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 js/null_test: Crash # (switch (testCase.re...  Unhandled node
-math/math_parse_double_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-math/min_max_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 math/point_test: Crash # (switch (testCase.re...  Unhandled node
-math/random_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 math/rectangle_test: Crash # Invalid argument(s)
 mirrors/abstract_class_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/abstract_class_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/abstract_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/accessor_cache_overflow_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/basic_types_in_dart_core_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/circular_factory_redirection_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/class_declarations_test/01: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
 mirrors/class_declarations_test/none: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
 mirrors/class_mirror_location_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/class_mirror_type_variables_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/closures_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/closurization_equivalence_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/constructor_kinds_test/01: Crash # (=Class.factoryConstructor;): Unhandled node
 mirrors/constructor_kinds_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/constructors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/dart2js_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/declarations_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/deferred_mirrors_metadata_test: RuntimeError # U.loadLibrary is not a function
 mirrors/deferred_mirrors_metatarget_test: RuntimeError # X.loadLibrary is not a function
 mirrors/deferred_mirrors_update_test: RuntimeError # U.loadLibrary is not a function
 mirrors/deferred_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/delegate_call_through_getter_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/delegate_call_through_getter_test : RuntimeError # Expect.equals(expected: <1 5 6>, actual: <DNU>) fails.
 mirrors/delegate_test: RuntimeError # Please triage this failure.
 mirrors/enum_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/equality_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/fake_function_with_call_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/fake_function_without_call_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/field_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/function_type_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_by_type_parameter_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_by_type_parameter_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_by_type_parameter_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_class_declaration_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/generic_f_bounded_mixin_application_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_f_bounded_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_f_bounded_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/generic_function_typedef_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/generic_interface_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/generic_interface_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/generic_local_function_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/generic_mixin_applications_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/generic_mixin_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_superclass_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_superclass_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_type_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_double_substitution_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_double_substitution_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_dynamic_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_special_types_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_substitution_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/globalized_closures2_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/globalized_closures2_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/globalized_closures_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/globalized_closures_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/hierarchy_invariants_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/immutable_collections_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/inference_and_no_such_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/inherit_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/initializing_formals_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/initializing_formals_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/instance_members_easier_test: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
 mirrors/instance_members_test: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/instance_members_unimplemented_interface_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/instance_members_with_override_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/instantiate_abstract_class_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/intercepted_cache_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/intercepted_class_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/intercepted_object_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/intercepted_superclass_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/invoke_call_on_closure_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/invoke_call_through_getter_previously_accessed_test/named: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_call_through_getter_previously_accessed_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/invoke_call_through_getter_test/named: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_call_through_getter_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/invoke_call_through_implicit_getter_previously_accessed_test/named: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_call_through_implicit_getter_previously_accessed_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/invoke_call_through_implicit_getter_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_closurization2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_closurization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_import_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_named_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/invoke_named_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_natives_malicious_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/invoke_throws_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/is_odd_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/lazy_static_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/libraries_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_declarations_test/01: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
 mirrors/library_declarations_test/none: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/library_enumeration_deferred_loading_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/library_enumeration_deferred_loading_test : RuntimeError # TypeError: L.loadLibrary is not a function
 mirrors/library_exports_hidden_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_exports_shown_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_import_deferred_loading_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -497,106 +427,44 @@ mirrors/library_imports_prefixed_show_hide_test: Crash # Instance of 'TypeOperat
 mirrors/library_imports_prefixed_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_imports_shown_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/library_uri_package_test: Crash # (switch (testCase.re...  Unhandled node
-mirrors/list_constructor_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/list_constructor_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/load_library_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/local_function_is_static_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/local_isolate_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/metadata_allowed_values_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/metadata_allowed_values_test/05: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/metadata_allowed_values_test/10: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/metadata_allowed_values_test/11: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/metadata_allowed_values_test/13: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/metadata_allowed_values_test/14: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_constructed_constant_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_constructor_arguments_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/method_mirror_location_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/method_mirror_name_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/method_mirror_properties_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/method_mirror_returntype_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/method_mirror_source_line_ending_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/method_mirror_source_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/mirrors_nsm_mismatch_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/mirrors_nsm_test/dart2js: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mirrors_nsm_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/mirrors_reader_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mirrors_resolve_fields_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mirrors_used_inheritance_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/mixin_application_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mixin_members_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/mixin_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/model_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/native_class_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/new_instance_with_type_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/no_metadata_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/null2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/null_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/operator_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/parameter_is_const_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/parameter_of_mixin_app_constructor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/private_symbol_mangling_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/private_types_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/proxy_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/raw_type_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/raw_type_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/redirecting_factory_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/redirecting_factory_test/02: Crash # (=Class.factoryNoOptional;): Unhandled node
 mirrors/redirecting_factory_test/none: Crash # (=Class.factoryNoOptional;): Unhandled node
-mirrors/reflect_class_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflect_class_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflect_class_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflect_model_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_classes_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_classes_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_classes_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_classes_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/reflected_type_function_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/reflected_type_special_types_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/reflected_type_typedefs_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/reflected_type_typevars_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/regress_14304_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/regress_19731_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/relation_assignable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/relation_subclass_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/relation_subtype_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/removed_api_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/repeated_private_anon_mixin_app_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/set_field_with_final_inheritance_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/set_field_with_final_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/spawn_function_root_library_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/static_members_easier_test: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
 mirrors/static_members_test: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/static_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/superclass2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/superclass_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/symbol_validation_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/symbol_validation_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/synthetic_accessor_properties_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/to_string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/top_level_accessors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/type_argument_is_type_variable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+mirrors/symbol_validation_test/none : RuntimeError # Expect.throws(Invalid symbol ".%" should be rejected) fails: Did not throw
 mirrors/type_variable_is_static_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/type_variable_owner_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/type_variable_owner_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/typearguments_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/typedef_deferred_library_test: RuntimeError # G.loadLibrary is not a function
 mirrors/typedef_reflected_type_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/typedef_reflected_type_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/unnamed_library_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mirrors/variable_is_const_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-profiler/metrics_num_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-profiler/metrics_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-profiler/user_tags_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/constructor_checks_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/float32x4_shuffle_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/float32x4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/int32x4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/typed_data_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/typed_list_iterable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
