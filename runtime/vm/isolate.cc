@@ -31,6 +31,7 @@
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
+#include "vm/store_buffer.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
@@ -623,7 +624,7 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
   :   mutator_thread_(NULL),
       vm_tag_(0),
-      store_buffer_(),
+      store_buffer_(new StoreBuffer()),
       message_notify_callback_(NULL),
       name_(NULL),
       debugger_name_(NULL),
@@ -699,6 +700,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
 Isolate::~Isolate() {
   free(name_);
   free(debugger_name_);
+  delete store_buffer_;
   delete heap_;
   delete object_store_;
   delete api_state_;

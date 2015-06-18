@@ -15,34 +15,37 @@ class Isolate;
 class Mutex;
 class RawObject;
 
+// A set of RawObject*. Must be emptied before destruction (using Pop/Reset).
 class StoreBufferBlock {
  public:
   // Each full block contains kSize pointers.
   static const int32_t kSize = 1024;
 
-  void Reset() { top_ = 0; }
+  void Reset() {
+    top_ = 0;
+    next_ = NULL;
+  }
 
-  // TODO(koda): Make private after adding visitor interface to StoreBuffer.
   StoreBufferBlock* next() const { return next_; }
 
   intptr_t Count() const { return top_; }
   bool IsFull() const { return Count() == kSize; }
+  bool IsEmpty() const { return Count() == 0; }
 
-  void Add(RawObject* obj) {
+  void Push(RawObject* obj) {
     ASSERT(!IsFull());
     pointers_[top_++] = obj;
   }
 
-  RawObject* At(intptr_t i) const {
-    ASSERT(i >= 0);
-    ASSERT(i < top_);
-    return pointers_[i];
+  RawObject* Pop() {
+    ASSERT(!IsEmpty());
+    return pointers_[--top_];
   }
 
 #if defined(TESTING)
   bool Contains(RawObject* obj) const {
     for (intptr_t i = 0; i < Count(); i++) {
-      if (At(i) == obj) {
+      if (pointers_[i] == obj) {
         return true;
       }
     }
@@ -57,6 +60,9 @@ class StoreBufferBlock {
 
  private:
   StoreBufferBlock() : next_(NULL), top_(0) {}
+  ~StoreBufferBlock() {
+    ASSERT(IsEmpty());  // Guard against unintentionally discarding pointers.
+  }
 
   StoreBufferBlock* next_;
   int32_t top_;
@@ -72,6 +78,10 @@ class StoreBuffer {
  public:
   StoreBuffer();
   ~StoreBuffer();
+  static void InitOnce();
+
+  // Interrupt when crossing this threshold of non-empty blocks in the buffer.
+  static const intptr_t kMaxNonEmpty = 100;
 
   // Adds and transfers ownership of the block to the buffer.
   void PushBlock(StoreBufferBlock* block, bool check_threshold = true);
@@ -82,7 +92,6 @@ class StoreBuffer {
   StoreBufferBlock* PopEmptyBlock();
 
   // Pops and returns all non-empty blocks as a linked list (owned by caller).
-  // TODO(koda): Replace with VisitObjectPointers.
   StoreBufferBlock* Blocks();
 
   // Discards the contents of this store buffer.
@@ -106,12 +115,18 @@ class StoreBuffer {
 
   // Check if we run over the max number of deduplication sets.
   // If we did schedule an interrupt.
-  void CheckThreshold();
+  void CheckThresholdNonEmpty();
+
+  // If needed, trims the the global cache of empty blocks.
+  static void TrimGlobalEmpty();
 
   List full_;
   List partial_;
-  // TODO(koda): static List empty_
   Mutex* mutex_;
+
+  static const intptr_t kMaxGlobalEmpty = 100;
+  static List* global_empty_;
+  static Mutex* global_mutex_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreBuffer);
 };

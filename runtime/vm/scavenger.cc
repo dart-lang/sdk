@@ -526,14 +526,15 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
     MSAN_UNPOISON(pending, sizeof(*pending));
     intptr_t count = pending->Count();
     total_count += count;
-    for (intptr_t i = 0; i < count; i++) {
-      RawObject* raw_object = pending->At(i);
+    while (!pending->IsEmpty()) {
+      RawObject* raw_object = pending->Pop();
       ASSERT(raw_object->IsRemembered());
       raw_object->ClearRememberedBit();
       visitor->VisitingOldObject(raw_object);
       raw_object->VisitPointers(visitor);
     }
-    delete pending;
+    pending->Reset();
+    isolate->store_buffer()->PushBlock(pending);
     pending = next;
   }
   heap_->RecordData(kStoreBufferEntries, total_count);

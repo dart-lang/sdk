@@ -16,6 +16,16 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, 1, Thread* thread) {
 END_LEAF_RUNTIME_ENTRY
 
 
+StoreBuffer::List* StoreBuffer::global_empty_ = NULL;
+Mutex* StoreBuffer::global_mutex_ = NULL;
+
+
+void StoreBuffer::InitOnce() {
+  global_empty_ = new List();
+  global_mutex_ = new Mutex();
+}
+
+
 StoreBuffer::StoreBuffer() : mutex_(new Mutex()) {
 }
 
@@ -27,13 +37,21 @@ StoreBuffer::~StoreBuffer() {
 
 
 void StoreBuffer::Reset() {
-  MutexLocker ml(mutex_);
-  // TODO(koda): Reuse and share empty blocks between isolates.
-  while (!full_.IsEmpty()) {
-    delete full_.Pop();
-  }
-  while (!partial_.IsEmpty()) {
-    delete partial_.Pop();
+  MutexLocker local_mutex_locker(mutex_);
+  {
+    // Empty all blocks and move them to the global cache.
+    MutexLocker global_mutex_locker(global_mutex_);
+    while (!full_.IsEmpty()) {
+      StoreBufferBlock* block = full_.Pop();
+      block->Reset();
+      global_empty_->Push(block);
+    }
+    while (!partial_.IsEmpty()) {
+      StoreBufferBlock* block = partial_.Pop();
+      block->Reset();
+      global_empty_->Push(block);
+    }
+    TrimGlobalEmpty();
   }
 }
 
@@ -48,23 +66,43 @@ StoreBufferBlock* StoreBuffer::Blocks() {
 
 
 void StoreBuffer::PushBlock(StoreBufferBlock* block, bool check_threshold) {
-  MutexLocker ml(mutex_);
-  List* list = block->IsFull() ? &full_ : &partial_;
-  list->Push(block);
+  ASSERT(block->next() == NULL);  // Should be just a single block.
+  if (block->IsFull()) {
+    MutexLocker ml(mutex_);
+    full_.Push(block);
+  } else if (block->IsEmpty()) {
+    MutexLocker ml(global_mutex_);
+    global_empty_->Push(block);
+    TrimGlobalEmpty();
+  } else {
+    MutexLocker ml(mutex_);
+    partial_.Push(block);
+  }
   if (check_threshold) {
-    CheckThreshold();
+    MutexLocker ml(mutex_);
+    CheckThresholdNonEmpty();
   }
 }
 
 
 StoreBufferBlock* StoreBuffer::PopBlock() {
-  MutexLocker ml(mutex_);
-  return (!partial_.IsEmpty()) ? partial_.Pop() : PopEmptyBlock();
+  {
+    MutexLocker ml(mutex_);
+    if (!partial_.IsEmpty()) {
+      return partial_.Pop();
+    }
+  }
+  return PopEmptyBlock();
 }
 
 
 StoreBufferBlock* StoreBuffer::PopEmptyBlock() {
-  // TODO(koda): Reuse and share empty blocks between isolates.
+  {
+    MutexLocker ml(global_mutex_);
+    if (!global_empty_->IsEmpty()) {
+      global_empty_->Pop();
+    }
+  }
   return new StoreBufferBlock();
 }
 
@@ -94,18 +132,30 @@ StoreBufferBlock* StoreBuffer::List::PopAll() {
 
 
 void StoreBuffer::List::Push(StoreBufferBlock* block) {
+  ASSERT(block->next_ == NULL);
   block->next_ = head_;
   head_ = block;
   ++length_;
 }
 
 
-void StoreBuffer::CheckThreshold() {
-  // Schedule an interrupt if we have run over the max number of
-  // StoreBufferBlocks.
-  // TODO(koda): Pass threshold and callback in constructor. Cap total?
-  if (full_.length() > 100) {
-    Isolate::Current()->ScheduleInterrupts(Isolate::kStoreBufferInterrupt);
+void StoreBuffer::CheckThresholdNonEmpty() {
+  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
+  if (full_.length() + partial_.length() > kMaxNonEmpty) {
+    Isolate* isolate = Isolate::Current();
+    // Sanity check: it makes no sense to schedule the GC in another isolate.
+    // (If Isolate ever gets multiple store buffers, we should avoid this
+    // coupling by passing in an explicit callback+parameter at construction.)
+    ASSERT(isolate->store_buffer() == this);
+    isolate->ScheduleInterrupts(Isolate::kStoreBufferInterrupt);
+  }
+}
+
+
+void StoreBuffer::TrimGlobalEmpty() {
+  DEBUG_ASSERT(global_mutex_->IsOwnedByCurrentThread());
+  while (global_empty_->length() > kMaxGlobalEmpty) {
+    delete global_empty_->Pop();
   }
 }
 

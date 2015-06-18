@@ -105,6 +105,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Profiler::InitOnce();
   SemiSpace::InitOnce();
   Metric::InitOnce();
+  StoreBuffer::InitOnce();
 
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();

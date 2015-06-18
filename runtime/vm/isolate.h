@@ -14,7 +14,6 @@
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
 #include "vm/random.h"
-#include "vm/store_buffer.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/os_thread.h"
@@ -77,6 +76,7 @@ class ServiceIdZone;
 class Simulator;
 class StackResource;
 class StackZone;
+class StoreBuffer;
 class StubCode;
 class TypeArguments;
 class TypeParameter;
@@ -142,7 +142,7 @@ class Isolate : public BaseIsolate {
                                   bool visit_prologue_weak_persistent_handles);
   void VisitPrologueWeakPersistentHandles(HandleVisitor* visitor);
 
-  StoreBuffer* store_buffer() { return &store_buffer_; }
+  StoreBuffer* store_buffer() { return store_buffer_; }
 
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
@@ -739,7 +739,7 @@ class Isolate : public BaseIsolate {
 
   Thread* mutator_thread_;
   uword vm_tag_;
-  StoreBuffer store_buffer_;
+  StoreBuffer* store_buffer_;
   ClassTable class_table_;
   MegamorphicCacheTable megamorphic_cache_table_;
   Dart_MessageNotifyCallback message_notify_callback_;

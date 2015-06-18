@@ -142,7 +142,7 @@ void Thread::StoreBufferBlockProcess(bool check_threshold) {
 
 
 void Thread::StoreBufferAddObject(RawObject* obj) {
-  store_buffer_block_->Add(obj);
+  store_buffer_block_->Push(obj);
   if (store_buffer_block_->IsFull()) {
     StoreBufferBlockProcess(true);
   }
@@ -150,7 +150,7 @@ void Thread::StoreBufferAddObject(RawObject* obj) {
 
 
 void Thread::StoreBufferAddObjectGC(RawObject* obj) {
-  store_buffer_block_->Add(obj);
+  store_buffer_block_->Push(obj);
   if (store_buffer_block_->IsFull()) {
     StoreBufferBlockProcess(false);
   }
