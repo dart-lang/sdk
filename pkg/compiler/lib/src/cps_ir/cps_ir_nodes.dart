@@ -8,7 +8,6 @@ import '../constants/values.dart' as values show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
-import '../types/types.dart' show TypeMask;
 import '../universe/universe.dart' show Selector, SelectorKind;
 
 import 'builtin_operator.dart';
@@ -271,7 +270,6 @@ class InvokeStatic extends Expression implements Invoke {
 class InvokeMethod extends Expression implements Invoke {
   Reference<Primitive> receiver;
   Selector selector;
-  TypeMask mask;
   final List<Reference<Primitive>> arguments;
   final Reference<Continuation> continuation;
   final SourceInformation sourceInformation;
@@ -283,7 +281,6 @@ class InvokeMethod extends Expression implements Invoke {
 
   InvokeMethod(Primitive receiver,
                this.selector,
-               this.mask,
                List<Primitive> arguments,
                Continuation continuation,
                {this.sourceInformation})

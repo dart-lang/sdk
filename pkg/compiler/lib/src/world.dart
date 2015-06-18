@@ -111,6 +111,9 @@ class World implements ClassWorld {
   ClassElement get doubleClass => compiler.doubleClass;
   ClassElement get stringClass => compiler.stringClass;
 
+  Map<Selector, Map<ti.TypeMask, TypedSelector>> canonicalizedValues =
+     new Map<Selector, Map<ti.TypeMask, TypedSelector>>();
+
   bool checkInvariants(ClassElement cls, {bool mustBeInstantiated: true}) {
     return
       invariant(cls, cls.isDeclaration,
@@ -402,8 +405,8 @@ class World implements ClassWorld {
     users.add(mixinApplication);
   }
 
-  bool hasAnyUserDefinedGetter(Selector selector, ti.TypeMask mask) {
-    return allFunctions.filter(selector, mask).any((each) => each.isGetter);
+  bool hasAnyUserDefinedGetter(Selector selector) {
+    return allFunctions.filter(selector).any((each) => each.isGetter);
   }
 
   void registerUsedElement(Element element) {
@@ -412,26 +415,16 @@ class World implements ClassWorld {
     }
   }
 
-  VariableElement locateSingleField(Selector selector, ti.TypeMask mask) {
-    Element result = locateSingleElement(selector, mask);
+  VariableElement locateSingleField(Selector selector) {
+    Element result = locateSingleElement(selector);
     return (result != null && result.isField) ? result : null;
   }
 
-  Element locateSingleElement(Selector selector, ti.TypeMask mask) {
-    mask = mask == null
+  Element locateSingleElement(Selector selector) {
+    ti.TypeMask mask = selector.mask == null
         ? compiler.typesTask.dynamicType
-        : mask;
-    return mask.locateSingleElement(selector, mask, compiler);
-  }
-
-  ti.TypeMask extendMaskIfReachesAll(Selector selector, ti.TypeMask mask) {
-    bool canReachAll = true;
-    if (mask != null) {
-      canReachAll =
-          compiler.enabledInvokeOn &&
-          mask.needsNoSuchMethodHandling(selector, this);
-    }
-    return canReachAll ? compiler.typesTask.dynamicType : mask;
+        : selector.mask;
+    return mask.locateSingleElement(selector, compiler);
   }
 
   void addFunctionCalledInLoop(Element element) {
@@ -482,11 +475,11 @@ class World implements ClassWorld {
     sideEffectsFreeElements.add(element);
   }
 
-  SideEffects getSideEffectsOfSelector(Selector selector, ti.TypeMask mask) {
+  SideEffects getSideEffectsOfSelector(Selector selector) {
     // We're not tracking side effects of closures.
     if (selector.isClosureCall) return new SideEffects();
     SideEffects sideEffects = new SideEffects.empty();
-    for (Element e in allFunctions.filter(selector, mask)) {
+    for (Element e in allFunctions.filter(selector)) {
       if (e.isField) {
         if (selector.isGetter) {
           if (!fieldNeverChanges(e)) {

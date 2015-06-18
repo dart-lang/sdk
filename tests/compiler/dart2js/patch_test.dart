@@ -8,7 +8,6 @@ import "package:async_helper/async_helper.dart";
 import "package:compiler/src/dart2jslib.dart";
 import "package:compiler/src/elements/elements.dart";
 import "package:compiler/src/tree/tree.dart";
-import "package:compiler/src/types/types.dart";
 import "mock_compiler.dart";
 import "mock_libraries.dart";
 import 'package:compiler/src/elements/modelx.dart';
@@ -869,28 +868,28 @@ testPatchAndSelector() {
     // Check that a method just in the patch class is a target for a
     // typed selector.
     Selector selector = new Selector.call('method', compiler.coreLibrary, 0);
-    TypeMask typeMask = new TypeMask.exact(cls, world);
+    TypedSelector typedSelector = new TypedSelector.exact(cls, selector, world);
     FunctionElement method = cls.implementation.lookupLocalMember('method');
-    method.computeType(compiler);
+    method.computeSignature(compiler);
     Expect.isTrue(selector.applies(method, world));
-    Expect.isTrue(typeMask.canHit(method, selector, world));
+    Expect.isTrue(typedSelector.applies(method, world));
 
     // Check that the declaration method in the declaration class is a target
     // for a typed selector.
     selector = new Selector.call('clear', compiler.coreLibrary, 0);
-    typeMask = new TypeMask.exact(cls, world);
+    typedSelector = new TypedSelector.exact(cls, selector, world);
     method = cls.lookupLocalMember('clear');
-    method.computeType(compiler);
+    method.computeSignature(compiler);
     Expect.isTrue(selector.applies(method, world));
-    Expect.isTrue(typeMask.canHit(method, selector, world));
+    Expect.isTrue(typedSelector.applies(method, world));
 
     // Check that the declaration method in the declaration class is a target
     // for a typed selector on a subclass.
     cls = ensure(compiler, "B", compiler.coreLibrary.find);
     cls.ensureResolved(compiler);
-    typeMask = new TypeMask.exact(cls, world);
+    typedSelector = new TypedSelector.exact(cls, selector, world);
     Expect.isTrue(selector.applies(method, world));
-    Expect.isTrue(typeMask.canHit(method, selector, world));
+    Expect.isTrue(typedSelector.applies(method, world));
   }));
 }
 
@@ -954,12 +953,16 @@ void testEffectiveTarget() {
     ClassElement clsA = compiler.coreLibrary.find("A");
     ClassElement clsB = compiler.coreLibrary.find("B");
 
-    ConstructorElement forward = clsA.lookupConstructor("forward");
+    Selector forwardCall = new Selector.callConstructor("forward",
+        compiler.coreLibrary);
+    ConstructorElement forward = clsA.lookupConstructor(forwardCall);
     ConstructorElement target = forward.effectiveTarget;
     Expect.isTrue(target.isPatch);
     Expect.equals("patchTarget", target.name);
 
-    ConstructorElement forwardTwo = clsA.lookupConstructor("forwardTwo");
+    Selector forwardTwoCall = new Selector.callConstructor("forwardTwo",
+        compiler.coreLibrary);
+    ConstructorElement forwardTwo = clsA.lookupConstructor(forwardTwoCall);
     target = forwardTwo.effectiveTarget;
     Expect.isFalse(forwardTwo.isErroneous);
     Expect.isFalse(target.isPatch);

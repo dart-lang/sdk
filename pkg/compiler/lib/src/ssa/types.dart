@@ -24,11 +24,9 @@ class TypeMaskFactory {
         compiler);
   }
 
-  static TypeMask inferredTypeForSelector(Selector selector,
-                                          TypeMask mask,
-                                          Compiler compiler) {
+  static TypeMask inferredTypeForSelector(Selector selector, Compiler compiler) {
     return fromInferredType(
-        compiler.typesTask.getGuaranteedTypeOfSelector(selector, mask),
+        compiler.typesTask.getGuaranteedTypeOfSelector(selector),
         compiler);
   }
 

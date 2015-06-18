@@ -517,8 +517,9 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
   }
 
   @override
-  TypeMask newTypedSelector(ConcreteType receiver, TypeMask mask) {
-    return concreteTypeToTypeMask(receiver);
+  Selector newTypedSelector(ConcreteType receiver, Selector selector) {
+    return new TypedSelector(concreteTypeToTypeMask(receiver), selector,
+        compiler.world);
   }
 
   @override
@@ -573,14 +574,12 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
   }
 
   @override
-  bool selectorNeedsUpdate(ConcreteType type, TypeMask mask) {
-    return concreteTypeToTypeMask(type) != mask;
+  bool selectorNeedsUpdate(ConcreteType type, Selector selector) {
+    return concreteTypeToTypeMask(type) != selector.mask;
   }
 
   @override
-  ConcreteType refineReceiver(Selector selector,
-                              TypeMask mask,
-                              ConcreteType receiverType,
+  ConcreteType refineReceiver(Selector selector, ConcreteType receiverType,
       bool isConditional) {
     if (isConditional) {
       throw new UnimplementedError("isConditional in concrete type inferrer");
@@ -993,9 +992,7 @@ class DynamicTypeMask implements TypeMask {
     throw new UnsupportedError("");
   }
 
-  Element locateSingleElement(Selector selector,
-                              TypeMask mask,
-                              Compiler compiler) {
+  Element locateSingleElement(Selector selector, Compiler compiler) {
     throw new UnsupportedError("");
   }
 
@@ -1281,12 +1278,12 @@ class ConcreteTypesInferrer
    *
    * Precondition: [:(typeOfThis != null) && (returnType != null):]
    */
-  void augmentInferredSelectorType(Selector selector,
-                                   TypeMask typeOfThis,
+  void augmentInferredSelectorType(Selector selector, TypeMask typeOfThis,
                                    TypeMask returnType) {
     assert(returnType != null);
     assert(typeOfThis != null);
 
+    selector = selector.asUntyped;
     Map<TypeMask, TypeMask> currentMap = inferredSelectorTypes.putIfAbsent(
         selector, () => new Map<TypeMask, TypeMask>());
     TypeMask currentReturnType = currentMap[typeOfThis];
@@ -1495,19 +1492,21 @@ class ConcreteTypesInferrer
    * "I don't know".
    */
   @override
-  TypeMask getTypeOfSelector(Selector selector, TypeMask mask) {
-    Map<TypeMask, TypeMask> candidates = inferredSelectorTypes[selector];
+  TypeMask getTypeOfSelector(Selector selector) {
+    Map<TypeMask, TypeMask> candidates =
+        inferredSelectorTypes[selector.asUntyped];
     if (candidates == null) {
       return null;
     }
     TypeMask result = new TypeMask.nonNullEmpty();
-    if (mask == null) {
+    if (selector.mask == null) {
       candidates.forEach((TypeMask receiverType, TypeMask returnType) {
         result = typeMaskUnion(result, returnType);
       });
     } else {
       candidates.forEach((TypeMask receiverType, TypeMask returnType) {
-        TypeMask intersection = receiverType.intersection(mask, compiler.world);
+        TypeMask intersection =
+            receiverType.intersection(selector.mask, compiler.world);
         if (!intersection.isEmpty || intersection.isNullable) {
           result = typeMaskUnion(result, returnType);
         }
@@ -1919,9 +1918,7 @@ class ConcreteTypesInferrer
   }
 
   @override
-  void forEachElementMatching(Selector selector,
-                              TypeMask mask,
-                              bool f(Element element)) {
+  void forEachElementMatching(Selector selector, bool f(Element element)) {
     getMembersBySelector(selector).forEach(f);
   }
 
@@ -1991,7 +1988,6 @@ class ConcreteTypesInferrer
   @override
   ConcreteType registerCalledElement(Spannable node,
                                      Selector selector,
-                                     TypeMask mask,
                                      Element caller,
                                      Element callee,
                                      ArgumentsTypes<ConcreteType> arguments,
@@ -2071,7 +2067,6 @@ class ConcreteTypesInferrer
   @override
   ConcreteType registerCalledSelector(Node node,
                                       Selector selector,
-                                      TypeMask mask,
                                       ConcreteType receiverType,
                                       Element caller,
                                       ArgumentsTypes<ConcreteType> arguments,
@@ -2259,7 +2254,6 @@ class ConcreteTypesInferrer
   @override
   ConcreteType registerCalledClosure(Node node,
                                      Selector selector,
-                                     TypeMask mask,
                                      ConcreteType closure,
                                      Element caller,
                                      ArgumentsTypes<ConcreteType> arguments,

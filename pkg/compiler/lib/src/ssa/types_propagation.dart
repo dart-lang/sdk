@@ -252,8 +252,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
       return true;
     } else if (instruction.element == null) {
       Iterable<Element> targets =
-          compiler.world.allFunctions.filter(
-              instruction.selector, instruction.mask);
+          compiler.world.allFunctions.filter(instruction.selector);
       if (targets.length == 1) {
         Element target = targets.first;
         ClassElement cls = target.enclosingClass;
@@ -336,8 +335,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
           if (checkReceiver(instruction)) {
             addAllUsersBut(instruction, instruction.inputs[1]);
           }
-          if (!selector.isUnaryOperator &&
-              checkArgument(instruction)) {
+          if (!selector.isUnaryOperator && checkArgument(instruction)) {
             addAllUsersBut(instruction, instruction.inputs[2]);
           }
         }
@@ -346,13 +344,14 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
 
     HInstruction receiver = instruction.getDartReceiver(compiler);
     TypeMask receiverType = receiver.instructionType;
-    instruction.mask = receiverType;
+    Selector selector =
+        new TypedSelector(receiverType, instruction.selector, classWorld);
+    instruction.selector = selector;
 
     // Try to specialize the receiver after this call.
     if (receiver.dominatedUsers(instruction).length != 1
-        && !instruction.selector.isClosureCall) {
-      TypeMask newType = compiler.world.allFunctions.receiverType(
-              instruction.selector, instruction.mask);
+        && !selector.isClosureCall) {
+      TypeMask newType = compiler.world.allFunctions.receiverType(selector);
       newType = newType.intersection(receiverType, classWorld);
       var next = instruction.next;
       if (next is HTypeKnown && next.checkedInput == receiver) {

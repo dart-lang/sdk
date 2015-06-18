@@ -144,10 +144,8 @@ class AnalysisResult {
   }
 
   /** Checks that the inferred type for [selector] is [mask]. */
-  void checkSelectorHasType(Selector selector,
-                            TypeMask mask,
-                            TypeMask expectedMask) {
-    Expect.equals(expectedMask, inferrer.getTypeOfSelector(selector, mask));
+  void checkSelectorHasType(Selector selector, TypeMask mask) {
+    Expect.equals(mask, inferrer.getTypeOfSelector(selector));
   }
 }
 
@@ -1650,29 +1648,24 @@ testSelectors() {
 
     result.checkSelectorHasType(
         foo,
-        null,
         new TypeMask.unionOf([a, b, c]
             .map((cls) => new TypeMask.nonNullExact(cls, world)),
             result.compiler.world));
     result.checkSelectorHasType(
-        foo,
-        new TypeMask.subclass(x, world),
+        new TypedSelector.subclass(x, foo, world),
         new TypeMask.nonNullExact(b, world));
     result.checkSelectorHasType(
-        foo,
-        new TypeMask.subclass(y, world),
+        new TypedSelector.subclass(y, foo, world),
         new TypeMask.nonNullExact(c, world));
     result.checkSelectorHasType(
-        foo,
-        new TypeMask.subclass(z, world),
+        new TypedSelector.subclass(z, foo, world),
         new TypeMask.nonNullExact(a, world));
     result.checkSelectorHasType(
-        foo,
-        new TypeMask.subclass(xy, world),
+        new TypedSelector.subclass(xy, foo, world),
         new TypeMask.unionOf([b, c].map((cls) =>
             new TypeMask.nonNullExact(cls, world)), world));
 
-    result.checkSelectorHasType(new Selector.call("bar", null, 0), null, null);
+    result.checkSelectorHasType(new Selector.call("bar", null, 0), null);
   });
 }
 
@@ -1685,7 +1678,6 @@ testEqualsNullSelector() {
   return analyze(source).then((result) {
     ClassElement bool = result.compiler.backend.boolImplementation;
     result.checkSelectorHasType(new Selector.binaryOperator('=='),
-                                null,
                                 new TypeMask.nonNullExact(bool,
                                     result.compiler.world));
   });

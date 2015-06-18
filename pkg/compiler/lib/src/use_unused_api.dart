@@ -36,6 +36,7 @@ import 'resolution/semantic_visitor.dart' as semantic_visitor;
 import 'source_file_provider.dart' as source_file_provider;
 import 'ssa/ssa.dart' as ssa;
 import 'tree/tree.dart' as tree;
+import 'universe/universe.dart' as universe;
 import 'util/util.dart' as util;
 
 import 'scanner/scannerlib.dart' show
@@ -232,10 +233,13 @@ usedByTests() {
   compiler.currentlyInUserCode();
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
-  world.hasAnyUserDefinedGetter(null, null);
+  world.hasAnyUserDefinedGetter(null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
   new dart_types.Types(compiler).copy(compiler);
+  new universe.TypedSelector.subclass(null, null, compiler.world);
+  new universe.TypedSelector.subtype(null, null, compiler.world);
+  new universe.TypedSelector.exact(null, null, compiler.world);
   sourceFileProvider.readStringFromUri(null);
 }
 
@@ -258,7 +262,7 @@ useElements(
 useIr(ir_builder.IrBuilder builder) {
   builder
     ..buildStringConstant(null)
-    ..buildDynamicGet(null, null, null);
+    ..buildDynamicGet(null, null);
 }
 
 useCompiler(dart2jslib.Compiler compiler) {

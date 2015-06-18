@@ -29,17 +29,17 @@ class EagerRegistry implements Registry {
   }
 
   @override
-  void registerDynamicGetter(UniverseSelector selector) {
+  void registerDynamicGetter(Selector selector) {
     world.registerDynamicGetter(selector);
   }
 
   @override
-  void registerDynamicInvocation(UniverseSelector selector) {
+  void registerDynamicInvocation(Selector selector) {
     world.registerDynamicInvocation(selector);
   }
 
   @override
-  void registerDynamicSetter(UniverseSelector selector) {
+  void registerDynamicSetter(Selector selector) {
     world.registerDynamicSetter(selector);
   }
 
@@ -63,9 +63,9 @@ class EagerRegistry implements Registry {
 
 class ResolutionWorldImpact implements WorldImpact {
   final Registry registry;
-  Setlet<UniverseSelector> _dynamicInvocations;
-  Setlet<UniverseSelector> _dynamicGetters;
-  Setlet<UniverseSelector> _dynamicSetters;
+  Setlet<Selector> _dynamicInvocations;
+  Setlet<Selector> _dynamicGetters;
+  Setlet<Selector> _dynamicSetters;
   Setlet<InterfaceType> _instantiatedTypes;
   Setlet<Element> _staticUses;
   Setlet<DartType> _checkedTypes;
@@ -74,43 +74,41 @@ class ResolutionWorldImpact implements WorldImpact {
   ResolutionWorldImpact(Compiler compiler, TreeElementMapping mapping)
       : this.registry = new EagerRegistry(compiler, mapping);
 
-  void registerDynamicGetter(UniverseSelector selector) {
+  void registerDynamicGetter(Selector selector) {
     if (_dynamicGetters == null) {
-      _dynamicGetters = new Setlet<UniverseSelector>();
+      _dynamicGetters = new Setlet<Selector>();
     }
     _dynamicGetters.add(selector);
   }
 
   @override
-  Iterable<UniverseSelector> get dynamicGetters {
-    return _dynamicGetters != null
-        ? _dynamicGetters : const <UniverseSelector>[];
+  Iterable<Selector> get dynamicGetters {
+    return _dynamicGetters != null ? _dynamicGetters : const <Selector>[];
   }
 
-  void registerDynamicInvocation(UniverseSelector selector) {
+  void registerDynamicInvocation(Selector selector) {
     if (_dynamicInvocations == null) {
-      _dynamicInvocations = new Setlet<UniverseSelector>();
+      _dynamicInvocations = new Setlet<Selector>();
     }
     _dynamicInvocations.add(selector);
   }
 
   @override
-  Iterable<UniverseSelector> get dynamicInvocations {
+  Iterable<Selector> get dynamicInvocations {
     return _dynamicInvocations != null
-        ? _dynamicInvocations : const <UniverseSelector>[];
+        ? _dynamicInvocations : const <Selector>[];
   }
 
-  void registerDynamicSetter(UniverseSelector selector) {
+  void registerDynamicSetter(Selector selector) {
     if (_dynamicSetters == null) {
-      _dynamicSetters = new Setlet<UniverseSelector>();
+      _dynamicSetters = new Setlet<Selector>();
     }
     _dynamicSetters.add(selector);
   }
 
   @override
-  Iterable<UniverseSelector> get dynamicSetters {
-    return _dynamicSetters != null
-        ? _dynamicSetters : const <UniverseSelector>[];
+  Iterable<Selector> get dynamicSetters {
+    return _dynamicSetters != null ? _dynamicSetters : const <Selector>[];
   }
 
   void registerInstantiatedType(InterfaceType type) {
@@ -413,7 +411,7 @@ class ResolutionRegistry implements Registry {
     mapping.addSuperUse(node);
   }
 
-  void registerDynamicInvocation(UniverseSelector selector) {
+  void registerDynamicInvocation(Selector selector) {
     worldImpact.registerDynamicInvocation(selector);
   }
 
@@ -462,11 +460,11 @@ class ResolutionRegistry implements Registry {
     worldImpact.registerClosurizedFunction(element);
   }
 
-  void registerDynamicGetter(UniverseSelector selector) {
+  void registerDynamicGetter(Selector selector) {
     worldImpact.registerDynamicGetter(selector);
   }
 
-  void registerDynamicSetter(UniverseSelector selector) {
+  void registerDynamicSetter(Selector selector) {
     worldImpact.registerDynamicSetter(selector);
   }
 

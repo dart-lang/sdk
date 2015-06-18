@@ -93,17 +93,17 @@ class CodegenRegistry extends Registry {
     world.registerStaticUse(element);
   }
 
-  void registerDynamicInvocation(UniverseSelector selector) {
+  void registerDynamicInvocation(Selector selector) {
     world.registerDynamicInvocation(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
-  void registerDynamicSetter(UniverseSelector selector) {
+  void registerDynamicSetter(Selector selector) {
     world.registerDynamicSetter(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
-  void registerDynamicGetter(UniverseSelector selector) {
+  void registerDynamicGetter(Selector selector) {
     world.registerDynamicGetter(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
@@ -144,7 +144,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerSelectorUse(Selector selector) {
-    world.registerSelectorUse(new UniverseSelector(selector, null));
+    world.registerSelectorUse(selector);
   }
 
   void registerConstSymbol(String name) {
@@ -239,11 +239,11 @@ abstract class Registry {
 
   bool get isForResolution;
 
-  void registerDynamicInvocation(UniverseSelector selector);
+  void registerDynamicInvocation(Selector selector);
 
-  void registerDynamicGetter(UniverseSelector selector);
+  void registerDynamicGetter(Selector selector);
 
-  void registerDynamicSetter(UniverseSelector selector);
+  void registerDynamicSetter(Selector selector);
 
   void registerStaticInvocation(Element element);
 
@@ -1494,6 +1494,7 @@ abstract class Compiler implements DiagnosticListener {
     // suitably maintained static reference to the current compiler.
     StringToken.canonicalizedSubstrings.clear();
     Selector.canonicalizedValues.clear();
+    world.canonicalizedValues.clear();
 
     assert(uri != null || analyzeOnly || hasIncrementalSupport);
     return new Future.sync(() {

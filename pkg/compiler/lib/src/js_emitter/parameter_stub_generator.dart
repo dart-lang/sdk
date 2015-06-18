@@ -200,28 +200,28 @@ class ParameterStubGenerator {
     // The set of selectors that apply to `member`. For example, for
     // a member `foo(x, [y])` the following selectors may apply:
     // `foo(x)`, and `foo(x, y)`.
-    Map<Selector, TypeMaskSet> selectors;
+    Set<Selector> selectors;
     // The set of selectors that apply to `member` if it's name was `call`.
     // This happens when a member is torn off. In that case calls to the
     // function use the name `call`, and we must be able to handle every
     // `call` invocation that matches the signature. For example, for
     // a member `foo(x, [y])` the following selectors would be possible
     // call-selectors: `call(x)`, and `call(x, y)`.
-    Map<Selector, TypeMaskSet> callSelectors;
+    Set<Selector> callSelectors;
 
     // Only instance members (not static methods) need stubs.
     if (member.isInstanceMember) {
-        selectors = compiler.codegenWorld.invocationsByName(member.name);
+        selectors = compiler.codegenWorld.invokedNames[member.name];
     }
 
     if (canTearOff) {
       String call = namer.closureInvocationSelectorName;
-      callSelectors = compiler.codegenWorld.invocationsByName(call);
+      callSelectors = compiler.codegenWorld.invokedNames[call];
     }
 
     assert(emptySelectorSet.isEmpty);
-    if (selectors == null) selectors = const <Selector, TypeMaskSet>{};
-    if (callSelectors == null) callSelectors = const <Selector, TypeMaskSet>{};
+    if (selectors == null) selectors = emptySelectorSet;
+    if (callSelectors == null) callSelectors = emptySelectorSet;
 
     List<ParameterStubMethod> stubs = <ParameterStubMethod>[];
 
@@ -241,7 +241,7 @@ class ParameterStubGenerator {
 
     // Start with the callSelectors since they imply the generation of the
     // non-call version.
-    for (Selector selector in callSelectors.keys) {
+    for (Selector selector in callSelectors) {
       Selector renamedSelector = new Selector(
           SelectorKind.CALL,
           member.memberName,
@@ -250,7 +250,7 @@ class ParameterStubGenerator {
 
       if (!renamedSelector.appliesUnnamed(member, compiler.world)) continue;
 
-      if (untypedSelectors.add(renamedSelector)) {
+      if (untypedSelectors.add(renamedSelector.asUntyped)) {
         ParameterStubMethod stub =
             generateParameterStub(member, renamedSelector, selector);
         if (stub != null) {
@@ -262,14 +262,11 @@ class ParameterStubGenerator {
     // Now run through the actual member selectors (eg. `foo$2(x, y)` and not
     // `call$2(x, y)`. Some of them have already been generated because of the
     // call-selectors (and they are in the renamedCallSelectors set.
-    for (Selector selector in selectors.keys) {
+    for (Selector selector in selectors) {
       if (renamedCallSelectors.contains(selector)) continue;
       if (!selector.appliesUnnamed(member, compiler.world)) continue;
-      if (!selectors[selector].applies(member, selector, compiler.world)) {
-        continue;
-      }
 
-      if (untypedSelectors.add(selector)) {
+      if (untypedSelectors.add(selector.asUntyped)) {
         ParameterStubMethod stub =
             generateParameterStub(member, selector, null);
         if (stub != null) {

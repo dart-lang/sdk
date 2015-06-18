@@ -29,7 +29,7 @@ abstract class TypesInferrer {
   TypeMask getReturnTypeOfElement(Element element);
   TypeMask getTypeOfElement(Element element);
   TypeMask getTypeOfNode(Element owner, Node node);
-  TypeMask getTypeOfSelector(Selector selector, TypeMask mask);
+  TypeMask getTypeOfSelector(Selector selector);
   void clear();
   bool isCalledOnce(Element element);
   bool isFixedArrayCheckedForGrowable(Node node);
@@ -322,16 +322,15 @@ class TypesTask extends CompilerTask {
   /**
    * Return the (inferred) guaranteed type of [selector] or null.
    */
-  TypeMask getGuaranteedTypeOfSelector(Selector selector, TypeMask mask) {
+  TypeMask getGuaranteedTypeOfSelector(Selector selector) {
     return measure(() {
       TypeMask guaranteedType =
-          typesInferrer.getTypeOfSelector(selector, mask);
+          typesInferrer.getTypeOfSelector(selector);
       return (concreteTypesInferrer == null)
           ? guaranteedType
-          : intersection(
-              guaranteedType,
-              concreteTypesInferrer.getTypeOfSelector(selector, mask),
-              selector);
+          : intersection(guaranteedType,
+                         concreteTypesInferrer.getTypeOfSelector(selector),
+                         selector);
     });
   }
 }

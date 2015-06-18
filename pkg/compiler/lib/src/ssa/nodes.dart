@@ -1393,19 +1393,16 @@ abstract class HInvoke extends HInstruction {
     // We know it's a selector call if it follows the interceptor
     // calling convention, which adds the actual receiver as a
     // parameter to the call.
-    return (selector != null) &&
-           (inputs.length - 2 == selector.argumentCount);
+    return (selector != null) && (inputs.length - 2 == selector.argumentCount);
   }
 }
 
 abstract class HInvokeDynamic extends HInvoke {
   final InvokeDynamicSpecializer specializer;
   Selector selector;
-  TypeMask mask;
   Element element;
 
   HInvokeDynamic(Selector selector,
-                 this.mask,
                  this.element,
                  List<HInstruction> inputs,
                  TypeMask type,
@@ -1415,7 +1412,7 @@ abstract class HInvokeDynamic extends HInvoke {
       specializer = isIntercepted
           ? InvokeDynamicSpecializer.lookupSpecializer(selector)
           : const InvokeDynamicSpecializer();
-  toString() => 'invoke dynamic: selector=$selector, mask=$mask';
+  toString() => 'invoke dynamic: $selector';
   HInstruction get receiver => inputs[0];
   HInstruction getDartReceiver(Compiler compiler) {
     return isCallOnInterceptor(compiler) ? inputs[1] : inputs[0];
@@ -1440,10 +1437,8 @@ abstract class HInvokeDynamic extends HInvoke {
 }
 
 class HInvokeClosure extends HInvokeDynamic {
-  HInvokeClosure(Selector selector,
-                 List<HInstruction> inputs,
-                 TypeMask type)
-      : super(selector, null, null, inputs, type) {
+  HInvokeClosure(Selector selector, List<HInstruction> inputs, TypeMask type)
+    : super(selector, null, inputs, type) {
     assert(selector.isClosureCall);
   }
   accept(HVisitor visitor) => visitor.visitInvokeClosure(this);
@@ -1451,38 +1446,34 @@ class HInvokeClosure extends HInvokeDynamic {
 
 class HInvokeDynamicMethod extends HInvokeDynamic {
   HInvokeDynamicMethod(Selector selector,
-                       TypeMask mask,
                        List<HInstruction> inputs,
                        TypeMask type,
                        [bool isIntercepted = false])
-    : super(selector, mask, null, inputs, type, isIntercepted);
+    : super(selector, null, inputs, type, isIntercepted);
 
-  String toString() => 'invoke dynamic method: selector=$selector, mask=$mask';
+  String toString() => 'invoke dynamic method: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicMethod(this);
 }
 
 abstract class HInvokeDynamicField extends HInvokeDynamic {
   HInvokeDynamicField(
-      Selector selector, TypeMask mask,
-      Element element, List<HInstruction> inputs,
+      Selector selector, Element element, List<HInstruction> inputs,
       TypeMask type)
-      : super(selector, mask, element, inputs, type);
-  toString() => 'invoke dynamic field: selector=$selector, mask=$mask';
+      : super(selector, element, inputs, type);
+  toString() => 'invoke dynamic field: $selector';
 }
 
 class HInvokeDynamicGetter extends HInvokeDynamicField {
-  HInvokeDynamicGetter(Selector selector, TypeMask mask,
-      Element element, List<HInstruction> inputs, TypeMask type)
-    : super(selector, mask, element, inputs, type);
-  toString() => 'invoke dynamic getter: selector=$selector, mask=$mask';
+  HInvokeDynamicGetter(selector, element, inputs, type)
+    : super(selector, element, inputs, type);
+  toString() => 'invoke dynamic getter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicGetter(this);
 }
 
 class HInvokeDynamicSetter extends HInvokeDynamicField {
-  HInvokeDynamicSetter(Selector selector, TypeMask mask,
-      Element element, List<HInstruction> inputs, TypeMask type)
-    : super(selector, mask, element, inputs, type);
-  toString() => 'invoke dynamic setter: selector=$selector, mask=$mask';
+  HInvokeDynamicSetter(selector, element, inputs, type)
+    : super(selector, element, inputs, type);
+  toString() => 'invoke dynamic setter: $selector';
   accept(HVisitor visitor) => visitor.visitInvokeDynamicSetter(this);
 }
 
@@ -1801,8 +1792,7 @@ class HForeignNew extends HForeign {
 
 abstract class HInvokeBinary extends HInstruction {
   final Selector selector;
-  HInvokeBinary(
-      HInstruction left, HInstruction right, this.selector, TypeMask type)
+  HInvokeBinary(HInstruction left, HInstruction right, this.selector, type)
       : super(<HInstruction>[left, right], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
@@ -1816,15 +1806,13 @@ abstract class HInvokeBinary extends HInstruction {
 }
 
 abstract class HBinaryArithmetic extends HInvokeBinary {
-  HBinaryArithmetic(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HBinaryArithmetic(left, right, selector, type)
       : super(left, right, selector, type);
   BinaryOperation operation(ConstantSystem constantSystem);
 }
 
 class HAdd extends HBinaryArithmetic {
-  HAdd(HInstruction left, HInstruction right, Selector selector, TypeMask type)
-      : super(left, right, selector, type);
+  HAdd(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitAdd(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1835,9 +1823,7 @@ class HAdd extends HBinaryArithmetic {
 }
 
 class HDivide extends HBinaryArithmetic {
-  HDivide(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
-      : super(left, right, selector, type);
+  HDivide(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1848,9 +1834,7 @@ class HDivide extends HBinaryArithmetic {
 }
 
 class HMultiply extends HBinaryArithmetic {
-  HMultiply(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
-      : super(left, right, selector, type);
+  HMultiply(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitMultiply(this);
 
   BinaryOperation operation(ConstantSystem operations)
@@ -1861,9 +1845,7 @@ class HMultiply extends HBinaryArithmetic {
 }
 
 class HSubtract extends HBinaryArithmetic {
-  HSubtract(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
-      : super(left, right, selector, type);
+  HSubtract(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitSubtract(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1874,8 +1856,7 @@ class HSubtract extends HBinaryArithmetic {
 }
 
 class HTruncatingDivide extends HBinaryArithmetic {
-  HTruncatingDivide(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HTruncatingDivide(left, right, selector, type)
       : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitTruncatingDivide(this);
 
@@ -1910,15 +1891,12 @@ class HSwitch extends HControlFlow {
 }
 
 abstract class HBinaryBitOp extends HInvokeBinary {
-  HBinaryBitOp(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
+  HBinaryBitOp(left, right, selector, type)
       : super(left, right, selector, type);
 }
 
 class HShiftLeft extends HBinaryBitOp {
-  HShiftLeft(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
-      : super(left, right, selector, type);
+  HShiftLeft(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitShiftLeft(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1929,9 +1907,7 @@ class HShiftLeft extends HBinaryBitOp {
 }
 
 class HShiftRight extends HBinaryBitOp {
-  HShiftRight(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
-      : super(left, right, selector, type);
+  HShiftRight(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1942,9 +1918,7 @@ class HShiftRight extends HBinaryBitOp {
 }
 
 class HBitOr extends HBinaryBitOp {
-  HBitOr(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
-      : super(left, right, selector, type);
+  HBitOr(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitOr(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1955,9 +1929,7 @@ class HBitOr extends HBinaryBitOp {
 }
 
 class HBitAnd extends HBinaryBitOp {
-  HBitAnd(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
-      : super(left, right, selector, type);
+  HBitAnd(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitAnd(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1968,9 +1940,7 @@ class HBitAnd extends HBinaryBitOp {
 }
 
 class HBitXor extends HBinaryBitOp {
-  HBitXor(
-      HInstruction left, HInstruction right, Selector selector, TypeMask type)
-      : super(left, right, selector, type);
+  HBitXor(left, right, selector, type) : super(left, right, selector, type);
   accept(HVisitor visitor) => visitor.visitBitXor(this);
 
   BinaryOperation operation(ConstantSystem constantSystem)
@@ -1995,8 +1965,7 @@ abstract class HInvokeUnary extends HInstruction {
 }
 
 class HNegate extends HInvokeUnary {
-  HNegate(HInstruction input, Selector selector, TypeMask type)
-      : super(input, selector, type);
+  HNegate(input, selector, type) : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitNegate(this);
 
   UnaryOperation operation(ConstantSystem constantSystem)
@@ -2007,8 +1976,7 @@ class HNegate extends HInvokeUnary {
 }
 
 class HBitNot extends HInvokeUnary {
-  HBitNot(HInstruction input, Selector selector, TypeMask type)
-      : super(input, selector, type);
+  HBitNot(input, selector, type) : super(input, selector, type);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
   UnaryOperation operation(ConstantSystem constantSystem)
@@ -2411,17 +2379,16 @@ class HInterceptor extends HInstruction {
 class HOneShotInterceptor extends HInvokeDynamic {
   Set<ClassElement> interceptedClasses;
   HOneShotInterceptor(Selector selector,
-                      TypeMask mask,
                       List<HInstruction> inputs,
                       TypeMask type,
                       this.interceptedClasses)
-      : super(selector, mask, null, inputs, type, true) {
+      : super(selector, null, inputs, type, true) {
     assert(inputs[0] is HConstant);
     assert(inputs[0].isNull());
   }
   bool isCallOnInterceptor(Compiler compiler) => true;
 
-  String toString() => 'one shot interceptor: selector=$selector, mask=$mask';
+  String toString() => 'one shot interceptor on $selector';
   accept(HVisitor visitor) => visitor.visitOneShotInterceptor(this);
 }
 
@@ -2475,10 +2442,7 @@ class HLiteralList extends HInstruction {
  */
 class HIndex extends HInstruction {
   final Selector selector;
-  HIndex(HInstruction receiver,
-         HInstruction index,
-         this.selector,
-         TypeMask type)
+  HIndex(HInstruction receiver, HInstruction index, this.selector, type)
       : super(<HInstruction>[receiver, index], type) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();

@@ -15,8 +15,8 @@ class InvokeDynamicSpecializer {
 
   TypeMask computeTypeFromInputTypes(HInvokeDynamic instruction,
                                      Compiler compiler) {
-    return TypeMaskFactory.inferredTypeForSelector(
-        instruction.selector, instruction.mask, compiler);
+    Selector selector = instruction.selector;
+    return TypeMaskFactory.inferredTypeForSelector(selector, compiler);
   }
 
   HInstruction tryConvertToBuiltin(HInvokeDynamic instruction,
@@ -113,8 +113,9 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
     }
     TypeMask receiverType =
         instruction.getDartReceiver(compiler).instructionType;
-    TypeMask type = TypeMaskFactory.inferredTypeForSelector(
-        instruction.selector, receiverType, compiler);
+    Selector refined = new TypedSelector(receiverType, instruction.selector,
+        compiler.world);
+    TypeMask type = TypeMaskFactory.inferredTypeForSelector(refined, compiler);
     return new HIndex(
         instruction.inputs[1], instruction.inputs[2],
         instruction.selector, type);
@@ -238,9 +239,12 @@ abstract class BinaryArithmeticSpecializer extends InvokeDynamicSpecializer {
                                      Compiler compiler) {
     if (selector.name == name) return selector;
     JavaScriptBackend backend = compiler.backend;
-    return new Selector(
+    Selector newSelector = new Selector(
         SelectorKind.CALL, new Name(name, backend.interceptorsLibrary),
         new CallStructure(selector.argumentCount));
+    return selector.mask == null
+        ? newSelector
+        : new TypedSelector(selector.mask, newSelector, compiler.world);
   }
 }
 
@@ -665,9 +669,10 @@ class EqualsSpecializer extends RelationalSpecializer {
       return newBuiltinVariant(instruction, compiler);
     }
     World world = compiler.world;
+    Selector selector =
+        new TypedSelector(instructionType, instruction.selector, world);
     JavaScriptBackend backend = compiler.backend;
-    Iterable<Element> matches = world.allFunctions.filter(
-        instruction.selector, instructionType);
+    Iterable<Element> matches = world.allFunctions.filter(selector);
     // This test relies the on `Object.==` and `Interceptor.==` always being
     // implemented because if the selector matches by subtype, it still will be
     // a regular object or an interceptor.

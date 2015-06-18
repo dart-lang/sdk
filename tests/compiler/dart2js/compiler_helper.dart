@@ -109,7 +109,6 @@ MockCompiler compilerFor(String code, Uri uri,
       expectedWarnings: expectedWarnings,
       outputProvider: outputProvider);
   compiler.registerSource(uri, code);
-  compiler.diagnosticHandler = createHandler(compiler, code);
   return compiler;
 }
 

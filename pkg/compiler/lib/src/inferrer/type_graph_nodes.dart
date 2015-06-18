@@ -627,7 +627,6 @@ abstract class CallSiteTypeInformation extends TypeInformation
   final Spannable call;
   final Element caller;
   final Selector selector;
-  final TypeMask mask;
   final ArgumentsTypes arguments;
   final bool inLoop;
 
@@ -636,7 +635,6 @@ abstract class CallSiteTypeInformation extends TypeInformation
       this.call,
       this.caller,
       this.selector,
-      this.mask,
       this.arguments,
       this.inLoop) : super.noAssignments(context);
 
@@ -658,10 +656,9 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       Element enclosing,
       this.calledElement,
       Selector selector,
-      TypeMask mask,
       ArgumentsTypes arguments,
       bool inLoop)
-      : super(context, call, enclosing, selector, mask, arguments, inLoop);
+      : super(context, call, enclosing, selector, arguments, inLoop);
 
   void addToGraph(TypeGraphInferrerEngine inferrer) {
     MemberTypeInformation callee =
@@ -672,7 +669,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
       arguments.forEach((info) => info.addUser(this));
     }
     inferrer.updateParameterAssignments(
-        this, calledElement, arguments, selector, mask, remove: false,
+        this, calledElement, arguments, selector, remove: false,
         addToQueue: false);
   }
 
@@ -726,16 +723,15 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       Spannable call,
       Element enclosing,
       Selector selector,
-      TypeMask mask,
       this.receiver,
       ArgumentsTypes arguments,
       bool inLoop)
-      : super(context, call, enclosing, selector, mask, arguments, inLoop);
+      : super(context, call, enclosing, selector, arguments, inLoop);
 
   void addToGraph(TypeGraphInferrerEngine inferrer) {
     assert(receiver != null);
-    TypeMask typeMask = computeTypedSelector(inferrer);
-    targets = inferrer.compiler.world.allFunctions.filter(selector, typeMask);
+    Selector typedSelector = computeTypedSelector(inferrer);
+    targets = inferrer.compiler.world.allFunctions.filter(typedSelector);
     receiver.addUser(this);
     if (arguments != null) {
       arguments.forEach((info) => info.addUser(this));
@@ -745,21 +741,22 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       callee.addCall(caller, call);
       callee.addUser(this);
       inferrer.updateParameterAssignments(
-          this, element, arguments, selector, typeMask, remove: false,
+          this, element, arguments, typedSelector, remove: false,
           addToQueue: false);
     }
   }
 
   Iterable<Element> get callees => targets.map((e) => e.implementation);
 
-  TypeMask computeTypedSelector(TypeGraphInferrerEngine inferrer) {
+  Selector computeTypedSelector(TypeGraphInferrerEngine inferrer) {
     TypeMask receiverType = receiver.type;
 
-    if (mask != receiverType) {
+    if (selector.mask != receiverType) {
       return receiverType == inferrer.compiler.typesTask.dynamicType
-          ? null : receiverType;
+          ? selector.asUntyped
+          : new TypedSelector(receiverType, selector, inferrer.classWorld);
     } else {
-      return mask;
+      return selector;
     }
   }
 
@@ -779,13 +776,12 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
    * [int.operator+] only says it returns a [num].
    */
   TypeInformation handleIntrisifiedSelector(Selector selector,
-                                            TypeMask mask,
                                             TypeGraphInferrerEngine inferrer) {
     ClassWorld classWorld = inferrer.classWorld;
     if (!classWorld.backend.intImplementation.isResolved) return null;
     TypeMask emptyType = const TypeMask.nonNullEmpty();
-    if (mask == null) return null;
-    if (!mask.containsOnlyInt(classWorld)) {
+    if (selector.mask == null) return null;
+    if (!selector.mask.containsOnlyInt(classWorld)) {
       return null;
     }
     if (!selector.isCall && !selector.isOperator) return null;
@@ -859,22 +855,21 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   TypeMask computeType(TypeGraphInferrerEngine inferrer) {
     Iterable<Element> oldTargets = targets;
-    TypeMask typeMask = computeTypedSelector(inferrer);
-    inferrer.updateSelectorInTree(caller, call, selector, typeMask);
+    Selector typedSelector = computeTypedSelector(inferrer);
+    inferrer.updateSelectorInTree(caller, call, typedSelector);
 
     Compiler compiler = inferrer.compiler;
-    TypeMask maskToUse =
-        compiler.world.extendMaskIfReachesAll(selector, typeMask);
+    Selector selectorToUse = typedSelector.extendIfReachesAll(compiler);
     bool canReachAll = compiler.enabledInvokeOn &&
-        (maskToUse != typeMask);
+        (selectorToUse != typedSelector);
 
     // If this call could potentially reach all methods that satisfy
     // the untyped selector (through noSuchMethod's `Invocation`
     // and a call to `delegate`), we iterate over all these methods to
     // update their parameter types.
-    targets = compiler.world.allFunctions.filter(selector, maskToUse);
+    targets = compiler.world.allFunctions.filter(selectorToUse);
     Iterable<Element> typedTargets = canReachAll
-        ? compiler.world.allFunctions.filter(selector, typeMask)
+        ? compiler.world.allFunctions.filter(typedSelector)
         : targets;
 
     // Add calls to new targets to the graph.
@@ -884,7 +879,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       callee.addCall(caller, call);
       callee.addUser(this);
       inferrer.updateParameterAssignments(
-          this, element, arguments, selector, typeMask, remove: false,
+          this, element, arguments, typedSelector, remove: false,
           addToQueue: true);
     });
 
@@ -896,7 +891,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
       callee.removeCall(caller, call);
       callee.removeUser(this);
       inferrer.updateParameterAssignments(
-          this, element, arguments, selector, typeMask, remove: true,
+          this, element, arguments, typedSelector, remove: true,
           addToQueue: true);
     });
 
@@ -912,21 +907,20 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         return const TypeMask.nonNullEmpty();
       }
 
-      if (inferrer.returnsListElementType(selector, typeMask)) {
-        ContainerTypeMask containerTypeMask = receiver.type;
-        return containerTypeMask.elementType;
-      } else if (inferrer.returnsMapValueType(selector, typeMask)) {
-        if (typeMask.isDictionary &&
+      if (inferrer.returnsListElementType(typedSelector)) {
+        ContainerTypeMask mask = receiver.type;
+        return mask.elementType;
+      } else if (inferrer.returnsMapValueType(typedSelector)) {
+        if (typedSelector.mask.isDictionary &&
             arguments.positional[0].type.isValue) {
-          DictionaryTypeMask dictionaryTypeMask = typeMask;
+          DictionaryTypeMask mask = typedSelector.mask;
           ValueTypeMask arg = arguments.positional[0].type;
           String key = arg.value;
-          if (dictionaryTypeMask.typeMap.containsKey(key)) {
+          if (mask.typeMap.containsKey(key)) {
             if (_VERBOSE) {
-              print("Dictionary lookup for $key yields "
-                    "${dictionaryTypeMask.typeMap[key]}.");
+              print("Dictionary lookup for $key yields ${mask.typeMap[key]}.");
             }
-            return dictionaryTypeMask.typeMap[key];
+            return mask.typeMap[key];
           } else {
             // The typeMap is precise, so if we do not find the key, the lookup
             // will be [null] at runtime.
@@ -936,17 +930,16 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
             return inferrer.types.nullType.type;
           }
         }
-        MapTypeMask mapTypeMask = typeMask;
+        MapTypeMask mask = typedSelector.mask;
         if (_VERBOSE) {
-          print(
-              "Map lookup for $selector yields ${mapTypeMask.valueType}.");
+          print("Map lookup for $typedSelector yields ${mask.valueType}.");
         }
-        return mapTypeMask.valueType;
+        return mask.valueType;
       } else {
         TypeInformation info =
-            handleIntrisifiedSelector(selector, typeMask, inferrer);
+            handleIntrisifiedSelector(typedSelector, inferrer);
         if (info != null) return info.type;
-        return inferrer.typeOfElementWithSelector(element, selector).type;
+        return inferrer.typeOfElementWithSelector(element, typedSelector).type;
       }
     }));
 
@@ -962,16 +955,16 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
   void giveUp(TypeGraphInferrerEngine inferrer, {bool clearAssignments: true}) {
     if (!abandonInferencing) {
-      inferrer.updateSelectorInTree(caller, call, selector, mask);
+      inferrer.updateSelectorInTree(caller, call, selector);
       Iterable<Element> oldTargets = targets;
-      targets = inferrer.compiler.world.allFunctions.filter(selector, mask);
+      targets = inferrer.compiler.world.allFunctions.filter(selector);
       for (Element element in targets) {
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
               inferrer.types.getInferredTypeOf(element);
           callee.addCall(caller, call);
           inferrer.updateParameterAssignments(
-              this, element, arguments, selector, mask, remove: false,
+              this, element, arguments, selector, remove: false,
               addToQueue: true);
         }
       }
@@ -1013,11 +1006,10 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
       Spannable call,
       Element enclosing,
       Selector selector,
-      TypeMask mask,
       this.closure,
       ArgumentsTypes arguments,
       bool inLoop)
-      : super(context, call, enclosing, selector, mask, arguments, inLoop);
+      : super(context, call, enclosing, selector, arguments, inLoop);
 
   void addToGraph(TypeGraphInferrerEngine inferrer) {
     arguments.forEach((info) => info.addUser(this));

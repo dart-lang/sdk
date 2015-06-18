@@ -9,7 +9,6 @@ import '../constants/values.dart' as values;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
-import '../types/types.dart' show TypeMask;
 import '../universe/universe.dart' show Selector;
 
 import '../cps_ir/builtin_operator.dart';
@@ -161,6 +160,7 @@ class Assign extends Expression {
  */
 abstract class Invoke {
   List<Expression> get arguments;
+  Selector get selector;
 }
 
 /**
@@ -200,13 +200,12 @@ class InvokeStatic extends Expression implements Invoke {
 class InvokeMethod extends Expression implements Invoke {
   Expression receiver;
   final Selector selector;
-  final TypeMask mask;
   final List<Expression> arguments;
 
   /// If true, it is known that the receiver cannot be `null`.
   bool receiverIsNotNull = false;
 
-  InvokeMethod(this.receiver, this.selector, this.mask, this.arguments) {
+  InvokeMethod(this.receiver, this.selector, this.arguments) {
     assert(receiver != null);
   }
 

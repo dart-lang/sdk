@@ -14,72 +14,6 @@ import '../util/util.dart';
 part 'function_set.dart';
 part 'side_effects.dart';
 
-class UniverseSelector {
-  final Selector selector;
-  final TypeMask mask;
-
-  UniverseSelector(this.selector, this.mask);
-
-  bool appliesUnnamed(Element element, ClassWorld world) {
-    return selector.appliesUnnamed(element, world) &&
-        (mask == null || mask.canHit(element, selector, world));
-  }
-
-  String toString() => '$selector,$mask';
-}
-
-abstract class TypeMaskSet {
-  bool applies(Element element, Selector selector, ClassWorld world);
-  Iterable<TypeMask> get masks;
-}
-
-/// An implementation of a [TypeMaskSet] that is only increasing, that is, once
-/// a mask is added it cannot be removed.
-class IncreasingTypeMaskSet extends TypeMaskSet {
-  bool isAll = false;
-  Set<TypeMask> _masks;
-
-  bool applies(Element element, Selector selector, ClassWorld world) {
-    if (isAll) return true;
-    if (_masks == null) return false;
-    for (TypeMask mask in _masks) {
-      if (mask.canHit(element, selector, world)) return true;
-    }
-    return false;
-  }
-
-  bool add(TypeMask mask) {
-    if (isAll) return false;
-    if (mask == null) {
-      isAll = true;
-      _masks = null;
-      return true;
-    }
-    if (_masks == null) {
-      _masks = new Setlet<TypeMask>();
-    }
-    return _masks.add(mask);
-  }
-
-  Iterable<TypeMask> get masks {
-    if (isAll) return const [null];
-    if (_masks == null) return const [];
-    return _masks;
-  }
-
-  String toString() {
-    if (isAll) {
-      return '<all>';
-    } else if (_masks != null) {
-      return '$_masks';
-    } else {
-      return '<none>';
-    }
-  }
-}
-
-
-
 class Universe {
   /// The set of all directly instantiated classes, that is, classes with a
   /// generative constructor that has been called directly and not only through
@@ -117,12 +51,12 @@ class Universe {
       new Set<FunctionElement>();
   final Set<FunctionElement> methodsNeedingSuperGetter =
       new Set<FunctionElement>();
-  final Map<String, Map<Selector, TypeMaskSet>> _invokedNames =
-      <String, Map<Selector, TypeMaskSet>>{};
-  final Map<String, Map<Selector, TypeMaskSet>> _invokedGetters =
-      <String, Map<Selector, TypeMaskSet>>{};
-  final Map<String, Map<Selector, TypeMaskSet>> _invokedSetters =
-      <String, Map<Selector, TypeMaskSet>>{};
+  final Map<String, Set<Selector>> invokedNames =
+      new Map<String, Set<Selector>>();
+  final Map<String, Set<Selector>> invokedGetters =
+      new Map<String, Set<Selector>>();
+  final Map<String, Set<Selector>> invokedSetters =
+      new Map<String, Set<Selector>>();
 
   /**
    * Fields accessed. Currently only the codegen knows this
@@ -225,75 +159,26 @@ class Universe {
     });
   }
 
-  bool _hasMatchingSelector(Map<Selector, TypeMaskSet> selectors,
-                            Element member,
-                            World world) {
+  bool hasMatchingSelector(Set<Selector> selectors,
+                           Element member,
+                           World world) {
     if (selectors == null) return false;
-    for (Selector selector in selectors.keys) {
-      if (selector.appliesUnnamed(member, world)) {
-        TypeMaskSet masks = selectors[selector];
-        if (masks.applies(member, selector, world)) {
-          return true;
-        }
-      }
+    for (Selector selector in selectors) {
+      if (selector.appliesUnnamed(member, world)) return true;
     }
     return false;
   }
 
   bool hasInvocation(Element member, World world) {
-    return _hasMatchingSelector(_invokedNames[member.name], member, world);
+    return hasMatchingSelector(invokedNames[member.name], member, world);
   }
 
   bool hasInvokedGetter(Element member, World world) {
-    return _hasMatchingSelector(_invokedGetters[member.name], member, world);
+    return hasMatchingSelector(invokedGetters[member.name], member, world);
   }
 
   bool hasInvokedSetter(Element member, World world) {
-    return _hasMatchingSelector(_invokedSetters[member.name], member, world);
-  }
-
-  bool registerInvocation(UniverseSelector selector) {
-    return _registerNewSelector(selector, _invokedNames);
-  }
-
-  bool registerInvokedGetter(UniverseSelector selector) {
-    return _registerNewSelector(selector, _invokedGetters);
-  }
-
-  bool registerInvokedSetter(UniverseSelector selector) {
-    return _registerNewSelector(selector, _invokedSetters);
-  }
-
-  bool _registerNewSelector(
-      UniverseSelector universeSelector,
-      Map<String, Map<Selector, TypeMaskSet>> selectorMap) {
-    Selector selector = universeSelector.selector;
-    String name = selector.name;
-    TypeMask mask = universeSelector.mask;
-    Map<Selector, TypeMaskSet> selectors = selectorMap.putIfAbsent(
-        name, () => new Maplet<Selector, TypeMaskSet>());
-    IncreasingTypeMaskSet masks = selectors.putIfAbsent(
-        selector, () => new IncreasingTypeMaskSet());
-    return masks.add(mask);
-  }
-
-  Map<Selector, TypeMaskSet> invocationsByName(String name) {
-    return _invokedNames[name];
-  }
-
-  void forEachInvokedName(
-      f(String name, Map<Selector, TypeMaskSet> selectors)) {
-    _invokedNames.forEach(f);
-  }
-
-  void forEachInvokedGetter(
-      f(String name, Map<Selector, TypeMaskSet> selectors)) {
-    _invokedGetters.forEach(f);
-  }
-
-  void forEachInvokedSetter(
-      f(String name, Map<Selector, TypeMaskSet> selectors)) {
-    _invokedSetters.forEach(f);
+    return hasMatchingSelector(invokedSetters[member.name], member, world);
   }
 
   DartType registerIsCheck(DartType type, Compiler compiler) {
@@ -683,6 +568,7 @@ class Selector {
       Selector existing = list[i];
       if (existing.match(kind, name, callStructure)) {
         assert(existing.hashCode == hashCode);
+        assert(existing.mask == null);
         return existing;
       }
     }
@@ -807,6 +693,10 @@ class Selector {
   /** Check whether this is a call to 'assert'. */
   bool get isAssert => isCall && identical(name, "assert");
 
+  bool get hasExactMask => false;
+  TypeMask get mask => null;
+  Selector get asUntyped => this;
+
   /**
    * The member name for invocation mirrors created from this selector.
    */
@@ -886,8 +776,84 @@ class Selector {
   }
 
   String toString() {
-    return 'Selector($kind, $name, ${callStructure.structureToString()})';
+    String type = '';
+    if (mask != null) type = ', mask=$mask';
+    return 'Selector($kind, $name, ${callStructure.structureToString()}$type)';
+  }
+
+  Selector extendIfReachesAll(Compiler compiler) {
+    return new TypedSelector(
+        compiler.typesTask.dynamicType, this, compiler.world);
   }
 
   Selector toCallSelector() => new Selector.callClosureFrom(this);
+}
+
+class TypedSelector extends Selector {
+  final Selector asUntyped;
+  final TypeMask mask;
+
+  TypedSelector.internal(this.mask, Selector selector, int hashCode)
+      : asUntyped = selector,
+        super.internal(selector.kind,
+                       selector.memberName,
+                       selector.callStructure,
+                       hashCode) {
+    assert(mask != null);
+    assert(asUntyped.mask == null);
+  }
+
+
+  factory TypedSelector(TypeMask mask, Selector selector, World world) {
+    if (!world.hasClosedWorldAssumption) {
+      // TODO(johnniwinther): Improve use of TypedSelector in an open world.
+      bool isNullable = mask.isNullable;
+      mask = world.compiler.typesTask.dynamicType;
+      if (isNullable) {
+        mask = mask.nullable();
+      }
+    }
+    // TODO(johnniwinther): Allow more TypeSelector kinds during resoluton.
+    assert(world.isClosed || mask.isExact);
+    if (selector.mask == mask) return selector;
+    Selector untyped = selector.asUntyped;
+    Map<TypeMask, TypedSelector> map = world.canonicalizedValues
+        .putIfAbsent(untyped, () => new Map<TypeMask, TypedSelector>());
+    TypedSelector result = map[mask];
+    if (result == null) {
+      int hashCode = Hashing.mixHashCodeBits(untyped.hashCode, mask.hashCode);
+      result = map[mask] = new TypedSelector.internal(mask, untyped, hashCode);
+    }
+    return result;
+  }
+
+  factory TypedSelector.exact(
+      ClassElement base, Selector selector, World world)
+          => new TypedSelector(new TypeMask.exact(base, world), selector,
+              world);
+
+  factory TypedSelector.subclass(
+      ClassElement base, Selector selector, World world)
+          => new TypedSelector(new TypeMask.subclass(base, world),
+                               selector, world);
+
+  factory TypedSelector.subtype(
+      ClassElement base, Selector selector, World world)
+          => new TypedSelector(new TypeMask.subtype(base, world),
+                               selector, world);
+
+  bool appliesUnnamed(Element element, World world) {
+    assert(sameNameHack(element, world));
+    if (!mask.canHit(element, this, world)) return false;
+    return appliesUntyped(element, world);
+  }
+
+  Selector extendIfReachesAll(Compiler compiler) {
+    bool canReachAll = compiler.enabledInvokeOn
+        && mask.needsNoSuchMethodHandling(this, compiler.world);
+    return canReachAll
+        ? new TypedSelector(
+            compiler.typesTask.dynamicType, this, compiler.world)
+        : this;
+  }
 }

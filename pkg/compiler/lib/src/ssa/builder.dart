@@ -1297,7 +1297,6 @@ class SsaBuilder extends NewResolvedVisitor {
    */
   bool tryInlineMethod(Element element,
                        Selector selector,
-                       TypeMask mask,
                        List<HInstruction> providedArguments,
                        ast.Node currentNode,
                        {InterfaceType instanceType}) {
@@ -1329,11 +1328,8 @@ class SsaBuilder extends NewResolvedVisitor {
           Elements.isStaticOrTopLevel(element) ||
           element.isGenerativeConstructorBody,
           message: "Missing selector for inlining of $element."));
-      if (selector != null) {
-        if (!selector.applies(function, compiler.world)) return false;
-        if (mask != null && !mask.canHit(function, selector, compiler.world)) {
-          return false;
-        }
+      if (selector != null && !selector.applies(function, compiler.world)) {
+        return false;
       }
 
       // Don't inline operator== methods if the parameter can be null.
@@ -1452,9 +1448,9 @@ class SsaBuilder extends NewResolvedVisitor {
       // Add an explicit null check on the receiver before doing the
       // inlining. We use [element] to get the same name in the
       // NoSuchMethodError message as if we had called it.
-      if (element.isInstanceMember &&
-          !element.isGenerativeConstructorBody &&
-          (mask == null || mask.isNullable)) {
+      if (element.isInstanceMember
+          && !element.isGenerativeConstructorBody
+          && (selector.mask == null || selector.mask.isNullable)) {
         addWithPosition(
             new HFieldGet(null, providedArguments[0], backend.dynamicType,
                           isAssignable: false),
@@ -2301,7 +2297,7 @@ class SsaBuilder extends NewResolvedVisitor {
       }
 
       if (!isNativeUpgradeFactory && // TODO(13836): Fix inlining.
-          tryInlineMethod(body, null, null, bodyCallInputs, function)) {
+          tryInlineMethod(body, null, bodyCallInputs, function)) {
         pop();
       } else {
         HInvokeConstructorBody invoke = new HInvokeConstructorBody(
@@ -2455,7 +2451,6 @@ class SsaBuilder extends NewResolvedVisitor {
       pushInvokeDynamic(
           null,
           new Selector.call(name, backend.jsHelperLibrary, 1),
-          null,
           arguments);
 
       return new HTypeConversion(type, kind, original.instructionType, pop());
@@ -3196,11 +3191,7 @@ class SsaBuilder extends NewResolvedVisitor {
       }
     }
 
-    pushInvokeDynamic(
-        node,
-        elements.getSelector(node),
-        elements.getTypeMask(node),
-        [operand]);
+    pushInvokeDynamic(node, elements.getSelector(node), [operand]);
   }
 
   @override
@@ -3232,7 +3223,6 @@ class SsaBuilder extends NewResolvedVisitor {
         visitAndPop(left),
         visitAndPop(right),
         elements.getSelector(node),
-        elements.getTypeMask(node),
         node,
         location: node.selector);
   }
@@ -3242,10 +3232,9 @@ class SsaBuilder extends NewResolvedVisitor {
   void visitBinarySend(HInstruction left,
                        HInstruction right,
                        Selector selector,
-                       TypeMask mask,
                        ast.Send send,
                        {ast.Node location}) {
-    pushInvokeDynamic(send, selector, mask, [left, right], location: location);
+    pushInvokeDynamic(send, selector, [left, right], location: location);
   }
 
   HInstruction generateInstanceSendReceiver(ast.Send send) {
@@ -3267,14 +3256,12 @@ class SsaBuilder extends NewResolvedVisitor {
    * Returns a set of interceptor classes that contain the given
    * [selector].
    */
-  void generateInstanceGetterWithCompiledReceiver(
-      ast.Send send,
-      Selector selector,
-      TypeMask mask,
-      HInstruction receiver) {
+  void generateInstanceGetterWithCompiledReceiver(ast.Send send,
+                                                  Selector selector,
+                                                  HInstruction receiver) {
     assert(Elements.isInstanceSend(send, elements));
     assert(selector.isGetter);
-    pushInvokeDynamic(send, selector, mask, [receiver]);
+    pushInvokeDynamic(send, selector, [receiver]);
   }
 
   /// Inserts a call to checkDeferredIsLoaded for [prefixElement].
@@ -3392,7 +3379,7 @@ class SsaBuilder extends NewResolvedVisitor {
   void generateDynamicGet(ast.Send node) {
     HInstruction receiver = generateInstanceSendReceiver(node);
     generateInstanceGetterWithCompiledReceiver(
-        node, elements.getSelector(node), elements.getTypeMask(node), receiver);
+        node, elements.getSelector(node), receiver);
   }
 
   /// Generate a closurization of the static or top level [function].
@@ -3439,13 +3426,8 @@ class SsaBuilder extends NewResolvedVisitor {
           pushCheckNull(expression);
         },
         () => stack.add(expression),
-        () {
-          generateInstanceGetterWithCompiledReceiver(
-              node,
-              elements.getSelector(node),
-              elements.getTypeMask(node),
-              expression);
-        });
+        () => generateInstanceGetterWithCompiledReceiver(
+            node, elements.getSelector(node), expression));
   }
 
   /// Pushes a boolean checking [expression] against null.
@@ -3529,22 +3511,18 @@ class SsaBuilder extends NewResolvedVisitor {
                                                   HInstruction receiver,
                                                   HInstruction value,
                                                   {Selector selector,
-                                                   TypeMask mask,
                                                    ast.Node location}) {
     assert(send == null || Elements.isInstanceSend(send, elements));
     if (selector == null) {
       assert(send != null);
       selector = elements.getSelector(send);
-      if (mask == null) {
-        mask = elements.getTypeMask(send);
-      }
     }
     if (location == null) {
       assert(send != null);
       location = send;
     }
     assert(selector.isSetter);
-    pushInvokeDynamic(location, selector, mask, [receiver, value]);
+    pushInvokeDynamic(location, selector, [receiver, value]);
     pop();
     stack.add(value);
   }
@@ -3679,9 +3657,7 @@ class SsaBuilder extends NewResolvedVisitor {
     if (type.isFunctionType) {
       List arguments = [buildFunctionType(type), expression];
       pushInvokeDynamic(
-          node,
-          new Selector.call('_isTest', backend.jsHelperLibrary, 1),
-          null,
+          node, new Selector.call('_isTest', backend.jsHelperLibrary, 1),
           arguments);
       return new HIs.compound(type, expression, pop(), backend.boolType);
     } else if (type.isTypeVariable) {
@@ -3803,13 +3779,12 @@ class SsaBuilder extends NewResolvedVisitor {
 
   void _generateDynamicSend(ast.Send node, HInstruction receiver) {
     Selector selector = elements.getSelector(node);
-    TypeMask mask = elements.getTypeMask(node);
 
     List<HInstruction> inputs = <HInstruction>[];
     inputs.add(receiver);
     addDynamicSendArgumentsToList(node, inputs);
 
-    pushInvokeDynamic(node, selector, mask, inputs);
+    pushInvokeDynamic(node, selector, inputs);
     if (selector.isSetter || selector.isIndexSet) {
       pop();
       stack.add(inputs.last);
@@ -4173,7 +4148,8 @@ class SsaBuilder extends NewResolvedVisitor {
       // If the isolate library is not used, we just invoke the
       // closure.
       visit(link.tail.head);
-      push(new HInvokeClosure(new Selector.callClosure(0),
+      Selector selector = new Selector.callClosure(0);
+      push(new HInvokeClosure(selector,
                               <HInstruction>[pop()],
                               backend.dynamicType));
     } else {
@@ -4315,7 +4291,7 @@ class SsaBuilder extends NewResolvedVisitor {
       // class is _not_ the default implementation from [Object], in
       // case the [noSuchMethod] implementation calls
       // [JSInvocationMirror._invokeOn].
-      registry.registerSelectorUse(selector);
+      registry.registerSelectorUse(selector.asUntyped);
     }
     String publicName = name;
     if (selector.isSetter) publicName += '=';
@@ -5331,11 +5307,9 @@ class SsaBuilder extends NewResolvedVisitor {
     Selector selector = elements.getSelector(node);
     List<HInstruction> inputs = <HInstruction>[target];
     addDynamicSendArgumentsToList(node, inputs);
+    Selector closureSelector = new Selector.callClosureFrom(selector);
     pushWithPosition(
-        new HInvokeClosure(
-            new Selector.callClosureFrom(selector),
-            inputs, backend.dynamicType),
-        node);
+        new HInvokeClosure(closureSelector, inputs, backend.dynamicType), node);
   }
 
   visitGetterSend(ast.Send node) {
@@ -5464,7 +5438,6 @@ class SsaBuilder extends NewResolvedVisitor {
 
   void pushInvokeDynamic(ast.Node node,
                          Selector selector,
-                         TypeMask mask,
                          List<HInstruction> arguments,
                          {ast.Node location}) {
     if (location == null) location = node;
@@ -5505,13 +5478,13 @@ class SsaBuilder extends NewResolvedVisitor {
       return false;
     }
 
-    Element element = compiler.world.locateSingleElement(selector, mask);
-    if (element != null &&
-        !element.isField &&
-        !(element.isGetter && selector.isCall) &&
-        !(element.isFunction && selector.isGetter) &&
-        !isOptimizableOperation(selector, element)) {
-      if (tryInlineMethod(element, selector, mask, arguments, node)) {
+    Element element = compiler.world.locateSingleElement(selector);
+    if (element != null
+        && !element.isField
+        && !(element.isGetter && selector.isCall)
+        && !(element.isFunction && selector.isGetter)
+        && !isOptimizableOperation(selector, element)) {
+      if (tryInlineMethod(element, selector, arguments, node)) {
         return;
       }
     }
@@ -5523,19 +5496,18 @@ class SsaBuilder extends NewResolvedVisitor {
       inputs.add(invokeInterceptor(receiver));
     }
     inputs.addAll(arguments);
-    TypeMask type =
-        TypeMaskFactory.inferredTypeForSelector(selector, mask, compiler);
+    TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
     if (selector.isGetter) {
       pushWithPosition(
-          new HInvokeDynamicGetter(selector, mask, null, inputs, type),
+          new HInvokeDynamicGetter(selector, null, inputs, type),
           location);
     } else if (selector.isSetter) {
       pushWithPosition(
-          new HInvokeDynamicSetter(selector, mask, null, inputs, type),
+          new HInvokeDynamicSetter(selector, null, inputs, type),
           location);
     } else {
       pushWithPosition(
-          new HInvokeDynamicMethod(selector, mask, inputs, type, isIntercepted),
+          new HInvokeDynamicMethod(selector, inputs, type, isIntercepted),
           location);
     }
   }
@@ -5545,7 +5517,7 @@ class SsaBuilder extends NewResolvedVisitor {
                         List<HInstruction> arguments,
                         {TypeMask typeMask,
                          InterfaceType instanceType}) {
-    if (tryInlineMethod(element, null, null, arguments, location,
+    if (tryInlineMethod(element, null, arguments, location,
                         instanceType: instanceType)) {
       return;
     }
@@ -5600,8 +5572,7 @@ class SsaBuilder extends NewResolvedVisitor {
         inputs,
         type,
         isSetter: selector.isSetter || selector.isIndexSet);
-    instruction.sideEffects =
-        compiler.world.getSideEffectsOfSelector(selector, null);
+    instruction.sideEffects = compiler.world.getSideEffectsOfSelector(selector);
     return instruction;
   }
 
@@ -5618,7 +5589,6 @@ class SsaBuilder extends NewResolvedVisitor {
     }
     visitBinarySend(receiver, rhs,
                     elements.getOperatorSelectorInComplexSendSet(node),
-                    elements.getOperatorTypeMaskInComplexSendSet(node),
                     node,
                     location: node.assignmentOperator);
   }
@@ -5716,7 +5686,6 @@ class SsaBuilder extends NewResolvedVisitor {
       pushInvokeDynamic(
           node,
           elements.getGetterSelectorInComplexSendSet(node),
-          elements.getGetterTypeMaskInComplexSendSet(node),
           [receiver, index]);
       HInstruction getterInstruction = pop();
       if (node.isIfNullAssignment) {
@@ -5731,10 +5700,7 @@ class SsaBuilder extends NewResolvedVisitor {
               visit(arguments.head);
               HInstruction value = pop();
               pushInvokeDynamic(
-                  node,
-                  elements.getSelector(node),
-                  elements.getTypeMask(node),
-                  [receiver, index, value]);
+                  node, elements.getSelector(node), [receiver, index, value]);
               pop();
               stack.add(value);
             });
@@ -5742,10 +5708,7 @@ class SsaBuilder extends NewResolvedVisitor {
         handleComplexOperatorSend(node, getterInstruction, arguments);
         HInstruction value = pop();
         pushInvokeDynamic(
-            node,
-            elements.getSelector(node),
-            elements.getTypeMask(node),
-            [receiver, index, value]);
+            node, elements.getSelector(node), [receiver, index, value]);
         pop();
         if (node.isPostfix) {
           stack.add(getterInstruction);
@@ -6032,10 +5995,7 @@ class SsaBuilder extends NewResolvedVisitor {
       void generateAssignment(HInstruction receiver) {
         // desugars `e.x op= e2` to `e.x = e.x op e2`
         generateInstanceGetterWithCompiledReceiver(
-            node,
-            elements.getGetterSelectorInComplexSendSet(node),
-            elements.getGetterTypeMaskInComplexSendSet(node),
-            receiver);
+            node, elements.getGetterSelectorInComplexSendSet(node), receiver);
         HInstruction getterInstruction = pop();
         if (node.isIfNullAssignment) {
           SsaBranchBuilder brancher = new SsaBranchBuilder(this, node);
@@ -6486,8 +6446,7 @@ class SsaBuilder extends NewResolvedVisitor {
 
     HInstruction buildCondition() {
       Selector selector = elements.getMoveNextSelector(node);
-      TypeMask mask = elements.getMoveNextTypeMask(node);
-      pushInvokeDynamic(node, selector, mask, [streamIterator]);
+      pushInvokeDynamic(node, selector, [streamIterator]);
       HInstruction future = pop();
       push(new HAwait(future, new TypeMask.subclass(compiler.objectClass,
                                                     compiler.world)));
@@ -6495,13 +6454,11 @@ class SsaBuilder extends NewResolvedVisitor {
     }
     void buildBody() {
       Selector call = elements.getCurrentSelector(node);
-      TypeMask callMask = elements.getCurrentTypeMask(node);
-      pushInvokeDynamic(node, call, callMask, [streamIterator]);
+      pushInvokeDynamic(node, call, [streamIterator]);
 
       ast.Node identifier = node.declaredIdentifier;
       Element variable = elements.getForInVariable(node);
       Selector selector = elements.getSelector(identifier);
-      TypeMask mask = elements.getTypeMask(identifier);
 
       HInstruction value = pop();
       if (identifier.asSend() != null
@@ -6513,7 +6470,6 @@ class SsaBuilder extends NewResolvedVisitor {
             receiver,
             value,
             selector: selector,
-            mask: mask,
             location: identifier);
       } else {
         generateNonInstanceSetter(
@@ -6533,9 +6489,7 @@ class SsaBuilder extends NewResolvedVisitor {
                  buildUpdate,
                  buildBody);
     }, () {
-      pushInvokeDynamic(node,
-          new Selector.call("cancel", null, 0),
-          null,
+      pushInvokeDynamic(node, new Selector.call("cancel", null, 0),
           [streamIterator]);
       push(new HAwait(pop(), new TypeMask.subclass(compiler.objectClass,
           compiler.world)));
@@ -6555,7 +6509,7 @@ class SsaBuilder extends NewResolvedVisitor {
     // case.
 
     Selector selector = elements.getIteratorSelector(node);
-    TypeMask mask = elements.getIteratorTypeMask(node);
+    TypeMask mask = selector.mask;
 
     ClassWorld classWorld = compiler.world;
     if (mask != null && mask.satisfies(backend.jsIndexableClass, classWorld)) {
@@ -6577,24 +6531,21 @@ class SsaBuilder extends NewResolvedVisitor {
 
     void buildInitializer() {
       Selector selector = elements.getIteratorSelector(node);
-      TypeMask mask = elements.getIteratorTypeMask(node);
       visit(node.expression);
       HInstruction receiver = pop();
-      pushInvokeDynamic(node, selector, mask, [receiver]);
+      pushInvokeDynamic(node, selector, [receiver]);
       iterator = pop();
     }
 
     HInstruction buildCondition() {
       Selector selector = elements.getMoveNextSelector(node);
-      TypeMask mask = elements.getMoveNextTypeMask(node);
-      pushInvokeDynamic(node, selector, mask, [iterator]);
+      pushInvokeDynamic(node, selector, [iterator]);
       return popBoolified();
     }
 
     void buildBody() {
       Selector call = elements.getCurrentSelector(node);
-      TypeMask mask = elements.getCurrentTypeMask(node);
-      pushInvokeDynamic(node, call, mask, [iterator]);
+      pushInvokeDynamic(node, call, [iterator]);
       buildAssignLoopVariable(node, pop());
       visit(node.body);
     }
@@ -6606,7 +6557,6 @@ class SsaBuilder extends NewResolvedVisitor {
     ast.Node identifier = node.declaredIdentifier;
     Element variable = elements.getForInVariable(node);
     Selector selector = elements.getSelector(identifier);
-    TypeMask mask = elements.getTypeMask(identifier);
 
     if (identifier.asSend() != null &&
         Elements.isInstanceSend(identifier, elements)) {
@@ -6617,7 +6567,6 @@ class SsaBuilder extends NewResolvedVisitor {
           receiver,
           value,
           selector: selector,
-          mask: mask,
           location: identifier);
     } else {
       generateNonInstanceSetter(null, variable, value, location: identifier);
@@ -6697,8 +6646,9 @@ class SsaBuilder extends NewResolvedVisitor {
       // example, `get current` includes null.
       // TODO(sra): The element type of a container type mask might be better.
       Selector selector = new Selector.index();
-      TypeMask type = TypeMaskFactory.inferredTypeForSelector(
-          selector, arrayType, compiler);
+      Selector refined = new TypedSelector(arrayType, selector, compiler.world);
+      TypeMask type =
+          TypeMaskFactory.inferredTypeForSelector(refined, compiler);
 
       HInstruction index = localsHandler.readLocal(indexVariable);
       HInstruction value = new HIndex(array, index, null, type);
@@ -7615,12 +7565,12 @@ class StringBuilderVisitor extends ast.Visitor {
 
     // If the `toString` method is guaranteed to return a string we can call it
     // directly.
-    Selector selector = new Selector.call('toString', null, 0);
-    TypeMask type = TypeMaskFactory.inferredTypeForSelector(
-        selector, expression.instructionType, compiler);
+    Selector selector =
+        new TypedSelector(expression.instructionType,
+            new Selector.call('toString', null, 0), compiler.world);
+    TypeMask type = TypeMaskFactory.inferredTypeForSelector(selector, compiler);
     if (type.containsOnlyString(compiler.world)) {
-      builder.pushInvokeDynamic(
-          node, selector, expression.instructionType, <HInstruction>[expression]);
+      builder.pushInvokeDynamic(node, selector, <HInstruction>[expression]);
       append(builder.pop());
       return;
     }

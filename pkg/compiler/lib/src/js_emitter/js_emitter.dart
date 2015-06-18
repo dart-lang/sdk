@@ -63,10 +63,6 @@ import '../io/line_column_provider.dart' show
 import '../io/source_map_builder.dart' show
     SourceMapBuilder;
 
-import '../universe/universe.dart' show
-    TypeMaskSet,
-    TypedSelector;
-
 import '../util/characters.dart' show
     $$,
     $A,

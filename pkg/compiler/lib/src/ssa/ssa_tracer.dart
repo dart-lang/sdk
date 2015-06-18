@@ -306,7 +306,7 @@ class HInstructionStringifier implements HVisitor<String> {
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments = invoke.inputs.sublist(offset);
     return visitGenericInvoke("Invoke", target, arguments) +
-        "(${invoke.mask})";
+        "(${invoke.selector.mask})";
   }
 
   String visitInvokeDynamicMethod(HInvokeDynamicMethod node)

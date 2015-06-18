@@ -111,9 +111,8 @@ class SsaInstructionSelection extends HBaseVisitor {
       //     b.get$thing().foo$1(0, x)
       //
       Selector selector = node.selector;
-      TypeMask mask = node.mask;
       if (backend.isInterceptedSelector(selector) &&
-          !backend.isInterceptedMixinSelector(selector, mask)) {
+          !backend.isInterceptedMixinSelector(selector)) {
         HInstruction interceptor = node.inputs[0];
         HInstruction receiverArgument = node.inputs[1];
 
