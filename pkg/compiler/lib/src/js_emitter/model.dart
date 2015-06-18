@@ -9,7 +9,7 @@ import '../constants/values.dart' show ConstantValue;
 
 import '../deferred_load.dart' show OutputUnit;
 
-import 'js_emitter.dart' show MetadataCollector;
+import 'js_emitter.dart' show MetadataCollector, TokenFinalizer;
 
 import '../common.dart';
 
@@ -29,6 +29,7 @@ class Program {
   // TODO(floitsch): we should store the metadata directly instead of storing
   // the collector. However, the old emitter still updates the data.
   final MetadataCollector _metadataCollector;
+  TokenFinalizer get metadataFinalizer => _metadataCollector;
 
   Program(this.fragments,
           this.holders,

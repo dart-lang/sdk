@@ -107,7 +107,7 @@ class _MetadataList extends jsAst.DeferredExpression {
   int get precedenceLevel => js_precedence.PRIMARY;
 }
 
-class MetadataCollector {
+class MetadataCollector implements TokenFinalizer {
   final Compiler _compiler;
   final Emitter _emitter;
 
@@ -297,11 +297,13 @@ class MetadataCollector {
     });
   }
 
-  void countTokensInProgram(jsAst.Program program) {
+  @override
+  void countTokensInAst(jsAst.Node ast) {
     TokenCounter visitor = new TokenCounter();
-    visitor.countTokens(program);
+    visitor.countTokens(ast);
   }
 
+  @override
   void finalizeTokens() {
     bool checkTokensInTypes(OutputUnit outputUnit, entries) {
       UnBoundDebugger debugger = new UnBoundDebugger(outputUnit);
@@ -358,7 +360,29 @@ class MetadataCollector {
   }
 }
 
+/// Interface for ast nodes that encapsulate an ast that needs to be
+/// traversed when counting tokens.
+///
+/// TODO(herhut): Find a shared place once namer also uses tokens.
+abstract class AstContainer implements jsAst.Node {
+  jsAst.Node get ast;
+}
+
+abstract class TokenFinalizer {
+  void countTokensInAst(jsAst.Node ast);
+  void finalizeTokens();
+}
+
 class TokenCounter extends jsAst.BaseVisitor {
+  @override
+  visitNode(jsAst.Node node) {
+    if (node is AstContainer) {
+      node.ast.accept(this);
+    } else {
+      super.visitNode(node);
+    }
+  }
+
   @override
   visitDeferredNumber(jsAst.DeferredNumber token) {
     if (token is _MetadataEntry) {

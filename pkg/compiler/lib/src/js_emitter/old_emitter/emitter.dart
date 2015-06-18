@@ -1655,8 +1655,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
   void finalizeTokensInAst(jsAst.Program main,
                            Iterable<jsAst.Program> deferredParts) {
-    task.metadataCollector.countTokensInProgram(main);
-    deferredParts.forEach(task.metadataCollector.countTokensInProgram);
+    task.metadataCollector.countTokensInAst(main);
+    deferredParts.forEach(task.metadataCollector.countTokensInAst);
     task.metadataCollector.finalizeTokens();
   }
 

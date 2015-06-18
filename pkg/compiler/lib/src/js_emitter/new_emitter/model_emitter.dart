@@ -13,8 +13,7 @@ import '../../js_backend/js_backend.dart' show
     Namer,
     ConstantEmitter;
 
-import '../js_emitter.dart' show
-    NativeEmitter;
+import '../js_emitter.dart' show AstContainer, NativeEmitter;
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     CREATE_NEW_ISOLATE,
@@ -34,6 +33,46 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
 
+/// Represents the LiteralString resulting from unparsing [expression]. The
+/// actual unparsing is done on demand when requesting the [value] of this
+/// node.
+class _UnparsedNode extends js.DeferredString
+                    implements AstContainer {
+  @override
+  final js.Node ast;
+  final Compiler _compiler;
+  final bool _protectForEval;
+  js.LiteralString _cachedLiteral;
+
+  /// A [js.Literal] that represents the string result of unparsing [ast].
+  ///
+  /// When its string [value] is requested, the node pretty-prints the given
+  /// [ast] and, if [protectForEval] is true, wraps the resulting
+  /// string in parenthesis. The result is also escaped.
+  _UnparsedNode(this.ast, this._compiler, this._protectForEval);
+
+  js.LiteralString get _literal {
+    if (_cachedLiteral == null) {
+      String text = js.prettyPrint(ast, _compiler).getText();
+      if (_protectForEval) {
+        if (ast is js.Fun) text = '($text)';
+        if (ast is js.LiteralExpression) {
+          js.LiteralExpression literalExpression = ast;
+          String template = literalExpression.template;
+          if (template.startsWith("function ") ||
+              template.startsWith("{")) {
+            text = '($text)';
+          }
+        }
+      }
+      _cachedLiteral = js.js.escapedString(text);
+    }
+    return _cachedLiteral;
+  }
+
+  @override
+  String get value => _literal.value;
+}
 
 class ModelEmitter {
   final Compiler compiler;
@@ -136,19 +175,27 @@ class ModelEmitter {
     // We have to emit the deferred fragments first, since we need their
     // deferred hash (which depends on the output) when emitting the main
     // fragment.
-    fragments.skip(1).forEach((DeferredFragment deferredUnit) {
+    List<js.Expression> fragmentsCode = fragments.skip(1).map(
+            (DeferredFragment deferredUnit) {
       js.Expression types =
           program.metadataTypesForOutputUnit(deferredUnit.outputUnit);
-      js.Expression ast = emitDeferredFragment(types, deferredUnit,
-                                               program.holders);
-      String code = js.prettyPrint(ast, compiler).getText();
-      totalSize += code.length;
-      compiler.outputProvider(deferredUnit.outputFileName, deferredExtension)
-          ..add(code)
-          ..close();
-    });
+      return emitDeferredFragment(types, deferredUnit, program.holders);
+    }).toList();
 
     js.Statement mainAst = emitMainFragment(program);
+
+    fragmentsCode.forEach(program.metadataFinalizer.countTokensInAst);
+    program.metadataFinalizer.countTokensInAst(mainAst);
+    program.metadataFinalizer.finalizeTokens();
+
+    for (int i = 0; i < fragmentsCode.length; ++i) {
+      String code = js.prettyPrint(fragmentsCode[i], compiler).getText();
+      totalSize += code.length;
+      compiler.outputProvider(fragments[i+1].outputFileName, deferredExtension)
+        ..add(code)
+        ..close();
+    }
+
     String mainCode = js.prettyPrint(mainAst, compiler).getText();
     compiler.outputProvider(mainFragment.outputFileName, 'js')
         ..add(buildGeneratedBy(compiler))
@@ -159,23 +206,17 @@ class ModelEmitter {
     return totalSize;
   }
 
-  /// Unparses the given [value].
+  /// Returns a [js.Literal] that represents the string result of unparsing
+  /// [value].
   ///
-  /// Pretty-prints the given [value] and, if [protectForEval] is
-  /// true, wraps the resulting string in parenthesis. The result is escaped
-  /// and returned.
-  js.LiteralString unparse(Compiler compiler, js.Node value,
-                           {bool protectForEval: true}) {
-    String text = js.prettyPrint(value, compiler).getText();
-    if (protectForEval) {
-      if (value is js.Fun) text = '($text)';
-      if (value is js.LiteralExpression &&
-      (value.template.startsWith("function ") ||
-      value.template.startsWith("{"))) {
-        text = '($text)';
-      }
-    }
-    return js.js.escapedString(text);
+  /// The returned node will, when its string value is requested, pretty-print
+  /// the given [value] and, if [protectForEval] is true, wrap the resulting
+  /// string in parenthesis. The result is also escaped.
+  ///
+  /// See [_UnparsedNode] for details.
+  js.Literal unparse(Compiler compiler, js.Node value,
+                     {bool protectForEval: true}) {
+    return new _UnparsedNode(value, compiler, protectForEval);
   }
 
   String buildGeneratedBy(compiler) {
@@ -514,7 +555,7 @@ class ModelEmitter {
         emitEagerClassInitializations(fragment.libraries)]);
 
 
-    js.LiteralString immediateString = unparse(compiler, immediateCode);
+    js.Literal immediateString = unparse(compiler, immediateCode);
 
     js.ArrayInitializer hunk =
         new js.ArrayInitializer([deferredArray, immediateString,
