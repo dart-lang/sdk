@@ -92,7 +92,7 @@ vars = {
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
   "source_maps_rev": "@379b4f31c4e2987eb15934d1ad8b419c6cc897b3",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
-  "shelf_static_rev": "@0.2.2",
+  "shelf_static_rev": "@v0.2.1",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
   "stack_trace_tag": "@1.2.1",
