@@ -19,7 +19,7 @@ Future withTempDir(String prefix, void test(Directory dir)) async {
   }
 }
 
-void withTempDirSync(String prefix, void test(Directory dir)) async {
+void withTempDirSync(String prefix, void test(Directory dir)) {
   var tempDir = Directory.systemTemp.createTempSync(prefix);
   try {
     test(tempDir);
@@ -28,7 +28,7 @@ void withTempDirSync(String prefix, void test(Directory dir)) async {
   }
 }
 
-Futire expectThrowsAsync(Future future, String message) {
+Future expectThrowsAsync(Future future, String message) {
   return future.then((r) => Expect.fail(message))
                .catchError((e) {});
 }
@@ -54,7 +54,7 @@ Future write(Directory dir) async {
   Expect.equals(f.lengthSync(), 10);
 }
 
-Future writeSync(Directory dir) {
+void writeSync(Directory dir) {
   var f = new File('x');
   var raf = f.openSync(mode: WRITE_ONLY);
   raf.writeStringSync('Hello');
