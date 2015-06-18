@@ -14,13 +14,6 @@ import '../universe/universe.dart' show Selector, SelectorKind;
 import 'builtin_operator.dart';
 export 'builtin_operator.dart';
 
-// These imports are only used for the JavaScript specific nodes.  If we want to
-// support more than one native backend, we should probably create better
-// abstractions for native code and its type and effect system.
-import '../js/js.dart' as js show Template;
-import '../native/native.dart' as native show NativeBehavior;
-import '../types/types.dart' as types show TypeMask;
-
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
   Node parent;
@@ -736,26 +729,6 @@ class CreateInvocationMirror extends Primitive {
   accept(Visitor visitor) => visitor.visitCreateInvocationMirror(this);
 }
 
-class ForeignCode extends Expression {
-  final js.Template codeTemplate;
-  final types.TypeMask type;
-  final List<Reference<Primitive>> arguments;
-  final native.NativeBehavior nativeBehavior;
-  final FunctionElement dependency;
-
-  /// The continuation, if the foreign code is not a JavaScript 'throw',
-  /// otherwise null.
-  final Reference<Continuation> continuation;
-
-  ForeignCode(this.codeTemplate, this.type, List<Primitive> arguments,
-      this.nativeBehavior, {Continuation continuation, this.dependency})
-      : arguments = _referenceList(arguments),
-        continuation = continuation == null ? null
-            : new Reference<Continuation>(continuation);
-
-  accept(Visitor visitor) => visitor.visitForeignCode(this);
-}
-
 class Constant extends Primitive {
   final ConstantExpression expression;
   final values.ConstantValue value;
@@ -990,9 +963,6 @@ abstract class Visitor<T> {
 
   // Conditions.
   T visitIsTrue(IsTrue node);
-
-  // Support for literal foreign code.
-  T visitForeignCode(ForeignCode node);
 }
 
 /// Recursively visits the entire CPS term, and calls abstract `process*`
@@ -1275,13 +1245,6 @@ class RecursiveVisitor implements Visitor {
   processApplyBuiltinOperator(ApplyBuiltinOperator node) {}
   visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     processApplyBuiltinOperator(node);
-    node.arguments.forEach(processReference);
-  }
-
-  processForeignCode(ForeignCode node) {}
-  visitForeignCode(ForeignCode node) {
-    processForeignCode(node);
-    processReference(node.continuation);
     node.arguments.forEach(processReference);
   }
 

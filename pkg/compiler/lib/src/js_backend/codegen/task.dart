@@ -57,35 +57,20 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   String get name => 'CPS Ir pipeline';
 
-  /// Generates JavaScript code for `work.element`.
+  /// Generates JavaScript code for `work.element`. First tries to use the
+  /// Cps Ir -> tree ir -> js pipeline, and if that fails due to language
+  /// features not implemented it will fall back to the ssa pipeline (for
+  /// platform code) or will cancel compilation (for user code).
   js.Fun compile(CodegenWorkItem work) {
     AstElement element = work.element;
     JavaScriptBackend backend = compiler.backend;
     return compiler.withCurrentElement(element, () {
+      if (element.library.isPlatformLibrary ||
+          element.library == backend.interceptorsLibrary) {
+        compiler.log('Using SSA compiler for platform element $element');
+        return fallbackCompiler.compile(work);
+      }
       try {
-        ClassElement cls = element.enclosingClass;
-        String name = element.name;
-        String className = cls == null ? null : cls.name;
-        LibraryElement library = element.library;
-        String libraryName = library == null ? null : library.toString();
-        // TODO(karlklose): remove this fallback.
-        // Fallback for a few functions that we know require try-finally and
-        // switch.
-        if (element.isNative ||
-            libraryName == 'origin library(dart:typed_data)' ||
-            // switch
-            library.isInternalLibrary && name == 'unwrapException' ||
-            // try-finally
-            library.isPlatformLibrary && className == 'IterableBase' ||
-            library.isInternalLibrary && className == 'Closure' ||
-
-            libraryName == 'origin library(dart:collection)' &&
-               name == 'mapToString' ||
-            libraryName == 'library(dart:html)' && name == 'sanitizeNode') {
-          compiler.log('Using SSA compiler for platform element $element');
-          return fallbackCompiler.compile(work);
-        }
-
         if (tracer != null) {
           tracer.traceCompilation(element.name, null);
         }

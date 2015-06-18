@@ -241,17 +241,8 @@ generic_field_mixin5_test: Crash # Issue 18651
 
 [ $compiler == dart2js && $cps_ir ]
 aborting_switch_case_test: Crash # (switch (42){case 42:foo();foo();break;}): Unhandled node
-abstract_exact_selector_test/01: Crash # The null object does not have a setter 'parent='.
-abstract_exact_selector_test/none: Crash # The null object does not have a setter 'parent='.
-abstract_getter_test/01: Crash # The null object does not have a setter 'parent='.
-abstract_method_test: Crash # The null object does not have a setter 'parent='.
-abstract_object_method_test: Crash # The null object does not have a setter 'parent='.
-arithmetic_test: Crash # (switch (codeUnit){c...  Unhandled node
-assert_assignable_type_test: RuntimeError # Please triage this failure.
-assign_op_test: RuntimeError # Please triage this failure.
-assignable_expression_test/none: RuntimeError # Please triage this failure.
-async_and_or_test: Crash # The null object does not have a setter 'parent='.
-async_await_catch_regression_test: Crash # The null object does not have a setter 'parent='.
+async_and_or_test: Crash # (test()async{await test1();await test2();}): cannot handle async/sync*/async* functions
+async_await_catch_regression_test: Crash # (test()async{var exc...  cannot handle async/sync*/async* functions
 async_await_syntax_test/a01a: Crash # (a01a()async=>null;): cannot handle async/sync*/async* functions
 async_await_syntax_test/a02a: Crash # (a02a()async{}): cannot handle async/sync*/async* functions
 async_await_syntax_test/a03a: Crash # (a03a()async*{}): cannot handle async/sync*/async* functions
@@ -307,113 +298,65 @@ async_await_syntax_test/d10a: Crash # (()async*{yield* [] ;}): cannot handle asy
 async_await_test/02: Crash # (f()async{return id(42);}): cannot handle async/sync*/async* functions
 async_await_test/03: Crash # (f()async{return id(42);}): cannot handle async/sync*/async* functions
 async_await_test/none: Crash # (f()async{return id(42);}): cannot handle async/sync*/async* functions
-async_break_in_finally_test: Crash # The null object does not have a setter 'parent='.
-async_continue_label_test/await_in_body: Crash # The null object does not have a setter 'parent='.
-async_continue_label_test/await_in_condition: Crash # The null object does not have a setter 'parent='.
-async_continue_label_test/await_in_init: Crash # The null object does not have a setter 'parent='.
-async_continue_label_test/await_in_update: Crash # The null object does not have a setter 'parent='.
-async_continue_label_test/none: Crash # The null object does not have a setter 'parent='.
+async_break_in_finally_test: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_continue_label_test/await_in_body: Crash # (test()async{await t...  cannot handle async/sync*/async* functions
+async_continue_label_test/await_in_condition: Crash # (test()async{await t...  cannot handle async/sync*/async* functions
+async_continue_label_test/await_in_init: Crash # (test()async{await t...  cannot handle async/sync*/async* functions
+async_continue_label_test/await_in_update: Crash # (test()async{await t...  cannot handle async/sync*/async* functions
+async_continue_label_test/none: Crash # (test()async{await t...  cannot handle async/sync*/async* functions
 async_control_structures_test: Crash # (asyncImplicitReturn...  cannot handle async/sync*/async* functions
 async_finally_rethrow_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 async_or_generator_return_type_stacktrace_test/01: Crash # (void badReturnTypeAsync()async{}): cannot handle async/sync*/async* functions
 async_or_generator_return_type_stacktrace_test/02: Crash # (void badReturnTypeAsyncStar()async*{}): cannot handle async/sync*/async* functions
 async_or_generator_return_type_stacktrace_test/03: Crash # (void badReturnTypeSyncStar()sync*{}): cannot handle async/sync*/async* functions
-async_regression_23058_test: Crash # The null object does not have a setter 'parent='.
+async_regression_23058_test: Crash # (foo()async{return x.foo==2?42:x.foo;}): cannot handle async/sync*/async* functions
 async_rethrow_test: Crash # (rethrowString()asyn...  cannot handle async/sync*/async* functions
-async_return_types_test/nestedFuture: Crash # The null object does not have a setter 'parent='.
-async_return_types_test/none: Crash # The null object does not have a setter 'parent='.
-async_return_types_test/tooManyTypeParameters: Crash # The null object does not have a setter 'parent='.
-async_return_types_test/wrongReturnType: Crash # The null object does not have a setter 'parent='.
-async_return_types_test/wrongTypeParameter: Crash # The null object does not have a setter 'parent='.
-async_star_cancel_and_throw_in_finally_test: Crash # The null object does not have a setter 'parent='.
-async_star_regression_23116_test: Crash # The null object does not have a setter 'parent='.
+async_return_types_test/nestedFuture: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_return_types_test/none: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_return_types_test/tooManyTypeParameters: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_return_types_test/wrongReturnType: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_return_types_test/wrongTypeParameter: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_star_cancel_and_throw_in_finally_test: Crash # (test()async{var com...  cannot handle async/sync*/async* functions
+async_star_regression_23116_test: Crash # (test()async{Complet...  cannot handle async/sync*/async* functions
 async_star_test/01: Crash # (f()async*{}): cannot handle async/sync*/async* functions
 async_star_test/02: Crash # (f()async*{}): cannot handle async/sync*/async* functions
 async_star_test/03: Crash # (f()async*{}): cannot handle async/sync*/async* functions
 async_star_test/04: Crash # (f()async*{}): cannot handle async/sync*/async* functions
 async_star_test/05: Crash # (f()async*{}): cannot handle async/sync*/async* functions
 async_star_test/none: Crash # (f()async*{}): cannot handle async/sync*/async* functions
-async_switch_test/none: Crash # The null object does not have a setter 'parent='.
-async_switch_test/withDefault: Crash # The null object does not have a setter 'parent='.
+async_switch_test/none: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_switch_test/withDefault: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 async_test/none: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
 async_test/type-mismatch1: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
 async_test/type-mismatch2: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
 async_test/type-mismatch3: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
 async_test/type-mismatch4: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
-async_this_bound_test: Crash # The null object does not have a setter 'parent='.
-async_throw_in_catch_test/forceAwait: Crash # The null object does not have a setter 'parent='.
-async_throw_in_catch_test/none: Crash # The null object does not have a setter 'parent='.
-asyncstar_concat_test: Crash # The null object does not have a setter 'parent='.
-asyncstar_throw_in_catch_test: Crash # The null object does not have a setter 'parent='.
-asyncstar_yield_test: Crash # The null object does not have a setter 'parent='.
-asyncstar_yieldstar_test: Crash # The null object does not have a setter 'parent='.
+async_this_bound_test: Crash # (test()async{await testA();await testB();}): cannot handle async/sync*/async* functions
+async_throw_in_catch_test/forceAwait: Crash # (test()async{await r...  cannot handle async/sync*/async* functions
+async_throw_in_catch_test/none: Crash # (test()async{await r...  cannot handle async/sync*/async* functions
+asyncstar_concat_test: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+asyncstar_throw_in_catch_test: Crash # (test()async{await r...  cannot handle async/sync*/async* functions
+asyncstar_yield_test: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+asyncstar_yieldstar_test: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 await_backwards_compatibility_test/none: Crash # (test1()async{var x=await 9;Expect.equals(9,x);}): cannot handle async/sync*/async* functions
-await_exceptions_test: Crash # The null object does not have a setter 'parent='.
-await_for_cancel_test: Crash # The null object does not have a setter 'parent='.
-await_for_test: Crash # The null object does not have a setter 'parent='.
-await_for_use_local_test: Crash # The null object does not have a setter 'parent='.
-await_future_test: Crash # The null object does not have a setter 'parent='.
-await_nonfuture_test: Crash # The null object does not have a setter 'parent='.
-await_not_started_immediately_test: Crash # The null object does not have a setter 'parent='.
-await_postfix_expr_test: Crash # The null object does not have a setter 'parent='.
+await_exceptions_test: Crash # (awaitFoo()async{await foo();}): cannot handle async/sync*/async* functions
+await_for_cancel_test: Crash # (test()async{await test1();await test2();}): cannot handle async/sync*/async* functions
+await_for_test: Crash # (consumeSomeOfInfini...  cannot handle async/sync*/async* functions
+await_for_use_local_test: Crash # (test()async{var cou...  cannot handle async/sync*/async* functions
+await_future_test: Crash # (test()async{var res...  cannot handle async/sync*/async* functions
+await_nonfuture_test: Crash # (foo()async{Expect.equals(X,10);return await 5;}): cannot handle async/sync*/async* functions
+await_not_started_immediately_test: Crash # (foo()async{x++ ;await 1;x++ ;}): cannot handle async/sync*/async* functions
+await_postfix_expr_test: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 await_regression_test: Crash # (main()async{testNes...  cannot handle async/sync*/async* functions
 await_test: Crash # (others()async{var a...  cannot handle async/sync*/async* functions
-bind_test: RuntimeError # Cannot read property 'prototype' of undefined
-bool_check_test: Crash # The null object does not have a setter 'parent='.
-bound_closure_primitives_test: RuntimeError # Please triage this failure.
-call_with_no_such_method_test: Crash # The null object does not have a setter 'parent='.
-canonical_const3_test: RuntimeError # Cannot read property 'prototype' of undefined
-cascade2_test: RuntimeError # Please triage this failure.
-cascade_2_test: RuntimeError # Please triage this failure.
-cascade_test/none: RuntimeError # Cannot read property 'prototype' of undefined
-cast_test/04: RuntimeError # Please triage this failure.
-cast_test/05: RuntimeError # Please triage this failure.
-cast_test/none: RuntimeError # Please triage this failure.
-catch_liveness_test: Crash # The null object does not have a setter 'parent='.
-cha_deopt1_test: Crash # (try {result=code();...  try/finally
-cha_deopt2_test: Crash # (try {result=code();...  try/finally
-cha_deopt3_test: Crash # (try {result=code();...  try/finally
-char_escape_test: RuntimeError # Please triage this failure.
+cha_deopt1_test: RuntimeError # V.loadLibrary is not a function
+cha_deopt2_test: RuntimeError # R.loadLibrary is not a function
+cha_deopt3_test: RuntimeError # K.loadLibrary is not a function
 class_override_test/00: Crash # (try {instance.foo();}on NoSuchMethodError catch (error){}finally {}): try/finally
 class_override_test/none: Crash # (try {instance.foo();}finally {}): try/finally
-closure7_test: RuntimeError # Cannot read property 'prototype' of undefined
-closure8_test: RuntimeError # Cannot read property 'prototype' of undefined
-closure_cycles_test: Crash # (try {return f();}finally {Zone._leave(old);}): try/finally
 closure_in_constructor_test: Crash # Invalid argument(s)
 closure_self_reference_test: Crash # (try {return inner(value-1);}finally {counter++ ;}): try/finally
-closure_shared_state_test: RuntimeError # Cannot read property 'prototype' of undefined
 closure_type_variables_test: Crash # Invalid argument(s)
-closures_initializer2_test: RuntimeError # Cannot read property 'prototype' of undefined
-closures_initializer_test: RuntimeError # Please triage this failure.
-compile_time_constant_a_test: RuntimeError # Please triage this failure.
-compile_time_constant_b_test: RuntimeError # Please triage this failure.
-compile_time_constant_checked2_test/01: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked2_test/02: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked2_test/03: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked2_test/04: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked2_test/05: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked2_test/06: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked3_test/01: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked3_test/02: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked3_test/03: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked3_test/04: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked3_test/05: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked3_test/06: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked_test/01: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked_test/02: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_checked_test/03: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_q_test: Crash # The null object does not have a setter 'parent='.
-compile_time_constant_r_test/none: Crash # The null object does not have a setter 'parent='.
-compound_assignment_operator_test: RuntimeError # Please triage this failure.
-const_constructor3_test/01: Crash # The null object does not have a setter 'parent='.
-const_constructor3_test/02: Crash # The null object does not have a setter 'parent='.
-const_constructor3_test/03: Crash # The null object does not have a setter 'parent='.
-const_constructor3_test/04: Crash # The null object does not have a setter 'parent='.
-const_evaluation_test/01: Crash # Internal Error: No default constructor available.
-const_init2_test/01: Crash # The null object does not have a setter 'parent='.
-const_init2_test/02: Crash # The null object does not have a setter 'parent='.
-const_list_test: RuntimeError # Please triage this failure.
-const_map_test: RuntimeError # Please triage this failure.
 const_nested_test: Crash # Invalid argument(s)
 const_switch2_test/none: Crash # (switch (a){case 1:print("OK");}): Unhandled node
 const_switch_test/01: Crash # (switch (c){case con...  Unhandled node
@@ -427,72 +370,48 @@ constructor_with_mixin_test: Crash # Internal Error: No default constructor avai
 continue_test: Crash # (switch (0){case 0:i=22;continue;default:i=25;break;}): Unhandled node
 crash_12118_test: Crash # Invalid argument(s)
 crash_6725_test/01: Crash # The null object does not have a getter '_element'.
-critical_edge2_test: Crash # The null object does not have a setter 'parent='.
-critical_edge_test: Crash # The null object does not have a setter 'parent='.
 custom_await_stack_trace_test: Crash # (main()async{try {va...  cannot handle async/sync*/async* functions
-cyclic_metadata_test/01: Crash # The null object does not have a setter 'parent='.
-cyclic_metadata_test/02: Crash # The null object does not have a setter 'parent='.
-cyclic_metadata_test/none: Crash # The null object does not have a setter 'parent='.
-cyclic_type_test/00: RuntimeError # Cannot read property 'prototype' of undefined
-cyclic_type_test/01: RuntimeError # Cannot read property 'prototype' of undefined
-cyclic_type_test/02: RuntimeError # Cannot read property 'prototype' of undefined
-cyclic_type_test/03: RuntimeError # Cannot read property 'prototype' of undefined
-cyclic_type_test/04: RuntimeError # Cannot read property 'prototype' of undefined
-deferred_closurize_load_library_test: Crash # The null object does not have a setter 'parent='.
-deferred_constant_list_test: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_constants_test/none: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_constants_test/reference_after_load: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/as_operation: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/catch_check: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/is_check: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/new: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/new_before_load: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/new_generic1: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/new_generic2: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/new_generic3: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/none: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/static_method: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/type_annotation1: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/type_annotation_null: Crash # The null object does not have a setter 'parent='.
-deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # The null object does not have a setter 'parent='.
-deferred_function_type_test: Crash # (try {result=code();...  try/finally
-deferred_global_test: Crash # The null object does not have a setter 'parent='.
-deferred_inlined_test: Crash # (try {result=code();...  try/finally
-deferred_load_constants_test/none: Crash # The null object does not have a setter 'parent='.
-deferred_load_inval_code_test: Crash # (try {result=code();...  try/finally
-deferred_load_library_wrong_args_test/01: Crash # (try {result=code();...  try/finally
-deferred_load_library_wrong_args_test/none: Crash # (try {result=code();...  try/finally
-deferred_mixin_test: Crash # The null object does not have a setter 'parent='.
-deferred_no_such_method_test: Crash # The null object does not have a setter 'parent='.
-deferred_not_loaded_check_test: RuntimeError # Please triage this failure.
-deferred_only_constant_test: Crash # (try {result=code();...  try/finally
-deferred_optimized_test: Crash # (try {result=code();...  try/finally
-deferred_redirecting_factory_test: Crash # The null object does not have a setter 'parent='.
-deferred_regression_22995_test: Crash # (try {result=code();...  try/finally
-deferred_shadow_load_library_test: Crash # The null object does not have a setter 'parent='.
-deferred_shared_and_unshared_classes_test: Crash # The null object does not have a setter 'parent='.
-deferred_static_seperate_test: Crash # The null object does not have a setter 'parent='.
+deferred_closurize_load_library_test: RuntimeError # D.loadLibrary is not a function
+deferred_constant_list_test: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_constants_test/none : RuntimeError # TypeError: S.loadLibrary is not a function
+deferred_constraints_constants_test/reference_after_load : RuntimeError # TypeError: G.loadLibrary is not a function
+deferred_constraints_type_annotation_test/as_operation : RuntimeError # TypeError: Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/catch_check: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+deferred_constraints_type_annotation_test/is_check : RuntimeError # TypeError: L.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new: RuntimeError # R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_before_load : RuntimeError # TypeError: K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError # R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic2: RuntimeError # X.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic3: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/none: RuntimeError # D.loadLibrary is not a function
+deferred_constraints_type_annotation_test/static_method: RuntimeError # F.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # T.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # Q.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # Q.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # U.loadLibrary is not a function
+deferred_function_type_test : RuntimeError # TypeError: N.loadLibrary is not a function
+deferred_global_test: RuntimeError # Y.loadLibrary is not a function
+deferred_inlined_test: RuntimeError # B.loadLibrary is not a function
+deferred_load_constants_test/none : RuntimeError # Expect.throws fails: Did not throw
+deferred_load_inval_code_test: RuntimeError # O.loadLibrary is not a function
+deferred_load_library_wrong_args_test/none: RuntimeError # Y.loadLibrary is not a function
+deferred_mixin_test: RuntimeError # X.loadLibrary is not a function
+deferred_no_such_method_test: RuntimeError # D.loadLibrary is not a function
+deferred_not_loaded_check_test : RuntimeError # Expect.isTrue(false) fails.
+deferred_only_constant_test: RuntimeError # O.loadLibrary is not a function
+deferred_optimized_test: RuntimeError # Q.loadLibrary is not a function
+deferred_redirecting_factory_test: Crash # (test()async{await t...  cannot handle async/sync*/async* functions
+deferred_regression_22995_test : RuntimeError # TypeError: U.loadLibrary is not a function
+deferred_shadow_load_library_test: RuntimeError # Y.loadLibrary is not a function
+deferred_shared_and_unshared_classes_test: RuntimeError # U.loadLibrary is not a function
+deferred_static_seperate_test: RuntimeError # L.loadLibrary is not a function
 deopt_inlined_function_lazy_test: Crash # (try {return x+12342353257893275483274832;}finally {}): try/finally
-deopt_no_feedback_test: RuntimeError # Please triage this failure.
-disassemble_test: Crash # The null object does not have a setter 'parent='.
-div_by_zero_test: Crash # The null object does not have a setter 'parent='.
-dynamic_field_test/01: Crash # The null object does not have a setter 'parent='.
-dynamic_field_test/02: Crash # The null object does not have a setter 'parent='.
 empty_block_case_test: Crash # (switch (1){case 1:{}case 2:Expect.equals(true,false);}): Unhandled node
-enum_duplicate_test/01: RuntimeError # Please triage this failure.
-enum_duplicate_test/02: RuntimeError # Please triage this failure.
-enum_duplicate_test/none: RuntimeError # Please triage this failure.
-enum_mirror_test: Crash # The null object does not have a setter 'parent='.
-enum_private_test/01: RuntimeError # Please triage this failure.
-enum_private_test/02: RuntimeError # Please triage this failure.
-enum_private_test/none: RuntimeError # Please triage this failure.
 enum_test: Crash # (switch (e){case Enu...  Unhandled node
-exception_test: Crash # The null object does not have a setter 'parent='.
 execute_finally10_test: Crash # (try {throw 'foo';}c...  try/finally
 execute_finally11_test: Crash # (try {throw 'foo';}c...  try/finally
 execute_finally12_test: Crash # (try {try {}finally {a=8;break;}}finally {return a==8;}): try/finally
@@ -505,22 +424,8 @@ execute_finally6_test: Crash # (try {try {int j;j=f...  try/finally
 execute_finally7_test: Crash # (try {var a=new List...  try/finally
 execute_finally8_test: Crash # (try {sum+= 1;return 'hi';}finally {sum+= 1;throw 'ball';sum+= 1;}): try/finally
 execute_finally9_test: Crash # (try {sum+= 1;return...  try/finally
-expect_test: Crash # The null object does not have a setter 'parent='.
-export_cyclic_test: Crash # The null object does not have a setter 'parent='.
-export_main_override_test: Crash # The null object does not have a setter 'parent='.
-export_private_test/none: Crash # The null object does not have a setter 'parent='.
-export_test: Crash # The null object does not have a setter 'parent='.
-f_bounded_equality_test: RuntimeError # Cannot read property 'prototype' of undefined
-factory3_test: Crash # The null object does not have a setter 'parent='.
-fannkuch_test: Crash # The null object does not have a setter 'parent='.
-field_increment_bailout_test: Crash # The null object does not have a setter 'parent='.
-final_super_field_set_test/01: Crash # The null object does not have a setter 'parent='.
+final_super_field_set_test/01: RuntimeError # Please triage this failure.
 finally_test: Crash # (try {i=12;}finally {Expect.equals(12,i);executedFinally=true;}): try/finally
-first_class_types_test: RuntimeError # Please triage this failure.
-fixed_length_test: RuntimeError # Please triage this failure.
-fixed_type_variable_test/02: RuntimeError # Cannot read property 'prototype' of undefined
-fixed_type_variable_test/04: RuntimeError # Cannot read property 'prototype' of undefined
-fixed_type_variable_test/06: RuntimeError # Cannot read property 'prototype' of undefined
 flatten_test/01: Crash # (test()async{int x=await new Derived<int>();}): cannot handle async/sync*/async* functions
 flatten_test/02: Crash # (test()async{Future<int> f()async=>new Derived<int>();}): cannot handle async/sync*/async* functions
 flatten_test/03: Crash # (test()async{Future<...  cannot handle async/sync*/async* functions
@@ -536,186 +441,59 @@ flatten_test/12: Crash # (test()async{Future<...  cannot handle async/sync*/asyn
 flatten_test/none: Crash # (test()async{}): cannot handle async/sync*/async* functions
 for2_test: Crash # The null object does not have a getter 'field'.
 for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
-function_getter_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_literals_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_bound_closure0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_bound_closure1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_call0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_factory1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_local0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_local1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_named1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_not0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_optional1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_simple0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_simple1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_simple2_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_top_level0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_syntax_test/none: RuntimeError # Please triage this failure.
-function_test: RuntimeError # Please triage this failure.
-function_type_alias6_test/none: RuntimeError # Cannot read property 'prototype' of undefined
-gc_test: RuntimeError # Please triage this failure.
-generic2_test: RuntimeError # Please triage this failure.
+generic_closure_test: Crash # Instance of 'TypeOperator': type check unimplemented for F.
 generic_constructor_mixin2_test: Crash # Internal Error: No default constructor available.
 generic_constructor_mixin3_test: Crash # Internal Error: No default constructor available.
 generic_constructor_mixin_test: Crash # Internal Error: No default constructor available.
-generic_creation_test: RuntimeError # Cannot read property 'prototype' of undefined
 generic_field_mixin3_test: RuntimeError # Please triage this failure.
-generic_instanceof_test: RuntimeError # Please triage this failure.
-generic_native_test: RuntimeError # Please triage this failure.
-generics2_test: Crash # The null object does not have a setter 'parent='.
-getter_closure_execution_order_test: Crash # The null object does not have a setter 'parent='.
-getter_setter_interceptor_test: RuntimeError # Please triage this failure.
-getter_setter_order_test: RuntimeError # Please triage this failure.
-gvn_interceptor_test: RuntimeError # Please triage this failure.
-hello_dart_test: Crash # The null object does not have a setter 'parent='.
-hello_script_test: Crash # The null object does not have a setter 'parent='.
-identical_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
-if_null_assignment_behavior_test/01: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/02: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/04: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/05: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/06: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/07: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/08: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/09: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/10: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/12: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/16: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/17: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/18: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/19: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/20: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/21: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/22: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/23: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/24: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/25: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/26: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/27: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/28: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/01: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/03: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/04: RuntimeError # v0.get$b is not a function
-if_null_assignment_static_test/05: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/08: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/10: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/11: RuntimeError # v0.get$b is not a function
-if_null_assignment_static_test/12: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/15: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/17: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/18: RuntimeError # v0.get$b is not a function
-if_null_assignment_static_test/19: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/22: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/24: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/25: RuntimeError # v0.get$b is not a function
-if_null_assignment_static_test/26: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/29: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/30: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/31: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/32: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/33: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/34: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/35: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/36: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/38: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/39: RuntimeError # v0.get$b is not a function
-if_null_assignment_static_test/40: RuntimeError # v0.get$a is not a function
-implicit_closure1_test: Crash # The null object does not have a setter 'parent='.
-implicit_closure2_test: RuntimeError # Cannot read property 'prototype' of undefined
-implicit_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
+if_null_assignment_static_test/01: RuntimeError # Issue 23669
+if_null_assignment_static_test/03: RuntimeError # Issue 23669
+if_null_assignment_static_test/04: RuntimeError # Issue 23669
+if_null_assignment_static_test/05: RuntimeError # Issue 23669
+if_null_assignment_static_test/08: RuntimeError # Issue 23669
+if_null_assignment_static_test/10: RuntimeError # Issue 23669
+if_null_assignment_static_test/11: RuntimeError # Issue 23669
+if_null_assignment_static_test/12: RuntimeError # Issue 23669
+if_null_assignment_static_test/15: RuntimeError # Issue 23669
+if_null_assignment_static_test/17: RuntimeError # Issue 23669
+if_null_assignment_static_test/18: RuntimeError # Issue 23669
+if_null_assignment_static_test/19: RuntimeError # Issue 23669
+if_null_assignment_static_test/22: RuntimeError # Issue 23669
+if_null_assignment_static_test/24: RuntimeError # Issue 23669
+if_null_assignment_static_test/25: RuntimeError # Issue 23669
+if_null_assignment_static_test/26: RuntimeError # Issue 23669
+if_null_assignment_static_test/29: RuntimeError # Issue 23669
+if_null_assignment_static_test/31: RuntimeError # Issue 23669
+if_null_assignment_static_test/32: RuntimeError # Issue 23669
+if_null_assignment_static_test/33: RuntimeError # Issue 23669
+if_null_assignment_static_test/36: RuntimeError # Issue 23669
+if_null_assignment_static_test/38: RuntimeError # Issue 23669
+if_null_assignment_static_test/39: RuntimeError # Issue 23669
+if_null_assignment_static_test/40: RuntimeError # Issue 23669
 implicit_super_constructor_call_test: Crash # Invalid argument(s)
-import_collection_no_prefix_test: Crash # The null object does not have a setter 'parent='.
-import_combinators_negative_test: Crash # The null object does not have a setter 'parent='.
-import_core_no_prefix_test: Crash # The null object does not have a setter 'parent='.
-import_core_prefix_test: Crash # The null object does not have a setter 'parent='.
-import_private_test/none: Crash # The null object does not have a setter 'parent='.
-incr_op_test: RuntimeError # Please triage this failure.
-index_test: RuntimeError # Please triage this failure.
-inference_list_or_null_test: Crash # The null object does not have a setter 'parent='.
 inference_mixin_field_test: Crash # Internal Error: No default constructor available.
-inferrer_constructor4_test: Crash # The null object does not have a setter 'parent='.
-inferrer_constructor5_test/01: Crash # The null object does not have a setter 'parent='.
-inferrer_synthesized_constructor_test: Crash # Invalid argument(s)
+inferrer_synthesized_constructor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 inferrer_synthesized_super_constructor_test: Crash # Invalid argument(s)
-infinite_switch_label_test: Crash # (switch (target){l0:...  Unhandled node
-inline_in_for_initializer_and_bailout_test: Crash # The null object does not have a setter 'parent='.
-inlined_conditional_test: RuntimeError # Cannot read property 'prototype' of undefined
-inlined_throw_test: Crash # The null object does not have a setter 'parent='.
-instance_creation_in_function_annotation_test: Crash # (switch (name){case ...  Unhandled node
-instanceof2_test: RuntimeError # Please triage this failure.
+infinite_switch_label_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+inlined_throw_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 instanceof4_test/01: RuntimeError # Please triage this failure.
-interceptor7_test: RuntimeError # Please triage this failure.
-interceptor8_test: Crash # The null object does not have a setter 'parent='.
-interface_inherit_field_test: Crash # The null object does not have a setter 'parent='.
-invocation_mirror2_test: Crash # The null object does not have a setter 'parent='.
-invocation_mirror_invoke_on2_test: Crash # The null object does not have a setter 'parent='.
-invocation_mirror_invoke_on_test: Crash # The null object does not have a setter 'parent='.
-invocation_mirror_test: Crash # The null object does not have a setter 'parent='.
-is_function_test: RuntimeError # Cannot read property 'prototype' of undefined
+integer_division_by_zero_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+invocation_mirror_invoke_on_test: RuntimeError # Please triage this failure.
+invocation_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue10581_test: Crash # (switch (type){case ...  Unhandled node
-issue10783_test: Crash # The null object does not have a setter 'parent='.
 issue12023_test: Crash # (switch (action){cas...  Unhandled node
-issue12288_test: RuntimeError # Please triage this failure.
-issue13179_test: RuntimeError # Cannot read property 'prototype' of undefined
-issue18628_1_test/01: Crash # The null object does not have a setter 'parent='.
+issue13474_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 issue20476_test: Crash # (try {try {return 1;}catch (e1){}finally {return 3;}}catch (e2){}finally {return 5;}): try/finally
-issue22800_test: Crash # The null object does not have a setter 'parent='.
-issue7513_test: RuntimeError # Please triage this failure.
-issue9939_test: Crash # The null object does not have a setter 'parent='.
-issue_1751477_test: Crash # (try {result=code();...  try/finally
-issue_22780_test/01: Crash # The null object does not have a setter 'parent='.
+issue_1751477_test: RuntimeError # O.loadLibrary is not a function
 label_test: Crash # (switch (i){case 111:while(doAgain()){break L;}default:i-- ;}): Unhandled node
 large_class_declaration_test: Crash # Stack Overflow
-library_ambiguous_test/04: Crash # The null object does not have a setter 'parent='.
-library_ambiguous_test/none: Crash # The null object does not have a setter 'parent='.
-list_is_test: RuntimeError # Please triage this failure.
-list_literal3_test: RuntimeError # Please triage this failure.
-list_test: RuntimeError # Please triage this failure.
-list_tracer_closure_test: RuntimeError # Please triage this failure.
-list_tracer_in_list_test: RuntimeError # Please triage this failure.
-list_tracer_in_map_test: RuntimeError # Please triage this failure.
-list_tracer_return_from_tearoff_closure_test: RuntimeError # Please triage this failure.
-local_function_test: RuntimeError # Please triage this failure.
-logical_expression_test: RuntimeError # Please triage this failure.
-main_test/01: Crash # (try {result=code();...  try/finally
-main_test/02: Crash # (try {result=code();...  try/finally
-main_test/04: Crash # (try {result=code();...  try/finally
-main_test/05: Crash # (try {result=code();...  try/finally
-main_test/20: Crash # (try {result=code();...  try/finally
-main_test/21: Crash # (try {result=code();...  try/finally
-main_test/22: Crash # (try {result=code();...  try/finally
-main_test/41: Crash # (try {result=code();...  try/finally
-main_test/42: Crash # (try {result=code();...  try/finally
-main_test/43: Crash # (try {result=code();...  try/finally
-main_test/44: Crash # (try {result=code();...  try/finally
-main_test/45: Crash # (try {result=code();...  try/finally
-malformed2_test/00: Crash # The null object does not have a setter 'parent='.
-malformed2_test/01: Crash # The null object does not have a setter 'parent='.
-malformed_type_test: Crash # The null object does not have a setter 'parent='.
-many_calls_test: RuntimeError # Please triage this failure.
-many_generic_instanceof_test: RuntimeError # Please triage this failure.
-many_named_arguments_test: RuntimeError # Please triage this failure.
-many_overridden_no_such_method_test: Crash # The null object does not have a setter 'parent='.
-map_literal10_test: RuntimeError # Please triage this failure.
-mega_load_test: RuntimeError # Please triage this failure.
-method_binding_test: RuntimeError # Cannot read property 'prototype' of undefined
-method_override2_test/00: Crash # The null object does not have a setter 'parent='.
-method_override2_test/01: Crash # The null object does not have a setter 'parent='.
-method_override2_test/02: Crash # The null object does not have a setter 'parent='.
-method_override2_test/03: Crash # The null object does not have a setter 'parent='.
-method_override2_test/none: Crash # The null object does not have a setter 'parent='.
-methods_as_constants2_test: RuntimeError # Cannot read property 'prototype' of undefined
-minify_closure_variable_collision_test: RuntimeError # Please triage this failure.
+malformed_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+many_overridden_no_such_method_test: RuntimeError # Please triage this failure.
+method_override5_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 mint_arithmetic_test: Crash # (try {f(a,b){var s=b...  try/finally
-mint_compares_test: RuntimeError # Cannot read property 'prototype' of undefined
-missing_const_constructor_test/01: Crash # The null object does not have a setter 'parent='.
-missing_const_constructor_test/none: Crash # The null object does not have a setter 'parent='.
 mixin_bound_test: Crash # Internal Error: No default constructor available.
 mixin_forwarding_constructor1_test: Crash # Internal Error: No default constructor available.
 mixin_forwarding_constructor3_test: Crash # Internal Error: No default constructor available.
-mixin_prefix_test: Crash # Internal Error: No default constructor available.
 mixin_super_constructor2_test: Crash # Internal Error: No default constructor available.
 mixin_super_constructor_default_test: Crash # Internal Error: No default constructor available.
 mixin_super_constructor_multiple_test: Crash # Internal Error: No default constructor available.
@@ -731,52 +509,11 @@ mixin_type_parameters_mixin_test: Crash # The null object does not have a getter
 mixin_type_parameters_super_extends_test: Crash # The null object does not have a getter '_element'.
 mixin_type_parameters_super_test: Crash # The null object does not have a getter '_element'.
 mixin_typedef_constructor_test: Crash # Internal Error: No default constructor available.
-named_parameters_with_conversions_test: RuntimeError # Cannot read property 'prototype' of undefined
-named_parameters_with_dollars_test: RuntimeError # Please triage this failure.
-nan_identical_test: Crash # The null object does not have a setter 'parent='.
-native_test: Crash # The null object does not have a setter 'parent='.
-nested_if_test: RuntimeError # Please triage this failure.
+modulo_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 nested_switch_label_test: Crash # (switch (target){out...  Unhandled node
-no_such_method2_test: Crash # The null object does not have a setter 'parent='.
-no_such_method3_test: Crash # The null object does not have a setter 'parent='.
-no_such_method_dispatcher_test: Crash # The null object does not have a setter 'parent='.
-no_such_method_empty_selector_test: Crash # The null object does not have a setter 'parent='.
-no_such_method_subtype_test: Crash # The null object does not have a setter 'parent='.
-no_such_method_test: Crash # The null object does not have a setter 'parent='.
-null_no_such_method_test: Crash # The null object does not have a setter 'parent='.
-null_test/none: Crash # The null object does not have a setter 'parent='.
-null_to_string2_test: RuntimeError # Cannot read property 'prototype' of undefined
-null_to_string_test: RuntimeError # Cannot read property 'prototype' of undefined
-number_identity2_test: Crash # The null object does not have a setter 'parent='.
-operator_index_evaluation_order_test: RuntimeError # Please triage this failure.
-optimize_redundant_array_load_test: RuntimeError # Please triage this failure.
-optimized_lists_test: RuntimeError # Please triage this failure.
-ordered_maps_test: RuntimeError # Please triage this failure.
-osr_test: RuntimeError # Please triage this failure.
-overridden_no_such_method_test: Crash # The null object does not have a setter 'parent='.
-override_inheritance_no_such_method_test/03: Crash # The null object does not have a setter 'parent='.
-override_inheritance_no_such_method_test/04: Crash # The null object does not have a setter 'parent='.
-override_inheritance_no_such_method_test/05: Crash # The null object does not have a setter 'parent='.
-override_inheritance_no_such_method_test/08: Crash # The null object does not have a setter 'parent='.
-override_inheritance_no_such_method_test/11: Crash # The null object does not have a setter 'parent='.
-override_inheritance_no_such_method_test/13: Crash # The null object does not have a setter 'parent='.
-override_method_with_field_test/02: Crash # The null object does not have a setter 'parent='.
-override_method_with_field_test/none: Crash # The null object does not have a setter 'parent='.
-param2_test: RuntimeError # Please triage this failure.
-parameter_default_test/none: Crash # The null object does not have a setter 'parent='.
-part2_test: Crash # The null object does not have a setter 'parent='.
-part_test: Crash # The null object does not have a setter 'parent='.
-phi_merge_test: Crash # The null object does not have a setter 'parent='.
-prefix14_test: RuntimeError # Cannot read property 'prototype' of undefined
-prefix15_test: RuntimeError # Cannot read property 'prototype' of undefined
-prefix21_test: RuntimeError # Cannot read property 'prototype' of undefined
-private2_test: Crash # The null object does not have a setter 'parent='.
-private3_test: Crash # The null object does not have a setter 'parent='.
-private_mixin_exception_throw_test: Crash # The null object does not have a setter 'parent='.
-pure_function2_test: RuntimeError # Please triage this failure.
-pure_function_test: RuntimeError # Please triage this failure.
-range_analysis_test: RuntimeError # Cannot read property 'prototype' of undefined
-recursive_calls_test: RuntimeError # Cannot read property 'prototype' of undefined
+no_such_method_test: RuntimeError # Please triage this failure.
+overridden_no_such_method_test: RuntimeError # Please triage this failure.
+phi_merge_test: Crash # (switch (value){case 42:break;case 43:break;}): Unhandled node
 ref_before_declaration_test/00: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
 ref_before_declaration_test/01: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
 ref_before_declaration_test/02: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
@@ -785,27 +522,15 @@ ref_before_declaration_test/04: Crash # (switch (x){case 0:var x='Does fuzzy log
 ref_before_declaration_test/05: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
 ref_before_declaration_test/06: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
 ref_before_declaration_test/none: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
-reg_ex2_test: Crash # The null object does not have a setter 'parent='.
-reg_exp2_test: Crash # The null object does not have a setter 'parent='.
-reg_exp_test: RuntimeError # Please triage this failure.
-regress_11800_test: RuntimeError # Please triage this failure.
-regress_12561_test: Crash # The null object does not have a setter 'parent='.
-regress_13462_0_test: Crash # The null object does not have a setter 'parent='.
-regress_14105_test: Crash # The null object does not have a setter 'parent='.
 regress_18435_test: Crash # Invalid argument(s)
-regress_18535_test: Crash # The null object does not have a setter 'parent='.
-regress_20074_test: Crash # The null object does not have a setter 'parent='.
-regress_21016_test: RuntimeError # Please triage this failure.
-regress_21793_test/01: Crash # The null object does not have a setter 'parent='.
-regress_21793_test/none: Crash # The null object does not have a setter 'parent='.
-regress_21795_test: Crash # The null object does not have a setter 'parent='.
+regress_18535_test: Crash # Internal Error: No default constructor available.
+regress_21795_test: Crash # (try {foo(t);}finally {if(t==0){try {}catch (err,st){}}}): try/finally
 regress_22438_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
-regress_22443_test: Crash # (try {result=code();...  try/finally
+regress_22443_test: RuntimeError # M.loadLibrary is not a function
 regress_22445_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22579_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
-regress_22700_test: Crash # The null object does not have a setter 'parent='.
 regress_22728_test: Crash # (main()async{bool fa...  cannot handle async/sync*/async* functions
-regress_22777_test: Crash # The null object does not have a setter 'parent='.
+regress_22777_test: Crash # (test()async{try {te...  cannot handle async/sync*/async* functions
 regress_22822_test: Crash # (try {for(int i=0;i<10;i++ ){return ()=>i+b;}}finally {b=10;}): try/finally
 regress_22936_test/01: Crash # The null object does not have a getter '_element'.
 regress_22936_test/none: Crash # The null object does not have a getter '_element'.
@@ -815,56 +540,21 @@ regress_23500_test/02: Crash # (main()async{var err...  cannot handle async/sync
 regress_23500_test/none: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23537_test: Crash # (try {var b;try {for...  try/finally
 regress_23650_test: Crash # (try {return new C<T>.foo();}finally {}): try/finally
-savannah_test: Crash # The null object does not have a setter 'parent='.
-setter_no_getter_call_test/01: Crash # The null object does not have a setter 'parent='.
-setter_no_getter_call_test/none: Crash # The null object does not have a setter 'parent='.
 stack_trace_test: Crash # (try {int j;i=func2(...  try/finally
-stacktrace_rethrow_error_test/none: Crash # The null object does not have a setter 'parent='.
-stacktrace_rethrow_error_test/withtraceparameter: Crash # The null object does not have a setter 'parent='.
-stacktrace_rethrow_nonerror_test: Crash # The null object does not have a setter 'parent='.
 statement_test: Crash # (try {throw "foo";}c...  try/finally
-static_closure_identical_test: RuntimeError # Cannot read property 'prototype' of undefined
-static_field_test/01: Crash # The null object does not have a setter 'parent='.
-static_field_test/02: Crash # The null object does not have a setter 'parent='.
-static_field_test/03: Crash # The null object does not have a setter 'parent='.
-static_field_test/04: Crash # The null object does not have a setter 'parent='.
-static_field_test/none: Crash # The null object does not have a setter 'parent='.
-static_final_field2_test/01: Crash # The null object does not have a setter 'parent='.
-static_final_field2_test/none: Crash # The null object does not have a setter 'parent='.
-static_getter_no_setter2_test/01: Crash # The null object does not have a setter 'parent='.
-static_getter_no_setter2_test/none: Crash # The null object does not have a setter 'parent='.
-static_implicit_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
 static_postfix_operator_test: Crash # (try {if(a++ ==0){inIt=true;}}finally {}): try/finally
-static_setter_get_test/01: Crash # The null object does not have a setter 'parent='.
-string_interpolate_test: Crash # The null object does not have a setter 'parent='.
-string_interpolation_newline_test: Crash # The null object does not have a setter 'parent='.
-string_interpolation_test/01: RuntimeError # Cannot read property 'prototype' of undefined
-string_interpolation_test/none: RuntimeError # Cannot read property 'prototype' of undefined
-string_join_test: RuntimeError # Please triage this failure.
-string_test: RuntimeError # Please triage this failure.
-substring_test/01: Crash # The null object does not have a setter 'parent='.
 super_all_named_constructor_test: Crash # Invalid argument(s)
 super_bound_closure_test/01: RuntimeError # Cannot read property 'call' of undefined
 super_bound_closure_test/none: RuntimeError # Cannot read property 'call' of undefined
-super_call4_test: Crash # The null object does not have a setter 'parent='.
-super_getter_setter_test: Crash # The null object does not have a setter 'parent='.
-super_implicit_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
+super_call4_test: RuntimeError # Please triage this failure.
+super_getter_setter_test: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
+super_implicit_closure_test: RuntimeError # Cannot read property 'call' of undefined
 super_operator_index2_test: RuntimeError # this.get$map is not a function
-super_operator_index3_test: RuntimeError # Please triage this failure.
-super_operator_index4_test: RuntimeError # Please triage this failure.
-super_operator_index5_test: Crash # The null object does not have a setter 'parent='.
-super_operator_index6_test: Crash # The null object does not have a setter 'parent='.
-super_operator_index7_test: Crash # The null object does not have a setter 'parent='.
-super_operator_index8_test: Crash # The null object does not have a setter 'parent='.
-super_operator_index_test/01: Crash # The null object does not have a setter 'parent='.
-super_operator_index_test/02: Crash # The null object does not have a setter 'parent='.
+super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
+super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
+super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
 super_operator_index_test/03: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-super_operator_index_test/04: Crash # The null object does not have a setter 'parent='.
 super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-super_operator_index_test/06: Crash # The null object does not have a setter 'parent='.
-super_operator_index_test/07: Crash # The null object does not have a setter 'parent='.
-super_operator_test: Crash # The null object does not have a setter 'parent='.
-super_setter_interceptor_test: Crash # The null object does not have a setter 'parent='.
 switch6_test: Crash # (switch (a){case 0:{x=0;break;}case 1:x=1;break;}): Unhandled node
 switch8_test: Crash # (switch (new List(1)[0]){case const A():throw 'Test failed';}): Unhandled node
 switch_bad_case_test/none: Crash # (switch (n){case 1:return "I";case 4:return "IV";}): Unhandled node
@@ -875,15 +565,15 @@ switch_label2_test: Crash # (switch (target){cas...  Unhandled node
 switch_label_test: Crash # (switch (animal){cas...  Unhandled node
 switch_scope_test: Crash # (switch (1){case 1:f...  Unhandled node
 switch_test: Crash # (switch (input){case true:result=12;break;case false:result=22;}): Unhandled node
-switch_try_catch_test: Crash # (switch (0){_0:case ...  Unhandled node
-sync_generator1_test/01: Crash # (dreiVier()sync*{yield* 3;}): cannot handle async/sync*/async* functions
+switch_try_catch_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+sync_generator1_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 sync_generator1_test/none: Crash # (einsZwei()sync*{yie...  cannot handle async/sync*/async* functions
-sync_generator2_test/07: Crash # The null object does not have a setter 'parent='.
-sync_generator2_test/08: Crash # The null object does not have a setter 'parent='.
-sync_generator2_test/10: Crash # The null object does not have a setter 'parent='.
-sync_generator2_test/none: Crash # The null object does not have a setter 'parent='.
-sync_generator3_test/test1: Crash # The null object does not have a setter 'parent='.
-sync_generator3_test/test2: Crash # (g()sync*{try {yield...  cannot handle async/sync*/async* functions
+sync_generator2_test/07: Crash # (sync()sync*{yield sync;}): cannot handle async/sync*/async* functions
+sync_generator2_test/08: Crash # (sync()sync*{yield sync;}): cannot handle async/sync*/async* functions
+sync_generator2_test/10: Crash # (sync()sync*{yield sync;}): cannot handle async/sync*/async* functions
+sync_generator2_test/none: Crash # (sync()sync*{yield sync;}): cannot handle async/sync*/async* functions
+sync_generator3_test/test1: Crash # (f()sync*{try {yield...  cannot handle async/sync*/async* functions
+sync_generator3_test/test2: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 syncstar_yield_test/copyParameters: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yield_test/none: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yieldstar_test: Crash # (main()async{Expect....  cannot handle async/sync*/async* functions
@@ -895,202 +585,23 @@ throw5_test: Crash # (try {int j;j=func()...  try/finally
 throw6_test: Crash # (try {j=func();}catc...  try/finally
 throw8_test: Crash # (try {try {return 49...  try/finally
 throw_test: Crash # (try {int j;j=func()...  try/finally
-top_level_in_initializer_test: RuntimeError # Cannot read property 'prototype' of undefined
+truncdiv_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 try_catch3_test: Crash # (try {int j;j=f2();j...  try/finally
 try_catch4_test: Crash # (try {doThrow();}cat...  try/finally
 try_catch5_test: Crash # (try {try {a=8;return;}finally {b=8==a;entered=true;continue;}}finally {continue;}): try/finally
-try_catch_optimized1_test: Crash # The null object does not have a setter 'parent='.
 try_catch_optimized2_test: Crash # (try {bar();}finally {}): try/finally
 try_catch_osr_test: Crash # (try {if(x==null)throw 42;return 99;}finally {}): try/finally
 try_catch_test/none: Crash # The null object does not have a getter '_element'.
-type_check_const_function_typedef2_test/00: RuntimeError # Cannot read property 'prototype' of undefined
-type_check_const_function_typedef2_test/none: RuntimeError # Cannot read property 'prototype' of undefined
-type_check_const_function_typedef_test: RuntimeError # Cannot read property 'prototype' of undefined
-type_checks_in_factory_method_test: Crash # The null object does not have a setter 'parent='.
-type_error_test: Crash # The null object does not have a setter 'parent='.
-type_parameter_test/01: Crash # The null object does not have a setter 'parent='.
-type_parameter_test/02: Crash # The null object does not have a setter 'parent='.
-type_parameter_test/03: Crash # The null object does not have a setter 'parent='.
-type_parameter_test/04: Crash # The null object does not have a setter 'parent='.
-type_parameter_test/05: Crash # The null object does not have a setter 'parent='.
-type_parameter_test/06: Crash # The null object does not have a setter 'parent='.
-type_parameter_test/none: Crash # The null object does not have a setter 'parent='.
-type_promotion_assign_test/01: Crash # The null object does not have a setter 'parent='.
-type_promotion_assign_test/02: Crash # The null object does not have a setter 'parent='.
-type_promotion_assign_test/03: Crash # The null object does not have a setter 'parent='.
-type_promotion_assign_test/04: Crash # The null object does not have a setter 'parent='.
-type_promotion_assign_test/none: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/01: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/02: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/03: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/04: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/05: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/06: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/07: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/08: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/09: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/10: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/11: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/12: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/13: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/14: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/15: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/16: Crash # The null object does not have a setter 'parent='.
-type_promotion_closure_test/none: Crash # The null object does not have a setter 'parent='.
-type_promotion_functions_test/01: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/02: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/03: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/04: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/05: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/06: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/07: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/08: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/09: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/10: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/11: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/12: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/13: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/14: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/none: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_local_test/01: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/02: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/03: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/04: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/05: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/06: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/07: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/08: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/09: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/10: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/11: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/12: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/13: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/14: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/15: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/16: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/17: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/18: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/19: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/20: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/21: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/22: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/23: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/24: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/25: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/26: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/27: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/28: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/29: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/30: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/31: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/32: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/33: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/34: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/35: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/36: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/37: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/38: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/39: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/40: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/41: Crash # The null object does not have a setter 'parent='.
-type_promotion_local_test/none: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/01: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/02: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/03: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/04: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/05: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/06: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/07: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/08: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/09: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/10: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/11: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/12: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/13: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/14: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/15: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/16: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/17: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/18: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/19: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/20: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/21: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/22: Crash # The null object does not have a setter 'parent='.
-type_promotion_multiple_test/none: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/01: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/02: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/03: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/04: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/05: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/06: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/07: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/08: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/09: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/10: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/11: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/12: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/13: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/14: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/15: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/16: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/17: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/18: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/19: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/20: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/21: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/22: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/23: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/24: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/25: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/26: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/27: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/28: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/29: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/30: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/31: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/32: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/33: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/34: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/35: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/36: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/37: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/38: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/39: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/40: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/41: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/42: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/43: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/44: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/45: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/46: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/47: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/48: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/49: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/50: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/51: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/52: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/54: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/55: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/56: Crash # The null object does not have a setter 'parent='.
-type_promotion_parameter_test/none: Crash # The null object does not have a setter 'parent='.
-type_propagation2_test: Crash # The null object does not have a setter 'parent='.
+type_parameter_test/01: Crash # Invalid argument(s)
+type_parameter_test/02: Crash # Invalid argument(s)
+type_parameter_test/03: Crash # Invalid argument(s)
+type_parameter_test/04: Crash # Invalid argument(s)
+type_parameter_test/05: Crash # Invalid argument(s)
+type_parameter_test/06: Crash # Invalid argument(s)
+type_parameter_test/none: Crash # Invalid argument(s)
 type_variable_closure2_test: RuntimeError # Please triage this failure.
-type_variable_closure_test: Crash # Invalid argument(s)
-type_variable_conflict2_test/01: Crash # The null object does not have a setter 'parent='.
-type_variable_conflict2_test/05: Crash # The null object does not have a setter 'parent='.
-type_variable_conflict2_test/07: Crash # The null object does not have a setter 'parent='.
-type_variable_conflict2_test/09: Crash # The null object does not have a setter 'parent='.
-type_variable_field_initializer_closure_test: RuntimeError # Please triage this failure.
-type_variable_field_initializer_test: RuntimeError # Please triage this failure.
-type_variable_identifier_expression_test: Crash # The null object does not have a setter 'parent='.
-type_variable_nested_test: RuntimeError # Please triage this failure.
-type_variable_scope2_test: Crash # The null object does not have a setter 'parent='.
-typedef_is_test: RuntimeError # Cannot read property 'prototype' of undefined
+type_variable_closure_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
 typevariable_substitution2_test/01: Crash # Internal Error: No default constructor available.
 typevariable_substitution2_test/02: Crash # Internal Error: No default constructor available.
 typevariable_substitution2_test/none: Crash # Internal Error: No default constructor available.
-unbound_getter_test: Crash # The null object does not have a setter 'parent='.
-unresolved_top_level_method_negative_test: Crash # The null object does not have a setter 'parent='.
-unresolved_top_level_var_negative_test: Crash # The null object does not have a setter 'parent='.
-unsupported_operators_test/none: Crash # The null object does not have a setter 'parent='.
 void_type_test: Crash # (switch (n){case 0:x...  Unhandled node

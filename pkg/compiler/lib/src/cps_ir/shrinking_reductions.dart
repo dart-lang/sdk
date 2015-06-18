@@ -673,11 +673,6 @@ class ParentVisitor extends RecursiveVisitor {
   processApplyBuiltinOperator(ApplyBuiltinOperator node) {
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
-
-    processForeignCode(ForeignCode node) {
-    node.continuation.parent = node;
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
 }
 
 class _ReductionKind {

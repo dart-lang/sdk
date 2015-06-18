@@ -22,8 +22,8 @@ abstract class TypeMask {
 
   factory TypeMask.exact(ClassElement base, ClassWorld classWorld) {
     assert(invariant(base, classWorld.isInstantiated(base),
-        message: "Cannot create extact type mask for uninstantiated class "
-          "${base.name}"));
+        message: "Cannot create extact type mask for "
+                 "uninstantiated class $base"));
     return new FlatTypeMask.exact(base);
   }
 

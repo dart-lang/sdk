@@ -344,14 +344,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String args = node.arguments.map(access).join(' ');
     return '(ApplyBuiltinOperator $operator ($args))';
   }
-
-  @override
-  String visitForeignCode(ForeignCode node) {
-    String arguments = node.arguments.map(access).join(' ');
-    String continuation = node.continuation == null ? ''
-        : ' ${access(node.continuation)}';
-    return '(JS ${node.type} ${node.codeTemplate} ($arguments)$continuation)';
-  }
 }
 
 class ConstantStringifier extends ConstantValueVisitor<String, Null> {

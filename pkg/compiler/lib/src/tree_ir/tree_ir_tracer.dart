@@ -172,10 +172,6 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
     visitStatement(node.next);
   }
-
-  visitForeignStatement(ForeignStatement node) {
-    _addStatement(node);
-  }
 }
 
 class TreeTracer extends TracerUtil with StatementVisitor {
@@ -324,11 +320,6 @@ class TreeTracer extends TracerUtil with StatementVisitor {
 
   String expr(Expression e) {
     return e.accept(new SubexpressionVisitor(names));
-  }
-
-  @override
-  visitForeignStatement(ForeignStatement node) {
-    printStatement(null, 'foreign');
   }
 }
 
@@ -517,12 +508,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   String visitCreateInvocationMirror(CreateInvocationMirror node) {
     String args = node.arguments.map(visitExpression).join(', ');
     return 'CreateInvocationMirror(${node.selector.name}, $args)';
-  }
-
-  @override
-  String visitForeignExpression(ForeignExpression node) {
-    String arguments = node.arguments.map(visitExpression).join(', ');
-    return 'Foreign "${node.codeTemplate}"($arguments)';
   }
 
   @override
