@@ -2548,7 +2548,7 @@ class Script extends ServiceObject with Coverage {
       return r;
     }
 
-    final lastColumn = tokenToCol(endTokenPos);
+    var lastColumn = tokenToCol(endTokenPos);
     if (lastColumn == null) {
       return r;
     }
@@ -2572,6 +2572,11 @@ class Script extends ServiceObject with Coverage {
     if (line == lastLine) {
       // Only one line.
       if (!getLine(line).isTrivialLine) {
+        // TODO(johnmccutchan): end token pos -> column can lie for snapshotted
+        // code. e.g.:
+        // io_sink.dart source line 23 ends at column 39
+        // io_sink.dart snapshotted source line 23 ends at column 35.
+        lastColumn = math.min(getLine(line).text.length, lastColumn);
         lineContents = getLine(line).text.substring(column, lastColumn - 1);
         return scanLineForLocalVariableLocations(pattern,
                                                   name,
@@ -2608,6 +2613,11 @@ class Script extends ServiceObject with Coverage {
 
     // Scan last line.
     if (!getLine(line).isTrivialLine) {
+      // TODO(johnmccutchan): end token pos -> column can lie for snapshotted
+      // code. e.g.:
+      // io_sink.dart source line 23 ends at column 39
+      // io_sink.dart snapshotted source line 23 ends at column 35.
+      lastColumn = math.min(getLine(line).text.length, lastColumn);
       lineContents = getLine(line).text.substring(0, lastColumn - 1);
       r.addAll(
           scanLineForLocalVariableLocations(pattern,
