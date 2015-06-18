@@ -41,7 +41,7 @@ import 'dart:_js_embedded_names' show JsGetName, JsBuiltin;
  *    described:
  *
  *    + `=Object` is a plain JavaScript object.  Some DOM methods return
- *       instances that have no corresponing Dart type (e.g. cross-frame
+ *       instances that have no corresponding Dart type (e.g. cross-frame
  *       documents), `=Object` can be used to describe these untyped' values.
  *
  *    + `var` (or empty string).  If the entire [typeDescription] is `var` (or

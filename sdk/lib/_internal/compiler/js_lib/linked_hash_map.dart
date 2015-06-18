@@ -44,7 +44,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   /// If ES6 Maps are available returns a linked hash-map backed by an ES6 Map.
   @ForceInline()
   factory JsLinkedHashMap.es6() {
-    return (_USE_ES6_MAPS  && JsLinkedHashMap._supportsEs6Maps)
+    return (_USE_ES6_MAPS && JsLinkedHashMap._supportsEs6Maps)
         ? new Es6LinkedHashMap<K, V>()
         : new JsLinkedHashMap<K, V>();
   }
