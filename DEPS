@@ -192,6 +192,8 @@ deps = {
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
+  Var("dart_root") + "/third_party/pkg/dartdoc":  
+      "https://github.com/dart-lang/dartdoc.git" + Var("dartdoc_tag"),
   Var("dart_root") + "/third_party/pkg/glob":
       (Var("github_mirror") % "glob") + Var("glob_rev"),
   Var("dart_root") + "/third_party/pkg/html":
@@ -223,6 +225,10 @@ deps = {
       (Var("github_mirror") % "metatest") + Var("metatest_rev"),
   Var("dart_root") + "/third_party/pkg/mime":
       (Var("github_mirror") % "mime") + Var("mime_rev"),
+  Var("dart_root") + "/third_party/pkg/mustache4dart":  
+      Var("chromium_git")  
+      + "/external/github.com/valotas/mustache4dart.git"   
+      + Var("mustache4dart_rev"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       (Var("github_mirror") % "oauth2") + Var("oauth2_rev"),
   Var("dart_root") + "/third_party/pkg/observe":
@@ -240,6 +246,12 @@ deps = {
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":
       ("https://github.com/dart-lang/pub.git") + Var("pub_rev"),
+  Var("dart_root") + "/third_party/pkg/pub_cache":  
+      (Var("github_mirror") % "pub_cache") + Var("pub_cache_tag"),
+  Var("dart_root") + "/third_party/pkg/quiver": 
+      Var("chromium_git")  
+      + "/external/github.com/google/quiver-dart.git"  
+      + Var("quiver_tag"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
       (Var("github_mirror") % "scheduled_test") +
       Var("scheduled_test_tag"),
