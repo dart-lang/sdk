@@ -62,6 +62,7 @@ regress_22976_test/02: CompileTimeError # Issue 23132
 
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
+nullaware_opt_test: Fail # Fails at e?.f ??= 200;
 
 conditional_method_invocation_test/11: MissingCompileTimeError # Issue 23611
 conditional_property_access_test/09: MissingCompileTimeError # Issue 23611

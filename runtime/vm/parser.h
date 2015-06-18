@@ -577,7 +577,9 @@ class Parser : public ValueObject {
   AstNode* LoadReceiver(intptr_t token_pos);
   AstNode* LoadFieldIfUnresolved(AstNode* node);
   AstNode* LoadClosure(PrimaryNode* primary);
-  AstNode* CallGetter(intptr_t token_pos, AstNode* object, const String& name);
+  InstanceGetterNode* CallGetter(intptr_t token_pos,
+                                 AstNode* object,
+                                 const String& name);
 
   AstNode* ParseAssertStatement();
   AstNode* ParseJump(String* label_name);
@@ -708,7 +710,8 @@ class Parser : public ValueObject {
                            intptr_t ident_pos);
   AstNode* ParseInstanceCall(AstNode* receiver,
                              const String& method_name,
-                             intptr_t ident_pos);
+                             intptr_t ident_pos,
+                             bool is_conditional);
   AstNode* ParseClosureCall(AstNode* closure);
   AstNode* GenerateStaticFieldLookup(const Field& field,
                                      intptr_t ident_pos);

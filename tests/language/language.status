@@ -18,17 +18,13 @@ closure_in_initializer_test: Fail # Issue 6422
 duplicate_export_negative_test: Fail # Issue 6134
 
 [ $compiler == none ]
-# Null-aware operators aren't implemented in the VM yet.
-if_null_evaluation_order_test: Fail
-if_null_precedence_test: Fail
-if_null_behavior_test: Fail
-if_null_assignment_behavior_test: Fail, Pass
-if_null_assignment_static_test: Fail
-conditional_property_assignment_test: Fail, Pass
-conditional_property_access_test: Fail, Pass
-conditional_property_increment_decrement_test: Fail
-conditional_method_invocation_test: Fail, Pass
-this_conditional_operator_test/none: Fail
+conditional_property_assignment_test/20: Fail # Issue 23612
+conditional_property_assignment_test/21: Fail # Issue 23612
+conditional_property_assignment_test/22: Fail # Issue 23612
+conditional_method_invocation_test/11: Fail # Issue 23612
+conditional_property_access_test/09: Fail # Issue 23612
+if_null_assignment_behavior_test/29: Fail # Issue 23612
+if_null_assignment_behavior_test/30: Fail # Issue 23612
 
 deferred_redirecting_factory_test: Fail # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488

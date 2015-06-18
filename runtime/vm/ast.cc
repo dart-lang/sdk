@@ -262,6 +262,7 @@ bool BinaryOpNode::IsKindValid() const {
     case Token::kMOD:
     case Token::kOR:
     case Token::kAND:
+    case Token::kIFNULL:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
     case Token::kBIT_AND:
@@ -529,18 +530,23 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
 
 
 AstNode* InstanceGetterNode::MakeAssignmentNode(AstNode* rhs) {
-  return new InstanceSetterNode(token_pos(), receiver(), field_name(), rhs);
+  return new InstanceSetterNode(token_pos(),
+                                receiver(),
+                                field_name(),
+                                rhs,
+                                is_conditional());
 }
 
 
 bool InstanceGetterNode::IsPotentiallyConst() const {
   return field_name().Equals(Symbols::Length()) &&
+    !is_conditional() &&
     receiver()->IsPotentiallyConst();
 }
 
 
 const Instance* InstanceGetterNode::EvalConstExpr() const {
-  if (field_name().Equals(Symbols::Length())) {
+  if (field_name().Equals(Symbols::Length()) && !is_conditional()) {
     const Instance* receiver_val = receiver()->EvalConstExpr();
     if ((receiver_val != NULL) && receiver_val->IsString()) {
       return &Instance::ZoneHandle(Smi::New(1));
