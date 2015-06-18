@@ -164,7 +164,7 @@ static bool IsNumberCid(intptr_t cid) {
 // Attempt to build ICData for call using propagated class-ids.
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
-  if (call->ic_data()->NumberOfUsedChecks() > 0) {
+  if (call->ic_data()->NumberOfChecks() > 0) {
     // This occurs when an instance call has too many checks, will be converted
     // to megamorphic call.
     return false;
