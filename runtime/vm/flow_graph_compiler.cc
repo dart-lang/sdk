@@ -69,7 +69,8 @@ DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 
 static void NooptModeHandler(bool value) {
   if (value) {
-    FLAG_always_megamorphic_calls = value;
+    FLAG_always_megamorphic_calls = true;
+    FLAG_polymorphic_with_deopt = false;
     FLAG_optimization_counter_threshold = -1;
     FLAG_use_field_guards = false;
     FLAG_use_osr = false;

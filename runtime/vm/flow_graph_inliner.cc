@@ -59,6 +59,7 @@ DEFINE_FLAG(bool, enable_inlining_annotations, false,
 
 DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
+DECLARE_FLAG(bool, polymorphic_with_deopt);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(bool, verify_compiler);
@@ -1134,6 +1135,8 @@ class CallSiteInliner : public ValueObject {
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
       if (call->with_checks()) {
+        // PolymorphicInliner introduces deoptimization paths.
+        if (!FLAG_polymorphic_with_deopt) return;
         const Function& cl = call_info[call_idx].caller();
         intptr_t caller_inlining_id =
             call_info[call_idx].caller_graph->inlining_id();
