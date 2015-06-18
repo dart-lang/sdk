@@ -1280,7 +1280,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitCreateInstance(CreateInstance node) {
-    setValue(node, nonConstant(typeSystem.nonNullExact(node.classElement)));
+    setValue(node, nonConstant(typeSystem.nonNullExact(node.classElement.declaration)));
   }
 
   void visitReifyRuntimeType(ReifyRuntimeType node) {
@@ -1303,6 +1303,17 @@ class TypePropagationVisitor implements Visitor {
   void visitCreateInvocationMirror(CreateInvocationMirror node) {
     // TODO(asgerf): Expose [Invocation] type.
     setValue(node, nonConstant(typeSystem.nonNullType));
+  }
+
+  @override
+  visitForeignCode(ForeignCode node) {
+    Continuation continuation = node.continuation.definition;
+    setReachable(continuation);
+
+    assert(continuation.parameters.length == 1);
+    Parameter returnValue = continuation.parameters.first;
+
+    setValue(returnValue, nonConstant(node.type));
   }
 }
 

@@ -592,5 +592,10 @@ class Builder implements cps_ir.Visitor<Node> {
     return new ApplyBuiltinOperator(node.operator,
                                     translateArguments(node.arguments));
   }
+
+  @override
+  visitForeignCode(cps_ir.ForeignCode node) {
+    unexpectedNode(node);
+  }
 }
 

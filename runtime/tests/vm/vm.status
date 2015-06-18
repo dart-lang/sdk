@@ -91,3 +91,6 @@ dart/snapshot_version_test: SkipByDesign  # Spawns processes
 
 [ $runtime == vm && $mode == debug && $builder_tag == asan ]
 cc/Dart2JSCompileAll: Skip  # Timeout.
+[ $compiler == dart2js && $cps_ir ]
+dart/error_stacktrace_test: Crash # The null object does not have a setter 'parent='.
+dart/optimized_stacktrace_test: Crash # The null object does not have a setter 'parent='.

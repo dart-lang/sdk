@@ -20,6 +20,10 @@ import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder_task.dart' show DartCapturedVariables,
     GlobalProgramInformation;
 
+import '../common.dart' as types show TypeMask;
+import '../js/js.dart' as js show Template;
+import '../native/native.dart' show NativeBehavior;
+
 /// A mapping from variable elements to their compile-time values.
 ///
 /// Map elements denoted by parameters and local variables to the
@@ -2409,6 +2413,27 @@ class JsIrBuilder extends IrBuilder {
   ir.Primitive buildInvocationMirror(Selector selector,
                                      List<ir.Primitive> arguments) {
     return addPrimitive(new ir.CreateInvocationMirror(selector, arguments));
+  }
+
+  ir.Primitive buildForeignCode(js.Template codeTemplate,
+                                List<ir.Primitive> arguments,
+                                NativeBehavior behavior,
+                                {Element dependency}) {
+    types.TypeMask type = program.getTypeMaskForForeign(behavior);
+    if (codeTemplate.isExpression) {
+      return _continueWithExpression((k) => new ir.ForeignCode(
+        codeTemplate,
+        type,
+        arguments,
+        behavior,
+        continuation: k,
+        dependency: dependency));
+    } else {
+      assert(isOpen);
+      add(new ir.ForeignCode(codeTemplate, type, arguments, behavior,
+          dependency: dependency));
+      _current = null;
+    }
   }
 
   @override

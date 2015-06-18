@@ -126,34 +126,64 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-count_test: Crash # (switch (testCase.re...  Unhandled node
+bool_from_environment_default_value_test: Crash # (try {return f();}finally {Zone._leave(old);}): try/finally
+capability_test: Crash # The null object does not have a setter 'parent='.
+compile_time_error_test/none: Crash # The null object does not have a setter 'parent='.
+count_test: Crash # (try {_microtaskLoop...  try/finally
 cross_isolate_message_test: Crash # (switch (msg[0]){cas...  Unhandled node
-deferred_in_isolate2_test: Crash # (switch (testCase.re...  Unhandled node
-function_send_test: Crash # (try {p.send(func);}finally {p.send(0);}): try/finally
-handle_error2_test: Crash # (switch (state){case...  Unhandled node
+deferred_in_isolate2_test: Crash # (try {_microtaskLoop...  try/finally
+deferred_in_isolate_test: Crash # The null object does not have a setter 'parent='.
+enum_const_test/02: Crash # (switch (x.first){ca...  Unhandled node
+function_send_test: Crash # The null object does not have a setter 'parent='.
+handle_error2_test: Crash # (try {return f();}finally {Zone._leave(old);}): try/finally
 handle_error3_test: Crash # (switch (state2){cas...  Unhandled node
-handle_error_test: Crash # (switch (state){case...  Unhandled node
-illegal_msg_function_test: Crash # (switch (testCase.re...  Unhandled node
-illegal_msg_mirror_test: Crash # (switch (testCase.re...  Unhandled node
-isolate_complex_messages_test: Crash # (switch (testCase.re...  Unhandled node
-isolate_current_test: Crash # (switch (state){case...  Unhandled node
-mandel_isolate_test: Crash # (switch (testCase.re...  Unhandled node
-message2_test: Crash # (switch (testCase.re...  Unhandled node
-message3_test/constInstance: Crash # Invalid argument(s)
-message3_test/constList: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/constList_identical: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/constMap: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message_test: Crash # (switch (testCase.re...  Unhandled node
-mint_maker_test: Crash # (switch (testCase.re...  Unhandled node
-nested_spawn2_test: Crash # (switch (testCase.re...  Unhandled node
-nested_spawn_test: Crash # (switch (testCase.re...  Unhandled node
-raw_port_test: Crash # (switch (testCase.re...  Unhandled node
-request_reply_test: Crash # (switch (testCase.re...  Unhandled node
-spawn_function_custom_class_test: Crash # (switch (testCase.re...  Unhandled node
-spawn_function_test: Crash # (switch (testCase.re...  Unhandled node
-spawn_uri_multi_test/01: Crash # (switch (testCase.re...  Unhandled node
-spawn_uri_multi_test/none: Crash # (switch (testCase.re...  Unhandled node
-stacktrace_message_test: Crash # (switch (testCase.re...  Unhandled node
-static_function_test: Crash # (switch (testCase.re...  Unhandled node
-timer_isolate_test: Crash # (switch (testCase.re...  Unhandled node
-unresolved_ports_test: Crash # (switch (testCase.re...  Unhandled node
+handle_error_test: Crash # (try {_microtaskLoop...  try/finally
+illegal_msg_function_test: Crash # (try {_microtaskLoop...  try/finally
+illegal_msg_mirror_test: Crash # (try {_microtaskLoop...  try/finally
+int_from_environment_default_value_test: Crash # (try {return f();}finally {Zone._leave(old);}): try/finally
+isolate_complex_messages_test: Crash # (try {_microtaskLoop...  try/finally
+isolate_current_test: Crash # The null object does not have a setter 'parent='.
+isolate_import_test/none: Crash # (try {_microtaskLoop...  try/finally
+isolate_stress_test: Crash # The null object does not have a setter 'parent='.
+issue_22778_test: Crash # (switch (x.first){ca...  Unhandled node
+kill2_test: Crash # (switch (x.first){ca...  Unhandled node
+kill_self_test: Crash # (switch (x.first){ca...  Unhandled node
+kill_test: Crash # (switch (x.first){ca...  Unhandled node
+mandel_isolate_test: Crash # (=ReceivePortImpl;): Unhandled node
+message2_test: Crash # (try {_microtaskLoop...  try/finally
+message3_test/byteBuffer: Crash # The null object does not have a setter 'parent='.
+message3_test/constInstance: Crash # The null object does not have a setter 'parent='.
+message3_test/constList: Crash # The null object does not have a setter 'parent='.
+message3_test/constList_identical: Crash # The null object does not have a setter 'parent='.
+message3_test/constMap: Crash # The null object does not have a setter 'parent='.
+message3_test/fun: Crash # The null object does not have a setter 'parent='.
+message3_test/int32x4: Crash # The null object does not have a setter 'parent='.
+message3_test/none: Crash # The null object does not have a setter 'parent='.
+message_enum_test: Crash # (try {_microtaskLoop...  try/finally
+message_test: Crash # (try {_microtaskLoop...  try/finally
+mint_maker_test: Crash # (try {_microtaskLoop...  try/finally
+nested_spawn2_test: Crash # (try {_microtaskLoop...  try/finally
+nested_spawn_test: Crash # (try {_microtaskLoop...  try/finally
+object_leak_test: Crash # The null object does not have a setter 'parent='.
+ondone_test: Crash # The null object does not have a setter 'parent='.
+pause_test: Crash # The null object does not have a setter 'parent='.
+ping_pause_test: Crash # (switch (x.first){ca...  Unhandled node
+ping_test: Crash # (switch (x.first){ca...  Unhandled node
+port_test: Crash # (try {_microtaskLoop...  try/finally
+raw_port_test: Crash # (try {_microtaskLoop...  try/finally
+request_reply_test: Crash # (try {_microtaskLoop...  try/finally
+simple_message_test/01: Crash # The null object does not have a setter 'parent='.
+simple_message_test/none: Crash # The null object does not have a setter 'parent='.
+spawn_function_custom_class_test: Crash # (try {_microtaskLoop...  try/finally
+spawn_function_test: Crash # (try {_microtaskLoop...  try/finally
+spawn_uri_missing_from_isolate_test: Crash # The null object does not have a setter 'parent='.
+spawn_uri_missing_test: Crash # The null object does not have a setter 'parent='.
+spawn_uri_multi_test/01: Crash # (try {_microtaskLoop...  try/finally
+spawn_uri_multi_test/none: Crash # (try {_microtaskLoop...  try/finally
+stacktrace_message_test: Crash # (try {_microtaskLoop...  try/finally
+start_paused_test: Crash # The null object does not have a setter 'parent='.
+static_function_test: Crash # (try {_microtaskLoop...  try/finally
+string_from_environment_default_value_test: Crash # (try {return f();}finally {Zone._leave(old);}): try/finally
+timer_isolate_test: Crash # (try {_microtaskLoop...  try/finally
+typed_message_test: Crash # The null object does not have a setter 'parent='.
+unresolved_ports_test: Crash # (try {_microtaskLoop...  try/finally
