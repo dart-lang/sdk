@@ -111,6 +111,8 @@
     'lib/src/elements/observatory_application.html',
     'lib/src/elements/observatory_element.dart',
     'lib/src/elements/observatory_element.html',
+    'lib/src/elements/ports.dart',
+    'lib/src/elements/ports.html',
     'lib/src/elements/script_inset.dart',
     'lib/src/elements/script_inset.html',
     'lib/src/elements/script_ref.dart',

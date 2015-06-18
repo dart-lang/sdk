@@ -40,6 +40,7 @@ export 'package:observatory/src/elements/object_common.dart';
 export 'package:observatory/src/elements/object_view.dart';
 export 'package:observatory/src/elements/observatory_application.dart';
 export 'package:observatory/src/elements/observatory_element.dart';
+export 'package:observatory/src/elements/ports.dart';
 export 'package:observatory/src/elements/script_inset.dart';
 export 'package:observatory/src/elements/script_ref.dart';
 export 'package:observatory/src/elements/script_view.dart';

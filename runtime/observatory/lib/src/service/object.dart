@@ -884,6 +884,10 @@ class Isolate extends ServiceObjectOwner with Coverage {
         .then(_buildClassHierarchy);
   }
 
+  Future<ServiceObject> getPorts() {
+    return invokeRpc('_getPorts', {});
+  }
+
   Future<List<Class>> getClassRefs() async {
     ServiceMap classList = await invokeRpc('getClassList', {});
     assert(classList.type == 'ClassList');

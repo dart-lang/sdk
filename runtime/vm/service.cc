@@ -2436,6 +2436,19 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_ports_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool GetPorts(Isolate* isolate, JSONStream* js) {
+  MessageHandler* message_handler = isolate->message_handler();
+  PortMap::PrintPortsForMessageHandler(message_handler, js);
+  return true;
+}
+
+
 static bool RespondWithMalformedJson(Isolate* isolate,
                                       JSONStream* js) {
   JSONObject jsobj(js);
@@ -2793,6 +2806,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_object_params },
   { "_getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
+  { "_getPorts", GetPorts,
+    get_ports_params },
   { "_getRetainedSize", GetRetainedSize,
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,
