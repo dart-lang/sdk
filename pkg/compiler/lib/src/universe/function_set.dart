@@ -48,30 +48,26 @@ class FunctionSet {
    * Returns an object that allows iterating over all the functions
    * that may be invoked with the given [selector].
    */
-  Iterable<Element> filter(Selector selector) {
-    return query(selector).functions;
+  Iterable<Element> filter(Selector selector, TypeMask mask) {
+    return query(selector, mask).functions;
   }
 
-  TypeMask receiverType(Selector selector) {
-    return query(selector).computeMask(compiler.world);
+  TypeMask receiverType(Selector selector, TypeMask mask) {
+    return query(selector, mask).computeMask(compiler.world);
   }
 
-  FunctionSetQuery query(Selector selector) {
+  FunctionSetQuery query(Selector selector, TypeMask mask) {
     String name = selector.name;
     FunctionSetNode node = nodes[name];
     FunctionSetNode noSuchMethods = nodes[Compiler.NO_SUCH_METHOD];
     if (node != null) {
-      return node.query(selector, compiler, noSuchMethods);
+      return node.query(selector, mask, compiler, noSuchMethods);
     }
     // If there is no method that matches [selector] we know we can
     // only hit [:noSuchMethod:].
     if (noSuchMethods == null) return const FunctionSetQuery(const <Element>[]);
-    selector = (selector.mask == null)
-        ? compiler.noSuchMethodSelector
-        : new TypedSelector(selector.mask, compiler.noSuchMethodSelector,
-            compiler.world);
-
-    return noSuchMethods.query(selector, compiler, null);
+    return noSuchMethods.query(
+        compiler.noSuchMethodSelector, mask, compiler, null);
   }
 
   void forEach(Function action) {
@@ -84,8 +80,8 @@ class FunctionSet {
 
 class FunctionSetNode {
   final String name;
-  final Map<Selector, FunctionSetQuery> cache =
-      new Map<Selector, FunctionSetQuery>();
+  final Map<Selector, Map<TypeMask, FunctionSetQuery>> cache =
+      <Selector, Map<TypeMask, FunctionSetQuery>>{};
 
   // Initially, we keep the elements in a list because it is more
   // compact than a hash set. Once we get enough elements, we change
@@ -142,24 +138,30 @@ class FunctionSetNode {
     elements.forEach(action);
   }
 
-  TypeMask getNonNullTypeMaskOfSelector(Selector selector, Compiler compiler) {
+  TypeMask getNonNullTypeMaskOfSelector(TypeMask mask, Compiler compiler) {
     // TODO(ngeoffray): We should probably change untyped selector
     // to always be a subclass of Object.
-    return selector.mask != null
-        ? selector.mask
+    return mask != null
+        ? mask
         : new TypeMask.subclass(compiler.objectClass, compiler.world);
     }
 
   FunctionSetQuery query(Selector selector,
+                         TypeMask mask,
                          Compiler compiler,
                          FunctionSetNode noSuchMethods) {
     ClassWorld classWorld = compiler.world;
     assert(selector.name == name);
-    FunctionSetQuery result = cache[selector];
+    Map<TypeMask, FunctionSetQuery> cacheMap =
+        cache.putIfAbsent(
+            selector, () => new Maplet<TypeMask, FunctionSetQuery>());
+    FunctionSetQuery result = cacheMap[mask];
     if (result != null) return result;
+
     Setlet<Element> functions;
     for (Element element in elements) {
-      if (selector.appliesUnnamed(element, classWorld)) {
+      if (selector.appliesUnnamed(element, classWorld) &&
+          (mask == null || mask.canHit(element, selector, classWorld))) {
         if (functions == null) {
           // Defer the allocation of the functions set until we are
           // sure we need it. This allows us to return immutable empty
@@ -170,15 +172,15 @@ class FunctionSetNode {
       }
     }
 
-    TypeMask mask = getNonNullTypeMaskOfSelector(selector, compiler);
+    mask = getNonNullTypeMaskOfSelector(mask, compiler);
     // If we cannot ensure a method will be found at runtime, we also
     // add [noSuchMethod] implementations that apply to [mask] as
     // potential targets.
     if (noSuchMethods != null
         && mask.needsNoSuchMethodHandling(selector, classWorld)) {
       FunctionSetQuery noSuchMethodQuery = noSuchMethods.query(
-          new TypedSelector(
-              mask, compiler.noSuchMethodSelector, classWorld),
+          compiler.noSuchMethodSelector,
+          mask,
           compiler,
           null);
       if (!noSuchMethodQuery.functions.isEmpty) {
@@ -189,14 +191,15 @@ class FunctionSetNode {
         }
       }
     }
-    cache[selector] = result = (functions != null)
-        ? newQuery(functions, selector, compiler)
+    cacheMap[mask] = result = (functions != null)
+        ? newQuery(functions, selector, mask, compiler)
         : const FunctionSetQuery(const <Element>[]);
     return result;
   }
 
   FunctionSetQuery newQuery(Iterable<Element> functions,
                             Selector selector,
+                            TypeMask mask,
                             Compiler compiler) {
     return new FullFunctionSetQuery(functions);
   }

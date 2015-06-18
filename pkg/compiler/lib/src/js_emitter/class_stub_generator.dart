@@ -48,7 +48,7 @@ class ClassStubGenerator {
    * Invariant: [member] must be a declaration element.
    */
   Map<String, jsAst.Expression> generateCallStubsForGetter(
-      Element member, Set<Selector> selectors) {
+      Element member, Map<Selector, TypeMaskSet> selectors) {
     assert(invariant(member, member.isDeclaration));
 
     // If the method is intercepted, the stub gets the
@@ -80,10 +80,15 @@ class ClassStubGenerator {
     // identical stubs for each we track untyped selectors which already have
     // stubs.
     Set<Selector> generatedSelectors = new Set<Selector>();
-    for (Selector selector in selectors) {
-      if (selector.applies(member, compiler.world)) {
-        selector = selector.asUntyped;
-        if (generatedSelectors.contains(selector)) continue;
+    for (Selector selector in selectors.keys) {
+      if (generatedSelectors.contains(selector)) continue;
+      if (!selector.appliesUnnamed(member, compiler.world)) continue;
+      for (TypeMask mask in selectors[selector].masks) {
+        if (mask != null &&
+            !mask.canHit(member, selector, compiler.world)) {
+          continue;
+        }
+
         generatedSelectors.add(selector);
 
         String invocationName = namer.invocationName(selector);
@@ -122,25 +127,28 @@ class ClassStubGenerator {
       return jsNames;
     }
 
-    void addNoSuchMethodHandlers(String ignore, Set<Selector> selectors) {
+    void addNoSuchMethodHandlers(String ignore,
+                                 Map<Selector, TypeMaskSet> selectors) {
       TypeMask objectSubclassTypeMask =
           new TypeMask.subclass(compiler.objectClass, compiler.world);
 
-      for (Selector selector in selectors) {
-        TypeMask mask = selector.mask;
-        if (mask == null) mask = objectSubclassTypeMask;
+      for (Selector selector in selectors.keys) {
+        TypeMaskSet maskSet = selectors[selector];
+        for (TypeMask mask in maskSet.masks) {
+          if (mask == null) mask = objectSubclassTypeMask;
 
-        if (!mask.needsNoSuchMethodHandling(selector, compiler.world)) {
-          continue;
+          if (mask.needsNoSuchMethodHandling(selector, compiler.world)) {
+            String jsName = namer.invocationMirrorInternalName(selector);
+            jsNames[jsName] = selector;
+            break;
+          }
         }
-        String jsName = namer.invocationMirrorInternalName(selector);
-        jsNames[jsName] = selector;
       }
     }
 
-    compiler.codegenWorld.invokedNames.forEach(addNoSuchMethodHandlers);
-    compiler.codegenWorld.invokedGetters.forEach(addNoSuchMethodHandlers);
-    compiler.codegenWorld.invokedSetters.forEach(addNoSuchMethodHandlers);
+    compiler.codegenWorld.forEachInvokedName(addNoSuchMethodHandlers);
+    compiler.codegenWorld.forEachInvokedGetter(addNoSuchMethodHandlers);
+    compiler.codegenWorld.forEachInvokedSetter(addNoSuchMethodHandlers);
     return jsNames;
   }
 

@@ -58,8 +58,8 @@ class TypeMaskSystem {
     return inferrer.getGuaranteedReturnTypeOfElement(function);
   }
 
-  TypeMask getInvokeReturnType(Selector typedSelector) {
-    return inferrer.getGuaranteedTypeOfSelector(typedSelector);
+  TypeMask getInvokeReturnType(Selector selector, TypeMask mask) {
+    return inferrer.getGuaranteedTypeOfSelector(selector, mask);
   }
 
   TypeMask getFieldType(FieldElement field) {
@@ -337,8 +337,8 @@ class ConstantPropagationLattice {
   /// The possible return types of a method that may be targeted by
   /// [typedSelector]. If the given selector is not a [TypedSelector], any
   /// reachable method matching the selector may be targeted.
-  AbstractValue getInvokeReturnType(Selector typedSelector) {
-    return nonConstant(typeSystem.getInvokeReturnType(typedSelector));
+  AbstractValue getInvokeReturnType(Selector selector, TypeMask mask) {
+    return nonConstant(typeSystem.getInvokeReturnType(selector, mask));
   }
 }
 
@@ -947,7 +947,7 @@ class TypePropagationVisitor implements Visitor {
     }
     if (!node.selector.isOperator) {
       // TODO(jgruber): Handle known methods on constants such as String.length.
-      setResult(lattice.getInvokeReturnType(node.selector));
+      setResult(lattice.getInvokeReturnType(node.selector, node.mask));
       return;
     }
 
@@ -974,7 +974,7 @@ class TypePropagationVisitor implements Visitor {
     // Update value of the continuation parameter. Again, this is effectively
     // a phi.
     if (result == null) {
-      setResult(lattice.getInvokeReturnType(node.selector));
+      setResult(lattice.getInvokeReturnType(node.selector, node.mask));
     } else {
       setResult(result, canReplace: true);
     }

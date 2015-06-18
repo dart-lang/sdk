@@ -1550,7 +1550,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = visitArguments(node.inputs);
     var isolate = new js.VariableUse(
         backend.namer.globalObjectFor(backend.interceptorsLibrary));
-    Selector selector = getOptimizedSelectorFor(node, node.selector);
+    Selector selector = node.selector;
+    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
     String methodName = backend.registerOneShotInterceptor(selector);
     push(js.propertyCall(isolate, methodName, arguments), node);
     if (selector.isGetter) {
@@ -1563,24 +1564,26 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     registry.registerUseInterceptor();
   }
 
-  Selector getOptimizedSelectorFor(HInvokeDynamic node, Selector selector) {
+  TypeMask getOptimizedSelectorFor(HInvokeDynamic node,
+                                   Selector selector,
+                                   TypeMask mask) {
     if (node.element != null) {
       // Create an artificial type mask to make sure only
       // [node.element] will be enqueued. We're not using the receiver
       // type because our optimizations might end up in a state where the
       // invoke dynamic knows more than the receiver.
       ClassElement enclosing = node.element.enclosingClass;
-      TypeMask receiverType =
+      return
           new TypeMask.nonNullExact(enclosing.declaration, compiler.world);
-      return new TypedSelector(receiverType, selector, compiler.world);
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
     // might hit a `noSuchMethod`, we register an untyped selector.
-    return selector.extendIfReachesAll(compiler);
+    return compiler.world.extendMaskIfReachesAll(selector, mask);
   }
 
   void registerMethodInvoke(HInvokeDynamic node) {
-    Selector selector = getOptimizedSelectorFor(node, node.selector);
+    Selector selector = node.selector;
+    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
 
     // If we don't know what we're calling or if we are calling a getter,
     // we need to register that fact that we may be calling a closure
@@ -1591,19 +1594,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // may know something about the types of closures that need
       // the specific closure call method.
       Selector call = new Selector.callClosureFrom(selector);
-      registry.registerDynamicInvocation(call);
+      registry.registerDynamicInvocation(
+          new UniverseSelector(call, null));
     }
-    registry.registerDynamicInvocation(selector);
+    registry.registerDynamicInvocation(
+        new UniverseSelector(selector, mask));
   }
 
   void registerSetter(HInvokeDynamic node) {
-    Selector selector = getOptimizedSelectorFor(node, node.selector);
-    registry.registerDynamicSetter(selector);
+    Selector selector = node.selector;
+    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
+    registry.registerDynamicSetter(
+        new UniverseSelector(selector, mask));
   }
 
   void registerGetter(HInvokeDynamic node) {
-    Selector selector = getOptimizedSelectorFor(node, node.selector);
-    registry.registerDynamicGetter(selector);
+    Selector selector = node.selector;
+    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
+    registry.registerDynamicGetter(
+        new UniverseSelector(selector, mask));
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -1627,7 +1636,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                          backend.namer.invocationName(call),
                          visitArguments(node.inputs)),
          node);
-    registry.registerDynamicInvocation(call);
+    registry.registerDynamicInvocation(
+        new UniverseSelector(call, null));
   }
 
   visitInvokeStatic(HInvokeStatic node) {
@@ -1698,10 +1708,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           // bound closure for a method.
           TypeMask receiverType =
               new TypeMask.nonNullExact(superClass, compiler.world);
-          selector = new TypedSelector(receiverType, selector, compiler.world);
           // TODO(floitsch): we know the target. We shouldn't register a
           // dynamic getter.
-          registry.registerDynamicGetter(selector);
+          registry.registerDynamicGetter(
+              new UniverseSelector(selector, receiverType));
           registry.registerGetterForSuperMethod(node.element);
           methodName = backend.namer.invocationName(selector);
         } else {

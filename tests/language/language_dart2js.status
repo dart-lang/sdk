@@ -446,6 +446,30 @@ generic_constructor_mixin2_test: Crash # Internal Error: No default constructor 
 generic_constructor_mixin3_test: Crash # Internal Error: No default constructor available.
 generic_constructor_mixin_test: Crash # Internal Error: No default constructor available.
 generic_field_mixin3_test: RuntimeError # Please triage this failure.
+if_null_assignment_static_test/01: RuntimeError # Issue 23669
+if_null_assignment_static_test/03: RuntimeError # Issue 23669
+if_null_assignment_static_test/04: RuntimeError # Issue 23669
+if_null_assignment_static_test/05: RuntimeError # Issue 23669
+if_null_assignment_static_test/08: RuntimeError # Issue 23669
+if_null_assignment_static_test/10: RuntimeError # Issue 23669
+if_null_assignment_static_test/11: RuntimeError # Issue 23669
+if_null_assignment_static_test/12: RuntimeError # Issue 23669
+if_null_assignment_static_test/15: RuntimeError # Issue 23669
+if_null_assignment_static_test/17: RuntimeError # Issue 23669
+if_null_assignment_static_test/18: RuntimeError # Issue 23669
+if_null_assignment_static_test/19: RuntimeError # Issue 23669
+if_null_assignment_static_test/22: RuntimeError # Issue 23669
+if_null_assignment_static_test/24: RuntimeError # Issue 23669
+if_null_assignment_static_test/25: RuntimeError # Issue 23669
+if_null_assignment_static_test/26: RuntimeError # Issue 23669
+if_null_assignment_static_test/29: RuntimeError # Issue 23669
+if_null_assignment_static_test/31: RuntimeError # Issue 23669
+if_null_assignment_static_test/32: RuntimeError # Issue 23669
+if_null_assignment_static_test/33: RuntimeError # Issue 23669
+if_null_assignment_static_test/36: RuntimeError # Issue 23669
+if_null_assignment_static_test/38: RuntimeError # Issue 23669
+if_null_assignment_static_test/39: RuntimeError # Issue 23669
+if_null_assignment_static_test/40: RuntimeError # Issue 23669
 implicit_super_constructor_call_test: Crash # Invalid argument(s)
 inference_mixin_field_test: Crash # Internal Error: No default constructor available.
 inferrer_synthesized_constructor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
@@ -529,11 +553,8 @@ super_operator_index2_test: RuntimeError # this.get$map is not a function
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
-super_operator_index_test/01: Crash # The null object does not have a getter 'isParameter'.
 super_operator_index_test/03: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-super_operator_index_test/04: Crash # The null object does not have a getter 'isParameter'.
 super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-super_operator_index_test/06: Crash # The null object does not have a getter 'isParameter'.
 switch6_test: Crash # (switch (a){case 0:{x=0;break;}case 1:x=1;break;}): Unhandled node
 switch8_test: Crash # (switch (new List(1)[0]){case const A():throw 'Test failed';}): Unhandled node
 switch_bad_case_test/none: Crash # (switch (n){case 1:return "I";case 4:return "IV";}): Unhandled node

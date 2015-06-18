@@ -15,6 +15,8 @@ import '../../util/maplet.dart';
 import '../../constants/values.dart';
 import '../../dart2jslib.dart';
 import '../../dart_types.dart';
+import '../../types/types.dart' show TypeMask;
+import '../../universe/universe.dart' show UniverseSelector;
 import '../../closure.dart' show ClosureClassElement;
 
 class CodegenBailout {
@@ -253,10 +255,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   void registerMethodInvoke(tree_ir.InvokeMethod node) {
     Selector selector = node.selector;
+    TypeMask mask = node.mask;
     if (selector.isGetter) {
-      registry.registerDynamicGetter(selector);
+      registry.registerDynamicGetter(new UniverseSelector(selector, mask));
     } else if (selector.isSetter) {
-      registry.registerDynamicSetter(selector);
+      registry.registerDynamicSetter(new UniverseSelector(selector, mask));
     } else {
       assert(invariant(CURRENT_ELEMENT_SPANNABLE,
           selector.isCall || selector.isOperator ||
@@ -264,8 +267,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
           message: 'unexpected kind ${selector.kind}'));
       // TODO(sigurdm): We should find a better place to register the call.
       Selector call = new Selector.callClosureFrom(selector);
-      registry.registerDynamicInvocation(call);
-      registry.registerDynamicInvocation(selector);
+      registry.registerDynamicInvocation(new UniverseSelector(call, null));
+      registry.registerDynamicInvocation(new UniverseSelector(selector, mask));
     }
   }
 
