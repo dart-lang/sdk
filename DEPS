@@ -51,6 +51,7 @@ vars = {
   "dartdoc_rev" : "@9f677ec40f9beeb8933374885ef3af4c63d35d25",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.1.8",
+  "dev_compiler_rev": "@0.1.1",
   "fake_async_rev" : "@38614",
   "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
@@ -91,6 +92,7 @@ vars = {
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
   "source_maps_rev": "@379b4f31c4e2987eb15934d1ad8b419c6cc897b3",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
+  "shelf_static_rev": "@0.2.2",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
   "stack_trace_tag": "@1.2.1",
@@ -194,6 +196,8 @@ deps = {
       (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":  
       "https://github.com/dart-lang/dartdoc.git" + Var("dartdoc_rev"),
+  Var("dart_root") + "/third_party/pkg/dev_compiler":
+      "https://github.com/dart-lang/dev_compiler.git" + Var("dev_compiler_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       (Var("github_mirror") % "glob") + Var("glob_rev"),
   Var("dart_root") + "/third_party/pkg/html":
@@ -257,6 +261,9 @@ deps = {
       Var("scheduled_test_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
       (Var("github_mirror") % "shelf") + Var("shelf_rev"),
+  Var("dart_root") + "/third_party/pkg/shelf_static":
+      "https://github.com/kevmoo/shelf_static.dart.git" +
+      Var("shelf_static_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
       (Var("github_mirror") % "shelf_web_socket") +
       Var("shelf_web_socket_rev"),
