@@ -223,6 +223,76 @@ testBigintModPow() {
   Expect.equals(40128068573873018143207285483, x.modPow(e, m));
 }
 
+testBigintModInverse() {
+  var x, m;
+  x = 1;
+  m = 1;
+  Expect.equals(0, x.modInverse(m));
+  x = 0;
+  m = 1000000001;
+  Expect.throws(() => x.modInverse(m), (e) => e is RangeError);  // Not coprime.
+  x = 1234567890;
+  m = 19;
+  Expect.equals(11, x.modInverse(m));
+  x = 1234567890;
+  m = 1000000001;
+  Expect.equals(189108911, x.modInverse(m));
+  x = 19;
+  m = 1000000001;
+  Expect.throws(() => x.modInverse(m), (e) => e is RangeError);  // Not coprime.
+  x = 19;
+  m = 1234567890;
+  Expect.equals(519818059, x.modInverse(m));
+  x = 1000000001;
+  m = 1234567890;
+  Expect.equals(1001100101, x.modInverse(m));
+  x = 1000000001;
+  m = 19;
+  Expect.throws(() => x.modInverse(m), (e) => e is RangeError);  // Not coprime.
+  x = 12345678901234567890;
+  m = 19;
+  Expect.equals(3, x.modInverse(m));
+  x = 12345678901234567890;
+  m = 10000000000000000001;
+  Expect.equals(9736746307686209582, x.modInverse(m));
+  x = 19;
+  m = 10000000000000000001;
+  Expect.equals(6315789473684210527, x.modInverse(m));
+  x = 19;
+  m = 12345678901234567890;
+  Expect.equals(10396361179987004539, x.modInverse(m));
+  x = 10000000000000000001;
+  m = 12345678901234567890;
+  Expect.equals(325004555487045911, x.modInverse(m));
+  x = 10000000000000000001;
+  m = 19;
+  Expect.equals(7, x.modInverse(m));
+  x = 12345678901234567890;
+  m = 10000000000000000001;
+  Expect.equals(9736746307686209582, x.modInverse(m));
+  x = 12345678901234567890;
+  m = 19;
+  Expect.equals(3, x.modInverse(m));
+  x = 123456789012345678901234567890;
+  m = 123456789012345678901234567899;
+  Expect.throws(() => x.modInverse(m), (e) => e is RangeError);  // Not coprime.
+  x = 123456789012345678901234567890;
+  m = 123456789012345678901234567891;
+  Expect.equals(123456789012345678901234567890, x.modInverse(m));
+  x = 123456789012345678901234567899;
+  m = 123456789012345678901234567891;
+  Expect.equals(77160493132716049313271604932, x.modInverse(m));
+  x = 123456789012345678901234567899;
+  m = 123456789012345678901234567890;
+  Expect.throws(() => x.modInverse(m), (e) => e is RangeError);  // Not coprime.
+  x = 123456789012345678901234567891;
+  m = 123456789012345678901234567890;
+  Expect.equals(1, x.modInverse(m));
+  x = 123456789012345678901234567891;
+  m = 123456789012345678901234567899;
+  Expect.equals(46296295879629629587962962962, x.modInverse(m));
+}
+
 testBigintNegate() {
   var a = 0xF000000000000000F;
   var b = ~a;  // negate.
@@ -254,6 +324,7 @@ main() {
   testBigintDiv();
   testBigintModulo();
   testBigintModPow();
+  testBigintModInverse();
   testBigintNegate();
   testShiftAmount();
   Expect.equals(12345678901234567890, (12345678901234567890).abs());

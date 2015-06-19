@@ -105,10 +105,13 @@ class Heap {
   bool CodeContains(uword addr) const;
   bool StubCodeContains(uword addr) const;
 
-  // Visit all pointers.
+  // Visit all pointers. Caller must ensure concurrent sweeper is not running,
+  // and the visitor must not allocate (see issue 21620).
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
-  // Visit all objects.
+  // Visit all objects, including FreeListElement "objects". Caller must ensure
+  // concurrent sweeper is not running, and the visitor must not allocate (see
+  // issue 21620).
   void VisitObjects(ObjectVisitor* visitor) const;
 
   // Find an object by visiting all pointers in the specified heap space,

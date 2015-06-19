@@ -411,6 +411,70 @@ class JSInt extends JSNumber implements int, double {
     return r;
   }
 
+  // Returns 1/this % m, with m > 0.
+  int modInverse(int m) {
+    if (m is! int) throw new ArgumentError(m);
+    if (m <= 0) throw new RangeError(m);
+    if (m == 1) return 0;
+    int t = this;
+    if ((t < 0) || (t >= m)) t %= m;
+    if (t == 1) return 1;
+    final bool ac = m.isEven;
+    if ((t == 0) || (ac && t.isEven)) throw new RangeError("Not coprime");
+    int u = m;
+    int v = t;
+    int a = 1,
+        b = 0,
+        c = 0,
+        d = 1;
+    do {
+      while (u.isEven) {
+        u ~/= 2;
+        if (ac) {
+          if (!a.isEven || !b.isEven) {
+            a += t;
+            b -= m;
+          }
+          a ~/= 2;
+        } else if (!b.isEven) {
+          b -= m;
+        }
+        b ~/= 2;
+      }
+      while (v.isEven) {
+        v ~/= 2;
+        if (ac) {
+          if (!c.isEven || !d.isEven) {
+            c += t;
+            d -= m;
+          }
+          c ~/= 2;
+        } else if (!d.isEven) {
+          d -= m;
+        }
+        d ~/= 2;
+      }
+      if (u >= v) {
+        u -= v;
+        if (ac) a -= c;
+        b -= d;
+      } else {
+        v -= u;
+        if (ac) c -= a;
+        d -= b;
+      }
+    } while (u != 0);
+    if (v != 1) throw new RangeError("Not coprime");
+    if (d < 0) {
+      d += m;
+      if (d < 0) d += m;
+    } else if (d > m) {
+      d -= m;
+      if (d > m) d -= m;
+    }
+    return d;
+  }
+
   // Assumes i is <= 32-bit and unsigned.
   static int _bitCount(int i) {
     // See "Hacker's Delight", section 5-1, "Counting 1-Bits".
