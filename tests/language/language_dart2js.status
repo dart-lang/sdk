@@ -62,6 +62,7 @@ regress_22976_test/02: CompileTimeError # Issue 23132
 
 if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
+nullaware_opt_test: Fail # Fails at e?.f ??= 200;
 
 conditional_method_invocation_test/11: MissingCompileTimeError # Issue 23611
 conditional_property_access_test/09: MissingCompileTimeError # Issue 23611
@@ -200,6 +201,10 @@ numbers_test: RuntimeError, OK # Issue 1533
 canonical_const2_test: RuntimeError, OK # Issue 1533
 bit_operations_test: RuntimeError, OK # Issue 1533
 expect_test: RuntimeError, OK # Issue 13080
+
+illegal_invocation_test/01: MissingCompileTimeError # Issue 23611
+prefix_unqualified_invocation_test/01: MissingCompileTimeError # Issue 23611
+prefix_unqualified_invocation_test/02: MissingCompileTimeError # Issue 23611
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
