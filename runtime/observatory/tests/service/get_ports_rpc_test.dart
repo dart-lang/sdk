@@ -6,7 +6,7 @@
 library get_ports_rpc_test;
 
 import 'dart:async';
-import 'dart:isolate';
+import 'dart:isolate' hide Isolate;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 
