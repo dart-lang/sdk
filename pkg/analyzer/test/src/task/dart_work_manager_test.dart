@@ -122,18 +122,6 @@ class DartWorkManagerTest {
     expect_unknownSourceQueue([]);
   }
 
-  void test_applyChange_scheduleInvalidatedLibraries() {
-    // libraries source1 and source3 are invalid
-    entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
-    entry2.setValue(SOURCE_KIND, SourceKind.PART, []);
-    entry3.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
-    entry1.setValue(LIBRARY_ERRORS_READY, false, []);
-    entry3.setValue(LIBRARY_ERRORS_READY, false, []);
-    // change source2, schedule source1 and source3
-    manager.applyChange([], [source2], []);
-    expect_librarySourceQueue([source1, source3]);
-  }
-
   void test_applyChange_updatePartsLibraries_changeLibrary() {
     Source part1 = new TestSource('part1.dart');
     Source part2 = new TestSource('part2.dart');
@@ -483,6 +471,22 @@ class DartWorkManagerTest {
     expect(entry1.getState(EXPLICITLY_IMPORTED_LIBRARIES), CacheState.VALID);
     expect(entry1.getState(EXPORTED_LIBRARIES), CacheState.VALID);
     expect(entry1.getState(INCLUDED_PARTS), CacheState.VALID);
+  }
+
+  void test_onResultInvalidated_scheduleInvalidatedLibraries() {
+    // set SOURCE_KIND
+    entry1.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    entry2.setValue(SOURCE_KIND, SourceKind.PART, []);
+    entry3.setValue(SOURCE_KIND, SourceKind.LIBRARY, []);
+    // set LIBRARY_ERRORS_READY for source1 and source3
+    entry1.setValue(LIBRARY_ERRORS_READY, true, []);
+    entry3.setValue(LIBRARY_ERRORS_READY, true, []);
+    // invalidate LIBRARY_ERRORS_READY for source1, schedule it
+    entry1.setState(LIBRARY_ERRORS_READY, CacheState.INVALID);
+    expect_librarySourceQueue([source1]);
+    // invalidate LIBRARY_ERRORS_READY for source3, schedule it
+    entry3.setState(LIBRARY_ERRORS_READY, CacheState.INVALID);
+    expect_librarySourceQueue([source1, source3]);
   }
 
   void test_onSourceFactoryChanged() {
