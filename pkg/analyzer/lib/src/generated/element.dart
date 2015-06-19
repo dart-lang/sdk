@@ -4902,12 +4902,12 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       return false;
     }
     FunctionTypeImpl otherType = object as FunctionTypeImpl;
-    return TypeImpl.equalArrays(
+    return returnType == otherType.returnType &&
+        TypeImpl.equalArrays(
             normalParameterTypes, otherType.normalParameterTypes) &&
         TypeImpl.equalArrays(
             optionalParameterTypes, otherType.optionalParameterTypes) &&
-        _equals(namedParameterTypes, otherType.namedParameterTypes) &&
-        returnType == otherType.returnType;
+        _equals(namedParameterTypes, otherType.namedParameterTypes);
   }
 
   @override
