@@ -308,7 +308,11 @@ DART_EXPORT Dart_Handle Dart_NewApiError(const char* error);
  *
  * Requires there to be a current isolate.
  *
- * \param exception An instance of a Dart object to be thrown.
+ * \param exception An instance of a Dart object to be thrown or
+ *        an ApiError or CompilationError handle.
+ *        When an ApiError or CompilationError handle is passed in
+ *        a string object of the error message is created and it becomes
+ *        the Dart object to be thrown.
  */
 DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception);
 

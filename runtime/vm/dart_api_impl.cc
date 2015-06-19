@@ -814,9 +814,14 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
   DARTSCOPE(isolate);
   CHECK_CALLBACK_STATE(isolate);
 
-  const Instance& obj = Api::UnwrapInstanceHandle(isolate, exception);
-  if (obj.IsNull()) {
-    RETURN_TYPE_ERROR(isolate, exception, Instance);
+  Instance& obj = Instance::Handle(isolate);
+  if (Dart_IsApiError(exception) || Dart_IsCompilationError(exception)) {
+    obj = String::New(Dart_GetError(exception));
+  } else {
+    obj = Api::UnwrapInstanceHandle(isolate, exception).raw();
+    if (obj.IsNull()) {
+      RETURN_TYPE_ERROR(isolate, exception, Instance);
+    }
   }
   const Stacktrace& stacktrace = Stacktrace::Handle(isolate);
   return Api::NewHandle(isolate, UnhandledException::New(obj, stacktrace));

@@ -448,6 +448,59 @@ TEST_CASE(ErrorHandleTypes) {
 }
 
 
+TEST_CASE(UnhandleExceptionError) {
+  Isolate* isolate = Isolate::Current();
+  const char* exception_cstr = "";
+
+  // Test with an API Error.
+  const char* kApiError = "Api Error Exception Test.";
+  Dart_Handle api_error = Api::NewHandle(
+      isolate,
+      ApiError::New(String::Handle(String::New(kApiError))));
+  Dart_Handle exception_error = Dart_NewUnhandledExceptionError(api_error);
+  EXPECT(!Dart_IsApiError(exception_error));
+  EXPECT(Dart_IsUnhandledExceptionError(exception_error));
+  EXPECT(Dart_IsString(Dart_ErrorGetException(exception_error)));
+  EXPECT_VALID(Dart_StringToCString(Dart_ErrorGetException(exception_error),
+                                    &exception_cstr));
+  EXPECT_STREQ(kApiError, exception_cstr);
+
+  // Test with a Compilation Error.
+  const char* kCompileError = "CompileError Exception Test.";
+  const String& compile_message =
+      String::Handle(String::New(kCompileError));
+  Dart_Handle compile_error =
+      Api::NewHandle(isolate, LanguageError::New(compile_message));
+  exception_error = Dart_NewUnhandledExceptionError(compile_error);
+  EXPECT(!Dart_IsApiError(exception_error));
+  EXPECT(Dart_IsUnhandledExceptionError(exception_error));
+  EXPECT(Dart_IsString(Dart_ErrorGetException(exception_error)));
+  EXPECT_VALID(Dart_StringToCString(Dart_ErrorGetException(exception_error),
+                                    &exception_cstr));
+  EXPECT_STREQ(kCompileError, exception_cstr);
+
+  // Test with a Fatal Error.
+  const String& fatal_message =
+      String::Handle(String::New("FatalError Exception Test."));
+  Dart_Handle fatal_error =
+      Api::NewHandle(isolate, UnwindError::New(fatal_message));
+  exception_error = Dart_NewUnhandledExceptionError(fatal_error);
+  EXPECT(Dart_IsError(exception_error));
+  EXPECT(!Dart_IsUnhandledExceptionError(exception_error));
+
+  // Test with a Regular object.
+  const char* kRegularString = "Regular String Exception Test.";
+  Dart_Handle obj = Api::NewHandle(isolate, String::New(kRegularString));
+  exception_error = Dart_NewUnhandledExceptionError(obj);
+  EXPECT(!Dart_IsApiError(exception_error));
+  EXPECT(Dart_IsUnhandledExceptionError(exception_error));
+  EXPECT(Dart_IsString(Dart_ErrorGetException(exception_error)));
+  EXPECT_VALID(Dart_StringToCString(Dart_ErrorGetException(exception_error),
+                                    &exception_cstr));
+  EXPECT_STREQ(kRegularString, exception_cstr);
+}
+
+
 void PropagateErrorNative(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle closure = Dart_GetNativeArgument(args, 0);
