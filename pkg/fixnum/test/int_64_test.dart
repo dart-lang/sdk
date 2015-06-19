@@ -7,6 +7,15 @@ import 'package:fixnum/fixnum.dart';
 import 'package:unittest/unittest.dart';
 
 void main() {
+
+  argumentErrorTest(name, op, [receiver = Int64.ONE]) {
+    throwsArgumentErrorMentioning(substring) =>
+        throwsA((e) => e is ArgumentError && '$e'.contains(substring));
+
+    expect(() => op(receiver, null), throwsArgumentErrorMentioning('null'));
+    expect(() => op(receiver, 'foo'), throwsArgumentErrorMentioning(r'"foo"'));
+  }
+
   group("is-tests", () {
     test("isEven", () {
       expect((-Int64.ONE).isEven, false);
@@ -68,6 +77,7 @@ void main() {
       expect(n3 + n4, new Int64(-11110));
       expect(n5 + n6, new Int64.fromInts(0x89ab89ab, 0xcdeff011));
       expect(Int64.MAX_VALUE + 1, Int64.MIN_VALUE);
+      argumentErrorTest("+", (a, b) => a + b);
     });
 
     test("-", () {
@@ -76,6 +86,7 @@ void main() {
       expect(n3 - n4, new Int64(8642));
       expect(n5 - n6, new Int64.fromInts(0x9abd2345, 0x89ab6789));
       expect(Int64.MIN_VALUE - 1, Int64.MAX_VALUE);
+      argumentErrorTest("-", (a, b) => a - b);
     });
 
     test("unary -", () {
@@ -113,6 +124,7 @@ void main() {
       expect(Int64.MIN_VALUE * new Int64(2), Int64.ZERO);
       expect(Int64.MIN_VALUE * new Int64(1), Int64.MIN_VALUE);
       expect(Int64.MIN_VALUE * new Int64(-1), Int64.MIN_VALUE);
+      argumentErrorTest("*", (a, b) => a * b);
     });
 
     test("~/", () {
@@ -185,7 +197,7 @@ void main() {
       expect(Int64.MIN_VALUE ~/ new Int64(1), Int64.MIN_VALUE);
       expect(Int64.MIN_VALUE ~/ new Int64(-1), Int64.MIN_VALUE);
       expect(() => new Int64(17) ~/ Int64.ZERO, throws);
-      expect(() => new Int64(17) ~/ null, throwsArgumentError);
+      argumentErrorTest("~/", (a, b) => a ~/ b);
     });
 
     test("%", () {
@@ -225,6 +237,7 @@ void main() {
           new Int64(-0x12345678.remainder(0x22)));
       expect(new Int32(0x12345678).remainder(new Int64(0x22)),
           new Int64(0x12345678.remainder(0x22)));
+      argumentErrorTest("%", (a, b) => a % b);
     });
 
     test("clamp", () {
@@ -268,7 +281,7 @@ void main() {
       expect(largePosPlusOne < largePos, false);
       expect(Int64.MIN_VALUE < Int64.MAX_VALUE, true);
       expect(Int64.MAX_VALUE < Int64.MIN_VALUE, false);
-      expect(() => new Int64(17) < null, throwsArgumentError);
+      argumentErrorTest("<", (a, b) => a < b);
     });
 
     test("<=", () {
@@ -287,7 +300,7 @@ void main() {
       expect(largePosPlusOne <= largePos, false);
       expect(Int64.MIN_VALUE <= Int64.MAX_VALUE, true);
       expect(Int64.MAX_VALUE <= Int64.MIN_VALUE, false);
-      expect(() => new Int64(17) <= null, throwsArgumentError);
+      argumentErrorTest("<=", (a, b) => a <= b);
     });
 
     test("==", () {
@@ -323,7 +336,7 @@ void main() {
       expect(largePosPlusOne >= largePos, true);
       expect(Int64.MIN_VALUE >= Int64.MAX_VALUE, false);
       expect(Int64.MAX_VALUE >= Int64.MIN_VALUE, true);
-      expect(() => new Int64(17) >= null, throwsArgumentError);
+      argumentErrorTest(">=", (a, b) => a >= b);
     });
 
     test(">", () {
@@ -344,7 +357,7 @@ void main() {
       expect(Int64.ZERO > Int64.MIN_VALUE, true);
       expect(Int64.MIN_VALUE > Int64.MAX_VALUE, false);
       expect(Int64.MAX_VALUE > Int64.MIN_VALUE, true);
-      expect(() => new Int64(17) > null, throwsArgumentError);
+      argumentErrorTest(">", (a, b) => a > b);
     });
   });
 
@@ -360,6 +373,7 @@ void main() {
       expect(n3 & n2, new Int64(8708));
       expect(n4 & n5, new Int64(0x1034) << 32);
       expect(() => n1 & null, throwsArgumentError);
+      argumentErrorTest("&", (a, b) => a & b);
     });
 
     test("|", () {
@@ -367,6 +381,7 @@ void main() {
       expect(n3 | n2, new Int64(-66));
       expect(n4 | n5, new Int64(0x9a76) << 32);
       expect(() => n1 | null, throwsArgumentError);
+      argumentErrorTest("|", (a, b) => a | b);
     });
 
     test("^", () {
@@ -374,6 +389,7 @@ void main() {
       expect(n3 ^ n2, new Int64(-8774));
       expect(n4 ^ n5, new Int64(0x8a42) << 32);
       expect(() => n1 ^ null, throwsArgumentError);
+      argumentErrorTest("^", (a, b) => a ^ b);
     });
 
     test("~", () {
@@ -523,8 +539,8 @@ void main() {
       expect(Int64.MIN_VALUE.toSigned(64), Int64.MIN_VALUE);
       expect(Int64.MAX_VALUE.toSigned(63), -Int64.ONE);
       expect(Int64.MIN_VALUE.toSigned(63), Int64.ZERO);
-      expect(() => Int64.ONE.toSigned(0), throws);
-      expect(() => Int64.ONE.toSigned(65), throws);
+      expect(() => Int64.ONE.toSigned(0), throwsRangeError);
+      expect(() => Int64.ONE.toSigned(65), throwsRangeError);
     });
     test("toUnsigned", () {
       expect((Int64.ONE << 44).toUnsigned(45), Int64.ONE << 44);
@@ -537,8 +553,8 @@ void main() {
       expect(Int64.MIN_VALUE.toUnsigned(64), Int64.MIN_VALUE);
       expect(Int64.MAX_VALUE.toUnsigned(63), Int64.MAX_VALUE);
       expect(Int64.MIN_VALUE.toUnsigned(63), Int64.ZERO);
-      expect(() => Int64.ONE.toUnsigned(-1), throws);
-      expect(() => Int64.ONE.toUnsigned(65), throws);
+      expect(() => Int64.ONE.toUnsigned(-1), throwsRangeError);
+      expect(() => Int64.ONE.toUnsigned(65), throwsRangeError);
     });
     test("toDouble", () {
       expect(new Int64(0).toDouble(), same(0.0));
@@ -658,9 +674,6 @@ void main() {
       checkInt(4294967296);
       checkInt(-4294967295);
       checkInt(-4294967296);
-      expect(() => Int64.parseRadix('xyzzy', -1), throwsArgumentError);
-      expect(() => Int64.parseRadix('plugh', 10),
-          throwsA(new isInstanceOf<FormatException>()));
     });
 
     test("parseRadix", () {
@@ -674,6 +687,11 @@ void main() {
       check("9223372036854775807", 10, "9223372036854775807");
       // Overflow during parsing.
       check("9223372036854775808", 10, "-9223372036854775808");
+
+      expect(() => Int64.parseRadix('0', 1), throwsRangeError);
+      expect(() => Int64.parseRadix('0', 37), throwsRangeError);
+      expect(() => Int64.parseRadix('xyzzy', -1), throwsRangeError);
+      expect(() => Int64.parseRadix('xyzzy', 10), throwsFormatException);
     });
 
     test("parseRadixN", () {
@@ -748,7 +766,8 @@ void main() {
       expect(Int64.MAX_VALUE.toRadixString(13), "10b269549075433c37");
       expect(Int64.MAX_VALUE.toRadixString(14), "4340724c6c71dc7a7");
       expect(Int64.MAX_VALUE.toRadixString(15), "160e2ad3246366807");
-      expect(Int64.MAX_VALUE.toRadixString(16), "7fffffffffffffff");
+      expect(() => Int64.ZERO.toRadixString(1), throwsRangeError);
+      expect(() => Int64.ZERO.toRadixString(37), throwsRangeError);
     });
   });
 }
