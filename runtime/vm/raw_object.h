@@ -1927,6 +1927,7 @@ class RawWeakProperty : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->value_);
   }
 
+  friend class DelaySet;
   friend class GCMarker;
   friend class MarkingVisitor;
   friend class Scavenger;

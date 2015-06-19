@@ -15,6 +15,7 @@
 #include "vm/pages.h"
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
+#include "vm/thread_pool.h"
 #include "vm/visitor.h"
 #include "vm/object_id_ring.h"
 
@@ -120,12 +121,62 @@ class MarkingStack : public ValueObject {
 };
 
 
+class DelaySet {
+ private:
+  typedef std::multimap<RawObject*, RawWeakProperty*> Map;
+  typedef std::pair<RawObject*, RawWeakProperty*> MapEntry;
+
+ public:
+  DelaySet() : mutex_(new Mutex()) {}
+  ~DelaySet() { delete mutex_; }
+
+  // Returns 'true' if this inserted a new key (not just added a value).
+  bool Insert(RawWeakProperty* raw_weak) {
+    MutexLocker ml(mutex_);
+    RawObject* raw_key = raw_weak->ptr()->key_;
+    bool new_key = (delay_set_.find(raw_key) == delay_set_.end());
+    delay_set_.insert(std::make_pair(raw_key, raw_weak));
+    return new_key;
+  }
+
+  void ClearReferences() {
+    MutexLocker ml(mutex_);
+    for (Map::iterator it = delay_set_.begin(); it != delay_set_.end(); ++it) {
+      WeakProperty::Clear(it->second);
+    }
+  }
+
+  // Visit all values with a key equal to raw_obj.
+  void VisitValuesForKey(RawObject* raw_obj, ObjectPointerVisitor* visitor) {
+    // Extract the range into a temporary vector to iterate over it
+    // while delay_set_ may be modified.
+    std::vector<MapEntry> temp_copy;
+    {
+      MutexLocker ml(mutex_);
+      std::pair<Map::iterator, Map::iterator> ret =
+          delay_set_.equal_range(raw_obj);
+      temp_copy.insert(temp_copy.end(), ret.first, ret.second);
+      delay_set_.erase(ret.first, ret.second);
+    }
+    for (std::vector<MapEntry>::iterator it = temp_copy.begin();
+         it != temp_copy.end(); ++it) {
+      it->second->VisitPointers(visitor);
+    }
+  }
+
+ private:
+  Map delay_set_;
+  Mutex* mutex_;
+};
+
+
 class MarkingVisitor : public ObjectPointerVisitor {
  public:
   MarkingVisitor(Isolate* isolate,
                  Heap* heap,
                  PageSpace* page_space,
                  MarkingStack* marking_stack,
+                 DelaySet* delay_set,
                  bool visit_function_code)
       : ObjectPointerVisitor(isolate),
         thread_(Thread::Current()),
@@ -134,10 +185,16 @@ class MarkingVisitor : public ObjectPointerVisitor {
         class_table_(isolate->class_table()),
         page_space_(page_space),
         marking_stack_(marking_stack),
+        delay_set_(delay_set),
         visiting_old_object_(NULL),
         visit_function_code_(visit_function_code) {
     ASSERT(heap_ != vm_heap_);
     ASSERT(thread_->isolate() == isolate);
+  }
+
+  ~MarkingVisitor() {
+    // 'Finalize' should be explicitly called before destruction.
+    ASSERT(marking_stack_ == NULL);
   }
 
   MarkingStack* marking_stack() const { return marking_stack_; }
@@ -150,30 +207,49 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
   bool visit_function_code() const { return visit_function_code_; }
 
-  virtual GrowableArray<RawFunction*>* skipped_code_functions() {
+  virtual MallocGrowableArray<RawFunction*>* skipped_code_functions() {
     return &skipped_code_functions_;
   }
 
-  void DelayWeakProperty(RawWeakProperty* raw_weak) {
-    RawObject* raw_key = raw_weak->ptr()->key_;
-    DelaySet::iterator it = delay_set_.find(raw_key);
-    if (it != delay_set_.end()) {
-      ASSERT(raw_key->IsWatched());
-    } else {
-      ASSERT(!raw_key->IsWatched());
-      raw_key->SetWatchedBitUnsynchronized();
+  // Returns the mark bit. Sets the watch bit if unmarked. (The prior value of
+  // the watched bit is returned in 'watched_before' for validation purposes.)
+  // TODO(koda): When synchronizing header bits, this goes in a single CAS loop.
+  static bool EnsureWatchedIfWhite(RawObject* obj, bool* watched_before) {
+    if (obj->IsMarked()) {
+      return false;
     }
-    delay_set_.insert(std::make_pair(raw_key, raw_weak));
+    if (!obj->IsWatched()) {
+      *watched_before = false;
+      obj->SetWatchedBitUnsynchronized();
+    } else {
+      *watched_before = true;
+    }
+    return true;
   }
 
-  void Finalize() {
-    DelaySet::iterator it = delay_set_.begin();
-    for (; it != delay_set_.end(); ++it) {
-      WeakProperty::Clear(it->second);
+  void ProcessWeakProperty(RawWeakProperty* raw_weak) {
+    // The fate of the weak property is determined by its key.
+    RawObject* raw_key = raw_weak->ptr()->key_;
+    bool watched_before = false;
+    if (raw_key->IsHeapObject() &&
+        raw_key->IsOldObject() &&
+        EnsureWatchedIfWhite(raw_key, &watched_before)) {
+      // Key is white.  Delay the weak property.
+      bool new_key = delay_set_->Insert(raw_weak);
+      ASSERT(new_key == !watched_before);
+    } else {
+      // Key is gray or black.  Make the weak property black.
+      raw_weak->VisitPointers(this);
     }
+  }
+
+  // Called when all marking is complete.
+  void Finalize() {
     if (!visit_function_code_) {
       DetachCode();
     }
+    // Fail fast on attempts to mark after finalizing.
+    marking_stack_ = NULL;
   }
 
   void VisitingOldObject(RawObject* obj) {
@@ -195,17 +271,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
     raw_obj->ClearRememberedBitUnsynchronized();
     raw_obj->ClearWatchedBitUnsynchronized();
     if (is_watched) {
-      std::pair<DelaySet::iterator, DelaySet::iterator> ret;
-      // Visit all elements with a key equal to raw_obj.
-      ret = delay_set_.equal_range(raw_obj);
-      // Create a copy of the range in a temporary vector to iterate over it
-      // while delay_set_ may be modified.
-      std::vector<DelaySetEntry> temp_copy(ret.first, ret.second);
-      delay_set_.erase(ret.first, ret.second);
-      for (std::vector<DelaySetEntry>::iterator it = temp_copy.begin();
-           it != temp_copy.end(); ++it) {
-        it->second->VisitPointers(this);
-      }
+      delay_set_->VisitValuesForKey(raw_obj, this);
     }
     marking_stack_->Push(raw_obj);
   }
@@ -285,6 +351,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
       ISL_Print("  total detached unoptimized: %" Pd "\n",
                 unoptimized_code_count);
     }
+    // Clean up.
+    skipped_code_functions_.Clear();
   }
 
   Thread* thread_;
@@ -293,12 +361,10 @@ class MarkingVisitor : public ObjectPointerVisitor {
   ClassTable* class_table_;
   PageSpace* page_space_;
   MarkingStack* marking_stack_;
+  DelaySet* delay_set_;
   RawObject* visiting_old_object_;
-  typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
-  typedef std::pair<RawObject*, RawWeakProperty*> DelaySetEntry;
-  DelaySet delay_set_;
   const bool visit_function_code_;
-  GrowableArray<RawFunction*> skipped_code_functions_;
+  MallocGrowableArray<RawFunction*> skipped_code_functions_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitor);
 };
@@ -449,26 +515,10 @@ void GCMarker::DrainMarkingStack(Isolate* isolate,
     } else {
       RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
       marked_bytes_ += raw_weak->Size();
-      ProcessWeakProperty(raw_weak, visitor);
+      visitor->ProcessWeakProperty(raw_weak);
     }
   }
   visitor->VisitingOldObject(NULL);
-}
-
-
-void GCMarker::ProcessWeakProperty(RawWeakProperty* raw_weak,
-                                   MarkingVisitor* visitor) {
-  // The fate of the weak property is determined by its key.
-  RawObject* raw_key = raw_weak->ptr()->key_;
-  if (raw_key->IsHeapObject() &&
-      raw_key->IsOldObject() &&
-      !raw_key->IsMarked()) {
-    // Key is white.  Delay the weak property.
-    visitor->DelayWeakProperty(raw_weak);
-  } else {
-    // Key is gray or black.  Make the weak property black.
-    raw_weak->VisitPointers(visitor);
-  }
 }
 
 
@@ -530,14 +580,16 @@ void GCMarker::MarkObjects(Isolate* isolate,
   {
     StackZone zone(isolate);
     MarkingStack marking_stack;
-    MarkingVisitor mark(
-        isolate, heap_, page_space, &marking_stack, visit_function_code);
+    DelaySet delay_set;
+    MarkingVisitor mark(isolate, heap_, page_space, &marking_stack,
+                        &delay_set, visit_function_code);
     IterateRoots(isolate, &mark, !invoke_api_callbacks);
     DrainMarkingStack(isolate, &mark);
     IterateWeakReferences(isolate, &mark);
     MarkingWeakVisitor mark_weak;
     IterateWeakRoots(isolate, &mark_weak, invoke_api_callbacks);
     mark.Finalize();
+    delay_set.ClearReferences();
     ProcessWeakTables(page_space);
     ProcessObjectIdTable(isolate);
   }
