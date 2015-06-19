@@ -3816,6 +3816,8 @@ class PcDescriptors : public Object {
  private:
   static const char* KindAsStr(RawPcDescriptors::Kind kind);
 
+  static RawPcDescriptors* New(intptr_t length);
+
   intptr_t Length() const;
   void SetLength(intptr_t value) const;
   void CopyData(GrowableArray<uint8_t>* data);
@@ -3866,6 +3868,10 @@ class Stackmap : public Object {
   static RawStackmap* New(intptr_t pc_offset,
                           BitmapBuilder* bmap,
                           intptr_t register_bit_count);
+
+  static RawStackmap* New(intptr_t length,
+                          intptr_t register_bit_count,
+                          intptr_t pc_offset);
 
  private:
   void SetLength(intptr_t length) const {
@@ -3918,6 +3924,7 @@ class ExceptionHandlers : public Object {
   }
 
   static RawExceptionHandlers* New(intptr_t num_handlers);
+  static RawExceptionHandlers* New(const Array& handled_types_data);
 
   // We would have a VisitPointers function here to traverse the
   // exception handler table to visit objects if any in the table.

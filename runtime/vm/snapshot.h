@@ -284,6 +284,7 @@ class SnapshotReader : public BaseReader {
   ExternalTypedData* DataHandle() { return &data_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
   Snapshot::Kind kind() const { return kind_; }
+  bool allow_code() const { return false; }
 
   // Reads an object.
   RawObject* ReadObject();
@@ -446,6 +447,8 @@ class SnapshotReader : public BaseReader {
   friend class UnhandledException;
   friend class WeakProperty;
   friend class MirrorReference;
+  friend class ExceptionHandlers;
+  friend class LocalVarDescriptors;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
 
@@ -658,6 +661,7 @@ class SnapshotWriter : public BaseWriter {
  public:
   // Snapshot kind.
   Snapshot::Kind kind() const { return kind_; }
+  bool allow_code() const { return false; }
 
   // Serialize an object into the buffer.
   void WriteObject(RawObject* raw);
@@ -759,6 +763,8 @@ class SnapshotWriter : public BaseWriter {
   friend class RawTokenStream;
   friend class RawTypeArguments;
   friend class RawUserTag;
+  friend class RawExceptionHandlers;
+  friend class RawLocalVarDescriptors;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);

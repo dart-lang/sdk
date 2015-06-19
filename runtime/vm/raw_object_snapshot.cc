@@ -1285,15 +1285,42 @@ RawPcDescriptors* PcDescriptors::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
                                           Snapshot::Kind kind) {
-  UNREACHABLE();
-  return PcDescriptors::null();
+  ASSERT(reader->allow_code());
+
+  const int32_t length = reader->Read<int32_t>();
+  PcDescriptors& result = PcDescriptors::ZoneHandle(reader->zone(),
+                                                    PcDescriptors::New(length));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  if (result.Length() > 0) {
+    NoSafepointScope no_safepoint;
+    intptr_t len = result.Length();
+    uint8_t* data = result.UnsafeMutableNonPointer(result.raw_ptr()->data());
+    reader->ReadBytes(data, len);
+  }
+
+  return result.raw();
 }
 
 
 void RawPcDescriptors::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind) {
-  UNREACHABLE();
+  ASSERT(writer->allow_code());
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+  writer->WriteIndexedObject(kPcDescriptorsCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->Write<int32_t>(ptr()->length_);
+  if (ptr()->length_ > 0) {
+    intptr_t len = ptr()->length_;
+    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->WriteBytes(data, len);
+  }
 }
 
 
@@ -1301,15 +1328,48 @@ RawStackmap* Stackmap::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
                                 Snapshot::Kind kind) {
-  UNREACHABLE();
-  return Stackmap::null();
+  ASSERT(reader->allow_code());
+
+  const int32_t length = reader->Read<int32_t>();
+  const int32_t register_bit_count = reader->Read<int32_t>();
+  const uword pc_offset = reader->Read<uint32_t>();
+
+  Stackmap& result =
+      Stackmap::ZoneHandle(reader->zone(),
+        Stackmap::New(length, register_bit_count, pc_offset));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  if (result.Length() > 0) {
+    NoSafepointScope no_safepoint;
+    intptr_t len = (result.Length() + 7) / 8;
+    uint8_t* data = result.UnsafeMutableNonPointer(result.raw_ptr()->data());
+    reader->ReadBytes(data, len);
+  }
+
+  return result.raw();
 }
 
 
 void RawStackmap::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind) {
-  UNREACHABLE();
+  ASSERT(writer->allow_code());
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+  writer->WriteIndexedObject(kStackmapCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->Write<int32_t>(ptr()->length_);
+  writer->Write<int32_t>(ptr()->register_bit_count_);
+  writer->Write<uint32_t>(ptr()->pc_offset_);
+  if (ptr()->length_ > 0) {
+    intptr_t len = (ptr()->length_ + 7) / 8;
+    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->WriteBytes(data, len);
+  }
 }
 
 
@@ -1317,15 +1377,54 @@ RawLocalVarDescriptors* LocalVarDescriptors::ReadFrom(SnapshotReader* reader,
                                                       intptr_t object_id,
                                                       intptr_t tags,
                                                       Snapshot::Kind kind) {
-  UNREACHABLE();
-  return LocalVarDescriptors::null();
+  ASSERT(reader->allow_code());
+
+  const int32_t num_entries = reader->Read<int32_t>();
+
+  LocalVarDescriptors& result =
+      LocalVarDescriptors::ZoneHandle(reader->zone(),
+        LocalVarDescriptors::New(num_entries));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  for (intptr_t i = 0; i < num_entries; i++) {
+    (*reader->StringHandle()) ^= reader->ReadObjectRef();
+    result.StorePointer(result.raw()->nameAddrAt(i),
+                        reader->StringHandle()->raw());
+  }
+
+  if (num_entries > 0) {
+    NoSafepointScope no_safepoint;
+    intptr_t len = num_entries * sizeof(RawLocalVarDescriptors::VarInfo);
+    uint8_t* data = result.UnsafeMutableNonPointer(
+        reinterpret_cast<const uint8_t*>(result.raw()->data()));
+    reader->ReadBytes(data, len);
+  }
+
+  return result.raw();
 }
 
 
 void RawLocalVarDescriptors::WriteTo(SnapshotWriter* writer,
                                      intptr_t object_id,
                                      Snapshot::Kind kind) {
-  UNREACHABLE();
+  ASSERT(writer->allow_code());
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+  writer->WriteIndexedObject(kLocalVarDescriptorsCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->Write<int32_t>(ptr()->num_entries_);
+  for (intptr_t i = 0; i < ptr()->num_entries_; i++) {
+    writer->WriteObjectImpl(ptr()->names()[i]);
+  }
+  if (ptr()->num_entries_ > 0) {
+    intptr_t len = ptr()->num_entries_ * sizeof(VarInfo);
+    uint8_t* data = reinterpret_cast<uint8_t*>(this->data());
+    writer->WriteBytes(data, len);
+  }
 }
 
 
@@ -1333,15 +1432,47 @@ RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
                                                   intptr_t tags,
                                                   Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExceptionHandlers::null();
+  ASSERT(reader->allow_code());
+
+  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl();  // handled_types_data_
+
+  ExceptionHandlers& result =
+      ExceptionHandlers::ZoneHandle(reader->zone(),
+        ExceptionHandlers::New(*reader->ArrayHandle()));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  if (result.num_entries() > 0) {
+    NoSafepointScope no_safepoint;
+    const intptr_t len =
+        result.num_entries() * sizeof(RawExceptionHandlers::HandlerInfo);
+    uint8_t* data = result.UnsafeMutableNonPointer(
+        reinterpret_cast<const uint8_t*>(result.raw_ptr()->data()));
+    reader->ReadBytes(data, len);
+  }
+
+  return result.raw();
 }
 
 
 void RawExceptionHandlers::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
                                    Snapshot::Kind kind) {
-  UNREACHABLE();
+  ASSERT(writer->allow_code());
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+  writer->WriteIndexedObject(kExceptionHandlersCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->WriteObjectImpl(ptr()->handled_types_data_);
+
+  if (ptr()->num_entries_ > 0) {
+    intptr_t len = ptr()->num_entries_ * sizeof(HandlerInfo);
+    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->WriteBytes(data, len);
+  }
 }
 
 

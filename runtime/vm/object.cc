@@ -10842,6 +10842,25 @@ RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
 }
 
 
+RawPcDescriptors* PcDescriptors::New(intptr_t length) {
+  ASSERT(Object::pc_descriptors_class() != Class::null());
+  Isolate* isolate = Isolate::Current();
+  PcDescriptors& result = PcDescriptors::Handle(isolate);
+  {
+    uword size = PcDescriptors::InstanceSize(length);
+    RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
+                                      size,
+                                      Heap::kOld);
+    INC_STAT(isolate, total_code_size, size);
+    INC_STAT(isolate, pc_desc_size, size);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(length);
+  }
+  return result.raw();
+}
+
+
 const char* PcDescriptors::KindAsStr(RawPcDescriptors::Kind kind) {
   switch (kind) {
     case RawPcDescriptors::kDeopt:           return "deopt        ";
@@ -11034,6 +11053,40 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
   for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
+  result.SetRegisterBitCount(register_bit_count);
+  return result.raw();
+}
+
+
+RawStackmap* Stackmap::New(intptr_t length,
+                           intptr_t register_bit_count,
+                           intptr_t pc_offset) {
+  ASSERT(Object::stackmap_class() != Class::null());
+  Stackmap& result = Stackmap::Handle();
+  // Guard against integer overflow of the instance size computation.
+  intptr_t payload_size =
+  Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
+  if ((payload_size < 0) ||
+      (payload_size > kMaxLengthInBytes)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Stackmap::New: invalid length %" Pd "\n",
+           length);
+  }
+  {
+    // Stackmap data objects are associated with a code object, allocate them
+    // in old generation.
+    RawObject* raw = Object::Allocate(Stackmap::kClassId,
+                                      Stackmap::InstanceSize(length),
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(length);
+  }
+  // When constructing a stackmap we store the pc offset in the stackmap's
+  // PC. StackmapTableBuilder::FinalizeStackmaps will replace it with the pc
+  // address.
+  ASSERT(pc_offset >= 0);
+  result.SetPcOffset(pc_offset);
   result.SetRegisterBitCount(register_bit_count);
   return result.raw();
 }
@@ -11355,6 +11408,29 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   const Array& handled_types_data = (num_handlers == 0) ?
       Object::empty_array() :
       Array::Handle(Array::New(num_handlers));
+  result.set_handled_types_data(handled_types_data);
+  return result.raw();
+}
+
+
+RawExceptionHandlers* ExceptionHandlers::New(const Array& handled_types_data) {
+  ASSERT(Object::exception_handlers_class() != Class::null());
+  const intptr_t num_handlers = handled_types_data.Length();
+  if ((num_handlers < 0) || (num_handlers >= kMaxHandlers)) {
+    FATAL1("Fatal error in ExceptionHandlers::New(): "
+           "invalid num_handlers %" Pd "\n",
+           num_handlers);
+  }
+  ExceptionHandlers& result = ExceptionHandlers::Handle();
+  {
+    uword size = ExceptionHandlers::InstanceSize(num_handlers);
+    RawObject* raw = Object::Allocate(ExceptionHandlers::kClassId,
+                                      size,
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_handlers);
+  }
   result.set_handled_types_data(handled_types_data);
   return result.raw();
 }
