@@ -1390,7 +1390,7 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
           return;
         }
         default:
-          OS::Print("class id = %d\n", id);
+          OS::Print("class id = %" Pd "\n", id);
           break;
       }
     }
@@ -1739,7 +1739,6 @@ intptr_t ForwardList::AddObject(RawObject* raw, SerializeState state) {
   intptr_t object_id = next_object_id();
   ASSERT(object_id > 0 && object_id <= kMaxObjectId);
   uword tags = raw->ptr()->tags_;
-  // OS::Print("tags = 0x%x\n", tags);
   ASSERT(SerializedHeaderTag::decode(tags) != kObjectId);
   Node* node = new Node(raw, tags, state);
   ASSERT(node != NULL);
