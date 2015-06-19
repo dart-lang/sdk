@@ -383,7 +383,7 @@ class JSString extends Interceptor implements String, JSIndexable {
 
   int indexOf(Pattern pattern, [int start = 0]) {
     checkNull(pattern);
-    if (start is! int) throw new ArgumentError(start);
+    if (start is! int) throw argumentErrorValue(start);
     if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
     }
@@ -406,7 +406,7 @@ class JSString extends Interceptor implements String, JSIndexable {
     if (start == null) {
       start = length;
     } else if (start is! int) {
-      throw new ArgumentError(start);
+      throw argumentErrorValue(start);
     } else if (start < 0 || start > this.length) {
       throw new RangeError.range(start, 0, this.length);
     }
@@ -436,7 +436,7 @@ class JSString extends Interceptor implements String, JSIndexable {
   bool get isNotEmpty => !isEmpty;
 
   int compareTo(String other) {
-    if (other is !String) throw new ArgumentError(other);
+    if (other is !String) throw argumentErrorValue(other);
     return this == other ? 0
         : JS('bool', r'# < #', this, other) ? -1 : 1;
   }

@@ -17,7 +17,7 @@ class JSNumber extends Interceptor implements num {
   const JSNumber();
 
   int compareTo(num b) {
-    if (b is! num) throw new ArgumentError(b);
+    if (b is! num) throw argumentErrorValue(b);
     if (this < b) {
       return -1;
     } else if (this > b) {
@@ -45,15 +45,14 @@ class JSNumber extends Interceptor implements num {
   bool get isNaN => JS('bool', r'isNaN(#)', this);
 
   bool get isInfinite {
-    return JS('bool', r'# == Infinity', this)
-        || JS('bool', r'# == -Infinity', this);
+    return JS('bool', r'# == (1/0)', this)
+        || JS('bool', r'# == (-1/0)', this);
   }
 
   bool get isFinite => JS('bool', r'isFinite(#)', this);
 
   num remainder(num b) {
-    checkNull(b); // TODO(ngeoffray): This is not specified but co19 tests it.
-    if (b is! num) throw new ArgumentError(b);
+    if (b is! num) throw argumentErrorValue(b);
     return JS('num', r'# % #', this, b);
   }
 
@@ -116,10 +115,10 @@ class JSNumber extends Interceptor implements num {
   double truncateToDouble() => this < 0 ? ceilToDouble() : floorToDouble();
 
   num clamp(lowerLimit, upperLimit) {
-    if (lowerLimit is! num) throw new ArgumentError(lowerLimit);
-    if (upperLimit is! num) throw new ArgumentError(upperLimit);
+    if (lowerLimit is! num) throw argumentErrorValue(lowerLimit);
+    if (upperLimit is! num) throw argumentErrorValue(upperLimit);
     if (lowerLimit.compareTo(upperLimit) > 0) {
-      throw new ArgumentError(lowerLimit);
+      throw argumentErrorValue(lowerLimit);
     }
     if (this.compareTo(lowerLimit) < 0) return lowerLimit;
     if (this.compareTo(upperLimit) > 0) return upperLimit;
@@ -212,27 +211,27 @@ class JSNumber extends Interceptor implements num {
   num operator -() => JS('num', r'-#', this);
 
   num operator +(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('num', '# + #', this, other);
   }
 
   num operator -(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('num', '# - #', this, other);
   }
 
   num operator /(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('num', '# / #', this, other);
   }
 
   num operator *(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('num', '# * #', this, other);
   }
 
   num operator %(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     // Euclidean Modulo.
     num result = JS('num', r'# % #', this, other);
     if (result == 0) return 0;  // Make sure we don't return -0.0.
@@ -262,7 +261,7 @@ class JSNumber extends Interceptor implements num {
   }
 
   int _tdivSlow(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return (JS('num', r'# / #', this, other)).toInt();
   }
 
@@ -272,8 +271,8 @@ class JSNumber extends Interceptor implements num {
   // the grain at which we do the type checks.
 
   num operator <<(num other) {
-    if (other is !num) throw new ArgumentError(other);
-    if (JS('num', '#', other) < 0) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
+    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shlPositive(other);
   }
 
@@ -287,8 +286,8 @@ class JSNumber extends Interceptor implements num {
 
   num operator >>(num other) {
     if (false) _shrReceiverPositive(other);
-    if (other is !num) throw new ArgumentError(other);
-    if (JS('num', '#', other) < 0) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
+    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shrOtherPositive(other);
   }
 
@@ -303,7 +302,7 @@ class JSNumber extends Interceptor implements num {
   }
 
   num _shrReceiverPositive(num other) {
-    if (JS('num', '#', other) < 0) throw new ArgumentError(other);
+    if (JS('num', '#', other) < 0) throw argumentErrorValue(other);
     return _shrBothPositive(other);
   }
 
@@ -320,37 +319,37 @@ class JSNumber extends Interceptor implements num {
   }
 
   num operator &(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('JSUInt32', r'(# & #) >>> 0', this, other);
   }
 
   num operator |(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('JSUInt32', r'(# | #) >>> 0', this, other);
   }
 
   num operator ^(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('JSUInt32', r'(# ^ #) >>> 0', this, other);
   }
 
   bool operator <(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('bool', '# < #', this, other);
   }
 
   bool operator >(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('bool', '# > #', this, other);
   }
 
   bool operator <=(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('bool', '# <= #', this, other);
   }
 
   bool operator >=(num other) {
-    if (other is !num) throw new ArgumentError(other);
+    if (other is !num) throw argumentErrorValue(other);
     return JS('bool', '# >= #', this, other);
   }
 
@@ -391,8 +390,8 @@ class JSInt extends JSNumber implements int, double {
 
   // Returns pow(this, e) % m.
   int modPow(int e, int m) {
-    if (e is! int) throw new ArgumentError(e);
-    if (m is! int) throw new ArgumentError(m);
+    if (e is! int) throw argumentErrorValue(e);
+    if (m is! int) throw argumentErrorValue(m);
     if (e < 0) throw new RangeError(e);
     if (m <= 0) throw new RangeError(m);
     if (e == 0) return 1;
@@ -413,7 +412,7 @@ class JSInt extends JSNumber implements int, double {
 
   // Returns 1/this % m, with m > 0.
   int modInverse(int m) {
-    if (m is! int) throw new ArgumentError(m);
+    if (m is! int) throw argumentErrorValue(m);
     if (m <= 0) throw new RangeError(m);
     if (m == 1) return 0;
     int t = this;

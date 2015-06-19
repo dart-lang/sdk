@@ -210,7 +210,7 @@ String S(value) {
     return 'null';
   }
   var res = value.toString();
-  if (res is !String) throw _argumentError(value);
+  if (res is !String) throw argumentErrorValue(value);
   return res;
 }
 
@@ -881,14 +881,14 @@ class Primitives {
   static String stringFromCodePoints(codePoints) {
     List<int> a = <int>[];
     for (var i in codePoints) {
-      if (i is !int) throw _argumentError(i);
+      if (i is !int) throw argumentErrorValue(i);
       if (i <= 0xffff) {
         a.add(i);
       } else if (i <= 0x10ffff) {
         a.add(0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)));
         a.add(0xdc00 + (i & 0x3ff));
       } else {
-        throw _argumentError(i);
+        throw argumentErrorValue(i);
       }
     }
     return _fromCharCodeApply(a);
@@ -896,8 +896,8 @@ class Primitives {
 
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
-      if (i is !int) throw _argumentError(i);
-      if (i < 0) throw _argumentError(i);
+      if (i is !int) throw argumentErrorValue(i);
+      if (i < 0) throw argumentErrorValue(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
     }
     return _fromCharCodeApply(charCodes);
@@ -1086,22 +1086,22 @@ class Primitives {
   }
 
   static valueFromDateString(str) {
-    if (str is !String) throw _argumentError(str);
+    if (str is !String) throw argumentErrorValue(str);
     var value = JS('num', r'Date.parse(#)', str);
-    if (value.isNaN) throw _argumentError(str);
+    if (value.isNaN) throw argumentErrorValue(str);
     return value;
   }
 
   static getProperty(object, key) {
     if (object == null || object is bool || object is num || object is String) {
-      throw _argumentError(object);
+      throw argumentErrorValue(object);
     }
     return JS('var', '#[#]', object, key);
   }
 
   static void setProperty(object, key, value) {
     if (object == null || object is bool || object is num || object is String) {
-      throw _argumentError(object);
+      throw argumentErrorValue(object);
     }
     JS('void', '#[#] = #', object, key, value);
   }
@@ -1390,7 +1390,7 @@ class JsCache {
  */
 @NoInline()
 iae(argument) {
-  throw _argumentError(argument);
+  throw argumentErrorValue(argument);
 }
 
 /**
@@ -1429,32 +1429,32 @@ stringLastIndexOfUnchecked(receiver, element, start)
 
 /// 'factory' for constructing ArgumentError.value to keep the call sites small.
 @NoInline()
-ArgumentError _argumentError(object) {
+ArgumentError argumentErrorValue(object) {
   return new ArgumentError.value(object);
 }
 
 checkNull(object) {
-  if (object == null) throw _argumentError(object);
+  if (object == null) throw argumentErrorValue(object);
   return object;
 }
 
 checkNum(value) {
-  if (value is !num) throw _argumentError(value);
+  if (value is !num) throw argumentErrorValue(value);
   return value;
 }
 
 checkInt(value) {
-  if (value is !int) throw _argumentError(value);
+  if (value is !int) throw argumentErrorValue(value);
   return value;
 }
 
 checkBool(value) {
-  if (value is !bool) throw _argumentError(value);
+  if (value is !bool) throw argumentErrorValue(value);
   return value;
 }
 
 checkString(value) {
-  if (value is !String) throw _argumentError(value);
+  if (value is !String) throw argumentErrorValue(value);
   return value;
 }
 

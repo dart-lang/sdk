@@ -4,7 +4,7 @@
 
 // Patch file for dart:convert library.
 
-import 'dart:_js_helper' show patch;
+import 'dart:_js_helper' show argumentErrorValue, patch;
 import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSExtendableArray;
 import 'dart:_internal' show MappedIterable, ListIterable;
@@ -28,7 +28,7 @@ import 'dart:collection' show Maps, LinkedHashMap;
  */
 @patch
 _parseJson(String source, reviver(key, value)) {
-  if (source is! String) throw new ArgumentError(source);
+  if (source is! String) throw argumentErrorValue(source);
 
   var parsed;
   try {

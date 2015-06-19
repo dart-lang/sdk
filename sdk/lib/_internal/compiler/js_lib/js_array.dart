@@ -105,7 +105,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   E removeAt(int index) {
     checkGrowable('removeAt');
-    if (index is !int) throw new ArgumentError(index);
+    if (index is !int) throw argumentErrorValue(index);
     if (index < 0 || index >= length) {
       throw new RangeError.value(index);
     }
@@ -114,7 +114,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   void insert(int index, E value) {
     checkGrowable('insert');
-    if (index is !int) throw new ArgumentError(index);
+    if (index is !int) throw argumentErrorValue(index);
     if (index < 0 || index > length) {
       throw new RangeError.value(index);
     }
@@ -341,14 +341,14 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   List<E> sublist(int start, [int end]) {
     checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-    if (start is !int) throw new ArgumentError(start);
+    if (start is !int) throw argumentErrorValue(start);
     if (start < 0 || start > length) {
       throw new RangeError.range(start, 0, length);
     }
     if (end == null) {
       end = length;
     } else {
-      if (end is !int) throw new ArgumentError(end);
+      if (end is !int) throw argumentErrorValue(end);
       if (end < start || end > length) {
         throw new RangeError.range(end, start, length);
       }

@@ -145,10 +145,11 @@ stringReplaceAllFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
     return stringReplaceAllStringFuncUnchecked(receiver, pattern,
                                                onMatch, onNonMatch);
   }
-  // Pattern test here is indistingishable from at the top of the method but we
-  // don't need to do it on the `pattern is String` path.
+  // Placing the Pattern test here is indistingishable from placing it at the
+  // top of the method but it saves an extra check on the `pattern is String`
+  // path.
   if (pattern is! Pattern) {
-    throw new ArgumentError("${pattern} is not a Pattern");
+    throw new ArgumentError.value(pattern, 'pattern', 'is not a Pattern');
   }
   StringBuffer buffer = new StringBuffer();
   int startIndex = 0;
