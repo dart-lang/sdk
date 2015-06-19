@@ -228,7 +228,12 @@
             </div>
           </curly-block><br><br>
         </template>
+      </div>
 
+      <div class="content-centered-big">
+        <template if="{{ instance.isClosure }}">
+          <source-inset location="{{ instance.function.location }}"></source-inset>
+        </template>
       </div>
 
     </template>

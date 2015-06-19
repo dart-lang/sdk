@@ -110,21 +110,24 @@ class PrintCommand extends DebuggerCommand {
     alias = 'p';
   }
 
-  Future run(List<String> args) {
+  Future run(List<String> args) async {
     if (args.length < 1) {
       debugger.console.print('print expects arguments');
-      return new Future.value(null);
+      return;
     }
-    var expr = args.join('');
-    return debugger.isolate.evalFrame(debugger.currentFrame, expr)
-      .then((ServiceObject response) {
-        if (response is DartError) {
-          debugger.console.print(response.message);
-        } else {
-          debugger.console.print('= ', newline:false);
-          debugger.console.printRef(response);
-        }
-      });
+    if (debugger.currentFrame == null) {
+      debugger.console.print('No stack');
+      return;
+    }
+    var expression = args.join('');
+    var response = await debugger.isolate.evalFrame(debugger.currentFrame,
+                                                    expression);
+    if (response is DartError) {
+      debugger.console.print(response.message);
+    } else {
+      debugger.console.print('= ', newline:false);
+      debugger.console.printRef(response);
+    }
   }
 
   String helpShort = 'Evaluate and print an expression in the current frame';
@@ -315,7 +318,9 @@ class NextCommand extends DebuggerCommand {
 }
 
 class StepCommand extends DebuggerCommand {
-  StepCommand(Debugger debugger) : super(debugger, 'step', []);
+  StepCommand(Debugger debugger) : super(debugger, 'step', []) {
+    alias = 's';
+  }
 
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
@@ -1179,7 +1184,7 @@ class ObservatoryDebugger extends Debugger {
         return completions[0];
       } else {
         // Ambigous completion.
-        completions = completions.map((s )=> s.trimRight()).toList();
+        completions = completions.map((s) => s.trimRight()).toList();
         console.printBold(completions.toString());
         return _foldCompletions(completions);
       }
