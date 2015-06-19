@@ -293,6 +293,88 @@ testBigintModInverse() {
   Expect.equals(46296295879629629587962962962, x.modInverse(m));
 }
 
+testBigintGcd() {
+  var x, m;
+  x = 1;
+  m = 1;
+  Expect.equals(1, x.gcd(m));
+  x = 693;
+  m = 609;
+  Expect.equals(21, x.gcd(m));
+  x = 693 << 40;
+  m = 609 << 40;
+  Expect.equals(21 << 40, x.gcd(m));
+  x = 609 << 40;;
+  m = 693 << 40;;
+  Expect.equals(21 <<40, x.gcd(m));
+  x = 0;
+  m = 1000000001;
+  Expect.throws(() => x.gcd(m), (e) => e is RangeError);
+  x = 1000000001;
+  m = 0;
+  Expect.throws(() => x.gcd(m), (e) => e is RangeError);
+  x = 1234567890;
+  m = 19;
+  Expect.equals(1, x.gcd(m));
+  x = 1234567890;
+  m = 1000000001;
+  Expect.equals(1, x.gcd(m));
+  x = 19;
+  m = 1000000001;
+  Expect.equals(19, x.gcd(m));
+  x = 19;
+  m = 1234567890;
+  Expect.equals(1, x.gcd(m));
+  x = 1000000001;
+  m = 1234567890;
+  Expect.equals(1, x.gcd(m));
+  x = 1000000001;
+  m = 19;
+  Expect.equals(19, x.gcd(m));
+  x = 12345678901234567890;
+  m = 19;
+  Expect.equals(1, x.gcd(m));
+  x = 12345678901234567890;
+  m = 10000000000000000001;
+  Expect.equals(1, x.gcd(m));
+  x = 19;
+  m = 10000000000000000001;
+  Expect.equals(1, x.gcd(m));
+  x = 19;
+  m = 12345678901234567890;
+  Expect.equals(1, x.gcd(m));
+  x = 10000000000000000001;
+  m = 12345678901234567890;
+  Expect.equals(1, x.gcd(m));
+  x = 10000000000000000001;
+  m = 19;
+  Expect.equals(1, x.gcd(m));
+  x = 12345678901234567890;
+  m = 10000000000000000001;
+  Expect.equals(1, x.gcd(m));
+  x = 12345678901234567890;
+  m = 19;
+  Expect.equals(1, x.gcd(m));
+  x = 123456789012345678901234567890;
+  m = 123456789012345678901234567899;
+  Expect.equals(9, x.gcd(m));
+  x = 123456789012345678901234567890;
+  m = 123456789012345678901234567891;
+  Expect.equals(1, x.gcd(m));
+  x = 123456789012345678901234567899;
+  m = 123456789012345678901234567891;
+  Expect.equals(1, x.gcd(m));
+  x = 123456789012345678901234567899;
+  m = 123456789012345678901234567890;
+  Expect.equals(9, x.gcd(m));
+  x = 123456789012345678901234567891;
+  m = 123456789012345678901234567890;
+  Expect.equals(1, x.gcd(m));
+  x = 123456789012345678901234567891;
+  m = 123456789012345678901234567899;
+  Expect.equals(1, x.gcd(m));
+}
+
 testBigintNegate() {
   var a = 0xF000000000000000F;
   var b = ~a;  // negate.
@@ -325,6 +407,7 @@ main() {
   testBigintModulo();
   testBigintModPow();
   testBigintModInverse();
+  testBigintGcd();
   testBigintNegate();
   testShiftAmount();
   Expect.equals(12345678901234567890, (12345678901234567890).abs());
