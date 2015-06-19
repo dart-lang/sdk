@@ -1282,6 +1282,19 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
   WriteForwardedObjects();
 }
 
+#define VM_OBJECT_CLASS_LIST(V)                                                \
+  V(OneByteString)                                                             \
+  V(Mint)                                                                      \
+  V(Bigint)                                                                    \
+  V(Double)                                                                    \
+
+#define VM_OBJECT_WRITE(clazz)                                                 \
+  case clazz::kClassId: {                                                      \
+    object_id = forward_list_->AddObject(rawobj, kIsSerialized);               \
+    Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(rawobj);               \
+    raw_obj->WriteTo(this, object_id, kind());                                 \
+    return;                                                                    \
+  }                                                                            \
 
 void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   // Check if it is a singleton null object.
@@ -1345,21 +1358,47 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
     }
   }
 
-  // Check it is a predefined symbol in the VM isolate.
-  id = Symbols::LookupVMSymbol(rawobj);
-  if (id != kInvalidIndex) {
-    WriteVMIsolateObject(id);
-    return;
-  }
+  if (kind() == Snapshot::kFull) {
+    // Check it is a predefined symbol in the VM isolate.
+    id = Symbols::LookupVMSymbol(rawobj);
+    if (id != kInvalidIndex) {
+      WriteVMIsolateObject(id);
+      return;
+    }
 
-  // Check if it is an object from the vm isolate snapshot object table.
-  id = FindVmSnapshotObject(rawobj);
-  if (id != kInvalidIndex) {
-    WriteIndexedObject(id);
-    return;
+    // Check if it is an object from the vm isolate snapshot object table.
+    id = FindVmSnapshotObject(rawobj);
+    if (id != kInvalidIndex) {
+      WriteIndexedObject(id);
+      return;
+    }
+  } else {
+    // In the case of script snapshots or for messages we do not use
+    // the index into the vm isolate snapshot object table, instead we
+    // explicitly write the object out.
+    intptr_t object_id = forward_list_->FindObject(rawobj);
+    if (object_id != -1) {
+      WriteIndexedObject(object_id);
+      return;
+    } else {
+      switch (id) {
+        VM_OBJECT_CLASS_LIST(VM_OBJECT_WRITE)
+        case kTypedDataUint32ArrayCid: {
+          object_id = forward_list_->AddObject(rawobj, kIsSerialized);
+          RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(rawobj);
+          raw_obj->WriteTo(this, object_id, kind());
+          return;
+        }
+        default:
+          OS::Print("class id = %d\n", id);
+          break;
+      }
+    }
   }
   UNREACHABLE();
 }
+
+#undef VM_OBJECT_WRITE
 
 
 void SnapshotWriter::WriteObjectRef(RawObject* raw) {
@@ -1695,11 +1734,40 @@ intptr_t ForwardList::MarkAndAddObject(RawObject* raw, SerializeState state) {
 }
 
 
+intptr_t ForwardList::AddObject(RawObject* raw, SerializeState state) {
+  NoSafepointScope no_safepoint;
+  intptr_t object_id = next_object_id();
+  ASSERT(object_id > 0 && object_id <= kMaxObjectId);
+  uword tags = raw->ptr()->tags_;
+  // OS::Print("tags = 0x%x\n", tags);
+  ASSERT(SerializedHeaderTag::decode(tags) != kObjectId);
+  Node* node = new Node(raw, tags, state);
+  ASSERT(node != NULL);
+  nodes_.Add(node);
+  return object_id;
+}
+
+
+intptr_t ForwardList::FindObject(RawObject* raw) {
+  NoSafepointScope no_safepoint;
+  intptr_t id;
+  for (id = first_object_id(); id < next_object_id(); ++id) {
+    const Node* node = NodeForObjectId(id);
+    if (raw == node->raw()) {
+      return id;
+    }
+  }
+  return kInvalidIndex;
+}
+
+
 void ForwardList::UnmarkAll() const {
   for (intptr_t id = first_object_id(); id < next_object_id(); ++id) {
     const Node* node = NodeForObjectId(id);
     RawObject* raw = node->raw();
-    raw->ptr()->tags_ = node->tags();  // Restore original tags.
+    if (SerializedHeaderTag::decode(raw->ptr()->tags_) == kObjectId) {
+      raw->ptr()->tags_ = node->tags();  // Restore original tags.
+    }
   }
   Isolate::Current()->DecrementNoSafepointScopeDepth();
 }

@@ -629,6 +629,12 @@ class ForwardList {
   // Returns the id for the added object.
   intptr_t MarkAndAddObject(RawObject* raw, SerializeState state);
 
+  // Returns the id for the added object without marking it.
+  intptr_t AddObject(RawObject* raw, SerializeState state);
+
+  // Returns the id for the object it it exists in the list.
+  intptr_t FindObject(RawObject* raw);
+
   // Exhaustively processes all unserialized objects in this list. 'writer' may
   // concurrently add more objects.
   void SerializeAll(ObjectVisitor* writer);

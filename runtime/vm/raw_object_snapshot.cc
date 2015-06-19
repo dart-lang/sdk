@@ -1836,6 +1836,8 @@ RawInteger* Mint::ReadFrom(SnapshotReader* reader,
   Mint& mint = Mint::ZoneHandle(reader->zone(), Mint::null());
   if (kind == Snapshot::kFull) {
     mint = reader->NewMint(value);
+    // Set the object tags.
+    mint.set_tags(tags);
   } else {
     // When reading a script snapshot we need to canonicalize only those object
     // references that are objects from the core library (loaded from a
@@ -1846,15 +1848,16 @@ RawInteger* Mint::ReadFrom(SnapshotReader* reader,
         (RawObject::IsCreatedFromSnapshot(tags) ||
          (kind == Snapshot::kMessage))) {
       mint = Mint::NewCanonical(value);
+      ASSERT(mint.IsCanonical() &&
+             (kind == Snapshot::kMessage ||
+              RawObject::IsCreatedFromSnapshot(mint.raw()->ptr()->tags_)));
     } else {
       mint = Mint::New(value, HEAP_SPACE(kind));
+      // Set the object tags.
+      mint.set_tags(tags);
     }
   }
   reader->AddBackRef(object_id, &mint, kIsDeserialized);
-
-  // Set the object tags.
-  mint.set_tags(tags);
-
   return mint.raw();
 }
 
@@ -1904,16 +1907,21 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   // full snapshot). Objects that are only in the script need not be
   // canonicalized as they are already canonical.
   // When reading a message snapshot we always have to canonicalize the object.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
-      (RawObject::IsCreatedFromSnapshot(tags) ||
-       (kind == Snapshot::kMessage))) {
+  if (kind == Snapshot::kFull) {
+    // Set the object tags.
+    obj.set_tags(tags);
+  } else if (RawObject::IsCanonical(tags) &&
+             (RawObject::IsCreatedFromSnapshot(tags) ||
+              (kind == Snapshot::kMessage))) {
     obj ^= obj.CheckAndCanonicalize(NULL);
     ASSERT(!obj.IsNull());
+    ASSERT(obj.IsCanonical() &&
+           (kind == Snapshot::kMessage ||
+            RawObject::IsCreatedFromSnapshot(obj.raw()->ptr()->tags_)));
+  } else {
+    // Set the object tags.
+    obj.set_tags(tags);
   }
-
-  // Set the object tags.
-  obj.set_tags(tags);
-
   return obj.raw();
 }
 
@@ -1949,6 +1957,8 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
   Double& dbl = Double::ZoneHandle(reader->zone(), Double::null());
   if (kind == Snapshot::kFull) {
     dbl = reader->NewDouble(value);
+    // Set the object tags.
+    dbl.set_tags(tags);
   } else {
     // When reading a script snapshot we need to canonicalize only those object
     // references that are objects from the core library (loaded from a
@@ -1957,15 +1967,16 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
     if (RawObject::IsCanonical(tags) &&
         RawObject::IsCreatedFromSnapshot(tags)) {
       dbl = Double::NewCanonical(value);
+      ASSERT(dbl.IsCanonical() &&
+             (kind == Snapshot::kMessage ||
+              RawObject::IsCreatedFromSnapshot(dbl.raw()->ptr()->tags_)));
     } else {
       dbl = Double::New(value, HEAP_SPACE(kind));
+      // Set the object tags.
+      dbl.set_tags(tags);
     }
   }
   reader->AddBackRef(object_id, &dbl, kIsDeserialized);
-
-  // Set the object tags.
-  dbl.set_tags(tags);
-
   return dbl.raw();
 }
 

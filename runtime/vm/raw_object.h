@@ -556,9 +556,11 @@ class RawObject {
   friend class Api;
   friend class ApiMessageReader;  // GetClassId
   friend class Array;
+  friend class Bigint;
   friend class ByteBuffer;
   friend class Code;
   friend class Closure;
+  friend class Double;
   friend class FreeListElement;
   friend class Function;
   friend class GCMarker;
@@ -569,6 +571,7 @@ class RawObject {
   friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
   friend class MarkingVisitor;
+  friend class Mint;
   friend class Object;
   friend class OneByteString;  // StoreSmi
   friend class RawExternalTypedData;
