@@ -162,6 +162,11 @@ static bool IsNumberCid(intptr_t cid) {
 
 
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
+  return false;
+  // TODO(srdjan): Investigate failures in:
+  //  corelib/big_integer_arith_vm_test
+  //  dart2js/members_test
+  //  language/try_catch_optimized1_test
   ASSERT(call->HasICData());
   if (call->ic_data()->NumberOfUsedChecks() > 0) {
     // This occurs when an instance call has too many checks, will be converted
