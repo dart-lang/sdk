@@ -36,12 +36,12 @@ bool CHA::HasSubclasses(const Class& cls) {
     return true;
   }
   const GrowableObjectArray& direct_subclasses =
-      GrowableObjectArray::Handle(thread_->zone(), cls.direct_subclasses());
+      GrowableObjectArray::Handle(cls.direct_subclasses());
   return !direct_subclasses.IsNull() && (direct_subclasses.Length() > 0);
 }
 
 
-bool CHA::HasSubclasses(intptr_t cid) {
+bool CHA::HasSubclasses(intptr_t cid) const {
   const ClassTable& class_table = *thread_->isolate()->class_table();
   Class& cls = Class::Handle(thread_->zone(), class_table.At(cid));
   return HasSubclasses(cls);

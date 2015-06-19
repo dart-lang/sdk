@@ -32,11 +32,11 @@ class CHA : public StackResource {
   }
 
   // Returns true if the class has subclasses.
-  bool HasSubclasses(const Class& cls);
-  bool HasSubclasses(intptr_t cid);
+  static bool HasSubclasses(const Class& cls);
+  bool HasSubclasses(intptr_t cid) const;
 
   // Return true if the class is implemented by some other class.
-  bool IsImplemented(const Class& cls);
+  static bool IsImplemented(const Class& cls);
 
   // Returns true if any subclass of 'cls' contains the function.
   bool HasOverride(const Class& cls, const String& function_name);

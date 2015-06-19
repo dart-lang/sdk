@@ -163,7 +163,6 @@ static bool IsNumberCid(intptr_t cid) {
 
 // Attempt to build ICData for call using propagated class-ids.
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
-  return false;
   ASSERT(call->HasICData());
   if (call->ic_data()->NumberOfChecks() > 0) {
     // This occurs when an instance call has too many checks, will be converted
@@ -242,7 +241,9 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   if ((call->token_kind() == Token::kGET) ||
       (call->token_kind() == Token::kSET)) {
     const Class& owner_class = Class::Handle(Z, function().Owner());
-    if (!owner_class.is_abstract()) {
+    if (!owner_class.is_abstract() &&
+        !CHA::HasSubclasses(owner_class) &&
+        !CHA::IsImplemented(owner_class)) {
       // Quite aggressive: if functions's owner has a a getter/setter of that
       // name we add a check and call the setter directly. Considerable
       // performance improvement, some increase in code space.
@@ -4008,9 +4009,9 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   // Signature classes have different type checking rules.
   if (type_class.IsSignatureClass()) return false;
   // Could be an interface check?
-  if (thread()->cha()->IsImplemented(type_class)) return false;
+  if (CHA::IsImplemented(type_class)) return false;
   // Check if there are subclasses.
-  if (thread()->cha()->HasSubclasses(type_class)) {
+  if (CHA::HasSubclasses(type_class)) {
     return false;
   }
 
