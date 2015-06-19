@@ -170,44 +170,211 @@ io/test_runner_test: Skip  # Timeout.
 io/http_client_stays_alive_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
+array_bounds_check_generalization_test: RuntimeError # Please triage this failure.
+coverage_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 io/addlatexhash_test: Crash # (try {test(tempDir.path);}finally {tempDir.delete(recursive:true);}): try/finally
-io/create_recursive_test: Crash # (try {var file=new F...  try/finally
+io/async_catch_errors_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/code_collection_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
+io/create_recursive_test: Crash # (switch (response[_E...  Unhandled node
+io/dart_std_io_pipe_test: Crash # (switch (response[_E...  Unhandled node
+io/delete_symlink_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/dependency_graph_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/directory_chdir_test: Crash # (switch (response[_E...  Unhandled node
+io/directory_create_race_test: Crash # (switch (response[_E...  Unhandled node
+io/directory_error_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/directory_fuzz_test: Crash # (switch (response[_E...  Unhandled node
+io/directory_invalid_arguments_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/directory_list_nonexistent_test: Crash # (switch (response[_E...  Unhandled node
 io/directory_list_pause_test: Crash # Invalid argument(s)
-io/file_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/directory_list_sync_test: Crash # (switch (response[_E...  Unhandled node
+io/directory_non_ascii_test: Crash # (switch (response[_E...  Unhandled node
+io/directory_test: Crash # (switch (response[_E...  Unhandled node
+io/directory_uri_test: Crash # Invalid argument(s)
+io/echo_server_stream_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/file_absolute_path_test: Crash # (switch (response[_E...  Unhandled node
+io/file_constructor_test: Crash # (switch (response[_E...  Unhandled node
+io/file_copy_test: Crash # (try {opened.writeFr...  try/finally
+io/file_error_test: Crash # (switch (response[_E...  Unhandled node
+io/file_fuzz_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/file_input_stream_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/file_invalid_arguments_test: Crash # (switch (response[_E...  Unhandled node
+io/file_lock_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
+io/file_non_ascii_sync_test: Crash # (try {opened.writeFr...  try/finally
+io/file_non_ascii_test: Crash # (switch (response[_E...  Unhandled node
+io/file_output_stream_test: Crash # (try {var data;var l...  try/finally
+io/file_read_encoded_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/file_stat_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/file_stream_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/file_system_async_links_test: Crash # (switch (response[_E...  Unhandled node
+io/file_system_delete_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/file_system_exists_test: Crash # (switch (response[_E...  Unhandled node
+io/file_system_links_test: Crash # (switch (response[_E...  Unhandled node
+io/file_system_uri_test: Crash # (switch (response[_E...  Unhandled node
+io/file_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 io/file_typed_data_test: Crash # Invalid argument(s)
+io/file_uri_test: Crash # (switch (response[_E...  Unhandled node
+io/file_write_as_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/file_write_only_test: Crash # (main()async{asyncSt...  cannot handle async/sync*/async* functions
+io/http_10_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_advanced_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_auth_digest_test: Crash # Invalid argument(s)
+io/http_auth_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_basic_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 io/http_bind_test: Crash # (testBindShared(Stri...  cannot handle async/sync*/async* functions
+io/http_client_connect_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_client_exception_test: Crash # Internal Error: No default constructor available.
+io/http_client_request_test: Crash # Internal Error: No default constructor available.
+io/http_client_stays_alive_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_close_test: Crash # Internal Error: No default constructor available.
+io/http_compression_test: Crash # Internal Error: No default constructor available.
+io/http_connection_close_test: Crash # Invalid argument(s)
+io/http_connection_header_test: Crash # Internal Error: No default constructor available.
+io/http_connection_info_test: Crash # Internal Error: No default constructor available.
+io/http_content_length_test: Crash # Internal Error: No default constructor available.
 io/http_cookie_date_test: Crash # Invalid argument(s)
-io/http_headers_test: Crash # (switch (name.length...  Unhandled node
-io/http_parser_test: Crash # (switch (_state){cas...  Unhandled node
+io/http_cookie_test: Crash # Internal Error: No default constructor available.
+io/http_cross_process_test: Crash # Internal Error: No default constructor available.
+io/http_date_test: Crash # Invalid argument(s)
+io/http_detach_socket_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_head_test: Crash # Internal Error: No default constructor available.
+io/http_headers_state_test: Crash # Internal Error: No default constructor available.
+io/http_headers_test: Crash # Internal Error: No default constructor available.
+io/http_ipv6_test: Crash # Invalid argument(s)
+io/http_keep_alive_test: Crash # Internal Error: No default constructor available.
+io/http_no_reason_phrase_test: Crash # Invalid argument(s)
+io/http_outgoing_size_test: Crash # Internal Error: No default constructor available.
+io/http_parser_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_proxy_configuration_test: Crash # Internal Error: No default constructor available.
 io/http_proxy_test: Crash # Invalid argument(s)
+io/http_read_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_redirect_test: Crash # Invalid argument(s)
+io/http_request_pipeling_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_requested_uri_test: Crash # Internal Error: No default constructor available.
+io/http_response_deadline_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_reuse_server_port_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
+io/http_server_close_response_after_error_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_server_early_client_close2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_server_early_client_close_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_server_idle_timeout_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/http_server_response_test: Crash # Internal Error: No default constructor available.
+io/http_server_test: Crash # Internal Error: No default constructor available.
+io/http_session_test: Crash # Internal Error: No default constructor available.
+io/http_shutdown_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
+io/http_stream_close_test: Crash # Invalid argument(s)
 io/https_bad_certificate_test: Crash # (main()async{var cli...  cannot handle async/sync*/async* functions
+io/https_client_certificate_test: Crash # Invalid argument(s)
+io/https_client_exception_test: Crash # Invalid argument(s)
+io/https_server_test: Crash # (switch (_value){cas...  Unhandled node
+io/https_unauthorized_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/internet_address_test: Crash # (switch (_value){cas...  Unhandled node
+io/io_sink_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 io/issue_22636_test: Crash # (test()async{server=...  cannot handle async/sync*/async* functions
 io/issue_22637_test: Crash # (test()async{server=...  cannot handle async/sync*/async* functions
+io/link_async_test: Crash # (switch (response[_E...  Unhandled node
+io/link_test: Crash # (switch (response[_E...  Unhandled node
+io/link_uri_test: Crash # Invalid argument(s)
+io/many_directory_operations_test: Crash # (switch (response[_E...  Unhandled node
+io/many_file_operations_test: Crash # (switch (response[_E...  Unhandled node
+io/network_interface_test: Crash # (switch (_value){cas...  Unhandled node
+io/observatory_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
+io/parent_test: Crash # (switch (response[_E...  Unhandled node
+io/pipe_server_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/platform_resolved_executable_test/00: Crash # Internal Error: No default constructor available.
 io/platform_resolved_executable_test/01: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
 io/platform_resolved_executable_test/02: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_resolved_executable_test/03: Crash # (switch (response[_E...  Unhandled node
 io/platform_resolved_executable_test/04: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
 io/platform_resolved_executable_test/05: Crash # (try {test(tempDir);}finally {tempDir.deleteSync(recursive:true);}): try/finally
+io/platform_resolved_executable_test/06: Crash # Internal Error: No default constructor available.
+io/platform_resolved_executable_test/none: Crash # Internal Error: No default constructor available.
+io/platform_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/print_sync_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/process_check_arguments_test: Crash # (switch (response[_E...  Unhandled node
+io/process_detached_test: Crash # (switch (response[_E...  Unhandled node
+io/process_environment_test: Crash # (switch (response[_E...  Unhandled node
+io/process_kill_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/process_non_ascii_test: Crash # (try {opened.writeFr...  try/finally
+io/process_path_environment_test: Crash # Internal Error: No default constructor available.
+io/process_pid_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/process_run_output_test: Crash # (switch (response[_E...  Unhandled node
+io/process_shell_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/process_stderr_test: Crash # (switch (response[_E...  Unhandled node
+io/process_stdin_transform_unsubscribe_test: Crash # (switch (response[_E...  Unhandled node
+io/process_stdout_test: Crash # (switch (response[_E...  Unhandled node
+io/process_sync_test: Crash # (switch (response[_E...  Unhandled node
+io/process_working_directory_test: Crash # (switch (response[_E...  Unhandled node
+io/raw_datagram_read_all_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
 io/raw_datagram_socket_test: Crash # (switch (event){case...  Unhandled node
-io/raw_secure_server_closing_test: Crash # Invalid argument(s)
-io/raw_secure_server_socket_test: Crash # Invalid argument(s)
+io/raw_secure_server_closing_test: Crash # (switch (_value){cas...  Unhandled node
+io/raw_secure_server_socket_argument_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/raw_secure_server_socket_test: Crash # (switch (_value){cas...  Unhandled node
 io/raw_secure_socket_pause_test: Crash # (switch (event){case...  Unhandled node
 io/raw_secure_socket_test: Crash # (switch (event){case...  Unhandled node
 io/raw_server_socket_cancel_test: Crash # (switch (event){case...  Unhandled node
 io/raw_socket_cross_process_test: Crash # (switch (event){case...  Unhandled node
-io/raw_socket_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+io/raw_socket_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 io/raw_socket_typed_data_test: Crash # Invalid argument(s)
+io/read_into_const_list_test: Crash # (switch (response[_E...  Unhandled node
+io/regress_10026_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 io/regress_21160_test: Crash # (switch (event){case...  Unhandled node
-io/secure_client_raw_server_test: Crash # (switch (event){case...  Unhandled node
-io/secure_server_closing_test: Crash # Invalid argument(s)
-io/secure_server_socket_test: Crash # Invalid argument(s)
-io/secure_socket_bad_data_test: Crash # (switch (event){case...  Unhandled node
-io/skipping_dart2js_compilations_test: Crash # (switch (segment){ca...  Unhandled node
-io/socket_bind_test: Crash # (testListenCloseList...  cannot handle async/sync*/async* functions
+io/regress_21987_test: Crash # (switch (response[_E...  Unhandled node
+io/regress_7191_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/regress_7679_test: Crash # (try {opened.writeFr...  try/finally
+io/regress_8828_test: Crash # Internal Error: No default constructor available.
+io/regress_9194_test: Crash # Internal Error: No default constructor available.
+io/resolve_symbolic_links_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/secure_bad_certificate_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/secure_builtin_roots_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/secure_client_raw_server_test: Crash # (switch (_value){cas...  Unhandled node
+io/secure_client_server_test: Crash # (switch (_value){cas...  Unhandled node
+io/secure_multiple_client_server_test: Crash # (switch (_value){cas...  Unhandled node
+io/secure_server_client_certificate_test: Crash # (switch (_value){cas...  Unhandled node
+io/secure_server_client_no_certificate_test: Crash # (switch (_value){cas...  Unhandled node
+io/secure_server_closing_test: Crash # (switch (_value){cas...  Unhandled node
+io/secure_server_socket_test: Crash # (switch (_value){cas...  Unhandled node
+io/secure_session_resume_test: Crash # (switch (_value){cas...  Unhandled node
+io/secure_socket_alpn_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/secure_socket_argument_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/secure_socket_bad_data_test: Crash # (switch (_value){cas...  Unhandled node
+io/secure_socket_renegotiate_test: Crash # (switch (_state){cas...  Unhandled node
+io/secure_socket_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/secure_unauthorized_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/server_socket_reference_issue21383_and_issue21384_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/signals_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/skipping_dart2js_compilations_test: Crash # (switch (response[_E...  Unhandled node
+io/snapshot_fail_test: Crash # (switch (response[_E...  Unhandled node
+io/socket_bind_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 io/socket_close_test: Crash # (switch (_mode){case...  Unhandled node
-io/socket_exception_test: Crash # Invalid argument(s)
+io/socket_exception_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/socket_invalid_arguments_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/socket_ipv6_test: Crash # (switch (_value){cas...  Unhandled node
+io/socket_many_connections_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 io/socket_source_address_test: Crash # (Future testConnect(...  cannot handle async/sync*/async* functions
-io/socket_upgrade_to_secure_test: Crash # Invalid argument(s)
-io/test_extension_fail_test: Crash # (switch (Platform.op...  Unhandled node
-io/test_extension_test: Crash # (switch (Platform.op...  Unhandled node
+io/socket_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/socket_upgrade_to_secure_test: Crash # (switch (_value){cas...  Unhandled node
+io/status_file_parser_test: Crash # (switch (response[_E...  Unhandled node
+io/stdin_sync_test: Crash # Internal Error: No default constructor available.
+io/stdout_close_test: Crash # (try {var data;var l...  try/finally
+io/stdout_stderr_non_blocking_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/stdout_stderr_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/stream_pipe_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/test_extension_fail_test: Crash # Invalid argument(s)
+io/test_extension_test: Crash # Invalid argument(s)
 io/test_runner_test: Crash # (switch (arguments[0...  Unhandled node
-priority_queue_stress_test: RuntimeError # Cannot read property 'any$1' of undefined
+io/uri_platform_test: Crash # Invalid argument(s)
+io/web_socket_error_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/web_socket_ping_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/web_socket_pipe_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/web_socket_protocol_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/web_socket_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/web_socket_typed_data_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+io/windows_environment_test: Crash # (try {opened.writeFr...  try/finally
+io/windows_file_system_async_links_test: Crash # (switch (response[_E...  Unhandled node
+io/windows_file_system_links_test: Crash # (switch (response[_E...  Unhandled node
+io/zlib_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+priority_queue_stress_test: RuntimeError # receiver.get$_collection$_nums is not a function
+slowpath_safepoints_test: RuntimeError # Cannot read property 'prototype' of undefined
+status_expression_test: RuntimeError # Please triage this failure.
+typed_array_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+verbose_gc_to_bmu_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+verified_mem_test: RuntimeError # Please triage this failure.

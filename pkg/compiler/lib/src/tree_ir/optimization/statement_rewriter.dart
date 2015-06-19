@@ -952,6 +952,18 @@ class StatementRewriter extends Transformer implements Pass {
   Statement getBranch(If node, bool polarity) {
     return polarity ? node.thenStatement : node.elseStatement;
   }
+
+  @override
+  Expression visitForeignExpression(ForeignExpression node) {
+    _rewriteList(node.arguments);
+    return node;
+  }
+
+  @override
+  Statement visitForeignStatement(ForeignStatement node) {
+    _rewriteList(node.arguments);
+    return node;
+  }
 }
 
 /// Result of combining two expressions, with the potential for reverting the

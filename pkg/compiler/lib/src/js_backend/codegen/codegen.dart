@@ -614,7 +614,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     js.Expression argumentNames = new js.ArrayInitializer(
         node.selector.namedArguments.map(js.string).toList(growable: false));
     return buildStaticHelperInvocation(glue.createInvocationMirrorMethod,
-        [name, internalName, kind, arguments, argumentNames]);
+        <js.Expression>[name, internalName, kind, arguments, argumentNames]);
   }
 
   @override
@@ -698,6 +698,21 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression visitTypeExpression(tree_ir.TypeExpression node) {
     List<js.Expression> arguments = visitExpressionList(node.arguments);
     return glue.generateTypeRepresentation(node.dartType, arguments);
+  }
+
+  js.Node handleForeignCode(tree_ir.ForeignCode node) {
+    registry.registerStaticUse(node.dependency);
+    return node.codeTemplate.instantiate(visitExpressionList(node.arguments));
+  }
+
+  @override
+  js.Expression visitForeignExpression(tree_ir.ForeignExpression node) {
+    return handleForeignCode(node);
+  }
+
+  @override
+  visitForeignStatement(tree_ir.ForeignStatement node) {
+    return handleForeignCode(node);
   }
 
   @override

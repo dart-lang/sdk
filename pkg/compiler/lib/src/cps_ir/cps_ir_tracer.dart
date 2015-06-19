@@ -377,6 +377,16 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String args = node.arguments.map(formatReference).join(', ');
     return 'ApplyBuiltinOperator $operator ($args)';
   }
+
+  @override
+  visitForeignCode(cps_ir.ForeignCode node) {
+    String id = names.name(node);
+    String arguments = node.arguments.map(formatReference).join(', ');
+    String continuation = node.continuation == null ? ''
+        : ' ${formatReference(node.continuation)}';
+    printStmt(id, "ForeignCode ${node.type} ${node.codeTemplate} $arguments"
+        "$continuation");
+  }
 }
 
 /**
@@ -563,64 +573,91 @@ class BlockCollector implements cps_ir.Visitor {
   visitLiteralList(cps_ir.LiteralList node) {
     unexpectedNode(node);
   }
+
   visitLiteralMap(cps_ir.LiteralMap node) {
     unexpectedNode(node);
   }
+
   visitConstant(cps_ir.Constant node) {
     unexpectedNode(node);
   }
+
   visitCreateFunction(cps_ir.CreateFunction node) {
     unexpectedNode(node);
   }
+
   visitGetMutableVariable(cps_ir.GetMutableVariable node) {
     unexpectedNode(node);
   }
+
   visitParameter(cps_ir.Parameter node) {
     unexpectedNode(node);
   }
+
   visitMutableVariable(cps_ir.MutableVariable node) {
     unexpectedNode(node);
   }
+
   visitGetField(cps_ir.GetField node) {
     unexpectedNode(node);
   }
+
   visitGetStatic(cps_ir.GetStatic node) {
     unexpectedNode(node);
   }
+
   visitCreateBox(cps_ir.CreateBox node) {
     unexpectedNode(node);
   }
+
   visitCreateInstance(cps_ir.CreateInstance node) {
     unexpectedNode(node);
   }
+
   visitIsTrue(cps_ir.IsTrue node) {
     unexpectedNode(node);
   }
+
   visitIdentical(cps_ir.Identical node) {
     unexpectedNode(node);
   }
+
   visitInterceptor(cps_ir.Interceptor node) {
     unexpectedNode(node);
   }
+
   visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
     unexpectedNode(node);
   }
+
   visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
     unexpectedNode(node);
   }
+
   visitTypeExpression(cps_ir.TypeExpression node) {
     unexpectedNode(node);
   }
+
   visitNonTailThrow(cps_ir.NonTailThrow node) {
     unexpectedNode(node);
   }
+
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
     unexpectedNode(node);
   }
+
   visitTypeTest(cps_ir.TypeTest node) {
     unexpectedNode(node);
   }
+
   visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
     unexpectedNode(node);
+  }
+
+  @override
+  visitForeignCode(cps_ir.ForeignCode node) {
+    if (node.continuation != null) {
+      addEdgeToContinuation(node.continuation);
+    }
   }
 }

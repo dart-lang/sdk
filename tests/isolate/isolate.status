@@ -126,34 +126,63 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-count_test: Crash # (switch (testCase.re...  Unhandled node
+bool_from_environment_default_value_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+capability_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+compile_time_error_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+count_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 cross_isolate_message_test: Crash # (switch (msg[0]){cas...  Unhandled node
-deferred_in_isolate2_test: Crash # (switch (testCase.re...  Unhandled node
+deferred_in_isolate2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+deferred_in_isolate_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 function_send_test: Crash # (try {p.send(func);}finally {p.send(0);}): try/finally
-handle_error2_test: Crash # (switch (state){case...  Unhandled node
+handle_error2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 handle_error3_test: Crash # (switch (state2){cas...  Unhandled node
 handle_error_test: Crash # (switch (state){case...  Unhandled node
-illegal_msg_function_test: Crash # (switch (testCase.re...  Unhandled node
-illegal_msg_mirror_test: Crash # (switch (testCase.re...  Unhandled node
-isolate_complex_messages_test: Crash # (switch (testCase.re...  Unhandled node
-isolate_current_test: Crash # (switch (state){case...  Unhandled node
-mandel_isolate_test: Crash # (switch (testCase.re...  Unhandled node
-message2_test: Crash # (switch (testCase.re...  Unhandled node
-message3_test/constInstance: Crash # Invalid argument(s)
-message3_test/constList: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/constList_identical: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/constMap: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message_test: Crash # (switch (testCase.re...  Unhandled node
-mint_maker_test: Crash # (switch (testCase.re...  Unhandled node
-nested_spawn2_test: Crash # (switch (testCase.re...  Unhandled node
-nested_spawn_test: Crash # (switch (testCase.re...  Unhandled node
-raw_port_test: Crash # (switch (testCase.re...  Unhandled node
-request_reply_test: Crash # (switch (testCase.re...  Unhandled node
-spawn_function_custom_class_test: Crash # (switch (testCase.re...  Unhandled node
-spawn_function_test: Crash # (switch (testCase.re...  Unhandled node
-spawn_uri_multi_test/01: Crash # (switch (testCase.re...  Unhandled node
-spawn_uri_multi_test/none: Crash # (switch (testCase.re...  Unhandled node
-stacktrace_message_test: Crash # (switch (testCase.re...  Unhandled node
-static_function_test: Crash # (switch (testCase.re...  Unhandled node
-timer_isolate_test: Crash # (switch (testCase.re...  Unhandled node
-unresolved_ports_test: Crash # (switch (testCase.re...  Unhandled node
+illegal_msg_function_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+illegal_msg_mirror_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+int_from_environment_default_value_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+isolate_complex_messages_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+isolate_current_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+isolate_import_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+isolate_stress_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+issue_22778_test: RuntimeError # receiver.get$_collection$_nums is not a function
+kill2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+kill_self_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+kill_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+mandel_isolate_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+message2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+message3_test/byteBuffer: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+message3_test/constInstance: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+message3_test/constList: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+message3_test/constList_identical: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+message3_test/constMap: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+message3_test/fun: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+message3_test/int32x4: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+message3_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+message_enum_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+message_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+mint_maker_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+nested_spawn2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+nested_spawn_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+object_leak_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+ondone_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+pause_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+ping_pause_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+ping_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+port_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+raw_port_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+request_reply_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+simple_message_test/01: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+simple_message_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+spawn_function_custom_class_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+spawn_function_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+spawn_uri_missing_from_isolate_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+spawn_uri_missing_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+spawn_uri_multi_test/01: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+spawn_uri_multi_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+stacktrace_message_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+start_paused_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+static_function_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+string_from_environment_default_value_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+timer_isolate_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+typed_message_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+unresolved_ports_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally

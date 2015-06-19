@@ -9,4 +9,4 @@
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $cps_ir ]
-benchmark_smoke_test: Crash # (switch (testCase.re...  Unhandled node
+benchmark_smoke_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally

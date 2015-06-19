@@ -330,4 +330,11 @@ class PullIntoInitializers extends ExpressionVisitor<Expression>
     rewriteList(node.arguments);
     return node;
   }
+
+  @override
+  Expression visitForeignExpression(ForeignExpression node) {
+    rewriteList(node.arguments);
+    seenImpure = node.nativeBehavior.sideEffects.hasSideEffects();
+    return node;
+  }
 }

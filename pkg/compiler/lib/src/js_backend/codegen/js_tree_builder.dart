@@ -78,4 +78,24 @@ class JsTreeBuilder extends Builder {
     return new CreateInvocationMirror(node.selector,
         node.arguments.map(getVariableUse).toList(growable: false));
   }
+
+  Statement visitForeignCode(cps_ir.ForeignCode node) {
+    if (node.codeTemplate.isExpression) {
+      Expression foreignCode = new ForeignExpression(
+          node.codeTemplate,
+          node.type,
+          node.arguments.map(getVariableUse).toList(growable: false),
+          node.nativeBehavior,
+          node.dependency);
+      return continueWithExpression(node.continuation, foreignCode);
+    } else {
+      assert(node.continuation == null);
+      return new ForeignStatement(
+          node.codeTemplate,
+          node.type,
+          node.arguments.map(getVariableUse).toList(growable: false),
+          node.nativeBehavior,
+          node.dependency);
+    }
+  }
 }
