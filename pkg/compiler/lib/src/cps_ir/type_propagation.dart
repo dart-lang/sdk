@@ -1315,7 +1315,6 @@ class TypePropagationVisitor implements Visitor {
       Parameter returnValue = continuation.parameters.first;
       setValue(returnValue, nonConstant(node.type));
     }
-    setValue(node, nonConstant());
   }
 }
 
