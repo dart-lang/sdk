@@ -161,10 +161,9 @@ static bool IsNumberCid(intptr_t cid) {
 }
 
 
-// Attempt to build ICData for call using propagated class-ids.
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
-  if (call->ic_data()->NumberOfChecks() > 0) {
+  if (call->ic_data()->NumberOfUsedChecks() > 0) {
     // This occurs when an instance call has too many checks, will be converted
     // to megamorphic call.
     return false;
@@ -204,66 +203,44 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     }
   }
 
-  bool all_cids_known = true;
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     if (class_ids[i] == kDynamicCid) {
       // Not all cid-s known.
-      all_cids_known = false;
-      break;
-    }
-  }
-
-  if (all_cids_known) {
-    const Array& args_desc_array = Array::Handle(Z,
-        ArgumentsDescriptor::New(call->ArgumentCount(),
-                                 call->argument_names()));
-    ArgumentsDescriptor args_desc(args_desc_array);
-    const Class& receiver_class = Class::Handle(Z,
-        isolate()->class_table()->At(class_ids[0]));
-    const Function& function = Function::Handle(Z,
-        Resolver::ResolveDynamicForReceiverClass(
-            receiver_class,
-            call->function_name(),
-            args_desc));
-    if (function.IsNull()) {
       return false;
     }
-    if (class_ids.length() > 1) {
-      call->ic_data()->AddCheck(class_ids, function);
-    } else {
-      ASSERT(class_ids.length() == 1);
-      call->ic_data()->AddReceiverCheck(class_ids[0], function);
-    }
-    return true;
   }
 
-  // Check if getter or setter
-  if ((call->token_kind() == Token::kGET) ||
-      (call->token_kind() == Token::kSET)) {
-    const Class& owner_class = Class::Handle(Z, function().Owner());
-    if (!owner_class.is_abstract() &&
-        !CHA::HasSubclasses(owner_class) &&
-        !CHA::IsImplemented(owner_class)) {
-      // Quite aggressive: if functions's owner has a a getter/setter of that
-      // name we add a check and call the setter directly. Considerable
-      // performance improvement, some increase in code space.
-      // TODO(srdjan): Make sure the getter/setters can be inlined.
-      const Array& args_desc_array = Array::Handle(Z,
-          ArgumentsDescriptor::New(call->ArgumentCount(),
-                                   call->argument_names()));
-      ArgumentsDescriptor args_desc(args_desc_array);
-      const Function& function = Function::Handle(Z,
-          Resolver::ResolveDynamicForReceiverClass(owner_class,
-                                                   call->function_name(),
-                                                   args_desc));
-      if (!function.IsNull()) {
-        call->ic_data()->AddReceiverCheck(owner_class.id(), function);
-        return true;
-      }
-    }
+  const Array& args_desc_array = Array::Handle(Z,
+      ArgumentsDescriptor::New(call->ArgumentCount(), call->argument_names()));
+  ArgumentsDescriptor args_desc(args_desc_array);
+  const Class& receiver_class = Class::Handle(Z,
+      isolate()->class_table()->At(class_ids[0]));
+  const Function& function = Function::Handle(Z,
+      Resolver::ResolveDynamicForReceiverClass(
+          receiver_class,
+          call->function_name(),
+          args_desc));
+  if (function.IsNull()) {
+    return false;
   }
-
-  return false;
+  // Create new ICData, do not modify the one attached to the instruction
+  // since it is attached to the assembly instruction itself.
+  // TODO(srdjan): Prevent modification of ICData object that is
+  // referenced in assembly code.
+  ICData& ic_data = ICData::ZoneHandle(Z, ICData::New(
+      flow_graph_->function(),
+      call->function_name(),
+      args_desc_array,
+      call->deopt_id(),
+      class_ids.length()));
+  if (class_ids.length() > 1) {
+    ic_data.AddCheck(class_ids, function);
+  } else {
+    ASSERT(class_ids.length() == 1);
+    ic_data.AddReceiverCheck(class_ids[0], function);
+  }
+  call->set_ic_data(&ic_data);
+  return true;
 }
 
 
