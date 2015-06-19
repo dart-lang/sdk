@@ -335,8 +335,8 @@ static Dart_Handle CreateSnapshotLibraryTagHandler(Dart_LibraryTag tag,
   }
 
   Builtin::BuiltinLibraryId builtinId = BuiltinId(url_string);
-  if (builtinId != Builtin::kInvalidLibrary) {
-    // Special case for importing a builtin library.
+  if ((builtinId != Builtin::kInvalidLibrary) && (mapped_url_string == NULL)) {
+    // Special case for importing a builtin library that isn't remapped.
     if (tag == Dart_kImportTag) {
       return Builtin::LoadLibrary(url, builtinId);
     }
