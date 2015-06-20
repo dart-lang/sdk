@@ -817,7 +817,7 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
   Instance& obj = Instance::Handle(isolate);
   intptr_t class_id = Api::ClassId(exception);
   if ((class_id == kApiErrorCid) || (class_id == kLanguageErrorCid)) {
-    obj = String::New(Dart_GetError(exception));
+    obj = String::New(::Dart_GetError(exception));
   } else {
     obj = Api::UnwrapInstanceHandle(isolate, exception).raw();
     if (obj.IsNull()) {
