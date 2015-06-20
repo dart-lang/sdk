@@ -815,7 +815,8 @@ DART_EXPORT Dart_Handle Dart_NewUnhandledExceptionError(Dart_Handle exception) {
   CHECK_CALLBACK_STATE(isolate);
 
   Instance& obj = Instance::Handle(isolate);
-  if (Dart_IsApiError(exception) || Dart_IsCompilationError(exception)) {
+  intptr_t class_id = Api::ClassId(exception);
+  if ((class_id == kApiErrorCid) || (class_id == kLanguageErrorCid)) {
     obj = String::New(Dart_GetError(exception));
   } else {
     obj = Api::UnwrapInstanceHandle(isolate, exception).raw();
