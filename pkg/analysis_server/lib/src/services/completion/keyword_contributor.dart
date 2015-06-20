@@ -375,7 +375,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.CONTINUE,
       Keyword.DO,
       Keyword.FINAL,
-      Keyword.FOR,
+      //Keyword.FOR,
       Keyword.IF,
       Keyword.NEW,
       Keyword.RETURN,
@@ -386,6 +386,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
       Keyword.VOID,
       Keyword.WHILE
     ]);
+    _addSuggestion2('for ()', offset: 5);
     _addSuggestion(Keyword.RETHROW, DART_RELEVANCE_KEYWORD - 1);
   }
 

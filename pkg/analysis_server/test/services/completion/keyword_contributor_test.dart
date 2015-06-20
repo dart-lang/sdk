@@ -172,20 +172,37 @@ class KeywordContributorTest extends AbstractCompletionTest {
     Keyword.TRUE,
   ];
 
+  static final Map<String, List<String>> keywordTemplates =
+      <String, List<String>>{
+    Keyword.IMPORT.syntax: [
+      "import '^';",
+      "import '^' as ;",
+      "import '^' hide ;",
+      "import '^' show ;"
+    ],
+    Keyword.FOR.syntax: ['for (^)']
+  };
+
   void assertSuggestKeywords(Iterable<Keyword> expectedKeywords,
       {List<String> pseudoKeywords: NO_PSEUDO_KEYWORDS,
       int relevance: DART_RELEVANCE_KEYWORD}) {
     Set<String> expectedCompletions = new Set<String>();
+    Map<String, int> expectedOffsets = <String, int>{};
     Set<String> actualCompletions = new Set<String>();
     expectedCompletions.addAll(expectedKeywords.map((k) => k.syntax));
     expectedCompletions.addAll(pseudoKeywords);
-    if (expectedCompletions.contains(Keyword.IMPORT.syntax)) {
-      expectedCompletions.remove(Keyword.IMPORT.syntax);
-      expectedCompletions.add("import '';");
-      expectedCompletions.add("import '' as ;");
-      expectedCompletions.add("import '' hide ;");
-      expectedCompletions.add("import '' show ;");
-    }
+    keywordTemplates.forEach((String key, List<String> templates) {
+      if (expectedCompletions.remove(key)) {
+        for (String t in templates) {
+          int offset = t.indexOf('^');
+          if (offset != -1) {
+            t = '${t.substring(0, offset)}${t.substring(offset + 1)}';
+            expectedOffsets[t] = offset;
+          }
+          expectedCompletions.add(t);
+        }
+      }
+    });
     for (CompletionSuggestion s in request.suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
         Keyword k = Keyword.keywords[s.completion];
@@ -215,15 +232,18 @@ class KeywordContributorTest extends AbstractCompletionTest {
             ++importRelevance;
           }
           expect(s.relevance, equals(importRelevance), reason: s.completion);
-          expect(s.selectionOffset, equals(Keyword.IMPORT.syntax.length + 2));
         } else {
           if (s.completion == Keyword.RETHROW.syntax) {
             expect(s.relevance, equals(relevance - 1), reason: s.completion);
           } else {
             expect(s.relevance, equals(relevance), reason: s.completion);
           }
-          expect(s.selectionOffset, equals(s.completion.length));
         }
+        int expectedOffset = expectedOffsets[s.completion];
+        if (expectedOffset == null) {
+          expectedOffset = s.completion.length;
+        }
+        expect(s.selectionOffset, equals(expectedOffset));
         expect(s.selectionLength, equals(0));
         expect(s.isDeprecated, equals(false));
         expect(s.isPotential, equals(false));
