@@ -164,7 +164,7 @@ class MemoryResourceProvider implements ResourceProvider {
   void _notifyWatchers(String path, ChangeType changeType) {
     _pathToWatchers.forEach((String watcherPath,
         List<StreamController<WatchEvent>> streamControllers) {
-      if (posix.isWithin(watcherPath, path)) {
+      if (watcherPath == path || posix.isWithin(watcherPath, path)) {
         for (StreamController<WatchEvent> streamController
             in streamControllers) {
           streamController.add(new WatchEvent(changeType, path));

@@ -858,6 +858,34 @@ class ContextManagerTest {
     });
   }
 
+  test_watch_modifyPackageMapDependency_outsideProject() {
+    // create a dependency file
+    String dependencyPath = '/my/other/dep';
+    resourceProvider.newFile(dependencyPath, 'contents');
+    packageMapProvider.dependencies.add(dependencyPath);
+    // create a Dart file
+    String dartFilePath = posix.join(projPath, 'main.dart');
+    resourceProvider.newFile(dartFilePath, 'contents');
+    // the created context has the expected empty package map
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    _checkPackageMap(projPath, isEmpty);
+    // configure package map
+    String packagePath = '/package/foo';
+    resourceProvider.newFolder(packagePath);
+    packageMapProvider.packageMap = {'foo': projPath};
+    // Changing a .dart file in the project shouldn't cause a new
+    // package map to be picked up.
+    resourceProvider.modifyFile(dartFilePath, 'new contents');
+    return pumpEventQueue().then((_) {
+      _checkPackageMap(projPath, isEmpty);
+      // However, changing the package map dependency should.
+      resourceProvider.modifyFile(dependencyPath, 'new contents');
+      return pumpEventQueue().then((_) {
+        _checkPackageMap(projPath, equals(packageMapProvider.packageMap));
+      });
+    });
+  }
+
   test_watch_modifyPackageMapDependency_redundantly() async {
     // Create two dependency files
     String dependencyPath1 = posix.join(projPath, 'dep1');
