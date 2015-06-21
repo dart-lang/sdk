@@ -845,6 +845,7 @@ abstract class AnalysisContext {
    *
    * <b>Note:</b> This method cannot be used in an async environment.
    */
+  @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource);
 
   /**

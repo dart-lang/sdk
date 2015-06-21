@@ -157,13 +157,13 @@ class AnalysisDriver {
         state == CacheState.IN_PROCESS) {
       return null;
     }
+    TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
     try {
-      TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
       WorkItem workItem = new WorkItem(context, target, taskDescriptor, result);
       return new WorkOrder(taskManager, workItem);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
-          'Could not create work order (target = $target; result = $result)',
+          'Could not create work order (target = $target; taskDescriptor = $taskDescriptor; result = $result)',
           new CaughtException(exception, stackTrace));
     }
   }

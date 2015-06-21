@@ -12,9 +12,11 @@ import 'package:analyzer/src/generated/engine.dart'
     show AnalysisOptionsImpl, CacheState;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/model.dart';
@@ -2207,7 +2209,6 @@ class ParseDartTaskTest extends _AbstractDartTaskTest {
     expect(inputs, isNotNull);
     expect(inputs.keys, unorderedEquals([
       ParseDartTask.LINE_INFO_INPUT_NAME,
-      ParseDartTask.MODIFICATION_TIME_INPUT_NAME,
       ParseDartTask.TOKEN_STREAM_INPUT_NAME
     ]));
   }
@@ -2276,7 +2277,7 @@ part 'test.dart';
     expect(outputs[INCLUDED_PARTS], hasLength(0));
     expect(outputs[PARSE_ERRORS], hasLength(0));
     expect(outputs[PARSED_UNIT], isNotNull);
-    expect(outputs[SOURCE_KIND], SourceKind.UNKNOWN);
+    expect(outputs[SOURCE_KIND], SourceKind.LIBRARY);
     expect(outputs[UNITS], hasLength(1));
   }
 
@@ -2665,6 +2666,33 @@ class ScanDartTaskTest extends _AbstractDartTaskTest {
     expect(outputs[TOKEN_STREAM], isNotNull);
   }
 
+  test_perform_script() {
+    String scriptContent = '''
+      void buttonPressed() {
+    ''';
+    String htmlContent = '''
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>test page</title>
+    <script type='application/dart'>$scriptContent</script>
+  </head>
+  <body>Test</body>
+</html>
+''';
+    Source source = newSource('/test.html', htmlContent);
+    DartScript script =
+        new DartScript(source, [new ScriptFragment(97, 5, 36, scriptContent)]);
+
+    computeResult(script, TOKEN_STREAM);
+    expect(task, new isInstanceOf<ScanDartTask>());
+    expect(outputs[LINE_INFO], isNotNull);
+    expect(outputs[SCAN_ERRORS], isEmpty);
+    Token tokenStream = outputs[TOKEN_STREAM];
+    expect(tokenStream, isNotNull);
+    expect(tokenStream.lexeme, 'void');
+  }
+
   void _performScanTask(String content) {
     AnalysisTarget target = newSource('/test.dart', content);
     computeResult(target, TOKEN_STREAM);
@@ -2742,6 +2770,26 @@ class _AbstractDartTaskTest extends AbstractContextTest {
       var newResult = outputs[descriptor];
       expect(newResult, same(oldResult), reason: descriptor.name);
     });
+  }
+
+  /**
+   * Create a script object with a single fragment containing the given
+   * [scriptContent].
+   */
+  DartScript createScript(String scriptContent) {
+    String htmlContent = '''
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>test page</title>
+    <script type='application/dart'>$scriptContent</script>
+  </head>
+  <body>Test</body>
+</html>
+''';
+    Source source = newSource('/test.html', htmlContent);
+    return new DartScript(
+        source, [new ScriptFragment(97, 5, 36, scriptContent)]);
   }
 
   void setUp() {

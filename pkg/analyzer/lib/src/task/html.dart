@@ -9,13 +9,21 @@ import 'dart:collection';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisTask;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/general.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
 import 'package:analyzer/task/html.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:source_span/source_span.dart';
+
+/**
+ * The Dart scripts that are embedded in an HTML file.
+ */
+final ListResultDescriptor<DartScript> DART_SCRIPTS =
+    new ListResultDescriptor<DartScript>('DART_SCRIPTS', DartScript.EMPTY_LIST);
 
 /**
  * The errors found while parsing an HTML file.
@@ -25,10 +33,165 @@ final ListResultDescriptor<AnalysisError> HTML_DOCUMENT_ERRORS =
         'HTML_DOCUMENT_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
+ * A Dart script that is embedded in an HTML file.
+ */
+class DartScript implements Source {
+  /**
+   * An empty list of scripts.
+   */
+  static final List<DartScript> EMPTY_LIST = <DartScript>[];
+
+  /**
+   * The source containing this script.
+   */
+  final Source source;
+
+  /**
+   * The fragments that comprise this content of the script.
+   */
+  final List<ScriptFragment> fragments;
+
+  /**
+   * Initialize a newly created script in the given [source] that is composed of
+   * given [fragments].
+   */
+  DartScript(this.source, this.fragments);
+
+  @override
+  TimestampedData<String> get contents =>
+      new TimestampedData(modificationStamp, fragments[0].content);
+
+  @override
+  String get encoding => source.encoding;
+
+  @override
+  String get fullName => source.fullName;
+
+  @override
+  bool get isInSystemLibrary => source.isInSystemLibrary;
+
+  @override
+  int get modificationStamp => source.modificationStamp;
+
+  @override
+  String get shortName => source.shortName;
+
+  @override
+  Uri get uri => throw new StateError('uri not supported for scripts');
+
+  @override
+  UriKind get uriKind =>
+      throw new StateError('uriKind not supported for scripts');
+
+  @override
+  bool exists() => source.exists();
+
+  @override
+  Uri resolveRelativeUri(Uri relativeUri) =>
+      throw new StateError('resolveRelativeUri not supported for scripts');
+}
+
+/**
+ * A task that looks for Dart scripts in an HTML file and computes both the Dart
+ * libraries that are referenced by those scripts and the embedded Dart scripts.
+ */
+class DartScriptsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the [HTML_DOCUMENT] input.
+   */
+  static const String DOCUMENT_INPUT = 'DOCUMENT';
+
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor('DartScriptsTask',
+      createTask, buildInputs, <ResultDescriptor>[
+    DART_SCRIPTS,
+    REFERENCED_LIBRARIES
+  ]);
+
+  DartScriptsTask(InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    //
+    // Prepare inputs.
+    //
+    Source source = target.source;
+    Document document = getRequiredInput(DOCUMENT_INPUT);
+    //
+    // Process the script tags.
+    //
+    List<Source> libraries = <Source>[];
+    List<DartScript> inlineScripts = <DartScript>[];
+    List<Element> scripts = document.getElementsByTagName('script');
+    for (Element script in scripts) {
+      LinkedHashMap<dynamic, String> attributes = script.attributes;
+      if (attributes['type'] == 'application/dart') {
+        String src = attributes['src'];
+        if (src == null) {
+          if (script.hasContent()) {
+            List<ScriptFragment> fragments = <ScriptFragment>[];
+            for (Node node in script.nodes) {
+              if (node.nodeType == Node.TEXT_NODE) {
+                FileLocation start = node.sourceSpan.start;
+                fragments.add(new ScriptFragment(start.offset, start.line,
+                    start.column, (node as Text).data));
+              }
+            }
+            inlineScripts.add(new DartScript(source, fragments));
+          }
+        } else if (AnalysisEngine.isDartFileName(src)) {
+          Source source = context.sourceFactory.resolveUri(target.source, src);
+          if (source != null) {
+            libraries.add(source);
+          }
+        }
+      }
+    }
+    //
+    // Record outputs.
+    //
+    outputs[REFERENCED_LIBRARIES] =
+        libraries.isEmpty ? Source.EMPTY_LIST : libraries;
+    outputs[DART_SCRIPTS] =
+        inlineScripts.isEmpty ? DartScript.EMPTY_LIST : inlineScripts;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given [target].
+   */
+  static Map<String, TaskInput> buildInputs(Source target) {
+    return <String, TaskInput>{DOCUMENT_INPUT: HTML_DOCUMENT.of(target)};
+  }
+
+  /**
+   * Create a [DartScriptsTask] based on the given [target] in the given
+   * [context].
+   */
+  static DartScriptsTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new DartScriptsTask(context, target);
+  }
+}
+
+/**
  * A task that merges all of the errors for a single source into a single list
  * of errors.
  */
 class HtmlErrorsTask extends SourceBasedAnalysisTask {
+  /**
+   * The name of the input that is a list of errors from each of the embedded
+   * Dart scripts.
+   */
+  static const String DART_ERRORS_INPUT = 'DART_ERRORS';
+
   /**
    * The name of the [HTML_DOCUMENT_ERRORS] input.
    */
@@ -51,11 +214,21 @@ class HtmlErrorsTask extends SourceBasedAnalysisTask {
     //
     // Prepare inputs.
     //
-    List<AnalysisError> errors = getRequiredInput(DOCUMENT_ERRORS_INPUT);
+    List<List<AnalysisError>> dartErrors = getRequiredInput(DART_ERRORS_INPUT);
+    List<AnalysisError> documentErrors =
+        getRequiredInput(DOCUMENT_ERRORS_INPUT);
+    //
+    // Compute the error list.
+    //
+    List<AnalysisError> errors = <AnalysisError>[];
+    errors.addAll(documentErrors);
+    for (List<AnalysisError> scriptErrors in dartErrors) {
+      errors.addAll(scriptErrors);
+    }
     //
     // Record outputs.
     //
-    outputs[HTML_ERRORS] = errors;
+    outputs[HTML_ERRORS] = removeDuplicateErrors(errors);
   }
 
   /**
@@ -65,7 +238,8 @@ class HtmlErrorsTask extends SourceBasedAnalysisTask {
    */
   static Map<String, TaskInput> buildInputs(Source target) {
     return <String, TaskInput>{
-      DOCUMENT_ERRORS_INPUT: HTML_DOCUMENT_ERRORS.of(target)
+      DOCUMENT_ERRORS_INPUT: HTML_DOCUMENT_ERRORS.of(target),
+      DART_ERRORS_INPUT: DART_SCRIPTS.of(target).toListOf(DART_ERRORS)
     };
   }
 
@@ -111,7 +285,7 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
   void internalPerform() {
     String content = getRequiredInput(CONTENT_INPUT_NAME);
 
-    HtmlParser parser = new HtmlParser(content);
+    HtmlParser parser = new HtmlParser(content, generateSpans: true);
     parser.compatMode = 'quirks';
     Document document = parser.parse();
     List<ParseError> parseErrors = parser.errors;
@@ -145,70 +319,34 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that computes the Dart libraries that are referenced by an HTML file.
+ * A fragment of a [DartScript].
  */
-class ReferencedLibrariesTask extends SourceBasedAnalysisTask {
+class ScriptFragment {
   /**
-   * The name of the [HTML_DOCUMENT] input.
+   * The offset of the first character of the fragment, relative to the start of
+   * the containing source.
    */
-  static const String DOCUMENT_INPUT = 'DOCUMENT';
-
-  /**
-   * The task descriptor describing this kind of task.
-   */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'ReferencedLibrariesTask', createTask, buildInputs,
-      <ResultDescriptor>[REFERENCED_LIBRARIES]);
-
-  ReferencedLibrariesTask(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  TaskDescriptor get descriptor => DESCRIPTOR;
-
-  @override
-  void internalPerform() {
-    //
-    // Prepare inputs.
-    //
-    List<Source> libraries = <Source>[];
-    Document document = getRequiredInput(DOCUMENT_INPUT);
-    List<Element> scripts = document.getElementsByTagName('script');
-    for (Element script in scripts) {
-      LinkedHashMap<dynamic, String> attributes = script.attributes;
-      if (attributes['type'] == 'application/dart') {
-        String src = attributes['src'];
-        if (AnalysisEngine.isDartFileName(src)) {
-          Source source = context.sourceFactory.resolveUri(target.source, src);
-          if (source != null) {
-            libraries.add(source);
-          }
-        }
-      }
-    }
-    //
-    // Record outputs.
-    //
-    outputs[REFERENCED_LIBRARIES] =
-        libraries.isEmpty ? Source.EMPTY_LIST : libraries;
-  }
+  final int offset;
 
   /**
-   * Return a map from the names of the inputs of this kind of task to the task
-   * input descriptors describing those inputs for a task with the
-   * given [target].
+   * The line number of the line containing the first character of the fragment.
    */
-  static Map<String, TaskInput> buildInputs(Source target) {
-    return <String, TaskInput>{DOCUMENT_INPUT: HTML_DOCUMENT.of(target)};
-  }
+  final int line;
 
   /**
-   * Create a [ReferencedLibrariesTask] based on the given [target] in the given
-   * [context].
+   * The column number of the line containing the first character of the
+   * fragment.
    */
-  static ReferencedLibrariesTask createTask(
-      AnalysisContext context, AnalysisTarget target) {
-    return new ReferencedLibrariesTask(context, target);
-  }
+  final int column;
+
+  /**
+   * The content of the fragment.
+   */
+  final String content;
+
+  /**
+   * Initialize a newly created script fragment to have the given [offset] and
+   * [content].
+   */
+  ScriptFragment(this.offset, this.line, this.column, this.content);
 }

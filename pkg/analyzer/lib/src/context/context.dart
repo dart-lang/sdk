@@ -1155,9 +1155,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     computeHtmlElement(htmlSource);
-    return parseHtmlUnit(htmlSource);
+    throw new UnimplementedError('Not supported in the new task model');
   }
 
   @override
