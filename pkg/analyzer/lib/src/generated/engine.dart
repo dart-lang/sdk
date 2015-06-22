@@ -863,6 +863,14 @@ abstract class AnalysisContext {
    * so that the default contents will be returned.
    */
   void setContents(Source source, String contents);
+
+  /**
+   * Check the cache for any invalid entries (entries whose modification time
+   * does not match the modification time of the source associated with the
+   * entry). Invalid entries will be marked as invalid so that the source will
+   * be re-analyzed. Return `true` if at least one entry was invalid.
+   */
+  bool validateCacheConsistency();
 }
 
 /**
@@ -2270,9 +2278,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       AnalysisTask task = PerformanceStatistics.nextTask
           .makeCurrentWhile(() => nextAnalysisTask);
       int getEnd = JavaSystem.currentTimeMillis();
-      if (task == null && _validateCacheConsistency()) {
-        task = nextAnalysisTask;
-      }
       if (task == null) {
         _validateLastIncrementalResolutionResult();
         if (_performAnalysisTaskStopwatch != null) {
@@ -2564,6 +2569,60 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else {
       return true;
     }
+  }
+
+  @override
+  bool validateCacheConsistency() {
+    int consistencyCheckStart = JavaSystem.nanoTime();
+    List<Source> changedSources = new List<Source>();
+    List<Source> missingSources = new List<Source>();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      Source source = iterator.key;
+      SourceEntry sourceEntry = iterator.value;
+      int sourceTime = getModificationStamp(source);
+      if (sourceTime != sourceEntry.modificationTime) {
+        changedSources.add(source);
+      }
+      if (sourceEntry.exception != null) {
+        if (!exists(source)) {
+          missingSources.add(source);
+        }
+      }
+    }
+    int count = changedSources.length;
+    for (int i = 0; i < count; i++) {
+      _sourceChanged(changedSources[i]);
+    }
+    int removalCount = 0;
+    for (Source source in missingSources) {
+      if (getLibrariesContaining(source).isEmpty &&
+          getLibrariesDependingOn(source).isEmpty) {
+        _cache.remove(source);
+        removalCount++;
+      }
+    }
+    int consistencyCheckEnd = JavaSystem.nanoTime();
+    if (changedSources.length > 0 || missingSources.length > 0) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Consistency check took ");
+      buffer.write((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
+      buffer.writeln(" ms and found");
+      buffer.write("  ");
+      buffer.write(changedSources.length);
+      buffer.writeln(" inconsistent entries");
+      buffer.write("  ");
+      buffer.write(missingSources.length);
+      buffer.write(" missing sources (");
+      buffer.write(removalCount);
+      buffer.writeln(" removed");
+      for (Source source in missingSources) {
+        buffer.write("    ");
+        buffer.writeln(source.fullName);
+      }
+      _logInformation(buffer.toString());
+    }
+    return changedSources.length > 0;
   }
 
   @override
@@ -4033,16 +4092,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     AnalysisEngine.instance.logger.logInformation(message);
   }
 
-  /**
-   * Notify all of the analysis listeners that a task is about to be performed.
-   */
-  void _notifyAboutToPerformTask(String taskDescription) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].aboutToPerformTask(this, taskDescription);
-    }
-  }
-
 //  /**
 //   * Notify all of the analysis listeners that the given source is no longer included in the set of
 //   * sources that are being analyzed.
@@ -4120,6 +4169,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
+
+  /**
+   * Notify all of the analysis listeners that a task is about to be performed.
+   */
+  void _notifyAboutToPerformTask(String taskDescription) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].aboutToPerformTask(this, taskDescription);
+    }
+  }
 
   /**
    * Notify all of the analysis listeners that the errors associated with the
@@ -4730,65 +4789,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // OK
       return true;
     });
-  }
-
-  /**
-   * Check the cache for any invalid entries (entries whose modification time
-   * does not match the modification time of the source associated with the
-   * entry). Invalid entries will be marked as invalid so that the source will
-   * be re-analyzed. Return `true` if at least one entry was invalid.
-   */
-  bool _validateCacheConsistency() {
-    int consistencyCheckStart = JavaSystem.nanoTime();
-    List<Source> changedSources = new List<Source>();
-    List<Source> missingSources = new List<Source>();
-    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      Source source = iterator.key;
-      SourceEntry sourceEntry = iterator.value;
-      int sourceTime = getModificationStamp(source);
-      if (sourceTime != sourceEntry.modificationTime) {
-        changedSources.add(source);
-      }
-      if (sourceEntry.exception != null) {
-        if (!exists(source)) {
-          missingSources.add(source);
-        }
-      }
-    }
-    int count = changedSources.length;
-    for (int i = 0; i < count; i++) {
-      _sourceChanged(changedSources[i]);
-    }
-    int removalCount = 0;
-    for (Source source in missingSources) {
-      if (getLibrariesContaining(source).isEmpty &&
-          getLibrariesDependingOn(source).isEmpty) {
-        _cache.remove(source);
-        removalCount++;
-      }
-    }
-    int consistencyCheckEnd = JavaSystem.nanoTime();
-    if (changedSources.length > 0 || missingSources.length > 0) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.write("Consistency check took ");
-      buffer.write((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
-      buffer.writeln(" ms and found");
-      buffer.write("  ");
-      buffer.write(changedSources.length);
-      buffer.writeln(" inconsistent entries");
-      buffer.write("  ");
-      buffer.write(missingSources.length);
-      buffer.write(" missing sources (");
-      buffer.write(removalCount);
-      buffer.writeln(" removed");
-      for (Source source in missingSources) {
-        buffer.write("    ");
-        buffer.writeln(source.fullName);
-      }
-      _logInformation(buffer.toString());
-    }
-    return changedSources.length > 0;
   }
 
   void _validateLastIncrementalResolutionResult() {

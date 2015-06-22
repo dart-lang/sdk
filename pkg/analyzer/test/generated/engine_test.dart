@@ -5814,6 +5814,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  bool validateCacheConsistency() {
+    fail("Unexpected invocation of validateCacheConsistency");
+    return false;
+  }
+
+  @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
     fail("Unexpected invocation of visitCacheItems");
