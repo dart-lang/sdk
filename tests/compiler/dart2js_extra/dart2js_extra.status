@@ -82,7 +82,6 @@ LayoutTests_fast_mediastream_getusermedia_t01_test/none: RuntimeError # Cannot r
 async_stacktrace_test/asyncStar: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async_stacktrace_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 bounds_check_test/none: RuntimeError # Please triage this failure.
-closure4_test: RuntimeError # Please triage this failure.
 closure5_test: RuntimeError # Cannot read property 'prototype' of undefined
 closure_capture4_test: RuntimeError # Please triage this failure.
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
