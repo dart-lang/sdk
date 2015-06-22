@@ -399,8 +399,6 @@ class IrBuilderSharedState {
   /// A stack of collectors for continues.
   final List<JumpCollector> continueCollectors = <JumpCollector>[];
 
-  final List<ConstDeclaration> localConstants = <ConstDeclaration>[];
-
   final ExecutableElement currentElement;
 
   final ir.Continuation returnContinuation = new ir.Continuation.retrn();
@@ -598,13 +596,6 @@ abstract class IrBuilder {
     return parameter;
   }
 
-  /// Adds the constant [variableElement] to the environment with [value] as its
-  /// constant value.
-  void declareLocalConstant(LocalVariableElement variableElement,
-                            ConstantExpression value) {
-    state.localConstants.add(new ConstDeclaration(variableElement, value));
-  }
-
   /// Plug an expression into the 'hole' in the context being accumulated.  The
   /// empty context (just a hole) is represented by root (and current) being
   /// null.  Since the hole in the current context is filled by this function,
@@ -675,54 +666,41 @@ abstract class IrBuilder {
   }
 
 
-  /// Create a [ir.Constant] from [constant] and add it to the CPS term.
-  // TODO(johnniwinther): Remove [value] when [ConstantValue] can be computed
-  // directly from [constant].
-  ir.Constant buildConstant(ConstantExpression constant, ConstantValue value) {
+  /// Create a [ir.Constant] from [value] and add it to the CPS term.
+  ir.Constant buildConstant(ConstantValue value) {
     assert(isOpen);
-    return addPrimitive(new ir.Constant(constant, value));
+    return addPrimitive(new ir.Constant(value));
   }
 
   /// Create an integer constant and add it to the CPS term.
   ir.Constant buildIntegerConstant(int value) {
-    return buildConstant(
-        new IntConstantExpression(value),
-        state.constantSystem.createInt(value));
+    return buildConstant(state.constantSystem.createInt(value));
   }
 
   /// Create a double constant and add it to the CPS term.
   ir.Constant buildDoubleConstant(double value) {
-    return buildConstant(
-        new DoubleConstantExpression(value),
-        state.constantSystem.createDouble(value));
+    return buildConstant(state.constantSystem.createDouble(value));
   }
 
   /// Create a Boolean constant and add it to the CPS term.
   ir.Constant buildBooleanConstant(bool value) {
-    return buildConstant(
-        new BoolConstantExpression(value),
-        state.constantSystem.createBool(value));
+    return buildConstant(state.constantSystem.createBool(value));
   }
 
   /// Create a null constant and add it to the CPS term.
   ir.Constant buildNullConstant() {
-    return buildConstant(
-        new NullConstantExpression(),
-        state.constantSystem.createNull());
+    return buildConstant(state.constantSystem.createNull());
   }
 
   /// Create a string constant and add it to the CPS term.
   ir.Constant buildStringConstant(String value) {
     return buildConstant(
-        new StringConstantExpression(value),
         state.constantSystem.createString(new ast.DartString.literal(value)));
   }
 
   /// Create a string constant and add it to the CPS term.
   ir.Constant buildDartStringConstant(ast.DartString value) {
-    return buildConstant(
-        new StringConstantExpression(value.slowToString()),
-        state.constantSystem.createString(value));
+    return buildConstant(state.constantSystem.createString(value));
   }
 
   /// Creates a non-constant list literal of the provided [type] and with the
@@ -1090,11 +1068,17 @@ abstract class IrBuilder {
                                           DartType type,
                                           List<ir.Primitive> arguments);
 
-  /// Create a string concatenation of the [arguments].
+  ir.Primitive buildStringify(ir.Primitive argument);
+
+  /// Concatenate string values.
+  ///
+  /// The arguments must be strings; usually a call to [buildStringify] is
+  /// needed to ensure the proper conversion takes places.
   ir.Primitive buildStringConcatenation(List<ir.Primitive> arguments) {
     assert(isOpen);
-    return _continueWithExpression(
-        (k) => new ir.ConcatenateStrings(arguments, k));
+    return addPrimitive(new ir.ApplyBuiltinOperator(
+        ir.BuiltinOperator.StringConcatenate,
+        arguments));
   }
 
   /// Create an invocation of the `call` method of [functionExpression], where
@@ -2001,9 +1985,7 @@ abstract class IrBuilder {
     ir.Continuation elseContinuation = new ir.Continuation([]);
 
     ir.Constant makeBoolConstant(bool value) {
-      return new ir.Constant(
-          new BoolConstantExpression(value),
-          state.constantSystem.createBool(value));
+      return new ir.Constant(state.constantSystem.createBool(value));
     }
 
     ir.Constant trueConstant = makeBoolConstant(true);
@@ -2555,6 +2537,14 @@ class JsIrBuilder extends IrBuilder {
     assert(isOpen);
     ir.Primitive right = buildNullConstant();
     return addPrimitive(new ir.Identical(value, right));
+  }
+
+  /// Convert the given value to a string.
+  ir.Primitive buildStringify(ir.Primitive value) {
+    return buildStaticFunctionInvocation(
+        program.stringifyFunction,
+        new CallStructure.unnamed(1),
+        <ir.Primitive>[value]);
   }
 }
 

@@ -82,21 +82,15 @@ class UnsugarVisitor extends RecursiveVisitor {
   }
 
   Constant get trueConstant {
-    return new Constant(
-        new BoolConstantExpression(true),
-        new TrueConstantValue());
+    return new Constant(new TrueConstantValue());
   }
 
   Constant get falseConstant {
-    return new Constant(
-        new BoolConstantExpression(false),
-        new FalseConstantValue());
+    return new Constant(new FalseConstantValue());
   }
 
   Constant get nullConstant {
-    return new Constant(
-        new NullConstantExpression(),
-        new NullConstantValue());
+    return new Constant(new NullConstantValue());
   }
 
   void insertLetPrim(Primitive primitive, Expression node) {

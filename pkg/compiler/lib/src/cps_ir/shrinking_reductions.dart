@@ -557,11 +557,6 @@ class ParentVisitor extends RecursiveVisitor {
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
 
-  processConcatenateStrings(ConcatenateStrings node) {
-    node.continuation.parent = node;
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
   processBranch(Branch node) {
     node.condition.parent = node;
     node.trueContinuation.parent = node;
