@@ -152,7 +152,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     });
     onServerError.listen((ServerErrorParams params) {
       // A server error should never happen during an integration test.
-      fail(params.message);
+      fail('${params.message}\n${params.stackTrace}');
     });
     return server.start().then((_) {
       server.listenToOutput(dispatchNotification);
