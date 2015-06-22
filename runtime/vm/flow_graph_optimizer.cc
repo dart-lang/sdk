@@ -162,7 +162,6 @@ static bool IsNumberCid(intptr_t cid) {
 
 
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
-  return false;
   // TODO(srdjan): Investigate failures in:
   //  corelib/big_integer_arith_vm_test
   //  dart2js/members_test
