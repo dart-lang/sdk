@@ -5,6 +5,7 @@
 // Testing Bigints with and without intrinsics.
 // VMOptions=
 // VMOptions=--no_intrinsify
+// VMOptions=--optimization_counter_threshold=10
 
 library big_integer_test;
 import "package:expect/expect.dart";
@@ -396,24 +397,26 @@ testShiftAmount() {
 }
 
 main() {
-  Expect.equals(1234567890123456789, foo());
-  Expect.equals(12345678901234567890, bar());
-  testSmiOverflow();
-  testBigintAdd();
-  testBigintSub();
-  testBigintMul();
-  testBigintTruncDiv();
-  testBigintDiv();
-  testBigintModulo();
-  testBigintModPow();
-  testBigintModInverse();
-  testBigintGcd();
-  testBigintNegate();
-  testShiftAmount();
-  Expect.equals(12345678901234567890, (12345678901234567890).abs());
-  Expect.equals(12345678901234567890, (-12345678901234567890).abs());
-  var a = 10000000000000000000;
-  var b = 10000000000000000001;
-  Expect.equals(false, a.hashCode == b.hashCode);
-  Expect.equals(true, a.hashCode == (b - 1).hashCode);
+  for (int i = 0; i < 10; i++) {
+    Expect.equals(1234567890123456789, foo());
+    Expect.equals(12345678901234567890, bar());
+    testSmiOverflow();  /// overflow: ok
+    testBigintAdd();  /// add: ok
+    testBigintSub();  /// sub: ok
+    testBigintMul();  /// mul: ok
+    testBigintTruncDiv();  /// trunDiv: ok
+    testBigintDiv();  /// div: ok
+    testBigintModulo();  /// mod: ok
+    testBigintModPow();  /// modPow: ok
+    testBigintModInverse();  /// modInv: ok
+    testBigintGcd();  /// gcd: ok
+    testBigintNegate();  /// negate: ok
+    testShiftAmount();  /// shift: ok
+    Expect.equals(12345678901234567890, (12345678901234567890).abs());
+    Expect.equals(12345678901234567890, (-12345678901234567890).abs());
+    var a = 10000000000000000000;
+    var b = 10000000000000000001;
+    Expect.equals(false, a.hashCode == b.hashCode);
+    Expect.equals(true, a.hashCode == (b - 1).hashCode);
+  }
 }
