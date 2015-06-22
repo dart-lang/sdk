@@ -3537,7 +3537,7 @@ enum _SourceClosureKind { IMPORT, EXPORT, IMPORT_EXPORT }
 class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
   final _SourceClosureKind kind;
   final Set<LibraryElement> _libraries = new HashSet<LibraryElement>();
-  final Set<Source> _newSources = new HashSet<Source>();
+  final List<Source> _newSources = <Source>[];
 
   Source currentTarget;
 
@@ -3585,8 +3585,7 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
     if (_newSources.isEmpty) {
       return false;
     }
-    currentTarget = _newSources.first;
-    _newSources.remove(currentTarget);
+    currentTarget = _newSources.removeLast();
     return true;
   }
 }
