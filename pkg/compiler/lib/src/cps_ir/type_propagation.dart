@@ -12,12 +12,12 @@ import '../dart_types.dart' as types;
 import '../dart2jslib.dart' as dart2js;
 import '../tree/tree.dart' show LiteralDartString;
 import 'cps_ir_nodes.dart';
-import '../types/types.dart' show TypeMask, TypesTask;
+import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
-import '../elements/elements.dart' show ClassElement, Element, Entity,
-    FieldElement, FunctionElement, ParameterElement;
-import '../dart2jslib.dart' show ClassWorld;
+import '../elements/elements.dart';
+import '../dart2jslib.dart' show ClassWorld, World;
 import '../universe/universe.dart';
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
 
 enum AbstractBool {
   True, False, Maybe, Nothing
@@ -25,7 +25,7 @@ enum AbstractBool {
 
 class TypeMaskSystem {
   final TypesTask inferrer;
-  final ClassWorld classWorld;
+  final World classWorld;
 
   TypeMask get dynamicType => inferrer.dynamicType;
   TypeMask get typeType => inferrer.typeType;
@@ -48,6 +48,10 @@ class TypeMaskSystem {
     numStringBoolType =
       new TypeMask.unionOf(<TypeMask>[numType, stringType, boolType],
                            classWorld);
+  }
+
+  Element locateSingleElement(TypeMask mask, Selector selector) {
+    return mask.locateSingleElement(selector, classWorld.compiler);
   }
 
   TypeMask getParameterType(ParameterElement parameter) {
@@ -355,6 +359,7 @@ class ConstantPropagationLattice {
 class TypePropagator extends Pass {
   String get passName => 'Sparse constant propagation';
 
+  final dart2js.Compiler _compiler;
   // The constant system is used for evaluation of expressions with constant
   // arguments.
   final ConstantPropagationLattice _lattice;
@@ -362,7 +367,8 @@ class TypePropagator extends Pass {
   final Map<Definition, AbstractValue> _values = <Definition, AbstractValue>{};
 
   TypePropagator(dart2js.Compiler compiler)
-      : _internalError = compiler.internalError,
+      : _compiler = compiler,
+        _internalError = compiler.internalError,
         _lattice = new ConstantPropagationLattice(
             new TypeMaskSystem(compiler),
             compiler.backend.constantSystem,
@@ -389,6 +395,7 @@ class TypePropagator extends Pass {
     // replace branches with fixed targets and side-effect-free expressions
     // with constant results or existing values that are in scope.
     TransformingVisitor transformer = new TransformingVisitor(
+        _compiler,
         _lattice,
         analyzer.reachableNodes,
         analyzer.values,
@@ -423,13 +430,16 @@ class TransformingVisitor extends RecursiveVisitor {
   final Map<Node, AbstractValue> values;
   final Map<Expression, ConstantValue> replacements;
   final ConstantPropagationLattice lattice;
+  final dart2js.Compiler compiler;
 
+  JavaScriptBackend get backend => compiler.backend;
   TypeMaskSystem get typeSystem => lattice.typeSystem;
   types.DartTypes get dartTypes => lattice.dartTypes;
 
   final dart2js.InternalErrorFunction internalError;
 
-  TransformingVisitor(this.lattice,
+  TransformingVisitor(this.compiler,
+                      this.lattice,
                       this.reachable,
                       this.values,
                       this.replacements,
@@ -635,10 +645,67 @@ class TransformingVisitor extends RecursiveVisitor {
     return false;
   }
 
+  bool isInterceptedSelector(Selector selector) {
+    return backend.isInterceptedSelector(selector);
+  }
+
+  Primitive getDartReceiver(InvokeMethod node) {
+    if (isInterceptedSelector(node.selector)) {
+      return node.arguments[0].definition;
+    } else {
+      return node.receiver.definition;
+    }
+  }
+
+  Primitive getDartArgument(InvokeMethod node, int n) {
+    if (isInterceptedSelector(node.selector)) {
+      return node.arguments[n+1].definition;
+    } else {
+      return node.arguments[n].definition;
+    }
+  }
+
+  /// If [node] is a getter or setter invocation, tries to replace the
+  /// invocation with a direct access to a field.
+  ///
+  /// Returns `true` if the node was replaced.
+  bool inlineFieldAccess(InvokeMethod node) {
+    if (!node.selector.isGetter && !node.selector.isSetter) return false;
+    AbstractValue receiver = getValue(getDartReceiver(node));
+    if (receiver.isNothing) return false;
+    Element target =
+        typeSystem.locateSingleElement(receiver.type, node.selector);
+    if (target is! FieldElement) return false;
+    // TODO(asgerf): Inlining native fields will make some tests pass for the
+    // wrong reason, so for testing reasons avoid inlining them.
+    if (target.isNative) return false;
+    Continuation cont = node.continuation.definition;
+    if (node.selector.isGetter) {
+      GetField get = new GetField(getDartReceiver(node), target);
+      get.objectIsNotNull = receiver.isDefinitelyNotNull;
+      LetPrim let = makeLetPrimInvoke(get, cont);
+      replaceSubtree(node, let);
+      visitLetPrim(let);
+      return true;
+    } else {
+      if (target.isFinal) return false;
+      assert(cont.parameters.single.hasNoUses);
+      cont.parameters.clear();
+      SetField set = new SetField(getDartReceiver(node),
+                                  target,
+                                  getDartArgument(node, 0));
+      set.body = new InvokeContinuation(cont, <Primitive>[]);
+      replaceSubtree(node, set);
+      visitSetField(set);
+      return true;
+    }
+  }
+
   void visitInvokeMethod(InvokeMethod node) {
     Continuation cont = node.continuation.definition;
     if (constifyExpression(node, cont)) return;
     if (specializeInvoke(node)) return;
+    if (inlineFieldAccess(node)) return;
 
     AbstractValue receiver = getValue(node.receiver.definition);
     node.receiverIsNotNull = receiver.isDefinitelyNotNull;
@@ -719,6 +786,10 @@ class TransformingVisitor extends RecursiveVisitor {
           <Primitive>[prim, prim, prim]);
     }
     return null;
+  }
+
+  void visitGetField(GetField node) {
+    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
   }
 
   void visitLetPrim(LetPrim node) {

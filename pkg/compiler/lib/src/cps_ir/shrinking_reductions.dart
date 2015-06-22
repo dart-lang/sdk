@@ -246,8 +246,11 @@ class ShrinkingReducer extends Pass {
   }
 }
 
-/// Returns true iff the bound primitive is unused.
-bool _isDeadVal(LetPrim node) => !node.primitive.hasAtLeastOneUse;
+/// Returns true iff the bound primitive is unused, and has no effects
+/// preventing it from being eliminated.
+bool _isDeadVal(LetPrim node) {
+  return node.primitive.hasNoUses && node.primitive.isSafeForElimination;
+}
 
 /// Returns true iff the continuation is unused.
 bool _isDeadCont(Continuation cont) {

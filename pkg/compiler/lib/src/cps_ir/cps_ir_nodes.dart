@@ -71,12 +71,10 @@ abstract class Definition<T extends Definition<T>> extends Node {
   }
 }
 
-/// An expression that cannot throw or diverge and has no side-effects.
-/// All primitives are named using the identity of the [Primitive] object.
+/// A named value.
 ///
-/// Primitives may allocate objects; this is not considered side-effect here.
-///
-/// Although primitives may not mutate state, they may depend on state.
+/// The identity of the [Primitive] object is the name of the value.
+/// The subclass describes how to compute the value.
 ///
 /// All primitives except [Parameter] must be bound by a [LetPrim].
 abstract class Primitive extends Definition<Primitive> {
@@ -92,6 +90,13 @@ abstract class Primitive extends Definition<Primitive> {
       this.hint = hint;
     }
   }
+
+  /// True if the primitive can be removed, assuming it has no uses
+  /// (this getter does not check if there are any uses).
+  ///
+  /// False must be returned for primitives that may throw, diverge, or have
+  /// observable side-effects.
+  bool get isSafeForElimination => true;
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
@@ -614,14 +619,24 @@ class SetField extends Expression implements InteriorNode {
 }
 
 /// Directly reads from a field on a given object.
+///
+/// The [object] must either be `null` or an object that has [field].
 class GetField extends Primitive {
   final Reference<Primitive> object;
   FieldElement field;
+
+  /// True if the receiver is known not to be null.
+  // TODO(asgerf): This is a placeholder until we agree on how to track
+  //               side effects.
+  bool objectIsNotNull = false;
 
   GetField(Primitive object, this.field)
       : this.object = new Reference<Primitive>(object);
 
   accept(Visitor visitor) => visitor.visitGetField(this);
+
+  @override
+  bool get isSafeForElimination => objectIsNotNull;
 }
 
 /// Reads the value of a static field or tears off a static method.
