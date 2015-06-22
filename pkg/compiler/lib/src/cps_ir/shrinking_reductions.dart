@@ -278,9 +278,12 @@ bool _isBetaContLin(Continuation cont) {
 
   // Beta-reduction will move the continuation's body to its unique invocation
   // site.  This is not safe if the body is moved into an exception handler
-  // binding.
+  // binding.  Search from the invocation to the continuation binding to
+  // make sure that there is no binding for a handler.
   Node current = invoke.parent;
   while (current != cont.parent) {
+    // There is no need to reduce a beta-redex inside a deleted subterm.
+    if (current == ShrinkingReducer._DELETED) return false;
     if (current is LetHandler) return false;
     current = current.parent;
   }

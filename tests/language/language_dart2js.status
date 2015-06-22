@@ -440,7 +440,6 @@ deferred_shared_and_unshared_classes_test: Crash # (try {return f(arg1,arg2);}fi
 deferred_static_seperate_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 deopt_inlined_function_lazy_test: Crash # (try {return x+12342353257893275483274832;}finally {}): try/finally
 deopt_no_feedback_test: RuntimeError # Please triage this failure.
-empty_block_case_test: Crash # The null object does not have a getter 'parent'.
 enum_duplicate_test/01: RuntimeError # Please triage this failure.
 enum_duplicate_test/02: RuntimeError # Please triage this failure.
 enum_duplicate_test/none: RuntimeError # Please triage this failure.

@@ -73,7 +73,7 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 19191_test: RuntimeError # Please triage this failure.
 21166_test: RuntimeError # Please triage this failure.
 21579_test: RuntimeError # Please triage this failure.
-21666_test: Crash # Internal Error: No default constructor available.
+21666_test: Crash # Issue 23692
 22487_test: RuntimeError # Cannot read property 'prototype' of undefined
 22868_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
 22895_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
