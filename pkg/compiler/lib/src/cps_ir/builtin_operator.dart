@@ -37,13 +37,6 @@ enum BuiltinOperator {
   NumGt,
   NumGe,
 
-  /// Concatenates any number of strings.
-  ///
-  /// Takes any number of arguments, and each argument must be a string.
-  ///
-  /// Returns the empty string if no arguments are given.
-  StringConcatenate,
-
   /// Returns true if the two arguments are the same value, and that value is
   /// not NaN, or if one argument is +0 and the other is -0.
   ///

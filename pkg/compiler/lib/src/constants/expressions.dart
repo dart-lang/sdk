@@ -1531,6 +1531,15 @@ abstract class ConstantExpressionVisitor<R, A> {
   R visitNamed(NamedArgumentReference exp, A context);
 }
 
+/// Represents the declaration of a constant [element] with value [expression].
+// TODO(johnniwinther): Where does this class belong?
+class ConstDeclaration {
+  final VariableElement element;
+  final ConstantExpression expression;
+
+  ConstDeclaration(this.element, this.expression);
+}
+
 class ConstExpPrinter extends ConstantExpressionVisitor {
   final StringBuffer sb = new StringBuffer();
 

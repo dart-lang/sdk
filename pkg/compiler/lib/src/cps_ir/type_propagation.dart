@@ -5,11 +5,12 @@
 import 'optimizers.dart' show Pass, ParentVisitor;
 
 import '../constants/constant_system.dart';
+import '../constants/expressions.dart';
 import '../resolution/operators.dart';
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
 import '../dart2jslib.dart' as dart2js;
-import '../tree/tree.dart' show DartString, ConsDartString, LiteralDartString;
+import '../tree/tree.dart' show LiteralDartString;
 import 'cps_ir_nodes.dart';
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
@@ -466,7 +467,9 @@ class TransformingVisitor extends RecursiveVisitor {
 
   /// Make a constant primitive for [constant] and set its entry in [values].
   Constant makeConstantPrimitive(ConstantValue constant) {
-    Constant primitive = new Constant(constant);
+    ConstantExpression constExp =
+        const ConstantExpressionCreator().convert(constant);
+    Constant primitive = new Constant(constExp, constant);
     values[primitive] = new AbstractValue.constantValue(constant,
         typeSystem.getTypeOf(constant));
     return primitive;
@@ -635,11 +638,6 @@ class TransformingVisitor extends RecursiveVisitor {
             return replaceWithBinary(operator, leftArg, rightArg);
           }
         }
-        else if (lattice.isDefinitelyString(left, allowNull: false) &&
-                 lattice.isDefinitelyString(right, allowNull: false)) {
-          return replaceWithBinary(BuiltinOperator.StringConcatenate,
-                                   leftArg, rightArg);
-        }
       }
     }
     // We should only get here if the node was not specialized.
@@ -714,6 +712,12 @@ class TransformingVisitor extends RecursiveVisitor {
     super.visitInvokeMethod(node);
   }
 
+  void visitConcatenateStrings(ConcatenateStrings node) {
+    Continuation cont = node.continuation.definition;
+    if (constifyExpression(node, cont)) return;
+    super.visitConcatenateStrings(node);
+  }
+
   void visitTypeCast(TypeCast node) {
     Continuation cont = node.continuation.definition;
 
@@ -741,27 +745,6 @@ class TransformingVisitor extends RecursiveVisitor {
     super.visitTypeCast(node);
   }
 
-  void visitInvokeStatic(InvokeStatic node) {
-    // Specialize calls to static methods.
-    // TODO(asgerf): This is written to easily scale to more cases,
-    //               either add more cases or clean up.
-    Continuation cont = node.continuation.definition;
-    Primitive arg(int n) => node.arguments[n].definition;
-    AbstractValue argType(int n) => getValue(arg(n));
-    if (node.target.library.isInternalLibrary) {
-      switch(node.target.name) {
-        case InternalMethod.Stringify:
-          if (lattice.isDefinitelyString(argType(0))) {
-            InvokeContinuation invoke =
-                new InvokeContinuation(cont, <Primitive>[arg(0)]);
-            replaceSubtree(node, invoke);
-            visitInvokeContinuation(invoke);
-          }
-          break;
-      }
-    }
-  }
-
   AbstractValue getValue(Primitive primitive) {
     AbstractValue value = values[primitive];
     return value == null ? new AbstractValue.nothing() : value;
@@ -777,64 +760,6 @@ class TransformingVisitor extends RecursiveVisitor {
         rightValue.isConstant &&
         rightValue.constant.isTrue) {
       left.substituteFor(node);
-    }
-  }
-
-  void insertLetPrim(Expression node, Primitive prim) {
-    InteriorNode parent = node.parent;
-    LetPrim let = new LetPrim(prim);
-    parent.body = let;
-    let.body = node;
-    node.parent = let;
-    let.parent = parent;
-  }
-
-  void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
-    DartString getString(AbstractValue value) {
-      StringConstantValue constant = value.constant;
-      return constant.primitiveValue;
-    }
-    switch (node.operator) {
-      case BuiltinOperator.StringConcatenate:
-        // Concatenate consecutive constants.
-        bool argumentsWereRemoved = false;
-        int i = 0;
-        while (i < node.arguments.length - 1) {
-          int startOfSequence = i;
-          AbstractValue firstValue = getValue(node.arguments[i++].definition);
-          if (!firstValue.isConstant) continue;
-          AbstractValue secondValue = getValue(node.arguments[i++].definition);
-          if (!secondValue.isConstant) continue;
-
-          DartString string =
-              new ConsDartString(getString(firstValue), getString(secondValue));
-
-          // We found a sequence of at least two constants.
-          // Look for the end of the sequence.
-          while (i < node.arguments.length) {
-            AbstractValue value = getValue(node.arguments[i].definition);
-            if (!value.isConstant) break;
-            string = new ConsDartString(string, getString(value));
-            ++i;
-          }
-          Constant prim =
-              makeConstantPrimitive(new StringConstantValue(string));
-          insertLetPrim(node.parent, prim);
-          for (int k = startOfSequence; k < i; ++k) {
-            node.arguments[k].unlink();
-            node.arguments[k] = null; // Remove the argument after the loop.
-          }
-          node.arguments[startOfSequence] = new Reference<Primitive>(prim);
-          argumentsWereRemoved = true;
-        }
-        if (argumentsWereRemoved) {
-          node.arguments.removeWhere((ref) => ref == null);
-        }
-        // TODO(asgerf): Rebalance nested StringConcats that arise from
-        //               rewriting the + operator to StringConcat.
-        break;
-
-      default:
     }
   }
 
@@ -878,10 +803,6 @@ class TransformingVisitor extends RecursiveVisitor {
     } else {
       Primitive newPrim = visit(node.primitive);
       if (newPrim != null) {
-        if (!values.containsKey(newPrim)) {
-          // If the type was not set, default to the same type as before.
-          values[newPrim] = values[node.primitive];
-        }
         newPrim.substituteFor(node.primitive);
         RemovalVisitor.remove(node.primitive);
         node.primitive = newPrim;
@@ -1054,22 +975,10 @@ class TypePropagationVisitor implements Visitor {
 
     assert(cont.parameters.length == 1);
     Parameter returnValue = cont.parameters[0];
-
-    if (node.target.library.isInternalLibrary) {
-      switch (node.target.name) {
-        case InternalMethod.Stringify:
-          AbstractValue argValue = getValue(node.arguments[0].definition);
-          if (argValue.isNothing) return; // And come back later.
-          if (lattice.isDefinitelyString(argValue)) {
-            setValue(returnValue, argValue);
-          } else {
-            setValue(returnValue, nonConstant(typeSystem.stringType));
-          }
-          return;
-      }
-    }
-
-    TypeMask returnType = typeSystem.getReturnType(node.target);
+    Entity target = node.target;
+    TypeMask returnType = target is FieldElement
+        ? typeSystem.dynamicType
+        : typeSystem.getReturnType(node.target);
     setValue(returnValue, nonConstant(returnType));
   }
 
@@ -1143,34 +1052,8 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
-    // Note that most built-in operators do not exist before the transformation
-    // pass after this analysis has finished.
-    switch (node.operator) {
-      case BuiltinOperator.StringConcatenate:
-        DartString stringValue = const LiteralDartString('');
-        for (Reference<Primitive> arg in node.arguments) {
-          AbstractValue value = getValue(arg.definition);
-          if (value.isNothing) {
-            return; // And come back later
-          } else if (value.isConstant &&
-                     value.constant.isString &&
-                     stringValue != null) {
-            StringConstantValue constant = value.constant;
-            stringValue =
-                new ConsDartString(stringValue, constant.primitiveValue);
-          } else {
-            stringValue = null;
-            break;
-          }
-        }
-        if (stringValue == null) {
-          setValue(node, nonConstant(typeSystem.stringType));
-        } else {
-          setValue(node, constantValue(new StringConstantValue(stringValue)));
-        }
-        break;
-      default:
-    }
+    // Not actually reachable yet.
+    // TODO(asgerf): Implement type propagation for builtin operators.
     setValue(node, nonConstant());
   }
 
@@ -1191,6 +1074,50 @@ class TypePropagationVisitor implements Visitor {
     assert(cont.parameters.length == 1);
     Parameter returnValue = cont.parameters[0];
     setValue(returnValue, nonConstant(typeSystem.getReturnType(node.target)));
+  }
+
+  void visitConcatenateStrings(ConcatenateStrings node) {
+    Continuation cont = node.continuation.definition;
+    setReachable(cont);
+
+    /// Sets the value of the target continuation parameter, and possibly
+    /// try to replace the whole invocation with a constant.
+    void setResult(AbstractValue updateValue, {bool canReplace: false}) {
+      Parameter returnValue = cont.parameters[0];
+      setValue(returnValue, updateValue);
+      if (canReplace && updateValue.isConstant) {
+        replacements[node] = updateValue.constant;
+      } else {
+        // A previous iteration might have tried to replace this.
+        replacements.remove(node);
+      }
+    }
+
+    // TODO(jgruber): Currently we only optimize if all arguments are string
+    // constants, but we could also handle cases such as "foo${42}".
+    bool allStringConstants = node.arguments.every((Reference ref) {
+      if (!(ref.definition is Constant)) {
+        return false;
+      }
+      Constant constant = ref.definition;
+      return constant != null && constant.value.isString;
+    });
+
+    TypeMask type = typeSystem.stringType;
+    assert(cont.parameters.length == 1);
+    if (allStringConstants) {
+      // All constant, we can concatenate ourselves.
+      Iterable<String> allStrings = node.arguments.map((Reference ref) {
+        Constant constant = ref.definition;
+        StringConstantValue stringConstant = constant.value;
+        return stringConstant.primitiveValue.slowToString();
+      });
+      LiteralDartString dartString = new LiteralDartString(allStrings.join());
+      ConstantValue constant = new StringConstantValue(dartString);
+      setResult(constantValue(constant, type), canReplace: true);
+    } else {
+      setResult(nonConstant(type));
+    }
   }
 
   void visitThrow(Throw node) {
@@ -1523,7 +1450,76 @@ class AbstractValue {
   }
 }
 
-/// Enum-like class with the names of internal methods we care about.
-abstract class InternalMethod {
-  static const String Stringify = 'S';
+class ConstantExpressionCreator
+    implements ConstantValueVisitor<ConstantExpression, dynamic> {
+
+  const ConstantExpressionCreator();
+
+  ConstantExpression convert(ConstantValue value) => value.accept(this, null);
+
+  @override
+  ConstantExpression visitBool(BoolConstantValue constant, _) {
+    return new BoolConstantExpression(constant.primitiveValue);
+  }
+
+  @override
+  ConstantExpression visitConstructed(ConstructedConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitConstructed");
+  }
+
+  @override
+  ConstantExpression visitDeferred(DeferredConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitDeferred");
+  }
+
+  @override
+  ConstantExpression visitDouble(DoubleConstantValue constant, arg) {
+    return new DoubleConstantExpression(constant.primitiveValue);
+  }
+
+  @override
+  ConstantExpression visitSynthetic(SyntheticConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitSynthetic");
+  }
+
+  @override
+  ConstantExpression visitFunction(FunctionConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitFunction");
+  }
+
+  @override
+  ConstantExpression visitInt(IntConstantValue constant, arg) {
+    return new IntConstantExpression(constant.primitiveValue);
+  }
+
+  @override
+  ConstantExpression visitInterceptor(InterceptorConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitInterceptor");
+  }
+
+  @override
+  ConstantExpression visitList(ListConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitList");
+  }
+
+  @override
+  ConstantExpression visitMap(MapConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitMap");
+  }
+
+  @override
+  ConstantExpression visitNull(NullConstantValue constant, arg) {
+    return new NullConstantExpression();
+  }
+
+  @override
+  ConstantExpression visitString(StringConstantValue constant, arg) {
+    return new StringConstantExpression(
+        constant.primitiveValue.slowToString());
+  }
+
+  @override
+  ConstantExpression visitType(TypeConstantValue constant, arg) {
+    throw new UnsupportedError("ConstantExpressionCreator.visitType");
+  }
 }

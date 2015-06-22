@@ -171,6 +171,31 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
+  js.Expression visitConcatenateStrings(tree_ir.ConcatenateStrings node) {
+    js.Expression addStrings(js.Expression left, js.Expression right) {
+      return new js.Binary('+', left, right);
+    }
+
+    js.Expression toString(tree_ir.Expression input) {
+      bool useDirectly = input is tree_ir.Constant &&
+          (input.value.isString ||
+           input.value.isInt ||
+           input.value.isBool);
+      js.Expression value = visitExpression(input);
+      if (useDirectly) {
+        return value;
+      } else {
+        Element convertToString = glue.getStringConversion();
+        registry.registerStaticUse(convertToString);
+        js.Expression access = glue.staticFunctionAccess(convertToString);
+        return (new js.Call(access, <js.Expression>[value]));
+      }
+    }
+
+    return node.arguments.map(toString).reduce(addStrings);
+  }
+
+  @override
   js.Expression visitConditional(tree_ir.Conditional node) {
     return new js.Conditional(
         visitExpression(node.condition),
@@ -714,9 +739,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
         return new js.Binary('>', args[0], args[1]);
       case BuiltinOperator.NumGe:
         return new js.Binary('>=', args[0], args[1]);
-      case BuiltinOperator.StringConcatenate:
-        if (args.isEmpty) return js.string('');
-        return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
       case BuiltinOperator.StrictEq:
         return new js.Binary('===', args[0], args[1]);
       case BuiltinOperator.StrictNeq:

@@ -385,6 +385,11 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return "$keyword $callName($args)";
   }
 
+  String visitConcatenateStrings(ConcatenateStrings node) {
+    String args = node.arguments.map(visitExpression).join(', ');
+    return "concat [$args]";
+  }
+
   String visitLiteralList(LiteralList node) {
     String values = node.values.map(visitExpression).join(', ');
     return "list [$values]";

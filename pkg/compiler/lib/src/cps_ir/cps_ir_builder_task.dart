@@ -18,7 +18,6 @@ import '../resolution/semantic_visitor.dart';
 import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
 import '../universe/universe.dart' show SelectorKind, CallStructure;
-import '../constants/values.dart' show ConstantValue;
 import 'cps_ir_nodes.dart' as ir;
 import 'cps_ir_builder.dart';
 import '../native/native.dart' show NativeBehavior;
@@ -354,8 +353,13 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitVariableDefinitions(ast.VariableDefinitions node) {
     assert(irBuilder.isOpen);
     if (node.modifiers.isConst) {
-      // Do nothing.
-      // handleLocalConstantGet inlines the constant at use-site.
+      for (ast.SendSet definition in node.definitions.nodes) {
+        assert(!definition.arguments.isEmpty);
+        assert(definition.arguments.tail.isEmpty);
+        VariableElement element = elements[definition];
+        ConstantExpression value = getConstantForVariable(element);
+        irBuilder.declareLocalConstant(element, value);
+      }
     } else {
       for (ast.Node definition in node.definitions.nodes) {
         Element element = elements[definition];
@@ -495,24 +499,27 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildDartStringConstant(node.dartString);
   }
 
-  ConstantValue getConstantForNode(ast.Node node) {
-    ConstantValue constant =
-        irBuilder.state.constants.getConstantValueForNode(node, elements);
+  ConstantExpression getConstantForNode(ast.Node node) {
+    ConstantExpression constant =
+        irBuilder.state.constants.getConstantForNode(node, elements);
     assert(invariant(node, constant != null,
         message: 'No constant computed for $node'));
     return constant;
   }
 
-  ConstantValue getConstantForVariable(VariableElement element) {
-    ConstantValue constant =
-        irBuilder.state.constants.getConstantValueForVariable(element);
+  ConstantExpression getConstantForVariable(VariableElement element) {
+    ConstantExpression constant =
+        irBuilder.state.constants.getConstantForVariable(element);
     assert(invariant(element, constant != null,
             message: 'No constant computed for $element'));
     return constant;
   }
 
-  ir.Primitive buildConstantExpression(ConstantExpression expression) {
-    return irBuilder.buildConstant(
+  /// Builds a constant pulling the value from the constant environment.
+  // TODO(johnniwinther): Remove this when [IrBuilder.buildConstant] only takes
+  // a [ConstantExpression].
+  ir.Primitive buildConstant(ConstantExpression expression) {
+    return irBuilder.buildConstant(expression,
         irBuilder.state.constants.getConstantValue(expression));
   }
 
@@ -610,7 +617,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive handleConstantGet(
       ast.Node node,
       ConstantExpression constant, _) {
-    return buildConstantExpression(constant);
+    return buildConstant(constant);
   }
 
   /// If [node] is null, returns this.
@@ -647,7 +654,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       ConstantExpression constant,
       _) {
-    return buildConstantExpression(constant);
+    return buildConstant(constant);
   }
 
   @override
@@ -656,7 +663,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       LocalVariableElement element,
       _) {
     return element.isConst
-        ? irBuilder.buildConstant(getConstantForVariable(element))
+        ? buildConstant(getConstantForVariable(element))
         : irBuilder.buildLocalVariableGet(element);
   }
 
@@ -966,7 +973,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
-    ir.Primitive target = buildConstantExpression(constant);
+    ir.Primitive target = buildConstant(constant);
     return translateCallInvoke(target, arguments, callStructure);
   }
 
@@ -1295,7 +1302,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       CompoundRhs rhs,
       arg) {
     return translateCompounds(
-        getValue: () => buildConstantExpression(constant),
+        getValue: () => buildConstant(constant),
         rhs: rhs,
         setValue: (value) {}); // The binary operator will throw before this.
   }
@@ -1516,49 +1523,29 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         });
   }
 
-  /// Evaluates a string interpolation and appends each part to [accumulator]
-  /// (after stringify conversion).
-  void buildStringParts(ast.Node node, List<ir.Primitive> accumulator) {
-    if (node is ast.StringJuxtaposition) {
-      buildStringParts(node.first, accumulator);
-      buildStringParts(node.second, accumulator);
-    } else if (node is ast.StringInterpolation) {
-      buildStringParts(node.string, accumulator);
-      for (ast.StringInterpolationPart part in node.parts) {
-        buildStringParts(part.expression, accumulator);
-        buildStringParts(part.string, accumulator);
-      }
-    } else if (node is ast.LiteralString) {
-      // Empty strings often occur at the end of a string interpolation,
-      // do not bother to include them.
-      if (!node.dartString.isEmpty) {
-        accumulator.add(irBuilder.buildDartStringConstant(node.dartString));
-      }
-    } else if (node is ast.ParenthesizedExpression) {
-      buildStringParts(node, accumulator);
-    } else {
-      ir.Primitive value = visit(node);
-      accumulator.add(irBuilder.buildStringify(value));
-    }
-  }
-
   ir.Primitive visitStringJuxtaposition(ast.StringJuxtaposition node) {
     assert(irBuilder.isOpen);
-    List<ir.Primitive> parts = <ir.Primitive>[];
-    buildStringParts(node, parts);
-    return irBuilder.buildStringConcatenation(parts);
+    ir.Primitive first = visit(node.first);
+    ir.Primitive second = visit(node.second);
+    return irBuilder.buildStringConcatenation([first, second]);
   }
 
   ir.Primitive visitStringInterpolation(ast.StringInterpolation node) {
     assert(irBuilder.isOpen);
-    List<ir.Primitive> parts = <ir.Primitive>[];
-    buildStringParts(node, parts);
-    return irBuilder.buildStringConcatenation(parts);
+    List<ir.Primitive> arguments = [];
+    arguments.add(visitLiteralString(node.string));
+    var it = node.parts.iterator;
+    while (it.moveNext()) {
+      ast.StringInterpolationPart part = it.current;
+      arguments.add(visit(part.expression));
+      arguments.add(visitLiteralString(part.string));
+    }
+    return irBuilder.buildStringConcatenation(arguments);
   }
 
   ir.Primitive translateConstant(ast.Node node) {
     assert(irBuilder.isOpen);
-    return irBuilder.buildConstant(getConstantForNode(node));
+    return buildConstant(getConstantForNode(node));
   }
 
   ir.Primitive visitThrow(ast.Throw node) {
@@ -2110,10 +2097,6 @@ class GlobalProgramInformation {
   /// arguments for the class [cls] are never used in the program.
   bool requiresRuntimeTypesFor(ClassElement cls) {
     return cls.typeVariables.isNotEmpty && _backend.classNeedsRti(cls);
-  }
-
-  FunctionElement get stringifyFunction {
-    return _backend.getStringInterpolationHelper();
   }
 
   FunctionElement get throwTypeErrorHelper => _backend.getThrowTypeError();
@@ -2898,9 +2881,10 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   }
 
   ir.Primitive buildStaticFieldGet(FieldElement field, SourceInformation src) {
-    ConstantValue constant = getConstantForVariable(field);
+    ConstantExpression constant =
+        backend.constants.getConstantForVariable(field);
     if (constant != null && !field.isAssignable) {
-      return irBuilder.buildConstant(constant);
+      return buildConstant(constant);
     } else if (backend.constants.lazyStatics.contains(field)) {
       return irBuilder.buildStaticFieldLazyGet(field, src);
     } else {
