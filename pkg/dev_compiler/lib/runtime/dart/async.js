@@ -3368,8 +3368,16 @@ dart_library.library('dart/async', null, /* Imports */[
       return null;
     }
   }
-  class _NoCallbackAsyncStreamController extends dart.mixin(_StreamController, _AsyncStreamControllerDispatch, _NoCallbacks) {}
-  class _NoCallbackSyncStreamController extends dart.mixin(_StreamController, _SyncStreamControllerDispatch, _NoCallbacks) {}
+  class _NoCallbackAsyncStreamController extends dart.mixin(_StreamController, _AsyncStreamControllerDispatch, _NoCallbacks) {
+    _NoCallbackAsyncStreamController() {
+      super._StreamController(...arguments);
+    }
+  }
+  class _NoCallbackSyncStreamController extends dart.mixin(_StreamController, _SyncStreamControllerDispatch, _NoCallbacks) {
+    _NoCallbackSyncStreamController() {
+      super._StreamController(...arguments);
+    }
+  }
   let _NotificationHandler = dart.typedef('_NotificationHandler', () => dart.functionType(dart.dynamic, []));
   function _runGuarded(notificationHandler) {
     if (notificationHandler == null)

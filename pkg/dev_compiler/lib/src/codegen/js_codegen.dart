@@ -310,7 +310,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    // If we've already emitted this class, skip it.
     var element = node.element;
     var type = element.type;
     var name = element.name;
@@ -329,11 +328,25 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   @override
   JS.Statement visitClassTypeAlias(ClassTypeAlias node) {
-    // If we've already emitted this class, skip it.
     var element = node.element;
 
+    // Forward all generative constructors from the base class.
+    var body = [];
+
+    var supertype = element.supertype;
+    if (!supertype.isObject) {
+      for (var ctor in element.constructors) {
+        var parentCtor = supertype.lookUpConstructor(ctor.name, ctor.library);
+        var fun = js.call('function() { super.#(...#); }', [
+          _constructorName(parentCtor),
+          new JS.Identifier('arguments', allowRename: false)
+        ]);
+        body.add(new JS.Method(_constructorName(ctor), fun));
+      }
+    }
+
     var classDecl = new JS.ClassDeclaration(new JS.ClassExpression(
-        new JS.Identifier(element.name), _classHeritage(element), []));
+        new JS.Identifier(element.name), _classHeritage(element), body));
 
     return _finishClassDef(element.type, classDecl);
   }
@@ -354,7 +367,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
 
   @override
   JS.Statement visitClassDeclaration(ClassDeclaration node) {
-    // If we've already emitted this class, skip it.
     var classElem = node.element;
     var type = classElem.type;
     var jsName = findAnnotation(classElem, _isJsNameAnnotation);
