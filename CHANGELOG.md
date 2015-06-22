@@ -1,7 +1,20 @@
-## 1.11.0
+## 1.12.0 
 
-### Core library changes
+### Core library changes 
 
+* In `dart:html`, adds `NodeTreeSanitizer.trusted`. This can be used 
+  instead of defining a `NullTreeSanitizer` class when calling 
+  `setInnerHtml` or other methods that create DOM from text. It is 
+  also more efficient, skipping the creation of a DocumentFragment.
+
+## 1.11.0 
+
+### Core library changes 
+
+* In `dart:html`, adds `NodeTreeSanitizer.trusted`. This can be used 
+  instead of defining a `NullTreeSanitizer` class when calling 
+  `setInnerHtml` or other methods that create DOM from text. It is 
+  also more efficient, skipping the creation of a DocumentFragment.
 * In `dart:html`, `appendHtml` and `insertAdjacentHtml` now take `nodeValidator`
   and `treeSanitizer` parameters, and the inputs are consistently
   sanitized. See [45818 announcement]

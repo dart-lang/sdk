@@ -17,6 +17,7 @@ media_stream_test/constructors: Pass, Crash # Issue 22267
 element_animate_test/simple_timing: Fail # Not supported on Dartium
 element_animate_test/omit_timing: Fail # Not supported on Dartium
 element_animate_test/timing_dict: Fail # Not supported on Dartium
+trusted_html_tree_sanitizer_test/untrusted: Fail # We make adoptNode throw to verify it's not being called. That doesn't work on Dartium.
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium || $runtime == ContentShellOnAndroid) ]
 datalistelement_test: Skip # Issue 20540
