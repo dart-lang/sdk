@@ -29,7 +29,6 @@
     'pattern.dart',
     'print.dart',
     'regexp.dart',
-    'resource.dart',
     'set.dart',
     'sink.dart',
     'stacktrace.dart',
