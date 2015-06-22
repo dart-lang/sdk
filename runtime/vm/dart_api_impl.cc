@@ -376,7 +376,7 @@ RawObject* Api::UnwrapHandle(Dart_Handle object) {
   ASSERT(state != NULL);
   ASSERT(!FLAG_verify_handles ||
          state->IsValidLocalHandle(object) ||
-         Dart::vm_isolate()->api_state()->IsValidLocalHandle(object));
+         Dart::IsReadOnlyApiHandle(object));
   ASSERT(FinalizablePersistentHandle::raw_offset() == 0 &&
          PersistentHandle::raw_offset() == 0 &&
          LocalHandle::raw_offset() == 0);

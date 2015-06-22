@@ -373,4 +373,10 @@ bool Dart::IsReadOnlyHandle(uword address) {
   return predefined_handles_->handles_.IsValidScopedHandle(address);
 }
 
+
+bool Dart::IsReadOnlyApiHandle(Dart_Handle handle) {
+  ASSERT(predefined_handles_ != NULL);
+  return predefined_handles_->api_handles_.IsValidHandle(handle);
+}
+
 }  // namespace dart

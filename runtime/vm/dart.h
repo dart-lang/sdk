@@ -48,6 +48,7 @@ class Dart : public AllStatic {
   static DebugInfo* pprof_symbol_generator() { return pprof_symbol_generator_; }
 
   static LocalHandle* AllocateReadOnlyApiHandle();
+  static bool IsReadOnlyApiHandle(Dart_Handle handle);
 
   static uword AllocateReadOnlyHandle();
   static bool IsReadOnlyHandle(uword address);
