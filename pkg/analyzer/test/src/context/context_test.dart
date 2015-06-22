@@ -61,31 +61,8 @@ class AnalysisContextImplTest extends AbstractContextTest {
     fail('Should have failed');
   }
 
-  void fail_computeHtmlElement_valid() {
-    Source source = addSource("/test.html", "<html></html>");
-    HtmlElement element = context.computeHtmlElement(source);
-    expect(element, isNotNull);
-    expect(context.computeHtmlElement(source), same(element));
-  }
-
   void fail_extractContext() {
     fail("Implement this");
-  }
-
-  void fail_getHtmlElement_html() {
-    Source source = addSource("/test.html", "<html></html>");
-    HtmlElement element = context.getHtmlElement(source);
-    expect(element, isNull);
-    context.computeHtmlElement(source);
-    element = context.getHtmlElement(source);
-    expect(element, isNotNull);
-  }
-
-  void fail_getResolvedHtmlUnit() {
-    Source source = addSource("/test.html", "<html></html>");
-    expect(context.getResolvedHtmlUnit(source), isNull);
-    context.resolveHtmlUnit(source);
-    expect(context.getResolvedHtmlUnit(source), isNotNull);
   }
 
   void fail_mergeContext() {
@@ -108,6 +85,8 @@ class ClassA {}''');
 <body>
 </body>
 </html>''');
+    // TODO(brianwilkerson) Rewrite this. We need a way to get the AST for the
+    // script.
     ht.HtmlUnit unit = context.parseHtmlUnit(source);
     expect(unit, isNotNull);
     // import directive should be resolved
@@ -121,13 +100,7 @@ class ClassA {}''');
   }
 
   void fail_performAnalysisTask_getContentException_dart() {
-    // add source that throw an exception on "get content"
-    Source source = new _Source_getContent_throwException('test.dart');
-    {
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.addedSource(source);
-      context.applyChanges(changeSet);
-    }
+    Source source = _addSourceWithException('test.dart');
     // prepare errors
     _analyzeAll_assertFinished();
     List<AnalysisError> errors = context.getErrors(source).errors;
@@ -139,13 +112,7 @@ class ClassA {}''');
   }
 
   void fail_performAnalysisTask_getContentException_html() {
-    // add source that throw an exception on "get content"
-    Source source = new _Source_getContent_throwException('test.html');
-    {
-      ChangeSet changeSet = new ChangeSet();
-      changeSet.addedSource(source);
-      context.applyChanges(changeSet);
-    }
+    Source source = _addSourceWithException('test.html');
     // prepare errors
     _analyzeAll_assertFinished();
     List<AnalysisError> errors = context.getErrors(source).errors;
@@ -156,26 +123,24 @@ class ClassA {}''');
     expect(error.errorCode, ScannerErrorCode.UNABLE_GET_CONTENT);
   }
 
-  void fail_performAnalysisTask_importedLibraryAdd_html() {
+  void test_performAnalysisTask_importedLibraryAdd_html() {
     Source htmlSource = addSource("/page.html", r'''
 <html><body><script type="application/dart">
   import '/libB.dart';
   main() {print('hello dart');}
 </script></body></html>''');
     _analyzeAll_assertFinished();
-    expect(context.getResolvedHtmlUnit(htmlSource), isNotNull,
-        reason: "htmlUnit resolved 1");
+    context.computeErrors(htmlSource);
     expect(_hasAnalysisErrorWithErrorSeverity(context.getErrors(htmlSource)),
         isTrue, reason: "htmlSource has an error");
     // add libB.dart and analyze
     Source libBSource = addSource("/libB.dart", "library libB;");
     _analyzeAll_assertFinished();
-    expect(context.getResolvedHtmlUnit(htmlSource), isNotNull,
-        reason: "htmlUnit resolved 1");
     expect(
         context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull,
         reason: "libB resolved 2");
     // TODO (danrubel) commented out to fix red bots
+//    context.computeErrors(htmlSource);
 //    AnalysisErrorInfo errors = _context.getErrors(htmlSource);
 //    expect(
 //        !_hasAnalysisErrorWithErrorSeverity(errors),
@@ -192,8 +157,7 @@ class ClassA {}''');
 </script></body></html>''');
     Source libBSource = addSource("/libB.dart", "library libB;");
     _analyzeAll_assertFinished();
-    expect(context.getResolvedHtmlUnit(htmlSource), isNotNull,
-        reason: "htmlUnit resolved 1");
+    context.computeErrors(htmlSource);
     expect(
         context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull,
         reason: "libB resolved 1");
@@ -202,8 +166,7 @@ class ClassA {}''');
     // remove libB.dart content and analyze
     context.setContents(libBSource, null);
     _analyzeAll_assertFinished();
-    expect(context.getResolvedHtmlUnit(htmlSource), isNotNull,
-        reason: "htmlUnit resolved 1");
+    context.computeErrors(htmlSource);
     AnalysisErrorInfo errors = context.getErrors(htmlSource);
     expect(_hasAnalysisErrorWithErrorSeverity(errors), isTrue,
         reason: "htmlSource has an error");
@@ -227,12 +190,6 @@ class ClassA {}''');
 
   void fail_recordLibraryElements() {
     fail("Implement this");
-  }
-
-  void fail_resolveHtmlUnit() {
-    Source source = addSource("/lib.html", "<html></html>");
-    ht.HtmlUnit unit = context.resolveHtmlUnit(source);
-    expect(unit, isNotNull);
   }
 
   void fail_setAnalysisOptions_reduceAnalysisPriorityOrder() {
@@ -626,11 +583,6 @@ class A {}""");
     Source source = addSource(
         "/test.dart", "library test; export 'lib1.dart'; export 'lib2.dart';");
     expect(context.computeExportedLibraries(source), hasLength(2));
-  }
-
-  void test_computeHtmlElement_nonHtml() {
-    Source source = addSource("/test.dart", "library test;");
-    expect(context.computeHtmlElement(source), isNull);
   }
 
   void test_computeImportedLibraries_none() {
@@ -1043,13 +995,6 @@ class A {
     expect(errors, hasLength(3));
   }
 
-  void test_getHtmlElement_dart() {
-    Source source = addSource("/test.dart", "");
-    expect(context.getHtmlElement(source), isNull);
-    expect(context.computeHtmlElement(source), isNull);
-    expect(context.getHtmlElement(source), isNull);
-  }
-
   void test_getHtmlFilesReferencing_html() {
     Source htmlSource = addSource("/test.html", r'''
 <html><head>
@@ -1077,7 +1022,8 @@ class A {
     context.computeLibraryElement(librarySource);
     List<Source> result = context.getHtmlFilesReferencing(librarySource);
     expect(result, hasLength(0));
-    context.computeHtmlElement(htmlSource);
+    // Indirectly force the data to be computed.
+    context.computeErrors(htmlSource);
     result = context.getHtmlFilesReferencing(librarySource);
     expect(result, hasLength(1));
     expect(result[0], htmlSource);
@@ -1096,7 +1042,8 @@ class A {
     context.computeLibraryElement(librarySource);
     List<Source> result = context.getHtmlFilesReferencing(partSource);
     expect(result, hasLength(0));
-    context.computeHtmlElement(htmlSource);
+    // Indirectly force the data to be computed.
+    context.computeErrors(htmlSource);
     result = context.getHtmlFilesReferencing(partSource);
     expect(result, hasLength(1));
     expect(result[0], htmlSource);
@@ -1255,7 +1202,8 @@ export 'libA.dart';''');
 </head></html>''');
     Source librarySource = addSource("/test.dart", "library lib;");
     context.computeLibraryElement(librarySource);
-    context.computeHtmlElement(htmlSource);
+    // Indirectly force the data to be computed.
+    context.computeErrors(htmlSource);
     List<Source> result = context.getLibrariesReferencedFromHtml(htmlSource);
     expect(result, hasLength(1));
     expect(result[0], librarySource);
@@ -2105,48 +2053,10 @@ int a = 0;''');
   }
 }
 
-//class FakeSdk extends DirectoryBasedDartSdk {
-//  FakeSdk(JavaFile arg0) : super(arg0);
-//
-//  @override
-//  LibraryMap initialLibraryMap(bool useDart2jsPaths) {
-//    LibraryMap map = new LibraryMap();
-//    _addLibrary(map, DartSdk.DART_ASYNC, false, "async.dart");
-//    _addLibrary(map, DartSdk.DART_CORE, false, "core.dart");
-//    _addLibrary(map, DartSdk.DART_HTML, false, "html_dartium.dart");
-//    _addLibrary(map, "dart:math", false, "math.dart");
-//    _addLibrary(map, "dart:_interceptors", true, "_interceptors.dart");
-//    _addLibrary(map, "dart:_js_helper", true, "_js_helper.dart");
-//    return map;
-//  }
-//
-//  void _addLibrary(LibraryMap map, String uri, bool isInternal, String path) {
-//    SdkLibraryImpl library = new SdkLibraryImpl(uri);
-//    if (isInternal) {
-//      library.category = "Internal";
-//    }
-//    library.path = path;
-//    map.setLibrary(uri, library);
-//  }
-//}
-
 class _AnalysisContextImplTest_test_applyChanges_removeContainer
     implements SourceContainer {
   Source libB;
   _AnalysisContextImplTest_test_applyChanges_removeContainer(this.libB);
   @override
   bool contains(Source source) => source == libB;
-}
-
-class _Source_getContent_throwException extends NonExistingSource {
-  _Source_getContent_throwException(String name)
-      : super(name, pathos.toUri(name), UriKind.FILE_URI);
-
-  @override
-  TimestampedData<String> get contents {
-    throw 'Read error';
-  }
-
-  @override
-  bool exists() => true;
 }

@@ -21,7 +21,7 @@ import 'package:analyzer/src/generated/engine.dart'
         UniversalCachePartition,
         WorkManager;
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/html.dart' as ht;
+import 'package:analyzer/src/generated/html.dart' as ht show HtmlUnit;
 import 'package:analyzer/src/generated/incremental_resolver.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -577,11 +577,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _computeResult(source, EXPORTED_LIBRARIES);
 
   @override
+  @deprecated
   HtmlElement computeHtmlElement(Source source) {
-    // TODO(brianwilkerson) Implement this. For the time being, we compute the
-    // data that will implicitly be computed by creating an element.
-    _computeResult(source, REFERENCED_LIBRARIES);
-    return null;
+    // TODO(brianwilkerson) Remove this method after switching to the new task
+    // model.
+    throw new UnimplementedError('Not supported in the new task model');
   }
 
   @override
@@ -758,9 +758,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
         return element;
       }
-      if (AnalysisEngine.isHtmlFileName(sourceName)) {
-        return computeHtmlElement(source);
-      }
     } catch (exception) {
       // If the location cannot be decoded for some reason then the underlying
       // cause should have been logged already and we can fall though to return
@@ -783,13 +780,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   HtmlElement getHtmlElement(Source source) {
-    // TODO(brianwilkerson) Implement this.
-//    SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
-//    if (sourceEntry is HtmlEntry) {
-//      return sourceEntry.getValue(HtmlEntry.ELEMENT);
-//    }
-    return null;
+    // TODO(brianwilkerson) Remove this method after switching to the new task
+    // model.
+    throw new UnimplementedError('Not supported in the new task model');
   }
 
   @override
@@ -924,14 +919,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
-    // TODO(brianwilkerson) Implement this.
-//    SourceEntry sourceEntry = getReadableSourceEntryOrNull(htmlSource);
-//    if (sourceEntry is HtmlEntry) {
-//      HtmlEntry htmlEntry = sourceEntry;
-//      return htmlEntry.getValue(HtmlEntry.RESOLVED_UNIT);
-//    }
-    return null;
+    // TODO(brianwilkerson) Remove this method after switching to the new task
+    // model.
+    throw new UnimplementedError('Not supported in the new task model');
   }
 
   @override
@@ -1042,8 +1034,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   ht.HtmlUnit parseHtmlUnit(Source source) {
     // TODO(brianwilkerson) Remove this method after switching to the new task
     // model.
-    throw new UnimplementedError(
-        'Not supported in the new task model; use parseHtmlDocument instead.');
+    throw new UnimplementedError('Not supported in the new task model');
   }
 
   @override
@@ -1154,7 +1145,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
-    computeHtmlElement(htmlSource);
+    // TODO(brianwilkerson) Remove this method after switching to the new task
+    // model.
     throw new UnimplementedError('Not supported in the new task model');
   }
 

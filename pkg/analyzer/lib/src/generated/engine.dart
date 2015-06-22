@@ -488,6 +488,7 @@ abstract class AnalysisContext {
    *
    * See [getHtmlElement].
    */
+  @deprecated
   HtmlElement computeHtmlElement(Source source);
 
   /**
@@ -608,6 +609,7 @@ abstract class AnalysisContext {
    *
    * See [computeHtmlElement].
    */
+  @deprecated
   HtmlElement getHtmlElement(Source source);
 
   /**
@@ -708,6 +710,7 @@ abstract class AnalysisContext {
    *
    * See [resolveHtmlUnit].
    */
+  @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource);
 
   /**
@@ -1692,6 +1695,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       source, DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_LIST);
 
   @override
+  @deprecated
   HtmlElement computeHtmlElement(Source source) =>
       _getHtmlResolutionData(source, HtmlEntry.ELEMENT, null);
 
@@ -1937,6 +1941,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   HtmlElement getHtmlElement(Source source) {
     SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
     if (sourceEntry is HtmlEntry) {
@@ -2135,6 +2140,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     SourceEntry sourceEntry = getReadableSourceEntryOrNull(htmlSource);
     if (sourceEntry is HtmlEntry) {
@@ -2540,6 +2546,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           unitSource, librarySource, DartEntry.RESOLVED_UNIT, null);
 
   @override
+  @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     computeHtmlElement(htmlSource);
     return parseHtmlUnit(htmlSource);

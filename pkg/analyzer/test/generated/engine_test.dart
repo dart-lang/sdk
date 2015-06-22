@@ -5564,6 +5564,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  @deprecated
   HtmlElement computeHtmlElement(Source source) {
     fail("Unexpected invocation of computeHtmlElement");
     return null;
@@ -5645,6 +5646,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  @deprecated
   HtmlElement getHtmlElement(Source source) {
     fail("Unexpected invocation of getHtmlElement");
     return null;
@@ -5712,6 +5714,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     fail("Unexpected invocation of getResolvedHtmlUnit");
     return null;
@@ -5792,6 +5795,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     fail("Unexpected invocation of resolveHtmlUnit");
     return null;
@@ -5871,6 +5875,7 @@ class TestAnalysisContext_test_computeHtmlElement extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_computeHtmlElement();
   @override
+  @deprecated
   HtmlElement computeHtmlElement(Source source) {
     invoked = true;
     return null;
@@ -6005,6 +6010,7 @@ class TestAnalysisContext_test_getHtmlElement extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_getHtmlElement();
   @override
+  @deprecated
   HtmlElement getHtmlElement(Source source) {
     invoked = true;
     return null;
@@ -6176,6 +6182,7 @@ class TestAnalysisContext_test_getResolvedHtmlUnit extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_getResolvedHtmlUnit();
   @override
+  @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     invoked = true;
     return null;
@@ -6311,6 +6318,7 @@ class TestAnalysisContext_test_resolveHtmlUnit extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_resolveHtmlUnit();
   @override
+  @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     invoked = true;
     return null;
