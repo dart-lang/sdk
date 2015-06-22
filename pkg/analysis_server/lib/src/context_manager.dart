@@ -438,7 +438,7 @@ abstract class ContextManager {
       endComputePackageMap();
       for (String dependencyPath in packageMapInfo.dependencies) {
         Resource resource = resourceProvider.getResource(dependencyPath);
-        if (resource is File) {
+        if (resource is File && resource.exists) {
           info.dependencySubscriptions.add(resource.changes
               .listen((WatchEvent event) {
             if (info.packageMapInfo != null &&
