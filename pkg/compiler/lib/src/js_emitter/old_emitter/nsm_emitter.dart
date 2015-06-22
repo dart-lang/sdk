@@ -278,14 +278,12 @@ class NsmEmitter extends CodeEmitterHelper {
           '  objectClassObject = objectClassObject[1];'));
     }
 
-    List<jsAst.Expression> sliceOffsetArguments =
+    dynamic isIntercepted =  // jsAst.Expression or bool.
         firstNormalSelector == 0
-        ? []
-        : (firstNormalSelector == shorts.length
-            ? [js.number(1)]
-            : [js('(j < #) ? 1 : 0', js.number(firstNormalSelector))]);
-
-    var sliceOffsetParams = sliceOffsetArguments.isEmpty ? [] : ['sliceOffset'];
+        ? false
+        : firstNormalSelector == shorts.length
+            ? true
+            : js('j < #', js.number(firstNormalSelector));
 
     statements.add(js.statement('''
       // If we are loading a deferred library the object class will not be in
@@ -294,31 +292,51 @@ class NsmEmitter extends CodeEmitterHelper {
       if (objectClassObject) {
         for (var j = 0; j < shortNames.length; j++) {
           var type = 0;
-          var short = shortNames[j];
-          if (short[0] == "${namer.getterPrefix[0]}") type = 1;
-          if (short[0] == "${namer.setterPrefix[0]}") type = 2;
+          var shortName = shortNames[j];
+          if (shortName[0] == "${namer.getterPrefix[0]}") type = 1;
+          if (shortName[0] == "${namer.setterPrefix[0]}") type = 2;
           // Generate call to:
           //
           //     createInvocationMirror(String name, internalName, type,
           //         arguments, argumentNames)
           //
-          objectClassObject[short] = (function(name, short,
-                                               type, #sliceOffsetParams) {
-              return function() {
-                return this.#noSuchMethodName(this,
-                    #createInvocationMirror(name, short, type,
-                        Array.prototype.slice.call(arguments,
-                                                   #sliceOffsetParams),
-                                                   []));
-              }
-          })(#names[j], short, type, #sliceOffsetArguments);
+
+          // This 'if' is either a static choice or dynamic choice depending on
+          // [isIntercepted].
+          if (#isIntercepted) {
+            objectClassObject[shortName] =
+                (function(name, shortName, type) {
+                  return function(receiver) {
+                    return this.#noSuchMethodName(
+                      receiver,
+                      #createInvocationMirror(name, shortName, type,
+                          // Create proper Array with all arguments except first
+                          // (receiver).
+                          Array.prototype.slice.call(arguments, 1),
+                          []));
+                  }
+                 })(#names[j], shortName, type);
+          } else {
+            objectClassObject[shortName] =
+                (function(name, shortName, type) {
+                  return function() {
+                    return this.#noSuchMethodName(
+                      // Object.noSuchMethodName ignores the explicit receiver
+                      // argument. We could pass anything in place of [this].
+                      this,
+                      #createInvocationMirror(name, shortName, type,
+                          // Create proper Array with all arguments.
+                          Array.prototype.slice.call(arguments, 0),
+                          []));
+                  }
+                 })(#names[j], shortName, type);
+          }
         }
       }''', {
-          'sliceOffsetParams': sliceOffsetParams,
           'noSuchMethodName': namer.noSuchMethodName,
           'createInvocationMirror': createInvocationMirror,
           'names': minify ? 'shortNames' : 'longNames',
-          'sliceOffsetArguments': sliceOffsetArguments}));
+          'isIntercepted': isIntercepted}));
 
     return statements;
   }
