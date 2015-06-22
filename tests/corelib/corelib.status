@@ -207,8 +207,10 @@ regexp/pcre_test: Pass, Slow # Timeout. Issue 22008
 
 [ $mode == debug && $runtime == vm]
 big_integer_arith_vm_test/gcd: Pass, Crash # Issue 23693
-big_integer_arith_vm_test/modPow: Pass, Crash # Issue 23693
 big_integer_arith_vm_test/modInv: Pass, Crash # Issue 23693
+
+[ $runtime == vm ]
+big_integer_arith_vm_test/modPow: Pass, Crash # Issue 23693
 
 [ $runtime == vm && $arch == simarmv5te ]
 int_parse_radix_test/*: Pass, Slow
