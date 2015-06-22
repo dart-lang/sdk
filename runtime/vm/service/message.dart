@@ -36,7 +36,9 @@ class Message {
 
   Message.fromJsonRpc(this.client, Map map)
       : serial = map['id'], method = map['method'] {
-    params.addAll(map['params']);
+    if (map['params'] != null) {
+      params.addAll(map['params']);
+    }
   }
 
   static String _methodNameFromUri(Uri uri) {
