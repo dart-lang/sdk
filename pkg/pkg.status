@@ -191,7 +191,7 @@ analyzer/test/src/util/asserts_test: Crash # (try {test(spec,body);}finally {env
 analyzer/test/src/util/lru_map_test: Crash # (try {test(spec,body);}finally {environment.soloNestingLevel-- ;}): try/finally
 fixnum/test/int_32_test: Crash # (try {body();}catch ...  try/finally
 fixnum/test/int_64_test: Crash # (try {body();}catch ...  try/finally
-js_ast/test/printer_callback_test: Crash # Issue 23691
+js_ast/test/printer_callback_test : RuntimeError # Please triage this failure. (Something with growable lists)
 microlytics/test/dart_microlytics_test: RuntimeError # Please triage this failure.
 typed_data/test/typed_buffers_test/01: Crash # Invalid argument(s)
 typed_data/test/typed_buffers_test/none: Crash # Invalid argument(s)
