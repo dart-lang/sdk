@@ -438,15 +438,21 @@ abstract class ContextManager {
       endComputePackageMap();
       for (String dependencyPath in packageMapInfo.dependencies) {
         Resource resource = resourceProvider.getResource(dependencyPath);
-        if (resource is File && resource.exists) {
-          info.dependencySubscriptions.add(resource.changes
-              .listen((WatchEvent event) {
+        if (resource is File) {
+          StreamSubscription<WatchEvent> subscription;
+          subscription = resource.changes.listen((WatchEvent event) {
             if (info.packageMapInfo != null &&
                 info.packageMapInfo.isChangedDependency(
                     dependencyPath, resourceProvider)) {
               _recomputePackageUriResolver(info);
             }
-          }));
+          }, onError: (error, StackTrace stackTrace) {
+            // Gracefully degrade if file is or becomes unwatchable
+            _instrumentationService.logException(error, stackTrace);
+            subscription.cancel();
+            info.dependencySubscriptions.remove(subscription);
+          });
+          info.dependencySubscriptions.add(subscription);
         }
       }
       info.packageMapInfo = packageMapInfo;
