@@ -1648,6 +1648,78 @@ abstract class IrBuilder {
     environment = breakCollector.environment;
   }
 
+  void buildSimpleSwitch(JumpTarget target,
+                         ir.Primitive value,
+                         List<SwitchCaseInfo> cases,
+                         SwitchCaseInfo defaultCase,
+                         Element error,
+                         SourceInformation sourceInformation) {
+    assert(isOpen);
+    JumpCollector join = new ForwardJumpCollector(environment, target: target);
+
+    IrBuilder casesBuilder = makeDelimitedBuilder();
+    casesBuilder.state.breakCollectors.add(join);
+    for (SwitchCaseInfo caseInfo in cases) {
+      buildConditionsFrom(int index) => (IrBuilder builder) {
+        ir.Primitive comparison = builder.addPrimitive(
+            new ir.Identical(value, caseInfo.constants[index]));
+        return (index == caseInfo.constants.length - 1)
+            ? comparison
+            : builder.buildLogicalOperator(
+                comparison, buildConditionsFrom(index + 1), isLazyOr: true);
+      };
+
+      ir.Primitive condition = buildConditionsFrom(0)(casesBuilder);
+      IrBuilder thenBuilder = makeDelimitedBuilder();
+      caseInfo.buildBody(thenBuilder);
+      if (thenBuilder.isOpen) {
+        // It is a runtime error to reach the end of a switch case, unless
+        // it is the last case.
+        if (caseInfo == cases.last && defaultCase == null) {
+          thenBuilder.jumpTo(join);
+        } else {
+          ir.Primitive exception = thenBuilder._buildInvokeStatic(
+              error,
+              new Selector.fromElement(error),
+              <ir.Primitive>[],
+              sourceInformation);
+          thenBuilder.buildThrow(exception);
+        }
+      }
+
+      ir.Continuation thenContinuation = new ir.Continuation([]);
+      thenContinuation.body = thenBuilder._root;
+      ir.Continuation elseContinuation = new ir.Continuation([]);
+      // A LetCont.many term has a hole as the body of the first listed
+      // continuation, to be plugged by the translation.  Therefore put the
+      // else continuation first.
+      casesBuilder.add(
+          new ir.LetCont.many(<ir.Continuation>[elseContinuation,
+                                                thenContinuation],
+              new ir.Branch(new ir.IsTrue(condition),
+                            thenContinuation,
+                            elseContinuation)));
+    }
+
+    if (defaultCase != null) {
+      defaultCase.buildBody(casesBuilder);
+    }
+    if (casesBuilder.isOpen) casesBuilder.jumpTo(join);
+
+    casesBuilder.state.breakCollectors.removeLast();
+
+    if (!join.isEmpty) {
+      add(new ir.LetCont(join.continuation, casesBuilder._root));
+      environment = join.environment;
+    } else if (casesBuilder._root != null) {
+      add(casesBuilder._root);
+      _current = casesBuilder._current;
+      environment = casesBuilder.environment;
+    } else {
+      // The translation of the cases did not emit any code.
+    }
+  }
+
   /// Creates a try-statement.
   ///
   /// [tryInfo] provides information on local variables declared and boxed
@@ -2555,4 +2627,13 @@ class CatchClauseInfo {
                    this.exceptionVariable,
                    this.stackTraceVariable,
                    this.buildCatchBlock});
+}
+
+class SwitchCaseInfo {
+  final List<ir.Primitive> constants = <ir.Primitive>[];
+  final SubbuildFunction buildBody;
+
+  SwitchCaseInfo(this.buildBody);
+
+  void addConstant(ir.Primitive constant) => constants.add(constant);
 }

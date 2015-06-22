@@ -416,18 +416,18 @@ async/stack_trace21_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leav
 async/stack_trace22_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async/stack_trace23_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async/stack_trace24_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-async/stack_trace25_test: Crash # (switch (_state){cas...  Unhandled node
+async/stack_trace25_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async/stream_controller_async_test: Crash # Invalid argument(s)
 async/stream_controller_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async/stream_empty_test: Crash # (Future runTest()asy...  cannot handle async/sync*/async* functions
 async/stream_event_transformed_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
 async/stream_first_where_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async/stream_from_iterable_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-async/stream_iterator_double_cancel_test: Crash # (switch (_state){cas...  Unhandled node
+async/stream_iterator_double_cancel_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async/stream_iterator_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async/stream_join_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async/stream_last_where_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-async/stream_listen_zone_test: Crash # (switch (stepCount++...  Unhandled node
+async/stream_listen_zone_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async/stream_periodic2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async/stream_periodic3_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async/stream_periodic4_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
@@ -487,15 +487,15 @@ convert/chunked_conversion_utf88_test: RuntimeError # Please triage this failure
 convert/chunked_conversion_utf89_test: RuntimeError # Please triage this failure.
 convert/chunked_conversion_utf8_test: RuntimeError # Please triage this failure.
 convert/codec1_test: RuntimeError # Cannot read property 'prototype' of undefined
-convert/codec2_test: Crash # (switch (charCode){c...  Unhandled node
+convert/codec2_test: Crash # Internal Error: No default constructor available.
 convert/encoding_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-convert/html_escape_test: Crash # (switch (ch){case '&...  Unhandled node
-convert/json_chunk_test: Crash # (switch (codeUnit){c...  Unhandled node
+convert/html_escape_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+convert/json_chunk_test: RuntimeError # Please triage this failure.
 convert/json_lib_test: Crash # Invalid argument(s)
-convert/json_pretty_test: Crash # (switch (codeUnit){c...  Unhandled node
-convert/json_test: Crash # (switch (split){case...  Unhandled node
+convert/json_pretty_test: Crash # Internal Error: No default constructor available.
+convert/json_test: Crash # Internal Error: No default constructor available.
 convert/json_toEncodable_reviver_test: Crash # Internal Error: No default constructor available.
-convert/json_utf8_chunk_test: Crash # (switch (codeUnit){c...  Unhandled node
+convert/json_utf8_chunk_test: RuntimeError # Please triage this failure.
 convert/json_util_test: Crash # Internal Error: No default constructor available.
 convert/latin1_test: RuntimeError # Please triage this failure.
 convert/line_splitter_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
@@ -511,25 +511,24 @@ convert/utf8_encode_test: RuntimeError # Please triage this failure.
 convert/utf8_test: RuntimeError # Please triage this failure.
 js/datetime_roundtrip_test: Crash # Internal Error: No default constructor available.
 js/null_test: Crash # Invalid argument(s)
-math/math_parse_double_test: Crash # (switch (codeUnit){c...  Unhandled node
 math/pi_test: RuntimeError # receiver.get$_collection$_nums is not a function
 math/point_test: Crash # Invalid argument(s)
 math/rectangle_test: Crash # Invalid argument(s)
-mirrors/abstract_class_test/00: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/abstract_class_test/none: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/abstract_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/accessor_cache_overflow_test: Crash # (switch (type){case ...  Unhandled node
-mirrors/array_tracing2_test: Crash # (switch (type){case ...  Unhandled node
+mirrors/abstract_class_test/00: Crash # Internal Error: No default constructor available.
+mirrors/abstract_class_test/none: Crash # Internal Error: No default constructor available.
+mirrors/abstract_test: Crash # Internal Error: No default constructor available.
+mirrors/accessor_cache_overflow_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+mirrors/array_tracing2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 mirrors/array_tracing3_test: Crash # Internal Error: No default constructor available.
 mirrors/array_tracing_test: Crash # Internal Error: No default constructor available.
 mirrors/basic_types_in_dart_core_test: Crash # Internal Error: No default constructor available.
 mirrors/circular_factory_redirection_test/none: Crash # Internal Error: No default constructor available.
-mirrors/class_declarations_test/01: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/class_declarations_test/01: Crash # Internal Error: No default constructor available.
 mirrors/class_declarations_test/none: Crash # Internal Error: No default constructor available.
-mirrors/class_mirror_location_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/class_mirror_location_test: Crash # Internal Error: No default constructor available.
 mirrors/class_mirror_type_variables_test: Crash # Internal Error: No default constructor available.
-mirrors/closures_test: Crash # (switch (name){case ...  Unhandled node
-mirrors/closurization_equivalence_test: Crash # (switch (name){case ...  Unhandled node
+mirrors/closures_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+mirrors/closurization_equivalence_test: Crash # Internal Error: No default constructor available.
 mirrors/constructor_kinds_test/01: Crash # Internal Error: No default constructor available.
 mirrors/constructor_kinds_test/none: Crash # Internal Error: No default constructor available.
 mirrors/constructors_test: Crash # Internal Error: No default constructor available.
@@ -537,7 +536,7 @@ mirrors/dart2js_mirrors_test: Crash # (try {return f(arg1,arg2);}finally {Zone._
 mirrors/declarations_type_test: Crash # Internal Error: No default constructor available.
 mirrors/deferred_mirrors_metadata_test: Crash # Internal Error: No default constructor available.
 mirrors/deferred_mirrors_metatarget_test: Crash # Internal Error: No default constructor available.
-mirrors/deferred_mirrors_update_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/deferred_mirrors_update_test: Crash # Internal Error: No default constructor available.
 mirrors/deferred_type_test: Crash # Internal Error: No default constructor available.
 mirrors/delegate_call_through_getter_test: RuntimeError # Please triage this failure.
 mirrors/delegate_test: RuntimeError # Please triage this failure.
@@ -568,23 +567,22 @@ mirrors/generic_mixin_applications_test: Crash # Internal Error: No default cons
 mirrors/generic_mixin_test: Crash # Internal Error: No default constructor available.
 mirrors/generic_superclass_test/01: Crash # Internal Error: No default constructor available.
 mirrors/generic_superclass_test/none: Crash # Internal Error: No default constructor available.
-mirrors/generic_type_mirror_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/generic_type_mirror_test: Crash # Internal Error: No default constructor available.
 mirrors/generics_double_substitution_test/01: Crash # Internal Error: No default constructor available.
 mirrors/generics_double_substitution_test/none: Crash # Internal Error: No default constructor available.
 mirrors/generics_dynamic_test: Crash # Internal Error: No default constructor available.
 mirrors/generics_special_types_test: Crash # Internal Error: No default constructor available.
-mirrors/generics_substitution_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/generics_test/01: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/generics_test/none: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/get_field_cache_test: Crash # (switch (type){case ...  Unhandled node
+mirrors/generics_substitution_test: Crash # Internal Error: No default constructor available.
+mirrors/generics_test/01: Crash # Internal Error: No default constructor available.
+mirrors/generics_test/none: Crash # Internal Error: No default constructor available.
+mirrors/get_field_cache_test: RuntimeError # Please triage this failure.
 mirrors/get_field_static_test/00: Crash # Internal Error: No default constructor available.
 mirrors/get_field_static_test/none: Crash # Internal Error: No default constructor available.
-mirrors/get_field_test: Crash # (switch (type){case ...  Unhandled node
 mirrors/globalized_closures2_test/00: Crash # Internal Error: No default constructor available.
 mirrors/globalized_closures2_test/none: Crash # Internal Error: No default constructor available.
 mirrors/globalized_closures_test/00: Crash # Internal Error: No default constructor available.
 mirrors/globalized_closures_test/none: Crash # Internal Error: No default constructor available.
-mirrors/hierarchy_invariants_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/hierarchy_invariants_test: Crash # Internal Error: No default constructor available.
 mirrors/immutable_collections_test: Crash # Internal Error: No default constructor available.
 mirrors/inherit_field_test: Crash # Internal Error: No default constructor available.
 mirrors/inherited_metadata_test: Crash # Internal Error: No default constructor available.
@@ -593,35 +591,35 @@ mirrors/initializing_formals_test/none: Crash # Internal Error: No default const
 mirrors/instance_members_easier_test: Crash # Internal Error: No default constructor available.
 mirrors/instance_members_test: Crash # Internal Error: No default constructor available.
 mirrors/instance_members_unimplemented_interface_test: Crash # Internal Error: No default constructor available.
-mirrors/instance_members_with_override_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/instance_members_with_override_test: Crash # Internal Error: No default constructor available.
 mirrors/instantiate_abstract_class_test: Crash # Internal Error: No default constructor available.
-mirrors/intercepted_cache_test: Crash # (switch (type){case ...  Unhandled node
+mirrors/intercepted_cache_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 mirrors/intercepted_class_test: Crash # Internal Error: No default constructor available.
-mirrors/intercepted_object_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/intercepted_superclass_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invocation_cache_test: Crash # (switch (type){case ...  Unhandled node
+mirrors/intercepted_object_test: Crash # Internal Error: No default constructor available.
+mirrors/intercepted_superclass_test: Crash # Internal Error: No default constructor available.
+mirrors/invocation_cache_test: RuntimeError # Please triage this failure.
 mirrors/invocation_fuzz_test/emptyarray: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
 mirrors/invocation_fuzz_test/false: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
 mirrors/invocation_fuzz_test/none: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
 mirrors/invocation_fuzz_test/smi: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
 mirrors/invocation_fuzz_test/string: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
-mirrors/invoke_call_on_closure_test: Crash # (switch (type){case ...  Unhandled node
-mirrors/invoke_call_through_getter_previously_accessed_test/named: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invoke_call_through_getter_previously_accessed_test/none: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invoke_call_through_getter_test/named: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invoke_call_through_getter_test/none: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invoke_call_through_implicit_getter_previously_accessed_test/named: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invoke_call_through_implicit_getter_previously_accessed_test/none: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invoke_call_through_implicit_getter_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invoke_closurization2_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invoke_closurization_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/invoke_call_on_closure_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+mirrors/invoke_call_through_getter_previously_accessed_test/named: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_getter_previously_accessed_test/none: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_getter_test/named: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_getter_test/none: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_implicit_getter_previously_accessed_test/named: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_implicit_getter_previously_accessed_test/none: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_implicit_getter_test: Crash # Internal Error: No default constructor available.
+mirrors/invoke_closurization2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+mirrors/invoke_closurization_test: Crash # Internal Error: No default constructor available.
 mirrors/invoke_import_test: Crash # Internal Error: No default constructor available.
-mirrors/invoke_named_test/01: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invoke_named_test/none: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invoke_natives_malicious_test: Crash # (switch (type){case ...  Unhandled node
-mirrors/invoke_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/invoke_throws_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/is_odd_test: Crash # (switch (type){case ...  Unhandled node
+mirrors/invoke_named_test/01: Crash # Internal Error: No default constructor available.
+mirrors/invoke_named_test/none: Crash # Internal Error: No default constructor available.
+mirrors/invoke_natives_malicious_test: Crash # Internal Error: No default constructor available.
+mirrors/invoke_test: Crash # Internal Error: No default constructor available.
+mirrors/invoke_throws_test: Crash # Internal Error: No default constructor available.
+mirrors/is_odd_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 mirrors/lazy_static_test: Crash # Internal Error: No default constructor available.
 mirrors/libraries_test: Crash # Internal Error: No default constructor available.
 mirrors/library_declarations_test/01: Crash # Internal Error: No default constructor available.
@@ -643,7 +641,7 @@ mirrors/library_uri_package_test: Crash # Invalid argument(s)
 mirrors/list_constructor_test/01: Crash # Internal Error: No default constructor available.
 mirrors/list_constructor_test/none: Crash # Internal Error: No default constructor available.
 mirrors/load_library_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-mirrors/local_function_is_static_test: Crash # (switch (name){case ...  Unhandled node
+mirrors/local_function_is_static_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 mirrors/local_isolate_test: Crash # Internal Error: No default constructor available.
 mirrors/metadata_allowed_values_test/01: Crash # Internal Error: No default constructor available.
 mirrors/metadata_allowed_values_test/05: Crash # Internal Error: No default constructor available.
@@ -659,43 +657,41 @@ mirrors/metadata_constructor_arguments_test/none: Crash # Internal Error: No def
 mirrors/metadata_nested_constructor_call_test/none: Crash # Internal Error: No default constructor available.
 mirrors/metadata_test: Crash # Internal Error: No default constructor available.
 mirrors/method_mirror_location_test: Crash # Internal Error: No default constructor available.
-mirrors/method_mirror_name_test: Crash # (switch (name){case ...  Unhandled node
+mirrors/method_mirror_name_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 mirrors/method_mirror_properties_test: Crash # Internal Error: No default constructor available.
-mirrors/method_mirror_returntype_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/method_mirror_source_line_ending_test: Crash # (switch (name){case ...  Unhandled node
+mirrors/method_mirror_returntype_test: Crash # Internal Error: No default constructor available.
+mirrors/method_mirror_source_line_ending_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 mirrors/method_mirror_source_test: Crash # Internal Error: No default constructor available.
 mirrors/mirror_in_static_init_test/none: Crash # Internal Error: No default constructor available.
-mirrors/mirrors_nsm_mismatch_test: Crash # (switch (type){case ...  Unhandled node
-mirrors/mirrors_nsm_test/dart2js: Crash # (switch (type){case ...  Unhandled node
-mirrors/mirrors_nsm_test/none: Crash # (switch (type){case ...  Unhandled node
+mirrors/mirrors_nsm_mismatch_test: Crash # Internal Error: No default constructor available.
+mirrors/mirrors_nsm_test/dart2js: Crash # Internal Error: No default constructor available.
+mirrors/mirrors_nsm_test/none: Crash # Internal Error: No default constructor available.
 mirrors/mirrors_reader_test: Crash # Internal Error: No default constructor available.
 mirrors/mirrors_resolve_fields_test: Crash # Internal Error: No default constructor available.
 mirrors/mirrors_test: Crash # Internal Error: No default constructor available.
-mirrors/mirrors_used_inheritance_test: Crash # (switch (type){case ...  Unhandled node
 mirrors/mirrors_used_typedef_declaration_test/01: Crash # Internal Error: No default constructor available.
 mirrors/mirrors_used_typedef_declaration_test/none: Crash # Internal Error: No default constructor available.
-mirrors/mixin_application_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/mixin_members_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/mixin_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/mixin_application_test: Crash # Internal Error: No default constructor available.
+mirrors/mixin_members_test: Crash # Internal Error: No default constructor available.
+mirrors/mixin_test: Crash # Internal Error: No default constructor available.
 mirrors/native_class_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 mirrors/new_instance_optional_arguments_test: Crash # Internal Error: No default constructor available.
 mirrors/new_instance_with_type_arguments_test: Crash # Internal Error: No default constructor available.
-mirrors/no_metadata_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/null2_test: Crash # (switch (type){case ...  Unhandled node
+mirrors/no_metadata_test: Crash # Internal Error: No default constructor available.
+mirrors/null2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 mirrors/null_test: Crash # Invalid argument(s)
-mirrors/operator_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/optional_parameters_test: Crash # (switch (type){case ...  Unhandled node
+mirrors/operator_test: Crash # Internal Error: No default constructor available.
 mirrors/parameter_annotation_mirror_test: Crash # Internal Error: No default constructor available.
 mirrors/parameter_is_const_test/none: Crash # Internal Error: No default constructor available.
 mirrors/parameter_metadata_test: Crash # Internal Error: No default constructor available.
-mirrors/parameter_of_mixin_app_constructor_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/parameter_of_mixin_app_constructor_test: Crash # Internal Error: No default constructor available.
 mirrors/parameter_test/01: Crash # Internal Error: No default constructor available.
 mirrors/parameter_test/none: Crash # Internal Error: No default constructor available.
-mirrors/private_symbol_mangling_test: Crash # (switch (type){case ...  Unhandled node
+mirrors/private_symbol_mangling_test: Crash # Internal Error: No default constructor available.
 mirrors/private_types_test: Crash # Internal Error: No default constructor available.
 mirrors/proxy_type_test: Crash # Internal Error: No default constructor available.
-mirrors/raw_type_test/01: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/raw_type_test/none: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/raw_type_test/01: Crash # Internal Error: No default constructor available.
+mirrors/raw_type_test/none: Crash # Internal Error: No default constructor available.
 mirrors/redirecting_factory_test/01: Crash # Internal Error: No default constructor available.
 mirrors/redirecting_factory_test/02: Crash # Internal Error: No default constructor available.
 mirrors/redirecting_factory_test/none: Crash # Internal Error: No default constructor available.
@@ -704,7 +700,6 @@ mirrors/reflect_class_test/02: Crash # Internal Error: No default constructor av
 mirrors/reflect_class_test/none: Crash # Internal Error: No default constructor available.
 mirrors/reflect_model_test: Crash # Internal Error: No default constructor available.
 mirrors/reflect_runtime_type_test: Crash # Internal Error: No default constructor available.
-mirrors/reflect_two_classes_test: Crash # (switch (type){case ...  Unhandled node
 mirrors/reflect_uninstantiated_class_test: Crash # Internal Error: No default constructor available.
 mirrors/reflected_type_classes_test/01: Crash # Internal Error: No default constructor available.
 mirrors/reflected_type_classes_test/02: Crash # Internal Error: No default constructor available.
@@ -727,29 +722,29 @@ mirrors/relation_assignable_test: Crash # Internal Error: No default constructor
 mirrors/relation_subclass_test: Crash # Internal Error: No default constructor available.
 mirrors/relation_subtype_test: Crash # Internal Error: No default constructor available.
 mirrors/removed_api_test: Crash # Internal Error: No default constructor available.
-mirrors/repeated_private_anon_mixin_app_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/repeated_private_anon_mixin_app_test: Crash # Internal Error: No default constructor available.
 mirrors/return_type_test: Crash # Internal Error: No default constructor available.
 mirrors/runtime_type_test: Crash # Internal Error: No default constructor available.
-mirrors/set_field_with_final_inheritance_test: Crash # (switch (type){case ...  Unhandled node
-mirrors/set_field_with_final_test: Crash # (switch (type){case ...  Unhandled node
+mirrors/set_field_with_final_inheritance_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+mirrors/set_field_with_final_test: Crash # Internal Error: No default constructor available.
 mirrors/spawn_function_root_library_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-mirrors/static_members_easier_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/static_members_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/static_members_easier_test: Crash # Internal Error: No default constructor available.
+mirrors/static_members_test: Crash # Internal Error: No default constructor available.
 mirrors/static_test: Crash # Internal Error: No default constructor available.
-mirrors/superclass2_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/superclass_test: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/symbol_validation_test/01: Crash # (switch (name){case ...  Unhandled node
+mirrors/superclass2_test: Crash # Internal Error: No default constructor available.
+mirrors/superclass_test: Crash # Internal Error: No default constructor available.
+mirrors/symbol_validation_test/01: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 mirrors/symbol_validation_test/none: RuntimeError # Please triage this failure.
 mirrors/syntax_error_test/none: Crash # Internal Error: No default constructor available.
-mirrors/synthetic_accessor_properties_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/synthetic_accessor_properties_test: Crash # Internal Error: No default constructor available.
 mirrors/to_string_test: Crash # Internal Error: No default constructor available.
 mirrors/top_level_accessors_test: Crash # Internal Error: No default constructor available.
 mirrors/type_argument_is_type_variable_test: Crash # Internal Error: No default constructor available.
 mirrors/type_mirror_for_type_test: Crash # Internal Error: No default constructor available.
 mirrors/type_variable_is_static_test: Crash # Internal Error: No default constructor available.
 mirrors/type_variable_owner_test/01: Crash # Internal Error: No default constructor available.
-mirrors/type_variable_owner_test/none: Crash # (switch (codeUnit){c...  Unhandled node
-mirrors/typearguments_mirror_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/type_variable_owner_test/none: Crash # Internal Error: No default constructor available.
+mirrors/typearguments_mirror_test: Crash # Internal Error: No default constructor available.
 mirrors/typedef_deferred_library_test: Crash # Internal Error: No default constructor available.
 mirrors/typedef_in_signature_test: Crash # Internal Error: No default constructor available.
 mirrors/typedef_library_test: Crash # Internal Error: No default constructor available.
@@ -757,7 +752,7 @@ mirrors/typedef_metadata_test: Crash # Internal Error: No default constructor av
 mirrors/typedef_reflected_type_test/01: Crash # Internal Error: No default constructor available.
 mirrors/typedef_reflected_type_test/none: Crash # Internal Error: No default constructor available.
 mirrors/typedef_test: Crash # Internal Error: No default constructor available.
-mirrors/unnamed_library_test: Crash # (switch (codeUnit){c...  Unhandled node
+mirrors/unnamed_library_test: Crash # Internal Error: No default constructor available.
 mirrors/unused_mirrors_used_test: RuntimeError # Please triage this failure.
 mirrors/variable_is_const_test/none: Crash # Internal Error: No default constructor available.
 typed_data/int32x4_test: RuntimeError # Please triage this failure.

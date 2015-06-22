@@ -495,7 +495,7 @@ instance_of_test: Crash # Invalid argument(s)
 isolates_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 js_interop_1_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 js_test: Crash # (try {body();}catch ...  try/finally
-keyboard_event_test: Crash # (switch (keyCode){ca...  Unhandled node
+keyboard_event_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 localstorage_test: Crash # Invalid argument(s)
 location_test: Crash # Invalid argument(s)
 media_stream_test: Crash # (try {body();}catch ...  try/finally

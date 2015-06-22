@@ -225,10 +225,7 @@ date_time3_test: RuntimeError # Cannot read property 'prototype' of undefined
 date_time4_test: RuntimeError # Cannot read property 'prototype' of undefined
 date_time7_test: RuntimeError # Cannot read property 'prototype' of undefined
 date_time_parse_test: RuntimeError # Cannot read property 'prototype' of undefined
-double_parse_test/01: Crash # (switch (codeUnit){c...  Unhandled node
-double_parse_test/none: Crash # (switch (codeUnit){c...  Unhandled node
 error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a function
-error_stack_trace_test: Crash # (switch (5){case 5:nested();default:Expect.fail("Should not reach");}): Unhandled node
 for_in_test: RuntimeError # Please triage this failure.
 hash_set_test/none: RuntimeError # Please triage this failure.
 hashcode_test: RuntimeError # Please triage this failure.
@@ -281,8 +278,6 @@ map_values2_test: RuntimeError # Please triage this failure.
 map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.
 null_test: RuntimeError # Cannot read property 'prototype' of undefined
-num_parse_test/01: Crash # (switch (codeUnit){c...  Unhandled node
-num_parse_test/none: Crash # (switch (codeUnit){c...  Unhandled node
 queue_first_test: RuntimeError # Please triage this failure.
 queue_iterator_test: RuntimeError # Please triage this failure.
 queue_last_test: RuntimeError # Please triage this failure.
@@ -327,10 +322,6 @@ string_source_test: RuntimeError # Please triage this failure.
 string_split_test: RuntimeError # Please triage this failure.
 string_test: RuntimeError # Please triage this failure.
 string_to_lower_case_test: RuntimeError # Please triage this failure.
-string_trim2_test: Crash # (switch (codeUnit){c...  Unhandled node
-string_trim_test: Crash # (switch (codeUnit){c...  Unhandled node
-string_trimlr_test/01: Crash # (switch (codeUnit){c...  Unhandled node
-string_trimlr_test/none: Crash # (switch (codeUnit){c...  Unhandled node
 strings_test: RuntimeError # Please triage this failure.
 symbol_operator_test/03: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/03: Pass # Please triage this failure.

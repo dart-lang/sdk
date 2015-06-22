@@ -130,13 +130,13 @@ bool_from_environment_default_value_test: Crash # (try {return f(arg1,arg2);}fin
 capability_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 compile_time_error_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 count_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-cross_isolate_message_test: Crash # (switch (msg[0]){cas...  Unhandled node
+cross_isolate_message_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 deferred_in_isolate2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 deferred_in_isolate_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 function_send_test: Crash # (try {p.send(func);}finally {p.send(0);}): try/finally
 handle_error2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-handle_error3_test: Crash # (switch (state2){cas...  Unhandled node
-handle_error_test: Crash # (switch (state){case...  Unhandled node
+handle_error3_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+handle_error_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 illegal_msg_function_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 illegal_msg_mirror_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 int_from_environment_default_value_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally

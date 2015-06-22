@@ -245,9 +245,7 @@ generic_field_mixin4_test: Crash # Issue 18651
 generic_field_mixin5_test: Crash # Issue 18651
 
 [ $compiler == dart2js && $cps_ir ]
-aborting_switch_case_test: Crash # (switch (42){case 42:foo();foo();break;}): Unhandled node
 abstract_object_method_test: RuntimeError # Please triage this failure.
-arithmetic_test: Crash # (switch (codeUnit){c...  Unhandled node
 assert_assignable_type_test: RuntimeError # Please triage this failure.
 assign_op_test: RuntimeError # Please triage this failure.
 assignable_expression_test/none: RuntimeError # Please triage this failure.
@@ -390,16 +388,10 @@ const_evaluation_test/01: Crash # Internal Error: No default constructor availab
 const_list_test: RuntimeError # Please triage this failure.
 const_map_test: RuntimeError # Please triage this failure.
 const_nested_test: Crash # Invalid argument(s)
-const_switch2_test/none: Crash # (switch (a){case 1:print("OK");}): Unhandled node
-const_switch_test/01: Crash # (switch (c){case con...  Unhandled node
-const_switch_test/02: Crash # (switch (c){case con...  Unhandled node
-const_switch_test/03: Crash # (switch (c){case con...  Unhandled node
-const_switch_test/04: Crash # (switch (c){case con...  Unhandled node
 constructor11_test: Crash # Invalid argument(s)
 constructor12_test: RuntimeError # Please triage this failure.
 constructor5_test: Crash # The null object does not have a getter 'namedArguments'.
 constructor_with_mixin_test: Crash # Internal Error: No default constructor available.
-continue_test: Crash # (switch (0){case 0:i=22;continue;default:i=25;break;}): Unhandled node
 crash_12118_test: Crash # Invalid argument(s)
 crash_6725_test/01: Crash # The null object does not have a getter '_element'.
 custom_await_stack_trace_test: Crash # (main()async{try {va...  cannot handle async/sync*/async* functions
@@ -448,15 +440,14 @@ deferred_shared_and_unshared_classes_test: Crash # (try {return f(arg1,arg2);}fi
 deferred_static_seperate_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 deopt_inlined_function_lazy_test: Crash # (try {return x+12342353257893275483274832;}finally {}): try/finally
 deopt_no_feedback_test: RuntimeError # Please triage this failure.
-empty_block_case_test: Crash # (switch (1){case 1:{}case 2:Expect.equals(true,false);}): Unhandled node
+empty_block_case_test: Crash # The null object does not have a getter 'parent'.
 enum_duplicate_test/01: RuntimeError # Please triage this failure.
 enum_duplicate_test/02: RuntimeError # Please triage this failure.
 enum_duplicate_test/none: RuntimeError # Please triage this failure.
-enum_mirror_test: Crash # (switch (type){case ...  Unhandled node
+enum_mirror_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 enum_private_test/01: RuntimeError # Please triage this failure.
 enum_private_test/02: RuntimeError # Please triage this failure.
 enum_private_test/none: RuntimeError # Please triage this failure.
-enum_test: Crash # (switch (e){case Enu...  Unhandled node
 execute_finally10_test: Crash # (try {throw 'foo';}c...  try/finally
 execute_finally11_test: Crash # (try {throw 'foo';}c...  try/finally
 execute_finally12_test: Crash # (try {try {}finally {a=8;break;}}finally {return a==8;}): try/finally
@@ -552,7 +543,6 @@ if_null_assignment_static_test/32: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/33: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/34: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/35: RuntimeError # Please triage this failure.
-illegal_invocation_test/01: MissingCompileTimeError # Please triage this failure.
 implicit_closure1_test: RuntimeError # Cannot read property 'prototype' of undefined
 implicit_closure2_test: RuntimeError # Cannot read property 'prototype' of undefined
 implicit_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
@@ -562,24 +552,21 @@ index_test: RuntimeError # Please triage this failure.
 inference_mixin_field_test: Crash # Internal Error: No default constructor available.
 inferrer_synthesized_constructor_test: Crash # Invalid argument(s)
 inferrer_synthesized_super_constructor_test: Crash # Invalid argument(s)
-infinite_switch_label_test: Crash # (switch (target){l0:...  Unhandled node
+infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
 inlined_conditional_test: RuntimeError # Cannot read property 'prototype' of undefined
-inlined_throw_test: Crash # (switch (kast("switcheroo")){case 0:boo();}): Unhandled node
-instance_creation_in_function_annotation_test: Crash # (switch (name){case ...  Unhandled node
+instance_creation_in_function_annotation_test: Crash # Internal Error: No default constructor available.
 instanceof4_test/01: RuntimeError # Please triage this failure.
 interceptor7_test: RuntimeError # Please triage this failure.
 invocation_mirror_invoke_on2_test: RuntimeError # Please triage this failure.
 invocation_mirror_invoke_on_test: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
 is_function_test: RuntimeError # Cannot read property 'prototype' of undefined
-issue10581_test: Crash # (switch (type){case ...  Unhandled node
-issue12023_test: Crash # (switch (action){cas...  Unhandled node
 issue12288_test: RuntimeError # Please triage this failure.
 issue13179_test: RuntimeError # Cannot read property 'prototype' of undefined
 issue20476_test: Crash # (try {try {return 1;}catch (e1){}finally {return 3;}}catch (e2){}finally {return 5;}): try/finally
 issue7513_test: RuntimeError # Please triage this failure.
 issue_1751477_test: RuntimeError # receiver.get$_collection$_nums is not a function
-label_test: Crash # (switch (i){case 111:while(doAgain()){break L;}default:i-- ;}): Unhandled node
+label_test: Crash # (try {while(doAgain()){break L;}i-- ;}finally {}): try/finally
 large_class_declaration_test: Crash # Stack Overflow
 list_literal3_test: RuntimeError # Please triage this failure.
 list_test: RuntimeError # Please triage this failure.
@@ -632,14 +619,13 @@ mixin_typedef_constructor_test: Crash # Internal Error: No default constructor a
 named_parameters_with_conversions_test: RuntimeError # Cannot read property 'prototype' of undefined
 named_parameters_with_dollars_test: RuntimeError # Please triage this failure.
 nested_if_test: RuntimeError # Please triage this failure.
-nested_switch_label_test: Crash # (switch (target){out...  Unhandled node
+nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled switch case
 no_such_method_dispatcher_test: RuntimeError # Please triage this failure.
 no_such_method_empty_selector_test: RuntimeError # Please triage this failure.
 no_such_method_test: RuntimeError # Please triage this failure.
-null_test/none: Crash # (switch (type){case ...  Unhandled node
+null_test/none: Crash # Internal Error: No default constructor available.
 null_to_string2_test: RuntimeError # Cannot read property 'prototype' of undefined
 null_to_string_test: RuntimeError # Cannot read property 'prototype' of undefined
-nullaware_opt_test: RuntimeError # e.set$f is not a function
 operator_index_evaluation_order_test: RuntimeError # Please triage this failure.
 optimize_redundant_array_load_test: RuntimeError # Please triage this failure.
 optimized_lists_test: RuntimeError # Please triage this failure.
@@ -648,24 +634,13 @@ overridden_no_such_method_test: RuntimeError # Please triage this failure.
 override_method_with_field_test/02: RuntimeError # Cannot read property 'prototype' of undefined
 override_method_with_field_test/none: RuntimeError # Cannot read property 'prototype' of undefined
 param2_test: RuntimeError # Please triage this failure.
-phi_merge_test: Crash # (switch (value){case 42:break;case 43:break;}): Unhandled node
 prefix14_test: RuntimeError # Cannot read property 'prototype' of undefined
 prefix15_test: RuntimeError # Cannot read property 'prototype' of undefined
 prefix21_test: RuntimeError # Cannot read property 'prototype' of undefined
-prefix_unqualified_invocation_test/01: MissingCompileTimeError # Please triage this failure.
-prefix_unqualified_invocation_test/02: MissingCompileTimeError # Please triage this failure.
 pure_function2_test: RuntimeError # Please triage this failure.
 pure_function_test: RuntimeError # Please triage this failure.
 range_analysis_test: RuntimeError # Cannot read property 'prototype' of undefined
 recursive_calls_test: RuntimeError # Cannot read property 'prototype' of undefined
-ref_before_declaration_test/00: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
-ref_before_declaration_test/01: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
-ref_before_declaration_test/02: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
-ref_before_declaration_test/03: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
-ref_before_declaration_test/04: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
-ref_before_declaration_test/05: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
-ref_before_declaration_test/06: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
-ref_before_declaration_test/none: Crash # (switch (x){case 0:var x='Does fuzzy logic tickle?';}): Unhandled node
 reg_ex2_test: RuntimeError # Cannot read property 'prototype' of undefined
 reg_exp2_test: RuntimeError # Cannot read property 'prototype' of undefined
 reg_exp_test: RuntimeError # Please triage this failure.
@@ -718,17 +693,9 @@ super_operator_index_test/04: Crash # The null object does not have a getter 'is
 super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
 super_operator_index_test/06: Crash # The null object does not have a getter 'isParameter'.
 super_operator_test: RuntimeError # Please triage this failure.
-switch6_test: Crash # (switch (a){case 0:{x=0;break;}case 1:x=1;break;}): Unhandled node
-switch8_test: Crash # (switch (new List(1)[0]){case const A():throw 'Test failed';}): Unhandled node
-switch_bad_case_test/none: Crash # (switch (n){case 1:return "I";case 4:return "IV";}): Unhandled node
-switch_case_static_const_test: Crash # (switch (p){case S:break;case A.S:break;case 'abc':break;}): Unhandled node
-switch_case_test/none: Crash # (switch (new B()){}): Unhandled node
-switch_fallthru_test: Crash # (switch (n){case 0:result="zero";break;case 1:result="one";case 9:result="nine";}): Unhandled node
-switch_label2_test: Crash # (switch (target){cas...  Unhandled node
-switch_label_test: Crash # (switch (animal){cas...  Unhandled node
-switch_scope_test: Crash # (switch (1){case 1:f...  Unhandled node
-switch_test: Crash # (switch (input){case true:result=12;break;case false:result=22;}): Unhandled node
-switch_try_catch_test: Crash # (switch (0){_0:case ...  Unhandled node
+switch_label2_test: Crash # (switch (target){cas...  continue to a labeled switch case
+switch_label_test: Crash # (switch (animal){cas...  continue to a labeled switch case
+switch_try_catch_test: Crash # (switch (0){_0:case ...  continue to a labeled switch case
 sync_generator1_test/01: Crash # (dreiVier()sync*{yield* 3;}): cannot handle async/sync*/async* functions
 sync_generator1_test/none: Crash # (einsZwei()sync*{yie...  cannot handle async/sync*/async* functions
 sync_generator2_test/07: Crash # (sync()sync*{yield sync;}): cannot handle async/sync*/async* functions
@@ -752,7 +719,6 @@ top_level_in_initializer_test: RuntimeError # Cannot read property 'prototype' o
 try_catch3_test: Crash # (try {int j;j=f2();j...  try/finally
 try_catch4_test: Crash # (try {doThrow();}cat...  try/finally
 try_catch5_test: Crash # (try {try {a=8;return;}finally {b=8==a;entered=true;continue;}}finally {continue;}): try/finally
-try_catch_optimized1_test: Crash # (switch (codeUnit){c...  Unhandled node
 try_catch_optimized2_test: Crash # (try {bar();}finally {}): try/finally
 try_catch_osr_test: Crash # (try {if(x==null)throw 42;return 99;}finally {}): try/finally
 try_catch_test/none: Crash # The null object does not have a getter '_element'.
@@ -788,4 +754,3 @@ typedef_is_test: RuntimeError # Cannot read property 'prototype' of undefined
 typevariable_substitution2_test/01: Crash # Internal Error: No default constructor available.
 typevariable_substitution2_test/02: Crash # Internal Error: No default constructor available.
 typevariable_substitution2_test/none: Crash # Internal Error: No default constructor available.
-void_type_test: Crash # (switch (n){case 0:x...  Unhandled node

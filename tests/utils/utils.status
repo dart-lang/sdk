@@ -29,6 +29,6 @@ recursive_import_test: Pass, RuntimeError # Issue 17662
 source_mirrors_test: Pass, RuntimeError # Issue 17662
 
 [ $compiler == dart2js && $cps_ir ]
-dummy_compiler_test: Crash # (switch (kind){case ...  Unhandled node
+dummy_compiler_test: Crash # Internal Error: No default constructor available.
 recursive_import_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 source_mirrors_test: Crash # Internal Error: No default constructor available.

@@ -390,6 +390,48 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return null;
   }
 
+  visitSwitchStatement(ast.SwitchStatement node) {
+    assert(irBuilder.isOpen);
+    // We do not handle switch statements with continue to labeled cases.
+    for (ast.SwitchCase switchCase in node.cases) {
+      for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+        if (labelOrCase is ast.Label) {
+          LabelDefinition definition = elements.getLabelDefinition(labelOrCase);
+          if (definition != null && definition.isContinueTarget) {
+            return giveup(node, "continue to a labeled switch case");
+          }
+        }
+      }
+    }
+
+    // Each switch case contains a list of interleaved labels and expressions
+    // and a non-empty body.  We can ignore the labels because they are not
+    // jump targets.
+    List<SwitchCaseInfo> cases = <SwitchCaseInfo>[];
+    SwitchCaseInfo defaultCase;
+    for (ast.SwitchCase switchCase in node.cases) {
+      SwitchCaseInfo caseInfo =
+          new SwitchCaseInfo(subbuildSequence(switchCase.statements));
+      if (switchCase.isDefaultCase) {
+        defaultCase = caseInfo;
+      } else {
+        cases.add(caseInfo);
+        for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+          if (labelOrCase is ast.CaseMatch) {
+            ir.Primitive constant = translateConstant(labelOrCase.expression);
+            caseInfo.addConstant(constant);
+          }
+        }
+      }
+    }
+    ir.Primitive value = visit(node.expression);
+    JumpTarget target = elements.getTargetDefinition(node);
+    Element error =
+        (compiler.backend as JavaScriptBackend).getFallThroughError();
+    irBuilder.buildSimpleSwitch(target, value, cases, defaultCase, error,
+        sourceInformationBuilder.buildGeneric(node));
+  }
+
   visitTryStatement(ast.TryStatement node) {
     // Finally blocks are not yet implemented.
     if (node.finallyBlock != null) {

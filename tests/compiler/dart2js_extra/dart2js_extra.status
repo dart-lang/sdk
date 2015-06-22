@@ -66,14 +66,14 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 
 [ $compiler == dart2js && $cps_ir ]
 11673_test: RuntimeError # Cannot read property 'prototype' of undefined
-12320_test: Crash # (switch (x){case 0:l...  Unhandled node
+12320_test: RuntimeError # Cannot read property 'prototype' of undefined
 16407_test: Pass # Please triage this failure.
 17094_test: RuntimeError # Please triage this failure.
 17645_test: RuntimeError # Please triage this failure.
 19191_test: RuntimeError # Please triage this failure.
 21166_test: RuntimeError # Please triage this failure.
 21579_test: RuntimeError # Please triage this failure.
-21666_test: Crash # (switch (type){case ...  Unhandled node
+21666_test: Crash # Internal Error: No default constructor available.
 22487_test: RuntimeError # Cannot read property 'prototype' of undefined
 22868_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
 22895_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
@@ -86,8 +86,8 @@ closure4_test: RuntimeError # Please triage this failure.
 closure5_test: RuntimeError # Cannot read property 'prototype' of undefined
 closure_capture4_test: RuntimeError # Please triage this failure.
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
-closure_type_reflection2_test: Crash # (switch (name){case ...  Unhandled node
-closure_type_reflection_test: Crash # (switch (name){case ...  Unhandled node
+closure_type_reflection2_test: Crash # Internal Error: No default constructor available.
+closure_type_reflection_test: Crash # Internal Error: No default constructor available.
 compound_operator_index_test: RuntimeError # Please triage this failure.
 conditional_send_test: RuntimeError # receiver.get$_collection$_nums is not a function
 conflict_index_test: RuntimeError # Please triage this failure.
@@ -107,23 +107,19 @@ int_index_test/none: RuntimeError # Please triage this failure.
 invalid_length_negative_test: Fail # Please triage this failure.
 is_check_instanceof_test: RuntimeError # Please triage this failure.
 list_factory_test: RuntimeError # Please triage this failure.
-mirror_enqueuer_regression_test: Crash # (switch (type){case ...  Unhandled node
-mirror_invalid_field_access2_test: Crash # (switch (type){case ...  Unhandled node
-mirror_invalid_field_access3_test: Crash # (switch (type){case ...  Unhandled node
-mirror_invalid_field_access4_test: Crash # (switch (type){case ...  Unhandled node
+mirror_invalid_field_access2_test: RuntimeError # Please triage this failure.
+mirror_invalid_field_access3_test: Crash # Internal Error: No default constructor available.
+mirror_invalid_field_access4_test: RuntimeError # Please triage this failure.
 mirror_invalid_field_access_test: Crash # Internal Error: No default constructor available.
-mirror_invalid_invoke2_test: Crash # (switch (type){case ...  Unhandled node
-mirror_invalid_invoke3_test: Crash # (switch (type){case ...  Unhandled node
+mirror_invalid_invoke3_test: Crash # Internal Error: No default constructor available.
 mirror_invalid_invoke_test: Crash # Internal Error: No default constructor available.
 mirror_printer_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-mirror_test: Crash # (switch (type){case ...  Unhandled node
+mirror_test: Crash # Internal Error: No default constructor available.
 mirror_type_inference_field2_test: Crash # Internal Error: No default constructor available.
 mirror_type_inference_field_test: Crash # Internal Error: No default constructor available.
 mirror_type_inference_function_test: Crash # Internal Error: No default constructor available.
-mirrors_declarations_filtering_test: Crash # (switch (type){case ...  Unhandled node
-mirrors_used_closure_test: Crash # (switch (type){case ...  Unhandled node
-mirrors_used_metatargets_test: Crash # (switch (type){case ...  Unhandled node
-mirrors_used_native_test: Crash # (switch (type){case ...  Unhandled node
+mirrors_declarations_filtering_test: Crash # Internal Error: No default constructor available.
+mirrors_used_native_test: RuntimeError # Please triage this failure.
 mirrors_used_warning2_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
 mirrors_used_warning_test/minif: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 mirrors_used_warning_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
@@ -131,6 +127,5 @@ no_such_method_mirrors_test: RuntimeError # Please triage this failure.
 reflect_native_types_test: Crash # Internal Error: No default constructor available.
 runtime_type_test: RuntimeError # Cannot read property 'prototype' of undefined
 string_interpolation_opt1_test: RuntimeError # Please triage this failure.
-switch_test/none: Crash # (switch (val){}): Unhandled node
+switch_test/none: Crash # (switch (val){foo:ba...  continue to a labeled switch case
 timer_test: RuntimeError # receiver.get$_collection$_nums is not a function
-type_constant_switch_test/none: Crash # (switch (v){}): Unhandled node
