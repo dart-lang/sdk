@@ -2669,4 +2669,62 @@ void main() {
       customUrlMappings: {
     'dart:foobar': '$testDirectory/checker/dart_foobar.dart'
   }));
+
+  group('function modifiers', () {
+    test('async', () => testChecker({
+      '/main.dart': '''
+        import 'dart:async';
+
+        dynamic x;
+
+        foo1() async => x;
+        Future foo2() async => x;
+        Future<int> foo3() async => (/*info:DynamicCast*/x);
+        Future<int> foo4() async => (/*severe:StaticTypeError*/new Future<int>(x));
+
+        bar1() async { return x; }
+        Future bar2() async { return x; }
+        Future<int> bar3() async { return (/*info:DynamicCast*/x); }
+        Future<int> bar4() async { return (/*severe:StaticTypeError*/new Future<int>(x)); }
+    '''
+    }));
+
+    test('async*', () => testChecker({
+      '/main.dart': '''
+        import 'dart:async';
+
+        dynamic x;
+
+        bar1() async* { yield x; }
+        Stream bar2() async* { yield x; }
+        Stream<int> bar3() async* { yield (/*info:DynamicCast*/x); }
+        Stream<int> bar4() async* { yield (/*severe:StaticTypeError*/new Stream<int>()); }
+
+        baz1() async* { yield* (/*info:DynamicCast*/x); }
+        Stream baz2() async* { yield* (/*info:DynamicCast*/x); }
+        Stream<int> baz3() async* { yield* (/*warning:DownCastComposite*/x); }
+        Stream<int> baz4() async* { yield* new Stream<int>(); }
+        Stream<int> baz5() async* { yield* (/*info:InferredTypeAllocation*/new Stream()); }
+    '''
+    }));
+
+    test('sync*', () => testChecker({
+      '/main.dart': '''
+        import 'dart:async';
+
+        dynamic x;
+
+        bar1() sync* { yield x; }
+        Iterable bar2() sync* { yield x; }
+        Iterable<int> bar3() sync* { yield (/*info:DynamicCast*/x); }
+        Iterable<int> bar4() sync* { yield (/*severe:StaticTypeError*/new Iterable<int>()); }
+
+        baz1() sync* { yield* (/*info:DynamicCast*/x); }
+        Iterable baz2() sync* { yield* (/*info:DynamicCast*/x); }
+        Iterable<int> baz3() sync* { yield* (/*warning:DownCastComposite*/x); }
+        Iterable<int> baz4() sync* { yield* new Iterable<int>(); }
+        Iterable<int> baz5() sync* { yield* (/*info:InferredTypeAllocation*/new Iterable()); }
+    '''
+    }));
+  });
 }

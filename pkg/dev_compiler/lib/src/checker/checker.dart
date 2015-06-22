@@ -337,7 +337,6 @@ class CodeChecker extends RecursiveAstVisitor {
   final TypeRules _rules;
   final CheckerReporter _reporter;
   final _OverrideChecker _overrideChecker;
-  bool _constantContext = false;
   bool _failure = false;
   bool get failure => _failure || _overrideChecker._failure;
 
@@ -356,27 +355,6 @@ class CodeChecker extends RecursiveAstVisitor {
     _rules.reportMissingType = report;
     unit.visitChildren(this);
     _rules.reportMissingType = callback;
-  }
-
-  _visitMaybeConst(AstNode n, visitNode(AstNode n)) {
-    var o = _constantContext;
-    if (!o) {
-      if (n is VariableDeclarationList) {
-        _constantContext = o || n.isConst;
-      } else if (n is VariableDeclaration) {
-        _constantContext = o || n.isConst;
-      } else if (n is DefaultFormalParameter) {
-        _constantContext = true;
-      } else if (n is FormalParameter) {
-        _constantContext = o || n.isConst;
-      } else if (n is InstanceCreationExpression) {
-        _constantContext = o || n.isConst;
-      } else if (n is ConstructorDeclaration) {
-        _constantContext = o || n.element.isConst;
-      }
-    }
-    visitNode(n);
-    _constantContext = o;
   }
 
   @override
@@ -406,17 +384,15 @@ class CodeChecker extends RecursiveAstVisitor {
   /// Check constructor declaration to ensure correct super call placement.
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    _visitMaybeConst(node, (node) {
-      node.visitChildren(this);
+    node.visitChildren(this);
 
-      final init = node.initializers;
-      for (int i = 0, last = init.length - 1; i < last; i++) {
-        final node = init[i];
-        if (node is SuperConstructorInvocation) {
-          _recordMessage(new InvalidSuperInvocation(node));
-        }
+    final init = node.initializers;
+    for (int i = 0, last = init.length - 1; i < last; i++) {
+      final node = init[i];
+      if (node is SuperConstructorInvocation) {
+        _recordMessage(new InvalidSuperInvocation(node));
       }
-    });
+    }
   }
 
   @override
@@ -603,40 +579,94 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  AstNode _getOwnerFunction(AstNode node) {
-    var parent = node.parent;
-    while (parent is! FunctionExpression &&
-        parent is! MethodDeclaration &&
-        parent is! ConstructorDeclaration) {
-      parent = parent.parent;
-    }
-    return parent;
-  }
-
-  FunctionType _getFunctionType(AstNode node) {
-    if (node is Declaration) {
-      return _rules.elementType(node.element);
+  DartType _getExpectedReturnType(FunctionBody body, bool yieldStar) {
+    FunctionType functionType;
+    var parent = body.parent;
+    if (parent is Declaration) {
+      functionType = _rules.elementType(parent.element);
     } else {
-      assert(node is FunctionExpression);
-      return _rules.getStaticType(node);
+      assert(parent is FunctionExpression);
+      functionType = _rules.getStaticType(parent);
+    }
+
+    var type = functionType.returnType;
+    var provider = _rules.provider;
+
+    InterfaceType expectedType = null;
+    if (body.isAsynchronous) {
+      if (body.isGenerator) {
+        // Stream<T> -> T
+        expectedType = provider.streamType;
+      } else {
+        // Future<T> -> T
+        // TODO(vsm): Revisit with issue #228.
+        expectedType = provider.futureType;
+      }
+    } else {
+      if (body.isGenerator) {
+        // Iterable<T> -> T
+        expectedType = provider.iterableType;
+      } else {
+        // T -> T
+        return type;
+      }
+    }
+    if (yieldStar) {
+      if (type.isDynamic) {
+        // Ensure it's at least a Stream / Iterable.
+        return expectedType.substitute4([provider.dynamicType]);
+      } else {
+        // Analyzer will provide a separate error if expected type
+        // is not compatible with type.
+        return type;
+      }
+    }
+    if (type.isDynamic) {
+      return type;
+    } else if (type is InterfaceType && type.element == expectedType.element) {
+      return type.typeArguments[0];
+    } else {
+      // Malformed type - fallback on analyzer error.
+      return null;
     }
   }
 
-  void _checkReturn(Expression expression, AstNode node) {
-    var type = _getFunctionType(_getOwnerFunction(node)).returnType;
+  FunctionBody _getFunctionBody(AstNode node) {
+    while (node is! FunctionBody) {
+      node = node.parent;
+    }
+    return node as FunctionBody;
+  }
+
+  void _checkReturnOrYield(Expression expression, AstNode node,
+      [bool yieldStar = false]) {
+    var body = _getFunctionBody(node);
+    var type = _getExpectedReturnType(body, yieldStar);
+    if (type == null) {
+      // We have a type mismatch: the async/async*/sync* modifier does
+      // not match the return or yield type.  We should have already gotten an
+      // analyzer error in this case.
+      return;
+    }
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
     if (expression != null) checkAssignment(expression, type);
   }
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
-    _checkReturn(node.expression, node);
+    _checkReturnOrYield(node.expression, node);
     node.visitChildren(this);
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    _checkReturn(node.expression, node);
+    _checkReturnOrYield(node.expression, node);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitYieldStatement(YieldStatement node) {
+    _checkReturnOrYield(node.expression, node, node.star != null);
     node.visitChildren(this);
   }
 
@@ -660,24 +690,22 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _visitMaybeConst(node, (node) {
-      // Check that defaults have the proper subtype.
-      var parameter = node.parameter;
-      var parameterType = _rules.elementType(parameter.element);
-      assert(parameterType != null);
-      var defaultValue = node.defaultValue;
-      if (defaultValue == null) {
-        if (_rules.maybeNonNullableType(parameterType)) {
-          var staticInfo = new InvalidVariableDeclaration(
-              _rules, node.identifier, parameterType);
-          _recordMessage(staticInfo);
-        }
-      } else {
-        checkAssignment(defaultValue, parameterType);
+    // Check that defaults have the proper subtype.
+    var parameter = node.parameter;
+    var parameterType = _rules.elementType(parameter.element);
+    assert(parameterType != null);
+    var defaultValue = node.defaultValue;
+    if (defaultValue == null) {
+      if (_rules.maybeNonNullableType(parameterType)) {
+        var staticInfo = new InvalidVariableDeclaration(
+            _rules, node.identifier, parameterType);
+        _recordMessage(staticInfo);
       }
+    } else {
+      checkAssignment(defaultValue, parameterType);
+    }
 
-      node.visitChildren(this);
-    });
+    node.visitChildren(this);
   }
 
   @override
@@ -700,56 +728,47 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    _visitMaybeConst(node, (node) {
-      var arguments = node.argumentList;
-      var element = node.staticElement;
-      if (element != null) {
-        var type = _rules.elementType(node.staticElement);
-        checkArgumentList(arguments, type);
-      } else {
-        _recordMessage(new MissingTypeError(node));
-      }
-      node.visitChildren(this);
-    });
+    var arguments = node.argumentList;
+    var element = node.staticElement;
+    if (element != null) {
+      var type = _rules.elementType(node.staticElement);
+      checkArgumentList(arguments, type);
+    } else {
+      _recordMessage(new MissingTypeError(node));
+    }
+    node.visitChildren(this);
   }
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    _visitMaybeConst(node, (node) {
-      TypeName type = node.type;
-      if (type == null) {
-        // No checks are needed when the type is var. Although internally the
-        // typing rules may have inferred a more precise type for the variable
-        // based on the initializer.
-      } else {
-        var dartType = getType(type);
-        for (VariableDeclaration variable in node.variables) {
-          var initializer = variable.initializer;
-          if (initializer != null) {
-            checkAssignment(initializer, dartType);
-          } else if (_rules.maybeNonNullableType(dartType)) {
-            var element = variable.element;
-            if (element is FieldElement && !element.isStatic) {
-              // Initialized - possibly implicitly - during construction.
-              // Handle this via a runtime check during code generation.
+    TypeName type = node.type;
+    if (type == null) {
+      // No checks are needed when the type is var. Although internally the
+      // typing rules may have inferred a more precise type for the variable
+      // based on the initializer.
+    } else {
+      var dartType = getType(type);
+      for (VariableDeclaration variable in node.variables) {
+        var initializer = variable.initializer;
+        if (initializer != null) {
+          checkAssignment(initializer, dartType);
+        } else if (_rules.maybeNonNullableType(dartType)) {
+          var element = variable.element;
+          if (element is FieldElement && !element.isStatic) {
+            // Initialized - possibly implicitly - during construction.
+            // Handle this via a runtime check during code generation.
 
-              // TODO(vsm): Detect statically whether this can fail and
-              // report a static error (must fail) or warning (can fail).
-            } else {
-              var staticInfo =
-                  new InvalidVariableDeclaration(_rules, variable, dartType);
-              _recordMessage(staticInfo);
-            }
+            // TODO(vsm): Detect statically whether this can fail and
+            // report a static error (must fail) or warning (can fail).
+          } else {
+            var staticInfo =
+                new InvalidVariableDeclaration(_rules, variable, dartType);
+            _recordMessage(staticInfo);
           }
         }
       }
-      node.visitChildren(this);
-    });
-  }
-
-  @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    _visitMaybeConst(node, super.visitVariableDeclaration);
+    }
+    node.visitChildren(this);
   }
 
   void _checkRuntimeTypeCheck(AstNode node, TypeName typeName) {
@@ -885,7 +904,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (expr is ParenthesizedExpression) {
       checkAssignment(expr.expression, type);
     } else {
-      _recordMessage(_rules.checkAssignment(expr, type, _constantContext));
+      _recordMessage(_rules.checkAssignment(expr, type));
     }
   }
 
@@ -956,8 +975,7 @@ class CodeChecker extends RecursiveAstVisitor {
       // Check the rhs type
       if (staticInfo is! CoercionInfo) {
         var paramType = paramTypes.first;
-        staticInfo = _rules.checkAssignment(
-            expr.rightHandSide, paramType, _constantContext);
+        staticInfo = _rules.checkAssignment(expr.rightHandSide, paramType);
         _recordMessage(staticInfo);
       }
     }
