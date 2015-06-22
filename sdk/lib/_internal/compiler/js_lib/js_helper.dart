@@ -210,7 +210,7 @@ String S(value) {
     return 'null';
   }
   var res = value.toString();
-  if (res is !String) throw _argumentError(value);
+  if (res is !String) throw argumentErrorValue(value);
   return res;
 }
 

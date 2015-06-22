@@ -158,16 +158,14 @@ class ClassStubGenerator {
     String internalName = namer.invocationMirrorInternalName(selector);
 
     assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
-    bool isIntercepted = backend.isInterceptedName(selector.name);
     jsAst.Expression expression =
-        js('''this.#noSuchMethodName(#receiver,
+        js('''this.#noSuchMethodName(this,
                     #createInvocationMirror(#methodName,
                                             #internalName,
                                             #type,
                                             #arguments,
                                             #namedArguments))''',
-           {'receiver': isIntercepted ? r'$receiver' : 'this',
-            'noSuchMethodName': namer.noSuchMethodName,
+           {'noSuchMethodName': namer.noSuchMethodName,
             'createInvocationMirror':
                 backend.emitter.staticFunctionAccess(
                     backend.getCreateInvocationMirror()),
@@ -181,7 +179,7 @@ class ClassStubGenerator {
             'namedArguments': new jsAst.ArrayInitializer(argNames)});
 
     jsAst.Expression function;
-    if (isIntercepted) {
+    if (backend.isInterceptedName(selector.name)) {
       function = js(r'function($receiver, #) { return # }',
                               [parameterNames, expression]);
     } else {
