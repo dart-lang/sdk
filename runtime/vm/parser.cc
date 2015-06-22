@@ -969,8 +969,8 @@ RawArray* Parser::EvaluateMetadata() {
       ExpectIdentifier("identifier expected");
     }
     // Reject expressions with deferred library prefix eagerly.
-    Object& obj = Object::Handle(Z,
-                                 library_.LookupLocalObject(*CurrentLiteral()));
+    Object& obj =
+        Object::Handle(Z, library_.LookupLocalObject(*CurrentLiteral()));
     if (!obj.IsNull() && obj.IsLibraryPrefix()) {
       if (LibraryPrefix::Cast(obj).is_deferred_load()) {
         ReportError("Metadata must be compile-time constant");
@@ -11777,8 +11777,13 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
     } else {
       return new(Z) PrimaryNode(ident_pos, Function::ZoneHandle(Z, func.raw()));
     }
+  } else if (obj.IsLibraryPrefix()) {
+    const LibraryPrefix& prefix = LibraryPrefix::Cast(obj);
+    ReportError(ident_pos,
+                "illegal use of library prefix '%s'",
+                String::Handle(prefix.name()).ToCString());
   } else {
-    ASSERT(obj.IsNull() || obj.IsLibraryPrefix());
+    ASSERT(obj.IsNull());
   }
   // Lexically unresolved primary identifiers are referenced by their name.
   return new(Z) PrimaryNode(ident_pos, ident);

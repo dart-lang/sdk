@@ -18,28 +18,11 @@ closure_in_initializer_test: Fail # Issue 6422
 duplicate_export_negative_test: Fail # Issue 6134
 
 [ $compiler == none ]
-prefix_assignment_test/01: Fail # Issue 23612
-prefix_unqualified_invocation_test/01: Fail # Issue 23612
 
 deferred_redirecting_factory_test: Fail # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
 
 [ $compiler == none && $runtime != dartium && $runtime != drt ]
-prefix_identifier_reference_test/01: MissingCompileTimeError # Issue 23612
-prefix_identifier_reference_test/02: MissingCompileTimeError # Issue 23612
-prefix_identifier_reference_test/03: MissingCompileTimeError # Issue 23612
-prefix_identifier_reference_test/04: MissingCompileTimeError # Issue 23612
-prefix_identifier_reference_test/05: MissingCompileTimeError # Issue 23612
-illegal_invocation_test/01: MissingCompileTimeError # Issue 23612
-prefix_assignment_test/02: MissingCompileTimeError # Issue 23612
-prefix_unqualified_invocation_test/02: MissingCompileTimeError # Issue 23612
-conditional_property_assignment_test/20: MissingCompileTimeError # Issue 23612
-conditional_property_assignment_test/21: MissingCompileTimeError # Issue 23612
-conditional_property_assignment_test/22: MissingCompileTimeError # Issue 23612
-conditional_method_invocation_test/11: MissingCompileTimeError # Issue 23612
-conditional_property_access_test/09: MissingCompileTimeError # Issue 23612
-if_null_assignment_behavior_test/29: MissingCompileTimeError # Issue 23612
-if_null_assignment_behavior_test/30: MissingCompileTimeError # Issue 23612
 
 [ $compiler == none ]
 # Non-contractive types are not supported in the vm.
