@@ -3262,10 +3262,12 @@ abstract class ElementVisitor<R> {
 
   R visitConstructorElement(ConstructorElement element);
 
+  @deprecated
   R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element);
 
   R visitExportElement(ExportElement element);
 
+  @deprecated
   R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element);
 
   R visitFieldElement(FieldElement element);
@@ -3276,6 +3278,7 @@ abstract class ElementVisitor<R> {
 
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element);
 
+  @deprecated
   R visitHtmlElement(HtmlElement element);
 
   R visitImportElement(ImportElement element);
@@ -3304,6 +3307,7 @@ abstract class ElementVisitor<R> {
 /**
  * A script tag in an HTML file having content that defines a Dart library.
  */
+@deprecated
 abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
   /**
    * Return the library element defined by the content of the script tag.
@@ -3314,6 +3318,7 @@ abstract class EmbeddedHtmlScriptElement implements HtmlScriptElement {
 /**
  * A concrete implementation of an [EmbeddedHtmlScriptElement].
  */
+@deprecated
 class EmbeddedHtmlScriptElementImpl extends HtmlScriptElementImpl
     implements EmbeddedHtmlScriptElement {
   /**
@@ -3829,6 +3834,7 @@ class ExportElementImpl extends UriReferencedElementImpl
  * A script tag in an HTML file having a `source` attribute that references a
  * Dart library source file.
  */
+@deprecated
 abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
   /**
    * Return the source referenced by this element, or `null` if this element
@@ -3840,6 +3846,7 @@ abstract class ExternalHtmlScriptElement implements HtmlScriptElement {
 /**
  * A concrete implementation of an [ExternalHtmlScriptElement].
  */
+@deprecated
 class ExternalHtmlScriptElementImpl extends HtmlScriptElementImpl
     implements ExternalHtmlScriptElement {
   /**
@@ -5372,6 +5379,7 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  @deprecated
   R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) =>
       visitHtmlScriptElement(element);
 
@@ -5381,6 +5389,7 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
   R visitExportElement(ExportElement element) => visitElement(element);
 
   @override
+  @deprecated
   R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) =>
       visitHtmlScriptElement(element);
 
@@ -5400,8 +5409,10 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitElement(element);
 
   @override
+  @deprecated
   R visitHtmlElement(HtmlElement element) => visitElement(element);
 
+  @deprecated
   R visitHtmlScriptElement(HtmlScriptElement element) => visitElement(element);
 
   @override
@@ -5501,6 +5512,7 @@ class HideElementCombinatorImpl implements HideElementCombinator {
 /**
  * An HTML file.
  */
+@deprecated
 abstract class HtmlElement implements Element {
   /**
    * An empty list of HTML file elements.
@@ -5519,6 +5531,7 @@ abstract class HtmlElement implements Element {
 /**
  * A concrete implementation of an [HtmlElement].
  */
+@deprecated
 class HtmlElementImpl extends ElementImpl implements HtmlElement {
   /**
    * An empty list of HTML file elements.
@@ -5605,6 +5618,7 @@ class HtmlElementImpl extends ElementImpl implements HtmlElement {
  *
  * See [EmbeddedHtmlScriptElement], and [ExternalHtmlScriptElement].
  */
+@deprecated
 abstract class HtmlScriptElement implements Element {
   /**
    * An empty list of HTML script elements.
@@ -5615,6 +5629,7 @@ abstract class HtmlScriptElement implements Element {
 /**
  * A concrete implementation of an [HtmlScriptElement].
  */
+@deprecated
 abstract class HtmlScriptElementImpl extends ElementImpl
     implements HtmlScriptElement {
   /**
@@ -9349,6 +9364,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  @deprecated
   R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) {
     element.visitChildren(this);
     return null;
@@ -9361,6 +9377,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  @deprecated
   R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) {
     element.visitChildren(this);
     return null;
@@ -9391,6 +9408,7 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
+  @deprecated
   R visitHtmlElement(HtmlElement element) {
     element.visitChildren(this);
     return null;
@@ -9539,12 +9557,14 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitConstructorElement(ConstructorElement element) => null;
 
   @override
+  @deprecated
   R visitEmbeddedHtmlScriptElement(EmbeddedHtmlScriptElement element) => null;
 
   @override
   R visitExportElement(ExportElement element) => null;
 
   @override
+  @deprecated
   R visitExternalHtmlScriptElement(ExternalHtmlScriptElement element) => null;
 
   @override
@@ -9561,6 +9581,7 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R visitFunctionTypeAliasElement(FunctionTypeAliasElement element) => null;
 
   @override
+  @deprecated
   R visitHtmlElement(HtmlElement element) => null;
 
   @override

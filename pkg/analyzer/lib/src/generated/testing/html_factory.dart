@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/html.dart';
 /**
  * Utility methods to create HTML nodes.
  */
+@deprecated
 class HtmlFactory {
   static XmlAttributeNode attribute(String name, String value) {
     Token nameToken = stringToken(name);

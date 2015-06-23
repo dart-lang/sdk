@@ -2271,6 +2271,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   ht.HtmlUnit parseHtmlUnit(Source source) =>
       _getHtmlParseData(source, HtmlEntry.PARSED_UNIT, null);
 
@@ -6025,6 +6026,7 @@ abstract class AnalysisListener {
   /**
    * Reports that the given HTML [source] was parsed in the given [context].
    */
+  @deprecated
   void parsedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
 
   /**
@@ -6036,6 +6038,7 @@ abstract class AnalysisListener {
   /**
    * Reports that the given HTML [source] was resolved in the given [context].
    */
+  @deprecated
   void resolvedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
 }
 
@@ -6938,6 +6941,7 @@ abstract class ChangeNotice implements AnalysisErrorInfo {
    * The fully resolved HTML AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
+  @deprecated
   ht.HtmlUnit get resolvedHtmlUnit;
 
   /**
@@ -6976,6 +6980,7 @@ class ChangeNoticeImpl implements ChangeNotice {
    * The fully resolved HTML AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
+  @deprecated
   ht.HtmlUnit resolvedHtmlUnit;
 
   /**

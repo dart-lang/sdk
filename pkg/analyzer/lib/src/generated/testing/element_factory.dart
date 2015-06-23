@@ -373,6 +373,7 @@ class ElementFactory {
     return getter;
   }
 
+  @deprecated
   static HtmlElementImpl htmlUnit(AnalysisContext context, String fileName) {
     Source source =
         new NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
