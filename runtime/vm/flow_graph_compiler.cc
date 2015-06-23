@@ -51,6 +51,7 @@ DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
 DECLARE_FLAG(bool, emit_edge_counters);
+DECLARE_FLAG(bool, guess_other_cid);
 DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
 DECLARE_FLAG(bool, load_deferred_eagerly);
@@ -82,8 +83,8 @@ static void NooptModeHandler(bool value) {
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;  // Used in some tests.
     FLAG_collect_code = false;
+    FLAG_guess_other_cid = false;
     Compiler::set_always_optimize(true);
-    Compiler::set_guess_other_cid(false);
     // TODO(srdjan): Enable CHA deoptimization when eager class finalization is
     // implemented, either with precompilation or as a special pass.
     FLAG_use_cha_deopt = false;

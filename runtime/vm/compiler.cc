@@ -71,7 +71,6 @@ DECLARE_FLAG(bool, trace_patching);
 
 
 bool Compiler::always_optimize_ = false;
-bool Compiler::guess_other_cid_ = true;
 
 
 // TODO(zerny): Factor out unoptimizing/optimizing pipelines and remove
