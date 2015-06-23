@@ -2123,10 +2123,6 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// It is computed by the [ClosureTranslator].
   ClosureClassMap closureClassMap;
 
-  /// During construction of a constructor factory, [fieldValues] maps fields
-  /// to the primitive containing their initial value.
-  Map<FieldElement, ir.Primitive> fieldValues = <FieldElement, ir.Primitive>{};
-
   JsIrBuilderVisitor(TreeElements elements,
                      Compiler compiler,
                      SourceInformationBuilder sourceInformationBuilder)
@@ -2269,15 +2265,23 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     });
   }
 
+  /// Make a visitor suitable for translating ASTs taken from [context].
+  ///
+  /// Every visitor can only be applied to nodes in one context, because
+  /// the [elements] field is specific to that context.
+  JsIrBuilderVisitor makeVisitorForContext(AstElement context) {
+    return new JsIrBuilderVisitor(
+        context.resolvedAst.elements,
+        compiler,
+        sourceInformationBuilder.forContext(context));
+  }
+
   /// Builds the IR for an [expression] taken from a different [context].
   ///
   /// Such expressions need to be compiled with a different [sourceFile] and
   /// [elements] mapping.
   ir.Primitive inlineExpression(AstElement context, ast.Expression expression) {
-    JsIrBuilderVisitor visitor = new JsIrBuilderVisitor(
-        context.resolvedAst.elements,
-        compiler,
-        sourceInformationBuilder.forContext(context));
+    JsIrBuilderVisitor visitor = makeVisitorForContext(context);
     return visitor.withBuilder(irBuilder, () => visitor.visit(expression));
   }
 
@@ -2286,10 +2290,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// Such constants need to be compiled with a different [sourceFile] and
   /// [elements] mapping.
   ir.Primitive inlineConstant(AstElement context, ast.Expression exp) {
-    JsIrBuilderVisitor visitor = new JsIrBuilderVisitor(
-        context.resolvedAst.elements,
-        compiler,
-        sourceInformationBuilder.forContext(context));
+    JsIrBuilderVisitor visitor = makeVisitorForContext(context);
     return visitor.withBuilder(irBuilder, () => visitor.translateConstant(exp));
   }
 
@@ -2358,11 +2359,16 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       // get it out of the way here to avoid complications with mixins.
       loadTypeVariablesForSuperClasses(classElement);
 
+      /// Maps each field from this class or a superclass to its initial value.
+      Map<FieldElement, ir.Primitive> fieldValues =
+          <FieldElement, ir.Primitive>{};
+
       // -- Evaluate field initializers ---
       // Evaluate field initializers in constructor and super constructors.
       irBuilder.enterInitializers();
       List<ConstructorElement> constructorList = <ConstructorElement>[];
-      evaluateConstructorFieldInitializers(constructor, constructorList);
+      evaluateConstructorFieldInitializers(
+          constructor, constructorList, fieldValues);
       irBuilder.leaveInitializers();
 
       // All parameters in all constructors are now bound in the environment.
@@ -2418,8 +2424,12 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// the environment, but will be put there by this procedure.
   ///
   /// All constructors will be added to [supers], with superconstructors first.
-  void evaluateConstructorFieldInitializers(ConstructorElement constructor,
-                                            List<ConstructorElement> supers) {
+  void evaluateConstructorFieldInitializers(
+      ConstructorElement constructor,
+      List<ConstructorElement> supers,
+      Map<FieldElement, ir.Primitive> fieldValues) {
+    assert(constructor.isImplementation);
+    assert(constructor == elements.analyzedElement);
     ClassElement enclosingClass = constructor.enclosingClass.implementation;
     // Evaluate declaration-site field initializers, unless this constructor
     // redirects to another using a `this()` initializer. In that case, these
@@ -2456,19 +2466,18 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (initializer is ast.SendSet) {
           // Field initializer.
           FieldElement field = elements[initializer];
-          fieldValues[field] =
-              inlineExpression(constructor, initializer.arguments.head);
+          fieldValues[field] = visit(initializer.arguments.head);
         } else if (initializer is ast.Send) {
           // Super or this initializer.
           ConstructorElement target = elements[initializer].implementation;
           Selector selector = elements.getSelector(initializer);
-          ir.Primitive evaluateArgument(ast.Node arg) {
-            return inlineExpression(constructor, arg);
-          }
-          List<ir.Primitive> arguments =
-              initializer.arguments.mapToList(evaluateArgument);
-          loadArguments(target, selector, arguments);
-          evaluateConstructorFieldInitializers(target, supers);
+          List<ir.Primitive> arguments = initializer.arguments.mapToList(visit);
+          evaluateConstructorCallFromInitializer(
+              target,
+              selector.callStructure,
+              arguments,
+              supers,
+              fieldValues);
           hasConstructorCall = true;
         } else {
           compiler.internalError(initializer,
@@ -2483,10 +2492,33 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       if (target == null) {
         compiler.internalError(superClass, "No default constructor available.");
       }
-      evaluateConstructorFieldInitializers(target, supers);
+      target = target.implementation;
+      evaluateConstructorCallFromInitializer(
+          target,
+          CallStructure.NO_ARGS,
+          const [],
+          supers,
+          fieldValues);
     }
     // Add this constructor after the superconstructors.
     supers.add(constructor);
+  }
+
+  /// Evaluates a call to the given constructor from an initializer list.
+  ///
+  /// Calls [loadArguments] and [evaluateConstructorFieldInitializers] in a
+  /// visitor that has the proper [TreeElements] mapping.
+  void evaluateConstructorCallFromInitializer(
+      ConstructorElement target,
+      CallStructure call,
+      List<ir.Primitive> arguments,
+      List<ConstructorElement> supers,
+      Map<FieldElement, ir.Primitive> fieldValues) {
+    JsIrBuilderVisitor visitor = makeVisitorForContext(target);
+    return visitor.withBuilder(irBuilder, () {
+      visitor.loadArguments(target, call, arguments);
+      visitor.evaluateConstructorFieldInitializers(target, supers, fieldValues);
+    });
   }
 
   /// Loads the type variables for all super classes of [superClass] into the
@@ -2527,9 +2559,10 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
   /// Defaults for optional arguments are evaluated in order to ensure
   /// all parameters are available in the environment.
   void loadArguments(ConstructorElement target,
-                     Selector selector,
+                     CallStructure call,
                      List<ir.Primitive> arguments) {
-    target = target.implementation;
+    assert(target.isImplementation);
+    assert(target == elements.analyzedElement);
     FunctionSignature signature = target.functionSignature;
 
     // Establish a scope in case parameters are captured.
@@ -2548,9 +2581,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       ir.Primitive value;
       // Load argument if provided.
       if (signature.optionalParametersAreNamed) {
-        int nameIndex = selector.namedArguments.indexOf(param.name);
+        int nameIndex = call.namedArguments.indexOf(param.name);
         if (nameIndex != -1) {
-          int translatedIndex = selector.positionalArgumentCount + nameIndex;
+          int translatedIndex = call.positionalArgumentCount + nameIndex;
           value = arguments[translatedIndex];
         }
       } else if (index < arguments.length) {
@@ -2559,7 +2592,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       // Load default if argument was not provided.
       if (value == null) {
         if (param.initializer != null) {
-          value = inlineExpression(target, param.initializer);
+          value = visit(param.initializer);
         } else {
           value = irBuilder.buildNullConstant();
         }
@@ -2581,9 +2614,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     // cannot add a BoxLocal as parameter, because BoxLocal is not an element.
     // Instead of forging ParameterElements to forge a FunctionSignature, we
     // need a way to create backend methods without creating more fake elements.
-
     assert(constructor.isGenerativeConstructor);
-    assert(invariant(constructor, constructor.isImplementation));
+    assert(constructor.isImplementation);
     if (constructor.isSynthesized) return null;
     ast.FunctionExpression node = constructor.node;
     // If we know the body doesn't have any code, we don't generate it.

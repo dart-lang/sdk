@@ -388,11 +388,8 @@ const_evaluation_test/01: Crash # Internal Error: No default constructor availab
 const_list_test: RuntimeError # Please triage this failure.
 const_map_test: RuntimeError # Please triage this failure.
 const_nested_test: Crash # Invalid argument(s)
-constructor11_test: Crash # Invalid argument(s)
 constructor12_test: RuntimeError # Please triage this failure.
-constructor5_test: Crash # The null object does not have a getter 'namedArguments'.
 constructor_with_mixin_test: Crash # Internal Error: No default constructor available.
-crash_12118_test: Crash # Invalid argument(s)
 crash_6725_test/01: Crash # The null object does not have a getter '_element'.
 custom_await_stack_trace_test: Crash # (main()async{try {va...  cannot handle async/sync*/async* functions
 cyclic_type_test/00: RuntimeError # Cannot read property 'prototype' of undefined
@@ -545,12 +542,9 @@ if_null_assignment_static_test/35: RuntimeError # Please triage this failure.
 implicit_closure1_test: RuntimeError # Cannot read property 'prototype' of undefined
 implicit_closure2_test: RuntimeError # Cannot read property 'prototype' of undefined
 implicit_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
-implicit_super_constructor_call_test: Crash # Invalid argument(s)
 incr_op_test: RuntimeError # Please triage this failure.
 index_test: RuntimeError # Please triage this failure.
 inference_mixin_field_test: Crash # Internal Error: No default constructor available.
-inferrer_synthesized_constructor_test: Crash # Invalid argument(s)
-inferrer_synthesized_super_constructor_test: Crash # Invalid argument(s)
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
 inlined_conditional_test: RuntimeError # Cannot read property 'prototype' of undefined
 instance_creation_in_function_annotation_test: Crash # Internal Error: No default constructor available.
@@ -673,7 +667,6 @@ string_interpolation_test/01: RuntimeError # Cannot read property 'prototype' of
 string_interpolation_test/none: RuntimeError # Cannot read property 'prototype' of undefined
 string_join_test: RuntimeError # Please triage this failure.
 string_test: RuntimeError # Please triage this failure.
-super_all_named_constructor_test: Crash # Invalid argument(s)
 super_bound_closure_test/01: RuntimeError # Cannot read property 'call' of undefined
 super_bound_closure_test/none: RuntimeError # Cannot read property 'call' of undefined
 super_call4_test: RuntimeError # Please triage this failure.
