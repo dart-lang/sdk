@@ -12,10 +12,9 @@ dart_library.library('dart/core', null, /* Imports */[
   class Object {
     constructor() {
       let name = this.constructor.name;
-      let init = this[name];
       let result = void 0;
-      if (init)
-        result = init.apply(this, arguments);
+      if (name in this)
+        result = this[name](...arguments);
       return result === void 0 ? this : result;
     }
     ['=='](other) {

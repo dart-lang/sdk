@@ -18,7 +18,7 @@ dart_library.library('dart/js', null, /* Imports */[
     let captureThis = opts && 'captureThis' in opts ? opts.captureThis : false;
     return function(_call, f, captureThis) {
       return function() {
-        return _call(f, captureThis, this, Array.prototype.slice.apply(arguments$));
+        return _call(f, captureThis, this, Array.prototype.slice.apply(arguments));
       };
     }(_foreign_helper.DART_CLOSURE_TO_JS(_callDartFunction), f, captureThis);
   }

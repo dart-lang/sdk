@@ -337,10 +337,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     if (!supertype.isObject) {
       for (var ctor in element.constructors) {
         var parentCtor = supertype.lookUpConstructor(ctor.name, ctor.library);
-        var fun = js.call('function() { super.#(...#); }', [
-          _constructorName(parentCtor),
-          new JS.Identifier('arguments', allowRename: false)
-        ]);
+        var fun = js.call('function() { super.#(...arguments); }',
+            [_constructorName(parentCtor)]);
         body.add(new JS.Method(_constructorName(ctor), fun));
       }
     }
@@ -845,16 +843,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       // Performance of this pattern is likely to be bad.
       name = _propertyName('constructor');
       // Mark the parameter as no-rename.
-      var args = new JS.Identifier('arguments', allowRename: false);
       body = js.statement('''{
         // Get the class name for this instance.
         let name = this.constructor.name;
         // Call the default constructor.
-        let init = this[name];
         let result = void 0;
-        if (init) result = init.apply(this, #);
+        if (name in this) result = this[name](...arguments);
         return result === void 0 ? this : result;
-      }''', args);
+      }''');
     } else {
       body = _emitConstructorBody(node, fields);
     }

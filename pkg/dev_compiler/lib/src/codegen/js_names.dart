@@ -60,20 +60,22 @@ class MaybeQualifiedId extends Expression {
 /// `function` or `instanceof`, and their `name` field controls whether they
 /// refer to the same variable.
 class TemporaryNamer extends LocalNamer {
-  final Map<Object, String> renames;
+  _FunctionScope scope;
 
-  TemporaryNamer(Node node) : renames = new _RenameVisitor.build(node).renames;
+  TemporaryNamer(Node node) : scope = new _RenameVisitor.build(node).rootScope;
 
   String getName(Identifier node) {
-    var rename = renames[identifierKey(node)];
+    var rename = scope.renames[identifierKey(node)];
     if (rename != null) return rename;
-
-    assert(!needsRename(node));
     return node.name;
   }
 
-  void enterScope(FunctionExpression node) {}
-  void leaveScope() {}
+  void enterScope(FunctionExpression node) {
+    scope = scope.functions[node];
+  }
+  void leaveScope() {
+    scope = scope.parent;
+  }
 }
 
 /// Represents a complete function scope in JS.
@@ -94,7 +96,10 @@ class _FunctionScope {
 
   /// Nested functions, these are visited after everything else so the names
   /// they might need are in scope.
-  final functions = new List<FunctionExpression>();
+  final functions = new Map<FunctionExpression, _FunctionScope>();
+
+  /// New names assigned for temps and identifiers.
+  final renames = new HashMap<Object, String>();
 
   _FunctionScope(this.parent);
 }
@@ -102,7 +107,6 @@ class _FunctionScope {
 /// Collects all names used in the visited tree.
 class _RenameVisitor extends VariableDeclarationVisitor {
   final pendingRenames = new Map<Object, Set<_FunctionScope>>();
-  final renames = new HashMap<Object, String>();
 
   final _FunctionScope rootScope = new _FunctionScope(null);
   _FunctionScope scope;
@@ -143,7 +147,8 @@ class _RenameVisitor extends VariableDeclarationVisitor {
     // If it needs rename, we can't add it to the used name set yet, instead we
     // will record all scopes it is visible in.
     Set<_FunctionScope> usedIn = null;
-    if (needsRename(node)) {
+    var rename = declScope != rootScope && needsRename(node);
+    if (rename) {
       usedIn = pendingRenames.putIfAbsent(id, () => new HashSet());
     }
     for (var s = scope, end = declScope.parent; s != end; s = s.parent) {
@@ -157,16 +162,16 @@ class _RenameVisitor extends VariableDeclarationVisitor {
 
   visitFunctionExpression(FunctionExpression node) {
     // Visit nested functions after all identifiers are declared.
-    scope.functions.add(node);
+    scope.functions[node] = new _FunctionScope(scope);
   }
 
   void _finishFunctions() {
-    for (var f in scope.functions) {
-      scope = new _FunctionScope(scope);
+    scope.functions.forEach((FunctionExpression f, _FunctionScope s) {
+      scope = s;
       super.visitFunctionExpression(f);
       _finishFunctions();
       scope = scope.parent;
-    }
+    });
   }
 
   void _finishNames() {
@@ -176,9 +181,10 @@ class _RenameVisitor extends VariableDeclarationVisitor {
       for (var s in scopes) allNames.addAll(s.used);
 
       var name = _findName(id, allNames);
-      renames[id] = name;
-
-      for (var s in scopes) s.used.add(name);
+      for (var s in scopes) {
+        s.used.add(name);
+        s.renames[id] = name;
+      }
     });
   }
 
