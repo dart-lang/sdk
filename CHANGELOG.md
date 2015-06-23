@@ -29,16 +29,24 @@
     release mode. In checked mode, the modification check is still as eager
     as possible.
     [r45198](https://code.google.com/p/dart/source/detail?r=45198)
+
+* `dart:developer` - **NEW**
+  * Replaces the deprecated `dart:profiler` library.
+  * Adds new functions `debugger` and `inspect`.
+    [6e42aec](https://github.com/dart-lang/sdk/blob/6e42aec4f64cf356dde7bad9426e07e0ea5b58d5/sdk/lib/developer/developer.dart)
+
 * `dart:io`
   * `FileSystemEntity` added a `uri` property.
     [8cf32dc](https://github.com/dart-lang/sdk/commit/8cf32dc1a1664b516e57f804524e46e55fae88b2)
   * `Platform` added a `static resolvedExecutable` property.
     [c05c8c6](https://github.com/dart-lang/sdk/commit/c05c8c66069db91cc2fd48691dfc406c818d411d)
+
 * `dart:html`
   * `Element` methods, `appendHtml` and `insertAdjacentHtml` now take `nodeValidator`
     and `treeSanitizer` parameters, and the inputs are consistently
     sanitized.
     [r45818 announcement](https://groups.google.com/a/dartlang.org/forum/#!topic/announce/GVO7EAcPi6A)
+
 * `dart:isolate`
   * **BREAKING** The positional `priority` parameter of `Isolate.ping` and `Isolate.kill` is
     now a named parameter named `priority`.
@@ -48,8 +56,14 @@
     [r45092](https://github.com/dart-lang/sdk/commit/1b208bd)
   * Remove the experimental state of the API.
 
+* `dart:profiler` - **DEPRECATED**
+  * This library will be removed in 1.12. Use `dart:developer` instead.
+
 ### Tool changes
 
+* This is the first release that does not include the Eclipse-based
+  **Dart Editor**.
+  See [dartlang.org/tools](https://www.dartlang.org/tools/]) for alternatives.
 * This is the last release that ships the (unsupported)
   dart2dart (aka `dart2js --output-type=dart`) utility as part
   of dart2js
