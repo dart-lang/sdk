@@ -99,6 +99,7 @@ deferred/deferred_mirrors2_test: Crash # Internal Error: No default constructor 
 deferred/deferred_overlapping_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_fail_and_retry_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 deferred_fail_and_retry_worker_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+for_test : RuntimeError # Issue #23701 (Bug in assignment propagation)
 if_null_test: RuntimeError # receiver.get$_collection$_nums is not a function
 index_test: RuntimeError # Please triage this failure.
 int_index_test/none: RuntimeError # Please triage this failure.

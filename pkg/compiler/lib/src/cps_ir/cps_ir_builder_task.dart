@@ -1169,7 +1169,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive translateCompounds(
       {ir.Primitive getValue(),
        CompoundRhs rhs,
-       void setValue(ir.Primitive value)}) {
+       void setValue(ir.Primitive value),
+       Selector operatorSelector}) {
     ir.Primitive value = getValue();
     op.BinaryOperator operator = rhs.operator;
     if (operator.kind == op.BinaryOperatorKind.IF_NULL) {
@@ -1182,8 +1183,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       }));
     }
 
-    Selector operatorSelector =
-        new Selector.binaryOperator(operator.selectorName);
+    if (operatorSelector == null) {
+        operatorSelector = new Selector.binaryOperator(operator.selectorName);
+    }
     ir.Primitive rhsValue;
     if (rhs.kind == CompoundKind.ASSIGNMENT) {
       rhsValue = visit(rhs.rhs);
@@ -1289,7 +1291,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return translateCompounds(
         getValue: () => buildConstantExpression(constant),
         rhs: rhs,
-        setValue: (value) {}); // The binary operator will throw before this.
+        setValue: (value) {}, // The binary operator will throw before this.
+        operatorSelector: elements.getOperatorSelectorInComplexSendSet(node));
   }
 
   @override
@@ -1307,7 +1310,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           rhs: rhs,
           setValue: (ir.Primitive result) {
             irBuilder.buildDynamicSet(target, setterSelector, result);
-          });
+          },
+          operatorSelector: elements.getOperatorSelectorInComplexSendSet(node));
     }
     return node.isConditional
         ? irBuilder.buildIfNotNullSend(target, nested(helper))
@@ -1341,7 +1345,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           } else {
             return buildLocalNoSuchSetter(local, result);
           }
-        });
+        },
+        operatorSelector: elements.getOperatorSelectorInComplexSendSet(node));
   }
 
   ir.Primitive buildStaticNoSuchGetter(Element element) {
@@ -1391,7 +1396,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
               return buildStaticNoSuchSetter(
                   setter != null ? setter : getter, result);
           }
-        });
+        },
+        operatorSelector: elements.getOperatorSelectorInComplexSendSet(node));
   }
 
   ir.Primitive buildSuperNoSuchGetter(Element element) {
@@ -1439,7 +1445,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
             case CompoundSetter.INVALID:
               return buildSuperNoSuchSetter(setter, result);
           }
-        });
+        },
+        operatorSelector: elements.getOperatorSelectorInComplexSendSet(node));
   }
 
   @override
@@ -1451,7 +1458,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return translateCompounds(
         getValue: () => irBuilder.buildReifyTypeVariable(typeVariable.type),
         rhs: rhs,
-        setValue: (value) {}); // The binary operator will throw before this.
+        setValue: (value) {}, // The binary operator will throw before this.
+        operatorSelector: elements.getOperatorSelectorInComplexSendSet(node));
   }
 
   @override
@@ -1474,7 +1482,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         rhs: rhs,
         setValue: (ir.Primitive result) {
           irBuilder.buildDynamicIndexSet(target, indexValue, result);
-        });
+        },
+        operatorSelector: elements.getOperatorSelectorInComplexSendSet(node));
   }
 
   @override
@@ -1505,7 +1514,8 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
             buildInstanceNoSuchMethod(
                 new Selector.indexSet(), <ir.Primitive>[indexValue, result]);
           }
-        });
+        },
+        operatorSelector: elements.getOperatorSelectorInComplexSendSet(node));
   }
 
   /// Evaluates a string interpolation and appends each part to [accumulator]

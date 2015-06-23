@@ -90,9 +90,9 @@ main() {
 r"""
 function() {
   var a = null, i = 0;
-  while (J.getInterceptor$n(i).$lt(i, 10)) {
+  while (i < 10) {
     a = new V.main_closure(i);
-    i = J.getInterceptor$ns(i).$add(i, 1);
+    i = i + 1;
   }
   P.print(a.call$0());
   return null;
