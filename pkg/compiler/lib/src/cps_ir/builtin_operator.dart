@@ -47,7 +47,12 @@ enum BuiltinOperator {
   /// Returns true if the two arguments are the same value, and that value is
   /// not NaN, or if one argument is +0 and the other is -0.
   ///
-  /// At most one of the arguments may be null.
+  /// Compiled as a static method call.
+  Identical,
+
+  /// Like [Identical], except at most one argument may be null.
+  ///
+  /// Compiles to `===`.
   StrictEq,
 
   /// Negated version of [StrictEq]. Introduced by [LogicalRewriter] in Tree IR.
@@ -60,6 +65,8 @@ enum BuiltinOperator {
   /// One of the following must hold:
   /// - At least one argument is null.
   /// - Arguments are both strings, or both booleans, or both numbers.
+  ///
+  /// Compiles to `==`.
   LooseEq,
 
   /// Negated version of [LooseEq]. Introduced by [LogicalRewriter] in Tree IR.
@@ -67,6 +74,8 @@ enum BuiltinOperator {
 
   /// Returns true if the argument is false, +0. -0, NaN, the empty string,
   /// or null.
+  ///
+  /// Compiles to `!`.
   IsFalsy,
 
   /// Returns true if the argument is a number.

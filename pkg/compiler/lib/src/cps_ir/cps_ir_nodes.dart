@@ -704,19 +704,6 @@ class CreateInstance extends Primitive {
   accept(Visitor visitor) => visitor.visitCreateInstance(this);
 }
 
-/// Compare objects for identity.
-///
-/// It is an error pass in a value that does not correspond to a Dart value,
-/// such as an interceptor or a box.
-class Identical extends Primitive {
-  final Reference<Primitive> left;
-  final Reference<Primitive> right;
-  Identical(Primitive left, Primitive right)
-      : left = new Reference<Primitive>(left),
-        right = new Reference<Primitive>(right);
-  accept(Visitor visitor) => visitor.visitIdentical(this);
-}
-
 class Interceptor extends Primitive {
   final Reference<Primitive> input;
   final Set<ClassElement> interceptedClasses;
@@ -974,7 +961,6 @@ abstract class Visitor<T> {
   T visitMutableVariable(MutableVariable node);
   T visitNonTailThrow(NonTailThrow node);
   T visitGetStatic(GetStatic node);
-  T visitIdentical(Identical node);
   T visitInterceptor(Interceptor node);
   T visitCreateInstance(CreateInstance node);
   T visitGetField(GetField node);
@@ -1180,13 +1166,6 @@ class RecursiveVisitor implements Visitor {
   visitIsTrue(IsTrue node) {
     processIsTrue(node);
     processReference(node.value);
-  }
-
-  processIdentical(Identical node) {}
-  visitIdentical(Identical node) {
-    processIdentical(node);
-    processReference(node.left);
-    processReference(node.right);
   }
 
   processInterceptor(Interceptor node) {}

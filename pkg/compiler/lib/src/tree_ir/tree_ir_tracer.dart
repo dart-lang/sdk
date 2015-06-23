@@ -515,6 +515,11 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   }
 
   @override
+  String visitInterceptor(Interceptor node) {
+    return 'Interceptor(${visitExpression(node.input)})';
+  }
+
+  @override
   String visitForeignExpression(ForeignExpression node) {
     String arguments = node.arguments.map(visitExpression).join(', ');
     return 'Foreign "${node.codeTemplate}"($arguments)';

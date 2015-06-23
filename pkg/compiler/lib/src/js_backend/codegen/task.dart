@@ -31,7 +31,6 @@ import '../../tree_ir/optimization/optimization.dart';
 import '../../tree_ir/optimization/optimization.dart' as tree_opt;
 import '../../tree_ir/tree_ir_integrity.dart';
 import '../../cps_ir/cps_ir_nodes_sexpr.dart';
-import 'js_tree_builder.dart';
 
 class CpsFunctionCompiler implements FunctionCompiler {
   final ConstantSystem constantSystem;
@@ -192,8 +191,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
-    tree_builder.Builder builder = new JsTreeBuilder(
-        compiler.internalError, compiler.identicalFunction, glue);
+    tree_builder.Builder builder = new tree_builder.Builder(
+        compiler.internalError);
     tree_ir.FunctionDefinition treeNode = builder.buildFunction(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);

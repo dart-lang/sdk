@@ -299,12 +299,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '(CreateInstance $className ($arguments)$typeInformation)';
   }
 
-  String visitIdentical(Identical node) {
-    String left = access(node.left);
-    String right = access(node.right);
-    return '(Identical $left $right)';
-  }
-
   String visitInterceptor(Interceptor node) {
     return '(Interceptor ${access(node.input)})';
   }

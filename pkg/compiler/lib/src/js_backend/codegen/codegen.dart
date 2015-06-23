@@ -593,6 +593,16 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
+  js.Expression visitInterceptor(tree_ir.Interceptor node) {
+    glue.registerUseInterceptorInCodegen();
+    registry.registerSpecializedGetInterceptor(node.interceptedClasses);
+    String helperName = glue.getInterceptorName(node.interceptedClasses);
+    js.Expression globalHolder = glue.getInterceptorLibrary();
+    return js.js('#.#(#)',
+        [globalHolder, helperName, visitExpression(node.input)]);
+  }
+
+  @override
   js.Expression visitGetField(tree_ir.GetField node) {
     return new js.PropertyAccess.field(
         visitExpression(node.object),
@@ -717,6 +727,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
       case BuiltinOperator.StringConcatenate:
         if (args.isEmpty) return js.string('');
         return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
+      case BuiltinOperator.Identical:
+        registry.registerStaticInvocation(glue.identicalFunction);
+        return buildStaticHelperInvocation(glue.identicalFunction, args);
       case BuiltinOperator.StrictEq:
         return new js.Binary('===', args[0], args[1]);
       case BuiltinOperator.StrictNeq:

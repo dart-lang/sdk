@@ -1645,8 +1645,8 @@ abstract class IrBuilder {
     casesBuilder.state.breakCollectors.add(join);
     for (SwitchCaseInfo caseInfo in cases) {
       buildConditionsFrom(int index) => (IrBuilder builder) {
-        ir.Primitive comparison = builder.addPrimitive(
-            new ir.Identical(value, caseInfo.constants[index]));
+        ir.Primitive comparison = builder.buildIdentical(
+            value, caseInfo.constants[index]);
         return (index == caseInfo.constants.length - 1)
             ? comparison
             : builder.buildLogicalOperator(
@@ -2091,6 +2091,11 @@ abstract class IrBuilder {
     // is different on at least two paths.
     return join.continuation.parameters.last;
   }
+
+  ir.Primitive buildIdentical(ir.Primitive x, ir.Primitive y) {
+    return addPrimitive(new ir.ApplyBuiltinOperator(
+        ir.BuiltinOperator.Identical, <ir.Primitive>[x, y]));
+  }
 }
 
 /// State shared between JsIrBuilders within the same function.
@@ -2509,7 +2514,7 @@ class JsIrBuilder extends IrBuilder {
       }
       if (type is InterfaceType && type.element == program.nullClass) {
         // `x is Null` is true if and only if x is null.
-        return addPrimitive(new ir.Identical(value, buildNullConstant()));
+        return _buildCheckNull(value);
       }
       return addPrimitive(new ir.TypeTest(value, type, typeArguments));
     } else {
@@ -2535,8 +2540,7 @@ class JsIrBuilder extends IrBuilder {
   /// Creates a type test checking whether [value] is null.
   ir.Primitive _buildCheckNull(ir.Primitive value) {
     assert(isOpen);
-    ir.Primitive right = buildNullConstant();
-    return addPrimitive(new ir.Identical(value, right));
+    return buildIdentical(value, buildNullConstant());
   }
 
   /// Convert the given value to a string.

@@ -316,12 +316,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return 'CreateInstance $className ($arguments) <$typeInformation>';
   }
 
-  visitIdentical(cps_ir.Identical node) {
-    String left = formatReference(node.left);
-    String right = formatReference(node.right);
-    return "Identical($left, $right)";
-  }
-
   visitInterceptor(cps_ir.Interceptor node) {
     return "Interceptor(${formatReference(node.input)})";
   }
@@ -604,10 +598,6 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitIsTrue(cps_ir.IsTrue node) {
-    unexpectedNode(node);
-  }
-
-  visitIdentical(cps_ir.Identical node) {
     unexpectedNode(node);
   }
 

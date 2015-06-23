@@ -768,6 +768,21 @@ class CreateInvocationMirror extends Expression {
   }
 }
 
+class Interceptor extends Expression {
+  Expression input;
+  Set<ClassElement> interceptedClasses;
+
+  Interceptor(this.input, this.interceptedClasses);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitInterceptor(this);
+  }
+
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitInterceptor(this, arg);
+  }
+}
+
 class ForeignCode extends Node {
   final js.Template codeTemplate;
   final types.TypeMask type;
@@ -862,6 +877,7 @@ abstract class ExpressionVisitor<E> {
   E visitReadTypeVariable(ReadTypeVariable node);
   E visitTypeExpression(TypeExpression node);
   E visitCreateInvocationMirror(CreateInvocationMirror node);
+  E visitInterceptor(Interceptor node);
   E visitApplyBuiltinOperator(ApplyBuiltinOperator node);
   E visitForeignExpression(ForeignExpression node);
 }
@@ -893,6 +909,7 @@ abstract class ExpressionVisitor1<E, A> {
   E visitReadTypeVariable(ReadTypeVariable node, A arg);
   E visitTypeExpression(TypeExpression node, A arg);
   E visitCreateInvocationMirror(CreateInvocationMirror node, A arg);
+  E visitInterceptor(Interceptor node, A arg);
   E visitApplyBuiltinOperator(ApplyBuiltinOperator node, A arg);
   E visitForeignExpression(ForeignExpression node, A arg);
 }
@@ -1095,6 +1112,10 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
 
   visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     node.arguments.forEach(visitExpression);
+  }
+
+  visitInterceptor(Interceptor node) {
+    visitExpression(node.input);
   }
 
   visitForeignCode(ForeignCode node) {
@@ -1311,6 +1332,11 @@ class RecursiveTransformer extends Transformer {
 
   visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitInterceptor(Interceptor node) {
+    node.input = visitExpression(node.input);
     return node;
   }
 }

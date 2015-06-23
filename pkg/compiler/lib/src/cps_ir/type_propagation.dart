@@ -567,9 +567,6 @@ class TransformingVisitor extends RecursiveVisitor {
   bool isAlwaysBoolified(Primitive prim) {
     for (Reference ref = prim.firstRef; ref != null; ref = ref.next) {
       Node use = ref.parent;
-      // Ignore uses in dead identical() nodes.
-      // This happens after rewriting identical(x, true) to x.
-      if (use is Identical && use.hasNoUses) continue;
       if (!isBoolifyingUse(ref)) return false;
     }
     return true;
@@ -796,19 +793,6 @@ class TransformingVisitor extends RecursiveVisitor {
     return value == null ? new AbstractValue.nothing() : value;
   }
 
-  void visitIdentical(Identical node) {
-    Primitive left = node.left.definition;
-    Primitive right = node.right.definition;
-    AbstractValue leftValue = getValue(left);
-    AbstractValue rightValue = getValue(right);
-    // Replace identical(x, true) by x when x is known to be a boolean.
-    if (lattice.isDefinitelyBool(leftValue) &&
-        rightValue.isConstant &&
-        rightValue.constant.isTrue) {
-      left.substituteFor(node);
-    }
-  }
-
   void insertLetPrim(Expression node, Primitive prim) {
     InteriorNode parent = node.parent;
     LetPrim let = new LetPrim(prim);
@@ -863,6 +847,19 @@ class TransformingVisitor extends RecursiveVisitor {
         //               rewriting the + operator to StringConcat.
         break;
 
+      case BuiltinOperator.Identical:
+        Primitive left = node.arguments[0].definition;
+        Primitive right = node.arguments[1].definition;
+        AbstractValue leftValue = getValue(left);
+        AbstractValue rightValue = getValue(right);
+        // Replace identical(x, true) by x when x is known to be a boolean.
+        if (lattice.isDefinitelyBool(leftValue) &&
+            rightValue.isConstant &&
+            rightValue.constant.isTrue) {
+          left.substituteFor(node);
+        }
+        break;
+
       default:
     }
   }
@@ -914,6 +911,15 @@ class TransformingVisitor extends RecursiveVisitor {
         newPrim.substituteFor(node.primitive);
         RemovalVisitor.remove(node.primitive);
         node.primitive = newPrim;
+      }
+      if (node.primitive.hasNoUses && node.primitive.isSafeForElimination) {
+        // Remove unused primitives before entering the body.
+        // This would also be done by shrinking reductions, but usage analyses
+        // such as isAlwaysBoolified are more precise without the dead uses, so
+        // we prefer to remove them early.
+        RemovalVisitor.remove(node.primitive);
+        node.parent.body = node.body;
+        node.body.parent = node.parent;
       }
     }
     visit(node.body);
@@ -1205,6 +1211,37 @@ class TypePropagationVisitor implements Visitor {
           setValue(node, constantValue(new StringConstantValue(stringValue)));
         }
         break;
+
+      case BuiltinOperator.Identical:
+        AbstractValue leftConst = getValue(node.arguments[0].definition);
+        AbstractValue rightConst = getValue(node.arguments[1].definition);
+        ConstantValue leftValue = leftConst.constant;
+        ConstantValue rightValue = rightConst.constant;
+        if (leftConst.isNothing || rightConst.isNothing) {
+          // Come back later.
+          return;
+        } else if (!leftConst.isConstant || !rightConst.isConstant) {
+          TypeMask leftType = leftConst.type;
+          TypeMask rightType = rightConst.type;
+          if (typeSystem.areDisjoint(leftType, rightType)) {
+            setValue(node,
+                constantValue(new FalseConstantValue(), typeSystem.boolType));
+          } else {
+            setValue(node, nonConstant(typeSystem.boolType));
+          }
+          return;
+        } else if (leftValue.isPrimitive && rightValue.isPrimitive) {
+          assert(leftConst.isConstant && rightConst.isConstant);
+          PrimitiveConstantValue left = leftValue;
+          PrimitiveConstantValue right = rightValue;
+          ConstantValue result =
+            new BoolConstantValue(left.primitiveValue == right.primitiveValue);
+          setValue(node, constantValue(result, typeSystem.boolType));
+        } else {
+          setValue(node, nonConstant(typeSystem.boolType));
+        }
+        break;
+
       default:
         setValue(node, nonConstant());
     }
@@ -1410,33 +1447,6 @@ class TypePropagationVisitor implements Visitor {
   void visitIsTrue(IsTrue node) {
     Branch branch = node.parent;
     visitBranch(branch);
-  }
-
-  void visitIdentical(Identical node) {
-    AbstractValue leftConst = getValue(node.left.definition);
-    AbstractValue rightConst = getValue(node.right.definition);
-    ConstantValue leftValue = leftConst.constant;
-    ConstantValue rightValue = rightConst.constant;
-    if (leftConst.isNothing || rightConst.isNothing) {
-      // Come back later.
-      return;
-    } else if (!leftConst.isConstant || !rightConst.isConstant) {
-      TypeMask leftType = leftConst.type;
-      TypeMask rightType = rightConst.type;
-      if (typeSystem.areDisjoint(leftType, rightType)) {
-        setValue(node,
-            constantValue(new FalseConstantValue(), typeSystem.boolType));
-      } else {
-        setValue(node, nonConstant(typeSystem.boolType));
-      }
-    } else if (leftValue.isPrimitive && rightValue.isPrimitive) {
-      assert(leftConst.isConstant && rightConst.isConstant);
-      PrimitiveConstantValue left = leftValue;
-      PrimitiveConstantValue right = rightValue;
-      ConstantValue result =
-          new BoolConstantValue(left.primitiveValue == right.primitiveValue);
-      setValue(node, constantValue(result, typeSystem.boolType));
-    }
   }
 
   void visitInterceptor(Interceptor node) {
