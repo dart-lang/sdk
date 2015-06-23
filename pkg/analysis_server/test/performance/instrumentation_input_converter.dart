@@ -29,8 +29,9 @@ class InstrumentationInputConverter extends CommonInputConverter {
    */
   StringBuffer readBuffer = null;
 
-  InstrumentationInputConverter(Map<String, String> srcPathMap)
-      : super(srcPathMap);
+  InstrumentationInputConverter(
+      String tmpSrcDirPath, Map<String, String> srcPathMap)
+      : super(tmpSrcDirPath, srcPathMap);
 
   @override
   Operation convert(String line) {

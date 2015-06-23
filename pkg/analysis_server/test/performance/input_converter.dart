@@ -11,6 +11,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/protocol.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 
 import 'instrumentation_input_converter.dart';
 import 'log_file_input_converter.dart';
@@ -30,6 +31,18 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
   final Map<String, dynamic> expectedErrors = new Map<String, dynamic>();
 
   /**
+   * A mapping of current overlay content
+   * parallel to what is in the analysis server
+   * so that we can update the file system.
+   */
+  final Map<String, String> overlays = new Map<String, String>();
+
+  /**
+   * The prefix used to determine if a request parameter is a file path.
+   */
+  final String rootPrefix = path.rootPrefix(path.current);
+
+  /**
    * A mapping of source path prefixes
    * from location where instrumentation or log file was generated
    * to the target location of the source using during performance measurement.
@@ -37,13 +50,12 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
   final Map<String, String> srcPathMap;
 
   /**
-   * A mapping of current overlay content
-   * parallel to what is in the analysis server
-   * so that we can update the file system.
+   * The root directory for all source being modified
+   * during performance measurement.
    */
-  final Map<String, String> overlays = new Map<String, String>();
+  final String tmpSrcDirPath;
 
-  CommonInputConverter(this.srcPathMap);
+  CommonInputConverter(this.tmpSrcDirPath, this.srcPathMap);
 
   /**
    * Return an operation for the notification or `null` if none.
@@ -76,25 +88,6 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
   Operation convertRequest(Map<String, dynamic> origJson) {
     Map<String, dynamic> json = translateSrcPaths(origJson);
     String method = json['method'];
-    if (method == ANALYSIS_GET_HOVER ||
-        method == ANALYSIS_SET_ANALYSIS_ROOTS ||
-        method == ANALYSIS_SET_PRIORITY_FILES ||
-        method == ANALYSIS_SET_SUBSCRIPTIONS ||
-        method == ANALYSIS_UPDATE_OPTIONS ||
-        method == COMPLETION_GET_SUGGESTIONS ||
-        method == EDIT_GET_ASSISTS ||
-        method == EDIT_GET_AVAILABLE_REFACTORINGS ||
-        method == EDIT_GET_FIXES ||
-        method == EDIT_GET_REFACTORING ||
-        method == EDIT_SORT_MEMBERS ||
-        method == EXECUTION_CREATE_CONTEXT ||
-        method == EXECUTION_DELETE_CONTEXT ||
-        method == EXECUTION_MAP_URI ||
-        method == EXECUTION_SET_SUBSCRIPTIONS ||
-        method == SERVER_GET_VERSION ||
-        method == SERVER_SET_SUBSCRIPTIONS) {
-      return new RequestOperation(this, json);
-    }
     // Sanity check operations that modify source
     // to ensure that the operation is on source in temp space
     if (method == ANALYSIS_UPDATE_CONTENT) {
@@ -132,6 +125,28 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
           throw 'unknown overlay change $change\n$json';
         }
       });
+      return new RequestOperation(this, json);
+    }
+    // TODO(danrubel) replace this with code 
+    // that just forwards the translated request
+    if (method == ANALYSIS_GET_HOVER ||
+        method == ANALYSIS_SET_ANALYSIS_ROOTS ||
+        method == ANALYSIS_SET_PRIORITY_FILES ||
+        method == ANALYSIS_SET_SUBSCRIPTIONS ||
+        method == ANALYSIS_UPDATE_OPTIONS ||
+        method == COMPLETION_GET_SUGGESTIONS ||
+        method == EDIT_GET_ASSISTS ||
+        method == EDIT_GET_AVAILABLE_REFACTORINGS ||
+        method == EDIT_GET_FIXES ||
+        method == EDIT_GET_REFACTORING ||
+        method == EDIT_SORT_MEMBERS ||
+        method == EXECUTION_CREATE_CONTEXT ||
+        method == EXECUTION_DELETE_CONTEXT ||
+        method == EXECUTION_MAP_URI ||
+        method == EXECUTION_SET_SUBSCRIPTIONS ||
+        method == SEARCH_FIND_ELEMENT_REFERENCES ||
+        method == SERVER_GET_VERSION ||
+        method == SERVER_SET_SUBSCRIPTIONS) {
       return new RequestOperation(this, json);
     }
     throw 'unknown request: $method\n  $json';
@@ -223,8 +238,8 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
   void validateSrcPaths(json) {
     if (json is String) {
       if (json != null &&
-          json.startsWith('/Users/') &&
-          !srcPathMap.values.any((String prefix) => json.startsWith(prefix))) {
+          path.isWithin(rootPrefix, json) &&
+          !path.isWithin(tmpSrcDirPath, json)) {
         throw 'found path referencing source outside temp space\n$json';
       }
     } else if (json is List) {
@@ -256,6 +271,12 @@ class InputConverter extends Converter<String, Operation> {
   final Map<String, String> srcPathMap;
 
   /**
+   * The root directory for all source being modified
+   * during performance measurement.
+   */
+  final String tmpSrcDirPath;
+
+  /**
    * The number of lines read before the underlying converter was determined
    * or the end of file was reached.
    */
@@ -273,7 +294,7 @@ class InputConverter extends Converter<String, Operation> {
    */
   bool active = true;
 
-  InputConverter(this.srcPathMap);
+  InputConverter(this.tmpSrcDirPath, this.srcPathMap);
 
   @override
   Operation convert(String line) {
@@ -292,9 +313,9 @@ class InputConverter extends Converter<String, Operation> {
       throw 'Failed to determine input file format';
     }
     if (InstrumentationInputConverter.isFormat(line)) {
-      converter = new InstrumentationInputConverter(srcPathMap);
+      converter = new InstrumentationInputConverter(tmpSrcDirPath, srcPathMap);
     } else if (LogFileInputConverter.isFormat(line)) {
-      converter = new LogFileInputConverter(srcPathMap);
+      converter = new LogFileInputConverter(tmpSrcDirPath, srcPathMap);
     }
     if (converter != null) {
       return converter.convert(line);

@@ -61,6 +61,7 @@ const HELP_CMDLINE_OPTION = 'help';
 const INPUT_CMDLINE_OPTION = 'input';
 const MAP_FROM_OPTION = 'mapFrom';
 const MAP_TO_OPTION = 'mapTo';
+const TMP_SRC_DIR_OPTION = 'tmpSrcDir';
 const VERBOSE_CMDLINE_OPTION = 'verbose';
 const VERY_VERBOSE_CMDLINE_OPTION = 'vv';
 
@@ -69,6 +70,7 @@ const VERY_VERBOSE_CMDLINE_OPTION = 'vv';
  * should interact with the analysis server.
  */
 Stream<Operation> openInput(ArgResults args) {
+  var logger = new Logger('openInput');
   Stream<List<int>> inputRaw;
   String inputPath = args[INPUT_CMDLINE_OPTION];
   if (inputPath == null) {
@@ -84,13 +86,15 @@ Stream<Operation> openInput(ArgResults args) {
   if (mapFrom != null && mapFrom.isNotEmpty) {
     String mapTo = args[MAP_TO_OPTION];
     srcPathMap[mapFrom] = mapTo;
-    new Logger('openInput').log(
+    logger.log(
         Level.INFO, 'mapping source paths\n  from $mapFrom\n  to   $mapTo');
   }
+  String tmpSrcDirPath = args[TMP_SRC_DIR_OPTION];
+  logger.log(Level.INFO, 'tmpSrcDir: $tmpSrcDirPath');
   return inputRaw
       .transform(SYSTEM_ENCODING.decoder)
       .transform(new LineSplitter())
-      .transform(new InputConverter(srcPathMap));
+      .transform(new InputConverter(tmpSrcDirPath, srcPathMap));
 }
 
 /**
@@ -99,17 +103,18 @@ Stream<Operation> openInput(ArgResults args) {
 ArgResults parseArgs(List<String> rawArgs) {
   ArgParser parser = new ArgParser();
 
-  parser.addOption(INPUT_CMDLINE_OPTION,
-      abbr: 'i',
-      help: 'The input file specifying how this client should interact '
-      'with the server. If the input file name is "stdin", '
-      'then the instructions are read from standard input.');
+  parser.addOption(INPUT_CMDLINE_OPTION, abbr: 'i', help: '<filePath>\n'
+      'The input file specifying how this client should interact with the server.\n'
+      'If the input file name is "stdin", then the instructions are read from standard input.');
   parser.addOption(MAP_FROM_OPTION,
       help: 'The original source directory when the instrumentation '
       'or log file was generated.');
   parser.addOption(MAP_TO_OPTION,
       help: 'The target source directory used during performance testing. '
       'WARNING: The contents of this directory will be modified');
+  parser.addOption(TMP_SRC_DIR_OPTION, abbr: 't', help: '<dirPath>\n'
+      'The temporary directory containing source used during performance measurement.\n'
+      'WARNING: The contents of the target directory will be modified');
   parser.addFlag(VERBOSE_CMDLINE_OPTION,
       abbr: 'v', help: 'Verbose logging', negatable: false);
   parser.addFlag(VERY_VERBOSE_CMDLINE_OPTION,
@@ -131,12 +136,17 @@ ArgResults parseArgs(List<String> rawArgs) {
   bool isMissing(key) => args[key] == null || args[key].isEmpty;
 
   if (isMissing(INPUT_CMDLINE_OPTION)) {
-    print('missing "input" argument');
+    print('missing $INPUT_CMDLINE_OPTION argument');
     showHelp = true;
   }
 
   if (isMissing(MAP_FROM_OPTION) != isMissing(MAP_TO_OPTION)) {
     print('must specifiy both $MAP_FROM_OPTION and $MAP_TO_OPTION');
+    showHelp = true;
+  }
+
+  if (isMissing(TMP_SRC_DIR_OPTION)) {
+    print('missing $TMP_SRC_DIR_OPTION argument');
     showHelp = true;
   }
 
@@ -159,5 +169,6 @@ ArgResults parseArgs(List<String> rawArgs) {
 void printHelp(ArgParser parser) {
   print('');
   print('Launch and interact with the AnalysisServer');
+  print('');
   print(parser.usage);
 }
