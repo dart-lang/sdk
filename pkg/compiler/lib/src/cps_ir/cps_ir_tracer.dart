@@ -175,13 +175,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     printStmt(dummy, "InvokeConstructor $callName ($args) $kont");
   }
 
-  visitConcatenateStrings(cps_ir.ConcatenateStrings node) {
-    String dummy = names.name(node);
-    String args = node.arguments.map(formatReference).join(', ');
-    String kont = formatReference(node.continuation);
-    printStmt(dummy, "ConcatenateStrings ($args) $kont");
-  }
-
   visitThrow(cps_ir.Throw node) {
     String dummy = names.name(node);
     String value = formatReference(node.value);
@@ -510,10 +503,6 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitInvokeConstructor(cps_ir.InvokeConstructor exp) {
-    addEdgeToContinuation(exp.continuation);
-  }
-
-  visitConcatenateStrings(cps_ir.ConcatenateStrings exp) {
     addEdgeToContinuation(exp.continuation);
   }
 

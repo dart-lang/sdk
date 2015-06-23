@@ -364,12 +364,6 @@ class Builder implements cps_ir.Visitor<Node> {
     return continueWithExpression(node.continuation, invoke);
   }
 
-  Statement visitConcatenateStrings(cps_ir.ConcatenateStrings node) {
-    List<Expression> arguments = translateArguments(node.arguments);
-    Expression concat = new ConcatenateStrings(arguments);
-    return continueWithExpression(node.continuation, concat);
-  }
-
   Statement visitThrow(cps_ir.Throw node) {
     Expression value = getVariableUse(node.value);
     return new Throw(value);
@@ -499,7 +493,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitConstant(cps_ir.Constant node) {
-    return new Constant(node.expression, node.value);
+    return new Constant(node.value);
   }
 
   Expression visitLiteralList(cps_ir.LiteralList node) {

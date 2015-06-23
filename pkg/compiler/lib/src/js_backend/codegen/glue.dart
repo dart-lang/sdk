@@ -35,10 +35,6 @@ class Glue {
     return _emitter.constantReference(value);
   }
 
-  Element getStringConversion() {
-    return _backend.getStringInterpolationHelper();
-  }
-
   reportInternalError(String message) {
     _compiler.internalError(_compiler.currentElement, message);
   }

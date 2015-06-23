@@ -436,18 +436,6 @@ class TypeCast extends Expression {
   accept(Visitor visitor) => visitor.visitTypeCast(this);
 }
 
-/// Invoke [toString] on each argument and concatenate the results.
-class ConcatenateStrings extends Expression {
-  final List<Reference<Primitive>> arguments;
-  final Reference<Continuation> continuation;
-
-  ConcatenateStrings(List<Primitive> args, Continuation cont)
-      : arguments = _referenceList(args),
-        continuation = new Reference<Continuation>(cont);
-
-  accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
-}
-
 /// Apply a built-in operator.
 ///
 /// It must be known that the arguments have the proper types.
@@ -769,10 +757,9 @@ class ForeignCode extends Expression {
 }
 
 class Constant extends Primitive {
-  final ConstantExpression expression;
   final values.ConstantValue value;
 
-  Constant(this.expression, this.value);
+  Constant(this.value);
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
@@ -966,7 +953,6 @@ abstract class Visitor<T> {
   T visitInvokeMethod(InvokeMethod node);
   T visitInvokeMethodDirectly(InvokeMethodDirectly node);
   T visitInvokeConstructor(InvokeConstructor node);
-  T visitConcatenateStrings(ConcatenateStrings node);
   T visitThrow(Throw node);
   T visitRethrow(Rethrow node);
   T visitBranch(Branch node);
@@ -1089,13 +1075,6 @@ class RecursiveVisitor implements Visitor {
   processInvokeConstructor(InvokeConstructor node) {}
   visitInvokeConstructor(InvokeConstructor node) {
     processInvokeConstructor(node);
-    processReference(node.continuation);
-    node.arguments.forEach(processReference);
-  }
-
-  processConcatenateStrings(ConcatenateStrings node) {}
-  visitConcatenateStrings(ConcatenateStrings node) {
-    processConcatenateStrings(node);
     processReference(node.continuation);
     node.arguments.forEach(processReference);
   }

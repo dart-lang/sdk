@@ -534,6 +534,7 @@ touchevent_test: Crash # (try {body();}catch ...  try/finally
 track_element_constructor_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 transferables_test: Crash # Invalid argument(s)
 transition_event_test: Crash # (try {body();}catch ...  try/finally
+trusted_html_tree_sanitizer_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
 typed_arrays_1_test: Crash # (try {body();}catch ...  try/finally
 typed_arrays_2_test: Crash # Invalid argument(s)
 typed_arrays_3_test: Crash # Invalid argument(s)

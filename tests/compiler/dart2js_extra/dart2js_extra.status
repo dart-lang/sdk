@@ -67,7 +67,6 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 11673_test: RuntimeError # Cannot read property 'prototype' of undefined
 12320_test: RuntimeError # Cannot read property 'prototype' of undefined
 16407_test: Pass # Please triage this failure.
-17094_test: RuntimeError # Please triage this failure.
 17645_test: RuntimeError # Please triage this failure.
 19191_test: RuntimeError # Please triage this failure.
 21166_test: RuntimeError # Please triage this failure.
@@ -77,6 +76,7 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 22868_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
 22895_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
 23404_test: RuntimeError # Cannot read property 'prototype' of undefined
+23432_test : RuntimeError # noSuchMethod captures interceptor instead of actual receiver
 LayoutTests_fast_mediastream_getusermedia_t01_test/none: RuntimeError # Cannot read property 'prototype' of undefined
 async_stacktrace_test/asyncStar: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
 async_stacktrace_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally

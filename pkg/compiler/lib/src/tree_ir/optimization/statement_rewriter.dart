@@ -388,11 +388,6 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Expression visitConcatenateStrings(ConcatenateStrings node) {
-    _rewriteList(node.arguments);
-    return node;
-  }
-
   Expression visitConditional(Conditional node) {
     // Conditional expressions do not exist in the input, but they are
     // introduced by if-to-conditional conversion.

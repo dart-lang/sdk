@@ -267,31 +267,16 @@ class InvokeConstructor extends Expression implements Invoke {
   }
 }
 
-/// Calls [toString] on each argument and concatenates the results.
-class ConcatenateStrings extends Expression {
-  final List<Expression> arguments;
-
-  ConcatenateStrings(this.arguments);
-
-  accept(ExpressionVisitor visitor) => visitor.visitConcatenateStrings(this);
-  accept1(ExpressionVisitor1 visitor, arg) {
-    return visitor.visitConcatenateStrings(this, arg);
-  }
-}
-
 /**
  * A constant.
  */
 class Constant extends Expression {
-  final ConstantExpression expression;
   final values.ConstantValue value;
 
-  Constant(this.expression, this.value);
+  Constant(this.value);
 
   Constant.bool(values.BoolConstantValue constantValue)
-      : expression = new BoolConstantExpression(
-          constantValue.primitiveValue),
-        value = constantValue;
+      : value = constantValue;
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitConstant(this, arg);
@@ -858,7 +843,6 @@ abstract class ExpressionVisitor<E> {
   E visitInvokeMethod(InvokeMethod node);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node);
   E visitInvokeConstructor(InvokeConstructor node);
-  E visitConcatenateStrings(ConcatenateStrings node);
   E visitConstant(Constant node);
   E visitThis(This node);
   E visitConditional(Conditional node);
@@ -890,7 +874,6 @@ abstract class ExpressionVisitor1<E, A> {
   E visitInvokeMethod(InvokeMethod node, A arg);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node, A arg);
   E visitInvokeConstructor(InvokeConstructor node, A arg);
-  E visitConcatenateStrings(ConcatenateStrings node, A arg);
   E visitConstant(Constant node, A arg);
   E visitThis(This node, A arg);
   E visitConditional(Conditional node, A arg);
@@ -980,10 +963,6 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   }
 
   visitInvokeConstructor(InvokeConstructor node) {
-    node.arguments.forEach(visitExpression);
-  }
-
-  visitConcatenateStrings(ConcatenateStrings node) {
     node.arguments.forEach(visitExpression);
   }
 
@@ -1168,11 +1147,6 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitInvokeConstructor(InvokeConstructor node) {
-    _replaceExpressions(node.arguments);
-    return node;
-  }
-
-  visitConcatenateStrings(ConcatenateStrings node) {
     _replaceExpressions(node.arguments);
     return node;
   }
