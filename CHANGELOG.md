@@ -3,22 +3,28 @@
 ### Core library changes
 
 * `dart:html`
-  * Added `const NodeTreeSanitizer.trusted`. This can be used
+  * `NodeTreeSanitizer` added the `const trusted` field. It can be used
     instead of defining a `NullTreeSanitizer` class when calling
     `setInnerHtml` or other methods that create DOM from text. It is
-    also more efficient, skipping the creation of a DocumentFragment.
+    also more efficient, skipping the creation of a `DocumentFragment`.
 
 ## 1.11.0
 
 ### Core library changes
 
 * `dart:core`
-  * `Iterable` added the `empty` constructor.
+  * `Iterable` added an `empty` constructor.
     [dcf0286](https://github.com/dart-lang/sdk/commit/dcf0286f5385187a68ce9e66318d3bf19abf454b)
-  * `List` added the `unmodifiable` constructor.
+  * `List` added an `unmodifiable` constructor.
     [r45334](https://code.google.com/p/dart/source/detail?r=45334)
-  * `Map` added the `unmodifiable` constructor.
+  * `Map` added an `unmodifiable` constructor.
     [r45733](https://code.google.com/p/dart/source/detail?r=45733)
+  * `int` added a `modInverse` method.
+    [f6f338c](https://github.com/dart-lang/sdk/commit/f6f338ce67eb8801b350417baacf6d3681b26002)
+  * `StackTrace` added a `fromString` constructor.
+    [68dd6f6](https://github.com/dart-lang/sdk/commit/68dd6f6338e63d0465041d662e778369c02c2ce6)
+  * `Uri` added a `directory` constructor.
+    [d8dbb4a](https://github.com/dart-lang/sdk/commit/d8dbb4a60f5e8a7f874c2a4fbf59eaf1a39f4776)
   * List iterators may not throw `ConcurrentModificationError` as eagerly in
     release mode. In checked mode, the modification check is still as eager
     as possible.
