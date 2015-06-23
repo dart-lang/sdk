@@ -1,42 +1,45 @@
-## 1.12.0 
+## 1.12.0
 
-### Core library changes 
+### Core library changes
 
-* In `dart:html`, adds `NodeTreeSanitizer.trusted`. This can be used 
-  instead of defining a `NullTreeSanitizer` class when calling 
-  `setInnerHtml` or other methods that create DOM from text. It is 
-  also more efficient, skipping the creation of a DocumentFragment.
+* `dart:html`
+  * Added `const NodeTreeSanitizer.trusted`. This can be used
+    instead of defining a `NullTreeSanitizer` class when calling
+    `setInnerHtml` or other methods that create DOM from text. It is
+    also more efficient, skipping the creation of a DocumentFragment.
 
-## 1.11.0 
+## 1.11.0
 
-### Core library changes 
+### Core library changes
 
-* In `dart:html`, adds `NodeTreeSanitizer.trusted`. This can be used 
-  instead of defining a `NullTreeSanitizer` class when calling 
-  `setInnerHtml` or other methods that create DOM from text. It is 
-  also more efficient, skipping the creation of a DocumentFragment.
-* In `dart:html`, `appendHtml` and `insertAdjacentHtml` now take `nodeValidator`
-  and `treeSanitizer` parameters, and the inputs are consistently
-  sanitized. See [45818 announcement]
-  [45818 announcement](https://groups.google.com/a/dartlang.org/forum/#!topic/announce/GVO7EAcPi6A)
-* List iterators may not throw ConcurrentModificationError as eagerly in
-  release mode. In checked mode, the modification check is still as eager
-  as possible.
-  [r45198](https://code.google.com/p/dart/source/detail?r=45198)
 * `dart:core`
-  * Add `unmodifiable` constructor to `List` -
+  * `Iterable` added the `empty` constructor.
+    [dcf0286](https://github.com/dart-lang/sdk/commit/dcf0286f5385187a68ce9e66318d3bf19abf454b)
+  * `List` added the `unmodifiable` constructor.
     [r45334](https://code.google.com/p/dart/source/detail?r=45334)
-  * Add `unmodifiable` constructor to `Map` -
+  * `Map` added the `unmodifiable` constructor.
     [r45733](https://code.google.com/p/dart/source/detail?r=45733)
-  * Add `empty` constructor to `Iterable` -
-    [dcf0286f](https://github.com/dart-lang/sdk/commit/dcf0286f5385187a68ce9e66318d3bf19abf454b)
-* `dart:isolate`:
-  * Make the priority parameter of `Isolate.ping` and `Isolate.kill` methods
-    a named parameter named `priority`.
-  * Remove the `Isolate.AS_EVENT` priority.
-  * Add extra `response` parameter to `Isolate.ping` and
-    `Isolate.addOnExitListener` -
-    [r45092](https://code.google.com/p/dart/source/detail?r=45092)
+  * List iterators may not throw `ConcurrentModificationError` as eagerly in
+    release mode. In checked mode, the modification check is still as eager
+    as possible.
+    [r45198](https://code.google.com/p/dart/source/detail?r=45198)
+* `dart:io`
+  * `FileSystemEntity` added a `uri` property.
+    [8cf32dc](https://github.com/dart-lang/sdk/commit/8cf32dc1a1664b516e57f804524e46e55fae88b2)
+  * `Platform` added a `static resolvedExecutable` property.
+    [c05c8c6](https://github.com/dart-lang/sdk/commit/c05c8c66069db91cc2fd48691dfc406c818d411d)
+* `dart:html`
+  * `Element` methods, `appendHtml` and `insertAdjacentHtml` now take `nodeValidator`
+    and `treeSanitizer` parameters, and the inputs are consistently
+    sanitized.
+    [r45818 announcement](https://groups.google.com/a/dartlang.org/forum/#!topic/announce/GVO7EAcPi6A)
+* `dart:isolate`
+  * **BREAKING** The positional `priority` parameter of `Isolate.ping` and `Isolate.kill` is
+    now a named parameter named `priority`.
+  * **BREAKING** Removed the `Isolate.AS_EVENT` priority.
+  * `Isolate` methods `ping` and `addOnExitListener` now have a named parameter
+    `response`.
+    [r45092](https://github.com/dart-lang/sdk/commit/1b208bd)
   * Remove the experimental state of the API.
 
 ### Tool changes
