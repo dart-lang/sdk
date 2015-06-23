@@ -11,6 +11,7 @@ import 'dart_work_manager_test.dart' as dart_work_manager_test;
 import 'driver_test.dart' as driver_test;
 import 'general_test.dart' as general_test;
 import 'html_test.dart' as html_test;
+import 'html_work_manager_test.dart' as html_work_manager_test;
 import 'incremental_element_builder_test.dart'
     as incremental_element_builder_test;
 import 'inputs_test.dart' as inputs_test;
@@ -26,6 +27,7 @@ main() {
     driver_test.main();
     general_test.main();
     html_test.main();
+    html_work_manager_test.main();
     incremental_element_builder_test.main();
     inputs_test.main();
     manager_test.main();

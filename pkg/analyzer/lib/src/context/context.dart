@@ -33,6 +33,8 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
+import 'package:analyzer/src/task/html.dart';
+import 'package:analyzer/src/task/html_work_manager.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
@@ -124,6 +126,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   DartWorkManager dartWorkManager;
 
   /**
+   * The work manager that performs HTML specific scheduling.
+   */
+  HtmlWorkManager htmlWorkManager;
+
+  /**
    * The analysis driver used to perform analysis.
    */
   AnalysisDriver driver;
@@ -212,8 +219,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _taskManager = AnalysisEngine.instance.taskManager;
     // TODO(scheglov) Get WorkManager(Factory)(s) from plugins.
     dartWorkManager = new DartWorkManager(this);
-    driver =
-        new AnalysisDriver(_taskManager, <WorkManager>[dartWorkManager], this);
+    htmlWorkManager = new HtmlWorkManager(this);
+    driver = new AnalysisDriver(
+        _taskManager, <WorkManager>[dartWorkManager, htmlWorkManager], this);
     _onSourcesChangedController =
         new StreamController<SourcesChangedEvent>.broadcast();
   }
@@ -257,6 +265,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.preserveComments = options.preserveComments;
     if (needsRecompute) {
       dartWorkManager.onAnalysisOptionsChanged();
+      htmlWorkManager.onAnalysisOptionsChanged();
     }
   }
 
@@ -275,6 +284,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     dartWorkManager.applyPriorityTargets(_priorityOrder);
+    htmlWorkManager.applyPriorityTargets(_priorityOrder);
   }
 
   @override
@@ -372,6 +382,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _sourceFactory = factory;
     _cache = createCacheFromSourceFactory(factory);
     dartWorkManager.onSourceFactoryChanged();
+    htmlWorkManager.onSourceFactoryChanged();
   }
 
   @override
@@ -521,6 +532,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       _sourceRemoved(source);
     }
     dartWorkManager.applyChange(
+        changeSet.addedSources, changeSet.changedSources, removedSources);
+    htmlWorkManager.applyChange(
         changeSet.addedSources, changeSet.changedSources, removedSources);
     _onSourcesChangedController.add(new SourcesChangedEvent(changeSet));
   }
@@ -769,12 +782,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   AnalysisErrorInfo getErrors(Source source) {
     String name = source.shortName;
-    if (AnalysisEngine.isDartFileName(name)) {
+    if (AnalysisEngine.isDartFileName(name) || source is DartScript) {
       return dartWorkManager.getErrors(source);
     } else if (AnalysisEngine.isHtmlFileName(name)) {
-      List<AnalysisError> errors = analysisCache.getValue(source, HTML_ERRORS);
-      // TODO(brianwilkerson) We don't currently have line info for HTML files.
-      return new AnalysisErrorInfoImpl(errors, null);
+      return htmlWorkManager.getErrors(source);
     }
     return new AnalysisErrorInfoImpl(AnalysisError.NO_ERRORS, null);
   }
@@ -1701,6 +1712,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // We need to invalidate the cache.
     entry.setState(CONTENT, CacheState.INVALID);
     dartWorkManager.applyChange(
+        Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
+    htmlWorkManager.applyChange(
         Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
   }
 
