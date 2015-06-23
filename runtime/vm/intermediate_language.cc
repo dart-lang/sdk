@@ -1656,7 +1656,7 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
     case Token::kTRUNCDIV:
     case Token::kMOD:
       // Check right value for zero.
-      if (right.AsInt64Value() == 0) {
+      if (right.IsSmi() && right.AsInt64Value() == 0) {
         break;  // Will throw.
       }
       // Fall through.
