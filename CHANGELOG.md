@@ -19,6 +19,8 @@
     [r45334](https://code.google.com/p/dart/source/detail?r=45334)
   * `Map` added an `unmodifiable` constructor.
     [r45733](https://code.google.com/p/dart/source/detail?r=45733)
+  * `int` added a `gcd` method.
+    [a192ef4](https://github.com/dart-lang/sdk/commit/a192ef4acb95fad1aad1887f59eed071eb5e8201)
   * `int` added a `modInverse` method.
     [f6f338c](https://github.com/dart-lang/sdk/commit/f6f338ce67eb8801b350417baacf6d3681b26002)
   * `StackTrace` added a `fromString` constructor.
