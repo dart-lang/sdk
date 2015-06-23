@@ -35,7 +35,7 @@ Future expectThrowsAsync(Future future, String message) {
 
 
 Future write(Directory dir) async {
-  var f = new File('x');
+  var f = new File(dir.path + '/write');
   var raf = await f.open(mode: WRITE_ONLY);
   await raf.writeString('Hello');
   await raf.setPosition(0);
@@ -55,7 +55,7 @@ Future write(Directory dir) async {
 }
 
 void writeSync(Directory dir) {
-  var f = new File('x');
+  var f = new File(dir.path + '/write_sync');
   var raf = f.openSync(mode: WRITE_ONLY);
   raf.writeStringSync('Hello');
   raf.setPositionSync(0);
@@ -65,7 +65,7 @@ void writeSync(Directory dir) {
 }
 
 Future openWrite(Directory dir) async {
-  var f = new File('x');
+  var f = new File(dir.path + '/open_write');
   var sink = f.openWrite(mode: WRITE_ONLY);
   sink.write('Hello');
   await sink.close();
