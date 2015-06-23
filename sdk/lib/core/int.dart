@@ -120,6 +120,14 @@ abstract class int extends num {
    */
   int modInverse(int modulus);
 
+  /**
+   * Returns the greatest common divisor of the absolute value of
+   * this integer and the absolute value of [other].
+   *
+   * Both this and [other] must be non-zero.
+   */
+  int gcd(int other);
+
   /** Returns true if and only if this integer is even. */
   bool get isEven;
 

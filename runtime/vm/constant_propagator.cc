@@ -508,13 +508,17 @@ static bool CompareIntegers(Token::Kind kind,
 }
 
 
+// Comparison instruction that is equivalent to the (left & right) == 0
+// comparison pattern.
 void ConstantPropagator::VisitTestSmi(TestSmiInstr* instr) {
   const Object& left = instr->left()->definition()->constant_value();
   const Object& right = instr->right()->definition()->constant_value();
   if (IsNonConstant(left) || IsNonConstant(right)) {
     SetValue(instr, non_constant_);
   } else if (IsConstant(left) && IsConstant(right)) {
-    if (left.IsInteger() && right.IsInteger()) {
+    // BitOp does not work on Bigints.
+    if (left.IsInteger() && right.IsInteger() &&
+        !left.IsBigint() && !right.IsBigint()) {
       const bool result = CompareIntegers(
           instr->kind(),
           Integer::Handle(I, Integer::Cast(left).BitOp(Token::kBIT_AND,
