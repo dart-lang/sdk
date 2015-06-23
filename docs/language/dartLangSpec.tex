@@ -6634,6 +6634,8 @@ The purpose of adding members of $B$ to $p$ is to ensure that any warnings  issu
 }
 %But this is still a lie detectable by reflection. Probably revise so the type of p has these members but p does not.
 
+The static type of the prefix object $p$ is a unique interface type that has those members whose names and signatures are listed above.
+
 \LMHash{}
 After a call succeeds, the name $p$ is mapped to a non-deferred prefix object as described below. In addition, the prefix object also supports the \code{loadLibrary} method, and so it is possible to call \code{loadLibrary} again. If a call fails, nothing happens, and one again has the option to call \code{loadLibrary} again. Whether a repeated call to \code{loadLibrary} succeeds will vary as described below.
 
@@ -6687,7 +6689,7 @@ where $show(l,n)$ takes a list of identifiers $l$ and a namespace $n$, and produ
 
 then let $NS_i = \HIDE{}([id_1, \ldots, id_k], NS_{i-1}$) 
 
-where $hide(l, n)$ takes a list of identfiers $l$ and a namespace $n$, and produces a namespace that is identical to $n$ except that for each name $k$ in $l$, $k$ and $k=$ are undefined. 
+where $hide(l, n)$ takes a list of identifiers $l$ and a namespace $n$, and produces a namespace that is identical to $n$ except that for each name $k$ in $l$, $k$ and $k=$ are undefined. 
 \end{itemize}
  
 \LMHash{}
@@ -6703,6 +6705,9 @@ Next, if $I$ includes a prefix clause of the form \AS{} $p$, let $NS =  NS_n \cu
 \LMHash{}
 Otherwise, let $NS = NS_n$.
 It is a compile-time error if the current library declares a top-level member named $p$.
+
+The static type of the prefix object $p$ is a unique interface type that has those members whose names and signatures are listed above.
+% What is the static type of a prefix object. Need to state that is a(n anonymous) type that has members with the same names as signatures as above.
 
 % This is problematic, because it implies that p.T would be available even in a scope that declared p. We really need to think of p as a single object with properties p.T etc., except it isn't really that
 % either. After all, p isn't actually available as a stand alone name.
