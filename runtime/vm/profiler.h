@@ -159,9 +159,8 @@ class Sample {
     }
     vm_tag_ = VMTag::kInvalidTagId;
     user_tag_ = UserTags::kDefaultUserTag;
-    sp_ = 0;
     lr_ = 0;
-    fp_ = 0;
+    metadata_ = 0;
     state_ = 0;
     uword* pcs = GetPCArray();
     for (intptr_t i = 0; i < pcs_length_; i++) {
@@ -216,22 +215,6 @@ class Sample {
 
   void set_pc_marker(uword pc_marker) {
     pc_marker_ = pc_marker;
-  }
-
-  uword sp() const {
-    return sp_;
-  }
-
-  void set_sp(uword sp) {
-    sp_ = sp;
-  }
-
-  uword fp() const {
-    return fp_;
-  }
-
-  void set_fp(uword fp) {
-    fp_ = fp;
   }
 
   uword lr() const {
@@ -306,6 +289,23 @@ class Sample {
     state_ = TruncatedTraceBit::update(truncated_trace, state_);
   }
 
+  bool is_allocation_sample() const {
+    return ClassAllocationSampleBit::decode(state_);
+  }
+
+  void set_is_allocation_sample(bool allocation_sample) {
+    state_ = ClassAllocationSampleBit::update(allocation_sample, state_);
+  }
+
+  intptr_t allocation_cid() const {
+    ASSERT(is_allocation_sample());
+    return metadata_;
+  }
+
+  void set_metadata(intptr_t metadata) {
+    metadata_ = metadata;
+  }
+
   static void InitOnce();
 
   static intptr_t instance_size() {
@@ -329,6 +329,7 @@ class Sample {
     kExitFrameBit = 3,
     kMissingFrameInsertedBit = 4,
     kTruncatedTrace = 5,
+    kClassAllocationSample = 6,
   };
   class ProcessedBit : public BitField<bool, kProcessedBit, 1> {};
   class LeafFrameIsDart : public BitField<bool, kLeafFrameIsDartBit, 1> {};
@@ -337,6 +338,8 @@ class Sample {
   class MissingFrameInsertedBit
     : public BitField<bool, kMissingFrameInsertedBit, 1> {};
   class TruncatedTraceBit : public BitField<bool, kTruncatedTrace, 1> {};
+  class ClassAllocationSampleBit
+      : public BitField<bool, kClassAllocationSample, 1> {};
 
   int64_t timestamp_;
   ThreadId tid_;
@@ -345,8 +348,7 @@ class Sample {
   uword stack_buffer_[kStackBufferSizeInWords];
   uword vm_tag_;
   uword user_tag_;
-  uword sp_;
-  uword fp_;
+  uword metadata_;
   uword lr_;
   uword state_;
 

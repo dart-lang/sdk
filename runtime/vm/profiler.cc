@@ -798,7 +798,7 @@ class ProfilerNativeStackWalker : public ValueObject {
 };
 
 
-static void CopyPCMarkerIfSafe(Sample* sample) {
+static void CopyPCMarkerIfSafe(Sample* sample, uword fp_addr, uword sp_addr) {
   ASSERT(sample != NULL);
 
   if (sample->vm_tag() != VMTag::kDartTagId) {
@@ -806,8 +806,8 @@ static void CopyPCMarkerIfSafe(Sample* sample) {
     // See http://dartbug.com/20421 for details.
     return;
   }
-  uword* fp = reinterpret_cast<uword*>(sample->fp());
-  uword* sp = reinterpret_cast<uword*>(sample->sp());
+  uword* fp = reinterpret_cast<uword*>(fp_addr);
+  uword* sp = reinterpret_cast<uword*>(sp_addr);
 
   // If FP == SP, the pc marker hasn't been pushed.
   if (fp > sp) {
@@ -820,14 +820,14 @@ static void CopyPCMarkerIfSafe(Sample* sample) {
 }
 
 
-static void CopyStackBuffer(Sample* sample) {
+static void CopyStackBuffer(Sample* sample, uword sp_addr) {
   ASSERT(sample != NULL);
   if (sample->vm_tag() != VMTag::kDartTagId) {
     // We can only trust the stack pointer if we are executing Dart code.
     // See http://dartbug.com/20421 for details.
     return;
   }
-  uword* sp = reinterpret_cast<uword*>(sample->sp());
+  uword* sp = reinterpret_cast<uword*>(sp_addr);
   uword* buffer = sample->GetStackBuffer();
   if (sp != NULL) {
     for (intptr_t i = 0; i < Sample::kStackBufferSizeInWords; i++) {
@@ -865,14 +865,16 @@ static void CollectSample(Isolate* isolate,
                           ProfilerNativeStackWalker* native_stack_walker,
                           ProfilerDartExitStackWalker* dart_exit_stack_walker,
                           ProfilerDartStackWalker* dart_stack_walker,
-                          uword pc) {
+                          uword pc,
+                          uword fp,
+                          uword sp) {
 #if defined(TARGET_OS_WINDOWS)
   // Use structured exception handling to trap guard page access on Windows.
   __try {
 #endif
 
-  CopyStackBuffer(sample);
-  CopyPCMarkerIfSafe(sample);
+  CopyStackBuffer(sample, sp);
+  CopyPCMarkerIfSafe(sample, fp, sp);
 
   if (FLAG_profile_vm) {
     // Always walk the native stack collecting both native and Dart frames.
@@ -1046,8 +1048,6 @@ void Profiler::RecordSampleInterruptCallback(
   counters->Increment(vm_tag);
   sample->set_vm_tag(vm_tag);
   sample->set_user_tag(isolate->user_tag());
-  sample->set_sp(sp);
-  sample->set_fp(fp);
   sample->set_lr(lr);
 
   ProfilerNativeStackWalker native_stack_walker(sample,
@@ -1075,7 +1075,9 @@ void Profiler::RecordSampleInterruptCallback(
                 &native_stack_walker,
                 &dart_exit_stack_walker,
                 &dart_stack_walker,
-                pc);
+                pc,
+                fp,
+                sp);
 }
 
 }  // namespace dart
