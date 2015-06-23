@@ -797,11 +797,11 @@ class OldEmitter implements Emitter {
     return js.statement('''
       function init() {
         $isolatePropertiesName = Object.create(null);
-        #allClasses = Object.create(null);
+        #allClasses = map();
         #getTypeFromName = function(name) {return #allClasses[name];};
-        #interceptorsByTag = Object.create(null);
-        #leafTags = Object.create(null);
-        #finishedClasses = Object.create(null);
+        #interceptorsByTag = map();
+        #leafTags = map();
+        #finishedClasses = map();
 
         if (#needsLazyInitializer) {
           // [staticName] is only provided in non-minified mode. If missing, we 
