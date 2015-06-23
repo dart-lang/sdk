@@ -29,7 +29,7 @@ main(List<String> rawArgs) {
   logger.onRecord.listen((LogRecord rec) {
     print(rec.message);
   });
-  ArgResults args = parseArgs(rawArgs);
+  PerfArgs args = parseArgs(rawArgs);
 
   Driver driver = new Driver(logger);
   Stream<Operation> stream = openInput(args);
@@ -59,8 +59,7 @@ main(List<String> rawArgs) {
 
 const HELP_CMDLINE_OPTION = 'help';
 const INPUT_CMDLINE_OPTION = 'input';
-const MAP_FROM_OPTION = 'mapFrom';
-const MAP_TO_OPTION = 'mapTo';
+const MAP_OPTION = 'map';
 const TMP_SRC_DIR_OPTION = 'tmpSrcDir';
 const VERBOSE_CMDLINE_OPTION = 'verbose';
 const VERY_VERBOSE_CMDLINE_OPTION = 'vv';
@@ -69,49 +68,44 @@ const VERY_VERBOSE_CMDLINE_OPTION = 'vv';
  * Open and return the input stream specifying how this client
  * should interact with the analysis server.
  */
-Stream<Operation> openInput(ArgResults args) {
+Stream<Operation> openInput(PerfArgs args) {
   var logger = new Logger('openInput');
   Stream<List<int>> inputRaw;
-  String inputPath = args[INPUT_CMDLINE_OPTION];
-  if (inputPath == null) {
-    return null;
-  }
-  if (inputPath == 'stdin') {
+  if (args.inputPath == 'stdin') {
     inputRaw = stdin;
   } else {
-    inputRaw = new File(inputPath).openRead();
+    inputRaw = new File(args.inputPath).openRead();
   }
-  Map<String, String> srcPathMap = new Map<String, String>();
-  String mapFrom = args[MAP_FROM_OPTION];
-  if (mapFrom != null && mapFrom.isNotEmpty) {
-    String mapTo = args[MAP_TO_OPTION];
-    srcPathMap[mapFrom] = mapTo;
+  args.srcPathMap.forEach((oldPath, newPath) {
     logger.log(
-        Level.INFO, 'mapping source paths\n  from $mapFrom\n  to   $mapTo');
-  }
-  String tmpSrcDirPath = args[TMP_SRC_DIR_OPTION];
-  logger.log(Level.INFO, 'tmpSrcDir: $tmpSrcDirPath');
+        Level.INFO, 'mapping source path\n  from $oldPath\n  to   $newPath');
+  });
+  logger.log(Level.INFO, 'tmpSrcDir: ${args.tmpSrcDirPath}');
   return inputRaw
       .transform(SYSTEM_ENCODING.decoder)
       .transform(new LineSplitter())
-      .transform(new InputConverter(tmpSrcDirPath, srcPathMap));
+      .transform(new InputConverter(args.tmpSrcDirPath, args.srcPathMap));
 }
 
 /**
  * Parse the command line arguments.
  */
-ArgResults parseArgs(List<String> rawArgs) {
+PerfArgs parseArgs(List<String> rawArgs) {
   ArgParser parser = new ArgParser();
 
   parser.addOption(INPUT_CMDLINE_OPTION, abbr: 'i', help: '<filePath>\n'
       'The input file specifying how this client should interact with the server.\n'
       'If the input file name is "stdin", then the instructions are read from standard input.');
-  parser.addOption(MAP_FROM_OPTION,
-      help: 'The original source directory when the instrumentation '
-      'or log file was generated.');
-  parser.addOption(MAP_TO_OPTION,
-      help: 'The target source directory used during performance testing. '
-      'WARNING: The contents of this directory will be modified');
+  parser.addOption(MAP_OPTION,
+      abbr: 'm',
+      allowMultiple: true,
+      splitCommas: false,
+      help: '<oldSrcPath>,<newSrcPath>\n'
+      'This option defines a mapping from the original source directory <oldSrcPath>\n'
+      'when the instrumentation or log file was generated\n'
+      'to the target source directory <newSrcPath> used during performance testing.\n'
+      'Multiple mappings can be specified.\n'
+      'WARNING: The contents of the target directory will be modified');
   parser.addOption(TMP_SRC_DIR_OPTION, abbr: 't', help: '<dirPath>\n'
       'The temporary directory containing source used during performance measurement.\n'
       'WARNING: The contents of the target directory will be modified');
@@ -123,6 +117,7 @@ ArgResults parseArgs(List<String> rawArgs) {
       abbr: 'h', help: 'Print this help information', negatable: false);
 
   ArgResults args;
+  PerfArgs perfArgs = new PerfArgs();
   try {
     args = parser.parse(rawArgs);
   } on Exception catch (e) {
@@ -135,16 +130,31 @@ ArgResults parseArgs(List<String> rawArgs) {
 
   bool isMissing(key) => args[key] == null || args[key].isEmpty;
 
+  perfArgs.inputPath = args[INPUT_CMDLINE_OPTION];
   if (isMissing(INPUT_CMDLINE_OPTION)) {
     print('missing $INPUT_CMDLINE_OPTION argument');
     showHelp = true;
   }
 
-  if (isMissing(MAP_FROM_OPTION) != isMissing(MAP_TO_OPTION)) {
-    print('must specifiy both $MAP_FROM_OPTION and $MAP_TO_OPTION');
+  perfArgs.srcPathMap = <String, String>{};
+  for (String pair in args[MAP_OPTION]) {
+    if (pair is String) {
+      int index = pair.indexOf(',');
+      if (index != -1 && pair.indexOf(',', index + 1) == -1) {
+        String oldSrcPath = pair.substring(0, index);
+        String newSrcPath = pair.substring(index + 1);
+        if (new Directory(oldSrcPath).existsSync() &&
+            new Directory(newSrcPath).existsSync()) {
+          perfArgs.srcPathMap[oldSrcPath] = newSrcPath;
+          continue;
+        }
+      }
+    }
+    print('must specifiy $MAP_OPTION <oldSrcPath>,<newSrcPath>');
     showHelp = true;
   }
 
+  perfArgs.tmpSrcDirPath = args[TMP_SRC_DIR_OPTION];
   if (isMissing(TMP_SRC_DIR_OPTION)) {
     print('missing $TMP_SRC_DIR_OPTION argument');
     showHelp = true;
@@ -163,7 +173,7 @@ ArgResults parseArgs(List<String> rawArgs) {
     exit(1);
   }
 
-  return args;
+  return perfArgs;
 }
 
 void printHelp(ArgParser parser) {
@@ -171,4 +181,29 @@ void printHelp(ArgParser parser) {
   print('Launch and interact with the AnalysisServer');
   print('');
   print(parser.usage);
+}
+
+/**
+ * The performance measurement arguments specified on the command line.
+ */
+class PerfArgs {
+
+  /**
+   * The file path of the instrumentation or log file 
+   * used to drive performance measurement,
+   * or 'stdin' if this information should be read from standard input.
+   */
+  String inputPath;
+
+  /**
+   * A mapping from the original source directory
+   * when the instrumentation or log file was generated
+   * to the target source directory used during performance testing.
+   */
+  Map<String, String> srcPathMap;
+
+  /**
+   * The temporary directory containing source used during performance measurement.
+   */
+  String tmpSrcDirPath;
 }

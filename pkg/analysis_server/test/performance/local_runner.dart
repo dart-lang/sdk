@@ -66,10 +66,8 @@ main(List<String> args) {
     inputFile.path,
     '-t',
     tmpSrcDirPath,
-    '--mapFrom',
-    gitDir.path,
-    '--mapTo',
-    tmpSrcDirPath,
+    '-m',
+    '${gitDir.path},$tmpSrcDirPath',
   ]);
 }
 
