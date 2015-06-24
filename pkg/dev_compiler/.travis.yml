@@ -5,6 +5,17 @@ dart:
   - stable
 before_install:
   - pub global activate dart_coveralls
+install:
+  - npm install
+  - export CHROME_URL=https://storage.googleapis.com/chromium-browser-snapshots/Linux_x64
+  - export CHROME_REV=$(curl -s ${CHROME_URL}/LAST_CHANGE)
+  - curl ${CHROME_URL}/${CHROME_REV}/chrome-linux.zip --create-dirs -o out/chrome-linux.zip
+  - unzip out/chrome-linux.zip -d out
+before_script:
+  - export CHROME_CANARY_BIN=$PWD/out/chrome-linux/chrome
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
 script:
   - ./tool/presubmit.sh
+  - ./node_modules/karma/bin/karma start --single-run
   - ./tool/coverage.sh

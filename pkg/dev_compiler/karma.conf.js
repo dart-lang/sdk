@@ -2,6 +2,13 @@
 // Generated on Mon Apr 20 2015 06:33:20 GMT-0700 (PDT)
 
 module.exports = function(config) {
+  var harmony_flags = '--js-flags="' + [
+    '--harmony-arrow-functions',
+    '--harmony-classes',
+    '--harmony-computed-property-names',
+    '--harmony-spreadcalls',
+  ].join(' ') + '"';
+
   var configuration = {
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -13,13 +20,12 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      'test-main.js',
-      'lib/runtime/dart_runtime.js',
-      'lib/runtime/dart/core.js',
-      'lib/runtime/dart/collection.js',
-      'lib/runtime/dart/math.js',
+      'lib/runtime/dart_*.js',
+      'lib/runtime/_*.js',
+      'lib/runtime/dart/*.js',
       // {pattern: 'test/browser/*.js', included: false}
       'test/browser/*.js',
+      'test-main.js',
     ],
 
     // list of files to exclude
@@ -34,7 +40,7 @@ module.exports = function(config) {
     client: {
       mocha: {
         ui: 'tdd'
-      }
+      },
     },
 
     // test results reporter to use
@@ -64,20 +70,20 @@ module.exports = function(config) {
     customLaunchers: {
       chrome_harmony: {
 	base: 'Chrome',
-        flags: ['--js-flags="--harmony-arrow-functions --harmony-classes --harmony-computed-property-names"']
+        flags: [ harmony_flags ],
       },
 
       chrome_canary_harmony: {
 	base: 'ChromeCanary',
-        flags: ['--js-flags="--harmony-arrow-functions --harmony-classes --harmony-computed-property-names"']
+        flags: [ harmony_flags ],
       },
 
-      chrome_travis: {
-	base: 'Chrome',
-        flags: ['--no-sandbox --js-flags="--harmony-arrow-functions --harmony-classes --harmony-computed-property-names"']
+      chrome_canary_travis: {
+	base: 'ChromeCanary',
+        flags: [ '--no-sandbox', harmony_flags ]
       },
     },
-    browsers: ['chrome_harmony'],
+    browsers: ['chrome_canary_harmony'],
 
     // Continuous Integration mode
     // if true, Karma captures browsers, runs the tests and exits
@@ -85,7 +91,8 @@ module.exports = function(config) {
   };
 
   if (process.env.TRAVIS) {
-    configuration.browsers = ['chrome_travis'];
+    configuration.browsers = ['chrome_canary_travis'];
+    configuration.autoWatch = false;
   }
 
   config.set(configuration);
