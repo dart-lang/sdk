@@ -25,4 +25,4 @@ sample_extension/test/sample_extension_test: Skip # Issue 14705
 *: Skip
 
 [ $compiler == dart2js && $cps_ir ]
-sample_extension/test/sample_extension_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
+sample_extension/test/sample_extension_test: Crash # Invalid argument(s)

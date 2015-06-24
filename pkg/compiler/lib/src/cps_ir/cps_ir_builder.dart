@@ -68,24 +68,25 @@ class Environment {
 
   void extend(Local element, ir.Primitive value) {
     // Assert that the name is not already in the environment.  `null` is used
-    // as the name of anonymous variables.  Because the variable2index map is
-    // shared, `null` can already occur.  This is safe because such variables
-    // are not looked up by name.
-    //
-    // TODO(kmillikin): This is still kind of fishy.  Refactor to not share
-    // name maps or else garbage collect unneeded names.
-    assert(element == null || !variable2index.containsKey(element));
-    variable2index[element] = index2variable.length;
+    // as the name of anonymous variables.
+    assert(!variable2index.containsKey(element));
+    if (element != null) variable2index[element] = index2variable.length;
     index2variable.add(element);
     index2value.add(value);
   }
 
-  void discard(int count) {
+  /// Drop [count] values from the environment.
+  ///
+  /// Return the previous last value in the environment for convenience.
+  ir.Primitive discard(int count) {
+    assert(count > 0);
     assert(count <= index2variable.length);
+    ir.Primitive value = index2value.last;
     // The map from variables to their index are shared, so we cannot remove
     // the mapping in `variable2index`.
     index2variable.length -= count;
     index2value.length -= count;
+    return value;
   }
 
   ir.Primitive lookup(Local element) {
@@ -108,10 +109,12 @@ class Environment {
       Local variable = index2variable[i];
       if (variable != other.index2variable[i]) return false;
 
-      // The variable maps to the same index in both environments.
-      int index = variable2index[variable];
-      if (index == null || index != other.variable2index[variable]) {
-        return false;
+      // A named variable maps to the same index in both environments.
+      if (variable != null) {
+        int index = variable2index[variable];
+        if (index == null || index != other.variable2index[variable]) {
+          return false;
+        }
       }
     }
     return true;
@@ -131,7 +134,15 @@ abstract class JumpCollector {
   final List<Iterable<LocalVariableElement>> _boxedTryVariables =
       <Iterable<LocalVariableElement>>[];
 
-  JumpCollector(this._continuationEnvironment, this.target);
+  /// Construct a collector for a given environment and optionally a target.
+  ///
+  /// The environment is the one in effect at the point where the jump's
+  /// continuation will be bound.  Continuations can take an extra argument
+  /// (see [addJump]).
+  JumpCollector(this._continuationEnvironment, this.target,
+      bool hasExtraArgument) {
+    if (hasExtraArgument) _continuationEnvironment.extend(null, null);
+  }
 
   /// True if the collector has not recorded any jumps to its continuation.
   bool get isEmpty;
@@ -144,7 +155,12 @@ abstract class JumpCollector {
   Environment get environment;
 
   /// Emit a jump to the continuation for a given [IrBuilder].
-  void addJump(IrBuilder builder);
+  ///
+  /// Jumps can take a single extra argument.  This is used to pass return
+  /// values to finally blocks for returns inside try/finally and to pass
+  /// values of expressions that have internal control flow to their join-point
+  /// continuations.
+  void addJump(IrBuilder builder, [ir.Primitive value]);
 
   /// Add a set of variables that were boxed on entry to a try block.
   ///
@@ -206,8 +222,9 @@ class ForwardJumpCollector extends JumpCollector {
   /// continuation represented by this collector will be bound.  The
   /// environment is copied by the collector.  Subsequent mutation of the
   /// original environment will not affect the collector.
-  ForwardJumpCollector(Environment environment, {JumpTarget target: null})
-      : super(new Environment.from(environment), target);
+  ForwardJumpCollector(Environment environment,
+      {JumpTarget target, bool hasExtraArgument: false})
+      : super(new Environment.from(environment), target, hasExtraArgument);
 
   bool get isEmpty => _invocations.isEmpty;
 
@@ -221,12 +238,20 @@ class ForwardJumpCollector extends JumpCollector {
     return _continuationEnvironment;
   }
 
-  void addJump(IrBuilder builder) {
+  void addJump(IrBuilder builder, [ir.Primitive value]) {
     assert(_continuation == null);
     _buildTryExit(builder);
     ir.InvokeContinuation invoke = new ir.InvokeContinuation.uninitialized();
     builder.add(invoke);
     _invocations.add(invoke);
+    // Truncate the environment at the invocation site so it only includes
+    // values that will be continuation arguments.  If an extra value is passed
+    // it will already be included in the continuation environment, but it is
+    // not present in the invocation environment.
+    int delta = builder.environment.length - _continuationEnvironment.length;
+    if (value != null) ++delta;
+    if (delta > 0) builder.environment.discard(delta);
+    if (value != null) builder.environment.extend(null, value);
     _invocationEnvironments.add(builder.environment);
     builder._current = null;
     // TODO(kmillikin): Can we set builder.environment to null to make it
@@ -308,8 +333,9 @@ class BackwardJumpCollector extends JumpCollector {
   /// continuation represented by this collector will be bound.  The
   /// translation of the continuation body will use an environment with the
   /// same shape, but with fresh continuation parameters for each variable.
-  BackwardJumpCollector(Environment environment, {JumpTarget target: null})
-      : super(new Environment.fresh(environment), target) {
+  BackwardJumpCollector(Environment environment,
+      {JumpTarget target, bool hasExtraArgument: false})
+      : super(new Environment.fresh(environment), target, hasExtraArgument) {
     List<ir.Parameter> parameters =
         new List<ir.Parameter>.from(_continuationEnvironment.index2value);
     _continuation = new ir.Continuation(parameters, isRecursive: true);
@@ -320,13 +346,20 @@ class BackwardJumpCollector extends JumpCollector {
   ir.Continuation get continuation => _continuation;
   Environment get environment => _continuationEnvironment;
 
-  void addJump(IrBuilder builder) {
+  void addJump(IrBuilder builder, [ir.Primitive value]) {
     assert(_continuation.parameters.length <= builder.environment.length);
     isEmpty = false;
     _buildTryExit(builder);
+    // Truncate the environment at the invocation site so it only includes
+    // values that will be continuation arguments.  If an extra value is passed
+    // it will already be included in the continuation environment, but it is
+    // not present in the invocation environment.
+    int delta = builder.environment.length - _continuationEnvironment.length;
+    if (value != null) ++delta;
+    if (delta > 0) builder.environment.discard(delta);
+    if (value != null) builder.environment.extend(null, value);
     builder.add(new ir.InvokeContinuation(_continuation,
-        builder.environment.index2value.take(_continuation.parameters.length)
-            .toList(),
+        builder.environment.index2value,
         isRecursive: true));
     builder._current = null;
   }
@@ -394,14 +427,22 @@ class IrBuilderSharedState {
   ConstantSystem get constantSystem => constants.constantSystem;
 
   /// A stack of collectors for breaks.
-  final List<JumpCollector> breakCollectors = <JumpCollector>[];
+  List<JumpCollector> breakCollectors = <JumpCollector>[];
 
   /// A stack of collectors for continues.
-  final List<JumpCollector> continueCollectors = <JumpCollector>[];
+  List<JumpCollector> continueCollectors = <JumpCollector>[];
 
   final ExecutableElement currentElement;
 
   final ir.Continuation returnContinuation = new ir.Continuation.retrn();
+
+  /// The target of a return from the function.
+  ///
+  /// A null value indicates that the target is the function's return
+  /// continuation.  Otherwise, when inside the try block of try/finally
+  /// a return is intercepted to give a place to generate the finally code.
+  JumpCollector returnCollector = null;
+
   ir.Parameter _thisParameter;
   ir.Parameter enclosingMethodThisParameter;
 
@@ -750,20 +791,10 @@ abstract class IrBuilder {
     // expressions cannot introduce variable bindings.
     assert(environment.length == thenBuilder.environment.length);
     assert(environment.length == elseBuilder.environment.length);
-    // Extend the join-point environment with a placeholder for the value of
-    // the expression.  Optimistically assume that the value is the value of
-    // the first subexpression.  This value might noe even be in scope at the
-    // join-point because it's bound in the first subexpression.  However, if
-    // that is the case, it will necessarily differ from the value of the
-    // other subexpression and cause the introduction of a join-point
-    // continuation parameter.  If the two values do happen to be the same,
-    // this will avoid inserting a useless continuation parameter.
-    environment.extend(null, thenValue);
-    thenBuilder.environment.extend(null, thenValue);
-    elseBuilder.environment.extend(null, elseValue);
-    JumpCollector join = new ForwardJumpCollector(environment);
-    thenBuilder.jumpTo(join);
-    elseBuilder.jumpTo(join);
+    JumpCollector join =
+        new ForwardJumpCollector(environment, hasExtraArgument: true);
+    thenBuilder.jumpTo(join, thenValue);
+    elseBuilder.jumpTo(join, elseValue);
 
     // Build the term
     //   let cont join(x, ..., result) = [] in
@@ -782,10 +813,7 @@ abstract class IrBuilder {
                               thenContinuation,
                               elseContinuation))));
     environment = join.environment;
-    environment.discard(1);
-    return (thenValue == elseValue)
-        ? thenValue
-        : join.continuation.parameters.last;
+    return environment.discard(1);
   }
 
   /**
@@ -1169,8 +1197,8 @@ abstract class IrBuilder {
     }
   }
 
-  void jumpTo(JumpCollector collector) {
-    collector.addJump(this);
+  void jumpTo(JumpCollector collector, [ir.Primitive value]) {
+    collector.addJump(this, value);
   }
 
   void addRecursiveContinuation(BackwardJumpCollector collector) {
@@ -1715,6 +1743,7 @@ abstract class IrBuilder {
       {TryStatementInfo tryStatementInfo,
        SubbuildFunction buildTryBlock,
        List<CatchClauseInfo> catchClauseInfos: const <CatchClauseInfo>[],
+       SubbuildFunction buildFinallyBlock,
        ClosureClassMap closureClassMap}) {
     assert(isOpen);
 
@@ -1747,125 +1776,230 @@ abstract class IrBuilder {
     // scope of the handler.  The mutable bindings are dereferenced at the end
     // of the try block and at the beginning of the catch block, so the
     // variables are unboxed in the catch block and at the join point.
-    JumpCollector join = new ForwardJumpCollector(environment);
-    IrBuilder tryCatchBuilder = makeDelimitedBuilder();
+    if (catchClauseInfos.isNotEmpty) {
+      JumpCollector join = new ForwardJumpCollector(environment);
+      IrBuilder tryCatchBuilder = makeDelimitedBuilder();
 
-    // Variables treated as mutable in a try are not mutable outside of it.
-    // Work with a copy of the outer builder's mutable variables.
-    tryCatchBuilder.mutableVariables =
-        new Map<Local, ir.MutableVariable>.from(mutableVariables);
-    for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
-      assert(!tryCatchBuilder.isInMutableVariable(variable));
-      ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
-      tryCatchBuilder.makeMutableVariable(variable);
-      tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
-    }
-
-    IrBuilder tryBuilder = tryCatchBuilder.makeDelimitedBuilder();
-
-    void interceptJumps(JumpCollector collector) {
-      collector.enterTry(tryStatementInfo.boxedOnEntry);
-    }
-    void restoreJumps(JumpCollector collector) {
-      collector.leaveTry();
-    }
-    tryBuilder.state.breakCollectors.forEach(interceptJumps);
-    tryBuilder.state.continueCollectors.forEach(interceptJumps);
-    buildTryBlock(tryBuilder);
-    if (tryBuilder.isOpen) {
-      interceptJumps(join);
-      tryBuilder.jumpTo(join);
-      restoreJumps(join);
-    }
-    tryBuilder.state.breakCollectors.forEach(restoreJumps);
-    tryBuilder.state.continueCollectors.forEach(restoreJumps);
-
-    IrBuilder catchBuilder = tryCatchBuilder.makeDelimitedBuilder();
-    for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
-      assert(catchBuilder.isInMutableVariable(variable));
-      ir.Primitive value = catchBuilder.buildLocalVariableGet(variable);
-      // After this point, the variables that were boxed on entry to the try
-      // are no longer treated as mutable.
-      catchBuilder.removeMutableVariable(variable);
-      catchBuilder.environment.update(variable, value);
-    }
-
-    // Handlers are always translated as having both exception and stack trace
-    // parameters.  Multiple clauses do not have to use the same names for
-    // them.  Choose the first of each as the name hint for the respective
-    // handler parameter.
-    ir.Parameter exceptionParameter =
-        new ir.Parameter(catchClauseInfos.first.exceptionVariable);
-    LocalVariableElement traceVariable;
-    CatchClauseInfo catchAll;
-    for (int i = 0; i < catchClauseInfos.length; ++i) {
-      CatchClauseInfo info = catchClauseInfos[i];
-      if (info.type == null) {
-        catchAll = info;
-        catchClauseInfos.length = i;
-        break;
+      // Variables treated as mutable in a try are not mutable outside of it.
+      // Work with a copy of the outer builder's mutable variables.
+      tryCatchBuilder.mutableVariables =
+          new Map<Local, ir.MutableVariable>.from(mutableVariables);
+      for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
+        assert(!tryCatchBuilder.isInMutableVariable(variable));
+        ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
+        tryCatchBuilder.makeMutableVariable(variable);
+        tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
       }
-      if (traceVariable == null) {
-        traceVariable = info.stackTraceVariable;
+
+      IrBuilder tryBuilder = tryCatchBuilder.makeDelimitedBuilder();
+
+      void interceptJump(JumpCollector collector) {
+        collector.enterTry(tryStatementInfo.boxedOnEntry);
       }
-    }
-    ir.Parameter traceParameter = new ir.Parameter(traceVariable);
-    // Expand multiple catch clauses into an explicit if/then/else.  Iterate
-    // them in reverse so the current block becomes the next else block.
-    ir.Expression catchBody;
-    if (catchAll == null) {
-      catchBody = new ir.Rethrow();
+      void restoreJump(JumpCollector collector) {
+        collector.leaveTry();
+      }
+      tryBuilder.state.breakCollectors.forEach(interceptJump);
+      tryBuilder.state.continueCollectors.forEach(interceptJump);
+      buildTryBlock(tryBuilder);
+      if (tryBuilder.isOpen) {
+        interceptJump(join);
+        tryBuilder.jumpTo(join);
+        restoreJump(join);
+      }
+      tryBuilder.state.breakCollectors.forEach(restoreJump);
+      tryBuilder.state.continueCollectors.forEach(restoreJump);
+
+      IrBuilder catchBuilder = tryCatchBuilder.makeDelimitedBuilder();
+      for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
+        assert(catchBuilder.isInMutableVariable(variable));
+        ir.Primitive value = catchBuilder.buildLocalVariableGet(variable);
+        // After this point, the variables that were boxed on entry to the try
+        // are no longer treated as mutable.
+        catchBuilder.removeMutableVariable(variable);
+        catchBuilder.environment.update(variable, value);
+      }
+
+      // Handlers are always translated as having both exception and stack trace
+      // parameters.  Multiple clauses do not have to use the same names for
+      // them.  Choose the first of each as the name hint for the respective
+      // handler parameter.
+      ir.Parameter exceptionParameter =
+          new ir.Parameter(catchClauseInfos.first.exceptionVariable);
+      LocalVariableElement traceVariable;
+      CatchClauseInfo catchAll;
+      for (int i = 0; i < catchClauseInfos.length; ++i) {
+        CatchClauseInfo info = catchClauseInfos[i];
+        if (info.type == null) {
+          catchAll = info;
+          catchClauseInfos.length = i;
+          break;
+        }
+        if (traceVariable == null) {
+          traceVariable = info.stackTraceVariable;
+        }
+      }
+      ir.Parameter traceParameter = new ir.Parameter(traceVariable);
+      // Expand multiple catch clauses into an explicit if/then/else.  Iterate
+      // them in reverse so the current block becomes the next else block.
+      ir.Expression catchBody;
+      if (catchAll == null) {
+        catchBody = new ir.Rethrow();
+      } else {
+        IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
+        clauseBuilder.declareLocalVariable(catchAll.exceptionVariable,
+                                           initialValue: exceptionParameter);
+        if (catchAll.stackTraceVariable != null) {
+          clauseBuilder.declareLocalVariable(catchAll.stackTraceVariable,
+                                             initialValue: traceParameter);
+        }
+        catchAll.buildCatchBlock(clauseBuilder);
+        if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
+        catchBody = clauseBuilder._root;
+      }
+      for (CatchClauseInfo clause in catchClauseInfos.reversed) {
+        IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
+        clauseBuilder.declareLocalVariable(clause.exceptionVariable,
+                                           initialValue: exceptionParameter);
+        if (clause.stackTraceVariable != null) {
+          clauseBuilder.declareLocalVariable(clause.stackTraceVariable,
+                                             initialValue: traceParameter);
+        }
+        clause.buildCatchBlock(clauseBuilder);
+        if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
+        ir.Continuation thenContinuation = new ir.Continuation([]);
+        thenContinuation.body = clauseBuilder._root;
+        ir.Continuation elseContinuation = new ir.Continuation([]);
+        elseContinuation.body = catchBody;
+
+        // Build the type test guarding this clause. We can share the
+        // environment with the nested builder because this part cannot mutate
+        // it.
+        IrBuilder checkBuilder = catchBuilder.makeDelimitedBuilder(environment);
+        ir.Primitive typeMatches =
+            checkBuilder.buildTypeOperator(exceptionParameter,
+                                           clause.type,
+                                           isTypeTest: true);
+        checkBuilder.add(new ir.LetCont.many([thenContinuation,
+                                              elseContinuation],
+                             new ir.Branch(new ir.IsTrue(typeMatches),
+                                           thenContinuation,
+                                           elseContinuation)));
+        catchBody = checkBuilder._root;
+      }
+
+      List<ir.Parameter> catchParameters =
+          <ir.Parameter>[exceptionParameter, traceParameter];
+      ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
+      catchBuilder.add(catchBody);
+      catchContinuation.body = catchBuilder._root;
+
+      tryCatchBuilder.add(
+          new ir.LetHandler(catchContinuation, tryBuilder._root));
+      add(new ir.LetCont(join.continuation, tryCatchBuilder._root));
+      environment = join.environment;
     } else {
-      IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
-      clauseBuilder.declareLocalVariable(catchAll.exceptionVariable,
-                                         initialValue: exceptionParameter);
-      if (catchAll.stackTraceVariable != null) {
-        clauseBuilder.declareLocalVariable(catchAll.stackTraceVariable,
-                                           initialValue: traceParameter);
+      // Try/finally.
+      JumpCollector join = new ForwardJumpCollector(environment);
+      IrBuilder tryFinallyBuilder = makeDelimitedBuilder();
+
+      tryFinallyBuilder.mutableVariables =
+          new Map<Local, ir.MutableVariable>.from(mutableVariables);
+      for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
+        assert(!tryFinallyBuilder.isInMutableVariable(variable));
+        ir.Primitive value = tryFinallyBuilder.buildLocalVariableGet(variable);
+        tryFinallyBuilder.makeMutableVariable(variable);
+        tryFinallyBuilder.declareLocalVariable(variable, initialValue: value);
       }
-      catchAll.buildCatchBlock(clauseBuilder);
-      if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
-      catchBody = clauseBuilder._root;
-    }
-    for (CatchClauseInfo clause in catchClauseInfos.reversed) {
-      IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
-      clauseBuilder.declareLocalVariable(clause.exceptionVariable,
-                                         initialValue: exceptionParameter);
-      if (clause.stackTraceVariable != null) {
-        clauseBuilder.declareLocalVariable(clause.stackTraceVariable,
-                                           initialValue: traceParameter);
+
+      IrBuilder tryBuilder = tryFinallyBuilder.makeDelimitedBuilder();
+
+      JumpCollector interceptJump(JumpCollector collector) {
+        JumpCollector result =
+            new ForwardJumpCollector(environment, target: collector.target);
+        result.enterTry(tryStatementInfo.boxedOnEntry);
+        return result;
       }
-      clause.buildCatchBlock(clauseBuilder);
-      if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
-      ir.Continuation thenContinuation = new ir.Continuation([]);
-      thenContinuation.body = clauseBuilder._root;
-      ir.Continuation elseContinuation = new ir.Continuation([]);
-      elseContinuation.body = catchBody;
+      void restoreJump(JumpCollector collector) {
+        collector.leaveTry();
+      }
+      List<JumpCollector> savedBreaks = tryBuilder.state.breakCollectors;
+      List<JumpCollector> savedContinues = tryBuilder.state.continueCollectors;
+      JumpCollector savedReturn = tryBuilder.state.returnCollector;
 
-      // Build the type test guarding this clause. We can share the environment
-      // with the nested builder because this part cannot mutate it.
-      IrBuilder checkBuilder = catchBuilder.makeDelimitedBuilder(environment);
-      ir.Primitive typeMatches =
-          checkBuilder.buildTypeOperator(exceptionParameter,
-                                         clause.type,
-                                         isTypeTest: true);
-      checkBuilder.add(new ir.LetCont.many([thenContinuation, elseContinuation],
-                           new ir.Branch(new ir.IsTrue(typeMatches),
-                                         thenContinuation,
-                                         elseContinuation)));
-      catchBody = checkBuilder._root;
+      List<JumpCollector> newBreaks = tryBuilder.state.breakCollectors =
+          savedBreaks.map(interceptJump).toList();
+      List<JumpCollector> newContinues = tryBuilder.state.continueCollectors =
+          savedContinues.map(interceptJump).toList();
+      JumpCollector newReturn = tryBuilder.state.returnCollector =
+          new ForwardJumpCollector(environment, hasExtraArgument: true);
+      newReturn.enterTry(tryStatementInfo.boxedOnEntry);
+      buildTryBlock(tryBuilder);
+      if (tryBuilder.isOpen) {
+        // To cover control falling off the end of the try block, the finally
+        // code is translated at the join point.  This ensures that it is
+        // correctly outside the scope of the catch handler.
+        join.enterTry(tryStatementInfo.boxedOnEntry);
+        tryBuilder.jumpTo(join);
+        join.leaveTry();
+      }
+      newBreaks.forEach(restoreJump);
+      newContinues.forEach(restoreJump);
+      newReturn.leaveTry();
+      tryBuilder.state.breakCollectors = savedBreaks;
+      tryBuilder.state.continueCollectors = savedContinues;
+      tryBuilder.state.returnCollector = savedReturn;
+
+      IrBuilder catchBuilder = tryFinallyBuilder.makeDelimitedBuilder();
+      for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
+        assert(catchBuilder.isInMutableVariable(variable));
+        ir.Primitive value = catchBuilder.buildLocalVariableGet(variable);
+        catchBuilder.removeMutableVariable(variable);
+        catchBuilder.environment.update(variable, value);
+      }
+
+      buildFinallyBlock(catchBuilder);
+      if (catchBuilder.isOpen) {
+        catchBuilder.add(new ir.Rethrow());
+        catchBuilder._current = null;
+      }
+      List<ir.Parameter> catchParameters =
+          <ir.Parameter>[new ir.Parameter(null), new ir.Parameter(null)];
+      ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
+      catchContinuation.body = catchBuilder._root;
+      tryFinallyBuilder.add(
+          new ir.LetHandler(catchContinuation, tryBuilder._root));
+
+      // Build a list of continuations for jumps from the try block and
+      // duplicate the finally code before jumping to the actual target.
+      List<ir.Continuation> exits = <ir.Continuation>[join.continuation];
+      void addJump(JumpCollector newCollector,
+                   JumpCollector originalCollector) {
+        if (newCollector.isEmpty) return;
+        IrBuilder builder = makeDelimitedBuilder(newCollector.environment);
+        buildFinallyBlock(builder);
+        if (builder.isOpen) builder.jumpTo(originalCollector);
+        newCollector.continuation.body = builder._root;
+        exits.add(newCollector.continuation);
+      }
+      for (int i = 0; i < newBreaks.length; ++i) {
+        addJump(newBreaks[i], savedBreaks[i]);
+      }
+      for (int i = 0; i < newContinues.length; ++i) {
+        addJump(newContinues[i], savedContinues[i]);
+      }
+      if (!newReturn.isEmpty) {
+        IrBuilder builder = makeDelimitedBuilder(newReturn.environment);
+        ir.Primitive value = builder.environment.discard(1);
+        buildFinallyBlock(builder);
+        if (builder.isOpen) builder.buildReturn(value);
+        newReturn.continuation.body = builder._root;
+        exits.add(newReturn.continuation);
+      }
+      add(new ir.LetCont.many(exits, tryFinallyBuilder._root));
+      environment = join.environment;
+      buildFinallyBlock(this);
     }
-
-    List<ir.Parameter> catchParameters =
-        <ir.Parameter>[exceptionParameter, traceParameter];
-    ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
-    catchBuilder.add(catchBody);
-    catchContinuation.body = catchBuilder._root;
-
-    tryCatchBuilder.add(
-        new ir.LetHandler(catchContinuation, tryBuilder._root));
-    add(new ir.LetCont(join.continuation, tryCatchBuilder._root));
-    environment = join.environment;
   }
 
   /// Create a return statement `return value;` or `return;` if [value] is
@@ -1879,8 +2013,15 @@ abstract class IrBuilder {
     if (value == null) {
       value = buildNullConstant();
     }
-    add(new ir.InvokeContinuation(state.returnContinuation, [value]));
-    _current = null;
+    if (state.returnCollector == null) {
+      add(new ir.InvokeContinuation(state.returnContinuation, [value]));
+      _current = null;
+    } else {
+      // Inside the try block of try/finally, all returns go to a join-point
+      // continuation that contains the finally code.  The return value is
+      // passed as an extra argument.
+      jumpTo(state.returnCollector, value);
+    }
   }
 
   /// Create a blocks of [statements] by applying [build] to all reachable
@@ -2037,24 +2178,19 @@ abstract class IrBuilder {
     ir.Constant rightTrue = rightTrueBuilder.buildBooleanConstant(true);
     ir.Constant rightFalse = rightFalseBuilder.buildBooleanConstant(false);
 
-    // Treat the result values as named values in the environment, so they
-    // will be treated as arguments to the join-point continuation.
+    // Result values are passed as continuation arguments, which are
+    // constructed based on environments.  These assertions are a sanity check.
     assert(environment.length == emptyBuilder.environment.length);
     assert(environment.length == rightTrueBuilder.environment.length);
     assert(environment.length == rightFalseBuilder.environment.length);
-    // Treat the value of the expression as a local variable so it will get
-    // a continuation parameter.
-    environment.extend(null, null);
-    emptyBuilder.environment.extend(null, leftBool);
-    rightTrueBuilder.environment.extend(null, rightTrue);
-    rightFalseBuilder.environment.extend(null, rightFalse);
 
     // Wire up two continuations for the left subexpression, two continuations
     // for the right subexpression, and a three-way join continuation.
-    JumpCollector join = new ForwardJumpCollector(environment);
-    emptyBuilder.jumpTo(join);
-    rightTrueBuilder.jumpTo(join);
-    rightFalseBuilder.jumpTo(join);
+    JumpCollector join =
+        new ForwardJumpCollector(environment, hasExtraArgument: true);
+    emptyBuilder.jumpTo(join, leftBool);
+    rightTrueBuilder.jumpTo(join, rightTrue);
+    rightFalseBuilder.jumpTo(join, rightFalse);
     ir.Continuation leftTrueContinuation = new ir.Continuation([]);
     ir.Continuation leftFalseContinuation = new ir.Continuation([]);
     ir.Continuation rightTrueContinuation = new ir.Continuation([]);
@@ -2086,10 +2222,7 @@ abstract class IrBuilder {
                               leftTrueContinuation,
                               leftFalseContinuation))));
     environment = join.environment;
-    environment.discard(1);
-    // There is always a join parameter for the result value, because it
-    // is different on at least two paths.
-    return join.continuation.parameters.last;
+    return environment.discard(1);
   }
 
   ir.Primitive buildIdentical(ir.Primitive x, ir.Primitive y) {

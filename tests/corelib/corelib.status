@@ -308,7 +308,7 @@ set_to_string_test: RuntimeError # Please triage this failure.
 shuffle_test: RuntimeError # Please triage this failure.
 sort_test: RuntimeError # Please triage this failure.
 splay_tree_test: RuntimeError # Please triage this failure.
-stacktrace_fromstring_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+stacktrace_fromstring_test: RuntimeError # receiver.get$_collection$_nums is not a function
 stopwatch2_test: RuntimeError # Cannot read property 'prototype' of undefined
 stopwatch_test: RuntimeError # Cannot read property 'prototype' of undefined
 string_codeunits_test: RuntimeError # Please triage this failure.

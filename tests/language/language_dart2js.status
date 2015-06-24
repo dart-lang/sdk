@@ -319,11 +319,11 @@ async_or_generator_return_type_stacktrace_test/02: Crash # (void badReturnTypeAs
 async_or_generator_return_type_stacktrace_test/03: Crash # (void badReturnTypeSyncStar()sync*{}): cannot handle async/sync*/async* functions
 async_regression_23058_test: Crash # (foo()async{return x.foo==2?42:x.foo;}): cannot handle async/sync*/async* functions
 async_rethrow_test: Crash # (rethrowString()asyn...  cannot handle async/sync*/async* functions
-async_return_types_test/nestedFuture: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-async_return_types_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-async_return_types_test/tooManyTypeParameters: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-async_return_types_test/wrongReturnType: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-async_return_types_test/wrongTypeParameter: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+async_return_types_test/nestedFuture: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_return_types_test/none: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_return_types_test/tooManyTypeParameters: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_return_types_test/wrongReturnType: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
+async_return_types_test/wrongTypeParameter: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 async_star_cancel_and_throw_in_finally_test: Crash # (test()async{var com...  cannot handle async/sync*/async* functions
 async_star_regression_23116_test: Crash # (test()async{Complet...  cannot handle async/sync*/async* functions
 async_star_test/01: Crash # (f()async*{}): cannot handle async/sync*/async* functions
@@ -340,16 +340,16 @@ async_test/type-mismatch2: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;
 async_test/type-mismatch3: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
 async_test/type-mismatch4: Crash # (bar(int p1,p2)async{var z=8;return p2+z+foo;}): cannot handle async/sync*/async* functions
 async_this_bound_test: Crash # (test()async{await testA();await testB();}): cannot handle async/sync*/async* functions
-async_throw_in_catch_test/forceAwait: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-async_throw_in_catch_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+async_throw_in_catch_test/forceAwait: Crash # (test()async{await r...  cannot handle async/sync*/async* functions
+async_throw_in_catch_test/none: Crash # (test()async{await r...  cannot handle async/sync*/async* functions
 asyncstar_concat_test: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
-asyncstar_throw_in_catch_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+asyncstar_throw_in_catch_test: Crash # (test()async{await r...  cannot handle async/sync*/async* functions
 asyncstar_yield_test: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 asyncstar_yieldstar_test: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 await_backwards_compatibility_test/none: Crash # (test1()async{var x=await 9;Expect.equals(9,x);}): cannot handle async/sync*/async* functions
 await_exceptions_test: Crash # (awaitFoo()async{await foo();}): cannot handle async/sync*/async* functions
 await_for_cancel_test: Crash # (test()async{await test1();await test2();}): cannot handle async/sync*/async* functions
-await_for_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+await_for_test: Crash # (consumeSomeOfInfini...  cannot handle async/sync*/async* functions
 await_for_use_local_test: Crash # (test()async{var cou...  cannot handle async/sync*/async* functions
 await_future_test: Crash # (test()async{var res...  cannot handle async/sync*/async* functions
 await_nonfuture_test: Crash # (foo()async{Expect.equals(X,10);return await 5;}): cannot handle async/sync*/async* functions
@@ -371,13 +371,11 @@ cha_deopt1_test: RuntimeError # receiver.get$_collection$_nums is not a function
 cha_deopt2_test: RuntimeError # receiver.get$_collection$_nums is not a function
 cha_deopt3_test: RuntimeError # receiver.get$_collection$_nums is not a function
 char_escape_test: RuntimeError # Please triage this failure.
-class_override_test/00: Crash # (try {instance.foo();}on NoSuchMethodError catch (error){}finally {}): try/finally
-class_override_test/none: Crash # (try {instance.foo();}finally {}): try/finally
+class_override_test/00: Crash # (try {instance.foo();}on NoSuchMethodError catch (error){}finally {}): try/catch/finally
 closure7_test: RuntimeError # Cannot read property 'prototype' of undefined
 closure8_test: RuntimeError # Cannot read property 'prototype' of undefined
 closure_cycles_test: RuntimeError # receiver.get$_collection$_nums is not a function
 closure_in_constructor_test: Crash # Invalid argument(s)
-closure_self_reference_test: Crash # (try {return inner(value-1);}finally {counter++ ;}): try/finally
 closure_shared_state_test: RuntimeError # Cannot read property 'prototype' of undefined
 closure_type_variables_test: Crash # Invalid argument(s)
 closures_initializer2_test: RuntimeError # Cannot read property 'prototype' of undefined
@@ -397,70 +395,60 @@ cyclic_type_test/01: RuntimeError # Cannot read property 'prototype' of undefine
 cyclic_type_test/02: RuntimeError # Cannot read property 'prototype' of undefined
 cyclic_type_test/03: RuntimeError # Cannot read property 'prototype' of undefined
 cyclic_type_test/04: RuntimeError # Cannot read property 'prototype' of undefined
-deferred_closurize_load_library_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constant_list_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+deferred_closurize_load_library_test: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constant_list_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_constraints_constants_test/none: Crash # Internal Error: No default constructor available.
 deferred_constraints_constants_test/reference_after_load: Crash # Internal Error: No default constructor available.
-deferred_constraints_type_annotation_test/as_operation: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+deferred_constraints_type_annotation_test/as_operation: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_constraints_type_annotation_test/catch_check: Crash # The null object does not have a getter '_element'.
-deferred_constraints_type_annotation_test/is_check: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/new: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/new_before_load: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/new_generic1: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/new_generic2: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/new_generic3: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/static_method: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/type_annotation1: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/type_annotation_generic1: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/type_annotation_generic2: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/type_annotation_generic3: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/type_annotation_generic4: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/type_annotation_null: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_constraints_type_annotation_test/type_annotation_top_level: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+deferred_constraints_type_annotation_test/is_check: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/new: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/new_before_load: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/new_generic2: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/new_generic3: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/none: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/static_method: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_function_type_test: RuntimeError # receiver.get$_collection$_nums is not a function
-deferred_global_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+deferred_global_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_inlined_test: RuntimeError # receiver.get$_collection$_nums is not a function
-deferred_load_constants_test/none: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+deferred_load_constants_test/none: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_load_inval_code_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_load_library_wrong_args_test/none: RuntimeError # receiver.get$_collection$_nums is not a function
-deferred_mixin_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_no_such_method_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+deferred_mixin_test: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_no_such_method_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_not_loaded_check_test: RuntimeError # Please triage this failure.
 deferred_only_constant_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_optimized_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_redirecting_factory_test: Crash # (test()async{await t...  cannot handle async/sync*/async* functions
 deferred_regression_22995_test: RuntimeError # receiver.get$_collection$_nums is not a function
-deferred_shadow_load_library_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_shared_and_unshared_classes_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deferred_static_seperate_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-deopt_inlined_function_lazy_test: Crash # (try {return x+12342353257893275483274832;}finally {}): try/finally
+deferred_shadow_load_library_test: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_shared_and_unshared_classes_test: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred_static_seperate_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deopt_no_feedback_test: RuntimeError # Please triage this failure.
 enum_duplicate_test/01: RuntimeError # Please triage this failure.
 enum_duplicate_test/02: RuntimeError # Please triage this failure.
 enum_duplicate_test/none: RuntimeError # Please triage this failure.
-enum_mirror_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+enum_mirror_test: Crash # Internal Error: No default constructor available.
 enum_private_test/01: RuntimeError # Please triage this failure.
 enum_private_test/02: RuntimeError # Please triage this failure.
 enum_private_test/none: RuntimeError # Please triage this failure.
-execute_finally10_test: Crash # (try {throw 'foo';}c...  try/finally
-execute_finally11_test: Crash # (try {throw 'foo';}c...  try/finally
-execute_finally12_test: Crash # (try {try {}finally {a=8;break;}}finally {return a==8;}): try/finally
-execute_finally1_test: Crash # (try {int j;j=func();i=1;return i;}finally {i=i+800;}): try/finally
-execute_finally2_test: Crash # (try {int j;j=func()...  try/finally
-execute_finally3_test: Crash # (try {try {int j;j=f...  try/finally
-execute_finally4_test: Crash # (try {int j;j=func();i=1;}finally {i=i+10;}): try/finally
-execute_finally5_test: Crash # (try {int j;j=func()...  try/finally
-execute_finally6_test: Crash # (try {try {int j;j=f...  try/finally
-execute_finally7_test: Crash # (try {var a=new List...  try/finally
-execute_finally8_test: Crash # (try {sum+= 1;return 'hi';}finally {sum+= 1;throw 'ball';sum+= 1;}): try/finally
-execute_finally9_test: Crash # (try {sum+= 1;return...  try/finally
+execute_finally10_test: Crash # (try {throw 'foo';}c...  try/catch/finally
+execute_finally11_test: Crash # (try {throw 'foo';}c...  try/catch/finally
+execute_finally7_test: Crash # (try {var a=new List...  try/catch/finally
+execute_finally9_test: Crash # (try {sum+= 1;return...  try/catch/finally
 f_bounded_equality_test: RuntimeError # Cannot read property 'prototype' of undefined
 fannkuch_test: RuntimeError # Please triage this failure.
 field_increment_bailout_test: RuntimeError # Please triage this failure.
 final_super_field_set_test/01: RuntimeError # Please triage this failure.
-finally_test: Crash # (try {i=12;}finally {Expect.equals(12,i);executedFinally=true;}): try/finally
 fixed_length_test: RuntimeError # Please triage this failure.
 fixed_type_variable_test/02: RuntimeError # Cannot read property 'prototype' of undefined
 fixed_type_variable_test/04: RuntimeError # Cannot read property 'prototype' of undefined
@@ -556,10 +544,9 @@ invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
 is_function_test: RuntimeError # Cannot read property 'prototype' of undefined
 issue12288_test: RuntimeError # Please triage this failure.
 issue13179_test: RuntimeError # Cannot read property 'prototype' of undefined
-issue20476_test: Crash # (try {try {return 1;}catch (e1){}finally {return 3;}}catch (e2){}finally {return 5;}): try/finally
+issue20476_test: Crash # (try {try {return 1;...  try/catch/finally
 issue7513_test: RuntimeError # Please triage this failure.
 issue_1751477_test: RuntimeError # receiver.get$_collection$_nums is not a function
-label_test: Crash # (try {while(doAgain()){break L;}i-- ;}finally {}): try/finally
 large_class_declaration_test: Crash # Stack Overflow
 list_literal3_test: RuntimeError # Please triage this failure.
 list_test: RuntimeError # Please triage this failure.
@@ -588,7 +575,6 @@ mega_load_test: RuntimeError # Please triage this failure.
 method_binding_test: RuntimeError # Cannot read property 'prototype' of undefined
 methods_as_constants2_test: RuntimeError # Cannot read property 'prototype' of undefined
 minify_closure_variable_collision_test: RuntimeError # Please triage this failure.
-mint_arithmetic_test: Crash # (try {f(a,b){var s=b...  try/finally
 mint_compares_test: RuntimeError # Cannot read property 'prototype' of undefined
 mixin_bound_test: Crash # Internal Error: No default constructor available.
 mixin_forwarding_constructor1_test: Crash # Internal Error: No default constructor available.
@@ -641,28 +627,23 @@ regress_11800_test: RuntimeError # Please triage this failure.
 regress_18435_test: Crash # Invalid argument(s)
 regress_18535_test: Crash # Internal Error: No default constructor available.
 regress_21016_test: RuntimeError # Please triage this failure.
-regress_21795_test: Crash # (try {foo(t);}finally {if(t==0){try {}catch (err,st){}}}): try/finally
 regress_22438_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22443_test: RuntimeError # receiver.get$_collection$_nums is not a function
 regress_22445_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22579_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22728_test: Crash # (main()async{bool fa...  cannot handle async/sync*/async* functions
 regress_22777_test: Crash # (test()async{try {te...  cannot handle async/sync*/async* functions
-regress_22822_test: Crash # (try {for(int i=0;i<10;i++ ){return ()=>i+b;}}finally {b=10;}): try/finally
 regress_22936_test/01: Crash # The null object does not have a getter '_element'.
 regress_22936_test/none: Crash # The null object does not have a getter '_element'.
 regress_23498_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/01: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/02: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/none: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
-regress_23537_test: Crash # (try {var b;try {for...  try/finally
-regress_23650_test: Crash # (try {return new C<T>.foo();}finally {}): try/finally
-stack_trace_test: Crash # (try {int j;i=func2(...  try/finally
-statement_test: Crash # (try {throw "foo";}c...  try/finally
+stack_trace_test: Crash # (try {int j;i=func2(...  try/catch/finally
+statement_test: Crash # (try {throw "foo";}c...  try/catch/finally
 static_closure_identical_test: RuntimeError # Cannot read property 'prototype' of undefined
 static_field_test/none: RuntimeError # Cannot read property 'prototype' of undefined
 static_implicit_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
-static_postfix_operator_test: Crash # (try {if(a++ ==0){inIt=true;}}finally {}): try/finally
 string_interpolation_test/01: RuntimeError # Cannot read property 'prototype' of undefined
 string_interpolation_test/none: RuntimeError # Cannot read property 'prototype' of undefined
 string_join_test: RuntimeError # Please triage this failure.
@@ -699,20 +680,16 @@ sync_generator3_test/test2: Crash # (g()sync*{try {yield...  cannot handle async
 syncstar_yield_test/copyParameters: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yield_test/none: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yieldstar_test: Crash # (main()async{Expect....  cannot handle async/sync*/async* functions
-throw1_test: Crash # (try {int j;j=func()...  try/finally
-throw2_test: Crash # (try {int j;j=func()...  try/finally
-throw3_test: Crash # (try {int j;i=100;i=...  try/finally
-throw4_test: Crash # (try {j=func();}on M...  try/finally
-throw5_test: Crash # (try {int j;j=func()...  try/finally
-throw6_test: Crash # (try {j=func();}catc...  try/finally
-throw8_test: Crash # (try {try {return 49...  try/finally
-throw_test: Crash # (try {int j;j=func()...  try/finally
+throw1_test: Crash # (try {int j;j=func()...  try/catch/finally
+throw2_test: Crash # (try {int j;j=func()...  try/catch/finally
+throw3_test: Crash # (try {int j;i=100;i=...  try/catch/finally
+throw4_test: Crash # (try {j=func();}on M...  try/catch/finally
+throw5_test: Crash # (try {int j;j=func()...  try/catch/finally
+throw6_test: Crash # (try {j=func();}catc...  try/catch/finally
+throw_test: Crash # (try {int j;j=func()...  try/catch/finally
 top_level_in_initializer_test: RuntimeError # Cannot read property 'prototype' of undefined
-try_catch3_test: Crash # (try {int j;j=f2();j...  try/finally
-try_catch4_test: Crash # (try {doThrow();}cat...  try/finally
-try_catch5_test: Crash # (try {try {a=8;return;}finally {b=8==a;entered=true;continue;}}finally {continue;}): try/finally
-try_catch_optimized2_test: Crash # (try {bar();}finally {}): try/finally
-try_catch_osr_test: Crash # (try {if(x==null)throw 42;return 99;}finally {}): try/finally
+try_catch3_test: Crash # (try {int j;j=f2();j...  try/catch/finally
+try_catch4_test: Crash # (try {doThrow();}cat...  try/catch/finally
 try_catch_test/none: Crash # The null object does not have a getter '_element'.
 type_check_const_function_typedef2_test/00: RuntimeError # Cannot read property 'prototype' of undefined
 type_check_const_function_typedef2_test/none: RuntimeError # Cannot read property 'prototype' of undefined

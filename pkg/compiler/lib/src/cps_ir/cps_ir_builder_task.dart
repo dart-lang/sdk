@@ -429,9 +429,9 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   visitTryStatement(ast.TryStatement node) {
-    // Finally blocks are not yet implemented.
-    if (node.finallyBlock != null) {
-      return giveup(node, 'try/finally');
+    // Try/catch/finally is not yet implemented.
+    if (!node.catchBlocks.isEmpty && node.finallyBlock != null) {
+      return giveup(node, 'try/catch/finally');
     }
 
     List<CatchClauseInfo> catchClauseInfos = <CatchClauseInfo>[];
@@ -453,10 +453,13 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           buildCatchBlock: subbuild(catchClause.block)));
     }
 
+    SubbuildFunction buildFinallyBlock =
+        node.finallyBlock == null ? null : subbuild(node.finallyBlock);
     irBuilder.buildTry(
         tryStatementInfo: tryStatements[node],
         buildTryBlock: subbuild(node.tryBlock),
         catchClauseInfos: catchClauseInfos,
+        buildFinallyBlock: buildFinallyBlock,
         closureClassMap: closureClassMap);
   }
 

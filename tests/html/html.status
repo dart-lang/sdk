@@ -414,128 +414,128 @@ webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
 
 [ $compiler == dart2js && $cps_ir ]
-async_spawnuri_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-async_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-audiobuffersourcenode_test: Crash # (try {body();}catch ...  try/finally
-audiocontext_test: Crash # (try {body();}catch ...  try/finally
+async_spawnuri_test: Crash # Invalid argument(s)
+async_test: Crash # Invalid argument(s)
+audiobuffersourcenode_test: Crash # (try {body();}catch ...  try/catch/finally
+audiocontext_test: Crash # (try {body();}catch ...  try/catch/finally
 audioelement_test: Crash # Invalid argument(s)
-b_element_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+b_element_test: Crash # Invalid argument(s)
 blob_constructor_test: Crash # Invalid argument(s)
-cache_test: Crash # (try {body();}catch ...  try/finally
-callbacks_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
-canvas_pixel_array_type_alias_test: Crash # (try {body();}catch ...  try/finally
-canvas_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-canvasrenderingcontext2d_test: Crash # (try {body();}catch ...  try/finally
+cache_test: Crash # (try {body();}catch ...  try/catch/finally
+callbacks_test: Crash # Invalid argument(s)
+canvas_pixel_array_type_alias_test: Crash # (try {body();}catch ...  try/catch/finally
+canvas_test: Crash # Invalid argument(s)
+canvasrenderingcontext2d_test: Crash # (try {body();}catch ...  try/catch/finally
 cdata_test: Crash # Invalid argument(s)
 client_rect_test: Crash # Invalid argument(s)
-cross_domain_iframe_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-crypto_test: Crash # (try {body();}catch ...  try/finally
+cross_domain_iframe_test: Crash # Invalid argument(s)
+crypto_test: Crash # (try {body();}catch ...  try/catch/finally
 css_rule_list_test: Crash # Invalid argument(s)
-css_test: Crash # (try {body();}catch ...  try/finally
+css_test: Crash # (try {body();}catch ...  try/catch/finally
 cssstyledeclaration_test: Crash # Invalid argument(s)
-custom/attribute_changed_callback_test: Crash # (try {body();}catch ...  try/finally
+custom/attribute_changed_callback_test: Crash # (try {body();}catch ...  try/catch/finally
 custom/constructor_calls_created_synchronously_test: Crash # Invalid argument(s)
 custom/created_callback_test: Crash # Invalid argument(s)
 custom/document_register_basic_test: Crash # Invalid argument(s)
-custom/document_register_type_extensions_test: Crash # (try {body();}catch ...  try/finally
+custom/document_register_type_extensions_test: Crash # (try {body();}catch ...  try/catch/finally
 custom/element_upgrade_test: Crash # Invalid argument(s)
-custom/entered_left_view_test: Crash # (try {body();}catch ...  try/finally
+custom/entered_left_view_test: Crash # (try {body();}catch ...  try/catch/finally
 custom/js_custom_test: Crash # Invalid argument(s)
 custom/mirrors_test: Crash # Invalid argument(s)
-custom/regress_194523002_test: Crash # (try {return f(arg);}finally {Zone._leave(old);}): try/finally
-custom_element_method_clash_test: Crash # (try {body();}catch ...  try/finally
-custom_element_name_clash_test: Crash # (try {body();}catch ...  try/finally
-custom_elements_23127_test: Crash # (try {body();}catch ...  try/finally
-custom_elements_test: Crash # (try {body();}catch ...  try/finally
+custom/regress_194523002_test: Crash # Internal Error: No default constructor available.
+custom_element_method_clash_test: Crash # (try {body();}catch ...  try/catch/finally
+custom_element_name_clash_test: Crash # (try {body();}catch ...  try/catch/finally
+custom_elements_23127_test: Crash # (try {body();}catch ...  try/catch/finally
+custom_elements_test: Crash # (try {body();}catch ...  try/catch/finally
 custom_tags_test: Crash # Invalid argument(s)
 dart_object_local_storage_test: Crash # Invalid argument(s)
 datalistelement_test: Crash # Invalid argument(s)
-document_test: Crash # (try {body();}catch ...  try/finally
+document_test: Crash # (try {body();}catch ...  try/catch/finally
 documentfragment_test: Crash # Invalid argument(s)
 dom_constructors_test: Crash # Invalid argument(s)
 domparser_test: Crash # Invalid argument(s)
-element_add_test: Crash # (try {body();}catch ...  try/finally
-element_animate_test: Crash # (try {body();}catch ...  try/finally
+element_add_test: Crash # (try {body();}catch ...  try/catch/finally
+element_animate_test: Crash # (try {body();}catch ...  try/catch/finally
 element_classes_svg_test: Crash # Invalid argument(s)
 element_classes_test: Crash # Invalid argument(s)
 element_constructor_1_test: Crash # Invalid argument(s)
-element_dimensions_test: Crash # (try {body();}catch ...  try/finally
-element_offset_test: Crash # (try {body();}catch ...  try/finally
-element_test: Crash # (try {body();}catch ...  try/finally
-element_types_constructors1_test: Crash # (try {body();}catch ...  try/finally
-element_types_constructors2_test: Crash # (try {body();}catch ...  try/finally
-element_types_constructors3_test: Crash # (try {body();}catch ...  try/finally
-element_types_constructors4_test: Crash # (try {body();}catch ...  try/finally
-element_types_constructors5_test: Crash # (try {body();}catch ...  try/finally
-element_types_constructors6_test: Crash # (try {body();}catch ...  try/finally
-element_types_test: Crash # (try {body();}catch ...  try/finally
+element_dimensions_test: Crash # (try {body();}catch ...  try/catch/finally
+element_offset_test: Crash # (try {body();}catch ...  try/catch/finally
+element_test: Crash # (try {body();}catch ...  try/catch/finally
+element_types_constructors1_test: Crash # (try {body();}catch ...  try/catch/finally
+element_types_constructors2_test: Crash # (try {body();}catch ...  try/catch/finally
+element_types_constructors3_test: Crash # (try {body();}catch ...  try/catch/finally
+element_types_constructors4_test: Crash # (try {body();}catch ...  try/catch/finally
+element_types_constructors5_test: Crash # (try {body();}catch ...  try/catch/finally
+element_types_constructors6_test: Crash # (try {body();}catch ...  try/catch/finally
+element_types_test: Crash # (try {body();}catch ...  try/catch/finally
 event_customevent_test: Crash # Invalid argument(s)
 event_test: Crash # Invalid argument(s)
-events_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+events_test: Crash # Invalid argument(s)
 exceptions_test: Crash # Invalid argument(s)
-fileapi_test: Crash # (try {body();}catch ...  try/finally
-filereader_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+fileapi_test: Crash # (try {body();}catch ...  try/catch/finally
+filereader_test: Crash # Invalid argument(s)
 fontface_loaded_test: Crash # Invalid argument(s)
 fontface_test: Crash # Invalid argument(s)
-form_data_test: Crash # (try {body();}catch ...  try/finally
+form_data_test: Crash # (try {body();}catch ...  try/catch/finally
 form_element_test: Crash # Invalid argument(s)
 geolocation_test: Crash # Invalid argument(s)
 hidden_dom_1_test: Crash # Invalid argument(s)
 hidden_dom_2_test: Crash # Invalid argument(s)
-history_test: Crash # (try {body();}catch ...  try/finally
+history_test: Crash # (try {body();}catch ...  try/catch/finally
 htmlcollection_test: Crash # Invalid argument(s)
 htmlelement_test: Crash # Invalid argument(s)
 htmloptionscollection_test: Crash # Invalid argument(s)
-indexeddb_1_test: Crash # (try {body();}catch ...  try/finally
-indexeddb_2_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+indexeddb_1_test: Crash # (try {body();}catch ...  try/catch/finally
+indexeddb_2_test: Crash # Invalid argument(s)
 indexeddb_3_test: Crash # Invalid argument(s)
 indexeddb_4_test: Crash # Invalid argument(s)
 indexeddb_5_test: Crash # Invalid argument(s)
-input_element_test: Crash # (try {body();}catch ...  try/finally
+input_element_test: Crash # (try {body();}catch ...  try/catch/finally
 instance_of_test: Crash # Invalid argument(s)
-isolates_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-js_interop_1_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-js_test: Crash # (try {body();}catch ...  try/finally
-keyboard_event_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+isolates_test: Crash # Invalid argument(s)
+js_interop_1_test: Crash # Invalid argument(s)
+js_test: Crash # (try {body();}catch ...  try/catch/finally
+keyboard_event_test: Crash # Invalid argument(s)
 localstorage_test: Crash # Invalid argument(s)
 location_test: Crash # Invalid argument(s)
-media_stream_test: Crash # (try {body();}catch ...  try/finally
-mediasource_test: Crash # (try {body();}catch ...  try/finally
+media_stream_test: Crash # (try {body();}catch ...  try/catch/finally
+mediasource_test: Crash # (try {body();}catch ...  try/catch/finally
 messageevent_test: Crash # Invalid argument(s)
-mouse_event_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-mutationobserver_test: Crash # (try {body();}catch ...  try/finally
-native_gc_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+mouse_event_test: Crash # Invalid argument(s)
+mutationobserver_test: Crash # (try {body();}catch ...  try/catch/finally
+native_gc_test: Crash # Invalid argument(s)
 navigator_test: Crash # Invalid argument(s)
-node_test: Crash # (try {body();}catch ...  try/finally
-node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash # (try {body();}catch ...  try/finally
+node_test: Crash # (try {body();}catch ...  try/catch/finally
+node_validator_important_if_you_suppress_make_the_bug_critical_test: Crash # (try {body();}catch ...  try/catch/finally
 non_instantiated_is_test: Crash # Invalid argument(s)
-notification_test: Crash # (try {body();}catch ...  try/finally
-performance_api_test: Crash # (try {body();}catch ...  try/finally
-postmessage_structured_test: Crash # (try {body();}catch ...  try/finally
+notification_test: Crash # (try {body();}catch ...  try/catch/finally
+performance_api_test: Crash # (try {body();}catch ...  try/catch/finally
+postmessage_structured_test: Crash # (try {body();}catch ...  try/catch/finally
 query_test: Crash # Invalid argument(s)
 queryall_test: Crash # Invalid argument(s)
-range_test: Crash # (try {body();}catch ...  try/finally
-request_animation_frame_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-rtc_test: Crash # (try {body();}catch ...  try/finally
+range_test: Crash # (try {body();}catch ...  try/catch/finally
+request_animation_frame_test: Crash # Invalid argument(s)
+rtc_test: Crash # (try {body();}catch ...  try/catch/finally
 selectelement_test: Crash # Invalid argument(s)
 serialized_script_value_test: Crash # Invalid argument(s)
-shadow_dom_test: Crash # (try {body();}catch ...  try/finally
+shadow_dom_test: Crash # (try {body();}catch ...  try/catch/finally
 shadowroot_test: Crash # Invalid argument(s)
-speechrecognition_test: Crash # (try {body();}catch ...  try/finally
+speechrecognition_test: Crash # (try {body();}catch ...  try/catch/finally
 storage_quota_test/missingenumcheck: Crash # Invalid argument(s)
 storage_quota_test/none: Crash # Invalid argument(s)
 storage_test: Crash # Invalid argument(s)
 streams_test: Crash # Invalid argument(s)
-svg_test: Crash # (try {body();}catch ...  try/finally
-svgelement_test: Crash # (try {body();}catch ...  try/finally
+svg_test: Crash # (try {body();}catch ...  try/catch/finally
+svgelement_test: Crash # (try {body();}catch ...  try/catch/finally
 table_test: Crash # Invalid argument(s)
 text_event_test: Crash # Invalid argument(s)
-touchevent_test: Crash # (try {body();}catch ...  try/finally
-track_element_constructor_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+touchevent_test: Crash # (try {body();}catch ...  try/catch/finally
+track_element_constructor_test: Crash # Invalid argument(s)
 transferables_test: Crash # Invalid argument(s)
-transition_event_test: Crash # (try {body();}catch ...  try/finally
-trusted_html_tree_sanitizer_test : Crash # bailout: (try {body();}catch (e,trace){var stack=(trace==null)?'':': ${trace.toString()}';environment.uncaughtErrorMessage="${e.toString()}${stack}";}finally {environment.currentContext=environment.currentContext.parent;}): try/finally
-typed_arrays_1_test: Crash # (try {body();}catch ...  try/finally
+transition_event_test: Crash # (try {body();}catch ...  try/catch/finally
+trusted_html_tree_sanitizer_test: Crash # (try {body();}catch ...  try/catch/finally
+typed_arrays_1_test: Crash # (try {body();}catch ...  try/catch/finally
 typed_arrays_2_test: Crash # Invalid argument(s)
 typed_arrays_3_test: Crash # Invalid argument(s)
 typed_arrays_4_test: Crash # Invalid argument(s)
@@ -547,17 +547,17 @@ typed_arrays_simd_test: Crash # Invalid argument(s)
 typing_test: Crash # Invalid argument(s)
 unknownelement_test: Crash # Invalid argument(s)
 uri_test: Crash # Invalid argument(s)
-url_test: Crash # (try {body();}catch ...  try/finally
-webgl_1_test: Crash # (try {body();}catch ...  try/finally
-websocket_test: Crash # (try {body();}catch ...  try/finally
-websql_test: Crash # (try {body();}catch ...  try/finally
-wheelevent_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
+url_test: Crash # (try {body();}catch ...  try/catch/finally
+webgl_1_test: Crash # (try {body();}catch ...  try/catch/finally
+websocket_test: Crash # (try {body();}catch ...  try/catch/finally
+websql_test: Crash # (try {body();}catch ...  try/catch/finally
+wheelevent_test: Crash # Invalid argument(s)
 window_eq_test: Crash # Invalid argument(s)
 window_mangling_test: Crash # Invalid argument(s)
 window_nosuchmethod_test: Crash # Invalid argument(s)
 window_test: Crash # Invalid argument(s)
-worker_api_test: Crash # (try {return f(arg1,arg2);}finally {Zone._leave(old);}): try/finally
-worker_test: Crash # (try {body();}catch ...  try/finally
-xhr_cross_origin_test: Crash # (try {body();}catch ...  try/finally
-xhr_test: Crash # (try {body();}catch ...  try/finally
-xsltprocessor_test: Crash # (try {body();}catch ...  try/finally
+worker_api_test: Crash # Invalid argument(s)
+worker_test: Crash # (try {body();}catch ...  try/catch/finally
+xhr_cross_origin_test: Crash # (try {body();}catch ...  try/catch/finally
+xhr_test: Crash # (try {body();}catch ...  try/catch/finally
+xsltprocessor_test: Crash # (try {body();}catch ...  try/catch/finally
