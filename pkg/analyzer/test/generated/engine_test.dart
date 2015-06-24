@@ -5818,6 +5818,11 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  void test_flushAstStructures(Source source) {
+    fail("Unexpected invocation of test_flushAstStructures");
+  }
+
+  @override
   bool validateCacheConsistency() {
     fail("Unexpected invocation of validateCacheConsistency");
     return false;

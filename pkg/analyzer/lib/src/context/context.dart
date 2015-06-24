@@ -1186,6 +1186,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  void test_flushAstStructures(Source source) {
+    CacheEntry entry = getCacheEntry(source);
+    entry.setState(PARSED_UNIT, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT1, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT2, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT4, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT5, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT6, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
+  }
+
+  @override
   bool validateCacheConsistency() {
     int consistencyCheckStart = JavaSystem.nanoTime();
     HashSet<Source> changedSources = new HashSet<Source>();

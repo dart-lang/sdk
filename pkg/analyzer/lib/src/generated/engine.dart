@@ -2580,6 +2580,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  void test_flushAstStructures(Source source) {
+    DartEntry dartEntry = getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+  }
+
+  @override
   bool validateCacheConsistency() {
     int consistencyCheckStart = JavaSystem.nanoTime();
     List<Source> changedSources = new List<Source>();
@@ -9305,6 +9311,12 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * It is not used there anyway.
    */
   bool shouldErrorsBeAnalyzed(Source source, Object entry);
+
+  /**
+   * For testing only: flush all representations of the AST (both resolved and
+   * unresolved) for the given [source] out of the cache.
+   */
+  void test_flushAstStructures(Source source);
 
   /**
    * Call the given callback function for eache cache item in the context.
