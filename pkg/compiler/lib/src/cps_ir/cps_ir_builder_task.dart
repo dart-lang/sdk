@@ -80,12 +80,14 @@ class IrBuilderTask extends CompilerTask {
   }
 }
 
-
-/// A tree visitor that builds [ir.Node]s.
+/// Translates the frontend AST of a method to its CPS IR.
 ///
-/// The visit methods add statements using the [irBuilder] and return the last
-/// added statement for trees that represent expressions.
+/// The visitor has an [IrBuilder] which contains an IR fragment to build upon
+/// and the current reaching definition of local variables.
 ///
+/// Visiting a statement or expression extends the IR builder's fragment.
+/// For expressions, the primitive holding the resulting value is returned.
+/// For statements, `null` is returned.
 // TODO(johnniwinther): Implement [SemanticDeclVisitor].
 abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     with IrBuilderMixin<ast.Node>,
@@ -2134,9 +2136,6 @@ class GlobalProgramInformation {
 
 /// IR builder specific to the JavaScript backend, coupled to the [JsIrBuilder].
 class JsIrBuilderVisitor extends IrBuilderVisitor {
-  /// Promote the type of [irBuilder] to [JsIrBuilder].
-  JsIrBuilder get irBuilder => super.irBuilder;
-
   JavaScriptBackend get backend => compiler.backend;
 
   /// Result of closure conversion for the current body of code.
@@ -2316,8 +2315,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     return visitor.withBuilder(irBuilder, () => visitor.translateConstant(exp));
   }
 
-  JsIrBuilder getBuilderFor(Element element) {
-    return new JsIrBuilder(
+  IrBuilder getBuilderFor(Element element) {
+    return new IrBuilder(
         new GlobalProgramInformation(compiler),
         compiler.backend.constants,
         element);
@@ -2336,7 +2335,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     constructor = constructor.implementation;
     ClassElement classElement = constructor.enclosingClass.implementation;
 
-    JsIrBuilder builder = getBuilderFor(constructor);
+    IrBuilder builder = getBuilderFor(constructor);
 
     final bool requiresTypeInformation =
         builder.program.requiresRuntimeTypesFor(classElement);
@@ -2387,11 +2386,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
 
       // -- Evaluate field initializers ---
       // Evaluate field initializers in constructor and super constructors.
-      irBuilder.enterInitializers();
       List<ConstructorElement> constructorList = <ConstructorElement>[];
       evaluateConstructorFieldInitializers(
           constructor, constructorList, fieldValues);
-      irBuilder.leaveInitializers();
 
       // All parameters in all constructors are now bound in the environment.
       // BoxLocals for captured parameters are also in the environment.
@@ -2733,7 +2730,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     // variable analysis in some way.
     DartCapturedVariables variables = _analyzeCapturedVariables(node);
     tryStatements = variables.tryStatements;
-    JsIrBuilder builder = getBuilderFor(body);
+    IrBuilder builder = getBuilderFor(body);
 
     return withBuilder(builder, () {
       irBuilder.buildConstructorBodyHeader(getConstructorBodyParameters(body),

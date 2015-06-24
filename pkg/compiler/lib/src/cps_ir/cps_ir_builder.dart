@@ -422,6 +422,8 @@ abstract class IrBuilderMixin<N> {
 
 /// Shared state between delimited IrBuilders within the same function.
 class IrBuilderSharedState {
+  final GlobalProgramInformation program;
+
   final BackendConstantEnvironment constants;
 
   ConstantSystem get constantSystem => constants.constantSystem;
@@ -443,18 +445,22 @@ class IrBuilderSharedState {
   /// a return is intercepted to give a place to generate the finally code.
   JumpCollector returnCollector = null;
 
-  ir.Parameter _thisParameter;
-  ir.Parameter enclosingMethodThisParameter;
+  /// Parameter holding the internal value of 'this' passed to the function.
+  ///
+  /// For nested functions, this is *not* captured receiver, but the function
+  /// object itself.
+  ir.Parameter thisParameter;
+
+  /// If non-null, this refers to the receiver (`this`) in the enclosing method.
+  ir.Primitive enclosingThis;
 
   final List<ir.Parameter> functionParameters = <ir.Parameter>[];
 
-  IrBuilderSharedState(this.constants, this.currentElement);
+  /// Maps boxed locals to their location. These locals are not part of
+  /// the environment.
+  final Map<Local, ClosureLocation> boxedVariables = {};
 
-  ir.Parameter get thisParameter => _thisParameter;
-  void set thisParameter(ir.Parameter value) {
-    assert(_thisParameter == null);
-    _thisParameter = value;
-  }
+  IrBuilderSharedState(this.program, this.constants, this.currentElement);
 }
 
 class ThisParameterLocal implements Local {
@@ -464,72 +470,24 @@ class ThisParameterLocal implements Local {
   toString() => 'ThisParameterLocal($executableContext)';
 }
 
-/// A factory for building the cps IR.
+/// The IR builder maintains an environment and an IR fragment.
 ///
-/// [DartIrBuilder] and [JsIrBuilder] implement nested functions and captured
-/// variables in different ways.
-abstract class IrBuilder {
-  IrBuilder _makeInstance();
-
-  void declareLocalVariable(LocalVariableElement element,
-                            {ir.Primitive initialValue});
-
-  /// Called when entering a nested function with free variables.
-  ///
-  /// The free variables must subsequently be accessible using [buildLocalGet]
-  /// and [buildLocalSet].
-  void _enterClosureEnvironment(ClosureEnvironment env);
-
-  /// Called when entering a function body or loop body.
-  ///
-  /// This is not called for for-loops, which instead use the methods
-  /// [_enterForLoopInitializer], [_enterForLoopBody], and [_enterForLoopUpdate]
-  /// due to their special scoping rules.
-  ///
-  /// The boxed variables declared in this scope must subsequently be available
-  /// using [buildLocalGet], [buildLocalSet], etc.
-  void _enterScope(ClosureScope scope);
-
-  /// Called before building the initializer of a for-loop.
-  ///
-  /// The loop variables will subsequently be declared using
-  /// [declareLocalVariable].
-  void _enterForLoopInitializer(ClosureScope scope,
-                                List<LocalElement> loopVariables);
-
-  /// Called before building the body of a for-loop.
-  void _enterForLoopBody(ClosureScope scope,
-                         List<LocalElement> loopVariables);
-
-  /// Called before building the update of a for-loop.
-  void _enterForLoopUpdate(ClosureScope scope,
-                           List<LocalElement> loopVariables);
-
-  /// Add the given function parameter to the IR, and bind it in the environment
-  /// or put it in its box, if necessary.
-  void _createFunctionParameter(Local parameterElement);
-  void _createThisParameter();
-
-  /// Reifies the value of [variable] on the current receiver object.
-  ir.Primitive buildReifyTypeVariable(TypeVariableType variable);
-
-  /// Creates an access to the receiver from the current (or enclosing) method.
-  ///
-  /// If inside a closure class, [buildThis] will redirect access through
-  /// closure fields in order to access the receiver from the enclosing method.
-  ir.Primitive buildThis();
-
-  /// Creates a type test or type cast of [value] against [type].
-  ir.Primitive buildTypeOperator(ir.Primitive value,
-                                 DartType type,
-                                 {bool isTypeTest});
-
-  // TODO(johnniwinther): Make these field final and remove the default values
-  // when [IrBuilder] is a property of [IrBuilderVisitor] instead of a mixin.
-
+/// The IR fragment is an expression with a hole in it. The hole represents
+/// the focus where new expressions can be added. The fragment is implemented
+/// by [_root] which is the root of the expression and [_current] which is the
+/// expression that immediately contains the hole. Not all expressions have a
+/// hole (e.g., invocations, which always occur in tail position, do not have a
+/// hole). Expressions with a hole have a plug method.
+///
+/// The environment maintains the reaching definition of each local variable,
+/// including some synthetic locals such as [TypeVariableLocal].
+///
+/// Internally, IR builders also maintains a [JumpCollector] stack and tracks
+/// which variables are currently boxed or held in a mutable local variable.
+class IrBuilder {
   final List<ir.Parameter> _parameters = <ir.Parameter>[];
 
-  IrBuilderSharedState state;
+  final IrBuilderSharedState state;
 
   /// A map from variable indexes to their values.
   ///
@@ -542,6 +500,36 @@ abstract class IrBuilder {
   /// Mutable variables are treated as boxed.  Writes to them are observable
   /// side effects.
   Map<Local, ir.MutableVariable> mutableVariables;
+
+  ir.Expression _root = null;
+  ir.Expression _current = null;
+
+  GlobalProgramInformation get program => state.program;
+
+  IrBuilder(GlobalProgramInformation program,
+            BackendConstantEnvironment constants,
+            ExecutableElement currentElement)
+    : state = new IrBuilderSharedState(program, constants, currentElement),
+      environment = new Environment.empty(),
+      mutableVariables = <Local, ir.MutableVariable>{};
+
+  IrBuilder._internal(this.state, this.environment, this.mutableVariables);
+
+  /// Construct a delimited visitor for visiting a subtree.
+  ///
+  /// Build a subterm that is not (yet) connected to the CPS term.  The
+  /// delimited visitor has its own has its own context for building an IR
+  /// expression, so the built expression is not plugged into the parent's
+  /// context.  It has its own compile-time environment mapping local
+  /// variables to their values.  If an optional environment argument is
+  /// supplied, it is used as the builder's initial environment.  Otherwise
+  /// the environment is initially a copy of the parent builder's environment.
+  IrBuilder makeDelimitedBuilder([Environment env = null]) {
+    return new IrBuilder._internal(
+        state,
+        env != null ? env : new Environment.from(environment),
+        mutableVariables);
+  }
 
   /// True if [local] should currently be accessed from a [ir.MutableVariable].
   bool isInMutableVariable(Local local) {
@@ -566,57 +554,6 @@ abstract class IrBuilder {
     return mutableVariables[local];
   }
 
-  // The IR builder maintains a context, which is an expression with a hole in
-  // it.  The hole represents the focus where new expressions can be added.
-  // The context is implemented by 'root' which is the root of the expression
-  // and 'current' which is the expression that immediately contains the hole.
-  // Not all expressions have a hole (e.g., invocations, which always occur in
-  // tail position, do not have a hole).  Expressions with a hole have a plug
-  // method.
-  //
-  // Conceptually, visiting a statement takes a context as input and returns
-  // either a new context or else an expression without a hole if all
-  // control-flow paths through the statement have exited.  An expression
-  // without a hole is represented by a (root, current) pair where root is the
-  // expression and current is null.
-  //
-  // Conceptually again, visiting an expression takes a context as input and
-  // returns either a pair of a new context and a definition denoting
-  // the expression's value, or else an expression without a hole if all
-  // control-flow paths through the expression have exited.
-  //
-  // We do not pass contexts as arguments or return them.  Rather we use the
-  // current context (root, current) as the visitor state and mutate current.
-  // Visiting a statement returns null; visiting an expression returns the
-  // primitive denoting its value.
-
-  ir.Expression _root = null;
-  ir.Expression _current = null;
-
-  /// Initialize a new top-level IR builder.
-  void _init(BackendConstantEnvironment constants,
-             ExecutableElement currentElement) {
-    state = new IrBuilderSharedState(constants, currentElement);
-    environment = new Environment.empty();
-    mutableVariables = <Local, ir.MutableVariable>{};
-  }
-
-  /// Construct a delimited visitor for visiting a subtree.
-  ///
-  /// Build a subterm that is not (yet) connected to the CPS term.  The
-  /// delimited visitor has its own has its own context for building an IR
-  /// expression, so the built expression is not plugged into the parent's
-  /// context.  It has its own compile-time environment mapping local
-  /// variables to their values.  If an optional environment argument is
-  /// supplied, it is used as the builder's initial environment.  Otherwise
-  /// the environment is initially a copy of the parent builder's environment.
-  IrBuilder makeDelimitedBuilder([Environment env = null]) {
-    return _makeInstance()
-        ..state = state
-        ..environment = env != null ? env : new Environment.from(environment)
-        ..mutableVariables = mutableVariables;
-  }
-
   bool get isOpen => _root == null || _current != null;
 
   List<ir.Primitive> buildFunctionHeader(Iterable<Local> parameters,
@@ -630,7 +567,7 @@ abstract class IrBuilder {
   }
 
   /// Creates a parameter for [local] and adds it to the current environment.
-  ir.Parameter createLocalParameter(Local local) {
+  ir.Parameter _createLocalParameter(Local local) {
     ir.Parameter parameter = new ir.Parameter(local);
     _parameters.add(parameter);
     environment.extend(local, parameter);
@@ -858,15 +795,6 @@ abstract class IrBuilder {
     return _buildInvokeSuper(method, selector, arguments);
   }
 
-  /// Create a read access of the [field] on the super class.
-  ir.Primitive buildSuperFieldGet(FieldElement field) {
-    // TODO(johnniwinther): This should have its own ir node.
-    return _buildInvokeSuper(
-        field,
-        new Selector.getter(field.name, field.library),
-        const <ir.Primitive>[]);
-  }
-
   /// Create a read access of the [method] on the super class, i.e. a
   /// closurization of [method].
   ir.Primitive buildSuperMethodGet(MethodElement method) {
@@ -884,16 +812,6 @@ abstract class IrBuilder {
         getter,
         new Selector.getter(getter.name, getter.library),
         const <ir.Primitive>[]);
-  }
-
-  /// Create a write access to the [field] on the super class of with [value].
-  ir.Primitive buildSuperFieldSet(Element field, ir.Primitive value) {
-    // TODO(johnniwinther): This should have its own ir node.
-    _buildInvokeSuper(
-        field,
-        new Selector.setter(field.name, field.library),
-        <ir.Primitive>[value]);
-    return value;
   }
 
   /// Create an setter invocation of the [setter] on the super class with
@@ -935,19 +853,6 @@ abstract class IrBuilder {
     return _buildInvokeDynamic(receiver, selector, arguments);
   }
 
-  /// Create an if-null expression. This is equivalent to a conditional
-  /// expression whose result is either [value] if [value] is not null, or
-  /// `right` if [value] is null. Only when [value] is null, [buildRight] is
-  /// evaluated to produce the `right` value.
-  ir.Primitive buildIfNull(ir.Primitive value,
-                           ir.Primitive buildRight(IrBuilder builder));
-
-  /// Create a conditional send. This is equivalent to a conditional expression
-  /// that checks if [receiver] is null, if so, it returns null, otherwise it
-  /// evaluates the [buildSend] expression.
-  ir.Primitive buildIfNotNullSend(ir.Primitive receiver,
-                                  ir.Primitive buildSend(IrBuilder builder));
-
   /// Create a dynamic getter invocation on [receiver] where the getter name is
   /// defined by [selector].
   ir.Primitive buildDynamicGet(ir.Primitive receiver, Selector selector) {
@@ -967,15 +872,13 @@ abstract class IrBuilder {
 
   /// Create a dynamic index set invocation on [receiver] with the provided
   /// [index] and [value].
-  ir.Primitive  buildDynamicIndexSet(ir.Primitive receiver,
-                                     ir.Primitive index,
-                                     ir.Primitive value) {
+  ir.Primitive buildDynamicIndexSet(ir.Primitive receiver,
+                                    ir.Primitive index,
+                                    ir.Primitive value) {
     _buildInvokeDynamic(
         receiver, new Selector.indexSet(), <ir.Primitive>[index, value]);
     return value;
   }
-
-  ir.Primitive _buildLocalGet(LocalElement element);
 
   /// Create a read access of the [local] variable or parameter.
   ir.Primitive buildLocalVariableGet(LocalElement local) {
@@ -989,10 +892,6 @@ abstract class IrBuilder {
     // TODO(johnniwinther): Separate function access from variable access.
     return _buildLocalGet(function);
   }
-
-  /// Create a write access to the [local] variable or parameter with the
-  /// provided [value].
-  ir.Primitive buildLocalVariableSet(LocalElement local, ir.Primitive value);
 
   /// Create an invocation of the the [local] variable or parameter where
   /// argument structure is defined by [callStructure] and the argument values
@@ -1087,16 +986,6 @@ abstract class IrBuilder {
     // TODO(johnniwinther): This should have its own ir node.
     return _buildInvokeStatic(element, selector, arguments, null);
   }
-
-  /// Create a constructor invocation of [element] on [type] where the
-  /// constructor name and argument structure are defined by [callStructure] and
-  /// the argument values are defined by [arguments].
-  ir.Primitive buildConstructorInvocation(FunctionElement element,
-                                          CallStructure callStructure,
-                                          DartType type,
-                                          List<ir.Primitive> arguments);
-
-  ir.Primitive buildStringify(ir.Primitive argument);
 
   /// Concatenate string values.
   ///
@@ -2229,51 +2118,11 @@ abstract class IrBuilder {
     return addPrimitive(new ir.ApplyBuiltinOperator(
         ir.BuiltinOperator.Identical, <ir.Primitive>[x, y]));
   }
-}
 
-/// State shared between JsIrBuilders within the same function.
-///
-/// Note that this is not shared between builders of nested functions.
-class JsIrBuilderSharedState {
-  /// Maps boxed locals to their location. These locals are not part of
-  /// the environment.
-  final Map<Local, ClosureLocation> boxedVariables = {};
-
-  /// If non-null, this refers to the receiver (`this`) in the enclosing method.
-  ir.Primitive receiver;
-
-  /// `true` when we are currently building expressions inside the initializer
-  /// list of a constructor.
-  bool inInitializers = false;
-}
-
-/// JS-specific subclass of [IrBuilder].
-///
-/// Inner functions are represented by a [ClosureClassElement], and captured
-/// variables are boxed as necessary using [CreateBox], [GetField], [SetField].
-class JsIrBuilder extends IrBuilder {
-  final JsIrBuilderSharedState jsState;
-  final GlobalProgramInformation program;
-
-  IrBuilder _makeInstance() => new JsIrBuilder._blank(program, jsState);
-  JsIrBuilder._blank(this.program, this.jsState);
-
-  JsIrBuilder(this.program, BackendConstantEnvironment constants,
-      ExecutableElement currentElement)
-      : jsState = new JsIrBuilderSharedState() {
-    _init(constants, currentElement);
-  }
-
-  void enterInitializers() {
-    assert(jsState.inInitializers == false);
-    jsState.inInitializers = true;
-  }
-
-  void leaveInitializers() {
-    assert(jsState.inInitializers == true);
-    jsState.inInitializers = false;
-  }
-
+  /// Called when entering a nested function with free variables.
+  ///
+  /// The free variables must subsequently be accessible using [buildLocalGet]
+  /// and [buildLocalSet].
   void _enterClosureEnvironment(ClosureEnvironment env) {
     if (env == null) return;
 
@@ -2284,7 +2133,7 @@ class JsIrBuilder extends IrBuilder {
     env.freeVariables.forEach((Local local, ClosureLocation location) {
       if (location.isBox) {
         // Boxed variables are loaded from their box on-demand.
-        jsState.boxedVariables[local] = location;
+        state.boxedVariables[local] = location;
       } else {
         // Unboxed variables are loaded from the function object immediately.
         // This includes BoxLocals which are themselves unboxed variables.
@@ -2296,7 +2145,7 @@ class JsIrBuilder extends IrBuilder {
     // If the function captures a reference to the receiver from the
     // enclosing method, remember which primitive refers to the receiver object.
     if (env.thisLocal != null && env.freeVariables.containsKey(env.thisLocal)) {
-      jsState.receiver = environment.lookup(env.thisLocal);
+      state.enclosingThis = environment.lookup(env.thisLocal);
     }
 
     // If the function has a self-reference, use the value of `this`.
@@ -2312,24 +2161,34 @@ class JsIrBuilder extends IrBuilder {
   /// [declareLocalVariable], [buildLocalGet], and [buildLocalSet].
   void enterScope(ClosureScope scope) => _enterScope(scope);
 
+  /// Called when entering a function body or loop body.
+  ///
+  /// This is not called for for-loops, which instead use the methods
+  /// [_enterForLoopInitializer], [_enterForLoopBody], and [_enterForLoopUpdate]
+  /// due to their special scoping rules.
+  ///
+  /// The boxed variables declared in this scope must subsequently be available
+  /// using [buildLocalGet], [buildLocalSet], etc.
   void _enterScope(ClosureScope scope) {
     if (scope == null) return;
     ir.CreateBox boxPrim = addPrimitive(new ir.CreateBox());
     environment.extend(scope.box, boxPrim);
     boxPrim.useElementAsHint(scope.box);
     scope.capturedVariables.forEach((Local local, ClosureLocation location) {
-      assert(!jsState.boxedVariables.containsKey(local));
+      assert(!state.boxedVariables.containsKey(local));
       if (location.isBox) {
-        jsState.boxedVariables[local] = location;
+        state.boxedVariables[local] = location;
       }
     });
   }
 
+  /// Add the given function parameter to the IR, and bind it in the environment
+  /// or put it in its box, if necessary.
   void _createFunctionParameter(Local parameterElement) {
     ir.Parameter parameter = new ir.Parameter(parameterElement);
     _parameters.add(parameter);
     state.functionParameters.add(parameter);
-    ClosureLocation location = jsState.boxedVariables[parameterElement];
+    ClosureLocation location = state.boxedVariables[parameterElement];
     if (location != null) {
       add(new ir.SetField(environment.lookup(location.box),
                           location.field,
@@ -2340,6 +2199,7 @@ class JsIrBuilder extends IrBuilder {
   }
 
   void _createThisParameter() {
+    assert(state.thisParameter == null);
     if (Elements.isStaticOrTopLevel(state.currentElement)) return;
     if (state.currentElement.isLocal) return;
     state.thisParameter =
@@ -2352,7 +2212,7 @@ class JsIrBuilder extends IrBuilder {
     if (initialValue == null) {
       initialValue = buildNullConstant();
     }
-    ClosureLocation location = jsState.boxedVariables[variableElement];
+    ClosureLocation location = state.boxedVariables[variableElement];
     if (location != null) {
       add(new ir.SetField(environment.lookup(location.box),
                           location.field,
@@ -2388,10 +2248,9 @@ class JsIrBuilder extends IrBuilder {
   }
 
   /// Create a read access of [local] variable or parameter.
-  @override
   ir.Primitive _buildLocalGet(LocalElement local) {
     assert(isOpen);
-    ClosureLocation location = jsState.boxedVariables[local];
+    ClosureLocation location = state.boxedVariables[local];
     if (location != null) {
       ir.Primitive result = new ir.GetField(environment.lookup(location.box),
                                             location.field);
@@ -2406,10 +2265,9 @@ class JsIrBuilder extends IrBuilder {
 
   /// Create a write access to [local] variable or parameter with the provided
   /// [value].
-  @override
   ir.Primitive buildLocalVariableSet(LocalElement local, ir.Primitive value) {
     assert(isOpen);
-    ClosureLocation location = jsState.boxedVariables[local];
+    ClosureLocation location = state.boxedVariables[local];
     if (location != null) {
       add(new ir.SetField(environment.lookup(location.box),
                           location.field,
@@ -2423,6 +2281,10 @@ class JsIrBuilder extends IrBuilder {
     return value;
   }
 
+  /// Called before building the initializer of a for-loop.
+  ///
+  /// The loop variables will subsequently be declared using
+  /// [declareLocalVariable].
   void _enterForLoopInitializer(ClosureScope scope,
                                 List<LocalElement> loopVariables) {
     if (scope == null) return;
@@ -2432,6 +2294,7 @@ class JsIrBuilder extends IrBuilder {
     _enterScope(scope);
   }
 
+  /// Called before building the body of a for-loop.
   void _enterForLoopBody(ClosureScope scope,
                          List<LocalElement> loopVariables) {
     if (scope == null) return;
@@ -2441,6 +2304,7 @@ class JsIrBuilder extends IrBuilder {
     _enterScope(scope);
   }
 
+  /// Called before building the update of a for-loop.
   void _enterForLoopUpdate(ClosureScope scope,
                            List<LocalElement> loopVariables) {
     if (scope == null) return;
@@ -2458,18 +2322,20 @@ class JsIrBuilder extends IrBuilder {
     environment.update(scope.box, newBox);
   }
 
+  /// Creates an access to the receiver from the current (or enclosing) method.
+  ///
+  /// If inside a closure class, [buildThis] will redirect access through
+  /// closure fields in order to access the receiver from the enclosing method.
   ir.Primitive buildThis() {
-    if (jsState.receiver != null) return jsState.receiver;
+    if (state.enclosingThis != null) return state.enclosingThis;
     assert(state.thisParameter != null);
     return state.thisParameter;
   }
 
-  @override
   ir.Primitive buildSuperFieldGet(FieldElement target) {
     return addPrimitive(new ir.GetField(buildThis(), target));
   }
 
-  @override
   ir.Primitive buildSuperFieldSet(FieldElement target, ir.Primitive value) {
     add(new ir.SetField(buildThis(), target, value));
     return value;
@@ -2495,15 +2361,17 @@ class JsIrBuilder extends IrBuilder {
                                   ClosureScope closureScope) {
     _createThisParameter();
     for (Local param in parameters) {
-      ir.Parameter parameter = createLocalParameter(param);
+      ir.Parameter parameter = _createLocalParameter(param);
       state.functionParameters.add(parameter);
     }
     if (closureScope != null) {
-      jsState.boxedVariables.addAll(closureScope.capturedVariables);
+      state.boxedVariables.addAll(closureScope.capturedVariables);
     }
   }
 
-  @override
+  /// Create a constructor invocation of [element] on [type] where the
+  /// constructor name and argument structure are defined by [callStructure] and
+  /// the argument values are defined by [arguments].
   ir.Primitive buildConstructorInvocation(ConstructorElement element,
                                           CallStructure callStructure,
                                           DartType type,
@@ -2576,7 +2444,7 @@ class JsIrBuilder extends IrBuilder {
         buildTypeExpression(binding));
   }
 
-  @override
+  /// Reifies the value of [variable] on the current receiver object.
   ir.Primitive buildReifyTypeVariable(TypeVariableType variable) {
     ir.Primitive typeArgument = buildTypeVariableAccess(variable);
     return addPrimitive(new ir.ReifyRuntimeType(typeArgument));
@@ -2605,10 +2473,11 @@ class JsIrBuilder extends IrBuilder {
       add(new ir.ForeignCode(codeTemplate, type, arguments, behavior,
           dependency: dependency));
       _current = null;
+      return null;
     }
   }
 
-  @override
+  /// Creates a type test or type cast of [value] against [type].
   ir.Primitive buildTypeOperator(ir.Primitive value,
                                  DartType type,
                                  {bool isTypeTest}) {
@@ -2656,14 +2525,19 @@ class JsIrBuilder extends IrBuilder {
     }
   }
 
-  @override
+  /// Create an if-null expression. This is equivalent to a conditional
+  /// expression whose result is either [value] if [value] is not null, or
+  /// `right` if [value] is null. Only when [value] is null, [buildRight] is
+  /// evaluated to produce the `right` value.
   ir.Primitive buildIfNull(ir.Primitive value,
                            ir.Primitive buildRight(IrBuilder builder)) {
     ir.Primitive condition = _buildCheckNull(value);
     return buildConditional(condition, buildRight, (_) => value);
   }
 
-  @override
+  /// Create a conditional send. This is equivalent to a conditional expression
+  /// that checks if [receiver] is null, if so, it returns null, otherwise it
+  /// evaluates the [buildSend] expression.
   ir.Primitive buildIfNotNullSend(ir.Primitive receiver,
                                   ir.Primitive buildSend(IrBuilder builder)) {
     ir.Primitive condition = _buildCheckNull(receiver);
