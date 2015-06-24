@@ -57,8 +57,16 @@ test() {
   var x = 5 ?? bomb();
 }
 
+// Check that instructions without result do not crash.
+test2() {
+  var c;
+  c?.v;
+  c?.m(bomb());
+}
+
 main() {
   for (int i = 0; i < 10; i++) {
     test();
+    test2();
   }
 }
