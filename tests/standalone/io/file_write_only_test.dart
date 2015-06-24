@@ -62,7 +62,7 @@ void writeSync(Directory dir) {
   raf.writeStringSync('Hello');
   raf.setPositionSync(0);
   Expect.throws(() => raf.readByteSync());
-  raf.close();
+  raf.closeSync();
 }
 
 Future openWrite(Directory dir) async {
@@ -78,8 +78,8 @@ Future openWrite(Directory dir) async {
 
 main() async {
   asyncStart();
-  await withTempDir('file_write_only_test_1', write);
-  withTempDirSync('file_write_only_test_2', writeSync);
-  await withTempDir('file_write_only_test_3', openWrite);
+  await withTempDir('file_write_only_test_1_', write);
+  withTempDirSync('file_write_only_test_2_', writeSync);
+  await withTempDir('file_write_only_test_3_', openWrite);
   asyncEnd();
 }
