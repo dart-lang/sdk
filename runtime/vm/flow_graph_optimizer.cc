@@ -167,10 +167,6 @@ static bool IsNumberCid(intptr_t cid) {
 
 
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
-  // TODO(srdjan): Investigate failures in:
-  //  corelib/big_integer_arith_vm_test
-  //  dart2js/members_test
-  //  language/try_catch_optimized1_test
   ASSERT(call->HasICData());
   if (call->ic_data()->NumberOfUsedChecks() > 0) {
     // This occurs when an instance call has too many checks, will be converted
@@ -214,44 +210,74 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     }
   }
 
+  bool all_cids_known = true;
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     if (class_ids[i] == kDynamicCid) {
       // Not all cid-s known.
-      return false;
+      all_cids_known = false;
+      break;
     }
   }
 
-  const Array& args_desc_array = Array::Handle(Z,
-      ArgumentsDescriptor::New(call->ArgumentCount(), call->argument_names()));
-  ArgumentsDescriptor args_desc(args_desc_array);
-  const Class& receiver_class = Class::Handle(Z,
-      isolate()->class_table()->At(class_ids[0]));
-  const Function& function = Function::Handle(Z,
-      Resolver::ResolveDynamicForReceiverClass(
-          receiver_class,
-          call->function_name(),
-          args_desc));
-  if (function.IsNull()) {
-    return false;
+  if (all_cids_known) {
+    const Array& args_desc_array = Array::Handle(Z,
+        ArgumentsDescriptor::New(call->ArgumentCount(),
+                                 call->argument_names()));
+    ArgumentsDescriptor args_desc(args_desc_array);
+    const Class& receiver_class = Class::Handle(Z,
+        isolate()->class_table()->At(class_ids[0]));
+    const Function& function = Function::Handle(Z,
+        Resolver::ResolveDynamicForReceiverClass(
+            receiver_class,
+            call->function_name(),
+            args_desc));
+    if (function.IsNull()) {
+      return false;
+    }
+
+    // Create new ICData, do not modify the one attached to the instruction
+    // since it is attached to the assembly instruction itself.
+    // TODO(srdjan): Prevent modification of ICData object that is
+    // referenced in assembly code.
+    const ICData& ic_data = ICData::ZoneHandle(Z,
+        ICData::NewFrom(*call->ic_data(), class_ids.length()));
+    if (class_ids.length() > 1) {
+      ic_data.AddCheck(class_ids, function);
+    } else {
+      ASSERT(class_ids.length() == 1);
+      ic_data.AddReceiverCheck(class_ids[0], function);
+    }
+    call->set_ic_data(&ic_data);
+    return true;
   }
-  // Create new ICData, do not modify the one attached to the instruction
-  // since it is attached to the assembly instruction itself.
-  // TODO(srdjan): Prevent modification of ICData object that is
-  // referenced in assembly code.
-  ICData& ic_data = ICData::ZoneHandle(Z, ICData::New(
-      flow_graph_->function(),
-      call->function_name(),
-      args_desc_array,
-      call->deopt_id(),
-      class_ids.length()));
-  if (class_ids.length() > 1) {
-    ic_data.AddCheck(class_ids, function);
-  } else {
-    ASSERT(class_ids.length() == 1);
-    ic_data.AddReceiverCheck(class_ids[0], function);
+
+  // Check if getter or setter in function's class and class is currently leaf.
+  if ((call->token_kind() == Token::kGET) ||
+      (call->token_kind() == Token::kSET)) {
+    const Class& owner_class = Class::Handle(Z, function().Owner());
+    if (!owner_class.is_abstract() &&
+        !CHA::HasSubclasses(owner_class) &&
+        !CHA::IsImplemented(owner_class)) {
+      const Array& args_desc_array = Array::Handle(Z,
+          ArgumentsDescriptor::New(call->ArgumentCount(),
+                                   call->argument_names()));
+      ArgumentsDescriptor args_desc(args_desc_array);
+      const Function& function = Function::Handle(Z,
+          Resolver::ResolveDynamicForReceiverClass(owner_class,
+                                                   call->function_name(),
+                                                   args_desc));
+      if (function.IsNull()) {
+        return false;
+      }
+      const ICData& ic_data = ICData::ZoneHandle(Z,
+          ICData::NewFrom(*call->ic_data(), class_ids.length()));
+      ic_data.AddReceiverCheck(owner_class.id(), function);
+      call->set_ic_data(&ic_data);
+      return true;
+    }
   }
-  call->set_ic_data(&ic_data);
-  return true;
+
+  return false;
 }
 
 
