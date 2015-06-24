@@ -2143,6 +2143,18 @@ class CodeRegionTrieBuilder : public TrieBuilder {
 };
 
 
+class NoAllocationSampleFilter : public SampleFilter {
+ public:
+  explicit NoAllocationSampleFilter(Isolate* isolate)
+      : SampleFilter(isolate) {
+  }
+
+  bool FilterSample(Sample* sample) {
+    return !sample->is_allocation_sample();
+  }
+};
+
+
 void ProfilerService::PrintJSON(JSONStream* stream, TagOrder tag_order) {
   Isolate* isolate = Isolate::Current();
   // Disable profile interrupts while processing the buffer.
@@ -2163,7 +2175,7 @@ void ProfilerService::PrintJSON(JSONStream* stream, TagOrder tag_order) {
     ProcessedSampleBuffer* processed_samples = NULL;
     {
       ScopeTimer sw("BuildProcessedSampleBuffer", FLAG_trace_profiler);
-      SampleFilter filter(isolate);
+      NoAllocationSampleFilter filter(isolate);
       processed_samples = sample_buffer->BuildProcessedSampleBuffer(&filter);
     }
 
