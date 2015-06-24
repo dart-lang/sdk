@@ -5181,7 +5181,7 @@ class SsaBuilder extends NewResolvedVisitor {
       Selector selector,
       _) {
     if (element is ErroneousElement) {
-      // An erroneous element indicates that the funciton could not be
+      // An erroneous element indicates that the function could not be
       // resolved (a warning has been issued).
       handleInvalidStaticInvoke(node, element);
     } else {
