@@ -2614,6 +2614,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   void internalPerform() {
     Source source = getRequiredSource();
     LineInfo lineInfo = getRequiredInput(LINE_INFO_INPUT_NAME);
+    int modificationTime = getRequiredInput(MODIFICATION_TIME_INPUT_NAME);
     Token tokenStream = getRequiredInput(TOKEN_STREAM_INPUT_NAME);
 
     RecordingErrorListener errorListener = new RecordingErrorListener();
@@ -2662,7 +2663,9 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     // Compute kind.
     //
     SourceKind sourceKind = SourceKind.LIBRARY;
-    if (hasPartOfDirective && !hasNonPartOfDirective) {
+    if (modificationTime == -1) {
+      sourceKind = SourceKind.UNKNOWN;
+    } else if (hasPartOfDirective && !hasNonPartOfDirective) {
       sourceKind = SourceKind.PART;
     }
     //
@@ -2694,6 +2697,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     return <String, TaskInput>{
       LINE_INFO_INPUT_NAME: LINE_INFO.of(target),
+      MODIFICATION_TIME_INPUT_NAME: MODIFICATION_TIME.of(target),
       TOKEN_STREAM_INPUT_NAME: TOKEN_STREAM.of(target)
     };
   }
