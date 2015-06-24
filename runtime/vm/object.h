@@ -1363,6 +1363,11 @@ class Class : public Object {
   RawArray* cha_codes() const { return raw_ptr()->cha_codes_; }
   void set_cha_codes(const Array& value) const;
 
+  bool trace_allocation() const {
+    return TraceAllocationBit::decode(raw_ptr()->state_bits_);
+  }
+  void SetTraceAllocation(bool trace_allocation) const;
+
  private:
   enum MemberKind {
     kAny = 0,
@@ -1386,6 +1391,7 @@ class Class : public Object {
     kFieldsMarkedNullableBit = 11,
     kCycleFreeBit = 12,
     kEnumBit = 13,
+    kTraceAllocationBit = 14,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1402,6 +1408,7 @@ class Class : public Object {
       kFieldsMarkedNullableBit, 1> {};  // NOLINT
   class CycleFreeBit : public BitField<bool, kCycleFreeBit, 1> {};
   class EnumBit : public BitField<bool, kEnumBit, 1> {};
+  class TraceAllocationBit : public BitField<bool, kTraceAllocationBit, 1> {};
 
   void set_name(const String& value) const;
   void set_pretty_name(const String& value) const;

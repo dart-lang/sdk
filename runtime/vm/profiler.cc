@@ -820,6 +820,58 @@ static void CollectSample(Isolate* isolate,
 }
 
 
+void Profiler::RecordAllocation(Isolate* isolate, intptr_t cid) {
+  if ((isolate == NULL) || (Dart::vm_isolate() == NULL)) {
+    // No isolate.
+    return;
+  }
+  ASSERT(isolate != Dart::vm_isolate());
+
+  const bool exited_dart_code = (isolate->stub_code() != NULL) &&
+                                (isolate->top_exit_frame_info() != 0) &&
+                                (isolate->vm_tag() != VMTag::kDartTagId);
+
+  if (!exited_dart_code) {
+    // No Dart frames on stack.
+    // TODO(johnmccutchan): Support collecting native stack.
+    return;
+  }
+
+  IsolateProfilerData* profiler_data = isolate->profiler_data();
+  if (profiler_data == NULL) {
+    // Profiler not initialized.
+    return;
+  }
+
+  SampleBuffer* sample_buffer = profiler_data->sample_buffer();
+  if (sample_buffer == NULL) {
+    // Profiler not initialized.
+    return;
+  }
+
+  const ThreadId thread_id = OSThread::GetCurrentThreadId();
+  // Setup sample.
+  Sample* sample = sample_buffer->ReserveSample();
+  sample->Init(isolate, OS::GetCurrentTimeMicros(), thread_id);
+  uword vm_tag = isolate->vm_tag();
+  #if defined(USING_SIMULATOR)
+  // When running in the simulator, the runtime entry function address
+  // (stored as the vm tag) is the address of a redirect function.
+  // Attempt to find the real runtime entry function address and use that.
+  uword redirect_vm_tag = Simulator::FunctionForRedirect(vm_tag);
+  if (redirect_vm_tag != 0) {
+    vm_tag = redirect_vm_tag;
+  }
+  #endif
+  sample->set_vm_tag(vm_tag);
+  sample->set_user_tag(isolate->user_tag());
+  sample->SetAllocationCid(cid);
+
+  ProfilerDartExitStackWalker dart_exit_stack_walker(isolate, sample);
+  dart_exit_stack_walker.walk();
+}
+
+
 void Profiler::RecordSampleInterruptCallback(
     const InterruptedThreadState& state,
     void* data) {

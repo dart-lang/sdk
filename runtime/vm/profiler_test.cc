@@ -100,4 +100,36 @@ TEST_CASE(Profiler_AllocationSampleTest) {
   delete sample_buffer;
 }
 
+static RawClass* GetClass(const Library& lib, const char* name) {
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New(name))));
+  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+  return cls.raw();
+}
+
+
+TEST_CASE(Profiler_TrivialRecordAllocation) {
+  const char* kScript =
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "}\n"
+      "main() {\n"
+      "  var z = new A();\n"
+      "  return z;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+  class_a.SetTraceAllocation(true);
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+}
+
 }  // namespace dart

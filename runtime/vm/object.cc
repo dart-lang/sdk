@@ -34,6 +34,7 @@
 #include "vm/intrinsifier.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/profiler.h"
 #include "vm/report.h"
 #include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
@@ -1731,10 +1732,15 @@ RawObject* Object::Allocate(intptr_t cls_id,
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
+  ClassTable* class_table = isolate->class_table();
   if (space == Heap::kNew) {
-    isolate->class_table()->UpdateAllocatedNew(cls_id, size);
+    class_table->UpdateAllocatedNew(cls_id, size);
   } else {
-    isolate->class_table()->UpdateAllocatedOld(cls_id, size);
+    class_table->UpdateAllocatedOld(cls_id, size);
+  }
+  const Class& cls = Class::Handle(class_table->At(cls_id));
+  if (cls.trace_allocation()) {
+    Profiler::RecordAllocation(isolate, cls_id);
   }
   NoSafepointScope no_safepoint;
   InitializeObject(address, cls_id, size);
@@ -2722,6 +2728,16 @@ void Class::RegisterCHACode(const Code& code) {
 void Class::DisableCHAOptimizedCode() {
   CHACodeArray a(*this);
   a.DisableCode();
+}
+
+
+void Class::SetTraceAllocation(bool trace_allocation) const {
+  const bool changed = trace_allocation != this->trace_allocation();
+  set_state_bits(
+      TraceAllocationBit::update(trace_allocation, raw_ptr()->state_bits_));
+  if (changed) {
+    // TODO(johnmccutchan): Deoptimize the world?
+  }
 }
 
 

@@ -44,6 +44,8 @@ class Profiler : public AllStatic {
     return sample_buffer_;
   }
 
+  static void RecordAllocation(Isolate* isolate, intptr_t cid);
+
  private:
   static bool initialized_;
   static Monitor* monitor_;
@@ -306,6 +308,11 @@ class Sample {
 
   void set_metadata(intptr_t metadata) {
     metadata_ = metadata;
+  }
+
+  void SetAllocationCid(intptr_t cid) {
+    set_is_allocation_sample(true);
+    set_metadata(cid);
   }
 
   static void InitOnce();
