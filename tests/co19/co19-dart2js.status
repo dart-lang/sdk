@@ -268,7 +268,6 @@ LibTest/core/List/List_class_A01_t01: Pass, Timeout
 
 [ $compiler == dart2js && $runtime == jsshell ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Issue 21198 (int/double related)
-Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Issue 21199
 LibTest/async/Future/Future.delayed_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 LibTest/async/Future/Future.delayed_A03_t01: fail # Issue 7728, timer not supported in jsshell
 LibTest/async/Future/wait_A01_t07: RuntimeError # Issue 7728, timer not supported in jsshell
@@ -350,7 +349,6 @@ LibTest/core/int/toRadixString_A01_t01: RuntimeError, OK # Bad test: uses Expect
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: fail # co19-roll r587: Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Issue 21198 (int/double related)
-Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Issue 21199
 LibTest/typed_data/Int32x4/operator_OR_A01_t01: RuntimeError # Issue 7728, timer not supported in jsshell
 
 [ $compiler == dart2js && $runtime == d8 && $system == windows ]
@@ -561,7 +559,6 @@ WebPlatformTest/html/dom/documents/dom-tree-accessors/document.getElementsByName
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure.
 Language/12_Expressions/05_Strings_A06_t01: Pass, Slow # Please triage this failure.
 Language/12_Expressions/05_Strings_A06_t01: Pass, Slow # Please triage this failure.
-Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please triage this failure.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t01: Fail # Issue 22200.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail # Issue 22200.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail # Issue 22200.
@@ -591,7 +588,6 @@ LibTest/typed_data/Uint8ClampedList/map_A02_t01: Pass, Slow # Please triage this
 
 [ $compiler == dart2js && $runtime == chrome ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
@@ -1574,7 +1570,6 @@ LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please tria
 
 [ $compiler == dart2js && $runtime == ff ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please triage this failure
 Language/12_Expressions/28_Postfix_Expressions_A07_t02: Skip # Times out. Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
@@ -3134,7 +3129,6 @@ LibTest/html/HttpRequest/responseType_A01_t02: RuntimeError # Please triage this
 
 [ $compiler == dart2js && $runtime == safari ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
@@ -4387,7 +4381,6 @@ WebPlatformTest/webstorage/storage_session_setitem_t01: Skip # Times out. Please
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
@@ -5716,7 +5709,6 @@ LayoutTests/fast/table/hittest-tablecell-with-borders-bottom-edge_t01: RuntimeEr
 [ $compiler == dart2js && $runtime == ie10 ]
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
 Language/12_Expressions/17_Getter_Invocation_A03_t02: Skip # Times out. Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
@@ -7746,7 +7738,6 @@ WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please tr
 Language/05_Variables/05_Variables_A14_t07: Skip # Times out. Please triage this failure
 Language/06_Functions/2_Formal_Parameters_A02_t01: Skip # Times out. Please triage this failure
 Language/12_Expressions/00_Object_Identity/1_Object_Identity_A05_t02: RuntimeError # Please triage this failure
-Language/12_Expressions/17_Getter_Invocation_A07_t02: RuntimeError # Please triage this failure
 Language/12_Expressions/19_Conditional_A06_t04: Skip # Times out. Please triage this failure
 Language/12_Expressions/30_Identifier_Reference_A10_t02: Skip # Times out. Please triage this failure
 Language/13_Statements/03_Variable_Declaration_A01_t18: Skip # Times out. Please triage this failure
