@@ -300,21 +300,20 @@ class JSInvocationMirror implements Invocation {
     for (var index = 0 ; index < argumentCount ; index++) {
       list.add(_arguments[index]);
     }
-    return makeLiteralListConst(list);
+    return JSArray.markUnmodifiableList(list);
   }
 
   Map<Symbol, dynamic> get namedArguments {
-    // TODO: Make maps const (issue 10471)
-    if (isAccessor) return <Symbol, dynamic>{};
+    if (isAccessor) return const <Symbol, dynamic>{};
     int namedArgumentCount = _namedArgumentNames.length;
     int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;
-    if (namedArgumentCount == 0) return <Symbol, dynamic>{};
+    if (namedArgumentCount == 0) return const <Symbol, dynamic>{};
     var map = new Map<Symbol, dynamic>();
     for (int i = 0; i < namedArgumentCount; i++) {
       map[new _symbol_dev.Symbol.unvalidated(_namedArgumentNames[i])] =
           _arguments[namedArgumentsStartIndex + i];
     }
-    return map;
+    return new ConstantMapView<Symbol, dynamic>(map);
   }
 
   _getCachedInvocation(Object object) {
@@ -1503,12 +1502,6 @@ toStringWrapper() {
  */
 throwExpression(ex) {
   JS('void', 'throw #', wrapException(ex));
-}
-
-makeLiteralListConst(list) {
-  JS('bool', r'#.immutable$list = #', list, true);
-  JS('bool', r'#.fixed$length = #', list, true);
-  return list;
 }
 
 throwRuntimeError(message) {
