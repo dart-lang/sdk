@@ -277,14 +277,23 @@ Sample* SampleBuffer::ReserveSample() {
 class ReturnAddressLocator : public ValueObject {
  public:
   ReturnAddressLocator(Sample* sample, const Code& code)
-      : sample_(sample),
+      : stack_buffer_(sample->GetStackBuffer()),
+        pc_(sample->pc()),
         code_(Code::ZoneHandle(code.raw())) {
     ASSERT(!code_.IsNull());
     ASSERT(code_.ContainsInstructionAt(pc()));
   }
 
+  ReturnAddressLocator(uword pc, uword* stack_buffer, const Code& code)
+      : stack_buffer_(stack_buffer),
+        pc_(pc),
+        code_(Code::ZoneHandle(code.raw())) {
+    ASSERT(!code_.IsNull());
+    ASSERT(code_.ContainsInstructionAt(pc_));
+  }
+
   uword pc() {
-    return sample_->pc();
+    return pc_;
   }
 
   // Returns false on failure.
@@ -307,11 +316,12 @@ class ReturnAddressLocator : public ValueObject {
   uword StackAt(intptr_t i) {
     ASSERT(i >= 0);
     ASSERT(i < Sample::kStackBufferSizeInWords);
-    return sample_->GetStackBuffer()[i];
+    return stack_buffer_[i];
   }
 
  private:
-  Sample* sample_;
+  uword* stack_buffer_;
+  uword pc_;
   const Code& code_;
 };
 
@@ -383,109 +393,6 @@ bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
 #else
 #error ReturnAddressLocator implementation missing for this architecture.
 #endif
-
-
-PreprocessVisitor::PreprocessVisitor(Isolate* isolate)
-    : SampleVisitor(isolate),
-      vm_isolate_(Dart::vm_isolate()) {
-}
-
-
-void PreprocessVisitor::VisitSample(Sample* sample) {
-  if (sample->processed()) {
-    // Already processed.
-    return;
-  }
-  // Mark that we've processed this sample.
-  sample->set_processed(true);
-
-  if (sample->exit_frame_sample()) {
-    // Exit frame sample, no preprocessing required.
-    return;
-  }
-  REUSABLE_CODE_HANDLESCOPE(isolate());
-  // Lookup code object for leaf frame.
-  Code& code = reused_code_handle.Handle();
-  code = FindCodeForPC(sample->At(0));
-  sample->set_leaf_frame_is_dart(!code.IsNull());
-  if (!code.IsNull() && (code.compile_timestamp() > sample->timestamp())) {
-    // Code compiled after sample. Ignore.
-    return;
-  }
-  if (sample->leaf_frame_is_dart()) {
-    CheckForMissingDartFrame(code, sample);
-  }
-}
-
-
-void PreprocessVisitor::CheckForMissingDartFrame(const Code& code,
-                                                 Sample* sample) const {
-  // Some stubs (and intrinsics) do not push a frame onto the stack leaving
-  // the frame pointer in the caller.
-  //
-  // PC -> STUB
-  // FP -> DART3  <-+
-  //       DART2  <-|  <- TOP FRAME RETURN ADDRESS.
-  //       DART1  <-|
-  //       .....
-  //
-  // In this case, traversing the linked stack frames will not collect a PC
-  // inside DART3. The stack will incorrectly be: STUB, DART2, DART1.
-  // In Dart code, after pushing the FP onto the stack, an IP in the current
-  // function is pushed onto the stack as well. This stack slot is called
-  // the PC marker. We can use the PC marker to insert DART3 into the stack
-  // so that it will correctly be: STUB, DART3, DART2, DART1. Note the
-  // inserted PC may not accurately reflect the true return address into DART3.
-  ASSERT(!code.IsNull());
-
-  // The pc marker is our current best guess of a return address.
-  uword return_address = sample->pc_marker();
-
-  // Attempt to find a better return address.
-  ReturnAddressLocator ral(sample, code);
-
-  if (!ral.LocateReturnAddress(&return_address)) {
-    ASSERT(return_address == sample->pc_marker());
-    if (code.GetPrologueOffset() == 0) {
-      // Code has the prologue at offset 0. The frame is already setup and
-      // can be trusted.
-      return;
-    }
-    // Could not find a better return address than the pc_marker.
-    if (code.ContainsInstructionAt(return_address)) {
-      // PC marker is in the same code as pc, no missing frame.
-      return;
-    }
-  }
-
-  if (!ContainedInDartCodeHeaps(return_address)) {
-    // return address is not from the Dart heap. Do not insert.
-    return;
-  }
-
-  if (return_address != 0) {
-    sample->InsertCallerForTopFrame(return_address);
-  }
-}
-
-
-bool PreprocessVisitor::ContainedInDartCodeHeaps(uword pc) const {
-  return isolate()->heap()->CodeContains(pc) ||
-         vm_isolate()->heap()->CodeContains(pc);
-}
-
-
-RawCode* PreprocessVisitor::FindCodeForPC(uword pc) const {
-  // Check current isolate for pc.
-  if (isolate()->heap()->CodeContains(pc)) {
-    return Code::LookupCode(pc);
-  }
-  // Check VM isolate for pc.
-  if (vm_isolate()->heap()->CodeContains(pc)) {
-    return Code::LookupCodeInVmIsolate(pc);
-  }
-  return Code::null();
-}
 
 
 ClearProfileVisitor::ClearProfileVisitor(Isolate* isolate)
@@ -1078,6 +985,205 @@ void Profiler::RecordSampleInterruptCallback(
                 pc,
                 fp,
                 sp);
+}
+
+
+ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
+    SampleFilter* filter) {
+  ASSERT(filter != NULL);
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  ProcessedSampleBuffer* buffer = new(zone) ProcessedSampleBuffer();
+
+  const intptr_t length = capacity();
+  for (intptr_t i = 0; i < length; i++) {
+    Sample* sample = At(i);
+    if (sample->ignore_sample()) {
+      // Bad sample.
+      continue;
+    }
+    if (sample->isolate() != filter->isolate()) {
+      // Another isolate.
+      continue;
+    }
+    if (sample->timestamp() == 0) {
+      // Empty.
+      continue;
+    }
+    if (sample->At(0) == 0) {
+      // No frames.
+      continue;
+    }
+    if (!filter->FilterSample(sample)) {
+      // Did not pass filter.
+      continue;
+    }
+    buffer->Add(BuildProcessedSample(sample));
+  }
+  return buffer;
+}
+
+
+ProcessedSample* SampleBuffer::BuildProcessedSample(Sample* sample) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  ProcessedSample* processed_sample = new(zone) ProcessedSample();
+
+  // Copy state bits from sample.
+  processed_sample->set_timestamp(sample->timestamp());
+  processed_sample->set_vm_tag(sample->vm_tag());
+  processed_sample->set_user_tag(sample->user_tag());
+  if (sample->is_allocation_sample()) {
+    processed_sample->set_allocation_cid(sample->allocation_cid());
+  }
+  processed_sample->set_first_frame_executing(!sample->exit_frame_sample());
+
+  // Copy stack trace from sample(s).
+  bool truncated = false;
+  Sample* current = sample;
+  while (current != NULL) {
+    for (intptr_t i = 0; i < FLAG_profile_depth; i++) {
+      if (current->At(i) == 0) {
+        break;
+      }
+      processed_sample->Add(current->At(i));
+    }
+
+    truncated = truncated || current->truncated_trace();
+    current = Next(sample);
+  }
+
+  if (!sample->exit_frame_sample()) {
+    Isolate* isolate = thread->isolate();
+    Isolate* vm_isolate = Dart::vm_isolate();
+    processed_sample->FixupCaller(isolate,
+                                  vm_isolate,
+                                  sample->pc_marker(),
+                                  sample->GetStackBuffer());
+  }
+
+  processed_sample->set_truncated(truncated);
+  return processed_sample;
+}
+
+
+Sample* SampleBuffer::Next(Sample* sample) {
+  // TODO(johnmccutchan): Support chaining samples for complete stack traces.
+  return NULL;
+}
+
+
+ProcessedSample::ProcessedSample()
+    : pcs_(FLAG_profile_depth),
+      timestamp_(0),
+      vm_tag_(0),
+      user_tag_(0),
+      allocation_cid_(-1),
+      truncated_(false) {
+}
+
+
+void ProcessedSample::FixupCaller(Isolate* isolate,
+                                  Isolate* vm_isolate,
+                                  uword pc_marker,
+                                  uword* stack_buffer) {
+  REUSABLE_CODE_HANDLESCOPE(isolate);
+  // Lookup code object for leaf frame.
+  Code& code = reused_code_handle.Handle();
+  code = FindCodeForPC(isolate, vm_isolate, At(0));
+  if (code.IsNull()) {
+    return;
+  }
+  if (code.compile_timestamp() > timestamp()) {
+    // Code compiled after sample. Ignore.
+    return;
+  }
+  CheckForMissingDartFrame(isolate, vm_isolate, code, pc_marker, stack_buffer);
+}
+
+
+void ProcessedSample::CheckForMissingDartFrame(Isolate* isolate,
+                                               Isolate* vm_isolate,
+                                               const Code& code,
+                                               uword pc_marker,
+                                               uword* stack_buffer) {
+  // Some stubs (and intrinsics) do not push a frame onto the stack leaving
+  // the frame pointer in the caller.
+  //
+  // PC -> STUB
+  // FP -> DART3  <-+
+  //       DART2  <-|  <- TOP FRAME RETURN ADDRESS.
+  //       DART1  <-|
+  //       .....
+  //
+  // In this case, traversing the linked stack frames will not collect a PC
+  // inside DART3. The stack will incorrectly be: STUB, DART2, DART1.
+  // In Dart code, after pushing the FP onto the stack, an IP in the current
+  // function is pushed onto the stack as well. This stack slot is called
+  // the PC marker. We can use the PC marker to insert DART3 into the stack
+  // so that it will correctly be: STUB, DART3, DART2, DART1. Note the
+  // inserted PC may not accurately reflect the true return address into DART3.
+  ASSERT(!code.IsNull());
+
+  // The pc marker is our current best guess of a return address.
+  uword return_address = pc_marker;
+
+  // Attempt to find a better return address.
+  ReturnAddressLocator ral(At(0), stack_buffer, code);
+
+  if (!ral.LocateReturnAddress(&return_address)) {
+    ASSERT(return_address == pc_marker);
+    if (code.GetPrologueOffset() == 0) {
+      // Code has the prologue at offset 0. The frame is already setup and
+      // can be trusted.
+      return;
+    }
+    // Could not find a better return address than the pc_marker.
+    if (code.ContainsInstructionAt(return_address)) {
+      // PC marker is in the same code as pc, no missing frame.
+      return;
+    }
+  }
+
+  if (!ContainedInDartCodeHeaps(isolate, vm_isolate, return_address)) {
+    // return address is not from the Dart heap. Do not insert.
+    return;
+  }
+
+  if (return_address != 0) {
+    InsertAt(1, return_address);
+  }
+}
+
+
+RawCode* ProcessedSample::FindCodeForPC(Isolate* isolate,
+                                        Isolate* vm_isolate,
+                                        uword pc) {
+  // Check current isolate for pc.
+  if (isolate->heap()->CodeContains(pc)) {
+    return Code::LookupCode(pc);
+  }
+
+  // Check VM isolate for pc.
+  if (vm_isolate->heap()->CodeContains(pc)) {
+    return Code::LookupCodeInVmIsolate(pc);
+  }
+
+  return Code::null();
+}
+
+
+bool ProcessedSample::ContainedInDartCodeHeaps(Isolate* isolate,
+                                               Isolate* vm_isolate,
+                                               uword pc) {
+  return vm_isolate->heap()->CodeContains(pc)
+         || isolate->heap()->CodeContains(pc);
+}
+
+
+ProcessedSampleBuffer::ProcessedSampleBuffer() {
 }
 
 }  // namespace dart
