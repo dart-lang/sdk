@@ -554,8 +554,8 @@ class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
 
   factory _LinkedIdentityHashMap.es6() {
     return (_USE_ES6_MAPS && _LinkedIdentityHashMap._supportsEs6Maps)
-        ? new _LinkedIdentityHashMap<K, V>()
-        : new _Es6LinkedIdentityHashMap<K, V>();
+        ? new _Es6LinkedIdentityHashMap<K, V>()
+        : new _LinkedIdentityHashMap<K, V>();
   }
 
   _LinkedIdentityHashMap();
