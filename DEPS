@@ -38,7 +38,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_rev" : "@090c4859a2f88e62ae71a11583ba31e9999c74f6",
+  "analyzer_cli_rev" : "@5d48af14a206a731616fa23fe25918efe4957ee2",
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
   "charcode_tag": "@1.1.0",
