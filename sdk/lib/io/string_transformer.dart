@@ -5,6 +5,12 @@
 part of dart.io;
 
 /// The current system encoding.
+///
+/// This us used for converting from bytes to/from String when
+/// communicating on stdin, stdout and stderr.
+///
+/// On Windows this will use the currently active code page for the
+/// conversion. On all other systems it will always use UTF-8.
 const SystemEncoding SYSTEM_ENCODING = const SystemEncoding();
 
 /**

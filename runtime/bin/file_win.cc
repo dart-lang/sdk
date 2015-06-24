@@ -17,6 +17,7 @@
 #include "bin/builtin.h"
 #include "bin/log.h"
 #include "bin/utils.h"
+#include "bin/utils_win.h"
 #include "platform/utils.h"
 
 
@@ -167,7 +168,7 @@ File* File::Open(const char* name, FileOpenMode mode) {
   if ((mode & kTruncate) != 0) {
     flags = flags | O_TRUNC;
   }
-  const wchar_t* system_name = StringUtils::Utf8ToWide(name);
+  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
   int fd = _wopen(system_name, flags, 0666);
   free(const_cast<wchar_t*>(system_name));
   if (fd < 0) {
@@ -201,7 +202,7 @@ File* File::OpenStdio(int fd) {
 
 bool File::Exists(const char* name) {
   struct __stat64 st;
-  const wchar_t* system_name = StringUtils::Utf8ToWide(name);
+  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
   bool stat_status = _wstat64(system_name, &st);
   free(const_cast<wchar_t*>(system_name));
   if (stat_status == 0) {
@@ -213,7 +214,7 @@ bool File::Exists(const char* name) {
 
 
 bool File::Create(const char* name) {
-  const wchar_t* system_name = StringUtils::Utf8ToWide(name);
+  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
   int fd = _wopen(system_name, O_RDONLY | O_CREAT, 0666);
   free(const_cast<wchar_t*>(system_name));
   if (fd < 0) {
@@ -259,7 +260,7 @@ static const int kMountPointHeaderSize = 4 * sizeof USHORT;
 
 
 bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
-  const wchar_t* name = StringUtils::Utf8ToWide(utf8_name);
+  const wchar_t* name = StringUtilsWin::Utf8ToWide(utf8_name);
   int create_status = CreateDirectoryW(name, NULL);
   // If the directory already existed, treat it as a success.
   if (create_status == 0 &&
@@ -282,7 +283,7 @@ bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
     return false;
   }
 
-  const wchar_t* target = StringUtils::Utf8ToWide(utf8_target);
+  const wchar_t* target = StringUtilsWin::Utf8ToWide(utf8_target);
   int target_len = wcslen(target);
   if (target_len > MAX_PATH - 1) {
     free(const_cast<wchar_t*>(target));
@@ -326,7 +327,7 @@ bool File::CreateLink(const char* utf8_name, const char* utf8_target) {
 
 
 bool File::Delete(const char* name) {
-  const wchar_t* system_name = StringUtils::Utf8ToWide(name);
+  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
   int status = _wremove(system_name);
   free(const_cast<wchar_t*>(system_name));
   return status != -1;
@@ -334,7 +335,7 @@ bool File::Delete(const char* name) {
 
 
 bool File::DeleteLink(const char* name) {
-  const wchar_t* system_name = StringUtils::Utf8ToWide(name);
+  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
   bool result = false;
   DWORD attributes = GetFileAttributesW(system_name);
   if ((attributes != INVALID_FILE_ATTRIBUTES) &&
@@ -352,8 +353,8 @@ bool File::DeleteLink(const char* name) {
 bool File::Rename(const char* old_path, const char* new_path) {
   File::Type type = GetType(old_path, false);
   if (type == kIsFile) {
-    const wchar_t* system_old_path = StringUtils::Utf8ToWide(old_path);
-    const wchar_t* system_new_path = StringUtils::Utf8ToWide(new_path);
+    const wchar_t* system_old_path = StringUtilsWin::Utf8ToWide(old_path);
+    const wchar_t* system_new_path = StringUtilsWin::Utf8ToWide(new_path);
     DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
     int move_status =
         MoveFileExW(system_old_path, system_new_path, flags);
@@ -370,8 +371,8 @@ bool File::Rename(const char* old_path, const char* new_path) {
 bool File::RenameLink(const char* old_path, const char* new_path) {
   File::Type type = GetType(old_path, false);
   if (type == kIsLink) {
-    const wchar_t* system_old_path = StringUtils::Utf8ToWide(old_path);
-    const wchar_t* system_new_path = StringUtils::Utf8ToWide(new_path);
+    const wchar_t* system_old_path = StringUtilsWin::Utf8ToWide(old_path);
+    const wchar_t* system_new_path = StringUtilsWin::Utf8ToWide(new_path);
     DWORD flags = MOVEFILE_WRITE_THROUGH | MOVEFILE_REPLACE_EXISTING;
     int move_status =
         MoveFileExW(system_old_path, system_new_path, flags);
@@ -388,8 +389,8 @@ bool File::RenameLink(const char* old_path, const char* new_path) {
 bool File::Copy(const char* old_path, const char* new_path) {
   File::Type type = GetType(old_path, false);
   if (type == kIsFile) {
-    const wchar_t* system_old_path = StringUtils::Utf8ToWide(old_path);
-    const wchar_t* system_new_path = StringUtils::Utf8ToWide(new_path);
+    const wchar_t* system_old_path = StringUtilsWin::Utf8ToWide(old_path);
+    const wchar_t* system_new_path = StringUtilsWin::Utf8ToWide(new_path);
     bool success = CopyFileExW(system_old_path,
                                system_new_path,
                                NULL,
@@ -408,7 +409,7 @@ bool File::Copy(const char* old_path, const char* new_path) {
 
 int64_t File::LengthFromPath(const char* name) {
   struct __stat64 st;
-  const wchar_t* system_name = StringUtils::Utf8ToWide(name);
+  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
   int stat_status = _wstat64(system_name, &st);
   free(const_cast<wchar_t*>(system_name));
   if (stat_status == 0) {
@@ -419,7 +420,7 @@ int64_t File::LengthFromPath(const char* name) {
 
 
 char* File::LinkTarget(const char* pathname) {
-  const wchar_t* name = StringUtils::Utf8ToWide(pathname);
+  const wchar_t* name = StringUtilsWin::Utf8ToWide(pathname);
   HANDLE dir_handle = CreateFileW(
       name,
       GENERIC_READ,
@@ -516,7 +517,7 @@ void File::Stat(const char* name, int64_t* data) {
   data[kType] = type;
   if (type != kDoesNotExist) {
     struct _stat64 st;
-    const wchar_t* system_name = StringUtils::Utf8ToWide(name);
+    const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
     int stat_status = _wstat64(system_name, &st);
     free(const_cast<wchar_t*>(system_name));
     if (stat_status == 0) {
@@ -534,7 +535,7 @@ void File::Stat(const char* name, int64_t* data) {
 
 time_t File::LastModified(const char* name) {
   struct __stat64 st;
-  const wchar_t* system_name = StringUtils::Utf8ToWide(name);
+  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(name);
   int stat_status = _wstat64(system_name, &st);
   free(const_cast<wchar_t*>(system_name));
   if (stat_status == 0) {
@@ -554,7 +555,7 @@ bool File::IsAbsolutePath(const char* pathname) {
 
 
 char* File::GetCanonicalPath(const char* pathname) {
-  const wchar_t* system_name = StringUtils::Utf8ToWide(pathname);
+  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(pathname);
   HANDLE file_handle = CreateFileW(
         system_name,
         0,
@@ -592,9 +593,9 @@ char* File::GetCanonicalPath(const char* pathname) {
       result_size > 4 &&
       wcsncmp(path, L"\\\\?\\", 4) == 0 &&
       wcsncmp(system_name, L"\\\\?\\", 4) != 0) {
-    result = StringUtils::WideToUtf8(path + 4);
+    result = StringUtilsWin::WideToUtf8(path + 4);
   } else {
-    result = StringUtils::WideToUtf8(path);
+    result = StringUtilsWin::WideToUtf8(path);
   }
   free(const_cast<wchar_t*>(system_name));
   free(path);
@@ -623,7 +624,7 @@ File::StdioHandleType File::GetStdioHandleType(int fd) {
 
 
 File::Type File::GetType(const char* pathname, bool follow_links) {
-  const wchar_t* name = StringUtils::Utf8ToWide(pathname);
+  const wchar_t* name = StringUtilsWin::Utf8ToWide(pathname);
   DWORD attributes = GetFileAttributesW(name);
   File::Type result = kIsFile;
   if (attributes == INVALID_FILE_ATTRIBUTES) {
@@ -659,7 +660,7 @@ File::Identical File::AreIdentical(const char* file_1, const char* file_2) {
   BY_HANDLE_FILE_INFORMATION file_info[2];
   const char* file_names[2] = { file_1, file_2 };
   for (int i = 0; i < 2; ++i) {
-    const wchar_t* wide_name = StringUtils::Utf8ToWide(file_names[i]);
+    const wchar_t* wide_name = StringUtilsWin::Utf8ToWide(file_names[i]);
     HANDLE file_handle = CreateFileW(
         wide_name,
         0,

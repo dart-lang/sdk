@@ -309,7 +309,7 @@ static int SetOsErrorMessage(char** os_error_message) {
   const int kMaxMessageLength = 256;
   wchar_t message[kMaxMessageLength];
   FormatMessageIntoBuffer(error_code, message, kMaxMessageLength);
-  *os_error_message = StringUtils::WideToUtf8(message);
+  *os_error_message = StringUtilsWin::WideToUtf8(message);
   return error_code;
 }
 
@@ -433,10 +433,10 @@ class ProcessStarter {
     exit_handles_[kWriteHandle] = INVALID_HANDLE_VALUE;
 
     // Transform input strings to system format.
-    const wchar_t* system_path = StringUtils::Utf8ToWide(path_);
+    const wchar_t* system_path = StringUtilsWin::Utf8ToWide(path_);
     wchar_t** system_arguments = new wchar_t*[arguments_length];
     for (int i = 0; i < arguments_length; i++) {
-       system_arguments[i] = StringUtils::Utf8ToWide(arguments[i]);
+       system_arguments[i] = StringUtilsWin::Utf8ToWide(arguments[i]);
     }
 
     // Compute command-line length.
@@ -474,7 +474,7 @@ class ProcessStarter {
       wchar_t** system_environment = new wchar_t*[environment_length];
       // Convert environment strings to system strings.
       for (intptr_t i = 0; i < environment_length; i++) {
-        system_environment[i] = StringUtils::Utf8ToWide(environment[i]);
+        system_environment[i] = StringUtilsWin::Utf8ToWide(environment[i]);
       }
 
       // An environment block is a sequence of zero-terminated strings
@@ -506,7 +506,8 @@ class ProcessStarter {
 
     system_working_directory_ = NULL;
     if (working_directory_ != NULL) {
-      system_working_directory_ = StringUtils::Utf8ToWide(working_directory_);
+      system_working_directory_ =
+          StringUtilsWin::Utf8ToWide(working_directory_);
     }
 
     attribute_list_ = NULL;

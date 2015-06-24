@@ -291,29 +291,53 @@ void FUNCTION_NAME(SystemEncodingToString)(Dart_NativeArguments args) {
   intptr_t bytes_length = 0;
   Dart_Handle result = Dart_ListLength(bytes, &bytes_length);
   if (Dart_IsError(result)) Dart_PropagateError(result);
-  uint8_t* buffer = new uint8_t[bytes_length + 1];
+  uint8_t* buffer =
+      reinterpret_cast<uint8_t*>(Dart_ScopeAllocate(bytes_length + 1));
   result = Dart_ListGetAsBytes(bytes, 0, buffer, bytes_length);
   buffer[bytes_length] = '\0';
-  if (Dart_IsError(result)) {
-    delete[] buffer;
-    Dart_PropagateError(result);
-  }
+  if (Dart_IsError(result)) Dart_PropagateError(result);
+  intptr_t len;
   char* str =
-      StringUtils::ConsoleStringToUtf8(reinterpret_cast<char*>(buffer));
-  Dart_SetReturnValue(args, DartUtils::NewString(str));
-  if (str != reinterpret_cast<char*>(buffer)) free(str);
+      StringUtils::ConsoleStringToUtf8(
+          reinterpret_cast<char*>(buffer),
+          bytes_length,
+          &len);
+  if (str == NULL) {
+    Dart_ThrowException(
+        DartUtils::NewInternalError("SystemEncodingToString failed"));
+  }
+  result =
+      Dart_NewStringFromUTF8(reinterpret_cast<const uint8_t*>(str), len);
+  free(str);
+  if (Dart_IsError(result)) Dart_PropagateError(result);
+  Dart_SetReturnValue(args, result);
 }
 
 
 void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
-  const char* utf8 = DartUtils::GetStringValue(str);
-  const char* system_string = StringUtils::Utf8ToConsoleString(utf8);
-  int external_length = strlen(system_string);
+  char* utf8;
+  intptr_t utf8_len;
+  Dart_Handle result = Dart_StringToUTF8(
+      str, reinterpret_cast<uint8_t **>(&utf8), &utf8_len);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  intptr_t system_len;
+  const char* system_string =
+      StringUtils::Utf8ToConsoleString(utf8, utf8_len, &system_len);
+  if (system_string == NULL) {
+    Dart_ThrowException(
+        DartUtils::NewInternalError("StringToSystemEncoding failed"));
+  }
   uint8_t* buffer = NULL;
-  Dart_Handle external_array = IOBuffer::Allocate(external_length, &buffer);
-  memmove(buffer, system_string, external_length);
-  if (utf8 != system_string) free(const_cast<char*>(system_string));
+  Dart_Handle external_array = IOBuffer::Allocate(system_len, &buffer);
+  if (Dart_IsError(external_array)) {
+    free(const_cast<char*>(system_string));
+    Dart_PropagateError(result);
+  }
+  memmove(buffer, system_string, system_len);
+  free(const_cast<char*>(system_string));
   Dart_SetReturnValue(args, external_array);
 }
 

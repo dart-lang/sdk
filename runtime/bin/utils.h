@@ -57,29 +57,44 @@ class OSError {
   DISALLOW_COPY_AND_ASSIGN(OSError);
 };
 
+
 class StringUtils {
  public:
   // The following methods convert the argument if needed.  The
   // conversions are only needed on Windows. If the methods returns a
-  // pointer that is different from the input pointer the returned
+  // pointer that is different from the input pointer, the returned
   // pointer is allocated with malloc and should be freed using free.
-  static const char* ConsoleStringToUtf8(const char* str);
-  static char* ConsoleStringToUtf8(char* str);
-  static const char* Utf8ToConsoleString(const char* utf8);
-  static char* Utf8ToConsoleString(char* utf8);
-  static char* WideToUtf8(wchar_t* wide);
-  static const char* WideToUtf8(const wchar_t* wide);
-  static wchar_t* Utf8ToWide(char* utf8);
-  static const wchar_t* Utf8ToWide(const char* utf8);
+  //
+  // If the len argument is passed then that number of characters are
+  // converted. If len is -1, conversion will stop at the first NUL
+  // character. If result_len is not NUL, it is used to set the number
+  // of characters in the result.
+  //
+  // These conversion functions are only implemented on Windows as the
+  // Dart code only hit this path on Windows.
+  static const char* ConsoleStringToUtf8(const char* str,
+                                         intptr_t len = -1,
+                                         intptr_t* result_len = NULL);
+  static char* ConsoleStringToUtf8(char* str,
+                                   intptr_t len = -1,
+                                   intptr_t* result_len = NULL);
+  static const char* Utf8ToConsoleString(const char* utf8,
+                                         intptr_t len = -1,
+                                         intptr_t* result_len = NULL);
+  static char* Utf8ToConsoleString(char* utf8,
+                                   intptr_t len = -1,
+                                   intptr_t* result_len = NULL);
 };
+
 
 class ShellUtils {
  public:
-  // Get the arguments passed to the program as unicode strings.
-  // If GetUnicodeArgv returns a pointer that pointer has to be
-  // deallocated with a call to FreeUnicodeArgv.
-  static wchar_t** GetUnicodeArgv(int* argc);
-  static void FreeUnicodeArgv(wchar_t** argv);
+  // Convert all the arguments to UTF8. On Windows, the arguments are
+  // encoded in the current code page and not UTF8.
+  //
+  // Returns true if the arguments are converted. In that case
+  // each of the arguments need to be deallocated using free.
+  static bool GetUtf8Argv(int argc, char** argv);
 };
 
 class TimerUtils {
