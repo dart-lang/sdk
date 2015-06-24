@@ -9644,32 +9644,23 @@ Language/12_Expressions/30_Identifier_Reference_A10_t02: RuntimeError # Cannot r
 Language/13_Statements/02_Expression_Statements_A01_t06: RuntimeError # Cannot read property 'prototype' of undefined
 Language/13_Statements/06_For/1_For_Loop_A01_t09: RuntimeError # Please triage this failure.
 Language/13_Statements/06_For_A01_t07: Crash # unsupported operation on erroneous element
-Language/13_Statements/11_Try_A01_t01: Crash # (try {throw "";}on int catch (ok){}catch (ok){}finally {}): try/catch/finally
-Language/13_Statements/11_Try_A07_t02: Crash # (try {throw ex;}on i...  try/catch/finally
-Language/13_Statements/11_Try_A08_t01: Crash # (try {throw ex;}on E...  try/catch/finally
-Language/13_Statements/11_Try_A09_t01: Crash # (try {throw new Exception("fail");}on int catch (e){}finally {}): try/catch/finally
-Language/13_Statements/11_Try_A10_t01: Crash # (try {append(1);f();...  try/catch/finally
-Language/13_Statements/11_Try_A11_t01: Crash # (try {throw exStr;}o...  try/catch/finally
-Language/13_Statements/11_Try_A11_t02: Crash # (try {throw exStr;}o...  try/catch/finally
-Language/13_Statements/11_Try_A12_t01: Crash # (try {append(1);f();...  try/catch/finally
 Language/13_Statements/12_Labels_A03_t04: Crash # (switch (i){L:case 0:flag=true;break;case 2:continue L;}): continue to a labeled switch case
-Language/13_Statements/13_Break_A03_t01: Crash # (try {break L;Expect...  try/catch/finally
-Language/13_Statements/13_Break_A03_t02: Crash # (try {throw 1;}on in...  try/catch/finally
-Language/13_Statements/13_Break_A03_t03: Crash # (try {throw 1;}on in...  try/catch/finally
+Language/13_Statements/13_Break_A03_t01: RuntimeError # Issue 23708.
+Language/13_Statements/13_Break_A03_t03: RuntimeError # Issue 23708.
 Language/13_Statements/13_Break_A03_t04: RuntimeError # Please triage this failure.
-Language/13_Statements/13_Break_A03_t06: Crash # (try {break;Expect.f...  try/catch/finally
+Language/13_Statements/13_Break_A03_t06: RuntimeError # Issue 23708.
 Language/13_Statements/13_Break_A03_t07: RuntimeError # Please triage this failure.
 Language/13_Statements/13_Break_A03_t08: RuntimeError # Please triage this failure.
-Language/13_Statements/13_Break_A03_t09: Crash # (try {break;Expect.f...  try/catch/finally
+Language/13_Statements/13_Break_A03_t09: RuntimeError # Issue 23708.
 Language/13_Statements/14_Continue_A02_t12: Crash # (switch (2){L:case 1:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/13_Statements/14_Continue_A02_t13: Crash # (switch (2){case 2:continue L;L:case 1:flag=true;}): continue to a labeled switch case
-Language/13_Statements/14_Continue_A03_t01: Crash # (try {if(order.lengt...  try/catch/finally
+Language/13_Statements/14_Continue_A03_t01: RuntimeError # Issue 23708.
 Language/13_Statements/14_Continue_A03_t02: RuntimeError # Please triage this failure.
 Language/13_Statements/14_Continue_A03_t03: RuntimeError # Please triage this failure.
-Language/13_Statements/14_Continue_A03_t04: Crash # (try {continue;Expec...  try/catch/finally
+Language/13_Statements/14_Continue_A03_t04: RuntimeError # Issue 23708.
 Language/13_Statements/14_Continue_A03_t05: RuntimeError # Please triage this failure.
-Language/13_Statements/14_Continue_A03_t06: Crash # (try {throw 1;}on in...  try/catch/finally
-Language/13_Statements/14_Continue_A03_t07: Crash # (try {throw 1;}on in...  try/catch/finally
+Language/13_Statements/14_Continue_A03_t06: RuntimeError # Issue 23708.
+Language/13_Statements/14_Continue_A03_t07: RuntimeError # Issue 23708.
 Language/14_Libraries_and_Scripts/1_Imports_A02_t06: RuntimeError # Please triage this failure.
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: RuntimeError # receiver.get$_collection$_nums is not a function
 Language/15_Types/3_Type_Declarations/1_Typedef_A02_t01: RuntimeError # Cannot read property 'prototype' of undefined
@@ -9711,7 +9702,6 @@ Language/16_Reference/1_Lexical_Rules/2_Comments_A02_t10: RuntimeError # Please 
 LayoutTests/fast/canvas/webgl/compressed-tex-image_t01: Crash # Invalid argument(s)
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: Crash # Invalid argument(s)
 LayoutTests/fast/events/clipboard-dataTransferItemList_t01: Crash # Internal Error: No default constructor available.
-LayoutTests/fast/events/event-attributes-after-exception_t01: Crash # (try {document.body....  try/catch/finally
 LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Crash # Invalid argument(s)
 LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-required_t01: Crash # Invalid argument(s)
 LibTest/async/Completer/Completer.sync_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function

@@ -111,7 +111,7 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   /// The analysis information includes the set of variables that must be
   /// copied into [ir.MutableVariable]s on entry to the try and copied out on
   /// exit.
-  Map<ast.TryStatement, TryStatementInfo> tryStatements = null;
+  Map<ast.Node, TryStatementInfo> tryStatements = null;
 
   // In SSA terms, join-point continuation parameters are the phis and the
   // continuation invocation arguments are the corresponding phi inputs.  To
@@ -431,11 +431,6 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   visitTryStatement(ast.TryStatement node) {
-    // Try/catch/finally is not yet implemented.
-    if (!node.catchBlocks.isEmpty && node.finallyBlock != null) {
-      return giveup(node, 'try/catch/finally');
-    }
-
     List<CatchClauseInfo> catchClauseInfos = <CatchClauseInfo>[];
     for (ast.CatchBlock catchClause in node.catchBlocks.nodes) {
       assert(catchClause.exception != null);
@@ -455,14 +450,29 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           buildCatchBlock: subbuild(catchClause.block)));
     }
 
-    SubbuildFunction buildFinallyBlock =
-        node.finallyBlock == null ? null : subbuild(node.finallyBlock);
-    irBuilder.buildTry(
-        tryStatementInfo: tryStatements[node],
-        buildTryBlock: subbuild(node.tryBlock),
-        catchClauseInfos: catchClauseInfos,
-        buildFinallyBlock: buildFinallyBlock,
-        closureClassMap: closureClassMap);
+    assert(!node.catchBlocks.isEmpty || node.finallyBlock != null);
+    if (!node.catchBlocks.isEmpty && node.finallyBlock != null) {
+      // Try/catch/finally is encoded in terms of try/catch and try/finally:
+      //
+      // try tryBlock catch (ex, st) catchBlock finally finallyBlock
+      // ==>
+      // try { try tryBlock catch (ex, st) catchBlock } finally finallyBlock
+      irBuilder.buildTryFinally(tryStatements[node.finallyBlock],
+          (IrBuilder inner) {
+            inner.buildTryCatch(tryStatements[node.catchBlocks],
+                subbuild(node.tryBlock),
+                catchClauseInfos);
+          },
+          subbuild(node.finallyBlock));
+    } else if (!node.catchBlocks.isEmpty) {
+      irBuilder.buildTryCatch(tryStatements[node.catchBlocks],
+          subbuild(node.tryBlock),
+          catchClauseInfos);
+    } else {
+      irBuilder.buildTryFinally(tryStatements[node.finallyBlock],
+          subbuild(node.tryBlock),
+          subbuild(node.finallyBlock));
+    }
   }
 
   // ## Expressions ##
@@ -1961,8 +1971,13 @@ class DartCapturedVariables extends ast.Visitor {
   bool insideInitializer = false;
   Set<Local> capturedVariables = new Set<Local>();
 
-  Map<ast.TryStatement, TryStatementInfo> tryStatements =
-      <ast.TryStatement, TryStatementInfo>{};
+  /// A map containing variables boxed inside try blocks.
+  ///
+  /// The map is keyed by the [NodeList] of catch clauses for try/catch and
+  /// by the finally block for try/finally.  try/catch/finally is treated
+  /// as a try/catch nested in the try block of a try/finally.
+  Map<ast.Node, TryStatementInfo> tryStatements =
+      <ast.Node, TryStatementInfo>{};
 
   List<TryStatementInfo> tryNestingStack = <TryStatementInfo>[];
   bool get inTryStatement => tryNestingStack.isNotEmpty;
@@ -2079,15 +2094,42 @@ class DartCapturedVariables extends ast.Visitor {
   }
 
   visitTryStatement(ast.TryStatement node) {
-    TryStatementInfo info = new TryStatementInfo();
-    tryStatements[node] = info;
-    tryNestingStack.add(info);
+    // Try/catch/finally is treated as two simpler constructs: try/catch and
+    // try/finally.  The encoding is:
+    //
+    // try S0 catch (ex, st) S1 finally S2
+    // ==>
+    // try { try S0 catch (ex, st) S1 } finally S2
+    //
+    // The analysis associates variables assigned in S0 with the catch clauses
+    // and variables assigned in S0 and S1 with the finally block.
+    TryStatementInfo enterTryFor(ast.Node node) {
+      TryStatementInfo info = new TryStatementInfo();
+      tryStatements[node] = info;
+      tryNestingStack.add(info);
+      return info;
+    }
+    void leaveTryFor(TryStatementInfo info) {
+      assert(tryNestingStack.last == info);
+      tryNestingStack.removeLast();
+    }
+    bool hasCatch = !node.catchBlocks.isEmpty;
+    bool hasFinally = node.finallyBlock != null;
+    TryStatementInfo catchInfo, finallyInfo;
+    // There is a nesting stack of try blocks, so the outer try/finally block
+    // is added first.
+    if (hasFinally) finallyInfo = enterTryFor(node.finallyBlock);
+    if (hasCatch) catchInfo = enterTryFor(node.catchBlocks);
     visit(node.tryBlock);
-    assert(tryNestingStack.last == info);
-    tryNestingStack.removeLast();
 
-    visit(node.catchBlocks);
-    if (node.finallyBlock != null) visit(node.finallyBlock);
+    if (hasCatch) {
+      leaveTryFor(catchInfo);
+      visit(node.catchBlocks);
+    }
+    if (hasFinally) {
+      leaveTryFor(finallyInfo);
+      visit(node.finallyBlock);
+    }
   }
 
   visitVariableDefinitions(ast.VariableDefinitions node) {

@@ -371,7 +371,6 @@ cha_deopt1_test: RuntimeError # receiver.get$_collection$_nums is not a function
 cha_deopt2_test: RuntimeError # receiver.get$_collection$_nums is not a function
 cha_deopt3_test: RuntimeError # receiver.get$_collection$_nums is not a function
 char_escape_test: RuntimeError # Please triage this failure.
-class_override_test/00: Crash # (try {instance.foo();}on NoSuchMethodError catch (error){}finally {}): try/catch/finally
 closure7_test: RuntimeError # Cannot read property 'prototype' of undefined
 closure8_test: RuntimeError # Cannot read property 'prototype' of undefined
 closure_cycles_test: RuntimeError # receiver.get$_collection$_nums is not a function
@@ -441,10 +440,7 @@ enum_mirror_test: Crash # Internal Error: No default constructor available.
 enum_private_test/01: RuntimeError # Please triage this failure.
 enum_private_test/02: RuntimeError # Please triage this failure.
 enum_private_test/none: RuntimeError # Please triage this failure.
-execute_finally10_test: Crash # (try {throw 'foo';}c...  try/catch/finally
-execute_finally11_test: Crash # (try {throw 'foo';}c...  try/catch/finally
-execute_finally7_test: Crash # (try {var a=new List...  try/catch/finally
-execute_finally9_test: Crash # (try {sum+= 1;return...  try/catch/finally
+execute_finally7_test: RuntimeError # Cannot read property 'call$0' of null
 f_bounded_equality_test: RuntimeError # Cannot read property 'prototype' of undefined
 fannkuch_test: RuntimeError # Please triage this failure.
 field_increment_bailout_test: RuntimeError # Please triage this failure.
@@ -544,7 +540,6 @@ invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
 is_function_test: RuntimeError # Cannot read property 'prototype' of undefined
 issue12288_test: RuntimeError # Please triage this failure.
 issue13179_test: RuntimeError # Cannot read property 'prototype' of undefined
-issue20476_test: Crash # (try {try {return 1;...  try/catch/finally
 issue7513_test: RuntimeError # Please triage this failure.
 issue_1751477_test: RuntimeError # receiver.get$_collection$_nums is not a function
 large_class_declaration_test: Crash # Stack Overflow
@@ -639,8 +634,6 @@ regress_23498_test: Crash # (main()async{var err...  cannot handle async/sync*/a
 regress_23500_test/01: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/02: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/none: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
-stack_trace_test: Crash # (try {int j;i=func2(...  try/catch/finally
-statement_test: Crash # (try {throw "foo";}c...  try/catch/finally
 static_closure_identical_test: RuntimeError # Cannot read property 'prototype' of undefined
 static_field_test/none: RuntimeError # Cannot read property 'prototype' of undefined
 static_implicit_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
@@ -680,16 +673,7 @@ sync_generator3_test/test2: Crash # (g()sync*{try {yield...  cannot handle async
 syncstar_yield_test/copyParameters: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yield_test/none: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yieldstar_test: Crash # (main()async{Expect....  cannot handle async/sync*/async* functions
-throw1_test: Crash # (try {int j;j=func()...  try/catch/finally
-throw2_test: Crash # (try {int j;j=func()...  try/catch/finally
-throw3_test: Crash # (try {int j;i=100;i=...  try/catch/finally
-throw4_test: Crash # (try {j=func();}on M...  try/catch/finally
-throw5_test: Crash # (try {int j;j=func()...  try/catch/finally
-throw6_test: Crash # (try {j=func();}catc...  try/catch/finally
-throw_test: Crash # (try {int j;j=func()...  try/catch/finally
 top_level_in_initializer_test: RuntimeError # Cannot read property 'prototype' of undefined
-try_catch3_test: Crash # (try {int j;j=f2();j...  try/catch/finally
-try_catch4_test: Crash # (try {doThrow();}cat...  try/catch/finally
 try_catch_test/none: Crash # The null object does not have a getter '_element'.
 type_check_const_function_typedef2_test/00: RuntimeError # Cannot read property 'prototype' of undefined
 type_check_const_function_typedef2_test/none: RuntimeError # Cannot read property 'prototype' of undefined

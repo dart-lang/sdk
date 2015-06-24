@@ -1621,29 +1621,86 @@ class IrBuilder {
     }
   }
 
-  /// Creates a try-statement.
+  /// Utility function to translate try/catch into the IR.
   ///
-  /// [tryInfo] provides information on local variables declared and boxed
-  /// within this try statement.
+  /// The translation treats try/finally and try/catch/finally as if they
+  /// were macro-expanded into try/catch.  This utility function generates
+  /// that try/catch.  The function is parameterized over a list of variables
+  /// that should be boxed on entry to the try, and over functions to emit
+  /// code for entering the try, building the try body, leaving the try body,
+  /// building the catch body, and leaving the entire try/catch.
+  ///
+  /// Please see the function's implementation for where these functions are
+  /// called.
+  void _helpBuildTryCatch(TryStatementInfo variables,
+      void enterTry(IrBuilder builder),
+      SubbuildFunction buildTryBlock,
+      void leaveTry(IrBuilder builder),
+      List<ir.Parameter> buildCatch(IrBuilder builder, JumpCollector join),
+      void leaveTryCatch(IrBuilder builder, JumpCollector join,
+          ir.Expression body)) {
+    JumpCollector join = new ForwardJumpCollector(environment);
+    IrBuilder tryCatchBuilder = makeDelimitedBuilder();
+
+    // Variables treated as mutable in a try are not mutable outside of it.
+    // Work with a copy of the outer builder's mutable variables.
+    tryCatchBuilder.mutableVariables =
+        new Map<Local, ir.MutableVariable>.from(mutableVariables);
+    for (LocalVariableElement variable in variables.boxedOnEntry) {
+      assert(!tryCatchBuilder.isInMutableVariable(variable));
+      ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
+      tryCatchBuilder.makeMutableVariable(variable);
+      tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
+    }
+
+    IrBuilder tryBuilder = tryCatchBuilder.makeDelimitedBuilder();
+    enterTry(tryBuilder);
+    buildTryBlock(tryBuilder);
+    if (tryBuilder.isOpen) {
+      join.enterTry(variables.boxedOnEntry);
+      tryBuilder.jumpTo(join);
+      join.leaveTry();
+    }
+    leaveTry(tryBuilder);
+
+    IrBuilder catchBuilder = tryCatchBuilder.makeDelimitedBuilder();
+    for (LocalVariableElement variable in variables.boxedOnEntry) {
+      assert(catchBuilder.isInMutableVariable(variable));
+      ir.Primitive value = catchBuilder.buildLocalVariableGet(variable);
+      // After this point, the variables that were boxed on entry to the try
+      // are no longer treated as mutable.
+      catchBuilder.removeMutableVariable(variable);
+      catchBuilder.environment.update(variable, value);
+    }
+
+    List<ir.Parameter> catchParameters = buildCatch(catchBuilder, join);
+    ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
+    catchContinuation.body = catchBuilder._root;
+    tryCatchBuilder.add(
+        new ir.LetHandler(catchContinuation, tryBuilder._root));
+
+    leaveTryCatch(this, join, tryCatchBuilder._root);
+  }
+
+  /// Translates a try/catch.
+  ///
+  /// [variables] provides information on local variables declared and boxed
+  /// within the try body.
   /// [buildTryBlock] builds the try block.
   /// [catchClauseInfos] provides access to the catch type, exception variable,
   /// and stack trace variable, and a function for building the catch block.
-  void buildTry(
-      {TryStatementInfo tryStatementInfo,
-       SubbuildFunction buildTryBlock,
-       List<CatchClauseInfo> catchClauseInfos: const <CatchClauseInfo>[],
-       SubbuildFunction buildFinallyBlock,
-       ClosureClassMap closureClassMap}) {
+  void buildTryCatch(TryStatementInfo variables,
+                     SubbuildFunction buildTryBlock,
+                     List<CatchClauseInfo> catchClauseInfos) {
     assert(isOpen);
-
     // Catch handlers are in scope for their body.  The CPS translation of
-    // [[try tryBlock catch (e) catchBlock; successor]] is:
+    // [[try tryBlock catch (ex, st) catchBlock; successor]] is:
     //
     // let cont join(v0, v1, ...) = [[successor]] in
     //   let mutable m0 = x0 in
     //     let mutable m1 = x1 in
     //       ...
-    //       let handler catch_(e) =
+    //       let handler catch_(ex, st) =
     //         let prim p0 = GetMutable(m0) in
     //           let prim p1 = GetMutable(m1) in
     //             ...
@@ -1665,49 +1722,31 @@ class IrBuilder {
     // scope of the handler.  The mutable bindings are dereferenced at the end
     // of the try block and at the beginning of the catch block, so the
     // variables are unboxed in the catch block and at the join point.
-    if (catchClauseInfos.isNotEmpty) {
-      JumpCollector join = new ForwardJumpCollector(environment);
-      IrBuilder tryCatchBuilder = makeDelimitedBuilder();
 
-      // Variables treated as mutable in a try are not mutable outside of it.
-      // Work with a copy of the outer builder's mutable variables.
-      tryCatchBuilder.mutableVariables =
-          new Map<Local, ir.MutableVariable>.from(mutableVariables);
-      for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
-        assert(!tryCatchBuilder.isInMutableVariable(variable));
-        ir.Primitive value = tryCatchBuilder.buildLocalVariableGet(variable);
-        tryCatchBuilder.makeMutableVariable(variable);
-        tryCatchBuilder.declareLocalVariable(variable, initialValue: value);
-      }
-
-      IrBuilder tryBuilder = tryCatchBuilder.makeDelimitedBuilder();
-
+    void enterTry(IrBuilder builder) {
+      // On entry to try of try/catch, update the builder's state to reflect the
+      // variables that have been boxed.
       void interceptJump(JumpCollector collector) {
-        collector.enterTry(tryStatementInfo.boxedOnEntry);
+        collector.enterTry(variables.boxedOnEntry);
       }
+      builder.state.breakCollectors.forEach(interceptJump);
+      builder.state.continueCollectors.forEach(interceptJump);
+    }
+
+    void leaveTry(IrBuilder builder) {
+      // On exit from try of try/catch, update the builder's state to reflect
+      // the variables that are no longer boxed.
       void restoreJump(JumpCollector collector) {
         collector.leaveTry();
       }
-      tryBuilder.state.breakCollectors.forEach(interceptJump);
-      tryBuilder.state.continueCollectors.forEach(interceptJump);
-      buildTryBlock(tryBuilder);
-      if (tryBuilder.isOpen) {
-        interceptJump(join);
-        tryBuilder.jumpTo(join);
-        restoreJump(join);
-      }
-      tryBuilder.state.breakCollectors.forEach(restoreJump);
-      tryBuilder.state.continueCollectors.forEach(restoreJump);
+      builder.state.breakCollectors.forEach(restoreJump);
+      builder.state.continueCollectors.forEach(restoreJump);
+    }
 
-      IrBuilder catchBuilder = tryCatchBuilder.makeDelimitedBuilder();
-      for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
-        assert(catchBuilder.isInMutableVariable(variable));
-        ir.Primitive value = catchBuilder.buildLocalVariableGet(variable);
-        // After this point, the variables that were boxed on entry to the try
-        // are no longer treated as mutable.
-        catchBuilder.removeMutableVariable(variable);
-        catchBuilder.environment.update(variable, value);
-      }
+    List<ir.Parameter> buildCatch(IrBuilder builder,
+                                  JumpCollector join) {
+      // Translate the catch clauses.  Multiple clauses are translated as if
+      // they were explicitly cascaded if/else type tests.
 
       // Handlers are always translated as having both exception and stack trace
       // parameters.  Multiple clauses do not have to use the same names for
@@ -1729,136 +1768,140 @@ class IrBuilder {
         }
       }
       ir.Parameter traceParameter = new ir.Parameter(traceVariable);
-      // Expand multiple catch clauses into an explicit if/then/else.  Iterate
-      // them in reverse so the current block becomes the next else block.
-      ir.Expression catchBody;
-      if (catchAll == null) {
-        catchBody = new ir.Rethrow();
-      } else {
-        IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
-        clauseBuilder.declareLocalVariable(catchAll.exceptionVariable,
-                                           initialValue: exceptionParameter);
-        if (catchAll.stackTraceVariable != null) {
-          clauseBuilder.declareLocalVariable(catchAll.stackTraceVariable,
-                                             initialValue: traceParameter);
-        }
-        catchAll.buildCatchBlock(clauseBuilder);
-        if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
-        catchBody = clauseBuilder._root;
-      }
-      for (CatchClauseInfo clause in catchClauseInfos.reversed) {
-        IrBuilder clauseBuilder = catchBuilder.makeDelimitedBuilder();
+
+      ir.Expression buildCatchClause(CatchClauseInfo clause) {
+        IrBuilder clauseBuilder = builder.makeDelimitedBuilder();
         clauseBuilder.declareLocalVariable(clause.exceptionVariable,
-                                           initialValue: exceptionParameter);
+            initialValue: exceptionParameter);
         if (clause.stackTraceVariable != null) {
           clauseBuilder.declareLocalVariable(clause.stackTraceVariable,
-                                             initialValue: traceParameter);
+              initialValue: traceParameter);
         }
         clause.buildCatchBlock(clauseBuilder);
         if (clauseBuilder.isOpen) clauseBuilder.jumpTo(join);
+        return clauseBuilder._root;
+      }
+
+      // Expand multiple catch clauses into an explicit if/then/else.  Iterate
+      // them in reverse so the current block becomes the next else block.
+      ir.Expression catchBody = (catchAll == null)
+          ? new ir.Rethrow()
+          : buildCatchClause(catchAll);
+      for (CatchClauseInfo clause in catchClauseInfos.reversed) {
         ir.Continuation thenContinuation = new ir.Continuation([]);
-        thenContinuation.body = clauseBuilder._root;
         ir.Continuation elseContinuation = new ir.Continuation([]);
+        thenContinuation.body = buildCatchClause(clause);
         elseContinuation.body = catchBody;
 
         // Build the type test guarding this clause. We can share the
         // environment with the nested builder because this part cannot mutate
         // it.
-        IrBuilder checkBuilder = catchBuilder.makeDelimitedBuilder(environment);
+        IrBuilder checkBuilder = builder.makeDelimitedBuilder(environment);
         ir.Primitive typeMatches =
             checkBuilder.buildTypeOperator(exceptionParameter,
-                                           clause.type,
-                                           isTypeTest: true);
+                clause.type,
+                isTypeTest: true);
         checkBuilder.add(new ir.LetCont.many([thenContinuation,
                                               elseContinuation],
-                             new ir.Branch(new ir.IsTrue(typeMatches),
-                                           thenContinuation,
-                                           elseContinuation)));
+                new ir.Branch(new ir.IsTrue(typeMatches),
+                    thenContinuation,
+                    elseContinuation)));
         catchBody = checkBuilder._root;
       }
+      builder.add(catchBody);
 
-      List<ir.Parameter> catchParameters =
-          <ir.Parameter>[exceptionParameter, traceParameter];
-      ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
-      catchBuilder.add(catchBody);
-      catchContinuation.body = catchBuilder._root;
+      return <ir.Parameter>[exceptionParameter, traceParameter];
+    }
 
-      tryCatchBuilder.add(
-          new ir.LetHandler(catchContinuation, tryBuilder._root));
-      add(new ir.LetCont(join.continuation, tryCatchBuilder._root));
-      environment = join.environment;
-    } else {
-      // Try/finally.
-      JumpCollector join = new ForwardJumpCollector(environment);
-      IrBuilder tryFinallyBuilder = makeDelimitedBuilder();
+    void leaveTryCatch(IrBuilder builder, JumpCollector join,
+                       ir.Expression body) {
+      // Add the binding for the join-point continuation and continue the
+      // translation in its body.
+      builder.add(new ir.LetCont(join.continuation, body));
+      builder.environment = join.environment;
+    }
 
-      tryFinallyBuilder.mutableVariables =
-          new Map<Local, ir.MutableVariable>.from(mutableVariables);
-      for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
-        assert(!tryFinallyBuilder.isInMutableVariable(variable));
-        ir.Primitive value = tryFinallyBuilder.buildLocalVariableGet(variable);
-        tryFinallyBuilder.makeMutableVariable(variable);
-        tryFinallyBuilder.declareLocalVariable(variable, initialValue: value);
-      }
+    _helpBuildTryCatch(variables, enterTry, buildTryBlock, leaveTry,
+        buildCatch, leaveTryCatch);
+  }
 
-      IrBuilder tryBuilder = tryFinallyBuilder.makeDelimitedBuilder();
+  /// Translates a try/finally.
+  ///
+  /// [variables] provides information on local variables declared and boxed
+  /// within the try body.
+  /// [buildTryBlock] builds the try block.
+  /// [buildFinallyBlock] builds the finally block.
+  void buildTryFinally(TryStatementInfo variables,
+                       SubbuildFunction buildTryBlock,
+                       SubbuildFunction buildFinallyBlock) {
+    assert(isOpen);
+    // Try/finally is implemented in terms of try/catch and by duplicating the
+    // code for finally at all exits.  The encoding is:
+    //
+    // try tryBlock finally finallyBlock
+    // ==>
+    // try tryBlock catch (ex, st) { finallyBlock; rethrow } finallyBlock
+    //
+    // Where in tryBlock, all of the break, continue, and return exits are
+    // translated as jumps to continuations (bound outside the catch handler)
+    // that include the finally code followed by a break, continue, or
+    // return respectively.
 
+    List<JumpCollector> savedBreaks, newBreaks, savedContinues, newContinues;
+    JumpCollector savedReturn, newReturn;
+    void enterTry(IrBuilder builder) {
+      // On entry to the try of try/finally, update the builder's state to
+      // relfect the variables that have been boxed.  Then intercept all break,
+      // continue, and return jumps out of the try so that they can go to
+      // continuations that include the finally code.
       JumpCollector interceptJump(JumpCollector collector) {
         JumpCollector result =
             new ForwardJumpCollector(environment, target: collector.target);
-        result.enterTry(tryStatementInfo.boxedOnEntry);
+        result.enterTry(variables.boxedOnEntry);
         return result;
       }
+      savedBreaks = builder.state.breakCollectors;
+      savedContinues = builder.state.continueCollectors;
+      savedReturn = builder.state.returnCollector;
+
+      builder.state.breakCollectors = newBreaks =
+          savedBreaks.map(interceptJump).toList();
+      builder.state.continueCollectors = newContinues =
+          savedContinues.map(interceptJump).toList();
+      builder.state.returnCollector = newReturn =
+          new ForwardJumpCollector(environment, hasExtraArgument: true)
+              ..enterTry(variables.boxedOnEntry);
+    }
+
+    void leaveTry(IrBuilder builder) {
+      // On exit from the try of try/finally, update the builder's state to
+      // reflect the variables that are no longer boxed and restore the
+      // original, unintercepted break, continue, and return targets.
       void restoreJump(JumpCollector collector) {
         collector.leaveTry();
-      }
-      List<JumpCollector> savedBreaks = tryBuilder.state.breakCollectors;
-      List<JumpCollector> savedContinues = tryBuilder.state.continueCollectors;
-      JumpCollector savedReturn = tryBuilder.state.returnCollector;
-
-      List<JumpCollector> newBreaks = tryBuilder.state.breakCollectors =
-          savedBreaks.map(interceptJump).toList();
-      List<JumpCollector> newContinues = tryBuilder.state.continueCollectors =
-          savedContinues.map(interceptJump).toList();
-      JumpCollector newReturn = tryBuilder.state.returnCollector =
-          new ForwardJumpCollector(environment, hasExtraArgument: true);
-      newReturn.enterTry(tryStatementInfo.boxedOnEntry);
-      buildTryBlock(tryBuilder);
-      if (tryBuilder.isOpen) {
-        // To cover control falling off the end of the try block, the finally
-        // code is translated at the join point.  This ensures that it is
-        // correctly outside the scope of the catch handler.
-        join.enterTry(tryStatementInfo.boxedOnEntry);
-        tryBuilder.jumpTo(join);
-        join.leaveTry();
       }
       newBreaks.forEach(restoreJump);
       newContinues.forEach(restoreJump);
       newReturn.leaveTry();
-      tryBuilder.state.breakCollectors = savedBreaks;
-      tryBuilder.state.continueCollectors = savedContinues;
-      tryBuilder.state.returnCollector = savedReturn;
+      builder.state.breakCollectors = savedBreaks;
+      builder.state.continueCollectors = savedContinues;
+      builder.state.returnCollector = savedReturn;
+    }
 
-      IrBuilder catchBuilder = tryFinallyBuilder.makeDelimitedBuilder();
-      for (LocalVariableElement variable in tryStatementInfo.boxedOnEntry) {
-        assert(catchBuilder.isInMutableVariable(variable));
-        ir.Primitive value = catchBuilder.buildLocalVariableGet(variable);
-        catchBuilder.removeMutableVariable(variable);
-        catchBuilder.environment.update(variable, value);
+    List<ir.Parameter> buildCatch(IrBuilder builder,
+                                  JumpCollector join) {
+      // The catch block of the try/catch used for try/finally is the finally
+      // code followed by a rethrow.
+      buildFinallyBlock(builder);
+      if (builder.isOpen) {
+        builder.add(new ir.Rethrow());
+        builder._current = null;
       }
+      return <ir.Parameter>[new ir.Parameter(null), new ir.Parameter(null)];
+    }
 
-      buildFinallyBlock(catchBuilder);
-      if (catchBuilder.isOpen) {
-        catchBuilder.add(new ir.Rethrow());
-        catchBuilder._current = null;
-      }
-      List<ir.Parameter> catchParameters =
-          <ir.Parameter>[new ir.Parameter(null), new ir.Parameter(null)];
-      ir.Continuation catchContinuation = new ir.Continuation(catchParameters);
-      catchContinuation.body = catchBuilder._root;
-      tryFinallyBuilder.add(
-          new ir.LetHandler(catchContinuation, tryBuilder._root));
-
+    void leaveTryCatch(IrBuilder builder, JumpCollector join,
+                       ir.Expression body) {
       // Build a list of continuations for jumps from the try block and
       // duplicate the finally code before jumping to the actual target.
       List<ir.Continuation> exits = <ir.Continuation>[join.continuation];
@@ -1885,10 +1928,13 @@ class IrBuilder {
         newReturn.continuation.body = builder._root;
         exits.add(newReturn.continuation);
       }
-      add(new ir.LetCont.many(exits, tryFinallyBuilder._root));
-      environment = join.environment;
-      buildFinallyBlock(this);
+      builder.add(new ir.LetCont.many(exits, body));
+      builder.environment = join.environment;
+      buildFinallyBlock(builder);
     }
+
+    _helpBuildTryCatch(variables, enterTry, buildTryBlock, leaveTry,
+        buildCatch, leaveTryCatch);
   }
 
   /// Create a return statement `return value;` or `return;` if [value] is
