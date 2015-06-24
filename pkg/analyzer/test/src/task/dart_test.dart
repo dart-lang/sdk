@@ -34,7 +34,6 @@ main() {
   runReflectiveTests(BuildEnumMemberElementsTaskTest);
   runReflectiveTests(BuildSourceClosuresTaskTest);
   runReflectiveTests(BuildExportNamespaceTaskTest);
-  runReflectiveTests(BuildFunctionTypeAliasesTaskTest);
   runReflectiveTests(BuildLibraryConstructorsTaskTest);
   runReflectiveTests(BuildLibraryElementTaskTest);
   runReflectiveTests(BuildPublicNamespaceTaskTest);
@@ -711,49 +710,6 @@ int topLevelB;
       Iterable<String> definedKeys = namespace.definedNames.keys;
       expect(definedKeys, unorderedEquals(['A', 'topLevelB', 'topLevelB=']));
     }
-  }
-}
-
-@reflectiveTest
-class BuildFunctionTypeAliasesTaskTest extends _AbstractDartTaskTest {
-  test_perform() {
-    Source source = newSource('/test.dart', '''
-typedef int F(G g);
-typedef String G(int p);
-''');
-    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT3);
-    expect(task, new isInstanceOf<BuildFunctionTypeAliasesTask>());
-    // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT3];
-    FunctionTypeAlias nodeF = unit.declarations[0];
-    FunctionTypeAlias nodeG = unit.declarations[1];
-    {
-      FormalParameter parameter = nodeF.parameters.parameters[0];
-      DartType parameterType = parameter.element.type;
-      Element returnTypeElement = nodeF.returnType.type.element;
-      expect(returnTypeElement.displayName, 'int');
-      expect(parameterType.element, nodeG.element);
-    }
-    {
-      FormalParameter parameter = nodeG.parameters.parameters[0];
-      DartType parameterType = parameter.element.type;
-      expect(nodeG.returnType.type.element.displayName, 'String');
-      expect(parameterType.element.displayName, 'int');
-    }
-  }
-
-  test_perform_errors() {
-    Source source = newSource('/test.dart', '''
-typedef int F(NoSuchType p);
-''');
-    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, BUILD_FUNCTION_TYPE_ALIASES_ERRORS);
-    expect(task, new isInstanceOf<BuildFunctionTypeAliasesTask>());
-    // validate
-    _fillErrorListener(BUILD_FUNCTION_TYPE_ALIASES_ERRORS);
-    errorListener
-        .assertErrorsWithCodes(<ErrorCode>[StaticWarningCode.UNDEFINED_CLASS]);
   }
 }
 
@@ -2141,7 +2097,6 @@ class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
         .buildInputs(new LibrarySpecificUnit(emptySource, emptySource));
     expect(inputs, isNotNull);
     expect(inputs.keys, unorderedEquals([
-      LibraryUnitErrorsTask.BUILD_FUNCTION_TYPE_ALIASES_ERRORS_INPUT,
       LibraryUnitErrorsTask.CONSTRUCTORS_ERRORS_INPUT,
       LibraryUnitErrorsTask.HINTS_INPUT,
       LibraryUnitErrorsTask.RESOLVE_REFERENCES_ERRORS_INPUT,
@@ -2534,6 +2489,46 @@ int f(String p) => p.length;
   test_perform_errors() {
     Source source = newSource('/test.dart', '''
 NoSuchClass f() => null;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVE_TYPE_NAMES_ERRORS);
+    expect(task, new isInstanceOf<ResolveUnitTypeNamesTask>());
+    // validate
+    _fillErrorListener(RESOLVE_TYPE_NAMES_ERRORS);
+    errorListener
+        .assertErrorsWithCodes(<ErrorCode>[StaticWarningCode.UNDEFINED_CLASS]);
+  }
+
+  test_perform_typedef() {
+    Source source = newSource('/test.dart', '''
+typedef int F(G g);
+typedef String G(int p);
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT4);
+    expect(task, new isInstanceOf<ResolveUnitTypeNamesTask>());
+    // validate
+    CompilationUnit unit = outputs[RESOLVED_UNIT4];
+    FunctionTypeAlias nodeF = unit.declarations[0];
+    FunctionTypeAlias nodeG = unit.declarations[1];
+    {
+      FormalParameter parameter = nodeF.parameters.parameters[0];
+      DartType parameterType = parameter.element.type;
+      Element returnTypeElement = nodeF.returnType.type.element;
+      expect(returnTypeElement.displayName, 'int');
+      expect(parameterType.element, nodeG.element);
+    }
+    {
+      FormalParameter parameter = nodeG.parameters.parameters[0];
+      DartType parameterType = parameter.element.type;
+      expect(nodeG.returnType.type.element.displayName, 'String');
+      expect(parameterType.element.displayName, 'int');
+    }
+  }
+
+  test_perform_typedef_errors() {
+    Source source = newSource('/test.dart', '''
+typedef int F(NoSuchType p);
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     computeResult(target, RESOLVE_TYPE_NAMES_ERRORS);

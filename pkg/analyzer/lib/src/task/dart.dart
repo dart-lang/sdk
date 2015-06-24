@@ -48,17 +48,6 @@ final ListResultDescriptor<AnalysisError> BUILD_DIRECTIVES_ERRORS =
         'BUILD_DIRECTIVES_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
- * The errors produced while building function type aliases.
- *
- * The list will be empty if there were no errors, but will not be `null`.
- *
- * The result is only available for [LibrarySpecificUnit]s.
- */
-final ListResultDescriptor<AnalysisError> BUILD_FUNCTION_TYPE_ALIASES_ERRORS =
-    new ListResultDescriptor<AnalysisError>(
-        'BUILD_FUNCTION_TYPE_ALIASES_ERRORS', AnalysisError.NO_ERRORS);
-
-/**
  * The errors produced while building a library element.
  *
  * The list will be empty if there were no errors, but will not be `null`.
@@ -342,7 +331,11 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT2 =
  * All the function type aliases are resolved.
  *
  * The result is only available for [LibrarySpecificUnit]s.
+ *
+ * TODO(paulberry): this is no longer used and should be deleted.  However, it
+ * can't be safely deleted yet because the analysis server is referring to it.
  */
+@deprecated
 final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
     new ResultDescriptor<CompilationUnit>('RESOLVED_UNIT3', null,
         cachingPolicy: AST_CACHING_POLICY);
@@ -350,7 +343,7 @@ final ResultDescriptor<CompilationUnit> RESOLVED_UNIT3 =
 /**
  * The partially resolved [CompilationUnit] associated with a unit.
  *
- * [RESOLVED_UNIT3] with resolved type names.
+ * [RESOLVED_UNIT2] with resolved type names.
  *
  * The result is only available for [LibrarySpecificUnit]s.
  */
@@ -1147,93 +1140,6 @@ class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
   static BuildExportNamespaceTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new BuildExportNamespaceTask(context, target);
-  }
-}
-
-/**
- * A task that builds [RESOLVED_UNIT3] for a unit.
- */
-class BuildFunctionTypeAliasesTask extends SourceBasedAnalysisTask {
-  /**
-   * The name of the [TYPE_PROVIDER] input.
-   */
-  static const String TYPE_PROVIDER_INPUT = 'TYPE_PROVIDER_INPUT';
-
-  /**
-   * The name of the [LIBRARY_ELEMENT4] input.
-   */
-  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
-
-  /**
-   * The name of the [RESOLVED_UNIT2] input.
-   */
-  static const String UNIT_INPUT = 'UNIT_INPUT';
-
-  /**
-   * The task descriptor describing this kind of task.
-   */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'BuildFunctionTypeAliasesTask', createTask, buildInputs,
-      <ResultDescriptor>[BUILD_FUNCTION_TYPE_ALIASES_ERRORS, RESOLVED_UNIT3]);
-
-  BuildFunctionTypeAliasesTask(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  TaskDescriptor get descriptor => DESCRIPTOR;
-
-  @override
-  void internalPerform() {
-    RecordingErrorListener errorListener = new RecordingErrorListener();
-    //
-    // Prepare inputs.
-    //
-    Source source = getRequiredSource();
-    TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
-    CompilationUnit unit = getRequiredInput(UNIT_INPUT);
-    LibraryElement libraryElement = getRequiredInput(LIBRARY_INPUT);
-    //
-    // Resolve FunctionTypeAlias declarations.
-    //
-    TypeResolverVisitor visitor = new TypeResolverVisitor.con2(
-        libraryElement, source, typeProvider, errorListener);
-    for (CompilationUnitMember member in unit.declarations) {
-      if (member is FunctionTypeAlias) {
-        member.accept(visitor);
-      }
-    }
-    //
-    // Record outputs.
-    //
-    outputs[BUILD_FUNCTION_TYPE_ALIASES_ERRORS] =
-        removeDuplicateErrors(errorListener.errors);
-    outputs[RESOLVED_UNIT3] = unit;
-  }
-
-  /**
-   * Return a map from the names of the inputs of this kind of task to the task
-   * input descriptors describing those inputs for a task with the
-   * given [target].
-   */
-  static Map<String, TaskInput> buildInputs(LibrarySpecificUnit target) {
-    LibrarySpecificUnit unit = target;
-    return <String, TaskInput>{
-      TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request),
-      'importsExportNamespace':
-          IMPORTED_LIBRARIES.of(unit.library).toMapOf(LIBRARY_ELEMENT4),
-      LIBRARY_INPUT: LIBRARY_ELEMENT4.of(unit.library),
-      UNIT_INPUT: RESOLVED_UNIT2.of(unit)
-    };
-  }
-
-  /**
-   * Create a [BuildFunctionTypeAliasesTask] based on the given [target] in
-   * the given [context].
-   */
-  static BuildFunctionTypeAliasesTask createTask(
-      AnalysisContext context, AnalysisTarget target) {
-    return new BuildFunctionTypeAliasesTask(context, target);
   }
 }
 
@@ -2565,12 +2471,6 @@ class LibraryErrorsReadyTask extends SourceBasedAnalysisTask {
  */
 class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [BUILD_FUNCTION_TYPE_ALIASES_ERRORS] input.
-   */
-  static const String BUILD_FUNCTION_TYPE_ALIASES_ERRORS_INPUT =
-      'BUILD_FUNCTION_TYPE_ALIASES_ERRORS';
-
-  /**
    * The name of the [HINTS] input.
    */
   static const String HINTS_INPUT = 'HINTS';
@@ -2622,7 +2522,6 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
-    errorLists.add(getRequiredInput(BUILD_FUNCTION_TYPE_ALIASES_ERRORS_INPUT));
     errorLists.addAll(getRequiredInput(CONSTRUCTORS_ERRORS_INPUT));
     errorLists.add(getRequiredInput(HINTS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_REFERENCES_ERRORS_INPUT));
@@ -2643,8 +2542,6 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      BUILD_FUNCTION_TYPE_ALIASES_ERRORS_INPUT:
-          BUILD_FUNCTION_TYPE_ALIASES_ERRORS.of(unit),
       CONSTRUCTORS_ERRORS_INPUT: COMPILATION_UNIT_ELEMENT
           .of(unit)
           .mappedToList((CompilationUnitElement element) => element.types)
@@ -3155,8 +3052,10 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
+      'importsExportNamespace':
+                IMPORTED_LIBRARIES.of(unit.library).toMapOf(LIBRARY_ELEMENT4),
       LIBRARY_INPUT: LIBRARY_ELEMENT4.of(unit.library),
-      UNIT_INPUT: RESOLVED_UNIT3.of(unit),
+      UNIT_INPUT: RESOLVED_UNIT2.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }

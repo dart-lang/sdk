@@ -42,7 +42,6 @@ class DartWorkManager implements WorkManager {
    * The list of errors that are reported for raw Dart [LibrarySpecificUnit]s.
    */
   static final List<ResultDescriptor> _UNIT_ERRORS = <ResultDescriptor>[
-    BUILD_FUNCTION_TYPE_ALIASES_ERRORS,
     HINTS,
     RESOLVE_REFERENCES_ERRORS,
     RESOLVE_TYPE_NAMES_ERRORS,

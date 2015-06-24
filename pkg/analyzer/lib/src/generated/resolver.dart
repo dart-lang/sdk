@@ -7837,7 +7837,6 @@ class LibraryResolver {
     }
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
-    _buildTypeAliases();
     _buildTypeHierarchies();
     //
     // Perform resolution and type analysis.
@@ -7917,7 +7916,6 @@ class LibraryResolver {
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     _buildEnumMembers();
-    _buildTypeAliases();
     _buildTypeHierarchies();
     _buildImplicitConstructors();
     //
@@ -8212,37 +8210,6 @@ class LibraryResolver {
         computer.add(_errorListener, library.libraryElement);
       }
       computer.compute();
-    });
-  }
-
-  /**
-   * Resolve the types referenced by function type aliases across all of the function type aliases
-   * defined in the current cycle.
-   *
-   * @throws AnalysisException if any of the function type aliases could not be resolved
-   */
-  void _buildTypeAliases() {
-    PerformanceStatistics.resolve.makeCurrentWhile(() {
-      List<LibraryResolver_TypeAliasInfo> typeAliases =
-          new List<LibraryResolver_TypeAliasInfo>();
-      for (Library library in _librariesInCycles) {
-        for (Source source in library.compilationUnitSources) {
-          CompilationUnit ast = library.getAST(source);
-          for (CompilationUnitMember member in ast.declarations) {
-            if (member is FunctionTypeAlias) {
-              typeAliases.add(
-                  new LibraryResolver_TypeAliasInfo(library, source, member));
-            }
-          }
-        }
-      }
-      // TODO(brianwilkerson) We need to sort the type aliases such that all
-      // aliases referenced by an alias T are resolved before we resolve T.
-      for (LibraryResolver_TypeAliasInfo info in typeAliases) {
-        TypeResolverVisitor visitor = new TypeResolverVisitor.con1(
-            info._library, info._source, _typeProvider);
-        info._typeAlias.accept(visitor);
-      }
     });
   }
 
@@ -8685,7 +8652,6 @@ class LibraryResolver2 {
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     _buildEnumMembers();
-    _buildTypeAliases();
     _buildTypeHierarchies();
     _buildImplicitConstructors();
     //
@@ -8922,38 +8888,6 @@ class LibraryResolver2 {
       }
     }
     return libraryMap;
-  }
-
-  /**
-   * Resolve the types referenced by function type aliases across all of the function type aliases
-   * defined in the current cycle.
-   *
-   * @throws AnalysisException if any of the function type aliases could not be resolved
-   */
-  void _buildTypeAliases() {
-    PerformanceStatistics.resolve.makeCurrentWhile(() {
-      List<LibraryResolver2_TypeAliasInfo> typeAliases =
-          new List<LibraryResolver2_TypeAliasInfo>();
-      for (ResolvableLibrary library in _librariesInCycle) {
-        for (ResolvableCompilationUnit unit
-            in library.resolvableCompilationUnits) {
-          for (CompilationUnitMember member
-              in unit.compilationUnit.declarations) {
-            if (member is FunctionTypeAlias) {
-              typeAliases.add(new LibraryResolver2_TypeAliasInfo(
-                  library, unit.source, member));
-            }
-          }
-        }
-      }
-      // TODO(brianwilkerson) We need to sort the type aliases such that all
-      // aliases referenced by an alias T are resolved before we resolve T.
-      for (LibraryResolver2_TypeAliasInfo info in typeAliases) {
-        TypeResolverVisitor visitor = new TypeResolverVisitor.con4(
-            info._library, info._source, _typeProvider);
-        info._typeAlias.accept(visitor);
-      }
-    });
   }
 
   /**
@@ -14042,11 +13976,8 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAliasElementImpl element =
         node.element as FunctionTypeAliasElementImpl;
-    if (element.returnType == null) {
-      // Only visit function type aliases once.
-      super.visitFunctionTypeAlias(node);
-      element.returnType = _computeReturnType(node.returnType);
-    }
+    super.visitFunctionTypeAlias(node);
+    element.returnType = _computeReturnType(node.returnType);
     return null;
   }
 
