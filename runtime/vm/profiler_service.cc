@@ -758,7 +758,9 @@ class CodeRegionTable : public ValueObject {
   }
 
   // Ticks the CodeRegion containing pc if it is alive at timestamp.
-  TickResult Tick(uword pc, bool exclusive, intptr_t serial,
+  TickResult Tick(uword pc,
+                  bool exclusive,
+                  intptr_t serial,
                   int64_t timestamp) {
     intptr_t index = FindIndex(pc);
     if (index < 0) {
@@ -967,37 +969,6 @@ class CodeRegionTableBuilder {
     max_time_ = 0;
   }
 
-  void VisitSample(intptr_t index, ProcessedSample* sample) {
-    int64_t timestamp = sample->timestamp();
-    if (timestamp > max_time_) {
-      max_time_ = timestamp;
-    }
-    if (timestamp < min_time_) {
-      min_time_ = timestamp;
-    }
-    // Make sure VM tag is created.
-    if (VMTag::IsNativeEntryTag(sample->vm_tag())) {
-      CreateTag(VMTag::kNativeTagId);
-    } else if (VMTag::IsRuntimeEntryTag(sample->vm_tag())) {
-      CreateTag(VMTag::kRuntimeTagId);
-    }
-    CreateTag(sample->vm_tag());
-    // Make sure user tag is created.
-    CreateUserTag(sample->user_tag());
-    // Exclusive tick for top frame if we aren't sampled from an exit frame.
-    if (!sample->first_frame_executing()) {
-      Tick(sample->At(0), true, index, timestamp);
-    }
-    // Inclusive tick for all frames.
-    for (intptr_t i = 0; i < sample->length(); i++) {
-      if (sample->At(i) == 0) {
-        break;
-      }
-      frames_++;
-      Tick(sample->At(i), false, index, timestamp);
-    }
-  }
-
   void Build(ProcessedSampleBuffer* buffer) {
     for (intptr_t i = 0; i < buffer->length(); i++) {
       ProcessedSample* sample = buffer->At(i);
@@ -1013,6 +984,39 @@ class CodeRegionTableBuilder {
   int64_t  max_time() const { return max_time_; }
 
  private:
+  void VisitSample(intptr_t serial, ProcessedSample* sample) {
+    int64_t timestamp = sample->timestamp();
+    if (timestamp > max_time_) {
+      max_time_ = timestamp;
+    }
+    if (timestamp < min_time_) {
+      min_time_ = timestamp;
+    }
+
+    // Make sure VM tag is created.
+    if (VMTag::IsNativeEntryTag(sample->vm_tag())) {
+      CreateTag(VMTag::kNativeTagId);
+    } else if (VMTag::IsRuntimeEntryTag(sample->vm_tag())) {
+      CreateTag(VMTag::kRuntimeTagId);
+    }
+    CreateTag(sample->vm_tag());
+
+    // Make sure user tag is created.
+    CreateUserTag(sample->user_tag());
+
+    // Exclusive tick for top frame if the first frame was executing.
+    if (!sample->first_frame_executing()) {
+      Tick(sample->At(0), true, serial, timestamp);
+    }
+
+    // Inclusive tick for all frames.
+    for (intptr_t i = 0; i < sample->length(); i++) {
+      ASSERT(sample->At(i) != 0);
+      frames_++;
+      Tick(sample->At(i), false, serial, timestamp);
+    }
+  }
+
   void CreateTag(uword tag) {
     intptr_t index = tag_code_table_->FindIndex(tag);
     if (index >= 0) {
@@ -1036,14 +1040,19 @@ class CodeRegionTableBuilder {
     return CreateTag(tag);
   }
 
-  void Tick(uword pc, bool exclusive, intptr_t sample_idx, int64_t timestamp) {
+  void Tick(uword pc, bool exclusive, intptr_t serial, int64_t timestamp) {
     CodeRegionTable::TickResult r;
-    intptr_t serial = exclusive ? -1 : sample_idx;
+    if (exclusive) {
+      // Exclusive ticks do not have an associated serial.
+      serial = -1;
+    }
+
     r = live_code_table_->Tick(pc, exclusive, serial, timestamp);
     if (r == CodeRegionTable::kTicked) {
       // Live code found and ticked.
       return;
     }
+
     if (r == CodeRegionTable::kNewerCode) {
       // Code has been overwritten by newer code.
       // Update shadow table of dead code regions.
@@ -1057,6 +1066,7 @@ class CodeRegionTableBuilder {
       CreateAndTickDeadCodeRegion(pc, exclusive, serial);
       return;
     }
+
     // Create new live CodeRegion.
     ASSERT(r == CodeRegionTable::kNotFound);
     CodeRegion* region = CreateCodeRegion(pc);
@@ -1067,6 +1077,7 @@ class CodeRegionTableBuilder {
       region->Tick(pc, exclusive, serial);
       return;
     }
+
     // We have created a new code region but it's for a CodeRegion
     // compiled after the sample.
     ASSERT(region->kind() == CodeRegion::kDartCode);
@@ -1089,6 +1100,7 @@ class CodeRegionTableBuilder {
     const intptr_t kDartCodeAlignment = OS::PreferredCodeAlignment();
     const intptr_t kDartCodeAlignmentMask = ~(kDartCodeAlignment - 1);
     Code& code = Code::Handle(isolate_);
+
     // Check current isolate for pc.
     if (isolate_->heap()->CodeContains(pc)) {
       code ^= Code::LookupCode(pc);
@@ -1106,6 +1118,7 @@ class CodeRegionTableBuilder {
                             0,
                             code);
     }
+
     // Check VM isolate for pc.
     if (vm_isolate_->heap()->CodeContains(pc)) {
       code ^= Code::LookupCodeInVmIsolate(pc);
@@ -1122,6 +1135,7 @@ class CodeRegionTableBuilder {
                             0,
                             code);
     }
+
     // Check NativeSymbolResolver for pc.
     uintptr_t native_start = 0;
     char* native_name = NativeSymbolResolver::LookupSymbolName(pc,
@@ -1402,20 +1416,116 @@ class ProfileFunctionTrieNode : public ZoneAllocated {
 };
 
 
-class ProfileFunctionTrieBuilder {
+class TrieBuilder : public ValueObject {
+ public:
+  TrieBuilder(CodeRegionTable* live_code_table,
+              CodeRegionTable* dead_code_table,
+              CodeRegionTable* tag_code_table)
+      : live_code_table_(live_code_table),
+        dead_code_table_(dead_code_table),
+        tag_code_table_(tag_code_table) {
+    ASSERT(live_code_table_ != NULL);
+    ASSERT(dead_code_table_ != NULL);
+    ASSERT(tag_code_table_ != NULL);
+  }
+
+  ProfilerService::TagOrder tag_order() const {
+    return tag_order_;
+  }
+
+  void set_tag_order(ProfilerService::TagOrder tag_order) {
+    tag_order_ = tag_order;
+  }
+
+ protected:
+  intptr_t FindTagIndex(uword tag) const {
+    if (tag == 0) {
+      UNREACHABLE();
+      return -1;
+    }
+    intptr_t index = tag_code_table_->FindIndex(tag);
+    if (index < 0) {
+      UNREACHABLE();
+      return -1;
+    }
+    ASSERT(index >= 0);
+    CodeRegion* region = tag_code_table_->At(index);
+    ASSERT(region->contains(tag));
+    return region->code_table_index();
+  }
+
+  intptr_t FindDeadIndex(uword pc, int64_t timestamp) const {
+    intptr_t index = dead_code_table_->FindIndex(pc);
+    if (index < 0) {
+      OS::Print("%" Px " cannot be found\n", pc);
+      return -1;
+    }
+    CodeRegion* region = dead_code_table_->At(index);
+    ASSERT(region->contains(pc));
+    ASSERT(region->compile_timestamp() <= timestamp);
+    return region->code_table_index();
+  }
+
+  intptr_t FindFinalIndex(uword pc, int64_t timestamp) const {
+    intptr_t index = live_code_table_->FindIndex(pc);
+    if (index < 0) {
+      // Try dead code table.
+      return FindDeadIndex(pc, timestamp);
+    }
+    CodeRegion* region = live_code_table_->At(index);
+    ASSERT(region->contains(pc));
+    if (region->compile_timestamp() > timestamp) {
+      // Overwritten code, find in dead code table.
+      return FindDeadIndex(pc, timestamp);
+    }
+    ASSERT(region->compile_timestamp() <= timestamp);
+    return region->code_table_index();
+  }
+
+  bool vm_tags_emitted() const {
+    return (tag_order_ == ProfilerService::kUserVM) ||
+           (tag_order_ == ProfilerService::kVMUser) ||
+           (tag_order_ == ProfilerService::kVM);
+  }
+
+  CodeRegion* FindCodeObject(uword pc, int64_t timestamp) const {
+    intptr_t index = live_code_table_->FindIndex(pc);
+    if (index < 0) {
+      return NULL;
+    }
+    CodeRegion* region = live_code_table_->At(index);
+    ASSERT(region->contains(pc));
+    if (region->compile_timestamp() > timestamp) {
+      // Overwritten code, find in dead code table.
+      index = dead_code_table_->FindIndex(pc);
+      if (index < 0) {
+        return NULL;
+      }
+      region = dead_code_table_->At(index);
+      ASSERT(region->contains(pc));
+      ASSERT(region->compile_timestamp() <= timestamp);
+      return region;
+    }
+    ASSERT(region->compile_timestamp() <= timestamp);
+    return region;
+  }
+
+  CodeRegionTable* live_code_table_;
+  CodeRegionTable* dead_code_table_;
+  CodeRegionTable* tag_code_table_;
+  ProfilerService::TagOrder tag_order_;
+};
+
+
+class ProfileFunctionTrieBuilder : public TrieBuilder {
  public:
   ProfileFunctionTrieBuilder(CodeRegionTable* live_code_table,
                              CodeRegionTable* dead_code_table,
                              CodeRegionTable* tag_code_table,
                              ProfileFunctionTable* function_table)
-      : live_code_table_(live_code_table),
-        dead_code_table_(dead_code_table),
-        tag_code_table_(tag_code_table),
+      : TrieBuilder(live_code_table, dead_code_table, tag_code_table),
         function_table_(function_table),
         inclusive_tree_(false) {
-    ASSERT(live_code_table_ != NULL);
-    ASSERT(dead_code_table_ != NULL);
-    ASSERT(tag_code_table_ != NULL);
     ASSERT(function_table_ != NULL);
     set_tag_order(ProfilerService::kUserVM);
 
@@ -1484,9 +1594,7 @@ class ProfileFunctionTrieBuilder {
     }
     // Walk the sampled PCs.
     for (intptr_t i = sample->length() - 1; i >= 0; i--) {
-      if (sample->At(i) == 0) {
-        continue;
-      }
+      ASSERT(sample->At(i) != 0);
       current = ProcessPC(sample->At(i),
                           sample->timestamp(),
                           current,
@@ -1503,9 +1611,7 @@ class ProfileFunctionTrieBuilder {
     current = AppendTags(sample, current);
     // Walk the sampled PCs.
     for (intptr_t i = 0; i < sample->length(); i++) {
-      if (sample->At(i) == 0) {
-        break;
-      }
+      ASSERT(sample->At(i) != 0);
       current = ProcessPC(sample->At(i),
                           sample->timestamp(),
                           current,
@@ -1520,7 +1626,7 @@ class ProfileFunctionTrieBuilder {
 
   ProfileFunctionTrieNode* AppendUserTag(ProcessedSample* sample,
                                          ProfileFunctionTrieNode* current) {
-    intptr_t user_tag_index = FindTagIndex(sample->user_tag());
+    intptr_t user_tag_index = FindTagFunctionIndex(sample->user_tag());
     if (user_tag_index >= 0) {
       current = current->GetChild(user_tag_index);
       // Give the tag a tick.
@@ -1532,7 +1638,7 @@ class ProfileFunctionTrieBuilder {
 
   ProfileFunctionTrieNode* AppendTruncatedTag(
       ProfileFunctionTrieNode* current) {
-    intptr_t truncated_tag_index = FindTagIndex(VMTag::kTruncatedTagId);
+    intptr_t truncated_tag_index = FindTagFunctionIndex(VMTag::kTruncatedTagId);
     ASSERT(truncated_tag_index >= 0);
     current = current->GetChild(truncated_tag_index);
     current->Tick();
@@ -1550,18 +1656,18 @@ class ProfileFunctionTrieBuilder {
                                        ProfileFunctionTrieNode* current) {
     if (VMTag::IsNativeEntryTag(sample->vm_tag())) {
       // Insert a dummy kNativeTagId node.
-      intptr_t tag_index = FindTagIndex(VMTag::kNativeTagId);
+      intptr_t tag_index = FindTagFunctionIndex(VMTag::kNativeTagId);
       current = current->GetChild(tag_index);
       // Give the tag a tick.
       current->Tick();
     } else if (VMTag::IsRuntimeEntryTag(sample->vm_tag())) {
       // Insert a dummy kRuntimeTagId node.
-      intptr_t tag_index = FindTagIndex(VMTag::kRuntimeTagId);
+      intptr_t tag_index = FindTagFunctionIndex(VMTag::kRuntimeTagId);
       current = current->GetChild(tag_index);
       // Give the tag a tick.
       current->Tick();
     } else {
-      intptr_t tag_index = FindTagIndex(sample->vm_tag());
+      intptr_t tag_index = FindTagFunctionIndex(sample->vm_tag());
       current = current->GetChild(tag_index);
       // Give the tag a tick.
       current->Tick();
@@ -1576,7 +1682,7 @@ class ProfileFunctionTrieBuilder {
         !VMTag::IsRuntimeEntryTag(sample->vm_tag())) {
       return current;
     }
-    intptr_t tag_index = FindTagIndex(sample->vm_tag());
+    intptr_t tag_index = FindTagFunctionIndex(sample->vm_tag());
     current = current->GetChild(tag_index);
     // Give the tag a tick.
     current->Tick();
@@ -1617,7 +1723,7 @@ class ProfileFunctionTrieBuilder {
     return AppendUserTag(sample, current);
   }
 
-  intptr_t FindTagIndex(uword tag) const {
+  intptr_t FindTagFunctionIndex(uword tag) const {
     if (tag == 0) {
       UNREACHABLE();
       return -1;
@@ -1751,34 +1857,8 @@ class ProfileFunctionTrieBuilder {
     return current;
   }
 
-  CodeRegion* FindCodeObject(uword pc, int64_t timestamp) const {
-    intptr_t index = live_code_table_->FindIndex(pc);
-    if (index < 0) {
-      return NULL;
-    }
-    CodeRegion* region = live_code_table_->At(index);
-    ASSERT(region->contains(pc));
-    if (region->compile_timestamp() > timestamp) {
-      // Overwritten code, find in dead code table.
-      index = dead_code_table_->FindIndex(pc);
-      if (index < 0) {
-        return NULL;
-      }
-      region = dead_code_table_->At(index);
-      ASSERT(region->contains(pc));
-      ASSERT(region->compile_timestamp() <= timestamp);
-      return region;
-    }
-    ASSERT(region->compile_timestamp() <= timestamp);
-    return region;
-  }
-
-  ProfilerService::TagOrder tag_order_;
   ProfileFunctionTrieNode* exclusive_root_;
   ProfileFunctionTrieNode* inclusive_root_;
-  CodeRegionTable* live_code_table_;
-  CodeRegionTable* dead_code_table_;
-  CodeRegionTable* tag_code_table_;
   ProfileFunctionTable* function_table_;
   bool inclusive_tree_;
 };
@@ -1876,18 +1956,13 @@ class CodeRegionTrieNode : public ZoneAllocated {
 };
 
 
-class CodeRegionTrieBuilder {
+class CodeRegionTrieBuilder : public TrieBuilder {
  public:
   CodeRegionTrieBuilder(Isolate* isolate,
                         CodeRegionTable* live_code_table,
                         CodeRegionTable* dead_code_table,
                         CodeRegionTable* tag_code_table)
-      : live_code_table_(live_code_table),
-        dead_code_table_(dead_code_table),
-        tag_code_table_(tag_code_table) {
-    ASSERT(live_code_table_ != NULL);
-    ASSERT(dead_code_table_ != NULL);
-    ASSERT(tag_code_table_ != NULL);
+      : TrieBuilder(live_code_table, dead_code_table, tag_code_table) {
     set_tag_order(ProfilerService::kUserVM);
 
     // Verify that the truncated tag exists.
@@ -1901,11 +1976,6 @@ class CodeRegionTrieBuilder {
 
     exclusive_root_ = new CodeRegionTrieNode(region->code_table_index());
     inclusive_root_ = new CodeRegionTrieNode(region->code_table_index());
-  }
-
-  void VisitSample(ProcessedSample* sample) {
-    ProcessSampleExclusive(sample);
-    ProcessSampleInclusive(sample);
   }
 
   void Build(ProcessedSampleBuffer* buffer) {
@@ -1923,21 +1993,12 @@ class CodeRegionTrieBuilder {
     return exclusive_root_;
   }
 
-  ProfilerService::TagOrder tag_order() const {
-    return tag_order_;
-  }
-
-  bool vm_tags_emitted() const {
-    return (tag_order_ == ProfilerService::kUserVM) ||
-           (tag_order_ == ProfilerService::kVMUser) ||
-           (tag_order_ == ProfilerService::kVM);
-  }
-
-  void set_tag_order(ProfilerService::TagOrder tag_order) {
-    tag_order_ = tag_order;
-  }
-
  private:
+  void VisitSample(ProcessedSample* sample) {
+    ProcessSampleExclusive(sample);
+    ProcessSampleInclusive(sample);
+  }
+
   void ProcessSampleInclusive(ProcessedSample* sample) {
     // Give the root a tick.
     inclusive_root_->Tick();
@@ -1948,9 +2009,7 @@ class CodeRegionTrieBuilder {
     }
     // Walk the sampled PCs.
     for (intptr_t i = sample->length() - 1; i >= 0; i--) {
-      if (sample->At(i) == 0) {
-        continue;
-      }
+      ASSERT(sample->At(i) != 0);
       intptr_t index = FindFinalIndex(sample->At(i), sample->timestamp());
       if (index < 0) {
         continue;
@@ -1967,9 +2026,7 @@ class CodeRegionTrieBuilder {
     current = AppendTags(sample, current);
     // Walk the sampled PCs.
     for (intptr_t i = 0; i < sample->length(); i++) {
-      if (sample->At(i) == 0) {
-        break;
-      }
+      ASSERT(sample->At(i) != 0);
       intptr_t index = FindFinalIndex(sample->At(i), sample->timestamp());
       if (index < 0) {
         continue;
@@ -2081,56 +2138,8 @@ class CodeRegionTrieBuilder {
     return AppendUserTag(sample, current);
   }
 
-  intptr_t FindTagIndex(uword tag) const {
-    if (tag == 0) {
-      UNREACHABLE();
-      return -1;
-    }
-    intptr_t index = tag_code_table_->FindIndex(tag);
-    if (index < 0) {
-      UNREACHABLE();
-      return -1;
-    }
-    ASSERT(index >= 0);
-    CodeRegion* region = tag_code_table_->At(index);
-    ASSERT(region->contains(tag));
-    return region->code_table_index();
-  }
-
-  intptr_t FindDeadIndex(uword pc, int64_t timestamp) const {
-    intptr_t index = dead_code_table_->FindIndex(pc);
-    if (index < 0) {
-      OS::Print("%" Px " cannot be found\n", pc);
-      return -1;
-    }
-    CodeRegion* region = dead_code_table_->At(index);
-    ASSERT(region->contains(pc));
-    ASSERT(region->compile_timestamp() <= timestamp);
-    return region->code_table_index();
-  }
-
-  intptr_t FindFinalIndex(uword pc, int64_t timestamp) const {
-    intptr_t index = live_code_table_->FindIndex(pc);
-    if (index < 0) {
-      // Try dead code table.
-      return FindDeadIndex(pc, timestamp);
-    }
-    CodeRegion* region = live_code_table_->At(index);
-    ASSERT(region->contains(pc));
-    if (region->compile_timestamp() > timestamp) {
-      // Overwritten code, find in dead code table.
-      return FindDeadIndex(pc, timestamp);
-    }
-    ASSERT(region->compile_timestamp() <= timestamp);
-    return region->code_table_index();
-  }
-
-  ProfilerService::TagOrder tag_order_;
   CodeRegionTrieNode* exclusive_root_;
   CodeRegionTrieNode* inclusive_root_;
-  CodeRegionTable* live_code_table_;
-  CodeRegionTable* dead_code_table_;
-  CodeRegionTable* tag_code_table_;
 };
 
 
