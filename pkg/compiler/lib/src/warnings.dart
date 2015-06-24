@@ -1617,8 +1617,8 @@ import 'package://foo/foo.dart';
 
 main() {}
 """, """
-// package name must be a valid identifier
-import 'package:not-valid/foo.dart';
+// package name must be valid
+import 'package:not\valid/foo.dart';
 
 main() {}
 """]);
