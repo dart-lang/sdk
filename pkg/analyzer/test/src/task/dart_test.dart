@@ -2391,15 +2391,15 @@ main(A a) {
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
     // prepare unit and "a.m()" invocation
-    computeResult(target, RESOLVED_UNIT6);
-    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    computeResult(target, RESOLVED_UNIT5);
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
     // walk the AST
     FunctionDeclaration function = unit.declarations[1];
     BlockFunctionBody body = function.functionExpression.body;
     ExpressionStatement statement = body.block.statements[0];
     MethodInvocation invocation = statement.expression;
     expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
-    expect(unit, same(outputs[RESOLVED_UNIT6]));
+    expect(unit, same(outputs[RESOLVED_UNIT5]));
     // a.m() is resolved now
     expect(invocation.methodName.staticElement, isNotNull);
   }
@@ -2413,7 +2413,7 @@ main(A a) {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT6);
+    computeResult(target, RESOLVED_UNIT5);
     expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
     // validate
     _fillErrorListener(RESOLVE_REFERENCES_ERRORS);
@@ -2439,10 +2439,10 @@ main() {
   new A<int>().m();
 }
 ''');
-    computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT6);
+    computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT5);
     expect(task, new isInstanceOf<ResolveUnitReferencesTask>());
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
     expect(unit, isNotNull);
     {
       FunctionDeclaration functionDeclaration = unit.declarations[0];
@@ -2467,10 +2467,10 @@ class B extends A {}
 int f(String p) => p.length;
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT4);
+    computeResult(target, RESOLVED_UNIT3);
     expect(task, new isInstanceOf<ResolveUnitTypeNamesTask>());
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT4];
+    CompilationUnit unit = outputs[RESOLVED_UNIT3];
     {
       ClassDeclaration nodeA = unit.declarations[0];
       ClassDeclaration nodeB = unit.declarations[1];
@@ -2506,10 +2506,10 @@ typedef int F(G g);
 typedef String G(int p);
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT4);
+    computeResult(target, RESOLVED_UNIT3);
     expect(task, new isInstanceOf<ResolveUnitTypeNamesTask>());
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT4];
+    CompilationUnit unit = outputs[RESOLVED_UNIT3];
     FunctionTypeAlias nodeF = unit.declarations[0];
     FunctionTypeAlias nodeG = unit.declarations[1];
     {
@@ -2559,7 +2559,7 @@ main() {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
+    computeResult(target, RESOLVED_UNIT4);
     expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
   }
 
@@ -2579,10 +2579,10 @@ main() {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
+    computeResult(target, RESOLVED_UNIT4);
     expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    CompilationUnit unit = outputs[RESOLVED_UNIT4];
     FunctionElement main = unit.element.functions[0];
     expectMutated(main.localVariables[0], isFalse, isFalse);
     expectMutated(main.localVariables[1], isFalse, isTrue);
@@ -2602,10 +2602,10 @@ main(p1, p2, p3, p4) {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
+    computeResult(target, RESOLVED_UNIT4);
     expect(task, new isInstanceOf<ResolveVariableReferencesTask>());
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    CompilationUnit unit = outputs[RESOLVED_UNIT4];
     FunctionElement main = unit.element.functions[0];
     expectMutated(main.parameters[0], isFalse, isFalse);
     expectMutated(main.parameters[1], isFalse, isTrue);
