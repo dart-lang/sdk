@@ -1,0 +1,19 @@
+# Explicitly declare text files we want to be normalized.
+*.c text
+*.cpp text
+*.h text
+*.gyp text
+*.gypi text
+*.dart text
+*.mk text
+*.Makefile text
+*.md text
+*.yaml text
+
+# Windows files that should not be converted.
+tests/lib/mirrors/method_mirror_source_line_ending_crlf.dart -text
+
+# Files to leave alone and not diff.
+*.png binary
+*.jpg binary
+*.xpi binary
