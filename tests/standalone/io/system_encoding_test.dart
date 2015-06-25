@@ -36,8 +36,6 @@ main() {
   test([0, 65, 0, 67, 0]);
   test([0, 0, 0]);
   test(new Iterable.generate(128, (i) => i).toList());
-  // This might break on some Windows systems.
-  testEncodeDecode('\u00c6\u00d8\u00c5');
   if (Platform.isWindows) {
     // On Windows the default Windows code page cannot encode these
     // Unicode characters and the ? character is used.
