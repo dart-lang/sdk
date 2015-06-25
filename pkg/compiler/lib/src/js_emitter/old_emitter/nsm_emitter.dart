@@ -122,29 +122,42 @@ class NsmEmitter extends CodeEmitterHelper {
     List<jsAst.Statement> statements = <jsAst.Statement>[];
     if (trivialNsmHandlers.length == 0) return statements;
 
-    // Find out how many selectors there are with the special calling
-    // convention.
-    bool hasSpecialCallingConvention(Selector selector) {
-        return backend.isInterceptedName(selector.name);
-    }
-    Iterable<Selector> specialSelectors = trivialNsmHandlers.where(
-        (Selector s) => backend.isInterceptedName(s.name));
-    Iterable<Selector> ordinarySelectors = trivialNsmHandlers.where(
-        (Selector s) => !backend.isInterceptedName(s.name));
-
-    // Get the short names (JS names, perhaps minified).
-    Iterable<jsAst.Name> specialShorts =
-        specialSelectors.map(namer.invocationMirrorInternalName);
-    Iterable<jsAst.Name> ordinaryShorts =
-        ordinarySelectors.map(namer.invocationMirrorInternalName);
-
     bool minify = compiler.enableMinification;
     bool useDiffEncoding = minify && trivialNsmHandlers.length > 30;
 
-    jsAst.Expression diffEncoding = new _DiffEncodedListOfNames(
-        [specialShorts, ordinaryShorts],
-        useDiffEncoding);
+    // Find out how many selectors there are with the special calling
+    // convention.
+    Iterable<Selector> interceptedSelectors = trivialNsmHandlers.where(
+            (Selector s) => backend.isInterceptedName(s.name));
+    Iterable<Selector> ordinarySelectors = trivialNsmHandlers.where(
+            (Selector s) => !backend.isInterceptedName(s.name));
 
+    // Get the short names (JS names, perhaps minified).
+    Iterable<jsAst.Name> interceptedShorts =
+        interceptedSelectors.map(namer.invocationMirrorInternalName);
+    Iterable<jsAst.Name> ordinaryShorts =
+        ordinarySelectors.map(namer.invocationMirrorInternalName);
+
+    jsAst.Expression sortedShorts;
+    Iterable<String> sortedLongs;
+    if (useDiffEncoding) {
+      assert(minify);
+      sortedShorts = new _DiffEncodedListOfNames(
+          [interceptedShorts, ordinaryShorts]);
+    } else {
+      Iterable<Selector> sorted =
+          [interceptedSelectors, ordinarySelectors].expand((e) => (e));
+      sortedShorts = js.concatenateStrings(
+          js.joinLiterals(
+              sorted.map(namer.invocationMirrorInternalName),
+              js.stringPart(",")),
+          addQuotes: true);
+
+      if (!minify) {
+        sortedLongs = sorted.map((selector) =>
+            selector.invocationMirrorMemberName);
+      }
+    }
     // Startup code that loops over the method names and puts handlers on the
     // Object class to catch noSuchMethod invocations.
     ClassElement objectClass = compiler.objectClass;
@@ -192,19 +205,17 @@ class NsmEmitter extends CodeEmitterHelper {
             }
           }
         }''', {'objectClass': js.quoteName(namer.className(objectClass)),
-               'diffEncoding': diffEncoding}));
+               'diffEncoding': sortedShorts}));
     } else {
       // No useDiffEncoding version.
-      Iterable<String> longs = trivialNsmHandlers.map((selector) =>
-             selector.invocationMirrorMemberName);
       statements.add(js.statement(
           'var objectClassObject = processedClasses.collected[#objectClass],'
           '    shortNames = #diffEncoding.split(",")',
           {'objectClass': js.quoteName(namer.className(objectClass)),
-           'diffEncoding': diffEncoding}));
+           'diffEncoding': sortedShorts}));
       if (!minify) {
         statements.add(js.statement('var longNames = #longs.split(",")',
-                {'longs': js.string(longs.join(','))}));
+                {'longs': js.string(sortedLongs.join(','))}));
       }
       statements.add(js.statement(
           'if (objectClassObject instanceof Array)'
@@ -212,11 +223,11 @@ class NsmEmitter extends CodeEmitterHelper {
     }
 
     dynamic isIntercepted =  // jsAst.Expression or bool.
-        specialSelectors.isEmpty
+        interceptedSelectors.isEmpty
         ? false
         : ordinarySelectors.isEmpty
             ? true
-            : js('j < #', js.number(specialSelectors.length));
+            : js('j < #', js.number(interceptedSelectors.length));
 
     statements.add(js.statement('''
       // If we are loading a deferred library the object class will not be in
@@ -283,10 +294,8 @@ class _DiffEncodedListOfNames extends jsAst.DeferredString
                               implements AstContainer {
   String _cachedValue;
   jsAst.ArrayInitializer ast;
-  bool useDiffEncoding;
 
-  _DiffEncodedListOfNames(Iterable<Iterable<jsAst.Name>> names,
-                          this.useDiffEncoding) {
+  _DiffEncodedListOfNames(Iterable<Iterable<jsAst.Name>> names) {
     // Store the names in ArrayInitializer nodes to make them discoverable
     // by traversals of the ast.
     ast = new jsAst.ArrayInitializer(
@@ -341,15 +350,14 @@ class _DiffEncodedListOfNames extends jsAst.DeferredString
 
     int previous = 0;
     for (String short in shorts) {
-      if (useDiffEncoding &&
-          short.length <= NsmEmitter.MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING) {
+      if (short.length <= NsmEmitter.MAX_MINIFIED_LENGTH_FOR_DIFF_ENCODING) {
         int base63 = fromBase88(short);
         int diff = base63 - previous;
         previous = base63;
         String base26Diff = toBase26(diff);
         diffEncoding.write(base26Diff);
       } else {
-        if (useDiffEncoding || diffEncoding.length != 0) {
+        if (diffEncoding.length != 0) {
           diffEncoding.write(',');
         }
         diffEncoding.write(short);
@@ -361,15 +369,10 @@ class _DiffEncodedListOfNames extends jsAst.DeferredString
     StringBuffer buffer = new StringBuffer();
     for (jsAst.ArrayInitializer list in ast.elements) {
       if (buffer.isNotEmpty) {
-        if (useDiffEncoding) {
-          // Emit period that resets the diff base to zero when we switch to
-          // normal calling convention (this avoids the need to code negative
-          // diffs).
-          buffer.write(".");
-        } else {
-          // Write a separator for the next sequence.
-          buffer.write(",");
-        }
+        // Emit period that resets the diff base to zero when we switch to
+        // normal calling convention (this avoids the need to code negative
+        // diffs).
+        buffer.write(".");
       }
       List<jsAst.Name> names = list.elements;
       _computeDiffEncodingForList(names, buffer);
