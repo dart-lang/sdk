@@ -2762,6 +2762,12 @@ class Getter_NodeReplacerTest_testUriBasedDirective
   StringLiteral get(UriBasedDirective node) => node.uri;
 }
 
+class Getter_NodeReplacerTest_test_yieldStatement
+    implements NodeReplacerTest_Getter {
+  @override
+  Expression get(YieldStatement node) => node.expression;
+}
+
 @reflectiveTest
 class LineInfoTest {
   void test_creation() {
@@ -4091,6 +4097,11 @@ class NodeReplacerTest extends EngineTestCase {
   void _testUriBasedDirective(UriBasedDirective node) {
     _assertReplace(node, new Getter_NodeReplacerTest_testUriBasedDirective());
     _testAnnotatedNode(node);
+  }
+
+  void test_yieldStatement() {
+    var node = AstFactory.yieldStatement(AstFactory.identifier3("A"));
+    _assertReplace(node, new Getter_NodeReplacerTest_test_yieldStatement());
   }
 }
 

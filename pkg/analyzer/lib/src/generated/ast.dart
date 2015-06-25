@@ -13492,6 +13492,7 @@ class NodeReplacer implements AstVisitor<bool> {
   bool visitYieldStatement(YieldStatement node) {
     if (identical(node.expression, _oldNode)) {
       node.expression = _newNode as Expression;
+      return true;
     }
     return visitNode(node);
   }
