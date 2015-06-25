@@ -83,7 +83,7 @@ static void NooptModeHandler(bool value) {
     FLAG_deoptimize_alot = false;  // Used in some tests.
     FLAG_deoptimize_every = 0;  // Used in some tests.
     FLAG_collect_code = false;
-    FLAG_guess_other_cid = false;
+    FLAG_guess_other_cid = true;
     Compiler::set_always_optimize(true);
     // TODO(srdjan): Enable CHA deoptimization when eager class finalization is
     // implemented, either with precompilation or as a special pass.
