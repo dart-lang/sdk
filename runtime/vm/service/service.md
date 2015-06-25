@@ -1263,6 +1263,13 @@ class @Instance extends @Object {
   // Provided for instance kinds:
   //   TypeParameter
   @Class parameterizedClass [optional];
+
+
+  // The pattern of a RegExp instance.
+  //
+  // Provided for instance kinds:
+  //   RegExp
+  @String pattern [optional];
 }
 ```
 
@@ -1379,6 +1386,12 @@ class Instance extends Object {
   // Provided for instance kinds:
   //   MirrorReference
   @Instance mirrorReferent [optional];
+
+  // The pattern of a RegExp instance.
+  //
+  // Provided for instance kinds:
+  //   RegExp
+  @String pattern [optional];
   
   // The key for a WeakProperty instance.
   //
@@ -1483,6 +1496,9 @@ enum {
 
   // An instance of the Dart class MirrorReference.
   MirrorReference,
+
+  // An instance of the Dart class RegExp.
+  RegExp,
 
   // An instance of the Dart class WeakProperty.
   WeakProperty,

@@ -118,6 +118,7 @@ abstract class ServiceObject extends Observable {
   bool get isList => false;
   bool get isMap => false;
   bool get isTypedData => false;
+  bool get isRegExp => false;
   bool get isMirrorReference => false;
   bool get isWeakProperty => false;
   bool get isClosure => false;
@@ -1875,6 +1876,7 @@ class Instance extends ServiceObject {
   @observable Context context;  // If a closure.
   @observable String name;  // If a Type.
   @observable int length; // If a List, Map or TypedData.
+  @observable String pattern;  // If a RegExp.
 
   @observable var typeClass;
   @observable var fields;
@@ -1886,6 +1888,10 @@ class Instance extends ServiceObject {
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
   @observable Breakpoint activationBreakpoint;  // If a Closure.
+  @observable Function oneByteFunction;  // If a RegExp.
+  @observable Function twoByteFunction;  // If a RegExp.
+  @observable Function externalOneByteFunction;  // If a RegExp.
+  @observable Function externalTwoByteFunction;  // If a RegExp.
 
   bool get isAbstractType {
     return (kind == 'Type' || kind == 'TypeRef' ||
@@ -1914,6 +1920,7 @@ class Instance extends ServiceObject {
         || kind == 'Float32x4List'
         || kind == 'Float64x2List';
   }
+  bool get isRegExp => kind == 'RegExp';
   bool get isMirrorReference => kind == 'MirrorReference';
   bool get isWeakProperty => kind == 'WeakProperty';
   bool get isClosure => kind == 'Closure';
@@ -1938,10 +1945,16 @@ class Instance extends ServiceObject {
     context = map['closureContext'];
     name = map['name'];
     length = map['length'];
+    pattern = map['pattern'];
 
     if (mapIsRef) {
       return;
     }
+
+    oneByteFunction = map['_oneByteFunction'];
+    twoByteFunction = map['_twoByteFunction'];
+    externalOneByteFunction = map['_externalOneByteFunction'];
+    externalTwoByteFunction = map['_externalTwoByteFunction'];
 
     nativeFields = map['_nativeFields'];
     fields = map['fields'];
@@ -2807,7 +2820,8 @@ class CodeInstruction extends Observable {
     }
   }
 
-  void _resolveJumpTarget(List<CodeInstruction> instructions) {
+  void _resolveJumpTarget(List<CodeInstruction> instructionsByAddressOffset,
+                          int startAddress) {
     if (!_isJumpInstruction()) {
       return;
     }
@@ -2815,13 +2829,8 @@ class CodeInstruction extends Observable {
     if (address == 0) {
       return;
     }
-    for (var i = 0; i < instructions.length; i++) {
-      var instruction = instructions[i];
-      if (instruction.address == address) {
-        jumpTarget = instruction;
-        return;
-      }
-    }
+
+    jumpTarget = instructionsByAddressOffset[address - startAddress];
   }
 }
 
@@ -2870,6 +2879,8 @@ class Code extends ServiceObject {
   @reflectable int startAddress = 0;
   @reflectable int endAddress = 0;
   @reflectable final instructions = new ObservableList<CodeInstruction>();
+  List<CodeInstruction> instructionsByAddressOffset;
+
   @observable ProfileCode profile;
   final List<CodeInlineInterval> inlineIntervals =
       new List<CodeInlineInterval>();
@@ -3008,6 +3019,8 @@ class Code extends ServiceObject {
   void _processDisassembly(List<String> disassembly){
     assert(disassembly != null);
     instructions.clear();
+    instructionsByAddressOffset = new List(endAddress - startAddress);
+
     assert((disassembly.length % 3) == 0);
     for (var i = 0; i < disassembly.length; i += 3) {
       var address = 0;  // Assume code comment.
@@ -3021,36 +3034,36 @@ class Code extends ServiceObject {
       }
       var instruction = new CodeInstruction(address, pcOffset, machine, human);
       instructions.add(instruction);
+      if (disassembly[i] != '') {
+        // Not a code comment.
+        instructionsByAddressOffset[pcOffset] = instruction;
+      }
     }
     for (var instruction in instructions) {
-      instruction._resolveJumpTarget(instructions);
+      instruction._resolveJumpTarget(instructionsByAddressOffset, startAddress);
     }
   }
 
-  void _processDescriptor(Map d) {
-    var pcOffset = int.parse(d['pcOffset'], radix:16);
-    var address = startAddress + pcOffset;
-    var deoptId = d['deoptId'];
-    var tokenPos = d['tokenPos'];
-    var tryIndex = d['tryIndex'];
-    var kind = d['kind'].trim();
-    for (var instruction in instructions) {
-      if (instruction.address == address) {
+  void _processDescriptors(List<Map> descriptors) {
+    for (Map descriptor in descriptors) {
+      var pcOffset = int.parse(descriptor['pcOffset'], radix:16);
+      var address = startAddress + pcOffset;
+      var deoptId = descriptor['deoptId'];
+      var tokenPos = descriptor['tokenPos'];
+      var tryIndex = descriptor['tryIndex'];
+      var kind = descriptor['kind'].trim();
+
+      var instruction = instructionsByAddressOffset[address - startAddress];
+      if (instruction != null) {
         instruction.descriptors.add(new PcDescriptor(pcOffset,
                                                      deoptId,
                                                      tokenPos,
                                                      tryIndex,
                                                      kind));
-        return;
+      } else {
+        Logger.root.warning(
+          'Could not find instruction with pc descriptor address: $address');
       }
-    }
-    Logger.root.warning(
-        'Could not find instruction with pc descriptor address: $address');
-  }
-
-  void _processDescriptors(List<Map> descriptors) {
-    for (Map descriptor in descriptors) {
-      _processDescriptor(descriptor);
     }
   }
 

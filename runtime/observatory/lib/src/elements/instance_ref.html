@@ -42,6 +42,10 @@
         </a>
       </template>
 
+      <template if="{{ ref.isRegExp }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}({{ ref.pattern.valueAsString }})</em></a>
+      </template>
+
       <template if="{{ ref.isPlainInstance }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
         <curly-block callback="{{ expander() }}">

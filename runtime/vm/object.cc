@@ -20850,7 +20850,26 @@ const char* JSRegExp::ToCString() const {
 
 
 void JSRegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "RegExp");
+  jsobj.AddServiceId(*this);
+
+  jsobj.AddProperty("pattern", String::Handle(pattern()));
+
+  if (ref) {
+    return;
+  }
+
+  Function& func = Function::Handle();
+  func = function(kOneByteStringCid);
+  jsobj.AddProperty("_oneByteFunction", func);
+  func = function(kTwoByteStringCid);
+  jsobj.AddProperty("_twoByteFunction", func);
+  func = function(kExternalOneByteStringCid);
+  jsobj.AddProperty("_externalOneByteFunction", func);
+  func = function(kExternalTwoByteStringCid);
+  jsobj.AddProperty("_externalTwoByteFunction", func);
 }
 
 
