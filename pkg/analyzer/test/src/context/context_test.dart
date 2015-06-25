@@ -34,9 +34,10 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
-import 'package:path/path.dart' as pathos;
 import 'package:unittest/unittest.dart';
 import 'package:watcher/src/utils.dart';
 
@@ -48,6 +49,7 @@ import 'abstract_context.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(AnalysisContextImplTest);
+  runReflectiveTests(LimitedInvalidateTest);
 }
 
 @reflectiveTest
@@ -121,31 +123,6 @@ class ClassA {}''');
     AnalysisError error = errors[0];
     expect(error.source, same(source));
     expect(error.errorCode, ScannerErrorCode.UNABLE_GET_CONTENT);
-  }
-
-  void test_performAnalysisTask_importedLibraryAdd_html() {
-    Source htmlSource = addSource("/page.html", r'''
-<html><body><script type="application/dart">
-  import '/libB.dart';
-  main() {print('hello dart');}
-</script></body></html>''');
-    _analyzeAll_assertFinished();
-    context.computeErrors(htmlSource);
-    expect(_hasAnalysisErrorWithErrorSeverity(context.getErrors(htmlSource)),
-        isTrue, reason: "htmlSource has an error");
-    // add libB.dart and analyze
-    Source libBSource = addSource("/libB.dart", "library libB;");
-    _analyzeAll_assertFinished();
-    expect(
-        context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull,
-        reason: "libB resolved 2");
-    // TODO (danrubel) commented out to fix red bots
-//    context.computeErrors(htmlSource);
-//    AnalysisErrorInfo errors = _context.getErrors(htmlSource);
-//    expect(
-//        !_hasAnalysisErrorWithErrorSeverity(errors),
-//        isTrue,
-//        reason: "htmlSource doesn't have errors");
   }
 
   void fail_performAnalysisTask_importedLibraryDelete_html() {
@@ -1650,6 +1627,31 @@ void g() { f(null); }''');
         isFalse, reason: "libA doesn't have errors");
   }
 
+  void test_performAnalysisTask_importedLibraryAdd_html() {
+    Source htmlSource = addSource("/page.html", r'''
+<html><body><script type="application/dart">
+  import '/libB.dart';
+  main() {print('hello dart');}
+</script></body></html>''');
+    _analyzeAll_assertFinished();
+    context.computeErrors(htmlSource);
+    expect(_hasAnalysisErrorWithErrorSeverity(context.getErrors(htmlSource)),
+        isTrue, reason: "htmlSource has an error");
+    // add libB.dart and analyze
+    Source libBSource = addSource("/libB.dart", "library libB;");
+    _analyzeAll_assertFinished();
+    expect(
+        context.getResolvedCompilationUnit2(libBSource, libBSource), isNotNull,
+        reason: "libB resolved 2");
+    // TODO (danrubel) commented out to fix red bots
+//    context.computeErrors(htmlSource);
+//    AnalysisErrorInfo errors = _context.getErrors(htmlSource);
+//    expect(
+//        !_hasAnalysisErrorWithErrorSeverity(errors),
+//        isTrue,
+//        reason: "htmlSource doesn't have errors");
+  }
+
   void test_performAnalysisTask_importedLibraryDelete() {
     Source libASource =
         addSource("/libA.dart", "library libA; import 'libB.dart';");
@@ -2050,6 +2052,164 @@ int a = 0;''');
       }
     }
     return false;
+  }
+}
+
+@reflectiveTest
+class LimitedInvalidateTest extends AbstractContextTest {
+  @override
+  void setUp() {
+    AnalysisEngine.instance.limitInvalidationInTaskModel = true;
+    super.setUp();
+  }
+
+  @override
+  void tearDown() {
+    AnalysisEngine.instance.limitInvalidationInTaskModel = false;
+    super.tearDown();
+  }
+
+  void test_unusedName() {
+    Source sourceA = addSource("/a.dart", r'''
+library lib_a;
+class A {}
+class B {}
+class C {}
+''');
+    Source sourceB = addSource("/b.dart", r'''
+library lib_b;
+import 'a.dart';
+main() {
+  new A();
+  new C();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update A.
+    context.setContents(sourceA, r'''
+library lib_a;
+class A {}
+class B2 {}
+class C {}
+''');
+    // Only a.dart is invalidated.
+    // Because b.dart does not use B, so it is valid.
+    _assertInvalid(sourceA, LIBRARY_ERRORS_READY);
+    _assertValid(sourceB, LIBRARY_ERRORS_READY);
+  }
+
+  void test_usedName_directUser() {
+    Source sourceA = addSource("/a.dart", r'''
+library lib_a;
+class A {}
+class B {}
+class C {}
+''');
+    Source sourceB = addSource("/b.dart", r'''
+library lib_b;
+import 'a.dart';
+main() {
+  new A();
+  new C2();
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(sourceB).errors, hasLength(1));
+    // Update a.dart, invalidates b.dart because it references "C2".
+    context.setContents(sourceA, r'''
+library lib_a;
+class A {}
+class B {}
+class C2 {}
+''');
+    _assertInvalid(sourceA, LIBRARY_ERRORS_READY);
+    _assertInvalid(sourceB, LIBRARY_ERRORS_READY);
+    // Now b.dart is analyzed and the error is fixed.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(sourceB).errors, hasLength(0));
+    // Update a.dart, invalidates b.dart because it references "C".
+    context.setContents(sourceA, r'''
+library lib_a;
+class A {}
+class B {}
+class C {}
+''');
+    _assertInvalid(sourceA, LIBRARY_ERRORS_READY);
+    _assertInvalid(sourceB, LIBRARY_ERRORS_READY);
+    _performPendingAnalysisTasks();
+    // Now b.dart is analyzed and it again has the error.
+    expect(context.getErrors(sourceB).errors, hasLength(1));
+  }
+
+  void test_usedName_indirectUser() {
+    Source sourceA = addSource("/a.dart", r'''
+library lib_a;
+class A {
+  m() {}
+}
+''');
+    Source sourceB = addSource("/b.dart", r'''
+library lib_b;
+import 'a.dart';
+class B extends A {}
+''');
+    Source sourceC = addSource("/c.dart", r'''
+library lib_c;
+import 'b.dart';
+class C extends B {
+  main() {
+    m();
+  }
+}
+''');
+    // No errors, "A.m" exists.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(sourceC).errors, hasLength(0));
+    // Replace "A.m" with "A.m2", invalidate both b.dart and c.dart files.
+    context.setContents(sourceA, r'''
+library lib_a;
+class A {
+  m2() {}
+}
+''');
+    _assertInvalid(sourceA, LIBRARY_ERRORS_READY);
+    _assertInvalid(sourceB, LIBRARY_ERRORS_READY);
+    _assertInvalid(sourceC, LIBRARY_ERRORS_READY);
+    // There is an error in c.dart, "A.m" does not exist.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(sourceB).errors, hasLength(0));
+    expect(context.getErrors(sourceC).errors, hasLength(1));
+    // Restore "A.m", invalidate both b.dart and c.dart files.
+    context.setContents(sourceA, r'''
+library lib_a;
+class A {
+  m() {}
+}
+''');
+    _assertInvalid(sourceA, LIBRARY_ERRORS_READY);
+    _assertInvalid(sourceB, LIBRARY_ERRORS_READY);
+    _assertInvalid(sourceC, LIBRARY_ERRORS_READY);
+    // No errors, "A.m" exists.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(sourceC).errors, hasLength(0));
+  }
+
+  void _assertInvalid(AnalysisTarget target, ResultDescriptor descriptor) {
+    CacheState state = analysisCache.getState(target, descriptor);
+    expect(state, CacheState.INVALID);
+  }
+
+  void _assertValid(AnalysisTarget target, ResultDescriptor descriptor) {
+    CacheState state = analysisCache.getState(target, descriptor);
+    expect(state, CacheState.VALID);
+  }
+
+  void _performPendingAnalysisTasks([int maxTasks = 512]) {
+    for (int i = 0; context.performAnalysisTask().hasMoreWork; i++) {
+      if (i > maxTasks) {
+        fail('Analysis did not terminate.');
+      }
+    }
   }
 }
 

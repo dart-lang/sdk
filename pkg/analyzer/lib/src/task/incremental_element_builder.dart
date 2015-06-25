@@ -214,8 +214,13 @@ class IncrementalCompilationUnitElementBuilder {
         for (VariableDeclaration variable in variableList.variables) {
           TopLevelVariableElement element = variable.element;
           elements.add(element);
-          elements.add(element.getter);
-          elements.add(element.setter);
+          // TODO(scheglov) write tests for nulls
+          if (element.getter != null) {
+            elements.add(element.getter);
+          }
+          if (element.setter != null) {
+            elements.add(element.setter);
+          }
         }
       }
     } else if (node is PartDirective || node is PartOfDirective) {

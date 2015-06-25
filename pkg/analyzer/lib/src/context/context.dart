@@ -35,6 +35,7 @@ import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
+import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
@@ -1720,7 +1721,31 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       } catch (e) {}
     }
     // We need to invalidate the cache.
-    entry.setState(CONTENT, CacheState.INVALID);
+    {
+      Object delta = null;
+      if (AnalysisEngine.instance.limitInvalidationInTaskModel &&
+          AnalysisEngine.isDartFileName(source.fullName)) {
+        // TODO(scheglov) Incorrect implementation in general.
+        entry.setState(TOKEN_STREAM, CacheState.FLUSHED);
+        entry.setState(SCAN_ERRORS, CacheState.FLUSHED);
+        entry.setState(PARSED_UNIT, CacheState.FLUSHED);
+        entry.setState(PARSE_ERRORS, CacheState.FLUSHED);
+        CompilationUnit oldUnit = getResolvedCompilationUnit2(source, source);
+        if (oldUnit != null) {
+          CompilationUnit newUnit = parseCompilationUnit(source);
+          IncrementalCompilationUnitElementBuilder builder =
+              new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
+          builder.build();
+          CompilationUnitElementDelta unitDelta = builder.unitDelta;
+          DartDelta dartDelta = new DartDelta(source);
+          dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
+          unitDelta.addedDeclarations.forEach(dartDelta.elementAdded);
+          unitDelta.removedDeclarations.forEach(dartDelta.elementRemoved);
+          delta = dartDelta;
+        }
+      }
+      entry.setState(CONTENT, CacheState.INVALID, delta: delta);
+    }
     dartWorkManager.applyChange(
         Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
     htmlWorkManager.applyChange(
@@ -1770,6 +1795,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * TODO(scheglov) A hackish, limited incremental resolution implementation.
    */
   bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
+    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
+      return false;
+    }
     return PerformanceStatistics.incrementalAnalysis.makeCurrentWhile(() {
       incrementalResolutionValidation_lastUnitSource = null;
       incrementalResolutionValidation_lastLibrarySource = null;

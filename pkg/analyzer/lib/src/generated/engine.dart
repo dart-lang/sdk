@@ -5810,6 +5810,12 @@ class AnalysisEngine {
   bool useTaskModel = false;
 
   /**
+   * A flag indicating whether the task model should attempt to limit
+   * invalidation after a change.
+   */
+  bool limitInvalidationInTaskModel = false;
+
+  /**
    * The task manager used to manage the tasks used to analyze code.
    */
   TaskManager _taskManager;
