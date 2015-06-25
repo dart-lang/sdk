@@ -266,5 +266,8 @@ abstract class TypeMask {
    * on this mask. Returns null if there is none.
    */
   // TODO(johnniwinther): Move this method to [World].
-  Element locateSingleElement(Selector selector, Compiler compiler);
+  Element locateSingleElement(
+      Selector selector,
+      TypeMask mask,
+      Compiler compiler);
 }

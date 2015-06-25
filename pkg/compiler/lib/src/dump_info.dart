@@ -22,7 +22,7 @@ import 'types/types.dart' show TypeMask;
 import 'deferred_load.dart' show OutputUnit;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'js/js.dart' as jsAst;
-import 'universe/universe.dart' show Selector;
+import 'universe/universe.dart' show Selector, UniverseSelector;
 import 'util/util.dart' show NO_LOCATION_SPANNABLE;
 
 /// Maps objects to an id.  Supports lookups in
@@ -389,8 +389,8 @@ class ElementToJsonVisitor
 
 class Selection {
   final Element selectedElement;
-  final Selector selector;
-  Selection(this.selectedElement, this.selector);
+  final TypeMask mask;
+  Selection(this.selectedElement, this.mask);
 }
 
 class DumpInfoTask extends CompilerTask {
@@ -415,7 +415,7 @@ class DumpInfoTask extends CompilerTask {
   // pretty-printed contents.
   final Map<jsAst.Node, int> _nodeToSize = <jsAst.Node, int>{};
 
-  final Map<Element, Set<Selector>> selectorsFromElement = {};
+  final Map<Element, Set<UniverseSelector>> selectorsFromElement = {};
   final Map<Element, int> inlineCount = <Element, int>{};
   // A mapping from an element to a list of elements that are
   // inlined inside of it.
@@ -437,10 +437,10 @@ class DumpInfoTask extends CompilerTask {
    * Registers that a function uses a selector in the
    * function body
    */
-  void elementUsesSelector(Element element, Selector selector) {
+  void elementUsesSelector(Element element, UniverseSelector selector) {
     if (compiler.dumpInfo) {
       selectorsFromElement
-          .putIfAbsent(element, () => new Set<Selector>())
+          .putIfAbsent(element, () => new Set<UniverseSelector>())
           .add(selector);
     }
   }
@@ -455,9 +455,11 @@ class DumpInfoTask extends CompilerTask {
       return const <Selection>[];
     } else {
       return selectorsFromElement[element].expand(
-        (selector) {
-          return compiler.world.allFunctions.filter(selector).map((element) {
-            return new Selection(element, selector);
+        (UniverseSelector selector) {
+          return compiler.world.allFunctions.filter(
+              selector.selector, selector.mask)
+              .map((element) {
+            return new Selection(element, selector.mask);
           });
         });
     }
@@ -563,7 +565,7 @@ class DumpInfoTask extends CompilerTask {
             .map((selection) {
               return <String, String>{
                 "id": infoCollector.idOf(selection.selectedElement),
-                "mask": selection.selector.mask.toString()
+                "mask": selection.mask.toString()
               };
             })
             // Filter non-null ids for the same reason as above.

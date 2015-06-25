@@ -49,8 +49,12 @@ import '../elements/modelx.dart' show
     VariableList;
 
 import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
+import '../types/types.dart' show TypeMask;
 import '../util/util.dart';
-import '../universe/universe.dart' show CallStructure, SelectorKind;
+import '../universe/universe.dart' show
+    CallStructure,
+    SelectorKind,
+    UniverseSelector;
 
 import 'access_semantics.dart';
 import 'class_members.dart' show MembersCreator;

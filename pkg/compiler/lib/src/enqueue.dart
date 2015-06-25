@@ -35,9 +35,10 @@ class EnqueueTask extends CompilerTask {
 class WorldImpact {
   const WorldImpact();
 
-  Iterable<Selector> get dynamicInvocations => const <Selector>[];
-  Iterable<Selector> get dynamicGetters => const <Selector>[];
-  Iterable<Selector> get dynamicSetters => const <Selector>[];
+  Iterable<UniverseSelector> get dynamicInvocations =>
+      const <UniverseSelector>[];
+  Iterable<UniverseSelector> get dynamicGetters => const <UniverseSelector>[];
+  Iterable<UniverseSelector> get dynamicSetters => const <UniverseSelector>[];
 
   // TODO(johnniwinther): Split this into more precise subsets.
   Iterable<Element> get staticUses => const <Element>[];
@@ -143,7 +144,6 @@ abstract class Enqueuer {
     assert(invariant(member, member.isDeclaration));
     if (isProcessed(member)) return;
     if (!member.isInstanceMember) return;
-
     String memberName = member.name;
 
     if (member.kind == ElementKind.FIELD) {
@@ -276,32 +276,27 @@ abstract class Enqueuer {
     });
   }
 
-  void registerNewSelector(Selector selector,
-                           Map<String, Set<Selector>> selectorsMap) {
-    String name = selector.name;
-    Set<Selector> selectors =
-        selectorsMap.putIfAbsent(name, () => new Setlet<Selector>());
-    if (!selectors.contains(selector)) {
-      selectors.add(selector);
-      handleUnseenSelector(name, selector);
-    }
-  }
-
-  void registerInvocation(Selector selector) {
+  void registerInvocation(UniverseSelector selector) {
     task.measure(() {
-      registerNewSelector(selector, universe.invokedNames);
+      if (universe.registerInvocation(selector)) {
+        handleUnseenSelector(selector);
+      }
     });
   }
 
-  void registerInvokedGetter(Selector selector) {
+  void registerInvokedGetter(UniverseSelector selector) {
     task.measure(() {
-      registerNewSelector(selector, universe.invokedGetters);
+      if (universe.registerInvokedGetter(selector)) {
+        handleUnseenSelector(selector);
+      }
     });
   }
 
-  void registerInvokedSetter(Selector selector) {
+  void registerInvokedSetter(UniverseSelector selector) {
     task.measure(() {
-      registerNewSelector(selector, universe.invokedSetters);
+      if (universe.registerInvokedSetter(selector)) {
+        handleUnseenSelector(selector);
+      }
     });
   }
 
@@ -355,11 +350,12 @@ abstract class Enqueuer {
         // We need to enqueue all members matching this one in subclasses, as
         // well.
         // TODO(herhut): Use TypedSelector.subtype for enqueueing
-        Selector selector = new Selector.fromElement(element);
+        UniverseSelector selector = new UniverseSelector(
+            new Selector.fromElement(element), null);
         registerSelectorUse(selector);
         if (element.isField) {
-          Selector selector =
-              new Selector.setter(element.name, element.library);
+          UniverseSelector selector = new UniverseSelector(
+              new Selector.setter(element.name, element.library), null);
           registerInvokedSetter(selector);
         }
       }
@@ -499,9 +495,11 @@ abstract class Enqueuer {
     processSet(instanceFunctionsByName, n, f);
   }
 
-  void handleUnseenSelector(String methodName, Selector selector) {
+  void handleUnseenSelector(UniverseSelector universeSelector) {
+    Selector selector = universeSelector.selector;
+    String methodName = selector.name;
     processInstanceMembers(methodName, (Element member) {
-      if (selector.appliesUnnamed(member, compiler.world)) {
+      if (universeSelector.appliesUnnamed(member, compiler.world)) {
         if (member.isFunction && selector.isGetter) {
           registerClosurizedMember(member, compiler.globalDependencies);
         }
@@ -530,7 +528,7 @@ abstract class Enqueuer {
     });
     if (selector.isGetter) {
       processInstanceFunctions(methodName, (Element member) {
-        if (selector.appliesUnnamed(member, compiler.world)) {
+        if (universeSelector.appliesUnnamed(member, compiler.world)) {
           registerClosurizedMember(member, compiler.globalDependencies);
           return true;
         }
@@ -561,26 +559,26 @@ abstract class Enqueuer {
     universe.staticFunctionsNeedingGetter.add(element);
   }
 
-  void registerDynamicInvocation(Selector selector) {
+  void registerDynamicInvocation(UniverseSelector selector) {
     assert(selector != null);
     registerInvocation(selector);
   }
 
-  void registerSelectorUse(Selector selector) {
-    if (selector.isGetter) {
-      registerInvokedGetter(selector);
-    } else if (selector.isSetter) {
-      registerInvokedSetter(selector);
+  void registerSelectorUse(UniverseSelector universeSelector) {
+    if (universeSelector.selector.isGetter) {
+      registerInvokedGetter(universeSelector);
+    } else if (universeSelector.selector.isSetter) {
+      registerInvokedSetter(universeSelector);
     } else {
-      registerInvocation(selector);
+      registerInvocation(universeSelector);
     }
   }
 
-  void registerDynamicGetter(Selector selector) {
+  void registerDynamicGetter(UniverseSelector selector) {
     registerInvokedGetter(selector);
   }
 
-  void registerDynamicSetter(Selector selector) {
+  void registerDynamicSetter(UniverseSelector selector) {
     registerInvokedSetter(selector);
   }
 
@@ -841,7 +839,7 @@ class CodegenEnqueuer extends Enqueuer {
 
   final Set<Element> newlyEnqueuedElements;
 
-  final Set<Selector> newlySeenSelectors;
+  final Set<UniverseSelector> newlySeenSelectors;
 
   bool enabledNoSuchMethod = false;
 
@@ -917,11 +915,11 @@ class CodegenEnqueuer extends Enqueuer {
     }
   }
 
-  void handleUnseenSelector(String methodName, Selector selector) {
+  void handleUnseenSelector(UniverseSelector selector) {
     if (compiler.hasIncrementalSupport) {
       newlySeenSelectors.add(selector);
     }
-    super.handleUnseenSelector(methodName, selector);
+    super.handleUnseenSelector(selector);
   }
 }
 

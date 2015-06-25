@@ -574,7 +574,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // We still need to register the invocation, because we might
         // call [:super.noSuchMethod:] which calls
         // [JSInvocationMirror._invokeOn].
-        registry.registerDynamicInvocation(selector);
+        registry.registerDynamicInvocation(
+            new UniverseSelector(selector, null));
         registry.registerSuperNoSuchMethod();
       }
     } else if (Elements.isUnresolved(resolvedReceiver.element)) {
@@ -949,7 +950,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       }
       // We still need to register the invocation, because we might
       // call [:super.noSuchMethod:] which calls [JSInvocationMirror._invokeOn].
-      registry.registerDynamicInvocation(selector);
+      registry.registerDynamicInvocation(new UniverseSelector(selector, null));
       registry.registerSuperNoSuchMethod();
     }
     return computeSuperAccessSemantics(node, target);
@@ -1077,7 +1078,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       ResolutionResult expressionResult = visitExpression(expression);
       semantics = new DynamicAccess.dynamicProperty(expression);
-      registry.registerDynamicInvocation(selector);
+      registry.registerDynamicInvocation(new UniverseSelector(selector, null));
 
       if (expressionResult.isConstant) {
         bool isValidConstant;
@@ -1252,7 +1253,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else {
       ResolutionResult leftResult = visitExpression(left);
       ResolutionResult rightResult = visitExpression(right);
-      registry.registerDynamicInvocation(selector);
+      registry.registerDynamicInvocation(new UniverseSelector(selector, null));
       semantics = new DynamicAccess.dynamicProperty(left);
 
       if (leftResult.isConstant && rightResult.isConstant) {
@@ -1384,7 +1385,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // TODO(johnniwinther): Remove this when all information goes through the
     // [SendStructure].
     registry.setSelector(node, selector);
-    registry.registerDynamicInvocation(selector);
+    registry.registerDynamicInvocation(new UniverseSelector(selector, null));
     registry.registerSendStructure(node,
         new InvokeStructure(new AccessSemantics.expression(), selector));
     return const NoneResult();
@@ -1434,7 +1435,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // TODO(johnniwinther): Handle invalid this access as an
       // [AccessSemantics].
       if (checkThisAccess(node)) {
-        registry.registerDynamicInvocation(selector);
+        registry.registerDynamicInvocation(
+            new UniverseSelector(selector, null));
         registry.registerSendStructure(node,
             new InvokeStructure(accessSemantics, selector));
       }
@@ -1470,7 +1472,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
             superMethod.computeSignature(compiler);
             if (!callStructure.signatureApplies(superMethod)) {
               registry.registerThrowNoSuchMethod();
-              registry.registerDynamicInvocation(selector);
+              registry.registerDynamicInvocation(
+                  new UniverseSelector(selector, null));
               registry.registerSuperNoSuchMethod();
               isIncompatibleInvoke = true;
             } else {
@@ -1482,7 +1485,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           case AccessKind.SUPER_GETTER:
             registry.registerStaticUse(semantics.element);
             selector = callStructure.callSelector;
-            registry.registerDynamicInvocation(selector);
+            registry.registerDynamicInvocation(
+                new UniverseSelector(selector, null));
             break;
           case AccessKind.SUPER_SETTER:
           case AccessKind.UNRESOLVED_SUPER:
@@ -1708,13 +1712,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.isCall) {
       CallStructure callStructure = resolveArguments(node.argumentsNode);
       selector = new Selector(SelectorKind.CALL, name, callStructure);
-      registry.registerDynamicInvocation(selector);
+      registry.registerDynamicInvocation(
+          new UniverseSelector(selector, null));
       sendStructure = new InvokeStructure(semantics, selector);
     } else {
       assert(invariant(node, node.isPropertyAccess));
       selector = new Selector(
           SelectorKind.GETTER, name, CallStructure.NO_ARGS);
-      registry.registerDynamicGetter(selector);
+      registry.registerDynamicGetter(
+          new UniverseSelector(selector, null));
       sendStructure = new GetStructure(semantics, selector);
     }
     registry.registerSendStructure(node, sendStructure);
@@ -1798,13 +1804,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     if (node.isCall) {
       CallStructure callStructure = resolveArguments(node.argumentsNode);
       selector = new Selector(SelectorKind.CALL, name, callStructure);
-      registry.registerDynamicInvocation(selector);
+      registry.registerDynamicInvocation(
+          new UniverseSelector(selector, null));
       sendStructure = new InvokeStructure(accessSemantics, selector);
     } else {
       assert(invariant(node, node.isPropertyAccess));
       selector = new Selector(
           SelectorKind.GETTER, name, CallStructure.NO_ARGS);
-      registry.registerDynamicGetter(selector);
+      registry.registerDynamicGetter(
+          new UniverseSelector(selector, null));
       sendStructure = new GetStructure(accessSemantics, selector);
     }
     // TODO(johnniwinther): Remove this when all information goes through
@@ -1872,7 +1880,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           function.computeSignature(compiler);
           if (!callStructure.signatureApplies(function)) {
             registry.registerThrowNoSuchMethod();
-            registry.registerDynamicInvocation(selector);
+            registry.registerDynamicInvocation(
+                new UniverseSelector(selector, null));
             isIncompatibleInvoke = true;
           }
           break;
@@ -1881,7 +1890,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.LOCAL_VARIABLE:
         case AccessKind.FINAL_LOCAL_VARIABLE:
           selector = callStructure.callSelector;
-          registry.registerDynamicInvocation(selector);
+          registry.registerDynamicInvocation(
+              new UniverseSelector(selector, null));
           break;
         default:
           internalError(node,
@@ -1946,7 +1956,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           method.computeSignature(compiler);
           if (!callStructure.signatureApplies(method)) {
             registry.registerThrowNoSuchMethod();
-            registry.registerDynamicInvocation(selector);
+            registry.registerDynamicInvocation(
+                new UniverseSelector(selector, null));
             isIncompatibleInvoke = true;
           } else {
             registry.registerStaticUse(semantics.element);
@@ -1961,7 +1972,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.TOPLEVEL_GETTER:
           registry.registerStaticUse(semantics.element);
           selector = callStructure.callSelector;
-          registry.registerDynamicInvocation(selector);
+          registry.registerDynamicInvocation(
+              new UniverseSelector(selector, null));
           break;
         case AccessKind.STATIC_SETTER:
         case AccessKind.TOPLEVEL_SETTER:
@@ -2184,7 +2196,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // we need to register that fact that we may be calling a closure
         // with the same arguments.
         Selector call = new Selector.callClosureFrom(selector);
-        registry.registerDynamicInvocation(call);
+        registry.registerDynamicInvocation(
+            new UniverseSelector(selector, null));
       } else if (target.impliesType) {
         // We call 'call()' on a Type instance returned from the reference to a
         // class or typedef literal. We do not need to register this call as a
@@ -2359,7 +2372,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       // the ++ and -- ones.  Also, if op= form is used, include op itself.
       void registerBinaryOperator(String name) {
         Selector binop = new Selector.binaryOperator(name);
-        registry.registerDynamicInvocation(binop);
+        registry.registerDynamicInvocation(
+            new UniverseSelector(binop, null));
         registry.setOperatorSelectorInComplexSendSet(node, binop);
       }
       if (identical(source, '++')) {
@@ -2380,11 +2394,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   void registerSend(Selector selector, Element target) {
     if (target == null || target.isInstanceMember) {
       if (selector.isGetter) {
-        registry.registerDynamicGetter(selector);
+        registry.registerDynamicGetter(
+            new UniverseSelector(selector, null));
       } else if (selector.isSetter) {
-        registry.registerDynamicSetter(selector);
+        registry.registerDynamicSetter(
+            new UniverseSelector(selector, null));
       } else {
-        registry.registerDynamicInvocation(selector);
+        registry.registerDynamicInvocation(
+            new UniverseSelector(selector, null));
       }
     } else if (Elements.isStaticOrTopLevel(target)) {
       // Avoid registration of type variables since they are not analyzable but
@@ -3011,15 +3028,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
   registerImplicitInvocation(String name, int arity) {
     Selector selector = new Selector.call(name, null, arity);
-    registry.registerDynamicInvocation(selector);
+    registry.registerDynamicInvocation(new UniverseSelector(selector, null));
   }
 
   ResolutionResult visitAsyncForIn(AsyncForIn node) {
     registry.registerAsyncForIn(node);
     registry.setCurrentSelector(node, compiler.currentSelector);
-    registry.registerDynamicGetter(compiler.currentSelector);
+    registry.registerDynamicGetter(
+        new UniverseSelector(compiler.currentSelector, null));
     registry.setMoveNextSelector(node, compiler.moveNextSelector);
-    registry.registerDynamicInvocation(compiler.moveNextSelector);
+    registry.registerDynamicInvocation(
+        new UniverseSelector(compiler.moveNextSelector, null));
 
     visit(node.expression);
 
@@ -3032,11 +3051,14 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   ResolutionResult visitSyncForIn(SyncForIn node) {
     registry.registerSyncForIn(node);
     registry.setIteratorSelector(node, compiler.iteratorSelector);
-    registry.registerDynamicGetter(compiler.iteratorSelector);
+    registry.registerDynamicGetter(
+        new UniverseSelector(compiler.iteratorSelector, null));
     registry.setCurrentSelector(node, compiler.currentSelector);
-    registry.registerDynamicGetter(compiler.currentSelector);
+    registry.registerDynamicGetter(
+        new UniverseSelector(compiler.currentSelector, null));
     registry.setMoveNextSelector(node, compiler.moveNextSelector);
-    registry.registerDynamicInvocation(compiler.moveNextSelector);
+    registry.registerDynamicInvocation(
+        new UniverseSelector(compiler.moveNextSelector, null));
 
     visit(node.expression);
 

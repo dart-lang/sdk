@@ -12,6 +12,7 @@ import '../dart2jslib.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
 import '../tree/tree.dart' as ast;
+import '../types/types.dart' show TypeMask;
 import '../closure.dart' hide ClosureScope;
 import '../universe/universe.dart' show SelectorKind;
 import 'cps_ir_nodes.dart' as ir;
@@ -625,20 +626,22 @@ class IrBuilder {
 
   ir.Primitive _buildInvokeDynamic(ir.Primitive receiver,
                                    Selector selector,
+                                   TypeMask mask,
                                    List<ir.Primitive> arguments,
                                    {SourceInformation sourceInformation}) {
     assert(isOpen);
     return _continueWithExpression(
-        (k) => new ir.InvokeMethod(receiver, selector, arguments, k,
+        (k) => new ir.InvokeMethod(receiver, selector, mask, arguments, k,
             sourceInformation: sourceInformation));
   }
 
   ir.Primitive _buildInvokeCall(ir.Primitive target,
                                 CallStructure callStructure,
+                                TypeMask mask,
                                 List<ir.Definition> arguments,
                                 {SourceInformation sourceInformation}) {
     Selector selector = callStructure.callSelector;
-    return _buildInvokeDynamic(target, selector, arguments,
+    return _buildInvokeDynamic(target, selector, mask, arguments,
         sourceInformation: sourceInformation);
   }
 
@@ -848,34 +851,40 @@ class IrBuilder {
   /// defined by [arguments].
   ir.Primitive buildDynamicInvocation(ir.Primitive receiver,
                                       Selector selector,
+                                      TypeMask mask,
                                       List<ir.Primitive> arguments) {
-    return _buildInvokeDynamic(receiver, selector, arguments);
+    return _buildInvokeDynamic(receiver, selector, mask, arguments);
   }
 
   /// Create a dynamic getter invocation on [receiver] where the getter name is
   /// defined by [selector].
-  ir.Primitive buildDynamicGet(ir.Primitive receiver, Selector selector) {
+  ir.Primitive buildDynamicGet(ir.Primitive receiver,
+                               Selector selector,
+                               TypeMask mask) {
     assert(selector.isGetter);
-    return _buildInvokeDynamic(receiver, selector, const <ir.Primitive>[]);
+    return _buildInvokeDynamic(
+        receiver, selector, mask, const <ir.Primitive>[]);
   }
 
   /// Create a dynamic setter invocation on [receiver] where the setter name and
   /// argument are defined by [selector] and [value], respectively.
   ir.Primitive buildDynamicSet(ir.Primitive receiver,
                                Selector selector,
+                               TypeMask mask,
                                ir.Primitive value) {
     assert(selector.isSetter);
-    _buildInvokeDynamic(receiver, selector, <ir.Primitive>[value]);
+    _buildInvokeDynamic(receiver, selector, mask, <ir.Primitive>[value]);
     return value;
   }
 
   /// Create a dynamic index set invocation on [receiver] with the provided
   /// [index] and [value].
-  ir.Primitive buildDynamicIndexSet(ir.Primitive receiver,
-                                    ir.Primitive index,
-                                    ir.Primitive value) {
+  ir.Primitive  buildDynamicIndexSet(ir.Primitive receiver,
+                                     TypeMask mask,
+                                     ir.Primitive index,
+                                     ir.Primitive value) {
     _buildInvokeDynamic(
-        receiver, new Selector.indexSet(), <ir.Primitive>[index, value]);
+        receiver, new Selector.indexSet(), mask, <ir.Primitive>[index, value]);
     return value;
   }
 
@@ -999,12 +1008,13 @@ class IrBuilder {
 
   /// Create an invocation of the `call` method of [functionExpression], where
   /// the structure of arguments are given by [callStructure].
+  // TODO(johnniwinther): This should take a [TypeMask].
   ir.Primitive buildCallInvocation(
       ir.Primitive functionExpression,
       CallStructure callStructure,
       List<ir.Definition> arguments,
       {SourceInformation sourceInformation}) {
-    return _buildInvokeCall(functionExpression, callStructure, arguments,
+    return _buildInvokeCall(functionExpression, callStructure, null, arguments,
         sourceInformation: sourceInformation);
   }
 
@@ -1255,6 +1265,10 @@ class IrBuilder {
                    SubbuildFunction buildVariableDeclaration,
                    Element variableElement,
                    Selector variableSelector,
+                   TypeMask variableMask,
+                   TypeMask currentMask,
+                   TypeMask iteratorMask,
+                   TypeMask moveNextMask,
                    SubbuildFunction buildBody,
                    JumpTarget target,
                    ClosureScope closureScope}) {
@@ -1282,6 +1296,7 @@ class IrBuilder {
     add(new ir.LetCont(iteratorInvoked,
         new ir.InvokeMethod(expressionReceiver,
             new Selector.getter("iterator", null),
+            iteratorMask,
             emptyArguments,
             iteratorInvoked)));
 
@@ -1298,6 +1313,7 @@ class IrBuilder {
     add(new ir.LetCont(moveNextInvoked,
         new ir.InvokeMethod(iterator,
             new Selector.call("moveNext", null, 0),
+            moveNextMask,
             emptyArguments,
             moveNextInvoked)));
 
@@ -1317,7 +1333,10 @@ class IrBuilder {
     ir.Parameter currentValue = new ir.Parameter(null);
     ir.Continuation currentInvoked = new ir.Continuation([currentValue]);
     bodyBuilder.add(new ir.LetCont(currentInvoked,
-        new ir.InvokeMethod(iterator, new Selector.getter("current", null),
+        new ir.InvokeMethod(
+            iterator,
+            new Selector.getter("current", null),
+            currentMask,
             emptyArguments, currentInvoked)));
     // TODO(sra): Does this cover all cases? The general setter case include
     // super.
@@ -1337,7 +1356,8 @@ class IrBuilder {
     } else {
       ir.Primitive receiver = bodyBuilder.buildThis();
       assert(receiver != null);
-      bodyBuilder.buildDynamicSet(receiver, variableSelector, currentValue);
+      bodyBuilder.buildDynamicSet(
+          receiver, variableSelector, variableMask, currentValue);
     }
 
     // Translate the body in the hole in the delimited term above, and add

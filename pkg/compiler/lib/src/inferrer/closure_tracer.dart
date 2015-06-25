@@ -38,10 +38,11 @@ class ClosureTracerVisitor extends TracerVisitor<ApplyableTypeInformation> {
 
   void analyzeCall(CallSiteTypeInformation info) {
     Selector selector = info.selector;
+    TypeMask mask = info.mask;
     tracedElements.forEach((FunctionElement functionElement) {
       if (!selector.signatureApplies(functionElement)) return;
       inferrer.updateParameterAssignments(info, functionElement, info.arguments,
-          selector, remove: false, addToQueue: false);
+          selector, mask, remove: false, addToQueue: false);
     });
   }
 

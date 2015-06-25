@@ -26,7 +26,7 @@ import 'js_emitter.dart' show
 
 import '../elements/elements.dart' show ParameterElement, MethodElement;
 
-import '../universe/universe.dart' show Universe;
+import '../universe/universe.dart' show Universe, TypeMaskSet;
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 
 part 'registry.dart';
@@ -336,8 +336,8 @@ class ProgramBuilder {
         if (method != null) methods.add(method);
       }
       if (member.isGetter || member.isField) {
-        Set<Selector> selectors =
-            _compiler.codegenWorld.invokedNames[member.name];
+        Map<Selector, TypeMaskSet> selectors =
+            _compiler.codegenWorld.invocationsByName(member.name);
         if (selectors != null && !selectors.isEmpty) {
 
           Map<js.Name, js.Expression> callStubsForMember =

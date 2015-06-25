@@ -129,10 +129,14 @@ class DartBackend extends Backend {
     }
     // Enqueue the methods that the VM might invoke on user objects because
     // we don't trust the resolution to always get these included.
-    world.registerInvocation(new Selector.call("toString", null, 0));
-    world.registerInvokedGetter(new Selector.getter("hashCode", null));
-    world.registerInvocation(new Selector.binaryOperator("=="));
-    world.registerInvocation(new Selector.call("compareTo", null, 1));
+    world.registerInvocation(
+        new UniverseSelector(new Selector.call("toString", null, 0), null));
+    world.registerInvokedGetter(
+        new UniverseSelector(new Selector.getter("hashCode", null), null));
+    world.registerInvocation(
+        new UniverseSelector(new Selector.binaryOperator("=="), null));
+    world.registerInvocation(
+        new UniverseSelector(new Selector.call("compareTo", null, 1), null));
   }
 
   WorldImpact codegen(CodegenWorkItem work) => const WorldImpact();
@@ -300,11 +304,14 @@ class DartBackend extends Backend {
               element.computeType(compiler);
               Selector selector = new Selector.fromElement(element);
               if (selector.isGetter) {
-                registry.registerDynamicGetter(selector);
+                registry.registerDynamicGetter(
+                    new UniverseSelector(selector, null));
               } else if (selector.isSetter) {
-                registry.registerDynamicSetter(selector);
+                registry.registerDynamicSetter(
+                    new UniverseSelector(selector, null));
               } else {
-                registry.registerDynamicInvocation(selector);
+                registry.registerDynamicInvocation(
+                    new UniverseSelector(selector, null));
               }
             });
           }

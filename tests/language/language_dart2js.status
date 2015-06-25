@@ -516,13 +516,21 @@ if_null_assignment_behavior_test/25: RuntimeError # Please triage this failure.
 if_null_assignment_behavior_test/26: RuntimeError # Please triage this failure.
 if_null_assignment_behavior_test/27: RuntimeError # Please triage this failure.
 if_null_assignment_behavior_test/28: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/29: RuntimeError # Please triage this failure.
+if_null_assignment_static_test/01: RuntimeError # Issue 23669
+if_null_assignment_static_test/03: RuntimeError # Issue 23669
+if_null_assignment_static_test/04: RuntimeError # Issue 23669
+if_null_assignment_static_test/05: RuntimeError # Issue 23669
+if_null_assignment_static_test/29: RuntimeError # Issue 23669
 if_null_assignment_static_test/30: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/31: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/32: RuntimeError # Please triage this failure.
-if_null_assignment_static_test/33: RuntimeError # Please triage this failure.
+if_null_assignment_static_test/31: RuntimeError # Issue 23669
+if_null_assignment_static_test/32: RuntimeError # Issue 23669
+if_null_assignment_static_test/33: RuntimeError # Issue 23669
 if_null_assignment_static_test/34: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/35: RuntimeError # Please triage this failure.
+if_null_assignment_static_test/36: RuntimeError # Issue 23669
+if_null_assignment_static_test/38: RuntimeError # Issue 23669
+if_null_assignment_static_test/39: RuntimeError # Issue 23669
+if_null_assignment_static_test/40: RuntimeError # Issue 23669
 implicit_closure1_test: RuntimeError # Cannot read property 'prototype' of undefined
 implicit_closure2_test: RuntimeError # Cannot read property 'prototype' of undefined
 implicit_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
@@ -653,9 +661,7 @@ super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index6_test: RuntimeError # Please triage this failure.
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
-super_operator_index_test/01: Crash # The null object does not have a getter 'isParameter'.
 super_operator_index_test/03: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
-super_operator_index_test/04: Crash # The null object does not have a getter 'isParameter'.
 super_operator_index_test/05: Crash # (super[4]=42): visitUnresolvedSuperIndexSet
 super_operator_index_test/06: Crash # The null object does not have a getter 'isParameter'.
 super_operator_test: RuntimeError # Please triage this failure.

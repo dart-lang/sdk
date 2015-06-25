@@ -785,7 +785,7 @@ class JavaScriptBackend extends Backend {
    * into an intercepted class.  These selectors are not eligible for the 'dummy
    * explicit receiver' optimization.
    */
-  bool isInterceptedMixinSelector(Selector selector) {
+  bool isInterceptedMixinSelector(Selector selector, TypeMask mask) {
     Set<Element> elements = interceptedMixinElements.putIfAbsent(
         selector.name,
         () {
@@ -800,7 +800,10 @@ class JavaScriptBackend extends Backend {
 
     if (elements == null) return false;
     if (elements.isEmpty) return false;
-    return elements.any((element) => selector.applies(element, compiler.world));
+    return elements.any((element) {
+      return selector.applies(element, compiler.world) &&
+             (mask == null || mask.canHit(element, selector, compiler.world));
+    });
   }
 
   final Map<String, Set<ClassElement>> interceptedClassesCache =
@@ -1279,7 +1282,8 @@ class JavaScriptBackend extends Backend {
 
   void enableNoSuchMethod(Enqueuer world) {
     enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
-    world.registerInvocation(compiler.noSuchMethodSelector);
+    world.registerInvocation(
+        new UniverseSelector(compiler.noSuchMethodSelector, null));
   }
 
   void enableIsolateSupport(Enqueuer enqueuer) {
