@@ -56,6 +56,7 @@
   * `Isolate` methods `ping` and `addOnExitListener` now have a named parameter
     `response`.
     [r45092](https://github.com/dart-lang/sdk/commit/1b208bd)
+  * `Isolate.spawnUri` added a named argument `checked`.
   * Remove the experimental state of the API.
 
 * `dart:profiler` - **DEPRECATED**
