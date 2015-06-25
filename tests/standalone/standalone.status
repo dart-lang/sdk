@@ -170,7 +170,6 @@ io/test_runner_test: Skip  # Timeout.
 io/http_client_stays_alive_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
-array_bounds_check_generalization_test: RuntimeError # Please triage this failure.
 coverage_test: Crash # Invalid argument(s)
 io/addlatexhash_test: Crash # Invalid argument(s)
 io/create_recursive_test: Crash # Invalid argument(s)
@@ -283,7 +282,5 @@ io/web_socket_typed_data_test: Crash # Internal Error: No default constructor av
 io/windows_environment_test: Crash # Invalid argument(s)
 priority_queue_stress_test: RuntimeError # receiver.get$_collection$_nums is not a function
 slowpath_safepoints_test: RuntimeError # Cannot read property 'prototype' of undefined
-status_expression_test: RuntimeError # Please triage this failure.
 typed_array_test: RuntimeError # receiver.get$_collection$_nums is not a function
 verbose_gc_to_bmu_test: Crash # Invalid argument(s)
-verified_mem_test: RuntimeError # Please triage this failure.

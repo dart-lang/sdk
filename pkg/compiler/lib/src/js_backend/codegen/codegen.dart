@@ -341,6 +341,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
       glue.registerIsCheck(type, registry);
       ClassElement clazz = type.element;
 
+      // Handle some special checks against classes that exist only in
+      // the compile-time class hierarchy, not at runtime.
+      if (clazz == glue.jsExtendableArrayClass) {
+        return js.js(r'!#.fixed$length', <js.Expression>[value]);
+      } else if (clazz == glue.jsMutableArrayClass) {
+        return js.js(r'!#.immutable$list', <js.Expression>[value]);
+      }
+
       // We use one of the two helpers:
       //
       //     checkSubtype(value, $isT, typeArgs, $asT)

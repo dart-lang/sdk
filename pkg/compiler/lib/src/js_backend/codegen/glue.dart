@@ -234,4 +234,7 @@ class Glue {
   bool hasStrictSubtype(ClassElement element) {
     return _compiler.world.hasAnyStrictSubtype(element);
   }
+
+  ClassElement get jsExtendableArrayClass => _backend.jsExtendableArrayClass;
+  ClassElement get jsMutableArrayClass => _backend.jsMutableArrayClass;
 }
