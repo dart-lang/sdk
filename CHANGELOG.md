@@ -8,7 +8,7 @@
     `setInnerHtml` or other methods that create DOM from text. It is
     also more efficient, skipping the creation of a `DocumentFragment`.
 
-## 1.11.0
+## 1.11.0 - 2015-06-25
 
 ### Core library changes
 
