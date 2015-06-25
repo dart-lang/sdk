@@ -4,9 +4,8 @@ dart_library.library('dart/async', null, /* Imports */[
   'dart/_internal',
   'dart/collection'
 ], /* Lazy imports */[
-  'dart/_isolate_helper',
-  'dart/_js_helper'
-], function(exports, dart, core, _internal, collection, _isolate_helper, _js_helper) {
+  'dart/_isolate_helper'
+], function(exports, dart, core, _internal, collection, _isolate_helper) {
   'use strict';
   let dartx = dart.dartx;
   function _invokeErrorHandler(errorHandler, error, stackTrace) {
@@ -2788,7 +2787,7 @@ dart_library.library('dart/async', null, /* Imports */[
         };
         dart.fn(internalCallback);
         ;
-        let observer = new self.MutationObserver(_js_helper.convertDartClosureToJS(internalCallback, 1));
+        let observer = new self.MutationObserver(internalCallback);
         observer.observe(div, {childList: true});
         return dart.fn(callback => {
           dart.assert(storedCallback == null);
@@ -2809,7 +2808,7 @@ dart_library.library('dart/async', null, /* Imports */[
       dart.fn(internalCallback);
       ;
       _isolate_helper.enterJsAsync();
-      self.scheduleImmediate(_js_helper.convertDartClosureToJS(internalCallback, 0));
+      self.scheduleImmediate(internalCallback);
     }
     static _scheduleImmediateWithSetImmediate(callback) {
       let internalCallback = () => {
@@ -2819,7 +2818,7 @@ dart_library.library('dart/async', null, /* Imports */[
       dart.fn(internalCallback);
       ;
       _isolate_helper.enterJsAsync();
-      self.setImmediate(_js_helper.convertDartClosureToJS(internalCallback, 0));
+      self.setImmediate(internalCallback);
     }
     static _scheduleImmediateWithTimer(callback) {
       Timer._createTimer(core.Duration.ZERO, callback);

@@ -926,7 +926,7 @@ class RestParameter extends Expression implements Parameter {
   void visitChildren(NodeVisitor visitor) {
     parameter.accept(visitor);
   }
-  int get precedenceLevel => SPREAD;
+  int get precedenceLevel => PRIMARY;
 }
 
 class This extends Expression {

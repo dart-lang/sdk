@@ -1,9 +1,3 @@
-severe: line 90, column 1 of dart:js: [Message] File dart:html not found
-import 'dart:html' show Blob, Event, ImageData, Node, Window;
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-severe: line 92, column 1 of dart:js: [Message] File dart:indexed_db not found
-import 'dart:indexed_db' show KeyRange;
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 warning: line 168, column 14 of dart:isolate: [DownCastComposite] IsolateNatives.spawnFunction(entryPoint, message, paused).then((msg) => new Isolate(msg[1], pauseCapability: msg[2], terminateCapability: msg[3])) (Future<dynamic>) will need runtime check to cast to type Future<Isolate>
       return IsolateNatives.spawnFunction(entryPoint, message, paused)
              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -151,12 +145,12 @@ class JSInt extends JSNumber implements int, double {
 warning: line 16, column 47 of dart:_interceptors/js_number.dart: [AnalyzerMessage] Classes cannot implement 'num'
 class JSNumber extends Interceptor implements num {
                                               ^^^
-warning: line 349, column 46 of dart:_interceptors/js_number.dart: [AnalyzerMessage] Classes cannot implement 'double'
-class JSInt extends JSNumber implements int, double {
-                                             ^^^^^^
 severe: line 110, column 17 of dart:_interceptors/js_number.dart: [AnalyzerMessage] The return type 'JSNumber' is not a 'double', as defined by the method 'toDouble'
   toDouble() => this;
                 ^^^^
+warning: line 349, column 46 of dart:_interceptors/js_number.dart: [AnalyzerMessage] Classes cannot implement 'double'
+class JSInt extends JSNumber implements int, double {
+                                             ^^^^^^
 warning: line 83, column 28 of dart:_interceptors/js_number.dart: [DownCastImplicit] JS('num', r'Math.ceil(#)', this) (num) will need runtime check to cast to type double
   double ceilToDouble() => JS('num', r'Math.ceil(#)', this);
                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -268,13 +262,13 @@ warning: line 415, column 9 of dart:_native_typed_data: [DownCastImplicit] _stor
 warning: line 1106, column 12 of dart:_native_typed_data: [DownCastImplicit] length == null ? _create2(buffer, offsetInBytes) : _create3(buffer, offsetInBytes, length) (Int8List) will need runtime check to cast to type NativeInt8List
     return length == null
            ^^^^^^^^^^^^^^^
-warning: line 576, column 29 of dart:_isolate_helper: [DownCastComposite] doneHandlers (dynamic) will need runtime check to cast to type Iterable<SendPort>
+warning: line 574, column 29 of dart:_isolate_helper: [DownCastComposite] doneHandlers (dynamic) will need runtime check to cast to type Iterable<SendPort>
       for (SendPort port in doneHandlers) {
                             ^^^^^^^^^^^^
-warning: line 835, column 37 of dart:_isolate_helper: [DownCastComposite] args (dynamic) will need runtime check to cast to type List<String>
+warning: line 833, column 37 of dart:_isolate_helper: [DownCastComposite] args (dynamic) will need runtime check to cast to type List<String>
           _startIsolate(entryPoint, args, message,
                                     ^^^^
-warning: line 882, column 11 of dart:_isolate_helper: [DownCastComposite] msg['args'] (dynamic) will need runtime check to cast to type List<String>
+warning: line 880, column 11 of dart:_isolate_helper: [DownCastComposite] msg['args'] (dynamic) will need runtime check to cast to type List<String>
           msg['args'], msg['msg'],
           ^^^^^^^^^^^
 warning: line 89, column 38 of dart:_isolate_helper/isolate_serialization.dart: [DownCastImplicit] indexable (JSIndexable) will need runtime check to cast to type JSArray<dynamic>
@@ -313,12 +307,12 @@ severe: line 208, column 22 of dart:async/broadcast_stream_controller.dart: [Ana
 severe: line 206, column 32 of dart:async/broadcast_stream_controller.dart: [AnalyzerMessage] The getter '_next' is not defined for the class 'StreamSubscription<T>'
     if (identical(subscription._next, subscription)) return null;
                                ^^^^^
-severe: line 209, column 20 of dart:async/broadcast_stream_controller.dart: [AnalyzerMessage] The method '_setRemoveAfterFiring' is not defined for the class 'StreamSubscription<T>'
-      subscription._setRemoveAfterFiring();
-                   ^^^^^^^^^^^^^^^^^^^^^
 severe: line 207, column 36 of dart:async/broadcast_stream_controller.dart: [AnalyzerMessage] The getter '_next' is not defined for the class 'StreamSubscription<T>'
     assert(!identical(subscription._next, subscription));
                                    ^^^^^
+severe: line 209, column 20 of dart:async/broadcast_stream_controller.dart: [AnalyzerMessage] The method '_setRemoveAfterFiring' is not defined for the class 'StreamSubscription<T>'
+      subscription._setRemoveAfterFiring();
+                   ^^^^^^^^^^^^^^^^^^^^^
 severe: line 211, column 38 of dart:async/broadcast_stream_controller.dart: [AnalyzerMessage] The getter '_next' is not defined for the class 'StreamSubscription<T>'
       assert(!identical(subscription._next, subscription));
                                      ^^^^^
@@ -412,15 +406,15 @@ warning: line 71, column 60 of dart:async/schedule_microtask.dart: [DownCastComp
 warning: line 84, column 55 of dart:async/schedule_microtask.dart: [DownCastComposite] callback (dynamic) will need runtime check to cast to type () → void
   _AsyncCallbackEntry entry = new _AsyncCallbackEntry(callback);
                                                       ^^^^^^^^
+severe: line 321, column 34 of dart:async/stream.dart: [AnalyzerMessage] The getter '_addError' is not defined for the class 'StreamController'
+      final addError = eventSink._addError;
+                                 ^^^^^^^^^
 severe: line 1227, column 17 of dart:async/stream.dart: [AnalyzerMessage] The method '_addError' is not defined for the class 'StreamController'
       eventSink._addError(error, stackTrace);  // Avoid Zone error replacement.
                 ^^^^^^^^^
 severe: line 396, column 30 of dart:async/stream.dart: [AnalyzerMessage] The getter '_addError' is not defined for the class 'StreamController'
           onError: eventSink._addError,  // Avoid Zone error replacement.
                              ^^^^^^^^^
-severe: line 321, column 34 of dart:async/stream.dart: [AnalyzerMessage] The getter '_addError' is not defined for the class 'StreamController'
-      final addError = eventSink._addError;
-                                 ^^^^^^^^^
 warning: line 90, column 25 of dart:async/stream.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type T
         controller._add(value);
                         ^^^^^
@@ -1117,90 +1111,24 @@ warning: line 152, column 43 of dart:_js_helper/regexp_helper.dart: [DownCastCom
 warning: line 137, column 23 of dart:_js_helper/string_helper.dart: [DownCastComposite] pattern.allMatches(receiver) (dynamic) will need runtime check to cast to type Iterable<Match>
   for (Match match in pattern.allMatches(receiver)) {
                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-severe: line 514, column 46 of dart:js: [AnalyzerMessage] The name 'Window' is not defined and cannot be used in an 'is' expression
-      || o is Node || o is TypedData || o is Window) {
-                                             ^^^^^^
-severe: line 553, column 46 of dart:js: [AnalyzerMessage] The name 'Window' is not defined and cannot be used in an 'is' expression
-      || o is Node || o is TypedData || o is Window)) {
-                                             ^^^^^^
-severe: line 467, column 5 of dart:js: [AnalyzerMessage] Undefined name 'getIsolateAffinityTag'
-    getIsolateAffinityTag(r'_$dart_dartClosure');
-    ^^^^^^^^^^^^^^^^^^^^^
-severe: line 552, column 60 of dart:js: [AnalyzerMessage] The name 'ImageData' is not defined and cannot be used in an 'is' expression
-      && (o is Blob || o is Event || o is KeyRange || o is ImageData
-                                                           ^^^^^^^^^
-severe: line 513, column 63 of dart:js: [AnalyzerMessage] The name 'ImageData' is not defined and cannot be used in an 'is' expression
-  } else if (o is Blob || o is Event || o is KeyRange || o is ImageData
-                                                              ^^^^^^^^^
-severe: line 465, column 5 of dart:js: [AnalyzerMessage] Undefined name 'getIsolateAffinityTag'
-    getIsolateAffinityTag(r'_$dart_dartObject');
-    ^^^^^^^^^^^^^^^^^^^^^
-severe: line 514, column 15 of dart:js: [AnalyzerMessage] The name 'Node' is not defined and cannot be used in an 'is' expression
-      || o is Node || o is TypedData || o is Window) {
-              ^^^^
-severe: line 553, column 15 of dart:js: [AnalyzerMessage] The name 'Node' is not defined and cannot be used in an 'is' expression
-      || o is Node || o is TypedData || o is Window)) {
-              ^^^^
-severe: line 513, column 32 of dart:js: [AnalyzerMessage] The name 'Event' is not defined and cannot be used in an 'is' expression
-  } else if (o is Blob || o is Event || o is KeyRange || o is ImageData
-                               ^^^^^
-severe: line 552, column 29 of dart:js: [AnalyzerMessage] The name 'Event' is not defined and cannot be used in an 'is' expression
-      && (o is Blob || o is Event || o is KeyRange || o is ImageData
-                            ^^^^^
-warning: line 449, column 29 of dart:js: [AnalyzerMessage] Local variables cannot be referenced before they are declared
-    _checkRange(start, end, length);
-                            ^^^^^^
-severe: line 465, column 5 of dart:js: [AnalyzerMessage] The function 'getIsolateAffinityTag' is not defined
-    getIsolateAffinityTag(r'_$dart_dartObject');
-    ^^^^^^^^^^^^^^^^^^^^^
-severe: line 552, column 43 of dart:js: [AnalyzerMessage] The name 'KeyRange' is not defined and cannot be used in an 'is' expression
-      && (o is Blob || o is Event || o is KeyRange || o is ImageData
-                                          ^^^^^^^^
-severe: line 513, column 46 of dart:js: [AnalyzerMessage] The name 'KeyRange' is not defined and cannot be used in an 'is' expression
-  } else if (o is Blob || o is Event || o is KeyRange || o is ImageData
-                                             ^^^^^^^^
-severe: line 467, column 5 of dart:js: [AnalyzerMessage] The function 'getIsolateAffinityTag' is not defined
-    getIsolateAffinityTag(r'_$dart_dartClosure');
-    ^^^^^^^^^^^^^^^^^^^^^
-severe: line 552, column 16 of dart:js: [AnalyzerMessage] The name 'Blob' is not defined and cannot be used in an 'is' expression
-      && (o is Blob || o is Event || o is KeyRange || o is ImageData
-               ^^^^
-severe: line 513, column 19 of dart:js: [AnalyzerMessage] The name 'Blob' is not defined and cannot be used in an 'is' expression
-  } else if (o is Blob || o is Event || o is KeyRange || o is ImageData
-                  ^^^^
-warning: line 90, column 8 of dart:js: [AnalyzerMessage] Target of URI does not exist: 'dart:html'
-import 'dart:html' show Blob, Event, ImageData, Node, Window;
-       ^^^^^^^^^^^
-warning: line 92, column 8 of dart:js: [AnalyzerMessage] Target of URI does not exist: 'dart:indexed_db'
-import 'dart:indexed_db' show KeyRange;
-       ^^^^^^^^^^^^^^^^^
-warning: line 357, column 44 of dart:js: [DownCastComposite] _convertToJS ((dynamic) → dynamic) will need runtime check to cast to type (E) → dynamic
+warning: line 325, column 44 of dart:js: [DownCastComposite] _convertToJS ((dynamic) → dynamic) will need runtime check to cast to type (E) → dynamic
       : super._fromJs([]..addAll(other.map(_convertToJS)));
                                            ^^^^^^^^^^^^
-warning: line 390, column 12 of dart:js: [DownCastComposite] super[index] (dynamic) will need runtime check to cast to type E
+warning: line 358, column 12 of dart:js: [DownCastComposite] super[index] (dynamic) will need runtime check to cast to type E
     return super[index];
            ^^^^^^^^^^^^
-warning: line 425, column 24 of dart:js: [DownCastImplicit] list (Object) will need runtime check to cast to type List<dynamic>
+warning: line 394, column 24 of dart:js: [DownCastImplicit] list (Object) will need runtime check to cast to type List<dynamic>
     callMethod('push', list);
                        ^^^^
-warning: line 435, column 12 of dart:js: [DownCastComposite] callMethod('splice', [index, 1])[0] (dynamic) will need runtime check to cast to type E
+warning: line 404, column 12 of dart:js: [DownCastComposite] callMethod('splice', [index, 1])[0] (dynamic) will need runtime check to cast to type E
     return callMethod('splice', [index, 1])[0];
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 440, column 12 of dart:js: [DownCastComposite] callMethod('pop') (dynamic) will need runtime check to cast to type E
+warning: line 409, column 12 of dart:js: [DownCastComposite] callMethod('pop') (dynamic) will need runtime check to cast to type E
     return callMethod('pop');
            ^^^^^^^^^^^^^^^^^
-warning: line 558, column 52 of dart:js: [DownCastImplicit] ms (num) will need runtime check to cast to type int
+warning: line 486, column 52 of dart:js: [DownCastImplicit] ms (num) will need runtime check to cast to type int
     return new DateTime.fromMillisecondsSinceEpoch(ms);
                                                    ^^
-warning: line 568, column 12 of dart:js: [DownCastImplicit] _getDartProxy(o, _DART_CLOSURE_PROPERTY_NAME, (o) => new JsFunction._fromJs(o)) (Object) will need runtime check to cast to type JsObject
-    return _getDartProxy(o, _DART_CLOSURE_PROPERTY_NAME,
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 571, column 12 of dart:js: [DownCastImplicit] _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME, (o) => new JsArray._fromJs(o)) (Object) will need runtime check to cast to type JsObject
-    return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 574, column 12 of dart:js: [DownCastImplicit] _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME, (o) => new JsObject._fromJs(o)) (Object) will need runtime check to cast to type JsObject
-    return _getDartProxy(o, _DART_OBJECT_PROPERTY_NAME,
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 severe: line 120, column 7 of dart:_js_mirrors: [AnalyzerMessage] Missing concrete implementation of getter 'TypeMirror.typeArguments', getter 'TypeMirror.isOriginalDeclaration', getter 'DeclarationMirror.owner', getter 'DeclarationMirror.location' and 10 more
 class JsTypeMirror implements TypeMirror {
       ^^^^^^^^^^^^

@@ -6,8 +6,7 @@
 
 import 'dart:_js_helper' show
     patch,
-    Primitives,
-    convertDartClosureToJS;
+    Primitives;
 import 'dart:_isolate_helper' show
     IsolateNatives,
     TimerImpl,
@@ -46,8 +45,7 @@ class _AsyncRun {
         f();
       };
 
-      var observer = JS('', 'new self.MutationObserver(#)',
-          convertDartClosureToJS(internalCallback, 1));
+      var observer = JS('', 'new self.MutationObserver(#)', internalCallback);
       JS('', '#.observe(#, { childList: true })',
           observer, div);
 
@@ -74,8 +72,7 @@ class _AsyncRun {
       callback();
     };
     enterJsAsync();
-    JS('void', 'self.scheduleImmediate(#)',
-       convertDartClosureToJS(internalCallback, 0));
+    JS('void', 'self.scheduleImmediate(#)', internalCallback);
   }
 
   static void _scheduleImmediateWithSetImmediate(void callback()) {
@@ -84,8 +81,7 @@ class _AsyncRun {
       callback();
     };
     enterJsAsync();
-    JS('void', 'self.setImmediate(#)',
-       convertDartClosureToJS(internalCallback, 0));
+    JS('void', 'self.setImmediate(#)', internalCallback);
   }
 
   static void _scheduleImmediateWithTimer(void callback()) {

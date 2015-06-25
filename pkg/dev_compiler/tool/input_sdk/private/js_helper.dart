@@ -594,19 +594,6 @@ fillLiteralMap(keyValuePairs, Map result) {
   return result;
 }
 
-/**
- * Called by generated code to convert a Dart closure to a JS
- * closure when the Dart closure is passed to the DOM.
- */
-convertDartClosureToJS(closure, int arity) {
-  // TODO(vsm): Dart2JS wraps closures to:
-  // (a) adjust the calling convention, and
-  // (b) record the source isolate
-  // Do we need either?
-  // See: https://github.com/dart-lang/dev_compiler/issues/164
-  return closure;
-}
-
 bool jsHasOwnProperty(var jsObject, String property) {
   return JS('bool', r'#.hasOwnProperty(#)', jsObject, property);
 }

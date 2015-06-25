@@ -66,6 +66,7 @@ class Function {
   }
 }
 
+// TODO(jmesserly): switch to WeakMap
 // Patch for Expando implementation.
 @patch
 class Expando<T> {

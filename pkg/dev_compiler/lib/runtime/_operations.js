@@ -28,7 +28,7 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
   const slice = [].slice;
 
   function _canonicalFieldName(obj, name, args, displayName) {
-    name = classes.canonicalMember(obj, name)
+    name = classes.canonicalMember(obj, name);
     if (name) return name;
     // TODO(jmesserly): in the future we might have types that "overlay" Dart
     // methods while also exposing the full native API, e.g. dart:html vs
@@ -112,7 +112,7 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
     if (!(f instanceof Function)) {
       // We're not a function (and hence not a method either)
       // Grab the `call` method if it's not a function.
-      if (f !== null) {
+      if (f != null) {
         ftype = classes.getMethodType(f, 'call');
         f = f.call;
       }

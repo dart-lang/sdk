@@ -534,6 +534,7 @@ const corelibOrder = const [
   'dart.convert',
   'dart.mirrors',
   'dart._js_mirrors',
+  'dart.js'
   // _foreign_helper is not included, as it only defines the JS builtin that
   // the compiler handles at compile time.
 ];

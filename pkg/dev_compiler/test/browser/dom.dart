@@ -38,6 +38,7 @@ class Blob {
   external Blob(blobParts, {String type});
 }
 
+@JsName()
 class CustomEvent {
   external CustomEvent(String type, {detail, bubbles, cancelable});
 }
@@ -65,6 +66,7 @@ abstract class Node {
   Node removeChild(Node child);
 }
 
+@JsName()
 abstract class HTMLCollection {
   int get length;
   external Element operator [](num index);

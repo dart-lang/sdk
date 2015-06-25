@@ -506,7 +506,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         return function(e) {
           f(a, e);
         };
-      }(_foreign_helper.DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage), this.mainManager);
+      }(IsolateNatives._processWorkerMessage, this.mainManager);
       self.onmessage = func;
       self.dartPrint = self.dartPrint || function(serialize) {
         return function(object) {
@@ -516,7 +516,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
             self.postMessage(serialize(object));
           }
         };
-      }(_foreign_helper.DART_CLOSURE_TO_JS(_Manager._serializePrintMessage));
+      }(_Manager._serializePrintMessage);
     }
     static _serializePrintMessage(object) {
       return _serializeMessage(dart.map({command: "print", msg: object}));
@@ -1180,14 +1180,14 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         return function(e) {
           return f(e, u, c);
         };
-      }(_foreign_helper.DART_CLOSURE_TO_JS(IsolateNatives.workerOnError), uri, onError);
+      }(IsolateNatives.workerOnError, uri, onError);
       worker.onerror = onerrorTrampoline;
       let processWorkerMessageTrampoline = function(f, a) {
         return function(e) {
           e.onerror = null;
           return f(a, e);
         };
-      }(_foreign_helper.DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage), worker);
+      }(IsolateNatives._processWorkerMessage, worker);
       worker.onmessage = processWorkerMessageTrampoline;
       let o = exports._globalState;
       let workerId = o.nextManagerId;
@@ -1459,7 +1459,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         };
         dart.fn(internalCallback, dart.void, []);
         enterJsAsync();
-        this[_handle] = self.setTimeout(_js_helper.convertDartClosureToJS(internalCallback, 0), milliseconds);
+        this[_handle] = self.setTimeout(internalCallback, milliseconds);
       } else {
         dart.assert(dart.notNull(milliseconds) > 0);
         throw new core.UnsupportedError("Timer greater than 0.");
@@ -1471,9 +1471,9 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this[_handle] = null;
       if (dart.notNull(hasTimer())) {
         enterJsAsync();
-        this[_handle] = self.setInterval(_js_helper.convertDartClosureToJS(dart.fn(() => {
+        this[_handle] = self.setInterval(dart.fn(() => {
           callback(this);
-        }), 0), milliseconds);
+        }), milliseconds);
       } else {
         throw new core.UnsupportedError("Periodic timer.");
       }

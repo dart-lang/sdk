@@ -1033,10 +1033,6 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     return result;
   }
   dart.fn(fillLiteralMap, dart.dynamic, [dart.dynamic, core.Map]);
-  function convertDartClosureToJS(closure, arity) {
-    return closure;
-  }
-  dart.fn(convertDartClosureToJS, dart.dynamic, [dart.dynamic, core.int]);
   function jsHasOwnProperty(jsObject, property) {
     return jsObject.hasOwnProperty(property);
   }
@@ -1187,7 +1183,6 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   exports.getTraceFromException = getTraceFromException;
   exports.objectHashCode = objectHashCode;
   exports.fillLiteralMap = fillLiteralMap;
-  exports.convertDartClosureToJS = convertDartClosureToJS;
   exports.jsHasOwnProperty = jsHasOwnProperty;
   exports.jsPropertyAccess = jsPropertyAccess;
   exports.getFallThroughError = getFallThroughError;

@@ -1,38 +1,17 @@
 dart_library.library('dart/js', null, /* Imports */[
   "dart_runtime/dart",
-  'dart/_foreign_helper',
   'dart/core',
   'dart/collection',
-  'dart/typed_data',
   'dart/_js_helper'
 ], /* Lazy imports */[
-], function(exports, dart, _foreign_helper, core, collection, typed_data, _js_helper) {
+], function(exports, dart, core, collection, _js_helper) {
   'use strict';
   let dartx = dart.dartx;
   dart.defineLazyProperties(exports, {
     get context() {
-      return _wrapToDart(self);
+      return dart.as(_wrapToDart(dart.global), JsObject);
     }
   });
-  function _convertDartFunction(f, opts) {
-    let captureThis = opts && 'captureThis' in opts ? opts.captureThis : false;
-    return function(_call, f, captureThis) {
-      return function() {
-        return _call(f, captureThis, this, Array.prototype.slice.apply(arguments));
-      };
-    }(_foreign_helper.DART_CLOSURE_TO_JS(_callDartFunction), f, captureThis);
-  }
-  dart.fn(_convertDartFunction, dart.dynamic, [core.Function], {captureThis: core.bool});
-  function _callDartFunction(callback, captureThis, self, arguments$) {
-    if (dart.notNull(captureThis)) {
-      let _ = [self];
-      _[dartx.addAll](arguments$);
-      arguments$ = _;
-    }
-    let dartArgs = core.List.from(arguments$[dartx.map](_convertToDart));
-    return _convertToJS(core.Function.apply(dart.as(callback, core.Function), dartArgs));
-  }
-  dart.fn(_callDartFunction, dart.dynamic, [dart.dynamic, core.bool, dart.dynamic, core.List]);
   let _jsObject = Symbol('_jsObject');
   class JsObject extends core.Object {
     _fromJs(jsObject) {
@@ -42,28 +21,23 @@ dart_library.library('dart/js', null, /* Imports */[
     static new(constructor, arguments$) {
       if (arguments$ === void 0)
         arguments$ = null;
-      let constr = _convertToJS(constructor);
+      let ctor = constructor[_jsObject];
       if (arguments$ == null) {
-        return _wrapToDart(new constr());
+        return dart.as(_wrapToDart(new ctor()), JsObject);
       }
-      let args = [null];
-      args[dartx.addAll](arguments$[dartx.map](_convertToJS));
-      let factoryFunction = constr.bind.apply(constr, args);
-      String(factoryFunction);
-      let jsObj = new factoryFunction();
-      return _wrapToDart(jsObj);
+      return dart.as(_wrapToDart(new ctor(...arguments$)), JsObject);
     }
     static fromBrowserObject(object) {
       if (dart.is(object, core.num) || typeof object == 'string' || typeof object == 'boolean' || object == null) {
         throw new core.ArgumentError("object cannot be a num, string, bool, or null");
       }
-      return _wrapToDart(_convertToJS(object));
+      return dart.as(_wrapToDart(_convertToJS(object)), JsObject);
     }
     static jsify(object) {
       if (!dart.is(object, core.Map) && !dart.is(object, core.Iterable)) {
         throw new core.ArgumentError("object must be a Map or Iterable");
       }
-      return _wrapToDart(JsObject._convertDataTree(object));
+      return dart.as(_wrapToDart(JsObject._convertDataTree(object)), JsObject);
     }
     static _convertDataTree(data) {
       let _convertedObjects = collection.HashMap.identity();
@@ -137,7 +111,13 @@ dart_library.library('dart/js', null, /* Imports */[
       if (!(typeof method == 'string') && !dart.is(method, core.num)) {
         throw new core.ArgumentError("method is not a String or num");
       }
-      return _convertToDart(this[_jsObject][method].apply(this[_jsObject], args == null ? null : core.List.from(args[dartx.map](_convertToJS))));
+      if (args != null)
+        args = core.List.from(args[dartx.map](_convertToJS));
+      let fn = this[_jsObject][method];
+      if (!(fn instanceof Function)) {
+        throw new core.NoSuchMethodError(this[_jsObject], core.Symbol.new(dart.as(method, core.String)), args, dart.map());
+      }
+      return _convertToDart(fn.apply(this[_jsObject], args));
     }
   }
   dart.defineNamedConstructor(JsObject, '_fromJs');
@@ -161,8 +141,13 @@ dart_library.library('dart/js', null, /* Imports */[
   });
   class JsFunction extends JsObject {
     static withThis(f) {
-      let jsFunc = _convertDartFunction(f, {captureThis: true});
-      return new JsFunction._fromJs(jsFunc);
+      return new JsFunction._fromJs(function() {
+        let args = [_convertToDart(this)];
+        for (let arg of arguments) {
+          args.push(_convertToDart(arg));
+        }
+        return _convertToJS(f(...args));
+      });
     }
     _fromJs(jsObject) {
       super._fromJs(jsObject);
@@ -269,7 +254,7 @@ dart_library.library('dart/js', null, /* Imports */[
         dart.as(iterable, core.Iterable$(E));
         if (skipCount === void 0)
           skipCount = 0;
-        JsArray$()._checkRange(start, end, length);
+        JsArray$()._checkRange(start, end, this.length);
         let length = dart.notNull(end) - dart.notNull(start);
         if (length == 0)
           return;
@@ -327,118 +312,82 @@ dart_library.library('dart/js', null, /* Imports */[
     return JsArray;
   });
   let JsArray = JsArray$();
-  let _JS_OBJECT_PROPERTY_NAME = '_$dart_jsObject';
-  let _JS_FUNCTION_PROPERTY_NAME = '$dart_jsFunction';
-  dart.defineLazyProperties(exports, {
-    get _DART_OBJECT_PROPERTY_NAME() {
-      return dart.as(dart.dcall(/* Unimplemented unknown name */getIsolateAffinityTag, '_$dart_dartObject'), core.String);
-    },
-    get _DART_CLOSURE_PROPERTY_NAME() {
-      return dart.as(dart.dcall(/* Unimplemented unknown name */getIsolateAffinityTag, '_$dart_dartClosure'), core.String);
+  function _isBrowserType(o) {
+    return o instanceof Blob || o instanceof Event || window.KeyRange && o instanceof KeyRange || o instanceof ImageData || o instanceof Node || window.TypedData && o instanceof TypedData || o instanceof Window;
+  }
+  dart.fn(_isBrowserType, core.bool, [dart.dynamic]);
+  let _dartObj = Symbol('_dartObj');
+  class _DartObject extends core.Object {
+    _DartObject(dartObj) {
+      this[_dartObj] = dartObj;
     }
-  });
-  function _defineProperty(o, name, value) {
-    if (dart.notNull(_isExtensible(o)) && !dart.notNull(_hasOwnProperty(o, name))) {
-      try {
-        Object.defineProperty(o, name, {value: value});
-        return true;
-      } catch (e) {
-      }
-
-    }
-    return false;
   }
-  dart.fn(_defineProperty, core.bool, [dart.dynamic, core.String, dart.dynamic]);
-  function _hasOwnProperty(o, name) {
-    return Object.prototype.hasOwnProperty.call(o, name);
-  }
-  dart.fn(_hasOwnProperty, core.bool, [dart.dynamic, core.String]);
-  function _isExtensible(o) {
-    return Object.isExtensible(o);
-  }
-  dart.fn(_isExtensible, core.bool, [dart.dynamic]);
-  function _getOwnProperty(o, name) {
-    if (dart.notNull(_hasOwnProperty(o, name))) {
-      return o[name];
-    }
-    return null;
-  }
-  dart.fn(_getOwnProperty, core.Object, [dart.dynamic, core.String]);
-  function _isLocalObject(o) {
-    return o instanceof Object;
-  }
-  dart.fn(_isLocalObject, core.bool, [dart.dynamic]);
-  dart.defineLazyProperties(exports, {
-    get _dartProxyCtor() {
-      return function DartObject(o) {
-        this.o = o;
-      };
-    }
+  dart.setSignature(_DartObject, {
+    constructors: () => ({_DartObject: [_DartObject, [dart.dynamic]]})
   });
   function _convertToJS(o) {
-    if (o == null || typeof o == 'string' || dart.is(o, core.num) || typeof o == 'boolean') {
-      return o;
-    } else if (dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, typed_data.TypedData) || dart.is(o, dart.dynamic)) {
+    if (o == null || typeof o == 'string' || dart.is(o, core.num) || typeof o == 'boolean' || dart.notNull(_isBrowserType(o))) {
       return o;
     } else if (dart.is(o, core.DateTime)) {
       return _js_helper.Primitives.lazyAsJsDate(o);
     } else if (dart.is(o, JsObject)) {
       return dart.dload(o, _jsObject);
     } else if (dart.is(o, core.Function)) {
-      return _getJsProxy(o, _JS_FUNCTION_PROPERTY_NAME, dart.fn(o => {
-        let jsFunction = _convertDartFunction(dart.as(o, core.Function));
-        _defineProperty(jsFunction, exports._DART_CLOSURE_PROPERTY_NAME, o);
-        return jsFunction;
-      }));
+      return _putIfAbsent(exports._jsProxies, o, _wrapDartFunction);
     } else {
-      let ctor = exports._dartProxyCtor;
-      return _getJsProxy(o, _JS_OBJECT_PROPERTY_NAME, dart.fn(o => new ctor(o)));
+      return _putIfAbsent(exports._jsProxies, o, dart.fn(o => new _DartObject(o), _DartObject, [dart.dynamic]));
     }
   }
   dart.fn(_convertToJS);
-  function _getJsProxy(o, propertyName, createProxy) {
-    let jsProxy = _getOwnProperty(o, propertyName);
-    if (jsProxy == null) {
-      jsProxy = dart.dcall(createProxy, o);
-      _defineProperty(o, propertyName, jsProxy);
-    }
-    return jsProxy;
+  function _wrapDartFunction(f) {
+    let wrapper = function() {
+      let args = Array.prototype.map.call(arguments, _convertToDart);
+      return _convertToJS(f(...args));
+    };
+    dart.dsetindex(exports._dartProxies, wrapper, f);
+    return wrapper;
   }
-  dart.fn(_getJsProxy, core.Object, [dart.dynamic, core.String, dart.functionType(dart.dynamic, [dart.dynamic])]);
+  dart.fn(_wrapDartFunction);
   function _convertToDart(o) {
-    if (o == null || typeof o == "string" || typeof o == "number" || typeof o == "boolean") {
-      return o;
-    } else if (dart.notNull(_isLocalObject(o)) && (dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, dart.dynamic) || dart.is(o, typed_data.TypedData) || dart.is(o, dart.dynamic))) {
+    if (o == null || typeof o == "string" || typeof o == "number" || typeof o == "boolean" || dart.notNull(_isBrowserType(o))) {
       return o;
     } else if (o instanceof Date) {
       let ms = o.getTime();
       return new core.DateTime.fromMillisecondsSinceEpoch(ms);
-    } else if (o.constructor === exports._dartProxyCtor) {
-      return o.o;
+    } else if (dart.is(o, _DartObject)) {
+      return dart.dload(o, _dartObj);
     } else {
-      return _wrapToDart(o);
+      return _putIfAbsent(exports._dartProxies, o, _wrapToDart);
     }
   }
   dart.fn(_convertToDart, core.Object, [dart.dynamic]);
   function _wrapToDart(o) {
     if (typeof o == "function") {
-      return dart.as(_getDartProxy(o, exports._DART_CLOSURE_PROPERTY_NAME, dart.fn(o => new JsFunction._fromJs(o), JsFunction, [dart.dynamic])), JsObject);
-    } else if (o instanceof Array) {
-      return dart.as(_getDartProxy(o, exports._DART_OBJECT_PROPERTY_NAME, dart.fn(o => new JsArray._fromJs(o), JsArray, [dart.dynamic])), JsObject);
-    } else {
-      return dart.as(_getDartProxy(o, exports._DART_OBJECT_PROPERTY_NAME, dart.fn(o => new JsObject._fromJs(o), JsObject, [dart.dynamic])), JsObject);
+      return new JsFunction._fromJs(o);
     }
-  }
-  dart.fn(_wrapToDart, JsObject, [dart.dynamic]);
-  function _getDartProxy(o, propertyName, createProxy) {
-    let dartProxy = _getOwnProperty(o, propertyName);
-    if (dartProxy == null || !dart.notNull(_isLocalObject(o))) {
-      dartProxy = dart.dcall(createProxy, o);
-      _defineProperty(o, propertyName, dartProxy);
+    if (o instanceof Array) {
+      return new JsArray._fromJs(o);
     }
-    return dartProxy;
+    return new JsObject._fromJs(o);
   }
-  dart.fn(_getDartProxy, core.Object, [dart.dynamic, core.String, dart.functionType(dart.dynamic, [dart.dynamic])]);
+  dart.fn(_wrapToDart);
+  dart.defineLazyProperties(exports, {
+    get _dartProxies() {
+      return new WeakMap();
+    },
+    get _jsProxies() {
+      return new WeakMap();
+    }
+  });
+  function _putIfAbsent(weakMap, o, getValue) {
+    let value = weakMap.get(o);
+    if (value == null) {
+      value = dart.dcall(getValue, o);
+      weakMap.set(o, value);
+    }
+    return value;
+  }
+  dart.fn(_putIfAbsent, core.Object, [dart.dynamic, dart.dynamic, dart.functionType(dart.dynamic, [dart.dynamic])]);
   let __CastType0$ = dart.generic(function(E) {
     let __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [E]));
     return __CastType0;

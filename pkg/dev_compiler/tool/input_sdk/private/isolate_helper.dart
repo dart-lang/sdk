@@ -21,11 +21,9 @@ import 'dart:_js_helper' show
     InternalMap,
     Null,
     Primitives,
-    convertDartClosureToJS,
     random64;
 
-import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
-                                   JS,
+import 'dart:_foreign_helper' show JS,
                                    JS_CREATE_ISOLATE,
                                    JS_CURRENT_ISOLATE_CONTEXT,
                                    JS_CURRENT_ISOLATE,
@@ -245,7 +243,7 @@ class _Manager {
   void _nativeInitWorkerMessageHandler() {
     var function = JS('',
         "(function (f, a) { return function (e) { f(a, e); }})(#, #)",
-        DART_CLOSURE_TO_JS(IsolateNatives._processWorkerMessage),
+        IsolateNatives._processWorkerMessage,
         mainManager);
     JS("void", r"self.onmessage = #", function);
     // We ensure dartPrint is defined so that the implementation of the Dart
@@ -258,7 +256,7 @@ class _Manager {
       self.postMessage(serialize(object));
     }
   }
-})(#)''', DART_CLOSURE_TO_JS(_serializePrintMessage));
+})(#)''', _serializePrintMessage);
   }
 
   static _serializePrintMessage(object) {
@@ -1100,7 +1098,7 @@ class IsolateNatives {
     return f(e, u, c)
   }
 })(#, #, #)''',
-        DART_CLOSURE_TO_JS(workerOnError), uri, onError);
+        workerOnError, uri, onError);
     JS('void', '#.onerror = #', worker, onerrorTrampoline);
 
     var processWorkerMessageTrampoline = JS(
@@ -1114,7 +1112,7 @@ class IsolateNatives {
     return f(a, e);
   }
 })(#, #)""",
-        DART_CLOSURE_TO_JS(_processWorkerMessage),
+        _processWorkerMessage,
         worker);
     JS('void', '#.onmessage = #', worker, processWorkerMessageTrampoline);
     var workerId = _globalState.nextManagerId++;
@@ -1367,9 +1365,8 @@ class TimerImpl implements Timer {
 
       enterJsAsync();
 
-      _handle = JS('int', 'self.setTimeout(#, #)',
-                   convertDartClosureToJS(internalCallback, 0),
-                   milliseconds);
+      _handle = JS(
+          'int', 'self.setTimeout(#, #)', internalCallback, milliseconds);
     } else {
       assert(milliseconds > 0);
       throw new UnsupportedError("Timer greater than 0.");
@@ -1381,8 +1378,7 @@ class TimerImpl implements Timer {
     if (hasTimer()) {
       enterJsAsync();
       _handle = JS('int', 'self.setInterval(#, #)',
-                   convertDartClosureToJS(() { callback(this); }, 0),
-                   milliseconds);
+          () { callback(this); }, milliseconds);
     } else {
       throw new UnsupportedError("Periodic timer.");
     }

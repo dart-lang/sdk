@@ -39,12 +39,6 @@ dart_library.library('dart/_foreign_helper', null, /* Imports */[
   function JS_CALL_IN_ISOLATE(isolate, func) {
   }
   dart.fn(JS_CALL_IN_ISOLATE, dart.dynamic, [dart.dynamic, core.Function]);
-  function DART_CLOSURE_TO_JS(func) {
-  }
-  dart.fn(DART_CLOSURE_TO_JS, dart.dynamic, [core.Function]);
-  function RAW_DART_FUNCTION_REF(func) {
-  }
-  dart.fn(RAW_DART_FUNCTION_REF, dart.dynamic, [core.Function]);
   function JS_SET_CURRENT_ISOLATE(isolate) {
   }
   dart.fn(JS_SET_CURRENT_ISOLATE, dart.void, [dart.dynamic]);
@@ -132,8 +126,6 @@ dart_library.library('dart/_foreign_helper', null, /* Imports */[
   exports.JS_CURRENT_ISOLATE_CONTEXT = JS_CURRENT_ISOLATE_CONTEXT;
   exports.IsolateContext = IsolateContext;
   exports.JS_CALL_IN_ISOLATE = JS_CALL_IN_ISOLATE;
-  exports.DART_CLOSURE_TO_JS = DART_CLOSURE_TO_JS;
-  exports.RAW_DART_FUNCTION_REF = RAW_DART_FUNCTION_REF;
   exports.JS_SET_CURRENT_ISOLATE = JS_SET_CURRENT_ISOLATE;
   exports.JS_CREATE_ISOLATE = JS_CREATE_ISOLATE;
   exports.JS_DART_OBJECT_CONSTRUCTOR = JS_DART_OBJECT_CONSTRUCTOR;
