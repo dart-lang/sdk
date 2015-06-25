@@ -17,7 +17,7 @@ class TypeTestProperties {
   /// The properties that must be installed on the prototype of the
   /// JS constructor of the [ClassElement] for which the is checks were
   /// generated.
-  final Map<String, jsAst.Node> properties = <String, jsAst.Node>{};
+  final Map<jsAst.Name, jsAst.Node> properties = <jsAst.Name, jsAst.Node>{};
 }
 
 class RuntimeTypeGenerator {
@@ -79,7 +79,7 @@ class RuntimeTypeGenerator {
         ClosureFieldElement thisLocal =
             closureData.freeVariableMap[closureData.thisLocal];
         if (thisLocal != null) {
-          String thisName = namer.instanceFieldPropertyName(thisLocal);
+          jsAst.Name thisName = namer.instanceFieldPropertyName(thisLocal);
           thisAccess = js('this.#', thisName);
         }
       }
@@ -90,7 +90,8 @@ class RuntimeTypeGenerator {
       } else {
         RuntimeTypes rti = backend.rti;
         jsAst.Expression encoding = rti.getSignatureEncoding(type, thisAccess);
-        String operatorSignature = namer.operatorSignature;
+        jsAst.Name operatorSignature =
+            namer.asName(namer.operatorSignature);
         result.properties[operatorSignature] = encoding;
       }
     }
@@ -283,7 +284,7 @@ class RuntimeTypeGenerator {
 
   StubMethod _generateTypeVariableReader(ClassElement cls,
                                          TypeVariableElement element) {
-    String name = namer.nameForReadTypeVariable(element);
+    jsAst.Name name = namer.nameForReadTypeVariable(element);
     int index = RuntimeTypes.getTypeVariableIndex(element);
     jsAst.Expression computeTypeVariable;
 

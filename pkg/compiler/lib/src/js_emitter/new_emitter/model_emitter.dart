@@ -93,14 +93,15 @@ class ModelEmitter {
   ModelEmitter(Compiler compiler, Namer namer, this.nativeEmitter)
       : this.compiler = compiler,
         this.namer = namer {
-    // TODO(floitsch): remove hard-coded name.
-    // TODO(floitsch): there is no harm in caching the template.
-    js.Template makeConstantListTemplate =
-        js.js.uncachedExpressionTemplate('makeConstList(#)');
 
     this.constantEmitter = new ConstantEmitter(
         compiler, namer, this.generateConstantReference,
-        makeConstantListTemplate);
+        constantListGenerator);
+  }
+
+  js.Expression constantListGenerator(js.Expression array) {
+    // TODO(floitsch): remove hard-coded name.
+    return js.js('makeConstList(#)', [array]);
   }
 
   js.Expression generateEmbeddedGlobalAccess(String global) {
@@ -384,7 +385,7 @@ class ModelEmitter {
          compiler.stringClass, compiler.boolClass, compiler.nullClass,
          compiler.listClass];
     nativeClassesNeedingUnmangledName.forEach((element) {
-        names.add(new js.Property(js.string(namer.className(element)),
+        names.add(new js.Property(js.quoteName(namer.className(element)),
                                   js.string(element.name)));
     });
 
@@ -579,7 +580,7 @@ class ModelEmitter {
       data.addAll(constants.expand((Constant constant) {
         assert(constant.holder.index == holderIndex);
         js.Expression code = constantEmitter.generate(constant.value);
-        return [js.string(constant.name), unparse(compiler, code)];
+        return [js.quoteName(constant.name), unparse(compiler, code)];
       }));
     }
     return new js.ArrayInitializer(data);
@@ -595,8 +596,8 @@ class ModelEmitter {
 
   js.Expression emitLazilyInitializedStatics(List<StaticField> fields) {
     Iterable fieldDescriptors = fields.expand((field) =>
-        [ js.string(field.name),
-          js.string("${namer.getterPrefix}${field.name}"),
+        [ js.quoteName(field.name),
+          js.quoteName(namer.deriveLazyInitializerName(field.name)),
           js.number(field.holder.index),
           emitLazyInitializer(field) ]);
     return new js.ArrayInitializer(fieldDescriptors.toList(growable: false));
@@ -626,13 +627,13 @@ class ModelEmitter {
     Iterable staticDescriptors = library.statics.expand(emitStaticMethod);
 
     Iterable classDescriptors = library.classes.expand((Class cls) {
-      js.LiteralString name = js.string(cls.name);
+      js.Literal name = js.quoteName(cls.name);
       js.LiteralNumber holderIndex = js.number(cls.holder.index);
       js.Expression emittedClass = emitClass(cls);
       if (cls.nativeInfo == null) {
         return [name, emittedClass, holderIndex];
       } else {
-        return [name, emittedClass, js.string(cls.nativeInfo), holderIndex];
+        return [name, emittedClass, cls.nativeInfo, holderIndex];
       }
     });
 
@@ -645,21 +646,20 @@ class ModelEmitter {
   }
 
   js.Expression _generateConstructor(Class cls) {
-    List<String> fieldNames = <String>[];
+    List<js.Name> fieldNames = const <js.Name>[];
 
     // If the class is not directly instantiated we only need it for inheritance
     // or RTI. In either case we don't need its fields.
     if (cls.isDirectlyInstantiated && !cls.isNative) {
       fieldNames = cls.fields.map((Field field) => field.name).toList();
     }
-    String name = cls.name;
-    String parameters = fieldNames.join(', ');
-    String assignments = fieldNames
-        .map((String field) => "this.$field = $field;\n")
-        .join();
-    String code = 'function $name($parameters) { $assignments }';
-    js.Template template = js.js.uncachedExpressionTemplate(code);
-    return template.instantiate(const []);
+    js.Name name = cls.name;
+
+    Iterable<js.Name> assignments = fieldNames.map((js.Name field) {
+        return js.js("this.#field = #field", {"field": field});
+      });
+
+    return js.js('function #(#) { # }', [name, fieldNames, assignments]);
   }
 
   Method _generateGetter(Field field) {
@@ -672,9 +672,9 @@ class ModelEmitter {
       return null;
     }
 
-    js.Expression fieldName = js.string(field.name);
+    js.Expression fieldName = js.quoteName(field.name);
     js.Expression code = js.js(getterTemplateFor(field.getterFlags), fieldName);
-    String getterName = "${namer.getterPrefix}${field.accessorName}";
+    js.Name getterName = namer.deriveGetterName(field.accessorName);
     return new StubMethod(getterName, code);
   }
 
@@ -687,9 +687,9 @@ class ModelEmitter {
       }
       return null;
     }
-    js.Expression fieldName = js.string(field.name);
+    js.Expression fieldName = js.quoteName(field.name);
     js.Expression code = js.js(setterTemplateFor(field.setterFlags), fieldName);
-    String setterName = "${namer.setterPrefix}${field.accessorName}";
+    js.Name setterName = namer.deriveSetterName(field.accessorName);
     return new StubMethod(setterName, code);
   }
 
@@ -713,12 +713,12 @@ class ModelEmitter {
       "reference.";
 
   js.Expression emitClass(Class cls) {
-    List elements = [js.string(cls.superclassName),
+    List elements = [js.quoteName(cls.superclassName, allowNull: true),
                      js.number(cls.superclassHolderIndex)];
 
     if (cls.isMixinApplication) {
       MixinApplication mixin = cls;
-      elements.add(js.string(mixin.mixinClass.name));
+      elements.add(js.quoteName(mixin.mixinClass.name));
       elements.add(js.number(mixin.mixinClass.holder.index));
       if (cls.isDirectlyInstantiated) {
         elements.add(_generateConstructor(cls));
@@ -847,14 +847,14 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
   Iterable<js.Expression> emitInstanceMethod(Method method) {
 
     List<js.Expression> makeNameCodePair(Method method) {
-      return [js.string(method.name), method.code];
+      return [js.quoteName(method.name), method.code];
     }
 
     List<js.Expression> makeNameCallNameCodeTriplet(ParameterStubMethod stub) {
       js.Expression callName = stub.callName == null
           ? new js.LiteralNull()
-          : js.string(stub.callName);
-      return [js.string(stub.name), callName, stub.code];
+          : js.quoteName(stub.callName);
+      return [js.quoteName(stub.name), callName, stub.code];
     }
 
     if (method is InstanceMethod) {
@@ -865,15 +865,15 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
         // functionType, stub1_name, stub1_callName, stub1_code, ...]
         var data = [];
         if (method.aliasName != null) {
-          data.add(js.string(method.aliasName));
+          data.add(js.quoteName(method.aliasName));
         }
         data.add(method.code);
-        data.add(js.string(method.callName));
+        data.add(js.quoteName(method.callName, allowNull: true));
 
         if (method.needsTearOff) {
           bool isIntercepted = backend.isInterceptedMethod(method.element);
           data.add(new js.LiteralBool(isIntercepted));
-          data.add(js.string(method.tearOffName));
+          data.add(js.quoteName(method.tearOffName));
           data.add((method.functionType));
         }
 
@@ -882,7 +882,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
           data.add(js.number(method.requiredParameterCount));
           data.add(_encodeOptionalParameterDefaultValues(method));
         }
-        return [js.string(method.name), new js.ArrayInitializer(data)];
+        return [js.quoteName(method.name), new js.ArrayInitializer(data)];
       } else {
         // TODO(floitsch): not the most efficient way...
         return ([method]..addAll(method.parameterStubs))
@@ -899,7 +899,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 
     void _addMethod(Method method) {
       js.Expression unparsed = unparse(compiler, method.code);
-      output.add(js.string(method.name));
+      output.add(js.quoteName(method.name));
       output.add(holderIndex);
       output.add(unparsed);
     }
@@ -907,8 +907,8 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
     List<js.Expression> makeNameCallNameCodeTriplet(ParameterStubMethod stub) {
       js.Expression callName = stub.callName == null
           ? new js.LiteralNull()
-          : js.string(stub.callName);
-      return [js.string(stub.name), callName, unparse(compiler, stub.code)];
+          : js.quoteName(stub.callName);
+      return [js.quoteName(stub.name), callName, unparse(compiler, stub.code)];
     }
 
     _addMethod(method);
@@ -921,15 +921,15 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
         // [name, [function, callName, tearOffName, functionType,
         //     stub1_name, stub1_callName, stub1_code, ...]
         var data = [unparse(compiler, method.code)];
-        data.add(js.string(method.callName));
-        data.add(js.string(method.tearOffName));
+        data.add(js.quoteName(method.callName));
+        data.add(js.quoteName(method.tearOffName));
         data.add(method.functionType);
         data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
         if (method.canBeApplied) {
           data.add(js.number(method.requiredParameterCount));
           data.add(_encodeOptionalParameterDefaultValues(method));
         }
-        return [js.string(method.name), holderIndex,
+        return [js.quoteName(method.name), holderIndex,
                 new js.ArrayInitializer(data)];
       } else {
         method.parameterStubs.forEach(_addMethod);

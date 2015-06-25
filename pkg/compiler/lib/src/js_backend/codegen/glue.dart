@@ -79,7 +79,7 @@ class Glue {
 
   FunctionElement get identicalFunction => _compiler.identicalFunction;
 
-  String invocationName(Selector selector) {
+  js.Name invocationName(Selector selector) {
     return _namer.invocationName(selector);
   }
 
@@ -111,11 +111,11 @@ class Glue {
     return _backend.emitter.constructorAccess(element);
   }
 
-  String instanceFieldPropertyName(Element field) {
+  js.Name instanceFieldPropertyName(Element field) {
     return _namer.instanceFieldPropertyName(field);
   }
 
-  String instanceMethodName(FunctionElement element) {
+  js.Name instanceMethodName(FunctionElement element) {
     return _namer.instanceMethodName(element);
   }
 
@@ -125,7 +125,7 @@ class Glue {
         hasBeenInstantiated: hasBeenInstantiated);
   }
 
-  String getInterceptorName(Set<ClassElement> interceptedClasses) {
+  js.Name getInterceptorName(Set<ClassElement> interceptedClasses) {
     return _backend.namer.nameForGetInterceptor(interceptedClasses);
   }
 
@@ -187,7 +187,7 @@ class Glue {
   }
 
   js.Expression getRuntimeTypeName(ClassElement cls) {
-    return js.string(_namer.runtimeTypeName(cls));
+    return js.quoteName(_namer.runtimeTypeName(cls));
   }
 
   int getTypeVariableIndex(TypeVariableType variable) {
@@ -219,11 +219,11 @@ class Glue {
     _backend.registerIsCheckForCodegen(type, _enqueuer, registry);
   }
 
-  String getTypeTestTag(DartType type) {
+  js.Name getTypeTestTag(DartType type) {
     return _backend.namer.operatorIsType(type);
   }
 
-  String getTypeSubstitutionTag(ClassElement element) {
+  js.Name getTypeSubstitutionTag(ClassElement element) {
     return _backend.namer.substitutionName(element);
   }
 

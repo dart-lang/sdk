@@ -1493,7 +1493,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       assert(node.inputs.length == 1);
       registry.registerSpecializedGetInterceptor(node.interceptedClasses);
-      String name =
+      js.Name name =
           backend.namer.nameForGetInterceptor(node.interceptedClasses);
       var isolate = new js.VariableUse(
           backend.namer.globalObjectFor(backend.interceptorsLibrary));
@@ -1511,6 +1511,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = visitArguments(node.inputs);
     Element target = node.element;
 
+    // TODO(herhut): The namer should return the appropriate backendname here.
     if (target != null && !node.isInterceptedCall) {
       if (target == backend.jsArrayAdd) {
         methodName = 'push';
@@ -1530,17 +1531,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     }
 
+    js.Name methodLiteral;
     if (methodName == null) {
-      methodName = backend.namer.invocationName(node.selector);
+      methodLiteral = backend.namer.invocationName(node.selector);
       registerMethodInvoke(node);
+    } else {
+      methodLiteral = backend.namer.asName(methodName);
     }
-    push(js.propertyCall(object, methodName, arguments), node);
+    push(js.propertyCall(object, methodLiteral, arguments), node);
   }
 
   void visitInvokeConstructorBody(HInvokeConstructorBody node) {
     use(node.inputs[0]);
     js.Expression object = pop();
-    String methodName = backend.namer.instanceMethodName(node.element);
+    js.Name methodName = backend.namer.instanceMethodName(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs);
     push(js.propertyCall(object, methodName, arguments), node);
     registry.registerStaticUse(node.element);
@@ -1551,7 +1555,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     var isolate = new js.VariableUse(
         backend.namer.globalObjectFor(backend.interceptorsLibrary));
     Selector selector = getOptimizedSelectorFor(node, node.selector);
-    String methodName = backend.registerOneShotInterceptor(selector);
+    js.Name methodName = backend.registerOneShotInterceptor(selector);
     push(js.propertyCall(isolate, methodName, arguments), node);
     if (selector.isGetter) {
       registerGetter(node);
@@ -1608,14 +1612,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     use(node.receiver);
-    String name = backend.namer.invocationName(node.selector);
+    js.Name name = backend.namer.invocationName(node.selector);
     push(js.propertyCall(pop(), name, visitArguments(node.inputs)), node);
     registerSetter(node);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
     use(node.receiver);
-    String name = backend.namer.invocationName(node.selector);
+    js.Name name = backend.namer.invocationName(node.selector);
     push(js.propertyCall(pop(), name, visitArguments(node.inputs)), node);
     registerGetter(node);
   }
@@ -1677,10 +1681,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     registry.registerSuperInvocation(superMethod);
     ClassElement superClass = superMethod.enclosingClass;
     if (superMethod.kind == ElementKind.FIELD) {
-      String fieldName = backend.namer.instanceFieldPropertyName(superMethod);
+      js.Name fieldName =
+          backend.namer.instanceFieldPropertyName(superMethod);
       use(node.inputs[0]);
-      js.PropertyAccess access =
-          new js.PropertyAccess.field(pop(), fieldName);
+      js.PropertyAccess access = new js.PropertyAccess(pop(), fieldName);
       if (node.isSetter) {
         use(node.value);
         push(new js.Assignment(access, pop()), node);
@@ -1691,7 +1695,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       Selector selector = node.selector;
 
       if (!backend.maybeRegisterAliasedSuperMember(superMethod, selector)) {
-        String methodName;
+        js.Name methodName;
         if (selector.isGetter) {
           // If the selector we need to register a typed getter to the
           // [world]. The emitter needs to know if it needs to emit a
@@ -1738,8 +1742,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // property should not be mangled.
       push(new js.PropertyAccess.field(pop(), 'length'), node);
     } else {
-      String name = backend.namer.instanceFieldPropertyName(element);
-      push(new js.PropertyAccess.field(pop(), name), node);
+      js.Name name = backend.namer.instanceFieldPropertyName(element);
+      push(new js.PropertyAccess(pop(), name), node);
       registry.registerFieldGetter(element);
     }
   }
@@ -1747,20 +1751,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldSet(HFieldSet node) {
     Element element = node.element;
     registry.registerFieldSetter(element);
-    String name = backend.namer.instanceFieldPropertyName(element);
+    js.Name name = backend.namer.instanceFieldPropertyName(element);
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.value);
-    push(new js.Assignment(new js.PropertyAccess.field(receiver, name), pop()),
+    push(new js.Assignment(new js.PropertyAccess(receiver, name), pop()),
         node);
   }
 
   visitReadModifyWrite(HReadModifyWrite node) {
     Element element = node.element;
     registry.registerFieldSetter(element);
-    String name = backend.namer.instanceFieldPropertyName(element);
+    js.Name name = backend.namer.instanceFieldPropertyName(element);
     use(node.receiver);
-    js.Expression fieldReference = new js.PropertyAccess.field(pop(), name);
+    js.Expression fieldReference = new js.PropertyAccess(pop(), name);
     if (node.isPreOp) {
       push(new js.Prefix(node.jsOp, fieldReference), node);
     } else if (node.isPostOp) {
@@ -2354,7 +2358,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(input);
 
     js.PropertyAccess field =
-        new js.PropertyAccess.field(pop(), backend.namer.operatorIsType(type));
+        new js.PropertyAccess(pop(), backend.namer.operatorIsType(type));
     // We always negate at least once so that the result is boolified.
     push(new js.Prefix('!', field));
     // If the result is not negated, put another '!' in front.
@@ -2585,7 +2589,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         generateThrowWithHelper('iae', node.checkedInput);
       } else if (node.isReceiverTypeCheck) {
         use(node.checkedInput);
-        String methodName =
+        js.Name methodName =
             backend.namer.invocationName(node.receiverTypeCheckSelector);
         js.Expression call = js.propertyCall(pop(), methodName, []);
         pushStatement(new js.Return(call));

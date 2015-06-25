@@ -54,6 +54,8 @@ class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Compiler> {
         return constant.payload;
       case SyntheticConstantKind.TYPEVARIABLE_REFERENCE:
         return compiler.typesTask.intType;
+      case SyntheticConstantKind.NAME:
+        return compiler.typesTask.stringType;
       default:
         compiler.internalError(compiler.currentElement,
                                "Unexpected DummyConstantKind.");

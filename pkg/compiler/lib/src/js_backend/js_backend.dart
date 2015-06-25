@@ -5,6 +5,7 @@
 library js_backend;
 
 import 'dart:async' show EventSink, Future;
+import 'dart:collection' show HashMap;
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
     as embeddedNames;

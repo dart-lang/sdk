@@ -927,6 +927,11 @@ class Printer implements NodeVisitor {
         out(fieldWithQuotes.substring(1, fieldWithQuotes.length - 1));
         return;
       }
+    } else if (selector is Name) {
+      if (access.receiver is LiteralNumber) out(" ", isWhitespace: true);
+      out(".");
+      out(selector.name);
+      return;
     }
     out("[");
     visitNestedExpression(selector, EXPRESSION,
@@ -989,6 +994,11 @@ class Printer implements NodeVisitor {
   @override
   visitStringConcatenation(StringConcatenation node) {
     node.visitChildren(this);
+  }
+
+  @override
+  visitName(Name node) {
+    out(node.name);
   }
 
   @override
@@ -1067,6 +1077,8 @@ class Printer implements NodeVisitor {
       } else {
         out(name);
       }
+    } else if (node.name is Name) {
+      node.name.accept(this);
     } else {
       assert(node.name is LiteralNumber);
       LiteralNumber nameNumber = node.name;

@@ -147,7 +147,9 @@ bool builtinIsSubtype(type, String other) {
 @ForceInline()
 bool isDartFunctionTypeRti(Object type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isFunctionTypeRti, type);
+                    JsBuiltin.isGivenTypeRti, 
+                    type,
+                    JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME));
 }
 
 /// Returns whether the given type is _the_ Dart Object type.
@@ -155,7 +157,9 @@ bool isDartFunctionTypeRti(Object type) {
 @ForceInline()
 bool isDartObjectTypeRti(type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isDartObjectTypeRti, type);
+                    JsBuiltin.isGivenTypeRti, 
+                    type,
+                    JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME));
 }
 
 /// Returns whether the given type is _the_ null type.
@@ -163,7 +167,9 @@ bool isDartObjectTypeRti(type) {
 @ForceInline()
 bool isNullTypeRti(type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isNullTypeRti, type);
+                    JsBuiltin.isGivenTypeRti, 
+                    type,
+                    JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
 }
 
 /// Returns the metadata of the given [index].

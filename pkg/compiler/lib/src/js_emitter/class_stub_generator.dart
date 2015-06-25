@@ -26,14 +26,14 @@ class ClassStubGenerator {
          namer.deferredAction]);
   }
 
-  jsAst.Expression generateGetter(Element member, String fieldName) {
+  jsAst.Expression generateGetter(Element member, jsAst.Name fieldName) {
     ClassElement cls = member.enclosingClass;
     String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
     List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
     return js('function(#) { return #.# }', [args, receiver, fieldName]);
   }
 
-  jsAst.Expression generateSetter(Element member, String fieldName) {
+  jsAst.Expression generateSetter(Element member, jsAst.Name fieldName) {
     ClassElement cls = member.enclosingClass;
     String receiver = backend.isInterceptorClass(cls) ? 'receiver' : 'this';
     List<String> args = backend.isInterceptedMethod(member) ? ['receiver'] : [];
@@ -47,7 +47,7 @@ class ClassStubGenerator {
    *
    * Invariant: [member] must be a declaration element.
    */
-  Map<String, jsAst.Expression> generateCallStubsForGetter(
+  Map<jsAst.Name, jsAst.Expression> generateCallStubsForGetter(
       Element member, Set<Selector> selectors) {
     assert(invariant(member, member.isDeclaration));
 
@@ -63,18 +63,19 @@ class ClassStubGenerator {
       jsAst.Expression receiver =
           js(isInterceptorClass ? receiverArgumentName : 'this');
       if (member.isGetter) {
-        String getterName = namer.getterForElement(member);
+        jsAst.Name getterName = namer.getterForElement(member);
         if (isInterceptedMethod) {
           return js('this.#(#)', [getterName, receiver]);
         }
         return js('#.#()', [receiver, getterName]);
       } else {
-        String fieldName = namer.instanceFieldPropertyName(member);
+        jsAst.Name fieldName = namer.instanceFieldPropertyName(member);
         return js('#.#', [receiver, fieldName]);
       }
     }
 
-    Map<String, jsAst.Expression> generatedStubs = <String, jsAst.Expression>{};
+    Map<jsAst.Name, jsAst.Expression> generatedStubs =
+      <jsAst.Name, jsAst.Expression>{};
 
     // Two selectors may match but differ only in type.  To avoid generating
     // identical stubs for each we track untyped selectors which already have
@@ -86,9 +87,9 @@ class ClassStubGenerator {
         if (generatedSelectors.contains(selector)) continue;
         generatedSelectors.add(selector);
 
-        String invocationName = namer.invocationName(selector);
+        jsAst.Name invocationName = namer.invocationName(selector);
         Selector callSelector = new Selector.callClosureFrom(selector);
-        String closureCallName = namer.invocationName(callSelector);
+        jsAst.Name closureCallName = namer.invocationName(callSelector);
 
         List<jsAst.Parameter> parameters = <jsAst.Parameter>[];
         List<jsAst.Expression> arguments = <jsAst.Expression>[];
@@ -113,9 +114,9 @@ class ClassStubGenerator {
     return generatedStubs;
   }
 
-  Map<String, Selector> computeSelectorsForNsmHandlers() {
+  Map<jsAst.Name, Selector> computeSelectorsForNsmHandlers() {
 
-    Map<String, Selector> jsNames = <String, Selector>{};
+    Map<jsAst.Name, Selector> jsNames = <jsAst.Name, Selector>{};
 
     // Do not generate no such method handlers if there is no class.
     if (compiler.codegenWorld.directlyInstantiatedClasses.isEmpty) {
@@ -133,7 +134,7 @@ class ClassStubGenerator {
         if (!mask.needsNoSuchMethodHandling(selector, compiler.world)) {
           continue;
         }
-        String jsName = namer.invocationMirrorInternalName(selector);
+        jsAst.Name jsName = namer.invocationMirrorInternalName(selector);
         jsNames[jsName] = selector;
       }
     }
@@ -144,7 +145,8 @@ class ClassStubGenerator {
     return jsNames;
   }
 
-  StubMethod generateStubForNoSuchMethod(String name, Selector selector) {
+  StubMethod generateStubForNoSuchMethod(jsAst.Name name,
+                                         Selector selector) {
     // Values match JSInvocationMirror in js-helper library.
     int type = selector.invocationMirrorKind;
     List<String> parameterNames =
@@ -154,8 +156,8 @@ class ClassStubGenerator {
         selector.callStructure.getOrderedNamedArguments().map((String name) =>
             js.string(name)).toList();
 
-    String methodName = selector.invocationMirrorMemberName;
-    String internalName = namer.invocationMirrorInternalName(selector);
+    jsAst.Name methodName = namer.asName(selector.invocationMirrorMemberName);
+    jsAst.Name internalName = namer.invocationMirrorInternalName(selector);
 
     assert(backend.isInterceptedName(Compiler.NO_SUCH_METHOD));
     bool isIntercepted = backend.isInterceptedName(selector.name);
@@ -172,9 +174,9 @@ class ClassStubGenerator {
                 backend.emitter.staticFunctionAccess(
                     backend.getCreateInvocationMirror()),
             'methodName':
-                js.string(compiler.enableMinification
+                js.quoteName(compiler.enableMinification
                     ? internalName : methodName),
-            'internalName': js.string(internalName),
+            'internalName': js.quoteName(internalName),
             'type': js.number(type),
             'arguments':
                 new jsAst.ArrayInitializer(parameterNames.map(js).toList()),

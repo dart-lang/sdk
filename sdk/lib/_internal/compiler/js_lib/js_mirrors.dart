@@ -1984,7 +1984,7 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
         var type = getType(typeInformation[0]);
         _superclass = typeMirrorFromRuntimeTypeRepresentation(this, type);
       } else {
-        var superclassName = _fieldsDescriptor.split(';')[0];
+        var superclassName = _fieldsDescriptor.split(';')[0].split(':')[0];
         // TODO(zarah): Remove special handing of mixins.
         var mixins = superclassName.split('+');
         if (mixins.length > 1) {

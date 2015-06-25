@@ -13,7 +13,8 @@ import '../elements/elements.dart';
 import '../elements/modelx.dart' show SynthesizedConstructorElementX,
     ConstructorBodyElementX, FunctionSignatureX;
 import '../io/source_information.dart';
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../js_backend/js_backend.dart' show JavaScriptBackend,
+    SyntheticConstantKind;
 import '../resolution/semantic_visitor.dart';
 import '../resolution/operators.dart' as op;
 import '../tree/tree.dart' as ast;
@@ -24,7 +25,7 @@ import 'cps_ir_builder.dart';
 import '../native/native.dart' show NativeBehavior;
 
 // TODO(karlklose): remove.
-import '../js/js.dart' as js show js, Template, Expression;
+import '../js/js.dart' as js show js, Template, Expression, Name;
 import '../ssa/ssa.dart' show TypeMaskFactory;
 import '../types/types.dart' show TypeMask;
 import '../util/util.dart';
@@ -3063,8 +3064,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         validateArgumentCount(minimum: 2);
 
         ast.Node builtin = argumentNodes.tail.head;
-        JsBuiltin value = getEnumValue(argumentNodes.tail.head,
-            backend.jsBuiltinEnum, JsBuiltin.values);
+        JsBuiltin value = getEnumValue(builtin, backend.jsBuiltinEnum,
+                                       JsBuiltin.values);
         js.Template template = backend.emitter.builtinTemplateFor(value);
         List<ir.Primitive> arguments =
             argumentNodes.skip(2).mapToList(visit, growable: false);
@@ -3103,8 +3104,12 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         ast.Node argument = argumentNodes.head;
         JsGetName id = getEnumValue(argument, backend.jsGetNameEnum,
             JsGetName.values);
-        String name = backend.namer.getNameForJsGetName(argument, id);
-        return irBuilder.buildStringConstant(name);
+        js.Name name = backend.namer.getNameForJsGetName(argument, id);
+        ConstantValue nameConstant =
+            new SyntheticConstantValue(SyntheticConstantKind.NAME,
+                                       js.js.quoteName(name));
+
+        return irBuilder.buildConstant(nameConstant);
 
       case 'JS_GET_FLAG':
         validateArgumentCount(exactly: 1);

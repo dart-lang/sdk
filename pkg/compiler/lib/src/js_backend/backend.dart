@@ -216,6 +216,7 @@ enum SyntheticConstantKind {
   DUMMY_INTERCEPTOR,
   EMPTY_VALUE,
   TYPEVARIABLE_REFERENCE,
+  NAME
 }
 
 class JavaScriptBackend extends Backend {
@@ -435,7 +436,7 @@ class JavaScriptBackend extends Backend {
    * A collection of selectors that must have a one shot interceptor
    * generated.
    */
-  final Map<String, Selector> oneShotInterceptors;
+  final Map<jsAst.Name, Selector> oneShotInterceptors;
 
   /**
    * The members of instantiated interceptor classes: maps a member name to the
@@ -466,7 +467,7 @@ class JavaScriptBackend extends Backend {
    * the generic version that contains all possible type checks is
    * also stored in this map.
    */
-  final Map<String, Set<ClassElement>> specializedGetInterceptors;
+  final Map<jsAst.Name, Set<ClassElement>> specializedGetInterceptors;
 
   /**
    * Set of classes whose methods are intercepted.
@@ -620,10 +621,10 @@ class JavaScriptBackend extends Backend {
                     SourceInformationFactory sourceInformationFactory,
                     {bool generateSourceMap: true})
       : namer = determineNamer(compiler),
-        oneShotInterceptors = new Map<String, Selector>(),
+        oneShotInterceptors = new Map<jsAst.Name, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
         rti = new RuntimeTypes(compiler),
-        specializedGetInterceptors = new Map<String, Set<ClassElement>>(),
+        specializedGetInterceptors = new Map<jsAst.Name, Set<ClassElement>>(),
         annotations = new Annotations(compiler),
         super(compiler) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
@@ -716,9 +717,9 @@ class JavaScriptBackend extends Backend {
     return false;
   }
 
-  String registerOneShotInterceptor(Selector selector) {
+  jsAst.Name registerOneShotInterceptor(Selector selector) {
     Set<ClassElement> classes = getInterceptedClassesOn(selector.name);
-    String name = namer.nameForGetOneShotInterceptor(selector, classes);
+    jsAst.Name name = namer.nameForGetOneShotInterceptor(selector, classes);
     if (!oneShotInterceptors.containsKey(name)) {
       registerSpecializedGetInterceptor(classes);
       oneShotInterceptors[name] = selector;
@@ -921,7 +922,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
-    String name = namer.nameForGetInterceptor(classes);
+    jsAst.Name name = namer.nameForGetInterceptor(classes);
     if (classes.contains(jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.

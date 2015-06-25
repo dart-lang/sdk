@@ -115,11 +115,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   /// or error case.
   String errorCodeName;
 
-  final String suggestedBodyName;
   /// The inner function that is scheduled to do each await/yield,
   /// and called to do a new iteration for sync*.
-  js.VariableUse get body => new js.VariableUse(bodyName);
-  String bodyName;
+  js.Name bodyName;
 
   /// Used to simulate a goto.
   ///
@@ -179,7 +177,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   AsyncRewriterBase(this.diagnosticListener,
                     spannable,
                     this.safeVariableName,
-                    this.suggestedBodyName)
+                    this.bodyName)
       : _spannable = spannable;
 
   /// Initialize names used by the subClass.
@@ -199,7 +197,6 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     // generated after the analysis.
     resultName = freshName("result");
     errorCodeName = freshName("errorCode");
-    bodyName = freshName(suggestedBodyName);
     gotoName = freshName("goto");
     handlerName = freshName("handler");
     nextName = freshName("next");
@@ -1184,6 +1181,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.Expression visitStringConcatenation(js.StringConcatenation node) => node;
 
   @override
+  js.Name visitName(js.Name node) => node;
+
+  @override
   visitNamedFunction(js.NamedFunction node) {
     unsupported(node);
   }
@@ -1687,7 +1687,7 @@ class AsyncRewriter extends AsyncRewriterBase {
                 {this.asyncHelper,
                  this.newCompleter,
                  String safeVariableName(String proposedName),
-                 String bodyName})
+                 js.Name bodyName})
         : super(diagnosticListener,
                 spannable,
                 safeVariableName,
@@ -1750,12 +1750,12 @@ class AsyncRewriter extends AsyncRewriterBase {
   js.Statement awaitStatement(js.Expression value) {
     return js.js.statement("""
           return #asyncHelper(#value,
-                              #body,
+                              #bodyName,
                               #completer);
           """, {
             "asyncHelper": asyncHelper,
             "value": value,
-            "body": body,
+            "bodyName": bodyName,
             "completer": completer});
   }
 
@@ -1819,7 +1819,7 @@ class SyncStarRewriter extends AsyncRewriterBase {
                  this.yieldStarExpression,
                  this.uncaughtErrorExpression,
                  String safeVariableName(String proposedName),
-                 String bodyName})
+                 js.Name bodyName})
         : super(diagnosticListener,
                 spannable,
                 safeVariableName,
@@ -1989,7 +1989,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
                  this.yieldExpression,
                  this.yieldStarExpression,
                  String safeVariableName(String proposedName),
-                 String bodyName})
+                 js.Name bodyName})
         : super(diagnosticListener,
                 spannable,
                 safeVariableName,
@@ -2017,12 +2017,12 @@ class AsyncStarRewriter extends AsyncRewriterBase {
         [nextWhenCanceled, new js.ArrayInitializer(
             enclosingFinallyLabels.map(js.number).toList())]));
     addStatement(js.js.statement("""
-        return #asyncStarHelper(#yieldExpression(#expression), #body,
+        return #asyncStarHelper(#yieldExpression(#expression), #bodyName,
             #controller);""", {
       "asyncStarHelper": asyncStarHelper,
       "yieldExpression": node.hasStar ? yieldStarExpression : yieldExpression,
       "expression": expression,
-      "body": body,
+      "bodyName": bodyName,
       "controller": controllerName,
     }));
   }
@@ -2120,12 +2120,12 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   js.Statement awaitStatement(js.Expression value) {
     return js.js.statement("""
           return #asyncHelper(#value,
-                              #body,
+                              #bodyName,
                               #controller);
           """, {
             "asyncHelper": asyncStarHelper,
             "value": value,
-            "body": body,
+            "bodyName": bodyName,
             "controller": controllerName});
   }
 }
@@ -2441,6 +2441,11 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
 
   @override
   bool visitStringConcatenation(js.StringConcatenation node) {
+    return true;
+  }
+
+  @override
+  bool visitName(js.Name node) {
     return true;
   }
 

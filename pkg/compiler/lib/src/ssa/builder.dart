@@ -26,7 +26,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
       JavaScriptBackend backend = builder.backend;
 
       AsyncRewriterBase rewriter = null;
-      String name = backend.namer.methodPropertyName(element);
+      js.Name name = backend.namer.methodPropertyName(element);
       if (element.asyncMarker == AsyncMarker.ASYNC) {
         rewriter = new AsyncRewriter(
             backend.compiler,
@@ -35,8 +35,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
                 backend.emitter.staticFunctionAccess(backend.getAsyncHelper()),
             newCompleter: backend.emitter.staticFunctionAccess(
                 backend.getCompleterConstructor()),
-            safeVariableName: backend.namer.safeVariableName,
-            bodyName: name);
+            safeVariableName: backend.namer.safeVariablePrefixForAsyncRewrite,
+            bodyName: backend.namer.deriveAsyncBodyName(name));
       } else if (element.asyncMarker == AsyncMarker.SYNC_STAR) {
         rewriter = new SyncStarRewriter(
             backend.compiler,
@@ -49,8 +49,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
                 backend.getYieldStar()),
             uncaughtErrorExpression: backend.emitter.staticFunctionAccess(
                 backend.getSyncStarUncaughtError()),
-            safeVariableName: backend.namer.safeVariableName,
-            bodyName: name);
+            safeVariableName: backend.namer.safeVariablePrefixForAsyncRewrite,
+            bodyName: backend.namer.deriveAsyncBodyName(name));
       }
       else if (element.asyncMarker == AsyncMarker.ASYNC_STAR) {
         rewriter = new AsyncStarRewriter(
@@ -62,12 +62,12 @@ class SsaFunctionCompiler implements FunctionCompiler {
                 backend.getStreamOfController()),
             newController: backend.emitter.staticFunctionAccess(
                 backend.getASyncStarControllerConstructor()),
-            safeVariableName: backend.namer.safeVariableName,
+            safeVariableName: backend.namer.safeVariablePrefixForAsyncRewrite,
             yieldExpression: backend.emitter.staticFunctionAccess(
                 backend.getYieldSingle()),
             yieldStarExpression: backend.emitter.staticFunctionAccess(
                 backend.getYieldStar()),
-            bodyName: name);
+            bodyName: backend.namer.deriveAsyncBodyName(name));
       }
       if (rewriter != null) {
         result = rewriter.rewrite(result);
@@ -3673,10 +3673,10 @@ class SsaBuilder extends NewResolvedVisitor {
       HInstruction representations =
           buildTypeArgumentRepresentations(type);
       add(representations);
-      String operator = backend.namer.operatorIs(element);
-      HInstruction isFieldName = addConstantString(operator);
+      js.Name operator = backend.namer.operatorIs(element);
+      HInstruction isFieldName = addConstantStringFromName(operator);
       HInstruction asFieldName = compiler.world.hasAnyStrictSubtype(element)
-          ? addConstantString(backend.namer.substitutionName(element))
+          ? addConstantStringFromName(backend.namer.substitutionName(element))
           : graph.addConstantNull(compiler);
       List<HInstruction> inputs = <HInstruction>[expression,
                                                  isFieldName,
@@ -4028,7 +4028,7 @@ class SsaBuilder extends NewResolvedVisitor {
     EnumClassElement enumClass = element.enclosingClass;
     int index = enumClass.enumValues.indexOf(element);
     stack.add(
-        addConstantString(
+        addConstantStringFromName(
             backend.namer.getNameForJsGetName(
                 argument, JsGetName.values[index])));
   }
@@ -4299,9 +4299,7 @@ class SsaBuilder extends NewResolvedVisitor {
     ConstantValue nameConstant = constantSystem.createString(
         new ast.DartString.literal(publicName));
 
-    String internalName = backend.namer.invocationName(selector);
-    ConstantValue internalNameConstant =
-        constantSystem.createString(new ast.DartString.literal(internalName));
+    js.Name internalName = backend.namer.invocationName(selector);
 
     Element createInvocationMirror = backend.getCreateInvocationMirror();
     var argumentsInstruction = buildLiteralList(arguments);
@@ -4322,7 +4320,7 @@ class SsaBuilder extends NewResolvedVisitor {
     pushInvokeStatic(null,
                      createInvocationMirror,
                      [graph.addConstant(nameConstant, compiler),
-                      graph.addConstant(internalNameConstant, compiler),
+                      graph.addConstantStringFromName(internalName, compiler),
                       graph.addConstant(kindConstant, compiler),
                       argumentsInstruction,
                       argumentNamesInstruction],
@@ -4588,12 +4586,12 @@ class SsaBuilder extends NewResolvedVisitor {
       // TODO(ahe): Creating a string here is unfortunate. It is slow (due to
       // string concatenation in the implementation), and may prevent
       // segmentation of '$'.
-      String substitutionNameString = backend.namer.runtimeTypeName(cls);
-      HInstruction substitutionName = graph.addConstantString(
-          new ast.LiteralDartString(substitutionNameString), compiler);
+      js.Name substitutionName = backend.namer.runtimeTypeName(cls);
+      HInstruction substitutionNameInstr = graph.addConstantStringFromName(
+          substitutionName, compiler);
       pushInvokeStatic(null,
                        backend.getGetRuntimeTypeArgument(),
-                       [target, substitutionName, index],
+                       [target, substitutionNameInstr, index],
                        typeMask: backend.dynamicType);
     } else {
       pushInvokeStatic(null, backend.getGetTypeArgumentByIndex(),
@@ -5193,8 +5191,11 @@ class SsaBuilder extends NewResolvedVisitor {
 
   HConstant addConstantString(String string) {
     ast.DartString dartString = new ast.DartString.literal(string);
-    ConstantValue constant = constantSystem.createString(dartString);
-    return graph.addConstant(constant, compiler);
+    return graph.addConstantString(dartString, compiler);
+  }
+
+  HConstant addConstantStringFromName(js.Name name) {
+    return graph.addConstantStringFromName(name, compiler);
   }
 
   visitClassTypeLiteralGet(

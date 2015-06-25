@@ -125,7 +125,7 @@ class ParameterStubGenerator {
     } else if (member.isInstanceMember) {
       if (needsSuperGetter(member)) {
         ClassElement superClass = member.enclosingClass;
-        String methodName = namer.instanceMethodName(member);
+        jsAst.Name methodName = namer.instanceMethodName(member);
         // When redirecting, we must ensure that we don't end up in a subclass.
         // We thus can't just invoke `this.foo$1.call(filledInArguments)`.
         // Instead we need to call the statically resolved target.
@@ -148,8 +148,8 @@ class ParameterStubGenerator {
 
     jsAst.Fun function = js('function(#) { #; }', [parametersBuffer, body]);
 
-    String name = namer.invocationName(selector);
-    String callName =
+    jsAst.Name name = namer.invocationName(selector);
+    jsAst.Name callName =
         (callSelector != null) ? namer.invocationName(callSelector) : null;
     return new ParameterStubMethod(name, callName, function);
   }

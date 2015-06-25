@@ -11,16 +11,29 @@ class ClassBuilder {
   final List<jsAst.Property> properties = <jsAst.Property>[];
   final List<jsAst.Literal> fields = <jsAst.Literal>[];
 
-  String superName;
+  jsAst.Name superName;
   jsAst.Node functionType;
   List<jsAst.Node> fieldMetadata;
 
   final Element element;
   final Namer namer;
+  final bool isForActualClass;
 
-  ClassBuilder(this.element, this.namer);
+  ClassBuilder(this.element, this.namer, this.isForActualClass);
 
-  jsAst.Property addProperty(String name, jsAst.Expression value) {
+  ClassBuilder.forClass(ClassElement cls, this.namer)
+      : isForActualClass = true,
+        element = cls;
+
+  ClassBuilder.forStatics(this.element, this.namer) : isForActualClass = false;
+
+  jsAst.Property addProperty(jsAst.Literal name, jsAst.Expression value) {
+    jsAst.Property property = new jsAst.Property(js.quoteName(name), value);
+    properties.add(property);
+    return property;
+  }
+
+  jsAst.Property addPropertyByName(String name, jsAst.Expression value) {
     jsAst.Property property = new jsAst.Property(js.string(name), value);
     properties.add(property);
     return property;
@@ -42,12 +55,14 @@ class ClassBuilder {
   jsAst.ObjectInitializer toObjectInitializer(
       {bool emitClassDescriptor: true}) {
     List<jsAst.Literal> parts = <jsAst.Literal>[];
-    if (superName != null) {
-      parts.add(js.stringPart(superName));
-      if (functionType != null) {
-        // See [functionTypeEncodingDescription] above.
-        parts.add(js.stringPart(':'));
-        parts.add(functionType);
+    if (isForActualClass) {
+      if (superName != null) {
+        parts.add(superName);
+        if (functionType != null) {
+          // See [functionTypeEncodingDescription] above.
+          parts.add(js.stringPart(':'));
+          parts.add(functionType);
+        }
       }
       parts.add(js.stringPart(';'));
     }

@@ -6,7 +6,6 @@ library dart2js.ir_builder;
 
 import '../compile_time_constants.dart' show BackendConstantEnvironment;
 import '../constants/constant_system.dart';
-import '../constants/expressions.dart';
 import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
 import '../dart_types.dart';
 import '../dart2jslib.dart';

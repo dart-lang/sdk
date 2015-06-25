@@ -76,10 +76,9 @@ class Emitter implements emitterTask.Emitter {
   }
 
   js.PropertyAccess _globalPropertyAccess(Element element) {
-    String name = namer.globalPropertyName(element);
-    js.PropertyAccess pa = new js.PropertyAccess.field(
-        new js.VariableUse(namer.globalObjectFor(element)),
-        name);
+    js.Name name = namer.globalPropertyName(element);
+    js.PropertyAccess pa = new js.PropertyAccess(
+        new js.VariableUse(namer.globalObjectFor(element)), name);
     return pa;
   }
 
@@ -163,23 +162,8 @@ class Emitter implements emitterTask.Emitter {
         String isPrefix = namer.operatorIsPrefix;
         return js.js.expressionTemplateFor("('$isPrefix' + #) in #.prototype");
 
-      case JsBuiltin.isFunctionTypeRti:
-        String functionClassName =
-            _backend.namer.runtimeTypeName(_compiler.functionClass);
-        return js.js.expressionTemplateFor(
-            '#.$typeNameProperty === "$functionClassName"');
-
-      case JsBuiltin.isNullTypeRti:
-        String nullClassName =
-            _backend.namer.runtimeTypeName(_compiler.nullClass);
-        return js.js.expressionTemplateFor(
-            '#.$typeNameProperty === "$nullClassName"');
-
-      case JsBuiltin.isDartObjectTypeRti:
-        String dartObjectClassName =
-            _backend.namer.runtimeTypeName(_compiler.objectClass);
-        return js.js.expressionTemplateFor(
-            '#.$typeNameProperty === "$dartObjectClassName"');
+      case JsBuiltin.isGivenTypeRti:
+        return js.js.expressionTemplateFor('#.$typeNameProperty === #');
 
       case JsBuiltin.getMetadata:
         return _emitter.templateForReadMetadata;

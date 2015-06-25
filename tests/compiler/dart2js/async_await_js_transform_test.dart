@@ -5,6 +5,7 @@
 import "package:expect/expect.dart";
 import "package:compiler/src/js/js.dart";
 import "package:compiler/src/js/rewrite_async.dart";
+import "package:compiler/src/js_backend/js_backend.dart" show StringBackedName;
 
 import "backend_dart/dart_printer_test.dart" show PrintDiagnosticListener;
 
@@ -16,7 +17,7 @@ void testTransform(String source, String expected) {
       asyncHelper: new VariableUse("thenHelper"),
       newCompleter: new VariableUse("Completer"),
       safeVariableName: (String name) => "__$name",
-      bodyName: "body").rewrite(fun);
+      bodyName: new StringBackedName("body")).rewrite(fun);
 
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
   SimpleJavaScriptPrintingContext context =
@@ -34,7 +35,7 @@ function(a) async {
 }""", """
 function(a) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __self = this;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -45,7 +46,7 @@ function(a) {
           // Function start
           print(__self.x);
           __goto = 2;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 2:
           // returning from await.
           // implicit return
@@ -55,7 +56,7 @@ function(a) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 
   testTransform("""
@@ -84,7 +85,7 @@ function(a) {
   }""", """
 function(b) {
   var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __next = [], __helper;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -113,7 +114,7 @@ function(b) {
               break __outer1;
             }
             __goto = 12;
-            return thenHelper(foo(), __body, __completer);
+            return thenHelper(foo(), body, __completer);
           case 12:
             // returning from await.
             __helper = __result;
@@ -179,7 +180,7 @@ function(b) {
             return thenHelper(__currentError, 1, __completer);
         }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 
     testTransform("""
@@ -194,7 +195,7 @@ function(c) async {
 }""", """
 function(c) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a, b, c, d, e, f, __temp1;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -206,24 +207,24 @@ function(c) {
           a = b++;
           b = --b;
           __goto = 2;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 2:
           // returning from await.
           c = __result.a++;
           __goto = 3;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 3:
           // returning from await.
           d = ++__result.a;
           __temp1 = foo1();
           __goto = 4;
-          return thenHelper(foo2(), __body, __completer);
+          return thenHelper(foo2(), body, __completer);
         case 4:
           // returning from await.
           e = __temp1[__result]--;
           __temp1 = foo1();
           __goto = 5;
-          return thenHelper(foo2(), __body, __completer);
+          return thenHelper(foo2(), body, __completer);
         case 5:
           // returning from await.
           f = --__temp1[__result];
@@ -234,7 +235,7 @@ function(c) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 
   testTransform("""
@@ -251,7 +252,7 @@ function(c) {
   }""", """
 function(d2) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a, b, c, d, e, f, g, h, __temp1;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -274,19 +275,19 @@ function(d2) {
         case 2:
           // then
           __goto = 4;
-          return thenHelper(foo2(), __body, __completer);
+          return thenHelper(foo2(), body, __completer);
         case 4:
           // returning from await.
         case 3:
           // join
           a = __result;
           __goto = 5;
-          return thenHelper(foo1(), __body, __completer);
+          return thenHelper(foo1(), body, __completer);
         case 5:
           // returning from await.
           b = __result || foo2();
           __goto = 8;
-          return thenHelper(foo1(), __body, __completer);
+          return thenHelper(foo1(), body, __completer);
         case 8:
           // returning from await.
           __temp1 = __result;
@@ -304,7 +305,7 @@ function(d2) {
           // then
           __temp1 = foo3;
           __goto = 9;
-          return thenHelper(foo2(), __body, __completer);
+          return thenHelper(foo2(), body, __completer);
         case 9:
           // returning from await.
           __result = __temp1(__result);
@@ -325,19 +326,19 @@ function(d2) {
         case 10:
           // then
           __goto = 12;
-          return thenHelper(foo2(), __body, __completer);
+          return thenHelper(foo2(), body, __completer);
         case 12:
           // returning from await.
         case 11:
           // join
           e = __result;
           __goto = 13;
-          return thenHelper(foo1(), __body, __completer);
+          return thenHelper(foo1(), body, __completer);
         case 13:
           // returning from await.
           f = __result && foo2();
           __goto = 16;
-          return thenHelper(foo1(), __body, __completer);
+          return thenHelper(foo1(), body, __completer);
         case 16:
           // returning from await.
           __temp1 = __result;
@@ -353,7 +354,7 @@ function(d2) {
         case 14:
           // then
           __goto = 17;
-          return thenHelper(foo2(), __body, __completer);
+          return thenHelper(foo2(), body, __completer);
         case 17:
           // returning from await.
         case 15:
@@ -367,7 +368,7 @@ function(d2) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 
     testTransform("""
@@ -388,7 +389,7 @@ function(x, y) async {
 }""", """
 function(x, y) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -429,7 +430,7 @@ function(x, y) {
         case 7:
           // case
           __goto = 10;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 10:
           // returning from await.
           // goto while condition
@@ -438,7 +439,7 @@ function(x, y) {
         case 8:
           // case
           __goto = 11;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 11:
           // returning from await.
           // goto after switch
@@ -461,7 +462,7 @@ function(x, y) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 
   testTransform("""
@@ -477,7 +478,7 @@ function(x, y) {
   """, """
 function(f) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, a;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -489,7 +490,7 @@ function(f) {
         case 2:
           // do body
           __goto = 5;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 5:
           // returning from await.
           a = __result;
@@ -505,7 +506,7 @@ function(f) {
         case 3:
           // do condition
           __goto = 6;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 6:
           // returning from await.
           if (__result) {
@@ -522,7 +523,7 @@ function(f) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 
     testTransform("""
@@ -542,7 +543,7 @@ function(g) async {
 """, """
 function(g) {
   var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, i, __temp1;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -556,7 +557,7 @@ function(g) {
           // for condition
           __temp1 = i;
           __goto = 6;
-          return thenHelper(foo1(), __body, __completer);
+          return thenHelper(foo1(), body, __completer);
         case 6:
           // returning from await.
           if (!(__temp1 < __result)) {
@@ -578,7 +579,7 @@ function(g) {
         case 7:
           // then
           __goto = 9;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 9:
           // returning from await.
           // goto return
@@ -588,14 +589,14 @@ function(g) {
           // join
           __temp1 = print;
           __goto = 10;
-          return thenHelper(foo(i), __body, __completer);
+          return thenHelper(foo(i), body, __completer);
         case 10:
           // returning from await.
           __temp1(__result);
         case 4:
           // for update
           __goto = 11;
-          return thenHelper(foo2(), __body, __completer);
+          return thenHelper(foo2(), body, __completer);
         case 11:
           // returning from await.
           i += __result;
@@ -612,7 +613,7 @@ function(g) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 
   testTransform("""
@@ -627,7 +628,7 @@ function(g) {
   """, """
 function(a, h) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, x, __temp1, __temp2;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -638,45 +639,45 @@ function(a, h) {
           // Function start
           __temp1 = foo1();
           __goto = 2;
-          return thenHelper(foo2(), __body, __completer);
+          return thenHelper(foo2(), body, __completer);
         case 2:
           // returning from await.
           x = {a: __temp1, b: __result, c: foo3()};
           x.a = 2;
           __goto = 3;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 3:
           // returning from await.
           __result.a = 3;
           __temp1 = x;
           __goto = 4;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 4:
           // returning from await.
           __temp1[__result] = 4;
           __temp1 = x;
           __goto = 5;
-          return thenHelper(foo1(), __body, __completer);
+          return thenHelper(foo1(), body, __completer);
         case 5:
           // returning from await.
           __temp2 = __result;
           __goto = 6;
-          return thenHelper(foo2(), __body, __completer);
+          return thenHelper(foo2(), body, __completer);
         case 6:
           // returning from await.
           __temp1[__temp2.a = __result] = 5;
           __goto = 7;
-          return thenHelper(foo1(), __body, __completer);
+          return thenHelper(foo1(), body, __completer);
         case 7:
           // returning from await.
           __temp1 = __result;
           __goto = 8;
-          return thenHelper(foo2(), __body, __completer);
+          return thenHelper(foo2(), body, __completer);
         case 8:
           // returning from await.
           __temp2 = __result;
           __goto = 9;
-          return thenHelper(foo3(6), __body, __completer);
+          return thenHelper(foo3(6), body, __completer);
         case 9:
           // returning from await.
           __temp1[__temp2] = __result;
@@ -687,7 +688,7 @@ function(a, h) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 
     testTransform("""
@@ -708,7 +709,7 @@ function(c, i) async {
 """, """
 function(c, i) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next = [], x, y, __error, __error1;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -723,7 +724,7 @@ function(c, i) {
         case 6:
           // then
           __goto = 9;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 9:
           // returning from await.
           // goto join
@@ -750,7 +751,7 @@ function(c, i) {
         case 14:
           // then
           __goto = 17;
-          return thenHelper(fooError(__error), __body, __completer);
+          return thenHelper(fooError(__error), body, __completer);
         case 17:
           // returning from await.
           // goto join
@@ -804,7 +805,7 @@ function(c, i) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 
   testTransform("""
@@ -818,7 +819,7 @@ function(c, i) {
   """, """
 function(x, y, j) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __temp1, __temp2, __temp3;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -829,37 +830,37 @@ function(x, y, j) {
           // Function start
           __temp1 = print;
           __goto = 2;
-          return thenHelper(foo(x), __body, __completer);
+          return thenHelper(foo(x), body, __completer);
         case 2:
           // returning from await.
           __temp1(__result);
           __goto = 3;
-          return thenHelper(print, __body, __completer);
+          return thenHelper(print, body, __completer);
         case 3:
           // returning from await.
           __result(foo(x));
           __temp1 = print;
           __temp2 = foo;
           __goto = 4;
-          return thenHelper(x, __body, __completer);
+          return thenHelper(x, body, __completer);
         case 4:
           // returning from await.
           __temp1(__temp2(__result));
           __temp1 = print;
           __temp2 = foo;
           __goto = 6;
-          return thenHelper(x, __body, __completer);
+          return thenHelper(x, body, __completer);
         case 6:
           // returning from await.
           __goto = 5;
-          return thenHelper(__temp1(__temp2(__result)), __body, __completer);
+          return thenHelper(__temp1(__temp2(__result)), body, __completer);
         case 5:
           // returning from await.
           __temp1 = print;
           __temp2 = foo;
           __temp3 = x;
           __goto = 7;
-          return thenHelper(y, __body, __completer);
+          return thenHelper(y, body, __completer);
         case 7:
           // returning from await.
           __temp1(__temp2(__temp3, __result, z));
@@ -870,7 +871,7 @@ function(x, y, j) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 
     testTransform("""
@@ -901,7 +902,7 @@ function(x, y, k) async {
 }""", """
 function(x, y, k) {
   var __goto = 0, __completer = new Completer(), __returnValue, __handler = 2, __currentError, __temp1;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -913,7 +914,7 @@ function(x, y, k) {
         case 3:
           // while condition
           __goto = 5;
-          return thenHelper(foo(), __body, __completer);
+          return thenHelper(foo(), body, __completer);
         case 5:
           // returning from await.
           if (!__result) {
@@ -935,7 +936,7 @@ function(x, y, k) {
             break;
           }
           __goto = 12;
-          return thenHelper(bar(), __body, __completer);
+          return thenHelper(bar(), body, __completer);
         case 12:
           // returning from await.
           if (__temp1 === __result) {
@@ -958,7 +959,7 @@ function(x, y, k) {
           // case
           __temp1 = print;
           __goto = 15;
-          return thenHelper(foo1(x), __body, __completer);
+          return thenHelper(foo1(x), body, __completer);
         case 15:
           // returning from await.
           __temp1(__result);
@@ -970,7 +971,7 @@ function(x, y, k) {
           // case
           __temp1 = print;
           __goto = 16;
-          return thenHelper(foobar(x), __body, __completer);
+          return thenHelper(foobar(x), body, __completer);
         case 16:
           // returning from await.
           __temp1(__result);
@@ -1010,7 +1011,7 @@ function(x, y, k) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
   testTransform("""
   function(l) async {
@@ -1028,7 +1029,7 @@ function(x, y, k) {
   }""", """
 function(l) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -1038,7 +1039,7 @@ function(l) {
         case 0:
           // Function start
           __goto = 2;
-          return thenHelper(l, __body, __completer);
+          return thenHelper(l, body, __completer);
         case 2:
           // returning from await.
           switch (__result) {
@@ -1058,7 +1059,7 @@ function(l) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 
   testTransform("""
@@ -1080,7 +1081,7 @@ function(l) {
   }""", """
 function(m) {
   var __goto = 0, __completer = new Completer(), __handler = 1, __currentError, __next = [], exception, __exception;
-  function __body(__errorCode, __result) {
+  function body(__errorCode, __result) {
     if (__errorCode === 1) {
       __currentError = __result;
       __goto = __handler;
@@ -1092,7 +1093,7 @@ function(m) {
           exception = 1;
           __handler = 3;
           __goto = 6;
-          return thenHelper(42, __body, __completer);
+          return thenHelper(42, body, __completer);
         case 6:
           // returning from await.
           throw 42;
@@ -1105,12 +1106,12 @@ function(m) {
           __handler = 2;
           __exception = __currentError;
           __goto = 7;
-          return thenHelper(10, __body, __completer);
+          return thenHelper(10, body, __completer);
         case 7:
           // returning from await.
           __exception = __result;
           __goto = 8;
-          return thenHelper(10, __body, __completer);
+          return thenHelper(10, body, __completer);
         case 8:
           // returning from await.
           __exception += __result;
@@ -1137,6 +1138,6 @@ function(m) {
           return thenHelper(__currentError, 1, __completer);
       }
   }
-  return thenHelper(null, __body, __completer, null);
+  return thenHelper(null, body, __completer, null);
 }""");
 }

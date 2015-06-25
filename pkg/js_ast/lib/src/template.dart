@@ -685,6 +685,8 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
     };
   }
 
+  Instantiator visitName(Name node) => same(node);
+
   Instantiator visitArrayInitializer(ArrayInitializer node) {
     // TODO(sra): Implement splicing?
     List<Instantiator> elementMakers = node.elements

@@ -194,15 +194,19 @@ class NativeEmitter {
         if (nonleafStr != '') {
           sb..write(';')..write(nonleafStr);
         }
-        if (extensions != null) {
-          sb..write(';')
-            ..writeAll(extensions.map((Class cls) => cls.name), '|');
-        }
+
         String encoding = sb.toString();
 
-        if (cls.isNative || encoding != '') {
+        if (cls.isNative || encoding != '' || extensions != null) {
+          List<jsAst.Literal> parts = <jsAst.Literal>[js.stringPart(encoding)];
+          if (extensions != null) {
+            parts..add(js.stringPart(';'))
+                 ..addAll(
+                     js.joinLiterals(extensions.map((Class cls) => cls.name),
+                                     js.stringPart('|')));
+          }
           assert(cls.nativeInfo == null);
-          cls.nativeInfo = encoding;
+          cls.nativeInfo = js.concatenateStrings(parts, addQuotes: true);
         }
       }
       generateClassInfo(jsInterceptorClass);
@@ -301,7 +305,7 @@ class NativeEmitter {
   List<jsAst.Statement> generateParameterStubStatements(
       FunctionElement member,
       bool isInterceptedMethod,
-      String invocationName,
+      jsAst.Name invocationName,
       List<jsAst.Parameter> stubParameters,
       List<jsAst.Expression> argumentsBuffer,
       int indexOfLastOptionalArgumentInParameters) {

@@ -352,6 +352,14 @@ class JsBuilder {
     return new _InterleaveIterable(list, separator);
   }
 
+  LiteralString quoteName(Name name, {allowNull: false}) {
+    if (name == null) {
+      assert(allowNull);
+      return new LiteralString('""');
+    }
+    return new LiteralStringFromName(name);
+  }
+
   LiteralNumber number(num value) => new LiteralNumber('$value');
 
   LiteralBool boolean(bool value) => new LiteralBool(value);
@@ -365,22 +373,30 @@ class JsBuilder {
   Comment comment(String text) => new Comment(text);
 
   Call propertyCall(Expression receiver,
-                      String fieldName,
-                      List<Expression> arguments) {
-    return new Call(new PropertyAccess.field(receiver, fieldName), arguments);
+                    Expression fieldName,
+                    List<Expression> arguments) {
+    return new Call(new PropertyAccess(receiver, fieldName), arguments);
   }
 }
 
 LiteralString string(String value) => js.string(value);
+LiteralString quoteName(Name name, {allowNull: false}) {
+  return js.quoteName(name, allowNull: allowNull);
+}
 LiteralString stringPart(String value) => js.stringPart(value);
 Iterable<Literal> joinLiterals(Iterable<Literal> list, Literal separator) {
   return js.joinLiterals(list, separator);
 }
+StringConcatenation concatenateStrings(Iterable<Literal> parts,
+                                       {addQuotes: false}) {
+  return js.concatenateStrings(parts, addQuotes: addQuotes);
+}
+
 LiteralNumber number(num value) => js.number(value);
 ArrayInitializer numArray(Iterable<int> list) => js.numArray(list);
 ArrayInitializer stringArray(Iterable<String> list) => js.stringArray(list);
 Call propertyCall(Expression receiver,
-                  String fieldName,
+                  Expression fieldName,
                   List<Expression> arguments) {
   return js.propertyCall(receiver, fieldName, arguments);
 }

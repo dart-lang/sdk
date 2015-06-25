@@ -211,6 +211,14 @@ class HGraph {
         compiler);
   }
 
+  HConstant addConstantStringFromName(js.Name name,
+                                      Compiler compiler) {
+    return addConstant(
+        new SyntheticConstantValue(SyntheticConstantKind.NAME,
+                                   js.quoteName(name)),
+        compiler);
+  }
+
   HConstant addConstantBool(bool value, Compiler compiler) {
     return addConstant(
         compiler.backend.constantSystem.createBool(value), compiler);

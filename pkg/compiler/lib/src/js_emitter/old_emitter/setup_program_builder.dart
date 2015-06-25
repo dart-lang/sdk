@@ -133,7 +133,8 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
      'trivialNsmHandlers': emitter.buildTrivialNsmHandlers(),
      'hasRetainedMetadata': backend.hasRetainedMetadata,
      'types': typesAccess,
-     'objectClassName': js.string(namer.runtimeTypeName(compiler.objectClass)),
+     'objectClassName': js.quoteName(
+         namer.runtimeTypeName(compiler.objectClass)),
      'needsStructuredMemberInfo': emitter.needsStructuredMemberInfo,
      'usesMangledNames':
           compiler.mirrorsLibrary != null || compiler.enabledFunctionApply,
@@ -577,7 +578,7 @@ function $setupProgramName(programData, typesOffset) {
         }
       // ${ClassBuilder.fieldEncodingDescription}.
       var s = fields.split(";");
-      fields = s[1] == "" ? [] : s[1].split(",");
+      fields = s[1] ? s[1].split(",") : [];
       supr = s[0];
       // ${ClassBuilder.functionTypeEncodingDescription}.
       split = supr.split(":");

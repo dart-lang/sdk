@@ -207,7 +207,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       //   [Entity]s or add a specialized Tree-IR node for interceptor calls.
       registry.registerUseInterceptor();
       js.VariableUse interceptorLibrary = glue.getInterceptorLibrary();
-      return js.propertyCall(interceptorLibrary, selector.name, arguments);
+      return js.propertyCall(interceptorLibrary, js.string(selector.name),
+                             arguments);
     } else {
       js.Expression elementAccess = glue.staticFunctionAccess(target);
       return new js.Call(elementAccess, arguments,
@@ -348,14 +349,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
           ? glue.getCheckSubtype()
           : glue.getSubtypeCast();
 
-      js.Expression isT = js.string(glue.getTypeTestTag(type));
+      js.Expression isT = js.quoteName(glue.getTypeTestTag(type));
 
       js.Expression typeArgumentArray = typeArguments.isNotEmpty
           ? new js.ArrayInitializer(typeArguments)
           : new js.LiteralNull();
 
       js.Expression asT = glue.hasStrictSubtype(clazz)
-          ? js.string(glue.getTypeSubstitutionTag(clazz))
+          ? js.quoteName(glue.getTypeSubstitutionTag(clazz))
           : new js.LiteralNull();
 
       return buildStaticHelperInvocation(
@@ -582,7 +583,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression visitCreateInvocationMirror(
       tree_ir.CreateInvocationMirror node) {
     js.Expression name = js.string(node.selector.name);
-    js.Expression internalName = js.string(glue.invocationName(node.selector));
+    js.Expression internalName =
+        js.quoteName(glue.invocationName(node.selector));
     js.Expression kind = js.number(node.selector.invocationMirrorKind);
     js.Expression arguments = new js.ArrayInitializer(
         visitExpressionList(node.arguments));
@@ -596,7 +598,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression visitInterceptor(tree_ir.Interceptor node) {
     glue.registerUseInterceptorInCodegen();
     registry.registerSpecializedGetInterceptor(node.interceptedClasses);
-    String helperName = glue.getInterceptorName(node.interceptedClasses);
+    js.Name helperName = glue.getInterceptorName(node.interceptedClasses);
     js.Expression globalHolder = glue.getInterceptorLibrary();
     return js.js('#.#(#)',
         [globalHolder, helperName, visitExpression(node.input)]);
@@ -604,7 +606,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitGetField(tree_ir.GetField node) {
-    return new js.PropertyAccess.field(
+    return new js.PropertyAccess(
         visitExpression(node.object),
         glue.instanceFieldPropertyName(node.field));
   }
@@ -612,7 +614,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Assignment visitSetField(tree_ir.SetField node) {
     js.PropertyAccess field =
-        new js.PropertyAccess.field(
+        new js.PropertyAccess(
             visitExpression(node.object),
             glue.instanceFieldPropertyName(node.field));
     return new js.Assignment(field, visitExpression(node.value));

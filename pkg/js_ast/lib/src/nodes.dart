@@ -60,6 +60,8 @@ abstract class NodeVisitor<T> {
 
   T visitStringConcatenation(StringConcatenation node);
 
+  T visitName(Name node);
+
   T visitArrayInitializer(ArrayInitializer node);
   T visitArrayHole(ArrayHole node);
   T visitObjectInitializer(ObjectInitializer node);
@@ -159,6 +161,8 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitLiteralNull(LiteralNull node) => visitLiteral(node);
 
   T visitStringConcatenation(StringConcatenation node) => visitLiteral(node);
+
+  T visitName(Name node) => visitNode(node);
 
   T visitArrayInitializer(ArrayInitializer node) => visitExpression(node);
   T visitArrayHole(ArrayHole node) => visitExpression(node);
@@ -571,6 +575,28 @@ abstract class Expression extends Node {
 
 abstract class Declaration implements VariableReference {
 
+}
+
+/// An implementation of [Name] represents a potentially late bound name in
+/// the generated ast.
+///
+/// While [Name] implements comparable, there is no requirement on the actual
+/// implementation of [compareTo] other than that it needs to be stable.
+/// In particular, there is no guarantee that implementations of [compareTo]
+/// will implement some form of lexicographic ordering like [String.compareTo].
+abstract class Name extends Literal
+    implements Declaration, Parameter, Comparable {
+  accept(NodeVisitor visitor) => visitor.visitName(this);
+
+  bool get allowRename => false;
+}
+
+class LiteralStringFromName extends LiteralString {
+  Name name;
+
+  LiteralStringFromName(this.name) : super(null);
+
+  String get value => '"${name.name}"';
 }
 
 class LiteralExpression extends Expression {

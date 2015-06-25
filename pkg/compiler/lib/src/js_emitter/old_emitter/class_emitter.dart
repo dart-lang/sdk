@@ -20,19 +20,20 @@ class ClassEmitter extends CodeEmitterHelper {
     emitter.needsClassSupport = true;
 
     ClassElement superclass = classElement.superclass;
-    String superName = "";
+    jsAst.Name superName;
     if (superclass != null) {
       superName = namer.className(superclass);
     }
 
     if (cls.isMixinApplication) {
       MixinApplication mixinApplication = cls;
-      String mixinName = mixinApplication.mixinClass.name;
-      superName = '$superName+$mixinName';
+      jsAst.Name mixinName = mixinApplication.mixinClass.name;
+      superName =
+          new CompoundName([superName, Namer.literalPlus, mixinName]);
       emitter.needsMixinSupport = true;
     }
 
-    ClassBuilder builder = new ClassBuilder(classElement, namer);
+    ClassBuilder builder = new ClassBuilder.forClass(classElement, namer);
     builder.superName = superName;
     emitConstructorsForCSP(cls);
     emitFields(cls, builder);
@@ -48,7 +49,7 @@ class ClassEmitter extends CodeEmitterHelper {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
       jsAst.Fun function = js('function() { return this; }');
-      String name = namer.getterForMember(Selector.CALL_NAME);
+      jsAst.Name name = namer.getterForMember(Selector.CALL_NAME);
       builder.addProperty(name, function);
     }
 
@@ -72,7 +73,7 @@ class ClassEmitter extends CodeEmitterHelper {
     jsAst.Expression constructorAst =
         _stubGenerator.generateClassConstructor(classElement, fieldNames);
 
-    String constructorName = namer.className(classElement);
+    jsAst.Name constructorName = namer.className(classElement);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(classElement);
     emitter.assemblePrecompiledConstructor(
@@ -105,8 +106,8 @@ class ClassEmitter extends CodeEmitterHelper {
 
     for (Field field in fields) {
       FieldElement fieldElement = field.element;
-      String name = field.name;
-      String accessorName = field.accessorName;
+      jsAst.Name name = field.name;
+      jsAst.Name accessorName = field.accessorName;
       bool needsGetter = field.needsGetter;
       bool needsSetter = field.needsUncheckedSetter;
 
@@ -132,15 +133,15 @@ class ClassEmitter extends CodeEmitterHelper {
         if (!needsAccessor) {
           // Emit field for constructor generation.
           assert(!classIsNative);
-          fieldNameParts.add(js.stringPart(name));
+          fieldNameParts.add(name);
         } else {
           // Emit (possibly renaming) field name so we can add accessors at
           // runtime.
           if (name != accessorName) {
-            fieldNameParts.add(js.stringPart(accessorName));
+            fieldNameParts.add(accessorName);
             fieldNameParts.add(js.stringPart(':'));
           }
-          fieldNameParts.add(js.stringPart(name));
+          fieldNameParts.add(name);
           if (field.needsInterceptedGetter) {
             emitter.interceptorEmitter.interceptorInvocationNames.add(
                 namer.getterForElement(fieldElement));
@@ -275,7 +276,7 @@ class ClassEmitter extends CodeEmitterHelper {
 
   void emitNativeInfo(Class cls, ClassBuilder builder) {
     if (cls.nativeInfo != null) {
-      builder.addProperty(namer.nativeSpecProperty, js.string(cls.nativeInfo));
+      builder.addPropertyByName(namer.nativeSpecProperty, cls.nativeInfo);
     }
   }
 
@@ -284,11 +285,11 @@ class ClassEmitter extends CodeEmitterHelper {
                                           ClassBuilder enclosingBuilder,
                                           Fragment fragment) {
     ClassElement classElement = cls.element;
-    String className = cls.name;
+    jsAst.Name className = cls.name;
 
     var metadata = task.metadataCollector.buildMetadataFunction(classElement);
     if (metadata != null) {
-      classBuilder.addProperty("@", metadata);
+      classBuilder.addPropertyByName("@", metadata);
     }
 
     if (backend.isAccessibleByReflection(classElement)) {
@@ -300,13 +301,14 @@ class ClassEmitter extends CodeEmitterHelper {
       bool hasSuper = superclass != null;
       if ((!typeVariableProperties.isEmpty && !hasSuper) ||
           (hasSuper && !equalElements(superclass.typeVariables, typeVars))) {
-        classBuilder.addProperty('<>',
+        classBuilder.addPropertyByName('<>',
             new jsAst.ArrayInitializer(typeVariableProperties.toList()));
       }
     }
 
     List<jsAst.Property> statics = new List<jsAst.Property>();
-    ClassBuilder staticsBuilder = new ClassBuilder(classElement, namer);
+    ClassBuilder staticsBuilder =
+        new ClassBuilder.forStatics(classElement, namer);
     if (emitFields(cls, staticsBuilder, emitStatics: true)) {
       jsAst.ObjectInitializer initializer =
         staticsBuilder.toObjectInitializer();
@@ -325,7 +327,8 @@ class ClassEmitter extends CodeEmitterHelper {
     }
 
     if (!statics.isEmpty) {
-      classBuilder.addProperty('static', new jsAst.ObjectInitializer(statics));
+      classBuilder.addPropertyByName('static',
+                                     new jsAst.ObjectInitializer(statics));
     }
 
     // TODO(ahe): This method (generateClass) should return a jsAst.Expression.
@@ -337,7 +340,8 @@ class ClassEmitter extends CodeEmitterHelper {
     String reflectionName = emitter.getReflectionName(classElement, className);
     if (reflectionName != null) {
       if (!backend.isAccessibleByReflection(classElement)) {
-        enclosingBuilder.addProperty("+$reflectionName", js.number(0));
+        // TODO(herhut): Fix use of reflection name here.
+        enclosingBuilder.addPropertyByName("+$reflectionName", js.number(0));
       } else {
         List<jsAst.Expression> types = <jsAst.Expression>[];
         if (classElement.supertype != null) {
@@ -346,7 +350,8 @@ class ClassEmitter extends CodeEmitterHelper {
         for (DartType interface in classElement.interfaces) {
           types.add(task.metadataCollector.reifyType(interface));
         }
-        enclosingBuilder.addProperty("+$reflectionName",
+        // TODO(herhut): Fix use of reflection name here.
+        enclosingBuilder.addPropertyByName("+$reflectionName",
             new jsAst.ArrayInitializer(types));
       }
     }
@@ -410,8 +415,8 @@ class ClassEmitter extends CodeEmitterHelper {
       if ((isInstantiated && !holder.isNative)
           || needsGetter
           || needsSetter) {
-        String accessorName = namer.fieldAccessorName(field);
-        String fieldName = namer.fieldPropertyName(field);
+        jsAst.Name accessorName = namer.fieldAccessorName(field);
+        jsAst.Name fieldName = namer.fieldPropertyName(field);
         bool needsCheckedSetter = false;
         if (compiler.enableTypeAssertions
             && needsSetter
@@ -450,13 +455,13 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void recordMangledField(Element member,
-                          String accessorName,
+                          jsAst.Name accessorName,
                           String memberName) {
     if (!backend.shouldRetainGetter(member)) return;
     String previousName;
     if (member.isInstanceMember) {
       previousName = emitter.mangledFieldNames.putIfAbsent(
-          '${namer.getterPrefix}$accessorName',
+          namer.deriveGetterName(accessorName),
           () => memberName);
     } else {
       previousName = emitter.mangledGlobalFieldNames.putIfAbsent(
@@ -501,26 +506,27 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void generateCheckedSetter(Element member,
-                             String fieldName,
-                             String accessorName,
+                             jsAst.Name fieldName,
+                             jsAst.Name accessorName,
                              ClassBuilder builder) {
     jsAst.Expression code = backend.generatedCode[member];
     assert(code != null);
-    String setterName = namer.deriveSetterName(accessorName);
+    jsAst.Name setterName = namer.deriveSetterName(accessorName);
     compiler.dumpInfoTask.registerElementAst(member,
         builder.addProperty(setterName, code));
     generateReflectionDataForFieldGetterOrSetter(
         member, setterName, builder, isGetter: false);
   }
 
-  void emitGetterForCSP(Element member, String fieldName, String accessorName,
+  void emitGetterForCSP(Element member, jsAst.Name fieldName,
+                        jsAst.Name accessorName,
                         ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateGetter(member, fieldName);
 
-    String getterName = namer.deriveGetterName(accessorName);
+    jsAst.Name getterName = namer.deriveGetterName(accessorName);
     ClassElement cls = member.enclosingClass;
-    String className = namer.className(cls);
+    jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(member);
     emitter.cspPrecompiledFunctionFor(outputUnit).add(
@@ -532,14 +538,15 @@ class ClassEmitter extends CodeEmitterHelper {
     }
   }
 
-  void emitSetterForCSP(Element member, String fieldName, String accessorName,
+  void emitSetterForCSP(Element member, jsAst.Name fieldName,
+                        jsAst.Name accessorName,
                         ClassBuilder builder) {
     jsAst.Expression function =
         _stubGenerator.generateSetter(member, fieldName);
 
-    String setterName = namer.deriveSetterName(accessorName);
+    jsAst.Name setterName = namer.deriveSetterName(accessorName);
     ClassElement cls = member.enclosingClass;
-    String className = namer.className(cls);
+    jsAst.Name className = namer.className(cls);
     OutputUnit outputUnit =
         compiler.deferredLoadTask.outputUnitForElement(member);
     emitter.cspPrecompiledFunctionFor(outputUnit).add(
@@ -552,7 +559,7 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void generateReflectionDataForFieldGetterOrSetter(Element member,
-                                                    String name,
+                                                    jsAst.Name name,
                                                     ClassBuilder builder,
                                                     {bool isGetter}) {
     Selector selector = isGetter
@@ -562,7 +569,7 @@ class ClassEmitter extends CodeEmitterHelper {
     if (reflectionName != null) {
       var reflectable =
           js(backend.isAccessibleByReflection(member) ? '1' : '0');
-      builder.addProperty('+$reflectionName', reflectable);
+      builder.addPropertyByName('+$reflectionName', reflectable);
     }
   }
 }

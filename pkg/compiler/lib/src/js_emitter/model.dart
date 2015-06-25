@@ -4,7 +4,7 @@
 
 library dart2js.new_js_emitter.model;
 
-import '../js/js.dart' as js show Expression, Statement;
+import '../js/js.dart' as js show Expression, Statement, Name, Literal;
 import '../constants/values.dart' show ConstantValue;
 
 import '../deferred_load.dart' show OutputUnit;
@@ -165,7 +165,7 @@ class DeferredFragment extends Fragment {
 }
 
 class Constant {
-  final String name;
+  final js.Name name;
   final Holder holder;
   final ConstantValue value;
 
@@ -196,7 +196,7 @@ class StaticField {
   /// Uses indicate missing information in the model.
   final Element element;
 
-  final String name;
+  js.Name name;
   // TODO(floitsch): the holder for static fields is the isolate object. We
   // could remove this field and use the isolate object directly.
   final Holder holder;
@@ -214,7 +214,7 @@ class Class implements FieldContainer {
   /// Uses indicate missing information in the model.
   final Element element;
 
-  final String name;
+  final js.Name name;
   final Holder holder;
   Class _superclass;
   final List<Method> methods;
@@ -242,7 +242,7 @@ class Class implements FieldContainer {
   bool isEager = false;
 
   /// Data that must be emitted with the class for native interop.
-  String nativeInfo;
+  js.Literal nativeInfo;
 
   Class(this.element, this.name, this.holder,
         this.methods,
@@ -268,8 +268,9 @@ class Class implements FieldContainer {
     _superclass = superclass;
   }
 
-  String get superclassName
-      => (superclass == null) ? "" : superclass.name;
+  js.Name get superclassName
+      => superclass == null ? null : superclass.name;
+
   int get superclassHolderIndex
       => (superclass == null) ? 0 : superclass.holder.index;
 }
@@ -277,7 +278,7 @@ class Class implements FieldContainer {
 class MixinApplication extends Class {
   Class _mixinClass;
 
-  MixinApplication(Element element, String name, Holder holder,
+  MixinApplication(Element element, js.Name name, Holder holder,
                    List<Field> instanceFields,
                    List<Field> staticFieldsForReflection,
                    List<StubMethod> callStubs,
@@ -316,8 +317,8 @@ class Field {
   /// Uses indicate missing information in the model.
   final Element element;
 
-  final String name;
-  final String accessorName;
+  final js.Name name;
+  final js.Name accessorName;
 
   /// 00: Does not need any getter.
   /// 01:  function() { return this.field; }
@@ -349,7 +350,7 @@ abstract class Method {
   /// The element should only be used during the transition to the new model.
   /// Uses indicate missing information in the model.
   final Element element;
-  final String name;
+  final js.Name name;
   final js.Expression code;
 
   Method(this.element, this.name, this.code);
@@ -358,7 +359,7 @@ abstract class Method {
 /// A method that corresponds to a method in the original Dart program.
 class DartMethod extends Method {
   final bool needsTearOff;
-  final String tearOffName;
+  final js.Name tearOffName;
   final List<ParameterStubMethod> parameterStubs;
   final bool canBeApplied;
   final bool canBeReflected;
@@ -378,9 +379,9 @@ class DartMethod extends Method {
   // If this method can be torn off, contains the name of the corresponding
   // call method. For example, for the member `foo$1$name` it would be
   // `call$1$name` (in unminified mode).
-  final String callName;
+  final js.Name callName;
 
-  DartMethod(Element element, String name, js.Expression code,
+  DartMethod(Element element, js.Name name, js.Expression code,
              this.parameterStubs, this.callName,
              {this.needsTearOff, this.tearOffName, this.canBeApplied,
               this.canBeReflected, this.requiredParameterCount,
@@ -401,15 +402,15 @@ class InstanceMethod extends DartMethod {
   /// a method via `super`. If [aliasName] is non-null, the emitter has to
   /// ensure that this method is registered on the prototype under both [name]
   /// and [aliasName].
-  final String aliasName;
+  final js.Name aliasName;
   final bool isClosure;
 
 
-  InstanceMethod(Element element, String name, js.Expression code,
+  InstanceMethod(Element element, js.Name name, js.Expression code,
                  List<ParameterStubMethod> parameterStubs,
-                 String callName,
+                 js.Name callName,
                  {bool needsTearOff,
-                  String tearOffName,
+                  js.Name tearOffName,
                   this.aliasName,
                   bool canBeApplied,
                   bool canBeReflected,
@@ -433,7 +434,7 @@ class InstanceMethod extends DartMethod {
 /// to a method in the original Dart program. Examples are getter and setter
 /// stubs and stubs to dispatch calls to methods with optional parameters.
 class StubMethod extends Method {
-  StubMethod(String name, js.Expression code,
+  StubMethod(js.Name name, js.Expression code,
              {Element element})
       : super(element, name, code);
 }
@@ -453,9 +454,9 @@ class ParameterStubMethod extends StubMethod {
   /// name when it is used this way.
   ///
   /// If a stub's member can not be torn off, the [callName] is `null`.
-  String callName;
+  js.Name callName;
 
-  ParameterStubMethod(String name, this.callName, js.Expression code)
+  ParameterStubMethod(js.Name name, this.callName, js.Expression code)
       : super(name, code);
 }
 
@@ -466,11 +467,12 @@ abstract class StaticMethod implements Method {
 class StaticDartMethod extends DartMethod implements StaticMethod {
   final Holder holder;
 
-  StaticDartMethod(Element element, String name, this.holder,
+  StaticDartMethod(Element element, js.Name name, this.holder,
                    js.Expression code, List<ParameterStubMethod> parameterStubs,
-                   String callName,
-                   {bool needsTearOff, String tearOffName, bool canBeApplied,
-                    bool canBeReflected, int requiredParameterCount,
+                   js.Name callName,
+                   {bool needsTearOff, js.Name tearOffName,
+                    bool canBeApplied, bool canBeReflected,
+                    int requiredParameterCount,
                     /* List | Map */ optionalParameterDefaultValues,
                     js.Expression functionType})
       : super(element, name, code, parameterStubs, callName,
@@ -485,6 +487,6 @@ class StaticDartMethod extends DartMethod implements StaticMethod {
 
 class StaticStubMethod extends StubMethod implements StaticMethod {
   Holder holder;
-  StaticStubMethod(String name, this.holder, js.Expression code)
+  StaticStubMethod(js.Name name, this.holder, js.Expression code)
       : super(name, code);
 }
