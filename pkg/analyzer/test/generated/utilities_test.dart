@@ -1943,6 +1943,12 @@ class Getter_NodeReplacerTest_test_assignmentExpression_2
   Expression get(AssignmentExpression node) => node.leftHandSide;
 }
 
+class Getter_NodeReplacerTest_test_awaitExpression
+    implements NodeReplacerTest_Getter {
+  @override
+  Expression get(AwaitExpression node) => node.expression;
+}
+
 class Getter_NodeReplacerTest_test_binaryExpression
     implements NodeReplacerTest_Getter {
   @override
@@ -3282,6 +3288,11 @@ class NodeReplacerTest extends EngineTestCase {
         node, new Getter_NodeReplacerTest_test_assignmentExpression_2());
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_assignmentExpression());
+  }
+
+  void test_awaitExpression() {
+    var node = AstFactory.awaitExpression(AstFactory.identifier3("A"));
+    _assertReplace(node, new Getter_NodeReplacerTest_test_awaitExpression());
   }
 
   void test_binaryExpression() {
