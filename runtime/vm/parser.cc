@@ -9599,14 +9599,17 @@ AstNode* Parser::ParseYieldStatement() {
   bool is_yield_each = false;
   const intptr_t yield_pos = TokenPos();
   ConsumeToken();  // yield reserved word.
-  ASSERT(innermost_function().IsGenerator() ||
-         innermost_function().IsSyncGenClosure() ||
-         innermost_function().IsAsyncGenerator() ||
-         innermost_function().IsAsyncGenClosure());
   if (CurrentToken() == Token::kMUL) {
     is_yield_each = true;
     ConsumeToken();
   }
+  if (!innermost_function().IsGenerator() &&
+      !innermost_function().IsGeneratorClosure()) {
+    ReportError(yield_pos,
+                "yield%s statement only allowed in generator functions",
+                is_yield_each ? "*" : "");
+  }
+
   AstNode* expr = ParseAwaitableExpr(kAllowConst, kConsumeCascades, NULL);
 
   LetNode* yield = new(Z) LetNode(yield_pos);
