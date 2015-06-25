@@ -9978,8 +9978,6 @@ LibTest/core/Invocation/isSetter_A01_t01: Crash # Class 'PartialMethodElement' h
 LibTest/core/Invocation/isSetter_A01_t02 : Crash # Internal Error: No default constructor available.
 LibTest/core/Invocation/memberName_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/positionalArguments_A01_t01 : Crash # Internal Error: No default constructor available.
-LibTest/core/List/List_A02_t01: RuntimeError # Please triage this failure.
-LibTest/core/List/List_A03_t01: RuntimeError # Please triage this failure.
 LibTest/core/List/List_class_A01_t02: Crash # Stack Overflow
 LibTest/core/Match/end_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
 LibTest/core/Match/groupCount_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined

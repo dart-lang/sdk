@@ -731,7 +731,6 @@ mirrors/typedef_reflected_type_test/none: Crash # Internal Error: No default con
 mirrors/typedef_test: Crash # Internal Error: No default constructor available.
 mirrors/unnamed_library_test: Crash # Internal Error: No default constructor available.
 mirrors/variable_is_const_test/none: Crash # Internal Error: No default constructor available.
-typed_data/int32x4_test: RuntimeError # Please triage this failure.
 typed_data/typed_data_list_test: RuntimeError # Please triage this failure.
 mirrors/invocation_cache_test : Crash # Internal Error: No default constructor available.
 mirrors/reflect_two_classes_test : Crash # Internal Error: No default constructor available.

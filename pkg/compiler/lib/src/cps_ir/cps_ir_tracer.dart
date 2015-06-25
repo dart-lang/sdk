@@ -371,8 +371,8 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     String arguments = node.arguments.map(formatReference).join(', ');
     String continuation = node.continuation == null ? ''
         : ' ${formatReference(node.continuation)}';
-    printStmt(id, "ForeignCode ${node.type} ${node.codeTemplate} $arguments"
-        "$continuation");
+    printStmt(id, "ForeignCode ${node.type} ${node.codeTemplate.source} "
+        "$arguments $continuation");
   }
 }
 

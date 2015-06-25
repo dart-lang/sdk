@@ -709,8 +709,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  visitForeignStatement(tree_ir.ForeignStatement node) {
-    return handleForeignCode(node);
+  void visitForeignStatement(tree_ir.ForeignStatement node) {
+    accumulator.add(handleForeignCode(node));
   }
 
   @override

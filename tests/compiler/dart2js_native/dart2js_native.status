@@ -26,7 +26,6 @@ event_loop_test: RuntimeError # receiver.get$_collection$_nums is not a function
 internal_library_test: RuntimeError # receiver.get$_collection$_nums is not a function
 mirror_intercepted_field_test: Crash # Internal Error: No default constructor available.
 native_closure_identity_frog_test: RuntimeError # invoke is not a function
-native_exception2_test: RuntimeError # Please triage this failure.
 native_exception_test: RuntimeError # J.getInterceptor(...).toString$0 is not a function
 native_method_inlining_test: RuntimeError # Please triage this failure.
 native_mirror_test: Crash # Internal Error: No default constructor available.
