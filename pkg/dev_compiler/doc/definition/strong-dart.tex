@@ -1,0 +1,157 @@
+\documentclass[fleqn]{article}
+\usepackage{proof, amsmath}
+
+% types
+\newcommand{\Arrow}[2]{#1 \rightarrow #2}
+\newcommand{\Bool}{\mathbf{bool}}
+\newcommand{\Bottom}{\mathbf{bottom}}
+\newcommand{\Dynamic}{\mathbf{dynamic}}
+\newcommand{\Null}{\mathbf{Null}}
+\newcommand{\Num}{\mathbf{num}}
+\newcommand{\Object}{\mathbf{Object}}
+\newcommand{\TApp}[2]{#1\mathrm{<}#2\mathrm{>}}
+\newcommand{\Type}{\mathbf{Type}}
+
+% expressions
+\newcommand{\eapp}[2]{#1(#2)}
+\newcommand{\eas}[2]{#1\ \mathbf{as}\ #2}
+\newcommand{\eassign}[2]{#1 = #2}
+\newcommand{\eff}{\mathrm{ff}}
+\newcommand{\eis}[2]{#1\ \mathbf{is}\ #2}
+\newcommand{\elambda}[2]{(#1) \Rightarrow #2}
+\newcommand{\enew}[3]{\mathbf{new}\,\TApp{#1}{#2}(#3)}
+\newcommand{\enull}{\mathbf{null}}
+\newcommand{\eprimapp}[2]{\eapp{#1}{#2}}
+\newcommand{\eproj}[2]{#1.#2}
+\newcommand{\esend}[3]{\eapp{\eproj{#1}{#2}}{#3}}
+\newcommand{\esuper}{\mathbf{super}}
+\newcommand{\ethis}{\mathbf{this}}
+\newcommand{\ett}{\mathrm{tt}}
+
+% keywords
+\newcommand{\kwclass}{\mathbf{class}}
+\newcommand{\kwextends}{\mathbf{extends}}
+\newcommand{\kwelse}{\mathbf{else}}
+\newcommand{\kwif}{\mathbf{if}}
+\newcommand{\kwin}{\mathbf{in}}
+\newcommand{\kwlet}{\mathbf{let}}
+\newcommand{\kwreturn}{\mathbf{return}}
+\newcommand{\kwthen}{\mathbf{then}}
+\newcommand{\kwvar}{\mathbf{var}}
+
+% declarations
+\newcommand{\dclass}[3]{\kwclass\ #1\ \kwextends\ #2\ \{#3\}}
+\newcommand{\dfun}[4]{#1\ #2(#3)\ #4}
+\newcommand{\dvar}[2]{\kwvar\ #1\ =\ #2}
+
+% statements
+\newcommand{\sifthenelse}[3]{\kwif\ (#1)\ \kwthen\ #2\ \kwelse\ #3}
+\newcommand{\sreturn}[1]{\kwreturn\ #1}
+
+% programs
+\newcommand{\program}[2]{\kwlet\ #1\ \kwin\ #2}
+
+% relational operators
+\newcommand{\sub}{\mathop{<:}}
+
+% utilities
+\newcommand{\many}[1]{\overrightarrow{#1}}
+\newcommand{\alt}{\ \mathop{|}\ }
+
+% inference rules
+\newcommand{\axiom}[1]{\infer{#1}{}}
+\newcommand{\infrule}[2]{\infer{#2}{#1}}
+
+% relations
+\newcommand{\extends}[4][:]{#2[#3\ #1\ #4]}
+\newcommand{\subst}[2]{[#1/#2]}
+\newcommand{\subtypeOf}[3]{#1 \vdash\ #2 \sub\ #3}
+
+\title{Dart strong mode definition}
+
+\begin{document}
+
+\section*{Syntax}
+
+
+\[
+\begin{array}{lcl}
+\text{Type identifiers} & ::= &  C, G, T, S, \ldots \\
+%
+\text{Types $\tau, \sigma$} & ::= &
+ T \alt \Dynamic \alt \Object \alt \Null \alt \Type \alt \Num \alt \Bool \\ &&
+   \alt \Arrow{\many{\tau}}{\sigma} \alt \TApp{C}{\many{\tau}} \\
+%
+\text{Term identifiers} & ::= & a, b, x, y, m, n, \ldots \\
+%
+\text{Primops ($\phi$)} & ::= & \mathrm{+}, \mathrm{-} \ldots \mathrm{||} \ldots \\
+%
+\text{lhs ($l$)} & ::= & x \alt \eproj{e}{m} \\
+%
+\text{Expressions $e$} & ::= & 
+ x \alt i \alt \ett \alt \eff \alt \enull \alt \ethis \alt \esuper
+   \alt \elambda{\many{x:\tau}}{e} \alt \enew{C}{\many{\tau}}{\many{e}} \\&&
+   \alt \eprimapp{\phi}{\many{e}} \alt \eapp{e}{\many{e}} 
+   \alt \eproj{e}{m} \alt \eassign{l}{e} \\&&
+   \alt \eas{e}{\tau} \alt \eis{e}{\tau} \\
+%
+\text{Declaration ($\mathit{vd}$)} & ::= &
+   \dvar{x}{e} \alt \dvar{x:\tau}{e} \alt \dfun{\tau}{f}{\many{x:\tau}}{b} \\
+%
+\text{Statements ($s$)} & ::= & \mathit{vd} \alt e \alt \sifthenelse{e}{b_1}{b_2} 
+   \alt \sreturn{e} \alt s;s \\
+%
+\text{Blocks ($b$)} & ::= & \{s;\} \\
+%
+\text{Class decl ($\mathit{cd}$)} & ::= & \dclass{\TApp{C}{\many{T}}}{\TApp{G}{\many{S}}}{\many{\mathit{vd}}} \\
+%
+\text{Toplevel decl ($\mathit{td}$)} & ::= & \mathit{vd} \alt \mathit{cd}\\
+%
+\text{Program ($P$)} & ::= & \program{\many{\mathit{td}}}{b}
+\end{array}
+\]
+
+
+
+\[
+\begin{array}{lcl}
+\text{Class signature ($\mathit{Sig}$)} & ::= &  \dclass{\TApp{C}{\many{T}}}{\TApp{G}{\many{S}}}{\many{x:\tau}} \\
+\text{Type context ($\Delta$)} & ::= &  \epsilon \alt \Delta, X \sub \tau \\
+\text{Class hierarchy ($\Phi$)} & ::= &  \epsilon \alt \Phi, C\ :\ \mathit{Sig}
+\end{array}
+\]
+
+
+\section*{Subtyping}
+\[
+\begin{array}{ccc}
+\axiom{\subtypeOf{\Phi, \Delta}{\tau}{\Dynamic}} &
+\axiom{\subtypeOf{\Phi, \Delta}{\tau}{\Object}} \\\\
+%
+\axiom{\subtypeOf{\Phi, \Delta}{\Bottom}{\tau}} &
+\axiom{\subtypeOf{\Phi, \Delta}{\tau}{\tau}} \\\\
+%
+\infrule{\Delta = \extends[\sub]{\Delta'}{S}{\sigma} & 
+         \subtypeOf{\Phi, \Delta}{\sigma}{\tau}}
+        {\subtypeOf{\Phi, \Delta}{S}{\tau}} \\\\
+%
+\infrule{\subtypeOf{\Phi, \Delta}{\sigma_i}{\tau_i} & i \in 0, \ldots, n &
+         \subtypeOf{\Phi, \Delta}{\tau_r}{\sigma_r}}
+        {\subtypeOf{\Phi, \Delta}
+                   {\Arrow{\tau_0, \ldots, \tau_n}{\tau_r}}
+                   {\Arrow{\sigma_0, \ldots, \sigma_n}{\sigma_r}}} \\\\
+%
+\infrule{\subtypeOf{\Phi, \Delta}{\tau_i}{\sigma_i} & i \in 0, \ldots, n}
+        {\subtypeOf{\Phi, \Delta}
+          {\TApp{C}{\tau_0, \ldots, \tau_n}}
+          {\TApp{C}{\sigma_0, \ldots, \sigma_n}}}\\\\
+%
+\infrule{\Phi = \extends{\Phi'}{C}{\dclass{\TApp{C}{T_0,\ldots,T_n}}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}{\ldots}} \\
+         \subtypeOf{\Phi, \Delta}{\subst{\tau_0, \ldots, \tau_n}{T_0, \ldots, T_n}{\TApp{C'}{\upsilon_0, \ldots, \upsilon_k}}}{\TApp{G}{\sigma_0, \ldots, \sigma_m}}}
+        {\subtypeOf{\Phi, \Delta}
+          {\TApp{C}{\tau_0, \ldots, \tau_n}}
+          {\TApp{G}{\sigma_0, \ldots, \sigma_m}}}
+\end{array}
+\]
+
+\end{document}

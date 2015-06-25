@@ -1,0 +1,259 @@
+%	proof.sty	(Proof Figure Macros)
+%
+% 	version 3.1 (for both LaTeX 2.09 and LaTeX 2e)
+%	Nov 24, 2005
+% 	Copyright (C) 1990 -- 2005, Makoto Tatsuta (tatsuta@nii.ac.jp)
+% 
+% This program is free software; you can redistribute it or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation; either versions 1, or (at your option)
+% any later version.
+% 
+% This program is distributed in the hope that it will be useful
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+%	Usage:
+%		In \documentstyle, specify an optional style `proof', say,
+%			\documentstyle[proof]{article}.
+%
+%	The following macros are available:
+%
+%	In all the following macros, all the arguments such as
+%	<Lowers> and <Uppers> are processed in math mode.
+%
+%	\infer<Lower><Uppers>
+%		draws an inference.
+%
+%		Use & in <Uppers> to delimit upper formulae.
+%		<Uppers> consists more than 0 formulae.
+%
+%		\infer returns \hbox{ ... } or \vbox{ ... } and
+%		sets \@LeftOffset and \@RightOffset globally.
+%
+%	\infer[<Label>]<Lower><Uppers>
+%		draws an inference labeled with <Label>.
+%
+%	\infer*<Lower><Uppers>
+%		draws a many step deduction.
+%
+%	\infer*[<Label>]<Lower><Uppers>
+%		draws a many step deduction labeled with <Label>.
+%
+%	\infer=<Lower><Uppers>
+%		draws a double-ruled deduction.
+%
+%	\infer=[<Label>]<Lower><Uppers>
+%		draws a double-ruled deduction labeled with <Label>.
+%
+%	\deduce<Lower><Uppers>
+%		draws an inference without a rule.
+%
+%	\deduce[<Proof>]<Lower><Uppers>
+%		draws a many step deduction with a proof name.
+%
+%	Example:
+%		If you want to write
+%       	       	    B C
+%		 	   -----
+%		       A     D
+%		      ----------
+%			  E
+%	use
+%		\infer{E}{
+%			A
+%			&
+%			\infer{D}{B & C}
+%		}
+%
+
+%	Style Parameters
+
+\newdimen\inferLineSkip		\inferLineSkip=2pt
+\newdimen\inferLabelSkip	\inferLabelSkip=5pt
+\def\inferTabSkip{\quad}
+
+%	Variables
+
+\newdimen\@LeftOffset	% global
+\newdimen\@RightOffset	% global
+\newdimen\@SavedLeftOffset	% safe from users
+
+\newdimen\UpperWidth
+\newdimen\LowerWidth
+\newdimen\LowerHeight
+\newdimen\UpperLeftOffset
+\newdimen\UpperRightOffset
+\newdimen\UpperCenter
+\newdimen\LowerCenter
+\newdimen\UpperAdjust
+\newdimen\RuleAdjust
+\newdimen\LowerAdjust
+\newdimen\RuleWidth
+\newdimen\HLabelAdjust
+\newdimen\VLabelAdjust
+\newdimen\WidthAdjust
+
+\newbox\@UpperPart
+\newbox\@LowerPart
+\newbox\@LabelPart
+\newbox\ResultBox
+
+%	Flags
+
+\newif\if@inferRule	% whether \@infer draws a rule.
+\newif\if@DoubleRule	% whether \@infer draws doulbe rules.
+\newif\if@ReturnLeftOffset	% whether \@infer returns \@LeftOffset.
+
+%	Special Fonts
+
+\def\DeduceSym{\vtop{\baselineskip4\p@ \lineskiplimit\z@
+    \vbox{\hbox{.}\hbox{.}\hbox{.}}\hbox{.}}}
+
+%	Macros
+
+% Renaming @ifnextchar and @ifnch of LaTeX2e to @IFnextchar and @IFnch.
+
+\def\@IFnextchar#1#2#3{%
+  \let\reserved@e=#1\def\reserved@a{#2}\def\reserved@b{#3}\futurelet
+    \reserved@c\@IFnch}
+\def\@IFnch{\ifx \reserved@c \@sptoken \let\reserved@d\@xifnch
+      \else \ifx \reserved@c \reserved@e\let\reserved@d\reserved@a\else
+          \let\reserved@d\reserved@b\fi
+      \fi \reserved@d}
+
+\def\@ifEmpty#1#2#3{\def\@tempa{\@empty}\def\@tempb{#1}\relax
+	\ifx \@tempa \@tempb #2\else #3\fi }
+
+\def\infer{\@IFnextchar *{\@inferSteps}{\relax
+	\@IFnextchar ={\@inferDoubleRule}{\@inferOneStep}}}
+
+\def\@inferOneStep{\@inferRuletrue \@DoubleRulefalse
+	\@IFnextchar [{\@infer}{\@infer[\@empty]}}
+
+\def\@inferDoubleRule={\@inferRuletrue \@DoubleRuletrue
+	\@IFnextchar [{\@infer}{\@infer[\@empty]}}
+
+\def\@inferSteps*{\@IFnextchar [{\@@inferSteps}{\@@inferSteps[\@empty]}}
+
+\def\@@inferSteps[#1]{\@deduce{#1}[\DeduceSym]}
+
+\def\deduce{\@IFnextchar [{\@deduce{\@empty}}
+	{\@inferRulefalse \@infer[\@empty]}}
+
+%	\@deduce<Proof Label>[<Proof>]<Lower><Uppers>
+
+\def\@deduce#1[#2]#3#4{\@inferRulefalse
+	\@infer[\@empty]{#3}{\@infer[{#1}]{#2}{#4}}}
+
+%	\@infer[<Label>]<Lower><Uppers>
+%		If \@inferRuletrue, it draws a rule and <Label> is right to
+%		a rule. In this case, if \@DoubleRuletrue, it draws
+%		double rules.
+%
+%		Otherwise, draws no rule and <Label> is right to <Lower>.
+
+\def\@infer[#1]#2#3{\relax
+% Get parameters
+	\if@ReturnLeftOffset \else \@SavedLeftOffset=\@LeftOffset \fi
+	\setbox\@LabelPart=\hbox{$#1$}\relax
+	\setbox\@LowerPart=\hbox{$#2$}\relax
+%
+	\global\@LeftOffset=0pt
+	\setbox\@UpperPart=\vbox{\tabskip=0pt \halign{\relax
+		\global\@RightOffset=0pt \@ReturnLeftOffsettrue $##$&&
+		\inferTabSkip
+		\global\@RightOffset=0pt \@ReturnLeftOffsetfalse $##$\cr
+		#3\cr}}\relax
+	\UpperLeftOffset=\@LeftOffset
+	\UpperRightOffset=\@RightOffset
+% Calculate Adjustments
+	\LowerWidth=\wd\@LowerPart
+	\LowerHeight=\ht\@LowerPart
+	\LowerCenter=0.5\LowerWidth
+%
+	\UpperWidth=\wd\@UpperPart \advance\UpperWidth by -\UpperLeftOffset
+	\advance\UpperWidth by -\UpperRightOffset
+	\UpperCenter=\UpperLeftOffset
+	\advance\UpperCenter by 0.5\UpperWidth
+%
+	\ifdim \UpperWidth > \LowerWidth
+		% \UpperCenter > \LowerCenter
+	\UpperAdjust=0pt
+	\RuleAdjust=\UpperLeftOffset
+	\LowerAdjust=\UpperCenter \advance\LowerAdjust by -\LowerCenter
+	\RuleWidth=\UpperWidth
+	\global\@LeftOffset=\LowerAdjust
+%
+	\else	% \UpperWidth <= \LowerWidth
+	\ifdim \UpperCenter > \LowerCenter
+%
+	\UpperAdjust=0pt
+	\RuleAdjust=\UpperCenter \advance\RuleAdjust by -\LowerCenter
+	\LowerAdjust=\RuleAdjust
+	\RuleWidth=\LowerWidth
+	\global\@LeftOffset=\LowerAdjust
+%
+	\else	% \UpperWidth <= \LowerWidth
+		% \UpperCenter <= \LowerCenter
+%
+	\UpperAdjust=\LowerCenter \advance\UpperAdjust by -\UpperCenter
+	\RuleAdjust=0pt
+	\LowerAdjust=0pt
+	\RuleWidth=\LowerWidth
+	\global\@LeftOffset=0pt
+%
+	\fi\fi
+% Make a box
+	\if@inferRule
+%
+	\setbox\ResultBox=\vbox{
+		\moveright \UpperAdjust \box\@UpperPart
+		\nointerlineskip \kern\inferLineSkip
+		\if@DoubleRule
+		\moveright \RuleAdjust \vbox{\hrule width\RuleWidth
+			\kern 1pt\hrule width\RuleWidth}\relax
+		\else
+		\moveright \RuleAdjust \vbox{\hrule width\RuleWidth}\relax
+		\fi
+		\nointerlineskip \kern\inferLineSkip
+		\moveright \LowerAdjust \box\@LowerPart }\relax
+%
+	\@ifEmpty{#1}{}{\relax
+%
+	\HLabelAdjust=\wd\ResultBox	\advance\HLabelAdjust by -\RuleAdjust
+	\advance\HLabelAdjust by -\RuleWidth
+	\WidthAdjust=\HLabelAdjust
+	\advance\WidthAdjust by -\inferLabelSkip
+	\advance\WidthAdjust by -\wd\@LabelPart
+	\ifdim \WidthAdjust < 0pt \WidthAdjust=0pt \fi
+%
+	\VLabelAdjust=\dp\@LabelPart
+	\advance\VLabelAdjust by -\ht\@LabelPart
+	\VLabelAdjust=0.5\VLabelAdjust	\advance\VLabelAdjust by \LowerHeight
+	\advance\VLabelAdjust by \inferLineSkip
+%
+	\setbox\ResultBox=\hbox{\box\ResultBox
+		\kern -\HLabelAdjust \kern\inferLabelSkip
+		\raise\VLabelAdjust \box\@LabelPart \kern\WidthAdjust}\relax
+%
+	}\relax % end @ifEmpty
+%
+	\else % \@inferRulefalse
+%
+	\setbox\ResultBox=\vbox{
+		\moveright \UpperAdjust \box\@UpperPart
+		\nointerlineskip \kern\inferLineSkip
+		\moveright \LowerAdjust \hbox{\unhbox\@LowerPart
+			\@ifEmpty{#1}{}{\relax
+			\kern\inferLabelSkip \unhbox\@LabelPart}}}\relax
+	\fi
+%
+	\global\@RightOffset=\wd\ResultBox
+	\global\advance\@RightOffset by -\@LeftOffset
+	\global\advance\@RightOffset by -\LowerWidth
+	\if@ReturnLeftOffset \else \global\@LeftOffset=\@SavedLeftOffset \fi
+%
+	\box\ResultBox
+}
