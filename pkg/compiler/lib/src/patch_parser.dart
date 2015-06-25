@@ -125,11 +125,12 @@ import 'dart2jslib.dart'
          Script;
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
-    show LibraryElementX,
-         MetadataAnnotationX,
+    show BaseFunctionElementX,
          ClassElementX,
-         BaseFunctionElementX;
-import 'helpers/helpers.dart';  // Included for debug helpers.
+         GetterElementX,
+         LibraryElementX,
+         MetadataAnnotationX,
+         SetterElementX;
 import 'library_loader.dart' show LibraryLoader;
 import 'scanner/scannerlib.dart';  // Scanner, Parsers, Listeners
 import 'util/util.dart';
@@ -484,7 +485,8 @@ void tryPatchGetter(DiagnosticListener listener,
         MessageKind.PATCH_POINT_TO_GETTER, {'getterName': patch.name});
     return;
   }
-  patchFunction(listener, originField.getter, patch);
+  GetterElementX getter = originField.getter;
+  patchFunction(listener, getter, patch);
 }
 
 void tryPatchSetter(DiagnosticListener listener,
@@ -507,7 +509,8 @@ void tryPatchSetter(DiagnosticListener listener,
         MessageKind.PATCH_POINT_TO_SETTER, {'setterName': patch.name});
     return;
   }
-  patchFunction(listener, originField.setter, patch);
+  SetterElementX setter = originField.setter;
+  patchFunction(listener, setter, patch);
 }
 
 void tryPatchConstructor(DiagnosticListener listener,

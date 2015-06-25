@@ -413,6 +413,11 @@ class Object {
     return *zero_array_;
   }
 
+  static const ObjectPool& empty_object_pool() {
+    ASSERT(empty_object_pool_ != NULL);
+    return *empty_object_pool_;
+  }
+
   static const PcDescriptors& empty_descriptors() {
     ASSERT(empty_descriptors_ != NULL);
     return *empty_descriptors_;
@@ -510,6 +515,7 @@ class Object {
   static RawClass* namespace_class() { return namespace_class_; }
   static RawClass* code_class() { return code_class_; }
   static RawClass* instructions_class() { return instructions_class_; }
+  static RawClass* object_pool_class() { return object_pool_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
   static RawClass* stackmap_class() { return stackmap_class_; }
   static RawClass* var_descriptors_class() { return var_descriptors_class_; }
@@ -532,6 +538,7 @@ class Object {
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
   // Initialize the VM isolate.
+  static void InitNull(Isolate* isolate);
   static void InitOnce(Isolate* isolate);
   static void FinalizeVMIsolate(Isolate* isolate);
 
@@ -768,6 +775,7 @@ class Object {
   static RawClass* namespace_class_;  // Class of Namespace vm object.
   static RawClass* code_class_;  // Class of the Code vm object.
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
+  static RawClass* object_pool_class_;  // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;  // Class of PcDescriptors vm object.
   static RawClass* stackmap_class_;  // Class of Stackmap vm object.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
@@ -792,6 +800,7 @@ class Object {
   static TypeArguments* null_type_arguments_;
   static Array* empty_array_;
   static Array* zero_array_;
+  static ObjectPool* empty_object_pool_;
   static PcDescriptors* empty_descriptors_;
   static LocalVarDescriptors* empty_var_descriptors_;
   static ExceptionHandlers* empty_exception_handlers_;
@@ -1354,6 +1363,11 @@ class Class : public Object {
   RawArray* cha_codes() const { return raw_ptr()->cha_codes_; }
   void set_cha_codes(const Array& value) const;
 
+  bool trace_allocation() const {
+    return TraceAllocationBit::decode(raw_ptr()->state_bits_);
+  }
+  void SetTraceAllocation(bool trace_allocation) const;
+
  private:
   enum MemberKind {
     kAny = 0,
@@ -1377,6 +1391,7 @@ class Class : public Object {
     kFieldsMarkedNullableBit = 11,
     kCycleFreeBit = 12,
     kEnumBit = 13,
+    kTraceAllocationBit = 14,
   };
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
@@ -1393,6 +1408,7 @@ class Class : public Object {
       kFieldsMarkedNullableBit, 1> {};  // NOLINT
   class CycleFreeBit : public BitField<bool, kCycleFreeBit, 1> {};
   class EnumBit : public BitField<bool, kEnumBit, 1> {};
+  class TraceAllocationBit : public BitField<bool, kTraceAllocationBit, 1> {};
 
   void set_name(const String& value) const;
   void set_pretty_name(const String& value) const;
@@ -2031,6 +2047,7 @@ class Function : public Object {
   RawString* UserVisibleName() const;
   RawString* QualifiedPrettyName() const;
   RawString* QualifiedUserVisibleName() const;
+  const char* QualifiedUserVisibleNameCString() const;
   virtual RawString* DictionaryName() const { return name(); }
 
   RawString* GetSource() const;
@@ -3419,9 +3436,7 @@ class Library : public Object {
 
   static RawLibrary* New();
 
-  void set_num_imports(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->num_imports_, value);
-  }
+  void set_num_imports(intptr_t value) const;
   bool HasExports() const;
   RawArray* loaded_scripts() const { return raw_ptr()->loaded_scripts_; }
   RawGrowableObjectArray* metadata() const { return raw_ptr()->metadata_; }
@@ -3495,6 +3510,108 @@ class Namespace : public Object {
 };
 
 
+// ObjectPool contains constants, immediates and addresses embedded in code
+// and deoptimization infos. Each entry has an type-info associated with it
+// which is stored in a typed data array (info_array).
+class ObjectPool : public Object {
+ public:
+  enum EntryType {
+    kTaggedObject,
+    kImmediate,
+  };
+
+  struct Entry {
+    Entry() : raw_value_(), type_() { }
+    explicit Entry(const Object* obj) : obj_(obj), type_(kTaggedObject) { }
+    Entry(uword value, EntryType info) : raw_value_(value), type_(info) { }
+    union {
+      const Object* obj_;
+      uword raw_value_;
+    };
+    EntryType type_;
+  };
+
+  intptr_t Length() const {
+    return raw_ptr()->length_;
+  }
+  void SetLength(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->length_, value);
+  }
+
+  RawTypedData* info_array() const {
+    return raw_ptr()->info_array_;
+  }
+
+  void set_info_array(const TypedData& info_array) const;
+
+  static intptr_t length_offset() { return OFFSET_OF(RawObjectPool, length_); }
+  static intptr_t data_offset() {
+    return OFFSET_OF_RETURNED_VALUE(RawObjectPool, data);
+  }
+  static intptr_t element_offset(intptr_t index) {
+    return OFFSET_OF_RETURNED_VALUE(RawObjectPool, data)
+        + kBytesPerElement * index;
+  }
+
+  EntryType InfoAt(intptr_t index) const;
+  void SetInfoAt(intptr_t index, EntryType info) const;
+
+  RawObject* ObjectAt(intptr_t index) const {
+    ASSERT(InfoAt(index) == kTaggedObject);
+    return EntryAddr(index)->raw_obj_;
+  }
+  void SetObjectAt(intptr_t index, const Object& obj) const {
+    ASSERT(InfoAt(index) == kTaggedObject);
+    StorePointer(&EntryAddr(index)->raw_obj_, obj.raw());
+  }
+
+  uword RawValueAt(intptr_t index) const {
+    ASSERT(InfoAt(index) != kTaggedObject);
+    return EntryAddr(index)->raw_value_;
+  }
+  void SetRawValueAt(intptr_t index, uword raw_value) const {
+    ASSERT(InfoAt(index) != kTaggedObject);
+    StoreNonPointer(&EntryAddr(index)->raw_value_, raw_value);
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawObjectPool) ==
+           OFFSET_OF_RETURNED_VALUE(RawObjectPool, data));
+    return 0;
+  }
+
+  static const intptr_t kBytesPerElement = sizeof(RawObjectPool::Entry);
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static intptr_t InstanceSize(intptr_t len) {
+    // Ensure that variable length data is not adding to the object length.
+    ASSERT(sizeof(RawObjectPool) == (sizeof(RawObject) + (2 * kWordSize)));
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawObjectPool) + (len * kBytesPerElement));
+  }
+
+  static RawObjectPool* New(intptr_t len);
+
+  static intptr_t IndexFromOffset(intptr_t offset) {
+    return (offset + kHeapObjectTag - data_offset()) / kBytesPerElement;
+  }
+
+  void DebugPrint() const;
+
+ private:
+  RawObjectPool::Entry const* EntryAddr(intptr_t index) const {
+    ASSERT((index >= 0) && (index < Length()));
+    return &raw_ptr()->data()[index];
+  }
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(ObjectPool, Object);
+  friend class Class;
+  friend class Object;
+  friend class RawObjectPool;
+};
+
+
 class Instructions : public Object {
  public:
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
@@ -3502,7 +3619,7 @@ class Instructions : public Object {
   static intptr_t code_offset() {
     return OFFSET_OF(RawInstructions, code_);
   }
-  RawArray* object_pool() const { return raw_ptr()->object_pool_; }
+  RawObjectPool* object_pool() const { return raw_ptr()->object_pool_; }
   static intptr_t object_pool_offset() {
     return OFFSET_OF(RawInstructions, object_pool_);
   }
@@ -3547,7 +3664,7 @@ class Instructions : public Object {
   void set_code(RawCode* code) const {
     StorePointer(&raw_ptr()->code_, code);
   }
-  void set_object_pool(RawArray* object_pool) const {
+  void set_object_pool(RawObjectPool* object_pool) const {
     StorePointer(&raw_ptr()->object_pool_, object_pool);
   }
 
@@ -3706,6 +3823,8 @@ class PcDescriptors : public Object {
  private:
   static const char* KindAsStr(RawPcDescriptors::Kind kind);
 
+  static RawPcDescriptors* New(intptr_t length);
+
   intptr_t Length() const;
   void SetLength(intptr_t value) const;
   void CopyData(GrowableArray<uint8_t>* data);
@@ -3756,6 +3875,10 @@ class Stackmap : public Object {
   static RawStackmap* New(intptr_t pc_offset,
                           BitmapBuilder* bmap,
                           intptr_t register_bit_count);
+
+  static RawStackmap* New(intptr_t length,
+                          intptr_t register_bit_count,
+                          intptr_t pc_offset);
 
  private:
   void SetLength(intptr_t length) const {
@@ -3808,6 +3931,7 @@ class ExceptionHandlers : public Object {
   }
 
   static RawExceptionHandlers* New(intptr_t num_handlers);
+  static RawExceptionHandlers* New(const Array& handled_types_data);
 
   // We would have a VisitPointers function here to traverse the
   // exception handler table to visit objects if any in the table.
@@ -3899,7 +4023,7 @@ class Code : public Object {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.size();
   }
-  RawArray* ObjectPool() const {
+  RawObjectPool* GetObjectPool() const {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.object_pool();
   }
@@ -4728,7 +4852,7 @@ class LibraryPrefix : public Instance {
   virtual RawString* DictionaryName() const { return name(); }
 
   RawArray* imports() const { return raw_ptr()->imports_; }
-  int32_t num_imports() const { return raw_ptr()->num_imports_; }
+  intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawLibrary* importer() const { return raw_ptr()->importer_; }
 
   RawInstance* LoadError() const;
@@ -6308,6 +6432,8 @@ class ExternalOneByteString : public AllStatic {
   static void SetExternalData(const String& str,
                               ExternalStringData<uint8_t>* data) {
     ASSERT(str.IsExternalOneByteString());
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data->data())));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
@@ -6384,6 +6510,8 @@ class ExternalTwoByteString : public AllStatic {
   static void SetExternalData(const String& str,
                               ExternalStringData<uint16_t>* data) {
     ASSERT(str.IsExternalTwoByteString());
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data->data())));
     str.StoreNonPointer(&raw_ptr(str)->external_data_, data);
   }
 
@@ -6803,7 +6931,6 @@ class TypedData : public Instance {
     return ElementSizeInBytes(cid);
   }
 
-
   TypedDataElementType ElementType() const {
     intptr_t cid = raw()->GetClassId();
     return ElementType(cid);
@@ -7066,6 +7193,8 @@ class ExternalTypedData : public Instance {
   }
 
   void SetData(uint8_t* data) const {
+    ASSERT(!Isolate::Current()->heap()->Contains(
+        reinterpret_cast<uword>(data)));
     StoreNonPointer(&raw_ptr()->data_, data);
   }
 

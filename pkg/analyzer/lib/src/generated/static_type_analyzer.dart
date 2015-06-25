@@ -42,6 +42,11 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   TypeProvider _typeProvider;
 
   /**
+   * The type system in use for static type analysis.
+   */
+  TypeSystem _typeSystem;
+
+  /**
    * The type representing the type 'dynamic'.
    */
   DartType _dynamicType;
@@ -78,6 +83,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     _dynamicType = _typeProvider.dynamicType;
     _overrideManager = _resolver.overrideManager;
     _promoteManager = _resolver.promoteManager;
+    _typeSystem = new TypeSystemImpl(_typeProvider);
   }
 
   /**
@@ -1202,7 +1208,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // TODO(brianwilkerson) Determine whether this can still happen.
       staticType2 = _dynamicType;
     }
-    DartType staticType = staticType1.getLeastUpperBound(staticType2);
+    DartType staticType =
+        _typeSystem.getLeastUpperBound(staticType1, staticType2);
     if (staticType == null) {
       staticType = _dynamicType;
     }
@@ -1217,7 +1224,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         propagatedType2 = staticType2;
       }
       DartType propagatedType =
-          propagatedType1.getLeastUpperBound(propagatedType2);
+          _typeSystem.getLeastUpperBound(propagatedType1, propagatedType2);
       _resolver.recordPropagatedTypeIfBetter(node, propagatedType);
     }
   }
@@ -1266,7 +1273,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     }
     if (body is BlockFunctionBody) {
       _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction visitor =
-          new _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
+          new _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(
+              _typeSystem);
       body.accept(visitor);
       return visitor.result;
     }
@@ -1927,9 +1935,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
 
 class _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction
     extends GeneralizingAstVisitor<Object> {
+  final TypeSystem typeSystem;
   DartType result = null;
 
-  _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction();
+  _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction(this.typeSystem);
 
   @override
   Object visitExpression(Expression node) => null;
@@ -1948,7 +1957,7 @@ class _StaticTypeAnalyzer_computePropagatedReturnTypeOfFunction
     if (result == null) {
       result = type;
     } else {
-      result = result.getLeastUpperBound(type);
+      result = typeSystem.getLeastUpperBound(result, type);
     }
     return null;
   }

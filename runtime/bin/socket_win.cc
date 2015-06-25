@@ -13,6 +13,8 @@
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
+#include "bin/utils_win.h"
+
 
 namespace dart {
 namespace bin {
@@ -357,7 +359,7 @@ bool Socket::ReverseLookup(const RawAddr& addr,
 
 bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
   int result;
-  const wchar_t* system_address = StringUtils::Utf8ToWide(address);
+  const wchar_t* system_address = StringUtilsWin::Utf8ToWide(address);
   if (type == SocketAddress::TYPE_IPV4) {
     result = InetPton(AF_INET, system_address, &addr->in.sin_addr);
   } else {
@@ -454,7 +456,7 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
          u != NULL; u = u->Next) {
       addresses->SetAt(i, new InterfaceSocketAddress(
           u->Address.lpSockaddr,
-          StringUtils::WideToUtf8(a->FriendlyName),
+          StringUtilsWin::WideToUtf8(a->FriendlyName),
           a->Ipv6IfIndex));
       i++;
     }

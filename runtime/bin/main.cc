@@ -7,7 +7,7 @@
 #include <stdio.h>
 
 #include "include/dart_api.h"
-#include "include/dart_debugger_api.h"
+#include "include/dart_tools_api.h"
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
@@ -401,24 +401,6 @@ static bool ProcessMainOptions(const char* option,
     name = main_options[i].option_name;
   }
   return false;
-}
-
-
-// Convert all the arguments to UTF8. On Windows, the arguments are
-// encoded in the current code page and not UTF8.
-//
-// Returns true if the arguments are converted. In that case
-// each of the arguments need to be deallocated using free.
-static bool Utf8ConvertArgv(int argc, char** argv) {
-  int unicode_argc = 0;
-  wchar_t** unicode_argv = ShellUtils::GetUnicodeArgv(&unicode_argc);
-  if (unicode_argv == NULL) return false;
-  for (int i = 0; i < unicode_argc; i++) {
-    wchar_t* arg = unicode_argv[i];
-    argv[i] = StringUtils::WideToUtf8(arg);
-  }
-  ShellUtils::FreeUnicodeArgv(unicode_argv);
-  return true;
 }
 
 
@@ -893,7 +875,7 @@ void main(int argc, char** argv) {
 
   // On Windows, the argv strings are code page encoded and not
   // utf8. We need to convert them to utf8.
-  bool argv_converted = Utf8ConvertArgv(argc, argv);
+  bool argv_converted = ShellUtils::GetUtf8Argv(argc, argv);
 
   // Parse command line arguments.
   if (ParseArguments(argc,

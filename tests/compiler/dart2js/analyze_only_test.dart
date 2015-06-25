@@ -64,7 +64,7 @@ runCompiler(String main, List<String> options,
 main() {
   runCompiler(
     "",
-    [],
+    ['--generate-code-with-compile-time-errors'],
     (String code, List errors, List warnings) {
       Expect.isNotNull(code);
       Expect.isTrue(errors.isEmpty, 'errors is not empty: $errors');
@@ -75,7 +75,7 @@ main() {
 
   runCompiler(
     "main() {}",
-    [],
+    ['--generate-code-with-compile-time-errors'],
     (String code, List errors, List warnings) {
       Expect.isNotNull(code);
       Expect.isTrue(errors.isEmpty);

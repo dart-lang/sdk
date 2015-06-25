@@ -24,6 +24,7 @@ import 'dart:_js_helper' show
     Null,
     Primitives,
     convertDartClosureToJS,
+    isDartObject,
     random64,
     requiresPreamble;
 

@@ -212,6 +212,13 @@ class FunctionInlineCache {
   }
 }
 
+enum SyntheticConstantKind {
+  DUMMY_INTERCEPTOR,
+  EMPTY_VALUE,
+  TYPEVARIABLE_REFERENCE,
+  NAME
+}
+
 class JavaScriptBackend extends Backend {
   static final Uri DART_JS_HELPER = new Uri(scheme: 'dart', path: '_js_helper');
   static final Uri DART_INTERCEPTORS =
@@ -429,7 +436,7 @@ class JavaScriptBackend extends Backend {
    * A collection of selectors that must have a one shot interceptor
    * generated.
    */
-  final Map<String, Selector> oneShotInterceptors;
+  final Map<jsAst.Name, Selector> oneShotInterceptors;
 
   /**
    * The members of instantiated interceptor classes: maps a member name to the
@@ -460,7 +467,7 @@ class JavaScriptBackend extends Backend {
    * the generic version that contains all possible type checks is
    * also stored in this map.
    */
-  final Map<String, Set<ClassElement>> specializedGetInterceptors;
+  final Map<jsAst.Name, Set<ClassElement>> specializedGetInterceptors;
 
   /**
    * Set of classes whose methods are intercepted.
@@ -608,18 +615,16 @@ class JavaScriptBackend extends Backend {
 
   PatchResolverTask patchResolverTask;
 
-  bool get canHandleCompilationFailed => true;
-
   bool enabledNoSuchMethod = false;
 
   JavaScriptBackend(Compiler compiler,
                     SourceInformationFactory sourceInformationFactory,
                     {bool generateSourceMap: true})
       : namer = determineNamer(compiler),
-        oneShotInterceptors = new Map<String, Selector>(),
+        oneShotInterceptors = new Map<jsAst.Name, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),
         rti = new RuntimeTypes(compiler),
-        specializedGetInterceptors = new Map<String, Set<ClassElement>>(),
+        specializedGetInterceptors = new Map<jsAst.Name, Set<ClassElement>>(),
         annotations = new Annotations(compiler),
         super(compiler) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
@@ -644,6 +649,7 @@ class JavaScriptBackend extends Backend {
   }
 
   FunctionElement resolveExternalFunction(FunctionElement element) {
+    if (isForeign(element)) return element;
     return patchResolverTask.measure(() {
       return patchResolverTask.resolveExternalFunction(element);
     });
@@ -711,9 +717,9 @@ class JavaScriptBackend extends Backend {
     return false;
   }
 
-  String registerOneShotInterceptor(Selector selector) {
+  jsAst.Name registerOneShotInterceptor(Selector selector) {
     Set<ClassElement> classes = getInterceptedClassesOn(selector.name);
-    String name = namer.nameForGetOneShotInterceptor(selector, classes);
+    jsAst.Name name = namer.nameForGetOneShotInterceptor(selector, classes);
     if (!oneShotInterceptors.containsKey(name)) {
       registerSpecializedGetInterceptor(classes);
       oneShotInterceptors[name] = selector;
@@ -779,7 +785,7 @@ class JavaScriptBackend extends Backend {
    * into an intercepted class.  These selectors are not eligible for the 'dummy
    * explicit receiver' optimization.
    */
-  bool isInterceptedMixinSelector(Selector selector) {
+  bool isInterceptedMixinSelector(Selector selector, TypeMask mask) {
     Set<Element> elements = interceptedMixinElements.putIfAbsent(
         selector.name,
         () {
@@ -794,7 +800,10 @@ class JavaScriptBackend extends Backend {
 
     if (elements == null) return false;
     if (elements.isEmpty) return false;
-    return elements.any((element) => selector.applies(element, compiler.world));
+    return elements.any((element) {
+      return selector.applies(element, compiler.world) &&
+             (mask == null || mask.canHit(element, selector, compiler.world));
+    });
   }
 
   final Map<String, Set<ClassElement>> interceptedClassesCache =
@@ -916,7 +925,7 @@ class JavaScriptBackend extends Backend {
   }
 
   void registerSpecializedGetInterceptor(Set<ClassElement> classes) {
-    String name = namer.nameForGetInterceptor(classes);
+    jsAst.Name name = namer.nameForGetInterceptor(classes);
     if (classes.contains(jsInterceptorClass)) {
       // We can't use a specialized [getInterceptorMethod], so we make
       // sure we emit the one with all checks.
@@ -1060,7 +1069,6 @@ class JavaScriptBackend extends Backend {
     if (cls == closureClass) {
       enqueue(enqueuer, findHelper('closureFromTearOff'), registry);
     }
-    ClassElement result = null;
     if (cls == compiler.stringClass || cls == jsStringClass) {
       addInterceptors(jsStringClass, enqueuer, registry);
     } else if (cls == compiler.listClass ||
@@ -1181,6 +1189,14 @@ class JavaScriptBackend extends Backend {
     }
   }
 
+  /// Call during codegen if an instance of [closure] is being created.
+  void registerInstantiatedClosure(LocalFunctionElement closure,
+                                   CodegenRegistry registry) {
+    if (methodNeedsRti(closure)) {
+      registerComputeSignature(compiler.enqueuer.codegen, registry);
+    }
+  }
+
   void registerBoundClosure(Enqueuer enqueuer) {
     boundClosureClass.ensureResolved(compiler);
     enqueuer.registerInstantiatedType(
@@ -1266,7 +1282,8 @@ class JavaScriptBackend extends Backend {
 
   void enableNoSuchMethod(Enqueuer world) {
     enqueue(world, getCreateInvocationMirror(), compiler.globalDependencies);
-    world.registerInvocation(compiler.noSuchMethodSelector);
+    world.registerInvocation(
+        new UniverseSelector(compiler.noSuchMethodSelector, null));
   }
 
   void enableIsolateSupport(Enqueuer enqueuer) {
@@ -1420,6 +1437,7 @@ class JavaScriptBackend extends Backend {
         compiler.enqueuer.codegen.registerStaticUse(getCyclicThrowHelper());
       }
     }
+
     generatedCode[element] = functionCompiler.compile(work);
     return const WorldImpact();
   }
@@ -1766,16 +1784,24 @@ class JavaScriptBackend extends Backend {
     return findHelper('assertSubtype');
   }
 
+  Element getSubtypeCast() {
+    return findHelper('subtypeCast');
+  }
+
   Element getCheckSubtypeOfRuntimeType() {
     return findHelper('checkSubtypeOfRuntimeType');
   }
 
-  Element getCheckDeferredIsLoaded() {
-    return findHelper('checkDeferredIsLoaded');
-  }
-
   Element getAssertSubtypeOfRuntimeType() {
     return findHelper('assertSubtypeOfRuntimeType');
+  }
+
+  Element getSubtypeOfRuntimeTypeCast() {
+    return findHelper('subtypeOfRuntimeTypeCast');
+  }
+
+  Element getCheckDeferredIsLoaded() {
+    return findHelper('checkDeferredIsLoaded');
   }
 
   Element getThrowNoSuchMethod() {
@@ -2009,10 +2035,6 @@ class JavaScriptBackend extends Backend {
     }).then((_) {
       Uri uri = library.canonicalUri;
 
-      VariableElement findVariable(String name) {
-        return find(library, name);
-      }
-
       FunctionElement findMethod(String name) {
         return find(library, name);
       }
@@ -2024,29 +2046,25 @@ class JavaScriptBackend extends Backend {
       if (uri == DART_INTERCEPTORS) {
         getInterceptorMethod = findMethod('getInterceptor');
         getNativeInterceptorMethod = findMethod('getNativeInterceptor');
-
-        List<ClassElement> classes = [
-          jsInterceptorClass = findClass('Interceptor'),
-          jsStringClass = findClass('JSString'),
-          jsArrayClass = findClass('JSArray'),
-          // The int class must be before the double class, because the
-          // emitter relies on this list for the order of type checks.
-          jsIntClass = findClass('JSInt'),
-          jsPositiveIntClass = findClass('JSPositiveInt'),
-          jsUInt32Class = findClass('JSUInt32'),
-          jsUInt31Class = findClass('JSUInt31'),
-          jsDoubleClass = findClass('JSDouble'),
-          jsNumberClass = findClass('JSNumber'),
-          jsNullClass = findClass('JSNull'),
-          jsBoolClass = findClass('JSBool'),
-          jsMutableArrayClass = findClass('JSMutableArray'),
-          jsFixedArrayClass = findClass('JSFixedArray'),
-          jsExtendableArrayClass = findClass('JSExtendableArray'),
-          jsUnmodifiableArrayClass = findClass('JSUnmodifiableArray'),
-          jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject'),
-          jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject'),
-        ];
-
+        jsInterceptorClass = findClass('Interceptor');
+        jsStringClass = findClass('JSString');
+        jsArrayClass = findClass('JSArray');
+        // The int class must be before the double class, because the
+        // emitter relies on this list for the order of type checks.
+        jsIntClass = findClass('JSInt');
+        jsPositiveIntClass = findClass('JSPositiveInt');
+        jsUInt32Class = findClass('JSUInt32');
+        jsUInt31Class = findClass('JSUInt31');
+        jsDoubleClass = findClass('JSDouble');
+        jsNumberClass = findClass('JSNumber');
+        jsNullClass = findClass('JSNull');
+        jsBoolClass = findClass('JSBool');
+        jsMutableArrayClass = findClass('JSMutableArray');
+        jsFixedArrayClass = findClass('JSFixedArray');
+        jsExtendableArrayClass = findClass('JSExtendableArray');
+        jsUnmodifiableArrayClass = findClass('JSUnmodifiableArray');
+        jsPlainJavaScriptObjectClass = findClass('PlainJavaScriptObject');
+        jsUnknownJavaScriptObjectClass = findClass('UnknownJavaScriptObject');
         jsIndexableClass = findClass('JSIndexable');
         jsMutableIndexableClass = findClass('JSMutableIndexable');
       } else if (uri == DART_JS_HELPER) {
@@ -2668,6 +2686,25 @@ class JavaScriptBackend extends Backend {
       enqueue(enqueuer, getASyncStarControllerConstructor(), registry);
       enqueue(enqueuer, getStreamIteratorConstructor(), registry);
     }
+  }
+
+  @override
+  bool enableDeferredLoadingIfSupported(Spannable node, Registry registry) {
+    registerCheckDeferredIsLoaded(registry);
+    return true;
+  }
+
+  @override
+  bool enableCodegenWithErrorsIfSupported(Spannable node) {
+    if (compiler.useCpsIr) {
+      compiler.reportHint(
+          node,
+          MessageKind.GENERIC,
+          {'text': "Generation of code with compile time errors is currently "
+                   "not supported with the CPS IR."});
+      return false;
+    }
+    return true;
   }
 }
 

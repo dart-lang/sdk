@@ -59,12 +59,20 @@ bool File::WriteFully(const void* buffer, int64_t num_bytes) {
 File::FileOpenMode File::DartModeToFileMode(DartFileOpenMode mode) {
   ASSERT(mode == File::kDartRead ||
          mode == File::kDartWrite ||
-         mode == File::kDartAppend);
+         mode == File::kDartAppend ||
+         mode == File::kDartWriteOnly ||
+         mode == File::kDartWriteOnlyAppend);
   if (mode == File::kDartWrite) {
     return File::kWriteTruncate;
   }
   if (mode == File::kDartAppend) {
     return File::kWrite;
+  }
+  if (mode == File::kDartWriteOnly) {
+    return File::kWriteOnlyTruncate;
+  }
+  if (mode == File::kDartWriteOnlyAppend) {
+    return File::kWriteOnly;
   }
   return File::kRead;
 }

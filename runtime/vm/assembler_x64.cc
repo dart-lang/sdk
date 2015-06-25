@@ -32,30 +32,29 @@ Assembler::Assembler(bool use_far_branches)
   if (isolate != Dart::vm_isolate()) {
     // These objects and labels need to be accessible through every pool-pointer
     // at the same index.
-    intptr_t index =
-        object_pool_.AddObject(Object::null_object(), kNotPatchable);
+    intptr_t index = object_pool_wrapper_.AddObject(Object::null_object());
     ASSERT(index == 0);
 
-    index = object_pool_.AddObject(Bool::True(), kNotPatchable);
+    index = object_pool_wrapper_.AddObject(Bool::True());
     ASSERT(index == 1);
 
-    index = object_pool_.AddObject(Bool::False(), kNotPatchable);
+    index = object_pool_wrapper_.AddObject(Bool::False());
     ASSERT(index == 2);
 
     const Smi& vacant = Smi::Handle(Smi::New(0xfa >> kSmiTagShift));
     StubCode* stub_code = isolate->stub_code();
     if (stub_code->UpdateStoreBuffer_entry() != NULL) {
-      object_pool_.AddExternalLabel(&stub_code->UpdateStoreBufferLabel(),
-                                    kNotPatchable);
+      object_pool_wrapper_.AddExternalLabel(
+          &stub_code->UpdateStoreBufferLabel(), kNotPatchable);
     } else {
-      object_pool_.AddObject(vacant, kNotPatchable);
+      object_pool_wrapper_.AddObject(vacant);
     }
 
     if (stub_code->CallToRuntime_entry() != NULL) {
-      object_pool_.AddExternalLabel(&stub_code->CallToRuntimeLabel(),
-                                    kNotPatchable);
+      object_pool_wrapper_.AddExternalLabel(
+          &stub_code->CallToRuntimeLabel(), kNotPatchable);
     } else {
-      object_pool_.AddObject(vacant, kNotPatchable);
+      object_pool_wrapper_.AddObject(vacant);
     }
   }
 }
@@ -95,8 +94,8 @@ void Assembler::LoadExternalLabel(Register dst,
                                   const ExternalLabel* label,
                                   Patchability patchable,
                                   Register pp) {
-  const int32_t offset =
-      Array::element_offset(object_pool_.FindExternalLabel(label, patchable));
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindExternalLabel(label, patchable));
   LoadWordFromPoolOffset(dst, pp, offset - kHeapObjectTag);
 }
 
@@ -115,8 +114,8 @@ void Assembler::call(const ExternalLabel* label) {
 void Assembler::CallPatchable(const ExternalLabel* label) {
   ASSERT(allow_constant_pool());
   intptr_t call_start = buffer_.GetPosition();
-  const int32_t offset =
-      Array::element_offset(object_pool_.FindExternalLabel(label, kPatchable));
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindExternalLabel(label, kPatchable));
   call(Address::AddressBaseImm32(PP, offset - kHeapObjectTag));
   ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
 }
@@ -126,8 +125,8 @@ void Assembler::Call(const ExternalLabel* label, Register pp) {
   if (Isolate::Current() == Dart::vm_isolate()) {
     call(label);
   } else {
-    const int32_t offset = Array::element_offset(
-        object_pool_.FindExternalLabel(label, kNotPatchable));
+    const int32_t offset = ObjectPool::element_offset(
+        object_pool_wrapper_.FindExternalLabel(label, kNotPatchable));
     call(Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
   }
 }
@@ -348,6 +347,16 @@ void Assembler::movw(const Address& dst, Register src) {
   EmitOperandREX(src, dst, REX_NONE);
   EmitUint8(0x89);
   EmitOperand(src & 7, dst);
+}
+
+
+void Assembler::movw(const Address& dst, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandSizeOverride();
+  EmitUint8(0xC7);
+  EmitOperand(0, dst);
+  EmitUint8(imm.value() & 0xFF);
+  EmitUint8((imm.value() >> 8) & 0xFF);
 }
 
 
@@ -1417,6 +1426,24 @@ void Assembler::cmpb(const Address& address, const Immediate& imm) {
   EmitOperand(7, address);
   ASSERT(imm.is_int8());
   EmitUint8(imm.value() & 0xFF);
+}
+
+
+void Assembler::cmpw(Register reg, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandSizeOverride();
+  EmitUint8(0x3B);
+  EmitOperand(reg, address);
+}
+
+
+void Assembler::cmpw(const Address& address, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandSizeOverride();
+  EmitUint8(0x81);
+  EmitOperand(7, address);
+  EmitUint8(imm.value() & 0xFF);
+  EmitUint8((imm.value() >> 8) & 0xFF);
 }
 
 
@@ -2607,8 +2634,8 @@ void Assembler::jmp(const ExternalLabel* label) {
 void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
   ASSERT(allow_constant_pool());
   intptr_t call_start = buffer_.GetPosition();
-  const int32_t offset =
-      Array::element_offset(object_pool_.FindExternalLabel(label, kPatchable));
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindExternalLabel(label, kPatchable));
   // Patchable jumps always use a 32-bit immediate encoding.
   jmp(Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
   ASSERT((buffer_.GetPosition() - call_start) == JumpPattern::kLengthInBytes);
@@ -2616,8 +2643,8 @@ void Assembler::JmpPatchable(const ExternalLabel* label, Register pp) {
 
 
 void Assembler::Jmp(const ExternalLabel* label, Register pp) {
-  const int32_t offset = Array::element_offset(
-      object_pool_.FindExternalLabel(label, kNotPatchable));
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindExternalLabel(label, kNotPatchable));
   jmp(Address(pp, offset - kHeapObjectTag));
 }
 
@@ -2817,7 +2844,7 @@ void Assembler::LoadIsolate(Register dst) {
 void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
   if (CanLoadFromObjectPool(object)) {
     const int32_t offset =
-        Array::element_offset(object_pool_.FindObject(object, kNotPatchable));
+        ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(dst, pp, offset - kHeapObjectTag);
   } else {
     ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
@@ -2852,7 +2879,7 @@ void Assembler::PushObject(const Object& object, Register pp) {
 void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
   if (CanLoadFromObjectPool(object)) {
     const int32_t offset =
-        Array::element_offset(object_pool_.FindObject(object, kNotPatchable));
+        ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
     cmpq(reg, Address(pp, offset-kHeapObjectTag));
   } else {
     CompareImmediate(
@@ -2863,8 +2890,7 @@ void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
 
 intptr_t Assembler::FindImmediate(int64_t imm) {
   ASSERT(Isolate::Current() != Dart::vm_isolate());
-  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(imm));
-  return object_pool_.FindObject(smi, kNotPatchable);
+  return object_pool_wrapper_.FindImmediate(imm);
 }
 
 
@@ -2882,16 +2908,8 @@ void Assembler::LoadImmediate(Register reg, const Immediate& imm, Register pp) {
   if (CanLoadImmediateFromPool(imm, pp)) {
     // It's a 64-bit constant and we're not in the VM isolate, so load from
     // object pool.
-    int64_t val = imm.value();
-    // Save the bits that must be masked-off for the SmiTag
-    int64_t val_smi_tag = val & kSmiTagMask;
-    val &= ~kSmiTagMask;  // Mask off the tag bits.
-    const int32_t offset = Array::element_offset(FindImmediate(val));
+    int32_t offset = ObjectPool::element_offset(FindImmediate(imm.value()));
     LoadWordFromPoolOffset(reg, pp, offset - kHeapObjectTag);
-    if (val_smi_tag != 0) {
-      // Add back the tag bits.
-      orq(reg, Immediate(val_smi_tag));
-    }
   } else {
     movq(reg, imm);
   }
@@ -3188,7 +3206,7 @@ void Assembler::Stop(const char* message, bool fixed_length_encoding) {
     } else {
       LoadImmediate(RDI, Immediate(message_address), PP);
     }
-    call(&StubCode::PrintStopMessageLabel());
+    call(&Isolate::Current()->stub_code()->PrintStopMessageLabel());
     popq(RDI);  // Restore RDI register.
     popq(TMP);  // Restore TMP register.
   } else {
@@ -3426,13 +3444,11 @@ void Assembler::EnterOsrFrame(intptr_t extra_size,
 }
 
 
-void Assembler::EnterStubFrame(bool load_pp) {
+void Assembler::EnterStubFrame() {
   EnterFrame(0);
   pushq(Immediate(0));  // Push 0 in the saved PC area for stub frames.
   pushq(PP);  // Save caller's pool pointer
-  if (load_pp) {
-    LoadPoolPointer(PP);
-  }
+  LoadPoolPointer(PP);
 }
 
 
@@ -3727,11 +3743,12 @@ void Assembler::EmitGenericShift(bool wide,
 
 
 void Assembler::LoadClassId(Register result, Register object) {
-  ASSERT(RawObject::kClassIdTagPos == 16);
-  ASSERT(RawObject::kClassIdTagSize == 16);
+  ASSERT(RawObject::kClassIdTagPos == kBitsPerInt32);
+  ASSERT(RawObject::kClassIdTagSize == kBitsPerInt32);
+  ASSERT(sizeof(classid_t) == sizeof(uint32_t));
   const intptr_t class_id_offset = Object::tags_offset() +
       RawObject::kClassIdTagPos / kBitsPerByte;
-  movzxw(result, FieldAddress(object, class_id_offset));
+  movl(result, FieldAddress(object, class_id_offset));
 }
 
 
@@ -3760,8 +3777,9 @@ void Assembler::SmiUntagOrCheckClass(Register object,
                                      intptr_t class_id,
                                      Label* is_smi) {
   ASSERT(kSmiTagShift == 1);
-  ASSERT(RawObject::kClassIdTagPos == 16);
-  ASSERT(RawObject::kClassIdTagSize == 16);
+  ASSERT(RawObject::kClassIdTagPos == kBitsPerInt32);
+  ASSERT(RawObject::kClassIdTagSize == kBitsPerInt32);
+  ASSERT(sizeof(classid_t) == sizeof(uint32_t));
   const intptr_t class_id_offset = Object::tags_offset() +
       RawObject::kClassIdTagPos / kBitsPerByte;
 
@@ -3770,7 +3788,7 @@ void Assembler::SmiUntagOrCheckClass(Register object,
   j(NOT_CARRY, is_smi, kNearJump);
   // Load cid: can't use LoadClassId, object is untagged. Use TIMES_2 scale
   // factor in the addressing mode to compensate for this.
-  movzxw(TMP, Address(object, TIMES_2, class_id_offset));
+  movl(TMP, Address(object, TIMES_2, class_id_offset));
   cmpl(TMP, Immediate(class_id));
 }
 

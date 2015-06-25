@@ -2332,6 +2332,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   if (cls.is_finalized()) {
     return;
   }
+  if (FLAG_trace_class_finalization) {
+    OS::Print("Finalize %s\n", cls.ToCString());
+  }
   if (cls.is_patch()) {
     // The fields and functions of a patch class are copied to the
     // patched class after parsing. There is nothing to finalize.
@@ -2339,9 +2342,6 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
     ASSERT(Array::Handle(cls.fields()).Length() == 0);
     cls.set_is_finalized();
     return;
-  }
-  if (FLAG_trace_class_finalization) {
-    OS::Print("Finalize %s\n", cls.ToCString());
   }
   if (cls.IsMixinApplication()) {
     // Copy instance methods and fields from the mixin class.

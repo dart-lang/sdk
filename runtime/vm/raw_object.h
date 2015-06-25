@@ -31,6 +31,7 @@ namespace dart {
   V(Namespace)                                                                 \
   V(Code)                                                                      \
   V(Instructions)                                                              \
+  V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
   V(Stackmap)                                                                  \
   V(LocalVarDescriptors)                                                       \
@@ -237,13 +238,26 @@ class RawObject {
     kCanonicalBit = 2,
     kFromSnapshotBit = 3,
     kRememberedBit = 4,
-    kReservedTagPos = 5,  // kReservedBit{10K,100K,1M,10M}
+#if defined(ARCH_IS_32_BIT)
+    kReservedTagPos = 5,  // kReservedBit{100K,1M,10M}
     kReservedTagSize = 3,
     kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 8
     kSizeTagSize = 8,
     kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
     kClassIdTagSize = 16,
+#elif defined(ARCH_IS_64_BIT)
+    kReservedTagPos = 5,  // kReservedBit{100K,1M,10M}
+    kReservedTagSize = 11,
+    kSizeTagPos = kReservedTagPos + kReservedTagSize,  // = 16
+    kSizeTagSize = 16,
+    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 32
+    kClassIdTagSize = 32,
+#else
+#error Unexpected architecture word size
+#endif
   };
+
+  COMPILE_ASSERT(kClassIdTagSize == (sizeof(classid_t) * kBitsPerByte));
 
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
@@ -392,6 +406,9 @@ class RawObject {
   bool IsScript() {
     return ((GetClassId() == kScriptCid));
   }
+  bool IsFunction() {
+    return ((GetClassId() == kFunctionCid));
+  }
 
   intptr_t Size() const {
     uword tags = ptr()->tags_;
@@ -508,7 +525,7 @@ class RawObject {
     if (value->IsNewObject() && this->IsOldObject() &&
         !this->IsRemembered()) {
       this->SetRememberedBit();
-      Isolate::Current()->store_buffer()->AddObject(this);
+      Thread::Current()->StoreBufferAddObject(this);
     }
   }
 
@@ -539,9 +556,11 @@ class RawObject {
   friend class Api;
   friend class ApiMessageReader;  // GetClassId
   friend class Array;
+  friend class Bigint;
   friend class ByteBuffer;
   friend class Code;
   friend class Closure;
+  friend class Double;
   friend class FreeListElement;
   friend class Function;
   friend class GCMarker;
@@ -552,6 +571,7 @@ class RawObject {
   friend class HeapMapAsJSONVisitor;
   friend class ClassStatsVisitor;
   friend class MarkingVisitor;
+  friend class Mint;
   friend class Object;
   friend class OneByteString;  // StoreSmi
   friend class RawExternalTypedData;
@@ -613,11 +633,11 @@ class RawClass : public RawObject {
   }
 
   cpp_vtable handle_vtable_;
-  int32_t id_;  // Class Id, also index in the class table.
   int32_t token_pos_;
   int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
+  classid_t id_;  // Class Id, also index in the class table.
   int16_t num_type_arguments_;  // Number of type arguments in flatten vector.
   int16_t num_own_type_arguments_;  // Number of non-overlapping type arguments.
   uint16_t num_native_fields_;  // Number of native fields in class.
@@ -756,7 +776,7 @@ class RawFunction : public RawObject {
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
   int16_t deoptimization_counter_;
-  int16_t regexp_cid_;
+  classid_t regexp_cid_;
   uint32_t kind_tag_;  // See Function::KindTagBits.
   uint16_t optimized_instruction_count_;
   uint16_t optimized_call_site_count_;
@@ -814,9 +834,9 @@ class RawField : public RawObject {
   }
 
   int32_t token_pos_;
-  int32_t guarded_cid_;
-  int32_t is_nullable_;  // kNullCid if field can contain null value and
-                         // any other value otherwise.
+  classid_t guarded_cid_;
+  classid_t is_nullable_;  // kNullCid if field can contain null value and
+                           // any other value otherwise.
   // Offset to the guarded length field inside an instance of class matching
   // guarded_cid_. Stored corrected by -kHeapObjectTag to simplify code
   // generated on platforms with weak addressing modes (ARM, MIPS).
@@ -867,6 +887,7 @@ class RawScript : public RawObject {
     kLibraryTag,
     kSourceTag,
     kPatchTag,
+    kEvaluateTag,
   };
 
  private:
@@ -915,15 +936,15 @@ class RawLibrary : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->load_error_);
   }
 
-  int32_t index_;               // Library id number.
-  int32_t num_imports_;         // Number of entries in imports_.
-  int32_t num_anonymous_;       // Number of entries in anonymous_classes_.
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
+  classid_t index_;             // Library id number.
+  classid_t num_anonymous_;     // Number of entries in anonymous_classes_.
+  uint16_t num_imports_;        // Number of entries in imports_.
+  int8_t load_state_;           // Of type LibraryState.
   bool corelib_imported_;
   bool is_dart_scheme_;
-  bool debuggable_;              // True if debugger can stop in library.
-  int8_t load_state_;            // Of type LibraryState.
+  bool debuggable_;             // True if debugger can stop in library.
 
   friend class Isolate;
 };
@@ -1002,6 +1023,27 @@ class RawCode : public RawObject {
 };
 
 
+class RawObjectPool : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ObjectPool);
+
+  intptr_t length_;
+  RawTypedData* info_array_;
+
+  struct Entry {
+    union {
+      RawObject* raw_obj_;
+      uword raw_value_;
+    };
+  };
+  Entry* data() { OPEN_ARRAY_START(Entry, Entry); }
+  Entry const* data() const { OPEN_ARRAY_START(Entry, Entry); }
+
+  Entry* first_entry() { return &ptr()->data()[0]; }
+
+  friend class Object;
+};
+
+
 class RawInstructions : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Instructions);
 
@@ -1009,7 +1051,7 @@ class RawInstructions : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->code_);
   }
   RawCode* code_;
-  RawArray* object_pool_;
+  RawObjectPool* object_pool_;
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->object_pool_);
   }
@@ -1399,7 +1441,7 @@ class RawLibraryPrefix : public RawInstance {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->dependent_code_);
   }
-  int32_t num_imports_;          // Number of library entries in libraries_.
+  uint16_t num_imports_;          // Number of library entries in libraries_.
   bool is_deferred_load_;
   bool is_loaded_;
 };
@@ -1465,8 +1507,8 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
-  int32_t index_;
   int32_t token_pos_;
+  int16_t index_;
   int8_t type_state_;
 };
 
@@ -1780,6 +1822,8 @@ class RawTypedData : public RawInstance {
   friend class Object;
   friend class Instance;
   friend class SnapshotReader;
+  friend class ObjectPool;
+  friend class RawObjectPool;
 };
 
 
@@ -1883,6 +1927,7 @@ class RawWeakProperty : public RawInstance {
     return reinterpret_cast<RawObject**>(&ptr()->value_);
   }
 
+  friend class DelaySet;
   friend class GCMarker;
   friend class MarkingVisitor;
   friend class Scavenger;
@@ -2112,6 +2157,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          (index == kContextCid) ||
          (index == kTypeArgumentsCid) ||
          (index == kInstructionsCid) ||
+         (index == kObjectPoolCid) ||
          (index == kPcDescriptorsCid) ||
          (index == kStackmapCid) ||
          (index == kLocalVarDescriptorsCid) ||

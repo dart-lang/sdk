@@ -5,7 +5,6 @@
 library tree_ir_builder;
 
 import '../dart2jslib.dart' as dart2js;
-import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import '../util/util.dart' show CURRENT_ELEMENT_SPANNABLE;
@@ -268,15 +267,37 @@ class Builder implements cps_ir.Visitor<Node> {
     internalError(CURRENT_ELEMENT_SPANNABLE, 'Unexpected IR node: $node');
   }
 
-  // JS-specific nodes are handled by a subclass.
-  visitSetField(cps_ir.SetField node) => unexpectedNode(node);
-  visitIdentical(cps_ir.Identical node) => unexpectedNode(node);
-  visitInterceptor(cps_ir.Interceptor node) => unexpectedNode(node);
-  visitCreateInstance(cps_ir.CreateInstance node) => unexpectedNode(node);
-  visitGetField(cps_ir.GetField node) => unexpectedNode(node);
-  visitCreateBox(cps_ir.CreateBox node) => unexpectedNode(node);
+  Statement visitSetField(cps_ir.SetField node) {
+    return new ExpressionStatement(
+        new SetField(getVariableUse(node.object),
+                     node.field,
+                     getVariableUse(node.value)),
+        visit(node.body));
+  }
+
+  Expression visitInterceptor(cps_ir.Interceptor node) {
+    return new Interceptor(getVariableUse(node.input), node.interceptedClasses);
+  }
+
+  Expression visitCreateInstance(cps_ir.CreateInstance node) {
+    return new CreateInstance(
+        node.classElement,
+        translateArguments(node.arguments),
+        translateArguments(node.typeInformation));
+  }
+
+  Expression visitGetField(cps_ir.GetField node) {
+    return new GetField(getVariableUse(node.object), node.field);
+  }
+
+  Expression visitCreateBox(cps_ir.CreateBox node) {
+    return new CreateBox();
+  }
+
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
-    return unexpectedNode(node);
+    return new CreateInvocationMirror(
+        node.selector,
+        translateArguments(node.arguments));
   }
 
   // Executable definitions are not visited directly.  They have 'build'
@@ -352,6 +373,7 @@ class Builder implements cps_ir.Visitor<Node> {
   Statement visitInvokeMethod(cps_ir.InvokeMethod node) {
     InvokeMethod invoke = new InvokeMethod(getVariableUse(node.receiver),
                                            node.selector,
+                                           node.mask,
                                            translateArguments(node.arguments));
     invoke.receiverIsNotNull = node.receiverIsNotNull;
     return continueWithExpression(node.continuation, invoke);
@@ -365,12 +387,6 @@ class Builder implements cps_ir.Visitor<Node> {
     return continueWithExpression(node.continuation, invoke);
   }
 
-  Statement visitConcatenateStrings(cps_ir.ConcatenateStrings node) {
-    List<Expression> arguments = translateArguments(node.arguments);
-    Expression concat = new ConcatenateStrings(arguments);
-    return continueWithExpression(node.continuation, concat);
-  }
-
   Statement visitThrow(cps_ir.Throw node) {
     Expression value = getVariableUse(node.value);
     return new Throw(value);
@@ -380,8 +396,12 @@ class Builder implements cps_ir.Visitor<Node> {
     return new Rethrow();
   }
 
+  Statement visitUnreachable(cps_ir.Unreachable node) {
+    return new Unreachable();
+  }
+
   Expression visitNonTailThrow(cps_ir.NonTailThrow node) {
-    unexpectedNode(node);
+    return unexpectedNode(node);
   }
 
   Statement continueWithExpression(cps_ir.Reference continuation,
@@ -415,13 +435,18 @@ class Builder implements cps_ir.Visitor<Node> {
     return Assign.makeStatement(variable, value, visit(node.body));
   }
 
-  Statement visitTypeOperator(cps_ir.TypeOperator node) {
+  Statement visitTypeCast(cps_ir.TypeCast node) {
     Expression value = getVariableUse(node.value);
     List<Expression> typeArgs = translateArguments(node.typeArguments);
-    Expression concat =
-        new TypeOperator(value, node.type, typeArgs,
-                         isTypeTest: node.isTypeTest);
-    return continueWithExpression(node.continuation, concat);
+    Expression expression =
+        new TypeOperator(value, node.type, typeArgs, isTypeTest: false);
+    return continueWithExpression(node.continuation, expression);
+  }
+
+  Expression visitTypeTest(cps_ir.TypeTest node) {
+    Expression value = getVariableUse(node.value);
+    List<Expression> typeArgs = translateArguments(node.typeArguments);
+    return new TypeOperator(value, node.type, typeArgs, isTypeTest: true);
   }
 
   Statement visitInvokeConstructor(cps_ir.InvokeConstructor node) {
@@ -491,7 +516,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitConstant(cps_ir.Constant node) {
-    return new Constant(node.expression, node.value);
+    return new Constant(node.value);
   }
 
   Expression visitLiteralList(cps_ir.LiteralList node) {
@@ -517,8 +542,6 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Expression visitCreateFunction(cps_ir.CreateFunction node) {
     FunctionDefinition def = makeSubFunction(node.definition);
-    FunctionType type = node.definition.element.type;
-    bool hasReturnType = !type.returnType.treatAsDynamic;
     return new FunctionExpression(def);
   }
 
@@ -576,6 +599,34 @@ class Builder implements cps_ir.Visitor<Node> {
         getVariableUse(node.value),
         node.sourceInformation);
     return new ExpressionStatement(setStatic, visit(node.body));
+  }
+
+  Expression visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
+    if (node.operator == BuiltinOperator.IsFalsy) {
+      return new Not(getVariableUse(node.arguments.single));
+    }
+    return new ApplyBuiltinOperator(node.operator,
+                                    translateArguments(node.arguments));
+  }
+
+  Statement visitForeignCode(cps_ir.ForeignCode node) {
+    if (node.codeTemplate.isExpression) {
+      Expression foreignCode = new ForeignExpression(
+          node.codeTemplate,
+          node.type,
+          node.arguments.map(getVariableUse).toList(growable: false),
+          node.nativeBehavior,
+          node.dependency);
+      return continueWithExpression(node.continuation, foreignCode);
+    } else {
+      assert(node.continuation == null);
+      return new ForeignStatement(
+          node.codeTemplate,
+          node.type,
+          node.arguments.map(getVariableUse).toList(growable: false),
+          node.nativeBehavior,
+          node.dependency);
+    }
   }
 }
 

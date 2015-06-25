@@ -175,15 +175,14 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertyInvoke(
+            node,
+            node.receiver,
+            node.argumentsNode,
+            selector,
+            arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertyInvoke(
-              node,
-              node.receiver,
-              node.argumentsNode,
-              selector,
-              arg);
-        }
         return visitor.visitDynamicPropertyInvoke(
             node,
             node.receiver,
@@ -423,6 +422,13 @@ class IncompatibleInvokeStructure<R, A> implements SendStructure<R, A> {
             node.argumentsNode,
             callStructure,
             arg);
+      case AccessKind.LOCAL_FUNCTION:
+        return visitor.visitLocalFunctionIncompatibleInvoke(
+            node,
+            semantics.element,
+            node.argumentsNode,
+            callStructure,
+            arg);
      default:
         // TODO(johnniwinther): Support more variants of this invoke structure.
         break;
@@ -446,14 +452,13 @@ class GetStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertyGet(
+            node,
+            node.receiver,
+            selector,
+            arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertyGet(
-              node,
-              node.receiver,
-              selector,
-              arg);
-        }
         return visitor.visitDynamicPropertyGet(
             node,
             node.receiver,
@@ -607,15 +612,14 @@ class SetStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertySet(
+          node,
+          node.receiver,
+          selector,
+          node.arguments.single,
+          arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertySet(
-            node,
-            node.receiver,
-            selector,
-            node.arguments.single,
-            arg);
-        }
         return visitor.visitDynamicPropertySet(
           node,
           node.receiver,
@@ -1271,17 +1275,16 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertyCompound(
+            node,
+            node.receiver,
+            operator,
+            node.arguments.single,
+            getterSelector,
+            setterSelector,
+            arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertyCompound(
-              node,
-              node.receiver,
-              operator,
-              node.arguments.single,
-              getterSelector,
-              setterSelector,
-              arg);
-        }
         return visitor.visitDynamicPropertyCompound(
             node,
             node.receiver,
@@ -1698,16 +1701,15 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertyPrefix(
+            node,
+            node.receiver,
+            operator,
+            getterSelector,
+            setterSelector,
+            arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertyPrefix(
-              node,
-              node.receiver,
-              operator,
-              getterSelector,
-              setterSelector,
-              arg);
-        }
         return visitor.visitDynamicPropertyPrefix(
             node,
             node.receiver,
@@ -2015,16 +2017,15 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
+      case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+        return visitor.visitIfNotNullDynamicPropertyPostfix(
+            node,
+            node.receiver,
+            operator,
+            getterSelector,
+            setterSelector,
+            arg);
       case AccessKind.DYNAMIC_PROPERTY:
-        if (node.isConditional) {
-          return visitor.visitIfNotNullDynamicPropertyPostfix(
-              node,
-              node.receiver,
-              operator,
-              getterSelector,
-              setterSelector,
-              arg);
-        }
         return visitor.visitDynamicPropertyPostfix(
             node,
             node.receiver,

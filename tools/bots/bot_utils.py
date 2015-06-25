@@ -169,6 +169,9 @@ class GCSNamer(object):
   def apidocs_zipfilename(self):
     return 'dart-api-docs.zip'
 
+  def dartdocs_zipfilename(self):
+    return 'dartdocs-gen-api.zip'
+
   def editor_zipfilename(self, system, arch):
     return 'darteditor-%s-%s.zip' % (
         SYSTEM_RENAMES[system], ARCH_RENAMES[arch])
@@ -202,6 +205,11 @@ class GCSNamerApiDocs(object):
   def docs_dirpath(self, revision):
     assert len('%s' % revision) > 0
     return '%s/channels/%s/%s' % (self.bucket, self.channel, revision)
+
+  def dartdocs_dirpath(self, revision):
+    assert len('%s' % revision) > 0
+    return '%s/channels/%s/gen-dartdocs/%s' % (self.bucket, 
+                                               self.channel, revision)
 
   def docs_latestpath(self, revision):
     assert len('%s' % revision) > 0
@@ -278,10 +286,14 @@ class GSUtil(object):
                shell=(GSUtil.GSUTIL_IS_SHELL_SCRIPT and
                       sys.platform == 'win32'))
 
-  def upload(self, local_path, remote_path, recursive=False, public=False):
+  def upload(self, local_path, remote_path, recursive=False, 
+             public=False, multithread=False):
     assert remote_path.startswith('gs://')
 
-    args = ['cp']
+    if multithread:
+      args = ['-m', 'cp']
+    else:
+      args = ['cp']
     if public:
       args += ['-a', 'public-read']
     if recursive:

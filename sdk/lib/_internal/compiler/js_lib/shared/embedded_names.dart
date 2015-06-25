@@ -93,14 +93,36 @@ enum JsGetName {
   DEFAULT_VALUES_PROPERTY,
   CALL_NAME_PROPERTY,
   DEFERRED_ACTION_PROPERTY,
+  /// Prefix used for generated type argument substitutions on classes.
   OPERATOR_AS_PREFIX,
+  /// Name used for generated function types on classes and methods.
   SIGNATURE_NAME,
+  /// Name used to tag typedefs.
   TYPEDEF_TAG,
+  /// Name used to tag void return in function type representations in
+  /// JavaScript.
   FUNCTION_TYPE_VOID_RETURN_TAG,
+  /// Name used to tag return types in function type representations in
+  /// JavaScript.
   FUNCTION_TYPE_RETURN_TYPE_TAG,
+  /// Name used to tag required parameters in function type representations
+  /// in JavaScript.
   FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
+  /// Name used to tag optional parameters in function type representations
+  /// in JavaScript.
   FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
+  /// Name used to tag named parameters in function type representations in
+  /// JavaScript.
   FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
+  /// Field name used for determining if an object or its interceptor has
+  /// JavaScript indexing behavior.
+  IS_INDEXABLE_FIELD_NAME,
+  /// String representation of the type of the null class.
+  NULL_CLASS_TYPE_NAME,
+  /// String representation of the type of the object class.
+  OBJECT_CLASS_TYPE_NAME,
+  /// String representation of the type of the function class.
+  FUNCTION_CLASS_TYPE_NAME,
 }
 
 enum JsBuiltin {
@@ -156,25 +178,13 @@ enum JsBuiltin {
   ///                JsBuiltin.isSubtype, other, type);
   isSubtype,
 
-  /// Returns true if the given type is _the_ `Function` type.
-  /// That is, it returns true if the given [type] is exactly the `Function`
-  /// type rti-encoding.
+  /// Returns true if the given type equals the type given as second
+  /// argument. Use the JS_GET_NAME helpers to get the type representation
+  /// for various Dart classes.
   ///
   ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
-  ///                JsBuiltin.isFunctionTypeLiteral, type);
-  isFunctionTypeRti,
-
-  /// Returns whether the given type is _the_ null-type..
-  ///
-  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
-  ///                JsBuiltin.isNullType, type);
-  isNullTypeRti,
-
-  /// Returns whether the given type is _the_ Dart Object type.
-  ///
-  ///     JS_BUILTIN('returns:bool;effects:none;depends:none',
-  ///                JsBuiltin.isDartObjectType, type);
-  isDartObjectTypeRti,
+  ///                JsBuiltin.isFunctionTypeLiteral, type, name);
+  isGivenTypeRti,
 
   /// Returns the metadata of the given [index].
   ///

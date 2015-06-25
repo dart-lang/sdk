@@ -7837,7 +7837,6 @@ class LibraryResolver {
     }
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
-    _buildTypeAliases();
     _buildTypeHierarchies();
     //
     // Perform resolution and type analysis.
@@ -7917,7 +7916,6 @@ class LibraryResolver {
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     _buildEnumMembers();
-    _buildTypeAliases();
     _buildTypeHierarchies();
     _buildImplicitConstructors();
     //
@@ -8212,37 +8210,6 @@ class LibraryResolver {
         computer.add(_errorListener, library.libraryElement);
       }
       computer.compute();
-    });
-  }
-
-  /**
-   * Resolve the types referenced by function type aliases across all of the function type aliases
-   * defined in the current cycle.
-   *
-   * @throws AnalysisException if any of the function type aliases could not be resolved
-   */
-  void _buildTypeAliases() {
-    PerformanceStatistics.resolve.makeCurrentWhile(() {
-      List<LibraryResolver_TypeAliasInfo> typeAliases =
-          new List<LibraryResolver_TypeAliasInfo>();
-      for (Library library in _librariesInCycles) {
-        for (Source source in library.compilationUnitSources) {
-          CompilationUnit ast = library.getAST(source);
-          for (CompilationUnitMember member in ast.declarations) {
-            if (member is FunctionTypeAlias) {
-              typeAliases.add(
-                  new LibraryResolver_TypeAliasInfo(library, source, member));
-            }
-          }
-        }
-      }
-      // TODO(brianwilkerson) We need to sort the type aliases such that all
-      // aliases referenced by an alias T are resolved before we resolve T.
-      for (LibraryResolver_TypeAliasInfo info in typeAliases) {
-        TypeResolverVisitor visitor = new TypeResolverVisitor.con1(
-            info._library, info._source, _typeProvider);
-        info._typeAlias.accept(visitor);
-      }
     });
   }
 
@@ -8685,7 +8652,6 @@ class LibraryResolver2 {
     _buildDirectiveModels();
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     _buildEnumMembers();
-    _buildTypeAliases();
     _buildTypeHierarchies();
     _buildImplicitConstructors();
     //
@@ -8922,38 +8888,6 @@ class LibraryResolver2 {
       }
     }
     return libraryMap;
-  }
-
-  /**
-   * Resolve the types referenced by function type aliases across all of the function type aliases
-   * defined in the current cycle.
-   *
-   * @throws AnalysisException if any of the function type aliases could not be resolved
-   */
-  void _buildTypeAliases() {
-    PerformanceStatistics.resolve.makeCurrentWhile(() {
-      List<LibraryResolver2_TypeAliasInfo> typeAliases =
-          new List<LibraryResolver2_TypeAliasInfo>();
-      for (ResolvableLibrary library in _librariesInCycle) {
-        for (ResolvableCompilationUnit unit
-            in library.resolvableCompilationUnits) {
-          for (CompilationUnitMember member
-              in unit.compilationUnit.declarations) {
-            if (member is FunctionTypeAlias) {
-              typeAliases.add(new LibraryResolver2_TypeAliasInfo(
-                  library, unit.source, member));
-            }
-          }
-        }
-      }
-      // TODO(brianwilkerson) We need to sort the type aliases such that all
-      // aliases referenced by an alias T are resolved before we resolve T.
-      for (LibraryResolver2_TypeAliasInfo info in typeAliases) {
-        TypeResolverVisitor visitor = new TypeResolverVisitor.con4(
-            info._library, info._source, _typeProvider);
-        info._typeAlias.accept(visitor);
-      }
-    });
   }
 
   /**
@@ -10994,10 +10928,12 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
     //
-    // Resolve the metadata in the library scope.
+    // Resolve the metadata in the library scope
+    // and associate the annotations with the element.
     //
     if (node.metadata != null) {
       node.metadata.accept(this);
+      ElementResolver.setMetadata(node.element, node);
     }
     //
     // There is nothing else to do because everything else was resolved by the
@@ -14040,11 +13976,8 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
     FunctionTypeAliasElementImpl element =
         node.element as FunctionTypeAliasElementImpl;
-    if (element.returnType == null) {
-      // Only visit function type aliases once.
-      super.visitFunctionTypeAlias(node);
-      element.returnType = _computeReturnType(node.returnType);
-    }
+    super.visitFunctionTypeAlias(node);
+    element.returnType = _computeReturnType(node.returnType);
     return null;
   }
 
@@ -14921,6 +14854,114 @@ class TypeResolverVisitor extends ScopedVisitor {
       return identical(parent.type, node);
     }
     return false;
+  }
+}
+
+/**
+ * The interface `TypeSystem` defines the behavior of an object representing
+ * the type system.  This provides a common location to put methods that act on
+ * types but may need access to more global data structures, and it paves the
+ * way for a possible future where we may wish to make the type system
+ * pluggable.
+ */
+abstract class TypeSystem {
+  /**
+   * Return the [TypeProvider] associated with this [TypeSystem].
+   */
+  TypeProvider get typeProvider;
+
+  /**
+   * Compute the least upper bound of two types.
+   */
+  DartType getLeastUpperBound(DartType type1, DartType type2);
+}
+
+/**
+ * Implementation of [TypeSystem] using the rules in the Dart specification.
+ */
+class TypeSystemImpl implements TypeSystem {
+  @override
+  final TypeProvider typeProvider;
+
+  TypeSystemImpl(this.typeProvider);
+
+  @override
+  DartType getLeastUpperBound(DartType type1, DartType type2) {
+    // The least upper bound relation is reflexive.
+    if (identical(type1, type2)) {
+      return type1;
+    }
+    // The least upper bound of dynamic and any type T is dynamic.
+    if (type1.isDynamic) {
+      return type1;
+    }
+    if (type2.isDynamic) {
+      return type2;
+    }
+    // The least upper bound of void and any type T != dynamic is void.
+    if (type1.isVoid) {
+      return type1;
+    }
+    if (type2.isVoid) {
+      return type2;
+    }
+    // The least upper bound of bottom and any type T is T.
+    if (type1.isBottom) {
+      return type2;
+    }
+    if (type2.isBottom) {
+      return type1;
+    }
+    // Let U be a type variable with upper bound B.  The least upper bound of U
+    // and a type T is the least upper bound of B and T.
+    while (type1 is TypeParameterType) {
+      // TODO(paulberry): is this correct in the complex of F-bounded
+      // polymorphism?
+      DartType bound = (type1 as TypeParameterType).element.bound;
+      if (bound == null) {
+        bound = typeProvider.objectType;
+      }
+      type1 = bound;
+    }
+    while (type2 is TypeParameterType) {
+      // TODO(paulberry): is this correct in the context of F-bounded
+      // polymorphism?
+      DartType bound = (type2 as TypeParameterType).element.bound;
+      if (bound == null) {
+        bound = typeProvider.objectType;
+      }
+      type2 = bound;
+    }
+    // The least upper bound of a function type and an interface type T is the
+    // least upper bound of Function and T.
+    if (type1 is FunctionType && type2 is InterfaceType) {
+      type1 = typeProvider.functionType;
+    }
+    if (type2 is FunctionType && type1 is InterfaceType) {
+      type2 = typeProvider.functionType;
+    }
+
+    // At this point type1 and type2 should both either be interface types or
+    // function types.
+    if (type1 is InterfaceType && type2 is InterfaceType) {
+      InterfaceType result =
+          InterfaceTypeImpl.computeLeastUpperBound(type1, type2);
+      if (result == null) {
+        return typeProvider.dynamicType;
+      }
+      return result;
+    } else if (type1 is FunctionType && type2 is FunctionType) {
+      FunctionType result =
+          FunctionTypeImpl.computeLeastUpperBound(type1, type2);
+      if (result == null) {
+        return typeProvider.functionType;
+      }
+      return result;
+    } else {
+      // Should never happen.  As a defensive measure, return the dynamic type.
+      assert(false);
+      return typeProvider.dynamicType;
+    }
   }
 }
 

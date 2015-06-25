@@ -165,6 +165,7 @@ class _Serializer {
   }
 
   serializeDartObject(x) {
+    if (!isDartObject(x)) unsupported(x);
     var classExtractor = JS_EMBEDDED_GLOBAL('', CLASS_ID_EXTRACTOR);
     var fieldsExtractor = JS_EMBEDDED_GLOBAL('', CLASS_FIELDS_EXTRACTOR);
     String classId = JS('String', '#(#)', classExtractor, x);

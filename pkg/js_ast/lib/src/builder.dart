@@ -329,6 +329,37 @@ class JsBuilder {
   /// [escapedString].
   LiteralString string(String value) => new LiteralString('"$value"');
 
+  /// Creates an instance of [LiteralString] from [value].
+  ///
+  /// Does not add quotes or do any escaping.
+  LiteralString stringPart(String value) => new LiteralString(value);
+
+  StringConcatenation concatenateStrings(Iterable<Literal> parts,
+                                         {addQuotes: false}) {
+    List<Literal> _parts;
+    if (addQuotes) {
+      Literal quote = stringPart('"');
+      _parts = <Literal>[quote]
+          ..addAll(parts)
+          ..add(quote);
+    } else {
+      _parts = new List.from(parts, growable: false);
+    }
+    return new StringConcatenation(_parts);
+  }
+
+  Iterable<Literal> joinLiterals(Iterable<Literal> list, Literal separator) {
+    return new _InterleaveIterable(list, separator);
+  }
+
+  LiteralString quoteName(Name name, {allowNull: false}) {
+    if (name == null) {
+      assert(allowNull);
+      return new LiteralString('""');
+    }
+    return new LiteralStringFromName(name);
+  }
+
   LiteralNumber number(num value) => new LiteralNumber('$value');
 
   LiteralBool boolean(bool value) => new LiteralBool(value);
@@ -342,18 +373,30 @@ class JsBuilder {
   Comment comment(String text) => new Comment(text);
 
   Call propertyCall(Expression receiver,
-                      String fieldName,
-                      List<Expression> arguments) {
-    return new Call(new PropertyAccess.field(receiver, fieldName), arguments);
+                    Expression fieldName,
+                    List<Expression> arguments) {
+    return new Call(new PropertyAccess(receiver, fieldName), arguments);
   }
 }
 
 LiteralString string(String value) => js.string(value);
+LiteralString quoteName(Name name, {allowNull: false}) {
+  return js.quoteName(name, allowNull: allowNull);
+}
+LiteralString stringPart(String value) => js.stringPart(value);
+Iterable<Literal> joinLiterals(Iterable<Literal> list, Literal separator) {
+  return js.joinLiterals(list, separator);
+}
+StringConcatenation concatenateStrings(Iterable<Literal> parts,
+                                       {addQuotes: false}) {
+  return js.concatenateStrings(parts, addQuotes: addQuotes);
+}
+
 LiteralNumber number(num value) => js.number(value);
 ArrayInitializer numArray(Iterable<int> list) => js.numArray(list);
 ArrayInitializer stringArray(Iterable<String> list) => js.stringArray(list);
 Call propertyCall(Expression receiver,
-                  String fieldName,
+                  Expression fieldName,
                   List<Expression> arguments) {
   return js.propertyCall(receiver, fieldName, arguments);
 }
@@ -772,7 +815,6 @@ class MiniJsParser {
   }
 
   Expression parseFunctionExpression() {
-    String last = lastToken;
     if (lastCategory == ALPHA || lastCategory == HASH) {
       Declaration name = parseVariableDeclaration();
       return new NamedFunction(name, parseFun());
@@ -1272,7 +1314,6 @@ class MiniJsParser {
   Statement parseTry() {
     expectCategory(LBRACE);
     Block body = parseBlock();
-    String token = lastToken;
     Catch catchPart = null;
     if (acceptString('catch')) catchPart = parseCatch();
     Block finallyPart = null;
@@ -1346,5 +1387,42 @@ class MiniJsParser {
     expectCategory(LBRACE);
     Block body = parseBlock();
     return new Catch(errorName, body);
+  }
+}
+
+class _InterleaveIterator implements Iterator<Node> {
+  Iterator<Node> source;
+  Node separator;
+  bool isNextSeparator = false;
+  bool isInitialized = false;
+
+  _InterleaveIterator(this.source, this.separator);
+
+  bool moveNext() {
+    if (!isInitialized) {
+      isInitialized = true;
+      return source.moveNext();
+    } else if (isNextSeparator) {
+      isNextSeparator = false;
+      return true;
+    } else {
+      return isNextSeparator = source.moveNext();
+    }
+  }
+
+  Node get current {
+    if (isNextSeparator) return separator;
+    return source.current;
+  }
+}
+
+class _InterleaveIterable extends IterableBase {
+  Iterable<Node> source;
+  Node separator;
+
+  _InterleaveIterable(this.source, this.separator);
+
+  Iterator<Node> get iterator {
+    return new _InterleaveIterator(source.iterator, separator);
   }
 }

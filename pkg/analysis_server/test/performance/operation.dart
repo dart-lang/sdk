@@ -1,3 +1,7 @@
+// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 library server.operation;
 
 import 'dart:async';
@@ -6,18 +10,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:logging/logging.dart';
 
 import 'driver.dart';
-
-class InfoOperation extends Operation {
-  final String message;
-
-  InfoOperation(this.message);
-
-  @override
-  Future perform(Driver driver) {
-    driver.logger.log(Level.INFO, message);
-    return null;
-  }
-}
+import 'input_converter.dart';
 
 /**
  * An [Operation] represents an action such as sending a request to the server.
@@ -30,19 +23,29 @@ abstract class Operation {
  * A [RequestOperation] sends a [JSON] request to the server.
  */
 class RequestOperation extends Operation {
+  final CommonInputConverter converter;
   final Map<String, dynamic> json;
 
-  RequestOperation(this.json);
+  RequestOperation(this.converter, this.json);
 
   @override
   Future perform(Driver driver) {
+    Stopwatch stopwatch = new Stopwatch();
     String method = json['method'];
     driver.logger.log(Level.FINE, 'Sending request: $method\n  $json');
+    stopwatch.start();
+    void recordResponse(bool success, response) {
+      stopwatch.stop();
+      Duration elapsed = stopwatch.elapsed;
+      driver.results.record(method, elapsed, success: success);
+      driver.logger.log(
+          Level.FINE, 'Response received: $method : $elapsed\n  $response');
+    }
     driver.send(method, json['params']).then((response) {
-      driver.logger.log(Level.FINE, 'Response received: $method : $response');
+      recordResponse(true, response);
     }).catchError((e, s) {
-      driver.logger.log(Level.WARNING, 'Request failed: $method\n  $e\n$s');
-      throw 'Send request failed: $e';
+      recordResponse(false, e);
+      converter.recordErrorResponse(json, e);
     });
     return null;
   }

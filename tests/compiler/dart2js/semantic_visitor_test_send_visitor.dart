@@ -298,7 +298,21 @@ class SemanticSendTestVisitor extends SemanticTestVisitor {
       arg) {
     visits.add(new Visit(VisitKind.VISIT_LOCAL_FUNCTION_INVOKE,
         element: function, arguments: arguments, selector: callStructure));
-    apply(arguments, arg);
+    super.visitLocalFunctionInvoke(
+        node, function, arguments, callStructure, arg);
+  }
+
+  @override
+  visitLocalFunctionIncompatibleInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      arg) {
+    visits.add(new Visit(VisitKind.VISIT_LOCAL_FUNCTION_INCOMPATIBLE_INVOKE,
+        element: function, arguments: arguments, selector: callStructure));
+    super.visitLocalFunctionInvoke(
+        node, function, arguments, callStructure, arg);
   }
 
   @override

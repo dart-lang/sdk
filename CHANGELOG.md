@@ -1,33 +1,71 @@
+## 1.12.0
+
+### Core library changes
+
+* `dart:html`
+  * `NodeTreeSanitizer` added the `const trusted` field. It can be used
+    instead of defining a `NullTreeSanitizer` class when calling
+    `setInnerHtml` or other methods that create DOM from text. It is
+    also more efficient, skipping the creation of a `DocumentFragment`.
+
 ## 1.11.0
 
 ### Core library changes
 
-* In `dart:html`, `appendHtml` and `insertAdjacentHtml` now take `nodeValidator`
-  and `treeSanitizer` parameters, and the inputs are consistently
-  sanitized. See [45818 announcement]
-  [45818 announcement](https://groups.google.com/a/dartlang.org/forum/#!topic/announce/GVO7EAcPi6A)
-* List iterators may not throw ConcurrentModificationError as eagerly in
-  release mode. In checked mode, the modification check is still as eager
-  as possible.
-  [r45198](https://code.google.com/p/dart/source/detail?r=45198)
 * `dart:core`
-  * Add `unmodifiable` constructor to `List` -
+  * `Iterable` added an `empty` constructor.
+    [dcf0286](https://github.com/dart-lang/sdk/commit/dcf0286f5385187a68ce9e66318d3bf19abf454b)
+  * `List` added an `unmodifiable` constructor.
     [r45334](https://code.google.com/p/dart/source/detail?r=45334)
-  * Add `unmodifiable` constructor to `Map` -
+  * `Map` added an `unmodifiable` constructor.
     [r45733](https://code.google.com/p/dart/source/detail?r=45733)
-  * Add `empty` constructor to `Iterable` -
-    [dcf0286f](https://github.com/dart-lang/sdk/commit/dcf0286f5385187a68ce9e66318d3bf19abf454b)
-* `dart:isolate`:
-  * Make the priority parameter of `Isolate.ping` and `Isolate.kill` methods
-    a named parameter named `priority`.
-  * Remove the `Isolate.AS_EVENT` priority.
-  * Add extra `response` parameter to `Isolate.ping` and
-    `Isolate.addOnExitListener` -
-    [r45092](https://code.google.com/p/dart/source/detail?r=45092)
+  * `int` added a `gcd` method.
+    [a192ef4](https://github.com/dart-lang/sdk/commit/a192ef4acb95fad1aad1887f59eed071eb5e8201)
+  * `int` added a `modInverse` method.
+    [f6f338c](https://github.com/dart-lang/sdk/commit/f6f338ce67eb8801b350417baacf6d3681b26002)
+  * `StackTrace` added a `fromString` constructor.
+    [68dd6f6](https://github.com/dart-lang/sdk/commit/68dd6f6338e63d0465041d662e778369c02c2ce6)
+  * `Uri` added a `directory` constructor.
+    [d8dbb4a](https://github.com/dart-lang/sdk/commit/d8dbb4a60f5e8a7f874c2a4fbf59eaf1a39f4776)
+  * List iterators may not throw `ConcurrentModificationError` as eagerly in
+    release mode. In checked mode, the modification check is still as eager
+    as possible.
+    [r45198](https://code.google.com/p/dart/source/detail?r=45198)
+
+* `dart:developer` - **NEW**
+  * Replaces the deprecated `dart:profiler` library.
+  * Adds new functions `debugger` and `inspect`.
+    [6e42aec](https://github.com/dart-lang/sdk/blob/6e42aec4f64cf356dde7bad9426e07e0ea5b58d5/sdk/lib/developer/developer.dart)
+
+* `dart:io`
+  * `FileSystemEntity` added a `uri` property.
+    [8cf32dc](https://github.com/dart-lang/sdk/commit/8cf32dc1a1664b516e57f804524e46e55fae88b2)
+  * `Platform` added a `static resolvedExecutable` property.
+    [c05c8c6](https://github.com/dart-lang/sdk/commit/c05c8c66069db91cc2fd48691dfc406c818d411d)
+
+* `dart:html`
+  * `Element` methods, `appendHtml` and `insertAdjacentHtml` now take `nodeValidator`
+    and `treeSanitizer` parameters, and the inputs are consistently
+    sanitized.
+    [r45818 announcement](https://groups.google.com/a/dartlang.org/forum/#!topic/announce/GVO7EAcPi6A)
+
+* `dart:isolate`
+  * **BREAKING** The positional `priority` parameter of `Isolate.ping` and `Isolate.kill` is
+    now a named parameter named `priority`.
+  * **BREAKING** Removed the `Isolate.AS_EVENT` priority.
+  * `Isolate` methods `ping` and `addOnExitListener` now have a named parameter
+    `response`.
+    [r45092](https://github.com/dart-lang/sdk/commit/1b208bd)
   * Remove the experimental state of the API.
+
+* `dart:profiler` - **DEPRECATED**
+  * This library will be removed in 1.12. Use `dart:developer` instead.
 
 ### Tool changes
 
+* This is the first release that does not include the Eclipse-based
+  **Dart Editor**.
+  See [dartlang.org/tools](https://www.dartlang.org/tools/]) for alternatives.
 * This is the last release that ships the (unsupported)
   dart2dart (aka `dart2js --output-type=dart`) utility as part
   of dart2js

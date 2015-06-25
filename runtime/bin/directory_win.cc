@@ -8,6 +8,7 @@
 #include "bin/directory.h"
 #include "bin/file.h"
 #include "bin/utils.h"
+#include "bin/utils_win.h"
 
 #include <errno.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
@@ -26,7 +27,7 @@ PathBuffer::PathBuffer() : length_(0) {
 }
 
 char* PathBuffer::AsString() const {
-  return StringUtils::WideToUtf8(AsStringW());
+  return StringUtilsWin::WideToUtf8(AsStringW());
 }
 
 wchar_t* PathBuffer::AsStringW() const {
@@ -34,7 +35,7 @@ wchar_t* PathBuffer::AsStringW() const {
 }
 
 bool PathBuffer::Add(const char* name) {
-  const wchar_t* wide_name = StringUtils::Utf8ToWide(name);
+  const wchar_t* wide_name = StringUtilsWin::Utf8ToWide(name);
   bool success = AddW(wide_name);
   free(const_cast<wchar_t*>(wide_name));
   return success;
@@ -352,7 +353,7 @@ static Directory::ExistsResult ExistsHelper(const wchar_t* dir_name) {
 
 
 Directory::ExistsResult Directory::Exists(const char* dir_name) {
-  const wchar_t* system_name = StringUtils::Utf8ToWide(dir_name);
+  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(dir_name);
   Directory::ExistsResult result = ExistsHelper(system_name);
   free(const_cast<wchar_t*>(system_name));
   return result;
@@ -364,14 +365,14 @@ char* Directory::Current() {
   if (length == 0) return NULL;
   wchar_t* current = new wchar_t[length + 1];
   GetCurrentDirectoryW(length + 1, current);
-  char* result = StringUtils::WideToUtf8(current);
+  char* result = StringUtilsWin::WideToUtf8(current);
   delete[] current;
   return result;
 }
 
 
 bool Directory::SetCurrent(const char* path) {
-  const wchar_t* system_path = StringUtils::Utf8ToWide(path);
+  const wchar_t* system_path = StringUtilsWin::Utf8ToWide(path);
   bool result = SetCurrentDirectoryW(system_path) != 0;
   free(const_cast<wchar_t*>(system_path));
   return result;
@@ -379,7 +380,7 @@ bool Directory::SetCurrent(const char* path) {
 
 
 bool Directory::Create(const char* dir_name) {
-  const wchar_t* system_name = StringUtils::Utf8ToWide(dir_name);
+  const wchar_t* system_name = StringUtilsWin::Utf8ToWide(dir_name);
   int create_status = CreateDirectoryW(system_name, NULL);
   // If the directory already existed, treat it as a success.
   if (create_status == 0 &&
@@ -408,7 +409,7 @@ char* Directory::CreateTemp(const char* prefix) {
   // descriptor inherited from its parent directory.
   // The return value must be freed by the caller.
   PathBuffer path;
-  const wchar_t* system_prefix = StringUtils::Utf8ToWide(prefix);
+  const wchar_t* system_prefix = StringUtilsWin::Utf8ToWide(prefix);
   path.AddW(system_prefix);
   free(const_cast<wchar_t*>(system_prefix));
 
@@ -441,7 +442,7 @@ char* Directory::CreateTemp(const char* prefix) {
 
 bool Directory::Delete(const char* dir_name, bool recursive) {
   bool result = false;
-  const wchar_t* system_dir_name = StringUtils::Utf8ToWide(dir_name);
+  const wchar_t* system_dir_name = StringUtilsWin::Utf8ToWide(dir_name);
   if (!recursive) {
     if (File::GetType(dir_name, true) == File::kIsDirectory) {
       result = (RemoveDirectoryW(system_dir_name) != 0);
@@ -460,8 +461,8 @@ bool Directory::Delete(const char* dir_name, bool recursive) {
 
 
 bool Directory::Rename(const char* path, const char* new_path) {
-  const wchar_t* system_path = StringUtils::Utf8ToWide(path);
-  const wchar_t* system_new_path = StringUtils::Utf8ToWide(new_path);
+  const wchar_t* system_path = StringUtilsWin::Utf8ToWide(path);
+  const wchar_t* system_new_path = StringUtilsWin::Utf8ToWide(new_path);
   ExistsResult exists = ExistsHelper(system_path);
   if (exists != EXISTS) return false;
   ExistsResult new_exists = ExistsHelper(system_new_path);

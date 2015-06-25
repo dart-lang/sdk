@@ -5,72 +5,157 @@
 #include "vm/store_buffer.h"
 
 #include "platform/assert.h"
+#include "vm/lockers.h"
 #include "vm/runtime_entry.h"
 
 namespace dart {
 
-DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, 1, Isolate* isolate) {
-  StoreBuffer* buffer = isolate->store_buffer();
-  buffer->Expand(true);
+DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, 1, Thread* thread) {
+  thread->StoreBufferBlockProcess(true);
 }
 END_LEAF_RUNTIME_ENTRY
 
 
+StoreBuffer::List* StoreBuffer::global_empty_ = NULL;
+Mutex* StoreBuffer::global_mutex_ = NULL;
+
+
+void StoreBuffer::InitOnce() {
+  global_empty_ = new List();
+  global_mutex_ = new Mutex();
+}
+
+
+StoreBuffer::StoreBuffer() : mutex_(new Mutex()) {
+}
+
+
 StoreBuffer::~StoreBuffer() {
-  StoreBufferBlock* block = blocks_;
-  blocks_ = NULL;
-  while (block != NULL) {
-    StoreBufferBlock* next = block->next();
-    delete block;
-    block = next;
-  }
+  Reset();
+  delete mutex_;
 }
 
 
 void StoreBuffer::Reset() {
-  StoreBufferBlock* block = blocks_->next_;
-  while (block != NULL) {
-    StoreBufferBlock* next = block->next_;
-    delete block;
-    block = next;
-  }
-  blocks_->next_ = NULL;
-  blocks_->top_ = 0;
-  full_count_ = 0;
-}
-
-
-bool StoreBuffer::Contains(RawObject* raw) {
-  StoreBufferBlock* block = blocks_;
-  while (block != NULL) {
-    intptr_t count = block->Count();
-    for (intptr_t i = 0; i < count; i++) {
-      if (block->At(i) == raw) {
-        return true;
-      }
+  MutexLocker local_mutex_locker(mutex_);
+  {
+    // Empty all blocks and move them to the global cache.
+    MutexLocker global_mutex_locker(global_mutex_);
+    while (!full_.IsEmpty()) {
+      StoreBufferBlock* block = full_.Pop();
+      block->Reset();
+      global_empty_->Push(block);
     }
-    block = block->next_;
-  }
-  return false;
-}
-
-
-void StoreBuffer::Expand(bool check) {
-  ASSERT(blocks_->Count() == StoreBufferBlock::kSize);
-  blocks_ = new StoreBufferBlock(blocks_);
-  full_count_++;
-  if (check) {
-    CheckThreshold();
+    while (!partial_.IsEmpty()) {
+      StoreBufferBlock* block = partial_.Pop();
+      block->Reset();
+      global_empty_->Push(block);
+    }
+    TrimGlobalEmpty();
   }
 }
 
 
-void StoreBuffer::CheckThreshold() {
-  // Schedule an interrupt if we have run over the max number of
-  // StoreBufferBlocks.
-  // TODO(iposva): Fix magic number.
-  if (full_count_ > 100) {
-    Isolate::Current()->ScheduleInterrupts(Isolate::kStoreBufferInterrupt);
+StoreBufferBlock* StoreBuffer::Blocks() {
+  MutexLocker ml(mutex_);
+  while (!partial_.IsEmpty()) {
+    full_.Push(partial_.Pop());
+  }
+  return full_.PopAll();
+}
+
+
+void StoreBuffer::PushBlock(StoreBufferBlock* block, bool check_threshold) {
+  ASSERT(block->next() == NULL);  // Should be just a single block.
+  if (block->IsFull()) {
+    MutexLocker ml(mutex_);
+    full_.Push(block);
+  } else if (block->IsEmpty()) {
+    MutexLocker ml(global_mutex_);
+    global_empty_->Push(block);
+    TrimGlobalEmpty();
+  } else {
+    MutexLocker ml(mutex_);
+    partial_.Push(block);
+  }
+  if (check_threshold) {
+    MutexLocker ml(mutex_);
+    CheckThresholdNonEmpty();
+  }
+}
+
+
+StoreBufferBlock* StoreBuffer::PopBlock() {
+  {
+    MutexLocker ml(mutex_);
+    if (!partial_.IsEmpty()) {
+      return partial_.Pop();
+    }
+  }
+  return PopEmptyBlock();
+}
+
+
+StoreBufferBlock* StoreBuffer::PopEmptyBlock() {
+  {
+    MutexLocker ml(global_mutex_);
+    if (!global_empty_->IsEmpty()) {
+      global_empty_->Pop();
+    }
+  }
+  return new StoreBufferBlock();
+}
+
+
+StoreBuffer::List::~List() {
+  while (!IsEmpty()) {
+    delete Pop();
+  }
+}
+
+
+StoreBufferBlock* StoreBuffer::List::Pop() {
+  StoreBufferBlock* result = head_;
+  head_ = head_->next_;
+  --length_;
+  result->next_ = NULL;
+  return result;
+}
+
+
+StoreBufferBlock* StoreBuffer::List::PopAll() {
+  StoreBufferBlock* result = head_;
+  head_ = NULL;
+  length_ = 0;
+  return result;
+}
+
+
+void StoreBuffer::List::Push(StoreBufferBlock* block) {
+  ASSERT(block->next_ == NULL);
+  block->next_ = head_;
+  head_ = block;
+  ++length_;
+}
+
+
+void StoreBuffer::CheckThresholdNonEmpty() {
+  DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
+  if (full_.length() + partial_.length() > kMaxNonEmpty) {
+    Isolate* isolate = Isolate::Current();
+    // Sanity check: it makes no sense to schedule the GC in another isolate.
+    // (If Isolate ever gets multiple store buffers, we should avoid this
+    // coupling by passing in an explicit callback+parameter at construction.)
+    ASSERT(isolate->store_buffer() == this);
+    isolate->ScheduleInterrupts(Isolate::kStoreBufferInterrupt);
+  }
+}
+
+
+void StoreBuffer::TrimGlobalEmpty() {
+  DEBUG_ASSERT(global_mutex_->IsOwnedByCurrentThread());
+  while (global_empty_->length() > kMaxGlobalEmpty) {
+    delete global_empty_->Pop();
   }
 }
 

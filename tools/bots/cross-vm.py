@@ -16,7 +16,7 @@ sys.path.append(os.path.join(SCRIPT_DIR, '..'))
 import utils
 
 CROSS_VM = r'cross-(arm)-vm-linux-(release)'
-TARGET_VM = r'target-(arm)-vm-linux-(release)'
+TARGET_VM = r'target-(arm)-vm-linux-(([0-9]+)-([0-9]+))?(release)'
 GSUTIL = utils.GetBuildbotGSUtilPath()
 
 def run(args):
@@ -65,12 +65,15 @@ def cross_compiling_builder(arch, mode):
       if os.path.exists(path):
         os.remove(path)
 
-def target_builder(arch, mode):
+def target_builder(arch, mode, total_shards, shard_index):
   test_py = os.path.join('tools', 'test.py')
   test_args = [sys.executable, test_py, '--progress=line', '--report',
                '--time', '--compiler=none', '--runtime=vm', '--write-debug-log',
                '--write-test-outcome-log', '--mode=' + mode, '--arch=' + arch,
                '--exclude-suite=pkg']
+  if total_shards and shard_index:
+    test_args.append('--shards=%s' % total_shards)
+    test_args.append('--shard=%s' % shard_index)
 
   revision = os.environ['BUILDBOT_GOT_REVISION']
   tarball = tarball_name(arch, mode, revision)
@@ -106,8 +109,10 @@ def main():
     cross_compiling_builder(arch, mode)
   elif target_vm_pattern_match:
     arch = target_vm_pattern_match.group(1)
-    mode = target_vm_pattern_match.group(2)
-    target_builder(arch, mode)
+    mode = target_vm_pattern_match.group(5)
+    shard_index = target_vm_pattern_match.group(3)
+    total_shards = target_vm_pattern_match.group(4)
+    target_builder(arch, mode, total_shards, shard_index)
   else:
     raise Exception("Unknown builder name %s" % name)
 

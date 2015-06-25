@@ -28,9 +28,9 @@
 # ........utils_wrapper.dart.snapshot
 # ....include/
 # ......dart_api.h
-# ......dart_debugger_api.h
 # ......dart_mirrors_api.h
 # ......dart_native_api.h
+# ......dart_tools_api.h
 # ....lib/
 # ......_internal/
 # ......async/
@@ -182,12 +182,12 @@ def Main():
   os.makedirs(INCLUDE)
   copyfile(join(HOME, 'runtime', 'include', 'dart_api.h'),
            join(INCLUDE, 'dart_api.h'))
-  copyfile(join(HOME, 'runtime', 'include', 'dart_debugger_api.h'),
-           join(INCLUDE, 'dart_debugger_api.h'))
   copyfile(join(HOME, 'runtime', 'include', 'dart_mirrors_api.h'),
            join(INCLUDE, 'dart_mirrors_api.h'))
   copyfile(join(HOME, 'runtime', 'include', 'dart_native_api.h'),
            join(INCLUDE, 'dart_native_api.h'))
+  copyfile(join(HOME, 'runtime', 'include', 'dart_tools_api.h'),
+           join(INCLUDE, 'dart_tools_api.h'))
 
   #
   # Create and populate sdk/lib.
@@ -229,7 +229,7 @@ def Main():
 
   RESOURCE = join(SDK_tmp, 'lib', '_internal', 'pub', 'asset')
   os.makedirs(os.path.dirname(RESOURCE))
-  copytree(join(HOME, 'third_party', 'pkg_tested', 'pub', 'lib', 'src',
+  copytree(join(HOME, 'third_party', 'pkg', 'pub', 'lib', 'src',
                 'asset'),
            join(RESOURCE),
            ignore=ignore_patterns('.svn'))
@@ -251,7 +251,7 @@ def Main():
   versionFile.close()
 
   # Write the 'revision' file
-  revision = utils.GetSVNRevision()
+  revision = utils.GetGitRevision()
 
   if revision is not None:
     with open(os.path.join(SDK_tmp, 'revision'), 'w') as f:

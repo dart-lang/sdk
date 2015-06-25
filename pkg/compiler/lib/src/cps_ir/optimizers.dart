@@ -6,8 +6,7 @@ library dart2js.cps_ir.optimizers;
 
 import 'cps_ir_nodes.dart';
 
-export 'type_propagation.dart' show TypePropagator, TypeSystem,
-                                    UnitTypeSystem, TypeMaskSystem;
+export 'type_propagation.dart' show TypePropagator;
 export 'redundant_phi.dart' show RedundantPhiEliminator;
 export 'shrinking_reductions.dart' show ShrinkingReducer, ParentVisitor;
 

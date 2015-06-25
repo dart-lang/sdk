@@ -258,6 +258,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
                                        Representation rep, intptr_t cid);
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);
 
+  void InstanceCallNoopt(InstanceCallInstr* instr);
+
   Thread* thread() const { return flow_graph_->thread(); }
   Isolate* isolate() const { return flow_graph_->isolate(); }
   Zone* zone() const { return flow_graph_->zone(); }

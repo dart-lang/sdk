@@ -95,6 +95,22 @@
                 </any-service-ref>
               </div>
             </div>
+            <div class="memberItem">
+              <div class="memberName">closure breakpoint</div>
+              <div class="memberValue">
+                <template if="{{ instance.activationBreakpoint == null }}">
+                  <action-link callback="{{ setBreakOnActivation }}"
+                               label="break on activation">
+                  </action-link>
+                </template>
+                <template if="{{ instance.activationBreakpoint != null }}">
+                  {{ instance.activationBreakpoint.toString() }}
+                  <action-link callback="{{ clearBreakOnActivation }}"
+                               label="remove">
+                  </action-link>
+                </template>
+              </div>
+            </div>
           </template>
 
           <template if="{{ instance.isWeakProperty }}">
@@ -199,6 +215,25 @@
           </curly-block><br><br>
         </template>
 
+        <template if="{{ instance.typedElements.isNotEmpty }}">
+          elements ({{ instance.typedElements.length }})
+          <curly-block expand="{{ instance.typedElements.length <= 100 }}">
+            <div class="memberList">
+              <template repeat="{{ index in instance.typedElements.asMap().keys }}">
+                <div class="memberItem">
+                  <div class="memberName">[{{ index }}]</div>
+                  <div class="memberValue">{{ instance.typedElements[index].toString() }}</div>
+                </div>
+              </template>
+            </div>
+          </curly-block><br><br>
+        </template>
+      </div>
+
+      <div class="content-centered-big">
+        <template if="{{ instance.isClosure }}">
+          <source-inset location="{{ instance.function.location }}"></source-inset>
+        </template>
       </div>
 
     </template>

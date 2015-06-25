@@ -20,9 +20,8 @@ main(x) {
 """,
 r"""
 function(x) {
-  var _box_0 = {}, a;
+  var _box_0 = {}, a = new V.main_a(_box_0);
   _box_0._captured_x_0 = x;
-  a = new V.main_a(_box_0);
   _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, "1");
   P.print(a.call$0());
   return null;
@@ -52,10 +51,9 @@ main() {
 """,
 r"""
 function() {
-  var _box_0 = {}, a, x;
+  var _box_0 = {}, a = new V.main_closure(_box_0);
   _box_0._captured_x_0 = 122;
-  a = new V.main_closure(_box_0);
-  _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, 1);
+  _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
   P.print(a.call$0());
   return null;
 }"""),
@@ -73,10 +71,9 @@ main() {
 """,
 r"""
 function() {
-  var _box_0 = {}, a, x;
+  var _box_0 = {}, a = new V.main_closure(_box_0);
   _box_0._captured_x_0 = 122;
-  a = new V.main_closure(_box_0);
-  _box_0._captured_x_0 = J.getInterceptor$ns(x = _box_0._captured_x_0).$add(x, 1);
+  _box_0._captured_x_0 = _box_0._captured_x_0 + 1;
   P.print(a.call$0().call$0());
   return null;
 }"""),
@@ -93,9 +90,9 @@ main() {
 r"""
 function() {
   var a = null, i = 0;
-  while (J.getInterceptor$n(i).$lt(i, 10)) {
+  while (i < 10) {
     a = new V.main_closure(i);
-    i = J.getInterceptor$ns(i).$add(i, 1);
+    i = i + 1;
   }
   P.print(a.call$0());
   return null;

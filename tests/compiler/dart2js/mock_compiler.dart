@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/js_backend/js_backend.dart'
     show JavaScriptBackend;
@@ -360,6 +361,12 @@ class CollectingTreeElements extends TreeElementMapping {
   void remove(Node node) {
     map.remove(node);
   }
+
+  List<ConstantExpression> get constants {
+    List<ConstantExpression> list = <ConstantExpression>[];
+    forEachConstantNode((_, c) => list.add(c));
+    return list;
+  }
 }
 
 // The mock compiler does not split the program in output units.
@@ -382,9 +389,9 @@ api.DiagnosticHandler createHandler(MockCompiler compiler, String text,
       sourceFile = compiler.sourceFiles[uri.toString()];
     }
     if (sourceFile != null && begin != null && end != null) {
-      print(sourceFile.getLocationMessage(message, begin, end));
+      print('${kind}: ${sourceFile.getLocationMessage(message, begin, end)}');
     } else {
-      print(message);
+      print('${kind}: $message');
     }
   };
 }

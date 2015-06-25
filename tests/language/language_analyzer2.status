@@ -28,7 +28,6 @@ external_test/24: Fail
 external_test/25: Fail
 constructor_duplicate_final_test/03: Fail
 reify_typevar_static_test/00: MissingCompileTimeError # Issue 21565
-conditional_method_invocation_test/11: MissingStaticWarning # Issue 23461
 
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
@@ -232,7 +231,6 @@ generic_test: StaticWarning
 getter_declaration_negative_test: CompileTimeError
 getter_no_setter2_test/01: StaticWarning
 getter_no_setter_test/01: StaticWarning
-illegal_invocation_test/01: StaticWarning
 implicit_this_test/02: StaticWarning
 implied_interface_test: StaticWarning
 import_combinators_test: StaticWarning

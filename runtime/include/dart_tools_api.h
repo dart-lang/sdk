@@ -2,11 +2,27 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef INCLUDE_DART_DEBUGGER_API_H_
-#define INCLUDE_DART_DEBUGGER_API_H_
+#ifndef INCLUDE_DART_TOOLS_API_H_
+#define INCLUDE_DART_TOOLS_API_H_
 
 #include "include/dart_api.h"
 
+/** \mainpage Dart Tools Embedding API Reference
+ *
+ * This reference describes the Dart embedding API for tools. Tools include
+ * a debugger, service protocol, and timeline.
+ *
+ * NOTE: The APIs described in this file are unstable and subject to change.
+ *
+ * This reference is generated from the header include/dart_tools_api.h.
+ */
+
+
+ /*
+  * ========
+  * Debugger
+  * ========
+  */
 typedef struct _Dart_Breakpoint* Dart_Breakpoint;
 
 typedef struct _Dart_StackTrace* Dart_StackTrace;
@@ -477,7 +493,7 @@ DART_EXPORT Dart_Handle Dart_GetLocalVariables(
  * Returns origin class of a function.
  *
  * Requires there to be a current isolate.
- * 
+ *
  * \return Returns the class id (a handle to an integer) of the class in
  * which \function is defined. Returns a null handle if \function is defined
  * at the top level. Returns an error object otherwise.
@@ -520,7 +536,7 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameEvaluate(
  * were a static method of that class.
  * If \target is a Library, the expression is evaluated as if it
  * were a top-level function in that library.
- * 
+ *
  * \return A handle to the computed value, or an error object if
  * the compilation of the expression fails, or if the evaluation throws
  * an error.
@@ -721,4 +737,154 @@ DART_EXPORT Dart_Isolate Dart_GetIsolate(Dart_IsolateId isolate_id);
  */
 DART_EXPORT Dart_IsolateId Dart_GetIsolateId(Dart_Isolate isolate);
 
-#endif  // INCLUDE_DART_DEBUGGER_API_H_
+
+/*
+ * =======
+ * Service
+ * =======
+ */
+
+/**
+ * A service request callback function.
+ *
+ * These callbacks, registered by the embedder, are called when the VM receives
+ * a service request it can't handle and the service request command name
+ * matches one of the embedder registered handlers.
+ *
+ * \param method The rpc method name.
+ * \param param_keys Service requests can have key-value pair parameters. The
+ *   keys and values are flattened and stored in arrays.
+ * \param param_values The values associated with the keys.
+ * \param num_params The length of the param_keys and param_values arrays.
+ * \param user_data The user_data pointer registered with this handler.
+ *
+ * \return Returns a C string containing a valid JSON object. The returned
+ * pointer will be freed by the VM by calling free.
+ */
+typedef const char* (*Dart_ServiceRequestCallback)(
+    const char* method,
+    const char** param_keys,
+    const char** param_values,
+    intptr_t num_params,
+    void* user_data);
+
+
+/**
+ * Register a Dart_ServiceRequestCallback to be called to handle
+ * requests for the named rpc on a specific isolate. The callback will
+ * be invoked with the current isolate set to the request target.
+ *
+ * \param method The name of the method that this callback is responsible for.
+ * \param callback The callback to invoke.
+ * \param user_data The user data passed to the callback.
+ *
+ * NOTE: If multiple callbacks with the same name are registered, only
+ * the last callback registered will be remembered.
+ */
+DART_EXPORT void Dart_RegisterIsolateServiceRequestCallback(
+    const char* method,
+    Dart_ServiceRequestCallback callback,
+    void* user_data);
+
+
+/**
+ * Register a Dart_ServiceRequestCallback to be called to handle
+ * requests for the named rpc. The callback will be invoked without a
+ * current isolate.
+ *
+ * \param method The name of the command that this callback is responsible for.
+ * \param callback The callback to invoke.
+ * \param user_data The user data passed to the callback.
+ *
+ * NOTE: If multiple callbacks with the same name are registered, only
+ * the last callback registered will be remembered.
+ */
+DART_EXPORT void Dart_RegisterRootServiceRequestCallback(
+    const char* method,
+    Dart_ServiceRequestCallback callback,
+    void* user_data);
+
+
+/*
+ * ========
+ * Timeline
+ * ========
+ */
+
+/**
+ * Add a duration timeline event to the embedder stream for the current isolate.
+ *
+ * \param label The name of the event.
+ * \param start_micros The start of the duration (in microseconds)
+ * \param end_micros The end of the duration (in microseconds)
+ *
+ * NOTE: On Posix platforms you should use gettimeofday and on Windows platforms
+ * you should use GetSystemTimeAsFileTime to get the time values.
+ */
+DART_EXPORT Dart_Handle Dart_TimelineDuration(const char* label,
+                                              int64_t start_micros,
+                                              int64_t end_micros);
+
+
+/**
+ * Add an instant timeline event to the embedder stream for the current isolate.
+ *
+ * \param label The name of event.
+ *
+ * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
+ * this call uses GetSystemTimeAsFileTime to get the current time.
+ */
+DART_EXPORT Dart_Handle Dart_TimelineInstant(const char* label);
+
+
+/**
+ * Adds an asynchronous begin timeline event to the embedder stream for the
+ * current isolate.
+ *
+ * \param label The name of event.
+ *
+ * \return Returns an asynchronous id that must be passed to
+ * Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd. If the asynchronous
+ * id is less than 0 the event was not added to the timeline and subsequent
+ * calls to Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd will become
+ * no-ops.
+ *
+ * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
+ * this call uses GetSystemTimeAsFileTime to get the current time.
+ */
+DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
+                                                int64_t* async_id);
+
+
+/**
+ * Adds an asynchronous instant timeline event to the embedder stream for the
+ * current isolate.
+ *
+ * \param label The name of event.
+ *
+ * \return Returns an asynchronous id that must be passed to
+ * Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd.
+ *
+ * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
+ * this call uses GetSystemTimeAsFileTime to get the current time.
+ */
+DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
+                                                  int64_t async_id);
+
+
+/**
+ * Adds an asynchronous end timeline event to the embedder stream for the
+ * current isolate.
+ *
+ * \param label The name of event.
+ *
+ * \return Returns an asynchronous id that must be passed to
+ * Dart_TimelineAsyncInstant and Dart_TimelineAsyncEnd.
+ *
+ * NOTE: On Posix platforms this call uses gettimeofday and on Windows platforms
+ * this call uses GetSystemTimeAsFileTime to get the current time.
+ */
+DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
+                                              int64_t async_id);
+
+#endif  // INCLUDE_DART_TOOLS_API_H_

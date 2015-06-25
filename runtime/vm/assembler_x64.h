@@ -397,6 +397,7 @@ class Assembler : public ValueObject {
   void movsxw(Register dst, const Address& src);
   void movw(Register dst, const Address& src);
   void movw(const Address& dst, Register src);
+  void movw(const Address& dst, const Immediate& imm);
 
   void movq(Register dst, const Immediate& imm);
   void movq(Register dst, Register src);
@@ -511,6 +512,9 @@ class Assembler : public ValueObject {
   void xchgq(Register dst, Register src);
 
   void cmpb(const Address& address, const Immediate& imm);
+
+  void cmpw(Register reg, const Address& address);
+  void cmpw(const Address& address, const Immediate& imm);
 
   void cmpl(Register reg, const Immediate& imm);
   void cmpl(Register reg0, Register reg1);
@@ -758,6 +762,10 @@ class Assembler : public ValueObject {
   void LoadImmediate(Register reg, const Immediate& imm, Register pp);
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj, Register pp);
+  void LoadExternalLabel(Register dst,
+                         const ExternalLabel* label,
+                         Patchability patchable,
+                         Register pp);
   void JmpPatchable(const ExternalLabel* label, Register pp);
   void Jmp(const ExternalLabel* label, Register pp);
   void J(Condition condition, const ExternalLabel* label, Register pp);
@@ -902,11 +910,12 @@ class Assembler : public ValueObject {
   const ZoneGrowableArray<intptr_t>& GetPointerOffsets() const {
     return buffer_.pointer_offsets();
   }
-  const GrowableObjectArray& object_pool_data() const {
-    return object_pool_.data();
-  }
 
-  ObjectPool& object_pool() { return object_pool_; }
+  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
+
+  RawObjectPool* MakeObjectPool() {
+    return object_pool_wrapper_.MakeObjectPool();
+  }
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
@@ -957,7 +966,7 @@ class Assembler : public ValueObject {
   //   movq rbp, rsp
   //   pushq immediate(0)
   //   .....
-  void EnterStubFrame(bool load_pp = false);
+  void EnterStubFrame();
   void LeaveStubFrame();
 
   // Instruction pattern from entrypoint is used in dart frame prologues
@@ -1033,8 +1042,7 @@ class Assembler : public ValueObject {
  private:
   AssemblerBuffer buffer_;
 
-  // Objects and jump targets.
-  ObjectPool object_pool_;
+  ObjectPoolWrapper object_pool_wrapper_;
 
   intptr_t prologue_offset_;
 
@@ -1057,10 +1065,6 @@ class Assembler : public ValueObject {
   bool allow_constant_pool_;
 
   intptr_t FindImmediate(int64_t imm);
-  void LoadExternalLabel(Register dst,
-                         const ExternalLabel* label,
-                         Patchability patchable,
-                         Register pp);
   bool CanLoadFromObjectPool(const Object& object);
   void LoadWordFromPoolOffset(Register dst, Register pp, int32_t offset);
 

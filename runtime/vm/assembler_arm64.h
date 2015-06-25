@@ -476,11 +476,11 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
 
-  const GrowableObjectArray& object_pool_data() const {
-    return object_pool_.data();
-  }
+  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
 
-  ObjectPool& object_pool() { return object_pool_; }
+  RawObjectPool* MakeObjectPool() {
+    return object_pool_wrapper_.MakeObjectPool();
+  }
 
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
@@ -1373,7 +1373,7 @@ class Assembler : public ValueObject {
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame(bool load_pp = false);
+  void EnterStubFrame();
   void LeaveStubFrame();
 
   void UpdateAllocationStats(intptr_t cid,
@@ -1418,8 +1418,7 @@ class Assembler : public ValueObject {
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
 
-  // Objects and patchable jump targets.
-  ObjectPool object_pool_;
+  ObjectPoolWrapper object_pool_wrapper_;
 
   int32_t prologue_offset_;
 

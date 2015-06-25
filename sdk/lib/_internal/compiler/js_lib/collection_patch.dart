@@ -9,6 +9,8 @@ import 'dart:_js_helper' show
     JsLinkedHashMap, LinkedHashMapCell, LinkedHashMapKeyIterable,
     LinkedHashMapKeyIterator;
 
+const _USE_ES6_MAPS = const bool.fromEnvironment("dart2js.use.es6.maps");
+
 @patch
 class HashMap<K, V> {
   @patch
@@ -500,7 +502,7 @@ class LinkedHashMap<K, V> {
       } else {
         if (identical(identityHashCode, hashCode) &&
             identical(identical, equals)) {
-          return new _LinkedIdentityHashMap<K, V>();
+          return new _LinkedIdentityHashMap<K, V>.es6();
         }
         if (equals == null) {
           equals = _defaultEquals;
@@ -518,7 +520,7 @@ class LinkedHashMap<K, V> {
   }
 
   @patch
-  factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>;
+  factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>.es6;
 
   // Private factory constructor called by generated code for map literals.
   @NoInline()
@@ -544,8 +546,20 @@ class LinkedHashMap<K, V> {
       fillLiteralMap(keyValuePairs, new JsLinkedHashMap());
 }
 
-// TODO(floitsch): use ES6 Maps when available.
 class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
+  static bool get _supportsEs6Maps {
+    return JS('returns:bool;depends:none;effects:none;throws:never;gvn:true',
+              'typeof Map != "undefined"');
+  }
+
+  factory _LinkedIdentityHashMap.es6() {
+    return (_USE_ES6_MAPS && _LinkedIdentityHashMap._supportsEs6Maps)
+        ? new _Es6LinkedIdentityHashMap<K, V>()
+        : new _LinkedIdentityHashMap<K, V>();
+  }
+
+  _LinkedIdentityHashMap();
+
   int internalComputeHashCode(var key) {
     // We force the hash codes to be unsigned 30-bit integers to avoid
     // issues with problematic keys like '__proto__'. Another option
@@ -561,6 +575,166 @@ class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
       if (identical(cell.hashMapCellKey, key)) return i;
     }
     return -1;
+  }
+}
+
+class _Es6LinkedIdentityHashMap<K, V>
+    extends _LinkedIdentityHashMap<K, V> implements InternalMap {
+  final _map;
+  int _modifications = 0;
+
+  _Es6LinkedIdentityHashMap() : _map = JS('var', 'new Map()');
+
+  int get length => JS('int', '#.size', _map);
+  bool get isEmpty => length == 0;
+  bool get isNotEmpty => !isEmpty;
+
+  Iterable<K> get keys => new _Es6MapIterable<K>(this, true);
+
+  Iterable<V> get values =>
+      new _Es6MapIterable<V>(this, false);
+
+  bool containsKey(Object key) {
+    return JS('bool', '#.has(#)', _map, key);
+  }
+
+  bool containsValue(Object value) {
+    return values.any((each) => each == value);
+  }
+
+  void addAll(Map<K, V> other) {
+    other.forEach((K key, V value) {
+      this[key] = value;
+    });
+  }
+
+  V operator[](Object key) {
+    return JS('var', '#.get(#)', _map, key);
+  }
+
+  void operator[]=(K key, V value) {
+    JS('var', '#.set(#, #)', _map, key, value);
+    _modified();
+  }
+
+  V putIfAbsent(K key, V ifAbsent()) {
+    if (containsKey(key)) return this[key];
+    V value = ifAbsent();
+    this[key] = value;
+    return value;
+  }
+
+  V remove(Object key) {
+    V value = this[key];
+    JS('bool', '#.delete(#)', _map, key);
+    _modified();
+    return value;
+  }
+
+  void clear() {
+    JS('void', '#.clear()', _map);
+    _modified();
+  }
+
+  void forEach(void action(K key, V value)) {
+    var jsEntries = JS('var', '#.entries()', _map);
+    int modifications = _modifications;
+    while (true) {
+      var next = JS('var', '#.next()', jsEntries);
+      bool done = JS('bool', '#.done', next);
+      if (done) break;
+      var entry = JS('var', '#.value', next);
+      var key = JS('var', '#[0]', entry);
+      var value = JS('var', '#[1]', entry);
+      action(key, value);
+      if (modifications != _modifications) {
+        throw new ConcurrentModificationError(this);
+      }
+    }
+  }
+
+  void _modified() {
+    // Value cycles after 2^30 modifications so that modification counts are
+    // always unboxed (Smi) values. Modification detection will be missed if you
+    // make exactly some multiple of 2^30 modifications between advances of an
+    // iterator.
+    _modifications = (_modifications + 1) & 0x3ffffff;
+  }
+
+  String toString() => Maps.mapToString(this);
+}
+
+class _Es6MapIterable<E> extends Iterable<E>
+                         implements EfficientLength {
+  final _map;
+  final bool _isKeys;
+
+  _Es6MapIterable(this._map, this._isKeys);
+
+  int get length => _map.length;
+  bool get isEmpty => _map.isEmpty;
+
+  Iterator<E> get iterator =>
+      new _Es6MapIterator<E>(_map, _map._modifications, _isKeys);
+
+  bool contains(Object element) => _map.containsKey(element);
+
+  void forEach(void f(E element)) {
+    var jsIterator;
+    if (_isKeys) {
+      jsIterator = JS('var', '#.keys()', _map._map);
+    } else {
+      jsIterator = JS('var', '#.values()', _map._map);
+    }
+    int modifications = _map._modifications;
+    while (true) {
+      var next = JS('var', '#.next()', jsIterator);
+      bool done = JS('bool', '#.done', next);
+      if (done) break;
+      var value = JS('var', '#.value', next);
+      f(value);
+      if (modifications != _map._modifications) {
+        throw new ConcurrentModificationError(_map);
+      }
+    }
+  }
+}
+
+class _Es6MapIterator<E> implements Iterator<E> {
+  final _map;
+  final int _modifications;
+  final bool _isKeys;
+  var _jsIterator;
+  var _next;
+  E _current;
+  bool _done;
+
+  _Es6MapIterator(this._map, this._modifications, this._isKeys) {
+    if (_isKeys) {
+      _jsIterator = JS('var', '#.keys()', _map._map);
+    } else {
+      _jsIterator = JS('var', '#.values()', _map._map);
+    }
+    _done = false;
+  }
+
+  E get current => _current;
+
+  bool moveNext() {
+    if (_modifications != _map._modifications) {
+      throw new ConcurrentModificationError(_map);
+    }
+    if (_done) return false;
+    _next = JS('var', '#.next()', _jsIterator);
+    bool done = JS('bool', '#.done', _next);
+    if (done) {
+      _current = null;
+      _done = true;
+      return false;
+    } else {
+      _current = JS('var', '#.value', _next);
+      return true;
+    }
   }
 }
 

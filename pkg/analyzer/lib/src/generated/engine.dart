@@ -15,13 +15,17 @@ import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' as cache;
 import 'package:analyzer/src/context/context.dart' as newContext;
 import 'package:analyzer/src/generated/incremental_resolution_validator.dart';
+import 'package:analyzer/src/plugin/command_line_plugin.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
+import 'package:analyzer/src/plugin/options_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
+import 'package:html/dom.dart' show Document;
 import 'package:plugin/manager.dart';
+import 'package:plugin/plugin.dart';
 
 import '../../instrumentation/instrumentation.dart';
 import 'ast.dart';
@@ -484,6 +488,7 @@ abstract class AnalysisContext {
    *
    * See [getHtmlElement].
    */
+  @deprecated
   HtmlElement computeHtmlElement(Source source);
 
   /**
@@ -604,6 +609,7 @@ abstract class AnalysisContext {
    *
    * See [computeHtmlElement].
    */
+  @deprecated
   HtmlElement getHtmlElement(Source source);
 
   /**
@@ -704,6 +710,7 @@ abstract class AnalysisContext {
    *
    * See [resolveHtmlUnit].
    */
+  @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource);
 
   /**
@@ -742,6 +749,12 @@ abstract class AnalysisContext {
   bool isServerLibrary(Source librarySource);
 
   /**
+   * Return the stream that is notified when a new value for the given
+   * [descriptor] is computed.
+   */
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor);
+
+  /**
    * Parse the content of the given [source] to produce an AST structure. The
    * resulting AST structure may or may not be resolved, and may have a slightly
    * different structure depending upon whether it is resolved.
@@ -753,6 +766,15 @@ abstract class AnalysisContext {
   CompilationUnit parseCompilationUnit(Source source);
 
   /**
+   * Parse a single HTML [source] to produce a document model.
+   *
+   * Throws an [AnalysisException] if the analysis could not be performed
+   *
+   * <b>Note:</b> This method cannot be used in an async environment.
+   */
+  Document parseHtmlDocument(Source source);
+
+  /**
    * Parse a single HTML [source] to produce an AST structure. The resulting
    * HTML AST structure may or may not be resolved, and may have a slightly
    * different structure depending upon whether it is resolved.
@@ -761,12 +783,28 @@ abstract class AnalysisContext {
    *
    * <b>Note:</b> This method cannot be used in an async environment.
    */
+  @deprecated // use parseHtmlDocument(source)
   ht.HtmlUnit parseHtmlUnit(Source source);
 
   /**
    * Perform the next unit of work required to keep the analysis results
    * up-to-date and return information about the consequent changes to the
    * analysis results. This method can be long running.
+   *
+   * The implementation that uses the task model notifies subscribers of
+   * [onResultComputed] about computed results.
+   *
+   * The following results are computed for Dart sources.
+   *
+   * 1. For explicit and implicit sources:
+   *    [PARSED_UNIT]
+   *    [RESOLVED_UNIT]
+   *
+   * 2. For explicit sources:
+   *    [DART_ERRORS].
+   *
+   * 3. For explicit and implicit library sources:
+   *    [LIBRARY_ELEMENT].
    */
   AnalysisResult performAnalysisTask();
 
@@ -810,6 +848,7 @@ abstract class AnalysisContext {
    *
    * <b>Note:</b> This method cannot be used in an async environment.
    */
+  @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource);
 
   /**
@@ -827,6 +866,14 @@ abstract class AnalysisContext {
    * so that the default contents will be returned.
    */
   void setContents(Source source, String contents);
+
+  /**
+   * Check the cache for any invalid entries (entries whose modification time
+   * does not match the modification time of the source associated with the
+   * entry). Invalid entries will be marked as invalid so that the source will
+   * be re-analyzed. Return `true` if at least one entry was invalid.
+   */
+  bool validateCacheConsistency();
 }
 
 /**
@@ -1648,6 +1695,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       source, DartEntry.EXPORTED_LIBRARIES, Source.EMPTY_LIST);
 
   @override
+  @deprecated
   HtmlElement computeHtmlElement(Source source) =>
       _getHtmlResolutionData(source, HtmlEntry.ELEMENT, null);
 
@@ -1893,6 +1941,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   HtmlElement getHtmlElement(Source source) {
     SourceEntry sourceEntry = getReadableSourceEntryOrNull(source);
     if (sourceEntry is HtmlEntry) {
@@ -2091,6 +2140,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     SourceEntry sourceEntry = getReadableSourceEntryOrNull(htmlSource);
     if (sourceEntry is HtmlEntry) {
@@ -2207,10 +2257,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
+    throw new NotImplementedException('In not task-based AnalysisContext.');
+  }
+
+  @override
   CompilationUnit parseCompilationUnit(Source source) =>
       _getDartParseData2(source, DartEntry.PARSED_UNIT, null);
 
   @override
+  Document parseHtmlDocument(Source source) {
+    return null;
+  }
+
+  @override
+  @deprecated
   ht.HtmlUnit parseHtmlUnit(Source source) =>
       _getHtmlParseData(source, HtmlEntry.PARSED_UNIT, null);
 
@@ -2224,9 +2285,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       AnalysisTask task = PerformanceStatistics.nextTask
           .makeCurrentWhile(() => nextAnalysisTask);
       int getEnd = JavaSystem.currentTimeMillis();
-      if (task == null && _validateCacheConsistency()) {
-        task = nextAnalysisTask;
-      }
       if (task == null) {
         _validateLastIncrementalResolutionResult();
         if (_performAnalysisTaskStopwatch != null) {
@@ -2489,6 +2547,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           unitSource, librarySource, DartEntry.RESOLVED_UNIT, null);
 
   @override
+  @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     computeHtmlElement(htmlSource);
     return parseHtmlUnit(htmlSource);
@@ -2518,6 +2577,66 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else {
       return true;
     }
+  }
+
+  @override
+  void test_flushAstStructures(Source source) {
+    DartEntry dartEntry = getReadableSourceEntryOrNull(source);
+    dartEntry.flushAstStructures();
+  }
+
+  @override
+  bool validateCacheConsistency() {
+    int consistencyCheckStart = JavaSystem.nanoTime();
+    List<Source> changedSources = new List<Source>();
+    List<Source> missingSources = new List<Source>();
+    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
+    while (iterator.moveNext()) {
+      Source source = iterator.key;
+      SourceEntry sourceEntry = iterator.value;
+      int sourceTime = getModificationStamp(source);
+      if (sourceTime != sourceEntry.modificationTime) {
+        changedSources.add(source);
+      }
+      if (sourceEntry.exception != null) {
+        if (!exists(source)) {
+          missingSources.add(source);
+        }
+      }
+    }
+    int count = changedSources.length;
+    for (int i = 0; i < count; i++) {
+      _sourceChanged(changedSources[i]);
+    }
+    int removalCount = 0;
+    for (Source source in missingSources) {
+      if (getLibrariesContaining(source).isEmpty &&
+          getLibrariesDependingOn(source).isEmpty) {
+        _cache.remove(source);
+        removalCount++;
+      }
+    }
+    int consistencyCheckEnd = JavaSystem.nanoTime();
+    if (changedSources.length > 0 || missingSources.length > 0) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.write("Consistency check took ");
+      buffer.write((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
+      buffer.writeln(" ms and found");
+      buffer.write("  ");
+      buffer.write(changedSources.length);
+      buffer.writeln(" inconsistent entries");
+      buffer.write("  ");
+      buffer.write(missingSources.length);
+      buffer.write(" missing sources (");
+      buffer.write(removalCount);
+      buffer.writeln(" removed");
+      for (Source source in missingSources) {
+        buffer.write("    ");
+        buffer.writeln(source.fullName);
+      }
+      _logInformation(buffer.toString());
+    }
+    return changedSources.length > 0;
   }
 
   @override
@@ -3987,28 +4106,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     AnalysisEngine.instance.logger.logInformation(message);
   }
 
-  /**
-   * Notify all of the analysis listeners that a task is about to be performed.
-   */
-  void _notifyAboutToPerformTask(String taskDescription) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].aboutToPerformTask(this, taskDescription);
-    }
-  }
-
-  /**
-   * Notify all of the analysis listeners that the errors associated with the
-   * given [source] has been updated to the given [errors].
-   */
-  void _notifyErrors(
-      Source source, List<AnalysisError> errors, LineInfo lineInfo) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].computedErrors(this, source, errors, lineInfo);
-    }
-  }
-
 //  /**
 //   * Notify all of the analysis listeners that the given source is no longer included in the set of
 //   * sources that are being analyzed.
@@ -4086,6 +4183,28 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
+
+  /**
+   * Notify all of the analysis listeners that a task is about to be performed.
+   */
+  void _notifyAboutToPerformTask(String taskDescription) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].aboutToPerformTask(this, taskDescription);
+    }
+  }
+
+  /**
+   * Notify all of the analysis listeners that the errors associated with the
+   * given [source] has been updated to the given [errors].
+   */
+  void _notifyErrors(
+      Source source, List<AnalysisError> errors, LineInfo lineInfo) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].computedErrors(this, source, errors, lineInfo);
+    }
+  }
 
   /**
    * Given that the given [source] (with the corresponding [sourceEntry]) has
@@ -4684,65 +4803,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // OK
       return true;
     });
-  }
-
-  /**
-   * Check the cache for any invalid entries (entries whose modification time
-   * does not match the modification time of the source associated with the
-   * entry). Invalid entries will be marked as invalid so that the source will
-   * be re-analyzed. Return `true` if at least one entry was invalid.
-   */
-  bool _validateCacheConsistency() {
-    int consistencyCheckStart = JavaSystem.nanoTime();
-    List<Source> changedSources = new List<Source>();
-    List<Source> missingSources = new List<Source>();
-    MapIterator<Source, SourceEntry> iterator = _cache.iterator();
-    while (iterator.moveNext()) {
-      Source source = iterator.key;
-      SourceEntry sourceEntry = iterator.value;
-      int sourceTime = getModificationStamp(source);
-      if (sourceTime != sourceEntry.modificationTime) {
-        changedSources.add(source);
-      }
-      if (sourceEntry.exception != null) {
-        if (!exists(source)) {
-          missingSources.add(source);
-        }
-      }
-    }
-    int count = changedSources.length;
-    for (int i = 0; i < count; i++) {
-      _sourceChanged(changedSources[i]);
-    }
-    int removalCount = 0;
-    for (Source source in missingSources) {
-      if (getLibrariesContaining(source).isEmpty &&
-          getLibrariesDependingOn(source).isEmpty) {
-        _cache.remove(source);
-        removalCount++;
-      }
-    }
-    int consistencyCheckEnd = JavaSystem.nanoTime();
-    if (changedSources.length > 0 || missingSources.length > 0) {
-      StringBuffer buffer = new StringBuffer();
-      buffer.write("Consistency check took ");
-      buffer.write((consistencyCheckEnd - consistencyCheckStart) / 1000000.0);
-      buffer.writeln(" ms and found");
-      buffer.write("  ");
-      buffer.write(changedSources.length);
-      buffer.writeln(" inconsistent entries");
-      buffer.write("  ");
-      buffer.write(missingSources.length);
-      buffer.write(" missing sources (");
-      buffer.write(removalCount);
-      buffer.writeln(" removed");
-      for (Source source in missingSources) {
-        buffer.write("    ");
-        buffer.writeln(source.fullName);
-      }
-      _logInformation(buffer.toString());
-    }
-    return changedSources.length > 0;
   }
 
   void _validateLastIncrementalResolutionResult() {
@@ -5703,16 +5763,34 @@ class AnalysisEngine {
   Logger _logger = Logger.NULL;
 
   /**
+   * The plugin that defines the extension points and extensions that are defined by
+   * command-line applications using the analysis engine.
+   */
+  final CommandLinePlugin commandLinePlugin = new CommandLinePlugin();
+
+  /**
    * The plugin that defines the extension points and extensions that are
    * inherently defined by the analysis engine.
    */
   final EnginePlugin enginePlugin = new EnginePlugin();
+
+  /***
+   * The plugin that defines the extension points and extensions that are defined
+   * by applications that want to consume options defined in the analysis
+   * options file.
+   */
+  final OptionsPlugin optionsPlugin = new OptionsPlugin();
 
   /**
    * The instrumentation service that is to be used by this analysis engine.
    */
   InstrumentationService _instrumentationService =
       InstrumentationService.NULL_SERVICE;
+
+  /**
+   * The list of supported plugins for processing by clients.
+   */
+  List<Plugin> _supportedPlugins;
 
   /**
    * The partition manager being used to manage the shared partitions.
@@ -5768,6 +5846,20 @@ class AnalysisEngine {
    */
   void set logger(Logger logger) {
     this._logger = logger == null ? Logger.NULL : logger;
+  }
+
+  /**
+   * Return the list of supported plugins for processing by clients.
+   */
+  List<Plugin> get supportedPlugins {
+    if (_supportedPlugins == null) {
+      _supportedPlugins = <Plugin>[
+        enginePlugin,
+        commandLinePlugin,
+        optionsPlugin
+      ];
+    }
+    return _supportedPlugins;
   }
 
   /**
@@ -5940,6 +6032,7 @@ abstract class AnalysisListener {
   /**
    * Reports that the given HTML [source] was parsed in the given [context].
    */
+  @deprecated
   void parsedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
 
   /**
@@ -5951,6 +6044,7 @@ abstract class AnalysisListener {
   /**
    * Reports that the given HTML [source] was resolved in the given [context].
    */
+  @deprecated
   void resolvedHtml(AnalysisContext context, Source source, ht.HtmlUnit unit);
 }
 
@@ -6853,6 +6947,7 @@ abstract class ChangeNotice implements AnalysisErrorInfo {
    * The fully resolved HTML AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
+  @deprecated
   ht.HtmlUnit get resolvedHtmlUnit;
 
   /**
@@ -6891,6 +6986,7 @@ class ChangeNoticeImpl implements ChangeNotice {
    * The fully resolved HTML AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
+  @deprecated
   ht.HtmlUnit resolvedHtmlUnit;
 
   /**
@@ -7180,6 +7276,36 @@ class ChangeSet_ContentChange {
    */
   ChangeSet_ContentChange(
       this.contents, this.offset, this.oldLength, this.newLength);
+}
+
+/**
+ * [ComputedResult] describes a value computed for a [ResultDescriptor].
+ */
+class ComputedResult<V> {
+  /**
+   * The context in which the value was computed.
+   */
+  final AnalysisContext context;
+
+  /**
+   * The descriptor of the result which was computed.
+   */
+  final ResultDescriptor<V> descriptor;
+
+  /**
+   * The target for which the result was computed.
+   */
+  final AnalysisTarget target;
+
+  /**
+   * The computed value.
+   */
+  final V value;
+
+  ComputedResult(this.context, this.descriptor, this.target, this.value);
+
+  @override
+  String toString() => '$descriptor of $target in $context';
 }
 
 /**
@@ -9185,6 +9311,12 @@ abstract class InternalAnalysisContext implements AnalysisContext {
    * It is not used there anyway.
    */
   bool shouldErrorsBeAnalyzed(Source source, Object entry);
+
+  /**
+   * For testing only: flush all representations of the AST (both resolved and
+   * unresolved) for the given [source] out of the cache.
+   */
+  void test_flushAstStructures(Source source);
 
   /**
    * Call the given callback function for eache cache item in the context.

@@ -5,95 +5,53 @@
 import 'optimizers.dart' show Pass, ParentVisitor;
 
 import '../constants/constant_system.dart';
-import '../constants/expressions.dart';
 import '../resolution/operators.dart';
 import '../constants/values.dart';
 import '../dart_types.dart' as types;
 import '../dart2jslib.dart' as dart2js;
-import '../tree/tree.dart' show LiteralDartString;
+import '../tree/tree.dart' show DartString, ConsDartString, LiteralDartString;
 import 'cps_ir_nodes.dart';
-import '../types/types.dart' show TypeMask, TypesTask;
+import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
-import '../elements/elements.dart' show ClassElement, Element, Entity,
-    FieldElement, FunctionElement, ParameterElement;
-import '../dart2jslib.dart' show ClassWorld;
+import '../elements/elements.dart';
+import '../dart2jslib.dart' show ClassWorld, World;
 import '../universe/universe.dart';
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
 
-abstract class TypeSystem<T> {
-  T get dynamicType;
-  T get typeType;
-  T get functionType;
-  T get boolType;
-  T get intType;
-  T get stringType;
-  T get listType;
-  T get mapType;
-  T get nonNullType;
-
-  T getReturnType(FunctionElement element);
-  T getSelectorReturnType(Selector selector);
-  T getParameterType(ParameterElement element);
-  T getFieldType(FieldElement element);
-  T join(T a, T b);
-  T exact(ClassElement element);
-  T getTypeOf(ConstantValue constant);
-
-  bool areDisjoint(T leftType, T rightType);
-
-  /// True if all values satisfying [type] are booleans (null is not a boolean).
-  bool isDefinitelyBool(T type);
-
-  bool isDefinitelyNotNull(T type);
+enum AbstractBool {
+  True, False, Maybe, Nothing
 }
 
-class UnitTypeSystem implements TypeSystem<String> {
-  static const String UNIT = 'unit';
-
-  get boolType => UNIT;
-  get dynamicType => UNIT;
-  get functionType => UNIT;
-  get intType => UNIT;
-  get listType => UNIT;
-  get mapType => UNIT;
-  get stringType => UNIT;
-  get typeType => UNIT;
-  get nonNullType => UNIT;
-
-  getParameterType(_) => UNIT;
-  getReturnType(_) => UNIT;
-  getSelectorReturnType(_) => UNIT;
-  getFieldType(_) => UNIT;
-  join(a, b) => UNIT;
-  exact(_) => UNIT;
-  getTypeOf(_) => UNIT;
-
-  bool isDefinitelyBool(_) => false;
-
-  bool isDefinitelyNotNull(_) => false;
-
-  bool areDisjoint(String leftType, String rightType) {
-    return false;
-  }
-}
-
-class TypeMaskSystem implements TypeSystem<TypeMask> {
+class TypeMaskSystem {
   final TypesTask inferrer;
-  final ClassWorld classWorld;
+  final World classWorld;
 
   TypeMask get dynamicType => inferrer.dynamicType;
   TypeMask get typeType => inferrer.typeType;
   TypeMask get functionType => inferrer.functionType;
   TypeMask get boolType => inferrer.boolType;
   TypeMask get intType => inferrer.intType;
+  TypeMask get doubleType => inferrer.doubleType;
+  TypeMask get numType => inferrer.numType;
   TypeMask get stringType => inferrer.stringType;
   TypeMask get listType => inferrer.listType;
   TypeMask get mapType => inferrer.mapType;
   TypeMask get nonNullType => inferrer.nonNullType;
 
+  TypeMask numStringBoolType;
+
   // TODO(karlklose): remove compiler here.
   TypeMaskSystem(dart2js.Compiler compiler)
     : inferrer = compiler.typesTask,
-      classWorld = compiler.world;
+      classWorld = compiler.world {
+    numStringBoolType =
+      new TypeMask.unionOf(<TypeMask>[numType, stringType, boolType],
+                           classWorld);
+  }
+
+  Element locateSingleElement(TypeMask mask, Selector selector) {
+    return mask.locateSingleElement(selector, mask, classWorld.compiler);
+  }
 
   TypeMask getParameterType(ParameterElement parameter) {
     return inferrer.getGuaranteedTypeOfElement(parameter);
@@ -103,42 +61,307 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
     return inferrer.getGuaranteedReturnTypeOfElement(function);
   }
 
-  TypeMask getSelectorReturnType(Selector selector) {
-    return inferrer.getGuaranteedTypeOfSelector(selector);
+  TypeMask getInvokeReturnType(Selector selector, TypeMask mask) {
+    return inferrer.getGuaranteedTypeOfSelector(selector, mask);
   }
 
   TypeMask getFieldType(FieldElement field) {
     return inferrer.getGuaranteedTypeOfElement(field);
   }
 
-  @override
   TypeMask join(TypeMask a, TypeMask b) {
     return a.union(b, classWorld);
   }
 
-  @override
   TypeMask getTypeOf(ConstantValue constant) {
     return computeTypeMask(inferrer.compiler, constant);
   }
 
-  TypeMask exact(ClassElement element) {
+  TypeMask nonNullExact(ClassElement element) {
     // The class world does not know about classes created by
     // closure conversion, so just treat those as a subtypes of Function.
     // TODO(asgerf): Maybe closure conversion should create a new ClassWorld?
     if (element.isClosure) return functionType;
-    return new TypeMask.exact(element, classWorld);
+    return new TypeMask.nonNullExact(element, classWorld);
   }
 
-  bool isDefinitelyBool(TypeMask t) {
-    return t.containsOnlyBool(classWorld) && !t.isNullable;
+  bool isDefinitelyBool(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.containsOnlyBool(classWorld);
   }
 
-  bool isDefinitelyNotNull(TypeMask t) => !t.isNullable;
+  bool isDefinitelyNum(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.containsOnlyNum(classWorld);
+  }
 
-  @override
+  bool isDefinitelyString(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.containsOnlyString(classWorld);
+  }
+
+  bool isDefinitelyNumStringBool(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return numStringBoolType.containsMask(t, classWorld);
+  }
+
+  bool isDefinitelyNotNumStringBool(TypeMask t) {
+    return areDisjoint(t, numStringBoolType);
+  }
+
+  /// True if all values of [t] are either integers or not numbers at all.
+  ///
+  /// This does not imply that the value is an integer, since most other values
+  /// such as null are also not a non-integer double.
+  bool isDefinitelyNotNonIntegerDouble(TypeMask t) {
+    // Even though int is a subclass of double in the JS type system, we can
+    // still check this with disjointness, because [doubleType] is the *exact*
+    // double class, so this excludes things that are known to be instances of a
+    // more specific class.
+    // We currently exploit that there are no subclasses of double that are
+    // not integers (e.g. there is no UnsignedDouble class or whatever).
+    return areDisjoint(t, doubleType);
+  }
+
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {
     TypeMask intersection = leftType.intersection(rightType, classWorld);
     return intersection.isEmpty && !intersection.isNullable;
+  }
+
+  AbstractBool isSubtypeOf(TypeMask value,
+                           types.DartType type,
+                           {bool allowNull}) {
+    assert(allowNull != null);
+    if (type is types.DynamicType) {
+      return AbstractBool.True;
+    }
+    if (type is types.InterfaceType) {
+      TypeMask typeAsMask = allowNull
+          ? new TypeMask.subtype(type.element, classWorld)
+          : new TypeMask.nonNullSubtype(type.element, classWorld);
+      if (areDisjoint(value, typeAsMask)) {
+        // Disprove the subtype relation based on the class alone.
+        return AbstractBool.False;
+      }
+      if (!type.treatAsRaw) {
+        // If there are type arguments, we cannot prove the subtype relation,
+        // because the type arguments are unknown on both the value and type.
+        return AbstractBool.Maybe;
+      }
+      if (typeAsMask.containsMask(value, classWorld)) {
+        // All possible values are contained in the set of allowed values.
+        // Note that we exploit the fact that [typeAsMask] is an exact
+        // representation of [type], not an approximation.
+        return AbstractBool.True;
+      }
+      // The value is neither contained in the type, nor disjoint from the type.
+      return AbstractBool.Maybe;
+    }
+    // TODO(asgerf): Support function types, and what else might be missing.
+    return AbstractBool.Maybe;
+  }
+}
+
+class ConstantPropagationLattice {
+  final TypeMaskSystem typeSystem;
+  final ConstantSystem constantSystem;
+  final types.DartTypes dartTypes;
+  final AbstractValue anything;
+
+  ConstantPropagationLattice(TypeMaskSystem typeSystem,
+                             this.constantSystem,
+                             this.dartTypes)
+    : this.typeSystem = typeSystem,
+      anything = new AbstractValue.nonConstant(typeSystem.dynamicType);
+
+  final AbstractValue nothing = new AbstractValue.nothing();
+
+  AbstractValue constant(ConstantValue value, [TypeMask type]) {
+    if (type == null) type = typeSystem.getTypeOf(value);
+    return new AbstractValue.constantValue(value, type);
+  }
+
+  AbstractValue nonConstant([TypeMask type]) {
+    if (type == null) type = typeSystem.dynamicType;
+    return new AbstractValue.nonConstant(type);
+  }
+
+  /// Compute the join of two values in the lattice.
+  AbstractValue join(AbstractValue x, AbstractValue y) {
+    assert(x != null);
+    assert(y != null);
+
+    if (x.isNothing) {
+      return y;
+    } else if (y.isNothing) {
+      return x;
+    } else if (x.isConstant && y.isConstant && x.constant == y.constant) {
+      return x;
+    } else {
+      return new AbstractValue.nonConstant(typeSystem.join(x.type, y.type));
+    }
+  }
+
+  /// True if all members of this value are booleans.
+  bool isDefinitelyBool(AbstractValue value, {bool allowNull: false}) {
+    return value.isNothing ||
+      typeSystem.isDefinitelyBool(value.type, allowNull: allowNull);
+  }
+
+  /// True if all members of this value are numbers.
+  bool isDefinitelyNum(AbstractValue value, {bool allowNull: false}) {
+    return value.isNothing ||
+      typeSystem.isDefinitelyNum(value.type, allowNull: allowNull);
+  }
+
+  /// True if all members of this value are strings.
+  bool isDefinitelyString(AbstractValue value, {bool allowNull: false}) {
+    return value.isNothing ||
+      typeSystem.isDefinitelyString(value.type, allowNull: allowNull);
+  }
+
+  /// True if all members of this value are numbers, strings, or booleans.
+  bool isDefinitelyNumStringBool(AbstractValue value, {bool allowNull: false}) {
+    return value.isNothing ||
+      typeSystem.isDefinitelyNumStringBool(value.type, allowNull: allowNull);
+  }
+
+  /// True if this value cannot be a string, number, or boolean.
+  bool isDefinitelyNotNumStringBool(AbstractValue value) {
+    return value.isNothing ||
+      typeSystem.isDefinitelyNotNumStringBool(value.type);
+  }
+
+  /// True if this value cannot be a non-integer double.
+  ///
+  /// In other words, if true is returned, and the value is a number, then
+  /// it is a whole number and is not NaN, Infinity, or minus Infinity.
+  bool isDefinitelyNotNonIntegerDouble(AbstractValue value) {
+    return value.isNothing ||
+      value.isConstant && !value.constant.isDouble ||
+      typeSystem.isDefinitelyNotNonIntegerDouble(value.type);
+  }
+
+  /// Returns whether the given [value] is an instance of [type].
+  ///
+  /// Since [value] and [type] are not always known, [AbstractBool.Maybe] is
+  /// returned if the answer is not known.
+  ///
+  /// [AbstractBool.Nothing] is returned if [value] is nothing.
+  ///
+  /// If [allowNull] is true, `null` is considered an instance of anything,
+  /// otherwise it is only considered an instance of [Object], [dynamic], and
+  /// [Null].
+  AbstractBool isSubtypeOf(AbstractValue value,
+                           types.DartType type,
+                           {bool allowNull}) {
+    assert(allowNull != null);
+    if (value.isNothing) {
+      return AbstractBool.Nothing;
+    }
+    if (value.isConstant) {
+      if (value.constant.isNull) {
+        if (allowNull ||
+            type.isObject ||
+            type.isDynamic ||
+            type == dartTypes.coreTypes.nullType) {
+          return AbstractBool.True;
+        }
+        if (type is types.TypeVariableType) {
+          return AbstractBool.Maybe;
+        }
+        return AbstractBool.False;
+      }
+      if (type == dartTypes.coreTypes.intType) {
+        return constantSystem.isInt(value.constant)
+          ? AbstractBool.True
+          : AbstractBool.False;
+      }
+      types.DartType valueType = value.constant.getType(dartTypes.coreTypes);
+      if (constantSystem.isSubtype(dartTypes, valueType, type)) {
+        return AbstractBool.True;
+      }
+      if (!dartTypes.isPotentialSubtype(valueType, type)) {
+        return AbstractBool.False;
+      }
+      return AbstractBool.Maybe;
+    }
+    return typeSystem.isSubtypeOf(value.type, type, allowNull: allowNull);
+  }
+
+  /// Returns the possible results of applying [operator] to [value],
+  /// assuming the operation does not throw.
+  ///
+  /// Because we do not explicitly track thrown values, we currently use the
+  /// convention that constant values are returned from this method only
+  /// if the operation is known not to throw.
+  ///
+  /// This method returns `null` if a good result could not be found. In that
+  /// case, it is best to fall back on interprocedural type information.
+  AbstractValue unaryOp(UnaryOperator operator,
+                        AbstractValue value) {
+    // TODO(asgerf): Also return information about whether this can throw?
+    if (value.isNothing) {
+      return nothing;
+    }
+    if (value.isConstant) {
+      UnaryOperation operation = constantSystem.lookupUnary(operator);
+      ConstantValue result = operation.fold(value.constant);
+      if (result == null) return anything;
+      return constant(result);
+    }
+    return null; // TODO(asgerf): Look up type?
+  }
+
+  /// Returns the possible results of applying [operator] to [left], [right],
+  /// assuming the operation does not throw.
+  ///
+  /// Because we do not explicitly track thrown values, we currently use the
+  /// convention that constant values are returned from this method only
+  /// if the operation is known not to throw.
+  ///
+  /// This method returns `null` if a good result could not be found. In that
+  /// case, it is best to fall back on interprocedural type information.
+  AbstractValue binaryOp(BinaryOperator operator,
+                         AbstractValue left,
+                         AbstractValue right) {
+    if (left.isNothing || right.isNothing) {
+      return nothing;
+    }
+    if (left.isConstant && right.isConstant) {
+      BinaryOperation operation = constantSystem.lookupBinary(operator);
+      ConstantValue result = operation.fold(left.constant, right.constant);
+      if (result == null) return anything;
+      return constant(result);
+    }
+    return null; // TODO(asgerf): Look up type?
+  }
+
+  AbstractValue stringConstant(String value) {
+    return constant(new StringConstantValue(new DartString.literal(value)));
+  }
+
+  AbstractValue stringify(AbstractValue value) {
+    if (value.isNothing) return nothing;
+    if (value.isNonConst) return nonConstant(typeSystem.stringType);
+    ConstantValue constantValue = value.constant;
+    if (constantValue is StringConstantValue) {
+      return value;
+    } else if (constantValue is PrimitiveConstantValue) {
+      // Note: The primitiveValue for a StringConstantValue is not suitable
+      // for toString() use since it is a DartString. But the other subclasses
+      // returns an unwrapped Dart value we can safely convert to a string.
+      return stringConstant(constantValue.primitiveValue.toString());
+    } else {
+      return nonConstant(typeSystem.stringType);
+    }
+  }
+
+  /// The possible return types of a method that may be targeted by
+  /// [typedSelector]. If the given selector is not a [TypedSelector], any
+  /// reachable method matching the selector may be targeted.
+  AbstractValue getInvokeReturnType(Selector selector, TypeMask mask) {
+    return nonConstant(typeSystem.getInvokeReturnType(selector, mask));
   }
 }
 
@@ -152,105 +375,153 @@ class TypeMaskSystem implements TypeSystem<TypeMask> {
  * Implemented according to 'Constant Propagation with Conditional Branches'
  * by Wegman, Zadeck.
  */
-class TypePropagator<T> extends Pass {
+class TypePropagator extends Pass {
   String get passName => 'Sparse constant propagation';
 
-  final types.DartTypes _dartTypes;
-
+  final dart2js.Compiler _compiler;
   // The constant system is used for evaluation of expressions with constant
   // arguments.
-  final ConstantSystem _constantSystem;
-  final TypeSystem _typeSystem;
+  final ConstantPropagationLattice _lattice;
   final dart2js.InternalErrorFunction _internalError;
-  final Map<Node, _AbstractValue> _types;
+  final Map<Definition, AbstractValue> _values = <Definition, AbstractValue>{};
 
-  TypePropagator(this._dartTypes,
-                 this._constantSystem,
-                 this._typeSystem,
-                 this._internalError)
-      : _types = <Node, _AbstractValue>{};
+  TypePropagator(dart2js.Compiler compiler)
+      : _compiler = compiler,
+        _internalError = compiler.internalError,
+        _lattice = new ConstantPropagationLattice(
+            new TypeMaskSystem(compiler),
+            compiler.backend.constantSystem,
+            compiler.types);
 
   @override
   void rewrite(FunctionDefinition root) {
     // Set all parent pointers.
     new ParentVisitor().visit(root);
 
+    Map<Expression, ConstantValue> replacements = <Expression, ConstantValue>{};
+
     // Analyze. In this phase, the entire term is analyzed for reachability
     // and the abstract value of each expression.
-    _TypePropagationVisitor<T> analyzer = new _TypePropagationVisitor<T>(
-        _constantSystem,
-        _typeSystem,
-        _types,
-        _internalError,
-        _dartTypes);
+    TypePropagationVisitor analyzer = new TypePropagationVisitor(
+        _lattice,
+        _values,
+        replacements,
+        _internalError);
 
     analyzer.analyze(root);
 
     // Transform. Uses the data acquired in the previous analysis phase to
     // replace branches with fixed targets and side-effect-free expressions
-    // with constant results.
-    _TransformingVisitor<T> transformer = new _TransformingVisitor<T>(
-        analyzer.reachableNodes, analyzer.values, _internalError, _typeSystem);
+    // with constant results or existing values that are in scope.
+    TransformingVisitor transformer = new TransformingVisitor(
+        _compiler,
+        _lattice,
+        analyzer.reachableNodes,
+        analyzer.values,
+        replacements,
+        _internalError);
     transformer.transform(root);
   }
 
-  getType(Node node) => _types[node];
+  getType(Node node) => _values[node];
 }
+
+final Map<String, BuiltinOperator> NumBinaryBuiltins =
+  const <String, BuiltinOperator>{
+    '+':  BuiltinOperator.NumAdd,
+    '-':  BuiltinOperator.NumSubtract,
+    '*':  BuiltinOperator.NumMultiply,
+    '&':  BuiltinOperator.NumAnd,
+    '|':  BuiltinOperator.NumOr,
+    '^':  BuiltinOperator.NumXor,
+    '<':  BuiltinOperator.NumLt,
+    '<=': BuiltinOperator.NumLe,
+    '>':  BuiltinOperator.NumGt,
+    '>=': BuiltinOperator.NumGe
+};
 
 /**
  * Uses the information from a preceding analysis pass in order to perform the
  * actual transformations on the CPS graph.
  */
-class _TransformingVisitor<T> extends RecursiveVisitor {
+class TransformingVisitor extends RecursiveVisitor {
   final Set<Node> reachable;
-  final Map<Node, _AbstractValue> values;
-  final TypeSystem<T> typeSystem;
+  final Map<Node, AbstractValue> values;
+  final Map<Expression, ConstantValue> replacements;
+  final ConstantPropagationLattice lattice;
+  final dart2js.Compiler compiler;
+
+  JavaScriptBackend get backend => compiler.backend;
+  TypeMaskSystem get typeSystem => lattice.typeSystem;
+  types.DartTypes get dartTypes => lattice.dartTypes;
 
   final dart2js.InternalErrorFunction internalError;
 
-  _TransformingVisitor(this.reachable,
-                       this.values,
-                       this.internalError,
-                       this.typeSystem);
+  TransformingVisitor(this.compiler,
+                      this.lattice,
+                      this.reachable,
+                      this.values,
+                      this.replacements,
+                      this.internalError);
 
   void transform(FunctionDefinition root) {
     visit(root);
   }
 
-  /// Given an expression with a known constant result and a continuation,
-  /// replaces the expression by a new LetPrim / InvokeContinuation construct.
-  /// `unlink` is a closure responsible for unlinking all removed references.
-  LetPrim constifyExpression(Expression node,
-                             Continuation continuation,
-                             void unlink()) {
-    _AbstractValue value = values[node];
-    if (value == null || !value.isConstant) {
-      return null;
-    }
+  /// Removes the entire subtree of [node] and inserts [replacement].
+  /// All references in the [node] subtree are unlinked, and parent pointers
+  /// in [replacement] are initialized.
+  ///
+  /// [replacement] must be "fresh", i.e. it must not contain significant parts
+  /// of the original IR inside of it since the [ParentVisitor] will
+  /// redundantly reprocess it.
+  void replaceSubtree(Expression node, Expression replacement) {
+    InteriorNode parent = node.parent;
+    parent.body = replacement;
+    replacement.parent = parent;
+    node.parent = null;
+    RemovalVisitor.remove(node);
+    new ParentVisitor().visit(replacement);
+  }
 
+  /// Make a constant primitive for [constant] and set its entry in [values].
+  Constant makeConstantPrimitive(ConstantValue constant) {
+    Constant primitive = new Constant(constant);
+    values[primitive] = new AbstractValue.constantValue(constant,
+        typeSystem.getTypeOf(constant));
+    return primitive;
+  }
+
+  /// Builds `(LetPrim p (InvokeContinuation k p))`.
+  ///
+  /// No parent pointers are set.
+  LetPrim makeLetPrimInvoke(Primitive primitive, Continuation continuation) {
     assert(continuation.parameters.length == 1);
 
-    // Set up the replacement structure.
-    PrimitiveConstantValue primitiveConstant = value.constant;
-    ConstantExpression constExp =
-        const ConstantExpressionCreator().convert(primitiveConstant);
-    Constant constant = new Constant(constExp, primitiveConstant);
-    LetPrim letPrim = new LetPrim(constant);
+    LetPrim letPrim = new LetPrim(primitive);
     InvokeContinuation invoke =
-        new InvokeContinuation(continuation, <Primitive>[constant]);
-
-    invoke.parent = constant.parent = letPrim;
+        new InvokeContinuation(continuation, <Primitive>[primitive]);
     letPrim.body = invoke;
-
-    // Replace the method invocation.
-
-    InteriorNode parent = node.parent;
-    letPrim.parent = parent;
-    parent.body = letPrim;
-
-    unlink();
+    primitive.hint = continuation.parameters.single.hint;
 
     return letPrim;
+  }
+
+  /// Side-effect free expressions with constant results are be replaced by:
+  ///
+  ///    (LetPrim p = constant (InvokeContinuation k p)).
+  ///
+  /// The new expression will be visited.
+  ///
+  /// Returns true if the node was replaced.
+  bool constifyExpression(Expression node, Continuation continuation) {
+    ConstantValue constant = replacements[node];
+    if (constant == null) return false;
+    Constant primitive = makeConstantPrimitive(constant);
+    LetPrim letPrim = makeLetPrimInvoke(primitive, continuation);
+    replaceSubtree(node, letPrim);
+    visitLetPrim(letPrim);
+    return true;
   }
 
   // A branch can be eliminated and replaced by an invocation if only one of
@@ -280,92 +551,378 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
     InvokeContinuation invoke =
         new InvokeContinuation(successor, <Primitive>[]);
 
-    InteriorNode parent = node.parent;
-    invoke.parent = parent;
-    parent.body = invoke;
-
-    // Unlink all removed references.
-
-    node.trueContinuation.unlink();
-    node.falseContinuation.unlink();
-    IsTrue isTrue = node.condition;
-    isTrue.value.unlink();
-
+    replaceSubtree(node, invoke);
     visitInvokeContinuation(invoke);
   }
 
-  // Side-effect free method calls with constant results can be replaced by
-  // a LetPrim / InvokeContinuation pair. May lead to dead primitives which
-  // are removed by the shrinking reductions pass.
-  //
-  // (InvokeMethod v0 == v1 k0)
-  // -> (assuming the result is a constant `true`)
-  // (LetPrim v2 (Constant true))
-  // (InvokeContinuation k0 v2)
+  /// True if the given reference is a use that converts its value to a boolean
+  /// and only uses the coerced value.
+  bool isBoolifyingUse(Reference<Primitive> ref) {
+    Node use = ref.parent;
+    return use is IsTrue ||
+      use is ApplyBuiltinOperator && use.operator == BuiltinOperator.IsFalsy;
+  }
+
+  /// True if all uses of [prim] only use its value after boolean conversion.
+  bool isAlwaysBoolified(Primitive prim) {
+    for (Reference ref = prim.firstRef; ref != null; ref = ref.next) {
+      Node use = ref.parent;
+      if (!isBoolifyingUse(ref)) return false;
+    }
+    return true;
+  }
+
+  /// Replaces [node] with a more specialized instruction, if possible.
+  ///
+  /// Returns `true` if the node was replaced.
+  bool specializeInvoke(InvokeMethod node) {
+    Continuation cont = node.continuation.definition;
+    bool replaceWithBinary(BuiltinOperator operator,
+                           Primitive left,
+                           Primitive right) {
+      Primitive prim =
+          new ApplyBuiltinOperator(operator, <Primitive>[left, right]);
+      LetPrim let = makeLetPrimInvoke(prim, cont);
+      replaceSubtree(node, let);
+      visitLetPrim(let);
+      return true; // So returning early is more convenient.
+    }
+    bool replaceWithUnary(BuiltinOperator operator,
+                          Primitive argument) {
+      Primitive prim =
+          new ApplyBuiltinOperator(operator, <Primitive>[argument]);
+      LetPrim let = makeLetPrimInvoke(prim, cont);
+      replaceSubtree(node, let);
+      visitLetPrim(let);
+      return true;
+    }
+
+    if (node.selector.isOperator && node.arguments.length == 2) {
+      // The operators we specialize are are intercepted calls, so the operands
+      // are in the argument list.
+      Primitive leftArg = node.arguments[0].definition;
+      Primitive rightArg = node.arguments[1].definition;
+      AbstractValue left = getValue(leftArg);
+      AbstractValue right = getValue(rightArg);
+
+      if (node.selector.name == '==') {
+        // Equality is special due to its treatment of null values and the
+        // fact that Dart-null corresponds to both JS-null and JS-undefined.
+        // Please see documentation for IsFalsy, StrictEq, and LooseEq.
+        bool isBoolified = isAlwaysBoolified(cont.parameters.single);
+        // Comparison with null constants.
+        if (isBoolified &&
+            right.isNullConstant &&
+            lattice.isDefinitelyNotNumStringBool(left)) {
+          // TODO(asgerf): This is shorter but might confuse te VM? Evaluate.
+          return replaceWithUnary(BuiltinOperator.IsFalsy, leftArg);
+        }
+        if (isBoolified &&
+            left.isNullConstant &&
+            lattice.isDefinitelyNotNumStringBool(right)) {
+          return replaceWithUnary(BuiltinOperator.IsFalsy, rightArg);
+        }
+        if (left.isNullConstant || right.isNullConstant) {
+          return replaceWithBinary(BuiltinOperator.LooseEq, leftArg, rightArg);
+        }
+        // Comparison of numbers, strings, and booleans.
+        if (lattice.isDefinitelyNumStringBool(left, allowNull: true) &&
+            lattice.isDefinitelyNumStringBool(right, allowNull: true) &&
+            !(left.isNullable && right.isNullable)) {
+          return replaceWithBinary(BuiltinOperator.StrictEq, leftArg, rightArg);
+        }
+        if (lattice.isDefinitelyNum(left, allowNull: true) &&
+            lattice.isDefinitelyNum(right, allowNull: true)) {
+          return replaceWithBinary(BuiltinOperator.LooseEq, leftArg, rightArg);
+        }
+        if (lattice.isDefinitelyString(left, allowNull: true) &&
+            lattice.isDefinitelyString(right, allowNull: true)) {
+          return replaceWithBinary(BuiltinOperator.LooseEq, leftArg, rightArg);
+        }
+        if (lattice.isDefinitelyBool(left, allowNull: true) &&
+            lattice.isDefinitelyBool(right, allowNull: true)) {
+          return replaceWithBinary(BuiltinOperator.LooseEq, leftArg, rightArg);
+        }
+      } else {
+        // Try to insert a numeric operator.
+        if (lattice.isDefinitelyNum(left, allowNull: false) &&
+            lattice.isDefinitelyNum(right, allowNull: false)) {
+          BuiltinOperator operator = NumBinaryBuiltins[node.selector.name];
+          if (operator != null) {
+            return replaceWithBinary(operator, leftArg, rightArg);
+          }
+        }
+        else if (lattice.isDefinitelyString(left, allowNull: false) &&
+                 lattice.isDefinitelyString(right, allowNull: false)) {
+          return replaceWithBinary(BuiltinOperator.StringConcatenate,
+                                   leftArg, rightArg);
+        }
+      }
+    }
+    // We should only get here if the node was not specialized.
+    assert(node.parent != null);
+    return false;
+  }
+
+  bool isInterceptedSelector(Selector selector) {
+    return backend.isInterceptedSelector(selector);
+  }
+
+  Primitive getDartReceiver(InvokeMethod node) {
+    if (isInterceptedSelector(node.selector)) {
+      return node.arguments[0].definition;
+    } else {
+      return node.receiver.definition;
+    }
+  }
+
+  Primitive getDartArgument(InvokeMethod node, int n) {
+    if (isInterceptedSelector(node.selector)) {
+      return node.arguments[n+1].definition;
+    } else {
+      return node.arguments[n].definition;
+    }
+  }
+
+  /// If [node] is a getter or setter invocation, tries to replace the
+  /// invocation with a direct access to a field.
+  ///
+  /// Returns `true` if the node was replaced.
+  bool inlineFieldAccess(InvokeMethod node) {
+    if (!node.selector.isGetter && !node.selector.isSetter) return false;
+    AbstractValue receiver = getValue(getDartReceiver(node));
+    if (receiver.isNothing) return false;
+    Element target =
+        typeSystem.locateSingleElement(receiver.type, node.selector);
+    if (target is! FieldElement) return false;
+    // TODO(asgerf): Inlining native fields will make some tests pass for the
+    // wrong reason, so for testing reasons avoid inlining them.
+    if (target.isNative) return false;
+    Continuation cont = node.continuation.definition;
+    if (node.selector.isGetter) {
+      GetField get = new GetField(getDartReceiver(node), target);
+      get.objectIsNotNull = receiver.isDefinitelyNotNull;
+      LetPrim let = makeLetPrimInvoke(get, cont);
+      replaceSubtree(node, let);
+      visitLetPrim(let);
+      return true;
+    } else {
+      if (target.isFinal) return false;
+      assert(cont.parameters.single.hasNoUses);
+      cont.parameters.clear();
+      SetField set = new SetField(getDartReceiver(node),
+                                  target,
+                                  getDartArgument(node, 0));
+      set.body = new InvokeContinuation(cont, <Primitive>[]);
+      replaceSubtree(node, set);
+      visitSetField(set);
+      return true;
+    }
+  }
+
   void visitInvokeMethod(InvokeMethod node) {
     Continuation cont = node.continuation.definition;
-    LetPrim letPrim = constifyExpression(node, cont, () {
-      node.receiver.unlink();
-      node.continuation.unlink();
-      node.arguments.forEach((Reference ref) => ref.unlink());
-    });
+    if (constifyExpression(node, cont)) return;
+    if (specializeInvoke(node)) return;
+    if (inlineFieldAccess(node)) return;
 
-    if (letPrim == null) {
-      _AbstractValue<T> receiver = getValue(node.receiver.definition);
-      node.receiverIsNotNull = receiver.isDefinitelyNotNull(typeSystem);
-      super.visitInvokeMethod(node);
-    } else {
-      visitLetPrim(letPrim);
-    }
+    AbstractValue receiver = getValue(node.receiver.definition);
+    node.receiverIsNotNull = receiver.isDefinitelyNotNull;
+    super.visitInvokeMethod(node);
   }
 
-  // See [visitInvokeMethod].
-  void visitConcatenateStrings(ConcatenateStrings node) {
+  void visitTypeCast(TypeCast node) {
     Continuation cont = node.continuation.definition;
-    LetPrim letPrim = constifyExpression(node, cont, () {
-      node.continuation.unlink();
-      node.arguments.forEach((Reference ref) => ref.unlink());
-    });
 
-    if (letPrim == null) {
-      super.visitConcatenateStrings(node);
-    } else {
-      visitLetPrim(letPrim);
+    AbstractValue value = getValue(node.value.definition);
+    switch (lattice.isSubtypeOf(value, node.type, allowNull: true)) {
+      case AbstractBool.Maybe:
+      case AbstractBool.Nothing:
+        break;
+
+      case AbstractBool.True:
+        // Cast always succeeds, replace it with InvokeContinuation.
+        InvokeContinuation invoke =
+            new InvokeContinuation(cont, <Primitive>[node.value.definition]);
+        replaceSubtree(node, invoke);
+        visitInvokeContinuation(invoke);
+        return;
+
+      case AbstractBool.False:
+        // Cast always fails, remove unreachable continuation body.
+        assert(!reachable.contains(cont));
+        replaceSubtree(cont.body, new Unreachable());
+        break;
     }
+
+    super.visitTypeCast(node);
   }
 
-  // See [visitInvokeMethod].
-  void visitTypeOperator(TypeOperator node) {
+  /// Specialize calls to static methods.
+  ///
+  /// Returns true if the call was replaced.
+  bool specializeInvokeStatic(InvokeStatic node) {
+    // TODO(asgerf): This is written to easily scale to more cases,
+    //               either add more cases or clean up.
     Continuation cont = node.continuation.definition;
-    LetPrim letPrim = constifyExpression(node, cont, () {
-      node.value.unlink();
-      node.typeArguments.forEach((Reference ref) => ref.unlink());
-      node.continuation.unlink();
-    });
+    Primitive arg(int n) => node.arguments[n].definition;
+    AbstractValue argType(int n) => getValue(arg(n));
+    if (node.target.library.isInternalLibrary) {
+      switch(node.target.name) {
+        case InternalMethod.Stringify:
+          if (lattice.isDefinitelyString(argType(0))) {
+            InvokeContinuation invoke =
+                new InvokeContinuation(cont, <Primitive>[arg(0)]);
+            replaceSubtree(node, invoke);
+            visitInvokeContinuation(invoke);
+            return true;
+          }
+          break;
+      }
+    }
+    return false;
+  }
 
-    if (letPrim == null) {
-      super.visitTypeOperator(node);
+  void visitInvokeStatic(InvokeStatic node) {
+    if (constifyExpression(node, node.continuation.definition)) return;
+    if (specializeInvokeStatic(node)) return;
+  }
+
+  AbstractValue getValue(Primitive primitive) {
+    AbstractValue value = values[primitive];
+    return value == null ? new AbstractValue.nothing() : value;
+  }
+
+  void insertLetPrim(Expression node, Primitive prim) {
+    InteriorNode parent = node.parent;
+    LetPrim let = new LetPrim(prim);
+    parent.body = let;
+    let.body = node;
+    node.parent = let;
+    let.parent = parent;
+  }
+
+  void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    DartString getString(AbstractValue value) {
+      StringConstantValue constant = value.constant;
+      return constant.primitiveValue;
+    }
+    switch (node.operator) {
+      case BuiltinOperator.StringConcatenate:
+        // Concatenate consecutive constants.
+        bool argumentsWereRemoved = false;
+        int i = 0;
+        while (i < node.arguments.length - 1) {
+          int startOfSequence = i;
+          AbstractValue firstValue = getValue(node.arguments[i++].definition);
+          if (!firstValue.isConstant) continue;
+          AbstractValue secondValue = getValue(node.arguments[i++].definition);
+          if (!secondValue.isConstant) continue;
+
+          DartString string =
+              new ConsDartString(getString(firstValue), getString(secondValue));
+
+          // We found a sequence of at least two constants.
+          // Look for the end of the sequence.
+          while (i < node.arguments.length) {
+            AbstractValue value = getValue(node.arguments[i].definition);
+            if (!value.isConstant) break;
+            string = new ConsDartString(string, getString(value));
+            ++i;
+          }
+          Constant prim =
+              makeConstantPrimitive(new StringConstantValue(string));
+          insertLetPrim(node.parent, prim);
+          for (int k = startOfSequence; k < i; ++k) {
+            node.arguments[k].unlink();
+            node.arguments[k] = null; // Remove the argument after the loop.
+          }
+          node.arguments[startOfSequence] = new Reference<Primitive>(prim);
+          argumentsWereRemoved = true;
+        }
+        if (argumentsWereRemoved) {
+          node.arguments.removeWhere((ref) => ref == null);
+        }
+        // TODO(asgerf): Rebalance nested StringConcats that arise from
+        //               rewriting the + operator to StringConcat.
+        break;
+
+      case BuiltinOperator.Identical:
+        Primitive left = node.arguments[0].definition;
+        Primitive right = node.arguments[1].definition;
+        AbstractValue leftValue = getValue(left);
+        AbstractValue rightValue = getValue(right);
+        // Replace identical(x, true) by x when x is known to be a boolean.
+        if (lattice.isDefinitelyBool(leftValue) &&
+            rightValue.isConstant &&
+            rightValue.constant.isTrue) {
+          left.substituteFor(node);
+        }
+        break;
+
+      default:
+    }
+  }
+
+  Primitive visitTypeTest(TypeTest node) {
+    Primitive prim = node.value.definition;
+    AbstractValue value = getValue(prim);
+    if (node.type == dartTypes.coreTypes.intType) {
+      // Compile as typeof x === 'number' && Math.floor(x) === x
+      if (lattice.isDefinitelyNum(value, allowNull: true)) {
+        // If value is null or a number, we can skip the typeof test.
+        return new ApplyBuiltinOperator(
+            BuiltinOperator.IsFloor,
+            <Primitive>[prim, prim]);
+      }
+      if (lattice.isDefinitelyNotNonIntegerDouble(value)) {
+        // If the value cannot be a non-integer double, but might not be a
+        // number at all, we can skip the Math.floor test.
+        return new ApplyBuiltinOperator(
+            BuiltinOperator.IsNumber,
+            <Primitive>[prim]);
+      }
+      return new ApplyBuiltinOperator(
+          BuiltinOperator.IsNumberAndFloor,
+          <Primitive>[prim, prim, prim]);
+    }
+    return null;
+  }
+
+  void visitGetField(GetField node) {
+    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
+  }
+
+  void visitLetPrim(LetPrim node) {
+    AbstractValue value = getValue(node.primitive);
+    if (node.primitive is! Constant && value.isConstant) {
+      // If the value is a known constant, compile it as a constant.
+      Constant newPrim = makeConstantPrimitive(value.constant);
+      newPrim.substituteFor(node.primitive);
+      RemovalVisitor.remove(node.primitive);
+      node.primitive = newPrim;
     } else {
-      visitLetPrim(letPrim);
+      Primitive newPrim = visit(node.primitive);
+      if (newPrim != null) {
+        if (!values.containsKey(newPrim)) {
+          // If the type was not set, default to the same type as before.
+          values[newPrim] = values[node.primitive];
+        }
+        newPrim.substituteFor(node.primitive);
+        RemovalVisitor.remove(node.primitive);
+        node.primitive = newPrim;
+      }
+      if (node.primitive.hasNoUses && node.primitive.isSafeForElimination) {
+        // Remove unused primitives before entering the body.
+        // This would also be done by shrinking reductions, but usage analyses
+        // such as isAlwaysBoolified are more precise without the dead uses, so
+        // we prefer to remove them early.
+        RemovalVisitor.remove(node.primitive);
+        node.parent.body = node.body;
+        node.body.parent = node.parent;
+      }
     }
-  }
-
-  _AbstractValue<T> getValue(Primitive primitive) {
-    _AbstractValue<T> value = values[primitive];
-    return value == null ? new _AbstractValue.nothing() : value;
-  }
-
-  void visitIdentical(Identical node) {
-    Primitive left = node.left.definition;
-    Primitive right = node.right.definition;
-    _AbstractValue<T> leftValue = getValue(left);
-    _AbstractValue<T> rightValue = getValue(right);
-    // Replace identical(x, true) by x when x is known to be a boolean.
-    if (leftValue.isDefinitelyBool(typeSystem) &&
-        rightValue.isConstant &&
-        rightValue.constant.isTrue) {
-      left.substituteFor(node);
-    }
+    visit(node.body);
   }
 }
 
@@ -374,7 +931,7 @@ class _TransformingVisitor<T> extends RecursiveVisitor {
  * const-ness as well as reachability, both of which are used in the subsequent
  * transformation pass.
  */
-class _TypePropagationVisitor<T> implements Visitor {
+class TypePropagationVisitor implements Visitor {
   // The node worklist stores nodes that are both reachable and need to be
   // processed, but have not been processed yet. Using a worklist avoids deep
   // recursion.
@@ -391,35 +948,31 @@ class _TypePropagationVisitor<T> implements Visitor {
   // since their lattice value has changed.
   final Set<Definition> defWorkset = new Set<Definition>();
 
-  final ConstantSystem constantSystem;
-  final TypeSystem<T> typeSystem;
+  final ConstantPropagationLattice lattice;
   final dart2js.InternalErrorFunction internalError;
-  final types.DartTypes _dartTypes;
 
-  _AbstractValue<T> nothing = new _AbstractValue.nothing();
+  TypeMaskSystem get typeSystem => lattice.typeSystem;
 
-  _AbstractValue<T> nonConstant([T type]) {
-    if (type == null) {
-      type = typeSystem.dynamicType;
-    }
-    return new _AbstractValue<T>.nonConstant(type);
+  AbstractValue get nothing => lattice.nothing;
+
+  AbstractValue nonConstant([TypeMask type]) => lattice.nonConstant(type);
+
+  AbstractValue constantValue(ConstantValue constant, [TypeMask type]) {
+    return lattice.constant(constant, type);
   }
 
-  _AbstractValue<T> constantValue(ConstantValue constant, T type) {
-    return new _AbstractValue<T>.constantValue(constant, type);
-  }
-
-  // Stores the current lattice value for nodes. Note that it contains not only
-  // definitions as keys, but also expressions such as method invokes.
+  // Stores the current lattice value for primitives and mutable variables.
   // Access through [getValue] and [setValue].
-  final Map<Node, _AbstractValue<T>> values;
+  final Map<Definition, AbstractValue> values;
 
-  _TypePropagationVisitor(this.constantSystem,
-                          TypeSystem typeSystem,
-                          this.values,
-                          this.internalError,
-                          this._dartTypes)
-      : this.typeSystem = typeSystem;
+  /// Expressions that invoke their call continuation with a constant value
+  /// and without any side effects. These can be replaced by the constant.
+  final Map<Expression, ConstantValue> replacements;
+
+  TypePropagationVisitor(this.lattice,
+                         this.values,
+                         this.replacements,
+                         this.internalError);
 
   void analyze(FunctionDefinition root) {
     reachableNodes.clear();
@@ -463,17 +1016,17 @@ class _TypePropagationVisitor<T> implements Visitor {
   /// Returns the lattice value corresponding to [node], defaulting to nothing.
   ///
   /// Never returns null.
-  _AbstractValue<T> getValue(Node node) {
-    _AbstractValue<T> value = values[node];
+  AbstractValue getValue(Node node) {
+    AbstractValue value = values[node];
     return (value == null) ? nothing : value;
   }
 
   /// Joins the passed lattice [updateValue] to the current value of [node],
   /// and adds it to the definition work set if it has changed and [node] is
   /// a definition.
-  void setValue(Node node, _AbstractValue<T> updateValue) {
-    _AbstractValue<T> oldValue = getValue(node);
-    _AbstractValue<T> newValue = updateValue.join(oldValue, typeSystem);
+  void setValue(Node node, AbstractValue updateValue) {
+    AbstractValue oldValue = getValue(node);
+    AbstractValue newValue = lattice.join(oldValue, updateValue);
     if (oldValue == newValue) {
       return;
     }
@@ -536,11 +1089,30 @@ class _TypePropagationVisitor<T> implements Visitor {
 
     assert(cont.parameters.length == 1);
     Parameter returnValue = cont.parameters[0];
-    Entity target = node.target;
-    T returnType = target is FieldElement
-        ? typeSystem.dynamicType
-        : typeSystem.getReturnType(node.target);
-    setValue(returnValue, nonConstant(returnType));
+
+    /// Sets the value of the target continuation parameter, and possibly
+    /// try to replace the whole invocation with a constant.
+    void setResult(AbstractValue updateValue, {bool canReplace: false}) {
+      setValue(returnValue, updateValue);
+      if (canReplace && updateValue.isConstant) {
+        replacements[node] = updateValue.constant;
+      } else {
+        // A previous iteration might have tried to replace this.
+        replacements.remove(node);
+      }
+    }
+
+    if (node.target.library.isInternalLibrary) {
+      switch (node.target.name) {
+        case InternalMethod.Stringify:
+          AbstractValue argValue = getValue(node.arguments[0].definition);
+          setResult(lattice.stringify(argValue), canReplace: true);
+          return;
+      }
+    }
+
+    TypeMask returnType = typeSystem.getReturnType(node.target);
+    setResult(nonConstant(returnType));
   }
 
   void visitInvokeContinuation(InvokeContinuation node) {
@@ -551,7 +1123,7 @@ class _TypePropagationVisitor<T> implements Visitor {
     // continuation. Note that this is effectively a phi node in SSA terms.
     for (int i = 0; i < node.arguments.length; i++) {
       Definition def = node.arguments[i].definition;
-      _AbstractValue<T> cell = getValue(def);
+      AbstractValue cell = getValue(def);
       setValue(cont.parameters[i], cell);
     }
   }
@@ -560,65 +1132,120 @@ class _TypePropagationVisitor<T> implements Visitor {
     Continuation cont = node.continuation.definition;
     setReachable(cont);
 
-    /// Sets the value of both the current node and the target continuation
-    /// parameter.
-    void setValues(_AbstractValue<T> updateValue) {
-      setValue(node, updateValue);
+    /// Sets the value of the target continuation parameter, and possibly
+    /// try to replace the whole invocation with a constant.
+    void setResult(AbstractValue updateValue, {bool canReplace: false}) {
       Parameter returnValue = cont.parameters[0];
       setValue(returnValue, updateValue);
+      if (canReplace && updateValue.isConstant) {
+        replacements[node] = updateValue.constant;
+      } else {
+        // A previous iteration might have tried to replace this.
+        replacements.remove(node);
+      }
     }
 
-    _AbstractValue<T> lhs = getValue(node.receiver.definition);
-    if (lhs.isNothing) {
+    AbstractValue receiver = getValue(node.receiver.definition);
+    if (receiver.isNothing) {
       return;  // And come back later.
-    } else if (lhs.isNonConst) {
-      setValues(nonConstant(typeSystem.getSelectorReturnType(node.selector)));
-      return;
-    } else if (!node.selector.isOperator) {
+    }
+    if (!node.selector.isOperator) {
       // TODO(jgruber): Handle known methods on constants such as String.length.
-      setValues(nonConstant());
+      setResult(lattice.getInvokeReturnType(node.selector, node.mask));
       return;
     }
 
     // Calculate the resulting constant if possible.
-    ConstantValue result;
+    // Operators are intercepted, so the operands are in the argument list.
+    AbstractValue result;
     String opname = node.selector.name;
-    if (node.selector.argumentCount == 0) {
+    if (node.arguments.length == 1) {
+      AbstractValue argument = getValue(node.arguments[0].definition);
       // Unary operator.
-
       if (opname == "unary-") {
         opname = "-";
       }
-      UnaryOperation operation = constantSystem.lookupUnary(
-          UnaryOperator.parse(opname));
-      if (operation != null) {
-        result = operation.fold(lhs.constant);
-      }
-    } else if (node.selector.argumentCount == 1) {
+      UnaryOperator operator = UnaryOperator.parse(opname);
+      result = lattice.unaryOp(operator, argument);
+    } else if (node.arguments.length == 2) {
       // Binary operator.
-
-      _AbstractValue<T> rhs = getValue(node.arguments[0].definition);
-      if (!rhs.isConstant) {
-        setValues(nonConstant());
-        return;
-      }
-
-      BinaryOperation operation = constantSystem.lookupBinary(
-          BinaryOperator.parse(opname));
-      if (operation != null) {
-        result = operation.fold(lhs.constant, rhs.constant);
-      }
+      AbstractValue left = getValue(node.arguments[0].definition);
+      AbstractValue right = getValue(node.arguments[1].definition);
+      BinaryOperator operator = BinaryOperator.parse(opname);
+      result = lattice.binaryOp(operator, left, right);
     }
 
     // Update value of the continuation parameter. Again, this is effectively
     // a phi.
     if (result == null) {
-      setValues(nonConstant());
+      setResult(lattice.getInvokeReturnType(node.selector, node.mask));
     } else {
-      T type = typeSystem.getTypeOf(result);
-      setValues(constantValue(result, type));
+      setResult(result, canReplace: true);
     }
-   }
+  }
+
+  void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    // Note that most built-in operators do not exist before the transformation
+    // pass after this analysis has finished.
+    switch (node.operator) {
+      case BuiltinOperator.StringConcatenate:
+        DartString stringValue = const LiteralDartString('');
+        for (Reference<Primitive> arg in node.arguments) {
+          AbstractValue value = getValue(arg.definition);
+          if (value.isNothing) {
+            return; // And come back later
+          } else if (value.isConstant &&
+                     value.constant.isString &&
+                     stringValue != null) {
+            StringConstantValue constant = value.constant;
+            stringValue =
+                new ConsDartString(stringValue, constant.primitiveValue);
+          } else {
+            stringValue = null;
+            break;
+          }
+        }
+        if (stringValue == null) {
+          setValue(node, nonConstant(typeSystem.stringType));
+        } else {
+          setValue(node, constantValue(new StringConstantValue(stringValue)));
+        }
+        break;
+
+      case BuiltinOperator.Identical:
+        AbstractValue leftConst = getValue(node.arguments[0].definition);
+        AbstractValue rightConst = getValue(node.arguments[1].definition);
+        ConstantValue leftValue = leftConst.constant;
+        ConstantValue rightValue = rightConst.constant;
+        if (leftConst.isNothing || rightConst.isNothing) {
+          // Come back later.
+          return;
+        } else if (!leftConst.isConstant || !rightConst.isConstant) {
+          TypeMask leftType = leftConst.type;
+          TypeMask rightType = rightConst.type;
+          if (typeSystem.areDisjoint(leftType, rightType)) {
+            setValue(node,
+                constantValue(new FalseConstantValue(), typeSystem.boolType));
+          } else {
+            setValue(node, nonConstant(typeSystem.boolType));
+          }
+          return;
+        } else if (leftValue.isPrimitive && rightValue.isPrimitive) {
+          assert(leftConst.isConstant && rightConst.isConstant);
+          PrimitiveConstantValue left = leftValue;
+          PrimitiveConstantValue right = rightValue;
+          ConstantValue result =
+            new BoolConstantValue(left.primitiveValue == right.primitiveValue);
+          setValue(node, constantValue(result, typeSystem.boolType));
+        } else {
+          setValue(node, nonConstant(typeSystem.boolType));
+        }
+        break;
+
+      default:
+        setValue(node, nonConstant());
+    }
+  }
 
   void visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     Continuation cont = node.continuation.definition;
@@ -639,47 +1266,13 @@ class _TypePropagationVisitor<T> implements Visitor {
     setValue(returnValue, nonConstant(typeSystem.getReturnType(node.target)));
   }
 
-  void visitConcatenateStrings(ConcatenateStrings node) {
-    Continuation cont = node.continuation.definition;
-    setReachable(cont);
-
-    void setValues(_AbstractValue<T> updateValue) {
-      setValue(node, updateValue);
-      Parameter returnValue = cont.parameters[0];
-      setValue(returnValue, updateValue);
-    }
-
-    // TODO(jgruber): Currently we only optimize if all arguments are string
-    // constants, but we could also handle cases such as "foo${42}".
-    bool allStringConstants = node.arguments.every((Reference ref) {
-      if (!(ref.definition is Constant)) {
-        return false;
-      }
-      Constant constant = ref.definition;
-      return constant != null && constant.value.isString;
-    });
-
-    T type = typeSystem.stringType;
-    assert(cont.parameters.length == 1);
-    if (allStringConstants) {
-      // All constant, we can concatenate ourselves.
-      Iterable<String> allStrings = node.arguments.map((Reference ref) {
-        Constant constant = ref.definition;
-        StringConstantValue stringConstant = constant.value;
-        return stringConstant.primitiveValue.slowToString();
-      });
-      LiteralDartString dartString = new LiteralDartString(allStrings.join());
-      ConstantValue constant = new StringConstantValue(dartString);
-      setValues(constantValue(constant, type));
-    } else {
-      setValues(nonConstant(type));
-    }
-  }
-
   void visitThrow(Throw node) {
   }
 
   void visitRethrow(Rethrow node) {
+  }
+
+  void visitUnreachable(Unreachable node) {
   }
 
   void visitNonTailThrow(NonTailThrow node) {
@@ -688,7 +1281,7 @@ class _TypePropagationVisitor<T> implements Visitor {
 
   void visitBranch(Branch node) {
     IsTrue isTrue = node.condition;
-    _AbstractValue<T> conditionCell = getValue(isTrue.value.definition);
+    AbstractValue conditionCell = getValue(isTrue.value.definition);
 
     if (conditionCell.isNothing) {
       return;  // And come back later.
@@ -709,50 +1302,47 @@ class _TypePropagationVisitor<T> implements Visitor {
     }
   }
 
-  void visitTypeOperator(TypeOperator node) {
+  void visitTypeTest(TypeTest node) {
+    AbstractValue input = getValue(node.value.definition);
+    TypeMask boolType = typeSystem.boolType;
+    switch(lattice.isSubtypeOf(input, node.type, allowNull: false)) {
+      case AbstractBool.Nothing:
+        break; // And come back later.
+
+      case AbstractBool.True:
+        setValue(node, constantValue(new TrueConstantValue(), boolType));
+        break;
+
+      case AbstractBool.False:
+        setValue(node, constantValue(new FalseConstantValue(), boolType));
+        break;
+
+      case AbstractBool.Maybe:
+        setValue(node, nonConstant(boolType));
+        break;
+    }
+  }
+
+  void visitTypeCast(TypeCast node) {
     Continuation cont = node.continuation.definition;
-    setReachable(cont);
+    AbstractValue input = getValue(node.value.definition);
+    switch (lattice.isSubtypeOf(input, node.type, allowNull: true)) {
+      case AbstractBool.Nothing:
+        break; // And come back later.
 
-    void setValues(_AbstractValue<T> updateValue) {
-      setValue(node, updateValue);
-      Parameter returnValue = cont.parameters[0];
-      setValue(returnValue, updateValue);
-    }
+      case AbstractBool.True:
+        setReachable(cont);
+        setValue(cont.parameters.single, input);
+        break;
 
-    if (node.isTypeCast) {
-      // TODO(jgruber): Add support for `as` casts.
-      setValues(nonConstant());
-      return;
-    }
+      case AbstractBool.False:
+        break; // Cast fails. Continuation should remain unreachable.
 
-    _AbstractValue<T> cell = getValue(node.value.definition);
-    if (cell.isNothing) {
-      return;  // And come back later.
-    } else if (cell.isConstant && node.type.kind == types.TypeKind.INTERFACE) {
-      // Receiver is a constant, perform is-checks at compile-time.
-
-      types.InterfaceType checkedType = node.type;
-      ConstantValue constant = cell.constant;
-      types.DartType constantType = constant.getType(_dartTypes.coreTypes);
-
-      T type = typeSystem.boolType;
-      _AbstractValue<T> result;
-      if (constant.isNull &&
-          checkedType != _dartTypes.coreTypes.nullType &&
-          checkedType != _dartTypes.coreTypes.objectType) {
-        // `(null is Type)` is true iff Type is in { Null, Object }.
-        result = constantValue(new FalseConstantValue(), type);
-      } else {
-        // Otherwise, perform a standard subtype check.
-        result = constantValue(
-            constantSystem.isSubtype(_dartTypes, constantType, checkedType)
-            ? new TrueConstantValue()
-            : new FalseConstantValue(),
-            type);
-      }
-      setValues(result);
-    } else {
-      setValues(nonConstant(typeSystem.boolType));
+      case AbstractBool.Maybe:
+        // TODO(asgerf): Narrow type of output to those that survive the cast.
+        setReachable(cont);
+        setValue(cont.parameters.single, input);
+        break;
     }
   }
 
@@ -797,7 +1387,7 @@ class _TypePropagationVisitor<T> implements Visitor {
       // never constant.
       // TODO(karlklose): remove reference to the element model.
       Entity source = node.hint;
-      T type = (source is ParameterElement)
+      TypeMask type = (source is ParameterElement)
           ? typeSystem.getParameterType(source)
           : typeSystem.dynamicType;
       setValue(node, nonConstant(type));
@@ -811,7 +1401,7 @@ class _TypePropagationVisitor<T> implements Visitor {
   void visitParameter(Parameter node) {
     Entity source = node.hint;
     // TODO(karlklose): remove reference to the element model.
-    T type = (source is ParameterElement)
+    TypeMask type = (source is ParameterElement)
         ? typeSystem.getParameterType(source)
         : typeSystem.dynamicType;
     if (node.parent is FunctionDefinition) {
@@ -859,36 +1449,9 @@ class _TypePropagationVisitor<T> implements Visitor {
     visitBranch(branch);
   }
 
-  void visitIdentical(Identical node) {
-    _AbstractValue<T> leftConst = getValue(node.left.definition);
-    _AbstractValue<T> rightConst = getValue(node.right.definition);
-    ConstantValue leftValue = leftConst.constant;
-    ConstantValue rightValue = rightConst.constant;
-    if (leftConst.isNothing || rightConst.isNothing) {
-      // Come back later.
-      return;
-    } else if (!leftConst.isConstant || !rightConst.isConstant) {
-      T leftType = leftConst.type;
-      T rightType = rightConst.type;
-      if (typeSystem.areDisjoint(leftType, rightType)) {
-        setValue(node,
-            constantValue(new FalseConstantValue(), typeSystem.boolType));
-      } else {
-        setValue(node, nonConstant(typeSystem.boolType));
-      }
-    } else if (leftValue.isPrimitive && rightValue.isPrimitive) {
-      assert(leftConst.isConstant && rightConst.isConstant);
-      PrimitiveConstantValue left = leftValue;
-      PrimitiveConstantValue right = rightValue;
-      ConstantValue result =
-          new BoolConstantValue(left.primitiveValue == right.primitiveValue);
-      setValue(node, constantValue(result, typeSystem.boolType));
-    }
-  }
-
   void visitInterceptor(Interceptor node) {
     setReachable(node.input.definition);
-    _AbstractValue<T> value = getValue(node.input.definition);
+    AbstractValue value = getValue(node.input.definition);
     if (!value.isNothing) {
       setValue(node, nonConstant(typeSystem.nonNullType));
     }
@@ -907,7 +1470,7 @@ class _TypePropagationVisitor<T> implements Visitor {
   }
 
   void visitCreateInstance(CreateInstance node) {
-    setValue(node, nonConstant(typeSystem.exact(node.classElement)));
+    setValue(node, nonConstant(typeSystem.nonNullExact(node.classElement.declaration)));
   }
 
   void visitReifyRuntimeType(ReifyRuntimeType node) {
@@ -931,6 +1494,18 @@ class _TypePropagationVisitor<T> implements Visitor {
     // TODO(asgerf): Expose [Invocation] type.
     setValue(node, nonConstant(typeSystem.nonNullType));
   }
+
+  @override
+  visitForeignCode(ForeignCode node) {
+    if (node.continuation != null) {
+      Continuation continuation = node.continuation.definition;
+      setReachable(continuation);
+
+      assert(continuation.parameters.length == 1);
+      Parameter returnValue = continuation.parameters.first;
+      setValue(returnValue, nonConstant(node.type));
+    }
+  }
 }
 
 /// Represents the abstract value of a primitive value at some point in the
@@ -942,38 +1517,42 @@ class _TypePropagationVisitor<T> implements Visitor {
 ///   CONSTANT: is a constant. The value is stored in the [constant] field,
 ///             and the type of the constant is in the [type] field.
 ///   NONCONST: not a constant, but [type] may hold some information.
-class _AbstractValue<T> {
+class AbstractValue {
   static const int NOTHING  = 0;
   static const int CONSTANT = 1;
   static const int NONCONST = 2;
 
   final int kind;
   final ConstantValue constant;
-  final T type;
+  final TypeMask type;
 
-  _AbstractValue._internal(this.kind, this.constant, this.type) {
+  AbstractValue._internal(this.kind, this.constant, this.type) {
     assert(kind != CONSTANT || constant != null);
   }
 
-  _AbstractValue.nothing()
+  AbstractValue.nothing()
       : this._internal(NOTHING, null, null);
 
-  _AbstractValue.constantValue(ConstantValue constant, T type)
+  AbstractValue.constantValue(ConstantValue constant, TypeMask type)
       : this._internal(CONSTANT, constant, type);
 
-  _AbstractValue.nonConstant(T type)
+  AbstractValue.nonConstant(TypeMask type)
       : this._internal(NONCONST, null, type);
 
   bool get isNothing  => (kind == NOTHING);
   bool get isConstant => (kind == CONSTANT);
   bool get isNonConst => (kind == NONCONST);
+  bool get isNullConstant => kind == CONSTANT && constant.isNull;
+
+  bool get isNullable => kind != NOTHING && type.isNullable;
+  bool get isDefinitelyNotNull => kind == NOTHING || !type.isNullable;
 
   int get hashCode {
     int hash = kind * 31 + constant.hashCode * 59 + type.hashCode * 67;
     return hash & 0x3fffffff;
   }
 
-  bool operator ==(_AbstractValue that) {
+  bool operator ==(AbstractValue that) {
     return that.kind == this.kind &&
            that.constant == this.constant &&
            that.type == this.type;
@@ -982,113 +1561,15 @@ class _AbstractValue<T> {
   String toString() {
     switch (kind) {
       case NOTHING: return "Nothing";
-      case CONSTANT: return "Constant: $constant: $type";
+      case CONSTANT: return "Constant: ${constant.unparse()}: $type";
       case NONCONST: return "Non-constant: $type";
       default: assert(false);
     }
     return null;
   }
-
-  /// Compute the join of two values in the lattice.
-  _AbstractValue join(_AbstractValue that, TypeSystem typeSystem) {
-    assert(that != null);
-
-    if (isNothing) {
-      return that;
-    } else if (that.isNothing) {
-      return this;
-    } else if (isConstant && that.isConstant && constant == that.constant) {
-      return this;
-    } else {
-      return new _AbstractValue.nonConstant(
-          typeSystem.join(this.type, that.type));
-    }
-  }
-
-  /// True if all members of this value are booleans.
-  bool isDefinitelyBool(TypeSystem<T> typeSystem) {
-    if (kind == NOTHING) return true;
-    return typeSystem.isDefinitelyBool(type);
-  }
-
-  /// True if null is not a member of this value.
-  bool isDefinitelyNotNull(TypeSystem<T> typeSystem) {
-    if (kind == NOTHING) return true;
-    if (kind == CONSTANT) return !constant.isNull;
-    return typeSystem.isDefinitelyNotNull(type);
-  }
 }
 
-class ConstantExpressionCreator
-    implements ConstantValueVisitor<ConstantExpression, dynamic> {
-
-  const ConstantExpressionCreator();
-
-  ConstantExpression convert(ConstantValue value) => value.accept(this, null);
-
-  @override
-  ConstantExpression visitBool(BoolConstantValue constant, _) {
-    return new BoolConstantExpression(constant.primitiveValue);
-  }
-
-  @override
-  ConstantExpression visitConstructed(ConstructedConstantValue constant, arg) {
-    throw new UnsupportedError("ConstantExpressionCreator.visitConstructed");
-  }
-
-  @override
-  ConstantExpression visitDeferred(DeferredConstantValue constant, arg) {
-    throw new UnsupportedError("ConstantExpressionCreator.visitDeferred");
-  }
-
-  @override
-  ConstantExpression visitDouble(DoubleConstantValue constant, arg) {
-    return new DoubleConstantExpression(constant.primitiveValue);
-  }
-
-  @override
-  ConstantExpression visitDummy(DummyConstantValue constant, arg) {
-    throw new UnsupportedError("ConstantExpressionCreator.visitDummy");
-  }
-
-  @override
-  ConstantExpression visitFunction(FunctionConstantValue constant, arg) {
-    throw new UnsupportedError("ConstantExpressionCreator.visitFunction");
-  }
-
-  @override
-  ConstantExpression visitInt(IntConstantValue constant, arg) {
-    return new IntConstantExpression(constant.primitiveValue);
-  }
-
-  @override
-  ConstantExpression visitInterceptor(InterceptorConstantValue constant, arg) {
-    throw new UnsupportedError("ConstantExpressionCreator.visitInterceptor");
-  }
-
-  @override
-  ConstantExpression visitList(ListConstantValue constant, arg) {
-    throw new UnsupportedError("ConstantExpressionCreator.visitList");
-  }
-
-  @override
-  ConstantExpression visitMap(MapConstantValue constant, arg) {
-    throw new UnsupportedError("ConstantExpressionCreator.visitMap");
-  }
-
-  @override
-  ConstantExpression visitNull(NullConstantValue constant, arg) {
-    return new NullConstantExpression();
-  }
-
-  @override
-  ConstantExpression visitString(StringConstantValue constant, arg) {
-    return new StringConstantExpression(
-        constant.primitiveValue.slowToString());
-  }
-
-  @override
-  ConstantExpression visitType(TypeConstantValue constant, arg) {
-    throw new UnsupportedError("ConstantExpressionCreator.visitType");
-  }
+/// Enum-like class with the names of internal methods we care about.
+abstract class InternalMethod {
+  static const String Stringify = 'S';
 }

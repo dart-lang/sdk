@@ -8,7 +8,18 @@ import '../constants/values.dart' as values show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
+import '../types/types.dart' show TypeMask;
 import '../universe/universe.dart' show Selector, SelectorKind;
+
+import 'builtin_operator.dart';
+export 'builtin_operator.dart';
+
+// These imports are only used for the JavaScript specific nodes.  If we want to
+// support more than one native backend, we should probably create better
+// abstractions for native code and its type and effect system.
+import '../js/js.dart' as js show Template;
+import '../native/native.dart' as native show NativeBehavior;
+import '../types/types.dart' as types show TypeMask;
 
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
@@ -28,6 +39,8 @@ abstract class Node {
 /// that can be obtained without side-effects, divergence, or throwing
 /// exceptions can be built using a [LetPrim].
 abstract class Expression extends Node {
+  InteriorNode get parent; // Only InteriorNodes may contain expressions.
+
   Expression plug(Expression expr) => throw 'impossible';
 }
 
@@ -59,12 +72,10 @@ abstract class Definition<T extends Definition<T>> extends Node {
   }
 }
 
-/// An expression that cannot throw or diverge and has no side-effects.
-/// All primitives are named using the identity of the [Primitive] object.
+/// A named value.
 ///
-/// Primitives may allocate objects; this is not considered side-effect here.
-///
-/// Although primitives may not mutate state, they may depend on state.
+/// The identity of the [Primitive] object is the name of the value.
+/// The subclass describes how to compute the value.
 ///
 /// All primitives except [Parameter] must be bound by a [LetPrim].
 abstract class Primitive extends Definition<Primitive> {
@@ -80,6 +91,13 @@ abstract class Primitive extends Definition<Primitive> {
       this.hint = hint;
     }
   }
+
+  /// True if the primitive can be removed, assuming it has no uses
+  /// (this getter does not check if there are any uses).
+  ///
+  /// False must be returned for primitives that may throw, diverge, or have
+  /// observable side-effects.
+  bool get isSafeForElimination => true;
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
@@ -117,7 +135,7 @@ class Reference<T extends Definition<T>> {
 /// During one-pass construction a LetPrim with an empty body is used to
 /// represent the one-hole context `let val x = V in []`.
 class LetPrim extends Expression implements InteriorNode {
-  final Primitive primitive;
+  Primitive primitive;
   Expression body;
 
   LetPrim(this.primitive, [this.body = null]);
@@ -265,6 +283,7 @@ class InvokeStatic extends Expression implements Invoke {
 class InvokeMethod extends Expression implements Invoke {
   Reference<Primitive> receiver;
   Selector selector;
+  TypeMask mask;
   final List<Reference<Primitive>> arguments;
   final Reference<Continuation> continuation;
   final SourceInformation sourceInformation;
@@ -276,6 +295,7 @@ class InvokeMethod extends Expression implements Invoke {
 
   InvokeMethod(Primitive receiver,
                this.selector,
+               this.mask,
                List<Primitive> arguments,
                Continuation continuation,
                {this.sourceInformation})
@@ -357,10 +377,14 @@ class InvokeConstructor extends Expression implements Invoke {
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
 }
 
-// TODO(asgerf): Make a Primitive for "is" and an Expression for "as".
-
-/// An "as" cast or an "is" check.
-class TypeOperator extends Expression {
+/// An "is" type test.
+///
+/// Returns `true` if [value] is an instance of [type].
+///
+/// [type] must not be the [Object], `dynamic` or [Null] types (though it might
+/// be a type variable containing one of these types). This design is chosen
+/// to simplify code generation for type tests.
+class TypeTest extends Primitive {
   Reference<Primitive> value;
   final DartType type;
 
@@ -371,37 +395,61 @@ class TypeOperator extends Expression {
   /// If [type] is a [TypeVariableType], this is a singleton list with
   /// the internal representation of the type held in that type variable.
   ///
+  /// If [type] is a [FunctionType], this is a singleton list with the
+  /// internal representation of that type,
+  ///
   /// Otherwise the list is empty.
   final List<Reference<Primitive>> typeArguments;
-  final Reference<Continuation> continuation;
-  final bool isTypeTest;
 
-  TypeOperator(Primitive value,
-               this.type,
-               List<Primitive> typeArguments,
-               Continuation cont,
-               {bool this.isTypeTest})
-      : this.value = new Reference<Primitive>(value),
-        this.typeArguments = _referenceList(typeArguments),
-        this.continuation = new Reference<Continuation>(cont) {
-    assert(isTypeTest != null);
-  }
+  TypeTest(Primitive value,
+           this.type,
+           List<Primitive> typeArguments)
+  : this.value = new Reference<Primitive>(value),
+    this.typeArguments = _referenceList(typeArguments);
 
-  bool get isTypeCast => !isTypeTest;
-
-  accept(Visitor visitor) => visitor.visitTypeOperator(this);
+  accept(Visitor visitor) => visitor.visitTypeTest(this);
 }
 
-/// Invoke [toString] on each argument and concatenate the results.
-class ConcatenateStrings extends Expression {
-  final List<Reference<Primitive>> arguments;
+/// An "as" type cast.
+///
+/// If [value] is `null` or is an instance of [type], [continuation] is invoked
+/// with [value] as argument. Otherwise, a [CastError] is thrown.
+///
+/// Discussion:
+/// The parameter to [continuation] is redundant since it will always equal
+/// [value], which is typically in scope in the continuation. However, it might
+/// simplify type propagation, since a better type can be computed for the
+/// continuation parameter without needing flow-sensitive analysis.
+class TypeCast extends Expression {
+  Reference<Primitive> value;
+  final DartType type;
+
+  /// See the corresponding field on [TypeTest].
+  final List<Reference<Primitive>> typeArguments;
   final Reference<Continuation> continuation;
 
-  ConcatenateStrings(List<Primitive> args, Continuation cont)
-      : arguments = _referenceList(args),
-        continuation = new Reference<Continuation>(cont);
+  TypeCast(Primitive value,
+           this.type,
+           List<Primitive> typeArguments,
+           Continuation cont)
+      : this.value = new Reference<Primitive>(value),
+        this.typeArguments = _referenceList(typeArguments),
+        this.continuation = new Reference<Continuation>(cont);
 
-  accept(Visitor visitor) => visitor.visitConcatenateStrings(this);
+  accept(Visitor visitor) => visitor.visitTypeCast(this);
+}
+
+/// Apply a built-in operator.
+///
+/// It must be known that the arguments have the proper types.
+class ApplyBuiltinOperator extends Primitive {
+  BuiltinOperator operator;
+  List<Reference<Primitive>> arguments;
+
+  ApplyBuiltinOperator(this.operator, List<Primitive> arguments)
+      : this.arguments = _referenceList(arguments);
+
+  accept(Visitor visitor) => visitor.visitApplyBuiltinOperator(this);
 }
 
 /// Throw a value.
@@ -437,6 +485,14 @@ class NonTailThrow extends Primitive {
   NonTailThrow(Primitive value) : value = new Reference<Primitive>(value);
 
   accept(Visitor visitor) => visitor.visitNonTailThrow(this);
+}
+
+/// An expression that is known to be unreachable.
+///
+/// This can be placed as the body of a call continuation, when the caller is
+/// known never to invoke it, e.g. because the calling expression always throws.
+class Unreachable extends Expression {
+  accept(Visitor visitor) => visitor.visitUnreachable(this);
 }
 
 /// Gets the value from a [MutableVariable].
@@ -554,14 +610,24 @@ class SetField extends Expression implements InteriorNode {
 }
 
 /// Directly reads from a field on a given object.
+///
+/// The [object] must either be `null` or an object that has [field].
 class GetField extends Primitive {
   final Reference<Primitive> object;
   FieldElement field;
+
+  /// True if the receiver is known not to be null.
+  // TODO(asgerf): This is a placeholder until we agree on how to track
+  //               side effects.
+  bool objectIsNotNull = false;
 
   GetField(Primitive object, this.field)
       : this.object = new Reference<Primitive>(object);
 
   accept(Visitor visitor) => visitor.visitGetField(this);
+
+  @override
+  bool get isSafeForElimination => objectIsNotNull;
 }
 
 /// Reads the value of a static field or tears off a static method.
@@ -641,19 +707,6 @@ class CreateInstance extends Primitive {
   accept(Visitor visitor) => visitor.visitCreateInstance(this);
 }
 
-/// Compare objects for identity.
-///
-/// It is an error pass in a value that does not correspond to a Dart value,
-/// such as an interceptor or a box.
-class Identical extends Primitive {
-  final Reference<Primitive> left;
-  final Reference<Primitive> right;
-  Identical(Primitive left, Primitive right)
-      : left = new Reference<Primitive>(left),
-        right = new Reference<Primitive>(right);
-  accept(Visitor visitor) => visitor.visitIdentical(this);
-}
-
 class Interceptor extends Primitive {
   final Reference<Primitive> input;
   final Set<ClassElement> interceptedClasses;
@@ -673,11 +726,30 @@ class CreateInvocationMirror extends Primitive {
   accept(Visitor visitor) => visitor.visitCreateInvocationMirror(this);
 }
 
+class ForeignCode extends Expression {
+  final js.Template codeTemplate;
+  final types.TypeMask type;
+  final List<Reference<Primitive>> arguments;
+  final native.NativeBehavior nativeBehavior;
+  final FunctionElement dependency;
+
+  /// The continuation, if the foreign code is not a JavaScript 'throw',
+  /// otherwise null.
+  final Reference<Continuation> continuation;
+
+  ForeignCode(this.codeTemplate, this.type, List<Primitive> arguments,
+      this.nativeBehavior, {Continuation continuation, this.dependency})
+      : arguments = _referenceList(arguments),
+        continuation = continuation == null ? null
+            : new Reference<Continuation>(continuation);
+
+  accept(Visitor visitor) => visitor.visitForeignCode(this);
+}
+
 class Constant extends Primitive {
-  final ConstantExpression expression;
   final values.ConstantValue value;
 
-  Constant(this.expression, this.value);
+  Constant(this.value);
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 }
@@ -871,15 +943,15 @@ abstract class Visitor<T> {
   T visitInvokeMethod(InvokeMethod node);
   T visitInvokeMethodDirectly(InvokeMethodDirectly node);
   T visitInvokeConstructor(InvokeConstructor node);
-  T visitConcatenateStrings(ConcatenateStrings node);
   T visitThrow(Throw node);
   T visitRethrow(Rethrow node);
   T visitBranch(Branch node);
-  T visitTypeOperator(TypeOperator node);
+  T visitTypeCast(TypeCast node);
   T visitSetMutableVariable(SetMutableVariable node);
   T visitSetStatic(SetStatic node);
   T visitGetLazyStatic(GetLazyStatic node);
   T visitSetField(SetField node);
+  T visitUnreachable(Unreachable node);
 
   // Definitions.
   T visitLiteralList(LiteralList node);
@@ -892,7 +964,6 @@ abstract class Visitor<T> {
   T visitMutableVariable(MutableVariable node);
   T visitNonTailThrow(NonTailThrow node);
   T visitGetStatic(GetStatic node);
-  T visitIdentical(Identical node);
   T visitInterceptor(Interceptor node);
   T visitCreateInstance(CreateInstance node);
   T visitGetField(GetField node);
@@ -901,9 +972,14 @@ abstract class Visitor<T> {
   T visitReadTypeVariable(ReadTypeVariable node);
   T visitTypeExpression(TypeExpression node);
   T visitCreateInvocationMirror(CreateInvocationMirror node);
+  T visitTypeTest(TypeTest node);
+  T visitApplyBuiltinOperator(ApplyBuiltinOperator node);
 
   // Conditions.
   T visitIsTrue(IsTrue node);
+
+  // Support for literal foreign code.
+  T visitForeignCode(ForeignCode node);
 }
 
 /// Recursively visits the entire CPS term, and calls abstract `process*`
@@ -992,13 +1068,6 @@ class RecursiveVisitor implements Visitor {
     node.arguments.forEach(processReference);
   }
 
-  processConcatenateStrings(ConcatenateStrings node) {}
-  visitConcatenateStrings(ConcatenateStrings node) {
-    processConcatenateStrings(node);
-    processReference(node.continuation);
-    node.arguments.forEach(processReference);
-  }
-
   processThrow(Throw node) {}
   visitThrow(Throw node) {
     processThrow(node);
@@ -1018,10 +1087,17 @@ class RecursiveVisitor implements Visitor {
     visit(node.condition);
   }
 
-  processTypeOperator(TypeOperator node) {}
-  visitTypeOperator(TypeOperator node) {
-    processTypeOperator(node);
+  processTypeCast(TypeCast node) {}
+  visitTypeCast(TypeCast node) {
+    processTypeCast(node);
     processReference(node.continuation);
+    processReference(node.value);
+    node.typeArguments.forEach(processReference);
+  }
+
+  processTypeTest(TypeTest node) {}
+  visitTypeTest(TypeTest node) {
+    processTypeTest(node);
     processReference(node.value);
     node.typeArguments.forEach(processReference);
   }
@@ -1093,13 +1169,6 @@ class RecursiveVisitor implements Visitor {
   visitIsTrue(IsTrue node) {
     processIsTrue(node);
     processReference(node.value);
-  }
-
-  processIdentical(Identical node) {}
-  visitIdentical(Identical node) {
-    processIdentical(node);
-    processReference(node.left);
-    processReference(node.right);
   }
 
   processInterceptor(Interceptor node) {}
@@ -1174,5 +1243,38 @@ class RecursiveVisitor implements Visitor {
   visitCreateInvocationMirror(CreateInvocationMirror node) {
     processCreateInvocationMirror(node);
     node.arguments.forEach(processReference);
+  }
+
+  processApplyBuiltinOperator(ApplyBuiltinOperator node) {}
+  visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    processApplyBuiltinOperator(node);
+    node.arguments.forEach(processReference);
+  }
+
+  processForeignCode(ForeignCode node) {}
+  visitForeignCode(ForeignCode node) {
+    processForeignCode(node);
+    if (node.continuation != null) {
+      processReference(node.continuation);
+    }
+    node.arguments.forEach(processReference);
+  }
+
+  processUnreachable(Unreachable node) {}
+  visitUnreachable(Unreachable node) {
+    processUnreachable(node);
+  }
+}
+
+/// Visit a just-deleted subterm and unlink all [Reference]s in it.
+class RemovalVisitor extends RecursiveVisitor {
+  const RemovalVisitor();
+
+  processReference(Reference reference) {
+    reference.unlink();
+  }
+
+  static void remove(Node node) {
+    (const RemovalVisitor()).visit(node);
   }
 }

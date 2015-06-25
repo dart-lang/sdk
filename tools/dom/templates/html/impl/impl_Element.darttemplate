@@ -1014,8 +1014,12 @@ $endif
    */
   void insertAdjacentHtml(String where, String html, {NodeValidator validator,
       NodeTreeSanitizer treeSanitizer}) {
-      _insertAdjacentNode(where, new DocumentFragment.html(html,
-          validator: validator, treeSanitizer: treeSanitizer));
+      if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
+        _insertAdjacentHtml(where, html);
+      } else {
+        _insertAdjacentNode(where, new DocumentFragment.html(html,
+            validator: validator, treeSanitizer: treeSanitizer));
+      }
   }
 
 $if DART2JS
@@ -1374,8 +1378,12 @@ $endif
   void setInnerHtml(String html,
     {NodeValidator validator, NodeTreeSanitizer treeSanitizer}) {
     text = null;
-    append(createFragment(
-        html, validator: validator, treeSanitizer: treeSanitizer));
+    if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
+      _innerHtml = html;
+    } else {
+      append(createFragment(
+          html, validator: validator, treeSanitizer: treeSanitizer));
+    }
   }
   String get innerHtml => _innerHtml;
 

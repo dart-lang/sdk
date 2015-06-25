@@ -93,6 +93,7 @@ class ObservatoryApplication extends Observable {
       case ServiceEvent.kBreakpointResolved:
       case ServiceEvent.kBreakpointRemoved:
       case ServiceEvent.kGC:
+      case ServiceEvent.kDebuggerSettingsUpdate:
         // Ignore for now.
         break;
 
@@ -136,6 +137,7 @@ class ObservatoryApplication extends Observable {
     _pageRegistry.add(new IsolateReconnectPage(this));
     _pageRegistry.add(new ErrorViewPage(this));
     _pageRegistry.add(new MetricsPage(this));
+    _pageRegistry.add(new PortsPage(this));
     // Note that ErrorPage must be the last entry in the list as it is
     // the catch all.
     _pageRegistry.add(new ErrorPage(this));

@@ -356,6 +356,7 @@ class Assembler : public ValueObject {
   void movsxw(Register dst, const Address& src);
   void movw(Register dst, const Address& src);
   void movw(const Address& dst, Register src);
+  void movw(const Address& dst, const Immediate& imm);
 
   void leal(Register dst, const Address& src);
 
@@ -531,6 +532,8 @@ class Assembler : public ValueObject {
 
   void cmpl(const Address& address, Register reg);
   void cmpl(const Address& address, const Immediate& imm);
+  void cmpw(Register reg, const Address& address);
+  void cmpw(const Address& address, const Immediate& imm);
   void cmpb(const Address& address, const Immediate& imm);
 
   void testl(Register reg1, Register reg2);
@@ -806,11 +809,11 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
 
-  const GrowableObjectArray& object_pool_data() const {
-    return object_pool_.data();
-  }
+  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
 
-  ObjectPool& object_pool() { return object_pool_; }
+  RawObjectPool* MakeObjectPool() {
+    return object_pool_wrapper_.MakeObjectPool();
+  }
 
   void FinalizeInstructions(const MemoryRegion& region) {
     buffer_.FinalizeInstructions(region);
@@ -992,7 +995,7 @@ class Assembler : public ValueObject {
   int32_t jit_cookie();
 
   AssemblerBuffer buffer_;
-  ObjectPool object_pool_;
+  ObjectPoolWrapper object_pool_wrapper_;
   intptr_t prologue_offset_;
   int32_t jit_cookie_;
   GrowableArray<CodeComment*> comments_;

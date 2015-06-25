@@ -49,10 +49,18 @@ abstract class NodeVisitor<T> {
   T visitNamedFunction(NamedFunction node);
   T visitFun(Fun node);
 
+  T visitDeferredExpression(DeferredExpression node);
+  T visitDeferredNumber(DeferredNumber node);
+  T visitDeferredString(DeferredString node);
+
   T visitLiteralBool(LiteralBool node);
   T visitLiteralString(LiteralString node);
   T visitLiteralNumber(LiteralNumber node);
   T visitLiteralNull(LiteralNull node);
+
+  T visitStringConcatenation(StringConcatenation node);
+
+  T visitName(Name node);
 
   T visitArrayInitializer(ArrayInitializer node);
   T visitArrayHole(ArrayHole node);
@@ -139,12 +147,22 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitNamedFunction(NamedFunction node) => visitExpression(node);
   T visitFun(Fun node) => visitExpression(node);
 
+  T visitToken(DeferredToken node) => visitExpression(node);
+
+  T visitDeferredExpression(DeferredExpression node) => visitExpression(node);
+  T visitDeferredNumber(DeferredNumber node) => visitToken(node);
+  T visitDeferredString(DeferredString node) => visitToken(node);
+
   T visitLiteral(Literal node) => visitExpression(node);
 
   T visitLiteralBool(LiteralBool node) => visitLiteral(node);
   T visitLiteralString(LiteralString node) => visitLiteral(node);
   T visitLiteralNumber(LiteralNumber node) => visitLiteral(node);
   T visitLiteralNull(LiteralNull node) => visitLiteral(node);
+
+  T visitStringConcatenation(StringConcatenation node) => visitLiteral(node);
+
+  T visitName(Name node) => visitNode(node);
 
   T visitArrayInitializer(ArrayInitializer node) => visitExpression(node);
   T visitArrayHole(ArrayHole node) => visitExpression(node);
@@ -559,6 +577,28 @@ abstract class Declaration implements VariableReference {
 
 }
 
+/// An implementation of [Name] represents a potentially late bound name in
+/// the generated ast.
+///
+/// While [Name] implements comparable, there is no requirement on the actual
+/// implementation of [compareTo] other than that it needs to be stable.
+/// In particular, there is no guarantee that implementations of [compareTo]
+/// will implement some form of lexicographic ordering like [String.compareTo].
+abstract class Name extends Literal
+    implements Declaration, Parameter, Comparable {
+  accept(NodeVisitor visitor) => visitor.visitName(this);
+
+  bool get allowRename => false;
+}
+
+class LiteralStringFromName extends LiteralString {
+  Name name;
+
+  LiteralStringFromName(this.name) : super(null);
+
+  String get value => '"${name.name}"';
+}
+
 class LiteralExpression extends Expression {
   final String template;
   final List<Expression> inputs;
@@ -675,7 +715,9 @@ class Call extends Expression {
 
   void visitChildren(NodeVisitor visitor) {
     target.accept(visitor);
-    for (Expression arg in arguments) arg.accept(visitor);
+    for (Expression arg in arguments) {
+      arg.accept(visitor);
+    }
   }
 
   Call _clone() => new Call(target, arguments);
@@ -916,6 +958,46 @@ class PropertyAccess extends Expression {
   int get precedenceLevel => CALL;
 }
 
+/// A [DeferredToken] is a placeholder for some [Expression] that is not known
+/// at construction time of an ast. Unlike [InterpolatedExpression],
+/// [DeferredToken] is not limited to templates but may also occur in
+/// fully instantiated asts.
+abstract class DeferredToken extends Expression {
+  void visitChildren(NodeVisitor visitor) {}
+
+  DeferredToken _clone() => this;
+}
+
+/// Interace for a deferred integer value. An implementation has to provide
+/// a value via the [value] getter the latest when the ast is printed.
+abstract class DeferredNumber extends DeferredToken implements Literal {
+  accept(NodeVisitor visitor) => visitor.visitDeferredNumber(this);
+
+  int get value;
+
+  int get precedenceLevel => PRIMARY;
+}
+
+/// Interace for a deferred string value. An implementation has to provide
+/// a value via the [value] getter the latest when the ast is printed.
+abstract class DeferredString extends DeferredToken implements Literal {
+  accept(NodeVisitor visitor) => visitor.visitDeferredString(this);
+
+  String get value;
+
+  int get precedenceLevel => PRIMARY;
+}
+
+/// Interace for a deferred [Expression] value. An implementation has to provide
+/// a value via the [value] getter the latest when the ast is printed.
+/// Also, [precedenceLevel] has to return the same value that
+/// [value.precedenceLevel] returns once [value] is bound to an [Expression].
+abstract class DeferredExpression extends DeferredToken {
+  accept(NodeVisitor visitor) => visitor.visitDeferredExpression(this);
+
+  Expression get value;
+}
+
 abstract class Literal extends Expression {
   void visitChildren(NodeVisitor visitor) {}
 
@@ -946,7 +1028,7 @@ class LiteralString extends Literal {
    * Constructs a LiteralString from a string value.
    *
    * The constructor does not add the required quotes.  If [value] is not
-   * surrounded by quotes and property escaped, the resulting object is invalid
+   * surrounded by quotes and properly escaped, the resulting object is invalid
    * as a JS value.
    *
    * TODO(sra): Introduce variants for known valid strings that don't allocate a
@@ -956,6 +1038,25 @@ class LiteralString extends Literal {
 
   accept(NodeVisitor visitor) => visitor.visitLiteralString(this);
   LiteralString _clone() => new LiteralString(value);
+}
+
+class StringConcatenation extends Literal {
+  final List<Literal> parts;
+
+  /**
+   * Constructs a StringConcatenation from a list of Literal elements.
+   * The constructor does not add surrounding quotes to the resulting
+   * concatenated string.
+   */
+  StringConcatenation(this.parts);
+
+  accept(NodeVisitor visitor) => visitor.visitStringConcatenation(this);
+
+  void visitChildren(NodeVisitor visitor) {
+    for (Literal part in parts) part.accept(visitor);
+  }
+
+  StringConcatenation _clone() => new StringConcatenation(this.parts);
 }
 
 class LiteralNumber extends Literal {
@@ -1161,7 +1262,6 @@ class Await extends Expression {
   accept(NodeVisitor visitor) => visitor.visitAwait(this);
   void visitChildren(NodeVisitor visitor) => expression.accept(visitor);
   Await _clone() => new Await(expression);
-
 }
 
 /**

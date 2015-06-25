@@ -212,7 +212,6 @@ abstract class SendResolverMixin {
     }
 
     AssignmentOperator assignmentOperator;
-    UnaryOperator unaryOperator;
     BinaryOperator binaryOperator;
     IncDecOperator incDecOperator;
 
@@ -499,11 +498,12 @@ abstract class SendResolverMixin {
       } else {
         return new StaticAccess.superMethod(element);
       }
-    } else if (node.isOperator || node.isConditional) {
+    } else if (node.isConditional) {
       // Conditional sends (e?.x) are treated as dynamic property reads because
       // they are equivalent to do ((a) => a == null ? null : a.x)(e). If `e` is
       // a type `A`, this is equivalent to write `(A).x`.
-      // TODO(johnniwinther): maybe add DynamicAccess.conditionalDynamicProperty
+      return new DynamicAccess.ifNotNullProperty(node.receiver);
+    } else if (node.isOperator) {
       return new DynamicAccess.dynamicProperty(node.receiver);
     } else if (Elements.isClosureSend(node, element)) {
       if (element == null) {

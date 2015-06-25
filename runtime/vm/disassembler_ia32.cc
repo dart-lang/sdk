@@ -347,7 +347,7 @@ class X86Decoder : public ValueObject {
   int PrintRightXmmOperand(uint8_t* modrmp);
   int PrintRightByteOperand(uint8_t* modrmp);
   int PrintOperands(const char* mnem, OperandOrder op_order, uint8_t* data);
-  int PrintImmediateOp(uint8_t* data);
+  int PrintImmediateOp(uint8_t* data, bool size_override = false);
 
   // Handle special encodings.
   int JumpShort(uint8_t* data);
@@ -711,7 +711,7 @@ int X86Decoder::PrintOperands(const char* mnem,
 }
 
 
-int X86Decoder::PrintImmediateOp(uint8_t* data) {
+int X86Decoder::PrintImmediateOp(uint8_t* data, bool size_override) {
   bool sign_extension_bit = (*data & 0x02) != 0;
   uint8_t modrm = *(data+1);
   int mod, regop, rm;
@@ -731,12 +731,14 @@ int X86Decoder::PrintImmediateOp(uint8_t* data) {
   Print(mnem);
   Print(" ");
   int count = PrintRightOperand(data+1);
-  if (sign_extension_bit) {
-    Print(",");
+  Print(",");
+  if (size_override) {
+    PrintHex(*reinterpret_cast<int16_t*>(data + 1 + count));
+    return 1 + count + 2 /*int16_t*/;
+  } else if (sign_extension_bit) {
     PrintHex(*(data + 1 + count));
-    return 1 + count + 1 /*int8*/;
+    return 1 + count + 1 /*int8_t*/;
   } else {
-    Print(",");
     PrintHex(*reinterpret_cast<int32_t*>(data + 1 + count));
     return 1 + count + 4 /*int32_t*/;
   }
@@ -1677,8 +1679,26 @@ int X86Decoder::InstructionDecode(uword pc) {
             Print("]");
             data++;
           } else {
-              UNIMPLEMENTED();
+            UNIMPLEMENTED();
           }
+        } else if (*data == 0x3B) {
+          data++;
+          Print("cmp_w ");
+          int mod, regop, rm;
+          GetModRm(*data, &mod, &regop, &rm);
+          PrintCPURegister(regop);
+          Print(",");
+          data += PrintRightOperand(data);
+        } else if ((*data == 0x81) || (*data == 0x83)) {
+          data += PrintImmediateOp(data, true /* size_override */);
+        } else if (*data == 0xC7) {
+          data++;
+          Print("mov_w ");
+          data += PrintRightOperand(data);
+          int16_t imm = *reinterpret_cast<int16_t*>(data);
+          Print(",");
+          PrintHex(imm);
+          data += 2;
         } else if (*data == 0x90) {
           data++;
           Print("nop");

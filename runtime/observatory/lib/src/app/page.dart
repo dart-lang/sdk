@@ -250,6 +250,21 @@ class AllocationProfilerPage extends SimplePage {
   }
 }
 
+class PortsPage extends SimplePage {
+  PortsPage(app)
+      : super('ports', 'ports-page', app);
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
+      if (element != null) {
+        PortsPageElement page = element;
+        page.isolate = isolate;
+      }
+    });
+  }
+}
+
 class HeapMapPage extends SimplePage {
   HeapMapPage(app) : super('heap-map', 'heap-map', app);
 

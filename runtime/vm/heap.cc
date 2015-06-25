@@ -19,6 +19,7 @@
 #include "vm/service_event.h"
 #include "vm/stack_frame.h"
 #include "vm/tags.h"
+#include "vm/timeline.h"
 #include "vm/verifier.h"
 #include "vm/virtual_memory.h"
 #include "vm/weak_table.h"
@@ -271,6 +272,9 @@ void Heap::CollectGarbage(Space space,
   switch (space) {
     case kNew: {
       VMTagScope tagScope(isolate(), VMTag::kGCNewSpaceTagId);
+      TimelineDurationScope tds(isolate(),
+                                isolate()->GetGCStream(),
+                                "CollectNewGeneration");
       RecordBeforeGC(kNew, reason);
       UpdateClassHeapStatsBeforeGC(kNew);
       new_space_->Scavenge(invoke_api_callbacks);
@@ -287,6 +291,9 @@ void Heap::CollectGarbage(Space space,
     case kOld:
     case kCode: {
       VMTagScope tagScope(isolate(), VMTag::kGCOldSpaceTagId);
+      TimelineDurationScope tds(isolate(),
+                                isolate()->GetGCStream(),
+                                "CollectOldGeneration");
       RecordBeforeGC(kOld, reason);
       UpdateClassHeapStatsBeforeGC(kOld);
       old_space_->MarkSweep(invoke_api_callbacks);
@@ -324,6 +331,9 @@ void Heap::CollectAllGarbage() {
   TIMERSCOPE(isolate(), time_gc);
   {
     VMTagScope tagScope(isolate(), VMTag::kGCNewSpaceTagId);
+    TimelineDurationScope tds(isolate(),
+                              isolate()->GetGCStream(),
+                              "CollectNewGeneration");
     RecordBeforeGC(kNew, kFull);
     UpdateClassHeapStatsBeforeGC(kNew);
     new_space_->Scavenge(kInvokeApiCallbacks);
@@ -334,6 +344,9 @@ void Heap::CollectAllGarbage() {
   }
   {
     VMTagScope tagScope(isolate(), VMTag::kGCOldSpaceTagId);
+    TimelineDurationScope tds(isolate(),
+                              isolate()->GetGCStream(),
+                              "CollectOldGeneration");
     RecordBeforeGC(kOld, kFull);
     UpdateClassHeapStatsBeforeGC(kOld);
     old_space_->MarkSweep(kInvokeApiCallbacks);

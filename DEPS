@@ -38,7 +38,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_rev" : "@090c4859a2f88e62ae71a11583ba31e9999c74f6",
+  "analyzer_cli_rev" : "@8bf3516dd645ca289d7ebc641f7c228d5b3d37c4",
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
   "charcode_tag": "@1.1.0",
@@ -48,10 +48,10 @@ vars = {
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "async_await_rev" : "@8b401a9f2e5e81dca5f70dbe7564112a0823dee6",
+  "dartdoc_rev" : "@9f677ec40f9beeb8933374885ef3af4c63d35d25",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.1.8",
-  "d8_rev" : "@39739",
+  "dev_compiler_rev": "@0.1.1",
   "fake_async_rev" : "@38614",
   "firefox_jsshell_rev" : "@45554",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
@@ -71,24 +71,28 @@ vars = {
   "matcher_tag": "@0.12.0",
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "mime_rev": "@75890811d4af5af080351ba8a2853ad4c8df98dd",
+  "mustache4dart_rev" : "@5724cfd85151e5b6b53ddcd3380daf188fe47f92",
   "net_nss_rev": "@f81948e9a402db94287a43bb34a07ee0daf56cb5",
   "nss_rev": "@87b96db4268293187d7cf741907a6d5d1d8080e0",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "observatory_pub_packages_rev": "@45565",
-  "package_config_tag": "@0.0.3+1",
+  "package_config_tag": "@0.1.1",
   "path_rev": "@93b3e2aa1db0ac0c8bab9d341588d77acda60320",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
-  "pub_rev": "@68308887177ef3b78fdd52f068e4eaefe1b17e07",
+  "pub_rev": "@9d707158fedc86fc2b02f62cdfe804902b098d9d",
+  "pub_cache_tag": "@v0.0.1+2",
   "pub_semver_tag": "@1.2.1",
+  "quiver_tag": "@0.21.4",
   "scheduled_test_tag": "@0.11.8+1",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
   "source_maps_rev": "@379b4f31c4e2987eb15934d1ad8b419c6cc897b3",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
+  "shelf_static_rev": "@v0.2.1",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
   "stack_trace_tag": "@1.2.1",
@@ -99,7 +103,7 @@ vars = {
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
   "unittest_tag": "@0.11.6",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
-  "watcher_tag": "@0.9.5",
+  "watcher_tag": "@0.9.6",
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
@@ -119,7 +123,7 @@ deps = {
       (Var("googlecode_url") % "gyp") + "/trunk" + Var("gyp_rev"),
 
   Var("dart_root") + "/tests/co19/src":
-      "https://github.com/dart-lang/co19.git" + Var("co19_rev"),
+      (Var("github_mirror") % "co19") + Var("co19_rev"),
 
   Var("dart_root") + "/third_party/nss":
       Var("chromium_git") + "/chromium/deps/nss.git" + Var("nss_rev"),
@@ -162,8 +166,6 @@ deps = {
       Var("third_party") + "/gsutil" + Var("gsutil_rev"),
   Var("dart_root") + "/third_party/pkg/petitparser":
       Var("third_party") + "/petitparser" + Var("petitparser_rev"),
-  Var("dart_root") + "/third_party/d8":
-      Var("third_party") + "/d8" + Var("d8_rev"),
   Var("dart_root") + "/third_party/WebCore":
       Var("third_party") + "/WebCore" + Var("WebCore_rev"),
   Var("dart_root") + "/third_party/observatory_pub_packages":
@@ -178,14 +180,12 @@ deps = {
       (Var("github_mirror") % "analyzer_cli") + Var("analyzer_cli_rev"),
   Var("dart_root") + "/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
-  Var("dart_root") + "/third_party/pkg/async_await":
-      (Var("github_mirror") % "async_await") + Var("async_await_rev"),
   Var("dart_root") + "/third_party/pkg/barback":
       (Var("github_mirror") % "barback") + Var("barback_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
-      "https://github.com/dart-lang/charcode.git" + Var("charcode_tag"),
+      (Var("github_mirror") % "charcode") + Var("charcode_tag"),
   Var("dart_root") + "/third_party/pkg/cli_util":
-      "https://github.com/dart-lang/cli_util.git" + Var("cli_util_tag"),
+      (Var("github_mirror") % "cli_util") + Var("cli_util_tag"),
   Var("dart_root") + "/third_party/pkg/collection":
       (Var("github_mirror") % "collection") + Var("collection_rev"),
   Var("dart_root") + "/third_party/pkg/crypto":
@@ -194,6 +194,10 @@ deps = {
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
+  Var("dart_root") + "/third_party/pkg/dartdoc":  
+      "https://github.com/dart-lang/dartdoc.git" + Var("dartdoc_rev"),
+  Var("dart_root") + "/third_party/pkg/dev_compiler":
+      "https://github.com/dart-lang/dev_compiler.git" + Var("dev_compiler_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
       (Var("github_mirror") % "glob") + Var("glob_rev"),
   Var("dart_root") + "/third_party/pkg/html":
@@ -217,13 +221,18 @@ deps = {
   Var("dart_root") + "/third_party/pkg/logging":
       (Var("github_mirror") % "logging") + Var("logging_rev"),
   Var("dart_root") + "/third_party/pkg/markdown":
-      "https://github.com/dpeek/dart-markdown.git" + Var("markdown_rev"),
+      "https://chromium.googlesource.com/external/github.com" +
+      "/dpeek/dart-markdown.git" + Var("markdown_rev"),
   Var("dart_root") + "/third_party/pkg/matcher":
       (Var("github_mirror") % "matcher") + Var("matcher_tag"),
   Var("dart_root") + "/third_party/pkg/metatest":
       (Var("github_mirror") % "metatest") + Var("metatest_rev"),
   Var("dart_root") + "/third_party/pkg/mime":
       (Var("github_mirror") % "mime") + Var("mime_rev"),
+  Var("dart_root") + "/third_party/pkg/mustache4dart":  
+      Var("chromium_git")  
+      + "/external/github.com/valotas/mustache4dart.git"   
+      + Var("mustache4dart_rev"),
   Var("dart_root") + "/third_party/pkg/oauth2":
       (Var("github_mirror") % "oauth2") + Var("oauth2_rev"),
   Var("dart_root") + "/third_party/pkg/observe":
@@ -239,13 +248,22 @@ deps = {
       (Var("github_mirror") % "pool") + Var("pool_rev"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
-  Var("dart_root") + "/third_party/pkg_tested/pub":
+  Var("dart_root") + "/third_party/pkg/pub":
       ("https://github.com/dart-lang/pub.git") + Var("pub_rev"),
+  Var("dart_root") + "/third_party/pkg/pub_cache":  
+      (Var("github_mirror") % "pub_cache") + Var("pub_cache_tag"),
+  Var("dart_root") + "/third_party/pkg/quiver": 
+      Var("chromium_git")  
+      + "/external/github.com/google/quiver-dart.git"  
+      + Var("quiver_tag"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
       (Var("github_mirror") % "scheduled_test") +
       Var("scheduled_test_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
       (Var("github_mirror") % "shelf") + Var("shelf_rev"),
+  Var("dart_root") + "/third_party/pkg/shelf_static":
+      "https://github.com/kevmoo/shelf_static.dart.git" +
+      Var("shelf_static_rev"),
   Var("dart_root") + "/third_party/pkg/shelf_web_socket":
       (Var("github_mirror") % "shelf_web_socket") +
       Var("shelf_web_socket_rev"),
@@ -280,9 +298,9 @@ deps = {
       (Var("github_mirror") % "web-components") +
       Var("web_components_rev"),
   Var("dart_root") + "/third_party/pkg/when":
-      "https://github.com/dart-lang/when.git" + Var("when_tag"),
+      (Var("github_mirror") % "when") + Var("when_tag"),
   Var("dart_root") + "/third_party/pkg/which":
-      "https://github.com/dart-lang/which.git"+ Var("which_tag"),
+      (Var("github_mirror") % "which") + Var("which_tag"),
   Var("dart_root") + "/third_party/pkg/yaml":
       (Var("github_mirror") % "yaml") + Var("yaml_rev"),
 
@@ -340,4 +358,19 @@ hooks = [
       Var('dart_root') + '/tools/testing/bin',
     ],
   },
+  {
+    'name': 'd8_testing_binaries',
+    'pattern': '.',
+    'action': [
+      'download_from_google_storage',
+      '--no_auth',
+      '--no_resume',
+      '--bucket',
+      'dart-dependencies',
+      '-d',
+      '-r',
+      Var('dart_root') + '/third_party/d8',
+    ],
+  },
+
 ]

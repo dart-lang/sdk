@@ -53,7 +53,7 @@ main() {
 
   // Nor can it be used to access toplevel functions in libraries imported via
   // prefix.
-  Expect.throws(() => h?.topLevelFunction(), noMethod); /// 11: static type warning
+  h?.topLevelFunction(); /// 11: compile-time error
 
   // However, '?.' can be used to access the toString method on the class Type.
   Expect.equals(C?.toString(), (C).toString()); /// 12: ok

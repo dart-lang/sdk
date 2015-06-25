@@ -20,6 +20,7 @@ class Location;
 class Value;
 class MaterializeObjectInstr;
 class StackFrame;
+class TimelineEvent;
 
 // Holds all data relevant for execution of deoptimization instructions.
 class DeoptContext {
@@ -54,8 +55,8 @@ class DeoptContext {
   void SetCallerFp(intptr_t callers_fp);
 
   RawObject* ObjectAt(intptr_t index) const {
-    const Array& object_pool = Array::Handle(object_pool_);
-    return object_pool.At(index);
+    const ObjectPool& object_pool = ObjectPool::Handle(object_pool_);
+    return object_pool.ObjectAt(index);
   }
 
   intptr_t RegisterValue(Register reg) const {
@@ -205,7 +206,7 @@ class DeoptContext {
   }
 
   RawCode* code_;
-  RawArray* object_pool_;
+  RawObjectPool* object_pool_;
   RawTypedData* deopt_info_;
   bool dest_frame_is_allocated_;
   intptr_t* dest_frame_;
@@ -220,6 +221,7 @@ class DeoptContext {
   uint32_t deopt_flags_;
   intptr_t caller_fp_;
   Thread* thread_;
+  TimelineEvent* timeline_event_;
 
   DeferredSlot* deferred_slots_;
 
@@ -287,7 +289,7 @@ class DeoptInstr : public ZoneAllocated {
   // Get the code and return address which is encoded in this
   // kRetAfterAddress deopt instruction.
   static uword GetRetAddress(DeoptInstr* instr,
-                             const Array& object_pool,
+                             const ObjectPool& object_pool,
                              Code* code);
 
   // Return number of initialized fields in the object that will be

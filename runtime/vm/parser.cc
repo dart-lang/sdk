@@ -44,7 +44,8 @@ DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-
+DEFINE_FLAG(bool, enable_mirrors, true,
+    "Disable to make importing dart:mirrors an error.");
 
 // Quick access to the current isolate and zone.
 #define I (isolate())
@@ -968,8 +969,8 @@ RawArray* Parser::EvaluateMetadata() {
       ExpectIdentifier("identifier expected");
     }
     // Reject expressions with deferred library prefix eagerly.
-    Object& obj = Object::Handle(Z,
-                                 library_.LookupLocalObject(*CurrentLiteral()));
+    Object& obj =
+        Object::Handle(Z, library_.LookupLocalObject(*CurrentLiteral()));
     if (!obj.IsNull() && obj.IsLibraryPrefix()) {
       if (LibraryPrefix::Cast(obj).is_deferred_load()) {
         ReportError("Metadata must be compile-time constant");
@@ -2978,8 +2979,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
     for (int i = 2; i < ctor_args->length(); i++) {
       AstNode* arg = ctor_args->NodeAt(i);
       if (!IsSimpleLocalOrLiteralNode(arg)) {
-        LocalVariable* temp =
-            CreateTempConstVariable(arg->token_pos(), "sca");
+        LocalVariable* temp = CreateTempConstVariable(arg->token_pos(), "sca");
         AstNode* save_temp = new StoreLocalNode(arg->token_pos(), temp, arg);
         ctor_args->SetNodeAt(i, save_temp);
       }
@@ -5775,14 +5775,20 @@ void Parser::ParseLibraryImportExport(intptr_t metadata_pos) {
     ns.AddMetadata(metadata_pos, current_class());
   }
 
+  // Ensure that private dart:_ libraries are only imported into dart:
+  // libraries, including indirectly through exports.
+  const String& lib_url = String::Handle(Z, library_.url());
+  if (canon_url.StartsWith(Symbols::DartSchemePrivate()) &&
+      !lib_url.StartsWith(Symbols::DartScheme())) {
+    ReportError(import_pos, "private library is not accessible");
+  }
+
+  if (!FLAG_enable_mirrors && Symbols::DartMirrors().Equals(canon_url)) {
+    ReportError(import_pos,
+                "import of dart:mirrors with --enable-mirrors=false");
+  }
+
   if (is_import) {
-    // Ensure that private dart:_ libraries are only imported into dart:
-    // libraries.
-    const String& lib_url = String::Handle(Z, library_.url());
-    if (canon_url.StartsWith(Symbols::DartSchemePrivate()) &&
-        !lib_url.StartsWith(Symbols::DartScheme())) {
-      ReportError(import_pos, "private library is not accessible");
-    }
     if (prefix.IsNull() || (prefix.Length() == 0)) {
       ASSERT(!is_deferred_import);
       library_.AddImport(ns);
@@ -7129,9 +7135,9 @@ AstNode* Parser::LoadReceiver(intptr_t token_pos) {
 }
 
 
-AstNode* Parser::CallGetter(intptr_t token_pos,
-                            AstNode* object,
-                            const String& name) {
+InstanceGetterNode* Parser::CallGetter(intptr_t token_pos,
+                                       AstNode* object,
+                                       const String& name) {
   return new(Z) InstanceGetterNode(token_pos, object, name);
 }
 
@@ -10134,7 +10140,7 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
 
 AstNode* Parser::ParseBinaryExpr(int min_preced) {
   TRACE_PARSER("ParseBinaryExpr");
-  ASSERT(min_preced >= Token::Precedence(Token::kOR));
+  ASSERT(min_preced >= Token::Precedence(Token::kIFNULL));
   AstNode* left_operand = ParseUnaryExpr();
   if (left_operand->IsPrimaryNode() &&
       (left_operand->AsPrimaryNode()->IsSuper())) {
@@ -10184,12 +10190,6 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           || Token::IsTypeTestOperator(op_kind)
           || Token::IsTypeCastOperator(op_kind)
           || Token::IsEqualityOperator(op_kind)) {
-        if (Token::IsTypeTestOperator(op_kind) ||
-            Token::IsTypeCastOperator(op_kind)) {
-          if (!right_operand->AsTypeNode()->type().IsInstantiated()) {
-            EnsureExpressionTemp();
-          }
-        }
         left_operand = new(Z) ComparisonNode(
             op_pos, op_kind, left_operand, right_operand);
         break;  // Equality and relational operators cannot be chained.
@@ -10272,9 +10272,6 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
       }
     }
   }
-  if ((binary_op == Token::kAND) || (binary_op == Token::kOR)) {
-    EnsureExpressionTemp();
-  }
   if (binary_op == Token::kBIT_AND) {
     // Normalize so that rhs is a literal if any is.
     if ((rhs_literal == NULL) && (lhs_literal != NULL)) {
@@ -10332,6 +10329,8 @@ AstNode* Parser::ExpandAssignableOp(intptr_t op_pos,
       return new(Z) BinaryOpNode(op_pos, Token::kBIT_AND, lhs, rhs);
     case Token::kASSIGN_XOR:
       return new(Z) BinaryOpNode(op_pos, Token::kBIT_XOR, lhs, rhs);
+    case Token::kASSIGN_COND:
+      return new(Z) BinaryOpNode(op_pos, Token::kIFNULL, lhs, rhs);
     default:
       ReportError(op_pos,
                   "internal error: ExpandAssignableOp '%s' unimplemented",
@@ -10387,7 +10386,7 @@ LetNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
       receiver = new(Z) LoadLocalNode(token_pos, t0);
     }
     *expr = new(Z) InstanceGetterNode(
-        token_pos, receiver, getter->field_name());
+        token_pos, receiver, getter->field_name(), getter->is_conditional());
     return result;
   }
   return result;
@@ -10450,13 +10449,25 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
          InvocationMirror::kLocalVar : InvocationMirror::kSetter,
          NULL));  // No existing function.
     result = let_node;
-  } else if (result->IsStoreIndexedNode() ||
-             result->IsInstanceSetterNode() ||
-             result->IsStaticSetterNode() ||
-             result->IsStoreStaticFieldNode() ||
-             result->IsStoreLocalNode()) {
-    // Ensure that the expression temp is allocated for nodes that may need it.
-    EnsureExpressionTemp();
+  }
+  // The compound assignment operator a ??= b is different from other
+  // a op= b assignments. If a is non-null, the assignment to a must be
+  // dropped:
+  // normally: a op= b ==> a = a op b
+  // however:  a ??= b ==> a ?? (a = b)
+  // Therefore, we need to transform a = (a ?? b) into a ?? (a = b)
+  if (rhs->IsBinaryOpNode() &&
+      (rhs->AsBinaryOpNode()->kind() == Token::kIFNULL)) {
+    BinaryOpNode* ifnull = rhs->AsBinaryOpNode();
+    AstNode* modified_assign =
+        CreateAssignmentNode(ifnull->left(),
+                             ifnull->right(),
+                             left_ident,
+                             left_pos);
+    result = new(Z) BinaryOpNode(rhs->token_pos(),
+                                 Token::kIFNULL,
+                                 original,
+                                 modified_assign);
   }
   return result;
 }
@@ -10638,7 +10649,7 @@ LiteralNode* Parser::ParseConstExpr() {
 AstNode* Parser::ParseConditionalExpr() {
   TRACE_PARSER("ParseConditionalExpr");
   const intptr_t expr_pos = TokenPos();
-  AstNode* expr = ParseBinaryExpr(Token::Precedence(Token::kOR));
+  AstNode* expr = ParseBinaryExpr(Token::Precedence(Token::kIFNULL));
   if (CurrentToken() == Token::kCONDITIONAL) {
     EnsureExpressionTemp();
     ConsumeToken();
@@ -10845,11 +10856,16 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
 
 AstNode* Parser::ParseInstanceCall(AstNode* receiver,
                                    const String& func_name,
-                                   intptr_t ident_pos) {
+                                   intptr_t ident_pos,
+                                   bool is_conditional) {
   TRACE_PARSER("ParseInstanceCall");
   CheckToken(Token::kLPAREN);
   ArgumentListNode* arguments = ParseActualParameters(NULL, kAllowConst);
-  return new(Z) InstanceCallNode(ident_pos, receiver, func_name, arguments);
+  return new(Z) InstanceCallNode(ident_pos,
+                                 receiver,
+                                 func_name,
+                                 arguments,
+                                 is_conditional);
 }
 
 
@@ -10995,7 +11011,10 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
   AstNode* left = primary;
   while (true) {
     AstNode* selector = NULL;
-    if (CurrentToken() == Token::kPERIOD) {
+    if ((CurrentToken() == Token::kPERIOD) ||
+        (CurrentToken() == Token::kQM_PERIOD)) {
+      // Unconditional or conditional property extraction or method call.
+      bool is_conditional = CurrentToken() == Token::kQM_PERIOD;
       ConsumeToken();
       if (left->IsPrimaryNode()) {
         PrimaryNode* primary_node = left->AsPrimaryNode();
@@ -11004,7 +11023,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           left = LoadClosure(primary_node);
         } else if (primary_node->primary().IsTypeParameter()) {
           if (ParsingStaticMember()) {
-            const String& name = String::ZoneHandle(Z,
+            const String& name = String::Handle(Z,
                 TypeParameter::Cast(primary_node->primary()).name());
             ReportError(primary_pos,
                         "cannot access type parameter '%s' "
@@ -11022,6 +11041,18 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
               ClassFinalizer::kCanonicalize);
           ASSERT(!type_parameter.IsMalformed());
           left = new(Z) TypeNode(primary->token_pos(), type_parameter);
+        } else if (is_conditional && primary_node->primary().IsClass()) {
+          // The left-hand side of ?. is interpreted as an expression
+          // of type Type, not as a class literal.
+          const Class& type_class = Class::Cast(primary_node->primary());
+          AbstractType& type = Type::ZoneHandle(Z,
+              Type::New(type_class, TypeArguments::Handle(Z),
+              primary_pos, Heap::kOld));
+          type ^= ClassFinalizer::FinalizeType(
+              current_class(), type, ClassFinalizer::kCanonicalize);
+          // Type may be malbounded, but not malformed.
+          ASSERT(!type.IsMalformed());
+          left = new(Z) TypeNode(primary_pos, type);
         } else {
           // Super field access handled in ParseSuperFieldAccess(),
           // super calls handled in ParseSuperCall().
@@ -11036,10 +11067,11 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         if (left->IsPrimaryNode() &&
             left->AsPrimaryNode()->primary().IsClass()) {
           // Static method call prefixed with class name.
+          ASSERT(!is_conditional);
           const Class& cls = Class::Cast(left->AsPrimaryNode()->primary());
           selector = ParseStaticCall(cls, *ident, ident_pos);
         } else {
-          selector = ParseInstanceCall(left, *ident, ident_pos);
+          selector = ParseInstanceCall(left, *ident, ident_pos, is_conditional);
         }
       } else {
         // Field access.
@@ -11056,9 +11088,13 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         }
         if (cls.IsNull()) {
           // Instance field access.
-          selector = CallGetter(ident_pos, left, *ident);
+          selector = new(Z) InstanceGetterNode(ident_pos,
+                                               left,
+                                               *ident,
+                                               is_conditional);
         } else {
           // Static field access.
+          ASSERT(!is_conditional);
           selector = GenerateStaticFieldAccess(cls, *ident, ident_pos);
           ASSERT(selector != NULL);
           if (selector->IsLoadStaticFieldNode()) {
@@ -11142,7 +11178,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
             }
             selector = ParseInstanceCall(LoadReceiver(primary_pos),
                                          func_name,
-                                         primary_pos);
+                                         primary_pos,
+                                         false /* is_conditional */);
           }
         } else if (primary_node->primary().IsString()) {
           // Primary is an unresolved name.
@@ -11158,7 +11195,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
             // Treat as call to unresolved (instance) method.
             selector = ParseInstanceCall(LoadReceiver(primary_pos),
                                          name,
-                                         primary_pos);
+                                         primary_pos,
+                                         false /* is_conditional */);
           }
         } else if (primary_node->primary().IsTypeParameter()) {
           const String& name = String::ZoneHandle(Z,
@@ -11173,7 +11211,8 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
             // Treat as call to unresolved (instance) method.
             selector = ParseInstanceCall(LoadReceiver(primary_pos),
                                          name,
-                                         primary_pos);
+                                         primary_pos,
+                                         false /* is_conditional */);
           }
         } else if (primary_node->primary().IsClass()) {
           const Class& type_class = Class::Cast(primary_node->primary());
@@ -11738,8 +11777,13 @@ AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
     } else {
       return new(Z) PrimaryNode(ident_pos, Function::ZoneHandle(Z, func.raw()));
     }
+  } else if (obj.IsLibraryPrefix()) {
+    const LibraryPrefix& prefix = LibraryPrefix::Cast(obj);
+    ReportError(ident_pos,
+                "illegal use of library prefix '%s'",
+                String::Handle(prefix.name()).ToCString());
   } else {
-    ASSERT(obj.IsNull() || obj.IsLibraryPrefix());
+    ASSERT(obj.IsNull());
   }
   // Lexically unresolved primary identifiers are referenced by their name.
   return new(Z) PrimaryNode(ident_pos, ident);
@@ -13095,6 +13139,8 @@ AstNode* Parser::ParsePrimary() {
         Token::CanBeOverloaded(CurrentToken()) ||
         (CurrentToken() == Token::kNE)) {
       primary = ParseSuperOperator();
+    } else if (CurrentToken() == Token::kQM_PERIOD) {
+      ReportError("super call or super getter may not use ?.");
     } else {
       primary = new(Z) PrimaryNode(super_pos, Symbols::Super());
     }
@@ -13381,7 +13427,8 @@ void Parser::SkipSelectors() {
       } else {
         ExpectIdentifier("identifier or [ expected after ..");
       }
-    } else if (current_token == Token::kPERIOD) {
+    } else if ((current_token == Token::kPERIOD) ||
+        (current_token == Token::kQM_PERIOD)) {
       ConsumeToken();
       ExpectIdentifier("identifier expected");
     } else if (current_token == Token::kLBRACK) {
@@ -13419,7 +13466,7 @@ void Parser::SkipUnaryExpr() {
 
 void Parser::SkipBinaryExpr() {
   SkipUnaryExpr();
-  const int min_prec = Token::Precedence(Token::kOR);
+  const int min_prec = Token::Precedence(Token::kIFNULL);
   const int max_prec = Token::Precedence(Token::kMUL);
   while (((min_prec <= Token::Precedence(CurrentToken())) &&
       (Token::Precedence(CurrentToken()) <= max_prec))) {

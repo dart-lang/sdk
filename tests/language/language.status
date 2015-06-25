@@ -18,19 +18,11 @@ closure_in_initializer_test: Fail # Issue 6422
 duplicate_export_negative_test: Fail # Issue 6134
 
 [ $compiler == none ]
-# Null-aware operators aren't implemented in the VM yet.
-if_null_evaluation_order_test: Fail
-if_null_precedence_test: Fail
-if_null_behavior_test: Fail
-if_null_assignment_behavior_test: Fail
-if_null_assignment_static_test: Fail
-conditional_property_assignment_test: Fail
-conditional_property_access_test: Fail
-conditional_method_invocation_test: Fail
-this_conditional_operator_test/none: Fail
 
 deferred_redirecting_factory_test: Fail # Issue 23408
 redirecting_constructor_initializer_test: RuntimeError # Issue 23488
+
+[ $compiler == none && $runtime != dartium && $runtime != drt ]
 
 [ $compiler == none ]
 # Non-contractive types are not supported in the vm.
@@ -47,6 +39,7 @@ async_star_test/05: Timeout, RuntimeError
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
 unicode_bom_test: Fail # Issue 16067
 vm/debug_break_enabled_vm_test/01: Crash, OK # Expected to hit breakpoint.
+try_catch_optimized1_test: Skip # Srdjan investigating
 
 [ $compiler == none && $checked ]
 type_variable_bounds4_test/01: Fail # Issue 14006

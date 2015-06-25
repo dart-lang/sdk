@@ -27,6 +27,11 @@ namespace dart {
 
 DEFINE_FLAG(int, getter_setter_ratio, 13,
     "Ratio of getter/setter usage used for double field unboxing heuristics");
+// Setting 'guess_other_cid' to true causes issue 23693 crash.
+// TODO(srdjan): Evaluate if that optimization is wrong.
+DEFINE_FLAG(bool, guess_other_cid, false,
+    "Artificially create type feedback for arithmetic etc. operations"
+    " by guessing the other unknown argument cid");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(bool, dead_store_elimination, true, "Eliminate dead stores");
 DEFINE_FLAG(int, max_polymorphic_checks, 4,
@@ -45,6 +50,8 @@ DEFINE_FLAG(bool, use_cha_deopt, true,
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_IA32)
 DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 #endif
+
+DECLARE_FLAG(bool, polymorphic_with_deopt);
 DECLARE_FLAG(bool, source_lines);
 DECLARE_FLAG(bool, trace_type_check_elimination);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
@@ -159,7 +166,6 @@ static bool IsNumberCid(intptr_t cid) {
 }
 
 
-// Attempt to build ICData for call using propagated class-ids.
 bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   if (call->ic_data()->NumberOfUsedChecks() > 0) {
@@ -191,7 +197,9 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       Token::IsBinaryOperator(op_kind)) {
     // Guess cid: if one of the inputs is a number assume that the other
     // is a number of same type.
-    if (Compiler::guess_other_cid()) {
+    // Issue 23693. It is potentially wrong to assign types here that may
+    // conflict with other graph analysis.
+    if (FLAG_guess_other_cid) {
       const intptr_t cid_0 = class_ids[0];
       const intptr_t cid_1 = class_ids[1];
       if ((cid_0 == kDynamicCid) && (IsNumberCid(cid_1))) {
@@ -202,44 +210,74 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
     }
   }
 
+  bool all_cids_known = true;
   for (intptr_t i = 0; i < class_ids.length(); i++) {
     if (class_ids[i] == kDynamicCid) {
       // Not all cid-s known.
-      return false;
+      all_cids_known = false;
+      break;
     }
   }
 
-  const Array& args_desc_array = Array::Handle(Z,
-      ArgumentsDescriptor::New(call->ArgumentCount(), call->argument_names()));
-  ArgumentsDescriptor args_desc(args_desc_array);
-  const Class& receiver_class = Class::Handle(Z,
-      isolate()->class_table()->At(class_ids[0]));
-  const Function& function = Function::Handle(Z,
-      Resolver::ResolveDynamicForReceiverClass(
-          receiver_class,
-          call->function_name(),
-          args_desc));
-  if (function.IsNull()) {
-    return false;
+  if (all_cids_known) {
+    const Array& args_desc_array = Array::Handle(Z,
+        ArgumentsDescriptor::New(call->ArgumentCount(),
+                                 call->argument_names()));
+    ArgumentsDescriptor args_desc(args_desc_array);
+    const Class& receiver_class = Class::Handle(Z,
+        isolate()->class_table()->At(class_ids[0]));
+    const Function& function = Function::Handle(Z,
+        Resolver::ResolveDynamicForReceiverClass(
+            receiver_class,
+            call->function_name(),
+            args_desc));
+    if (function.IsNull()) {
+      return false;
+    }
+
+    // Create new ICData, do not modify the one attached to the instruction
+    // since it is attached to the assembly instruction itself.
+    // TODO(srdjan): Prevent modification of ICData object that is
+    // referenced in assembly code.
+    const ICData& ic_data = ICData::ZoneHandle(Z,
+        ICData::NewFrom(*call->ic_data(), class_ids.length()));
+    if (class_ids.length() > 1) {
+      ic_data.AddCheck(class_ids, function);
+    } else {
+      ASSERT(class_ids.length() == 1);
+      ic_data.AddReceiverCheck(class_ids[0], function);
+    }
+    call->set_ic_data(&ic_data);
+    return true;
   }
-  // Create new ICData, do not modify the one attached to the instruction
-  // since it is attached to the assembly instruction itself.
-  // TODO(srdjan): Prevent modification of ICData object that is
-  // referenced in assembly code.
-  ICData& ic_data = ICData::ZoneHandle(Z, ICData::New(
-      flow_graph_->function(),
-      call->function_name(),
-      args_desc_array,
-      call->deopt_id(),
-      class_ids.length()));
-  if (class_ids.length() > 1) {
-    ic_data.AddCheck(class_ids, function);
-  } else {
-    ASSERT(class_ids.length() == 1);
-    ic_data.AddReceiverCheck(class_ids[0], function);
+
+  // Check if getter or setter in function's class and class is currently leaf.
+  if ((call->token_kind() == Token::kGET) ||
+      (call->token_kind() == Token::kSET)) {
+    const Class& owner_class = Class::Handle(Z, function().Owner());
+    if (!owner_class.is_abstract() &&
+        !CHA::HasSubclasses(owner_class) &&
+        !CHA::IsImplemented(owner_class)) {
+      const Array& args_desc_array = Array::Handle(Z,
+          ArgumentsDescriptor::New(call->ArgumentCount(),
+                                   call->argument_names()));
+      ArgumentsDescriptor args_desc(args_desc_array);
+      const Function& function = Function::Handle(Z,
+          Resolver::ResolveDynamicForReceiverClass(owner_class,
+                                                   call->function_name(),
+                                                   args_desc));
+      if (function.IsNull()) {
+        return false;
+      }
+      const ICData& ic_data = ICData::ZoneHandle(Z,
+          ICData::NewFrom(*call->ic_data(), class_ids.length()));
+      ic_data.AddReceiverCheck(owner_class.id(), function);
+      call->set_ic_data(&ic_data);
+      return true;
+    }
   }
-  call->set_ic_data(&ic_data);
-  return true;
+
+  return false;
 }
 
 
@@ -273,6 +311,10 @@ const ICData& FlowGraphOptimizer::TrySpecializeICData(const ICData& ic_data,
 
 void FlowGraphOptimizer::SpecializePolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
+  if (!FLAG_polymorphic_with_deopt) {
+    // Specialization adds receiver checks which can lead to deoptimization.
+    return;
+  }
   if (!call->with_checks()) {
     return;  // Already specialized.
   }
@@ -3981,9 +4023,9 @@ bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   // Signature classes have different type checking rules.
   if (type_class.IsSignatureClass()) return false;
   // Could be an interface check?
-  if (thread()->cha()->IsImplemented(type_class)) return false;
+  if (CHA::IsImplemented(type_class)) return false;
   // Check if there are subclasses.
-  if (thread()->cha()->HasSubclasses(type_class)) {
+  if (CHA::HasSubclasses(type_class)) {
     return false;
   }
 
@@ -4088,7 +4130,8 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     // reported, so do not replace the instance call.
     return;
   }
-  if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
+  if ((unary_checks.NumberOfChecks() > 0) &&
+      (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
     ZoneGrowableArray<intptr_t>* results =
         new(Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
     Bool& as_bool =
@@ -4179,7 +4222,8 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
     // reported, so do not replace the instance call.
     return;
   }
-  if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
+  if ((unary_checks.NumberOfChecks() > 0) &&
+      (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks)) {
     ZoneGrowableArray<intptr_t>* results =
         new(Z) ZoneGrowableArray<intptr_t>(unary_checks.NumberOfChecks() * 2);
     const Bool& as_bool = Bool::ZoneHandle(Z,
@@ -4213,22 +4257,46 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 }
 
 
-// Tries to optimize instance call by replacing it with a faster instruction
-// (e.g, binary op, field load, ..).
-void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  if (!instr->HasICData() || (instr->ic_data()->NumberOfUsedChecks() == 0)) {
+// Special optimizations when running in --noopt mode.
+void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
+  // TODO(srdjan): Investigate other attempts, as they are not allowed to
+  // deoptimize.
+  const Token::Kind op_kind = instr->token_kind();
+  if (instr->HasICData() && (instr->ic_data()->NumberOfUsedChecks() > 0)) {
+    const ICData& unary_checks =
+        ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
+
+    PolymorphicInstanceCallInstr* call =
+        new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
+                                            true /* call_with_checks*/);
+    instr->ReplaceWith(call, current_iterator());
     return;
   }
 
-  const Token::Kind op_kind = instr->token_kind();
-  if (Compiler::always_optimize()) {
-    // TODO(srdjan): Investigate other attempts, as they are not allowed to
-    // deoptimize.
-    if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr, false)) {
-      return;
-    }
+  // Type test is special as it always gets converted into inlined code.
+  if (Token::IsTypeTestOperator(op_kind)) {
+    ReplaceWithInstanceOf(instr);
     return;
   }
+  if (Token::IsTypeCastOperator(op_kind)) {
+    ReplaceWithTypeCast(instr);
+    return;
+  }
+}
+
+
+// Tries to optimize instance call by replacing it with a faster instruction
+// (e.g, binary op, field load, ..).
+void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
+  if (Compiler::always_optimize()) {
+    InstanceCallNoopt(instr);
+    return;
+  }
+
+  if (!instr->HasICData() || (instr->ic_data()->NumberOfUsedChecks() == 0)) {
+    return;
+  }
+  const Token::Kind op_kind = instr->token_kind();
 
   // Type test is special as it always gets converted into inlined code.
   if (Token::IsTypeTestOperator(op_kind)) {
@@ -4315,7 +4383,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 
   if (unary_checks.NumberOfChecks() <= FLAG_max_polymorphic_checks) {
     bool call_with_checks;
-    if (has_one_target) {
+    if (has_one_target && FLAG_polymorphic_with_deopt) {
       // Type propagation has not run yet, we cannot eliminate the check.
       AddReceiverCheck(instr);
       // Call can still deoptimize, do not detach environment from instr.

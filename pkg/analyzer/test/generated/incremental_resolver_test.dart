@@ -2447,7 +2447,7 @@ class B extends Object with A {}
   void _assertMatchKind(
       DeclarationMatchKind expectMatch, String oldContent, String newContent) {
     Source source = addSource(oldContent);
-    LibraryElement library = resolve(source);
+    LibraryElement library = resolve2(source);
     CompilationUnit oldUnit = resolveCompilationUnit(source, library);
     // parse
     CompilationUnit newUnit = ParserTestCase.parseCompilationUnit(newContent);
@@ -2824,7 +2824,7 @@ class B {
     {
       source = addSource(newCode);
       _runTasks();
-      LibraryElement library = resolve(source);
+      LibraryElement library = resolve2(source);
       fullNewUnit = resolveCompilationUnit(source, library);
     }
     try {
@@ -2843,7 +2843,7 @@ class B {
   void _resolveUnit(String code) {
     this.code = code;
     source = addSource(code);
-    library = resolve(source);
+    library = resolve2(source);
     unit = resolveCompilationUnit(source, library);
     _runTasks();
   }
@@ -3868,7 +3868,7 @@ f3() {
   void _resolveUnit(String code) {
     this.code = code;
     source = addSource(code);
-    oldLibrary = resolve(source);
+    oldLibrary = resolve2(source);
     oldUnit = resolveCompilationUnit(source, oldLibrary);
     oldUnitElement = oldUnit.element;
   }
@@ -3908,7 +3908,7 @@ f3() {
       source = addSource(newCode + ' ');
       source = addSource(newCode);
       _runTasks();
-      LibraryElement library = resolve(source);
+      LibraryElement library = resolve2(source);
       CompilationUnit fullNewUnit = resolveCompilationUnit(source, library);
       // Validate tokens.
       _assertEqualTokens(newUnit, fullNewUnit);

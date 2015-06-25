@@ -100,6 +100,7 @@ class Compiler extends leg.Compiler {
                 hasOption(options, '--enable-experimental-mirrors'),
             generateCodeWithCompileTimeErrors:
                 hasOption(options, '--generate-code-with-compile-time-errors'),
+            testMode: hasOption(options, '--test-mode'),
             allowNativeExtensions:
                 hasOption(options, '--allow-native-extensions'),
             enableNullAwareOperators:

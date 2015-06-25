@@ -30,7 +30,7 @@
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '--package-root=<(PRODUCT_DIR)/packages/',
             '--snapshot=<(SHARED_INTERMEDIATE_DIR)/pub.dart.snapshot',
-            '../../third_party/pkg_tested/pub/bin/pub.dart',
+            '../../third_party/pkg/pub/bin/pub.dart',
           ]
         },
       ],

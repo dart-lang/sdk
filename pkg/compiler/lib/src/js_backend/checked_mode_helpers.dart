@@ -88,8 +88,8 @@ class PropertyCheckedModeHelper extends CheckedModeHelper {
                                    HTypeConversion node,
                                    List<jsAst.Expression> arguments) {
     DartType type = node.typeExpression;
-    String additionalArgument = codegen.backend.namer.operatorIsType(type);
-    arguments.add(js.string(additionalArgument));
+    jsAst.Name additionalArgument = codegen.backend.namer.operatorIsType(type);
+    arguments.add(js.quoteName(additionalArgument));
   }
 }
 
@@ -113,11 +113,11 @@ class SubtypeCheckedModeHelper extends CheckedModeHelper {
                                    List<jsAst.Expression> arguments) {
     DartType type = node.typeExpression;
     Element element = type.element;
-    String isField = codegen.backend.namer.operatorIs(element);
-    arguments.add(js.string(isField));
+    jsAst.Name isField = codegen.backend.namer.operatorIs(element);
+    arguments.add(js.quoteName(isField));
     codegen.use(node.typeRepresentation);
     arguments.add(codegen.pop());
-    String asField = codegen.backend.namer.substitutionName(element);
-    arguments.add(js.string(asField));
+    jsAst.Name asField = codegen.backend.namer.substitutionName(element);
+    arguments.add(js.quoteName(asField));
   }
 }

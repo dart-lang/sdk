@@ -31,15 +31,12 @@ import '../../tree_ir/optimization/optimization.dart';
 import '../../tree_ir/optimization/optimization.dart' as tree_opt;
 import '../../tree_ir/tree_ir_integrity.dart';
 import '../../cps_ir/cps_ir_nodes_sexpr.dart';
-import 'js_tree_builder.dart';
 
 class CpsFunctionCompiler implements FunctionCompiler {
   final ConstantSystem constantSystem;
   final Compiler compiler;
   final Glue glue;
   final SourceInformationFactory sourceInformationFactory;
-
-  TypeSystem types;
 
   // TODO(karlklose,sigurm): remove and update dart-doc of [compile].
   final FunctionCompiler fallbackCompiler;
@@ -59,21 +56,39 @@ class CpsFunctionCompiler implements FunctionCompiler {
 
   String get name => 'CPS Ir pipeline';
 
-  /// Generates JavaScript code for `work.element`. First tries to use the
-  /// Cps Ir -> tree ir -> js pipeline, and if that fails due to language
-  /// features not implemented it will fall back to the ssa pipeline (for
-  /// platform code) or will cancel compilation (for user code).
+  /// Generates JavaScript code for `work.element`.
   js.Fun compile(CodegenWorkItem work) {
-    types = new TypeMaskSystem(compiler);
     AstElement element = work.element;
     JavaScriptBackend backend = compiler.backend;
     return compiler.withCurrentElement(element, () {
-      if (element.library.isPlatformLibrary ||
-          element.library == backend.interceptorsLibrary) {
-        compiler.log('Using SSA compiler for platform element $element');
-        return fallbackCompiler.compile(work);
-      }
       try {
+        ClassElement cls = element.enclosingClass;
+        String name = element.name;
+        String className = cls == null ? null : cls.name;
+        LibraryElement library = element.library;
+        String libraryName = library == null ? null : library.toString();
+        // TODO(karlklose): remove this fallback.
+        // Fallback for a few functions that we know require try-finally and
+        // switch.
+        if (element.isNative ||
+            element.isPatched ||
+            libraryName == 'origin library(dart:typed_data)' ||
+            // Using switch or try-finally.
+            library.isInternalLibrary && name == 'unwrapException' ||
+            library.isPlatformLibrary && className == 'IterableBase' ||
+            library.isInternalLibrary && className == 'Closure' ||
+            libraryName == 'origin library(dart:collection)' &&
+               name == 'mapToString' ||
+            libraryName == 'library(dart:html)' && name == 'sanitizeNode' ||
+            className == '_IsolateContext' ||
+            className == 'IsolateNatives' ||
+            className == '_Deserializer' ||
+            name == '_rootRun' ||
+            name == '_microtaskLoopEntry') {
+          compiler.log('Using SSA compiler for platform element $element');
+          return fallbackCompiler.compile(work);
+        }
+
         if (tracer != null) {
           tracer.traceCompilation(element.name, null);
         }
@@ -138,7 +153,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   void dumpTypedIR(cps.FunctionDefinition cpsNode,
-                   TypePropagator<TypeMask> typePropagator) {
+                   TypePropagator typePropagator) {
     if (PRINT_TYPED_IR_FILTER != null &&
         PRINT_TYPED_IR_FILTER.matchAsPrefix(cpsNode.element.name) != null) {
       String printType(nodeOrRef, String s) {
@@ -166,11 +181,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       assert(checkCpsIntegrity(cpsNode));
     }
 
-    TypePropagator typePropagator = new TypePropagator<TypeMask>(
-        compiler.types,
-        constantSystem,
-        new TypeMaskSystem(compiler),
-        compiler.internalError);
+    TypePropagator typePropagator = new TypePropagator(compiler);
     applyCpsPass(typePropagator);
     dumpTypedIR(cpsNode, typePropagator);
     applyCpsPass(new RedundantPhiEliminator());
@@ -180,8 +191,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
   }
 
   tree_ir.FunctionDefinition compileToTreeIR(cps.FunctionDefinition cpsNode) {
-    tree_builder.Builder builder = new JsTreeBuilder(
-        compiler.internalError, compiler.identicalFunction, glue);
+    tree_builder.Builder builder = new tree_builder.Builder(
+        compiler.internalError);
     tree_ir.FunctionDefinition treeNode = builder.buildFunction(cpsNode);
     assert(treeNode != null);
     traceGraph('Tree builder', treeNode);
@@ -201,7 +212,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
       assert(checkTreeIntegrity(node));
     }
 
-    applyTreePass(new StatementRewriter(isDartMode: false));
+    applyTreePass(new StatementRewriter());
     applyTreePass(new VariableMerger());
     applyTreePass(new LoopRewriter());
     applyTreePass(new LogicalRewriter());

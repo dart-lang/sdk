@@ -53,6 +53,12 @@ class ApiZone {
   // Delete all memory associated with the zone.
   ~ApiZone() {
     Isolate* isolate = Isolate::Current();
+#if defined(DEBUG)
+    if (isolate == NULL) {
+      ASSERT(zone_.handles()->CountScopedHandles() == 0);
+      ASSERT(zone_.handles()->CountZoneHandles() == 0);
+    }
+#endif
     if ((isolate != NULL) && (isolate->current_zone() == &zone_)) {
       isolate->set_current_zone(zone_.previous_);
     }
@@ -128,6 +134,10 @@ class LocalHandle {
   RawObject* raw() const { return raw_; }
   void set_raw(RawObject* raw) { raw_ = raw; }
   static intptr_t raw_offset() { return OFFSET_OF(LocalHandle, raw_); }
+
+  Dart_Handle apiHandle() {
+    return reinterpret_cast<Dart_Handle>(this);
+  }
 
  private:
   LocalHandle() { }
@@ -632,7 +642,12 @@ class ApiNativeScope {
         OSThread::GetThreadLocal(Api::api_native_key_));
   }
 
-  Zone* zone() { return zone_.GetZone(); }
+  Zone* zone() {
+    Zone* result = zone_.GetZone();
+    ASSERT(result->handles()->CountScopedHandles() == 0);
+    ASSERT(result->handles()->CountZoneHandles() == 0);
+    return result;
+  }
 
  private:
   ApiZone zone_;

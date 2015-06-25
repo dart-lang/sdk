@@ -200,7 +200,7 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
                                       TreeElements definitions,
                                       {bool isConst: true}) {
     ConstantExpression constant = nodeConstantMap[node];
-    if (constant != null) {
+    if (constant != null && getConstantValue(constant) != null) {
       return constant;
     }
     constant =

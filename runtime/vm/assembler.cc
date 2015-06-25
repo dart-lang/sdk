@@ -242,61 +242,94 @@ const Code::Comments& Assembler::GetCodeComments() const {
 }
 
 
-intptr_t ObjectPool::AddObject(const Object& obj, Patchability patchable) {
+intptr_t ObjectPoolWrapper::AddObject(const Object& obj) {
+  return AddObject(ObjectPool::Entry(&obj), kNotPatchable);
+}
+
+
+intptr_t ObjectPoolWrapper::AddImmediate(uword imm) {
+  return AddObject(ObjectPool::Entry(imm, ObjectPool::kImmediate),
+                   kNotPatchable);
+}
+
+intptr_t ObjectPoolWrapper::AddObject(ObjectPool::Entry entry,
+                                      Patchability patchable) {
   // The object pool cannot be used in the vm isolate.
   ASSERT(Isolate::Current() != Dart::vm_isolate());
-  if (object_pool_.IsNull()) {
-    object_pool_ = GrowableObjectArray::New(Heap::kOld);
-  }
-  object_pool_.Add(obj, Heap::kOld);
-  patchable_pool_entries_.Add(patchable);
+  object_pool_.Add(entry);
   if (patchable == kNotPatchable) {
     // The object isn't patchable. Record the index for fast lookup.
     object_pool_index_table_.Insert(
-        ObjIndexPair(&obj, object_pool_.Length() - 1));
+        ObjIndexPair(entry, object_pool_.length() - 1));
   }
-  return object_pool_.Length() - 1;
+  return object_pool_.length() - 1;
 }
 
 
-intptr_t ObjectPool::AddExternalLabel(const ExternalLabel* label,
-                                      Patchability patchable) {
+intptr_t ObjectPoolWrapper::AddExternalLabel(const ExternalLabel* label,
+                                             Patchability patchable) {
   ASSERT(Isolate::Current() != Dart::vm_isolate());
-  const uword address = label->address();
-  ASSERT(Utils::IsAligned(address, 4));
-  // The address is stored in the object array as a RawSmi.
-  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(address));
-  return AddObject(smi, patchable);
+  return AddObject(ObjectPool::Entry(label->address(),
+                                     ObjectPool::kImmediate),
+                   patchable);
 }
 
 
-intptr_t ObjectPool::FindObject(const Object& obj, Patchability patchable) {
+intptr_t ObjectPoolWrapper::FindObject(ObjectPool::Entry entry,
+                                       Patchability patchable) {
   // The object pool cannot be used in the vm isolate.
   ASSERT(Isolate::Current() != Dart::vm_isolate());
 
   // If the object is not patchable, check if we've already got it in the
   // object pool.
-  if (patchable == kNotPatchable && !object_pool_.IsNull()) {
-    intptr_t idx = object_pool_index_table_.Lookup(&obj);
+  if (patchable == kNotPatchable) {
+    intptr_t idx = object_pool_index_table_.Lookup(entry);
     if (idx != ObjIndexPair::kNoIndex) {
-      ASSERT(patchable_pool_entries_[idx] == kNotPatchable);
       return idx;
     }
   }
 
-  return AddObject(obj, patchable);
+  return AddObject(entry, patchable);
 }
 
 
-intptr_t ObjectPool::FindExternalLabel(const ExternalLabel* label,
-                                       Patchability patchable) {
+intptr_t ObjectPoolWrapper::FindObject(const Object& obj) {
+  return FindObject(ObjectPool::Entry(&obj), kNotPatchable);
+}
+
+
+intptr_t ObjectPoolWrapper::FindImmediate(uword imm) {
+  return FindObject(ObjectPool::Entry(imm, ObjectPool::kImmediate),
+                    kNotPatchable);
+}
+
+
+intptr_t ObjectPoolWrapper::FindExternalLabel(const ExternalLabel* label,
+                                              Patchability patchable) {
   // The object pool cannot be used in the vm isolate.
   ASSERT(Isolate::Current() != Dart::vm_isolate());
-  const uword address = label->address();
-  ASSERT(Utils::IsAligned(address, 4));
-  // The address is stored in the object array as a RawSmi.
-  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(address));
-  return FindObject(smi, patchable);
+  return FindObject(ObjectPool::Entry(label->address(),
+                                      ObjectPool::kImmediate),
+                    patchable);
+}
+
+
+RawObjectPool* ObjectPoolWrapper::MakeObjectPool() {
+  intptr_t len = object_pool_.length();
+  if (len == 0) {
+    return Object::empty_object_pool().raw();
+  }
+  const ObjectPool& result = ObjectPool::Handle(ObjectPool::New(len));
+  for (intptr_t i = 0; i < len; ++i) {
+    ObjectPool::EntryType info = object_pool_[i].type_;
+    result.SetInfoAt(i, info);
+    if (info == ObjectPool::kTaggedObject) {
+      result.SetObjectAt(i, *object_pool_[i].obj_);
+    } else {
+      result.SetRawValueAt(i, object_pool_[i].raw_value_);
+    }
+  }
+  return result.raw();
 }
 
 

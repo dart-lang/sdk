@@ -170,6 +170,8 @@ main() {
   { final l = 1; check(1, () => l ??= bad(), []); } /// 13: static type warning
   { final l = null; yGetValue = 1; checkThrows(noMethod, () => l ??= y, ['y']); } /// 14: static type warning
   check(C, () => C ??= bad(), []); /// 15: static type warning
+  h ??= null; /// 29: compile-time error
+  h[0] ??= null; /// 30: compile-time error
 
   // C.v ??= e is equivalent to ((x) => x == null ? C.v = e : x)(C.v)
   C.xGetValue = 1; check(1, () => C.x ??= bad(), ['C.x']); /// 16: ok

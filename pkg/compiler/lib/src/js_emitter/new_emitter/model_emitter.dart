@@ -6,7 +6,6 @@ library dart2js.new_js_emitter.model_emitter;
 
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../dart2jslib.dart' show Compiler;
-import '../../dart_types.dart' show DartType;
 import '../../elements/elements.dart' show ClassElement, FunctionElement;
 import '../../js/js.dart' as js;
 import '../../js_backend/js_backend.dart' show
@@ -14,8 +13,7 @@ import '../../js_backend/js_backend.dart' show
     Namer,
     ConstantEmitter;
 
-import '../js_emitter.dart' show
-    NativeEmitter;
+import '../js_emitter.dart' show AstContainer, NativeEmitter;
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
     CREATE_NEW_ISOLATE,
@@ -35,6 +33,46 @@ import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
 
+/// Represents the LiteralString resulting from unparsing [expression]. The
+/// actual unparsing is done on demand when requesting the [value] of this
+/// node.
+class _UnparsedNode extends js.DeferredString
+                    implements AstContainer {
+  @override
+  final js.Node ast;
+  final Compiler _compiler;
+  final bool _protectForEval;
+  js.LiteralString _cachedLiteral;
+
+  /// A [js.Literal] that represents the string result of unparsing [ast].
+  ///
+  /// When its string [value] is requested, the node pretty-prints the given
+  /// [ast] and, if [protectForEval] is true, wraps the resulting
+  /// string in parenthesis. The result is also escaped.
+  _UnparsedNode(this.ast, this._compiler, this._protectForEval);
+
+  js.LiteralString get _literal {
+    if (_cachedLiteral == null) {
+      String text = js.prettyPrint(ast, _compiler).getText();
+      if (_protectForEval) {
+        if (ast is js.Fun) text = '($text)';
+        if (ast is js.LiteralExpression) {
+          js.LiteralExpression literalExpression = ast;
+          String template = literalExpression.template;
+          if (template.startsWith("function ") ||
+              template.startsWith("{")) {
+            text = '($text)';
+          }
+        }
+      }
+      _cachedLiteral = js.js.escapedString(text);
+    }
+    return _cachedLiteral;
+  }
+
+  @override
+  String get value => _literal.value;
+}
 
 class ModelEmitter {
   final Compiler compiler;
@@ -55,14 +93,15 @@ class ModelEmitter {
   ModelEmitter(Compiler compiler, Namer namer, this.nativeEmitter)
       : this.compiler = compiler,
         this.namer = namer {
-    // TODO(floitsch): remove hard-coded name.
-    // TODO(floitsch): there is no harm in caching the template.
-    js.Template makeConstantListTemplate =
-        js.js.uncachedExpressionTemplate('makeConstList(#)');
 
     this.constantEmitter = new ConstantEmitter(
         compiler, namer, this.generateConstantReference,
-        makeConstantListTemplate);
+        constantListGenerator);
+  }
+
+  js.Expression constantListGenerator(js.Expression array) {
+    // TODO(floitsch): remove hard-coded name.
+    return js.js('makeConstList(#)', [array]);
   }
 
   js.Expression generateEmbeddedGlobalAccess(String global) {
@@ -137,19 +176,27 @@ class ModelEmitter {
     // We have to emit the deferred fragments first, since we need their
     // deferred hash (which depends on the output) when emitting the main
     // fragment.
-    fragments.skip(1).forEach((DeferredFragment deferredUnit) {
-      List<js.Expression> types =
-          program.metadataTypes[deferredUnit.outputUnit];
-      js.Expression ast = emitDeferredFragment(types, deferredUnit,
-                                               program.holders);
-      String code = js.prettyPrint(ast, compiler).getText();
-      totalSize += code.length;
-      compiler.outputProvider(deferredUnit.outputFileName, deferredExtension)
-          ..add(code)
-          ..close();
-    });
+    List<js.Expression> fragmentsCode = fragments.skip(1).map(
+            (DeferredFragment deferredUnit) {
+      js.Expression types =
+          program.metadataTypesForOutputUnit(deferredUnit.outputUnit);
+      return emitDeferredFragment(types, deferredUnit, program.holders);
+    }).toList();
 
     js.Statement mainAst = emitMainFragment(program);
+
+    fragmentsCode.forEach(program.metadataFinalizer.countTokensInAst);
+    program.metadataFinalizer.countTokensInAst(mainAst);
+    program.metadataFinalizer.finalizeTokens();
+
+    for (int i = 0; i < fragmentsCode.length; ++i) {
+      String code = js.prettyPrint(fragmentsCode[i], compiler).getText();
+      totalSize += code.length;
+      compiler.outputProvider(fragments[i+1].outputFileName, deferredExtension)
+        ..add(code)
+        ..close();
+    }
+
     String mainCode = js.prettyPrint(mainAst, compiler).getText();
     compiler.outputProvider(mainFragment.outputFileName, 'js')
         ..add(buildGeneratedBy(compiler))
@@ -160,23 +207,17 @@ class ModelEmitter {
     return totalSize;
   }
 
-  /// Unparses the given [value].
+  /// Returns a [js.Literal] that represents the string result of unparsing
+  /// [value].
   ///
-  /// Pretty-prints the given [value] and, if [protectForEval] is
-  /// true, wraps the resulting string in parenthesis. The result is escaped
-  /// and returned.
-  js.LiteralString unparse(Compiler compiler, js.Node value,
-                           {bool protectForEval: true}) {
-    String text = js.prettyPrint(value, compiler).getText();
-    if (protectForEval) {
-      if (value is js.Fun) text = '($text)';
-      if (value is js.LiteralExpression &&
-      (value.template.startsWith("function ") ||
-      value.template.startsWith("{"))) {
-        text = '($text)';
-      }
-    }
-    return js.js.escapedString(text);
+  /// The returned node will, when its string value is requested, pretty-print
+  /// the given [value] and, if [protectForEval] is true, wrap the resulting
+  /// string in parenthesis. The result is also escaped.
+  ///
+  /// See [_UnparsedNode] for details.
+  js.Literal unparse(Compiler compiler, js.Node value,
+                     {bool protectForEval: true}) {
+    return new _UnparsedNode(value, compiler, protectForEval);
   }
 
   String buildGeneratedBy(compiler) {
@@ -191,7 +232,6 @@ class ModelEmitter {
     elements.add(
         emitLazilyInitializedStatics(fragment.staticLazilyInitializedFields));
     elements.add(emitConstants(fragment.constants));
-
 
     js.Expression code = new js.ArrayInitializer(elements);
 
@@ -345,7 +385,7 @@ class ModelEmitter {
          compiler.stringClass, compiler.boolClass, compiler.nullClass,
          compiler.listClass];
     nativeClassesNeedingUnmangledName.forEach((element) {
-        names.add(new js.Property(js.string(namer.className(element)),
+        names.add(new js.Property(js.quoteName(namer.className(element)),
                                   js.string(element.name)));
     });
 
@@ -479,34 +519,21 @@ class ModelEmitter {
   }
 
   List<js.Property> emitMetadata(Program program) {
-    // Unparses all given js-expressions (suitable for `expressionCompile`) and
-    // returns the result in a js-array.
-    // If the given [expressions] is null returns the empty js-array.
-    js.ArrayInitializer unparseExpressions(List<js.Expression> expressions) {
-      if (expressions == null) expressions = <js.Expression>[];
-      List<js.LiteralString> unparsedExpressions = expressions
-          .map((expr) => unparse(compiler, expr, protectForEval: false))
-          .toList();
-      return new js.ArrayInitializer(unparsedExpressions);
-    }
-
     List<js.Property> metadataGlobals = <js.Property>[];
 
-    js.ArrayInitializer unparsedMetadata = unparseExpressions(program.metadata);
-    metadataGlobals.add(new js.Property(js.string(lazyMetadataName),
-                                        unparsedMetadata));
-    metadataGlobals.add(new js.Property(js.string(METADATA),
-                                        new js.ArrayInitializer([])));
+    js.Property createGlobal(js.Expression metadata, String global) {
+      return new js.Property(js.string(global), metadata);
+    }
 
-    List<js.Expression> types =
-        program.metadataTypes[program.fragments.first.outputUnit];
-    metadataGlobals.add(new js.Property(js.string(TYPES),
-                                        unparseExpressions(types)));
+    metadataGlobals.add(createGlobal(program.metadata, METADATA));
+    js.Expression types =
+        program.metadataTypesForOutputUnit(program.mainFragment.outputUnit);
+    metadataGlobals.add(createGlobal(types, TYPES));
 
     return metadataGlobals;
   }
 
-  js.Expression emitDeferredFragment(List<js.Expression> types,
+  js.Expression emitDeferredFragment(js.Expression deferredTypes,
                                      DeferredFragment fragment,
                                      List<Holder> holders) {
     // TODO(floitsch): initialize eager classes.
@@ -529,11 +556,7 @@ class ModelEmitter {
         emitEagerClassInitializations(fragment.libraries)]);
 
 
-    js.LiteralString immediateString = unparse(compiler, immediateCode);
-
-    js.Expression deferredTypes = (types == null)
-        ? js.string("[]")
-        : unparse(compiler, new js.ArrayInitializer(types));
+    js.Literal immediateString = unparse(compiler, immediateCode);
 
     js.ArrayInitializer hunk =
         new js.ArrayInitializer([deferredArray, immediateString,
@@ -557,7 +580,7 @@ class ModelEmitter {
       data.addAll(constants.expand((Constant constant) {
         assert(constant.holder.index == holderIndex);
         js.Expression code = constantEmitter.generate(constant.value);
-        return [js.string(constant.name), unparse(compiler, code)];
+        return [js.quoteName(constant.name), unparse(compiler, code)];
       }));
     }
     return new js.ArrayInitializer(data);
@@ -573,8 +596,8 @@ class ModelEmitter {
 
   js.Expression emitLazilyInitializedStatics(List<StaticField> fields) {
     Iterable fieldDescriptors = fields.expand((field) =>
-        [ js.string(field.name),
-          js.string("${namer.getterPrefix}${field.name}"),
+        [ js.quoteName(field.name),
+          js.quoteName(namer.deriveLazyInitializerName(field.name)),
           js.number(field.holder.index),
           emitLazyInitializer(field) ]);
     return new js.ArrayInitializer(fieldDescriptors.toList(growable: false));
@@ -604,13 +627,13 @@ class ModelEmitter {
     Iterable staticDescriptors = library.statics.expand(emitStaticMethod);
 
     Iterable classDescriptors = library.classes.expand((Class cls) {
-      js.LiteralString name = js.string(cls.name);
+      js.Literal name = js.quoteName(cls.name);
       js.LiteralNumber holderIndex = js.number(cls.holder.index);
       js.Expression emittedClass = emitClass(cls);
       if (cls.nativeInfo == null) {
         return [name, emittedClass, holderIndex];
       } else {
-        return [name, emittedClass, js.string(cls.nativeInfo), holderIndex];
+        return [name, emittedClass, cls.nativeInfo, holderIndex];
       }
     });
 
@@ -623,21 +646,20 @@ class ModelEmitter {
   }
 
   js.Expression _generateConstructor(Class cls) {
-    List<String> fieldNames = <String>[];
+    List<js.Name> fieldNames = const <js.Name>[];
 
     // If the class is not directly instantiated we only need it for inheritance
     // or RTI. In either case we don't need its fields.
     if (cls.isDirectlyInstantiated && !cls.isNative) {
       fieldNames = cls.fields.map((Field field) => field.name).toList();
     }
-    String name = cls.name;
-    String parameters = fieldNames.join(', ');
-    String assignments = fieldNames
-        .map((String field) => "this.$field = $field;\n")
-        .join();
-    String code = 'function $name($parameters) { $assignments }';
-    js.Template template = js.js.uncachedExpressionTemplate(code);
-    return template.instantiate(const []);
+    js.Name name = cls.name;
+
+    Iterable<js.Name> assignments = fieldNames.map((js.Name field) {
+        return js.js("this.#field = #field", {"field": field});
+      });
+
+    return js.js('function #(#) { # }', [name, fieldNames, assignments]);
   }
 
   Method _generateGetter(Field field) {
@@ -650,9 +672,9 @@ class ModelEmitter {
       return null;
     }
 
-    js.Expression fieldName = js.string(field.name);
+    js.Expression fieldName = js.quoteName(field.name);
     js.Expression code = js.js(getterTemplateFor(field.getterFlags), fieldName);
-    String getterName = "${namer.getterPrefix}${field.accessorName}";
+    js.Name getterName = namer.deriveGetterName(field.accessorName);
     return new StubMethod(getterName, code);
   }
 
@@ -665,9 +687,9 @@ class ModelEmitter {
       }
       return null;
     }
-    js.Expression fieldName = js.string(field.name);
+    js.Expression fieldName = js.quoteName(field.name);
     js.Expression code = js.js(setterTemplateFor(field.setterFlags), fieldName);
-    String setterName = "${namer.setterPrefix}${field.accessorName}";
+    js.Name setterName = namer.deriveSetterName(field.accessorName);
     return new StubMethod(setterName, code);
   }
 
@@ -691,12 +713,12 @@ class ModelEmitter {
       "reference.";
 
   js.Expression emitClass(Class cls) {
-    List elements = [js.string(cls.superclassName),
+    List elements = [js.quoteName(cls.superclassName, allowNull: true),
                      js.number(cls.superclassHolderIndex)];
 
     if (cls.isMixinApplication) {
       MixinApplication mixin = cls;
-      elements.add(js.string(mixin.mixinClass.name));
+      elements.add(js.quoteName(mixin.mixinClass.name));
       elements.add(js.number(mixin.mixinClass.holder.index));
       if (cls.isDirectlyInstantiated) {
         elements.add(_generateConstructor(cls));
@@ -825,14 +847,14 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
   Iterable<js.Expression> emitInstanceMethod(Method method) {
 
     List<js.Expression> makeNameCodePair(Method method) {
-      return [js.string(method.name), method.code];
+      return [js.quoteName(method.name), method.code];
     }
 
     List<js.Expression> makeNameCallNameCodeTriplet(ParameterStubMethod stub) {
       js.Expression callName = stub.callName == null
           ? new js.LiteralNull()
-          : js.string(stub.callName);
-      return [js.string(stub.name), callName, stub.code];
+          : js.quoteName(stub.callName);
+      return [js.quoteName(stub.name), callName, stub.code];
     }
 
     if (method is InstanceMethod) {
@@ -843,15 +865,15 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
         // functionType, stub1_name, stub1_callName, stub1_code, ...]
         var data = [];
         if (method.aliasName != null) {
-          data.add(js.string(method.aliasName));
+          data.add(js.quoteName(method.aliasName));
         }
         data.add(method.code);
-        data.add(js.string(method.callName));
+        data.add(js.quoteName(method.callName, allowNull: true));
 
         if (method.needsTearOff) {
           bool isIntercepted = backend.isInterceptedMethod(method.element);
           data.add(new js.LiteralBool(isIntercepted));
-          data.add(js.string(method.tearOffName));
+          data.add(js.quoteName(method.tearOffName));
           data.add((method.functionType));
         }
 
@@ -860,7 +882,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
           data.add(js.number(method.requiredParameterCount));
           data.add(_encodeOptionalParameterDefaultValues(method));
         }
-        return [js.string(method.name), new js.ArrayInitializer(data)];
+        return [js.quoteName(method.name), new js.ArrayInitializer(data)];
       } else {
         // TODO(floitsch): not the most efficient way...
         return ([method]..addAll(method.parameterStubs))
@@ -877,7 +899,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 
     void _addMethod(Method method) {
       js.Expression unparsed = unparse(compiler, method.code);
-      output.add(js.string(method.name));
+      output.add(js.quoteName(method.name));
       output.add(holderIndex);
       output.add(unparsed);
     }
@@ -885,8 +907,8 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
     List<js.Expression> makeNameCallNameCodeTriplet(ParameterStubMethod stub) {
       js.Expression callName = stub.callName == null
           ? new js.LiteralNull()
-          : js.string(stub.callName);
-      return [js.string(stub.name), callName, unparse(compiler, stub.code)];
+          : js.quoteName(stub.callName);
+      return [js.quoteName(stub.name), callName, unparse(compiler, stub.code)];
     }
 
     _addMethod(method);
@@ -899,15 +921,15 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
         // [name, [function, callName, tearOffName, functionType,
         //     stub1_name, stub1_callName, stub1_code, ...]
         var data = [unparse(compiler, method.code)];
-        data.add(js.string(method.callName));
-        data.add(js.string(method.tearOffName));
+        data.add(js.quoteName(method.callName));
+        data.add(js.quoteName(method.tearOffName));
         data.add(method.functionType);
         data.addAll(method.parameterStubs.expand(makeNameCallNameCodeTriplet));
         if (method.canBeApplied) {
           data.add(js.number(method.requiredParameterCount));
           data.add(_encodeOptionalParameterDefaultValues(method));
         }
-        return [js.string(method.name), holderIndex,
+        return [js.quoteName(method.name), holderIndex,
                 new js.ArrayInitializer(data)];
       } else {
         method.parameterStubs.forEach(_addMethod);
@@ -923,7 +945,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 // Declare deferred-initializer global.
 #deferredInitializer;
 
-!function(start, program) {
+(function(start, program) {
   // Initialize holder objects.
   #holders;
   var nativeInfos = Object.create(null);
@@ -1257,7 +1279,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 
   #invokeMain;  // Start main.
 
-}(Date.now(), #code)
+})(Date.now(), #code)
 }""";
 
 }

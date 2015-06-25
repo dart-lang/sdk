@@ -26,9 +26,8 @@ import 'js_emitter.dart' show
 
 import '../elements/elements.dart' show ParameterElement, MethodElement;
 
-import '../universe/universe.dart' show Universe;
+import '../universe/universe.dart' show Universe, TypeMaskSet;
 import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
-import '../constants/expressions.dart' show ConstantExpression, ConstantValue;
 
 part 'registry.dart';
 
@@ -215,7 +214,7 @@ class ProgramBuilder {
     // a static field.
     _registry.registerHolder(namer.globalObjectForConstant(initialValue));
     js.Expression code = _task.emitter.constantReference(initialValue);
-    String name = namer.globalPropertyName(element);
+    js.Name name = namer.globalPropertyName(element);
     bool isFinal = false;
     bool isLazy = false;
 
@@ -251,7 +250,7 @@ class ProgramBuilder {
     // before code generation.
     if (code == null) return null;
 
-    String name = namer.globalPropertyName(element);
+    js.Name name = namer.globalPropertyName(element);
     bool isFinal = element.isFinal;
     bool isLazy = true;
     // TODO(floitsch): we shouldn't update the registry in the middle of
@@ -307,7 +306,7 @@ class ProgramBuilder {
     assert(_compiler.hasIncrementalSupport);
 
     List<Field> instanceFields = _buildFields(element, false);
-    String name = namer.className(element);
+    js.Name name = namer.className(element);
 
     return new Class(
         element, name, null, [], instanceFields, [], [], [], [], [], null,
@@ -337,13 +336,13 @@ class ProgramBuilder {
         if (method != null) methods.add(method);
       }
       if (member.isGetter || member.isField) {
-        Set<Selector> selectors =
-            _compiler.codegenWorld.invokedNames[member.name];
+        Map<Selector, TypeMaskSet> selectors =
+            _compiler.codegenWorld.invocationsByName(member.name);
         if (selectors != null && !selectors.isEmpty) {
 
-          Map<String, js.Expression> callStubsForMember =
+          Map<js.Name, js.Expression> callStubsForMember =
               classStubGenerator.generateCallStubsForGetter(member, selectors);
-          callStubsForMember.forEach((String name, js.Expression code) {
+          callStubsForMember.forEach((js.Name name, js.Expression code) {
             callStubs.add(_buildStubMethod(name, code, element: member));
           });
         }
@@ -355,9 +354,9 @@ class ProgramBuilder {
 
     List<StubMethod> noSuchMethodStubs = <StubMethod>[];
     if (backend.enabledNoSuchMethod && element == _compiler.objectClass) {
-      Map<String, Selector> selectors =
+      Map<js.Name, Selector> selectors =
           classStubGenerator.computeSelectorsForNsmHandlers();
-      selectors.forEach((String name, Selector selector) {
+      selectors.forEach((js.Name name, Selector selector) {
         noSuchMethodStubs
             .add(classStubGenerator.generateStubForNoSuchMethod(name,
                                                                 selector));
@@ -367,7 +366,7 @@ class ProgramBuilder {
     if (element == backend.closureClass) {
       // We add a special getter here to allow for tearing off a closure from
       // itself.
-      String name = namer.getterForMember(Selector.CALL_NAME);
+      js.Name name = namer.getterForMember(Selector.CALL_NAME);
       js.Fun function = js.js('function() { return this; }');
       callStubs.add(_buildStubMethod(name, function));
     }
@@ -391,11 +390,11 @@ class ProgramBuilder {
             storeFunctionTypeInMetadata: _storeFunctionTypesInMetadata);
 
     List<StubMethod> isChecks = <StubMethod>[];
-    typeTests.properties.forEach((String name, js.Node code) {
+    typeTests.properties.forEach((js.Name name, js.Node code) {
       isChecks.add(_buildStubMethod(name, code));
     });
 
-    String name = namer.className(element);
+    js.Name name = namer.className(element);
     String holderName = namer.globalObjectFor(element);
     // TODO(floitsch): we shouldn't update the registry in the middle of
     // building a class.
@@ -482,22 +481,21 @@ class ProgramBuilder {
   }
 
   DartMethod _buildMethod(MethodElement element) {
-    String name = namer.methodPropertyName(element);
+    js.Name name = namer.methodPropertyName(element);
     js.Expression code = backend.generatedCode[element];
 
     // TODO(kasperl): Figure out under which conditions code is null.
     if (code == null) return null;
 
     bool canTearOff = false;
-    String tearOffName;
+    js.Name tearOffName;
     bool isClosure = false;
     bool isNotApplyTarget = !element.isFunction || element.isAccessor;
 
     bool canBeReflected = _methodCanBeReflected(element);
-    bool needsStubs = _methodNeedsStubs(element);
     bool canBeApplied = _methodCanBeApplied(element);
 
-    String aliasName = backend.isAliasedSuperMember(element)
+    js.Name aliasName = backend.isAliasedSuperMember(element)
         ? namer.aliasedSuperMemberPropertyName(element)
         : null;
 
@@ -523,7 +521,7 @@ class ProgramBuilder {
       assert(invariant(element, !element.isConstructor));
     }
 
-    String callName = null;
+    js.Name callName = null;
     if (canTearOff) {
       Selector callSelector =
           new Selector.fromElement(element).toCallSelector();
@@ -572,8 +570,8 @@ class ProgramBuilder {
       js.Expression thisAccess = js.js(r'this.$receiver');
       return backend.rti.getSignatureEncoding(type, thisAccess);
     } else {
-      return js.number(backend.emitter.metadataCollector.
-          reifyTypeForOutputUnit(type, outputUnit));
+      return backend.emitter.metadataCollector
+          .reifyTypeForOutputUnit(type, outputUnit);
     }
   }
 
@@ -591,7 +589,7 @@ class ProgramBuilder {
   ///
   /// Stub methods may have an element that can be used for code-size
   /// attribution.
-  Method _buildStubMethod(String name, js.Expression code,
+  Method _buildStubMethod(js.Name name, js.Expression code,
                           {Element element}) {
     return new StubMethod(name, code, element: element);
   }
@@ -600,7 +598,7 @@ class ProgramBuilder {
   // We must evaluate these classes eagerly so that the prototype is
   // accessible.
   void _markEagerInterceptorClasses() {
-    Map<String, Set<ClassElement>> specializedGetInterceptors =
+    Map<js.Name, Set<ClassElement>> specializedGetInterceptors =
         backend.specializedGetInterceptors;
     for (Set<ClassElement> classes in specializedGetInterceptors.values) {
       for (ClassElement element in classes) {
@@ -619,10 +617,10 @@ class ProgramBuilder {
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
 
-    Map<String, Set<ClassElement>> specializedGetInterceptors =
+    Map<js.Name, Set<ClassElement>> specializedGetInterceptors =
         backend.specializedGetInterceptors;
-    List<String> names = specializedGetInterceptors.keys.toList()..sort();
-    return names.map((String name) {
+    List<js.Name> names = specializedGetInterceptors.keys.toList()..sort();
+    return names.map((js.Name name) {
       Set<ClassElement> classes = specializedGetInterceptors[name];
       js.Expression code = stubGenerator.generateGetInterceptorMethod(classes);
       return new StaticStubMethod(name, holder, code);
@@ -633,8 +631,8 @@ class ProgramBuilder {
     List<Field> fields = <Field>[];
     _task.oldEmitter.classEmitter.visitFields(
         holder, visitStatics, (VariableElement field,
-                               String name,
-                               String accessorName,
+                               js.Name name,
+                               js.Name accessorName,
                                bool needsGetter,
                                bool needsSetter,
                                bool needsCheckedSetter) {
@@ -684,15 +682,15 @@ class ProgramBuilder {
     // generating the interceptor methods.
     Holder holder = _registry.registerHolder(holderName);
 
-    List<String> names = backend.oneShotInterceptors.keys.toList()..sort();
-    return names.map((String name) {
+    List<js.Name> names = backend.oneShotInterceptors.keys.toList()..sort();
+    return names.map((js.Name name) {
       js.Expression code = stubGenerator.generateOneShotInterceptor(name);
       return new StaticStubMethod(name, holder, code);
     });
   }
 
   StaticDartMethod _buildStaticMethod(FunctionElement element) {
-    String name = namer.methodPropertyName(element);
+    js.Name name = namer.methodPropertyName(element);
     String holder = namer.globalObjectFor(element);
     js.Expression code = backend.generatedCode[element];
 
@@ -704,11 +702,11 @@ class ProgramBuilder {
         (canBeReflected ||
             universe.staticFunctionsNeedingGetter.contains(element));
 
-    String tearOffName =
+    js.Name tearOffName =
         needsTearOff ? namer.staticClosureName(element) : null;
 
 
-    String callName = null;
+    js.Name callName = null;
     if (needsTearOff) {
       Selector callSelector =
           new Selector.fromElement(element).toCallSelector();
@@ -754,7 +752,7 @@ class ProgramBuilder {
     for (ConstantValue constantValue in constantValues) {
       _registry.registerConstant(outputUnit, constantValue);
       assert(!_constants.containsKey(constantValue));
-      String name = namer.constantName(constantValue);
+      js.Name name = namer.constantName(constantValue);
       String constantObject = namer.globalObjectForConstant(constantValue);
       Holder holder = _registry.registerHolder(constantObject);
       Constant constant = new Constant(name, holder, constantValue);

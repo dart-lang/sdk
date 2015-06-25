@@ -4,6 +4,7 @@
 
 library analyzer.src.context.cache;
 
+import 'dart:async';
 import 'dart:collection';
 
 import 'package:analyzer/src/generated/engine.dart'
@@ -36,12 +37,30 @@ class AnalysisCache {
   final List<CachePartition> _partitions;
 
   /**
+   * The [StreamController] reporting [InvalidatedResult]s.
+   */
+  final StreamController<InvalidatedResult> _onResultInvalidated =
+      new StreamController<InvalidatedResult>.broadcast(sync: true);
+
+  /**
    * Initialize a newly created cache to have the given [partitions]. The
    * partitions will be searched in the order in which they appear in the array,
    * so the most specific partition (usually an [SdkCachePartition]) should be
    * first and the most general (usually a [UniversalCachePartition]) last.
    */
-  AnalysisCache(this._partitions);
+  AnalysisCache(this._partitions) {
+    for (CachePartition partition in _partitions) {
+      partition.onResultInvalidated.listen((InvalidatedResult event) {
+        _onResultInvalidated.add(event);
+      });
+    }
+  }
+
+  /**
+   * Return the stream that is notified when a value is invalidated.
+   */
+  Stream<InvalidatedResult> get onResultInvalidated =>
+      _onResultInvalidated.stream;
 
   // TODO(brianwilkerson) Implement or delete this.
 //  /**
@@ -500,6 +519,9 @@ class CacheEntry {
       _partition._targetMap.remove(target);
       _partition._removeIfSource(target);
     }
+    // Notify controller.
+    _partition._onResultInvalidated
+        .add(new InvalidatedResult(this, descriptor));
   }
 
   /**
@@ -744,6 +766,12 @@ abstract class CachePartition {
       new HashMap<ResultCachingPolicy, CacheFlushManager>();
 
   /**
+   * The [StreamController] reporting [InvalidatedResult]s.
+   */
+  final StreamController<InvalidatedResult> _onResultInvalidated =
+      new StreamController<InvalidatedResult>.broadcast(sync: true);
+
+  /**
    * A table mapping the targets belonging to this partition to the information
    * known about those targets.
    */
@@ -774,6 +802,12 @@ abstract class CachePartition {
    * should not be used for any other purpose.
    */
   Map<AnalysisTarget, CacheEntry> get map => _targetMap;
+
+  /**
+   * Return the stream that is notified when a value is invalidated.
+   */
+  Stream<InvalidatedResult> get onResultInvalidated =>
+      _onResultInvalidated.stream;
 
   /**
    * Return the entry associated with the given [target].
@@ -923,6 +957,26 @@ abstract class CachePartition {
       }
     }
   }
+}
+
+/**
+ * [InvalidatedResult] describes an invalidated result.
+ */
+class InvalidatedResult {
+  /**
+   * The target in which the result was invalidated.
+   */
+  final CacheEntry entry;
+
+  /**
+   * The descriptor of the result which was invalidated.
+   */
+  final ResultDescriptor descriptor;
+
+  InvalidatedResult(this.entry, this.descriptor);
+
+  @override
+  String toString() => '$descriptor of ${entry.target}';
 }
 
 /**

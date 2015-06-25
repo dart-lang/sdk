@@ -48,17 +48,9 @@ import 'dart:_foreign_helper' show
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EFFECT,
     JS_EMBEDDED_GLOBAL,
-    JS_FUNCTION_TYPE_NAMED_PARAMETERS_TAG,
-    JS_FUNCTION_TYPE_OPTIONAL_PARAMETERS_TAG,
-    JS_FUNCTION_TYPE_REQUIRED_PARAMETERS_TAG,
-    JS_FUNCTION_TYPE_RETURN_TYPE_TAG,
-    JS_FUNCTION_TYPE_VOID_RETURN_TAG,
     JS_GET_FLAG,
     JS_GET_NAME,
     JS_HAS_EQUALS,
-    JS_IS_INDEXABLE_FIELD_NAME,
-    JS_OPERATOR_AS_PREFIX,
-    JS_SIGNATURE_NAME,
     JS_STRING_CONCAT,
     RAW_DART_FUNCTION_REF;
 
@@ -155,7 +147,9 @@ bool builtinIsSubtype(type, String other) {
 @ForceInline()
 bool isDartFunctionTypeRti(Object type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isFunctionTypeRti, type);
+                    JsBuiltin.isGivenTypeRti, 
+                    type,
+                    JS_GET_NAME(JsGetName.FUNCTION_CLASS_TYPE_NAME));
 }
 
 /// Returns whether the given type is _the_ Dart Object type.
@@ -163,7 +157,9 @@ bool isDartFunctionTypeRti(Object type) {
 @ForceInline()
 bool isDartObjectTypeRti(type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isDartObjectTypeRti, type);
+                    JsBuiltin.isGivenTypeRti, 
+                    type,
+                    JS_GET_NAME(JsGetName.OBJECT_CLASS_TYPE_NAME));
 }
 
 /// Returns whether the given type is _the_ null type.
@@ -171,7 +167,9 @@ bool isDartObjectTypeRti(type) {
 @ForceInline()
 bool isNullTypeRti(type) {
   return JS_BUILTIN('returns:bool;effects:none;depends:none',
-                    JsBuiltin.isNullTypeRti, type);
+                    JsBuiltin.isGivenTypeRti, 
+                    type,
+                    JS_GET_NAME(JsGetName.NULL_CLASS_TYPE_NAME));
 }
 
 /// Returns the metadata of the given [index].
@@ -218,7 +216,7 @@ String S(value) {
     return 'null';
   }
   var res = value.toString();
-  if (res is !String) throw _argumentError(value);
+  if (res is !String) throw argumentErrorValue(value);
   return res;
 }
 
@@ -308,21 +306,20 @@ class JSInvocationMirror implements Invocation {
     for (var index = 0 ; index < argumentCount ; index++) {
       list.add(_arguments[index]);
     }
-    return makeLiteralListConst(list);
+    return JSArray.markUnmodifiableList(list);
   }
 
   Map<Symbol, dynamic> get namedArguments {
-    // TODO: Make maps const (issue 10471)
-    if (isAccessor) return <Symbol, dynamic>{};
+    if (isAccessor) return const <Symbol, dynamic>{};
     int namedArgumentCount = _namedArgumentNames.length;
     int namedArgumentsStartIndex = _arguments.length - namedArgumentCount;
-    if (namedArgumentCount == 0) return <Symbol, dynamic>{};
+    if (namedArgumentCount == 0) return const <Symbol, dynamic>{};
     var map = new Map<Symbol, dynamic>();
     for (int i = 0; i < namedArgumentCount; i++) {
       map[new _symbol_dev.Symbol.unvalidated(_namedArgumentNames[i])] =
           _arguments[namedArgumentsStartIndex + i];
     }
-    return map;
+    return new ConstantMapView<Symbol, dynamic>(map);
   }
 
   _getCachedInvocation(Object object) {
@@ -889,14 +886,14 @@ class Primitives {
   static String stringFromCodePoints(codePoints) {
     List<int> a = <int>[];
     for (var i in codePoints) {
-      if (i is !int) throw _argumentError(i);
+      if (i is !int) throw argumentErrorValue(i);
       if (i <= 0xffff) {
         a.add(i);
       } else if (i <= 0x10ffff) {
         a.add(0xd800 + ((((i - 0x10000) >> 10) & 0x3ff)));
         a.add(0xdc00 + (i & 0x3ff));
       } else {
-        throw _argumentError(i);
+        throw argumentErrorValue(i);
       }
     }
     return _fromCharCodeApply(a);
@@ -904,8 +901,8 @@ class Primitives {
 
   static String stringFromCharCodes(charCodes) {
     for (var i in charCodes) {
-      if (i is !int) throw _argumentError(i);
-      if (i < 0) throw _argumentError(i);
+      if (i is !int) throw argumentErrorValue(i);
+      if (i < 0) throw argumentErrorValue(i);
       if (i > 0xffff) return stringFromCodePoints(charCodes);
     }
     return _fromCharCodeApply(charCodes);
@@ -1094,22 +1091,22 @@ class Primitives {
   }
 
   static valueFromDateString(str) {
-    if (str is !String) throw _argumentError(str);
+    if (str is !String) throw argumentErrorValue(str);
     var value = JS('num', r'Date.parse(#)', str);
-    if (value.isNaN) throw _argumentError(str);
+    if (value.isNaN) throw argumentErrorValue(str);
     return value;
   }
 
   static getProperty(object, key) {
     if (object == null || object is bool || object is num || object is String) {
-      throw _argumentError(object);
+      throw argumentErrorValue(object);
     }
     return JS('var', '#[#]', object, key);
   }
 
   static void setProperty(object, key, value) {
     if (object == null || object is bool || object is num || object is String) {
-      throw _argumentError(object);
+      throw argumentErrorValue(object);
     }
     JS('void', '#[#] = #', object, key, value);
   }
@@ -1396,22 +1393,40 @@ class JsCache {
  * for example, if a non-integer index is given to an optimized
  * indexed access.
  */
+@NoInline()
 iae(argument) {
-  throw _argumentError(argument);
+  throw argumentErrorValue(argument);
 }
 
 /**
- * Called by generated code to throw an index-out-of-range exception,
- * for example, if a bounds check fails in an optimized indexed
- * access.  This may also be called when the index is not an integer, in
- * which case it throws an illegal-argument exception instead, like
- * [iae], or when the receiver is null.
+ * Called by generated code to throw an index-out-of-range exception, for
+ * example, if a bounds check fails in an optimized indexed access.  This may
+ * also be called when the index is not an integer, in which case it throws an
+ * illegal-argument exception instead, like [iae], or when the receiver is null.
  */
+@NoInline()
 ioore(receiver, index) {
   if (receiver == null) receiver.length; // Force a NoSuchMethodError.
-  if (index is !int) iae(index);
-  throw new RangeError.value(index);
+  throw diagnoseIndexError(receiver, index);
 }
+
+/**
+ * Diagnoses an indexing error. Returns the ArgumentError or RangeError that
+ * describes the problem.
+ */
+@NoInline()
+Error diagnoseIndexError(indexable, index) {
+  if (index is !int) return new ArgumentError.value(index, 'index');
+  int length = indexable.length;
+  // The following returns the same error that would be thrown by calling
+  // [RangeError.checkValidIndex] with no optional parameters provided.
+  if (index < 0 || index >= length) {
+    return new RangeError.index(index, indexable, 'index', null, length);
+  }
+  // The above should always match, but if it does not, use the following.
+  return new RangeError.value(index, 'index');
+}
+
 
 stringLastIndexOfUnchecked(receiver, element, start)
   => JS('int', r'#.lastIndexOf(#, #)', receiver, element, start);
@@ -1419,32 +1434,32 @@ stringLastIndexOfUnchecked(receiver, element, start)
 
 /// 'factory' for constructing ArgumentError.value to keep the call sites small.
 @NoInline()
-ArgumentError _argumentError(object) {
+ArgumentError argumentErrorValue(object) {
   return new ArgumentError.value(object);
 }
 
 checkNull(object) {
-  if (object == null) throw _argumentError(object);
+  if (object == null) throw argumentErrorValue(object);
   return object;
 }
 
 checkNum(value) {
-  if (value is !num) throw _argumentError(value);
+  if (value is !num) throw argumentErrorValue(value);
   return value;
 }
 
 checkInt(value) {
-  if (value is !int) throw _argumentError(value);
+  if (value is !int) throw argumentErrorValue(value);
   return value;
 }
 
 checkBool(value) {
-  if (value is !bool) throw _argumentError(value);
+  if (value is !bool) throw argumentErrorValue(value);
   return value;
 }
 
 checkString(value) {
-  if (value is !String) throw _argumentError(value);
+  if (value is !String) throw argumentErrorValue(value);
   return value;
 }
 
@@ -1493,12 +1508,6 @@ toStringWrapper() {
  */
 throwExpression(ex) {
   JS('void', 'throw #', wrapException(ex));
-}
-
-makeLiteralListConst(list) {
-  JS('bool', r'#.immutable$list = #', list, true);
-  JS('bool', r'#.fixed$length = #', list, true);
-  return list;
 }
 
 throwRuntimeError(message) {
@@ -2023,10 +2032,15 @@ unwrapException(ex) {
       return new StackOverflowError();
     }
 
-    // In general, a RangeError is thrown when trying to pass a number
-    // as an argument to a function that does not allow a range that
-    // includes that number.
-    return saveStackTrace(new ArgumentError());
+    // In general, a RangeError is thrown when trying to pass a number as an
+    // argument to a function that does not allow a range that includes that
+    // number. Translate to a Dart ArgumentError with the same message.
+    // TODO(sra): Translate to RangeError.
+    String message = tryStringifyException(ex);
+    if (message is String) {
+      message = JS('String', r'#.replace(/^RangeError:\s*/, "")', message);
+    }
+    return saveStackTrace(new ArgumentError(message));
   }
 
   // Check for the Firefox specific stack overflow signal.
@@ -2044,6 +2058,20 @@ unwrapException(ex) {
   return ex;
 }
 
+String tryStringifyException(ex) {
+  // Since this function is called from [unwrapException] which is called from
+  // code injected into a catch-clause, use JavaScript try-catch to avoid a
+  // potential loop if stringifying crashes.
+  return JS('String|Null', r'''
+    (function(ex) {
+      try {
+        return String(ex);
+      } catch (e) {}
+      return null;
+    })(#)
+    ''', ex);
+}
+
 /**
  * Called by generated code to fetch the stack trace from an
  * exception. Should never return null.
@@ -2052,7 +2080,11 @@ StackTrace getTraceFromException(exception) {
   if (exception is ExceptionAndStackTrace) {
     return exception.stackTrace;
   }
-  return new _StackTrace(exception);
+  if (exception == null) return new _StackTrace(exception);
+  _StackTrace trace = JS('_StackTrace|Null', r'#.$cachedTrace', exception);
+  if (trace != null) return trace;
+  trace = new _StackTrace(exception);
+  return JS('_StackTrace', r'#.$cachedTrace = #', exception, trace);
 }
 
 class _StackTrace implements StackTrace {
@@ -4092,7 +4124,7 @@ class SyncStarIterator implements Iterator {
 /// An Iterable corresponding to a sync* method.
 ///
 /// Each invocation of a sync* method will return a new instance of this class.
-class SyncStarIterable extends Iterable {
+class SyncStarIterable extends IterableBase {
   // This is a function that will return a helper function that does the
   // iteration of the sync*.
   //

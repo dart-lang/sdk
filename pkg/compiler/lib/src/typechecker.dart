@@ -126,18 +126,26 @@ class ResolvedAccess extends ElementAccess {
 
   DartType computeType(Compiler compiler) {
     if (element.isGetter) {
-      FunctionType functionType = element.computeType(compiler);
+      GetterElement getter = element;
+      FunctionType functionType = getter.computeType(compiler);
       return functionType.returnType;
     } else if (element.isSetter) {
-      FunctionType functionType = element.computeType(compiler);
+      SetterElement setter = element;
+      FunctionType functionType = setter.computeType(compiler);
       if (functionType.parameterTypes.length != 1) {
         // TODO(johnniwinther,karlklose): this happens for malformed static
         // setters. Treat them the same as instance members.
         return const DynamicType();
       }
       return functionType.parameterTypes.first;
+    } else if (element.isTypedef || element.isClass) {
+      TypeDeclarationElement typeDeclaration = element;
+      typeDeclaration.computeType(compiler);
+      return typeDeclaration.thisType;
     } else {
-      return element.computeType(compiler);
+      TypedElement typedElement = element;
+      typedElement.computeType(compiler);
+      return typedElement.type;
     }
   }
 
@@ -637,7 +645,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     } else if (node.isSuper()) {
       return superType;
     } else {
-      Element element = elements[node];
+      TypedElement element = elements[node];
       assert(invariant(node, element != null,
           message: 'Missing element for identifier'));
       assert(invariant(node, element.isVariable ||
@@ -1524,7 +1532,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
     return compiler.symbolClass.rawType;
   }
 
-  DartType computeConstructorType(Element constructor, DartType type) {
+  DartType computeConstructorType(ConstructorElement constructor,
+                                  DartType type) {
     if (Elements.isUnresolved(constructor)) return const DynamicType();
     DartType constructorType = constructor.computeType(compiler);
     if (identical(type.kind, TypeKind.INTERFACE)) {

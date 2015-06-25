@@ -93,17 +93,17 @@ class CodegenRegistry extends Registry {
     world.registerStaticUse(element);
   }
 
-  void registerDynamicInvocation(Selector selector) {
+  void registerDynamicInvocation(UniverseSelector selector) {
     world.registerDynamicInvocation(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
-  void registerDynamicSetter(Selector selector) {
+  void registerDynamicSetter(UniverseSelector selector) {
     world.registerDynamicSetter(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
-  void registerDynamicGetter(Selector selector) {
+  void registerDynamicGetter(UniverseSelector selector) {
     world.registerDynamicGetter(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
@@ -135,8 +135,8 @@ class CodegenRegistry extends Registry {
     backend.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
-  void registerClosureWithFreeTypeVariables(FunctionElement element) {
-    backend.registerClosureWithFreeTypeVariables(element, world, this);
+  void registerInstantiatedClosure(LocalFunctionElement element) {
+    backend.registerInstantiatedClosure(element, this);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
@@ -144,7 +144,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerSelectorUse(Selector selector) {
-    world.registerSelectorUse(selector);
+    world.registerSelectorUse(new UniverseSelector(selector, null));
   }
 
   void registerConstSymbol(String name) {
@@ -239,11 +239,11 @@ abstract class Registry {
 
   bool get isForResolution;
 
-  void registerDynamicInvocation(Selector selector);
+  void registerDynamicInvocation(UniverseSelector selector);
 
-  void registerDynamicGetter(Selector selector);
+  void registerDynamicGetter(UniverseSelector selector);
 
-  void registerDynamicSetter(Selector selector);
+  void registerDynamicSetter(UniverseSelector selector);
 
   void registerStaticInvocation(Element element);
 
@@ -302,8 +302,6 @@ abstract class Backend {
 
   List<CompilerTask> get tasks;
 
-  bool get canHandleCompilationFailed;
-
   void onResolutionComplete() {}
   void onTypeInferenceComplete() {}
 
@@ -313,6 +311,14 @@ abstract class Backend {
 
   bool classNeedsRti(ClassElement cls);
   bool methodNeedsRti(FunctionElement function);
+
+  /// Enable compilation of code with compile time errors. Returns `true` if
+  /// supported by the backend.
+  bool enableCodegenWithErrorsIfSupported(Spannable node);
+
+  /// Enable deferred loading. Returns `true` if the backend supports deferred
+  /// loading.
+  bool enableDeferredLoadingIfSupported(Spannable node, Registry registry);
 
   /// Called during codegen when [constant] has been used.
   void registerCompileTimeConstant(ConstantValue constant, Registry registry) {}
@@ -790,6 +796,9 @@ abstract class Compiler implements DiagnosticListener {
   /// Generate output even when there are compile-time errors.
   final bool generateCodeWithCompileTimeErrors;
 
+  /// The compiler is run from the build bot.
+  final bool testMode;
+
   bool disableInlining = false;
 
   List<Uri> librariesToAnalyzeWhenRun;
@@ -1049,6 +1058,7 @@ abstract class Compiler implements DiagnosticListener {
             this.allowNativeExtensions: false,
             this.enableNullAwareOperators: false,
             this.generateCodeWithCompileTimeErrors: false,
+            this.testMode: false,
             api.CompilerOutputProvider outputProvider,
             List<String> strips: const []})
       : this.disableTypeInferenceFlag =
@@ -1324,7 +1334,6 @@ abstract class Compiler implements DiagnosticListener {
         // The maximum number of imports chains to show.
         final int compactChainLimit = verbose ? 20 : 10;
         int chainCount = 0;
-        bool limitExceeded = false;
         loadedLibraries.forEachImportChain(DART_MIRRORS,
             callback: (Link<Uri> importChainReversed) {
           Link<CodeLocation> compactImportChain = const Link<CodeLocation>();
@@ -1485,7 +1494,6 @@ abstract class Compiler implements DiagnosticListener {
     // suitably maintained static reference to the current compiler.
     StringToken.canonicalizedSubstrings.clear();
     Selector.canonicalizedValues.clear();
-    world.canonicalizedValues.clear();
 
     assert(uri != null || analyzeOnly || hasIncrementalSupport);
     return new Future.sync(() {
@@ -1541,7 +1549,8 @@ abstract class Compiler implements DiagnosticListener {
       mainFunction = backend.helperForBadMain();
     } else {
       mainFunction = main;
-      FunctionSignature parameters = mainFunction.computeSignature(this);
+      mainFunction.computeType(this);
+      FunctionSignature parameters = mainFunction.functionSignature;
       if (parameters.requiredParameterCount > 2) {
         int index = 0;
         parameters.orderedForEachParameter((Element parameter) {
@@ -1617,9 +1626,11 @@ abstract class Compiler implements DiagnosticListener {
       });
     }
 
-    // TODO(sigurdm): The dart backend should handle failed compilations.
-    if (compilationFailed && !backend.canHandleCompilationFailed) {
-      return;
+    if (compilationFailed){
+      if (!generateCodeWithCompileTimeErrors) return;
+      if (!backend.enableCodegenWithErrorsIfSupported(NO_LOCATION_SPANNABLE)) {
+        return;
+      }
     }
 
     if (analyzeOnly) {
@@ -1708,7 +1719,8 @@ abstract class Compiler implements DiagnosticListener {
     world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
     if (main != null && !main.isErroneous) {
       FunctionElement mainMethod = main;
-      if (mainMethod.computeSignature(this).parameterCount != 0) {
+      mainMethod.computeType(this);
+      if (mainMethod.functionSignature.parameterCount != 0) {
         // The first argument could be a list of strings.
         backend.listImplementation.ensureResolved(this);
         world.registerInstantiatedType(
@@ -1793,8 +1805,7 @@ abstract class Compiler implements DiagnosticListener {
     Node tree = parser.parse(element);
     assert(invariant(element, !element.isSynthesized || tree == null));
     WorldImpact worldImpact = resolver.resolve(element);
-    if (tree != null && !analyzeSignaturesOnly &&
-        !suppressWarnings) {
+    if (tree != null && !analyzeSignaturesOnly && !suppressWarnings) {
       // Only analyze nodes with a corresponding [TreeElements].
       checker.check(element);
     }
@@ -1943,6 +1954,10 @@ abstract class Compiler implements DiagnosticListener {
     if (element == null) {
       element = currentElement;
     }
+    if (element == null) {
+      return null;
+    }
+
     if (element.sourcePosition != null) {
       return element.sourcePosition;
     }
@@ -2151,7 +2166,14 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   EventSink<String> outputProvider(String name, String extension) {
-    if (compilationFailed) return new NullSink('$name.$extension');
+    if (compilationFailed) {
+      if (!generateCodeWithCompileTimeErrors || testMode) {
+        // Disable output in test mode: The build bot currently uses the time
+        // stamp of the generated file to determine whether the output is
+        // up-to-date.
+        return new NullSink('$name.$extension');
+      }
+    }
     return userOutputProvider(name, extension);
   }
 }
@@ -2420,21 +2442,32 @@ class _CompilerCoreTypes implements CoreTypes {
   InterfaceType get doubleType => doubleClass.computeType(compiler);
 
   @override
-  InterfaceType get functionType =>  functionClass.computeType(compiler);
+  InterfaceType get functionType => functionClass.computeType(compiler);
 
   @override
   InterfaceType get intType => intClass.computeType(compiler);
 
   @override
-  InterfaceType listType([DartType elementType = const DynamicType()]) {
-    return listClass.computeType(compiler).createInstantiation([elementType]);
+  InterfaceType listType([DartType elementType]) {
+    InterfaceType type = listClass.computeType(compiler);
+    if (elementType == null) {
+      return listClass.rawType;
+    }
+    return type.createInstantiation([elementType]);
   }
 
   @override
-  InterfaceType mapType([DartType keyType = const DynamicType(),
-                         DartType valueType = const DynamicType()]) {
-    return mapClass.computeType(compiler)
-        .createInstantiation([keyType, valueType]);
+  InterfaceType mapType([DartType keyType,
+                         DartType valueType]) {
+    InterfaceType type = mapClass.computeType(compiler);
+    if (keyType == null && valueType == null) {
+      return mapClass.rawType;
+    } else if (keyType == null) {
+      keyType = const DynamicType();
+    } else if (valueType == null) {
+      valueType = const DynamicType();
+    }
+    return type.createInstantiation([keyType, valueType]);
   }
 
   @override
@@ -2447,22 +2480,36 @@ class _CompilerCoreTypes implements CoreTypes {
   InterfaceType get stringType => stringClass.computeType(compiler);
 
   @override
+  InterfaceType get symbolType => symbolClass.computeType(compiler);
+
+  @override
   InterfaceType get typeType => typeClass.computeType(compiler);
 
   @override
-  InterfaceType iterableType([DartType elementType = const DynamicType()]) {
-    return iterableClass.computeType(compiler)
-        .createInstantiation([elementType]);
+  InterfaceType iterableType([DartType elementType]) {
+    InterfaceType type = iterableClass.computeType(compiler);
+    if (elementType == null) {
+      return iterableClass.rawType;
+    }
+    return type.createInstantiation([elementType]);
   }
 
   @override
-  InterfaceType futureType([DartType elementType = const DynamicType()]) {
-    return futureClass.computeType(compiler).createInstantiation([elementType]);
+  InterfaceType futureType([DartType elementType]) {
+    InterfaceType type = futureClass.computeType(compiler);
+    if (elementType == null) {
+      return futureClass.rawType;
+    }
+    return type.createInstantiation([elementType]);
   }
 
   @override
-  InterfaceType streamType([DartType elementType = const DynamicType()]) {
-    return streamClass.computeType(compiler).createInstantiation([elementType]);
+  InterfaceType streamType([DartType elementType]) {
+    InterfaceType type = streamClass.computeType(compiler);
+    if (elementType == null) {
+      return streamClass.rawType;
+    }
+    return type.createInstantiation([elementType]);
   }
 }
 

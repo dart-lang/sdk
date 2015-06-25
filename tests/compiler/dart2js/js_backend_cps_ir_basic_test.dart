@@ -27,11 +27,11 @@ main() {
 function() {
   var l = [1, 2, 3], m = P.LinkedHashMap_LinkedHashMap$_literal(["s", 1]);
   P.print("()");
-  P.print("(" + true + ")");
-  P.print("(" + 1 + ")");
+  P.print("(true)");
+  P.print("(1)");
   P.print("(" + H.S([1, 2, 3]) + ")");
   P.print("(" + H.S(P.LinkedHashMap_LinkedHashMap$_literal(["s", 1])) + ")");
-  P.print("(" + 1 + ")");
+  P.print("(1)");
   P.print("(" + H.S(l) + ")");
   P.print("(" + H.S(m) + ")");
   return null;

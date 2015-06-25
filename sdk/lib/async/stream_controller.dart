@@ -80,8 +80,8 @@ abstract class StreamController<T> implements StreamSink<T> {
     if (onListen == null && onPause == null &&
         onResume == null && onCancel == null) {
       return sync
-          ? new _NoCallbackSyncStreamController/*<T>*/()
-          : new _NoCallbackAsyncStreamController/*<T>*/();
+          ? new _NoCallbackSyncStreamController<T>()
+          : new _NoCallbackAsyncStreamController<T>();
     }
     return sync
          ? new _SyncStreamController<T>(onListen, onPause, onResume, onCancel)
@@ -176,9 +176,6 @@ abstract class StreamController<T> implements StreamSink<T> {
    * Send or enqueue an error event.
    *
    * If [error] is `null`, it is replaced by a [NullThrownError].
-   *
-   * Also allows an objection stack trace object, on top of what [EventSink]
-   * allows.
    */
   void addError(Object error, [StackTrace stackTrace]);
 
@@ -394,7 +391,7 @@ abstract class _StreamController<T> implements StreamController<T>,
   _NotificationHandler get _onCancel;
 
   // Return a new stream every time. The streams are equal, but not identical.
-  Stream<T> get stream => new _ControllerStream(this);
+  Stream<T> get stream => new _ControllerStream<T>(this);
 
   /**
    * Returns a view of this object that only exposes the [StreamSink] interface.
@@ -758,11 +755,11 @@ abstract class _NoCallbacks {
   _NotificationHandler get _onCancel => null;
 }
 
-class _NoCallbackAsyncStreamController/*<T>*/ = _StreamController/*<T>*/
-       with _AsyncStreamControllerDispatch/*<T>*/, _NoCallbacks;
+class _NoCallbackAsyncStreamController<T> = _StreamController<T>
+       with _AsyncStreamControllerDispatch<T>, _NoCallbacks;
 
-class _NoCallbackSyncStreamController/*<T>*/ = _StreamController/*<T>*/
-       with _SyncStreamControllerDispatch/*<T>*/, _NoCallbacks;
+class _NoCallbackSyncStreamController<T> = _StreamController<T>
+       with _SyncStreamControllerDispatch<T>, _NoCallbacks;
 
 typedef _NotificationHandler();
 

@@ -200,13 +200,12 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
   }
-
   @override
   Object visitClassTypeAlias(ClassTypeAlias node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -332,7 +331,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
           }
         }
       }
-      _setMetadata(constructorElement, node);
+      setMetadata(constructorElement, node);
     }
     return null;
   }
@@ -388,13 +387,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitDeclaredIdentifier(DeclaredIdentifier node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
   }
 
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -406,7 +405,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       // TODO(brianwilkerson) Figure out whether the element can ever be
       // something other than an ExportElement
       _resolveCombinators(exportElement.exportedLibrary, node.combinators);
-      _setMetadata(exportElement, node);
+      setMetadata(exportElement, node);
     }
     return null;
   }
@@ -419,7 +418,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -442,7 +441,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitFunctionTypeAlias(FunctionTypeAlias node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -471,7 +470,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       if (library != null) {
         _resolveCombinators(library, node.combinators);
       }
-      _setMetadata(importElement, node);
+      setMetadata(importElement, node);
     }
     return null;
   }
@@ -554,13 +553,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitLibraryDirective(LibraryDirective node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
   }
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -591,6 +590,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       propagatedElement = null;
     } else if (methodName.name == FunctionElement.LOAD_LIBRARY_NAME &&
         _isDeferredPrefix(target)) {
+      if (node.operator.type == sc.TokenType.QUESTION_PERIOD) {
+        _resolver.reportErrorForNode(
+            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, target,
+            [(target as SimpleIdentifier).name]);
+      }
       LibraryElement importedLibrary = _getImportedLibrary(target);
       methodName.staticElement = importedLibrary.loadLibraryFunction;
       return null;
@@ -609,10 +613,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         staticElement =
             propagatedElement = _resolveElement(typeReference, methodName);
       } else {
-        staticElement =
-            _resolveInvokedElementWithTarget(target, staticType, methodName);
+        staticElement = _resolveInvokedElementWithTarget(
+            target, staticType, methodName, isConditional);
         propagatedElement = _resolveInvokedElementWithTarget(
-            target, propagatedType, methodName);
+            target, propagatedType, methodName, isConditional);
       }
     }
     staticElement = _convertSetterToGetter(staticElement);
@@ -675,13 +679,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       return null;
     }
     if (identical(
-        errorCode, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION)) {
-      _resolver.reportErrorForNode(
-          StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION, methodName,
-          [methodName.name]);
-    } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
-      _resolver.reportErrorForNode(StaticTypeWarningCode.UNDEFINED_FUNCTION,
-          methodName, [methodName.name]);
+            errorCode, StaticTypeWarningCode.INVOCATION_OF_NON_FUNCTION) ||
+        identical(errorCode,
+            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT) ||
+        identical(errorCode, StaticTypeWarningCode.UNDEFINED_FUNCTION)) {
+      _resolver.reportErrorForNode(errorCode, methodName, [methodName.name]);
     } else if (identical(errorCode, StaticTypeWarningCode.UNDEFINED_METHOD)) {
       String targetTypeName;
       if (target == null) {
@@ -741,13 +743,13 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitPartDirective(PartDirective node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
   }
 
   @override
   Object visitPartOfDirective(PartOfDirective node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
   }
 
@@ -1002,6 +1004,10 @@ class ElementResolver extends SimpleAstVisitor<Object> {
         Annotation annotation = node.parent as Annotation;
         _resolver.reportErrorForNode(
             CompileTimeErrorCode.INVALID_ANNOTATION, annotation);
+      } else if (element is PrefixElement) {
+        _resolver.reportErrorForNode(
+            CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, node,
+            [element.name]);
       } else {
         _recordUndefinedNode(_resolver.enclosingClass,
             StaticWarningCode.UNDEFINED_IDENTIFIER, node, [node.name]);
@@ -1087,33 +1093,14 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitTypeParameter(TypeParameter node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
   }
 
   @override
   Object visitVariableDeclaration(VariableDeclaration node) {
-    _setMetadata(node.element, node);
+    setMetadata(node.element, node);
     return null;
-  }
-
-  /**
-   * Generate annotation elements for each of the annotations in the
-   * [annotationList] and add them to the given list of [annotations].
-   */
-  void _addAnnotations(List<ElementAnnotationImpl> annotationList,
-      NodeList<Annotation> annotations) {
-    int annotationCount = annotations.length;
-    for (int i = 0; i < annotationCount; i++) {
-      Annotation annotation = annotations[i];
-      Element resolvedElement = annotation.element;
-      if (resolvedElement != null) {
-        ElementAnnotationImpl elementAnnotation =
-            new ElementAnnotationImpl(resolvedElement);
-        annotation.elementAnnotation = elementAnnotation;
-        annotationList.add(elementAnnotation);
-      }
-    }
   }
 
   /**
@@ -1127,7 +1114,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       Expression target, bool useStaticContext, Element element) {
     // Prefix is not declared, instead "prefix.id" are declared.
     if (element is PrefixElement) {
-      element = null;
+      return CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT;
     }
     if (element is PropertyAccessorElement) {
       //
@@ -1355,6 +1342,22 @@ class ElementResolver extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Return the best type of the given [expression] that is to be used for
+   * type analysis.
+   */
+  DartType _getBestType(Expression expression) {
+    DartType bestType = _resolveTypeParameter(expression.bestType);
+    if (bestType is FunctionType) {
+      //
+      // All function types are subtypes of 'Function', which is itself a
+      // subclass of 'Object'.
+      //
+      bestType = _resolver.typeProvider.functionType;
+    }
+    return bestType;
+  }
+
+  /**
    * Assuming that the given [expression] is a prefix for a deferred import,
    * return the library that is being imported.
    */
@@ -1389,22 +1392,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else {
       return operator.lexeme;
     }
-  }
-
-  /**
-   * Return the best type of the given [expression] that is to be used for
-   * type analysis.
-   */
-  DartType _getBestType(Expression expression) {
-    DartType bestType = _resolveTypeParameter(expression.bestType);
-    if (bestType is FunctionType) {
-      //
-      // All function types are subtypes of 'Function', which is itself a
-      // subclass of 'Object'.
-      //
-      bestType = _resolver.typeProvider.functionType;
-    }
-    return bestType;
   }
 
   /**
@@ -2362,10 +2349,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * invoked without arguments and the result of that invocation will then be
    * invoked with the arguments. The [target] is the target of the invocation
    * ('e'). The [targetType] is the type of the target. The [methodName] is th
-   *  name of the method being invoked ('m').
+   * name of the method being invoked ('m').  [isConditional] indicates
+   * whether the invocatoin uses a '?.' operator.
    */
-  Element _resolveInvokedElementWithTarget(
-      Expression target, DartType targetType, SimpleIdentifier methodName) {
+  Element _resolveInvokedElementWithTarget(Expression target,
+      DartType targetType, SimpleIdentifier methodName, bool isConditional) {
     if (targetType is InterfaceType) {
       Element element = _lookUpMethod(target, targetType, methodName.name);
       if (element == null) {
@@ -2381,6 +2369,11 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     } else if (target is SimpleIdentifier) {
       Element targetElement = target.staticElement;
       if (targetElement is PrefixElement) {
+        if (isConditional) {
+          _resolver.reportErrorForNode(
+              CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT,
+              target, [target.name]);
+        }
         //
         // Look to see whether the name of the method is really part of a
         // prefixed identifier for an imported top-level function or top-level
@@ -2621,35 +2614,6 @@ class ElementResolver extends SimpleAstVisitor<Object> {
    * [element] to which that node has been resolved, create the annotations in
    * the element model representing the annotations on the node.
    */
-  void _setMetadata(Element element, AnnotatedNode node) {
-    if (element is! ElementImpl) {
-      return;
-    }
-    List<ElementAnnotationImpl> annotationList =
-        new List<ElementAnnotationImpl>();
-    _addAnnotations(annotationList, node.metadata);
-    if (node is VariableDeclaration && node.parent is VariableDeclarationList) {
-      VariableDeclarationList list = node.parent as VariableDeclarationList;
-      _addAnnotations(annotationList, list.metadata);
-      if (list.parent is FieldDeclaration) {
-        FieldDeclaration fieldDeclaration = list.parent as FieldDeclaration;
-        _addAnnotations(annotationList, fieldDeclaration.metadata);
-      } else if (list.parent is TopLevelVariableDeclaration) {
-        TopLevelVariableDeclaration variableDeclaration =
-            list.parent as TopLevelVariableDeclaration;
-        _addAnnotations(annotationList, variableDeclaration.metadata);
-      }
-    }
-    if (!annotationList.isEmpty) {
-      (element as ElementImpl).metadata = annotationList;
-    }
-  }
-
-  /**
-   * Given a [node] that can have annotations associated with it and the
-   * [element] to which that node has been resolved, create the annotations in
-   * the element model representing the annotations on the node.
-   */
   void _setMetadataForParameter(Element element, NormalFormalParameter node) {
     if (element is! ElementImpl) {
       return;
@@ -2688,6 +2652,53 @@ class ElementResolver extends SimpleAstVisitor<Object> {
       }
     }
     return null;
+  }
+
+  /**
+   * Given a [node] that can have annotations associated with it and the
+   * [element] to which that node has been resolved, create the annotations in
+   * the element model representing the annotations on the node.
+   */
+  static void setMetadata(Element element, AnnotatedNode node) {
+    if (element is! ElementImpl) {
+      return;
+    }
+    List<ElementAnnotationImpl> annotationList = <ElementAnnotationImpl>[];
+    _addAnnotations(annotationList, node.metadata);
+    if (node is VariableDeclaration && node.parent is VariableDeclarationList) {
+      VariableDeclarationList list = node.parent as VariableDeclarationList;
+      _addAnnotations(annotationList, list.metadata);
+      if (list.parent is FieldDeclaration) {
+        FieldDeclaration fieldDeclaration = list.parent as FieldDeclaration;
+        _addAnnotations(annotationList, fieldDeclaration.metadata);
+      } else if (list.parent is TopLevelVariableDeclaration) {
+        TopLevelVariableDeclaration variableDeclaration =
+            list.parent as TopLevelVariableDeclaration;
+        _addAnnotations(annotationList, variableDeclaration.metadata);
+      }
+    }
+    if (!annotationList.isEmpty) {
+      (element as ElementImpl).metadata = annotationList;
+    }
+  }
+
+  /**
+   * Generate annotation elements for each of the annotations in the
+   * [annotationList] and add them to the given list of [annotations].
+   */
+  static void _addAnnotations(List<ElementAnnotationImpl> annotationList,
+      NodeList<Annotation> annotations) {
+    int annotationCount = annotations.length;
+    for (int i = 0; i < annotationCount; i++) {
+      Annotation annotation = annotations[i];
+      Element resolvedElement = annotation.element;
+      if (resolvedElement != null) {
+        ElementAnnotationImpl elementAnnotation =
+            new ElementAnnotationImpl(resolvedElement);
+        annotation.elementAnnotation = elementAnnotation;
+        annotationList.add(elementAnnotation);
+      }
+    }
   }
 
   /**

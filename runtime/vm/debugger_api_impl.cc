@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "include/dart_debugger_api.h"
+#include "include/dart_tools_api.h"
 
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
@@ -110,7 +110,6 @@ static Dart_IsolateEventHandler* isolate_event_handler = NULL;
 static void DebuggerEventHandler(DebuggerEvent* event) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
-  ASSERT(isolate->debugger() != NULL);
   Dart_EnterScope();
   Dart_IsolateId isolate_id = isolate->debugger()->GetIsolateId();
   if (event->type() == DebuggerEvent::kBreakpointReached) {
@@ -340,7 +339,6 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
 
   Debugger* debugger = isolate->debugger();
-  ASSERT(debugger != NULL);
   Breakpoint* bpt =
       debugger->SetBreakpointAtLine(script_url, line_number);
   if (bpt == NULL) {
@@ -355,7 +353,6 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointURL(intptr_t bp_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   Debugger* debugger = isolate->debugger();
-  ASSERT(debugger != NULL);
 
   Breakpoint* bpt = debugger->GetBreakpointById(bp_id);
   if (bpt == NULL) {
@@ -370,7 +367,6 @@ DART_EXPORT Dart_Handle Dart_GetBreakpointLine(intptr_t bp_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   Debugger* debugger = isolate->debugger();
-  ASSERT(debugger != NULL);
 
   Breakpoint* bpt = debugger->GetBreakpointById(bp_id);
   if (bpt == NULL) {
@@ -463,9 +459,6 @@ DART_EXPORT Dart_Handle Dart_OneTimeBreakAtEntry(
 DART_EXPORT Dart_Handle Dart_RemoveBreakpoint(intptr_t bp_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Debugger* debugger = isolate->debugger();
-  ASSERT(debugger != NULL);
-
   isolate->debugger()->RemoveBreakpoint(bp_id);
   return Api::Success();
 }

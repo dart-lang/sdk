@@ -1493,7 +1493,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       assert(node.inputs.length == 1);
       registry.registerSpecializedGetInterceptor(node.interceptedClasses);
-      String name =
+      js.Name name =
           backend.namer.nameForGetInterceptor(node.interceptedClasses);
       var isolate = new js.VariableUse(
           backend.namer.globalObjectFor(backend.interceptorsLibrary));
@@ -1507,11 +1507,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
     use(node.receiver);
     js.Expression object = pop();
-    String name = node.selector.name;
     String methodName;
     List<js.Expression> arguments = visitArguments(node.inputs);
     Element target = node.element;
 
+    // TODO(herhut): The namer should return the appropriate backendname here.
     if (target != null && !node.isInterceptedCall) {
       if (target == backend.jsArrayAdd) {
         methodName = 'push';
@@ -1531,17 +1531,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
     }
 
+    js.Name methodLiteral;
     if (methodName == null) {
-      methodName = backend.namer.invocationName(node.selector);
+      methodLiteral = backend.namer.invocationName(node.selector);
       registerMethodInvoke(node);
+    } else {
+      methodLiteral = backend.namer.asName(methodName);
     }
-    push(js.propertyCall(object, methodName, arguments), node);
+    push(js.propertyCall(object, methodLiteral, arguments), node);
   }
 
   void visitInvokeConstructorBody(HInvokeConstructorBody node) {
     use(node.inputs[0]);
     js.Expression object = pop();
-    String methodName = backend.namer.instanceMethodName(node.element);
+    js.Name methodName = backend.namer.instanceMethodName(node.element);
     List<js.Expression> arguments = visitArguments(node.inputs);
     push(js.propertyCall(object, methodName, arguments), node);
     registry.registerStaticUse(node.element);
@@ -1551,8 +1554,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     List<js.Expression> arguments = visitArguments(node.inputs);
     var isolate = new js.VariableUse(
         backend.namer.globalObjectFor(backend.interceptorsLibrary));
-    Selector selector = getOptimizedSelectorFor(node, node.selector);
-    String methodName = backend.registerOneShotInterceptor(selector);
+    Selector selector = node.selector;
+    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
+    js.Name methodName = backend.registerOneShotInterceptor(selector);
     push(js.propertyCall(isolate, methodName, arguments), node);
     if (selector.isGetter) {
       registerGetter(node);
@@ -1564,24 +1568,26 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     registry.registerUseInterceptor();
   }
 
-  Selector getOptimizedSelectorFor(HInvokeDynamic node, Selector selector) {
+  TypeMask getOptimizedSelectorFor(HInvokeDynamic node,
+                                   Selector selector,
+                                   TypeMask mask) {
     if (node.element != null) {
       // Create an artificial type mask to make sure only
       // [node.element] will be enqueued. We're not using the receiver
       // type because our optimizations might end up in a state where the
       // invoke dynamic knows more than the receiver.
       ClassElement enclosing = node.element.enclosingClass;
-      TypeMask receiverType =
+      return
           new TypeMask.nonNullExact(enclosing.declaration, compiler.world);
-      return new TypedSelector(receiverType, selector, compiler.world);
     }
     // If [JSInvocationMirror._invokeOn] is enabled, and this call
     // might hit a `noSuchMethod`, we register an untyped selector.
-    return selector.extendIfReachesAll(compiler);
+    return compiler.world.extendMaskIfReachesAll(selector, mask);
   }
 
   void registerMethodInvoke(HInvokeDynamic node) {
-    Selector selector = getOptimizedSelectorFor(node, node.selector);
+    Selector selector = node.selector;
+    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
 
     // If we don't know what we're calling or if we are calling a getter,
     // we need to register that fact that we may be calling a closure
@@ -1592,31 +1598,37 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // may know something about the types of closures that need
       // the specific closure call method.
       Selector call = new Selector.callClosureFrom(selector);
-      registry.registerDynamicInvocation(call);
+      registry.registerDynamicInvocation(
+          new UniverseSelector(call, null));
     }
-    registry.registerDynamicInvocation(selector);
+    registry.registerDynamicInvocation(
+        new UniverseSelector(selector, mask));
   }
 
   void registerSetter(HInvokeDynamic node) {
-    Selector selector = getOptimizedSelectorFor(node, node.selector);
-    registry.registerDynamicSetter(selector);
+    Selector selector = node.selector;
+    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
+    registry.registerDynamicSetter(
+        new UniverseSelector(selector, mask));
   }
 
   void registerGetter(HInvokeDynamic node) {
-    Selector selector = getOptimizedSelectorFor(node, node.selector);
-    registry.registerDynamicGetter(selector);
+    Selector selector = node.selector;
+    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
+    registry.registerDynamicGetter(
+        new UniverseSelector(selector, mask));
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
     use(node.receiver);
-    String name = backend.namer.invocationName(node.selector);
+    js.Name name = backend.namer.invocationName(node.selector);
     push(js.propertyCall(pop(), name, visitArguments(node.inputs)), node);
     registerSetter(node);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
     use(node.receiver);
-    String name = backend.namer.invocationName(node.selector);
+    js.Name name = backend.namer.invocationName(node.selector);
     push(js.propertyCall(pop(), name, visitArguments(node.inputs)), node);
     registerGetter(node);
   }
@@ -1628,7 +1640,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                          backend.namer.invocationName(call),
                          visitArguments(node.inputs)),
          node);
-    registry.registerDynamicInvocation(call);
+    registry.registerDynamicInvocation(
+        new UniverseSelector(call, null));
   }
 
   visitInvokeStatic(HInvokeStatic node) {
@@ -1678,10 +1691,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     registry.registerSuperInvocation(superMethod);
     ClassElement superClass = superMethod.enclosingClass;
     if (superMethod.kind == ElementKind.FIELD) {
-      String fieldName = backend.namer.instanceFieldPropertyName(superMethod);
+      js.Name fieldName =
+          backend.namer.instanceFieldPropertyName(superMethod);
       use(node.inputs[0]);
-      js.PropertyAccess access =
-          new js.PropertyAccess.field(pop(), fieldName);
+      js.PropertyAccess access = new js.PropertyAccess(pop(), fieldName);
       if (node.isSetter) {
         use(node.value);
         push(new js.Assignment(access, pop()), node);
@@ -1692,17 +1705,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       Selector selector = node.selector;
 
       if (!backend.maybeRegisterAliasedSuperMember(superMethod, selector)) {
-        String methodName;
+        js.Name methodName;
         if (selector.isGetter) {
           // If the selector we need to register a typed getter to the
           // [world]. The emitter needs to know if it needs to emit a
           // bound closure for a method.
           TypeMask receiverType =
               new TypeMask.nonNullExact(superClass, compiler.world);
-          selector = new TypedSelector(receiverType, selector, compiler.world);
           // TODO(floitsch): we know the target. We shouldn't register a
           // dynamic getter.
-          registry.registerDynamicGetter(selector);
+          registry.registerDynamicGetter(
+              new UniverseSelector(selector, receiverType));
           registry.registerGetterForSuperMethod(node.element);
           methodName = backend.namer.invocationName(selector);
         } else {
@@ -1739,8 +1752,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // property should not be mangled.
       push(new js.PropertyAccess.field(pop(), 'length'), node);
     } else {
-      String name = backend.namer.instanceFieldPropertyName(element);
-      push(new js.PropertyAccess.field(pop(), name), node);
+      js.Name name = backend.namer.instanceFieldPropertyName(element);
+      push(new js.PropertyAccess(pop(), name), node);
       registry.registerFieldGetter(element);
     }
   }
@@ -1748,20 +1761,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldSet(HFieldSet node) {
     Element element = node.element;
     registry.registerFieldSetter(element);
-    String name = backend.namer.instanceFieldPropertyName(element);
+    js.Name name = backend.namer.instanceFieldPropertyName(element);
     use(node.receiver);
     js.Expression receiver = pop();
     use(node.value);
-    push(new js.Assignment(new js.PropertyAccess.field(receiver, name), pop()),
+    push(new js.Assignment(new js.PropertyAccess(receiver, name), pop()),
         node);
   }
 
   visitReadModifyWrite(HReadModifyWrite node) {
     Element element = node.element;
     registry.registerFieldSetter(element);
-    String name = backend.namer.instanceFieldPropertyName(element);
+    js.Name name = backend.namer.instanceFieldPropertyName(element);
     use(node.receiver);
-    js.Expression fieldReference = new js.PropertyAccess.field(pop(), name);
+    js.Expression fieldReference = new js.PropertyAccess(pop(), name);
     if (node.isPreOp) {
       push(new js.Prefix(node.jsOp, fieldReference), node);
     } else if (node.isPostOp) {
@@ -1892,7 +1905,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (instruction is !HRelational) return false;
 
       HRelational relational = instruction;
-      BinaryOperation operation = relational.operation(backend.constantSystem);
 
       HInstruction left = relational.left;
       HInstruction right = relational.right;
@@ -2356,7 +2368,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(input);
 
     js.PropertyAccess field =
-        new js.PropertyAccess.field(pop(), backend.namer.operatorIsType(type));
+        new js.PropertyAccess(pop(), backend.namer.operatorIsType(type));
     // We always negate at least once so that the result is boolified.
     push(new js.Prefix('!', field));
     // If the result is not negated, put another '!' in front.
@@ -2460,7 +2472,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       assert(node.isRawCheck);
       HInstruction interceptor = node.interceptor;
-      LibraryElement coreLibrary = compiler.coreLibrary;
       ClassElement objectClass = compiler.objectClass;
       Element element = type.element;
       if (element == compiler.nullClass) {
@@ -2588,7 +2599,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         generateThrowWithHelper('iae', node.checkedInput);
       } else if (node.isReceiverTypeCheck) {
         use(node.checkedInput);
-        String methodName =
+        js.Name methodName =
             backend.namer.invocationName(node.receiverTypeCheckSelector);
         js.Expression call = js.propertyCall(pop(), methodName, []);
         pushStatement(new js.Return(call));

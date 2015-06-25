@@ -209,11 +209,11 @@ class AnalysisError {
    * a single list of errors.
    */
   static List<AnalysisError> mergeLists(List<List<AnalysisError>> errorLists) {
-    List<AnalysisError> errors = <AnalysisError>[];
+    Set<AnalysisError> errors = new HashSet<AnalysisError>();
     for (List<AnalysisError> errorList in errorLists) {
       errors.addAll(errorList);
     }
-    return errors;
+    return errors.toList();
   }
 }
 
@@ -1949,6 +1949,14 @@ class CompileTimeErrorCode extends ErrorCode {
           "The name '{0}' is already used as an import prefix and cannot be used to name a top-level element");
 
   /**
+   * 16.32 Identifier Reference: If d is a prefix p, a compile-time error
+   * occurs unless the token immediately following d is '.'.
+   */
+  static const CompileTimeErrorCode PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT =
+      const CompileTimeErrorCode('PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT',
+          "The name '{0}' refers to an import prefix, so it must be followed by '.'");
+
+  /**
    * 6.2.2 Optional Formals: It is a compile-time error if the name of a named
    * optional parameter begins with an '_' character.
    */
@@ -3100,6 +3108,38 @@ class HintCode extends ErrorCode {
 
   @override
   ErrorType get type => ErrorType.HINT;
+}
+
+/**
+ * The error codes used for errors in HTML files. The convention for this
+ * class is for the name of the error code to indicate the problem that caused
+ * the error to be generated and for the error message to explain what is wrong
+ * and, when appropriate, how the problem can be corrected.
+ */
+class HtmlErrorCode extends ErrorCode {
+  /**
+   * An error code indicating that there is a syntactic error in the file.
+   *
+   * Parameters:
+   * 0: the error message from the parse error
+   */
+  static const HtmlErrorCode PARSE_ERROR =
+      const HtmlErrorCode('PARSE_ERROR', '{0}');
+
+  /**
+   * Initialize a newly created error code to have the given [name]. The message
+   * associated with the error will be created from the given [message]
+   * template. The correction associated with the error will be created from the
+   * given [correction] template.
+   */
+  const HtmlErrorCode(String name, String message, [String correction])
+      : super(name, message, correction);
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.ERROR;
+
+  @override
+  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
 /**

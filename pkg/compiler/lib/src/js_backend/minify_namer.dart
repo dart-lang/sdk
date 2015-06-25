@@ -31,11 +31,11 @@ class MinifyNamer extends Namer {
   ///
   /// [sanitizeForNatives] and [sanitizeForAnnotations] are ignored because the
   /// minified names will always avoid clashing with annotated names or natives.
-  String getFreshName(String proposedName,
-                      Set<String> usedNames,
-                      Map<String, String> suggestedNames,
-                      {bool sanitizeForNatives: false,
-                       bool sanitizeForAnnotations: false}) {
+  jsAst.Name getFreshName(String proposedName,
+                             Set<String> usedNames,
+                             Map<String, String> suggestedNames,
+                             {bool sanitizeForNatives: false,
+                              bool sanitizeForAnnotations: false}) {
     String freshName;
     String suggestion = suggestedNames[proposedName];
     if (suggestion != null && !usedNames.contains(suggestion)) {
@@ -45,7 +45,7 @@ class MinifyNamer extends Namer {
           suggestedNames.values);
     }
     usedNames.add(freshName);
-    return freshName;
+    return new StringBackedName(freshName);
   }
 
   // From issue 7554.  These should not be used on objects (as instance
@@ -143,7 +143,7 @@ class MinifyNamer extends Namer {
         assert(c != $Z);
         c = (c == $z) ? $A : c + 1;
         letter = new String.fromCharCodes([c]);
-      } while (used.contains(letter));
+      } while (_hasBannedPrefix(letter) || used.contains(letter));
       assert(suggestionMap[name] == null);
       suggestionMap[name] = letter;
     }
@@ -209,10 +209,17 @@ class MinifyNamer extends Namer {
     return h;
   }
 
+  /// Remember bad hashes to avoid using a the same character with long numbers
+  /// for frequent hashes. For example, `closure` is a very common name.
+  Map<int, int> _badNames = new Map<int, int>();
+
   /// If we can't find a hash based name in the three-letter space, then base
   /// the name on a letter and a counter.
   String _badName(int hash, Set<String> usedNames) {
-    String startLetter = new String.fromCharCodes([_letterNumber(hash)]);
+    int count = _badNames.putIfAbsent(hash, () => 0);
+    String startLetter =
+        new String.fromCharCodes([_letterNumber(hash + count)]);
+    _badNames[hash] = count + 1;
     String name;
     int i = 0;
     do {
@@ -237,9 +244,9 @@ class MinifyNamer extends Namer {
     return $0 + x - 52;
   }
 
-  String instanceFieldPropertyName(Element element) {
+  jsAst.Name instanceFieldPropertyName(Element element) {
     if (element.hasFixedBackendName) {
-      return element.fixedBackendName;
+      return new StringBackedName(element.fixedBackendName);
     }
 
     _FieldNamingScope names;
@@ -271,15 +278,15 @@ class _FieldNamingRegistry {
   final Map<Entity, _FieldNamingScope> scopes =
       new Map<Entity, _FieldNamingScope>();
 
-  final Map<Entity, String> globalNames = new Map<Entity, String>();
+  final Map<Entity, jsAst.Name> globalNames = new Map<Entity, jsAst.Name>();
 
   int globalCount = 0;
 
-  final List<String> nameStore = new List<String>();
+  final List<jsAst.Name> nameStore = new List<jsAst.Name>();
 
   _FieldNamingRegistry(this.namer);
 
-  String getName(int count) {
+  jsAst.Name getName(int count) {
     if (count >= nameStore.length) {
       // The namer usually does not use certain names as they clash with
       // existing properties on JS objects (see [_reservedNativeProperties]).
@@ -287,7 +294,8 @@ class _FieldNamingRegistry {
       // Thus, we shortcut the namer to use those first.
       if (count < MinifyNamer._reservedNativeProperties.length &&
           MinifyNamer._reservedNativeProperties[count].length <= 2) {
-        nameStore.add(MinifyNamer._reservedNativeProperties[count]);
+        nameStore.add(new StringBackedName(
+            MinifyNamer._reservedNativeProperties[count]));
       } else {
         nameStore.add(namer.getFreshName("field$count",
             namer.usedInstanceNames, namer.suggestedInstanceNames));
@@ -303,9 +311,9 @@ class _FieldNamingRegistry {
  * class hierarchy. The root node typically is the node corresponding to the
  * `Object` class. It is used to assign a unique name to each field of a class.
  * Unique here means unique wrt. all fields along the path back to the root.
- * This is achieved at construction time via the [_fieldNameCounter] field that counts the
- * number of fields on the path to the root node that have been encountered so
- * far.
+ * This is achieved at construction time via the [_fieldNameCounter] field that
+ * counts the number of fields on the path to the root node that have been
+ * encountered so far.
  *
  * Obviously, this only works if no fields are added to a parent node after its
  * children have added their first field.
@@ -313,7 +321,7 @@ class _FieldNamingRegistry {
 class _FieldNamingScope {
   final _FieldNamingScope superScope;
   final Entity container;
-  final Map<Element, String> names = new Maplet<Element, String>();
+  final Map<Element, jsAst.Name> names = new Maplet<Element, jsAst.Name>();
   final _FieldNamingRegistry registry;
 
   /// Naming counter used for fields of ordinary classes.
@@ -373,15 +381,15 @@ class _FieldNamingScope {
   /**
    * Checks whether [name] is already used in the current scope chain.
    */
-  _isNameUnused(String name) {
+  _isNameUnused(jsAst.Name name) {
     return !names.values.contains(name) &&
         ((superScope == null) || superScope._isNameUnused(name));
   }
 
-  String _nextName() => registry.getName(_localFieldNameCounter++);
+  jsAst.Name _nextName() => registry.getName(_localFieldNameCounter++);
 
-  String operator[](Element field) {
-    String name = names[field];
+  jsAst.Name operator[](Element field) {
+    jsAst.Name name = names[field];
     if (name == null && superScope != null) return superScope[field];
     return name;
   }
@@ -389,7 +397,7 @@ class _FieldNamingScope {
   void add(Element field) {
     if (names.containsKey(field)) return;
 
-    String value = _nextName();
+    jsAst.Name value = _nextName();
     assert(invariant(field, _isNameUnused(value)));
     names[field] = value;
   }
@@ -410,7 +418,7 @@ class _MixinFieldNamingScope extends _FieldNamingScope {
   int get _localFieldNameCounter => registry.globalCount;
   void set _localFieldNameCounter(int val) { registry.globalCount = val; }
 
-  Map<Entity, String> get names => registry.globalNames;
+  Map<Entity, jsAst.Name> get names => registry.globalNames;
 
   _MixinFieldNamingScope.mixin(ClassElement cls, _FieldNamingRegistry registry)
     : super.rootScope(cls, registry);
@@ -419,9 +427,9 @@ class _MixinFieldNamingScope extends _FieldNamingScope {
       _FieldNamingScope superScope, _FieldNamingRegistry registry)
     : super.inherit(container, superScope, registry);
 
-  String _nextName() {
-    String proposed = super._nextName();
-    return proposed + r'$';
+  jsAst.Name _nextName() {
+    jsAst.Name proposed = super._nextName();
+    return new CompoundName([proposed, Namer._literalDollar]);
   }
 }
 
@@ -437,7 +445,7 @@ class _BoxFieldNamingScope extends _FieldNamingScope {
 
   bool containsField(_) => true;
 
-  String operator[](Element field) {
+  jsAst.Name operator[](Element field) {
     if (!names.containsKey(field)) add(field);
     return names[field];
   }

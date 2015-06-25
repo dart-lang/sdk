@@ -42,6 +42,12 @@ class AnalysisDriver {
   final InternalAnalysisContext context;
 
   /**
+   * The map of [ComputedResult] controllers.
+   */
+  final Map<ResultDescriptor, StreamController<ComputedResult>> resultComputedControllers =
+      <ResultDescriptor, StreamController<ComputedResult>>{};
+
+  /**
    * The work order that was previously computed but that has not yet been
    * completed.
    */
@@ -151,13 +157,13 @@ class AnalysisDriver {
         state == CacheState.IN_PROCESS) {
       return null;
     }
+    TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
     try {
-      TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
       WorkItem workItem = new WorkItem(context, target, taskDescriptor, result);
       return new WorkOrder(taskManager, workItem);
     } catch (exception, stackTrace) {
       throw new AnalysisException(
-          'Could not create work order (target = $target; result = $result)',
+          'Could not create work order (target = $target; taskDescriptor = $taskDescriptor; result = $result)',
           new CaughtException(exception, stackTrace));
     }
   }
@@ -184,6 +190,15 @@ class AnalysisDriver {
       }
     }
     return null;
+  }
+
+  /**
+   * Return the stream that is notified when a new value for the given
+   * [descriptor] is computed.
+   */
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
+    return resultComputedControllers.putIfAbsent(descriptor, () =>
+        new StreamController<ComputedResult>.broadcast(sync: true)).stream;
   }
 
   /**
@@ -243,7 +258,8 @@ class AnalysisDriver {
     AnalysisTask task = item.buildTask();
     _onTaskStartedController.add(task);
     task.perform();
-    CacheEntry entry = context.getCacheEntry(task.target);
+    AnalysisTarget target = task.target;
+    CacheEntry entry = context.getCacheEntry(target);
     if (task.caughtException == null) {
       List<TargetedResult> dependedOn = item.inputTargetedResults.toList();
       Map<ResultDescriptor, dynamic> outputs = task.outputs;
@@ -252,8 +268,17 @@ class AnalysisDriver {
         // and throw an exception if not (unless we want to allow null values).
         entry.setValue(result, outputs[result], dependedOn);
       }
+      outputs.forEach((ResultDescriptor descriptor, value) {
+        StreamController<ComputedResult> controller =
+            resultComputedControllers[descriptor];
+        if (controller != null) {
+          ComputedResult event =
+              new ComputedResult(context, descriptor, target, value);
+          controller.add(event);
+        }
+      });
       for (WorkManager manager in workManagers) {
-        manager.resultsComputed(task.target, outputs);
+        manager.resultsComputed(target, outputs);
       }
     } else {
       entry.setErrorState(task.caughtException, item.descriptor.results);

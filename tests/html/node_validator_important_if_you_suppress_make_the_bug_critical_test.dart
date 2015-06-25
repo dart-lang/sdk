@@ -14,13 +14,10 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_individual_config.dart';
 import 'utils.dart';
 
-
-var nullSanitizer = new NullTreeSanitizer();
-
 void validateHtml(String html, String reference, NodeValidator validator) {
   var a = document.body.createFragment(html, validator: validator);
   var b = document.body.createFragment(reference,
-      treeSanitizer: nullSanitizer);
+      treeSanitizer: NodeTreeSanitizer.trusted);
 
   // Prevent a false pass when both the html and the reference both get entirely
   // deleted, which is technically a match, but unlikely to be what we meant.

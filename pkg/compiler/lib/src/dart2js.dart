@@ -367,6 +367,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
     }),
     new OptionHandler('--allow-native-extensions', setAllowNativeExtensions),
     new OptionHandler('--generate-code-with-compile-time-errors', passThrough),
+    new OptionHandler('--test-mode', passThrough),
 
     // The following three options must come last.
     new OptionHandler('-D.+=.*', addInEnvironment),

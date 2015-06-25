@@ -35,29 +35,29 @@ Assembler::Assembler(bool use_far_branches)
     // These objects and labels need to be accessible through every pool-pointer
     // at the same index.
     intptr_t index =
-        object_pool_.AddObject(Object::null_object(), kNotPatchable);
+        object_pool_wrapper_.AddObject(Object::null_object());
     ASSERT(index == 0);
 
-    index = object_pool_.AddObject(Bool::True(), kNotPatchable);
+    index = object_pool_wrapper_.AddObject(Bool::True());
     ASSERT(index == 1);
 
-    index = object_pool_.AddObject(Bool::False(), kNotPatchable);
+    index = object_pool_wrapper_.AddObject(Bool::False());
     ASSERT(index == 2);
 
     const Smi& vacant = Smi::Handle(Smi::New(0xfa >> kSmiTagShift));
     StubCode* stub_code = Isolate::Current()->stub_code();
     if (stub_code->UpdateStoreBuffer_entry() != NULL) {
-      object_pool_.AddExternalLabel(
+      object_pool_wrapper_.AddExternalLabel(
           &stub_code->UpdateStoreBufferLabel(), kNotPatchable);
     } else {
-      object_pool_.AddObject(vacant, kNotPatchable);
+      object_pool_wrapper_.AddObject(vacant);
     }
 
     if (stub_code->CallToRuntime_entry() != NULL) {
-      object_pool_.AddExternalLabel(
+      object_pool_wrapper_.AddExternalLabel(
           &stub_code->CallToRuntimeLabel(), kNotPatchable);
     } else {
-      object_pool_.AddObject(vacant, kNotPatchable);
+      object_pool_wrapper_.AddObject(vacant);
     }
   }
 }
@@ -390,8 +390,7 @@ void Assembler::LoadWordFromPoolOffsetFixed(Register dst, Register pp,
 
 intptr_t Assembler::FindImmediate(int64_t imm) {
   ASSERT(Isolate::Current() != Dart::vm_isolate());
-  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(imm));
-  return object_pool_.FindObject(smi, kNotPatchable);
+  return object_pool_wrapper_.FindImmediate(imm);
 }
 
 
@@ -441,8 +440,8 @@ void Assembler::LoadExternalLabel(Register dst,
                                   Register pp) {
   const int64_t target = static_cast<int64_t>(label->address());
   if (CanLoadImmediateFromPool(target, pp)) {
-    const int32_t offset =
-        Array::element_offset(object_pool_.FindExternalLabel(label, patchable));
+    const int32_t offset = ObjectPool::element_offset(
+        object_pool_wrapper_.FindExternalLabel(label, patchable));
     LoadWordFromPoolOffset(dst, pp, offset);
   } else {
     LoadImmediate(dst, target, kNoPP);
@@ -454,8 +453,8 @@ void Assembler::LoadExternalLabelFixed(Register dst,
                                        const ExternalLabel* label,
                                        Patchability patchable,
                                        Register pp) {
-  const int32_t offset =
-      Array::element_offset(object_pool_.FindExternalLabel(label, patchable));
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindExternalLabel(label, patchable));
   LoadWordFromPoolOffsetFixed(dst, pp, offset);
 }
 
@@ -468,7 +467,7 @@ void Assembler::LoadIsolate(Register dst, Register pp) {
 void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
   if (CanLoadObjectFromPool(object)) {
     const int32_t offset =
-        Array::element_offset(object_pool_.FindObject(object, kNotPatchable));
+        ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(dst, pp, offset);
   } else {
     ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
@@ -495,7 +494,7 @@ void Assembler::LoadDecodableImmediate(Register reg, int64_t imm, Register pp) {
       allow_constant_pool()) {
     int64_t val_smi_tag = imm & kSmiTagMask;
     imm &= ~kSmiTagMask;  // Mask off the tag bits.
-    const int32_t offset = Array::element_offset(FindImmediate(imm));
+    const int32_t offset = ObjectPool::element_offset(FindImmediate(imm));
     LoadWordFromPoolOffset(reg, pp, offset);
     if (val_smi_tag != 0) {
       // Add back the tag bits.
@@ -531,7 +530,7 @@ void Assembler::LoadImmediate(Register reg, int64_t imm, Register pp) {
     // Save the bits that must be masked-off for the SmiTag
     int64_t val_smi_tag = imm & kSmiTagMask;
     imm &= ~kSmiTagMask;  // Mask off the tag bits.
-    const int32_t offset = Array::element_offset(FindImmediate(imm));
+    const int32_t offset = ObjectPool::element_offset(FindImmediate(imm));
     LoadWordFromPoolOffset(reg, pp, offset);
     if (val_smi_tag != 0) {
       // Add back the tag bits.
@@ -986,12 +985,12 @@ void Assembler::StoreIntoObjectOffsetNoBarrier(Register object,
 
 
 void Assembler::LoadClassId(Register result, Register object, Register pp) {
-  ASSERT(RawObject::kClassIdTagPos == 16);
-  ASSERT(RawObject::kClassIdTagSize == 16);
+  ASSERT(RawObject::kClassIdTagPos == kBitsPerInt32);
+  ASSERT(RawObject::kClassIdTagSize == kBitsPerInt32);
   const intptr_t class_id_offset = Object::tags_offset() +
       RawObject::kClassIdTagPos / kBitsPerByte;
   LoadFromOffset(result, object, class_id_offset - kHeapObjectTag, pp,
-                 kUnsignedHalfword);
+                 kUnsignedWord);
 }
 
 
@@ -1238,13 +1237,11 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
 }
 
 
-void Assembler::EnterStubFrame(bool load_pp) {
+void Assembler::EnterStubFrame() {
   EnterFrame(0);
   // Save caller's pool pointer. Push 0 in the saved PC area for stub frames.
   TagAndPushPPAndPcMarker(ZR);
-  if (load_pp) {
-    LoadPoolPointer(PP);
-  }
+  LoadPoolPointer(PP);
 }
 
 

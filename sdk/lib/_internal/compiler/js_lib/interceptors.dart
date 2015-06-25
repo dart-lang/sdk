@@ -15,11 +15,13 @@ import 'dart:_js_helper' show allMatchesInStringUnchecked,
                               Null,
                               JSSyntaxRegExp,
                               Primitives,
+                              argumentErrorValue,
                               checkInt,
                               checkNull,
                               checkNum,
                               checkString,
                               defineProperty,
+                              diagnoseIndexError,
                               getRuntimeType,
                               initNativeDispatch,
                               initNativeDispatchFlag,
@@ -248,8 +250,8 @@ findInterceptorForType(Type type) {
  * interceptor, methods of that name on plain unintercepted classes also use the
  * interceptor calling convention.  The plain classes are _self-interceptors_,
  * and for them, `getInterceptor(r)` returns `r`.  Methods on plain
- * unintercepted classes have a redundant `receiver` argument and should ignore
- * it in favour of `this`.
+ * unintercepted classes have a redundant `receiver` argument and, to enable
+ * some optimizations, must ignore `receiver` in favour of `this`.
  *
  * In the case of mixins, a method may be placed on both an intercepted class
  * and an unintercepted class.  In this case, the method must use the `receiver`
@@ -292,6 +294,20 @@ abstract class Interceptor {
 
   String toString() => Primitives.objectToHumanReadableString(this);
 
+  // [Interceptor.noSuchMethod] is identical to [Object.noSuchMethod].  However,
+  // each copy is compiled differently.  The presence of the method on an
+  // Interceptor class forces [noSuchMethod] to use interceptor calling
+  // convention.  In the [Interceptor] version, `this` is the explicit receiver
+  // argument. In the [Object] version, as Object is not an intercepted class,
+  // `this` is the JavaScript receiver, and the explicit receiver is ignored.
+  // The noSuchMethod stubs for selectors that use the interceptor calling
+  // convention do not know the calling convention and forward `this` and
+  // `receiver` to one of these noSuchMethod implementations which selects the
+  // correct Dart receiver.
+  //
+  // We don't allow [noSuchMethod] on intercepted classes (that would force all
+  // calls to use interceptor calling convention).  If we did allow it, the
+  // interceptor context would select the correct `this`.
   dynamic noSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError(
         this,

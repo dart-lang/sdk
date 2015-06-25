@@ -37,9 +37,9 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   entry =
       Simulator::RedirectExternalReference(entry, call_kind, argument_count);
 #endif
+  ExternalLabel label(entry);
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
-    ExternalLabel label(entry);
     // Since we are entering C++ code, we must restore the C stack pointer from
     // the stack limit to an aligned value nearer to the top of the stack.
     // We cache the Dart stack pointer and the stack limit in callee-saved
@@ -55,7 +55,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ LoadImmediate(R5, entry, kNoPP);
+    __ LoadExternalLabel(R5, &label, kNotPatchable, PP);
     __ LoadImmediate(R4, argument_count, kNoPP);
     __ BranchLink(&Isolate::Current()->stub_code()->CallToRuntimeLabel(), PP);
   }

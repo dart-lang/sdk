@@ -86,7 +86,7 @@ class EdgeCounter : public ValueObject {
  public:
   EdgeCounter(uword pc, const Code& code)
       : end_(pc - FlowGraphCompiler::EdgeCounterIncrementSizeInBytes()),
-        object_pool_(Array::Handle(code.ObjectPool())) {
+        object_pool_(ObjectPool::Handle(code.GetObjectPool())) {
     // An IsValid predicate is complicated and duplicates the code in the
     // decoding function.  Instead we rely on decoding the pattern which
     // will assert partial validity.
@@ -97,7 +97,7 @@ class EdgeCounter : public ValueObject {
     intptr_t index;
     InstructionPattern::DecodeLoadWordFromPool(end_, &ignored, &index);
     ASSERT(ignored == R0);
-    return object_pool_.At(index);
+    return object_pool_.ObjectAt(index);
   }
 
  private:
@@ -109,7 +109,7 @@ class EdgeCounter : public ValueObject {
   static const intptr_t kAdjust = 3 * Instr::kInstrSize;
 
   uword end_;
-  const Array& object_pool_;
+  const ObjectPool& object_pool_;
 };
 
 

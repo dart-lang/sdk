@@ -27,8 +27,6 @@ import 'elements/modelx.dart' show
     LibraryElementX,
     PrefixElementX;
 
-import 'helpers/helpers.dart';  // Included for debug helpers.
-
 import 'native/native.dart' as native;
 
 import 'tree/tree.dart';

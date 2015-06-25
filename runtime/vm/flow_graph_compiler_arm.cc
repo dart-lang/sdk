@@ -608,7 +608,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     // time, since an uninstantiated type at compile time could be Object or
     // dynamic at run time.
     __ CompareImmediate(R0, reinterpret_cast<int32_t>(Object::null()));
-    __ b(&is_not_instance, EQ);
+    __ b(type.IsNullType() ? &is_instance : &is_not_instance, EQ);
   }
 
   // Generate inline instanceof test.
@@ -1512,33 +1512,76 @@ void FlowGraphCompiler::ClobberDeadTempRegisters(LocationSummary* locs) {
 
 
 void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
-                                        Register class_id_reg,
                                         intptr_t argument_count,
                                         const Array& argument_names,
-                                        Label* deopt,
+                                        Label* failed,
+                                        Label* match_found,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
                                         LocationSummary* locs) {
   ASSERT(is_optimizing());
-  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfUsedChecks() > 0));
-  Label match_found;
-  const intptr_t len = ic_data.NumberOfChecks();
-  GrowableArray<CidTarget> sorted(len);
-  SortICDataByCount(ic_data, &sorted, /* drop_smi = */ false);
-  ASSERT(class_id_reg != R4);
-  ASSERT(len > 0);  // Why bother otherwise.
+  __ Comment("EmitTestAndCall");
   const Array& arguments_descriptor =
       Array::ZoneHandle(ArgumentsDescriptor::New(argument_count,
                                                  argument_names));
   StubCode* stub_code = isolate()->stub_code();
 
+  // Load receiver into R0.
+  __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
   __ LoadObject(R4, arguments_descriptor);
-  for (intptr_t i = 0; i < len; i++) {
-    const bool is_last_check = (i == (len - 1));
+
+  const bool kFirstCheckIsSmi = ic_data.GetReceiverClassIdAt(0) == kSmiCid;
+  const intptr_t kNumChecks = ic_data.NumberOfChecks();
+
+  ASSERT(!ic_data.IsNull() && (kNumChecks > 0));
+
+  Label after_smi_test;
+  __ tst(R0, Operand(kSmiTagMask));
+  if (kFirstCheckIsSmi) {
+    // Jump if receiver is not Smi.
+    if (kNumChecks == 1) {
+      __ b(failed, NE);
+    } else {
+      __ b(&after_smi_test, NE);
+    }
+    // Do not use the code from the function, but let the code be patched so
+    // that we can record the outgoing edges to other code.
+    GenerateDartCall(deopt_id,
+                     token_index,
+                     &stub_code->CallStaticFunctionLabel(),
+                     RawPcDescriptors::kOther,
+                     locs);
+    const Function& function = Function::Handle(ic_data.GetTargetAt(0));
+    AddStaticCallTarget(function);
+    __ Drop(argument_count);
+    if (kNumChecks > 1) {
+      __ b(match_found);
+    }
+  } else {
+    // Receiver is Smi, but Smi is not a valid class therefore fail.
+    // (Smi class must be first in the list).
+    __ b(failed, EQ);
+  }
+  __ Bind(&after_smi_test);
+
+  ASSERT(!ic_data.IsNull() && (kNumChecks > 0));
+  GrowableArray<CidTarget> sorted(kNumChecks);
+  SortICDataByCount(ic_data, &sorted, /* drop_smi = */ true);
+
+  // Value is not Smi,
+  const intptr_t kSortedLen = sorted.length();
+  // If kSortedLen is 0 then only a Smi check was needed; the Smi check above
+  // will fail if there was only one check and receiver is not Smi.
+  if (kSortedLen == 0) return;
+
+  __ LoadClassId(R2, R0);
+  for (intptr_t i = 0; i < kSortedLen; i++) {
+    const bool kIsLastCheck = (i == (kSortedLen - 1));
+    ASSERT(sorted[i].cid != kSmiCid);
     Label next_test;
-    __ CompareImmediate(class_id_reg, sorted[i].cid);
-    if (is_last_check) {
-      __ b(deopt, NE);
+    __ CompareImmediate(R2, sorted[i].cid);
+    if (kIsLastCheck) {
+      __ b(failed, NE);
     } else {
       __ b(&next_test, NE);
     }
@@ -1552,12 +1595,11 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     const Function& function = *sorted[i].target;
     AddStaticCallTarget(function);
     __ Drop(argument_count);
-    if (!is_last_check) {
-      __ b(&match_found);
+    if (!kIsLastCheck) {
+      __ b(match_found);
     }
     __ Bind(&next_test);
   }
-  __ Bind(&match_found);
 }
 
 

@@ -1282,6 +1282,19 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
   WriteForwardedObjects();
 }
 
+#define VM_OBJECT_CLASS_LIST(V)                                                \
+  V(OneByteString)                                                             \
+  V(Mint)                                                                      \
+  V(Bigint)                                                                    \
+  V(Double)                                                                    \
+
+#define VM_OBJECT_WRITE(clazz)                                                 \
+  case clazz::kClassId: {                                                      \
+    object_id = forward_list_->AddObject(rawobj, kIsSerialized);               \
+    Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(rawobj);               \
+    raw_obj->WriteTo(this, object_id, kind());                                 \
+    return;                                                                    \
+  }                                                                            \
 
 void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   // Check if it is a singleton null object.
@@ -1345,21 +1358,47 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
     }
   }
 
-  // Check it is a predefined symbol in the VM isolate.
-  id = Symbols::LookupVMSymbol(rawobj);
-  if (id != kInvalidIndex) {
-    WriteVMIsolateObject(id);
-    return;
-  }
+  if (kind() == Snapshot::kFull) {
+    // Check it is a predefined symbol in the VM isolate.
+    id = Symbols::LookupVMSymbol(rawobj);
+    if (id != kInvalidIndex) {
+      WriteVMIsolateObject(id);
+      return;
+    }
 
-  // Check if it is an object from the vm isolate snapshot object table.
-  id = FindVmSnapshotObject(rawobj);
-  if (id != kInvalidIndex) {
-    WriteIndexedObject(id);
-    return;
+    // Check if it is an object from the vm isolate snapshot object table.
+    id = FindVmSnapshotObject(rawobj);
+    if (id != kInvalidIndex) {
+      WriteIndexedObject(id);
+      return;
+    }
+  } else {
+    // In the case of script snapshots or for messages we do not use
+    // the index into the vm isolate snapshot object table, instead we
+    // explicitly write the object out.
+    intptr_t object_id = forward_list_->FindObject(rawobj);
+    if (object_id != -1) {
+      WriteIndexedObject(object_id);
+      return;
+    } else {
+      switch (id) {
+        VM_OBJECT_CLASS_LIST(VM_OBJECT_WRITE)
+        case kTypedDataUint32ArrayCid: {
+          object_id = forward_list_->AddObject(rawobj, kIsSerialized);
+          RawTypedData* raw_obj = reinterpret_cast<RawTypedData*>(rawobj);
+          raw_obj->WriteTo(this, object_id, kind());
+          return;
+        }
+        default:
+          OS::Print("class id = %" Pd "\n", id);
+          break;
+      }
+    }
   }
   UNREACHABLE();
 }
+
+#undef VM_OBJECT_WRITE
 
 
 void SnapshotWriter::WriteObjectRef(RawObject* raw) {
@@ -1460,20 +1499,6 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
 }
 
 
-FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
-                                       uint8_t** isolate_snapshot_buffer,
-                                       ReAlloc alloc)
-    : vm_isolate_snapshot_buffer_(vm_isolate_snapshot_buffer),
-      isolate_snapshot_buffer_(isolate_snapshot_buffer),
-      alloc_(alloc),
-      vm_isolate_snapshot_size_(0),
-      isolate_snapshot_size_(0),
-      forward_list_(SnapshotWriter::FirstObjectId()) {
-  ASSERT(isolate_snapshot_buffer_ != NULL);
-  ASSERT(alloc_ != NULL);
-}
-
-
 // An object visitor which will iterate over all the script objects in the heap
 // and either count them or collect them into an array. This is used during
 // full snapshot generation of the VM isolate to write out all script
@@ -1511,36 +1536,69 @@ class ScriptVisitor : public ObjectVisitor {
 };
 
 
-void FullSnapshotWriter::WriteVmIsolateSnapshot() {
-  ASSERT(vm_isolate_snapshot_buffer_ != NULL);
-  SnapshotWriter writer(Snapshot::kFull,
-                        vm_isolate_snapshot_buffer_,
-                        alloc_,
-                        kInitialSize,
-                        &forward_list_,
-                        true);  // Can send any kind of object.
-  Isolate* isolate = writer.isolate();
-  ASSERT(isolate != NULL);
-  ObjectStore* object_store = isolate->object_store();
-  ASSERT(object_store != NULL);
+FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
+                                       uint8_t** isolate_snapshot_buffer,
+                                       ReAlloc alloc)
+    : isolate_(Isolate::Current()),
+      vm_isolate_snapshot_buffer_(vm_isolate_snapshot_buffer),
+      isolate_snapshot_buffer_(isolate_snapshot_buffer),
+      alloc_(alloc),
+      vm_isolate_snapshot_size_(0),
+      isolate_snapshot_size_(0),
+      forward_list_(NULL),
+      scripts_(Array::Handle(isolate_)),
+      symbol_table_(Array::Handle(isolate_)) {
+  ASSERT(isolate_snapshot_buffer_ != NULL);
+  ASSERT(alloc_ != NULL);
+  ASSERT(isolate_ != NULL);
   ASSERT(ClassFinalizer::AllClassesFinalized());
-
+  ObjectStore* object_store = isolate_->object_store();
+  ASSERT(object_store != NULL);
+  Heap* heap = isolate_->heap();
+  ASSERT(heap != NULL);
   // Ensure the class table is valid.
 #if defined(DEBUG)
-  isolate->ValidateClassTable();
+  isolate_->ValidateClassTable();
 #endif
 
   // Collect all the script objects and their accompanying token stream objects
   // into an array so that we can write it out as part of the VM isolate
   // snapshot. We first count the number of script objects, allocate an array
   // and then fill it up with the script objects.
-  ScriptVisitor scripts_counter(isolate);
-  isolate->heap()->old_space()->VisitObjects(&scripts_counter);
+  ASSERT(isolate_ != NULL);
+  ScriptVisitor scripts_counter(isolate_);
+  heap->old_space()->VisitObjects(&scripts_counter);
   intptr_t count = scripts_counter.count();
-  const Array& scripts = Array::Handle(isolate, Array::New(count, Heap::kOld));
-  ScriptVisitor script_visitor(isolate, &scripts);
-  isolate->heap()->old_space()->VisitObjects(&script_visitor);
+  scripts_ = Array::New(count, Heap::kOld);
+  ScriptVisitor script_visitor(isolate_, &scripts_);
+  heap->old_space()->VisitObjects(&script_visitor);
 
+  // Stash the symbol table away for writing and reading into the vm isolate,
+  // and reset the symbol table for the regular isolate so that we do not
+  // write these symbols into the snapshot of a regular dart isolate.
+  symbol_table_ = object_store->symbol_table();
+  Symbols::SetupSymbolTable(isolate_);
+
+  forward_list_ = new ForwardList(SnapshotWriter::FirstObjectId());
+  ASSERT(forward_list_ != NULL);
+}
+
+
+FullSnapshotWriter::~FullSnapshotWriter() {
+  delete forward_list_;
+  symbol_table_ = Array::null();
+  scripts_ = Array::null();
+}
+
+
+void FullSnapshotWriter::WriteVmIsolateSnapshot() {
+  ASSERT(vm_isolate_snapshot_buffer_ != NULL);
+  SnapshotWriter writer(Snapshot::kFull,
+                        vm_isolate_snapshot_buffer_,
+                        alloc_,
+                        kInitialSize,
+                        forward_list_,
+                        true);  // Can send any kind of object.
   // Write full snapshot for the VM isolate.
   // Setup for long jump in case there is an exception while writing
   // the snapshot.
@@ -1558,28 +1616,20 @@ void FullSnapshotWriter::WriteVmIsolateSnapshot() {
      * - all the scripts and token streams for these scripts
      *
      **/
-    {
-      NoSafepointScope no_safepoint;
+    // Write out the symbol table.
+    writer.WriteObject(symbol_table_.raw());
 
-      // Write out the symbol table and reset the symbol table for the
-      // regular isolate so that we do not write these symbols into the
-      // snapshot of a regular dart isolate.
-      writer.WriteObject(object_store->symbol_table());
+    // Write out all the script objects and the accompanying token streams
+    // for the bootstrap libraries so that they are in the VM isolate
+    // read only memory.
+    writer.WriteObject(scripts_.raw());
 
-      // Write out all the script objects and the accompanying token streams
-      // for the bootstrap libraries so that they are in the VM isolate
-      // read only memory.
-      writer.WriteObject(scripts.raw());
+    // Write out all forwarded objects.
+    writer.WriteForwardedObjects();
 
-      // Write out all forwarded objects.
-      writer.WriteForwardedObjects();
+    writer.FillHeader(writer.kind());
 
-      writer.FillHeader(writer.kind());
-    }
     vm_isolate_snapshot_size_ = writer.BytesWritten();
-    // Reset the symbol table for the regular isolate so that we do not
-    // write these symbols into the snapshot of a regular dart isolate.
-    Symbols::SetupSymbolTable(isolate);
   } else {
     writer.ThrowException(writer.exception_type(), writer.exception_msg());
   }
@@ -1591,18 +1641,10 @@ void FullSnapshotWriter::WriteIsolateFullSnapshot() {
                         isolate_snapshot_buffer_,
                         alloc_,
                         kInitialSize,
-                        &forward_list_,
+                        forward_list_,
                         true);
-  Isolate* isolate = writer.isolate();
-  ASSERT(isolate != NULL);
-  ObjectStore* object_store = isolate->object_store();
+  ObjectStore* object_store = isolate_->object_store();
   ASSERT(object_store != NULL);
-  ASSERT(ClassFinalizer::AllClassesFinalized());
-
-  // Ensure the class table is valid.
-#if defined(DEBUG)
-  isolate->ValidateClassTable();
-#endif
 
   // Write full snapshot for a regular isolate.
   // Setup for long jump in case there is an exception while writing
@@ -1616,20 +1658,18 @@ void FullSnapshotWriter::WriteIsolateFullSnapshot() {
     writer.WriteVersion();
 
     // Write out the full snapshot.
-    {
-      NoSafepointScope no_safepoint;
 
-      // Write out all the objects in the object store of the isolate which
-      // is the root set for all dart allocated objects at this point.
-      SnapshotWriterVisitor visitor(&writer, false);
-      object_store->VisitObjectPointers(&visitor);
+    // Write out all the objects in the object store of the isolate which
+    // is the root set for all dart allocated objects at this point.
+    SnapshotWriterVisitor visitor(&writer, false);
+    object_store->VisitObjectPointers(&visitor);
 
-      // Write out all forwarded objects.
-      writer.WriteForwardedObjects();
+    // Write out all forwarded objects.
+    writer.WriteForwardedObjects();
 
-      writer.FillHeader(writer.kind());
-      writer.UnmarkAll();
-    }
+    writer.FillHeader(writer.kind());
+    writer.UnmarkAll();
+
     isolate_snapshot_size_ = writer.BytesWritten();
   } else {
     writer.ThrowException(writer.exception_type(), writer.exception_msg());
@@ -1662,21 +1702,18 @@ ForwardList::ForwardList(intptr_t first_object_id)
       first_unprocessed_object_id_(first_object_id) {
   // The ForwardList encodes information in the header tag word. There cannot
   // be any concurrent GC tasks while it is in use.
-  PageSpace* page_space = Isolate::Current()->heap()->old_space();
+  Isolate* isolate = Isolate::Current();
+  PageSpace* page_space = isolate->heap()->old_space();
   MonitorLocker ml(page_space->tasks_lock());
   while (page_space->tasks() > 0) {
     ml.Wait();
   }
-  page_space->set_tasks(1);
+  // Ensure that no GC happens while we are writing out the full snapshot.
+  isolate->IncrementNoSafepointScopeDepth();
 }
 
 
 ForwardList::~ForwardList() {
-  PageSpace* page_space = Isolate::Current()->heap()->old_space();
-  MonitorLocker ml(page_space->tasks_lock());
-  ASSERT(page_space->tasks() == 1);
-  page_space->set_tasks(0);
-  ml.Notify();
 }
 
 
@@ -1697,15 +1734,41 @@ intptr_t ForwardList::MarkAndAddObject(RawObject* raw, SerializeState state) {
 }
 
 
+intptr_t ForwardList::AddObject(RawObject* raw, SerializeState state) {
+  NoSafepointScope no_safepoint;
+  intptr_t object_id = next_object_id();
+  ASSERT(object_id > 0 && object_id <= kMaxObjectId);
+  uword tags = raw->ptr()->tags_;
+  ASSERT(SerializedHeaderTag::decode(tags) != kObjectId);
+  Node* node = new Node(raw, tags, state);
+  ASSERT(node != NULL);
+  nodes_.Add(node);
+  return object_id;
+}
+
+
+intptr_t ForwardList::FindObject(RawObject* raw) {
+  NoSafepointScope no_safepoint;
+  intptr_t id;
+  for (id = first_object_id(); id < next_object_id(); ++id) {
+    const Node* node = NodeForObjectId(id);
+    if (raw == node->raw()) {
+      return id;
+    }
+  }
+  return kInvalidIndex;
+}
+
+
 void ForwardList::UnmarkAll() const {
-  {
-    NoSafepointScope no_safepoint;
-    for (intptr_t id = first_object_id(); id < next_object_id(); ++id) {
-      const Node* node = NodeForObjectId(id);
-      RawObject* raw = node->raw();
+  for (intptr_t id = first_object_id(); id < next_object_id(); ++id) {
+    const Node* node = NodeForObjectId(id);
+    RawObject* raw = node->raw();
+    if (SerializedHeaderTag::decode(raw->ptr()->tags_) == kObjectId) {
       raw->ptr()->tags_ = node->tags();  // Restore original tags.
     }
   }
+  Isolate::Current()->DecrementNoSafepointScopeDepth();
 }
 
 

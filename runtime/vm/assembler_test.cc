@@ -41,37 +41,37 @@ ASSEMBLER_TEST_RUN(StoreIntoObject, test) {
   Thread* thread = Thread::Current();
 
   EXPECT(old_array.raw() == grow_old_array.data());
-  EXPECT(!Isolate::Current()->store_buffer()->Contains(grow_old_array.raw()));
+  EXPECT(!thread->StoreBufferContains(grow_old_array.raw()));
   EXPECT(old_array.raw() == grow_new_array.data());
-  EXPECT(!Isolate::Current()->store_buffer()->Contains(grow_new_array.raw()));
+  EXPECT(!thread->StoreBufferContains(grow_new_array.raw()));
 
   // Store Smis into the old object.
   for (int i = -128; i < 128; i++) {
     smi = Smi::New(i);
     test_code(ctx.raw(), smi.raw(), grow_old_array.raw(), thread);
     EXPECT(reinterpret_cast<RawArray*>(smi.raw()) == grow_old_array.data());
-    EXPECT(!Isolate::Current()->store_buffer()->Contains(grow_old_array.raw()));
+    EXPECT(!thread->StoreBufferContains(grow_old_array.raw()));
   }
 
   // Store an old object into the old object.
   test_code(ctx.raw(), old_array.raw(), grow_old_array.raw(), thread);
   EXPECT(old_array.raw() == grow_old_array.data());
-  EXPECT(!Isolate::Current()->store_buffer()->Contains(grow_old_array.raw()));
+  EXPECT(!thread->StoreBufferContains(grow_old_array.raw()));
 
   // Store a new object into the old object.
   test_code(ctx.raw(), new_array.raw(), grow_old_array.raw(), thread);
   EXPECT(new_array.raw() == grow_old_array.data());
-  EXPECT(Isolate::Current()->store_buffer()->Contains(grow_old_array.raw()));
+  EXPECT(thread->StoreBufferContains(grow_old_array.raw()));
 
   // Store a new object into the new object.
   test_code(ctx.raw(), new_array.raw(), grow_new_array.raw(), thread);
   EXPECT(new_array.raw() == grow_new_array.data());
-  EXPECT(!Isolate::Current()->store_buffer()->Contains(grow_new_array.raw()));
+  EXPECT(!thread->StoreBufferContains(grow_new_array.raw()));
 
   // Store an old object into the new object.
   test_code(ctx.raw(), old_array.raw(), grow_new_array.raw(), thread);
   EXPECT(old_array.raw() == grow_new_array.data());
-  EXPECT(!Isolate::Current()->store_buffer()->Contains(grow_new_array.raw()));
+  EXPECT(!thread->StoreBufferContains(grow_new_array.raw()));
 }
 
 }  // namespace dart

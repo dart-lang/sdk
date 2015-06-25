@@ -31,10 +31,12 @@
 #include "vm/service_isolate.h"
 #include "vm/simulator.h"
 #include "vm/stack_frame.h"
+#include "vm/store_buffer.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
 
@@ -53,6 +55,10 @@ DEFINE_FLAG(bool, break_at_isolate_spawn, false,
 DEFINE_FLAG(charp, isolate_log_filter, NULL,
             "Log isolates whose name include the filter. "
             "Default: service isolate log messages are suppressed.");
+
+DEFINE_FLAG(charp, timeline_trace_dir, NULL,
+            "Enable all timeline trace streams and output traces "
+            "into specified directory.");
 
 // TODO(iposva): Make these isolate specific flags inaccessible using the
 // regular FLAG_xyz pattern.
@@ -368,6 +374,8 @@ void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
 bool IsolateMessageHandler::HandleMessage(Message* message) {
   StackZone zone(I);
   HandleScope handle_scope(I);
+  TimelineDurationScope tds(I, I->GetIsolateStream(), "HandleMessage");
+
   // TODO(turnidge): Rework collection total dart execution.  This can
   // overcount when other things (gc, compilation) are active.
   TIMERSCOPE(isolate_, time_dart_execution);
@@ -596,6 +604,11 @@ void Isolate::Flags::CopyTo(Dart_IsolateFlags* api_flags) const {
 void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
   ASSERT(isolate == Isolate::Current());
 }
+
+void BaseIsolate::AssertCurrentThreadIsMutator() const {
+  ASSERT(Isolate::Current() == this);
+  ASSERT(Isolate::Current()->mutator_thread() == Thread::Current());
+}
 #endif  // defined(DEBUG)
 
 #if defined(DEBUG)
@@ -611,7 +624,7 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
   :   mutator_thread_(NULL),
       vm_tag_(0),
-      store_buffer_(),
+      store_buffer_(new StoreBuffer()),
       message_notify_callback_(NULL),
       name_(NULL),
       debugger_name_(NULL),
@@ -662,6 +675,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       last_allocationprofile_gc_timestamp_(0),
       object_id_ring_(NULL),
       trace_buffer_(NULL),
+      timeline_event_recorder_(NULL),
       profiler_data_(NULL),
       thread_state_(NULL),
       tag_table_(GrowableObjectArray::null()),
@@ -686,6 +700,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
 Isolate::~Isolate() {
   free(name_);
   free(debugger_name_);
+  delete store_buffer_;
   delete heap_;
   delete object_store_;
   delete api_state_;
@@ -710,6 +725,7 @@ Isolate::~Isolate() {
     delete compiler_stats_;
     compiler_stats_ = NULL;
   }
+  RemoveTimelineEventRecorder();
 }
 
 
@@ -738,6 +754,15 @@ Isolate* Isolate::Init(const char* name_prefix,
   result->metric_##variable##_.Init(result, name, NULL, Metric::unit);
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
+
+  const bool force_streams = FLAG_timeline_trace_dir != NULL;
+
+  // Initialize Timeline streams.
+#define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
+  result->stream_##name##_.Init(#name, force_streams || enabled_by_default);
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
+#undef ISOLATE_TIMELINE_STREAM_INIT
+
 
   // TODO(5411455): For now just set the recently created isolate as
   // the current isolate.
@@ -962,6 +987,13 @@ bool Isolate::MakeRunnable() {
   if (state != NULL) {
     ASSERT(this == state->isolate());
     Run();
+  }
+  TimelineStream* stream = GetIsolateStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->Instant("Runnable");
+    event->Complete();
   }
   return true;
 }
@@ -1452,6 +1484,11 @@ void Isolate::Shutdown() {
       OS::Print("[-] Stopping isolate:\n"
                 "\tisolate:    %s\n", name());
     }
+
+    if ((timeline_event_recorder_ != NULL) &&
+        (FLAG_timeline_trace_dir != NULL)) {
+      timeline_event_recorder_->WriteTo(FLAG_timeline_trace_dir);
+    }
   }
 
   // TODO(5411455): For now just make sure there are no current isolates
@@ -1550,6 +1587,21 @@ void Isolate::VisitPrologueWeakPersistentHandles(HandleVisitor* visitor) {
 }
 
 
+void Isolate::SetTimelineEventRecorder(
+    TimelineEventRecorder* timeline_event_recorder) {
+#define ISOLATE_TIMELINE_STREAM_SET_BUFFER(name, enabled_by_default)           \
+  stream_##name##_.set_recorder(timeline_event_recorder);
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_SET_BUFFER)
+#undef ISOLATE_TIMELINE_STREAM_SET_BUFFER
+  timeline_event_recorder_ = timeline_event_recorder;
+}
+
+void Isolate::RemoveTimelineEventRecorder() {
+  SetTimelineEventRecorder(NULL);
+  delete timeline_event_recorder_;
+}
+
+
 void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", (ref ? "@Isolate" : "Isolate"));
@@ -1635,6 +1687,11 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   {
     JSONArray breakpoints(&jsobj, "breakpoints");
     debugger()->PrintBreakpointsToJSONArray(&breakpoints);
+  }
+
+  {
+    JSONObject jssettings(&jsobj, "_debuggerSettings");
+    debugger()->PrintSettingsToJSONObject(&jssettings);
   }
 }
 

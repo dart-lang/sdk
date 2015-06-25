@@ -9,24 +9,37 @@ part of dart2js.js_emitter;
  */
 class ClassBuilder {
   final List<jsAst.Property> properties = <jsAst.Property>[];
-  final List<String> fields = <String>[];
+  final List<jsAst.Literal> fields = <jsAst.Literal>[];
 
-  String superName;
-  String functionType;
+  jsAst.Name superName;
+  jsAst.Node functionType;
   List<jsAst.Node> fieldMetadata;
 
   final Element element;
   final Namer namer;
+  final bool isForActualClass;
 
-  ClassBuilder(this.element, this.namer);
+  ClassBuilder(this.element, this.namer, this.isForActualClass);
 
-  jsAst.Property addProperty(String name, jsAst.Expression value) {
+  ClassBuilder.forClass(ClassElement cls, this.namer)
+      : isForActualClass = true,
+        element = cls;
+
+  ClassBuilder.forStatics(this.element, this.namer) : isForActualClass = false;
+
+  jsAst.Property addProperty(jsAst.Literal name, jsAst.Expression value) {
+    jsAst.Property property = new jsAst.Property(js.quoteName(name), value);
+    properties.add(property);
+    return property;
+  }
+
+  jsAst.Property addPropertyByName(String name, jsAst.Expression value) {
     jsAst.Property property = new jsAst.Property(js.string(name), value);
     properties.add(property);
     return property;
   }
 
-  void addField(String field) {
+  void addField(jsAst.Literal field) {
     fields.add(field);
   }
 
@@ -41,18 +54,21 @@ class ClassBuilder {
 
   jsAst.ObjectInitializer toObjectInitializer(
       {bool emitClassDescriptor: true}) {
-    StringBuffer buffer = new StringBuffer();
-    if (superName != null) {
-      buffer.write(superName);
-      if (functionType != null) {
-        // See [functionTypeEncodingDescription] above.
-        buffer.write(':$functionType');
+    List<jsAst.Literal> parts = <jsAst.Literal>[];
+    if (isForActualClass) {
+      if (superName != null) {
+        parts.add(superName);
+        if (functionType != null) {
+          // See [functionTypeEncodingDescription] above.
+          parts.add(js.stringPart(':'));
+          parts.add(functionType);
+        }
       }
-      buffer.write(';');
+      parts.add(js.stringPart(';'));
     }
     // See [fieldEncodingDescription] above.
-    buffer.writeAll(fields, ',');
-    var classData = js.string('$buffer');
+    parts.addAll(js.joinLiterals(fields, js.stringPart(',')));
+    var classData = js.concatenateStrings(parts, addQuotes: true);
     if (fieldMetadata != null) {
       // If we need to store fieldMetadata, classData is turned into an array,
       // and the field metadata is appended. So if classData is just a string,

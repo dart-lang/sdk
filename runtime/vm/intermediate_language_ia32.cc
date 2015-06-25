@@ -24,8 +24,8 @@ namespace dart {
 
 DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
+DECLARE_FLAG(bool, use_osr);
 
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
@@ -1419,6 +1419,7 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt16Size);
   const intptr_t value_cid = value()->Type()->ToCid();
   const intptr_t field_cid = field().guarded_cid();
   const intptr_t nullability = field().is_nullable() ? kNullCid : kIllegalCid;
@@ -1460,17 +1461,17 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
-      __ cmpl(value_cid_reg, field_cid_operand);
+      __ cmpw(value_cid_reg, field_cid_operand);
       __ j(EQUAL, &ok);
-      __ cmpl(value_cid_reg, field_nullability_operand);
+      __ cmpw(value_cid_reg, field_nullability_operand);
     } else if (value_cid == kNullCid) {
       // Value in graph known to be null.
       // Compare with null.
-      __ cmpl(field_nullability_operand, Immediate(value_cid));
+      __ cmpw(field_nullability_operand, Immediate(value_cid));
     } else {
       // Value in graph known to be non-null.
       // Compare class id with guard field class id.
-      __ cmpl(field_cid_operand, Immediate(value_cid));
+      __ cmpw(field_cid_operand, Immediate(value_cid));
     }
     __ j(EQUAL, &ok);
 
@@ -1483,19 +1484,19 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!field().needs_length_check()) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ cmpl(field_cid_operand, Immediate(kIllegalCid));
+      __ cmpw(field_cid_operand, Immediate(kIllegalCid));
       // Jump to failure path when guard field has been initialized and
       // the field and value class ids do not not match.
       __ j(NOT_EQUAL, fail);
 
       if (value_cid == kDynamicCid) {
         // Do not know value's class id.
-        __ movl(field_cid_operand, value_cid_reg);
-        __ movl(field_nullability_operand, value_cid_reg);
+        __ movw(field_cid_operand, value_cid_reg);
+        __ movw(field_nullability_operand, value_cid_reg);
       } else {
         ASSERT(field_reg != kNoRegister);
-        __ movl(field_cid_operand, Immediate(value_cid));
-        __ movl(field_nullability_operand, Immediate(value_cid));
+        __ movw(field_cid_operand, Immediate(value_cid));
+        __ movw(field_nullability_operand, Immediate(value_cid));
       }
 
       if (deopt == NULL) {
@@ -1508,7 +1509,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(!compiler->is_optimizing());
       __ Bind(fail);
 
-      __ cmpl(FieldAddress(field_reg, Field::guarded_cid_offset()),
+      __ cmpw(FieldAddress(field_reg, Field::guarded_cid_offset()),
               Immediate(kDynamicCid));
       __ j(EQUAL, &ok);
 
@@ -1766,6 +1767,7 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
 
 
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt16Size);
   Label skip_store;
 
   Register instance_reg = locs()->in(0).reg();
@@ -1839,7 +1841,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()));
 
-    __ cmpl(FieldAddress(temp, Field::is_nullable_offset()),
+    __ cmpw(FieldAddress(temp, Field::is_nullable_offset()),
             Immediate(kNullCid));
     __ j(EQUAL, &store_pointer);
 
@@ -1847,15 +1849,15 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ testl(temp2, Immediate(1 << Field::kUnboxingCandidateBit));
     __ j(ZERO, &store_pointer);
 
-    __ cmpl(FieldAddress(temp, Field::guarded_cid_offset()),
+    __ cmpw(FieldAddress(temp, Field::guarded_cid_offset()),
             Immediate(kDoubleCid));
     __ j(EQUAL, &store_double);
 
-    __ cmpl(FieldAddress(temp, Field::guarded_cid_offset()),
+    __ cmpw(FieldAddress(temp, Field::guarded_cid_offset()),
             Immediate(kFloat32x4Cid));
     __ j(EQUAL, &store_float32x4);
 
-    __ cmpl(FieldAddress(temp, Field::guarded_cid_offset()),
+    __ cmpw(FieldAddress(temp, Field::guarded_cid_offset()),
             Immediate(kFloat64x2Cid));
     __ j(EQUAL, &store_float64x2);
 
@@ -2168,6 +2170,8 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
 
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt16Size);
+
   Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     XmmRegister result = locs()->out(0).fpu_reg();
@@ -2210,16 +2214,16 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     FieldAddress field_cid_operand(result, Field::guarded_cid_offset());
     FieldAddress field_nullability_operand(result, Field::is_nullable_offset());
 
-    __ cmpl(field_nullability_operand, Immediate(kNullCid));
+    __ cmpw(field_nullability_operand, Immediate(kNullCid));
     __ j(EQUAL, &load_pointer);
 
-    __ cmpl(field_cid_operand, Immediate(kDoubleCid));
+    __ cmpw(field_cid_operand, Immediate(kDoubleCid));
     __ j(EQUAL, &load_double);
 
-    __ cmpl(field_cid_operand, Immediate(kFloat32x4Cid));
+    __ cmpw(field_cid_operand, Immediate(kFloat32x4Cid));
     __ j(EQUAL, &load_float32x4);
 
-    __ cmpl(field_cid_operand, Immediate(kFloat64x2Cid));
+    __ cmpw(field_cid_operand, Immediate(kFloat64x2Cid));
     __ j(EQUAL, &load_float64x2);
 
     // Fall through.
@@ -5683,41 +5687,6 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
     Zone* zone, bool opt) const {
   return MakeCallSummary(zone);
-}
-
-
-void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(ic_data().NumArgsTested() == 1);
-  if (!with_checks()) {
-    ASSERT(ic_data().HasOneTarget());
-    const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
-    compiler->GenerateStaticCall(deopt_id(),
-                                 instance_call()->token_pos(),
-                                 target,
-                                 instance_call()->ArgumentCount(),
-                                 instance_call()->argument_names(),
-                                 locs(),
-                                 ICData::Handle());
-    return;
-  }
-
-  // Load receiver into EAX.
-  __ movl(EAX,
-      Address(ESP, (instance_call()->ArgumentCount() - 1) * kWordSize));
-
-  Label* deopt = compiler->AddDeoptStub(
-      deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail);
-  LoadValueCid(compiler, EDI, EAX,
-               (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
-
-  compiler->EmitTestAndCall(ic_data(),
-                            EDI,  // Class id register.
-                            instance_call()->ArgumentCount(),
-                            instance_call()->argument_names(),
-                            deopt,
-                            deopt_id(),
-                            instance_call()->token_pos(),
-                            locs());
 }
 
 

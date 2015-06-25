@@ -5,6 +5,7 @@
 library js_backend;
 
 import 'dart:async' show EventSink, Future;
+import 'dart:collection' show HashMap;
 
 import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
     as embeddedNames;
@@ -28,6 +29,7 @@ import '../js_emitter/js_emitter.dart'
          CodeEmitterTask,
          ClassBuilder,
          MetadataCollector,
+         Placeholder,
          USE_NEW_EMITTER;
 
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;

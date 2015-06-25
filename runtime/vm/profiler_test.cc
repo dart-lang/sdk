@@ -43,7 +43,7 @@ class ProfileSampleBufferTestHelper {
 };
 
 
-TEST_CASE(ProfilerSampleBufferWrapTest) {
+TEST_CASE(Profiler_SampleBufferWrapTest) {
   SampleBuffer* sample_buffer = new SampleBuffer(3);
   Isolate* i = reinterpret_cast<Isolate*>(0x1);
   EXPECT_EQ(0, ProfileSampleBufferTestHelper::IterateSumPC(i, *sample_buffer));
@@ -68,7 +68,7 @@ TEST_CASE(ProfilerSampleBufferWrapTest) {
 }
 
 
-TEST_CASE(ProfilerSampleBufferIterateTest) {
+TEST_CASE(Profiler_SampleBufferIterateTest) {
   SampleBuffer* sample_buffer = new SampleBuffer(3);
   Isolate* i = reinterpret_cast<Isolate*>(0x1);
   EXPECT_EQ(0, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
@@ -86,6 +86,50 @@ TEST_CASE(ProfilerSampleBufferIterateTest) {
   s->Init(i, 0, 0);
   EXPECT_EQ(3, ProfileSampleBufferTestHelper::IterateCount(i, *sample_buffer));
   delete sample_buffer;
+}
+
+
+TEST_CASE(Profiler_AllocationSampleTest) {
+  Isolate* isolate = Isolate::Current();
+  SampleBuffer* sample_buffer = new SampleBuffer(3);
+  Sample* sample = sample_buffer->ReserveSample();
+  sample->Init(isolate, 0, 0);
+  sample->set_metadata(99);
+  sample->set_is_allocation_sample(true);
+  EXPECT_EQ(99, sample->allocation_cid());
+  delete sample_buffer;
+}
+
+static RawClass* GetClass(const Library& lib, const char* name) {
+  const Class& cls = Class::Handle(
+      lib.LookupClass(String::Handle(Symbols::New(name))));
+  EXPECT(!cls.IsNull());  // No ambiguity error expected.
+  return cls.raw();
+}
+
+
+TEST_CASE(Profiler_TrivialRecordAllocation) {
+  const char* kScript =
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "}\n"
+      "main() {\n"
+      "  var z = new A();\n"
+      "  return z;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+  class_a.SetTraceAllocation(true);
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
 }
 
 }  // namespace dart

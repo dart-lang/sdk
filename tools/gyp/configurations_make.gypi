@@ -171,9 +171,13 @@
         'target_conditions': [
           ['_toolset=="target"', {
             'cflags': [
+              '-EL',
               '-march=mips32',
               '-mhard-float',
               '-fno-strict-overflow',
+            ],
+            'ldflags': [
+              '-EL',
             ],
           }],
           ['_toolset=="host"',{

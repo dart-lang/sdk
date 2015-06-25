@@ -26,7 +26,7 @@ class ObjectPointerVisitor {
   virtual void VisitPointers(RawObject** first, RawObject** last) = 0;
 
   virtual bool visit_function_code() const { return true; }
-  virtual GrowableArray<RawFunction*>* skipped_code_functions() {
+  virtual MallocGrowableArray<RawFunction*>* skipped_code_functions() {
     return NULL;
   }
   // len argument is the number of pointers to visit starting from 'p'.

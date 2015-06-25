@@ -5,10 +5,10 @@
 library dart2js.js_emitter;
 
 import 'dart:convert';
+import 'dart:collection' show HashMap;
 
 import '../common.dart';
 
-import '../constants/expressions.dart';
 import '../constants/values.dart';
 
 import '../closure.dart' show
@@ -28,24 +28,28 @@ import '../elements/elements.dart' show
     FieldElement,
     ParameterElement,
     TypeVariableElement,
-    MethodElement;
+    MethodElement,
+    MemberElement;
 
 import '../hash/sha1.dart' show Hasher;
-
-import '../helpers/helpers.dart';  // Included for debug helpers.
 
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show
     js;
 
+import 'package:js_ast/src/precedence.dart' as js_precedence;
+
 import '../js_backend/js_backend.dart' show
     CheckedModeHelper,
+    CompoundName,
     ConstantEmitter,
     CustomElementsAnalysis,
+    GetterName,
     JavaScriptBackend,
     JavaScriptConstantCompiler,
     Namer,
     RuntimeTypes,
+    SetterName,
     Substitution,
     TypeCheck,
     TypeChecks,
@@ -62,6 +66,10 @@ import '../io/line_column_provider.dart' show
 
 import '../io/source_map_builder.dart' show
     SourceMapBuilder;
+
+import '../universe/universe.dart' show
+    TypeMaskSet,
+    TypedSelector;
 
 import '../util/characters.dart' show
     $$,

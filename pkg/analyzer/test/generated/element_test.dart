@@ -48,14 +48,17 @@ class ClassElementImplTest extends EngineTestCase {
     AnalysisContext context = contextHelper.context;
     Source source = contextHelper.addSource("/test.dart", r'''
 class A {}
-class B {}
-enum C {C1, C2, C3}''');
+@deprecated class B {}
+enum C {C1, C2, C3}
+@deprecated enum D {D1, D2, D3}''');
     // prepare CompilationUnitElement
     LibraryElement libraryElement = context.computeLibraryElement(source);
     CompilationUnitElement unitElement = libraryElement.definingCompilationUnit;
     // A
     {
       ClassElement elementA = unitElement.getType("A");
+      expect(elementA.isDeprecated, isFalse);
+      expect(elementA.isEnum, isFalse);
       ClassDeclaration nodeA = elementA.computeNode();
       expect(nodeA, isNotNull);
       expect(nodeA.name.name, "A");
@@ -64,6 +67,8 @@ enum C {C1, C2, C3}''');
     // B
     {
       ClassElement elementB = unitElement.getType("B");
+      expect(elementB.isDeprecated, isTrue);
+      expect(elementB.isEnum, isFalse);
       ClassDeclaration nodeB = elementB.computeNode();
       expect(nodeB, isNotNull);
       expect(nodeB.name.name, "B");
@@ -72,10 +77,22 @@ enum C {C1, C2, C3}''');
     // C
     {
       ClassElement elementC = unitElement.getEnum("C");
+      expect(elementC.isDeprecated, isFalse);
+      expect(elementC.isEnum, isTrue);
       EnumDeclaration nodeC = elementC.computeNode();
       expect(nodeC, isNotNull);
       expect(nodeC.name.name, "C");
       expect(nodeC.element, same(elementC));
+    }
+    // D
+    {
+      ClassElement elementD = unitElement.getEnum("D");
+      expect(elementD.isDeprecated, isTrue);
+      expect(elementD.isEnum, isTrue);
+      EnumDeclaration nodeC = elementD.computeNode();
+      expect(nodeC, isNotNull);
+      expect(nodeC.name.name, "D");
+      expect(nodeC.element, same(elementD));
     }
   }
 

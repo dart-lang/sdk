@@ -276,6 +276,10 @@ class Isolate {
    * If `response` cannot be sent to the isolate, then the request is ignored.
    * It is recommended to only use simple values that can be sent to all
    * isolates, like `null`, booleans, numbers or strings.
+   * 
+   * Since isolates run concurrently, it's possible for it to exit before the
+   * exit listener is established. To avoid this, start the isolate paused,
+   * add the listener, then resume it.
    */
   /* TODO(lrn): Can we do better? Can the system recognize this message and
    * send a reply if the receiving isolate is dead?
@@ -364,6 +368,10 @@ class Isolate {
    *
    * Listening using the same port more than once does nothing. It will only
    * get each error once.
+   * 
+   * Since isolates run concurrently, it's possible for it to exit before the
+   * error listener is established. To avoid this, start the isolate paused,
+   * add the listener, then resume it.
    */
   external void addErrorListener(SendPort port);
 

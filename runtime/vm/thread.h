@@ -8,6 +8,7 @@
 #include "vm/base_isolate.h"
 #include "vm/globals.h"
 #include "vm/os_thread.h"
+#include "vm/store_buffer.h"
 
 namespace dart {
 
@@ -41,6 +42,11 @@ class Thread {
   static void EnterIsolateAsHelper(Isolate* isolate);
   static void ExitIsolateAsHelper();
 
+  // Called when the current thread transitions from mutator to collector.
+  // Empties the store buffer block into the isolate.
+  // TODO(koda): Always run GC in separate thread.
+  static void PrepareForGC();
+
 #if defined(TARGET_OS_WINDOWS)
   // Clears the state of the current thread and frees the allocation.
   static void CleanUp();
@@ -65,13 +71,26 @@ class Thread {
   CHA* cha() const;
   void set_cha(CHA* value);
 
+  void StoreBufferAddObject(RawObject* obj);
+  void StoreBufferAddObjectGC(RawObject* obj);
+#if defined(TESTING)
+  bool StoreBufferContains(RawObject* obj) const {
+    return store_buffer_block_->Contains(obj);
+  }
+#endif
+  void StoreBufferBlockProcess(bool check_threshold);
+  static intptr_t store_buffer_block_offset() {
+    return OFFSET_OF(Thread, store_buffer_block_);
+  }
+
  private:
   static ThreadLocalKey thread_key_;
 
   Isolate* isolate_;
+  StoreBufferBlock* store_buffer_block_;
 
   Thread()
-      : isolate_(NULL) {}
+      : isolate_(NULL), store_buffer_block_(NULL) {}
 
   static void SetCurrent(Thread* current);
 

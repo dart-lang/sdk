@@ -1409,6 +1409,16 @@ abstract class InvokeBulkMixin<R, A>
   }
 
   @override
+  R visitLocalFunctionIncompatibleInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return bulkHandleInvoke(node, arg);
+  }
+
+  @override
   R visitLocalVariableInvoke(
       Send node,
       LocalVariableElement variable,
@@ -4208,6 +4218,17 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
 
   @override
   R visitLocalFunctionInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    apply(arguments, arg);
+    return null;
+  }
+
+  @override
+  R visitLocalFunctionIncompatibleInvoke(
       Send node,
       LocalFunctionElement function,
       NodeList arguments,
@@ -7430,6 +7451,16 @@ abstract class BaseImplementationOfLocalsMixin<R, A>
 
   @override
   R visitLocalFunctionInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg) {
+    return handleLocalInvoke(node, function, arguments, callStructure, arg);
+  }
+
+  @override
+  R visitLocalFunctionIncompatibleInvoke(
       Send node,
       LocalFunctionElement function,
       NodeList arguments,

@@ -214,13 +214,13 @@ void DeferredPp::Materialize(DeoptContext* deopt_context) {
   }
   const Code& code = Code::Handle(zone, function.unoptimized_code());
   ASSERT(!code.IsNull());
-  ASSERT(code.ObjectPool() != Object::null());
-  *slot() = code.ObjectPool();
+  ASSERT(code.GetObjectPool() != Object::null());
+  *slot() = code.GetObjectPool();
 
   if (FLAG_trace_deoptimization_verbose) {
     OS::PrintErr("materializing pp at 0x%" Px ": 0x%" Px "\n",
                  reinterpret_cast<uword>(slot()),
-                 reinterpret_cast<uword>(code.ObjectPool()));
+                 reinterpret_cast<uword>(code.GetObjectPool()));
   }
 }
 

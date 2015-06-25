@@ -95,6 +95,20 @@
         </curly-block>
       </template>
 
+      <template if="{{ ref.isTypedData }}">
+        <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em> ({{ ref.length }})</a>
+        <curly-block callback="{{ expander() }}">
+          <div class="memberList">
+            <template repeat="{{ index in ref.typedElements.asMap().keys }}">
+              <div class="memberItem">
+                <div class="memberName">[{{ index }}]</div>
+                <div class="memberValue">{{ ref.typedElements[index].toString() }}</div>
+              </div>
+            </template>
+          </div>
+        </curly-block>
+      </template>
+
       <template if="{{ ref.isMirrorReference }}">
         <a on-click="{{ goto }}" _href="{{ url }}"><em>{{ ref.clazz.name }}</em></a>
         <curly-block callback="{{ expander() }}">

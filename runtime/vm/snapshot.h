@@ -195,6 +195,12 @@ class BaseReader {
     return static_cast<intptr_t>(value);
   }
 
+  classid_t ReadClassIDValue() {
+    uint32_t value = Read<uint32_t>();
+    return static_cast<classid_t>(value);
+  }
+  COMPILE_ASSERT(sizeof(uint32_t) >= sizeof(classid_t));
+
   void ReadBytes(uint8_t* addr, intptr_t len) {
     stream_.ReadBytes(addr, len);
   }
@@ -278,6 +284,7 @@ class SnapshotReader : public BaseReader {
   ExternalTypedData* DataHandle() { return &data_; }
   TypedData* TypedDataHandle() { return &typed_data_; }
   Snapshot::Kind kind() const { return kind_; }
+  bool allow_code() const { return false; }
 
   // Reads an object.
   RawObject* ReadObject();
@@ -440,6 +447,8 @@ class SnapshotReader : public BaseReader {
   friend class UnhandledException;
   friend class WeakProperty;
   friend class MirrorReference;
+  friend class ExceptionHandlers;
+  friend class LocalVarDescriptors;
   DISALLOW_COPY_AND_ASSIGN(SnapshotReader);
 };
 
@@ -510,6 +519,11 @@ class BaseWriter : public StackResource {
   void WriteRawPointerValue(intptr_t value) {
     Write<int64_t>(value);
   }
+
+  void WriteClassIDValue(classid_t value) {
+    Write<uint32_t>(value);
+  }
+  COMPILE_ASSERT(sizeof(uint32_t) >= sizeof(classid_t));
 
   // Write an object that is serialized as an Id (singleton in object store,
   // or an object that was already serialized before).
@@ -615,6 +629,12 @@ class ForwardList {
   // Returns the id for the added object.
   intptr_t MarkAndAddObject(RawObject* raw, SerializeState state);
 
+  // Returns the id for the added object without marking it.
+  intptr_t AddObject(RawObject* raw, SerializeState state);
+
+  // Returns the id for the object it it exists in the list.
+  intptr_t FindObject(RawObject* raw);
+
   // Exhaustively processes all unserialized objects in this list. 'writer' may
   // concurrently add more objects.
   void SerializeAll(ObjectVisitor* writer);
@@ -647,6 +667,7 @@ class SnapshotWriter : public BaseWriter {
  public:
   // Snapshot kind.
   Snapshot::Kind kind() const { return kind_; }
+  bool allow_code() const { return false; }
 
   // Serialize an object into the buffer.
   void WriteObject(RawObject* raw);
@@ -748,6 +769,8 @@ class SnapshotWriter : public BaseWriter {
   friend class RawTokenStream;
   friend class RawTypeArguments;
   friend class RawUserTag;
+  friend class RawExceptionHandlers;
+  friend class RawLocalVarDescriptors;
   friend class SnapshotWriterVisitor;
   friend class WriteInlinedObjectVisitor;
   DISALLOW_COPY_AND_ASSIGN(SnapshotWriter);
@@ -760,7 +783,7 @@ class FullSnapshotWriter {
   FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
                      uint8_t** isolate_snapshot_buffer,
                      ReAlloc alloc);
-  ~FullSnapshotWriter() { }
+  ~FullSnapshotWriter();
 
   uint8_t** vm_isolate_snapshot_buffer() {
     return vm_isolate_snapshot_buffer_;
@@ -787,12 +810,15 @@ class FullSnapshotWriter {
   // Writes a full snapshot of a regular Dart Isolate.
   void WriteIsolateFullSnapshot();
 
+  Isolate* isolate_;
   uint8_t** vm_isolate_snapshot_buffer_;
   uint8_t** isolate_snapshot_buffer_;
   ReAlloc alloc_;
   intptr_t vm_isolate_snapshot_size_;
   intptr_t isolate_snapshot_size_;
-  ForwardList forward_list_;
+  ForwardList* forward_list_;
+  Array& scripts_;
+  Array& symbol_table_;
 
   DISALLOW_COPY_AND_ASSIGN(FullSnapshotWriter);
 };

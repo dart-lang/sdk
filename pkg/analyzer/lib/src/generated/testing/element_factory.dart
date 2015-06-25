@@ -373,6 +373,7 @@ class ElementFactory {
     return getter;
   }
 
+  @deprecated
   static HtmlElementImpl htmlUnit(AnalysisContext context, String fileName) {
     Source source =
         new NonExistingSource(fileName, toUri(fileName), UriKind.FILE_URI);
@@ -556,6 +557,9 @@ class ElementFactory {
     return variable;
   }
 
-  static TypeParameterElementImpl typeParameterElement(String name) =>
-      new TypeParameterElementImpl(name, 0);
+  static TypeParameterElementImpl typeParameterElement(String name) {
+    TypeParameterElementImpl element = new TypeParameterElementImpl(name, 0);
+    element.type = new TypeParameterTypeImpl(element);
+    return element;
+  }
 }

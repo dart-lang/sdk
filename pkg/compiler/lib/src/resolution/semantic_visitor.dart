@@ -8,7 +8,6 @@ import '../constants/expressions.dart';
 import '../dart2jslib.dart' show invariant, MessageKind;
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../helpers/helpers.dart';
 import '../tree/tree.dart';
 import '../universe/universe.dart';
 import '../util/util.dart' show Spannable, SpannableAssertionFailure;
@@ -281,6 +280,21 @@ abstract class SemanticSendVisitor<R, A> {
   ///     }
   ///
   R visitLocalFunctionInvoke(
+      Send node,
+      LocalFunctionElement function,
+      NodeList arguments,
+      CallStructure callStructure,
+      A arg);
+
+  /// Invocation of the local [function] with incompatible [arguments].
+  ///
+  /// For instance:
+  ///     m() {
+  ///       o(a) {}
+  ///       return o(null, 42);
+  ///     }
+  ///
+  R visitLocalFunctionIncompatibleInvoke(
       Send node,
       LocalFunctionElement function,
       NodeList arguments,

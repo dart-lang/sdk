@@ -12,7 +12,6 @@ import 'dart_types.dart';
 import 'dart2jslib.dart' show Compiler, CompilerTask, MessageKind, WorldImpact, invariant;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show FunctionElementX;
-import 'helpers/helpers.dart';
 import 'resolution/resolution.dart';
 import 'resolution/operators.dart';
 import 'tree/tree.dart';
@@ -248,6 +247,10 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     return expression;
   }
 
+  void cacheConstantValue(ConstantExpression expression, ConstantValue value) {
+    constantValueMap[expression] = value;
+  }
+
   ConstantExpression compileNodeWithDefinitions(Node node,
                                                 TreeElements definitions,
                                                 {bool isConst: true}) {
@@ -256,7 +259,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
         this, definitions, compiler, isConst: isConst);
     AstConstant constant = evaluator.evaluate(node);
     if (constant != null) {
-      constantValueMap[constant.expression] = constant.value;
+      cacheConstantValue(constant.expression, constant.value);
       return constant.expression;
     }
     return null;
@@ -302,7 +305,7 @@ class DartConstantCompiler extends ConstantCompilerBase {
                                                 TreeElements definitions,
                                                 {bool isConst: true}) {
     ConstantExpression constant = definitions.getConstant(node);
-    if (constant != null) {
+    if (constant != null && getConstantValue(constant) != null) {
       return constant;
     }
     constant =
@@ -785,7 +788,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       return new AstConstant.fromDefaultValue(
           element, constant, handler.getConstantValue(constant));
     }
-    target.computeSignature(compiler);
+    target.computeType(compiler);
 
     if (!callStructure.signatureApplies(target)) {
       String name = Elements.constructorNameForDiagnostics(

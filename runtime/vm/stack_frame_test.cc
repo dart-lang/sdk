@@ -16,6 +16,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, lazy_dispatchers);
+
 // Unit test for empty stack frame iteration.
 TEST_CASE(EmptyStackFrameIteration) {
   StackFrameIterator iterator(StackFrameIterator::kValidateFrames);
@@ -246,7 +248,12 @@ TEST_CASE(ValidateStackFrameIteration) {
 
 // Unit test case to verify stack frame iteration.
 TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
-  const char* kScriptChars =
+  const char* kScriptChars;
+  // The true stack depends on which strategy we are using for noSuchMethod. The
+  // stacktrace as seen by Dart is the same either way because dispatcher
+  // methods are marked invisible.
+  if (FLAG_lazy_dispatchers) {
+    kScriptChars =
       "class StackFrame {"
       "  static equals(var obj1, var obj2) native \"StackFrame_equals\";"
       "  static int frameCount() native \"StackFrame_frameCount\";"
@@ -278,6 +285,41 @@ TEST_CASE(ValidateNoSuchMethodStackFrameIteration) {
       "    StackFrame.equals(5, obj.foo(101, 202));"
       "  }"
       "}";
+  } else {
+    kScriptChars =
+      "class StackFrame {"
+      "  static equals(var obj1, var obj2) native \"StackFrame_equals\";"
+      "  static int frameCount() native \"StackFrame_frameCount\";"
+      "  static int dartFrameCount() native \"StackFrame_dartFrameCount\";"
+      "  static validateFrame(int index,"
+      "                       String name) native \"StackFrame_validateFrame\";"
+      "} "
+      "class StackFrame2Test {"
+      "  StackFrame2Test() {}"
+      "  noSuchMethod(Invocation im) {"
+      "    /* We should have 8 general frames and 3 dart frames as follows:"
+      "     * exit frame"
+      "     * dart frame corresponding to StackFrame.frameCount"
+      "     * dart frame corresponding to StackFrame2Test.noSuchMethod"
+      "     * entry frame"
+      "     * exit frame (call to runtime InvokeNoSuchMethodDispatcher)"
+      "     * IC stub"
+      "     * dart frame corresponding to StackFrame2Test.testMain"
+      "     * entry frame"
+      "     */"
+      "    StackFrame.equals(8, StackFrame.frameCount());"
+      "    StackFrame.equals(3, StackFrame.dartFrameCount());"
+      "    StackFrame.validateFrame(0, \"StackFrame_validateFrame\");"
+      "    StackFrame.validateFrame(1, \"StackFrame2Test_noSuchMethod\");"
+      "    StackFrame.validateFrame(2, \"StackFrame2Test_testMain\");"
+      "    return 5;"
+      "  }"
+      "  static testMain() {"
+      "    var obj = new StackFrame2Test();"
+      "    StackFrame.equals(5, obj.foo(101, 202));"
+      "  }"
+      "}";
+  }
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars,
       reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));

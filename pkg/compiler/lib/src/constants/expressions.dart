@@ -5,6 +5,7 @@
 library dart2js.constants.expressions;
 
 import '../constants/constant_system.dart';
+import '../core_types.dart';
 import '../dart2jslib.dart' show assertDebugMode, Compiler;
 import '../dart_types.dart';
 import '../elements/elements.dart' show
@@ -40,6 +41,7 @@ enum ConstantExpressionKind {
   STRING_FROM_ENVIRONMENT,
   STRING_LENGTH,
   SYMBOL,
+  SYNTHETIC,
   TYPE,
   UNARY,
   VARIABLE,
@@ -275,6 +277,10 @@ abstract class ConstantExpression {
   ConstantValue evaluate(Environment environment,
                          ConstantSystem constantSystem);
 
+  /// Returns the type of this constant expression, if it is independent of the
+  /// environment values.
+  DartType getKnownType(CoreTypes coreTypes) => null;
+
   String getText() {
     ConstExpPrinter printer = new ConstExpPrinter();
     accept(printer);
@@ -329,6 +335,35 @@ class ErroneousConstantExpression extends ConstantExpression {
   bool _equals(ErroneousConstantExpression other) => true;
 }
 
+// TODO(johnniwinther): Avoid the need for this class.
+class SyntheticConstantExpression extends ConstantExpression {
+  final SyntheticConstantValue value;
+
+  SyntheticConstantExpression(this.value);
+
+  @override
+  ConstantValue evaluate(Environment environment,
+                         ConstantSystem constantSystem) {
+    return value;
+  }
+
+  @override
+  int _computeHashCode() => 13 * value.hashCode;
+
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    throw "unsupported";
+  }
+
+  @override
+  bool _equals(SyntheticConstantExpression other) {
+    return value == other.value;
+  }
+
+  ConstantExpressionKind get kind => ConstantExpressionKind.SYNTHETIC;
+}
+
+
+
 /// A boolean, int, double, string, or null constant.
 abstract class PrimitiveConstantExpression extends ConstantExpression {
   /// The primitive value of this contant expression.
@@ -360,6 +395,9 @@ class BoolConstantExpression extends PrimitiveConstantExpression {
   bool _equals(BoolConstantExpression other) {
     return primitiveValue == other.primitiveValue;
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.boolType;
 }
 
 /// Integer literal constant.
@@ -387,6 +425,9 @@ class IntConstantExpression extends PrimitiveConstantExpression {
   bool _equals(IntConstantExpression other) {
     return primitiveValue == other.primitiveValue;
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.intType;
 }
 
 /// Double literal constant.
@@ -414,6 +455,9 @@ class DoubleConstantExpression extends PrimitiveConstantExpression {
   bool _equals(DoubleConstantExpression other) {
     return primitiveValue == other.primitiveValue;
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.doubleType;
 }
 
 /// String literal constant.
@@ -441,6 +485,9 @@ class StringConstantExpression extends PrimitiveConstantExpression {
   bool _equals(StringConstantExpression other) {
     return primitiveValue == other.primitiveValue;
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.stringType;
 }
 
 /// Null literal constant.
@@ -466,6 +513,9 @@ class NullConstantExpression extends PrimitiveConstantExpression {
 
   @override
   bool _equals(NullConstantExpression other) => true;
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.nullType;
 }
 
 /// Literal list constant.
@@ -511,6 +561,9 @@ class ListConstantExpression extends ConstantExpression {
     }
     return true;
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => type;
 }
 
 /// Literal map constant.
@@ -562,6 +615,9 @@ class MapConstantExpression extends ConstantExpression {
     }
     return true;
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => type;
 }
 
 /// Invocation of a const constructor.
@@ -699,6 +755,9 @@ class ConcatenateConstantExpression extends ConstantExpression {
     }
     return true;
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.stringType;
 }
 
 /// Symbol literal.
@@ -727,6 +786,9 @@ class SymbolConstantExpression extends ConstantExpression {
     // TODO(johnniwinther): Implement this.
     throw new UnsupportedError('SymbolConstantExpression.evaluate');
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.symbolType;
 }
 
 /// Type literal.
@@ -757,6 +819,9 @@ class TypeConstantExpression extends ConstantExpression {
   bool _equals(TypeConstantExpression other) {
     return type == other.type;
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.typeType;
 }
 
 /// Reference to a constant local, top-level, or static variable.
@@ -811,6 +876,9 @@ class FunctionConstantExpression extends ConstantExpression {
   bool _equals(FunctionConstantExpression other) {
     return element == other.element;
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.functionType;
 }
 
 /// A constant binary expression like `a * b`.
@@ -843,6 +911,58 @@ class BinaryConstantExpression extends ConstantExpression {
         operator,
         right.apply(arguments));
   }
+
+  DartType getKnownType(CoreTypes coreTypes) {
+    DartType knownLeftType = left.getKnownType(coreTypes);
+    DartType knownRightType = right.getKnownType(coreTypes);
+    switch (operator.kind) {
+      case BinaryOperatorKind.EQ:
+      case BinaryOperatorKind.NOT_EQ:
+      case BinaryOperatorKind.LOGICAL_AND:
+      case BinaryOperatorKind.LOGICAL_OR:
+      case BinaryOperatorKind.GT:
+      case BinaryOperatorKind.LT:
+      case BinaryOperatorKind.GTEQ:
+      case BinaryOperatorKind.LTEQ:
+        return coreTypes.boolType;
+      case BinaryOperatorKind.ADD:
+        if (knownLeftType == coreTypes.stringType) {
+          assert(knownRightType == coreTypes.stringType);
+          return coreTypes.stringType;
+        } else if (knownLeftType == coreTypes.intType &&
+                   knownRightType == coreTypes.intType) {
+          return coreTypes.intType;
+        }
+        assert(knownLeftType == coreTypes.doubleType ||
+               knownRightType == coreTypes.doubleType);
+        return coreTypes.doubleType;
+      case BinaryOperatorKind.SUB:
+      case BinaryOperatorKind.MUL:
+      case BinaryOperatorKind.MOD:
+        if (knownLeftType == coreTypes.intType &&
+            knownRightType == coreTypes.intType) {
+          return coreTypes.intType;
+        }
+        assert(knownLeftType == coreTypes.doubleType ||
+               knownRightType == coreTypes.doubleType);
+        return coreTypes.doubleType;
+      case BinaryOperatorKind.DIV:
+        return coreTypes.doubleType;
+      case BinaryOperatorKind.IDIV:
+        return coreTypes.intType;
+      case BinaryOperatorKind.AND:
+      case BinaryOperatorKind.OR:
+      case BinaryOperatorKind.XOR:
+      case BinaryOperatorKind.SHR:
+      case BinaryOperatorKind.SHL:
+        return coreTypes.intType;
+      case BinaryOperatorKind.IF_NULL:
+      case BinaryOperatorKind.INDEX:
+        throw new UnsupportedError(
+            'Unexpected constant binary operator: $operator');
+    }
+  }
+
 
   int get precedence => PRECEDENCE_MAP[operator.kind];
 
@@ -923,6 +1043,9 @@ class IdenticalConstantExpression extends ConstantExpression {
     return left == other.left &&
            right == other.right;
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.boolType;
 }
 
 /// A unary constant expression like `-a`.
@@ -965,6 +1088,11 @@ class UnaryConstantExpression extends ConstantExpression {
   bool _equals(UnaryConstantExpression other) {
     return operator == other.operator &&
            expression == other.expression;
+  }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) {
+    return expression.getKnownType(coreTypes);
   }
 
   static const Map<UnaryOperatorKind, int> PRECEDENCE_MAP = const {
@@ -1013,6 +1141,9 @@ class StringLengthConstantExpression extends ConstantExpression {
   bool _equals(StringLengthConstantExpression other) {
     return expression == other.expression;
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.intType;
 }
 
 /// A constant conditional expression like `a ? b : c`.
@@ -1070,6 +1201,16 @@ class ConditionalConstantExpression extends ConstantExpression {
     } else {
       return new NonConstantValue();
     }
+  }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) {
+    DartType trueType = trueExp.getKnownType(coreTypes);
+    DartType falseType = falseExp.getKnownType(coreTypes);
+    if (trueType == falseType) {
+      return trueType;
+    }
+    return null;
   }
 }
 
@@ -1203,6 +1344,9 @@ class BoolFromEnvironmentConstantExpression
         name.apply(arguments),
         defaultValue != null ? defaultValue.apply(arguments) : null);
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.boolType;
 }
 
 /// A `const int.fromEnvironment` constant.
@@ -1256,6 +1400,9 @@ class IntFromEnvironmentConstantExpression
         name.apply(arguments),
         defaultValue != null ? defaultValue.apply(arguments) : null);
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.intType;
 }
 
 /// A `const String.fromEnvironment` constant.
@@ -1305,6 +1452,9 @@ class StringFromEnvironmentConstantExpression
         name.apply(arguments),
         defaultValue != null ? defaultValue.apply(arguments) : null);
   }
+
+  @override
+  DartType getKnownType(CoreTypes coreTypes) => coreTypes.stringType;
 }
 
 /// A constant expression referenced with a deferred prefix.
@@ -1379,15 +1529,6 @@ abstract class ConstantExpressionVisitor<R, A> {
 
   R visitPositional(PositionalArgumentReference exp, A context);
   R visitNamed(NamedArgumentReference exp, A context);
-}
-
-/// Represents the declaration of a constant [element] with value [expression].
-// TODO(johnniwinther): Where does this class belong?
-class ConstDeclaration {
-  final VariableElement element;
-  final ConstantExpression expression;
-
-  ConstDeclaration(this.element, this.expression);
 }
 
 class ConstExpPrinter extends ConstantExpressionVisitor {

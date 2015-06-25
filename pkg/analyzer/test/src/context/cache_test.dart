@@ -491,10 +491,18 @@ class CacheEntryTest extends AbstractCacheTest {
     entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 10);
+    // listen, expect "result" invalidation event
+    int numberOfEvents = 0;
+    cache.onResultInvalidated.listen((event) {
+      numberOfEvents++;
+      expect(event.entry, same(entry));
+      expect(event.descriptor, same(result));
+    });
     // set INVALID
     entry.setState(result, CacheState.INVALID);
     expect(entry.getState(result), CacheState.INVALID);
     expect(entry.getValue(result), 1);
+    expect(numberOfEvents, 1);
   }
 
   test_setState_invalid_dependencyCycle() {
@@ -510,11 +518,24 @@ class CacheEntryTest extends AbstractCacheTest {
     entry2.setValue(result, 200, [new TargetedResult(target1, result)]);
     expect(entry1.getState(result), CacheState.VALID);
     expect(entry2.getState(result), CacheState.VALID);
+    // Listen, expect entry1.result and entry2.result invalidation events.
+    int numberOfEvents = 0;
+    bool wasEntry1 = false;
+    bool wasEntry2 = false;
+    cache.onResultInvalidated.listen((event) {
+      numberOfEvents++;
+      if (event.entry == entry1) wasEntry1 = true;
+      if (event.entry == entry2) wasEntry2 = true;
+      expect(event.descriptor, same(result));
+    });
     // Invalidate entry1.result; this should cause entry2 to be also
     // cleared without going into an infinite regress.
     entry1.setState(result, CacheState.INVALID);
     expect(cache.get(target1), isNull);
     expect(cache.get(target2), isNull);
+    expect(numberOfEvents, 2);
+    expect(wasEntry1, isTrue);
+    expect(wasEntry2, isTrue);
   }
 
   test_setState_invalid_invalidateDependent() {

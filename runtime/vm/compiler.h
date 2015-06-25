@@ -90,13 +90,8 @@ class Compiler : public AllStatic {
   static bool always_optimize() { return always_optimize_; }
   static void set_always_optimize(bool value) { always_optimize_ = value; }
 
-  // Default: true.
-  static bool guess_other_cid() { return guess_other_cid_; }
-  static void set_guess_other_cid(bool value) { guess_other_cid_ = value; }
-
  private:
   static bool always_optimize_;
-  static bool guess_other_cid_;
 };
 
 }  // namespace dart

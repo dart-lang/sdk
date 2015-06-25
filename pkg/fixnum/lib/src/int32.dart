@@ -57,15 +57,18 @@ class Int32 implements IntX {
     }
   }
 
+  static int _validateRadix(int radix) {
+    if (2 <= radix && radix <= 36) return radix;
+    throw new RangeError.range(radix, 2, 36, 'radix');
+  }
+
   /**
    * Parses a [String] in a given [radix] between 2 and 16 and returns an
    * [Int32].
    */
   // TODO(rice) - Make this faster by converting several digits at once.
   static Int32 parseRadix(String s, int radix) {
-    if ((radix <= 1) || (radix > 16)) {
-      throw new ArgumentError("Bad radix: $radix");
-    }
+    _validateRadix(radix);
     Int32 x = ZERO;
     for (int i = 0; i < s.length; i++) {
       int c = s.codeUnitAt(i);
@@ -348,12 +351,12 @@ class Int32 implements IntX {
   int numberOfTrailingZeros() => _numberOfTrailingZeros(_i);
 
   Int32 toSigned(int width) {
-    if (width < 1 || width > 32) throw new ArgumentError(width);
+    if (width < 1 || width > 32) throw new RangeError.range(width, 1, 32);
     return new Int32(_i.toSigned(width));
   }
 
   Int32 toUnsigned(int width) {
-    if (width < 0 || width > 32) throw new ArgumentError(width);
+    if (width < 0 || width > 32) throw new RangeError.range(width, 0, 32);
     return new Int32(_i.toUnsigned(width));
   }
 

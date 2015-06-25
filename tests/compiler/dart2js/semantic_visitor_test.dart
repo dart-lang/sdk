@@ -184,11 +184,6 @@ const List<VisitKind> UNTESTABLE_KINDS = const <VisitKind>[
   VisitKind.VISIT_SUPER_METHOD_SETTER_COMPOUND,
   VisitKind.VISIT_SUPER_METHOD_SETTER_PREFIX,
   VisitKind.VISIT_SUPER_METHOD_SETTER_POSTFIX,
-  // Invalid use of setters is currently reported through an erroneous element.
-  VisitKind.VISIT_STATIC_SETTER_INVOKE,
-  VisitKind.VISIT_STATIC_SETTER_GET,
-  VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
-  VisitKind.VISIT_TOP_LEVEL_SETTER_INVOKE,
   // The constant expressions of assignment to constant type literals cannot be
   // handled the compile constant evaluator.
   VisitKind.VISIT_CLASS_TYPE_LITERAL_SET,
@@ -344,7 +339,9 @@ Future test(Set<VisitKind> unvisitedKinds,
         }
         Expect.listEquals(expectedVisits, visitor.visits,
             "In test:\n"
-            "${library.compilationUnit.script.text}");
+            "${library.compilationUnit.script.text}\n\n"
+            "Expected: $expectedVisits\n"
+            "Found: ${visitor.visits}");
         unvisitedKinds.removeAll(visitor.visits.map((visit) => visit.method));
       }
       if (element.isAbstractField) {
@@ -400,6 +397,7 @@ enum VisitKind {
 
   VISIT_LOCAL_FUNCTION_GET,
   VISIT_LOCAL_FUNCTION_INVOKE,
+  VISIT_LOCAL_FUNCTION_INCOMPATIBLE_INVOKE,
   VISIT_LOCAL_FUNCTION_DECL,
   VISIT_CLOSURE_DECL,
   VISIT_LOCAL_FUNCTION_SET,

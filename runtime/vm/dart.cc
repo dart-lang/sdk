@@ -27,6 +27,7 @@
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
+#include "vm/timeline.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
@@ -69,6 +70,7 @@ class ReadOnlyHandles {
 
  private:
   VMHandles handles_;
+  LocalHandles api_handles_;
 
   friend class Dart;
   DISALLOW_COPY_AND_ASSIGN(ReadOnlyHandles);
@@ -103,6 +105,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Profiler::InitOnce();
   SemiSpace::InitOnce();
   Metric::InitOnce();
+  StoreBuffer::InitOnce();
 
 #if defined(USING_SIMULATOR)
   Simulator::InitOnce();
@@ -131,6 +134,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                0,  // New gen size 0; VM isolate should only allocate in old.
                FLAG_old_gen_heap_size * MBInWords,
                FLAG_external_max_size * MBInWords);
+    Object::InitNull(vm_isolate_);
     ObjectStore::Init(vm_isolate_);
     TargetCPUFeatures::InitOnce();
     Object::InitOnce(vm_isolate_);
@@ -177,10 +181,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     vm_isolate_->heap()->Verify(kRequireMarked);
 #endif
   }
-  // There is a planned and known asymmetry here: We enter one scope for the VM
-  // isolate so that we can allocate the "persistent" scoped handles for the
-  // predefined API values (such as Dart_True, Dart_False and Dart_Null).
-  Dart_EnterScope();
+  // Allocate the "persistent" scoped handles for the predefined API
+  // values (such as Dart_True, Dart_False and Dart_Null).
   Api::InitHandles();
 
   Thread::ExitIsolate();  // Unregister the VM isolate from this thread.
@@ -298,12 +300,12 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   Object::VerifyBuiltinVtables();
 
   StubCode::Init(isolate);
+  isolate->megamorphic_cache_table()->InitMissHandler();
   if (snapshot_buffer == NULL) {
     if (!isolate->object_store()->PreallocateObjects()) {
       return isolate->object_store()->sticky_error();
     }
   }
-  isolate->megamorphic_cache_table()->InitMissHandler();
 
   isolate->heap()->EnableGrowthControl();
   isolate->set_init_callback_data(data);
@@ -323,6 +325,8 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   // Set up default UserTag.
   const UserTag& default_tag = UserTag::Handle(UserTag::DefaultTag());
   isolate->set_current_tag(default_tag);
+
+  isolate->SetTimelineEventRecorder(new TimelineEventRingRecorder());
 
   if (FLAG_keep_code) {
     isolate->set_deoptimized_code_array(
@@ -357,9 +361,22 @@ uword Dart::AllocateReadOnlyHandle() {
 }
 
 
+LocalHandle* Dart::AllocateReadOnlyApiHandle() {
+  ASSERT(Isolate::Current() == Dart::vm_isolate());
+  ASSERT(predefined_handles_ != NULL);
+  return predefined_handles_->api_handles_.AllocateHandle();
+}
+
+
 bool Dart::IsReadOnlyHandle(uword address) {
   ASSERT(predefined_handles_ != NULL);
   return predefined_handles_->handles_.IsValidScopedHandle(address);
+}
+
+
+bool Dart::IsReadOnlyApiHandle(Dart_Handle handle) {
+  ASSERT(predefined_handles_ != NULL);
+  return predefined_handles_->api_handles_.IsValidHandle(handle);
 }
 
 }  // namespace dart

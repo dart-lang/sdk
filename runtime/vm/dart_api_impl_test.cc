@@ -4,9 +4,9 @@
 
 #include "bin/builtin.h"
 #include "include/dart_api.h"
-#include "include/dart_debugger_api.h"
 #include "include/dart_mirrors_api.h"
 #include "include/dart_native_api.h"
+#include "include/dart_tools_api.h"
 #include "platform/assert.h"
 #include "platform/json.h"
 #include "platform/utils.h"
@@ -445,6 +445,59 @@ TEST_CASE(ErrorHandleTypes) {
                    Dart_GetError(exception_error));
   EXPECT_STREQ("CompileError", Dart_GetError(compile_error));
   EXPECT_STREQ("FatalError", Dart_GetError(fatal_error));
+}
+
+
+TEST_CASE(UnhandleExceptionError) {
+  Isolate* isolate = Isolate::Current();
+  const char* exception_cstr = "";
+
+  // Test with an API Error.
+  const char* kApiError = "Api Error Exception Test.";
+  Dart_Handle api_error = Api::NewHandle(
+      isolate,
+      ApiError::New(String::Handle(String::New(kApiError))));
+  Dart_Handle exception_error = Dart_NewUnhandledExceptionError(api_error);
+  EXPECT(!Dart_IsApiError(exception_error));
+  EXPECT(Dart_IsUnhandledExceptionError(exception_error));
+  EXPECT(Dart_IsString(Dart_ErrorGetException(exception_error)));
+  EXPECT_VALID(Dart_StringToCString(Dart_ErrorGetException(exception_error),
+                                    &exception_cstr));
+  EXPECT_STREQ(kApiError, exception_cstr);
+
+  // Test with a Compilation Error.
+  const char* kCompileError = "CompileError Exception Test.";
+  const String& compile_message =
+      String::Handle(String::New(kCompileError));
+  Dart_Handle compile_error =
+      Api::NewHandle(isolate, LanguageError::New(compile_message));
+  exception_error = Dart_NewUnhandledExceptionError(compile_error);
+  EXPECT(!Dart_IsApiError(exception_error));
+  EXPECT(Dart_IsUnhandledExceptionError(exception_error));
+  EXPECT(Dart_IsString(Dart_ErrorGetException(exception_error)));
+  EXPECT_VALID(Dart_StringToCString(Dart_ErrorGetException(exception_error),
+                                    &exception_cstr));
+  EXPECT_STREQ(kCompileError, exception_cstr);
+
+  // Test with a Fatal Error.
+  const String& fatal_message =
+      String::Handle(String::New("FatalError Exception Test."));
+  Dart_Handle fatal_error =
+      Api::NewHandle(isolate, UnwindError::New(fatal_message));
+  exception_error = Dart_NewUnhandledExceptionError(fatal_error);
+  EXPECT(Dart_IsError(exception_error));
+  EXPECT(!Dart_IsUnhandledExceptionError(exception_error));
+
+  // Test with a Regular object.
+  const char* kRegularString = "Regular String Exception Test.";
+  Dart_Handle obj = Api::NewHandle(isolate, String::New(kRegularString));
+  exception_error = Dart_NewUnhandledExceptionError(obj);
+  EXPECT(!Dart_IsApiError(exception_error));
+  EXPECT(Dart_IsUnhandledExceptionError(exception_error));
+  EXPECT(Dart_IsString(Dart_ErrorGetException(exception_error)));
+  EXPECT_VALID(Dart_StringToCString(Dart_ErrorGetException(exception_error),
+                                    &exception_cstr));
+  EXPECT_STREQ(kRegularString, exception_cstr);
 }
 
 
@@ -9056,6 +9109,7 @@ TEST_CASE(ExternalStringIndexOf) {
   EXPECT_EQ(6, value);
 }
 
+
 TEST_CASE(StringFromExternalTypedData) {
   const char* kScriptChars =
     "test(external) {\n"
@@ -9150,6 +9204,78 @@ TEST_CASE(StringFromExternalTypedData) {
     EXPECT_VALID(result);
     EXPECT(Dart_IsString(result));
   }
+}
+
+
+TEST_CASE(Timeline_Dart_TimelineDuration) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  // Make sure it is enabled.
+  stream->set_enabled(true);
+  // Add a duration event.
+  Dart_TimelineDuration("testDurationEvent", 0, 1);
+  // Check that it is in the output.
+  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
+  JSONStream js;
+  recorder->PrintJSON(&js);
+  EXPECT_SUBSTRING("testDurationEvent", js.ToCString());
+}
+
+
+TEST_CASE(Timeline_Dart_TimelineInstant) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  // Make sure it is enabled.
+  stream->set_enabled(true);
+  Dart_TimelineInstant("testInstantEvent");
+  // Check that it is in the output.
+  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
+  JSONStream js;
+  recorder->PrintJSON(&js);
+  EXPECT_SUBSTRING("testInstantEvent", js.ToCString());
+}
+
+
+TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  // Make sure it is disabled.
+  stream->set_enabled(false);
+  int64_t async_id = -1;
+  Dart_TimelineAsyncBegin("testAsyncEvent", &async_id);
+  // Expect that the |async_id| is negative because the stream is disabled.
+  EXPECT(async_id < 0);
+  // Call Dart_TimelineAsyncEnd with a negative async_id.
+  Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
+  // Check that testAsync is not in the output.
+  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
+  JSONStream js;
+  recorder->PrintJSON(&js);
+  EXPECT_NOTSUBSTRING("testAsyncEvent", js.ToCString());
+}
+
+
+TEST_CASE(Timeline_Dart_TimelineAsync) {
+  Isolate* isolate = Isolate::Current();
+  // Grab embedder stream.
+  TimelineStream* stream = isolate->GetEmbedderStream();
+  // Make sure it is enabled.
+  stream->set_enabled(true);
+  int64_t async_id = -1;
+  Dart_TimelineAsyncBegin("testAsyncEvent", &async_id);
+  // Expect that the |async_id| is >= 0.
+  EXPECT(async_id >= 0);
+
+  Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
+
+  // Check that it is in the output.
+  TimelineEventRecorder* recorder = isolate->timeline_event_recorder();
+  JSONStream js;
+  recorder->PrintJSON(&js);
+  EXPECT_SUBSTRING("testAsyncEvent", js.ToCString());
 }
 
 }  // namespace dart

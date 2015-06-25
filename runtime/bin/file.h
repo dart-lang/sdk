@@ -26,15 +26,20 @@ class File {
     kRead = 0,
     kWrite = 1,
     kTruncate = 1 << 2,
-    kWriteTruncate = kWrite | kTruncate
+    kWriteOnly = 1 << 3,
+    kWriteTruncate = kWrite | kTruncate,
+    kWriteOnlyTruncate = kWriteOnly | kTruncate
   };
 
   // These values have to be kept in sync with the mode values of
-  // FileMode.READ, FileMode.WRITE and FileMode.APPEND in file.dart.
+  // FileMode.READ, FileMode.WRITE, FileMode.APPEND,
+  // FileMode.WRITE_ONLY and FileMode.WRITE_ONLY_APPEND in file.dart.
   enum DartFileOpenMode {
     kDartRead = 0,
     kDartWrite = 1,
-    kDartAppend = 2
+    kDartAppend = 2,
+    kDartWriteOnly = 3,
+    kDartWriteOnlyAppend = 4
   };
 
   enum Type {

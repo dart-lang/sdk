@@ -73,7 +73,6 @@ class MapTracerVisitor extends TracerVisitor<MapTypeInformation> {
     if (currentUser == info.receiver) {
       if (!okMapSelectorsSet.contains(selectorName)) {
         if (selector.isCall) {
-          int positionalLength = info.arguments.positional.length;
           if (selectorName == 'addAll') {
             // All keys and values from the argument flow into
             // the map.

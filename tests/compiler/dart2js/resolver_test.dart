@@ -2,18 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "package:expect/expect.dart";
 import 'dart:async';
-import "package:async_helper/async_helper.dart";
 import 'dart:collection';
 
-import "package:compiler/src/resolution/resolution.dart";
-import "compiler_helper.dart";
-import "parser_helper.dart";
-
+import 'package:async_helper/async_helper.dart';
+import 'package:expect/expect.dart';
+import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
 import 'package:compiler/src/elements/modelx.dart';
+import 'package:compiler/src/resolution/resolution.dart';
+
+import 'compiler_helper.dart';
 import 'link_helper.dart';
+import 'parser_helper.dart';
 
 Node buildIdentifier(String name) => new Identifier(scan(name));
 
@@ -40,17 +41,15 @@ Future testLocals(List variables) {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     ResolutionResult result = visitor.visit(createLocals(variables));
-    Element element = result != null ? result.element : null;
     // A VariableDefinitions does not have an element.
-    Expect.equals(null, element);
+    Expect.equals(const NoneResult(), result);
     Expect.equals(variables.length, map(visitor).length);
 
     for (final variable in variables) {
       final name = variable[0];
       Identifier id = buildIdentifier(name);
       ResolutionResult result = visitor.visit(id);
-      final VariableElement variableElement =
-          result != null ? result.element : null;
+      final VariableElement variableElement = result.element;
       MethodScope scope = visitor.scope;
       Expect.equals(variableElement, scope.elements[name]);
     }
@@ -91,6 +90,7 @@ main() {
     testCantAssignMethods,
     testCantAssignFinalAndConsts,
     testAwaitHint,
+    testConstantExpressions,
   ], (f) => f()));
 }
 
@@ -318,8 +318,8 @@ Future testLocalsTwo() {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     Node tree = parseStatement("if (true) { var a = 1; var b = 2; }");
-    ResolutionResult element = visitor.visit(tree);
-    Expect.equals(null, element);
+    ResolutionResult result = visitor.visit(tree);
+    Expect.equals(const NoneResult(), result);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
     Expect.equals(2, map(visitor).length);
@@ -333,11 +333,11 @@ Future testLocalsThree() {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     Node tree = parseStatement("{ var a = 1; if (true) { a; } }");
-    ResolutionResult element = visitor.visit(tree);
-    Expect.equals(null, element);
+    ResolutionResult result = visitor.visit(tree);
+    Expect.equals(const NoneResult(), result);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
-    Expect.equals(3, map(visitor).length);
+    Expect.equals(2, map(visitor).length);
     List<Element> elements = map(visitor).values.toList();
     Expect.equals(elements[0], elements[1]);
   });
@@ -347,8 +347,8 @@ Future testLocalsFour() {
   return MockCompiler.create((MockCompiler compiler) {
     ResolverVisitor visitor = compiler.resolverVisitor();
     Node tree = parseStatement("{ var a = 1; if (true) { var a = 1; } }");
-    ResolutionResult element = visitor.visit(tree);
-    Expect.equals(null, element);
+    ResolutionResult result = visitor.visit(tree);
+    Expect.equals(const NoneResult(), result);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
     Expect.equals(2, map(visitor).length);
@@ -362,11 +362,11 @@ Future testLocalsFive() {
     ResolverVisitor visitor = compiler.resolverVisitor();
     If tree =
         parseStatement("if (true) { var a = 1; a; } else { var a = 2; a;}");
-    ResolutionResult element = visitor.visit(tree);
-    Expect.equals(null, element);
+    ResolutionResult result = visitor.visit(tree);
+    Expect.equals(const NoneResult(), result);
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
-    Expect.equals(6, map(visitor).length);
+    Expect.equals(4, map(visitor).length);
 
     Block thenPart = tree.thenPart;
     List statements1 = thenPart.statements.nodes.toList();
@@ -419,7 +419,7 @@ Future testFor() {
 
     MethodScope scope = visitor.scope;
     Expect.equals(0, scope.elements.length);
-    Expect.equals(9, map(visitor).length);
+    Expect.equals(7, map(visitor).length);
 
     VariableDefinitions initializer = tree.initializer;
     Node iNode = initializer.definitions.nodes.head;
@@ -437,35 +437,27 @@ Future testFor() {
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                 ^
-    checkIdentifier(iElement, nodes[1], elements[1]);
-
-    // for (int i = 0; i < 10; i = i + 1) { i = 5; };
-    //                 ^
-    checkSend(iElement, nodes[2], elements[2]);
+    checkSend(iElement, nodes[1], elements[1]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                         ^
-    checkIdentifier(iElement, nodes[3], elements[3]);
+    checkIdentifier(iElement, nodes[2], elements[2]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                             ^
-    checkIdentifier(iElement, nodes[4], elements[4]);
-
-    // for (int i = 0; i < 10; i = i + 1) { i = 5; };
-    //                             ^
-    checkSend(iElement, nodes[5], elements[5]);
+    checkSend(iElement, nodes[3], elements[3]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                         ^^^^^^^^^
-    checkSendSet(iElement, nodes[6], elements[6]);
+    checkSendSet(iElement, nodes[4], elements[4]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                                      ^
-    checkIdentifier(iElement, nodes[7], elements[7]);
+    checkIdentifier(iElement, nodes[5], elements[5]);
 
     // for (int i = 0; i < 10; i = i + 1) { i = 5; };
     //                                      ^^^^^
-    checkSendSet(iElement, nodes[8], elements[8]);
+    checkSendSet(iElement, nodes[6], elements[6]);
   });
 }
 
@@ -927,7 +919,7 @@ Future testInitializers() {
                int bar;
                A() : this.foo = bar;
              }""";
-      return resolveConstructor(script, "A a = new A();", "A", "", 3,
+      return resolveConstructor(script, "A a = new A();", "A", "", 2,
           expectedWarnings: [],
           expectedErrors: [MessageKind.NO_INSTANCE_AVAILABLE]);
     },
@@ -997,6 +989,63 @@ Future testInitializers() {
           corelib: INVALID_OBJECT);
     },
   ], (f) => f());
+}
+
+Future testConstantExpressions() {
+  const Map<String, List<String>> testedConstants = const {
+    'null': const ['null'],
+    'true': const ['true'],
+    '0': const ['0'],
+    '0.0': const ['0.0'],
+    '"foo"': const ['"foo"'],
+    '#a': const ['#a'],
+    '0 + 1': const ['0', '1', '0 + 1'],
+    '0 * 1': const ['0', '1', '0 * 1'],
+    '0 * 1 + 2': const ['0', '1', '0 * 1', '2', '0 * 1 + 2'],
+    '0 + 1 * 2': const ['0', '1', '2', '1 * 2', '0 + 1 * 2'],
+    '-(1)': const ['1', '-1'],
+    '-(1 * 4)': const ['1', '4', '1 * 4', '-(1 * 4)'],
+    'true ? 0 : 1': const ['true', '0', '1', 'true ? 0 : 1'],
+    '"a" "b"': const ['"a"', '"b"', '"ab"'],
+    '"a" "b" "c"': const ['"a"', '"b"', '"c"', '"bc"', r'"a${"bc"}"'],
+    r'"a${0}b"': const ['"a"', '0', '"b"', r'"a${0}b"'],
+    r'"a${0}b${1}"': const ['"a"', '0', '"b"', '1', '""', r'"a${0}b${1}"'],
+    'true || false': const ['true', 'false', 'true || false'],
+    'true && false': const ['true', 'false', 'true && false'],
+    '!true': const ['true', '!true'],
+    'const []': const ['const []'],
+    'const <int>[]': const ['const <int>[]'],
+    'const [0, 1, 2]': const ['0', '1', '2', 'const [0, 1, 2]'],
+    'const <int>[0, 1, 2]': const ['0', '1', '2', 'const <int>[0, 1, 2]'],
+    'const {}': const ['const {}'],
+    'const <String, int>{}': const ['const <String, int>{}'],
+    'const {"a": 0, "b": 1, "c": 2}':
+        const ['"a"', '0', '"b"', '1', '"c"', '2',
+               'const {"a": 0, "b": 1, "c": 2}'],
+    'const <String, int>{"a": 0, "b": 1, "c": 2}':
+        const ['"a"', '0', '"b"', '1', '"c"', '2',
+               'const <String, int>{"a": 0, "b": 1, "c": 2}'],
+  };
+  return Future.forEach(testedConstants.keys, (String constant) {
+    return MockCompiler.create((MockCompiler compiler) {
+      CollectingTreeElements elements =
+          compiler.resolveStatement("main() => $constant;");
+      List<String> expectedConstants = testedConstants[constant];
+      Expect.equals(0, compiler.warnings.length);
+      Expect.equals(0, compiler.errors.length);
+      List<ConstantExpression> constants = elements.constants;
+      String constantsText =
+          '[${constants.map((c) => c.getText()).join(', ')}]';
+      Expect.equals(expectedConstants.length, constants.length,
+          "Expected ${expectedConstants.length} constants for `${constant}` "
+          "found $constantsText.");
+      for (int index = 0; index < expectedConstants.length; index++) {
+        Expect.equals(expectedConstants[index], constants[index].getText(),
+            "Expected ${expectedConstants} for `$constant`, "
+            "found $constantsText.");
+      }
+    });
+  });
 }
 
 map(ResolverVisitor visitor) {

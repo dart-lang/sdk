@@ -4,7 +4,6 @@
 
 library deferred_load;
 
-import 'constants/expressions.dart';
 import 'constants/values.dart' show
     ConstantValue,
     ConstructedConstantValue,
@@ -17,9 +16,6 @@ import 'dart2jslib.dart' show
     CompilerTask,
     invariant,
     MessageKind;
-
-import 'dart_backend/dart_backend.dart' show
-    DartBackend;
 
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
@@ -286,8 +282,13 @@ class DeferredLoadTask extends CompilerTask {
       }
       treeElements.forEachConstantNode((Node node, _) {
         // Explicitly depend on the backend constants.
-        constants.add(
-            backend.constants.getConstantValueForNode(node, treeElements));
+        ConstantValue value =
+            backend.constants.getConstantValueForNode(node, treeElements);
+        if (value != null) {
+          // TODO(johnniwinther): Assert that all constants have values when
+          // these are directly evaluated.
+          constants.add(value);
+        }
       });
       elements.addAll(treeElements.otherDependencies);
     }
@@ -770,16 +771,9 @@ class DeferredLoadTask extends CompilerTask {
         }
       });
     }
-    Backend backend = compiler.backend;
-    if (isProgramSplit && backend is JavaScriptBackend) {
-      backend.registerCheckDeferredIsLoaded(compiler.globalDependencies);
-    }
-    if (isProgramSplit && backend is DartBackend) {
-      // TODO(sigurdm): Implement deferred loading for dart2dart.
-      compiler.reportWarning(
-          lastDeferred,
-          MessageKind.DEFERRED_LIBRARY_DART_2_DART);
-      isProgramSplit = false;
+    if (isProgramSplit) {
+      isProgramSplit = compiler.backend.enableDeferredLoadingIfSupported(
+            lastDeferred, compiler.globalDependencies);
     }
   }
 

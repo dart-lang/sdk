@@ -105,7 +105,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   E removeAt(int index) {
     checkGrowable('removeAt');
-    if (index is !int) throw new ArgumentError(index);
+    if (index is !int) throw argumentErrorValue(index);
     if (index < 0 || index >= length) {
       throw new RangeError.value(index);
     }
@@ -114,7 +114,7 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   void insert(int index, E value) {
     checkGrowable('insert');
-    if (index is !int) throw new ArgumentError(index);
+    if (index is !int) throw argumentErrorValue(index);
     if (index < 0 || index > length) {
       throw new RangeError.value(index);
     }
@@ -341,14 +341,14 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   List<E> sublist(int start, [int end]) {
     checkNull(start); // TODO(ahe): This is not specified but co19 tests it.
-    if (start is !int) throw new ArgumentError(start);
+    if (start is !int) throw argumentErrorValue(start);
     if (start < 0 || start > length) {
       throw new RangeError.range(start, 0, length);
     }
     if (end == null) {
       end = length;
     } else {
-      if (end is !int) throw new ArgumentError(end);
+      if (end is !int) throw argumentErrorValue(end);
       if (end < start || end > length) {
         throw new RangeError.range(end, start, length);
       }
@@ -575,21 +575,28 @@ class JSArray<E> extends Interceptor implements List<E>, JSIndexable {
 
   void set length(int newLength) {
     checkGrowable('set length');
-    if (newLength is !int) throw new ArgumentError(newLength);
-    if (newLength < 0) throw new RangeError.value(newLength);
+    if (newLength is !int) {
+      throw new ArgumentError.value(newLength, 'newLength');
+    }
+    // TODO(sra): Remove this test and let JavaScript throw an error.
+    if (newLength < 0) {
+      throw new RangeError.range(newLength, 0, null, 'newLength');
+    }
+    // JavaScript with throw a RangeError for numbers that are too big. The
+    // message does not contain the value.
     JS('void', r'#.length = #', this, newLength);
   }
 
   E operator [](int index) {
-    if (index is !int) throw new ArgumentError(index);
-    if (index >= length || index < 0) throw new RangeError.value(index);
+    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
     return JS('var', '#[#]', this, index);
   }
 
   void operator []=(int index, E value) {
     checkMutable('indexed set');
-    if (index is !int) throw new ArgumentError(index);
-    if (index >= length || index < 0) throw new RangeError.value(index);
+    if (index is !int) throw diagnoseIndexError(this, index);
+    if (index >= length || index < 0) throw diagnoseIndexError(this, index);
     JS('void', r'#[#] = #', this, index, value);
   }
 

@@ -286,7 +286,37 @@ class PhysicalResourceProviderTest extends _BaseTest {
     expect(provider.getStateLocation(idOne), equals(folderOne));
   }
 
-  test_watch_createFile() {
+  test_watchFile_delete() {
+    var path = join(tempPath, 'foo');
+    var file = new io.File(path);
+    file.writeAsStringSync('contents 1');
+    return _watchingFile(path, (changesReceived) {
+      expect(changesReceived, hasLength(0));
+      file.deleteSync();
+      return _delayed(() {
+        expect(changesReceived, hasLength(1));
+        expect(changesReceived[0].type, equals(ChangeType.REMOVE));
+        expect(changesReceived[0].path, equals(path));
+      });
+    });
+  }
+
+  test_watchFile_modify() {
+    var path = join(tempPath, 'foo');
+    var file = new io.File(path);
+    file.writeAsStringSync('contents 1');
+    return _watchingFile(path, (changesReceived) {
+      expect(changesReceived, hasLength(0));
+      file.writeAsStringSync('contents 2');
+      return _delayed(() {
+        expect(changesReceived, hasLength(1));
+        expect(changesReceived[0].type, equals(ChangeType.MODIFY));
+        expect(changesReceived[0].path, equals(path));
+      });
+    });
+  }
+
+  test_watchFolder_createFile() {
     return _watchingFolder(tempPath, (changesReceived) {
       expect(changesReceived, hasLength(0));
       var path = join(tempPath, 'foo');
@@ -306,7 +336,7 @@ class PhysicalResourceProviderTest extends _BaseTest {
     });
   }
 
-  test_watch_deleteFile() {
+  test_watchFolder_deleteFile() {
     var path = join(tempPath, 'foo');
     var file = new io.File(path);
     file.writeAsStringSync('contents 1');
@@ -321,7 +351,7 @@ class PhysicalResourceProviderTest extends _BaseTest {
     });
   }
 
-  test_watch_modifyFile() {
+  test_watchFolder_modifyFile() {
     var path = join(tempPath, 'foo');
     var file = new io.File(path);
     file.writeAsStringSync('contents 1');
@@ -336,7 +366,7 @@ class PhysicalResourceProviderTest extends _BaseTest {
     });
   }
 
-  test_watch_modifyFile_inSubDir() {
+  test_watchFolder_modifyFile_inSubDir() {
     var subdirPath = join(tempPath, 'foo');
     new io.Directory(subdirPath).createSync();
     var path = join(tempPath, 'bar');
@@ -358,6 +388,22 @@ class PhysicalResourceProviderTest extends _BaseTest {
     // take up to a few hundred ms, a whole second gives a good margin
     // for when running tests.
     return new Future.delayed(new Duration(seconds: 1), computation);
+  }
+
+  _watchingFile(String path, test(List<WatchEvent> changesReceived)) {
+    // Delay before we start watching the file.  This is necessary
+    // because on MacOS, file modifications that occur just before we
+    // start watching are sometimes misclassified as happening just after
+    // we start watching.
+    return _delayed(() {
+      File file = PhysicalResourceProvider.INSTANCE.getResource(path);
+      var changesReceived = <WatchEvent>[];
+      var subscription = file.changes.listen(changesReceived.add);
+      // Delay running the rest of the test to allow file.changes propogate.
+      return _delayed(() => test(changesReceived)).whenComplete(() {
+        subscription.cancel();
+      });
+    });
   }
 
   _watchingFolder(String path, test(List<WatchEvent> changesReceived)) {

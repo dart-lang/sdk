@@ -126,38 +126,58 @@ mint_maker_test: StaticWarning
 package_root_test: SkipByDesign # Uses dart:io.
 
 [ $compiler == dart2js && $cps_ir ]
-count_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-cross_isolate_message_test: Crash #  Unhandled node
-deferred_in_isolate2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-function_send_test: Crash # (try {p.send(func);}finally {p.send(0);}): try/finally
-handle_error2_test: Crash #  Unhandled node
-handle_error3_test: Crash #  Unhandled node
-handle_error_test: Crash #  Unhandled node
-illegal_msg_function_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-illegal_msg_mirror_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-isolate_complex_messages_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-isolate_current_test: Crash #  Unhandled node
-mandel_isolate_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-message2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-message3_test/byteBuffer: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/constInstance: Crash # Please triage this failure.
-message3_test/constList: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/constList_identical: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/constMap: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/fun: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/int32x4: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message3_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-message_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mint_maker_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-nested_spawn2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-nested_spawn_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-raw_port_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-request_reply_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_function_custom_class_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_function_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_uri_multi_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
-spawn_uri_multi_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
-stacktrace_message_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-static_function_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-timer_isolate_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-unresolved_ports_test: Crash # Instance of 'TypeOperator': type casts not implemented.
+bool_from_environment_default_value_test: RuntimeError # receiver.get$_collection$_nums is not a function
+capability_test: RuntimeError # receiver.get$_collection$_nums is not a function
+compile_time_error_test/none: RuntimeError # receiver.get$_collection$_nums is not a function
+count_test: Crash # Invalid argument(s)
+cross_isolate_message_test: Crash # Invalid argument(s)
+deferred_in_isolate2_test: Crash # Invalid argument(s)
+deferred_in_isolate_test: RuntimeError # receiver.get$_collection$_nums is not a function
+function_send_test: RuntimeError # receiver.get$_nums is not a function
+handle_error2_test: RuntimeError # receiver.get$_collection$_nums is not a function
+handle_error3_test: RuntimeError # receiver.get$_collection$_nums is not a function
+handle_error_test: RuntimeError # receiver.get$_collection$_nums is not a function
+illegal_msg_function_test: Crash # Invalid argument(s)
+illegal_msg_mirror_test: Crash # Invalid argument(s)
+int_from_environment_default_value_test: RuntimeError # receiver.get$_collection$_nums is not a function
+isolate_complex_messages_test: Crash # Invalid argument(s)
+isolate_current_test: RuntimeError # receiver.get$_nums is not a function
+isolate_import_test/none: RuntimeError # receiver.get$_collection$_nums is not a function
+issue_22778_test: RuntimeError # receiver.get$_collection$_nums is not a function
+kill2_test: RuntimeError # receiver.get$_collection$_nums is not a function
+kill_self_test: RuntimeError # receiver.get$_collection$_nums is not a function
+kill_test: RuntimeError # receiver.get$_collection$_nums is not a function
+mandel_isolate_test: Crash # Invalid argument(s)
+message2_test: Crash # Invalid argument(s)
+message3_test/byteBuffer: RuntimeError # receiver.get$_collection$_nums is not a function
+message3_test/constInstance: Crash # Invalid argument(s)
+message3_test/fun: RuntimeError # receiver.get$_collection$_nums is not a function
+message3_test/int32x4: RuntimeError # receiver.get$_collection$_nums is not a function
+message3_test/none: RuntimeError # receiver.get$_collection$_nums is not a function
+message_enum_test: RuntimeError # receiver.get$_collection$_nums is not a function
+message_test: Crash # Invalid argument(s)
+mint_maker_test: Crash # Invalid argument(s)
+nested_spawn2_test: Crash # Invalid argument(s)
+nested_spawn_test: Crash # Invalid argument(s)
+object_leak_test: RuntimeError # receiver.get$_collection$_nums is not a function
+ondone_test: RuntimeError # receiver.get$_nums is not a function
+pause_test: RuntimeError # receiver.get$_nums is not a function
+ping_pause_test: RuntimeError # receiver.get$_collection$_nums is not a function
+ping_test: RuntimeError # receiver.get$_collection$_nums is not a function
+port_test: RuntimeError # receiver.get$_collection$_nums is not a function
+raw_port_test: Crash # Invalid argument(s)
+request_reply_test: Crash # Invalid argument(s)
+simple_message_test/none: RuntimeError # receiver.get$_collection$_nums is not a function
+spawn_function_custom_class_test: Crash # Invalid argument(s)
+spawn_function_test: Crash # Invalid argument(s)
+spawn_uri_missing_from_isolate_test: Crash # Invalid argument(s)
+spawn_uri_missing_test: Crash # Invalid argument(s)
+spawn_uri_multi_test/01: Crash # Invalid argument(s)
+spawn_uri_multi_test/none: Crash # Invalid argument(s)
+stacktrace_message_test: Crash # Invalid argument(s)
+start_paused_test: RuntimeError # receiver.get$_nums is not a function
+static_function_test: Crash # Invalid argument(s)
+string_from_environment_default_value_test: RuntimeError # receiver.get$_collection$_nums is not a function
+timer_isolate_test: Crash # Invalid argument(s)
+typed_message_test: RuntimeError # receiver.get$_nums is not a function
+unresolved_ports_test: Crash # Invalid argument(s)

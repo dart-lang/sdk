@@ -9,6 +9,7 @@ import 'dart:collection' show Queue;
 import '../compile_time_constants.dart';
 import '../constants/expressions.dart';
 import '../constants/values.dart';
+import '../core_types.dart';
 import '../dart_backend/dart_backend.dart' show DartBackend;
 import '../dart_types.dart';
 import '../dart2jslib.dart' hide DynamicAccess;
@@ -28,6 +29,7 @@ import '../elements/modelx.dart' show
     FormalElementX,
     FunctionElementX,
     FunctionSignatureX,
+    GetterElementX,
     InitializingFormalElementX,
     JumpTargetX,
     LabelDefinitionX,
@@ -39,6 +41,7 @@ import '../elements/modelx.dart' show
     MixinApplicationElementX,
     ParameterElementX,
     ParameterMetadataAnnotation,
+    SetterElementX,
     SynthesizedConstructorElementX,
     TypeVariableElementX,
     TypedefElementX,
@@ -46,8 +49,12 @@ import '../elements/modelx.dart' show
     VariableList;
 
 import '../ordered_typeset.dart' show OrderedTypeSet, OrderedTypeSetBuilder;
+import '../types/types.dart' show TypeMask;
 import '../util/util.dart';
-import '../universe/universe.dart' show CallStructure, SelectorKind;
+import '../universe/universe.dart' show
+    CallStructure,
+    SelectorKind,
+    UniverseSelector;
 
 import 'access_semantics.dart';
 import 'class_members.dart' show MembersCreator;

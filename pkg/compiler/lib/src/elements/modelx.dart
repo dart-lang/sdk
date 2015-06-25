@@ -8,7 +8,6 @@ import 'common.dart';
 import 'elements.dart';
 import '../constants/expressions.dart';
 import '../constants/constructors.dart';
-import '../helpers/helpers.dart';  // Included for debug helpers.
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
@@ -64,12 +63,6 @@ abstract class ElementX extends Element with ElementCommon {
   Node parseNode(DiagnosticListener listener) {
     listener.internalError(this,
         'parseNode not implemented on $this.');
-    return null;
-  }
-
-  DartType computeType(Compiler compiler) {
-    compiler.internalError(this,
-        "computeType not implemented on $this.");
     return null;
   }
 
@@ -302,6 +295,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   bool get isRedirectingFactory => unsupported();
 
   computeSignature(compiler) => unsupported();
+  computeType(compiler) => unsupported();
 
   bool get hasFunctionSignature => false;
 
@@ -2142,6 +2136,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
               Modifiers.EMPTY,
               enclosing) {
     typeCache = new FunctionType.synthesized(enclosingClass.thisType);
+    functionSignatureCache = new FunctionSignatureX(type: type);
   }
 
   FunctionExpression parseNode(DiagnosticListener listener) => null;
@@ -2166,18 +2161,16 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
 
   FunctionSignature computeSignature(compiler) {
     if (functionSignatureCache != null) return functionSignatureCache;
-    if (isDefaultConstructor) {
-      return functionSignatureCache = new FunctionSignatureX(
-          type: type);
-    }
     if (definingConstructor.isErroneous) {
       return functionSignatureCache =
           compiler.objectClass.localLookup('').computeSignature(compiler);
     }
     // TODO(johnniwinther): Ensure that the function signature (and with it the
     // function type) substitutes type variables correctly.
-    return functionSignatureCache =
-        definingConstructor.computeSignature(compiler);
+    definingConstructor.computeType(compiler);
+    functionSignatureCache = definingConstructor.functionSignature;
+    typeCache = definingConstructor.type;
+    return functionSignatureCache;
   }
 
   accept(ElementVisitor visitor, arg) {

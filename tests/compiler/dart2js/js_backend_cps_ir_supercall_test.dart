@@ -23,7 +23,7 @@ main() {
 }""",
 r"""
 function(x) {
-  return V.Base.prototype.m$1.call(this, J.getInterceptor$ns(x).$add(x, 10));
+  return V.Base.prototype.m$1.call(this, x + 10);
 }"""),
 
   // Reenable when we support compiling functions that

@@ -16,6 +16,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, lazy_dispatchers);
+
 // A cache of VM heap allocated arguments descriptors.
 RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
 
@@ -187,10 +189,19 @@ RawObject* DartEntry::InvokeNoSuchMethod(const Instance& receiver,
   const int kNumArguments = 2;
   ArgumentsDescriptor args_desc(
       Array::Handle(ArgumentsDescriptor::New(kNumArguments)));
-  const Function& function = Function::Handle(
+  Function& function = Function::Handle(
       Resolver::ResolveDynamic(receiver,
                                Symbols::NoSuchMethod(),
                                args_desc));
+  if (function.IsNull()) {
+    ASSERT(!FLAG_lazy_dispatchers);
+    // If noSuchMethod(invocation) is not found, call Object::noSuchMethod.
+    Isolate* isolate = Isolate::Current();
+    function ^= Resolver::ResolveDynamicForReceiverClass(
+        Class::Handle(isolate, isolate->object_store()->object_class()),
+        Symbols::NoSuchMethod(),
+        args_desc);
+  }
   ASSERT(!function.IsNull());
   const Array& args = Array::Handle(Array::New(kNumArguments));
   args.SetAt(0, receiver);

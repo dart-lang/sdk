@@ -44,7 +44,7 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   /// If ES6 Maps are available returns a linked hash-map backed by an ES6 Map.
   @ForceInline()
   factory JsLinkedHashMap.es6() {
-    return (_USE_ES6_MAPS  && JsLinkedHashMap._supportsEs6Maps)
+    return (_USE_ES6_MAPS && JsLinkedHashMap._supportsEs6Maps)
         ? new Es6LinkedHashMap<K, V>()
         : new JsLinkedHashMap<K, V>();
   }
@@ -223,9 +223,10 @@ class JsLinkedHashMap<K, V> implements LinkedHashMap<K, V>, InternalMap {
   }
 
   void _modified() {
-    // Value cycles after 2^30 modifications. If you keep hold of an
-    // iterator for that long, you might miss a modification
-    // detection, and iteration can go sour. Don't do that.
+    // Value cycles after 2^30 modifications so that modification counts are
+    // always unboxed (Smi) values. Modification detection will be missed if you
+    // make exactly some multiple of 2^30 modifications between advances of an
+    // iterator.
     _modifications = (_modifications + 1) & 0x3ffffff;
   }
 

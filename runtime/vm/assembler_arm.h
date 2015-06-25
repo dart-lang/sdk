@@ -341,11 +341,11 @@ class Assembler : public ValueObject {
     return buffer_.pointer_offsets();
   }
 
-  const GrowableObjectArray& object_pool_data() const {
-    return object_pool_.data();
-  }
+  ObjectPoolWrapper& object_pool_wrapper() { return object_pool_wrapper_; }
 
-  ObjectPool& object_pool() { return object_pool_; }
+  RawObjectPool* MakeObjectPool() {
+    return object_pool_wrapper_.MakeObjectPool();
+  }
 
   bool use_far_branches() const {
     return FLAG_use_far_branches || use_far_branches_;
@@ -615,6 +615,8 @@ class Assembler : public ValueObject {
   // Branch and link to an entry address. Call sequence is never patched.
   void BranchLink(const ExternalLabel* label);
 
+  void BranchLink(const ExternalLabel* label, Patchability patchable);
+
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const ExternalLabel* label);
 
@@ -664,6 +666,10 @@ class Assembler : public ValueObject {
   void LoadIsolate(Register rd);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
+  void LoadExternalLabel(Register dst,
+                         const ExternalLabel* label,
+                         Patchability patchable,
+                         Condition cond = AL);
   void PushObject(const Object& object);
   void CompareObject(Register rn, const Object& object);
 
@@ -886,7 +892,7 @@ class Assembler : public ValueObject {
 
   // Set up a stub frame so that the stack traversal code can easily identify
   // a stub frame.
-  void EnterStubFrame(bool load_pp = false);
+  void EnterStubFrame();
   void LeaveStubFrame();
 
   // Instruction pattern from entrypoint is used in Dart frame prologs
@@ -961,7 +967,7 @@ class Assembler : public ValueObject {
 
  private:
   AssemblerBuffer buffer_;  // Contains position independent code.
-  ObjectPool object_pool_;  // Objects and patchable jump targets.
+  ObjectPoolWrapper object_pool_wrapper_;
 
   int32_t prologue_offset_;
 

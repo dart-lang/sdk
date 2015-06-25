@@ -323,7 +323,7 @@ class InlinedFunctionsIterator : public ValueObject {
   Function& function_;
   uword pc_;
   GrowableArray<DeoptInstr*> deopt_instructions_;
-  Array& object_table_;
+  ObjectPool& object_table_;
 
   DISALLOW_COPY_AND_ASSIGN(InlinedFunctionsIterator);
 };

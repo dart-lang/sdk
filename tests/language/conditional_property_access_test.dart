@@ -47,7 +47,7 @@ main() {
 
   // Nor can it be used to access toplevel properties in libraries imported via
   // prefix.
-  Expect.throws(() => h?.topLevelVar, noMethod); /// 09: static type warning
+  var x = h?.topLevelVar; /// 09: compile-time error
 
   // However, '?.' can be used to access the hashCode getter on the class Type.
   Expect.equals(C?.hashCode, (C).hashCode); /// 10: ok

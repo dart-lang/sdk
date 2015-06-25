@@ -162,16 +162,26 @@ TEST_CASE(EvalExpressionExhaustCIDs) {
   const String& expression = String::Handle(String::New("3 + 4"));
   Object& val = Object::Handle();
 
-  const intptr_t classTableSize = 1 << RawObject::kClassIdTagSize;
-  for (intptr_t i = 0; i < classTableSize; i++) {
-    StackZone zone(Isolate::Current());
-    val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
-  }
-
+  // Run once to ensure everything we touch is compiled.
+  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
   EXPECT(!val.IsNull());
   EXPECT(!val.IsError());
   EXPECT(val.IsInteger());
   EXPECT_EQ(7, Integer::Cast(val).AsInt64Value());
+
+  intptr_t initial_class_table_size =
+      Isolate::Current()->class_table()->NumCids();
+
+  val = lib.Evaluate(expression, Array::empty_array(), Array::empty_array());
+  EXPECT(!val.IsNull());
+  EXPECT(!val.IsError());
+  EXPECT(val.IsInteger());
+  EXPECT_EQ(7, Integer::Cast(val).AsInt64Value());
+
+  intptr_t final_class_table_size =
+      Isolate::Current()->class_table()->NumCids();
+  // Eval should not eat into this non-renewable resource.
+  EXPECT_EQ(initial_class_table_size, final_class_table_size);
 }
 
 }  // namespace dart

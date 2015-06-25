@@ -35,6 +35,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/model.dart' hide AnalysisTask;
+import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
@@ -47,30 +48,34 @@ import 'test_support.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(AnalysisCacheTest);
-  runReflectiveTests(AnalysisContextImplTest);
-  runReflectiveTests(AnalysisTaskTest);
-  runReflectiveTests(AnalysisOptionsImplTest);
-  runReflectiveTests(DartEntryTest);
-  runReflectiveTests(GenerateDartErrorsTaskTest);
-  runReflectiveTests(GenerateDartHintsTaskTest);
-  runReflectiveTests(GenerateDartLintsTaskTest);
-  runReflectiveTests(GetContentTaskTest);
-  runReflectiveTests(HtmlEntryTest);
-  runReflectiveTests(IncrementalAnalysisCacheTest);
-  runReflectiveTests(IncrementalAnalysisTaskTest);
-  runReflectiveTests(LintGeneratorTest);
-  runReflectiveTests(ParseDartTaskTest);
-  runReflectiveTests(ParseHtmlTaskTest);
-  runReflectiveTests(PartitionManagerTest);
-  runReflectiveTests(ResolveDartLibraryTaskTest);
-  runReflectiveTests(ResolveDartUnitTaskTest);
-  runReflectiveTests(ResolveHtmlTaskTest);
-  runReflectiveTests(ScanDartTaskTest);
-  runReflectiveTests(SdkCachePartitionTest);
+  // Tests for the classes used in both old and new analysis implementations.
   runReflectiveTests(SourcesChangedEventTest);
-  runReflectiveTests(UniversalCachePartitionTest);
-  runReflectiveTests(WorkManagerTest);
+  // Tests for the classes used in the old analysis implementation.
+  if (!AnalysisEngine.instance.useTaskModel) {
+    runReflectiveTests(AnalysisCacheTest);
+    runReflectiveTests(AnalysisContextImplTest);
+    runReflectiveTests(AnalysisTaskTest);
+    runReflectiveTests(AnalysisOptionsImplTest);
+    runReflectiveTests(DartEntryTest);
+    runReflectiveTests(GenerateDartErrorsTaskTest);
+    runReflectiveTests(GenerateDartHintsTaskTest);
+    runReflectiveTests(GenerateDartLintsTaskTest);
+    runReflectiveTests(GetContentTaskTest);
+    runReflectiveTests(HtmlEntryTest);
+    runReflectiveTests(IncrementalAnalysisCacheTest);
+    runReflectiveTests(IncrementalAnalysisTaskTest);
+    runReflectiveTests(LintGeneratorTest);
+    runReflectiveTests(ParseDartTaskTest);
+    runReflectiveTests(ParseHtmlTaskTest);
+    runReflectiveTests(PartitionManagerTest);
+    runReflectiveTests(ResolveDartLibraryTaskTest);
+    runReflectiveTests(ResolveDartUnitTaskTest);
+    runReflectiveTests(ResolveHtmlTaskTest);
+    runReflectiveTests(ScanDartTaskTest);
+    runReflectiveTests(SdkCachePartitionTest);
+    runReflectiveTests(UniversalCachePartitionTest);
+    runReflectiveTests(WorkManagerTest);
+  }
 }
 
 @reflectiveTest
@@ -5559,6 +5564,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  @deprecated
   HtmlElement computeHtmlElement(Source source) {
     fail("Unexpected invocation of computeHtmlElement");
     return null;
@@ -5640,6 +5646,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  @deprecated
   HtmlElement getHtmlElement(Source source) {
     fail("Unexpected invocation of getHtmlElement");
     return null;
@@ -5707,6 +5714,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return null;
   }
   @override
+  @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     fail("Unexpected invocation of getResolvedHtmlUnit");
     return null;
@@ -5737,8 +5745,18 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return false;
   }
   @override
+  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
+    fail("Unexpected invocation of onResultComputed");
+    return null;
+  }
+  @override
   CompilationUnit parseCompilationUnit(Source source) {
     fail("Unexpected invocation of parseCompilationUnit");
+    return null;
+  }
+  @override
+  Document parseHtmlDocument(Source source) {
+    fail("Unexpected invocation of parseHtmlDocument");
     return null;
   }
   @override
@@ -5751,6 +5769,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
     fail("Unexpected invocation of performAnalysisTask");
     return null;
   }
+
   @override
   void recordLibraryElements(Map<Source, LibraryElement> elementMap) {
     fail("Unexpected invocation of recordLibraryElements");
@@ -5776,6 +5795,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     fail("Unexpected invocation of resolveHtmlUnit");
     return null;
@@ -5791,12 +5811,23 @@ class TestAnalysisContext implements InternalAnalysisContext {
   void setContents(Source source, String contents) {
     fail("Unexpected invocation of setContents");
   }
-
   @override
   bool shouldErrorsBeAnalyzed(Source source, Object entry) {
     fail("Unexpected invocation of shouldErrorsBeAnalyzed");
     return false;
   }
+
+  @override
+  void test_flushAstStructures(Source source) {
+    fail("Unexpected invocation of test_flushAstStructures");
+  }
+
+  @override
+  bool validateCacheConsistency() {
+    fail("Unexpected invocation of validateCacheConsistency");
+    return false;
+  }
+
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
@@ -5849,6 +5880,7 @@ class TestAnalysisContext_test_computeHtmlElement extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_computeHtmlElement();
   @override
+  @deprecated
   HtmlElement computeHtmlElement(Source source) {
     invoked = true;
     return null;
@@ -5983,6 +6015,7 @@ class TestAnalysisContext_test_getHtmlElement extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_getHtmlElement();
   @override
+  @deprecated
   HtmlElement getHtmlElement(Source source) {
     invoked = true;
     return null;
@@ -6154,6 +6187,7 @@ class TestAnalysisContext_test_getResolvedHtmlUnit extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_getResolvedHtmlUnit();
   @override
+  @deprecated
   ht.HtmlUnit getResolvedHtmlUnit(Source htmlSource) {
     invoked = true;
     return null;
@@ -6289,6 +6323,7 @@ class TestAnalysisContext_test_resolveHtmlUnit extends TestAnalysisContext {
   bool invoked = false;
   TestAnalysisContext_test_resolveHtmlUnit();
   @override
+  @deprecated
   ht.HtmlUnit resolveHtmlUnit(Source htmlSource) {
     invoked = true;
     return null;

@@ -1606,6 +1606,7 @@ LocationSummary* GuardFieldClassInstr::MakeLocationSummary(Zone* zone,
 
 
 void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt16Size);
   __ Comment("GuardFieldClassInstr");
 
   const intptr_t value_cid = value()->Type()->ToCid();
@@ -1650,16 +1651,16 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (value_cid == kDynamicCid) {
       LoadValueCid(compiler, value_cid_reg, value_reg);
 
-      __ lw(CMPRES1, field_cid_operand);
+      __ lhu(CMPRES1, field_cid_operand);
       __ beq(value_cid_reg, CMPRES1, &ok);
-      __ lw(TMP, field_nullability_operand);
+      __ lhu(TMP, field_nullability_operand);
       __ subu(CMPRES1, value_cid_reg, TMP);
     } else if (value_cid == kNullCid) {
-      __ lw(TMP, field_nullability_operand);
+      __ lhu(TMP, field_nullability_operand);
       __ LoadImmediate(CMPRES1, value_cid);
       __ subu(CMPRES1, TMP, CMPRES1);
     } else {
-      __ lw(TMP, field_cid_operand);
+      __ lhu(TMP, field_cid_operand);
       __ LoadImmediate(CMPRES1, value_cid);
       __ subu(CMPRES1, TMP, CMPRES1);
     }
@@ -1674,16 +1675,16 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     if (!field().needs_length_check()) {
       // Uninitialized field can be handled inline. Check if the
       // field is still unitialized.
-      __ lw(CMPRES1, field_cid_operand);
+      __ lhu(CMPRES1, field_cid_operand);
       __ BranchNotEqual(CMPRES1, Immediate(kIllegalCid), fail);
 
       if (value_cid == kDynamicCid) {
-        __ sw(value_cid_reg, field_cid_operand);
-        __ sw(value_cid_reg, field_nullability_operand);
+        __ sh(value_cid_reg, field_cid_operand);
+        __ sh(value_cid_reg, field_nullability_operand);
       } else {
         __ LoadImmediate(TMP, value_cid);
-        __ sw(TMP, field_cid_operand);
-        __ sw(TMP, field_nullability_operand);
+        __ sh(TMP, field_cid_operand);
+        __ sh(TMP, field_nullability_operand);
       }
 
       if (deopt == NULL) {
@@ -1696,7 +1697,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(!compiler->is_optimizing());
       __ Bind(fail);
 
-      __ lw(CMPRES1, FieldAddress(field_reg, Field::guarded_cid_offset()));
+      __ lhu(CMPRES1, FieldAddress(field_reg, Field::guarded_cid_offset()));
       __ BranchEqual(CMPRES1, Immediate(kDynamicCid), &ok);
 
       __ addiu(SP, SP, Immediate(-2 * kWordSize));
@@ -1947,6 +1948,7 @@ static void EnsureMutableBox(FlowGraphCompiler* compiler,
 
 
 void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt16Size);
   Label skip_store;
 
   Register instance_reg = locs()->in(0).reg();
@@ -2000,14 +2002,14 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     __ LoadObject(temp, Field::ZoneHandle(field().raw()));
 
-    __ lw(temp2, FieldAddress(temp, Field::is_nullable_offset()));
+    __ lhu(temp2, FieldAddress(temp, Field::is_nullable_offset()));
     __ BranchEqual(temp2, Immediate(kNullCid), &store_pointer);
 
     __ lbu(temp2, FieldAddress(temp, Field::kind_bits_offset()));
     __ andi(CMPRES1, temp2, Immediate(1 << Field::kUnboxingCandidateBit));
     __ beq(CMPRES1, ZR, &store_pointer);
 
-    __ lw(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
+    __ lhu(temp2, FieldAddress(temp, Field::guarded_cid_offset()));
     __ BranchEqual(temp2, Immediate(kDoubleCid), &store_double);
 
     // Fall through.
@@ -2285,6 +2287,8 @@ LocationSummary* LoadFieldInstr::MakeLocationSummary(Zone* zone,
 
 
 void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(sizeof(classid_t) == kInt16Size);
+
   Register instance_reg = locs()->in(0).reg();
   if (IsUnboxedLoad() && compiler->is_optimizing()) {
     DRegister result = locs()->out(0).fpu_reg();
@@ -2317,10 +2321,10 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     FieldAddress field_nullability_operand(result_reg,
                                            Field::is_nullable_offset());
 
-    __ lw(temp, field_nullability_operand);
+    __ lhu(temp, field_nullability_operand);
     __ BranchEqual(temp, Immediate(kNullCid), &load_pointer);
 
-    __ lw(temp, field_cid_operand);
+    __ lhu(temp, field_cid_operand);
     __ BranchEqual(temp, Immediate(kDoubleCid), &load_double);
 
     // Fall through.
@@ -4579,41 +4583,6 @@ void MergedMathInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* PolymorphicInstanceCallInstr::MakeLocationSummary(
     Zone* zone, bool opt) const {
   return MakeCallSummary(zone);
-}
-
-
-void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  __ Comment("PolymorphicInstanceCallInstr");
-  ASSERT(ic_data().NumArgsTested() == 1);
-  if (!with_checks()) {
-    ASSERT(ic_data().HasOneTarget());
-    const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
-    compiler->GenerateStaticCall(deopt_id(),
-                                 instance_call()->token_pos(),
-                                 target,
-                                 instance_call()->ArgumentCount(),
-                                 instance_call()->argument_names(),
-                                 locs(),
-                                 ICData::Handle());
-    return;
-  }
-
-  // Load receiver into T0.
-  __ LoadFromOffset(T0, SP, (instance_call()->ArgumentCount() - 1) * kWordSize);
-
-  Label* deopt = compiler->AddDeoptStub(
-      deopt_id(), ICData::kDeoptPolymorphicInstanceCallTestFail);
-  LoadValueCid(compiler, T2, T0,
-               (ic_data().GetReceiverClassIdAt(0) == kSmiCid) ? NULL : deopt);
-
-  compiler->EmitTestAndCall(ic_data(),
-                            T2,  // Class id register.
-                            instance_call()->ArgumentCount(),
-                            instance_call()->argument_names(),
-                            deopt,
-                            deopt_id(),
-                            instance_call()->token_pos(),
-                            locs());
 }
 
 

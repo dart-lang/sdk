@@ -164,7 +164,7 @@ class MemoryResourceProvider implements ResourceProvider {
   void _notifyWatchers(String path, ChangeType changeType) {
     _pathToWatchers.forEach((String watcherPath,
         List<StreamController<WatchEvent>> streamControllers) {
-      if (posix.isWithin(watcherPath, path)) {
+      if (watcherPath == path || posix.isWithin(watcherPath, path)) {
         for (StreamController<WatchEvent> streamController
             in streamControllers) {
           streamController.add(new WatchEvent(changeType, path));
@@ -181,6 +181,11 @@ class MemoryResourceProvider implements ResourceProvider {
 class _MemoryDummyLink extends _MemoryResource implements File {
   _MemoryDummyLink(MemoryResourceProvider provider, String path)
       : super(provider, path);
+
+  @override
+  Stream<WatchEvent> get changes {
+    throw new FileSystemException(path, "File does not exist");
+  }
 
   @override
   bool get exists => false;
@@ -358,23 +363,6 @@ class _MemoryFolder extends _MemoryResource implements Folder {
       : super(provider, path);
 
   @override
-  Stream<WatchEvent> get changes {
-    StreamController<WatchEvent> streamController =
-        new StreamController<WatchEvent>();
-    if (!_provider._pathToWatchers.containsKey(path)) {
-      _provider._pathToWatchers[path] = <StreamController<WatchEvent>>[];
-    }
-    _provider._pathToWatchers[path].add(streamController);
-    streamController.done.then((_) {
-      _provider._pathToWatchers[path].remove(streamController);
-      if (_provider._pathToWatchers[path].isEmpty) {
-        _provider._pathToWatchers.remove(path);
-      }
-    });
-    return streamController.stream;
-  }
-
-  @override
   bool get exists => _provider._pathToResource[path] is _MemoryFolder;
 
   @override
@@ -441,6 +429,22 @@ abstract class _MemoryResource implements Resource {
   final String path;
 
   _MemoryResource(this._provider, this.path);
+
+  Stream<WatchEvent> get changes {
+    StreamController<WatchEvent> streamController =
+        new StreamController<WatchEvent>();
+    if (!_provider._pathToWatchers.containsKey(path)) {
+      _provider._pathToWatchers[path] = <StreamController<WatchEvent>>[];
+    }
+    _provider._pathToWatchers[path].add(streamController);
+    streamController.done.then((_) {
+      _provider._pathToWatchers[path].remove(streamController);
+      if (_provider._pathToWatchers[path].isEmpty) {
+        _provider._pathToWatchers.remove(path);
+      }
+    });
+    return streamController.stream;
+  }
 
   @override
   get hashCode => path.hashCode;

@@ -19,6 +19,16 @@ class InstanceViewElement extends ObservatoryElement {
     return instance.evaluate(expression);
   }
 
+  Future setBreakOnActivation() {
+    return instance.isolate.addBreakOnActivation(instance)
+        .then((_) => refresh());
+  }
+
+  Future clearBreakOnActivation() {
+    return instance.isolate.removeBreakpoint(instance.activationBreakpoint)
+        .then((_) => refresh());
+  }
+
   Future refresh() {
     return instance.reload();
   }

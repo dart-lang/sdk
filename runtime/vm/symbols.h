@@ -150,6 +150,7 @@ class ObjectPointerVisitor;
   V(Namespace, "Namespace")                                                    \
   V(Code, "Code")                                                              \
   V(Instructions, "Instructions")                                              \
+  V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
   V(Stackmap, "Stackmap")                                                      \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \

@@ -631,7 +631,7 @@ class NativeBehavior {
     return behavior;
   }
 
-  static NativeBehavior ofFieldLoad(Element field, Compiler compiler) {
+  static NativeBehavior ofFieldLoad(MemberElement field, Compiler compiler) {
     DartType type = field.computeType(compiler);
     var behavior = new NativeBehavior();
     behavior.typesReturned.add(type);
@@ -642,7 +642,7 @@ class NativeBehavior {
     return behavior;
   }
 
-  static NativeBehavior ofFieldStore(Element field, Compiler compiler) {
+  static NativeBehavior ofFieldStore(MemberElement field, Compiler compiler) {
     DartType type = field.computeType(compiler);
     var behavior = new NativeBehavior();
     behavior._escape(type, compiler);

@@ -13,14 +13,16 @@ vars.update({
   "dartium_chromium_commit": "62a7524d4f71c9e0858d24b0aa1bbff3a2d09bff",
   "chromium_base_revision": "297060",
   "dartium_webkit_branch": "/blink/branches/dart/dartium",
-  "dartium_webkit_revision": "196634",
+  "dartium_webkit_revision": "197293",
 
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
   "charcode_tag": "@1.1.0",
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
+  "csslib_tag" : "@0.12.0",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
+  "html_tag" : "@0.12.1+1",
   "http_rev" : "@9b93e1542c753090c50b46ef1592d44bc858bfe7",
   "http_multi_server_tag" : "@1.3.2",
   "http_parser_rev" : "@8b179e36aba985208e4c5fb15cfddd386b6370a4",
@@ -32,11 +34,11 @@ vars.update({
   "metatest_rev": "@e5aa8e4e19fc4188ac2f6d38368a47d8f07c3df1",
   "oauth2_rev": "@1bff41f4d54505c36f2d1a001b83b8b745c452f5",
   "observatory_pub_packages_rev": "@45565",
-  "package_config_tag": "@0.0.3+1",
+  "package_config_tag": "@0.1.1",
   "path_rev": "@b657c0854d1cf41c014986fa9d2321f1173df805",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
-  "pub_rev": "@6f2a1b90b8210a85a38aab1af479c047681c29e6",
+  "pub_rev": "@9d707158fedc86fc2b02f62cdfe804902b098d9d",
   "pub_semver_tag": "@1.2.0",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
@@ -45,6 +47,7 @@ vars.update({
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
   "test_tag": "@0.12.1",
   "unittest_tag": "@0.11.6",
+  "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
   "watcher_tag": "@0.9.5",
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
@@ -88,10 +91,14 @@ deps.update({
       "https://github.com/dart-lang/barback.git" + Var("barback_rev"),
   "src/dart/third_party/pkg/crypto":
       "https://github.com/dart-lang/crypto.git" + Var("crypto_rev"),
+  "src/dart/third_party/pkg/csslib":
+      "https://github.com/dart-lang/csslib.git" + Var("csslib_tag"),
   "src/dart/third_party/pkg/collection":
       "https://github.com/dart-lang/collection.git" + Var("collection_rev"),
   "src/dart/third_party/pkg/glob":
       "https://github.com/dart-lang/glob.git" + Var("glob_rev"),
+  "src/dart/third_party/pkg/html":
+      "https://github.com/dart-lang/html.git" + Var("html_tag"),
   "src/dart/third_party/pkg/json_rpc_2":
       "https://github.com/dart-lang/json_rpc_2.git" + Var("json_rpc_2_rev"),
   "src/dart/third_party/pkg/http":
@@ -103,6 +110,8 @@ deps.update({
       "https://github.com/dart-lang/http_parser.git" + Var("http_parser_rev"),
   "src/dart/third_party/pkg/http_throttle":
       "https://github.com/dart-lang/http_throttle.git" + Var("http_throttle_rev"),
+  "src/dart/third_party/pkg/logging":
+      "https://github.com/dart-lang/logging.git" + Var("logging_rev"),
   "src/dart/third_party/pkg/mime":
       "https://github.com/dart-lang/mime.git" + Var("mime_rev"),
   "src/dart/third_party/pkg/oauth2":
@@ -111,7 +120,7 @@ deps.update({
       "https://github.com/dart-lang/plugin.git" + Var("plugin_tag"),
   "src/dart/third_party/pkg/pool":
       "https://github.com/dart-lang/pool.git" + Var("pool_rev"),
-  "src/dart/third_party/pkg_tested/pub":
+  "src/dart/third_party/pkg/pub":
       "https://github.com/dart-lang/pub.git" + Var("pub_rev"),
   "src/dart/third_party/pkg/pub_semver":
       "https://github.com/dart-lang/pub_semver.git" + Var("pub_semver_tag"),
@@ -120,6 +129,8 @@ deps.update({
   "src/dart/third_party/pkg/shelf_web_socket":
       "https://github.com/dart-lang/shelf_web_socket.git" +
       Var("shelf_web_socket_rev"),
+  "src/dart/third_party/pkg/utf":
+      "https://github.com/dart-lang/utf.git" + Var("utf_rev"),
   "src/dart/third_party/pkg/watcher":
       "https://github.com/dart-lang/watcher.git" + Var("watcher_tag"),
   "src/dart/third_party/pkg/yaml":
