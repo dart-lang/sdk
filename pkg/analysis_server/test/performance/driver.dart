@@ -148,27 +148,37 @@ class Driver extends IntegrationTestMixin {
  */
 class Measurement {
   final String tag;
+  final bool notification;
   final List<Duration> elapsedTimes = new List<Duration>();
   int errorCount = 0;
+  int unexpectedResultCount = 0;
 
-  Measurement(this.tag);
+  Measurement(this.tag, this.notification);
+
+  int get count => elapsedTimes.length;
 
   void printSummary(int keyLen) {
     int count = 0;
+    Duration maxTime = elapsedTimes[0];
+    Duration minTime = elapsedTimes[0];
     int totalTimeMicros = 0;
     for (Duration elapsed in elapsedTimes) {
       ++count;
-      totalTimeMicros += elapsed.inMicroseconds;
+      int timeMicros = elapsed.inMicroseconds;
+      maxTime = maxTime.compareTo(elapsed) > 0 ? maxTime : elapsed;
+      minTime = minTime.compareTo(elapsed) < 0 ? minTime : elapsed;
+      totalTimeMicros += timeMicros;
     }
     int averageTimeMicros = (totalTimeMicros / count).round();
     StringBuffer sb = new StringBuffer();
     _printColumn(sb, tag, keyLen);
-    _printColumn(sb, count.toString(), 5, rightJustified: true);
-    _printColumn(sb, errorCount.toString(), 5, rightJustified: true);
-    sb.write('  ');
-    sb.write(new Duration(microseconds: averageTimeMicros));
-    sb.write(',   ');
-    sb.write(new Duration(microseconds: totalTimeMicros));
+    _printColumn(sb, count.toString(), 6, rightJustified: true);
+    _printColumn(sb, errorCount.toString(), 6, rightJustified: true);
+    _printColumn(sb, unexpectedResultCount.toString(), 6, rightJustified: true);
+    _printDuration(sb, minTime);
+    _printDuration(sb, new Duration(microseconds: averageTimeMicros));
+    _printDuration(sb, maxTime);
+    _printDuration(sb, new Duration(microseconds: totalTimeMicros));
     print(sb.toString());
   }
 
@@ -177,6 +187,16 @@ class Measurement {
       ++errorCount;
     }
     elapsedTimes.add(elapsed);
+  }
+
+  void recordUnexpectedResults() {
+    ++unexpectedResultCount;
+  }
+
+  void _printDuration(StringBuffer sb, Duration duration) {
+    sb.write('  ');
+    sb.write(duration);
+    sb.write(',');
   }
 }
 
@@ -191,39 +211,79 @@ class Results {
    * Display results on stdout.
    */
   void printResults() {
+    print('');
     print('==================================================================');
+    print('');
     List<String> keys = measurements.keys.toList()..sort();
     int keyLen = keys.fold(0, (int len, String key) => max(len, key.length));
-    StringBuffer sb = new StringBuffer();
-    _printColumn(sb, 'Results', keyLen);
-    _printColumn(sb, 'count', 5);
-    _printColumn(sb, 'errors', 5);
-    sb.write('   average,          total,');
-    print(sb.toString());
+    _printGroupHeader('Request/Response', keyLen);
     int totalCount = 0;
     int totalErrorCount = 0;
+    int totalUnexpectedResultCount = 0;
     for (String tag in keys) {
       Measurement m = measurements[tag];
-      m.printSummary(keyLen);
-      totalCount += m.elapsedTimes.length;
-      totalErrorCount += m.errorCount;
+      if (!m.notification) {
+        m.printSummary(keyLen);
+        totalCount += m.count;
+        totalErrorCount += m.errorCount;
+        totalUnexpectedResultCount += m.unexpectedResultCount;
+      }
     }
-    sb.clear();
-    _printColumn(sb, 'Totals', keyLen);
-    _printColumn(sb, totalCount.toString(), 5);
-    _printColumn(sb, totalErrorCount.toString(), 5);
-    print(sb.toString());
+    _printTotals(keyLen, totalCount, totalErrorCount, totalUnexpectedResultCount);
+    print('');
+    _printGroupHeader('Notifications', keyLen);
+    for (String tag in keys) {
+      Measurement m = measurements[tag];
+      if (m.notification) {
+        m.printSummary(keyLen);
+      }
+    }
+    /// TODO(danrubel) *** print warnings if driver caches are not empty ****
+    print('');
+    print(
+        '(1) uxr = UneXpected Results, or responses received from the server');
+    print(
+        '          that do not match the recorded response for that request.');
   }
 
   /**
    * Record the elapsed time for the given operation.
    */
-  void record(String tag, Duration elapsed, {bool success: true}) {
+  void record(String tag, Duration elapsed,
+      {bool notification: false, bool success: true}) {
     Measurement measurement = measurements[tag];
     if (measurement == null) {
-      measurement = new Measurement(tag);
+      measurement = new Measurement(tag, notification);
       measurements[tag] = measurement;
     }
     measurement.record(success, elapsed);
+  }
+
+  void recordUnexpectedResults(String tag) {
+    measurements[tag].recordUnexpectedResults();
+  }
+
+  void _printGroupHeader(String groupName, int keyLen) {
+    StringBuffer sb = new StringBuffer();
+        _printColumn(sb, groupName, keyLen);
+        _printColumn(sb, 'count', 6, rightJustified: true);
+        _printColumn(sb, 'error', 6, rightJustified: true);
+        _printColumn(sb, 'uxr(1)', 6, rightJustified: true);
+        sb.write('  ');
+        _printColumn(sb, 'minimum', 15);
+        _printColumn(sb, 'average', 15);
+        _printColumn(sb, 'maximum', 15);
+        _printColumn(sb, 'total', 15);
+        print(sb.toString());
+  }
+
+  void _printTotals(int keyLen, int totalCount, int totalErrorCount, int totalUnexpectedResultCount) {
+    StringBuffer sb = new StringBuffer();
+    _printColumn(sb, 'Totals', keyLen);
+    _printColumn(sb, totalCount.toString(), 6, rightJustified: true);
+    _printColumn(sb, totalErrorCount.toString(), 6, rightJustified: true);
+    _printColumn(sb, totalUnexpectedResultCount.toString(), 6,
+        rightJustified: true);
+    print(sb.toString());
   }
 }

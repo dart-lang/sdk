@@ -65,8 +65,7 @@ class InstrumentationInputConverter extends CommonInputConverter {
       return convertRequest(decodeJson(line, fields[2]));
     } else if (opCode == InstrumentationService.TAG_RESPONSE) {
       // 1434096937454:Res:{"id"::"0","result"::{"version"::"1.7.0"}}
-      recordResponse(decodeJson(line, fields[2]));
-      return null;
+      return convertResponse(decodeJson(line, fields[2]));
     } else if (opCode == InstrumentationService.TAG_ANALYSIS_TASK) {
       // 1434096943208:Task:/Users/
       return null;

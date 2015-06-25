@@ -35,8 +35,9 @@ class LogFileInputConverter extends CommonInputConverter {
         Map<String, dynamic> json = JSON.decode(data.substring(4));
         if (json.containsKey('event')) {
           return convertNotification(json);
+        } else {
+          return convertResponse(json);
         }
-        return null;
       } else if (data.startsWith(SENT_FRAGMENT)) {
         Map<String, dynamic> json = JSON.decode(data.substring(4));
         if (json.containsKey('method')) {
