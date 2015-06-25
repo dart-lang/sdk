@@ -1018,14 +1018,20 @@ class OldEmitter implements Emitter {
   void assemblePrecompiledConstructor(OutputUnit outputUnit,
                                       jsAst.Name constructorName,
                                       jsAst.Expression constructorAst,
-                                      List<String> fields) {
+                                      List<jsAst.Name> fields) {
     cspPrecompiledFunctionFor(outputUnit).add(
         new jsAst.FunctionDeclaration(constructorName, constructorAst));
 
     String fieldNamesProperty = FIELD_NAMES_PROPERTY_NAME;
     bool hasIsolateSupport = compiler.hasIsolateSupport;
-    jsAst.Node fieldNamesArray =
-        hasIsolateSupport ? js.stringArray(fields) : new jsAst.LiteralNull();
+    jsAst.Node fieldNamesArray;
+    if (hasIsolateSupport) {
+      fieldNamesArray = js.concatenateStrings(
+          js.joinLiterals(fields, js.stringPart(",")),
+          addQuotes: true);
+    } else {
+      fieldNamesArray = new jsAst.LiteralNull();
+    }
 
     cspPrecompiledFunctionFor(outputUnit).add(js.statement(r'''
         {
@@ -1084,7 +1090,7 @@ class OldEmitter implements Emitter {
       // Also emit a trivial constructor for CSP mode.
       jsAst.Name constructorName = mangledName;
       jsAst.Expression constructorAst = js('function() {}');
-      List<String> fieldNames = [];
+      List<jsAst.Name> fieldNames = [];
       assemblePrecompiledConstructor(mainOutputUnit,
                                      constructorName,
                                      constructorAst,
