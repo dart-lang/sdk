@@ -294,7 +294,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return _dlShift(ds);
     }
     var r_used = _used + ds + 1;
-    var r_digits = new Uint32List(r_used + 2 + (r_used & 1));  // +2 for 64-bit.
+    var r_digits = new Uint32List(r_used + 2 - (r_used & 1));  // for 64-bit.
     _lsh(_digits, _used, n, r_digits);
     return new _Bigint(_neg, r_used, r_digits);
   }
@@ -309,7 +309,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return _dlShiftDigits(x_digits, x_used, ds, r_digits);
     }
     var r_used = x_used + ds + 1;
-    assert(r_digits.length >= r_used + 2 + (r_used & 1));  // +2 for 64-bit.
+    assert(r_digits.length >= r_used + 2 - (r_used & 1));  // for 64-bit.
     _lsh(x_digits, x_used, n, r_digits);
     var i = ds;
     while (--i >= 0) {
@@ -1585,7 +1585,7 @@ class _Bigint extends _IntegerImplementation implements int {
       }
     }
     var u_digits = _cloneDigits(x_digits, 0, x_used, m_len);
-    var v_digits = _cloneDigits(y_digits, 0, y_used, m_len);
+    var v_digits = _cloneDigits(y_digits, 0, y_used, m_len + 2);  // +2 for lsh.
     final bool ac = (x_digits[0] & 1) == 0;
 
     // Variables a, b, c, and d require one more digit.
@@ -1748,11 +1748,10 @@ class _Bigint extends _IntegerImplementation implements int {
       if (i == 0) break;
     }
     if (!inv) {
-      // TODO(regis): Make this work correctly:
-      // if (s > 0) {
-      //   m_used = _dlShiftDigits(v_digits, m_used, s, v_digits);
-      // }
-      return new _Bigint(false, m_used, v_digits)._toValidInt() << s;
+      if (s > 0) {
+        m_used = _lShiftDigits(v_digits, m_used, s, v_digits);
+      }
+      return new _Bigint(false, m_used, v_digits)._toValidInt();
     }
     // No inverse if v != 1.
     var i = m_used - 1;
