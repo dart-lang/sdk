@@ -1470,7 +1470,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           case AccessKind.SUPER_METHOD:
             MethodElementX superMethod = semantics.element;
             superMethod.computeSignature(compiler);
-            if (!callStructure.signatureApplies(superMethod)) {
+            if (!callStructure.signatureApplies(
+                    superMethod.functionSignature)) {
               registry.registerThrowNoSuchMethod();
               registry.registerDynamicInvocation(
                   new UniverseSelector(selector, null));
@@ -1878,7 +1879,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.LOCAL_FUNCTION:
           LocalFunctionElementX function = semantics.element;
           function.computeSignature(compiler);
-          if (!callStructure.signatureApplies(function)) {
+          if (!callStructure.signatureApplies(function.functionSignature)) {
             registry.registerThrowNoSuchMethod();
             registry.registerDynamicInvocation(
                 new UniverseSelector(selector, null));
@@ -1954,7 +1955,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         case AccessKind.TOPLEVEL_METHOD:
           MethodElementX method = semantics.element;
           method.computeSignature(compiler);
-          if (!callStructure.signatureApplies(method)) {
+          if (!callStructure.signatureApplies(method.functionSignature)) {
             registry.registerThrowNoSuchMethod();
             registry.registerDynamicInvocation(
                 new UniverseSelector(selector, null));

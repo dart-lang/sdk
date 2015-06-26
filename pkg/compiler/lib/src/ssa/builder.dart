@@ -1959,12 +1959,13 @@ class SsaBuilder extends ast.Visitor
       }
 
       Element target = constructor.definingConstructor.implementation;
-      bool match = CallStructure.addForwardingElementArgumentsToList(
-          constructor,
-          arguments,
-          target,
-          compileArgument,
-          handleConstantForOptionalParameter);
+      bool match = !target.isErroneous &&
+          CallStructure.addForwardingElementArgumentsToList(
+              constructor,
+              arguments,
+              target,
+              compileArgument,
+              handleConstantForOptionalParameter);
       if (!match) {
         if (compiler.elementHasCompileTimeError(constructor)) {
           return;
@@ -4886,13 +4887,16 @@ class SsaBuilder extends ast.Visitor
     }
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [makeStaticArgumentList].
-    if (!callStructure.signatureApplies(constructor.implementation)) {
+    constructorImplementation = constructor.implementation;
+    if (constructorImplementation.isErroneous ||
+        !callStructure.signatureApplies(
+            constructorImplementation.functionSignature)) {
       generateWrongArgumentCountError(send, constructor, send.arguments);
       return;
     }
     inputs.addAll(makeStaticArgumentList(callStructure,
                                          send.arguments,
-                                         constructor.implementation));
+                                         constructorImplementation));
 
     TypeMask elementType = computeType(constructor);
     if (isFixedListConstructorCall) {

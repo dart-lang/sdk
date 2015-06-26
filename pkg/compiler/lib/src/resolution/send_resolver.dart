@@ -333,7 +333,9 @@ abstract class SendResolverMixin {
           case AccessKind.SUPER_METHOD:
           case AccessKind.TOPLEVEL_METHOD:
             // TODO(johnniwinther): Should local function also be handled here?
-            if (!selector.callStructure.signatureApplies(semantics.element)) {
+            FunctionElement function = semantics.element;
+            FunctionSignature signature = function.functionSignature;
+            if (!selector.callStructure.signatureApplies(signature)) {
               return new IncompatibleInvokeStructure(semantics, selector);
             }
             break;
@@ -586,7 +588,7 @@ abstract class SendResolverMixin {
           type,
           effectiveTargetSemantics);
     } else {
-      if (!callStructure.signatureApplies(constructor)) {
+      if (!callStructure.signatureApplies(constructor.functionSignature)) {
         return new ConstructorAccessSemantics(
             ConstructorAccessKind.INCOMPATIBLE,
             constructor,

@@ -779,7 +779,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       Node node,
       CallStructure callStructure,
       Link<Node> arguments,
-      FunctionElement target,
+      ConstructorElement target,
       {AstConstant compileArgument(Node node)}) {
     assert(invariant(node, target.isImplementation));
 
@@ -790,7 +790,8 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
     }
     target.computeType(compiler);
 
-    if (!callStructure.signatureApplies(target)) {
+    FunctionSignature signature = target.functionSignature;
+    if (!callStructure.signatureApplies(signature)) {
       String name = Elements.constructorNameForDiagnostics(
           target.enclosingClass.name, target.name);
       compiler.reportError(
@@ -1028,8 +1029,10 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
                    "effective target: $constructor"));
       return new ErroneousAstConstant(context, node);
     }
-    assert(invariant(node, callStructure.signatureApplies(constructor) ||
-                     compiler.compilationFailed,
+    assert(invariant(
+        node,
+        callStructure.signatureApplies(constructor.functionSignature) ||
+            compiler.compilationFailed,
         message: "Call structure $callStructure does not apply to constructor "
                  "$constructor."));
 

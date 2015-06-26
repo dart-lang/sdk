@@ -421,9 +421,7 @@ class CallStructure {
     return match(other);
   }
 
-  bool signatureApplies(FunctionElement function) {
-    if (Elements.isUnresolved(function)) return false;
-    FunctionSignature parameters = function.functionSignature;
+  bool signatureApplies(FunctionSignature parameters) {
     if (argumentCount > parameters.parameterCount) return false;
     int requiredParameterCount = parameters.requiredParameterCount;
     int optionalParameterCount = parameters.optionalParameterCount;
@@ -529,6 +527,9 @@ class CallStructure {
       ConstructorElement callee,
       /*T*/ compileArgument(ParameterElement element),
       /*T*/ compileConstant(ParameterElement element)) {
+    assert(invariant(caller, !callee.isErroneous,
+        message: "Cannot compute arguments to erroneous constructor: "
+                 "$caller calling $callee."));
 
     FunctionSignature signature = caller.functionSignature;
     Map<Node, ParameterElement> mapping = <Node, ParameterElement>{};
@@ -572,7 +573,7 @@ class CallStructure {
     }
     CallStructure callStructure =
         new CallStructure(signature.parameterCount, namedParameters);
-    if (!callStructure.signatureApplies(callee)) {
+    if (!callStructure.signatureApplies(signature)) {
       return false;
     }
     list.addAll(callStructure.makeArgumentsList(
@@ -853,7 +854,8 @@ class Selector {
   }
 
   bool signatureApplies(FunctionElement function) {
-    return callStructure.signatureApplies(function);
+    if (Elements.isUnresolved(function)) return false;
+    return callStructure.signatureApplies(function.functionSignature);
   }
 
   bool sameNameHack(Element element, World world) {

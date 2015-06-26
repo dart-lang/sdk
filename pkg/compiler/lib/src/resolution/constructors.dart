@@ -171,8 +171,8 @@ class InitializerResolver {
       Node diagnosticNode,
       String className,
       Selector constructorSelector) {
-    if (lookedupConstructor == null
-        || !lookedupConstructor.isGenerativeConstructor) {
+    if (lookedupConstructor == null ||
+        !lookedupConstructor.isGenerativeConstructor) {
       String fullConstructorName = Elements.constructorNameForDiagnostics(
               className,
               constructorSelector.name);
@@ -183,7 +183,7 @@ class InitializerResolver {
           diagnosticNode, kind, {'constructorName': fullConstructorName});
     } else {
       lookedupConstructor.computeSignature(visitor.compiler);
-      if (!call.signatureApplies(lookedupConstructor)) {
+      if (!call.signatureApplies(lookedupConstructor.functionSignature)) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT
                            : MessageKind.NO_MATCHING_CONSTRUCTOR;
