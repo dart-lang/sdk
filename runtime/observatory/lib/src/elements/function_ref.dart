@@ -26,24 +26,20 @@ class FunctionRefElement extends ServiceRefElement {
     if (ref == null) {
       return;
     }
-    if (function.isDart) {
-      if (qualified) {
-        if (function.dartOwner is ServiceFunction) {
-          var functionRef = new Element.tag('function-ref');
-          functionRef.ref = function.dartOwner;
-          functionRef.qualified = true;
-          shadowRoot.children.add(functionRef);
-          insertTextSpanIntoShadowRoot('.');
-        } else if (function.dartOwner is Class) {
-          var classRef = new Element.tag('class-ref');
-          classRef.ref = function.dartOwner;
-          shadowRoot.children.add(classRef);
-          insertTextSpanIntoShadowRoot('.');
-        }
+    if (qualified) {
+      if (function.dartOwner is ServiceFunction) {
+        var functionRef = new Element.tag('function-ref');
+        functionRef.ref = function.dartOwner;
+        functionRef.qualified = true;
+        shadowRoot.children.add(functionRef);
+        insertTextSpanIntoShadowRoot('.');
+      } else if (function.dartOwner is Class) {
+        var classRef = new Element.tag('class-ref');
+        classRef.ref = function.dartOwner;
+        shadowRoot.children.add(classRef);
+        insertTextSpanIntoShadowRoot('.');
       }
-      insertLinkIntoShadowRoot(name, url, hoverText);
-    } else {
-      insertTextSpanIntoShadowRoot(name);
     }
+    insertLinkIntoShadowRoot(name, url, hoverText);
   }
 }

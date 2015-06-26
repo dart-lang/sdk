@@ -1521,6 +1521,8 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
     }
     return true;
   }
+  // TODO(rmacnak): There is no way to get the size retained by a class object.
+  // SizeRetainedByClass should be a separate RPC.
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     ObjectGraph graph(isolate);
@@ -1529,18 +1531,11 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
     result.PrintJSON(js, true);
     return true;
   }
-  if (obj.IsInstance() || obj.IsNull()) {
-    // We don't use Instance::Cast here because it doesn't allow null.
-    ObjectGraph graph(isolate);
-    intptr_t retained_size = graph.SizeRetainedByInstance(obj);
-    const Object& result = Object::Handle(Integer::New(retained_size));
-    result.PrintJSON(js, true);
-    return true;
-  }
-  js->PrintError(kInvalidParams,
-                 "%s: invalid 'targetId' parameter: "
-                 "id '%s' does not correspond to a "
-                 "library, class, or instance", js->method(), target_id);
+
+  ObjectGraph graph(isolate);
+  intptr_t retained_size = graph.SizeRetainedByInstance(obj);
+  const Object& result = Object::Handle(Integer::New(retained_size));
+  result.PrintJSON(js, true);
   return true;
 }
 

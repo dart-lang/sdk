@@ -6987,6 +6987,10 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   if (!code.IsNull()) {
     jsobj.AddProperty("code", code);
   }
+  Array& ics = Array::Handle(ic_data_array());
+  if (!ics.IsNull()) {
+    jsobj.AddProperty("_icDataArray", ics);
+  }
   jsobj.AddProperty("_optimizable", is_optimizable());
   jsobj.AddProperty("_inlinable", is_inlinable());
   code = unoptimized_code();
@@ -10717,7 +10721,14 @@ const char* Instructions::ToCString() const {
 
 
 void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("_code", Code::Handle(code()));
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_objectPool", ObjectPool::Handle(object_pool()));
 }
 
 
@@ -10808,7 +10819,35 @@ const char* ObjectPool::ToCString() const {
 
 
 void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+
+  {
+    JSONArray jsarr(&jsobj, "_entries");
+    uword imm;
+    Object& obj = Object::Handle();
+    for (intptr_t i = 0; i < Length(); i++) {
+      switch (InfoAt(i)) {
+      case ObjectPool::kTaggedObject:
+        obj = ObjectAt(i);
+        jsarr.AddValue(obj);
+        break;
+      case ObjectPool::kImmediate:
+        // We might want to distingiush between immediates and addresses
+        // in the future.
+        imm = RawValueAt(i);
+        jsarr.AddValue64(imm);
+        break;
+      default:
+        UNREACHABLE();
+      }
+    }
+  }
 }
 
 
@@ -12220,7 +12259,17 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
 
 
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("_owner", Object::Handle(owner()));
+  jsobj.AddProperty("_selector", String::Handle(target_name()).ToCString());
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_argumentsDescriptor",
+                    Object::Handle(arguments_descriptor()));
+  jsobj.AddProperty("_entries", Object::Handle(ic_data()));
 }
 
 
@@ -12982,7 +13031,7 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     // Generate a fake function reference.
     JSONObject func(&jsobj, "function");
     func.AddProperty("type", "@Function");
-    func.AddProperty("kind", "Stub");
+    func.AddProperty("_kind", "Stub");
     func.AddProperty("name", user_name.ToCString());
     AddNameProperties(&func, user_name, vm_name);
   }

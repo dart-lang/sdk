@@ -102,6 +102,9 @@ abstract class ServiceObject extends Observable {
   @reflectable String get vmType => _vmType;
   String _vmType;
 
+  bool get isICData => vmType == 'ICData';
+  bool get isInstructions => vmType == 'Instructions';
+  bool get isObjectPool => vmType == 'ObjectPool';
   bool get isContext => type == 'Context';
   bool get isError => type == 'Error';
   bool get isInstance => type == 'Instance';
@@ -203,11 +206,20 @@ abstract class ServiceObject extends Observable {
         break;
       case 'Object':
         switch (vmType) {
-          case 'PcDescriptors':
-            obj = new PcDescriptors._empty(owner);
+          case 'ICData':
+            obj = new ICData._empty(owner);
+            break;
+          case 'Instructions':
+            obj = new Instructions._empty(owner);
             break;
           case 'LocalVarDescriptors':
             obj = new LocalVarDescriptors._empty(owner);
+            break;
+          case 'ObjectPool':
+            obj = new ObjectPool._empty(owner);
+            break;
+          case 'PcDescriptors':
+            obj = new PcDescriptors._empty(owner);
             break;
           case 'TokenStream':
             obj = new TokenStream._empty(owner);
@@ -334,6 +346,14 @@ abstract class ServiceObject extends Observable {
   _ignoreError(error, stackTrace) {
     // do nothing.
   }
+}
+
+abstract class HeapObject extends ServiceObject {
+  @observable Class clazz;
+  @observable int size;
+  @observable int retainedSize;
+
+  HeapObject._empty(ServiceObjectOwner owner) : super._empty(owner);
 }
 
 abstract class Coverage {
@@ -1937,7 +1957,6 @@ class Instance extends ServiceObject {
 
     kind = map['kind'];
     clazz = map['class'];
-    size = map['size'];
     valueAsString = map['valueAsString'];
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
@@ -1950,6 +1969,8 @@ class Instance extends ServiceObject {
     if (mapIsRef) {
       return;
     }
+
+    size = map['size'];
 
     oneByteFunction = map['_oneByteFunction'];
     twoByteFunction = map['_twoByteFunction'];
@@ -2035,7 +2056,6 @@ class Context extends ServiceObject {
     // Extract full properties.
     _upgradeCollection(map, isolate);
 
-    size = map['size'];
     length = map['length'];
     parentContext = map['parent'];
 
@@ -2043,6 +2063,7 @@ class Context extends ServiceObject {
       return;
     }
 
+    size = map['size'];
     clazz = map['class'];
     variables = map['variables'];
 
@@ -2124,6 +2145,7 @@ class ServiceFunction extends ServiceObject with Coverage {
   @observable int usageCounter;
   @observable bool isDart;
   @observable ProfileFunction profile;
+  @observable Instance icDataArray;
 
   bool get immutable => false;
 
@@ -2137,7 +2159,7 @@ class ServiceFunction extends ServiceObject with Coverage {
 
     dartOwner = map['owner'];
     kind = FunctionKind.fromJSON(map['_kind']);
-    isDart = !kind.isSynthetic();
+    isDart = kind.isDart();
 
     if (dartOwner is ServiceFunction) {
       ServiceFunction ownerFunction = dartOwner;
@@ -2168,6 +2190,7 @@ class ServiceFunction extends ServiceObject with Coverage {
     unoptimizedCode = map['_unoptimizedCode'];
     deoptimizations = map['_deoptimizations'];
     usageCounter = map['_usageCounter'];
+    icDataArray = map['_icDataArray'];
   }
 }
 
@@ -2762,9 +2785,74 @@ class LocalVarDescriptors extends ServiceObject {
   }
 }
 
-class TokenStream extends ServiceObject {
-  @observable Class clazz;
-  @observable int size;
+class ObjectPool extends HeapObject {
+  bool get canCache => false;
+  bool get immutable => false;
+
+  @observable int length;
+  @observable List entries;
+
+  ObjectPool._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap m, bool mapIsRef) {
+    _upgradeCollection(m, isolate);
+    clazz = m['class'];
+    length = m['length'];
+    if (mapIsRef) {
+      return;
+    }
+    size = m['size'];
+    entries = m['_entries'];
+  }
+}
+
+class ICData extends HeapObject {
+  @observable ServiceObject dartOwner;
+  @observable String selector;
+  @observable Instance argumentsDescriptor;
+  @observable Instance entries;
+
+  bool get canCache => false;
+  bool get immutable => false;
+
+  ICData._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap m, bool mapIsRef) {
+    _upgradeCollection(m, isolate);
+    clazz = m['class'];
+    dartOwner = m['_owner'];
+    selector = m['_selector'];
+    if (mapIsRef) {
+      return;
+    }
+    size = m['size'];
+    argumentsDescriptor = m['_argumentsDescriptor'];
+    entries = m['_entries'];
+  }
+}
+
+class Instructions extends HeapObject {
+  bool get canCache => false;
+  bool get immutable => true;
+
+  @observable Code code;
+  @observable ObjectPool objectPool;
+
+  Instructions._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap m, bool mapIsRef) {
+    _upgradeCollection(m, isolate);
+    clazz = m['class'];
+    code = m['_code'];
+    if (mapIsRef) {
+      return;
+    }
+    size = m['size'];
+    objectPool = m['_objectPool'];
+  }
+}
+
+class TokenStream extends HeapObject {
   bool get canCache => false;
   bool get immutable => true;
 
@@ -2870,7 +2958,7 @@ class CodeInlineInterval {
   CodeInlineInterval(this.start, this.end);
 }
 
-class Code extends ServiceObject {
+class Code extends HeapObject {
   @observable CodeKind kind;
   @observable ServiceObject objectPool;
   @observable ServiceFunction function;
@@ -2949,6 +3037,7 @@ class Code extends ServiceObject {
       return;
     }
     _loaded = true;
+    size = m['size'];
     startAddress = int.parse(m['_startAddress'], radix:16);
     endAddress = int.parse(m['_endAddress'], radix:16);
     function = isolate.getFromMap(m['function']);
