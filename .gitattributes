@@ -10,11 +10,16 @@
 *.md text
 *.yaml text
 
-# Windows files that should not be converted.
-tests/lib/mirrors/method_mirror_source_line_ending_cr.dart -text
-tests/lib/mirrors/method_mirror_source_line_ending_crlf.dart -text
+# Files that should not be converted.
 tests/compiler/dart2js_extra/string_interpolation_test.dart -text
 tests/compiler/dart2js_extra/string_interpolation_dynamic_test.dart -text
+tests/compiler/dart2js_extra/literal_string_juxtaposition_test.dart -text
+tests/language/raw_string_test.dart -text
+tests/language/multiline_strings_test.dart -text
+tests/lib/convert/json_pretty_test.dart -text
+tests/lib/mirrors/method_mirror_source_line_ending_cr.dart -text
+tests/lib/mirrors/method_mirror_source_line_ending_crlf.dart -text
+pkg/js_ast/test/printer_callback_test.dart -text
 
 # Files to leave alone and not diff.
 *.png binary

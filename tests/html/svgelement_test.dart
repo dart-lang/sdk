@@ -52,7 +52,9 @@ main() {
           'xmlns="http://www.w3.org/2000/svg" />'));
       expect(el.outerHtml, anyOf(svgContent,
           '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\n  '
-          '<circle />\n  <path />\n</svg>'));
+          '<circle />\n  <path />\n</svg>',
+          '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\r\n  '
+          '<circle />\r\n  <path />\r\n</svg>'));
     });
 
     test('has no parent', () =>

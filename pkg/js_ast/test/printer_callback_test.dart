@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Note: This test relies on LF line endings in the source file.
+
 // Test that JS printer callbacks occur when expected.
 
 library js_ast.printer.callback_test;
