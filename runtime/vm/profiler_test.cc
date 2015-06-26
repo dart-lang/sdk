@@ -280,7 +280,7 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
     walker.Reset(Profile::kExclusiveFunction);
     // Move down from the root.
     EXPECT(walker.Down());
-    EXPECT_STREQ("boo", walker.CurrentName());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
     EXPECT(!walker.Down());
@@ -291,7 +291,7 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
     EXPECT(walker.Down());
-    EXPECT_STREQ("boo", walker.CurrentName());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
