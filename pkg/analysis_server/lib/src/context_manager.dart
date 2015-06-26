@@ -6,6 +6,7 @@ library context.directory.manager;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';

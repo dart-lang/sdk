@@ -5,6 +5,7 @@
 library source.caching_pub_package_map_provider;
 
 import 'dart:convert';
+import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';
