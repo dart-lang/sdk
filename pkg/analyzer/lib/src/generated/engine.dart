@@ -6116,6 +6116,11 @@ abstract class AnalysisOptions {
   bool get enableEnum;
 
   /**
+   * Return `true` to enable generic methods (DEP 22).
+   */
+  bool get enableGenericMethods => null;
+
+  /**
    * Return `true` to enable null-aware operators (DEP 9).
    */
   bool get enableNullAwareOperators;
@@ -6212,6 +6217,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * results.
    */
   bool dart2jsHint = true;
+
+  /**
+   * A flag indicating whether generic methods are to be supported (DEP 22).
+   */
+  bool enableGenericMethods = false;
 
   /**
    * A flag indicating whether null-aware operators should be parsed (DEP 9).
@@ -9560,6 +9570,7 @@ class ParseDartTask extends AnalysisTask {
       AnalysisOptions options = context.analysisOptions;
       parser.parseFunctionBodies =
           options.analyzeFunctionBodiesPredicate(source);
+      parser.parseGenericMethods = options.enableGenericMethods;
       _unit = parser.parseCompilationUnit(_tokenStream);
       _unit.lineInfo = lineInfo;
       AnalysisContext analysisContext = context;

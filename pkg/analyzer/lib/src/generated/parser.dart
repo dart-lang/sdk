@@ -7,8 +7,8 @@
 
 library engine.parser;
 
-import "dart:math" as math;
 import 'dart:collection';
+import "dart:math" as math;
 
 import 'ast.dart';
 import 'engine.dart' show AnalysisEngine, AnalysisOptionsImpl;
@@ -263,10 +263,10 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
       0, (Parser target) => target._parseLogicalAndExpression()),
   'parseMapLiteral_2': new MethodTrampoline(
       2, (Parser target, arg0, arg1) => target._parseMapLiteral(arg0, arg1)),
-  'parseMethodDeclarationAfterParameters_6': new MethodTrampoline(6,
-      (Parser target, arg0, arg1, arg2, arg3, arg4, arg5) => target
+  'parseMethodDeclarationAfterParameters_7': new MethodTrampoline(7,
+      (Parser target, arg0, arg1, arg2, arg3, arg4, arg5, arg6) => target
           ._parseMethodDeclarationAfterParameters(
-              arg0, arg1, arg2, arg3, arg4, arg5)),
+              arg0, arg1, arg2, arg3, arg4, arg5, arg6)),
   'parseMethodDeclarationAfterReturnType_4': new MethodTrampoline(4,
       (Parser target, arg0, arg1, arg2, arg3) => target
           ._parseMethodDeclarationAfterReturnType(arg0, arg1, arg2, arg3)),
@@ -2080,6 +2080,11 @@ class Parser {
   bool _inInitializer = false;
 
   /**
+   * A flag indicating whether the parser is to parse generic method syntax.
+   */
+  bool parseGenericMethods = false;
+
+  /**
    * Initialize a newly created parser to parse the content of the given
    * [_source] and to report any errors that are found to the given
    * [_errorListener].
@@ -2440,7 +2445,7 @@ class Parser {
         //
         return new MethodDeclaration(commentAndMetadata.comment,
             commentAndMetadata.metadata, null, null, null, null, null,
-            _createSyntheticIdentifier(), new FormalParameterList(
+            _createSyntheticIdentifier(), null, new FormalParameterList(
                 null, new List<FormalParameter>(), null, null, null),
             new EmptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON)));
       }
@@ -2466,7 +2471,7 @@ class Parser {
       _validateFormalParameterList(parameters);
       return _parseMethodDeclarationAfterParameters(commentAndMetadata,
           modifiers.externalKeyword, modifiers.staticKeyword, null, methodName,
-          parameters);
+          null, parameters);
     } else if (_peek()
         .matchesAny([TokenType.EQ, TokenType.COMMA, TokenType.SEMICOLON])) {
       if (modifiers.constKeyword == null &&
@@ -2546,7 +2551,7 @@ class Parser {
       _validateFormalParameterList(parameters);
       return _parseMethodDeclarationAfterParameters(commentAndMetadata,
           modifiers.externalKeyword, modifiers.staticKeyword, type, methodName,
-          parameters);
+          null, parameters);
     } else if (_tokenMatches(_peek(), TokenType.OPEN_CURLY_BRACKET)) {
       // We have found "TypeName identifier {", and are guessing that this is a
       // getter without the keyword 'get'.
@@ -3043,7 +3048,7 @@ class Parser {
     _validateFormalParameterList(parameters);
     FunctionBody body =
         _parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, true);
-    return new FunctionExpression(parameters, body);
+    return new FunctionExpression(null, parameters, body);
   }
 
   /**
@@ -3173,11 +3178,12 @@ class Parser {
               ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword);
         }
         return new FunctionTypedFormalParameter(commentAndMetadata.comment,
-            commentAndMetadata.metadata, holder.type, identifier, parameters);
+            commentAndMetadata.metadata, holder.type, identifier, null,
+            parameters);
       } else {
         return new FieldFormalParameter(commentAndMetadata.comment,
             commentAndMetadata.metadata, holder.keyword, holder.type,
-            thisKeyword, period, identifier, parameters);
+            thisKeyword, period, identifier, null, parameters);
       }
     }
     TypeName type = holder.type;
@@ -3193,7 +3199,7 @@ class Parser {
     if (thisKeyword != null) {
       return new FieldFormalParameter(commentAndMetadata.comment,
           commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword,
-          period, identifier, null);
+          period, identifier, null, null);
     }
     return new SimpleFormalParameter(commentAndMetadata.comment,
         commentAndMetadata.metadata, holder.keyword, holder.type, identifier);
@@ -3482,7 +3488,8 @@ class Parser {
   FunctionDeclaration _convertToFunctionDeclaration(MethodDeclaration method) =>
       new FunctionDeclaration(method.documentationComment, method.metadata,
           method.externalKeyword, method.returnType, method.propertyKeyword,
-          method.name, new FunctionExpression(method.parameters, method.body));
+          method.name, new FunctionExpression(
+              method.typeParameters, method.parameters, method.body));
 
   /**
    * Return `true` if the current token could be the start of a compilation unit
@@ -4181,18 +4188,18 @@ class Parser {
         ArgumentList argumentList = parseArgumentList();
         if (expression is SimpleIdentifier) {
           expression = new MethodInvocation(
-              null, null, expression as SimpleIdentifier, argumentList);
+              null, null, expression as SimpleIdentifier, null, argumentList);
         } else if (expression is PrefixedIdentifier) {
           PrefixedIdentifier identifier = expression as PrefixedIdentifier;
           expression = new MethodInvocation(identifier.prefix,
-              identifier.period, identifier.identifier, argumentList);
+              identifier.period, identifier.identifier, null, argumentList);
         } else if (expression is PropertyAccess) {
           PropertyAccess access = expression as PropertyAccess;
           expression = new MethodInvocation(access.target, access.operator,
-              access.propertyName, argumentList);
+              access.propertyName, null, argumentList);
         } else {
           expression =
-              new FunctionExpressionInvocation(expression, argumentList);
+              new FunctionExpressionInvocation(expression, null, argumentList);
         }
         if (!primaryAllowed) {
           isOptional = false;
@@ -4383,16 +4390,16 @@ class Parser {
       while (_currentToken.type == TokenType.OPEN_PAREN) {
         if (functionName != null) {
           expression = new MethodInvocation(
-              expression, period, functionName, parseArgumentList());
+              expression, period, functionName, null, parseArgumentList());
           period = null;
           functionName = null;
         } else if (expression == null) {
           // It should not be possible to get here.
           expression = new MethodInvocation(expression, period,
-              _createSyntheticIdentifier(), parseArgumentList());
+              _createSyntheticIdentifier(), null, parseArgumentList());
         } else {
-          expression =
-              new FunctionExpressionInvocation(expression, parseArgumentList());
+          expression = new FunctionExpressionInvocation(
+              expression, null, parseArgumentList());
         }
       }
     } else if (functionName != null) {
@@ -4411,11 +4418,11 @@ class Parser {
           if (expression is PropertyAccess) {
             PropertyAccess propertyAccess = expression as PropertyAccess;
             expression = new MethodInvocation(propertyAccess.target,
-                propertyAccess.operator, propertyAccess.propertyName,
+                propertyAccess.operator, propertyAccess.propertyName, null,
                 parseArgumentList());
           } else {
             expression = new FunctionExpressionInvocation(
-                expression, parseArgumentList());
+                expression, null, parseArgumentList());
           }
         }
       }
@@ -5781,7 +5788,7 @@ class Parser {
 //        }
     return new FunctionDeclaration(commentAndMetadata.comment,
         commentAndMetadata.metadata, externalKeyword, returnType, keyword, name,
-        new FunctionExpression(parameters, body));
+        new FunctionExpression(null, parameters, body));
   }
 
   /**
@@ -5908,7 +5915,7 @@ class Parser {
     }
     return new MethodDeclaration(commentAndMetadata.comment,
         commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType,
-        propertyKeyword, null, name, null, body);
+        propertyKeyword, null, name, null, null, body);
   }
 
   /**
@@ -6229,7 +6236,7 @@ class Parser {
   MethodDeclaration _parseMethodDeclarationAfterParameters(
       CommentAndMetadata commentAndMetadata, Token externalKeyword,
       Token staticKeyword, TypeName returnType, SimpleIdentifier name,
-      FormalParameterList parameters) {
+      TypeParameterList typeParameters, FormalParameterList parameters) {
     FunctionBody body = _parseFunctionBody(
         externalKeyword != null || staticKeyword == null,
         ParserErrorCode.MISSING_FUNCTION_BODY, false);
@@ -6244,7 +6251,7 @@ class Parser {
     }
     return new MethodDeclaration(commentAndMetadata.comment,
         commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType,
-        null, null, name, parameters, body);
+        null, null, name, typeParameters, parameters, body);
   }
 
   /**
@@ -6277,7 +6284,8 @@ class Parser {
     }
     _validateFormalParameterList(parameters);
     return _parseMethodDeclarationAfterParameters(commentAndMetadata,
-        externalKeyword, staticKeyword, returnType, methodName, parameters);
+        externalKeyword, staticKeyword, returnType, methodName, null,
+        parameters);
   }
 
   /**
@@ -6633,7 +6641,7 @@ class Parser {
     }
     return new MethodDeclaration(commentAndMetadata.comment,
         commentAndMetadata.metadata, externalKeyword, null, returnType, null,
-        operatorKeyword, name, parameters, body);
+        operatorKeyword, name, null, parameters, body);
   }
 
   /**
@@ -6711,9 +6719,10 @@ class Parser {
           if (operand is PropertyAccess) {
             PropertyAccess access = operand as PropertyAccess;
             operand = new MethodInvocation(access.target, access.operator,
-                access.propertyName, argumentList);
+                access.propertyName, null, argumentList);
           } else {
-            operand = new FunctionExpressionInvocation(operand, argumentList);
+            operand =
+                new FunctionExpressionInvocation(operand, null, argumentList);
           }
         } else {
           operand = _parseAssignableSelector(operand, true);
@@ -6971,7 +6980,7 @@ class Parser {
     }
     return new MethodDeclaration(commentAndMetadata.comment,
         commentAndMetadata.metadata, externalKeyword, staticKeyword, returnType,
-        propertyKeyword, null, name, parameters, body);
+        propertyKeyword, null, name, null, parameters, body);
   }
 
   /**

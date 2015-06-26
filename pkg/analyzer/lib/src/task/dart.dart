@@ -2710,6 +2710,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     Parser parser = new Parser(source, errorListener);
     AnalysisOptions options = context.analysisOptions;
     parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
+    parser.parseGenericMethods = options.enableGenericMethods;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;
 

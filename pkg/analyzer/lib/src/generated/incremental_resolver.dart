@@ -520,6 +520,29 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
   }
 
+  /**
+   * Asserts that there is an import with the same prefix as the given
+   * [prefixNode], which exposes the given [element].
+   */
+  void _assertElementVisibleWithPrefix(
+      SimpleIdentifier prefixNode, Element element) {
+    if (prefixNode == null) {
+      return;
+    }
+    String prefixName = prefixNode.name;
+    for (ImportElement import in _enclosingLibrary.imports) {
+      if (import.prefix != null && import.prefix.name == prefixName) {
+        Namespace namespace =
+            new NamespaceBuilder().createImportNamespaceForDirective(import);
+        Iterable<Element> visibleElements = namespace.definedNames.values;
+        if (visibleElements.contains(element)) {
+          return;
+        }
+      }
+    }
+    _assertTrue(false);
+  }
+
   void _assertEquals(Object a, Object b) {
     if (a != b) {
       throw new _DeclarationMismatchException();
@@ -617,29 +640,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       logger.log('node: $node type: $type  type.type: ${type.runtimeType}');
       _assertTrue(false);
     }
-  }
-
-  /**
-   * Asserts that there is an import with the same prefix as the given
-   * [prefixNode], which exposes the given [element].
-   */
-  void _assertElementVisibleWithPrefix(
-      SimpleIdentifier prefixNode, Element element) {
-    if (prefixNode == null) {
-      return;
-    }
-    String prefixName = prefixNode.name;
-    for (ImportElement import in _enclosingLibrary.imports) {
-      if (import.prefix != null && import.prefix.name == prefixName) {
-        Namespace namespace =
-            new NamespaceBuilder().createImportNamespaceForDirective(import);
-        Iterable<Element> visibleElements = namespace.definedNames.values;
-        if (visibleElements.contains(element)) {
-          return;
-        }
-      }
-    }
-    _assertTrue(false);
   }
 
   void _assertSameTypeParameter(
@@ -1471,6 +1471,8 @@ class PoorMansIncrementalResolver {
       Token token = _scan(code);
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
+      AnalysisOptions options = _unitElement.context.analysisOptions;
+      parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
       return unit;
