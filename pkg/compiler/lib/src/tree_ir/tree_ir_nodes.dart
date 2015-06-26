@@ -1341,3 +1341,39 @@ class RecursiveTransformer extends Transformer {
     return node;
   }
 }
+
+class FallthroughTarget {
+  final Statement target;
+  int useCount = 0;
+
+  FallthroughTarget(this.target);
+}
+
+/// A stack machine for tracking fallthrough while traversing the Tree IR.
+class FallthroughStack {
+  final List<FallthroughTarget> _stack =
+    <FallthroughTarget>[new FallthroughTarget(null)];
+
+  /// Set a new fallthrough target.
+  void push(Statement newFallthrough) {
+    _stack.add(new FallthroughTarget(newFallthrough));
+  }
+
+  /// Remove the current fallthrough target.
+  void pop() {
+    _stack.removeLast();
+  }
+
+  /// The current fallthrough target, or `null` if control will fall over
+  /// the end of the method.
+  Statement get target => _stack.last.target;
+
+  /// Number of uses of the current fallthrough target.
+  int get useCount => _stack.last.useCount;
+
+  /// Indicate that a statement will fall through to the current fallthrough
+  /// target.
+  void use() {
+    ++_stack.last.useCount;
+  }
+}

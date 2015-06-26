@@ -61,27 +61,41 @@ class LogicalRewriter extends RecursiveTransformer
     node.body = visitStatement(node.body);
   }
 
-  /// Statement to be executed next by natural fallthrough. Although fallthrough
-  /// is not introduced in this phase, we need to reason about fallthrough when
-  /// evaluating the benefit of swapping the branches of an [If].
-  Statement fallthrough;
+  final FallthroughStack fallthrough = new FallthroughStack();
 
   @override
   void visitInnerFunction(FunctionDefinition node) {
     new LogicalRewriter().rewrite(node);
   }
 
-  Statement visitLabeledStatement(LabeledStatement node) {
-    Statement savedFallthrough = fallthrough;
-    fallthrough = node.next;
-    node.body = visitStatement(node.body);
-    fallthrough = savedFallthrough;
-    node.next = visitStatement(node.next);
-    return node;
+  /// True if the given statement is equivalent to its fallthrough semantics.
+  ///
+  /// This means it will ultimately translate to an empty statement.
+  bool isFallthrough(Statement node) {
+    return node is Break && isFallthroughBreak(node) ||
+           node is Continue && isFallthroughContinue(node) ||
+           node is Return && isFallthroughReturn(node);
   }
 
-  bool isFallthroughBreak(Statement node) {
-    return node is Break && node.target.binding.next == fallthrough;
+  bool isFallthroughBreak(Break node) {
+    Statement target = fallthrough.target;
+    return node.target.binding.next == target ||
+           target is Break && target.target == node.target;
+  }
+
+  bool isFallthroughContinue(Continue node) {
+    Statement target = fallthrough.target;
+    return node.target.binding == target ||
+           target is Continue && target.target == node.target;
+  }
+
+  bool isFallthroughReturn(Return node) {
+    return isNull(node.value) && fallthrough.target == null;
+  }
+
+  bool isTerminator(Statement node) {
+    return (node is Jump || node is Return) && !isFallthrough(node) ||
+           (node is ExpressionStatement && node.next is Unreachable);
   }
 
   Statement visitIf(If node) {
@@ -94,27 +108,64 @@ class LogicalRewriter extends RecursiveTransformer
     // In the tree language, empty statements do not exist yet, so we must check
     // if one branch contains a break that can be eliminated by fallthrough.
 
-    // Swap branches if then is a fallthrough break.
-    if (isFallthroughBreak(node.thenStatement)) {
+    // Rewrite each branch and keep track of which ones might fall through.
+    int usesBefore = fallthrough.useCount;
+    node.thenStatement = visitStatement(node.thenStatement);
+    int usesAfterThen = fallthrough.useCount;
+    node.elseStatement = visitStatement(node.elseStatement);
+    bool thenHasFallthrough = (fallthrough.useCount > usesBefore);
+    bool elseHasFallthrough = (fallthrough.useCount > usesAfterThen);
+
+    // Determine which branch is most beneficial as 'then' branch.
+    const int THEN = 1;
+    const int NEITHER = 0;
+    const int ELSE = -1;
+    int bestThenBranch = NEITHER;
+    if (isFallthrough(node.thenStatement) &&
+        !isFallthrough(node.elseStatement)) {
+      // Put the empty statement in the 'else' branch.
+      // if (E) {} else {S} ==> if (!E) {S}
+      bestThenBranch = ELSE;
+    } else if (isFallthrough(node.elseStatement) &&
+               !isFallthrough(node.thenStatement)) {
+      // Keep the empty statement in the 'else' branch.
+      // if (E) {S} else {}
+      bestThenBranch = THEN;
+    } else if (thenHasFallthrough && !elseHasFallthrough) {
+      // Put abrupt termination in the 'then' branch to omit 'else'.
+      // if (E) {S1} else {S2; return v} ==> if (!E) {S2; return v}; S1
+      bestThenBranch = ELSE;
+    } else if (!thenHasFallthrough && elseHasFallthrough) {
+      // Keep abrupt termination in the 'then' branch to omit 'else'.
+      // if (E) {S1; return v}; S2
+      bestThenBranch = THEN;
+    } else if (isTerminator(node.elseStatement) &&
+               !isTerminator(node.thenStatement)) {
+      // Put early termination in the 'then' branch to reduce nesting depth.
+      // if (E) {S}; return v ==> if (!E) return v; S
+      bestThenBranch = ELSE;
+    } else if (isTerminator(node.thenStatement) &&
+               !isTerminator(node.elseStatement)) {
+      // Keep early termination in the 'then' branch to reduce nesting depth.
+      // if (E) {return v;} S
+      bestThenBranch = THEN;
+    }
+
+    // Swap branches if 'else' is better as 'then'
+    if (bestThenBranch == ELSE) {
       node.condition = new Not(node.condition);
       Statement tmp = node.thenStatement;
       node.thenStatement = node.elseStatement;
       node.elseStatement = tmp;
     }
 
-    // Can the else part be eliminated?
-    // (Either due to the above swap or if the break was already there).
-    bool emptyElse = isFallthroughBreak(node.elseStatement);
-
-    node.condition = makeCondition(node.condition, true, liftNots: !emptyElse);
-    node.thenStatement = visitStatement(node.thenStatement);
-    node.elseStatement = visitStatement(node.elseStatement);
-
-    // If neither branch is empty, eliminate a negation in the condition
+    // If neither branch is better, eliminate a negation in the condition
     // if (!E) S1 else S2
     //   ==>
     // if (E) S2 else S1
-    if (!emptyElse && node.condition is Not) {
+    node.condition = makeCondition(node.condition, true,
+                                   liftNots: bestThenBranch == NEITHER);
+    if (bestThenBranch == NEITHER && node.condition is Not) {
       node.condition = (node.condition as Not).operand;
       Statement tmp = node.thenStatement;
       node.thenStatement = node.elseStatement;
@@ -124,10 +175,49 @@ class LogicalRewriter extends RecursiveTransformer
     return node;
   }
 
+  Statement visitLabeledStatement(LabeledStatement node) {
+    fallthrough.push(node.next);
+    node.body = visitStatement(node.body);
+    fallthrough.pop();
+    node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitWhileTrue(WhileTrue node) {
+    fallthrough.push(node);
+    node.body = visitStatement(node.body);
+    fallthrough.pop();
+    return node;
+  }
+
   Statement visitWhileCondition(WhileCondition node) {
+    fallthrough.push(node);
     node.condition = makeCondition(node.condition, true, liftNots: false);
     node.body = visitStatement(node.body);
+    fallthrough.pop();
     node.next = visitStatement(node.next);
+    return node;
+  }
+
+  Statement visitBreak(Break node) {
+    if (isFallthroughBreak(node)) {
+      fallthrough.use();
+    }
+    return node;
+  }
+
+  Statement visitContinue(Continue node) {
+    if (isFallthroughContinue(node)) {
+      fallthrough.use();
+    }
+    return node;
+  }
+
+  Statement visitReturn(Return node) {
+    node.value = visitExpression(node.value);
+    if (isFallthroughReturn(node)) {
+      fallthrough.use();
+    }
     return node;
   }
 
@@ -389,6 +479,10 @@ class LogicalRewriter extends RecursiveTransformer
     }
     e = visitExpression(e);
     return polarity ? e : new Not(e);
+  }
+
+  bool isNull(Expression e) {
+    return e is Constant && e.value.isNull;
   }
 
   bool isTrue(Expression e) {

@@ -60,13 +60,11 @@ function() {
   L1:
     while (P.identical(V.foo(true), true)) {
       P.print(1);
-      if (!P.identical(V.foo(false), true))
-        i = V.foo(i);
-      else
+      if (P.identical(V.foo(false), true))
         break L1;
+      i = V.foo(i);
     }
   P.print(2);
-  return null;
 }"""),
 const TestEntry("""
 foo(a) => a;
@@ -82,7 +80,6 @@ main() {
 function() {
   V.foo(true) ? P.print(1) : P.print(2);
   P.print(3);
-  return null;
 }"""),
 const TestEntry("""
 foo(a) => a;
@@ -106,7 +103,6 @@ function() {
     P.print(2);
   }
   P.print(3);
-  return null;
 }"""),
 const TestEntry("""
 main() {
@@ -118,7 +114,6 @@ main() {
 }""","""
 function() {
   P.print("good");
-  return null;
 }"""),
   const TestEntry("""
 foo() => 2;
@@ -132,7 +127,6 @@ main() {
 function() {
   V.foo();
   P.print("good");
-  return null;
 }"""),
 ];
 

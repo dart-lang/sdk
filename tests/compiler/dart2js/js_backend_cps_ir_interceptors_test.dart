@@ -19,7 +19,6 @@ main() {
 r"""
 function() {
   P.print(4);
-  return null;
 }"""),
   const TestEntry("""
 main() {
@@ -45,7 +44,6 @@ function() {
     }
     i = i + 1;
   }
-  return null;
 }"""),
 ];
 
