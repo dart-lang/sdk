@@ -3401,6 +3401,8 @@ class SsaBuilder extends NewResolvedVisitor {
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     push(new HStatic(function.declaration, backend.nonNullType));
+    // TODO(ahe): This should be registered in codegen.
+    registry.registerGetOfStaticFunction(function.declaration);
   }
 
   /// Read a local variable, function or parameter.

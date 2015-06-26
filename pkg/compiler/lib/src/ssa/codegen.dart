@@ -2136,10 +2136,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     Element element = node.element;
     assert(element.isFunction || element.isField);
     if (element.isFunction) {
-      push(backend.emitter.isolateStaticClosureAccess(element));
-      registry.registerGetOfStaticFunction(element);
+      push(backend.emitter.isolateStaticClosureAccess(node.element));
     } else {
-      push(backend.emitter.staticFieldAccess(element));
+      push(backend.emitter.staticFieldAccess(node.element));
     }
     registry.registerStaticUse(element);
   }
