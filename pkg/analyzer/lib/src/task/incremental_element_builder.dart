@@ -214,7 +214,6 @@ class IncrementalCompilationUnitElementBuilder {
         for (VariableDeclaration variable in variableList.variables) {
           TopLevelVariableElement element = variable.element;
           elements.add(element);
-          // TODO(scheglov) write tests for nulls
           if (element.getter != null) {
             elements.add(element.getter);
           }
