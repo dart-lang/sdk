@@ -2686,6 +2686,16 @@ void main() {
         Future bar2() async { return x; }
         Future<int> bar3() async { return (/*info:DynamicCast*/x); }
         Future<int> bar4() async { return (/*severe:StaticTypeError*/new Future<int>(x)); }
+
+        int y;
+        Future<int> z;
+
+        void baz() async {
+          int a = /*info:DynamicCast*/await /*info:DynamicCast*/x;
+          int b = await /*severe:StaticTypeError*/y;
+          int c = await z;
+          String d = /*severe:StaticTypeError*/await z;
+        }
     '''
     }));
 
