@@ -3381,6 +3381,20 @@ class ScanDartTask extends SourceBasedAnalysisTask {
   @override
   void internalPerform() {
     Source source = getRequiredSource();
+
+    RecordingErrorListener errorListener = new RecordingErrorListener();
+    if (context.getModificationStamp(target.source) < 0) {
+      String message = 'Content could not be read';
+      if (context is InternalAnalysisContext) {
+        CacheEntry entry = (context as InternalAnalysisContext).getCacheEntry(target);
+        CaughtException exception = entry.exception;
+        if (exception != null) {
+          message = exception.toString();
+        }
+      }
+      errorListener.onError(new AnalysisError(
+          source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [message]));
+    }
     if (target is DartScript) {
       DartScript script = target;
       List<ScriptFragment> fragments = script.fragments;
@@ -3392,7 +3406,6 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       }
       ScriptFragment fragment = fragments[0];
 
-      RecordingErrorListener errorListener = new RecordingErrorListener();
       Scanner scanner = new Scanner(source,
           new SubSequenceReader(fragment.content, fragment.offset),
           errorListener);
@@ -3407,7 +3420,6 @@ class ScanDartTask extends SourceBasedAnalysisTask {
     } else if (target is Source) {
       String content = getRequiredInput(CONTENT_INPUT_NAME);
 
-      RecordingErrorListener errorListener = new RecordingErrorListener();
       Scanner scanner =
           new Scanner(source, new CharSequenceReader(content), errorListener);
       scanner.preserveComments = context.analysisOptions.preserveComments;

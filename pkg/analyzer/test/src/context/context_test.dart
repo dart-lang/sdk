@@ -54,21 +54,9 @@ main() {
 
 @reflectiveTest
 class AnalysisContextImplTest extends AbstractContextTest {
-  void fail_applyChanges_empty() {
+  void test_applyChanges_empty() {
     context.applyChanges(new ChangeSet());
     expect(context.performAnalysisTask().changeNotices, isNull);
-    // This test appears to be flaky. If it is named "test_" it fails, if it's
-    // named "fail_" it doesn't fail. I'm guessing that it's dependent on
-    // whether some other test is run.
-    fail('Should have failed');
-  }
-
-  void fail_extractContext() {
-    fail("Implement this");
-  }
-
-  void fail_mergeContext() {
-    fail("Implement this");
   }
 
   void fail_parseHtmlUnit_resolveDirectives() {
@@ -89,6 +77,15 @@ class ClassA {}''');
 </html>''');
     // TODO(brianwilkerson) Rewrite this. We need a way to get the AST for the
     // script.
+//    Document document = context.parseHtmlDocument(source);
+//    expect(document, isNotNull);
+//    List<DartScript> scripts = context.computeResult(source, DART_SCRIPTS);
+//    expect(scripts, hasLength(1));
+//    CompilationUnit unit = context.computeResult(scripts[0], PARSED_AST);
+//    ImportDirective importNode = unit.directives[0] as ImportDirective;
+//    expect(importNode.uriContent, isNotNull);
+//    expect(importNode.source, libSource);
+
     ht.HtmlUnit unit = context.parseHtmlUnit(source);
     expect(unit, isNotNull);
     // import directive should be resolved
@@ -101,7 +98,7 @@ class ClassA {}''');
     expect(importNode.source, libSource);
   }
 
-  void fail_performAnalysisTask_getContentException_dart() {
+  void test_performAnalysisTask_getContentException_dart() {
     Source source = _addSourceWithException('test.dart');
     // prepare errors
     _analyzeAll_assertFinished();
@@ -113,7 +110,7 @@ class ClassA {}''');
     expect(error.errorCode, ScannerErrorCode.UNABLE_GET_CONTENT);
   }
 
-  void fail_performAnalysisTask_getContentException_html() {
+  void test_performAnalysisTask_getContentException_html() {
     Source source = _addSourceWithException('test.html');
     // prepare errors
     _analyzeAll_assertFinished();
@@ -149,20 +146,15 @@ class ClassA {}''');
         reason: "htmlSource has an error");
   }
 
-  void fail_performAnalysisTask_IOException() {
+  void test_performAnalysisTask_IOException() {
     TestSource source = _addSourceWithException2("/test.dart", "library test;");
-    int oldTimestamp = context.getModificationStamp(source);
     source.generateExceptionOnRead = false;
     _analyzeAll_assertFinished();
     expect(source.readCount, 1);
+    _changeSource(source, "");
     source.generateExceptionOnRead = true;
-    do {
-      _changeSource(source, "");
-      // Ensure that the timestamp differs,
-      // so that analysis engine notices the change
-    } while (oldTimestamp == context.getModificationStamp(source));
     _analyzeAll_assertFinished();
-    expect(source.readCount, 2);
+    expect(source.readCount, 3);
   }
 
   void fail_recordLibraryElements() {
