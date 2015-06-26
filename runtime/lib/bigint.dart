@@ -267,7 +267,9 @@ class _Bigint extends _IntegerImplementation implements int {
     return r_used;
   }
 
-  // r_digits[0..r_used-1] = x_digits[0..x_used-1] << n.
+  // r_digits[ds..x_used+ds] = x_digits[0..x_used-1] << (n % _DIGIT_BITS)
+  // where ds = ceil(n / _DIGIT_BITS)
+  // Doesn't clear digits below ds.
   static void _lsh(Uint32List x_digits, int x_used, int n,
                    Uint32List r_digits) {
     final ds = n ~/ _DIGIT_BITS;
@@ -1404,7 +1406,7 @@ class _Bigint extends _IntegerImplementation implements int {
     if (e == 0) return 1;
     m = m._toBigint();
     final m_used = m._used;
-    final m_used2p4 = 2*m_used + 4;
+    final m_used2p4 = 2 * m_used + 4;
     final e_bitlen = e.bitLength;
     if (e_bitlen <= 0) return 1;
     final bool cannotUseMontgomery = m.isEven || _abs() >= m;
@@ -1562,7 +1564,7 @@ class _Bigint extends _IntegerImplementation implements int {
       if (((x_used == 1) && (x_digits[0] == 1)) ||
           ((y_used == 1) && (y_digits[0] == 1))) return 1;
       bool xy_cloned = false;
-      while (x.isEven && y.isEven) {
+      while (((x_digits[0] & 1) == 0) && ((y_digits[0] & 1) == 0)) {
         _rsh(x_digits, x_used, 1, x_digits);
         _rsh(y_digits, y_used, 1, y_digits);
         s++;
@@ -1746,10 +1748,11 @@ class _Bigint extends _IntegerImplementation implements int {
       if (i == 0) break;
     }
     if (!inv) {
-      if (s > 0) {
-        _lsh(v_digits, m_used, s, v_digits);
-      }
-      return new _Bigint(false, m_used, v_digits)._toValidInt();
+      // TODO(regis): Make this work correctly:
+      // if (s > 0) {
+      //   m_used = _dlShiftDigits(v_digits, m_used, s, v_digits);
+      // }
+      return new _Bigint(false, m_used, v_digits)._toValidInt() << s;
     }
     // No inverse if v != 1.
     var i = m_used - 1;
