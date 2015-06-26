@@ -2224,13 +2224,13 @@ static const char* tags_enum_names[] = {
 };
 
 
-static ProfilerService::TagOrder tags_enum_values[] = {
-  ProfilerService::kNoTags,
-  ProfilerService::kUserVM,
-  ProfilerService::kUser,
-  ProfilerService::kVMUser,
-  ProfilerService::kVM,
-  ProfilerService::kNoTags,  // Default value.
+static Profile::TagOrder tags_enum_values[] = {
+  Profile::kNoTags,
+  Profile::kUserVM,
+  Profile::kUser,
+  Profile::kVMUser,
+  Profile::kVM,
+  Profile::kNoTags,  // Default value.
 };
 
 
@@ -2242,7 +2242,7 @@ static const MethodParameter* get_cpu_profile_params[] = {
 
 
 static bool GetCpuProfile(Isolate* isolate, JSONStream* js) {
-  ProfilerService::TagOrder tag_order =
+  Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   ProfilerService::PrintJSON(js, tag_order);
   return true;
