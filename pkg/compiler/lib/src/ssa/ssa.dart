@@ -25,6 +25,7 @@ import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../native/native.dart' as native;
 import '../resolution/operators.dart';
+import '../resolution/semantic_visitor.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
