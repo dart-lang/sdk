@@ -1026,9 +1026,8 @@ class OldEmitter implements Emitter {
     bool hasIsolateSupport = compiler.hasIsolateSupport;
     jsAst.Node fieldNamesArray;
     if (hasIsolateSupport) {
-      fieldNamesArray = js.concatenateStrings(
-          js.joinLiterals(fields, js.stringPart(",")),
-          addQuotes: true);
+      fieldNamesArray =
+          new jsAst.ArrayInitializer(fields.map(js.quoteName).toList());
     } else {
       fieldNamesArray = new jsAst.LiteralNull();
     }
