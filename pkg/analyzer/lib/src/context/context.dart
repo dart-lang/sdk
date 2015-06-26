@@ -1727,24 +1727,33 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           AnalysisEngine.isDartFileName(source.fullName)) {
         // TODO(scheglov) Incorrect implementation in general.
         entry.setState(TOKEN_STREAM, CacheState.FLUSHED);
-        entry.setState(SCAN_ERRORS, CacheState.FLUSHED);
         entry.setState(PARSED_UNIT, CacheState.FLUSHED);
-        entry.setState(PARSE_ERRORS, CacheState.FLUSHED);
-        CompilationUnit oldUnit = getResolvedCompilationUnit2(source, source);
-        if (oldUnit != null) {
-          CompilationUnit newUnit = parseCompilationUnit(source);
-          IncrementalCompilationUnitElementBuilder builder =
-              new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
-          builder.build();
-          CompilationUnitElementDelta unitDelta = builder.unitDelta;
-          DartDelta dartDelta = new DartDelta(source);
-          dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
-          unitDelta.addedDeclarations.forEach(dartDelta.elementAdded);
-          unitDelta.removedDeclarations.forEach(dartDelta.elementRemoved);
-          delta = dartDelta;
+        List<Source> librarySources = getLibrariesContaining(source);
+        if (librarySources.length == 1) {
+          Source librarySource = librarySources[0];
+          CompilationUnit oldUnit =
+              getResolvedCompilationUnit2(source, librarySource);
+          if (oldUnit != null) {
+            CompilationUnit newUnit = parseCompilationUnit(source);
+            IncrementalCompilationUnitElementBuilder builder =
+                new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
+            builder.build();
+            CompilationUnitElementDelta unitDelta = builder.unitDelta;
+            if (!unitDelta.hasDirectiveChange) {
+              DartDelta dartDelta = new DartDelta(source);
+              dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
+              unitDelta.addedDeclarations.forEach(dartDelta.elementAdded);
+              unitDelta.removedDeclarations.forEach(dartDelta.elementRemoved);
+              print(
+                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
+              delta = dartDelta;
+              entry.setState(CONTENT, CacheState.INVALID, delta: delta);
+              return;
+            }
+          }
         }
       }
-      entry.setState(CONTENT, CacheState.INVALID, delta: delta);
+      entry.setState(CONTENT, CacheState.INVALID);
     }
     dartWorkManager.applyChange(
         Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);

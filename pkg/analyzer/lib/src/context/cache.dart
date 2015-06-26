@@ -492,33 +492,41 @@ class CacheEntry {
    * invalidation to other results that depend on it.
    */
   void _invalidate(ResultDescriptor descriptor, Delta delta) {
-    if (delta != null &&
-        !delta.affects(_partition.context, target, descriptor)) {
-//      print('not-invalidate $descriptor for $target');
-      return;
+    DeltaResult deltaResult = null;
+    if (delta != null) {
+      deltaResult = delta.validate(_partition.context, target, descriptor);
+      if (deltaResult == DeltaResult.STOP) {
+//        print('not-invalidate $descriptor for $target');
+        return;
+      }
     }
 //    print('invalidate $descriptor for $target');
-    ResultData thisData = _resultMap.remove(descriptor);
+    ResultData thisData;
+    if (deltaResult == null || deltaResult == DeltaResult.INVALIDATE) {
+      thisData = _resultMap.remove(descriptor);
+    }
+    if (deltaResult == DeltaResult.KEEP_CONTINUE) {
+      thisData = _resultMap[descriptor];
+    }
     if (thisData == null) {
       return;
     }
     // Stop depending on other results.
     TargetedResult thisResult = new TargetedResult(target, descriptor);
-    thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
+    for (TargetedResult dependedOnResult in thisData.dependedOnResults) {
       ResultData data = _partition._getDataFor(dependedOnResult, orNull: true);
       if (data != null) {
         data.dependentResults.remove(thisResult);
       }
-    });
+    }
     // Invalidate results that depend on this result.
-    Set<TargetedResult> dependentResults = thisData.dependentResults;
-    thisData.dependentResults = new Set<TargetedResult>();
-    dependentResults.forEach((TargetedResult dependentResult) {
+    List<TargetedResult> dependentResults = thisData.dependentResults.toList();
+    for (TargetedResult dependentResult in dependentResults) {
       CacheEntry entry = _partition.get(dependentResult.target);
       if (entry != null) {
         entry._invalidate(dependentResult.result, delta);
       }
-    });
+    }
     // If empty, remove the entry altogether.
     if (_resultMap.isEmpty) {
       _partition._targetMap.remove(target);
@@ -976,11 +984,16 @@ class Delta {
    * Check whether this delta affects the result described by the given
    * [descriptor] and [target].
    */
-  bool affects(InternalAnalysisContext context, AnalysisTarget target,
+  DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
       ResultDescriptor descriptor) {
-    return true;
+    return DeltaResult.INVALIDATE;
   }
 }
+
+/**
+ * The possible results of validating analysis results againt a [Delta].
+ */
+enum DeltaResult { INVALIDATE, KEEP_CONTINUE, STOP }
 
 /**
  * [InvalidatedResult] describes an invalidated result.

@@ -1923,45 +1923,6 @@ class DartDelta extends Delta {
     invalidatedSources.add(source);
   }
 
-  @override
-  bool affects(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor) {
-    if (hasDirectiveChange) {
-      return true;
-    }
-    Source targetSource = null;
-    if (target is Source) {
-      targetSource = target;
-    }
-    if (target is LibrarySpecificUnit) {
-      targetSource = target.library;
-    }
-    if (target is Element) {
-      targetSource = target.source;
-    }
-    if (targetSource == source) {
-      return true;
-    }
-    if (targetSource != null) {
-      List<Source> librarySources =
-          context.getLibrariesContaining(targetSource);
-      for (Source librarySource in librarySources) {
-        AnalysisCache cache = context.analysisCache;
-        ReferencedNames referencedNames =
-            cache.getValue(librarySource, REFERENCED_NAMES);
-        if (referencedNames == null) {
-          return true;
-        }
-        referencedNames.addChangedElements(this);
-        if (referencedNames.isAffectedBy(this)) {
-          return true;
-        }
-      }
-      return false;
-    }
-    return true;
-  }
-
   void elementAdded(Element element) {
     addedNames.add(element.name);
   }
@@ -1982,6 +1943,63 @@ class DartDelta extends Delta {
 
   bool nameChanged(String name) {
     return changedNames.add(name);
+  }
+
+  @override
+  DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
+      ResultDescriptor descriptor) {
+    if (hasDirectiveChange) {
+      return DeltaResult.INVALIDATE;
+    }
+    // Prepare target source.
+    Source targetSource = null;
+    if (target is Source) {
+      targetSource = target;
+    }
+    if (target is LibrarySpecificUnit) {
+      targetSource = target.library;
+    }
+    if (target is Element) {
+      targetSource = target.source;
+    }
+    // Keep results that are updated incrementally.
+    // If we want to analyze only some references to the source being changed,
+    // we need to keep the same instances of CompilationUnitElement and
+    // LibraryElement.
+    if (targetSource == source) {
+      if (ParseDartTask.DESCRIPTOR.results.contains(descriptor)) {
+        return DeltaResult.KEEP_CONTINUE;
+      }
+      if (BuildCompilationUnitElementTask.DESCRIPTOR.results
+          .contains(descriptor)) {
+        return DeltaResult.KEEP_CONTINUE;
+      }
+      if (BuildLibraryElementTask.DESCRIPTOR.results.contains(descriptor)) {
+        return DeltaResult.KEEP_CONTINUE;
+      }
+      return DeltaResult.INVALIDATE;
+    }
+    // Use the target library dependency information to decide whether
+    // the delta affects the library.
+    if (targetSource != null) {
+      List<Source> librarySources =
+          context.getLibrariesContaining(targetSource);
+      for (Source librarySource in librarySources) {
+        AnalysisCache cache = context.analysisCache;
+        ReferencedNames referencedNames =
+            cache.getValue(librarySource, REFERENCED_NAMES);
+        if (referencedNames == null) {
+          return DeltaResult.INVALIDATE;
+        }
+        referencedNames.addChangedElements(this);
+        if (referencedNames.isAffectedBy(this)) {
+          return DeltaResult.INVALIDATE;
+        }
+      }
+      return DeltaResult.STOP;
+    }
+    // We don't know what to do with the given target, invalidate it.
+    return DeltaResult.INVALIDATE;
   }
 }
 

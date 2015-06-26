@@ -1573,28 +1573,48 @@ void g() { f(null); }''');
         reason: "part resolved 1");
     // update and analyze #1
     context.setContents(partSource, "part of lib; // 1");
-    expect(context.getResolvedCompilationUnit2(libSource, libSource), isNull,
-        reason: "library changed 2");
-    expect(context.getResolvedCompilationUnit2(partSource, libSource), isNull,
-        reason: "part changed 2");
-    _analyzeAll_assertFinished();
-    expect(context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
-        reason: "library resolved 2");
-    expect(
-        context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
-        reason: "part resolved 2");
+    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
+      expect(
+          context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
+          reason: "library changed 2");
+      expect(
+          context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
+          reason: "part changed 2");
+    } else {
+      expect(context.getResolvedCompilationUnit2(libSource, libSource), isNull,
+          reason: "library changed 2");
+      expect(context.getResolvedCompilationUnit2(partSource, libSource), isNull,
+          reason: "part changed 2");
+      _analyzeAll_assertFinished();
+      expect(
+          context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
+          reason: "library resolved 2");
+      expect(
+          context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
+          reason: "part resolved 2");
+    }
     // update and analyze #2
     context.setContents(partSource, "part of lib; // 12");
-    expect(context.getResolvedCompilationUnit2(libSource, libSource), isNull,
-        reason: "library changed 3");
-    expect(context.getResolvedCompilationUnit2(partSource, libSource), isNull,
-        reason: "part changed 3");
-    _analyzeAll_assertFinished();
-    expect(context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
-        reason: "library resolved 3");
-    expect(
-        context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
-        reason: "part resolved 3");
+    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
+      expect(
+          context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
+          reason: "library changed 3");
+      expect(
+          context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
+          reason: "part changed 3");
+    } else {
+      expect(context.getResolvedCompilationUnit2(libSource, libSource), isNull,
+          reason: "library changed 3");
+      expect(context.getResolvedCompilationUnit2(partSource, libSource), isNull,
+          reason: "part changed 3");
+      _analyzeAll_assertFinished();
+      expect(
+          context.getResolvedCompilationUnit2(libSource, libSource), isNotNull,
+          reason: "library resolved 3");
+      expect(
+          context.getResolvedCompilationUnit2(partSource, libSource), isNotNull,
+          reason: "part resolved 3");
+    }
   }
 
   void test_performAnalysisTask_importedLibraryAdd() {
@@ -2059,6 +2079,89 @@ class LimitedInvalidateTest extends AbstractContextTest {
   void tearDown() {
     AnalysisEngine.instance.limitInvalidationInTaskModel = false;
     super.tearDown();
+  }
+
+  void test_noChange_thenChange() {
+    Source sourceA = addSource("/a.dart", r'''
+library lib_a;
+
+class A {
+  A();
+}
+class B {
+  B();
+}
+''');
+    Source sourceB = addSource("/b.dart", r'''
+library lib_b;
+import 'a.dart';
+main() {
+  new A();
+}
+''');
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(sourceA).errors, hasLength(0));
+    expect(context.getErrors(sourceB).errors, hasLength(0));
+    var unitA = context.getResolvedCompilationUnit2(sourceA, sourceA);
+    var unitElementA = unitA.element;
+    var libraryElementA = unitElementA.library;
+    // Update a.dart, no declaration changes.
+    context.setContents(sourceA, r'''
+library lib_a;
+class A {
+  A();
+}
+class B {
+  B();
+}
+''');
+    _assertInvalid(sourceA, LIBRARY_ERRORS_READY);
+    _assertValid(sourceB, LIBRARY_ERRORS_READY);
+    // The a.dart's unit and element are updated incrementally.
+    // They are the same instances as initially.
+    // So, all the references from other units are still valid.
+    {
+      LibrarySpecificUnit target = new LibrarySpecificUnit(sourceA, sourceA);
+      expect(analysisCache.getValue(target, RESOLVED_UNIT1), same(unitA));
+      expect(unitA.element, same(unitElementA));
+      expect(unitElementA.library, same(libraryElementA));
+    }
+    // Analyze.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(sourceA).errors, hasLength(0));
+    expect(context.getErrors(sourceB).errors, hasLength(0));
+    // The a.dart's unit and element are the same.
+    {
+      LibrarySpecificUnit target = new LibrarySpecificUnit(sourceA, sourceA);
+      expect(analysisCache.getValue(target, RESOLVED_UNIT), same(unitA));
+      expect(unitA.element, same(unitElementA));
+      expect(unitElementA.library, same(libraryElementA));
+    }
+    // Update a.dart, rename A to A2, invalidates b.dart, so
+    // we know that the previous update did not damage dependencies.
+    context.setContents(sourceA, r'''
+library lib_a;
+class A {
+  A();
+  m() {}
+}
+class B {
+  B();
+}
+''');
+    _assertInvalid(sourceA, LIBRARY_ERRORS_READY);
+    _assertInvalid(sourceB, LIBRARY_ERRORS_READY);
+    // The a.dart's unit and element are the same.
+    {
+      LibrarySpecificUnit target = new LibrarySpecificUnit(sourceA, sourceA);
+      expect(analysisCache.getValue(target, RESOLVED_UNIT1), same(unitA));
+      expect(unitA.element, same(unitElementA));
+      expect(unitElementA.library, same(libraryElementA));
+    }
+    // Analyze.
+    _performPendingAnalysisTasks();
+    expect(context.getErrors(sourceA).errors, hasLength(0));
+    expect(context.getErrors(sourceB).errors, hasLength(0));
   }
 
   void test_unusedName() {
