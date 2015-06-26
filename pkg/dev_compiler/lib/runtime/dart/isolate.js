@@ -140,12 +140,12 @@ dart_library.library('dart/isolate', null, /* Imports */[
     get errors() {
       let controller = null;
       let port = null;
-      let handleError = message => {
+      function handleError(message) {
         let errorDescription = dart.as(dart.dindex(message, 0), core.String);
         let stackDescription = dart.as(dart.dindex(message, 1), core.String);
         let error = new RemoteError(errorDescription, stackDescription);
         controller.addError(error, error.stackTrace);
-      };
+      }
       dart.fn(handleError, dart.void, [dart.dynamic]);
       controller = async.StreamController.broadcast({sync: true, onListen: dart.fn(() => {
           port = RawReceivePort.new(handleError);

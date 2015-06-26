@@ -117,14 +117,14 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       let m = dart.notNull(multiLine) ? 'm' : '';
       let i = dart.notNull(caseSensitive) ? '' : 'i';
       let g = dart.notNull(global) ? 'g' : '';
-      let regexp = function() {
+      let regexp = (function() {
         try {
           return new RegExp(source, m + i + g);
         } catch (e) {
           return e;
         }
 
-      }();
+      })();
       if (regexp instanceof RegExp)
         return regexp;
       let errorMessage = String(regexp);

@@ -1,0 +1,10 @@
+// Messages from compiling expect.dart
+info: line 97, column 51 of test/codegen/expect.dart: [DynamicCast] expected (dynamic) will need runtime check to cast to type String
+      String stringDifference = _stringDifference(expected, actual);
+                                                  ^^^^^^^^
+info: line 97, column 61 of test/codegen/expect.dart: [DynamicCast] actual (dynamic) will need runtime check to cast to type String
+      String stringDifference = _stringDifference(expected, actual);
+                                                            ^^^^^^
+info: line 372, column 14 of test/codegen/expect.dart: [DynamicInvoke] check(e) requires dynamic invoke
+        if (!check(e)) {
+             ^^^^^^^^

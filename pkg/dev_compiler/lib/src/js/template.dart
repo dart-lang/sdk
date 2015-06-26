@@ -642,6 +642,9 @@ class InstantiatorGeneratorVisitor implements NodeVisitor<Instantiator> {
   Instantiator visitSpread(Spread node) =>
       (args) => new Spread(visit(node.argument)(args));
 
+  Instantiator visitYield(Yield node) =>
+      (args) => new Yield(visit(node.value)(args), star: node.star);
+
   Instantiator visitRestParameter(RestParameter node) =>
       (args) => new RestParameter(visit(node.parameter)(args));
 

@@ -943,13 +943,13 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
     convert(object) {
       let bytes = dart.list([], core.List$(core.int));
-      let addChunk = (chunk, start, end) => {
+      function addChunk(chunk, start, end) {
         if (dart.notNull(start) > 0 || dart.notNull(end) < dart.notNull(chunk.length)) {
           let length = dart.notNull(end) - dart.notNull(start);
           chunk = typed_data.Uint8List.view(chunk.buffer, dart.notNull(chunk.offsetInBytes) + dart.notNull(start), length);
         }
         bytes[dartx.add](chunk);
-      };
+      }
       dart.fn(addChunk, dart.void, [typed_data.Uint8List, core.int, core.int]);
       _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])), this[_bufferSize], addChunk);
       if (bytes[dartx.length] == 1)
@@ -2441,7 +2441,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       this[_value] = 0;
       this[_expectedUnits] = 0;
       this[_extraUnits] = 0;
-      let scanOneByteCharacters = (units, from) => {
+      function scanOneByteCharacters(units, from) {
         let to = endIndex;
         let mask = _ONE_BYTE_LIMIT;
         for (let i = from; dart.notNull(i) < dart.notNull(to); i = dart.notNull(i) + 1) {
@@ -2450,13 +2450,13 @@ dart_library.library('dart/convert', null, /* Imports */[
             return dart.notNull(i) - dart.notNull(from);
         }
         return dart.notNull(to) - dart.notNull(from);
-      };
+      }
       dart.fn(scanOneByteCharacters, core.int, [dart.dynamic, core.int]);
-      let addSingleBytes = (from, to) => {
+      let addSingleBytes = (function(from, to) {
         dart.assert(dart.notNull(from) >= dart.notNull(startIndex) && dart.notNull(from) <= dart.notNull(endIndex));
         dart.assert(dart.notNull(to) >= dart.notNull(startIndex) && dart.notNull(to) <= dart.notNull(endIndex));
         this[_stringSink].write(core.String.fromCharCodes(codeUnits, from, to));
-      };
+      }).bind(this);
       dart.fn(addSingleBytes, dart.void, [core.int, core.int]);
       let i = startIndex;
       loop:
@@ -2568,7 +2568,7 @@ dart_library.library('dart/convert', null, /* Imports */[
   let _original = Symbol('_original');
   function _convertJsonToDart(json, reviver) {
     dart.assert(reviver != null);
-    let walk = e => {
+    function walk(e) {
       if (e == null || typeof e != "object") {
         return e;
       }
@@ -2589,7 +2589,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       }
       map[_original] = processed;
       return map;
-    };
+    }
     dart.fn(walk);
     return dart.dcall(reviver, null, walk(json));
   }

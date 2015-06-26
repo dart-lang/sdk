@@ -502,13 +502,13 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this.fromCommandLine = !dart.notNull(isWindowDefined) && !dart.notNull(this.isWorker);
     }
     [_nativeInitWorkerMessageHandler]() {
-      let func = function(f, a) {
+      let func = (function(f, a) {
         return function(e) {
           f(a, e);
         };
-      }(IsolateNatives._processWorkerMessage, this.mainManager);
+      })(IsolateNatives._processWorkerMessage, this.mainManager);
       self.onmessage = func;
-      self.dartPrint = self.dartPrint || function(serialize) {
+      self.dartPrint = self.dartPrint || (function(serialize) {
         return function(object) {
           if (self.console && self.console.log) {
             self.console.log(object);
@@ -516,7 +516,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
             self.postMessage(serialize(object));
           }
         };
-      }(_Manager._serializePrintMessage);
+      })(_Manager._serializePrintMessage);
     }
     static _serializePrintMessage(object) {
       return _serializeMessage(dart.map({command: "print", msg: object}));
@@ -611,9 +611,9 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         responsePort.send(null);
         return;
       }
-      let respond = () => {
+      function respond() {
         responsePort.send(null);
-      };
+      }
       dart.fn(respond, dart.void, []);
       if (pingType == isolate.Isolate.AS_EVENT) {
         exports._globalState.topEventLoop.enqueue(this, respond, "ping");
@@ -860,11 +860,11 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     [_runHelper]() {
       if (exports.globalWindow != null) {
-        let next = () => {
+        let next = (function() {
           if (!dart.notNull(this.runIteration()))
             return;
           async.Timer.run(next);
-        };
+        }).bind(this);
         dart.fn(next);
         next();
       } else {
@@ -963,14 +963,14 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     static computeThisScriptFromTrace() {
       let stack = new Error().stack;
       if (stack == null) {
-        stack = function() {
+        stack = (function() {
           try {
             throw new Error();
           } catch (e) {
             return e.stack;
           }
 
-        }();
+        })();
         if (stack == null)
           throw new core.UnsupportedError('No stack trace');
       }
@@ -1152,7 +1152,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       let context = dart.as(_foreign_helper.JS_CURRENT_ISOLATE_CONTEXT(), _IsolateContext);
       _js_helper.Primitives.initializeStatics(context.id);
       replyTo.send([_SPAWNED_SIGNAL, context.controlPort.sendPort, context.pauseCapability, context.terminateCapability]);
-      let runStartFunction = () => {
+      function runStartFunction() {
         context.initialized = true;
         if (!dart.notNull(isSpawnUri)) {
           dart.dcall(topLevel, message);
@@ -1163,7 +1163,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         } else {
           dart.dcall(topLevel);
         }
-      };
+      }
       dart.fn(runStartFunction, dart.void, []);
       if (dart.notNull(startPaused)) {
         context.addPause(context.pauseCapability, context.pauseCapability);
@@ -1176,18 +1176,18 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       if (uri == null)
         uri = IsolateNatives.thisScript;
       let worker = new Worker(uri);
-      let onerrorTrampoline = function(f, u, c) {
+      let onerrorTrampoline = (function(f, u, c) {
         return function(e) {
           return f(e, u, c);
         };
-      }(IsolateNatives.workerOnError, uri, onError);
+      })(IsolateNatives.workerOnError, uri, onError);
       worker.onerror = onerrorTrampoline;
-      let processWorkerMessageTrampoline = function(f, a) {
+      let processWorkerMessageTrampoline = (function(f, a) {
         return function(e) {
           e.onerror = null;
           return f(a, e);
         };
-      }(IsolateNatives._processWorkerMessage, worker);
+      })(IsolateNatives._processWorkerMessage, worker);
       worker.onmessage = processWorkerMessageTrampoline;
       let o = exports._globalState;
       let workerId = o.nextManagerId;
@@ -1443,20 +1443,20 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       this[_inEventLoop] = false;
       this[_handle] = null;
       if (milliseconds == 0 && (!dart.notNull(hasTimer()) || dart.notNull(exports._globalState.isWorker))) {
-        let internalCallback = () => {
+        let internalCallback = (function() {
           this[_handle] = null;
           callback();
-        };
+        }).bind(this);
         dart.fn(internalCallback, dart.void, []);
         this[_handle] = 1;
         exports._globalState.topEventLoop.enqueue(exports._globalState.currentContext, internalCallback, 'timer');
         this[_inEventLoop] = true;
       } else if (dart.notNull(hasTimer())) {
-        let internalCallback = () => {
+        let internalCallback = (function() {
           this[_handle] = null;
           leaveJsAsync();
           callback();
-        };
+        }).bind(this);
         dart.fn(internalCallback, dart.void, []);
         enterJsAsync();
         this[_handle] = self.setTimeout(internalCallback, milliseconds);

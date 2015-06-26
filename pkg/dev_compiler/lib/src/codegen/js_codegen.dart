@@ -1117,7 +1117,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     if (params == null) params = [];
 
     return new JS.Method(
-        _elementMemberName(node.element), new JS.Fun(params, _visit(node.body)),
+        _elementMemberName(node.element), _emitJsFunction(params, node.body),
         isGetter: node.isGetter,
         isSetter: node.isSetter,
         isStatic: node.isStatic);
@@ -1202,10 +1202,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     if (params == null) params = [];
 
     var parent = node.parent;
-    var inDecl = parent is FunctionDeclaration;
     var inStmt = parent.parent is FunctionDeclarationStatement;
-    if (inDecl && !inStmt) {
-      return new JS.Fun(params, _visit(node.body));
+    if (parent is FunctionDeclaration) {
+      return _emitJsFunction(params, node.body);
     } else {
       String code;
       AstNode body;
@@ -1227,6 +1226,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     }
   }
 
+  JS.Fun _emitJsFunction(List<JS.Parameter> params, FunctionBody body) {
+    // TODO(jmesserly): async/async*
+    var syncStar = body.isSynchronous && body.star != null;
+    return new JS.Fun(params, _visit(body), isGenerator: syncStar);
+  }
+
   @override
   JS.Statement visitFunctionDeclarationStatement(
       FunctionDeclarationStatement node) {
@@ -1235,12 +1240,20 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       return js.comment('Unimplemented function get/set statement: $node');
     }
 
-    // Use an => function to bind this.
-    // Technically we only need to do this if the function actually closes over
-    // `this`, but it seems harmless enough to just do it always.
+    var fn = _visit(func.functionExpression);
+    var jsThis = new _JsThisFinder();
+    fn.accept(jsThis);
+
     var name = new JS.Identifier(func.name.name);
+    JS.Statement declareFn;
+    if (jsThis.found) {
+      declareFn = js.statement('let # = #.bind(this);', [name, fn]);
+    } else {
+      declareFn = new JS.FunctionDeclaration(name, fn);
+    }
+
     return new JS.Block([
-      js.statement('let # = #;', [name, _visit(func.functionExpression)]),
+      declareFn,
       _emitFunctionTagged(name, func.element.type).toStatement()
     ]);
   }
@@ -1642,7 +1655,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   JS.Statement visitReturnStatement(ReturnStatement node) {
     var e = node.expression;
     if (e == null) return new JS.Return();
-    return _visit(e).toReturn();
+    return (_visit(e) as JS.Expression).toReturn();
+  }
+
+  @override
+  JS.Statement visitYieldStatement(YieldStatement node) {
+    JS.Expression jsExpr = _visit(node.expression);
+    return jsExpr.toYieldStatement(star: node.star != null);
   }
 
   @override
@@ -2579,10 +2598,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   JS.Expression visitExpression(Expression node) =>
       _unimplementedCall('Unimplemented ${node.runtimeType}: $node');
 
-  @override
-  JS.Statement visitYieldStatement(YieldStatement node) =>
-      _unimplementedCall('Unimplemented yield: $node').toStatement();
-
   JS.Expression _unimplementedCall(String comment) {
     return js.call('dart.throw_(#)', [js.escapedString(comment)]);
   }
@@ -2804,4 +2819,14 @@ class TemporaryVariableElement extends LocalVariableElementImpl {
 
   int get hashCode => identityHashCode(this);
   bool operator ==(Object other) => identical(this, other);
+}
+
+class _JsThisFinder extends JS.BaseVisitor {
+  bool found = false;
+  visitThis(JS.This node) {
+    found = true;
+  }
+  visitNode(JS.Node node) {
+    if (!found) super.visitNode(node);
+  }
 }

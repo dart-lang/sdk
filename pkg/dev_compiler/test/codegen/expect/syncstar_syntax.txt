@@ -1,0 +1,13 @@
+// Messages from compiling syncstar_syntax.dart
+info: line 7, column 10 of test/codegen/syncstar_syntax.dart: [InferredTypeLiteral] [2, 3] has inferred type Iterable<int>
+  yield* [2, 3];
+         ^^^^^^
+info: line 13, column 12 of test/codegen/syncstar_syntax.dart: [InferredTypeLiteral] [2, 3] has inferred type Iterable<int>
+    yield* [2, 3];
+           ^^^^^^
+info: line 18, column 12 of test/codegen/syncstar_syntax.dart: [InferredTypeLiteral] [2, 3] has inferred type Iterable<int>
+    yield* [2, 3];
+           ^^^^^^
+info: line 25, column 12 of test/codegen/syncstar_syntax.dart: [InferredTypeLiteral] [2, 3] has inferred type Iterable<int>
+    yield* [2, 3];
+           ^^^^^^

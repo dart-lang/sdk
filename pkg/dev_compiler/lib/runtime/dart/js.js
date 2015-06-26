@@ -41,7 +41,7 @@ dart_library.library('dart/js', null, /* Imports */[
     }
     static _convertDataTree(data) {
       let _convertedObjects = collection.HashMap.identity();
-      let _convert = o => {
+      function _convert(o) {
         if (dart.notNull(_convertedObjects.containsKey(o))) {
           return _convertedObjects.get(o);
         }
@@ -60,7 +60,7 @@ dart_library.library('dart/js', null, /* Imports */[
         } else {
           return _convertToJS(o);
         }
-      };
+      }
       dart.fn(_convert);
       return _convert(data);
     }

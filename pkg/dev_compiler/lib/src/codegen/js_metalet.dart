@@ -18,7 +18,7 @@ import 'js_names.dart' show TemporaryId;
 ///     (let* (x1=expr1, x2=expr2, t=x1[x2]) { x1[x2] = t + 1; t })
 ///
 /// [MetaLet] will simplify itself automatically when [toExpression],
-/// [toStatement], or [toReturn] is called.
+/// [toStatement], [toReturn], or [toYieldStatement] is called.
 ///
 /// * variables used once will be inlined.
 /// * if used in a statement context they can emit as blocks.
@@ -108,6 +108,14 @@ class MetaLet extends Expression {
   Block toReturn() {
     var statements = body
         .map((e) => e == body.last ? e.toReturn() : e.toStatement())
+        .toList();
+    return _finishStatement(statements);
+  }
+
+  Block toYieldStatement({bool star: false}) {
+    var statements = body
+        .map((e) =>
+            e == body.last ? e.toYieldStatement(star: star) : e.toStatement())
         .toList();
     return _finishStatement(statements);
   }

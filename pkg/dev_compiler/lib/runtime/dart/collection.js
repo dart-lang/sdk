@@ -3630,7 +3630,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       containsValue(value) {
         let found = false;
         let initialSplayCount = this[_splayCount];
-        let visit = node => {
+        let visit = (function(node) {
           while (node != null) {
             if (dart.equals(node.value, value))
               return true;
@@ -3642,7 +3642,7 @@ dart_library.library('dart/collection', null, /* Imports */[
             node = dart.as(node.left, _SplayTreeMapNode);
           }
           return false;
-        };
+        }).bind(this);
         dart.fn(visit, core.bool, [_SplayTreeMapNode]);
         return visit(dart.as(this[_root], _SplayTreeMapNode));
       }

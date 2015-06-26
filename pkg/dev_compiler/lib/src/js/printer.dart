@@ -509,6 +509,7 @@ class Printer implements NodeVisitor {
 
   void functionOut(Fun fun, Node name) {
     out("function");
+    if (fun.isGenerator) out("*");
     if (name != null) {
       out(" ");
       // Name must be a [Decl]. Therefore only test for primary expressions.
@@ -769,6 +770,12 @@ class Printer implements NodeVisitor {
   }
 
   visitSpread(Spread unary) => visitPrefix(unary);
+
+  visitYield(Yield yield) {
+    out(yield.star ? "yield* " : "yield ");
+    visitNestedExpression(yield.value, yield.precedenceLevel,
+        newInForInit: inForInit, newAtStatementBegin: false);
+  }
 
   visitPostfix(Postfix postfix) {
     visitNestedExpression(postfix.argument, LEFT_HAND_SIDE,
@@ -1032,6 +1039,8 @@ class Printer implements NodeVisitor {
       out('get ');
     } else if (node.isSetter) {
       out('set ');
+    } else if (node.function.isGenerator) {
+      out('*');
     }
     propertyNameOut(node.name, inMethod: true);
 

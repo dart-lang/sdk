@@ -96,7 +96,7 @@ dart_library.library('dart/async', null, /* Imports */[
         let computationCount = 0;
         let controller = null;
         let watch = new core.Stopwatch();
-        let sendEvent = () => {
+        function sendEvent() {
           watch.reset();
           let data = computation((() => {
             let x = computationCount;
@@ -104,14 +104,14 @@ dart_library.library('dart/async', null, /* Imports */[
             return x;
           })());
           controller.add(data);
-        };
+        }
         dart.fn(sendEvent, dart.void, []);
-        let startPeriodicTimer = () => {
+        function startPeriodicTimer() {
           dart.assert(timer == null);
           timer = Timer.periodic(period, dart.fn(timer => {
             sendEvent();
           }, dart.dynamic, [Timer]));
-        };
+        }
         dart.fn(startPeriodicTimer, dart.void, []);
         controller = StreamController$(T).new({sync: true, onListen: dart.fn(() => {
             watch.start();
@@ -161,7 +161,7 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.as(convert, dart.functionType(dart.dynamic, [T]));
         let controller = null;
         let subscription = null;
-        let onListen = () => {
+        let onListen = (function() {
           let add = dart.bind(controller, 'add');
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = controller;
@@ -184,7 +184,7 @@ dart_library.library('dart/async', null, /* Imports */[
               controller.add(newValue);
             }
           }, dart.dynamic, [T]), {onError: dart.as(addError, core.Function), onDone: dart.bind(controller, 'close')});
-        };
+        }).bind(this);
         dart.fn(onListen, dart.void, []);
         if (dart.notNull(this.isBroadcast)) {
           controller = StreamController.broadcast({onListen: onListen, onCancel: dart.fn(() => {
@@ -205,7 +205,7 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.as(convert, dart.functionType(Stream$(), [T]));
         let controller = null;
         let subscription = null;
-        let onListen = () => {
+        let onListen = (function() {
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = controller;
           subscription = this.listen(dart.fn(event => {
@@ -224,7 +224,7 @@ dart_library.library('dart/async', null, /* Imports */[
               controller.addStream(newStream).whenComplete(dart.bind(subscription, 'resume'));
             }
           }, dart.dynamic, [T]), {onError: dart.as(eventSink[_addError], core.Function), onDone: dart.bind(controller, 'close')});
-        };
+        }).bind(this);
         dart.fn(onListen, dart.void, []);
         if (dart.notNull(this.isBroadcast)) {
           controller = StreamController.broadcast({onListen: onListen, onCancel: dart.fn(() => {
@@ -664,27 +664,27 @@ dart_library.library('dart/async', null, /* Imports */[
         let timer = null;
         let zone = null;
         let timeout = null;
-        let onData = event => {
+        function onData(event) {
           dart.as(event, T);
           timer.cancel();
           controller.add(event);
           timer = zone.createTimer(timeLimit, dart.as(timeout, __CastType17));
-        };
+        }
         dart.fn(onData, dart.void, [T]);
-        let onError = (error, stackTrace) => {
+        function onError(error, stackTrace) {
           timer.cancel();
           dart.assert(dart.is(controller, _StreamController) || dart.is(controller, _BroadcastStreamController));
           let eventSink = controller;
           dart.dcall(eventSink[_addError], error, stackTrace);
           timer = zone.createTimer(timeLimit, dart.as(timeout, dart.functionType(dart.void, [])));
-        };
+        }
         dart.fn(onError, dart.void, [dart.dynamic, core.StackTrace]);
-        let onDone = () => {
+        function onDone() {
           timer.cancel();
           controller.close();
-        };
+        }
         dart.fn(onDone, dart.void, []);
-        let onListen = () => {
+        let onListen = (function() {
           zone = Zone.current;
           if (onTimeout == null) {
             timeout = dart.fn(() => {
@@ -701,14 +701,14 @@ dart_library.library('dart/async', null, /* Imports */[
           }
           subscription = this.listen(onData, {onError: onError, onDone: onDone});
           timer = zone.createTimer(timeLimit, dart.as(timeout, dart.functionType(dart.void, [])));
-        };
+        }).bind(this);
         dart.fn(onListen, dart.void, []);
-        let onCancel = () => {
+        function onCancel() {
           timer.cancel();
           let result = subscription.cancel();
           subscription = null;
           return result;
-        };
+        }
         dart.fn(onCancel, Future, []);
         controller = dart.notNull(this.isBroadcast) ? new _SyncBroadcastStreamController(onListen, onCancel) : new _SyncStreamController(onListen, dart.fn(() => {
           timer.cancel();
@@ -1104,7 +1104,7 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.assert(!dart.notNull(this[_isPaused]));
         dart.assert(!dart.notNull(this[_inCallback]));
         let wasInputPaused = this[_isInputPaused];
-        let sendError = () => {
+        let sendError = (function() {
           if (dart.notNull(this[_isCanceled]) && !dart.notNull(this[_waitsForCancel]))
             return;
           this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
@@ -1114,7 +1114,7 @@ dart_library.library('dart/async', null, /* Imports */[
             this[_zone].runUnaryGuarded(dart.as(this[_onError], __CastType25), error);
           }
           this[_state] = dart.notNull(this[_state]) & ~dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
-        };
+        }).bind(this);
         dart.fn(sendError, dart.void, []);
         if (dart.notNull(this[_cancelOnError])) {
           this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription$()._STATE_WAIT_FOR_CANCEL);
@@ -1133,13 +1133,13 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.assert(!dart.notNull(this[_isCanceled]));
         dart.assert(!dart.notNull(this[_isPaused]));
         dart.assert(!dart.notNull(this[_inCallback]));
-        let sendDone = () => {
+        let sendDone = (function() {
           if (!dart.notNull(this[_waitsForCancel]))
             return;
           this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription$()._STATE_CANCELED) | dart.notNull(_BufferingStreamSubscription$()._STATE_CLOSED) | dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
           this[_zone].runGuarded(this[_onDone]);
           this[_state] = dart.notNull(this[_state]) & ~dart.notNull(_BufferingStreamSubscription$()._STATE_IN_CALLBACK);
-        };
+        }).bind(this);
         dart.fn(sendDone, dart.void, []);
         this[_cancel]();
         this[_state] = dart.notNull(this[_state]) | dart.notNull(_BufferingStreamSubscription$()._STATE_WAIT_FOR_CANCEL);
@@ -1887,7 +1887,7 @@ dart_library.library('dart/async', null, /* Imports */[
         let remaining = 0;
         let error = null;
         let stackTrace = null;
-        let handleError = (theError, theStackTrace) => {
+        function handleError(theError, theStackTrace) {
           remaining = dart.notNull(remaining) - 1;
           if (values != null) {
             if (cleanUp != null) {
@@ -1909,7 +1909,7 @@ dart_library.library('dart/async', null, /* Imports */[
           } else if (remaining == 0 && !dart.notNull(eagerError)) {
             result[_completeError](error, stackTrace);
           }
-        };
+        }
         dart.fn(handleError, dart.void, [dart.dynamic, dart.dynamic]);
         for (let future of futures) {
           let pos = remaining;
@@ -2478,7 +2478,7 @@ dart_library.library('dart/async', null, /* Imports */[
             if (!dart.notNull(core.identical(Zone.current, zone))) {
               oldZone = Zone._enter(zone);
             }
-            let handleValueCallback = () => {
+            function handleValueCallback() {
               try {
                 listenerValueOrError = zone.runUnary(listener[_onValue], sourceValue);
                 return true;
@@ -2488,9 +2488,9 @@ dart_library.library('dart/async', null, /* Imports */[
                 return false;
               }
 
-            };
+            }
             dart.fn(handleValueCallback, core.bool, []);
-            let handleError = () => {
+            function handleError() {
               let asyncError = source[_error];
               let matchesTest = true;
               if (dart.notNull(listener.hasErrorTest)) {
@@ -2525,9 +2525,9 @@ dart_library.library('dart/async', null, /* Imports */[
                 listenerValueOrError = asyncError;
                 listenerHasValue = false;
               }
-            };
+            }
             dart.fn(handleError, dart.void, []);
-            let handleWhenCompleteCallback = () => {
+            function handleWhenCompleteCallback() {
               let completeResult = null;
               try {
                 completeResult = zone.run(listener[_whenCompleteAction]);
@@ -2558,7 +2558,7 @@ dart_library.library('dart/async', null, /* Imports */[
                     _Future$()._propagateToListeners(dart.as(completeResult, _Future$()), new _FutureListener.chain(result));
                   }, dart.dynamic, [dart.dynamic], [dart.dynamic])});
               }
-            };
+            }
             dart.fn(handleWhenCompleteCallback, dart.void, []);
             if (!dart.notNull(hasError)) {
               if (dart.notNull(listener.handlesValue)) {
@@ -2779,12 +2779,12 @@ dart_library.library('dart/async', null, /* Imports */[
         let div = self.document.createElement("div");
         let span = self.document.createElement("span");
         let storedCallback = null;
-        let internalCallback = _ => {
+        function internalCallback(_) {
           _isolate_helper.leaveJsAsync();
           let f = storedCallback;
           storedCallback = null;
           dart.dcall(f);
-        };
+        }
         dart.fn(internalCallback);
         ;
         let observer = new self.MutationObserver(internalCallback);
@@ -2801,20 +2801,20 @@ dart_library.library('dart/async', null, /* Imports */[
       return _AsyncRun._scheduleImmediateWithTimer;
     }
     static _scheduleImmediateJsOverride(callback) {
-      let internalCallback = () => {
+      function internalCallback() {
         _isolate_helper.leaveJsAsync();
         callback();
-      };
+      }
       dart.fn(internalCallback);
       ;
       _isolate_helper.enterJsAsync();
       self.scheduleImmediate(internalCallback);
     }
     static _scheduleImmediateWithSetImmediate(callback) {
-      let internalCallback = () => {
+      function internalCallback() {
         _isolate_helper.leaveJsAsync();
         callback();
-      };
+      }
       dart.fn(internalCallback);
       ;
       _isolate_helper.enterJsAsync();
@@ -3213,11 +3213,11 @@ dart_library.library('dart/async', null, /* Imports */[
             result = result.whenComplete(this[_onCancel]);
           }
         }
-        let complete = () => {
+        let complete = (function() {
           if (this[_doneFuture] != null && dart.notNull(this[_doneFuture][_mayComplete])) {
             this[_doneFuture][_asyncComplete](null);
           }
-        };
+        }).bind(this);
         dart.fn(complete, dart.void, []);
         if (result != null) {
           result = result.whenComplete(complete);

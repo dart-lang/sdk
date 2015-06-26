@@ -140,17 +140,17 @@ dart_library.library('dart/core', null, /* Imports */[
       let re = RegExp.new('^([+-]?\\d{4,6})-?(\\d\\d)-?(\\d\\d)' + '(?:[ T](\\d\\d)(?::?(\\d\\d)(?::?(\\d\\d)(.\\d{1,6})?)?)?' + '( ?[zZ]| ?([-+])(\\d\\d)(?::?(\\d\\d))?)?)?$');
       let match = re.firstMatch(formattedString);
       if (match != null) {
-        let parseIntOrZero = matched => {
+        function parseIntOrZero(matched) {
           if (matched == null)
             return 0;
           return int.parse(matched);
-        };
+        }
         dart.fn(parseIntOrZero, int, [String]);
-        let parseDoubleOrZero = matched => {
+        function parseDoubleOrZero(matched) {
           if (matched == null)
             return 0.0;
           return double.parse(matched);
-        };
+        }
         dart.fn(parseDoubleOrZero, double, [String]);
         let years = int.parse(match.get(1));
         let month = int.parse(match.get(2));
@@ -527,7 +527,7 @@ dart_library.library('dart/core', null, /* Imports */[
       return this[_duration][dartx.compareTo](other[_duration]);
     }
     toString() {
-      let sixDigits = n => {
+      function sixDigits(n) {
         if (dart.notNull(n) >= 100000)
           return `${n}`;
         if (dart.notNull(n) >= 10000)
@@ -539,13 +539,13 @@ dart_library.library('dart/core', null, /* Imports */[
         if (dart.notNull(n) >= 10)
           return `0000${n}`;
         return `00000${n}`;
-      };
+      }
       dart.fn(sixDigits, String, [int]);
-      let twoDigits = n => {
+      function twoDigits(n) {
         if (dart.notNull(n) >= 10)
           return `${n}`;
         return `0${n}`;
-      };
+      }
       dart.fn(twoDigits, String, [int]);
       if (dart.notNull(this.inMicroseconds) < 0) {
         return `-${this['unary-']()}`;
@@ -1989,9 +1989,9 @@ dart_library.library('dart/core', null, /* Imports */[
       return this[_fragment] == null ? "" : this[_fragment];
     }
     static parse(uri) {
-      let isRegName = ch => {
+      function isRegName(ch) {
         return dart.notNull(ch) < 128 && !dart.equals(dart.dsend(Uri._regNameTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0);
-      };
+      }
       dart.fn(isRegName, bool, [int]);
       let EOI = -1;
       let scheme = "";
@@ -2004,7 +2004,7 @@ dart_library.library('dart/core', null, /* Imports */[
       let index = 0;
       let pathStart = 0;
       let char = EOI;
-      let parseAuth = () => {
+      function parseAuth() {
         if (index == uri[dartx.length]) {
           char = EOI;
           return;
@@ -2062,7 +2062,7 @@ dart_library.library('dart/core', null, /* Imports */[
         if (dart.notNull(index) < dart.notNull(uri[dartx.length])) {
           char = uri[dartx.codeUnitAt](index);
         }
-      };
+      }
       dart.fn(parseAuth, dart.void, []);
       let NOT_IN_PATH = 0;
       let IN_PATH = 1;
@@ -2950,9 +2950,9 @@ dart_library.library('dart/core', null, /* Imports */[
       return this.scheme == uri.scheme && this.hasAuthority == uri.hasAuthority && this.userInfo == uri.userInfo && this.host == uri.host && this.port == uri.port && this.path == uri.path && this.hasQuery == uri.hasQuery && this.query == uri.query && this.hasFragment == uri.hasFragment && this.fragment == uri.fragment;
     }
     get hashCode() {
-      let combine = (part, current) => {
+      function combine(part, current) {
         return dart.as(dart.dsend(dart.dsend(dart.dsend(current, '*', 31), '+', dart.hashCode(part)), '&', 1073741823), int);
-      };
+      }
       dart.fn(combine, int, [dart.dynamic, dart.dynamic]);
       return combine(this.scheme, combine(this.userInfo, combine(this.host, combine(this.port, combine(this.path, combine(this.query, combine(this.fragment, 1)))))));
     }
@@ -2999,9 +2999,9 @@ dart_library.library('dart/core', null, /* Imports */[
       })), Map$(String, String));
     }
     static parseIPv4Address(host) {
-      let error = msg => {
+      function error(msg) {
         throw new FormatException(`Illegal IPv4 address, ${msg}`);
-      };
+      }
       dart.fn(error, dart.void, [String]);
       let bytes = host[dartx.split]('.');
       if (bytes[dartx.length] != 4) {
@@ -3022,13 +3022,13 @@ dart_library.library('dart/core', null, /* Imports */[
         end = null;
       if (end == null)
         end = host[dartx.length];
-      let error = (msg, position) => {
+      function error(msg, position) {
         if (position === void 0)
           position = null;
         throw new FormatException(`Illegal IPv6 address, ${msg}`, host, dart.as(position, int));
-      };
+      }
       dart.fn(error, dart.void, [String], [dart.dynamic]);
-      let parseHex = (start, end) => {
+      function parseHex(start, end) {
         if (dart.notNull(end) - dart.notNull(start) > 4) {
           error('an IPv6 part can only contain a maximum of 4 hex digits', start);
         }
@@ -3037,7 +3037,7 @@ dart_library.library('dart/core', null, /* Imports */[
           error('each part must be in the range of `0x0..0xFFFF`', start);
         }
         return value;
-      };
+      }
       dart.fn(parseHex, int, [int, int]);
       if (dart.notNull(host[dartx.length]) < 2)
         error('address is too short');
@@ -3115,11 +3115,11 @@ dart_library.library('dart/core', null, /* Imports */[
     static _uriEncode(canonicalTable, text, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
       let spaceToPlus = opts && 'spaceToPlus' in opts ? opts.spaceToPlus : false;
-      let byteToHex = (byte, buffer) => {
+      function byteToHex(byte, buffer) {
         let hex = '0123456789ABCDEF';
         dart.dsend(buffer, 'writeCharCode', hex[dartx.codeUnitAt](dart.as(dart.dsend(byte, '>>', 4), int)));
         dart.dsend(buffer, 'writeCharCode', hex[dartx.codeUnitAt](dart.as(dart.dsend(byte, '&', 15), int)));
-      };
+      }
       dart.fn(byteToHex);
       let result = new StringBuffer();
       let bytes = encoding.encode(text);

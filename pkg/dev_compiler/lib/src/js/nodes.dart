@@ -41,6 +41,7 @@ abstract class NodeVisitor<T> {
   T visitPrefix(Prefix node);
   T visitPostfix(Postfix node);
   T visitSpread(Spread node);
+  T visitYield(Yield node);
 
   T visitIdentifier(Identifier node);
   T visitThis(This node);
@@ -140,6 +141,7 @@ class BaseVisitor<T> implements NodeVisitor<T> {
   T visitPrefix(Prefix node) => visitExpression(node);
   T visitPostfix(Postfix node) => visitExpression(node);
   T visitSpread(Spread node) => visitPrefix(node);
+  T visitYield(Yield node) => visitExpression(node);
   T visitAccess(PropertyAccess node) => visitExpression(node);
 
   T visitIdentifier(Identifier node) => visitExpression(node);
@@ -614,6 +616,8 @@ abstract class Expression extends Node {
 
   Statement toStatement() => new ExpressionStatement(toVoidExpression());
   Statement toReturn() => new Return(this);
+  Statement toYieldStatement({bool star: false}) =>
+      new ExpressionStatement(new Yield(this, star: star));
 
   Expression toVoidExpression() => this;
   Expression toAssignExpression(Expression left) => new Assignment(left, this);
@@ -789,6 +793,11 @@ class Binary extends Expression {
   Statement toReturn() {
     if (!isCommaOperator) return super.toReturn();
     return new Block([left.toStatement(), right.toReturn()]);
+  }
+
+  Statement toYieldStatement({bool star: false}) {
+    if (!isCommaOperator) return super.toYieldStatement(star: star);
+    return new Block([left.toStatement(), right.toYieldStatement(star: star)]);
   }
 
   List<Expression> commaToExpressionList() {
@@ -970,9 +979,13 @@ abstract class FunctionExpression extends Expression {
 class Fun extends FunctionExpression {
   final List<Parameter> params;
   final Block body;
+  /** Whether this is a JS generator (`function*`) that may contain `yield`. */
+  final bool isGenerator;
+
   final AsyncModifier asyncModifier;
 
-  Fun(this.params, this.body, {this.asyncModifier: const AsyncModifier.sync()});
+  Fun(this.params, this.body, {this.isGenerator: false,
+      this.asyncModifier: const AsyncModifier.sync()});
 
   accept(NodeVisitor visitor) => visitor.visitFun(this);
 
@@ -981,9 +994,10 @@ class Fun extends FunctionExpression {
     body.accept(visitor);
   }
 
-  Fun _clone() => new Fun(params, body, asyncModifier: asyncModifier);
+  Fun _clone() => new Fun(params, body,
+      isGenerator: isGenerator, asyncModifier: asyncModifier);
 
-  int get precedenceLevel => CALL;
+  int get precedenceLevel => ASSIGNMENT;
 }
 
 class ArrowFun extends FunctionExpression {
@@ -1007,6 +1021,12 @@ class ArrowFun extends FunctionExpression {
   int get precedenceLevel => ASSIGNMENT;
 }
 
+/**
+ * The Dart sync, sync*, async, and async* modifier.
+ * See [DartYield].
+ *
+ * This is not used for JS functions.
+ */
 class AsyncModifier {
   final bool isAsync;
   final bool isYielding;
@@ -1237,6 +1257,29 @@ class TaggedTemplate extends Expression {
   int get precedenceLevel => CALL;
 }
 
+// TODO(jmesserly): parser does not support this yet.
+class Yield extends Expression {
+  final Expression value;
+
+  /**
+   * Whether this yield expression is a `yield*` that iterates each item in
+   * [value].
+   */
+  final bool star;
+
+  Yield(this.value, {this.star: false});
+
+  accept(NodeVisitor visitor) => visitor.visitYield(this);
+
+  void visitChildren(NodeVisitor visitor) {
+    value.accept(visitor);
+  }
+
+  Yield _clone() => new Yield(value);
+
+  int get precedenceLevel => YIELD;
+}
+
 class ClassDeclaration extends Statement {
   final ClassExpression classExpr;
 
@@ -1277,6 +1320,7 @@ class Method extends Property {
       : super(name, function) {
     assert(!isGetter || function.params.length == 0);
     assert(!isSetter || function.params.length == 1);
+    assert(!isGetter && !isSetter || !function.isGenerator);
   }
 
   Fun get function => super.value;
