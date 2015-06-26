@@ -8,6 +8,7 @@
 #include "vm/dart_api_state.h"
 #include "vm/globals.h"
 #include "vm/profiler.h"
+#include "vm/profiler_service.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -108,15 +109,35 @@ static RawClass* GetClass(const Library& lib, const char* name) {
 }
 
 
+class AllocationFilter : public SampleFilter {
+ public:
+  explicit AllocationFilter(Isolate* isolate, intptr_t cid)
+      : SampleFilter(isolate),
+        cid_(cid) {
+  }
+
+  bool FilterSample(Sample* sample) {
+    return sample->is_allocation_sample() && (sample->allocation_cid() == cid_);
+  }
+
+ private:
+  intptr_t cid_;
+};
+
+
 TEST_CASE(Profiler_TrivialRecordAllocation) {
   const char* kScript =
       "class A {\n"
       "  var a;\n"
       "  var b;\n"
       "}\n"
+      "class B {\n"
+      "  static boo() {\n"
+      "    return new A();\n"
+      "  }\n"
+      "}\n"
       "main() {\n"
-      "  var z = new A();\n"
-      "  return z;\n"
+      "  return B.boo();\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
@@ -130,6 +151,55 @@ TEST_CASE(Profiler_TrivialRecordAllocation) {
 
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);
+
+
+  {
+    Isolate* isolate = Isolate::Current();
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have 1 allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    // Exclusive code: B.boo -> main.
+    walker.Reset(Profile::kExclusiveCode);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT(!walker.Down());
+
+    // Inclusive code: main -> B.boo.
+    walker.Reset(Profile::kInclusiveCode);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(!walker.Down());
+
+    // Exclusive function: B.boo -> main.
+    walker.Reset(Profile::kExclusiveFunction);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT(!walker.Down());
+
+    // Inclusive function: main -> B.boo.
+    walker.Reset(Profile::kInclusiveFunction);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
 }
 
 }  // namespace dart

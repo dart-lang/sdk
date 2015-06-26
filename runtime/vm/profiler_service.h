@@ -50,6 +50,8 @@ class ProfileFunction : public ZoneAllocated {
     return name_;
   }
 
+  const char* Name() const;
+
   RawFunction* function() const {
     return function_.raw();
   }
@@ -246,6 +248,8 @@ class ProfileTrieNode : public ZoneAllocated {
     return children_.At(i);
   }
 
+  intptr_t IndexOf(ProfileTrieNode* node);
+
  protected:
   void SortChildren();
 
@@ -285,6 +289,14 @@ class Profile : public ValueObject {
     kNumTrieKinds,
   };
 
+  static bool IsCodeTrie(TrieKind kind) {
+    return (kind == kExclusiveCode) || (kind == kInclusiveCode);
+  }
+
+  static bool IsFunctionTrie(TrieKind kind) {
+    return !IsCodeTrie(kind);
+  }
+
   explicit Profile(Isolate* isolate);
 
   // Build a filtered model using |filter| with the specified |tag_order|.
@@ -321,6 +333,31 @@ class Profile : public ValueObject {
   intptr_t sample_count_;
 
   friend class ProfileBuilder;
+};
+
+
+class ProfileTrieWalker : public ValueObject {
+ public:
+  explicit ProfileTrieWalker(Profile* profile)
+      : profile_(profile),
+        parent_(NULL),
+        current_(NULL),
+        code_trie_(false) {
+    ASSERT(profile_ != NULL);
+  }
+
+  void Reset(Profile::TrieKind trie_kind);
+
+  const char* CurrentName();
+
+  bool Down();
+  bool NextSibling();
+
+ private:
+  Profile* profile_;
+  ProfileTrieNode* parent_;
+  ProfileTrieNode* current_;
+  bool code_trie_;
 };
 
 

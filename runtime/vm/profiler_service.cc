@@ -104,6 +104,16 @@ ProfileFunction::ProfileFunction(Kind kind,
 }
 
 
+const char* ProfileFunction::Name() const {
+  if (name_ != NULL) {
+    return name_;
+  }
+  ASSERT(!function_.IsNull());
+  const String& func_name =
+      String::Handle(function_.QualifiedUserVisibleName());
+  return func_name.ToCString();
+}
+
 void ProfileFunction::Tick(bool exclusive, intptr_t inclusive_serial) {
   if (exclusive) {
     exclusive_ticks_++;
@@ -776,6 +786,16 @@ void ProfileTrieNode::SortChildren() {
   for (intptr_t i = 0; i < children_.length(); i++) {
     children_[i]->SortChildren();
   }
+}
+
+
+intptr_t ProfileTrieNode::IndexOf(ProfileTrieNode* node) {
+  for (intptr_t i = 0; i < children_.length(); i++) {
+    if (children_[i] == node) {
+      return i;
+    }
+  }
+  return -1;
 }
 
 
@@ -1891,6 +1911,56 @@ void Profile::PrintJSON(JSONStream* stream) {
     ASSERT(root != NULL);
     root->PrintToJSONArray(&function_trie);
   }
+}
+
+
+void ProfileTrieWalker::Reset(Profile::TrieKind trie_kind) {
+  code_trie_ = Profile::IsCodeTrie(trie_kind);
+  parent_ = NULL;
+  current_ = profile_->GetTrieRoot(trie_kind);
+  ASSERT(current_ != NULL);
+}
+
+
+const char* ProfileTrieWalker::CurrentName() {
+  if (current_ == NULL) {
+    return NULL;
+  }
+  if (code_trie_) {
+    ProfileCode* code = profile_->GetCode(current_->table_index());
+    return code->name();
+  } else {
+    ProfileFunction* func = profile_->GetFunction(current_->table_index());
+    return func->Name();
+  }
+  UNREACHABLE();
+}
+
+
+bool ProfileTrieWalker::Down() {
+  if ((current_ == NULL) || (current_->NumChildren() == 0)) {
+    return false;
+  }
+  parent_ = current_;
+  current_ = current_->At(0);
+  return true;
+}
+
+
+bool ProfileTrieWalker::NextSibling() {
+  if (parent_ == NULL) {
+    return false;
+  }
+  intptr_t current_index = parent_->IndexOf(current_);
+  if (current_index < 0) {
+    return false;
+  }
+  current_index++;
+  if (current_index >= parent_->NumChildren()) {
+    return false;
+  }
+  current_ = parent_->At(current_index);
+  return true;
 }
 
 
