@@ -2736,7 +2736,7 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   set_state_bits(
       TraceAllocationBit::update(trace_allocation, raw_ptr()->state_bits_));
   if (changed) {
-    // TODO(johnmccutchan): Deoptimize the world?
+    DisableAllocationStub();
   }
 }
 
@@ -3633,6 +3633,14 @@ void Class::set_allocation_stub(const Code& value) const {
 
 
 void Class::DisableAllocationStub() const {
+  const Code& existing_stub = Code::Handle(allocation_stub());
+  if (existing_stub.IsNull()) {
+    return;
+  }
+  ASSERT(!CodePatcher::IsEntryPatched(existing_stub));
+  // Patch the stub so that the next caller will regenerate the stub.
+  CodePatcher::PatchEntry(existing_stub);
+  // Disassociate the existing stub from class.
   StorePointer(&raw_ptr()->allocation_stub_, Code::null());
 }
 
