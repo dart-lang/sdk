@@ -11,6 +11,7 @@
 *.yaml text
 
 # Windows files that should not be converted.
+tests/lib/mirrors/method_mirror_source_line_ending_cr.dart -text
 tests/lib/mirrors/method_mirror_source_line_ending_crlf.dart -text
 tests/compiler/dart2js_extra/string_interpolation_test.dart -text
 tests/compiler/dart2js_extra/string_interpolation_dynamic_test.dart -text
