@@ -45,6 +45,7 @@ import '../../generated/engine_test.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import 'abstract_context.dart';
+import 'package:analyzer/src/task/html.dart';
 
 main() {
   groupSep = ' | ';
@@ -54,7 +55,7 @@ main() {
 
 @reflectiveTest
 class AnalysisContextImplTest extends AbstractContextTest {
-  void fail_parseHtmlUnit_resolveDirectives() {
+  void test_parseHtmlUnit_resolveDirectives() {
     Source libSource = addSource("/lib.dart", r'''
 library lib;
 class ClassA {}''');
@@ -70,25 +71,12 @@ class ClassA {}''');
 <body>
 </body>
 </html>''');
-    // TODO(brianwilkerson) Rewrite this. We need a way to get the AST for the
-    // script.
-//    Document document = context.parseHtmlDocument(source);
-//    expect(document, isNotNull);
-//    List<DartScript> scripts = context.computeResult(source, DART_SCRIPTS);
-//    expect(scripts, hasLength(1));
-//    CompilationUnit unit = context.computeResult(scripts[0], PARSED_AST);
-//    ImportDirective importNode = unit.directives[0] as ImportDirective;
-//    expect(importNode.uriContent, isNotNull);
-//    expect(importNode.source, libSource);
-
-    ht.HtmlUnit unit = context.parseHtmlUnit(source);
-    expect(unit, isNotNull);
-    // import directive should be resolved
-    ht.XmlTagNode htmlNode = unit.tagNodes[0];
-    ht.XmlTagNode headNode = htmlNode.tagNodes[0];
-    ht.HtmlScriptTagNode scriptNode = headNode.tagNodes[0];
-    CompilationUnit script = scriptNode.script;
-    ImportDirective importNode = script.directives[0] as ImportDirective;
+    Document document = context.parseHtmlDocument(source);
+    expect(document, isNotNull);
+    List<DartScript> scripts = context.computeResult(source, DART_SCRIPTS);
+    expect(scripts, hasLength(1));
+    CompilationUnit unit = context.computeResult(scripts[0], PARSED_UNIT);
+    ImportDirective importNode = unit.directives[0] as ImportDirective;
     expect(importNode.uriContent, isNotNull);
     expect(importNode.source, libSource);
   }

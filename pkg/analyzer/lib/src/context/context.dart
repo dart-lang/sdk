@@ -566,16 +566,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<AnalysisError> computeErrors(Source source) {
     String name = source.shortName;
     if (AnalysisEngine.isDartFileName(name)) {
-      return _computeResult(source, DART_ERRORS);
+      return computeResult(source, DART_ERRORS);
     } else if (AnalysisEngine.isHtmlFileName(name)) {
-      return _computeResult(source, HTML_ERRORS);
+      return computeResult(source, HTML_ERRORS);
     }
     return AnalysisError.NO_ERRORS;
   }
 
   @override
   List<Source> computeExportedLibraries(Source source) =>
-      _computeResult(source, EXPORTED_LIBRARIES);
+      computeResult(source, EXPORTED_LIBRARIES);
 
   @override
   @deprecated
@@ -587,13 +587,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> computeImportedLibraries(Source source) =>
-      _computeResult(source, EXPLICITLY_IMPORTED_LIBRARIES);
+      computeResult(source, EXPLICITLY_IMPORTED_LIBRARIES);
 
   @override
   SourceKind computeKindOf(Source source) {
     String name = source.shortName;
     if (AnalysisEngine.isDartFileName(name)) {
-      return _computeResult(source, SOURCE_KIND);
+      return computeResult(source, SOURCE_KIND);
     } else if (AnalysisEngine.isHtmlFileName(name)) {
       return SourceKind.HTML;
     }
@@ -603,11 +603,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   LibraryElement computeLibraryElement(Source source) {
     //_computeResult(source, HtmlEntry.ELEMENT);
-    return _computeResult(source, LIBRARY_ELEMENT);
+    return computeResult(source, LIBRARY_ELEMENT);
   }
 
   @override
-  LineInfo computeLineInfo(Source source) => _computeResult(source, LINE_INFO);
+  LineInfo computeLineInfo(Source source) => computeResult(source, LINE_INFO);
 
   @override
   @deprecated
@@ -635,6 +635,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }, () {
       dartWorkManager.addPriorityResult(unitTarget, RESOLVED_UNIT);
     });
+  }
+
+  Object /*V*/ computeResult(
+      AnalysisTarget target, ResultDescriptor /*<V>*/ descriptor) {
+    CacheEntry entry = getCacheEntry(target);
+    CacheState state = entry.getState(descriptor);
+    if (state == CacheState.FLUSHED || state == CacheState.INVALID) {
+      driver.computeResult(target, descriptor);
+    }
+    state = entry.getState(descriptor);
+    if (state == CacheState.ERROR) {
+      throw new AnalysisException(
+          'Cannot compute $descriptor for $target', entry.exception);
+    }
+    return entry.getValue(descriptor);
   }
 
   /**
@@ -1013,7 +1028,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       throw new AnalysisException('Could not get contents of $source',
           new CaughtException(exception, stackTrace));
     }
-    return _computeResult(source, PARSED_UNIT);
+    return computeResult(source, PARSED_UNIT);
   }
 
   @override
@@ -1021,7 +1036,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (!AnalysisEngine.isHtmlFileName(source.shortName)) {
       return null;
     }
-    return _computeResult(source, HTML_DOCUMENT);
+    return computeResult(source, HTML_DOCUMENT);
   }
 
   @override
@@ -1131,7 +1146,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         !AnalysisEngine.isDartFileName(librarySource.shortName)) {
       return null;
     }
-    return _computeResult(
+    return computeResult(
         new LibrarySpecificUnit(librarySource, unitSource), RESOLVED_UNIT);
   }
 
@@ -1329,21 +1344,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _pendingFutureTargets.remove(pendingFuture.target);
       }
     }
-  }
-
-  Object /*V*/ _computeResult(
-      AnalysisTarget target, ResultDescriptor /*<V>*/ descriptor) {
-    CacheEntry entry = getCacheEntry(target);
-    CacheState state = entry.getState(descriptor);
-    if (state == CacheState.FLUSHED || state == CacheState.INVALID) {
-      driver.computeResult(target, descriptor);
-    }
-    state = entry.getState(descriptor);
-    if (state == CacheState.ERROR) {
-      throw new AnalysisException(
-          'Cannot compute $descriptor for $target', entry.exception);
-    }
-    return entry.getValue(descriptor);
   }
 
   /**
