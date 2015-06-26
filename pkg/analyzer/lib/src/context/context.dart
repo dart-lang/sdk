@@ -1392,12 +1392,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     String originalContents = _contentCache.setContents(source, contents);
     if (contents != null) {
       if (contents != originalContents) {
-        // TODO(brianwilkerson) Find a better way to do incremental analysis.
-//        if (_options.incremental) {
-//          _incrementalAnalysisCache = IncrementalAnalysisCache.update(
-//              _incrementalAnalysisCache, source, originalContents, contents,
-//              offset, oldLength, newLength, _cache.get(source));
-//        }
         _sourceChanged(source);
         changed = true;
         CacheEntry entry = _cache.get(source);

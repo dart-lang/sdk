@@ -29,12 +29,12 @@ import 'package:analyzer/src/generated/engine.dart'
         IncrementalAnalysisCache,
         TimestampedData;
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/html.dart' as ht;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
@@ -45,7 +45,6 @@ import '../../generated/engine_test.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import 'abstract_context.dart';
-import 'package:analyzer/src/task/html.dart';
 
 main() {
   groupSep = ' | ';
@@ -55,32 +54,6 @@ main() {
 
 @reflectiveTest
 class AnalysisContextImplTest extends AbstractContextTest {
-  void test_parseHtmlUnit_resolveDirectives() {
-    Source libSource = addSource("/lib.dart", r'''
-library lib;
-class ClassA {}''');
-    Source source = addSource("/lib.html", r'''
-<!DOCTYPE html>
-<html>
-<head>
-  <script type='application/dart'>
-    import 'lib.dart';
-    ClassA v = null;
-  </script>
-</head>
-<body>
-</body>
-</html>''');
-    Document document = context.parseHtmlDocument(source);
-    expect(document, isNotNull);
-    List<DartScript> scripts = context.computeResult(source, DART_SCRIPTS);
-    expect(scripts, hasLength(1));
-    CompilationUnit unit = context.computeResult(scripts[0], PARSED_UNIT);
-    ImportDirective importNode = unit.directives[0] as ImportDirective;
-    expect(importNode.uriContent, isNotNull);
-    expect(importNode.source, libSource);
-  }
-
   void fail_performAnalysisTask_importedLibraryDelete_html() {
     // NOTE: This was failing before converting to the new task model.
     Source htmlSource = addSource("/page.html", r'''
@@ -107,23 +80,6 @@ class ClassA {}''');
 
   void fail_recordLibraryElements() {
     fail("Implement this");
-  }
-
-  void fail_unreadableSource() {
-    Source test1 = addSource("/test1.dart", r'''
-import 'test2.dart';
-library test1;''');
-    Source test2 = addSource("/test2.dart", r'''
-import 'test1.dart';
-import 'test3.dart';
-library test2;''');
-    Source test3 = _addSourceWithException("/test3.dart");
-    _analyzeAll_assertFinished();
-    // test1 and test2 should have been successfully analyzed
-    // despite the fact that test3 couldn't be read.
-    expect(context.computeLibraryElement(test1), isNotNull);
-    expect(context.computeLibraryElement(test2), isNotNull);
-    expect(context.computeLibraryElement(test3), isNull);
   }
 
   @override
@@ -1298,6 +1254,32 @@ main() {}''');
     Source source = addSource("/lib.html", "<!DOCTYPE html><html></html>");
     Document document = context.parseHtmlDocument(source);
     expect(document, isNotNull);
+  }
+
+  void test_parseHtmlUnit_resolveDirectives() {
+    Source libSource = addSource("/lib.dart", r'''
+library lib;
+class ClassA {}''');
+    Source source = addSource("/lib.html", r'''
+<!DOCTYPE html>
+<html>
+<head>
+  <script type='application/dart'>
+    import 'lib.dart';
+    ClassA v = null;
+  </script>
+</head>
+<body>
+</body>
+</html>''');
+    Document document = context.parseHtmlDocument(source);
+    expect(document, isNotNull);
+    List<DartScript> scripts = context.computeResult(source, DART_SCRIPTS);
+    expect(scripts, hasLength(1));
+    CompilationUnit unit = context.computeResult(scripts[0], PARSED_UNIT);
+    ImportDirective importNode = unit.directives[0] as ImportDirective;
+    expect(importNode.uriContent, isNotNull);
+    expect(importNode.source, libSource);
   }
 
   void test_performAnalysisTask_addPart() {
