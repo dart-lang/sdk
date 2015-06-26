@@ -157,11 +157,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       new HashMap<Source, ChangeNoticeImpl>();
 
   /**
-   * Cached information used in incremental analysis or `null` if none.
-   */
-  IncrementalAnalysisCache _incrementalAnalysisCache;
-
-  /**
    * The [TypeProvider] for this context, `null` if not yet created.
    */
   TypeProvider _typeProvider;
@@ -422,14 +417,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //    visitCacheItems(statistics._internalPutCacheItem);
 //    statistics.partitionData = _cache.partitionData;
     return statistics;
-  }
-
-  IncrementalAnalysisCache get test_incrementalAnalysisCache {
-    return _incrementalAnalysisCache;
-  }
-
-  set test_incrementalAnalysisCache(IncrementalAnalysisCache value) {
-    _incrementalAnalysisCache = value;
   }
 
   List<Source> get test_priorityOrder => _priorityOrder;
@@ -953,8 +940,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     bool changed = newContents != originalContents;
     if (newContents != null) {
       if (newContents != originalContents) {
-        _incrementalAnalysisCache =
-            IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
         if (!analysisOptions.incremental ||
             !_tryPoorMansIncrementalResolution(source, newContents)) {
           _sourceChanged(source);
@@ -965,8 +950,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         entry.modificationTime = _contentCache.getModificationStamp(source);
       }
     } else if (originalContents != null) {
-      _incrementalAnalysisCache =
-          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
       changed = newContents != originalContents;
       // We are removing the overlay for the file, check if the file's
       // contents is the same as it was in the overlay.
@@ -1424,8 +1407,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
     } else if (originalContents != null) {
-      _incrementalAnalysisCache =
-          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
       _sourceChanged(source);
       changed = true;
     }

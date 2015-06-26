@@ -54,11 +54,6 @@ main() {
 
 @reflectiveTest
 class AnalysisContextImplTest extends AbstractContextTest {
-  void test_applyChanges_empty() {
-    context.applyChanges(new ChangeSet());
-    expect(context.performAnalysisTask().changeNotices, isNull);
-  }
-
   void fail_parseHtmlUnit_resolveDirectives() {
     Source libSource = addSource("/lib.dart", r'''
 library lib;
@@ -98,30 +93,6 @@ class ClassA {}''');
     expect(importNode.source, libSource);
   }
 
-  void test_performAnalysisTask_getContentException_dart() {
-    Source source = _addSourceWithException('test.dart');
-    // prepare errors
-    _analyzeAll_assertFinished();
-    List<AnalysisError> errors = context.getErrors(source).errors;
-    // validate errors
-    expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
-    expect(error.source, same(source));
-    expect(error.errorCode, ScannerErrorCode.UNABLE_GET_CONTENT);
-  }
-
-  void test_performAnalysisTask_getContentException_html() {
-    Source source = _addSourceWithException('test.html');
-    // prepare errors
-    _analyzeAll_assertFinished();
-    List<AnalysisError> errors = context.getErrors(source).errors;
-    // validate errors
-    expect(errors, hasLength(1));
-    AnalysisError error = errors[0];
-    expect(error.source, same(source));
-    expect(error.errorCode, ScannerErrorCode.UNABLE_GET_CONTENT);
-  }
-
   void fail_performAnalysisTask_importedLibraryDelete_html() {
     // NOTE: This was failing before converting to the new task model.
     Source htmlSource = addSource("/page.html", r'''
@@ -146,87 +117,8 @@ class ClassA {}''');
         reason: "htmlSource has an error");
   }
 
-  void test_performAnalysisTask_IOException() {
-    TestSource source = _addSourceWithException2("/test.dart", "library test;");
-    source.generateExceptionOnRead = false;
-    _analyzeAll_assertFinished();
-    expect(source.readCount, 1);
-    _changeSource(source, "");
-    source.generateExceptionOnRead = true;
-    _analyzeAll_assertFinished();
-    expect(source.readCount, 3);
-  }
-
   void fail_recordLibraryElements() {
     fail("Implement this");
-  }
-
-  void fail_setAnalysisOptions_reduceAnalysisPriorityOrder() {
-    AnalysisOptionsImpl options =
-        new AnalysisOptionsImpl.from(context.analysisOptions);
-    List<Source> sources = new List<Source>();
-    for (int index = 0; index < options.cacheSize; index++) {
-      sources.add(addSource("/lib.dart$index", ""));
-    }
-    context.analysisPriorityOrder = sources;
-    int oldPriorityOrderSize = _getPriorityOrder(context).length;
-    options.cacheSize = options.cacheSize - 10;
-    context.analysisOptions = options;
-    expect(oldPriorityOrderSize > _getPriorityOrder(context).length, isTrue);
-  }
-
-  void fail_setAnalysisPriorityOrder_lessThanCacheSize() {
-    AnalysisOptions options = context.analysisOptions;
-    List<Source> sources = new List<Source>();
-    for (int index = 0; index < options.cacheSize; index++) {
-      sources.add(addSource("/lib.dart$index", ""));
-    }
-    context.analysisPriorityOrder = sources;
-    expect(options.cacheSize > _getPriorityOrder(context).length, isTrue);
-  }
-
-  Future fail_setChangedContents_libraryWithPart() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.incremental = true;
-    context.analysisOptions = options;
-    SourcesChangedListener listener = new SourcesChangedListener();
-    context.onSourcesChanged.listen(listener.onData);
-    String oldCode = r'''
-library lib;
-part 'part.dart';
-int a = 0;''';
-    Source librarySource = addSource("/lib.dart", oldCode);
-    String partContents = r'''
-part of lib;
-int b = a;''';
-    Source partSource = addSource("/part.dart", partContents);
-    LibraryElement element = context.computeLibraryElement(librarySource);
-    CompilationUnit unit =
-        context.getResolvedCompilationUnit(librarySource, element);
-    expect(unit, isNotNull);
-    int offset = oldCode.indexOf("int a") + 4;
-    String newCode = r'''
-library lib;
-part 'part.dart';
-int ya = 0;''';
-    expect(_getIncrementalAnalysisCache(context), isNull);
-    context.setChangedContents(librarySource, newCode, offset, 0, 1);
-    expect(context.getContents(librarySource).data, newCode);
-    IncrementalAnalysisCache incrementalCache =
-        _getIncrementalAnalysisCache(context);
-    expect(incrementalCache.librarySource, librarySource);
-    expect(incrementalCache.resolvedUnit, same(unit));
-    expect(
-        context.getResolvedCompilationUnit2(partSource, librarySource), isNull);
-    expect(incrementalCache.newContents, newCode);
-    return pumpEventQueue().then((_) {
-      listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [librarySource]);
-      listener.assertEvent(wereSourcesAdded: true);
-      listener.assertEvent(changedSources: [partSource]);
-      listener.assertEvent(changedSources: [librarySource]);
-      listener.assertNoMoreEvents();
-    });
   }
 
   void fail_unreadableSource() {
@@ -387,6 +279,11 @@ int b = aa;''';
       listener.assertEvent(wereSourcesAdded: true, changedSources: [source]);
       listener.assertNoMoreEvents();
     });
+  }
+
+  void test_applyChanges_empty() {
+    context.applyChanges(new ChangeSet());
+    expect(context.performAnalysisTask().changeNotices, isNull);
   }
 
   void test_applyChanges_overriddenSource() {
@@ -1617,6 +1514,30 @@ void g() { f(null); }''');
     }
   }
 
+  void test_performAnalysisTask_getContentException_dart() {
+    Source source = _addSourceWithException('test.dart');
+    // prepare errors
+    _analyzeAll_assertFinished();
+    List<AnalysisError> errors = context.getErrors(source).errors;
+    // validate errors
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.source, same(source));
+    expect(error.errorCode, ScannerErrorCode.UNABLE_GET_CONTENT);
+  }
+
+  void test_performAnalysisTask_getContentException_html() {
+    Source source = _addSourceWithException('test.html');
+    // prepare errors
+    _analyzeAll_assertFinished();
+    List<AnalysisError> errors = context.getErrors(source).errors;
+    // validate errors
+    expect(errors, hasLength(1));
+    AnalysisError error = errors[0];
+    expect(error.source, same(source));
+    expect(error.errorCode, ScannerErrorCode.UNABLE_GET_CONTENT);
+  }
+
   void test_performAnalysisTask_importedLibraryAdd() {
     Source libASource =
         addSource("/libA.dart", "library libA; import 'libB.dart';");
@@ -1687,6 +1608,17 @@ void g() { f(null); }''');
         isTrue, reason: "libA has an error");
   }
 
+  void test_performAnalysisTask_IOException() {
+    TestSource source = _addSourceWithException2("/test.dart", "library test;");
+    source.generateExceptionOnRead = false;
+    _analyzeAll_assertFinished();
+    expect(source.readCount, 1);
+    _changeSource(source, "");
+    source.generateExceptionOnRead = true;
+    _analyzeAll_assertFinished();
+    expect(source.readCount, 3);
+  }
+
   void test_performAnalysisTask_missingPart() {
     Source source =
         addSource("/test.dart", "library lib; part 'no-such-file.dart';");
@@ -1743,17 +1675,6 @@ void g() { f(null); }''');
     expect(resolvedUnitUris, contains('file:///test.dart'));
   }
 
-//  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
-//    _context = new _AnalysisContext_sourceChangeDuringResolution();
-//    AnalysisContextFactory.initContextWithCore(_context);
-//    _sourceFactory = _context.sourceFactory;
-//    Source source = _addSource("/lib.dart", "library lib;");
-//    CompilationUnit compilationUnit =
-//        _context.resolveCompilationUnit2(source, source);
-//    expect(compilationUnit, isNotNull);
-//    expect(_context.getLineInfo(source), isNotNull);
-//  }
-
   void test_resolveCompilationUnit_import_relative() {
     Source sourceA =
         addSource("/libA.dart", "library libA; import 'libB.dart'; class A{}");
@@ -1794,6 +1715,17 @@ void g() { f(null); }''');
     ]);
   }
 
+//  void test_resolveCompilationUnit_sourceChangeDuringResolution() {
+//    _context = new _AnalysisContext_sourceChangeDuringResolution();
+//    AnalysisContextFactory.initContextWithCore(_context);
+//    _sourceFactory = _context.sourceFactory;
+//    Source source = _addSource("/lib.dart", "library lib;");
+//    CompilationUnit compilationUnit =
+//        _context.resolveCompilationUnit2(source, source);
+//    expect(compilationUnit, isNotNull);
+//    expect(_context.getLineInfo(source), isNotNull);
+//  }
+
   void test_resolveCompilationUnit_library() {
     Source source = addSource("/lib.dart", "library lib;");
     LibraryElement library = context.computeLibraryElement(source);
@@ -1822,6 +1754,16 @@ void g() { f(null); }''');
     expect(result.hint, options.hint);
   }
 
+  void test_setAnalysisPriorityOrder() {
+    int priorityCount = 4;
+    List<Source> sources = new List<Source>();
+    for (int index = 0; index < priorityCount; index++) {
+      sources.add(addSource("/lib.dart$index", ""));
+    }
+    context.analysisPriorityOrder = sources;
+    expect(_getPriorityOrder(context).length, priorityCount);
+  }
+
   void test_setAnalysisPriorityOrder_empty() {
     context.analysisPriorityOrder = new List<Source>();
   }
@@ -1830,6 +1772,42 @@ void g() { f(null); }''');
     List<Source> sources = new List<Source>();
     sources.add(addSource("/lib.dart", "library lib;"));
     context.analysisPriorityOrder = sources;
+  }
+
+  Future test_setChangedContents_libraryWithPart() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.incremental = true;
+    context.analysisOptions = options;
+    SourcesChangedListener listener = new SourcesChangedListener();
+    context.onSourcesChanged.listen(listener.onData);
+    String oldCode = r'''
+library lib;
+part 'part.dart';
+int a = 0;''';
+    Source librarySource = addSource("/lib.dart", oldCode);
+    String partContents = r'''
+part of lib;
+int b = a;''';
+    Source partSource = addSource("/part.dart", partContents);
+    LibraryElement element = context.computeLibraryElement(librarySource);
+    CompilationUnit unit =
+        context.resolveCompilationUnit(librarySource, element);
+    expect(unit, isNotNull);
+    int offset = oldCode.indexOf("int a") + 4;
+    String newCode = r'''
+library lib;
+part 'part.dart';
+int ya = 0;''';
+    context.setChangedContents(librarySource, newCode, offset, 0, 1);
+    expect(context.getContents(librarySource).data, newCode);
+    expect(
+        context.getResolvedCompilationUnit2(partSource, librarySource), isNull);
+    return pumpEventQueue().then((_) {
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(wereSourcesAdded: true);
+      listener.assertEvent(changedSources: [librarySource]);
+      listener.assertNoMoreEvents();
+    });
   }
 
   void test_setChangedContents_notResolved() {
@@ -1847,7 +1825,6 @@ library lib;
 int ya = 0;''';
     context.setChangedContents(librarySource, newCode, offset, 0, 1);
     expect(context.getContents(librarySource).data, newCode);
-    expect(_getIncrementalAnalysisCache(context), isNull);
   }
 
   Future test_setContents_libraryWithPart() {
@@ -1863,10 +1840,6 @@ part of lib;
 int b = a;''';
     Source partSource = addSource("/part.dart", partContents1);
     context.computeLibraryElement(librarySource);
-    IncrementalAnalysisCache incrementalCache = new IncrementalAnalysisCache(
-        librarySource, librarySource, null, null, null, 0, 0, 0);
-    _setIncrementalAnalysisCache(context, incrementalCache);
-    expect(_getIncrementalAnalysisCache(context), same(incrementalCache));
     String libraryContents2 = r'''
 library lib;
 part 'part.dart';
@@ -1874,7 +1847,6 @@ int aa = 0;''';
     context.setContents(librarySource, libraryContents2);
     expect(
         context.getResolvedCompilationUnit2(partSource, librarySource), isNull);
-    expect(_getIncrementalAnalysisCache(context), isNull);
     return pumpEventQueue().then((_) {
       listener.assertEvent(wereSourcesAdded: true);
       listener.assertEvent(wereSourcesAdded: true);
@@ -1889,14 +1861,9 @@ library lib;
 int a = 0;''');
     context.setContents(librarySource, '// different');
     context.computeLibraryElement(librarySource);
-    IncrementalAnalysisCache incrementalCache = new IncrementalAnalysisCache(
-        librarySource, librarySource, null, null, null, 0, 0, 0);
-    _setIncrementalAnalysisCache(context, incrementalCache);
-    expect(_getIncrementalAnalysisCache(context), same(incrementalCache));
     context.setContents(librarySource, null);
     expect(context.getResolvedCompilationUnit2(librarySource, librarySource),
         isNull);
-    expect(_getIncrementalAnalysisCache(context), isNull);
   }
 
   void test_setContents_unchanged_consistentModificationTime() {
@@ -2023,11 +1990,6 @@ int a = 0;''');
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
   }
 
-  IncrementalAnalysisCache _getIncrementalAnalysisCache(
-      AnalysisContextImpl context2) {
-    return context2.test_incrementalAnalysisCache;
-  }
-
   List<Source> _getPriorityOrder(AnalysisContextImpl context2) {
     return context2.test_priorityOrder;
   }
@@ -2045,11 +2007,6 @@ int a = 0;''');
     ChangeSet changeSet = new ChangeSet();
     changeSet.removedSource(source);
     context.applyChanges(changeSet);
-  }
-
-  void _setIncrementalAnalysisCache(
-      AnalysisContextImpl context, IncrementalAnalysisCache incrementalCache) {
-    context.test_incrementalAnalysisCache = incrementalCache;
   }
 
   /**
