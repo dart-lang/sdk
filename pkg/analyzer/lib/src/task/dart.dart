@@ -3134,8 +3134,7 @@ class ResolveUnitReferencesTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'ResolveUnitReferencesTask', createTask, buildInputs, <ResultDescriptor>[
     RESOLVE_REFERENCES_ERRORS,
-    RESOLVED_UNIT5,
-    REFERENCED_NAMES
+    RESOLVED_UNIT5
   ]);
 
   ResolveUnitReferencesTask(
