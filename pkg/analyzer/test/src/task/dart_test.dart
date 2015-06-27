@@ -2338,7 +2338,7 @@ class C extends A {}
     }
   }
 
-  test_perform_deep() {
+  test_perform_external() {
     Source sourceA = newSource('/a.dart', '''
 library a;
 import 'b.dart';
@@ -2346,18 +2346,10 @@ class A extends B {}
 ''');
     newSource('/b.dart', '''
 library b;
-import 'c.dart';
-part 'b2.dart';
-class B extends B2 {}
+class B {}
 ''');
-    newSource('/b2.dart', '''
-part of b;
-class B2 extends C {}
-''');
-    newSource('/c.dart', '''
-library c;
-class C {}
-''');
+    // The reference A to B should be resolved, but there's no requirement that
+    // the full class hierarchy be resolved.
     computeResult(sourceA, LIBRARY_ELEMENT5);
     expect(task, new isInstanceOf<ResolveLibraryTypeNamesTask>());
     // validate
@@ -2367,13 +2359,6 @@ class C {}
       expect(clazz.displayName, 'A');
       clazz = clazz.supertype.element;
       expect(clazz.displayName, 'B');
-      clazz = clazz.supertype.element;
-      expect(clazz.displayName, 'B2');
-      clazz = clazz.supertype.element;
-      expect(clazz.displayName, 'C');
-      clazz = clazz.supertype.element;
-      expect(clazz.displayName, 'Object');
-      expect(clazz.supertype, isNull);
     }
   }
 }

@@ -3093,12 +3093,9 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     return <String, TaskInput>{
-      LIBRARY_INPUT: LIBRARY_ELEMENT4.of(source),
-      'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE
-          .of(source)
-          .toMapOf(UNITS)
-          .toFlattenList((Source library, Source unit) =>
-              RESOLVED_UNIT3.of(new LibrarySpecificUnit(library, unit))),
+      'resolvedUnit': UNITS.of(source).toList((Source unit) =>
+          RESOLVED_UNIT3.of(new LibrarySpecificUnit(source, unit))),
+      LIBRARY_INPUT: LIBRARY_ELEMENT4.of(source)
     };
   }
 
@@ -3182,6 +3179,9 @@ class ResolveUnitReferencesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
+      'fullyBuiltLibraryElements': IMPORT_EXPORT_SOURCE_CLOSURE
+          .of(unit.library)
+          .toListOf(LIBRARY_ELEMENT6),
       LIBRARY_INPUT: LIBRARY_ELEMENT6.of(unit.library),
       UNIT_INPUT: RESOLVED_UNIT4.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
@@ -3349,11 +3349,8 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      'fullyBuiltLibraryElements': IMPORT_EXPORT_SOURCE_CLOSURE
-          .of(unit.library)
-          .toListOf(LIBRARY_ELEMENT6),
-      LIBRARY_INPUT: LIBRARY_ELEMENT6.of(unit.library),
-      UNIT_INPUT: RESOLVED_UNIT3.of(unit),
+      LIBRARY_INPUT: LIBRARY_ELEMENT1.of(unit.library),
+      UNIT_INPUT: RESOLVED_UNIT1.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
   }
@@ -3405,7 +3402,8 @@ class ScanDartTask extends SourceBasedAnalysisTask {
     if (context.getModificationStamp(target.source) < 0) {
       String message = 'Content could not be read';
       if (context is InternalAnalysisContext) {
-        CacheEntry entry = (context as InternalAnalysisContext).getCacheEntry(target);
+        CacheEntry entry =
+            (context as InternalAnalysisContext).getCacheEntry(target);
         CaughtException exception = entry.exception;
         if (exception != null) {
           message = exception.toString();
