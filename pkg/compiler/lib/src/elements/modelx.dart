@@ -8,6 +8,7 @@ import 'common.dart';
 import 'elements.dart';
 import '../constants/expressions.dart';
 import '../constants/constructors.dart';
+import '../helpers/helpers.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
@@ -1248,16 +1249,16 @@ class VariableList implements DeclarationSite {
 }
 
 abstract class ConstantVariableMixin implements VariableElement {
-  ConstantExpression _constant;
+  ConstantExpression constantCache;
 
   ConstantExpression get constant {
     if (isPatch) {
       ConstantVariableMixin originVariable = origin;
       return originVariable.constant;
     }
-    assert(invariant(this, _constant != null,
+    assert(invariant(this, constantCache != null,
         message: "Constant has not been computed for $this."));
-    return _constant;
+    return constantCache;
   }
 
   void set constant(ConstantExpression value) {
@@ -1266,9 +1267,9 @@ abstract class ConstantVariableMixin implements VariableElement {
       originVariable.constant = value;
       return null;
     }
-    assert(invariant(this, _constant == null || _constant == value,
+    assert(invariant(this, constantCache == null || constantCache == value,
         message: "Constant has already been computed for $this."));
-    _constant = value;
+    constantCache = value;
   }
 }
 
@@ -1964,6 +1965,25 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
       _constantConstructor = computeConstantConstructor(resolvedAst);
     }
     return _constantConstructor;
+  }
+
+  void set constantConstructor(ConstantConstructor value) {
+    if (isPatch) {
+      ConstantConstructorMixin originConstructor = origin;
+      originConstructor.constantConstructor = value;
+    } else {
+      assert(invariant(this, isConst,
+          message: "Constant constructor set on non-constant "
+                   "constructor $this."));
+      assert(invariant(this, !isFromEnvironmentConstructor,
+          message: "Constant constructor set on fromEnvironment "
+                   "constructor: $this."));
+      assert(invariant(this,
+          _constantConstructor == null || _constantConstructor == value,
+          message: "Constant constructor already computed for $this:"
+                   "Existing: $_constantConstructor, new: $value"));
+      _constantConstructor = value;
+    }
   }
 
   bool get isFromEnvironmentConstructor {

@@ -23,6 +23,7 @@ abstract class ResolutionResult {
   }
 
   ResultKind get kind;
+  Node get node => null;
   Element get element => null;
   DartType get type => null;
   ConstantExpression get constant => null;
@@ -64,11 +65,16 @@ class AssertResult extends ResolutionResult {
   String toString() => 'AssertResult()';
 }
 
+/// The result for resolving a constant expression.
 class ConstantResult extends ResolutionResult {
   final Node node;
   final ConstantExpression constant;
+  final Element element;
 
-  ConstantResult(this.node, this.constant);
+  /// Creates a result for the [constant] expression. [node] is provided for
+  /// error reporting on the constant and [element] is provided if the
+  /// expression additionally serves an [Element] like [ElementResult].
+  ConstantResult(this.node, this.constant, {this.element});
 
   bool get isConstant => true;
 
@@ -83,4 +89,31 @@ class NoneResult extends ResolutionResult {
   ResultKind get kind => ResultKind.NONE;
 
   String toString() => 'NoneResult()';
+}
+
+/// The result of resolving a list of arguments.
+class ArgumentsResult {
+  /// The call structure of the arguments.
+  final CallStructure callStructure;
+
+  /// The resolutions results for each argument.
+  final List<ResolutionResult> argumentResults;
+
+  /// `true` if the arguments are valid as arguments to a constructed constant
+  /// expression.
+  final bool isValidAsConstant;
+
+  ArgumentsResult(
+      this.callStructure,
+      this.argumentResults,
+      {this.isValidAsConstant});
+
+  /// Returns the list of [ConstantExpression]s for each of the arguments. If
+  /// [isValidAsConstant] is `false`, `null` is returned.
+  List<ConstantExpression> get constantArguments {
+    if (!isValidAsConstant) return null;
+    return argumentResults.map((ResolutionResult result) {
+      return result.constant;
+    }).toList();
+  }
 }

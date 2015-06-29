@@ -686,7 +686,7 @@ Future resolveConstructor(
         new ResolverVisitor(compiler, element,
             new ResolutionRegistry.internal(compiler,
                 new CollectingTreeElements(element)));
-    new InitializerResolver(visitor).resolveInitializers(element, tree);
+    new InitializerResolver(visitor, element, tree).resolveInitializers();
     visitor.visit(tree.body);
     Expect.equals(expectedElementCount, map(visitor).length,
         "${map(visitor).values} for '$statement' in context of `$script`");
