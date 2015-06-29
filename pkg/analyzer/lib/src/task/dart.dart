@@ -172,15 +172,6 @@ final ListResultDescriptor<Source> IMPORT_EXPORT_SOURCE_CLOSURE =
     new ListResultDescriptor<Source>('IMPORT_EXPORT_SOURCE_CLOSURE', null);
 
 /**
- * The sources representing the import closure of a library.
- * The [Source]s include only library sources, not their units.
- *
- * The result is only available for [Source]s representing a library.
- */
-final ListResultDescriptor<Source> IMPORT_SOURCE_CLOSURE =
-    new ListResultDescriptor<Source>('IMPORT_SOURCE_CLOSURE', null);
-
-/**
  * The partial [LibraryElement] associated with a library.
  *
  * The [LibraryElement] and its [CompilationUnitElement]s are attached to each
@@ -1515,20 +1506,64 @@ class BuildPublicNamespaceTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * A task that builds [IMPORT_SOURCE_CLOSURE] and [EXPORT_SOURCE_CLOSURE] of
- * a library.
+ * A task that builds [EXPORT_SOURCE_CLOSURE] of a library.
  */
-class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
-  /**
-   * The name of the import closure.
-   */
-  static const String IMPORT_INPUT = 'IMPORT_INPUT';
-
+class BuildSourceExportClosureTask extends SourceBasedAnalysisTask {
   /**
    * The name of the export closure.
    */
   static const String EXPORT_INPUT = 'EXPORT_INPUT';
 
+  /**
+   * The task descriptor describing this kind of task.
+   */
+  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
+      'BuildSourceExportClosureTask', createTask, buildInputs,
+      <ResultDescriptor>[EXPORT_SOURCE_CLOSURE]);
+
+  BuildSourceExportClosureTask(
+      InternalAnalysisContext context, AnalysisTarget target)
+      : super(context, target);
+
+  @override
+  TaskDescriptor get descriptor => DESCRIPTOR;
+
+  @override
+  void internalPerform() {
+    List<Source> exportClosure = getRequiredInput(EXPORT_INPUT);
+    //
+    // Record output.
+    //
+    outputs[EXPORT_SOURCE_CLOSURE] = exportClosure;
+  }
+
+  /**
+   * Return a map from the names of the inputs of this kind of task to the task
+   * input descriptors describing those inputs for a task with the
+   * given library [libSource].
+   */
+  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
+    Source source = target;
+    return <String, TaskInput>{
+      EXPORT_INPUT: new _ExportSourceClosureTaskInput(source, LIBRARY_ELEMENT2)
+    };
+  }
+
+  /**
+   * Create a [BuildSourceExportClosureTask] based on the given [target] in
+   * the given [context].
+   */
+  static BuildSourceExportClosureTask createTask(
+      AnalysisContext context, AnalysisTarget target) {
+    return new BuildSourceExportClosureTask(context, target);
+  }
+}
+
+/**
+ * A task that builds [IMPORT_EXPORT_SOURCE_CLOSURE] of a library, and also
+ * sets [IS_CLIENT].
+ */
+class BuildSourceImportExportClosureTask extends SourceBasedAnalysisTask {
   /**
    * The name of the import/export closure.
    */
@@ -1538,14 +1573,10 @@ class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'BuildSourceClosuresTask', createTask, buildInputs, <ResultDescriptor>[
-    IMPORT_SOURCE_CLOSURE,
-    EXPORT_SOURCE_CLOSURE,
-    IMPORT_EXPORT_SOURCE_CLOSURE,
-    IS_CLIENT
-  ]);
+      'BuildSourceImportExportClosureTask', createTask, buildInputs,
+      <ResultDescriptor>[IMPORT_EXPORT_SOURCE_CLOSURE, IS_CLIENT]);
 
-  BuildSourceClosuresTask(
+  BuildSourceImportExportClosureTask(
       InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
 
@@ -1554,15 +1585,11 @@ class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
 
   @override
   void internalPerform() {
-    List<Source> importClosure = getRequiredInput(IMPORT_INPUT);
-    List<Source> exportClosure = getRequiredInput(EXPORT_INPUT);
     List<Source> importExportClosure = getRequiredInput(IMPORT_EXPORT_INPUT);
     Source htmlSource = context.sourceFactory.forUri(DartSdk.DART_HTML);
     //
     // Record outputs.
     //
-    outputs[IMPORT_SOURCE_CLOSURE] = importClosure;
-    outputs[EXPORT_SOURCE_CLOSURE] = exportClosure;
     outputs[IMPORT_EXPORT_SOURCE_CLOSURE] = importExportClosure;
     outputs[IS_CLIENT] = importExportClosure.contains(htmlSource);
   }
@@ -1575,20 +1602,18 @@ class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     return <String, TaskInput>{
-      IMPORT_INPUT: new _ImportSourceClosureTaskInput(source, LIBRARY_ELEMENT2),
-      EXPORT_INPUT: new _ExportSourceClosureTaskInput(source, LIBRARY_ELEMENT2),
       IMPORT_EXPORT_INPUT:
           new _ImportExportSourceClosureTaskInput(source, LIBRARY_ELEMENT2)
     };
   }
 
   /**
-   * Create a [BuildSourceClosuresTask] based on the given [target] in
-   * the given [context].
+   * Create a [BuildSourceImportExportClosureTask] based on the given [target]
+   * in the given [context].
    */
-  static BuildSourceClosuresTask createTask(
+  static BuildSourceImportExportClosureTask createTask(
       AnalysisContext context, AnalysisTarget target) {
-    return new BuildSourceClosuresTask(context, target);
+    return new BuildSourceImportExportClosureTask(context, target);
   }
 }
 
