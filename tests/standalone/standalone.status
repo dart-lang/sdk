@@ -172,86 +172,14 @@ io/http_client_stays_alive_test: Skip  # Timeout.
 [ $compiler == dart2js && $cps_ir ]
 io/file_test: Crash # Invalid argument(s)
 io/file_write_only_test: Crash # (main()async{asyncSt...  cannot handle async/sync*/async* functions
-io/http_10_test: Crash # Internal Error: No default constructor available.
-io/http_advanced_test: Crash # Internal Error: No default constructor available.
-io/http_auth_digest_test: Crash # Invalid argument(s)
-io/http_auth_test: Crash # Invalid argument(s)
-io/http_basic_test: Crash # Internal Error: No default constructor available.
 io/http_bind_test: Crash # (testBindShared(Stri...  cannot handle async/sync*/async* functions
-io/http_client_connect_test: Crash # Internal Error: No default constructor available.
-io/http_client_exception_test: Crash # Internal Error: No default constructor available.
-io/http_client_request_test: Crash # Internal Error: No default constructor available.
-io/http_client_stays_alive_test: Crash # Internal Error: No default constructor available.
-io/http_close_test: Crash # Internal Error: No default constructor available.
-io/http_compression_test: Crash # Internal Error: No default constructor available.
-io/http_connection_close_test: Crash # Invalid argument(s)
-io/http_connection_header_test: Crash # Internal Error: No default constructor available.
-io/http_connection_info_test: Crash # Internal Error: No default constructor available.
-io/http_content_length_test: Crash # Internal Error: No default constructor available.
-io/http_cookie_test: Crash # Internal Error: No default constructor available.
-io/http_cross_process_test: Crash # Internal Error: No default constructor available.
-io/http_detach_socket_test: Crash # Internal Error: No default constructor available.
-io/http_head_test: Crash # Internal Error: No default constructor available.
-io/http_headers_state_test: Crash # Internal Error: No default constructor available.
-io/http_headers_test: Crash # Internal Error: No default constructor available.
-io/http_ipv6_test: Crash # Invalid argument(s)
-io/http_keep_alive_test: Crash # Internal Error: No default constructor available.
-io/http_no_reason_phrase_test: Crash # Invalid argument(s)
-io/http_outgoing_size_test: Crash # Internal Error: No default constructor available.
-io/http_parser_test: Crash # Invalid argument(s)
-io/http_proxy_configuration_test: Crash # Internal Error: No default constructor available.
-io/http_proxy_test: Crash # Invalid argument(s)
-io/http_read_test: Crash # Internal Error: No default constructor available.
-io/http_redirect_test: Crash # Invalid argument(s)
-io/http_request_pipeling_test: Crash # Internal Error: No default constructor available.
-io/http_requested_uri_test: Crash # Internal Error: No default constructor available.
-io/http_response_deadline_test: Crash # Internal Error: No default constructor available.
-io/http_reuse_server_port_test: Crash # Internal Error: No default constructor available.
-io/http_server_close_response_after_error_test: Crash # Internal Error: No default constructor available.
-io/http_server_early_client_close2_test: Crash # Internal Error: No default constructor available.
-io/http_server_early_client_close_test: Crash # Internal Error: No default constructor available.
-io/http_server_idle_timeout_test: Crash # Internal Error: No default constructor available.
-io/http_server_response_test: Crash # Internal Error: No default constructor available.
-io/http_server_test: Crash # Internal Error: No default constructor available.
-io/http_session_test: Crash # Internal Error: No default constructor available.
-io/http_shutdown_test: Crash # Internal Error: No default constructor available.
-io/http_stream_close_test: Crash # Invalid argument(s)
+io/http_parser_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 io/https_bad_certificate_test: Crash # (main()async{var cli...  cannot handle async/sync*/async* functions
-io/https_client_certificate_test: Crash # Invalid argument(s)
-io/https_client_exception_test: Crash # Invalid argument(s)
-io/https_server_test: Crash # Internal Error: No default constructor available.
-io/https_unauthorized_test: Crash # Internal Error: No default constructor available.
 io/issue_22636_test: Crash # (test()async{server=...  cannot handle async/sync*/async* functions
 io/issue_22637_test: Crash # (test()async{server=...  cannot handle async/sync*/async* functions
 io/observatory_test: Crash # Invalid argument(s)
-io/platform_resolved_executable_test/00: Crash # Internal Error: No default constructor available.
-io/platform_resolved_executable_test/01: Crash # Invalid argument(s)
-io/platform_resolved_executable_test/02: Crash # Invalid argument(s)
-io/platform_resolved_executable_test/03: Crash # Internal Error: No default constructor available.
-io/platform_resolved_executable_test/04: Crash # Invalid argument(s)
-io/platform_resolved_executable_test/05: Crash # Invalid argument(s)
-io/platform_resolved_executable_test/06: Crash # Internal Error: No default constructor available.
-io/platform_resolved_executable_test/none: Crash # Internal Error: No default constructor available.
-io/platform_test: Crash # Internal Error: No default constructor available.
-io/process_environment_test: Crash # Internal Error: No default constructor available.
-io/process_path_environment_test: Crash # Internal Error: No default constructor available.
-io/raw_secure_socket_pause_test: Crash # Internal Error: No default constructor available.
-io/raw_secure_socket_test: Crash # Internal Error: No default constructor available.
-io/regress_8828_test: Crash # Internal Error: No default constructor available.
-io/regress_9194_test: Crash # Internal Error: No default constructor available.
-io/secure_builtin_roots_test: Crash # Invalid argument(s)
-io/secure_socket_test: Crash # Internal Error: No default constructor available.
-io/skipping_dart2js_compilations_test: Crash # Invalid argument(s)
 io/socket_bind_test: Crash # (testListenCloseList...  cannot handle async/sync*/async* functions
 io/socket_source_address_test: Crash # (Future testConnect(...  cannot handle async/sync*/async* functions
-io/stdin_sync_test: Crash # Internal Error: No default constructor available.
-io/test_runner_test: Crash # Internal Error: No default constructor available.
-io/web_socket_error_test: Crash # Internal Error: No default constructor available.
-io/web_socket_ping_test: Crash # Internal Error: No default constructor available.
-io/web_socket_pipe_test: Crash # Internal Error: No default constructor available.
-io/web_socket_protocol_test: Crash # Internal Error: No default constructor available.
-io/web_socket_test: Crash # Internal Error: No default constructor available.
-io/web_socket_typed_data_test: Crash # Internal Error: No default constructor available.
 priority_queue_stress_test: RuntimeError # receiver.get$_collection$_nums is not a function
 slowpath_safepoints_test: RuntimeError # Cannot read property 'prototype' of undefined
 typed_array_test: RuntimeError # receiver.get$_collection$_nums is not a function

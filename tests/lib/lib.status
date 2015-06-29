@@ -354,13 +354,13 @@ async/catch_errors6_test: RuntimeError # receiver.get$_nums is not a function
 async/catch_errors7_test: RuntimeError # receiver.get$_nums is not a function
 async/catch_errors8_test: RuntimeError # receiver.get$_nums is not a function
 async/catch_errors_test: RuntimeError # receiver.get$_nums is not a function
-async/first_regression_test: Crash # Invalid argument(s)
+async/first_regression_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/future_constructor_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/future_delayed_error_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/future_microtask_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/future_test/01: Crash # (()async=>new Future.value(value)): cannot handle async/sync*/async* functions
 async/future_test/none: RuntimeError # receiver.get$_nums is not a function
-async/future_timeout_test: Crash # Invalid argument(s)
+async/future_timeout_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/future_value_chain2_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/future_value_chain3_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/future_value_chain4_test: RuntimeError # receiver.get$_collection$_nums is not a function
@@ -373,7 +373,7 @@ async/intercept_schedule_microtask3_test: RuntimeError # receiver.get$_nums is n
 async/intercept_schedule_microtask4_test: RuntimeError # receiver.get$_nums is not a function
 async/intercept_schedule_microtask5_test: RuntimeError # receiver.get$_nums is not a function
 async/intercept_schedule_microtask6_test: RuntimeError # receiver.get$_nums is not a function
-async/multiple_timer_test: Crash # Invalid argument(s)
+async/multiple_timer_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/print_test/none: RuntimeError # receiver.get$_nums is not a function
 async/run_zoned1_test: RuntimeError # receiver.get$_nums is not a function
 async/run_zoned4_test: RuntimeError # receiver.get$_nums is not a function
@@ -382,9 +382,9 @@ async/run_zoned6_test/none: RuntimeError # receiver.get$_nums is not a function
 async/run_zoned7_test: RuntimeError # receiver.get$_nums is not a function
 async/run_zoned8_test: RuntimeError # receiver.get$_nums is not a function
 async/run_zoned9_test/none: RuntimeError # receiver.get$_nums is not a function
-async/schedule_microtask2_test: Crash # Invalid argument(s)
-async/schedule_microtask3_test: Crash # Invalid argument(s)
-async/schedule_microtask5_test: Crash # Invalid argument(s)
+async/schedule_microtask2_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/schedule_microtask3_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/schedule_microtask5_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/schedule_microtask_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/slow_consumer2_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/slow_consumer3_test: RuntimeError # receiver.get$_collection$_nums is not a function
@@ -414,41 +414,41 @@ async/stack_trace22_test: RuntimeError # receiver.get$_collection$_nums is not a
 async/stack_trace23_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/stack_trace24_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/stack_trace25_test: RuntimeError # receiver.get$_collection$_nums is not a function
-async/stream_controller_async_test: Crash # Invalid argument(s)
+async/stream_controller_async_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/stream_controller_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/stream_empty_test: Crash # (Future runTest()asy...  cannot handle async/sync*/async* functions
 async/stream_event_transformed_test: RuntimeError # receiver.get$_nums is not a function
-async/stream_first_where_test: Crash # Invalid argument(s)
-async/stream_from_iterable_test: Crash # Invalid argument(s)
+async/stream_first_where_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_from_iterable_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/stream_iterator_double_cancel_test: RuntimeError # receiver.get$_collection$_nums is not a function
-async/stream_iterator_test: Crash # Invalid argument(s)
-async/stream_join_test: Crash # Invalid argument(s)
-async/stream_last_where_test: Crash # Invalid argument(s)
+async/stream_iterator_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_join_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_last_where_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/stream_listen_zone_test: RuntimeError # receiver.get$_nums is not a function
-async/stream_periodic2_test: Crash # Invalid argument(s)
-async/stream_periodic3_test: Crash # Invalid argument(s)
-async/stream_periodic4_test: Crash # Invalid argument(s)
-async/stream_periodic5_test: Crash # Invalid argument(s)
-async/stream_periodic_test: Crash # Invalid argument(s)
-async/stream_single_test: Crash # Invalid argument(s)
-async/stream_single_to_multi_subscriber_test: Crash # Invalid argument(s)
-async/stream_state_nonzero_timer_test: Crash # Invalid argument(s)
-async/stream_state_test: Crash # Invalid argument(s)
-async/stream_subscription_as_future_test: Crash # Invalid argument(s)
-async/stream_subscription_cancel_test: Crash # Invalid argument(s)
-async/stream_timeout_test: Crash # Invalid argument(s)
-async/stream_transform_test: Crash # Invalid argument(s)
-async/stream_transformation_broadcast_test: Crash # Invalid argument(s)
+async/stream_periodic2_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_periodic3_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_periodic4_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_periodic5_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_periodic_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_single_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_single_to_multi_subscriber_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_state_nonzero_timer_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_state_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_subscription_as_future_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_subscription_cancel_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_timeout_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_transform_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_transformation_broadcast_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/stream_transformer_from_handlers_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/stream_transformer_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/stream_zones_test: RuntimeError # receiver.get$_nums is not a function
-async/timer_cancel1_test: Crash # Invalid argument(s)
-async/timer_cancel2_test: Crash # Invalid argument(s)
-async/timer_cancel_test: Crash # Invalid argument(s)
-async/timer_isActive_test: Crash # Invalid argument(s)
+async/timer_cancel1_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/timer_cancel2_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/timer_cancel_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/timer_isActive_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/timer_regress22626_test: RuntimeError # receiver.get$_collection$_nums is not a function
-async/timer_repeat_test: Crash # Invalid argument(s)
-async/timer_test: Crash # Invalid argument(s)
+async/timer_repeat_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/timer_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/zone_bind_callback_test: RuntimeError # receiver.get$_nums is not a function
 async/zone_bind_callback_unary_test: RuntimeError # receiver.get$_nums is not a function
 async/zone_bind_test: RuntimeError # receiver.get$_nums is not a function
@@ -469,27 +469,19 @@ async/zone_run_test: RuntimeError # receiver.get$_nums is not a function
 async/zone_run_unary_test: RuntimeError # receiver.get$_nums is not a function
 async/zone_value_test: RuntimeError # receiver.get$_collection$_nums is not a function
 convert/ascii_test: RuntimeError # Please triage this failure.
-convert/chunked_conversion_json_encode1_test: Crash # Internal Error: No default constructor available.
 convert/chunked_conversion_utf88_test: RuntimeError # Please triage this failure.
 convert/codec1_test: RuntimeError # Cannot read property 'prototype' of undefined
-convert/codec2_test: Crash # Internal Error: No default constructor available.
 convert/encoding_test: RuntimeError # receiver.get$_collection$_nums is not a function
 convert/html_escape_test: RuntimeError # receiver.get$_collection$_nums is not a function
-convert/json_lib_test: Crash # Invalid argument(s)
-convert/json_pretty_test: Crash # Internal Error: No default constructor available.
-convert/json_test: Crash # Internal Error: No default constructor available.
-convert/json_toEncodable_reviver_test: Crash # Internal Error: No default constructor available.
-convert/json_util_test: Crash # Internal Error: No default constructor available.
+convert/json_lib_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 convert/latin1_test: RuntimeError # Please triage this failure.
 convert/line_splitter_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 convert/streamed_conversion_json_decode1_test: RuntimeError # receiver.get$_collection$_nums is not a function
-convert/streamed_conversion_json_encode1_test: Crash # Internal Error: No default constructor available.
+convert/streamed_conversion_json_encode1_test : RuntimeError # TypeError: receiver.get$_collection$_nums is not a function
 convert/streamed_conversion_json_utf8_decode_test: RuntimeError # receiver.get$_collection$_nums is not a function
-convert/streamed_conversion_json_utf8_encode_test: Crash # Internal Error: No default constructor available.
+convert/streamed_conversion_json_utf8_encode_test : RuntimeError # TypeError: receiver.get$_collection$_nums is not a function
 convert/streamed_conversion_utf8_decode_test: RuntimeError # receiver.get$_collection$_nums is not a function
 convert/streamed_conversion_utf8_encode_test: RuntimeError # receiver.get$_collection$_nums is not a function
-js/datetime_roundtrip_test: Crash # Internal Error: No default constructor available.
-js/null_test: Crash # Invalid argument(s)
 math/pi_test: RuntimeError # receiver.get$_collection$_nums is not a function
 math/point_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 math/rectangle_test : RuntimeError # TypeError: receiver.get$_nums is not a function
@@ -515,10 +507,10 @@ mirrors/dart2js_mirrors_test: Crash # Internal Error: No default constructor ava
 mirrors/declarations_type_test: Crash # Internal Error: No default constructor available.
 mirrors/deferred_mirrors_metadata_test: Crash # Internal Error: No default constructor available.
 mirrors/deferred_mirrors_metatarget_test: Crash # Internal Error: No default constructor available.
-mirrors/deferred_mirrors_update_test: Crash # Internal Error: No default constructor available.
+mirrors/deferred_mirrors_update_test : RuntimeError # TypeError: receiver.get$_collection$_nums is not a function
 mirrors/deferred_type_test: Crash # Internal Error: No default constructor available.
-mirrors/delegate_call_through_getter_test : Crash # Internal Error: No default constructor available.
-mirrors/delegate_test : Crash # Internal Error: No default constructor available.
+mirrors/delegate_call_through_getter_test : RuntimeError # 
+mirrors/delegate_test : RuntimeError # 
 mirrors/disable_tree_shaking_test: Crash # Internal Error: No default constructor available.
 mirrors/empty_test: Crash # Internal Error: No default constructor available.
 mirrors/enum_test: Crash # Internal Error: No default constructor available.
@@ -563,7 +555,6 @@ mirrors/globalized_closures_test/none: Crash # Internal Error: No default constr
 mirrors/hierarchy_invariants_test: Crash # Internal Error: No default constructor available.
 mirrors/immutable_collections_test: Crash # Internal Error: No default constructor available.
 mirrors/inherit_field_test: Crash # Internal Error: No default constructor available.
-mirrors/inherited_metadata_test: Crash # Internal Error: No default constructor available.
 mirrors/initializing_formals_test/01: Crash # Internal Error: No default constructor available.
 mirrors/initializing_formals_test/none: Crash # Internal Error: No default constructor available.
 mirrors/instance_members_easier_test: Crash # Internal Error: No default constructor available.
@@ -628,7 +619,6 @@ mirrors/metadata_allowed_values_test/13: Crash # Internal Error: No default cons
 mirrors/metadata_allowed_values_test/14: Crash # Internal Error: No default constructor available.
 mirrors/metadata_allowed_values_test/none: Crash # Internal Error: No default constructor available.
 mirrors/metadata_class_mirror_test: Crash # Internal Error: No default constructor available.
-mirrors/metadata_const_map_test: Crash # Internal Error: No default constructor available.
 mirrors/metadata_constructed_constant_test: Crash # Internal Error: No default constructor available.
 mirrors/metadata_constructor_arguments_test/none: Crash # Internal Error: No default constructor available.
 mirrors/metadata_nested_constructor_call_test/none: Crash # Internal Error: No default constructor available.
@@ -646,8 +636,6 @@ mirrors/mirrors_nsm_test/none: Crash # Internal Error: No default constructor av
 mirrors/mirrors_reader_test: Crash # Internal Error: No default constructor available.
 mirrors/mirrors_resolve_fields_test: Crash # Internal Error: No default constructor available.
 mirrors/mirrors_test: Crash # Internal Error: No default constructor available.
-mirrors/mirrors_used_typedef_declaration_test/01: Crash # Internal Error: No default constructor available.
-mirrors/mirrors_used_typedef_declaration_test/none: Crash # Internal Error: No default constructor available.
 mirrors/mixin_application_test: Crash # Internal Error: No default constructor available.
 mirrors/mixin_members_test: Crash # Internal Error: No default constructor available.
 mirrors/mixin_test: Crash # Internal Error: No default constructor available.
@@ -658,11 +646,9 @@ mirrors/no_metadata_test: Crash # Internal Error: No default constructor availab
 mirrors/null2_test: Crash # Internal Error: No default constructor available.
 mirrors/null_test: Crash # Invalid argument(s)
 mirrors/operator_test: Crash # Internal Error: No default constructor available.
-mirrors/parameter_annotation_mirror_test: Crash # Internal Error: No default constructor available.
 mirrors/parameter_is_const_test/none: Crash # Internal Error: No default constructor available.
 mirrors/parameter_metadata_test: Crash # Internal Error: No default constructor available.
 mirrors/parameter_of_mixin_app_constructor_test: Crash # Internal Error: No default constructor available.
-mirrors/parameter_test/01: Crash # Internal Error: No default constructor available.
 mirrors/parameter_test/none: Crash # Internal Error: No default constructor available.
 mirrors/private_symbol_mangling_test: Crash # Internal Error: No default constructor available.
 mirrors/private_types_test: Crash # Internal Error: No default constructor available.
@@ -700,8 +686,6 @@ mirrors/relation_subclass_test: Crash # Internal Error: No default constructor a
 mirrors/relation_subtype_test: Crash # Internal Error: No default constructor available.
 mirrors/removed_api_test: Crash # Internal Error: No default constructor available.
 mirrors/repeated_private_anon_mixin_app_test: Crash # Internal Error: No default constructor available.
-mirrors/return_type_test: Crash # Internal Error: No default constructor available.
-mirrors/runtime_type_test: Crash # Internal Error: No default constructor available.
 mirrors/set_field_with_final_inheritance_test: Crash # Internal Error: No default constructor available.
 mirrors/set_field_with_final_test: Crash # Internal Error: No default constructor available.
 mirrors/spawn_function_root_library_test: Crash # Internal Error: No default constructor available.
@@ -717,14 +701,11 @@ mirrors/synthetic_accessor_properties_test: Crash # Internal Error: No default c
 mirrors/to_string_test: Crash # Internal Error: No default constructor available.
 mirrors/top_level_accessors_test: Crash # Internal Error: No default constructor available.
 mirrors/type_argument_is_type_variable_test: Crash # Internal Error: No default constructor available.
-mirrors/type_mirror_for_type_test: Crash # Internal Error: No default constructor available.
 mirrors/type_variable_is_static_test: Crash # Internal Error: No default constructor available.
 mirrors/type_variable_owner_test/01: Crash # Internal Error: No default constructor available.
 mirrors/type_variable_owner_test/none: Crash # Internal Error: No default constructor available.
 mirrors/typearguments_mirror_test: Crash # Internal Error: No default constructor available.
-mirrors/typedef_deferred_library_test: Crash # Internal Error: No default constructor available.
-mirrors/typedef_in_signature_test: Crash # Internal Error: No default constructor available.
-mirrors/typedef_library_test: Crash # Internal Error: No default constructor available.
+mirrors/typedef_deferred_library_test : RuntimeError # TypeError: receiver.get$_collection$_nums is not a function
 mirrors/typedef_metadata_test: Crash # Internal Error: No default constructor available.
 mirrors/typedef_reflected_type_test/01: Crash # Internal Error: No default constructor available.
 mirrors/typedef_reflected_type_test/none: Crash # Internal Error: No default constructor available.
@@ -732,14 +713,3 @@ mirrors/typedef_test: Crash # Internal Error: No default constructor available.
 mirrors/unnamed_library_test: Crash # Internal Error: No default constructor available.
 mirrors/variable_is_const_test/none: Crash # Internal Error: No default constructor available.
 typed_data/typed_data_list_test: RuntimeError # Please triage this failure.
-mirrors/invocation_cache_test : Crash # Internal Error: No default constructor available.
-mirrors/reflect_two_classes_test : Crash # Internal Error: No default constructor available.
-mirrors/mirrors_used_inheritance_test : Crash # Internal Error: No default constructor available.
-mirrors/optional_parameters_test : Crash # Internal Error: No default constructor available.
-mirrors/get_symbol_name_no_such_method_test : Crash # Internal Error: No default constructor available.
-mirrors/get_field_test : Crash # Internal Error: No default constructor available.
-mirrors/delegate_function_invocation_test : Crash # Internal Error: No default constructor available.
-mirrors/inference_and_no_such_method_test : Crash # Internal Error: No default constructor available.
-mirrors/mirrors_used_get_name_test : Crash # Internal Error: No default constructor available.
-mirrors/get_field_cache_test : Crash # Internal Error: No default constructor available.
-mirrors/mirrors_used_get_name2_test : Crash # Internal Error: No default constructor available.

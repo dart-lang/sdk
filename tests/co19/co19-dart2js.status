@@ -9612,13 +9612,10 @@ Language/12_Expressions/13_Property_Extraction_A03_t01: RuntimeError # Cannot re
 Language/12_Expressions/13_Property_Extraction_A03_t02: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/13_Spawning_an_Isolate_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
-Language/12_Expressions/14_Function_Invocation/4_Function_Expression_Invocation_A01_t02 : Crash # Internal Error: No default constructor available.
 Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t04: RuntimeError # Cannot read property 'prototype' of undefined
 Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: RuntimeError # Cannot read property 'prototype' of undefined
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t04: RuntimeError # Cannot read property 'prototype' of undefined
-Language/12_Expressions/18_Assignment_A05_t02 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/18_Assignment_A05_t05 : Crash # Internal Error: No default constructor available.
 Language/12_Expressions/29_Assignable_Expressions_A01_t08: RuntimeError # receiver.get$_first is not a function
 Language/12_Expressions/30_Identifier_Reference_A09_t03: Crash # (i=0): For-loop variable captured in loop header
 Language/12_Expressions/30_Identifier_Reference_A10_t01: RuntimeError # Cannot read property 'prototype' of undefined
@@ -9664,9 +9661,6 @@ Language/15_Types/5_Function_Types_A03_t13: RuntimeError # Cannot read property 
 Language/15_Types/5_Function_Types_A05_t02: RuntimeError # Cannot read property 'prototype' of undefined
 Language/15_Types/5_Function_Types_A05_t05: RuntimeError # Cannot read property 'prototype' of undefined
 Language/15_Types/5_Function_Types_A06_t01: RuntimeError # Cannot read property 'prototype' of undefined
-LayoutTests/fast/events/clipboard-dataTransferItemList_t01: Crash # Internal Error: No default constructor available.
-LayoutTests/fast/forms/date/date-interactive-validation-required_t01: Crash # Invalid argument(s)
-LayoutTests/fast/forms/datetimelocal/datetimelocal-interactive-validation-required_t01: Crash # Invalid argument(s)
 LibTest/async/Completer/Completer.sync_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/async/Completer/completeError_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/async/Completer/completeError_A01_t02: RuntimeError # receiver.get$_collection$_nums is not a function
@@ -9951,31 +9945,22 @@ LibTest/async/Zone/scheduleMicrotask_A01_t01: RuntimeError # receiver.get$_colle
 LibTest/async/Zone/scheduleMicrotask_A01_t02: RuntimeError # receiver.get$_nums is not a function
 LibTest/collection/ListBase/ListBase_class_A01_t02: Crash # Stack Overflow
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Crash # Stack Overflow
-LibTest/convert/JsonCodec/JsonCodec.withReviver_A01_t01: Crash # Internal Error: No default constructor available.
-LibTest/convert/JsonCodec/JsonCodec_A01_t01: Crash # Internal Error: No default constructor available.
 LibTest/convert/JsonCodec/encode_A01_t01: Crash # Internal Error: No default constructor available.
 LibTest/convert/JsonCodec/encode_A01_t02: Crash # Internal Error: No default constructor available.
-LibTest/convert/JsonCodec/encode_A02_t01: Crash # Internal Error: No default constructor available.
-LibTest/convert/JsonCodec/encode_A02_t02: Crash # Internal Error: No default constructor available.
-LibTest/convert/JsonCodec/encode_A02_t03: Crash # Internal Error: No default constructor available.
-LibTest/convert/JsonCodec/encode_A03_t01: Crash # Internal Error: No default constructor available.
 LibTest/convert/JsonDecoder/fuse_A01_t01: Crash # Internal Error: No default constructor available.
 LibTest/convert/JsonEncoder/convert_A01_t01: Crash # Internal Error: No default constructor available.
-LibTest/convert/JsonEncoder/convert_A02_t01: Crash # Internal Error: No default constructor available.
-LibTest/convert/JsonEncoder/fuse_A01_t01: Crash # Internal Error: No default constructor available.
 LibTest/core/DateTime/parse_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
 LibTest/core/DateTime/parse_A01_t02: RuntimeError # Cannot read property 'prototype' of undefined
 LibTest/core/DateTime/parse_A03_t01: Pass # Please triage this failure.
 LibTest/core/DateTime/timeZoneName_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
-LibTest/core/Function/apply_A01_t01 : Crash # Internal Error: No default constructor available.
 LibTest/core/Invocation/isAccessor_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
-LibTest/core/Invocation/isGetter_A01_t01 : Crash # Internal Error: No default constructor available.
-LibTest/core/Invocation/isGetter_A01_t02 : Crash # Internal Error: No default constructor available.
+LibTest/core/Invocation/isGetter_A01_t01 : RuntimeError # 
+LibTest/core/Invocation/isGetter_A01_t02 : RuntimeError # 
 LibTest/core/Invocation/isMethod_A01_t02: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/isSetter_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
-LibTest/core/Invocation/isSetter_A01_t02 : Crash # Internal Error: No default constructor available.
+LibTest/core/Invocation/isSetter_A01_t02 : RuntimeError # 
 LibTest/core/Invocation/memberName_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
-LibTest/core/Invocation/positionalArguments_A01_t01 : Crash # Internal Error: No default constructor available.
+LibTest/core/Invocation/positionalArguments_A01_t01 : RuntimeError # 
 LibTest/core/List/List_class_A01_t02: Crash # Stack Overflow
 LibTest/core/Match/end_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
 LibTest/core/Match/groupCount_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
@@ -9997,9 +9982,6 @@ LibTest/core/Stopwatch/start_A01_t03: RuntimeError # receiver.get$_collection$_n
 LibTest/core/Stopwatch/stop_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
-LibTest/core/Uri/queryParameters_A01_t01: Crash # Invalid argument(s)
-LibTest/core/Uri/queryParameters_A01_t02: Crash # Invalid argument(s)
-LibTest/core/Uri/queryParameters_A01_t03: Crash # Invalid argument(s)
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Pass # Please triage this failure.
 LibTest/core/int/parse_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
@@ -10116,60 +10098,4 @@ LibTest/typed_data/Uint8ClampedList/setRange_A02_t01: RuntimeError # this.get$le
 LibTest/typed_data/Uint8List/setAll_A01_t01: RuntimeError # this.get$length is not a function
 LibTest/typed_data/Uint8List/setRange_A01_t01: RuntimeError # this.get$length is not a function
 LibTest/typed_data/Uint8List/setRange_A02_t01: RuntimeError # this.get$length is not a function
-Language/03_Overview/2_Privacy_A01_t11 : Crash # Internal Error: No default constructor available.
-Language/07_Classes/4_Abstract_Instance_Members_A02_t03 : Crash # Internal Error: No default constructor available.
-Language/07_Classes/4_Abstract_Instance_Members_A02_t04 : Crash # Internal Error: No default constructor available.
-Language/07_Classes/10_Superinterfaces_A07_t04 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/17_Getter_Invocation_A02_t02 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/18_Assignment_A05_t04 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/17_Getter_Invocation_A07_t02 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t02 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A02_t05 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t03 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t03 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t04 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t05 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t06 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A04_t01 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t04 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t02 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t05 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t03 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t02 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A06_t01 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/13_Property_Extraction_A04_t03 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/13_Property_Extraction_A04_t02 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/17_Getter_Invocation_A02_t01 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/17_Getter_Invocation_A08_t01 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/18_Assignment_A08_t04 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/30_Identifier_Reference_A14_t04 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t16 : Crash # Internal Error: No default constructor available.
-Language/12_Expressions/14_Function_Invocation/3_Unqualified_Invocation_A01_t15 : Crash # Internal Error: No default constructor available.
-LibTest/core/Invocation/isAccessor_A01_t02 : Crash # Internal Error: No default constructor available.
-LibTest/core/Invocation/isMethod_A01_t01 : Crash # Internal Error: No default constructor available.
-LibTest/core/Invocation/namedArguments_A01_t01 : Crash # Internal Error: No default constructor available.
-LayoutTests/fast/exclusions/parsing/parsing-wrap-flow_t01 : Crash # Internal Error: No default constructor available.
-LayoutTests/fast/exclusions/parsing/parsing-wrap-through_t01 : Crash # Internal Error: No default constructor available.
-LayoutTests/fast/shapes/parsing/parsing-shape-property-aliases_t01 : Crash # Internal Error: No default constructor available.
-LayoutTests/fast/shapes/parsing/parsing-shape-image-threshold_t01 : Crash # Internal Error: No default constructor available.
-LayoutTests/fast/shapes/parsing/parsing-shape-margin_t01 : Crash # Internal Error: No default constructor available.
-LayoutTests/fast/shapes/parsing/parsing-shape-outside_t01 : Crash # Internal Error: No default constructor available.
-LayoutTests/fast/dom/DOMImplementation/createDocument-namespace-err_t01 : Crash # Internal Error: No default constructor available.
-LayoutTests/fast/dom/Document/createElementNS-namespace-err_t01 : Crash # Internal Error: No default constructor available.
-LayoutTests/fast/dom/Element/setAttributeNS-namespace-err_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-003_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/shadow-dom/events/event-retargeting/test-004_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/shadow-dom/events/event-dispatch/test-001_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/shadow-dom/events/event-dispatch/test-002_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-element-interface/methods/elements-001_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-002_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/ownerdocument-002_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/selectors-api-001_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/test-009_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/html-templates/template-element/template-content_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-row-context_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-body-context_t01 : Crash # Internal Error: No default constructor available.
-WebPlatformTest/html-templates/parsing-html-templates/clearing-the-stack-back-to-a-given-context/clearing-stack-back-to-a-table-context_t01 : Crash # Internal Error: No default constructor available.
+LibTest/core/Invocation/namedArguments_A01_t01 : RuntimeError # 

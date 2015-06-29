@@ -150,7 +150,6 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 analyzer/test/*: PubGetError
 
 [ $compiler == dart2js && $cps_ir ]
-analysis_server/tool/spec/check_all_test: Crash # Invalid argument(s)
 analyzer/test/cancelable_future_test: Crash # Invalid argument(s)
 analyzer/test/enum_test: Crash # Invalid argument(s)
 analyzer/test/file_system/memory_file_system_test: Crash # Invalid argument(s)
@@ -189,9 +188,9 @@ analyzer/test/src/task/manager_test: Crash # Invalid argument(s)
 analyzer/test/src/task/model_test: Crash # Invalid argument(s)
 analyzer/test/src/util/asserts_test: Crash # Invalid argument(s)
 analyzer/test/src/util/lru_map_test: Crash # Invalid argument(s)
-fixnum/test/int_32_test: Crash # Invalid argument(s)
-fixnum/test/int_64_test: Crash # Invalid argument(s)
+fixnum/test/int_32_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+fixnum/test/int_64_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 typed_data/test/typed_buffers_test/01: Crash # Invalid argument(s)
 typed_data/test/typed_buffers_test/none : RuntimeError # TypeError: receiver.get$_nums is not a function
-typed_mock/test/typed_mock_test: Crash # Invalid argument(s)
+typed_mock/test/typed_mock_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 analyzer/test/generated/source_factory_test : Crash # Invalid argument(s)

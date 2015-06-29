@@ -30,7 +30,7 @@ native_exception_test: RuntimeError # J.getInterceptor(...).toString$0 is not a 
 native_method_inlining_test: RuntimeError # Please triage this failure.
 native_mirror_test: Crash # Internal Error: No default constructor available.
 native_mixin_field_test: RuntimeError # Please triage this failure.
-native_no_such_method_exception3_frog_test : Crash # Internal Error: No default constructor available.
+native_no_such_method_exception3_frog_test : RuntimeError # 
 native_wrapping_function3_frog_test: RuntimeError # invoke is not a function
 native_wrapping_function_frog_test: RuntimeError # invoke is not a function
 optimization_hints_test: RuntimeError # Please triage this failure.

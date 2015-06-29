@@ -2523,6 +2523,14 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         }
       });
     }
+    // If this is a mixin constructor, it does not have its own parameter list
+    // or initializer list. Directly forward to the super constructor.
+    // Note that the declaration-site initializers originating from the
+    // mixed-in class were handled above.
+    if (enclosingClass.isMixinApplication) {
+      forwardSynthesizedMixinConstructor(constructor, supers, fieldValues);
+      return;
+    }
     // Evaluate initializing parameters, e.g. `Foo(this.x)`.
     constructor.functionSignature.orderedForEachParameter(
         (ParameterElement parameter) {
@@ -2589,8 +2597,28 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
       List<ConstructorElement> supers,
       Map<FieldElement, ir.Primitive> fieldValues) {
     JsIrBuilderVisitor visitor = makeVisitorForContext(target);
-    return visitor.withBuilder(irBuilder, () {
+    visitor.withBuilder(irBuilder, () {
       visitor.loadArguments(target, call, arguments);
+      visitor.evaluateConstructorFieldInitializers(target, supers, fieldValues);
+    });
+  }
+
+  /// Evaluate the implicit super call in the given mixin constructor.
+  void forwardSynthesizedMixinConstructor(
+        ConstructorElement constructor,
+        List<ConstructorElement> supers,
+        Map<FieldElement, ir.Primitive> fieldValues) {
+    assert(constructor.enclosingClass.implementation.isMixinApplication);
+    assert(constructor.isSynthesized);
+    ConstructorElement target =
+        constructor.definingConstructor.implementation;
+    // The resolver gives us the exact same FunctionSignature for the two
+    // constructors. The parameters for the synthesized constructor
+    // are already in the environment, so the target constructor's parameters
+    // are also in the environment since their elements are the same.
+    assert(constructor.functionSignature == target.functionSignature);
+    JsIrBuilderVisitor visitor = makeVisitorForContext(target);
+    visitor.withBuilder(irBuilder, () {
       visitor.evaluateConstructorFieldInitializers(target, supers, fieldValues);
     });
   }

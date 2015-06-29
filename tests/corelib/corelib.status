@@ -226,11 +226,9 @@ iterable_empty_test: RuntimeError # Please triage this failure.
 iterable_return_type_test/none: RuntimeError # Please triage this failure.
 iterable_to_list_test: RuntimeError # Please triage this failure.
 iterable_to_set_test: RuntimeError # Please triage this failure.
-json_map_test: Crash # Internal Error: No default constructor available.
 list_test/01: RuntimeError # this.get$length is not a function
 list_test/none: RuntimeError # this.get$length is not a function
 main_test: RuntimeError # receiver.get$_collection$_nums is not a function
-map_test: Crash # Internal Error: No default constructor available.
 map_values2_test: RuntimeError # Please triage this failure.
 map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.
@@ -252,16 +250,10 @@ stopwatch2_test: RuntimeError # Cannot read property 'prototype' of undefined
 stopwatch_test: RuntimeError # Cannot read property 'prototype' of undefined
 string_fromcharcodes_test: RuntimeError # Please triage this failure.
 string_replace_all_test: RuntimeError # Cannot read property 'prototype' of undefined
-symbol_operator_test/03 : Crash # Internal Error: No default constructor available.
+symbol_operator_test/03 : RuntimeError # 
 symbol_reserved_word_test/03: Pass # Please triage this failure.
 symbol_reserved_word_test/06: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/09: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/12: RuntimeError # Please triage this failure.
 symbol_test/none: Crash # The null object does not have a getter '_element'.
-uri_query_test: Crash # Internal Error: No default constructor available.
 uri_test: Crash # Invalid argument(s)
-apply2_test : Crash # Internal Error: No default constructor available.
-apply3_test : Crash # Internal Error: No default constructor available.
-apply_test : Crash # Internal Error: No default constructor available.
-symbol_operator_test/none : Crash # Internal Error: No default constructor available.
-apply4_test : Crash # Internal Error: No default constructor available.
