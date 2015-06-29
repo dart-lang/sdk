@@ -71,7 +71,7 @@ class _FieldNamingRegistry {
       // existing properties on JS objects (see [_reservedNativeProperties]).
       // However, some of them are really short and safe to use for fields.
       // Thus, we shortcut the namer to use those first.
-      assert(index == nameStore.length + 1);
+      assert(index == nameStore.length);
       if (index < MinifyNamer._reservedNativeProperties.length &&
           MinifyNamer._reservedNativeProperties[index].length <= 2) {
         nameStore.add(
