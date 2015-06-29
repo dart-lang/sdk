@@ -320,7 +320,7 @@ class Builder implements cps_ir.Visitor<Node> {
     // Introduce labels for continuations that need them.
     int safeForInliningLengthOnEntry = safeForInlining.length;
     for (cps_ir.Continuation continuation in node.continuations) {
-      if (continuation.hasMultipleUses) {
+      if (continuation.hasMultipleUses || continuation.isRecursive) {
         labels[continuation] = new Label();
       } else {
         safeForInlining.add(continuation);

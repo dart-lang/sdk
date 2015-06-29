@@ -512,6 +512,7 @@ class TransformingVisitor extends RecursiveVisitor {
     InvokeContinuation invoke =
         new InvokeContinuation(continuation, <Primitive>[primitive]);
     letPrim.body = invoke;
+    values[primitive] = values[continuation.parameters.single];
     primitive.hint = continuation.parameters.single.hint;
 
     return letPrim;
@@ -576,7 +577,6 @@ class TransformingVisitor extends RecursiveVisitor {
   /// True if all uses of [prim] only use its value after boolean conversion.
   bool isAlwaysBoolified(Primitive prim) {
     for (Reference ref = prim.firstRef; ref != null; ref = ref.next) {
-      Node use = ref.parent;
       if (!isBoolifyingUse(ref)) return false;
     }
     return true;
