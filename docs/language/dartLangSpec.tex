@@ -6,8 +6,9 @@
 \usepackage{hyperref}
 \usepackage{lmodern}
 \newcommand{\code}[1]{{\sf #1}}
-\title{Dart Programming Language  Specification\\
-{\large Version 1.10}}
+\title{Dart Programming Language  Specification  \\
+(4th edition draft)\\
+{\large Version 1.11}}
 
 % For information about Location Markers (and in particular the
 % commands \LMHash and \LMLabel), see the long comment at the
@@ -1851,7 +1852,7 @@ A class has a set of direct superinterfaces. This set includes the interface of 
 The scope of the \IMPLEMENTS{} clause of a class $C$ is the type-parameter scope of $C$.
 
 \LMHash{}
-It is a compile-time error if  the \IMPLEMENTS{}  clause of a class $C$ specifies a type variable as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies an enumerated type (\ref{enums}),  a malformed type or deferred type (\ref{staticTypes}) as a superinterface  It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a type $T$ as a superinterface more than once.
+It is a compile-time error if  the \IMPLEMENTS{}  clause of a class $C$ specifies a type variable as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies an enumerated type (\ref{enums}),  a malformed type or deferred type (\ref{staticTypes}) as a superinterface.  It is a compile-time error if the \IMPLEMENTS{} clause of a class $C$ specifies type \DYNAMIC{} as a superinterface. It is a compile-time error if  the  \IMPLEMENTS{} clause of a class $C$ specifies  a type $T$ as a superinterface more than once.
 It is a compile-time error if the superclass of a class $C$ is specified as a superinterface of $C$.
 
 \rationale{
@@ -3794,6 +3795,8 @@ is equivalent to the evaluation of the expression
 \LMHash{}
 $((x) => x == \NULL ? \NULL : x.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k}))(o)$. 
 
+unless $o$ is  a type literal, in which case it is equivalent to $o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
+
 \LMHash{}
 The static type of $e$ is the same as the static type of $o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$. Exactly the same static warnings that would be caused by $o.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$ are also generated in the case of $o?.m(a_1, \ldots , a_n, x_{n+1}: a_{n+1}, \ldots , x_{n+k}: a_{n+k})$.
 
@@ -3870,7 +3873,7 @@ Let $T$ be the  static type of $o$. It is a static type warning if $T$ does not 
 \item
 $T$ or a superinterface of $T$ is annotated with an annotation denoting a constant identical to the constant \code{@proxy} defined in \code{dart:core}.  Or
 \item  $T$ is \code{Type}, $e$ is a constant type literal and the class corresponding to $e$ has a static getter named $m$.
-\item $T$ is \code{Function} and $m$ is \CALL. \rationale {The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL. The expectation is that any concrete subclass of \code{Function} will implement \CALL. Note that a warning will be issue if this is not the case. Furthermore, any use of \CALL on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a a warning, as this exemption is limited to type \code{Function}, and does not apply to its subtypes. 
+\item $T$ is \code{Function} and $m$ is \CALL. \rationale {The type \code{Function} is treated as if it has a \code{call} method for any possible signature of \CALL. The expectation is that any concrete subclass of \code{Function} will implement \CALL. Note that a warning will be issue if this is not the case. Furthermore, any use of \CALL{} on a subclass of \code{Function} that fails to implement \CALL{} will also provoke a a warning, as this exemption is limited to type \code{Function}, and does not apply to its subtypes. 
 }
 \end{itemize}
 
@@ -3993,11 +3996,10 @@ Property extraction can be either {\em conditional} or {\em unconditional}.
 Tear-offs using the \cd{ x\#id}  syntax cannot be conditional at this time; this is inconsistent, and is likely to be addressed in the near future, perhaps via  notation such as  \cd{ x?\#id} . As indicated in section \ref{ecmaConformance}, experimentation in this area is allowed.
 }
 
-Evaluation of a {\em conditional property extraction expression} $e$ of the form $e_1?.id$  is equivalent to the evaluation of the expression  $((x) => x == \NULL ? \NULL : x.id)(e_1)$. The static type of $e$ is the same as the static type of $e_1.id$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $y.id$ are also generated in the case of $e_1?.id$.
+Evaluation of a {\em conditional property extraction expression} $e$ of the form $e_1?.id$  is equivalent to the evaluation of the expression  $((x) => x == \NULL ? \NULL : x.id)(e_1)$. 
+unless $e_1$ is  a type literal, in which case it is equivalent to $e_1.m$.
 
-\commentary{
-One might be tempted to conclude that for $e \ne \NULL{}$, $e?.v$ is always equivalent to $e.v$. However this is not the case. If $e$ is a type literal representing a type with static member $v$, then $e.v$ refers to that member, but $e?.v$ does not.
-}
+The static type of $e$ is the same as the static type of $e_1.id$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $y.id$ are also generated in the case of $e_1?.id$.
 
 \LMHash{}
 Unconditional property extraction takes several syntactic forms: $e.m$ (\ref{getterAccessAndMethodExtraction}), $\SUPER.m$ (\ref{superGetterAccessAndMethodClosurization}), $e\#m$ (\ref{generalClosurization}), $\NEW{}$ $T\#m$ (\ref{namedConstructorExtraction}), $\NEW{}$ $T\#$ (\ref{anonymousConstructorExtraction}) and $\SUPER\#m$ (\ref{generalSuperPropertyExtraction}), where $e$ is an expression, $m$ is an identifier optionally followed by an equal sign and $T$ is a type.
@@ -4434,7 +4436,9 @@ In checked mode, it is a dynamic type error if $o$ is not \NULL{} and the interf
 It is a static type warning if the static type of $e$ may not be assigned to the static type of $v$. The static type of the expression $v$ \code{=} $e$ is the static type of $e$.
 
 \LMHash{}
-Evaluation of an assignment $a$ of the form $e_1?.v$ \code{=} $e_2$ is equivalent to the evaluation of the expression $((x) => x == \NULL? \NULL: x.v = e_2)(e_1)$. The static type of $a$ is the static type of $e_2$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $y.v = e_2$ are also generated in the case of $e_1?.v$ \code{=} $e_2$.
+Evaluation of an assignment $a$ of the form $e_1?.v$ \code{=} $e_2$ is equivalent to the evaluation of the expression $((x) => x == \NULL? \NULL: x.v = e_2)(e_1)$
+ unless $e_1$ is  a type literal, in which case it is equivalent to $e_1.v$ \code{=} $e_2$.
+. The static type of $a$ is the static type of $e_2$. Let $T$ be the static type of $e_1$ and let $y$ be a fresh variable of type $T$. Exactly the same static warnings that would be caused by $y.v = e_2$ are also generated in the case of $e_1?.v$ \code{=} $e_2$.
 
 \LMHash{}
 Evaluation of an assignment of the form $e_1.v$ \code{=} $e_2$ proceeds as follows:
@@ -4543,18 +4547,31 @@ It is a compile-time error to invoke any of the setters of class \cd{Object} on 
 \LMLabel{compoundAssignment}
 
 \LMHash{}
-Evaluation of a compound assignment of the form $v$ {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ?  $v=e : x)(v)$ where $x$ is a fresh variable that is not used in $e$. Evaluation of a compound assignment of the form $C.v$ {\em ??=} $e$, where $C$ is a type literal, is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$?  $C.v=e: x)(C.v)$ where $x$ is a fresh variable that is not used in $e$. 
+Evaluation of a compound assignment of the form $v$ {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ?  $v=e : x)(v)$ where $x$ is a fresh variable that is not used in $e$. 
+
+\LMHash{}
+Evaluation of a compound assignment of the form $C.v$ {\em ??=} $e$, where $C$ is a type literal, is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$?  $C.v=e: x)(C.v)$ where $x$ is a fresh variable that is not used in $e$. 
 
 \commentary {
 The two rules above also apply when the variable v or the type C is prefixed.
 }
 
-Evaluation of a compound assignment of the form $e_1.v$ {\em ??=} $e_2$ is equivalent to the evaluation of the expression  $((x) =>((y) => y == \NULL{}$ ? $ x.v = e_2: y)(x.v))(e_1)$ where $x$ and $y$ are distinct fresh variables that are not used in $e_2$. Evaluation of a compound assignment of the form  $e_1[e_2]$  {\em ??=} $e_3$ is equivalent to the evaluation of the expression  
-$((a, i) => ((x) => x == \NULL{}$ ?  $a[i] = e_3: x)(a[i]))(e_1, e_2)$ where $x$, $a$ and $i$ are distinct fresh variables that are not used in $e_3$. Evaluation of a compound assignment of the form $\SUPER.v$  {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ? $\SUPER.v = e: x)(\SUPER.v)$ where $x$ is a fresh variable that is not used in $e$.
+\LMHash{}
+Evaluation of a compound assignment of the form $e_1.v$ {\em ??=} $e_2$ is equivalent to the evaluation of the expression  $((x) =>((y) => y == \NULL{}$ ? $ x.v = e_2: y)(x.v))(e_1)$ where $x$ and $y$ are distinct fresh variables that are not used in $e_2$. 
+
+\LMHash{}
+Evaluation of a compound assignment of the form  $e_1[e_2]$  {\em ??=} $e_3$ is equivalent to the evaluation of the expression  
+$((a, i) => ((x) => x == \NULL{}$ ?  $a[i] = e_3: x)(a[i]))(e_1, e_2)$ where $x$, $a$ and $i$ are distinct fresh variables that are not used in $e_3$. 
+
+\LMHash{}
+Evaluation of a compound assignment of the form $\SUPER.v$  {\em ??=} $e$ is equivalent to the evaluation of the expression  $((x) => x == \NULL{}$ ? $\SUPER.v = e: x)(\SUPER.v)$ where $x$ is a fresh variable that is not used in $e$.
 
 \LMHash{}
 Evaluation of a compound assignment of the form $e_1?.v$  {\em ??=} $e_2$ is equivalent to the evaluation of the expression \code{((x) $=>$ x == \NULL{} ?  \NULL: $x.v ??=  e_2$)($e_1$)} where $x$ is a variable that is not used in $e_2$. 
+% But what about C?.v ??= e
 
+\LMHash{}
+A compound assignment of the form $C?.v$  {\em ??=} $e_2$ is equivalent to the expression $C.v$ {\em ??=} $e$.
 
 \LMHash{}
 The static type of a compound assignment of the form $v$ {\em ??=} $e$ is the least upper bound of the static type of $v$ and the static type of $e$.  Exactly the same static warnings that would be caused by $v = e$ are also generated in the case of $v$ {\em ??=} $e$.
@@ -4579,7 +4596,9 @@ For any other valid operator $op$, a compound assignment of the form $v$ $op\cod
 \LMHash{}
 Evaluation of a compound assignment of the form $e_1?.v$ $op = e_2$ is equivalent to \code{((x) $=>$ x?.v = x.v $op$ $e_2$)($e_1$)} where $x$ is a variable that is not used in $e_2$. The static type of $e_1?.v$ $op = e_2$ is the static type of $e_1.v$ $op$ $e_2$. Exactly the same static warnings that would be caused by $e_1.v$ $op = e_2$ are also generated in the case of $e_1?.v$ $op = e_2$.
 
-% Buggy. Allows C?.v = e.
+\LMHash{}
+A compound assignment of the form $C?.v$ $op = e_2$ is equivalent to the expression 
+$C.v$ $op = e_2$. 
 
 \begin{grammar}
 {\bf compoundAssignmentOperator:}`*=';
@@ -5088,7 +5107,9 @@ The static type of such an expression is the static type of $e_1[e_2]$.
 \LMHash{}
 Execution of a postfix expression of the form \code{$e_1?.v$++} is equivalent to executing 
 
-\code{((x) =$>$ x == \NULL? \NULL : x.v++)($e_1$)}.
+\code{((x) =$>$ x == \NULL? \NULL : x.v++)($e_1$)}
+unless $e_1$ is a type literal, in which case it is equivalent to \code{$e_1.v$++}
+.
 
 \LMHash{}
 The static type of such an expression is the static type of $e_1.v$.
@@ -5096,7 +5117,9 @@ The static type of such an expression is the static type of $e_1.v$.
 \LMHash{}
 Execution of a postfix expression of the form \code{$e_1?.v$-{}-} is equivalent to executing 
 
-\code{((x) =$>$ x == \NULL? \NULL : x.v-{}-)($e_1$)}.
+\code{((x) =$>$ x == \NULL? \NULL : x.v-{}-)($e_1$)}
+unless $e_1$ is a type literal, in which case it is equivalent to \code{$e_1.v$-{}-}
+.
 
 \LMHash{}
 The static type of such an expression is the static type of $e_1.v$.
