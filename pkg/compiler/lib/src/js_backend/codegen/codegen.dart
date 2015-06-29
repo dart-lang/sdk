@@ -635,6 +635,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitGetField(tree_ir.GetField node) {
+    registry.registerFieldGetter(node.field);
     return new js.PropertyAccess(
         visitExpression(node.object),
         glue.instanceFieldPropertyName(node.field));
@@ -642,6 +643,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Assignment visitSetField(tree_ir.SetField node) {
+    registry.registerFieldSetter(node.field);
     js.PropertyAccess field =
         new js.PropertyAccess(
             visitExpression(node.object),

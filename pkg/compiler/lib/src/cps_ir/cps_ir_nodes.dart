@@ -616,7 +616,7 @@ class GetField extends Primitive {
   final Reference<Primitive> object;
   FieldElement field;
 
-  /// True if the receiver is known not to be null.
+  /// True if the object is known not to be null.
   // TODO(asgerf): This is a placeholder until we agree on how to track
   //               side effects.
   bool objectIsNotNull = false;

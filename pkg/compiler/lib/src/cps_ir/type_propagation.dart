@@ -53,6 +53,11 @@ class TypeMaskSystem {
     return mask.locateSingleElement(selector, mask, classWorld.compiler);
   }
 
+  TypeMask getReceiverType(MethodElement method) {
+    assert(method.isInstanceMember);
+    return nonNullSubclass(method.enclosingClass);
+  }
+
   TypeMask getParameterType(ParameterElement parameter) {
     return inferrer.getGuaranteedTypeOfElement(parameter);
   }
@@ -82,7 +87,12 @@ class TypeMaskSystem {
     // closure conversion, so just treat those as a subtypes of Function.
     // TODO(asgerf): Maybe closure conversion should create a new ClassWorld?
     if (element.isClosure) return functionType;
-    return new TypeMask.nonNullExact(element, classWorld);
+    return new TypeMask.nonNullExact(element.declaration, classWorld);
+  }
+
+  TypeMask nonNullSubclass(ClassElement element) {
+    if (element.isClosure) return functionType;
+    return new TypeMask.nonNullSubclass(element.declaration, classWorld);
   }
 
   bool isDefinitelyBool(TypeMask t, {bool allowNull: false}) {
@@ -1045,8 +1055,8 @@ class TypePropagationVisitor implements Visitor {
 
   void visitFunctionDefinition(FunctionDefinition node) {
     if (node.thisParameter != null) {
-      // TODO(asgerf): Use a more precise type for 'this'.
-      setValue(node.thisParameter, nonConstant(typeSystem.nonNullType));
+      setValue(node.thisParameter,
+               nonConstant(typeSystem.getReceiverType(node.element)));
     }
     node.parameters.forEach(visit);
     setReachable(node.body);
