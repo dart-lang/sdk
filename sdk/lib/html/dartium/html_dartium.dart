@@ -120,9 +120,9 @@ final htmlBlinkMap = {
   '_DOMWindowCrossFrame': () => _DOMWindowCrossFrame,
   // FIXME: Move these to better locations.
   'DateTime': () => DateTime,
-  'JsObject': () => js.JsObject,
-  'JsFunction': () => js.JsFunction,
-  'JsArray': () => js.JsArray,
+  'JsObject': () => js.JsObjectImpl,
+  'JsFunction': () => js.JsFunctionImpl,
+  'JsArray': () => js.JsArrayImpl,
   'AbstractWorker': () => AbstractWorker,
   'Animation': () => Animation,
   'AnimationEffect': () => AnimationEffect,
