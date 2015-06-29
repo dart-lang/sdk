@@ -361,17 +361,19 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       node.name.staticElement = element;
       _setLocalElements(element, newElement);
     } on _DeclarationMismatchException {
-      _addedElements.add(newElement);
       _removeElement(element);
       // add new element
-      if (newElement is MethodElement) {
-        List<MethodElement> methods = _enclosingClass.methods;
-        methods.add(newElement);
-        _enclosingClass.methods = methods;
-      } else {
-        List<PropertyAccessorElement> accessors = _enclosingClass.accessors;
-        accessors.add(newElement);
-        _enclosingClass.accessors = accessors;
+      if (newElement != null) {
+        _addedElements.add(newElement);
+        if (newElement is MethodElement) {
+          List<MethodElement> methods = _enclosingClass.methods;
+          methods.add(newElement);
+          _enclosingClass.methods = methods;
+        } else {
+          List<PropertyAccessorElement> accessors = _enclosingClass.accessors;
+          accessors.add(newElement);
+          _enclosingClass.accessors = accessors;
+        }
       }
     }
   }
@@ -790,10 +792,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   static void _setLocalElements(
       ExecutableElementImpl to, ExecutableElement from) {
-    to.functions = from.functions;
-    to.labels = from.labels;
-    to.localVariables = from.localVariables;
-    to.parameters = from.parameters;
+    if (from != null) {
+      to.functions = from.functions;
+      to.labels = from.labels;
+      to.localVariables = from.localVariables;
+      to.parameters = from.parameters;
+    }
   }
 }
 
@@ -1395,9 +1399,13 @@ class PoorMansIncrementalResolver {
                     newParent is MethodDeclaration ||
                 oldParent is ConstructorDeclaration &&
                     newParent is ConstructorDeclaration) {
-              oldNode = oldParent;
-              newNode = newParent;
-              found = true;
+              Element oldElement = (oldParent as Declaration).element;
+              if (new DeclarationMatcher().matches(newParent, oldElement) ==
+                  DeclarationMatchKind.MATCH) {
+                oldNode = oldParent;
+                newNode = newParent;
+                found = true;
+              }
             }
             if (oldParent is FunctionBody && newParent is FunctionBody) {
               oldNode = oldParent;

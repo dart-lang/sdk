@@ -1586,7 +1586,7 @@ void g() { f(null); }''');
     _changeSource(source, "");
     source.generateExceptionOnRead = true;
     _analyzeAll_assertFinished();
-    expect(source.readCount, 3);
+    expect(source.readCount, 5);
   }
 
   void test_performAnalysisTask_missingPart() {
@@ -2000,6 +2000,10 @@ class LimitedInvalidateTest extends AbstractContextTest {
   void setUp() {
     AnalysisEngine.instance.limitInvalidationInTaskModel = true;
     super.setUp();
+    AnalysisOptionsImpl options =
+        new AnalysisOptionsImpl.from(context.analysisOptions);
+    options.incremental = true;
+    context.analysisOptions = options;
   }
 
   @override
@@ -2161,6 +2165,33 @@ class C {}
     _performPendingAnalysisTasks();
     // Now b.dart is analyzed and it again has the error.
     expect(context.getErrors(sourceB).errors, hasLength(1));
+  }
+
+  void test_usedName_directUser_withIncremental() {
+    Source sourceA = addSource("/a.dart", r'''
+library lib_a;
+class A {
+  m() {}
+}
+''');
+    Source sourceB = addSource("/b.dart", r'''
+library lib_b;
+import 'a.dart';
+main() {
+  A a = new A();
+  a.m();
+}
+''');
+    _performPendingAnalysisTasks();
+    // Update A.
+    context.setContents(sourceA, r'''
+library lib_a;
+class A {
+  m2() {}
+}
+''');
+    _assertInvalid(sourceA, LIBRARY_ERRORS_READY);
+    _assertInvalid(sourceB, LIBRARY_ERRORS_READY);
   }
 
   void test_usedName_indirectUser() {

@@ -3079,7 +3079,7 @@ main() {
 /// aaa [main] bbb
 /// ccc [int] ddd
 main() {
-  return 2;
+  return 1;
 }
 ''');
   }
@@ -3095,7 +3095,7 @@ main() {
     _updateAndValidate(r'''
 /// aaa bbb
 main() {
-  return 2;
+  return 1;
 }
 ''');
   }

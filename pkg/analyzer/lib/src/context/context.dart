@@ -1779,9 +1779,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * TODO(scheglov) A hackish, limited incremental resolution implementation.
    */
   bool _tryPoorMansIncrementalResolution(Source unitSource, String newCode) {
-    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
-      return false;
-    }
     return PerformanceStatistics.incrementalAnalysis.makeCurrentWhile(() {
       incrementalResolutionValidation_lastUnitSource = null;
       incrementalResolutionValidation_lastLibrarySource = null;
