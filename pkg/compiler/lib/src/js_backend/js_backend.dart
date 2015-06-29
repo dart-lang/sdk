@@ -55,6 +55,7 @@ part 'checked_mode_helpers.dart';
 part 'constant_emitter.dart';
 part 'constant_handler_javascript.dart';
 part 'custom_elements_analysis.dart';
+part 'field_naming_mixin.dart';
 part 'minify_namer.dart';
 part 'namer.dart';
 part 'no_such_method_registry.dart';
