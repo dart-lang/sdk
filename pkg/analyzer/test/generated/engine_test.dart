@@ -33,7 +33,6 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/model.dart' hide AnalysisTask;
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
@@ -6381,12 +6380,6 @@ class TestAnalysisContext_test_setSourceFactory extends TestAnalysisContext {
  * failure.
  */
 class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
-  @override
-  E visitBuildUnitElementTask(BuildUnitElementTask task) {
-    fail("Unexpectedly invoked visitGenerateDartErrorsTask");
-    return null;
-  }
-
   @override
   E visitGenerateDartErrorsTask(GenerateDartErrorsTask task) {
     fail("Unexpectedly invoked visitGenerateDartErrorsTask");

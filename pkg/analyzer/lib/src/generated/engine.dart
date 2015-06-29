@@ -20,7 +20,6 @@ import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/plugin/options_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/manager.dart';
-import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart' show Document;
@@ -4247,28 +4246,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   /**
-   * Record the results produced by performing a [task] and return the cache
-   * entry associated with the results.
-   */
-  DartEntry _recordBuildUnitElementTask(BuildUnitElementTask task) {
-    Source source = task.source;
-    Source library = task.library;
-    DartEntry dartEntry = _cache.get(source);
-    CaughtException thrownException = task.exception;
-    if (thrownException != null) {
-      dartEntry.recordBuildElementErrorInLibrary(library, thrownException);
-      throw new AnalysisException('<rethrow>', thrownException);
-    }
-    dartEntry.setValueInLibrary(DartEntry.BUILT_UNIT, library, task.unit);
-    dartEntry.setValueInLibrary(
-        DartEntry.BUILT_ELEMENT, library, task.unitElement);
-    ChangeNoticeImpl notice = getNotice(source);
-    LineInfo lineInfo = dartEntry.getValue(SourceEntry.LINE_INFO);
-    notice.setErrors(dartEntry.allErrors, lineInfo);
-    return dartEntry;
-  }
-
-  /**
    * Given a [dartEntry] and a [library] element, record the library element and
    * other information gleaned from the element in the cache entry.
    */
@@ -4838,10 +4815,6 @@ class AnalysisContextImpl_AnalysisTaskResultRecorder
   final AnalysisContextImpl AnalysisContextImpl_this;
 
   AnalysisContextImpl_AnalysisTaskResultRecorder(this.AnalysisContextImpl_this);
-
-  @override
-  DartEntry visitBuildUnitElementTask(BuildUnitElementTask task) =>
-      AnalysisContextImpl_this._recordBuildUnitElementTask(task);
 
   @override
   DartEntry visitGenerateDartErrorsTask(GenerateDartErrorsTask task) =>
@@ -6539,12 +6512,6 @@ abstract class AnalysisTask {
  * appropriate method.
  */
 abstract class AnalysisTaskVisitor<E> {
-  /**
-   * Visit the given [task], returning the result of the visit. This method will
-   * throw an AnalysisException if the visitor throws an exception.
-   */
-  E visitBuildUnitElementTask(BuildUnitElementTask task);
-
   /**
    * Visit the given [task], returning the result of the visit. This method will
    * throw an AnalysisException if the visitor throws an exception.
