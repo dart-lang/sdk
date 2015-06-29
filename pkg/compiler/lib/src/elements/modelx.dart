@@ -115,7 +115,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   SourceSpan get sourcePosition {
     if (position == null) return null;
-    Uri uri = compilationUnit.script.readableUri;
+    Uri uri = compilationUnit.script.resourceUri;
     return new SourceSpan(
         uri, position.charOffset, position.charOffset + position.charCount);
   }
