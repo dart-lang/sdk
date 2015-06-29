@@ -1575,9 +1575,10 @@ class BuildSourceClosuresTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     return <String, TaskInput>{
-      IMPORT_INPUT: new _ImportSourceClosureTaskInput(source),
-      EXPORT_INPUT: new _ExportSourceClosureTaskInput(source),
-      IMPORT_EXPORT_INPUT: new _ImportExportSourceClosureTaskInput(source)
+      IMPORT_INPUT: new _ImportSourceClosureTaskInput(source, LIBRARY_ELEMENT2),
+      EXPORT_INPUT: new _ExportSourceClosureTaskInput(source, LIBRARY_ELEMENT2),
+      IMPORT_EXPORT_INPUT:
+          new _ImportExportSourceClosureTaskInput(source, LIBRARY_ELEMENT2)
     };
   }
 
@@ -3607,44 +3608,58 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
 /**
  * A [TaskInput] whose value is a list of library sources exported directly
  * or indirectly by the target [Source].
+ *
+ * [resultDescriptor] is the type of result which should be produced for each
+ * target [Source].
  */
 class _ExportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
   final Source target;
+  final ResultDescriptor resultDescriptor;
 
-  _ExportSourceClosureTaskInput(this.target);
+  _ExportSourceClosureTaskInput(this.target, this.resultDescriptor);
 
   @override
   TaskInputBuilder<List<Source>> createBuilder() =>
-      new _SourceClosureTaskInputBuilder(target, _SourceClosureKind.EXPORT);
+      new _SourceClosureTaskInputBuilder(
+          target, _SourceClosureKind.EXPORT, resultDescriptor);
 }
 
 /**
  * A [TaskInput] whose value is a list of library sources imported or exported,
  * directly or indirectly by the target [Source].
+ *
+ * [resultDescriptor] is the type of result which should be produced for each
+ * target [Source].
  */
 class _ImportExportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
   final Source target;
+  final ResultDescriptor resultDescriptor;
 
-  _ImportExportSourceClosureTaskInput(this.target);
+  _ImportExportSourceClosureTaskInput(this.target, this.resultDescriptor);
 
   @override
   TaskInputBuilder<List<Source>> createBuilder() =>
       new _SourceClosureTaskInputBuilder(
-          target, _SourceClosureKind.IMPORT_EXPORT);
+          target, _SourceClosureKind.IMPORT_EXPORT, resultDescriptor);
 }
 
 /**
  * A [TaskInput] whose value is a list of library sources imported directly
  * or indirectly by the target [Source].
+ *
+ * [resultDescriptor] is the type of result which should be produced for each
+ * target [Source].
  */
 class _ImportSourceClosureTaskInput extends TaskInputImpl<List<Source>> {
   final Source target;
+  final ResultDescriptor resultDescriptor;
 
-  _ImportSourceClosureTaskInput(this.target);
+  _ImportSourceClosureTaskInput(this.target, this.resultDescriptor);
 
   @override
   TaskInputBuilder<List<Source>> createBuilder() =>
-      new _SourceClosureTaskInputBuilder(target, _SourceClosureKind.IMPORT);
+      new _SourceClosureTaskInputBuilder(
+          target, _SourceClosureKind.IMPORT, resultDescriptor);
 }
 
 /**
@@ -3660,14 +3675,15 @@ class _SourceClosureTaskInputBuilder implements TaskInputBuilder<List<Source>> {
   final Set<LibraryElement> _libraries = new HashSet<LibraryElement>();
   final List<Source> _newSources = <Source>[];
 
+  @override
+  final ResultDescriptor currentResult;
+
   Source currentTarget;
 
-  _SourceClosureTaskInputBuilder(Source librarySource, this.kind) {
+  _SourceClosureTaskInputBuilder(
+      Source librarySource, this.kind, this.currentResult) {
     _newSources.add(librarySource);
   }
-
-  @override
-  ResultDescriptor get currentResult => LIBRARY_ELEMENT2;
 
   @override
   void set currentValue(Object value) {
