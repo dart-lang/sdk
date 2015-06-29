@@ -1586,7 +1586,11 @@ void g() { f(null); }''');
     _changeSource(source, "");
     source.generateExceptionOnRead = true;
     _analyzeAll_assertFinished();
-    expect(source.readCount, 5);
+    if (AnalysisEngine.instance.limitInvalidationInTaskModel) {
+      expect(source.readCount, 5);
+    } else {
+      expect(source.readCount, 3);
+    }
   }
 
   void test_performAnalysisTask_missingPart() {
