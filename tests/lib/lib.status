@@ -385,7 +385,7 @@ async/run_zoned9_test/none: RuntimeError # receiver.get$_nums is not a function
 async/schedule_microtask2_test: Crash # Invalid argument(s)
 async/schedule_microtask3_test: Crash # Invalid argument(s)
 async/schedule_microtask5_test: Crash # Invalid argument(s)
-async/schedule_microtask_test: Crash # Invalid argument(s)
+async/schedule_microtask_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/slow_consumer2_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/slow_consumer3_test: RuntimeError # receiver.get$_collection$_nums is not a function
 async/slow_consumer_test: RuntimeError # receiver.get$_collection$_nums is not a function
@@ -481,7 +481,7 @@ convert/json_test: Crash # Internal Error: No default constructor available.
 convert/json_toEncodable_reviver_test: Crash # Internal Error: No default constructor available.
 convert/json_util_test: Crash # Internal Error: No default constructor available.
 convert/latin1_test: RuntimeError # Please triage this failure.
-convert/line_splitter_test: Crash # Invalid argument(s)
+convert/line_splitter_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 convert/streamed_conversion_json_decode1_test: RuntimeError # receiver.get$_collection$_nums is not a function
 convert/streamed_conversion_json_encode1_test: Crash # Internal Error: No default constructor available.
 convert/streamed_conversion_json_utf8_decode_test: RuntimeError # receiver.get$_collection$_nums is not a function
@@ -491,8 +491,8 @@ convert/streamed_conversion_utf8_encode_test: RuntimeError # receiver.get$_colle
 js/datetime_roundtrip_test: Crash # Internal Error: No default constructor available.
 js/null_test: Crash # Invalid argument(s)
 math/pi_test: RuntimeError # receiver.get$_collection$_nums is not a function
-math/point_test: Crash # Invalid argument(s)
-math/rectangle_test: Crash # Invalid argument(s)
+math/point_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+math/rectangle_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 mirrors/abstract_class_test/00: Crash # Internal Error: No default constructor available.
 mirrors/abstract_class_test/none: Crash # Internal Error: No default constructor available.
 mirrors/abstract_test: Crash # Internal Error: No default constructor available.

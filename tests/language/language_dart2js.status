@@ -373,7 +373,6 @@ closure_shared_state_test: RuntimeError # Cannot read property 'prototype' of un
 closure_type_variables_test: Crash # Invalid argument(s)
 closures_initializer2_test: RuntimeError # Cannot read property 'prototype' of undefined
 const_evaluation_test/01: Crash # Internal Error: No default constructor available.
-const_nested_test: Crash # Invalid argument(s)
 constructor12_test: RuntimeError # Please triage this failure.
 constructor_with_mixin_test: Crash # Internal Error: No default constructor available.
 crash_6725_test/01: Crash # The null object does not have a getter '_element'.
@@ -544,7 +543,6 @@ range_analysis_test: RuntimeError # Cannot read property 'prototype' of undefine
 recursive_calls_test: RuntimeError # Cannot read property 'prototype' of undefined
 reg_ex2_test: RuntimeError # Cannot read property 'prototype' of undefined
 reg_exp2_test: RuntimeError # Cannot read property 'prototype' of undefined
-regress_18435_test: Crash # Invalid argument(s)
 regress_18535_test: Crash # Internal Error: No default constructor available.
 regress_22438_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22443_test: RuntimeError # receiver.get$_collection$_nums is not a function
@@ -649,3 +647,6 @@ no_such_method_subtype_test : Crash # Internal Error: No default constructor ava
 static_setter_get_test/01 : Crash # Internal Error: No default constructor available.
 abstract_exact_selector_test/none : Crash # Internal Error: No default constructor available.
 abstract_exact_selector_test/01 : Crash # Internal Error: No default constructor available.
+async_await_syntax_test/a05h : Crash # bailout: (a05h()async{yield*st;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/c11a : Crash # bailout: (c11a()async{yield-5;}): cannot handle async/sync*/async* functions
+async_await_syntax_test/c11b : Crash # bailout: (c11b()async{yield*st;}): cannot handle async/sync*/async* functions

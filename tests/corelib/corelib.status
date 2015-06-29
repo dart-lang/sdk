@@ -222,7 +222,6 @@ error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a f
 hashcode_test: RuntimeError # Please triage this failure.
 int_parse_radix_test/01: Crash # Invalid argument(s)
 int_parse_radix_test/02: Crash # Invalid argument(s)
-int_parse_radix_test/none: Crash # Invalid argument(s)
 iterable_empty_test: RuntimeError # Please triage this failure.
 iterable_return_type_test/none: RuntimeError # Please triage this failure.
 iterable_to_list_test: RuntimeError # Please triage this failure.
@@ -259,14 +258,7 @@ symbol_reserved_word_test/06: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/09: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/12: RuntimeError # Please triage this failure.
 symbol_test/none: Crash # The null object does not have a getter '_element'.
-uri_base_test: Crash # Invalid argument(s)
-uri_file_test: Crash # Invalid argument(s)
-uri_http_test: Crash # Invalid argument(s)
-uri_ipv6_test: Crash # Invalid argument(s)
-uri_parse_test: Crash # Invalid argument(s)
-uri_path_test: Crash # Invalid argument(s)
 uri_query_test: Crash # Internal Error: No default constructor available.
-uri_scheme_test: Crash # Invalid argument(s)
 uri_test: Crash # Invalid argument(s)
 apply2_test : Crash # Internal Error: No default constructor available.
 apply3_test : Crash # Internal Error: No default constructor available.

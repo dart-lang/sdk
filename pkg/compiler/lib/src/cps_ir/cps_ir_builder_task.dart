@@ -339,24 +339,19 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   ir.Primitive visitVariableDefinitions(ast.VariableDefinitions node) {
     assert(irBuilder.isOpen);
-    if (node.modifiers.isConst) {
-      // Do nothing.
-      // handleLocalConstantGet inlines the constant at use-site.
-    } else {
-      for (ast.Node definition in node.definitions.nodes) {
-        Element element = elements[definition];
-        ir.Primitive initialValue;
-        // Definitions are either SendSets if there is an initializer, or
-        // Identifiers if there is no initializer.
-        if (definition is ast.SendSet) {
-          assert(!definition.arguments.isEmpty);
-          assert(definition.arguments.tail.isEmpty);
-          initialValue = visit(definition.arguments.head);
-        } else {
-          assert(definition is ast.Identifier);
-        }
-        irBuilder.declareLocalVariable(element, initialValue: initialValue);
+    for (ast.Node definition in node.definitions.nodes) {
+      Element element = elements[definition];
+      ir.Primitive initialValue;
+      // Definitions are either SendSets if there is an initializer, or
+      // Identifiers if there is no initializer.
+      if (definition is ast.SendSet) {
+        assert(!definition.arguments.isEmpty);
+        assert(definition.arguments.tail.isEmpty);
+        initialValue = visit(definition.arguments.head);
+      } else {
+        assert(definition is ast.Identifier);
       }
+      irBuilder.declareLocalVariable(element, initialValue: initialValue);
     }
     return null;
   }

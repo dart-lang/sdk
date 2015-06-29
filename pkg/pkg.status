@@ -162,8 +162,7 @@ analyzer/test/generated/compile_time_error_code_test: Crash # Invalid argument(s
 analyzer/test/generated/element_test: Crash # Invalid argument(s)
 analyzer/test/generated/incremental_resolver_test: Crash # Invalid argument(s)
 analyzer/test/generated/incremental_scanner_test: Crash # Invalid argument(s)
-analyzer/test/generated/java_core_test: Crash # Invalid argument(s)
-analyzer/test/generated/java_io_test: Crash # Invalid argument(s)
+analyzer/test/generated/java_core_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 analyzer/test/generated/non_error_resolver_test: Crash # Invalid argument(s)
 analyzer/test/generated/parser_test: Crash # Invalid argument(s)
 analyzer/test/generated/resolver_test: Crash # Invalid argument(s)
@@ -193,6 +192,6 @@ analyzer/test/src/util/lru_map_test: Crash # Invalid argument(s)
 fixnum/test/int_32_test: Crash # Invalid argument(s)
 fixnum/test/int_64_test: Crash # Invalid argument(s)
 typed_data/test/typed_buffers_test/01: Crash # Invalid argument(s)
-typed_data/test/typed_buffers_test/none: Crash # Invalid argument(s)
+typed_data/test/typed_buffers_test/none : RuntimeError # TypeError: receiver.get$_nums is not a function
 typed_mock/test/typed_mock_test: Crash # Invalid argument(s)
 analyzer/test/generated/source_factory_test : Crash # Invalid argument(s)
