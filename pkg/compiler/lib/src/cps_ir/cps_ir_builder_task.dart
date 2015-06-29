@@ -31,7 +31,7 @@ import '../ssa/ssa.dart' show TypeMaskFactory;
 import '../types/types.dart' show TypeMask;
 import '../util/util.dart';
 
-import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
+import 'package:js_runtime/shared/embedded_names.dart'
     show JsBuiltin, JsGetName;
 import '../constants/values.dart';
 

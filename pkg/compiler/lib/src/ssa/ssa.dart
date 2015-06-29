@@ -32,7 +32,7 @@ import '../types/constants.dart' show computeTypeMask;
 import '../universe/universe.dart';
 import '../util/util.dart';
 import '../js/rewrite_async.dart';
-import 'package:_internal/compiler/js_lib/shared/embedded_names.dart';
+import 'package:js_runtime/shared/embedded_names.dart';
 
 part 'builder.dart';
 part 'codegen.dart';

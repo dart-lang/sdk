@@ -154,7 +154,7 @@ async_await_syntax_test/a05h: Fail # 23716
 async_await_syntax_test/c11a: Fail # 23716
 async_await_syntax_test/c11b: Fail # 23716
 
-malformed_test/none: Fail # Expect failure in lib/_internal/compiler/js_lib/preambles/d8.js
+malformed_test/none: Fail # Expect failure in lib/_internal/js_runtime/lib/preambles/d8.js
 
 type_variable_conflict2_test/01: RuntimeError # Issue 19725
 

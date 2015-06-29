@@ -16,7 +16,7 @@
           'action_name': 'generate_dartfmt_snapshot',
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '../../sdk/lib/_internal/libraries.dart',
+            '../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../third_party/pkg_tested/dart_style"])',
           ],

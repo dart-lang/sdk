@@ -28,7 +28,7 @@
                 '"^(?!.*pub/test).*dart$",'
                 '"sdk/lib"])',
             '<!@(["python", "tools/list_files.py", "", '
-                '"sdk/lib/_internal/compiler/js_lib/preambles"])',
+                '"sdk/lib/_internal/js_runtime/lib/preambles"])',
             '<!@(["python", "tools/list_files.py", "", "sdk/bin"])',
             'tools/create_sdk.py',
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',

@@ -204,7 +204,8 @@ def Main():
 
   for library in [join('_blink', 'dartium'),
                   join('_chrome', 'dart2js'), join('_chrome', 'dartium'),
-                  join('_internal', 'compiler'),
+                  join('_internal', 'js_runtime'),
+                  join('_internal', 'sdk_library_metadata'),
                   'async', 'collection', 'convert', 'core', 'developer',
                   'internal', 'io', 'isolate',
                   join('html', 'dart2js'), join('html', 'dartium'),
@@ -218,10 +219,6 @@ def Main():
     copytree(join(HOME, 'sdk', 'lib', library), join(LIB, library),
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh',
                                     '.gitignore'))
-
-  # Copy lib/_internal/libraries.dart.
-  copyfile(join(HOME, 'sdk', 'lib', '_internal', 'libraries.dart'),
-           join(LIB, '_internal', 'libraries.dart'))
 
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')

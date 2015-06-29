@@ -2204,7 +2204,7 @@ Please include the following information:
   static const MessageKind PREAMBLE = const MessageKind(
     "When run on the command-line, the compiled output might"
     " require a preamble file located in:\n"
-    "  <sdk>/lib/_internal/compiler/js_lib/preambles.");
+    "  <sdk>/lib/_internal/js_runtime/lib/preambles.");
 
   static const MessageKind INVALID_SYNC_MODIFIER = const MessageKind(
       "Invalid modifier 'sync'.",

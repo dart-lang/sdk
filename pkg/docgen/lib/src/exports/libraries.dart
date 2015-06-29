@@ -4,4 +4,4 @@
 
 library docgen.exports.libraries;
 
-export '../../../../../sdk/lib/_internal/libraries.dart';
+export 'package:sdk_library_metadata/libraries.dart';
