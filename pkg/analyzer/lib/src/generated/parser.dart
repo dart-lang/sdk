@@ -2333,7 +2333,8 @@ class Parser {
           _peek().matchesAny([
         TokenType.OPEN_PAREN,
         TokenType.OPEN_CURLY_BRACKET,
-        TokenType.FUNCTION
+        TokenType.FUNCTION,
+        TokenType.LT
       ])) {
         _validateModifiersForGetterOrSetterOrMethod(modifiers);
         return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
@@ -2488,6 +2489,12 @@ class Parser {
       // function type alias that was parsed.
       _parseFunctionTypeAlias(commentAndMetadata, getAndAdvance());
       return null;
+    } else if (parseGenericMethods) {
+      Token token = _skipTypeParameterList(_peek());
+      if (token != null && _tokenMatches(token, TokenType.OPEN_PAREN)) {
+        return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
+            modifiers.externalKeyword, modifiers.staticKeyword, null);
+      }
     }
     TypeName type = parseTypeName();
     if (_matchesKeyword(Keyword.GET) && _tokenMatchesIdentifier(_peek())) {
@@ -2552,6 +2559,9 @@ class Parser {
       return _parseMethodDeclarationAfterParameters(commentAndMetadata,
           modifiers.externalKeyword, modifiers.staticKeyword, type, methodName,
           null, parameters);
+    } else if (parseGenericMethods && _tokenMatches(_peek(), TokenType.LT)) {
+      return _parseMethodDeclarationAfterReturnType(commentAndMetadata,
+          modifiers.externalKeyword, modifiers.staticKeyword, type);
     } else if (_tokenMatches(_peek(), TokenType.OPEN_CURLY_BRACKET)) {
       // We have found "TypeName identifier {", and are guessing that this is a
       // getter without the keyword 'get'.
@@ -3041,14 +3051,18 @@ class Parser {
    * parsed.
    *
    *     functionExpression ::=
-   *         formalParameterList functionExpressionBody
+   *         typeParameters? formalParameterList functionExpressionBody
    */
   FunctionExpression parseFunctionExpression() {
+    TypeParameterList typeParameters = null;
+    if (parseGenericMethods && _matches(TokenType.LT)) {
+      typeParameters = parseTypeParameterList();
+    }
     FormalParameterList parameters = parseFormalParameterList();
     _validateFormalParameterList(parameters);
     FunctionBody body =
         _parseFunctionBody(false, ParserErrorCode.MISSING_FUNCTION_BODY, true);
-    return new FunctionExpression(null, parameters, body);
+    return new FunctionExpression(typeParameters, parameters, body);
   }
 
   /**
@@ -3151,7 +3165,7 @@ class Parser {
    *       | simpleFormalParameter
    *
    *     functionSignature:
-   *         metadata returnType? identifier formalParameterList
+   *         metadata returnType? identifier typeParameters? formalParameterList
    *
    *     fieldFormalParameter ::=
    *         metadata finalConstVarOrType? 'this' '.' identifier
@@ -3170,6 +3184,10 @@ class Parser {
       period = _expect(TokenType.PERIOD);
     }
     SimpleIdentifier identifier = parseSimpleIdentifier();
+    TypeParameterList typeParameters = null;
+    if (parseGenericMethods && _matches(TokenType.LT)) {
+      typeParameters = parseTypeParameterList();
+    }
     if (_matches(TokenType.OPEN_PAREN)) {
       FormalParameterList parameters = parseFormalParameterList();
       if (thisKeyword == null) {
@@ -3178,13 +3196,17 @@ class Parser {
               ParserErrorCode.FUNCTION_TYPED_PARAMETER_VAR, holder.keyword);
         }
         return new FunctionTypedFormalParameter(commentAndMetadata.comment,
-            commentAndMetadata.metadata, holder.type, identifier, null,
-            parameters);
+            commentAndMetadata.metadata, holder.type, identifier,
+            typeParameters, parameters);
       } else {
         return new FieldFormalParameter(commentAndMetadata.comment,
             commentAndMetadata.metadata, holder.keyword, holder.type,
-            thisKeyword, period, identifier, null, parameters);
+            thisKeyword, period, identifier, typeParameters, parameters);
       }
+    } else if (typeParameters != null) {
+      // TODO(brianwilkerson) Report an error. It looks like a function-typed
+      // parameter with no parameter list.
+      //_reportErrorForToken(ParserErrorCode.MISSING_PARAMETERS, typeParameters.endToken);
     }
     TypeName type = holder.type;
     if (type != null) {
@@ -3197,6 +3219,9 @@ class Parser {
       }
     }
     if (thisKeyword != null) {
+      // TODO(brianwilkerson) If there are type parameters but no parameters,
+      // should we create a synthetic empty parameter list here so we can
+      // capture the type parameters?
       return new FieldFormalParameter(commentAndMetadata.comment,
           commentAndMetadata.metadata, holder.keyword, holder.type, thisKeyword,
           period, identifier, null, null);
@@ -3846,7 +3871,11 @@ class Parser {
     if (_inInitializer) {
       return false;
     }
-    Token afterParameters = _skipFormalParameterList(token);
+    Token afterTypeParameters = _skipTypeParameterList(token);
+    if (afterTypeParameters == null) {
+      afterTypeParameters = token;
+    }
+    Token afterParameters = _skipFormalParameterList(afterTypeParameters);
     if (afterParameters == null) {
       return false;
     }
@@ -3921,6 +3950,17 @@ class Parser {
         type == TokenType.COMMA ||
         type == TokenType.SEMICOLON ||
         _tokenMatchesKeyword(token, Keyword.IN);
+  }
+
+  bool _isLikelyParameterList() {
+    if (_matches(TokenType.OPEN_PAREN)) {
+      return true;
+    }
+    if (!parseGenericMethods) {
+      return false;
+    }
+    Token token = _skipTypeArgumentList(_currentToken);
+    return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
 
   /**
@@ -4011,7 +4051,8 @@ class Parser {
       // The keyword 'void' isn't a valid identifier, so it should be assumed to
       // be a type name.
       return true;
-    } else if (startToken.next != token) {
+    } else if (startToken.next != token &&
+        !_tokenMatches(token, TokenType.OPEN_PAREN)) {
       // The type is more than a simple identifier, so it should be assumed to
       // be a type name.
       return true;
@@ -4184,22 +4225,27 @@ class Parser {
     Expression expression = _parsePrimaryExpression();
     bool isOptional = primaryAllowed || expression is SimpleIdentifier;
     while (true) {
-      while (_matches(TokenType.OPEN_PAREN)) {
+      while (_isLikelyParameterList()) {
+        TypeArgumentList typeArguments = null;
+        if (_matches(TokenType.LT)) {
+          typeArguments = parseTypeArgumentList();
+        }
         ArgumentList argumentList = parseArgumentList();
         if (expression is SimpleIdentifier) {
-          expression = new MethodInvocation(
-              null, null, expression as SimpleIdentifier, null, argumentList);
+          expression = new MethodInvocation(null, null,
+              expression as SimpleIdentifier, typeArguments, argumentList);
         } else if (expression is PrefixedIdentifier) {
           PrefixedIdentifier identifier = expression as PrefixedIdentifier;
           expression = new MethodInvocation(identifier.prefix,
-              identifier.period, identifier.identifier, null, argumentList);
+              identifier.period, identifier.identifier, typeArguments,
+              argumentList);
         } else if (expression is PropertyAccess) {
           PropertyAccess access = expression as PropertyAccess;
           expression = new MethodInvocation(access.target, access.operator,
-              access.propertyName, null, argumentList);
+              access.propertyName, typeArguments, argumentList);
         } else {
-          expression =
-              new FunctionExpressionInvocation(expression, null, argumentList);
+          expression = new FunctionExpressionInvocation(
+              expression, typeArguments, argumentList);
         }
         if (!primaryAllowed) {
           isOptional = false;
@@ -4351,7 +4397,8 @@ class Parser {
    * method invocation.
    *
    *     cascadeSection ::=
-   *         '..' (cascadeSelector arguments*) (assignableSelector arguments*)* cascadeAssignment?
+   *         '..' (cascadeSelector typeArguments? arguments*)
+   *         (assignableSelector typeArguments? arguments*)* cascadeAssignment?
    *
    *     cascadeSelector ::=
    *         '[' expression ']'
@@ -4386,20 +4433,24 @@ class Parser {
     }
     assert((expression == null && functionName != null) ||
         (expression != null && functionName == null));
-    if (_currentToken.type == TokenType.OPEN_PAREN) {
-      while (_currentToken.type == TokenType.OPEN_PAREN) {
+    if (_isLikelyParameterList()) {
+      while (_isLikelyParameterList()) {
+        TypeArgumentList typeArguments = null;
+        if (_matches(TokenType.LT)) {
+          typeArguments = parseTypeArgumentList();
+        }
         if (functionName != null) {
-          expression = new MethodInvocation(
-              expression, period, functionName, null, parseArgumentList());
+          expression = new MethodInvocation(expression, period, functionName,
+              typeArguments, parseArgumentList());
           period = null;
           functionName = null;
         } else if (expression == null) {
           // It should not be possible to get here.
           expression = new MethodInvocation(expression, period,
-              _createSyntheticIdentifier(), null, parseArgumentList());
+              _createSyntheticIdentifier(), typeArguments, parseArgumentList());
         } else {
           expression = new FunctionExpressionInvocation(
-              expression, null, parseArgumentList());
+              expression, typeArguments, parseArgumentList());
         }
       }
     } else if (functionName != null) {
@@ -4414,15 +4465,19 @@ class Parser {
       if (!identical(selector, expression)) {
         expression = selector;
         progress = true;
-        while (_currentToken.type == TokenType.OPEN_PAREN) {
+        while (_isLikelyParameterList()) {
+          TypeArgumentList typeArguments = null;
+          if (_matches(TokenType.LT)) {
+            typeArguments = parseTypeArgumentList();
+          }
           if (expression is PropertyAccess) {
             PropertyAccess propertyAccess = expression as PropertyAccess;
             expression = new MethodInvocation(propertyAccess.target,
-                propertyAccess.operator, propertyAccess.propertyName, null,
-                parseArgumentList());
+                propertyAccess.operator, propertyAccess.propertyName,
+                typeArguments, parseArgumentList());
           } else {
             expression = new FunctionExpressionInvocation(
-                expression, null, parseArgumentList());
+                expression, typeArguments, parseArgumentList());
           }
         }
       }
@@ -5758,6 +5813,10 @@ class Parser {
       keyword = getAndAdvance();
     }
     SimpleIdentifier name = parseSimpleIdentifier();
+    TypeParameterList typeParameters = null;
+    if (parseGenericMethods && _matches(TokenType.LT)) {
+      typeParameters = parseTypeParameterList();
+    }
     FormalParameterList parameters = null;
     if (!isGetter) {
       if (_matches(TokenType.OPEN_PAREN)) {
@@ -5788,7 +5847,7 @@ class Parser {
 //        }
     return new FunctionDeclaration(commentAndMetadata.comment,
         commentAndMetadata.metadata, externalKeyword, returnType, keyword, name,
-        new FunctionExpression(null, parameters, body));
+        new FunctionExpression(typeParameters, parameters, body));
   }
 
   /**
@@ -6270,6 +6329,10 @@ class Parser {
       CommentAndMetadata commentAndMetadata, Token externalKeyword,
       Token staticKeyword, TypeName returnType) {
     SimpleIdentifier methodName = parseSimpleIdentifier();
+    TypeParameterList typeParameters = null;
+    if (parseGenericMethods && _matches(TokenType.LT)) {
+      typeParameters = parseTypeParameterList();
+    }
     FormalParameterList parameters;
     if (!_matches(TokenType.OPEN_PAREN) &&
         (_matches(TokenType.OPEN_CURLY_BRACKET) ||
@@ -6284,7 +6347,7 @@ class Parser {
     }
     _validateFormalParameterList(parameters);
     return _parseMethodDeclarationAfterParameters(commentAndMetadata,
-        externalKeyword, staticKeyword, returnType, methodName, null,
+        externalKeyword, staticKeyword, returnType, methodName, typeParameters,
         parameters);
   }
 
@@ -6712,17 +6775,22 @@ class Parser {
     if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
         _matches(TokenType.PERIOD) ||
         _matches(TokenType.QUESTION_PERIOD) ||
-        _matches(TokenType.OPEN_PAREN)) {
+        _matches(TokenType.OPEN_PAREN) ||
+        (parseGenericMethods && _matches(TokenType.LT))) {
       do {
-        if (_matches(TokenType.OPEN_PAREN)) {
+        if (_isLikelyParameterList()) {
+          TypeArgumentList typeArguments = null;
+          if (_matches(TokenType.LT)) {
+            typeArguments = parseTypeArgumentList();
+          }
           ArgumentList argumentList = parseArgumentList();
           if (operand is PropertyAccess) {
             PropertyAccess access = operand as PropertyAccess;
             operand = new MethodInvocation(access.target, access.operator,
-                access.propertyName, null, argumentList);
+                access.propertyName, typeArguments, argumentList);
           } else {
-            operand =
-                new FunctionExpressionInvocation(operand, null, argumentList);
+            operand = new FunctionExpressionInvocation(
+                operand, typeArguments, argumentList);
           }
         } else {
           operand = _parseAssignableSelector(operand, true);
