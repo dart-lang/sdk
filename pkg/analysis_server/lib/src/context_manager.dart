@@ -478,9 +478,14 @@ abstract class ContextManager {
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
       _handleWatchEvent(folder, info, event);
     });
-    UriResolver packageUriResolver = _computePackageUriResolver(folder, info);
-    info.context = addContext(folder, packageUriResolver);
-    info.context.name = folder.path;
+    try {
+      UriResolver packageUriResolver = _computePackageUriResolver(folder, info);
+      info.context = addContext(folder, packageUriResolver);
+      info.context.name = folder.path;
+    } catch (_) {
+      info.changeSubscription.cancel();
+      rethrow;
+    }
     return info;
   }
 
