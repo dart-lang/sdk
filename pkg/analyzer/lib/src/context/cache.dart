@@ -313,6 +313,12 @@ class CacheEntry {
   }
 
   /**
+   * Return a list of result descriptors for results whose state is not
+   * [CacheState.INVALID].
+   */
+  List<ResultDescriptor> get nonInvalidResults => _resultMap.keys.toList();
+
+  /**
    * Fix the state of the [exception] to match the current state of the entry.
    */
   void fixExceptionState() {

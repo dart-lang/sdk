@@ -5820,10 +5820,16 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return false;
   }
 
+  @deprecated
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
     fail("Unexpected invocation of visitCacheItems");
+  }
+
+  @override
+  void visitContentCache(ContentCacheVisitor visitor) {
+    fail("Unexpected invocation of visitContentCache");
   }
 }
 

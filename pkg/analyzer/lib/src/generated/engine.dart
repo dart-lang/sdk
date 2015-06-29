@@ -2639,6 +2639,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changedSources.length > 0;
   }
 
+  @deprecated
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
@@ -2702,9 +2703,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
   }
 
-  /**
-   * Visit all entries of the content cache.
-   */
+  @override
   void visitContentCache(ContentCacheVisitor visitor) {
     _contentCache.accept(visitor);
   }
@@ -9337,8 +9336,14 @@ abstract class InternalAnalysisContext implements AnalysisContext {
   /**
    * Call the given callback function for eache cache item in the context.
    */
+  @deprecated
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state));
+
+  /**
+   * Visit all entries of the content cache.
+   */
+  void visitContentCache(ContentCacheVisitor visitor);
 }
 
 /**
