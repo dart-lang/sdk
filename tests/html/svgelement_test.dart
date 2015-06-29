@@ -40,11 +40,11 @@ main() {
   }
   group('additionalConstructors', () {
     test('valid', () {
-      final svgContent = """
-<svg version="1.1">
-  <circle></circle>
-  <path></path>
-</svg>""";
+      final svgContent =
+          "<svg version=\"1.1\">\n"
+          "  <circle></circle>\n"
+          "  <path></path>\n"
+          "</svg>";
       final el = new svg.SvgElement.svg(svgContent);
       expect(el, isSvgSvgElement);
       expect(el.innerHtml, anyOf("<circle></circle><path></path>", '<circle '
@@ -52,9 +52,7 @@ main() {
           'xmlns="http://www.w3.org/2000/svg" />'));
       expect(el.outerHtml, anyOf(svgContent,
           '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\n  '
-          '<circle />\n  <path />\n</svg>',
-          '<svg xmlns="http://www.w3.org/2000/svg" version="1.1">\r\n  '
-          '<circle />\r\n  <path />\r\n</svg>'));
+          '<circle />\n  <path />\n</svg>'));
     });
 
     test('has no parent', () =>
