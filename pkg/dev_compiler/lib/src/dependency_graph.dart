@@ -55,8 +55,9 @@ class SourceGraph {
       return;
     }
     var prefix = path.absolute(dir);
-    var files =
-        _options.serverMode ? runtimeFilesForServerMode : defaultRuntimeFiles;
+    var files = _options.serverMode
+        ? runtimeFilesForServerMode(_options.widget)
+        : defaultRuntimeFiles;
     for (var file in files) {
       runtimeDeps.add(nodeFromUri(path.toUri(path.join(prefix, file))));
     }
@@ -540,7 +541,8 @@ const corelibOrder = const [
 ];
 
 /// Runtime files added to applications when running in server mode.
-final runtimeFilesForServerMode = new List<String>.from(defaultRuntimeFiles)
-  ..addAll(const ['messages_widget.js', 'messages.css']);
+List<String> runtimeFilesForServerMode([bool includeWidget = true]) =>
+    new List<String>.from(defaultRuntimeFiles)
+  ..addAll(includeWidget ? const ['messages_widget.js', 'messages.css'] : []);
 
 final _log = new Logger('dev_compiler.dependency_graph');

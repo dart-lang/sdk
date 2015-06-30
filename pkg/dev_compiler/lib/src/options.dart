@@ -102,6 +102,9 @@ class CompilerOptions {
   /// Whether to enable hash-based caching of files.
   final bool enableHashing;
 
+  /// Whether to serve the error / warning widget.
+  final bool widget;
+
   /// Port used for the HTTP server when [serverMode] is on.
   final int port;
 
@@ -118,8 +121,8 @@ class CompilerOptions {
       this.codegenOptions: const CodegenOptions(), this.checkSdk: false,
       this.dumpInfo: false, this.dumpInfoFile, this.useColors: true,
       this.help: false, this.logLevel: Level.SEVERE, this.serverMode: false,
-      this.enableHashing: false, this.host: 'localhost', this.port: 8080,
-      this.runtimeDir});
+      this.enableHashing: false, this.widget: true, this.host: 'localhost',
+      this.port: 8080, this.runtimeDir});
 }
 
 /// Parses options from the command-line
@@ -195,6 +198,7 @@ CompilerOptions parseOptions(List<String> argv) {
       logLevel: logLevel,
       serverMode: serverMode,
       enableHashing: enableHashing,
+      widget: args['widget'],
       host: args['host'],
       port: int.parse(args['port']),
       runtimeDir: runtimeDir);
@@ -237,6 +241,9 @@ final ArgParser argParser = StrongModeOptions.addArguments(new ArgParser()
   ..addFlag('server', help: 'Run as a development server.', defaultsTo: false)
   ..addFlag('hashing',
       help: 'Enable hash-based file caching.', defaultsTo: null)
+  ..addFlag('widget',
+      help: 'Serve embedded widget with static errors and warnings.',
+      defaultsTo: true)
   ..addOption('host',
       help: 'Host name or address to serve files from, e.g. --host=0.0.0.0\n'
       'to listen on all interfaces (used only when --serve is on)',

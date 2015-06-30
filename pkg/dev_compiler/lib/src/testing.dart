@@ -94,7 +94,7 @@ void testChecker(Map<String, String> testFiles, {String sdkDir,
 MemoryResourceProvider createTestResourceProvider(
     Map<String, String> testFiles) {
   var provider = new MemoryResourceProvider();
-  runtimeFilesForServerMode.forEach((filepath) {
+  runtimeFilesForServerMode().forEach((filepath) {
     testFiles['/dev_compiler_runtime/$filepath'] =
         '/* test contents of $filepath */';
   });
