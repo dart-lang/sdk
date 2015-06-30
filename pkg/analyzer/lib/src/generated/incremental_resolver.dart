@@ -1078,20 +1078,23 @@ class IncrementalResolver {
       Scope scope = _resolutionContext.scope;
       // resolve types
       {
-        TypeResolverVisitor visitor = new TypeResolverVisitor.con3(
-            _definingLibrary, _source, _typeProvider, scope, errorListener);
+        TypeResolverVisitor visitor = new TypeResolverVisitor(
+            _definingLibrary, _source, _typeProvider, errorListener,
+            nameScope: scope);
         node.accept(visitor);
       }
       // resolve variables
       {
-        VariableResolverVisitor visitor = new VariableResolverVisitor.con2(
-            _definingLibrary, _source, _typeProvider, scope, errorListener);
+        VariableResolverVisitor visitor = new VariableResolverVisitor(
+            _definingLibrary, _source, _typeProvider, errorListener,
+            nameScope: scope);
         node.accept(visitor);
       }
       // resolve references
       {
-        ResolverVisitor visitor = new ResolverVisitor.con3(
-            _definingLibrary, _source, _typeProvider, scope, errorListener);
+        ResolverVisitor visitor = new ResolverVisitor(
+            _definingLibrary, _source, _typeProvider, errorListener,
+            nameScope: scope);
         if (_resolutionContext.enclosingClassDeclaration != null) {
           visitor.visitClassDeclarationIncrementally(
               _resolutionContext.enclosingClassDeclaration);

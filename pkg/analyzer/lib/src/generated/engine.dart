@@ -10733,7 +10733,7 @@ class ResolveDartUnitTask extends AnalysisTask {
     // Resolve the type names.
     //
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    TypeResolverVisitor typeResolverVisitor = new TypeResolverVisitor.con2(
+    TypeResolverVisitor typeResolverVisitor = new TypeResolverVisitor(
         _libraryElement, source, typeProvider, errorListener);
     unit.accept(typeResolverVisitor);
     //
@@ -10741,8 +10741,9 @@ class ResolveDartUnitTask extends AnalysisTask {
     //
     InheritanceManager inheritanceManager =
         new InheritanceManager(_libraryElement);
-    ResolverVisitor resolverVisitor = new ResolverVisitor.con2(_libraryElement,
-        source, typeProvider, inheritanceManager, errorListener);
+    ResolverVisitor resolverVisitor = new ResolverVisitor(
+        _libraryElement, source, typeProvider, errorListener,
+        inheritanceManager: inheritanceManager);
     unit.accept(resolverVisitor);
     //
     // Perform additional error checking.

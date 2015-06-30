@@ -2845,8 +2845,9 @@ class ResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     //
     InheritanceManager inheritanceManager =
         new InheritanceManager(libraryElement);
-    AstVisitor visitor = new ResolverVisitor.con2(libraryElement,
-        unitElement.source, typeProvider, inheritanceManager, errorListener);
+    AstVisitor visitor = new ResolverVisitor(
+        libraryElement, unitElement.source, typeProvider, errorListener,
+        inheritanceManager: inheritanceManager);
     unit.accept(visitor);
     //
     // Record outputs.
@@ -2931,7 +2932,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
     //
     // Resolve TypeName nodes.
     //
-    TypeResolverVisitor visitor = new TypeResolverVisitor.con2(
+    TypeResolverVisitor visitor = new TypeResolverVisitor(
         library, unitElement.source, typeProvider, errorListener);
     unit.accept(visitor);
     //
@@ -3015,8 +3016,9 @@ class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
     //
     TypeProvider typeProvider = getRequiredInput(TYPE_PROVIDER_INPUT);
     Scope nameScope = new LibraryScope(libraryElement, errorListener);
-    AstVisitor visitor = new VariableResolverVisitor.con2(libraryElement,
-        unitElement.source, typeProvider, nameScope, errorListener);
+    AstVisitor visitor = new VariableResolverVisitor(
+        libraryElement, unitElement.source, typeProvider, errorListener,
+        nameScope: nameScope);
     unit.accept(visitor);
     //
     // Record outputs.

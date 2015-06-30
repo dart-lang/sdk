@@ -6604,7 +6604,7 @@ class Library {
   /**
    * The listener to which analysis errors will be reported.
    */
-  final AnalysisErrorListener _errorListener;
+  final AnalysisErrorListener errorListener;
 
   /**
    * The source specifying the defining compilation unit of this library.
@@ -6656,7 +6656,7 @@ class Library {
    * @param errorListener the listener to which analysis errors will be reported
    * @param librarySource the source specifying the defining compilation unit of this library
    */
-  Library(this._analysisContext, this._errorListener, this.librarySource) {
+  Library(this._analysisContext, this.errorListener, this.librarySource) {
     this._libraryElement =
         _analysisContext.getLibraryElement(librarySource) as LibraryElementImpl;
   }
@@ -6795,7 +6795,7 @@ class Library {
    */
   LibraryScope get libraryScope {
     if (_libraryScope == null) {
-      _libraryScope = new LibraryScope(_libraryElement, _errorListener);
+      _libraryScope = new LibraryScope(_libraryElement, errorListener);
     }
     return _libraryScope;
   }
@@ -6826,7 +6826,7 @@ class Library {
   Source getSource(UriBasedDirective directive) {
     StringLiteral uriLiteral = directive.uri;
     if (uriLiteral is StringInterpolation) {
-      _errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
           uriLiteral.length, CompileTimeErrorCode.URI_WITH_INTERPOLATION));
       return null;
     }
@@ -6843,13 +6843,13 @@ class Library {
       Source source =
           _analysisContext.sourceFactory.resolveUri(librarySource, uriContent);
       if (!_analysisContext.exists(source)) {
-        _errorListener.onError(new AnalysisError(librarySource,
+        errorListener.onError(new AnalysisError(librarySource,
             uriLiteral.offset, uriLiteral.length,
             CompileTimeErrorCode.URI_DOES_NOT_EXIST, [uriContent]));
       }
       return source;
     } on URISyntaxException {
-      _errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
+      errorListener.onError(new AnalysisError(librarySource, uriLiteral.offset,
           uriLiteral.length, CompileTimeErrorCode.INVALID_URI, [uriContent]));
     }
     return null;
@@ -7941,7 +7941,9 @@ class LibraryResolver {
           TypeResolverVisitorFactory typeResolverVisitorFactory =
               analysisContext.typeResolverVisitorFactory;
           TypeResolverVisitor visitor = (typeResolverVisitorFactory == null)
-              ? new TypeResolverVisitor.con1(library, source, _typeProvider)
+              ? new TypeResolverVisitor(library.libraryElement, source,
+                  _typeProvider, library.errorListener,
+                  nameScope: library.libraryScope)
               : typeResolverVisitorFactory(library, source, _typeProvider);
           library.getAST(source).accept(visitor);
         }
@@ -8200,13 +8202,17 @@ class LibraryResolver {
     PerformanceStatistics.resolve.makeCurrentWhile(() {
       for (Source source in library.compilationUnitSources) {
         CompilationUnit ast = library.getAST(source);
-        ast.accept(
-            new VariableResolverVisitor.con1(library, source, _typeProvider));
+        ast.accept(new VariableResolverVisitor(library.libraryElement, source,
+            _typeProvider, library.errorListener,
+            nameScope: library.libraryScope));
         ResolverVisitorFactory visitorFactory =
             analysisContext.resolverVisitorFactory;
         ResolverVisitor visitor = visitorFactory != null
             ? visitorFactory(library, source, _typeProvider)
-            : new ResolverVisitor.con1(library, source, _typeProvider);
+            : new ResolverVisitor(library.libraryElement, source, _typeProvider,
+                library.errorListener,
+                nameScope: library.libraryScope,
+                inheritanceManager: library.inheritanceManager);
         ast.accept(visitor);
       }
     });
@@ -8601,8 +8607,10 @@ class LibraryResolver2 {
             in library.resolvableCompilationUnits) {
           Source source = unit.source;
           CompilationUnit ast = unit.compilationUnit;
-          TypeResolverVisitor visitor =
-              new TypeResolverVisitor.con4(library, source, _typeProvider);
+          TypeResolverVisitor visitor = new TypeResolverVisitor(
+              library.libraryElement, source, _typeProvider,
+              library.libraryScope.errorListener,
+              nameScope: library.libraryScope);
           ast.accept(visitor);
         }
       }
@@ -8683,10 +8691,13 @@ class LibraryResolver2 {
           in library.resolvableCompilationUnits) {
         Source source = unit.source;
         CompilationUnit ast = unit.compilationUnit;
-        ast.accept(
-            new VariableResolverVisitor.con3(library, source, _typeProvider));
-        ResolverVisitor visitor =
-            new ResolverVisitor.con4(library, source, _typeProvider);
+        ast.accept(new VariableResolverVisitor(library.libraryElement, source,
+            _typeProvider, library.libraryScope.errorListener,
+            nameScope: library.libraryScope));
+        ResolverVisitor visitor = new ResolverVisitor(library.libraryElement,
+            source, _typeProvider, library._libraryScope.errorListener,
+            nameScope: library._libraryScope,
+            inheritanceManager: library.inheritanceManager);
         ast.accept(visitor);
       }
     });
@@ -9971,63 +9982,41 @@ class ResolverVisitor extends ScopedVisitor {
   bool resolveOnlyCommentInFunctionBody = false;
 
   /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   */
-  ResolverVisitor.con1(
-      Library library, Source source, TypeProvider typeProvider,
-      {StaticTypeAnalyzer typeAnalyzer,
-      StaticTypeAnalyzerFactory typeAnalyzerFactory})
-      : super.con1(library, source, typeProvider) {
-    this._inheritanceManager = library.inheritanceManager;
-    this.elementResolver = new ElementResolver(this);
-    this.typeAnalyzer = typeAnalyzer != null
-        ? typeAnalyzer
-        : (typeAnalyzerFactory != null
-            ? typeAnalyzerFactory(this)
-            : new StaticTypeAnalyzer(this));
-  }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param definingLibrary the element for the library containing the compilation unit being
-   *          visited
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
-   */
-  ResolverVisitor.con2(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, InheritanceManager inheritanceManager,
-      AnalysisErrorListener errorListener)
-      : super.con2(definingLibrary, source, typeProvider, errorListener) {
-    this._inheritanceManager = inheritanceManager;
-    this.elementResolver = new ElementResolver(this);
-    this.typeAnalyzer = new StaticTypeAnalyzer(this);
-  }
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
-   * @param definingLibrary the element for the library containing the node being visited
-   * @param source the source representing the compilation unit containing the node being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param nameScope the scope used to resolve identifiers in the node that will first be visited
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
+   * [definingLibrary] is the element for the library containing the node being
+   * visited.
+   * [source] is the source representing the compilation unit containing the
+   * node being visited.
+   * [typeProvider] the object used to access the types from the core library.
+   * [errorListener] the error listener that will be informed of any errors
+   * that are found during resolution.
+   * [nameScope] is the scope used to resolve identifiers in the node that will
+   * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
+   * created based on [definingLibrary] and [typeProvider].
+   * [inheritanceManager] is used to perform inheritance lookups.  If `null` or
+   * unspecified, a new [InheritanceManager] will be created based on
+   * [definingLibrary].
+   * [typeAnalyzerFactory] is used to create the type analyzer.  If `null` or
+   * unspecified, a type analyzer of type [StaticTypeAnalyzer] will be created.
    */
-  ResolverVisitor.con3(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, Scope nameScope,
-      AnalysisErrorListener errorListener)
-      : super.con3(
-          definingLibrary, source, typeProvider, nameScope, errorListener) {
-    this._inheritanceManager = new InheritanceManager(definingLibrary);
+  ResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+      {Scope nameScope, InheritanceManager inheritanceManager,
+      StaticTypeAnalyzerFactory typeAnalyzerFactory})
+      : super(definingLibrary, source, typeProvider, errorListener,
+          nameScope: nameScope) {
+    if (inheritanceManager == null) {
+      this._inheritanceManager = new InheritanceManager(definingLibrary);
+    } else {
+      this._inheritanceManager = inheritanceManager;
+    }
     this.elementResolver = new ElementResolver(this);
-    this.typeAnalyzer = new StaticTypeAnalyzer(this);
+    if (typeAnalyzerFactory == null) {
+      this.typeAnalyzer = new StaticTypeAnalyzer(this);
+    } else {
+      this.typeAnalyzer = typeAnalyzerFactory(this);
+    }
   }
 
   /**
@@ -10036,14 +10025,18 @@ class ResolverVisitor extends ScopedVisitor {
    * @param library the library containing the compilation unit being resolved
    * @param source the source representing the compilation unit being visited
    * @param typeProvider the object used to access the types from the core library
+   *
+   * Deprecated.  Please use unnamed constructor instead.
    */
-  ResolverVisitor.con4(
-      ResolvableLibrary library, Source source, TypeProvider typeProvider)
-      : super.con4(library, source, typeProvider) {
-    this._inheritanceManager = library.inheritanceManager;
-    this.elementResolver = new ElementResolver(this);
-    this.typeAnalyzer = new StaticTypeAnalyzer(this);
-  }
+  @deprecated
+  ResolverVisitor.con1(
+      Library library, Source source, TypeProvider typeProvider,
+      {StaticTypeAnalyzerFactory typeAnalyzerFactory})
+      : this(
+          library.libraryElement, source, typeProvider, library.errorListener,
+          nameScope: library.libraryScope,
+          inheritanceManager: library.inheritanceManager,
+          typeAnalyzerFactory: typeAnalyzerFactory);
 
   /**
    * Return the element representing the function containing the current node, or `null` if
@@ -11664,67 +11657,29 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   ClassElement enclosingClass;
 
   /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
+   * Initialize a newly created visitor to resolve the nodes in a compilation
+   * unit.
    *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
+   * [definingLibrary] is the element for the library containing the
+   * compilation unit being visited.
+   * [source] is the source representing the compilation unit being visited.
+   * [typeProvider] is the object used to access the types from the core
+   * library.
+   * [errorListener] is the error listener that will be informed of any errors
+   * that are found during resolution.
+   * [nameScope] is the scope used to resolve identifiers in the node that will
+   * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
+   * created based on [definingLibrary] and [typeProvider].
    */
-  ScopedVisitor.con1(Library library, this.source, this.typeProvider) {
-    this._definingLibrary = library.libraryElement;
-    LibraryScope libraryScope = library.libraryScope;
-    this._errorListener = libraryScope.errorListener;
-    this.nameScope = libraryScope;
-  }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param definingLibrary the element for the library containing the compilation unit being
-   *          visited
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
-   */
-  ScopedVisitor.con2(LibraryElement definingLibrary, this.source,
-      this.typeProvider, AnalysisErrorListener errorListener) {
+  ScopedVisitor(LibraryElement definingLibrary, this.source, this.typeProvider,
+      AnalysisErrorListener errorListener, {Scope nameScope}) {
     this._definingLibrary = definingLibrary;
     this._errorListener = errorListener;
-    this.nameScope = new LibraryScope(definingLibrary, errorListener);
-  }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param definingLibrary the element for the library containing the compilation unit being
-   *          visited
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param nameScope the scope used to resolve identifiers in the node that will first be visited
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
-   */
-  ScopedVisitor.con3(LibraryElement definingLibrary, this.source,
-      this.typeProvider, Scope nameScope, AnalysisErrorListener errorListener) {
-    this._definingLibrary = definingLibrary;
-    this._errorListener = errorListener;
-    this.nameScope = nameScope;
-  }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   */
-  ScopedVisitor.con4(
-      ResolvableLibrary library, this.source, this.typeProvider) {
-    this._definingLibrary = library.libraryElement;
-    LibraryScope libraryScope = library.libraryScope;
-    this._errorListener = libraryScope.errorListener;
-    this.nameScope = libraryScope;
+    if (nameScope == null) {
+      this.nameScope = new LibraryScope(definingLibrary, errorListener);
+    } else {
+      this.nameScope = nameScope;
+    }
   }
 
   /**
@@ -13361,65 +13316,25 @@ class TypeResolverVisitor extends ScopedVisitor {
   bool _hasReferenceToSuper = false;
 
   /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   */
-  TypeResolverVisitor.con1(
-      Library library, Source source, TypeProvider typeProvider)
-      : super.con1(library, source, typeProvider) {
-    _dynamicType = typeProvider.dynamicType;
-    _undefinedType = typeProvider.undefinedType;
-  }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param definingLibrary the element for the library containing the compilation unit being
-   *          visited
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
-   */
-  TypeResolverVisitor.con2(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, AnalysisErrorListener errorListener)
-      : super.con2(definingLibrary, source, typeProvider, errorListener) {
-    _dynamicType = typeProvider.dynamicType;
-    _undefinedType = typeProvider.undefinedType;
-  }
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
-   * @param definingLibrary the element for the library containing the node being visited
-   * @param source the source representing the compilation unit containing the node being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param nameScope the scope used to resolve identifiers in the node that will first be visited
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
+   * [definingLibrary] is the element for the library containing the node being
+   * visited.
+   * [source] is the source representing the compilation unit containing the
+   * node being visited.
+   * [typeProvider] is the object used to access the types from the core
+   * library.
+   * [errorListener] is the error listener that will be informed of any errors
+   * that are found during resolution.
+   * [nameScope] is the scope used to resolve identifiers in the node that will
+   * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
+   * created based on [definingLibrary] and [typeProvider].
    */
-  TypeResolverVisitor.con3(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, Scope nameScope,
-      AnalysisErrorListener errorListener)
-      : super.con3(
-          definingLibrary, source, typeProvider, nameScope, errorListener) {
-    _dynamicType = typeProvider.dynamicType;
-    _undefinedType = typeProvider.undefinedType;
-  }
-
-  /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   */
-  TypeResolverVisitor.con4(
-      ResolvableLibrary library, Source source, TypeProvider typeProvider)
-      : super.con4(library, source, typeProvider) {
+  TypeResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+      {Scope nameScope})
+      : super(definingLibrary, source, typeProvider, errorListener,
+          nameScope: nameScope) {
     _dynamicType = typeProvider.dynamicType;
     _undefinedType = typeProvider.undefinedType;
   }
@@ -14929,31 +14844,25 @@ class VariableResolverVisitor extends ScopedVisitor {
   ExecutableElement _enclosingFunction;
 
   /**
-   * Initialize a newly created visitor to resolve the nodes in a compilation unit.
-   *
-   * @param library the library containing the compilation unit being resolved
-   * @param source the source representing the compilation unit being visited
-   * @param typeProvider the object used to access the types from the core library
-   */
-  VariableResolverVisitor.con1(
-      Library library, Source source, TypeProvider typeProvider)
-      : super.con1(library, source, typeProvider);
-
-  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
-   * @param definingLibrary the element for the library containing the node being visited
-   * @param source the source representing the compilation unit containing the node being visited
-   * @param typeProvider the object used to access the types from the core library
-   * @param nameScope the scope used to resolve identifiers in the node that will first be visited
-   * @param errorListener the error listener that will be informed of any errors that are found
-   *          during resolution
+   * [definingLibrary] is the element for the library containing the node being
+   * visited.
+   * [source] is the source representing the compilation unit containing the
+   * node being visited
+   * [typeProvider] is the object used to access the types from the core
+   * library.
+   * [errorListener] is the error listener that will be informed of any errors
+   * that are found during resolution.
+   * [nameScope] is the scope used to resolve identifiers in the node that will
+   * first be visited.  If `null` or unspecified, a new [LibraryScope] will be
+   * created based on [definingLibrary] and [typeProvider].
    */
-  VariableResolverVisitor.con2(LibraryElement definingLibrary, Source source,
-      TypeProvider typeProvider, Scope nameScope,
-      AnalysisErrorListener errorListener)
-      : super.con3(
-          definingLibrary, source, typeProvider, nameScope, errorListener);
+  VariableResolverVisitor(LibraryElement definingLibrary, Source source,
+      TypeProvider typeProvider, AnalysisErrorListener errorListener,
+      {Scope nameScope})
+      : super(definingLibrary, source, typeProvider, errorListener,
+          nameScope: nameScope);
 
   /**
    * Initialize a newly created visitor to resolve the nodes in a compilation unit.
@@ -14961,10 +14870,15 @@ class VariableResolverVisitor extends ScopedVisitor {
    * @param library the library containing the compilation unit being resolved
    * @param source the source representing the compilation unit being visited
    * @param typeProvider the object used to access the types from the core library
+   *
+   * Deprecated.  Please use unnamed constructor instead.
    */
-  VariableResolverVisitor.con3(
-      ResolvableLibrary library, Source source, TypeProvider typeProvider)
-      : super.con4(library, source, typeProvider);
+  @deprecated
+  VariableResolverVisitor.con1(
+      Library library, Source source, TypeProvider typeProvider)
+      : this(
+          library.libraryElement, source, typeProvider, library.errorListener,
+          nameScope: library.libraryScope);
 
   @override
   Object visitExportDirective(ExportDirective node) => null;
