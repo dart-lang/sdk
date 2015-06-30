@@ -88,7 +88,7 @@ abstract class int extends num {
    * limit intermediate values by using the "and" operator with a suitable
    * mask.
    *
-   * It is an error of [shiftAmount] is negative.
+   * It is an error if [shiftAmount] is negative.
    */
   int operator <<(int shiftAmount);
 
@@ -99,7 +99,7 @@ abstract class int extends num {
    * significant bits, effectively doing an integer division by
    *`pow(2, shiftIndex)`.
    *
-   * It is an error of [shiftAmount] is negative.
+   * It is an error if [shiftAmount] is negative.
    */
   int operator >>(int shiftAmount);
 
@@ -116,7 +116,8 @@ abstract class int extends num {
    * modulo [modulus].
    *
    * The [modulus] must be positive.
-   * Throws if no modular inverse exists.
+   *
+   * It is an error if no modular inverse exists.
    */
   int modInverse(int modulus);
 
@@ -266,27 +267,29 @@ abstract class int extends num {
    * Converts [this] to a string representation in the given [radix].
    *
    * In the string representation, lower-case letters are used for digits above
-   * '9'.
+   * '9', with 'a' being 10 an 'z' being 35.
    *
    * The [radix] argument must be an integer in the range 2 to 36.
    */
   String toRadixString(int radix);
 
   /**
-   * Parse [source] as an integer literal and return its value.
-   *
-   * The [radix] must be in the range 2..36. The digits used are
-   * first the decimal digits 0..9, and then the letters 'a'..'z'.
-   * Accepts capital letters as well.
-   *
-   * If no [radix] is given then it defaults to 10, unless the string starts
-   * with "0x", "-0x" or "+0x", in which case the radix is set to 16 and the
-   * "0x" is ignored.
+   * Parse [source] as a, possibly signed, integer literal and return its value.
    *
    * The [source] must be a non-empty sequence of base-[radix] digits,
    * optionally prefixed with a minus or plus sign ('-' or '+').
    *
-   * It must always be the case for an int [:n:] and radix [:r:] that
+   * The [radix] must be in the range 2..36. The digits used are
+   * first the decimal digits 0..9, and then the letters 'a'..'z' with
+   * values 10 through 35. Also accepts upper-case letters with the same
+   * values as the lower-case ones.
+   *
+   * If no [radix] is given then it defaults to 10. In this case, the [source]
+   * digits may also start with `0x`, in which case the number is interpreted
+   * as a hexadecimal literal, which effectively means that the `0x` is ignored
+   * and the radix is instead set to 16.
+   *
+   * For any int [:n:] and radix [:r:], it is guaranteed that
    * [:n == int.parse(n.toRadixString(r), radix: r):].
    *
    * If the [source] is not a valid integer literal, optionally prefixed by a

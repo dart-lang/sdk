@@ -18,15 +18,15 @@ part of dart.core;
  * until the actual exceptions used by a library are done.
  */
 abstract class Exception {
-  factory Exception([var message]) => new _ExceptionImplementation(message);
+  factory Exception([var message]) => new _Exception(message);
 }
 
 
 /** Default implementation of [Exception] which carries a message. */
-class _ExceptionImplementation implements Exception {
+class _Exception implements Exception {
   final message;
 
-  _ExceptionImplementation([this.message]);
+  _Exception([this.message]);
 
   String toString() {
     if (message == null) return "Exception";
@@ -174,6 +174,7 @@ class FormatException implements Exception {
   }
 }
 
+// Exception thrown when doing integer division with a zero divisor.
 class IntegerDivisionByZeroException implements Exception {
   const IntegerDivisionByZeroException();
   String toString() => "IntegerDivisionByZeroException";

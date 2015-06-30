@@ -132,7 +132,7 @@ class JSNumber extends Interceptor implements num {
   String toStringAsFixed(int fractionDigits) {
     checkInt(fractionDigits);
     if (fractionDigits < 0 || fractionDigits > 20) {
-      throw new RangeError(fractionDigits);
+      throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
     }
     String result = JS('String', r'#.toFixed(#)', this, fractionDigits);
     if (this == 0 && isNegative) return "-$result";
@@ -144,7 +144,7 @@ class JSNumber extends Interceptor implements num {
     if (fractionDigits != null) {
       checkInt(fractionDigits);
       if (fractionDigits < 0 || fractionDigits > 20) {
-        throw new RangeError(fractionDigits);
+        throw new RangeError.range(fractionDigits, 0, 20, "fractionDigits");
       }
       result = JS('String', r'#.toExponential(#)', this, fractionDigits);
     } else {
@@ -157,7 +157,7 @@ class JSNumber extends Interceptor implements num {
   String toStringAsPrecision(int precision) {
     checkInt(precision);
     if (precision < 1 || precision > 21) {
-      throw new RangeError(precision);
+      throw new RangeError.range(precision, 1, 21, "precision");
     }
     String result = JS('String', r'#.toPrecision(#)',
                        this, precision);
@@ -390,10 +390,14 @@ class JSInt extends JSNumber implements int, double {
 
   // Returns pow(this, e) % m.
   int modPow(int e, int m) {
-    if (e is! int) throw argumentErrorValue(e);
-    if (m is! int) throw argumentErrorValue(m);
-    if (e < 0) throw new RangeError(e);
-    if (m <= 0) throw new RangeError(m);
+    if (e is! int) {
+      throw new ArgumentError.value(e, "exponent", "not an integer");
+    }
+    if (m is! int) {
+      throw new ArgumentError.value(m, "modulus", "not an integer");
+    }
+    if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
+    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
     int b = this;
     if (b < 0 || b > m) {
@@ -412,7 +416,7 @@ class JSInt extends JSNumber implements int, double {
 
   // If inv is false, returns gcd(x, y).
   // If inv is true and gcd(x, y) = 1, returns d, so that c*x + d*y = 1.
-  // If inv is true and gcd(x, y) != 1, throws RangeError("Not coprime").
+  // If inv is true and gcd(x, y) != 1, throws Exception("Not coprime").
   static int _binaryGcd(int x, int y, bool inv) {
     int s = 1;
     if (!inv) {
@@ -472,7 +476,7 @@ class JSInt extends JSNumber implements int, double {
       }
     } while (u != 0);
     if (!inv) return s*v;
-    if (v != 1) throw new RangeError("Not coprime");
+    if (v != 1) throw new Exception("Not coprime");
     if (d < 0) {
       d += x;
       if (d < 0) d += x;
@@ -485,20 +489,31 @@ class JSInt extends JSNumber implements int, double {
 
   // Returns 1/this % m, with m > 0.
   int modInverse(int m) {
-    if (m is! int) throw new ArgumentError(m);
-    if (m <= 0) throw new RangeError(m);
+    if (m is! int) {
+      throw new ArgumentError.value(m, "modulus", "not an integer");
+    }
+    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
     int t = this;
     if ((t < 0) || (t >= m)) t %= m;
     if (t == 1) return 1;
-    if ((t == 0) || (t.isEven && m.isEven)) throw new RangeError("Not coprime");
+    if ((t == 0) || (t.isEven && m.isEven)) {
+      throw new Exception("Not coprime");
+    }
     return _binaryGcd(m, t, true);
   }
 
   // Returns gcd of abs(this) and abs(other), with this != 0 and other !=0.
   int gcd(int other) {
-    if (other is! int) throw new ArgumentError(other);
-    if ((this == 0) || (other == 0)) throw new RangeError(0);
+    if (other is! int) {
+      throw new ArgumentError.value(other, "other", "not an integer");
+    }
+    if (this == 0) {
+      throw new ArgumentError.value(this, "first operand", "must not be zero");
+    }
+    if (other == 0) {
+      throw new ArgumentError.value(this, "second operand", "must not be zero");
+    }
     int x = this.abs();
     int y = other.abs();
     if ((x == 1) || (y == 1)) return 1;
