@@ -53,7 +53,7 @@
   * List iterators may not throw `ConcurrentModificationError` as eagerly in
     release mode. In checked mode, the modification check is still as eager
     as possible.
-    [r45198](https://code.google.com/p/dart/source/detail?r=45198)
+    [r45198](https://github.com/dart-lang/sdk/commit/5a79c03)
 
 * `dart:developer` - **NEW**
   * Replaces the deprecated `dart:profiler` library.
@@ -102,9 +102,9 @@
   * **POTENTIALLY BREAKING** Fix behavior of `HtmlEscape`. It no longer escapes
   no-break space (U+00A0) anywhere or forward slash (`/`, `U+002F`) in element
   context. Slash is still escaped using `HtmlEscapeMode.UNKNOWN`.
-  [r45003](https://code.google.com/p/dart/source/detail?r=45003),
-  [r45153](https://code.google.com/p/dart/source/detail?r=45153),
-  [r45189](https://code.google.com/p/dart/source/detail?r=45189)
+  [r45003](https://github.com/dart-lang/sdk/commit/8b8223d),
+  [r45153](https://github.com/dart-lang/sdk/commit/8a5d049),
+  [r45189](https://github.com/dart-lang/sdk/commit/3c39ad2)
 
 * `dart:core`
   * `Uri.parse` added `start` and `end` positional arguments.
