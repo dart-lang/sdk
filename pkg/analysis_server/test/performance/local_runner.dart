@@ -62,12 +62,10 @@ main(List<String> args) {
    */
   performance.main([
     //'-vv', // very verbose
-    '-i',
-    inputFile.path,
-    '-t',
-    tmpSrcDirPath,
-    '-m',
-    '${gitDir.path},$tmpSrcDirPath',
+    //'-d8081', // analysis server localhost diagnostic port
+    '-i${inputFile.path}',
+    '-t$tmpSrcDirPath',
+    '-m${gitDir.path},$tmpSrcDirPath',
   ]);
 }
 

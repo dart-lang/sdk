@@ -13,7 +13,7 @@ import 'driver.dart';
 import 'input_converter.dart';
 
 /**
- * A [CompletionRequestOperation] tracks response time along with 
+ * A [CompletionRequestOperation] tracks response time along with
  * the first and last completion notifications.
  */
 class CompletionRequestOperation extends RequestOperation {
@@ -80,6 +80,7 @@ class RequestOperation extends Operation {
     Stopwatch stopwatch = new Stopwatch();
     String originalId = json['id'];
     String method = json['method'];
+    json['clientRequestTime'] = new DateTime.now().millisecondsSinceEpoch;
     driver.logger.log(Level.FINE, 'Sending request: $method\n  $json');
     stopwatch.start();
 
@@ -178,9 +179,13 @@ class ResponseOperation extends Operation {
 }
 
 class StartServerOperation extends Operation {
+  final int diagnosticPort;
+
+  StartServerOperation({this.diagnosticPort});
+
   @override
   Future perform(Driver driver) {
-    return driver.startServer();
+    return driver.startServer(diagnosticPort: diagnosticPort);
   }
 }
 
@@ -194,7 +199,6 @@ class WaitForAnalysisCompleteOperation extends Operation {
     Completer completer = new Completer();
     bool isAnalyzing = false;
     subscription = driver.onServerStatus.listen((ServerStatusParams params) {
-      // TODO (danrubel) ensure that server.setSubscriptions STATUS is set
       if (params.analysis != null) {
         if (params.analysis.isAnalyzing) {
           isAnalyzing = true;
@@ -218,10 +222,10 @@ class WaitForAnalysisCompleteOperation extends Operation {
         completer.complete();
         return;
       }
-      // Timeout if no communcation received within the last 10 seconds.
+      // Timeout if no communcation received within the last 60 seconds.
       double currentTime = driver.server.currentElapseTime;
       double lastTime = driver.server.lastCommunicationTime;
-      if (currentTime - lastTime > 10) {
+      if (currentTime - lastTime > 60) {
         subscription.cancel();
         timer.cancel();
         String message = 'gave up waiting for analysis to complete';
