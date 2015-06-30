@@ -1089,6 +1089,8 @@ bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
       // if (rex_w()) AppendToBuffer("REX.W ");
     } else if ((current & 0xFE) == 0xF2) {  // Group 1 prefix (0xF2 or 0xF3).
       group_1_prefix_ = current;
+    } else if (current == 0xF0) {
+      AppendToBuffer("lock ");
     } else {  // Not a prefix - an opcode.
       break;
     }
@@ -1515,8 +1517,9 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
     current = data + JumpConditional(data);
 
   } else if (opcode == 0xBE || opcode == 0xBF || opcode == 0xB6 ||
-             opcode == 0xB7 || opcode == 0xAF) {
-    // Size-extending moves, IMUL.
+             opcode == 0xB7 || opcode == 0xAF || opcode == 0xB0 ||
+             opcode == 0xB1) {
+    // Size-extending moves, IMUL, cmpxchg.
     current += PrintOperands(mnemonic, REG_OPER_OP_ORDER, current);
 
   } else if ((opcode & 0xF0) == 0x90) {
@@ -1581,6 +1584,9 @@ const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
       return "shrd";
     case 0xAF:
       return "imul";
+    case 0xB0:
+    case 0xB1:
+      return "cmpxchg";
     case 0xB6:
       return "movzxb";
     case 0xB7:
