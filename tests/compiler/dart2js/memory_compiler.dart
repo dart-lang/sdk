@@ -11,8 +11,11 @@ import 'package:compiler/src/compile_time_constants.dart';
 import 'package:compiler/src/dart2jslib.dart'
        show NullSink;
 
-import 'package:compiler/compiler.dart'
-    show Diagnostic, DiagnosticHandler, CompilerOutputProvider;
+import 'package:compiler/compiler.dart' show
+    CompilerOutputProvider,
+    Diagnostic,
+    DiagnosticHandler,
+    PackagesDiscoveryProvider;
 
 import 'dart:async';
 
@@ -89,15 +92,20 @@ DiagnosticHandler createDiagnosticHandler(DiagnosticHandler diagnosticHandler,
 Expando<MemorySourceFileProvider> expando =
     new Expando<MemorySourceFileProvider>();
 
-Compiler compilerFor(Map<String,String> memorySourceFiles,
-                     {DiagnosticHandler diagnosticHandler,
-                      CompilerOutputProvider outputProvider,
-                      List<String> options: const [],
-                      Compiler cachedCompiler,
-                      bool showDiagnostics: true,
-                      Uri packageRoot}) {
+Compiler compilerFor(
+    Map<String, String> memorySourceFiles,
+    {DiagnosticHandler diagnosticHandler,
+     CompilerOutputProvider outputProvider,
+     List<String> options: const [],
+     Compiler cachedCompiler,
+     bool showDiagnostics: true,
+     Uri packageRoot,
+     Uri packageConfig,
+     PackagesDiscoveryProvider packagesDiscoveryProvider}) {
   Uri libraryRoot = Uri.base.resolve('sdk/');
-  if (packageRoot == null) {
+  if (packageRoot == null &&
+      packageConfig == null &&
+      packagesDiscoveryProvider == null) {
     packageRoot = Uri.base.resolveUri(new Uri.file('${Platform.packageRoot}/'));
   }
 
@@ -127,13 +135,17 @@ Compiler compilerFor(Map<String,String> memorySourceFiles,
     outputProvider = noOutputProvider;
   }
 
-  Compiler compiler = new Compiler(readStringFromUri,
-                                   outputProvider,
-                                   handler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   options,
-                                   {});
+  Compiler compiler = new Compiler(
+      readStringFromUri,
+      outputProvider,
+      handler,
+      libraryRoot,
+      packageRoot,
+      options,
+      {},
+      packageConfig,
+      packagesDiscoveryProvider);
+
   if (cachedCompiler != null) {
     compiler.coreLibrary =
         cachedCompiler.libraryLoader.lookupLibrary(Uri.parse('dart:core'));

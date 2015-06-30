@@ -8,7 +8,30 @@
     `setInnerHtml` or other methods that create DOM from text. It is
     also more efficient, skipping the creation of a `DocumentFragment`.
 
-## 1.11.0
+### Tool changes
+
+* Pub
+
+  * Pub will now generate a ".packages" file in addition to the "packages"
+    directory when running `pub get` or similar operations, per the
+    [package spec proposal][]. Pub now has a `--no-package-symlinks` flag that
+    will stop "packages" directories from being generated at all.
+
+  * When `pub publish` finds a violation, it will emit a non-zero exit code.
+
+  * `pub run` starts up faster for executables that don't import transformed
+    code.
+
+[package spec proposal]: https://github.com/lrhn/dep-pkgspec
+
+## 1.11.1
+
+### Tool changes
+
+* Pub will always load Dart SDK assets from the SDK whose `pub` executable was
+  run, even if a `DART_SDK` environment variable is set.
+
+## 1.11.0 - 2015-06-25
 
 ### Core library changes
 
@@ -56,6 +79,7 @@
   * `Isolate` methods `ping` and `addOnExitListener` now have a named parameter
     `response`.
     [r45092](https://github.com/dart-lang/sdk/commit/1b208bd)
+  * `Isolate.spawnUri` added a named argument `checked`.
   * Remove the experimental state of the API.
 
 * `dart:profiler` - **DEPRECATED**

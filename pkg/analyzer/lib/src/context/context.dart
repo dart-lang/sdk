@@ -35,6 +35,7 @@ import 'package:analyzer/src/task/dart_work_manager.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
 import 'package:analyzer/src/task/html_work_manager.dart';
+import 'package:analyzer/src/task/incremental_element_builder.dart';
 import 'package:analyzer/src/task/manager.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/general.dart';
@@ -154,11 +155,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    */
   HashMap<Source, ChangeNoticeImpl> _pendingNotices =
       new HashMap<Source, ChangeNoticeImpl>();
-
-  /**
-   * Cached information used in incremental analysis or `null` if none.
-   */
-  IncrementalAnalysisCache _incrementalAnalysisCache;
 
   /**
    * The [TypeProvider] for this context, `null` if not yet created.
@@ -423,14 +419,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return statistics;
   }
 
-  IncrementalAnalysisCache get test_incrementalAnalysisCache {
-    return _incrementalAnalysisCache;
-  }
-
-  set test_incrementalAnalysisCache(IncrementalAnalysisCache value) {
-    _incrementalAnalysisCache = value;
-  }
-
   List<Source> get test_priorityOrder => _priorityOrder;
 
   @override
@@ -578,16 +566,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   List<AnalysisError> computeErrors(Source source) {
     String name = source.shortName;
     if (AnalysisEngine.isDartFileName(name)) {
-      return _computeResult(source, DART_ERRORS);
+      return computeResult(source, DART_ERRORS);
     } else if (AnalysisEngine.isHtmlFileName(name)) {
-      return _computeResult(source, HTML_ERRORS);
+      return computeResult(source, HTML_ERRORS);
     }
     return AnalysisError.NO_ERRORS;
   }
 
   @override
   List<Source> computeExportedLibraries(Source source) =>
-      _computeResult(source, EXPORTED_LIBRARIES);
+      computeResult(source, EXPORTED_LIBRARIES);
 
   @override
   @deprecated
@@ -599,13 +587,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> computeImportedLibraries(Source source) =>
-      _computeResult(source, EXPLICITLY_IMPORTED_LIBRARIES);
+      computeResult(source, EXPLICITLY_IMPORTED_LIBRARIES);
 
   @override
   SourceKind computeKindOf(Source source) {
     String name = source.shortName;
     if (AnalysisEngine.isDartFileName(name)) {
-      return _computeResult(source, SOURCE_KIND);
+      return computeResult(source, SOURCE_KIND);
     } else if (AnalysisEngine.isHtmlFileName(name)) {
       return SourceKind.HTML;
     }
@@ -615,11 +603,11 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   @override
   LibraryElement computeLibraryElement(Source source) {
     //_computeResult(source, HtmlEntry.ELEMENT);
-    return _computeResult(source, LIBRARY_ELEMENT);
+    return computeResult(source, LIBRARY_ELEMENT);
   }
 
   @override
-  LineInfo computeLineInfo(Source source) => _computeResult(source, LINE_INFO);
+  LineInfo computeLineInfo(Source source) => computeResult(source, LINE_INFO);
 
   @override
   @deprecated
@@ -647,6 +635,21 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }, () {
       dartWorkManager.addPriorityResult(unitTarget, RESOLVED_UNIT);
     });
+  }
+
+  Object /*V*/ computeResult(
+      AnalysisTarget target, ResultDescriptor /*<V>*/ descriptor) {
+    CacheEntry entry = getCacheEntry(target);
+    CacheState state = entry.getState(descriptor);
+    if (state == CacheState.FLUSHED || state == CacheState.INVALID) {
+      driver.computeResult(target, descriptor);
+    }
+    state = entry.getState(descriptor);
+    if (state == CacheState.ERROR) {
+      throw new AnalysisException(
+          'Cannot compute $descriptor for $target', entry.exception);
+    }
+    return entry.getValue(descriptor);
   }
 
   /**
@@ -952,8 +955,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     bool changed = newContents != originalContents;
     if (newContents != null) {
       if (newContents != originalContents) {
-        _incrementalAnalysisCache =
-            IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
         if (!analysisOptions.incremental ||
             !_tryPoorMansIncrementalResolution(source, newContents)) {
           _sourceChanged(source);
@@ -964,8 +965,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         entry.modificationTime = _contentCache.getModificationStamp(source);
       }
     } else if (originalContents != null) {
-      _incrementalAnalysisCache =
-          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
       changed = newContents != originalContents;
       // We are removing the overlay for the file, check if the file's
       // contents is the same as it was in the overlay.
@@ -1029,7 +1028,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       throw new AnalysisException('Could not get contents of $source',
           new CaughtException(exception, stackTrace));
     }
-    return _computeResult(source, PARSED_UNIT);
+    return computeResult(source, PARSED_UNIT);
   }
 
   @override
@@ -1037,7 +1036,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (!AnalysisEngine.isHtmlFileName(source.shortName)) {
       return null;
     }
-    return _computeResult(source, HTML_DOCUMENT);
+    return computeResult(source, HTML_DOCUMENT);
   }
 
   @override
@@ -1147,7 +1146,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         !AnalysisEngine.isDartFileName(librarySource.shortName)) {
       return null;
     }
-    return _computeResult(
+    return computeResult(
         new LibrarySpecificUnit(librarySource, unitSource), RESOLVED_UNIT);
   }
 
@@ -1248,6 +1247,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return changedSources.length > 0;
   }
 
+  @deprecated
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
@@ -1313,9 +1313,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //    }
   }
 
-  /**
-   * Visit all entries of the content cache.
-   */
+  @override
   void visitContentCache(ContentCacheVisitor visitor) {
     _contentCache.accept(visitor);
   }
@@ -1345,21 +1343,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _pendingFutureTargets.remove(pendingFuture.target);
       }
     }
-  }
-
-  Object /*V*/ _computeResult(
-      AnalysisTarget target, ResultDescriptor /*<V>*/ descriptor) {
-    CacheEntry entry = getCacheEntry(target);
-    CacheState state = entry.getState(descriptor);
-    if (state == CacheState.FLUSHED || state == CacheState.INVALID) {
-      driver.computeResult(target, descriptor);
-    }
-    state = entry.getState(descriptor);
-    if (state == CacheState.ERROR) {
-      throw new AnalysisException(
-          'Cannot compute $descriptor for $target', entry.exception);
-    }
-    return entry.getValue(descriptor);
   }
 
   /**
@@ -1408,12 +1391,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     String originalContents = _contentCache.setContents(source, contents);
     if (contents != null) {
       if (contents != originalContents) {
-        // TODO(brianwilkerson) Find a better way to do incremental analysis.
-//        if (_options.incremental) {
-//          _incrementalAnalysisCache = IncrementalAnalysisCache.update(
-//              _incrementalAnalysisCache, source, originalContents, contents,
-//              offset, oldLength, newLength, _cache.get(source));
-//        }
         _sourceChanged(source);
         changed = true;
         CacheEntry entry = _cache.get(source);
@@ -1423,8 +1400,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
     } else if (originalContents != null) {
-      _incrementalAnalysisCache =
-          IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
       _sourceChanged(source);
       changed = true;
     }
@@ -1720,7 +1695,40 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       } catch (e) {}
     }
     // We need to invalidate the cache.
-    entry.setState(CONTENT, CacheState.INVALID);
+    {
+      Object delta = null;
+      if (AnalysisEngine.instance.limitInvalidationInTaskModel &&
+          AnalysisEngine.isDartFileName(source.fullName)) {
+        // TODO(scheglov) Incorrect implementation in general.
+        entry.setState(TOKEN_STREAM, CacheState.FLUSHED);
+        entry.setState(PARSED_UNIT, CacheState.FLUSHED);
+        List<Source> librarySources = getLibrariesContaining(source);
+        if (librarySources.length == 1) {
+          Source librarySource = librarySources[0];
+          CompilationUnit oldUnit =
+              getResolvedCompilationUnit2(source, librarySource);
+          if (oldUnit != null) {
+            CompilationUnit newUnit = parseCompilationUnit(source);
+            IncrementalCompilationUnitElementBuilder builder =
+                new IncrementalCompilationUnitElementBuilder(oldUnit, newUnit);
+            builder.build();
+            CompilationUnitElementDelta unitDelta = builder.unitDelta;
+            if (!unitDelta.hasDirectiveChange) {
+              DartDelta dartDelta = new DartDelta(source);
+              dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
+              unitDelta.addedDeclarations.forEach(dartDelta.elementAdded);
+              unitDelta.removedDeclarations.forEach(dartDelta.elementRemoved);
+              print(
+                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
+              delta = dartDelta;
+              entry.setState(CONTENT, CacheState.INVALID, delta: delta);
+              return;
+            }
+          }
+        }
+      }
+      entry.setState(CONTENT, CacheState.INVALID);
+    }
     dartWorkManager.applyChange(
         Source.EMPTY_LIST, <Source>[source], Source.EMPTY_LIST);
     htmlWorkManager.applyChange(

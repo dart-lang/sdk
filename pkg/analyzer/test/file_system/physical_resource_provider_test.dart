@@ -5,6 +5,7 @@
 library test.physical_file_system;
 
 import 'dart:async';
+import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
 import 'package:analyzer/file_system/file_system.dart';

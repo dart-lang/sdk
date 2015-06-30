@@ -18,7 +18,6 @@ main() {
 """function() {
   V.foo();
   P.print("bad bad");
-  return null;
 }"""),
   const TestEntry("""
 foo() => null;
@@ -28,7 +27,6 @@ main() {
 """function() {
   V.foo();
   P.print("bad bad");
-  return null;
 }"""),
   const TestEntry("""
 get foo => foo;
@@ -38,7 +36,6 @@ main() {
 """function() {
   V.foo();
   P.print("bad bad");
-  return null;
 }"""),
   const TestEntry("""
 get foo => foo;
@@ -46,7 +43,6 @@ main() { print(foo && foo); }""",
 """function() {
   V.foo();
   P.print(false);
-  return null;
 }"""),
   const TestEntry("""
 get foo => foo;
@@ -55,7 +51,6 @@ main() { print(foo || foo); }""",
   V.foo();
   V.foo();
   P.print(false);
-  return null;
 }"""),
 
 // Needs interceptor calling convention
@@ -84,7 +79,6 @@ function() {
   var list = [1, 2, 3];
   J.getInterceptor$a(list).$indexSet(list, 1, 6);
   P.print(list);
-  return null;
 }"""),
 ];
 

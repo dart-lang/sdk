@@ -46,10 +46,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   /// Variable names that have already been used. Used to avoid name clashes.
   Set<String> usedVariableNames = new Set<String>();
 
-  /// Input to [visitStatement]. Denotes the statement that will execute next
-  /// if the statements produced by [visitStatement] complete normally.
-  /// Set to null if control will fall over the end of the method.
-  tree_ir.Statement fallthrough = null;
+  final tree_ir.FallthroughStack fallthrough = new tree_ir.FallthroughStack();
 
   Set<tree_ir.Label> usedLabels = new Set<tree_ir.Label>();
 
@@ -341,6 +338,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
       glue.registerIsCheck(type, registry);
       ClassElement clazz = type.element;
 
+      // Handle some special checks against classes that exist only in
+      // the compile-time class hierarchy, not at runtime.
+      if (clazz == glue.jsExtendableArrayClass) {
+        return js.js(r'!#.fixed$length', <js.Expression>[value]);
+      } else if (clazz == glue.jsMutableArrayClass) {
+        return js.js(r'!#.immutable$list', <js.Expression>[value]);
+      }
+
       // We use one of the two helpers:
       //
       //     checkSubtype(value, $isT, typeArgs, $asT)
@@ -400,15 +405,31 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   void visitContinue(tree_ir.Continue node) {
-    tree_ir.Statement fallthrough = this.fallthrough;
-    if (node.target.binding == fallthrough) {
+    tree_ir.Statement next = fallthrough.target;
+    if (node.target.binding == next) {
       // Fall through to continue target
-    } else if (fallthrough is tree_ir.Continue &&
-               fallthrough.target == node.target) {
+      fallthrough.use();
+    } else if (next is tree_ir.Continue && next.target == node.target) {
       // Fall through to equivalent continue
+      fallthrough.use();
     } else {
       usedLabels.add(node.target);
       accumulator.add(new js.Continue(node.target.name));
+    }
+  }
+
+  @override
+  void visitBreak(tree_ir.Break node) {
+    tree_ir.Statement next = fallthrough.target;
+    if (node.target.binding.next == next) {
+      // Fall through to break target
+      fallthrough.use();
+    } else if (next is tree_ir.Break && next.target == node.target) {
+      // Fall through to equivalent break
+      fallthrough.use();
+    } else {
+      usedLabels.add(node.target);
+      accumulator.add(new js.Break(node.target.name));
     }
   }
 
@@ -421,9 +442,19 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   void visitIf(tree_ir.If node) {
-    accumulator.add(new js.If(visitExpression(node.condition),
-                              buildBodyStatement(node.thenStatement),
-                              buildBodyStatement(node.elseStatement)));
+    js.Expression condition = visitExpression(node.condition);
+    int usesBefore = fallthrough.useCount;
+    js.Statement thenBody = buildBodyStatement(node.thenStatement);
+    bool thenHasFallthrough = (fallthrough.useCount > usesBefore);
+    if (thenHasFallthrough) {
+      js.Statement elseBody = buildBodyStatement(node.elseStatement);
+      accumulator.add(new js.If(condition, thenBody, elseBody));
+    } else {
+      // The 'then' body cannot complete normally, so emit a short 'if'
+      // and put the 'else' body after it.
+      accumulator.add(new js.If.noElse(condition, thenBody));
+      visitStatement(node.elseStatement);
+    }
   }
 
   @override
@@ -435,30 +466,15 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   js.Statement buildLabeled(js.Statement buildBody(),
-                tree_ir.Label label,
-                tree_ir.Statement fallthroughStatement) {
-    tree_ir.Statement savedFallthrough = fallthrough;
-    fallthrough = fallthroughStatement;
+                            tree_ir.Label label,
+                            tree_ir.Statement fallthroughStatement) {
+    fallthrough.push(fallthroughStatement);
     js.Statement result = buildBody();
     if (usedLabels.remove(label)) {
       result = new js.LabeledStatement(label.name, result);
     }
-    fallthrough = savedFallthrough;
+    fallthrough.pop();
     return result;
-  }
-
-  @override
-  void visitBreak(tree_ir.Break node) {
-    tree_ir.Statement fallthrough = this.fallthrough;
-    if (node.target.binding.next == fallthrough) {
-      // Fall through to break target
-    } else if (fallthrough is tree_ir.Break &&
-               fallthrough.target == node.target) {
-      // Fall through to equivalent break
-    } else {
-      usedLabels.add(node.target);
-      accumulator.add(new js.Break(node.target.name));
-    }
   }
 
   /// Returns the current [accumulator] wrapped in a block if neccessary.
@@ -516,9 +532,19 @@ class CodeGenerator extends tree_ir.StatementVisitor
         buildWhile(new js.LiteralBool(true), node.body, node.label, node));
   }
 
+  bool isNull(tree_ir.Expression node) {
+    return node is tree_ir.Constant && node.value.isNull;
+  }
+
   @override
   void visitReturn(tree_ir.Return node) {
-    accumulator.add(new js.Return(visitExpression(node.value)));
+    if (isNull(node.value) && fallthrough.target == null) {
+      // Do nothing. Implicitly return JS undefined by falling over the end.
+      registry.registerCompileTimeConstant(new NullConstantValue());
+      fallthrough.use();
+    } else {
+      accumulator.add(new js.Return(visitExpression(node.value)));
+    }
   }
 
   @override
@@ -609,6 +635,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitGetField(tree_ir.GetField node) {
+    registry.registerFieldGetter(node.field);
     return new js.PropertyAccess(
         visitExpression(node.object),
         glue.instanceFieldPropertyName(node.field));
@@ -616,6 +643,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Assignment visitSetField(tree_ir.SetField node) {
+    registry.registerFieldSetter(node.field);
     js.PropertyAccess field =
         new js.PropertyAccess(
             visitExpression(node.object),
@@ -701,8 +729,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   @override
-  visitForeignStatement(tree_ir.ForeignStatement node) {
-    return handleForeignCode(node);
+  void visitForeignStatement(tree_ir.ForeignStatement node) {
+    accumulator.add(handleForeignCode(node));
   }
 
   @override

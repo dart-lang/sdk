@@ -65,7 +65,7 @@ class DominatorTreeRow extends TableTreeRow {
     percentNode.text =  Utils.formatPercentNormalized(percentRetained);
     percentNode.style.minWidth = '5em';
     percentNode.style.textAlign = 'right';
-    percentNode.title = "Retaining x of y.";
+    percentNode.title = "Percent of heap being retained";
     percentNode.style.display = 'inline-block';
     firstColumn.children.add(percentNode);
 

@@ -1245,7 +1245,7 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNodeList(node.metadata), cloneToken(node.keyword),
           cloneNode(node.type), cloneToken(node.thisKeyword),
           cloneToken(node.period), cloneNode(node.identifier),
-          cloneNode(node.parameters));
+          cloneNode(node.typeParameters), cloneNode(node.parameters));
 
   @override
   ForEachStatement visitForEachStatement(ForEachStatement node) {
@@ -1292,12 +1292,14 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) =>
-      new FunctionExpression(cloneNode(node.parameters), cloneNode(node.body));
+      new FunctionExpression(cloneNode(node.typeParameters),
+          cloneNode(node.parameters), cloneNode(node.body));
 
   @override
   FunctionExpressionInvocation visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) => new FunctionExpressionInvocation(
-      cloneNode(node.function), cloneNode(node.argumentList));
+      cloneNode(node.function), cloneNode(node.typeArguments),
+      cloneNode(node.argumentList));
 
   @override
   FunctionTypeAlias visitFunctionTypeAlias(FunctionTypeAlias node) =>
@@ -1312,7 +1314,7 @@ class AstCloner implements AstVisitor<AstNode> {
       FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(
       cloneNode(node.documentationComment), cloneNodeList(node.metadata),
       cloneNode(node.returnType), cloneNode(node.identifier),
-      cloneNode(node.parameters));
+      cloneNode(node.typeParameters), cloneNode(node.parameters));
 
   @override
   HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(
@@ -1424,13 +1426,14 @@ class AstCloner implements AstVisitor<AstNode> {
           cloneNodeList(node.metadata), cloneToken(node.externalKeyword),
           cloneToken(node.modifierKeyword), cloneNode(node.returnType),
           cloneToken(node.propertyKeyword), cloneToken(node.operatorKeyword),
-          cloneNode(node.name), cloneNode(node.parameters),
-          cloneNode(node.body));
+          cloneNode(node.name), cloneNode(node.typeParameters),
+          cloneNode(node.parameters), cloneNode(node.body));
 
   @override
   MethodInvocation visitMethodInvocation(MethodInvocation node) =>
       new MethodInvocation(cloneNode(node.target), cloneToken(node.operator),
-          cloneNode(node.methodName), cloneNode(node.argumentList));
+          cloneNode(node.methodName), cloneNode(node.typeArguments),
+          cloneNode(node.argumentList));
 
   @override
   NamedExpression visitNamedExpression(NamedExpression node) =>
@@ -7129,7 +7132,7 @@ class FieldDeclaration extends ClassMember {
  *
  * > fieldFormalParameter ::=
  * >     ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
- * >     'this' '.' [SimpleIdentifier] [FormalParameterList]?
+ * >     'this' '.' [SimpleIdentifier] ([TypeParameterList]? [FormalParameterList])?
  */
 class FieldFormalParameter extends NormalFormalParameter {
   /**
@@ -7155,6 +7158,12 @@ class FieldFormalParameter extends NormalFormalParameter {
   Token period;
 
   /**
+   * The type parameters associated with the method, or `null` if the method is
+   * not a generic method.
+   */
+  TypeParameterList _typeParameters;
+
+  /**
    * The parameters of the function-typed parameter, or `null` if this is not a
    * function-typed field formal parameter.
    */
@@ -7171,9 +7180,10 @@ class FieldFormalParameter extends NormalFormalParameter {
    */
   FieldFormalParameter(Comment comment, List<Annotation> metadata, this.keyword,
       TypeName type, this.thisKeyword, this.period, SimpleIdentifier identifier,
-      FormalParameterList parameters)
+      TypeParameterList typeParameters, FormalParameterList parameters)
       : super(comment, metadata, identifier) {
     _type = _becomeParentOf(type);
+    _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
   }
 
@@ -7255,6 +7265,20 @@ class FieldFormalParameter extends NormalFormalParameter {
     _type = _becomeParentOf(typeName);
   }
 
+  /**
+   * Return the type parameters associated with this method, or `null` if this
+   * method is not a generic method.
+   */
+  TypeParameterList get typeParameters => _typeParameters;
+
+  /**
+   * Set the type parameters associated with this method to the given
+   * [typeParameters].
+   */
+  void set typeParameters(TypeParameterList typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
+  }
+
   @override
   accept(AstVisitor visitor) => visitor.visitFieldFormalParameter(this);
 
@@ -7263,6 +7287,7 @@ class FieldFormalParameter extends NormalFormalParameter {
     super.visitChildren(visitor);
     _safelyVisitChild(_type, visitor);
     _safelyVisitChild(identifier, visitor);
+    _safelyVisitChild(_typeParameters, visitor);
     _safelyVisitChild(_parameters, visitor);
   }
 }
@@ -8010,9 +8035,15 @@ class FunctionDeclarationStatement extends Statement {
  * A function expression.
  *
  * > functionExpression ::=
- * >     [FormalParameterList] [FunctionBody]
+ * >     [TypeParameterList]? [FormalParameterList] [FunctionBody]
  */
 class FunctionExpression extends Expression {
+  /**
+   * The type parameters associated with the method, or `null` if the method is
+   * not a generic method.
+   */
+  TypeParameterList _typeParameters;
+
   /**
    * The parameters associated with the function.
    */
@@ -8032,14 +8063,18 @@ class FunctionExpression extends Expression {
   /**
    * Initialize a newly created function declaration.
    */
-  FunctionExpression(FormalParameterList parameters, FunctionBody body) {
+  FunctionExpression(TypeParameterList typeParameters,
+      FormalParameterList parameters, FunctionBody body) {
+    _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
     _body = _becomeParentOf(body);
   }
 
   @override
   Token get beginToken {
-    if (_parameters != null) {
+    if (_typeParameters != null) {
+      return _typeParameters.beginToken;
+    } else if (_parameters != null) {
       return _parameters.beginToken;
     } else if (_body != null) {
       return _body.beginToken;
@@ -8093,11 +8128,26 @@ class FunctionExpression extends Expression {
   @override
   int get precedence => 16;
 
+  /**
+   * Return the type parameters associated with this method, or `null` if this
+   * method is not a generic method.
+   */
+  TypeParameterList get typeParameters => _typeParameters;
+
+  /**
+   * Set the type parameters associated with this method to the given
+   * [typeParameters].
+   */
+  void set typeParameters(TypeParameterList typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
+  }
+
   @override
   accept(AstVisitor visitor) => visitor.visitFunctionExpression(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
+    _safelyVisitChild(_typeParameters, visitor);
     _safelyVisitChild(_parameters, visitor);
     _safelyVisitChild(_body, visitor);
   }
@@ -8110,13 +8160,19 @@ class FunctionExpression extends Expression {
  * by either [PrefixedIdentifier] or [PropertyAccess] nodes.
  *
  * > functionExpressionInvoction ::=
- * >     [Expression] [ArgumentList]
+ * >     [Expression] [TypeArgumentList]? [ArgumentList]
  */
 class FunctionExpressionInvocation extends Expression {
   /**
    * The expression producing the function being invoked.
    */
   Expression _function;
+
+  /**
+   * The type arguments to be applied to the method being invoked, or `null` if
+   * no type arguments were provided.
+   */
+  TypeArgumentList _typeArguments;
 
   /**
    * The list of arguments to the function.
@@ -8140,8 +8196,10 @@ class FunctionExpressionInvocation extends Expression {
   /**
    * Initialize a newly created function expression invocation.
    */
-  FunctionExpressionInvocation(Expression function, ArgumentList argumentList) {
+  FunctionExpressionInvocation(Expression function,
+      TypeArgumentList typeArguments, ArgumentList argumentList) {
     _function = _becomeParentOf(function);
+    _typeArguments = _becomeParentOf(typeArguments);
     _argumentList = _becomeParentOf(argumentList);
   }
 
@@ -8198,12 +8256,27 @@ class FunctionExpressionInvocation extends Expression {
   @override
   int get precedence => 15;
 
+  /**
+   * Return the type arguments to be applied to the method being invoked, or
+   * `null` if no type arguments were provided.
+   */
+  TypeArgumentList get typeArguments => _typeArguments;
+
+  /**
+   * Set the type arguments to be applied to the method being invoked to the
+   * given [typeArguments].
+   */
+  void set typeArguments(TypeArgumentList typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments);
+  }
+
   @override
   accept(AstVisitor visitor) => visitor.visitFunctionExpressionInvocation(this);
 
   @override
   void visitChildren(AstVisitor visitor) {
     _safelyVisitChild(_function, visitor);
+    _safelyVisitChild(_typeArguments, visitor);
     _safelyVisitChild(_argumentList, visitor);
   }
 }
@@ -8323,7 +8396,7 @@ class FunctionTypeAlias extends TypeAlias {
  * A function-typed formal parameter.
  *
  * > functionSignature ::=
- * >     [TypeName]? [SimpleIdentifier] [FormalParameterList]
+ * >     [TypeName]? [SimpleIdentifier] [TypeParameterList]? [FormalParameterList]
  */
 class FunctionTypedFormalParameter extends NormalFormalParameter {
   /**
@@ -8331,6 +8404,12 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    * return type.
    */
   TypeName _returnType;
+
+  /**
+   * The type parameters associated with the function, or `null` if the function
+   * is not a generic function.
+   */
+  TypeParameterList _typeParameters;
 
   /**
    * The parameters of the function-typed parameter.
@@ -8345,9 +8424,10 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
    */
   FunctionTypedFormalParameter(Comment comment, List<Annotation> metadata,
       TypeName returnType, SimpleIdentifier identifier,
-      FormalParameterList parameters)
+      TypeParameterList typeParameters, FormalParameterList parameters)
       : super(comment, metadata, identifier) {
     _returnType = _becomeParentOf(returnType);
+    _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
   }
 
@@ -8398,6 +8478,20 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
     _returnType = _becomeParentOf(type);
   }
 
+  /**
+   * Return the type parameters associated with this function, or `null` if
+   * this function is not a generic function.
+   */
+  TypeParameterList get typeParameters => _typeParameters;
+
+  /**
+   * Set the type parameters associated with this method to the given
+   * [typeParameters].
+   */
+  void set typeParameters(TypeParameterList typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
+  }
+
   @override
   accept(AstVisitor visitor) => visitor.visitFunctionTypedFormalParameter(this);
 
@@ -8406,6 +8500,7 @@ class FunctionTypedFormalParameter extends NormalFormalParameter {
     super.visitChildren(visitor);
     _safelyVisitChild(_returnType, visitor);
     _safelyVisitChild(identifier, visitor);
+    _safelyVisitChild(_typeParameters, visitor);
     _safelyVisitChild(_parameters, visitor);
   }
 }
@@ -9651,7 +9746,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _cloneNodeList(node.metadata), _mapToken(node.keyword),
           _cloneNode(node.type), _mapToken(node.thisKeyword),
           _mapToken(node.period), _cloneNode(node.identifier),
-          _cloneNode(node.parameters));
+          _cloneNode(node.typeParameters), _cloneNode(node.parameters));
 
   @override
   ForEachStatement visitForEachStatement(ForEachStatement node) {
@@ -9699,7 +9794,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   @override
   FunctionExpression visitFunctionExpression(FunctionExpression node) {
     FunctionExpression copy = new FunctionExpression(
-        _cloneNode(node.parameters), _cloneNode(node.body));
+        _cloneNode(node.typeParameters), _cloneNode(node.parameters),
+        _cloneNode(node.body));
     copy.element = node.element;
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
@@ -9710,7 +9806,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
   FunctionExpressionInvocation visitFunctionExpressionInvocation(
       FunctionExpressionInvocation node) {
     FunctionExpressionInvocation copy = new FunctionExpressionInvocation(
-        _cloneNode(node.function), _cloneNode(node.argumentList));
+        _cloneNode(node.function), _cloneNode(node.typeArguments),
+        _cloneNode(node.argumentList));
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;
     copy.staticElement = node.staticElement;
@@ -9731,7 +9828,7 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       FunctionTypedFormalParameter node) => new FunctionTypedFormalParameter(
       _cloneNode(node.documentationComment), _cloneNodeList(node.metadata),
       _cloneNode(node.returnType), _cloneNode(node.identifier),
-      _cloneNode(node.parameters));
+      _cloneNode(node.typeParameters), _cloneNode(node.parameters));
 
   @override
   HideCombinator visitHideCombinator(HideCombinator node) => new HideCombinator(
@@ -9873,14 +9970,14 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _cloneNodeList(node.metadata), _mapToken(node.externalKeyword),
           _mapToken(node.modifierKeyword), _cloneNode(node.returnType),
           _mapToken(node.propertyKeyword), _mapToken(node.operatorKeyword),
-          _cloneNode(node.name), _cloneNode(node.parameters),
-          _cloneNode(node.body));
+          _cloneNode(node.name), _cloneNode(node._typeParameters),
+          _cloneNode(node.parameters), _cloneNode(node.body));
 
   @override
   MethodInvocation visitMethodInvocation(MethodInvocation node) {
     MethodInvocation copy = new MethodInvocation(_cloneNode(node.target),
         _mapToken(node.operator), _cloneNode(node.methodName),
-        _cloneNode(node.argumentList));
+        _cloneNode(node.typeArguments), _cloneNode(node.argumentList));
     copy.propagatedType = node.propagatedType;
     copy.staticType = node.staticType;
     return copy;
@@ -11416,7 +11513,7 @@ class MapLiteralEntry extends AstNode {
  * >
  * > methodSignature ::=
  * >     'external'? ('abstract' | 'static')? [Type]? ('get' | 'set')?
- * >     methodName [FormalParameterList]
+ * >     methodName [TypeParameterList] [FormalParameterList]
  * >
  * > methodName ::=
  * >     [SimpleIdentifier]
@@ -11458,6 +11555,12 @@ class MethodDeclaration extends ClassMember {
   SimpleIdentifier _name;
 
   /**
+   * The type parameters associated with the method, or `null` if the method is
+   * not a generic method.
+   */
+  TypeParameterList _typeParameters;
+
+  /**
    * The parameters associated with the method, or `null` if this method
    * declares a getter.
    */
@@ -11482,10 +11585,12 @@ class MethodDeclaration extends ClassMember {
   MethodDeclaration(Comment comment, List<Annotation> metadata,
       this.externalKeyword, this.modifierKeyword, TypeName returnType,
       this.propertyKeyword, this.operatorKeyword, SimpleIdentifier name,
-      FormalParameterList parameters, FunctionBody body)
+      TypeParameterList typeParameters, FormalParameterList parameters,
+      FunctionBody body)
       : super(comment, metadata) {
     _returnType = _becomeParentOf(returnType);
     _name = _becomeParentOf(name);
+    _typeParameters = _becomeParentOf(typeParameters);
     _parameters = _becomeParentOf(parameters);
     _body = _becomeParentOf(body);
   }
@@ -11612,6 +11717,20 @@ class MethodDeclaration extends ClassMember {
     _returnType = _becomeParentOf(typeName);
   }
 
+  /**
+   * Return the type parameters associated with this method, or `null` if this
+   * method is not a generic method.
+   */
+  TypeParameterList get typeParameters => _typeParameters;
+
+  /**
+   * Set the type parameters associated with this method to the given
+   * [typeParameters].
+   */
+  void set typeParameters(TypeParameterList typeParameters) {
+    _typeParameters = _becomeParentOf(typeParameters);
+  }
+
   @override
   accept(AstVisitor visitor) => visitor.visitMethodDeclaration(this);
 
@@ -11620,6 +11739,7 @@ class MethodDeclaration extends ClassMember {
     super.visitChildren(visitor);
     _safelyVisitChild(_returnType, visitor);
     _safelyVisitChild(_name, visitor);
+    _safelyVisitChild(_typeParameters, visitor);
     _safelyVisitChild(_parameters, visitor);
     _safelyVisitChild(_body, visitor);
   }
@@ -11632,7 +11752,7 @@ class MethodDeclaration extends ClassMember {
  * represented by either [PrefixedIdentifier] or [PropertyAccess] nodes.
  *
  * > methodInvoction ::=
- * >     ([Expression] '.')? [SimpleIdentifier] [ArgumentList]
+ * >     ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
  */
 class MethodInvocation extends Expression {
   /**
@@ -11655,6 +11775,12 @@ class MethodInvocation extends Expression {
   SimpleIdentifier _methodName;
 
   /**
+   * The type arguments to be applied to the method being invoked, or `null` if
+   * no type arguments were provided.
+   */
+  TypeArgumentList _typeArguments;
+
+  /**
    * The list of arguments to the method.
    */
   ArgumentList _argumentList;
@@ -11664,9 +11790,11 @@ class MethodInvocation extends Expression {
    * can be `null` if there is no target.
    */
   MethodInvocation(Expression target, this.operator,
-      SimpleIdentifier methodName, ArgumentList argumentList) {
+      SimpleIdentifier methodName, TypeArgumentList typeArguments,
+      ArgumentList argumentList) {
     _target = _becomeParentOf(target);
     _methodName = _becomeParentOf(methodName);
+    _typeArguments = _becomeParentOf(typeArguments);
     _argumentList = _becomeParentOf(argumentList);
   }
 
@@ -11783,6 +11911,20 @@ class MethodInvocation extends Expression {
     _target = _becomeParentOf(expression);
   }
 
+  /**
+   * Return the type arguments to be applied to the method being invoked, or
+   * `null` if no type arguments were provided.
+   */
+  TypeArgumentList get typeArguments => _typeArguments;
+
+  /**
+   * Set the type arguments to be applied to the method being invoked to the
+   * given [typeArguments].
+   */
+  void set typeArguments(TypeArgumentList typeArguments) {
+    _typeArguments = _becomeParentOf(typeArguments);
+  }
+
   @override
   accept(AstVisitor visitor) => visitor.visitMethodInvocation(this);
 
@@ -11790,6 +11932,7 @@ class MethodInvocation extends Expression {
   void visitChildren(AstVisitor visitor) {
     _safelyVisitChild(_target, visitor);
     _safelyVisitChild(_methodName, visitor);
+    _safelyVisitChild(_typeArguments, visitor);
     _safelyVisitChild(_argumentList, visitor);
   }
 }
@@ -12466,6 +12609,7 @@ class NodeReplacer implements AstVisitor<bool> {
   bool visitAwaitExpression(AwaitExpression node) {
     if (identical(node.expression, _oldNode)) {
       node.expression = _newNode as Expression;
+      return true;
     }
     return visitNode(node);
   }
@@ -13492,6 +13636,7 @@ class NodeReplacer implements AstVisitor<bool> {
   bool visitYieldStatement(YieldStatement node) {
     if (identical(node.expression, _oldNode)) {
       node.expression = _newNode as Expression;
+      return true;
     }
     return visitNode(node);
   }
@@ -17765,6 +17910,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitNodeWithSuffix(node.type, " ");
     _writer.print("this.");
     _visitNode(node.identifier);
+    _visitNode(node.typeParameters);
     _visitNode(node.parameters);
     return null;
   }
@@ -17853,6 +17999,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
 
   @override
   Object visitFunctionExpression(FunctionExpression node) {
+    _visitNode(node.typeParameters);
     _visitNode(node.parameters);
     _writer.print(' ');
     _visitNode(node.body);
@@ -17862,6 +18009,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _visitNode(node.function);
+    _visitNode(node.typeArguments);
     _visitNode(node.argumentList);
     return null;
   }
@@ -17882,6 +18030,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
   Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     _visitNodeWithSuffix(node.returnType, " ");
     _visitNode(node.identifier);
+    _visitNode(node.typeParameters);
     _visitNode(node.parameters);
     return null;
   }
@@ -18055,6 +18204,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
     _visitTokenWithSuffix(node.operatorKeyword, " ");
     _visitNode(node.name);
     if (!node.isGetter) {
+      _visitNode(node.typeParameters);
       _visitNode(node.parameters);
     }
     _visitFunctionWithPrefix(" ", node.body);
@@ -18072,6 +18222,7 @@ class ToSourceVisitor implements AstVisitor<Object> {
       }
     }
     _visitNode(node.methodName);
+    _visitNode(node.typeArguments);
     _visitNode(node.argumentList);
     return null;
   }

@@ -15,7 +15,7 @@ import '../../js_backend/js_backend.dart' show
 
 import '../js_emitter.dart' show AstContainer, NativeEmitter;
 
-import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
+import 'package:js_runtime/shared/embedded_names.dart' show
     CREATE_NEW_ISOLATE,
     DEFERRED_LIBRARY_URIS,
     DEFERRED_LIBRARY_HASHES,

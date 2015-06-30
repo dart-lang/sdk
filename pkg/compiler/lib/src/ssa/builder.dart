@@ -1019,12 +1019,18 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
 /**
  * This class builds SSA nodes for functions represented in AST.
  */
-class SsaBuilder extends NewResolvedVisitor {
+class SsaBuilder extends ast.Visitor
+    with BaseImplementationOfCompoundsMixin,
+         SendResolverMixin,
+         SemanticSendResolvedMixin,
+         NewBulkMixin
+    implements SemanticSendVisitor {
   final Compiler compiler;
   final JavaScriptBackend backend;
   final ConstantSystem constantSystem;
   final CodegenWorkItem work;
   final RuntimeTypes rti;
+  TreeElements elements;
   SourceInformationBuilder sourceInformationBuilder;
   bool inLazyInitializerExpression = false;
 
@@ -1119,11 +1125,24 @@ class SsaBuilder extends NewResolvedVisitor {
       this.constantSystem = backend.constantSystem,
       this.work = work,
       this.rti = backend.rti,
-      super(work.resolutionTree) {
+      this.elements = work.resolutionTree {
     localsHandler = new LocalsHandler(this, work.element, null);
     sourceElementStack.add(work.element);
     sourceInformationBuilder =
         sourceInformationFactory.forContext(work.element.implementation);
+  }
+
+  @override
+  SemanticSendVisitor get sendVisitor => this;
+
+  @override
+  void visitNode(ast.Node node) {
+    internalError(node, "Unhandled node: $node");
+  }
+
+  @override
+  void apply(ast.Node node, [_]) {
+    node.accept(this);
   }
 
   CodegenRegistry get registry => work.registry;
@@ -1940,12 +1959,13 @@ class SsaBuilder extends NewResolvedVisitor {
       }
 
       Element target = constructor.definingConstructor.implementation;
-      bool match = CallStructure.addForwardingElementArgumentsToList(
-          constructor,
-          arguments,
-          target,
-          compileArgument,
-          handleConstantForOptionalParameter);
+      bool match = !target.isErroneous &&
+          CallStructure.addForwardingElementArgumentsToList(
+              constructor,
+              arguments,
+              target,
+              compileArgument,
+              handleConstantForOptionalParameter);
       if (!match) {
         if (compiler.elementHasCompileTimeError(constructor)) {
           return;
@@ -3123,9 +3143,14 @@ class SsaBuilder extends NewResolvedVisitor {
     localsHandler.updateLocal(localFunction, pop());
   }
 
+  @override
+  void visitThisGet(ast.Identifier node, [_]) {
+    stack.add(localsHandler.readThis());
+  }
+
   visitIdentifier(ast.Identifier node) {
     if (node.isThis()) {
-      stack.add(localsHandler.readThis());
+      visitThisGet(node);
     } else {
       compiler.internalError(node,
           "SsaFromAstMixin.visitIdentifier on non-this.");
@@ -3401,8 +3426,6 @@ class SsaBuilder extends NewResolvedVisitor {
     // TODO(5346): Try to avoid the need for calling [declaration] before
     // creating an [HStatic].
     push(new HStatic(function.declaration, backend.nonNullType));
-    // TODO(ahe): This should be registered in codegen.
-    registry.registerGetOfStaticFunction(function.declaration);
   }
 
   /// Read a local variable, function or parameter.
@@ -4401,18 +4424,6 @@ class SsaBuilder extends NewResolvedVisitor {
     generateSuperNoSuchMethodSend(node, selector, arguments);
   }
 
-  /// Handle super constructor invocation.
-  @override
-  void handleSuperConstructorInvoke(ast.Send node) {
-    Selector selector = elements.getSelector(node);
-    Element element = elements[node];
-    if (selector.applies(element, compiler.world)) {
-      generateSuperInvoke(node, element);
-    } else {
-      generateWrongArgumentCountError(node, element, node.arguments);
-    }
-  }
-
   @override
   void visitUnresolvedSuperIndex(
       ast.Send node,
@@ -4575,6 +4586,20 @@ class SsaBuilder extends NewResolvedVisitor {
       ast.NodeList arguments,
       CallStructure callStructure,
       _) {
+    handleInvalidSuperInvoke(node, arguments);
+  }
+
+  @override
+  void visitSuperSetterInvoke(
+      ast.Send node,
+      SetterElement setter,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    handleInvalidSuperInvoke(node, arguments);
+  }
+
+  void handleInvalidSuperInvoke(ast.Send node, ast.NodeList arguments) {
     Selector selector = elements.getSelector(node);
     List<HInstruction> inputs = <HInstruction>[];
     addGenericSendArgumentsToList(arguments.nodes, inputs);
@@ -4760,7 +4785,7 @@ class SsaBuilder extends NewResolvedVisitor {
     return pop();
   }
 
-  handleNewSend(ast.NewExpression node) {
+  void handleNewSend(ast.NewExpression node) {
     ast.Send send = node.send;
     generateIsDeferredLoadedCheckOfSend(send);
 
@@ -4860,13 +4885,16 @@ class SsaBuilder extends NewResolvedVisitor {
     }
     // TODO(5347): Try to avoid the need for calling [implementation] before
     // calling [makeStaticArgumentList].
-    if (!callStructure.signatureApplies(constructor.implementation)) {
+    constructorImplementation = constructor.implementation;
+    if (constructorImplementation.isErroneous ||
+        !callStructure.signatureApplies(
+            constructorImplementation.functionSignature)) {
       generateWrongArgumentCountError(send, constructor, send.arguments);
       return;
     }
     inputs.addAll(makeStaticArgumentList(callStructure,
                                          send.arguments,
-                                         constructor.implementation));
+                                         constructorImplementation));
 
     TypeMask elementType = computeType(constructor);
     if (isFixedListConstructorCall) {
@@ -5427,7 +5455,12 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
-  handleNewExpression(ast.NewExpression node) {
+  void bulkHandleNode(ast.Node node, String message, _) {
+    internalError(node, "Unexpected bulk handled node: $node");
+  }
+
+  @override
+  void bulkHandleNew(ast.NewExpression node, [_]) {
     Element element = elements[node.send];
     final bool isSymbolConstructor = element == compiler.symbolConstructor;
     if (!Elements.isErroneous(element)) {
@@ -5461,6 +5494,17 @@ class SsaBuilder extends NewResolvedVisitor {
     } else {
       handleNewSend(node);
     }
+  }
+
+  @override
+  void errorNonConstantConstructorInvoke(
+      ast.NewExpression node,
+      Element element,
+      DartType type,
+      ast.NodeList arguments,
+      CallStructure callStructure,
+      _) {
+    bulkHandleNew(node);
   }
 
   void pushInvokeDynamic(ast.Node node,
@@ -5690,6 +5734,369 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
+  void handleSuperCompounds(
+      ast.SendSet node,
+      Element getter,
+      CompoundGetter getterKind,
+      Element setter,
+      CompoundSetter setterKind,
+      CompoundRhs rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitFinalSuperFieldSet(
+      ast.SendSet node,
+      FieldElement field,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperFieldSet(
+      ast.SendSet node,
+      FieldElement field,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperGetterSet(
+      ast.SendSet node,
+      FunctionElement getter,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperIndexSet(
+      ast.SendSet node,
+      FunctionElement function,
+      ast.Node index,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperMethodSet(
+      ast.Send node,
+      MethodElement method,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperSetterSet(
+      ast.SendSet node,
+      FunctionElement setter,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperIndexSet(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperIndexPrefix(
+      ast.Send node,
+      MethodElement indexFunction,
+      MethodElement indexSetFunction,
+      ast.Node index,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperIndexPostfix(
+      ast.Send node,
+      MethodElement indexFunction,
+      MethodElement indexSetFunction,
+      ast.Node index,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperGetterIndexPrefix(
+      ast.Send node,
+      Element element,
+      MethodElement setter,
+      ast.Node index,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperGetterIndexPostfix(
+      ast.Send node,
+      Element element,
+      MethodElement setter,
+      ast.Node index,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperSetterIndexPrefix(
+      ast.Send node,
+      MethodElement indexFunction,
+      Element element,
+      ast.Node index,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperSetterIndexPostfix(
+      ast.Send node,
+      MethodElement indexFunction,
+      Element element,
+      ast.Node index,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperIndexPrefix(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperIndexPostfix(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperCompoundIndexSet(
+      ast.SendSet node,
+      MethodElement getter,
+      MethodElement setter,
+      ast.Node index,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperGetterCompoundIndexSet(
+      ast.Send node,
+      Element element,
+      MethodElement setter,
+      ast.Node index,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperSetterCompoundIndexSet(
+      ast.Send node,
+      MethodElement getter,
+      Element element,
+      ast.Node index,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperCompoundIndexSet(
+      ast.Send node,
+      Element element,
+      ast.Node index,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperFieldCompound(
+      ast.Send node,
+      FieldElement field,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitFinalSuperFieldCompound(
+      ast.Send node,
+      FieldElement field,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitFinalSuperFieldPrefix(
+      ast.Send node,
+      FieldElement field,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperPrefix(
+      ast.Send node,
+      Element element,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperPostfix(
+      ast.Send node,
+      Element element,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperCompound(
+      ast.Send node,
+      Element element,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitFinalSuperFieldPostfix(
+      ast.Send node,
+      FieldElement field,
+      IncDecOperator operator,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperFieldFieldCompound(
+      ast.Send node,
+      FieldElement readField,
+      FieldElement writtenField,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperGetterSetterCompound(
+      ast.Send node,
+      FunctionElement getter,
+      FunctionElement setter,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperMethodSetterCompound(
+      ast.Send node,
+      FunctionElement method,
+      FunctionElement setter,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperMethodCompound(
+      ast.Send node,
+      FunctionElement method,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperGetterCompound(
+      ast.Send node,
+      Element element,
+      MethodElement setter,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitUnresolvedSuperSetterCompound(
+      ast.Send node,
+      MethodElement getter,
+      Element element,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperFieldSetterCompound(
+      ast.Send node,
+      FieldElement field,
+      FunctionElement setter,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
+  void visitSuperGetterFieldCompound(
+      ast.Send node,
+      FunctionElement getter,
+      FieldElement field,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    handleSuperSendSet(node);
+  }
+
+  @override
   void visitIndexSet(
       ast.SendSet node,
       ast.Node receiver,
@@ -5697,6 +6104,40 @@ class SsaBuilder extends NewResolvedVisitor {
       ast.Node rhs,
       _) {
     generateDynamicSend(node);
+  }
+
+  @override
+  void visitCompoundIndexSet(
+      ast.SendSet node,
+      ast.Node receiver,
+      ast.Node index,
+      AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    generateIsDeferredLoadedCheckOfSend(node);
+    handleIndexSendSet(node);
+  }
+
+  @override
+  void visitIndexPrefix(
+      ast.Send node,
+      ast.Node receiver,
+      ast.Node index,
+      IncDecOperator operator,
+      _) {
+    generateIsDeferredLoadedCheckOfSend(node);
+    handleIndexSendSet(node);
+  }
+
+  @override
+  void visitIndexPostfix(
+      ast.Send node,
+      ast.Node receiver,
+      ast.Node index,
+      IncDecOperator operator,
+      _) {
+    generateIsDeferredLoadedCheckOfSend(node);
+    handleIndexSendSet(node);
   }
 
   void handleIndexSendSet(ast.SendSet node) {
@@ -6108,27 +6549,36 @@ class SsaBuilder extends NewResolvedVisitor {
   }
 
   @override
-  handleSendSet(ast.SendSet node) {
-    ast.Operator op = node.assignmentOperator;
-    generateIsDeferredLoadedCheckOfSend(node);
-    Element element = elements[node];
-    if (!Elements.isUnresolved(element) && element.impliesType) {
-      ast.Identifier selector = node.selector;
-      generateThrowNoSuchMethod(node, selector.source,
-                                argumentNodes: node.arguments);
-    } else if (node.isSuperCall) {
-      handleSuperSendSet(node);
-    } else if (node.isIndex) {
-      handleIndexSendSet(node);
-    } else if ("=" == op.source) {
-      internalError(node, "Unexpected assignment.");
-    } else if (identical(op.source, "is")) {
-      compiler.internalError(op, "is-operator as SendSet.");
-    } else {
-      assert("++" == op.source || "--" == op.source ||
-             node.assignmentOperator.source.endsWith("="));
-      handleCompoundSendSet(node);
-    }
+  void handleDynamicCompounds(
+      ast.Send node,
+      ast.Node receiver,
+      CompoundRhs rhs,
+      Selector getterSelector,
+      Selector setterSelector,
+      _) {
+    handleCompoundSendSet(node);
+  }
+
+  @override
+  void handleLocalCompounds(
+      ast.SendSet node,
+      LocalElement local,
+      CompoundRhs rhs,
+      _,
+      {bool isSetterValid}) {
+    handleCompoundSendSet(node);
+  }
+
+  @override
+  void handleStaticCompounds(
+      ast.SendSet node,
+      Element getter,
+      CompoundGetter getterKind,
+      Element setter,
+      CompoundSetter setterKind,
+      CompoundRhs rhs,
+      _) {
+    handleCompoundSendSet(node);
   }
 
   void visitLiteralInt(ast.LiteralInt node) {
@@ -7570,6 +8020,80 @@ class SsaBuilder extends NewResolvedVisitor {
     } else {
       localsHandler.updateLocal(returnLocal, value);
     }
+  }
+
+  @override
+  void handleTypeLiteralConstantCompounds(
+      ast.SendSet node,
+      ConstantExpression constant,
+      CompoundRhs rhs,
+      _) {
+    if (rhs.operator.kind == BinaryOperatorKind.IF_NULL) {
+      handleCompoundSendSet(node);
+    } else {
+      handleTypeLiteralCompound(node);
+    }
+  }
+
+  @override
+  void handleTypeVariableTypeLiteralCompounds(
+      ast.SendSet node,
+      TypeVariableElement typeVariable,
+      CompoundRhs rhs,
+      _) {
+    handleTypeLiteralCompound(node);
+  }
+
+  void handleTypeLiteralCompound(ast.SendSet node) {
+    generateIsDeferredLoadedCheckOfSend(node);
+    ast.Identifier selector = node.selector;
+    generateThrowNoSuchMethod(node, selector.source,
+                              argumentNodes: node.arguments);
+  }
+
+  @override
+  void visitConstantGet(
+    ast.Send node,
+    ConstantExpression constant,
+    _) {
+    visitNode(node);
+  }
+
+  @override
+  void visitConstantInvoke(
+    ast.Send node,
+    ConstantExpression constant,
+    ast.NodeList arguments,
+    CallStructure callStreucture,
+    _) {
+    visitNode(node);
+  }
+
+  @override
+  void errorInvalidAssert(
+      ast.Send node,
+      ast.NodeList arguments,
+      _) {
+    visitNode(node);
+  }
+
+  @override
+  void errorUndefinedBinaryExpression(
+      ast.Send node,
+      ast.Node left,
+      ast.Operator operator,
+      ast.Node right,
+      _) {
+    visitNode(node);
+  }
+
+  @override
+  void errorUndefinedUnaryExpression(
+      ast.Send node,
+      ast.Operator operator,
+      ast.Node expression,
+      _) {
+    visitNode(node);
   }
 }
 

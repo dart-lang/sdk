@@ -13,7 +13,7 @@ vars.update({
   "dartium_chromium_commit": "62a7524d4f71c9e0858d24b0aa1bbff3a2d09bff",
   "chromium_base_revision": "297060",
   "dartium_webkit_branch": "/blink/branches/dart/dartium",
-  "dartium_webkit_revision": "197293",
+  "dartium_webkit_revision": "198020",
 
   "args_tag": "@0.13.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",

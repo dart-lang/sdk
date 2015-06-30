@@ -1089,7 +1089,8 @@ void StubCode::GenerateAllocationStubForClass(
     __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
     // RDX: instantiated type arguments.
   }
-  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size) &&
+      !cls.trace_allocation()) {
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.

@@ -7,7 +7,7 @@ library rewrite_async;
 import "dart:math" show max;
 import 'dart:collection';
 
-import 'package:_internal/compiler/js_lib/shared/async_await_error_codes.dart'
+import 'package:js_runtime/shared/async_await_error_codes.dart'
     as error_codes;
 
 import "js.dart" as js;

@@ -32,7 +32,8 @@ main() {
   runReflectiveTests(BuildCompilationUnitElementTaskTest);
   runReflectiveTests(BuildDirectiveElementsTaskTest);
   runReflectiveTests(BuildEnumMemberElementsTaskTest);
-  runReflectiveTests(BuildSourceClosuresTaskTest);
+  runReflectiveTests(BuildSourceExportClosureTaskTest);
+  runReflectiveTests(BuildSourceImportExportClosureTaskTest);
   runReflectiveTests(BuildExportNamespaceTaskTest);
   runReflectiveTests(BuildLibraryConstructorsTaskTest);
   runReflectiveTests(BuildLibraryElementTaskTest);
@@ -1098,7 +1099,7 @@ d() {}
 }
 
 @reflectiveTest
-class BuildSourceClosuresTaskTest extends _AbstractDartTaskTest {
+class BuildSourceExportClosureTaskTest extends _AbstractDartTaskTest {
   test_perform_exportClosure() {
     Source sourceA = newSource('/a.dart', '''
 library lib_a;
@@ -1118,73 +1119,29 @@ library lib_d;
     // a.dart
     {
       computeResult(sourceA, EXPORT_SOURCE_CLOSURE);
-      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      expect(task, new isInstanceOf<BuildSourceExportClosureTask>());
       List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
       expect(closure, unorderedEquals([sourceA, sourceB, sourceC]));
     }
     // c.dart
     {
       computeResult(sourceC, EXPORT_SOURCE_CLOSURE);
-      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      expect(task, new isInstanceOf<BuildSourceExportClosureTask>());
       List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
       expect(closure, unorderedEquals([sourceA, sourceB, sourceC]));
     }
     // d.dart
     {
       computeResult(sourceD, EXPORT_SOURCE_CLOSURE);
-      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      expect(task, new isInstanceOf<BuildSourceExportClosureTask>());
       List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
       expect(closure, unorderedEquals([sourceD]));
     }
   }
+}
 
-  test_perform_importClosure() {
-    Source sourceA = newSource('/a.dart', '''
-library lib_a;
-import 'b.dart';
-''');
-    Source sourceB = newSource('/b.dart', '''
-library lib_b;
-import 'c.dart';
-''');
-    Source sourceC = newSource('/c.dart', '''
-library lib_c;
-import 'a.dart';
-''');
-    Source sourceD = newSource('/d.dart', '''
-library lib_d;
-''');
-    Source coreSource = context.sourceFactory.resolveUri(null, 'dart:core');
-    // a.dart
-    {
-      computeResult(sourceA, IMPORT_SOURCE_CLOSURE);
-      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
-      List<Source> closure = outputs[IMPORT_SOURCE_CLOSURE];
-      expect(closure, contains(sourceA));
-      expect(closure, contains(sourceB));
-      expect(closure, contains(sourceC));
-      expect(closure, contains(coreSource));
-    }
-    // c.dart
-    {
-      computeResult(sourceC, IMPORT_SOURCE_CLOSURE);
-      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
-      List<Source> closure = outputs[IMPORT_SOURCE_CLOSURE];
-      expect(closure, contains(sourceA));
-      expect(closure, contains(sourceB));
-      expect(closure, contains(sourceC));
-      expect(closure, contains(coreSource));
-    }
-    // d.dart
-    {
-      computeResult(sourceD, IMPORT_SOURCE_CLOSURE);
-      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
-      List<Source> closure = outputs[IMPORT_SOURCE_CLOSURE];
-      expect(closure, contains(sourceD));
-      expect(closure, contains(coreSource));
-    }
-  }
-
+@reflectiveTest
+class BuildSourceImportExportClosureTaskTest extends _AbstractDartTaskTest {
   test_perform_importExportClosure() {
     Source sourceA = newSource('/a.dart', '''
 library lib_a;
@@ -1201,7 +1158,7 @@ import 'b.dart';
     // c.dart
     {
       computeResult(sourceC, IMPORT_EXPORT_SOURCE_CLOSURE);
-      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      expect(task, new isInstanceOf<BuildSourceImportExportClosureTask>());
       List<Source> closure = outputs[IMPORT_EXPORT_SOURCE_CLOSURE];
       expect(closure, contains(sourceA));
       expect(closure, contains(sourceB));
@@ -1211,7 +1168,7 @@ import 'b.dart';
     // b.dart
     {
       computeResult(sourceB, IMPORT_EXPORT_SOURCE_CLOSURE);
-      expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+      expect(task, new isInstanceOf<BuildSourceImportExportClosureTask>());
       List<Source> closure = outputs[IMPORT_EXPORT_SOURCE_CLOSURE];
       expect(closure, contains(sourceA));
       expect(closure, contains(sourceB));
@@ -1228,7 +1185,7 @@ import 'b.dart';
 library lib_b;
 ''');
     computeResult(sourceA, IS_CLIENT);
-    expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+    expect(task, new isInstanceOf<BuildSourceImportExportClosureTask>());
     expect(outputs[IS_CLIENT], isFalse);
   }
 
@@ -1241,7 +1198,7 @@ export 'dart:html';
 import 'exports_html.dart';
 ''');
     computeResult(source, IS_CLIENT);
-    expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+    expect(task, new isInstanceOf<BuildSourceImportExportClosureTask>());
     expect(outputs[IS_CLIENT], isTrue);
   }
 
@@ -1251,7 +1208,7 @@ library lib_a;
 import 'dart:html';
 ''');
     computeResult(sourceA, IS_CLIENT);
-    expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+    expect(task, new isInstanceOf<BuildSourceImportExportClosureTask>());
     expect(outputs[IS_CLIENT], isTrue);
   }
 
@@ -1265,7 +1222,7 @@ library lib_b;
 import 'dart:html';
 ''');
     computeResult(sourceA, IS_CLIENT);
-    expect(task, new isInstanceOf<BuildSourceClosuresTask>());
+    expect(task, new isInstanceOf<BuildSourceImportExportClosureTask>());
     expect(outputs[IS_CLIENT], isTrue);
   }
 }
@@ -2338,7 +2295,7 @@ class C extends A {}
     }
   }
 
-  test_perform_deep() {
+  test_perform_external() {
     Source sourceA = newSource('/a.dart', '''
 library a;
 import 'b.dart';
@@ -2346,18 +2303,10 @@ class A extends B {}
 ''');
     newSource('/b.dart', '''
 library b;
-import 'c.dart';
-part 'b2.dart';
-class B extends B2 {}
+class B {}
 ''');
-    newSource('/b2.dart', '''
-part of b;
-class B2 extends C {}
-''');
-    newSource('/c.dart', '''
-library c;
-class C {}
-''');
+    // The reference A to B should be resolved, but there's no requirement that
+    // the full class hierarchy be resolved.
     computeResult(sourceA, LIBRARY_ELEMENT5);
     expect(task, new isInstanceOf<ResolveLibraryTypeNamesTask>());
     // validate
@@ -2367,13 +2316,6 @@ class C {}
       expect(clazz.displayName, 'A');
       clazz = clazz.supertype.element;
       expect(clazz.displayName, 'B');
-      clazz = clazz.supertype.element;
-      expect(clazz.displayName, 'B2');
-      clazz = clazz.supertype.element;
-      expect(clazz.displayName, 'C');
-      clazz = clazz.supertype.element;
-      expect(clazz.displayName, 'Object');
-      expect(clazz.supertype, isNull);
     }
   }
 }

@@ -621,11 +621,10 @@ static RangeBoundary WidenMax(const Range* range,
 static RangeBoundary NarrowMin(const Range* range,
                                const Range* new_range,
                                RangeBoundary::RangeSize size) {
-#ifdef DEBUG
   const RangeBoundary min = Range::ConstantMin(range, size);
   const RangeBoundary new_min = Range::ConstantMin(new_range, size);
-  ASSERT(min.ConstantValue() <= new_min.ConstantValue());
-#endif
+  if (min.ConstantValue() > new_min.ConstantValue()) return range->min();
+
   // TODO(vegorov): consider using negative infinity to indicate widened bound.
   return range->min().IsMinimumOrBelow(size) ? new_range->min() : range->min();
 }
@@ -640,11 +639,10 @@ static RangeBoundary NarrowMin(const Range* range,
 static RangeBoundary NarrowMax(const Range* range,
                                const Range* new_range,
                                RangeBoundary::RangeSize size) {
-#ifdef DEBUG
   const RangeBoundary max = Range::ConstantMax(range, size);
   const RangeBoundary new_max = Range::ConstantMax(new_range, size);
-  ASSERT(max.ConstantValue() >= new_max.ConstantValue());
-#endif
+  if (max.ConstantValue() < new_max.ConstantValue()) return range->max();
+
   // TODO(vegorov): consider using positive infinity to indicate widened bound.
   return range->max().IsMaximumOrAbove(size) ? new_range->max() : range->max();
 }

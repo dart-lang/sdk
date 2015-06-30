@@ -5,6 +5,7 @@
 library domain.analysis;
 
 import 'dart:async';
+import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';

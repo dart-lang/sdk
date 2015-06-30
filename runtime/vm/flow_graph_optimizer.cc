@@ -27,9 +27,7 @@ namespace dart {
 
 DEFINE_FLAG(int, getter_setter_ratio, 13,
     "Ratio of getter/setter usage used for double field unboxing heuristics");
-// Setting 'guess_other_cid' to true causes issue 23693 crash.
-// TODO(srdjan): Evaluate if that optimization is wrong.
-DEFINE_FLAG(bool, guess_other_cid, false,
+DEFINE_FLAG(bool, guess_other_cid, true,
     "Artificially create type feedback for arithmetic etc. operations"
     " by guessing the other unknown argument cid");
 DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
@@ -197,8 +195,6 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
       Token::IsBinaryOperator(op_kind)) {
     // Guess cid: if one of the inputs is a number assume that the other
     // is a number of same type.
-    // Issue 23693. It is potentially wrong to assign types here that may
-    // conflict with other graph analysis.
     if (FLAG_guess_other_cid) {
       const intptr_t cid_0 = class_ids[0];
       const intptr_t cid_1 = class_ids[1];

@@ -18,6 +18,9 @@ import 'package:analyzer/task/model.dart';
 import 'package:html/dom.dart';
 import 'package:html/parser.dart';
 import 'package:source_span/source_span.dart';
+import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/scanner.dart';
 
 /**
  * The Dart scripts that are embedded in an HTML file.
@@ -285,19 +288,34 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
   void internalPerform() {
     String content = getRequiredInput(CONTENT_INPUT_NAME);
 
-    HtmlParser parser = new HtmlParser(content, generateSpans: true);
-    parser.compatMode = 'quirks';
-    Document document = parser.parse();
-    List<ParseError> parseErrors = parser.errors;
-    List<AnalysisError> errors = <AnalysisError>[];
-    for (ParseError parseError in parseErrors) {
-      SourceSpan span = parseError.span;
-      errors.add(new AnalysisError(target.source, span.start.offset,
-          span.length, HtmlErrorCode.PARSE_ERROR, [parseError.message]));
-    }
+    if (context.getModificationStamp(target.source) < 0) {
+      String message = 'Content could not be read';
+      if (context is InternalAnalysisContext) {
+        CacheEntry entry = (context as InternalAnalysisContext).getCacheEntry(target);
+        CaughtException exception = entry.exception;
+        if (exception != null) {
+          message = exception.toString();
+        }
+      }
 
-    outputs[HTML_DOCUMENT] = document;
-    outputs[HTML_DOCUMENT_ERRORS] = errors;
+      outputs[HTML_DOCUMENT] = new Document();
+      outputs[HTML_DOCUMENT_ERRORS] = <AnalysisError>[new AnalysisError(
+          target.source, 0, 0, ScannerErrorCode.UNABLE_GET_CONTENT, [message])];
+    } else {
+      HtmlParser parser = new HtmlParser(content, generateSpans: true);
+      parser.compatMode = 'quirks';
+      Document document = parser.parse();
+      List<ParseError> parseErrors = parser.errors;
+      List<AnalysisError> errors = <AnalysisError>[];
+      for (ParseError parseError in parseErrors) {
+        SourceSpan span = parseError.span;
+        errors.add(new AnalysisError(target.source, span.start.offset,
+            span.length, HtmlErrorCode.PARSE_ERROR, [parseError.message]));
+      }
+
+      outputs[HTML_DOCUMENT] = document;
+      outputs[HTML_DOCUMENT_ERRORS] = errors;
+    }
   }
 
   /**

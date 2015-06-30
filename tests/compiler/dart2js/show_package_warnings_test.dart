@@ -69,12 +69,24 @@ void test(List<Uri> entryPoints,
                   'Unexpected errors: ${collector.errors}');
     Expect.equals(warnings, collector.warnings.length,
                   'Unexpected warnings: ${collector.warnings}');
+    checkUriSchemes(collector.warnings);
     Expect.equals(hints, collector.hints.length,
                   'Unexpected hints: ${collector.hints}');
+    checkUriSchemes(collector.hints);
     Expect.equals(infos, collector.infos.length,
                   'Unexpected infos: ${collector.infos}');
+    checkUriSchemes(collector.infos);
     print('==================================================================');
   }));
+}
+
+void checkUriSchemes(Iterable<DiagnosticMessage> messages) {
+  for (DiagnosticMessage message in messages) {
+    if (message.uri != null) {
+      Expect.notEquals('package', message.uri.scheme,
+          "Unexpected package uri `${message.uri}` in message: $message");
+    }
+  }
 }
 
 void main() {

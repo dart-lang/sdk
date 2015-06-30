@@ -33,7 +33,6 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/string_source.dart';
-import 'package:analyzer/src/task/task_dart.dart';
 import 'package:analyzer/task/model.dart' hide AnalysisTask;
 import 'package:html/dom.dart' show Document;
 import 'package:path/path.dart' as pathos;
@@ -194,14 +193,6 @@ class AnalysisContextImplTest extends EngineTestCase {
    * The source factory associated with the analysis [context].
    */
   SourceFactory _sourceFactory;
-
-  void fail_extractContext() {
-    fail("Implement this");
-  }
-
-  void fail_mergeContext() {
-    fail("Implement this");
-  }
 
   void fail_performAnalysisTask_importedLibraryDelete_html() {
     Source htmlSource = _addSource("/page.html", r'''
@@ -5828,10 +5819,16 @@ class TestAnalysisContext implements InternalAnalysisContext {
     return false;
   }
 
+  @deprecated
   @override
   void visitCacheItems(void callback(Source source, SourceEntry dartEntry,
       DataDescriptor rowDesc, CacheState state)) {
     fail("Unexpected invocation of visitCacheItems");
+  }
+
+  @override
+  void visitContentCache(ContentCacheVisitor visitor) {
+    fail("Unexpected invocation of visitContentCache");
   }
 }
 
@@ -6383,12 +6380,6 @@ class TestAnalysisContext_test_setSourceFactory extends TestAnalysisContext {
  * failure.
  */
 class TestTaskVisitor<E> implements AnalysisTaskVisitor<E> {
-  @override
-  E visitBuildUnitElementTask(BuildUnitElementTask task) {
-    fail("Unexpectedly invoked visitGenerateDartErrorsTask");
-    return null;
-  }
-
   @override
   E visitGenerateDartErrorsTask(GenerateDartErrorsTask task) {
     fail("Unexpectedly invoked visitGenerateDartErrorsTask");

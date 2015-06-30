@@ -18,7 +18,7 @@ abstract class File extends Resource {
    * Watch for changes to this file
    */
   Stream<WatchEvent> get changes;
-  
+
   /**
    * Return the last-modified stamp of the file.
    * Throws [FileSystemException] if the file does not exist.

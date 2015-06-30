@@ -1521,6 +1521,8 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
     }
     return true;
   }
+  // TODO(rmacnak): There is no way to get the size retained by a class object.
+  // SizeRetainedByClass should be a separate RPC.
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     ObjectGraph graph(isolate);
@@ -1529,18 +1531,11 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
     result.PrintJSON(js, true);
     return true;
   }
-  if (obj.IsInstance() || obj.IsNull()) {
-    // We don't use Instance::Cast here because it doesn't allow null.
-    ObjectGraph graph(isolate);
-    intptr_t retained_size = graph.SizeRetainedByInstance(obj);
-    const Object& result = Object::Handle(Integer::New(retained_size));
-    result.PrintJSON(js, true);
-    return true;
-  }
-  js->PrintError(kInvalidParams,
-                 "%s: invalid 'targetId' parameter: "
-                 "id '%s' does not correspond to a "
-                 "library, class, or instance", js->method(), target_id);
+
+  ObjectGraph graph(isolate);
+  intptr_t retained_size = graph.SizeRetainedByInstance(obj);
+  const Object& result = Object::Handle(Integer::New(retained_size));
+  result.PrintJSON(js, true);
   return true;
 }
 
@@ -2224,13 +2219,13 @@ static const char* tags_enum_names[] = {
 };
 
 
-static ProfilerService::TagOrder tags_enum_values[] = {
-  ProfilerService::kNoTags,
-  ProfilerService::kUserVM,
-  ProfilerService::kUser,
-  ProfilerService::kVMUser,
-  ProfilerService::kVM,
-  ProfilerService::kNoTags,  // Default value.
+static Profile::TagOrder tags_enum_values[] = {
+  Profile::kNoTags,
+  Profile::kUserVM,
+  Profile::kUser,
+  Profile::kVMUser,
+  Profile::kVM,
+  Profile::kNoTags,  // Default value.
 };
 
 
@@ -2242,7 +2237,7 @@ static const MethodParameter* get_cpu_profile_params[] = {
 
 
 static bool GetCpuProfile(Isolate* isolate, JSONStream* js) {
-  ProfilerService::TagOrder tag_order =
+  Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   ProfilerService::PrintJSON(js, tag_order);
   return true;

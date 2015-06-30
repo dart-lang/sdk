@@ -102,6 +102,9 @@ abstract class ServiceObject extends Observable {
   @reflectable String get vmType => _vmType;
   String _vmType;
 
+  bool get isICData => vmType == 'ICData';
+  bool get isInstructions => vmType == 'Instructions';
+  bool get isObjectPool => vmType == 'ObjectPool';
   bool get isContext => type == 'Context';
   bool get isError => type == 'Error';
   bool get isInstance => type == 'Instance';
@@ -118,6 +121,7 @@ abstract class ServiceObject extends Observable {
   bool get isList => false;
   bool get isMap => false;
   bool get isTypedData => false;
+  bool get isRegExp => false;
   bool get isMirrorReference => false;
   bool get isWeakProperty => false;
   bool get isClosure => false;
@@ -202,11 +206,20 @@ abstract class ServiceObject extends Observable {
         break;
       case 'Object':
         switch (vmType) {
-          case 'PcDescriptors':
-            obj = new PcDescriptors._empty(owner);
+          case 'ICData':
+            obj = new ICData._empty(owner);
+            break;
+          case 'Instructions':
+            obj = new Instructions._empty(owner);
             break;
           case 'LocalVarDescriptors':
             obj = new LocalVarDescriptors._empty(owner);
+            break;
+          case 'ObjectPool':
+            obj = new ObjectPool._empty(owner);
+            break;
+          case 'PcDescriptors':
+            obj = new PcDescriptors._empty(owner);
             break;
           case 'TokenStream':
             obj = new TokenStream._empty(owner);
@@ -333,6 +346,14 @@ abstract class ServiceObject extends Observable {
   _ignoreError(error, stackTrace) {
     // do nothing.
   }
+}
+
+abstract class HeapObject extends ServiceObject {
+  @observable Class clazz;
+  @observable int size;
+  @observable int retainedSize;
+
+  HeapObject._empty(ServiceObjectOwner owner) : super._empty(owner);
 }
 
 abstract class Coverage {
@@ -1875,6 +1896,7 @@ class Instance extends ServiceObject {
   @observable Context context;  // If a closure.
   @observable String name;  // If a Type.
   @observable int length; // If a List, Map or TypedData.
+  @observable String pattern;  // If a RegExp.
 
   @observable var typeClass;
   @observable var fields;
@@ -1886,6 +1908,10 @@ class Instance extends ServiceObject {
   @observable Instance key;  // If a WeakProperty.
   @observable Instance value;  // If a WeakProperty.
   @observable Breakpoint activationBreakpoint;  // If a Closure.
+  @observable Function oneByteFunction;  // If a RegExp.
+  @observable Function twoByteFunction;  // If a RegExp.
+  @observable Function externalOneByteFunction;  // If a RegExp.
+  @observable Function externalTwoByteFunction;  // If a RegExp.
 
   bool get isAbstractType {
     return (kind == 'Type' || kind == 'TypeRef' ||
@@ -1914,6 +1940,7 @@ class Instance extends ServiceObject {
         || kind == 'Float32x4List'
         || kind == 'Float64x2List';
   }
+  bool get isRegExp => kind == 'RegExp';
   bool get isMirrorReference => kind == 'MirrorReference';
   bool get isWeakProperty => kind == 'WeakProperty';
   bool get isClosure => kind == 'Closure';
@@ -1930,7 +1957,6 @@ class Instance extends ServiceObject {
 
     kind = map['kind'];
     clazz = map['class'];
-    size = map['size'];
     valueAsString = map['valueAsString'];
     // Coerce absence to false.
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
@@ -1938,10 +1964,18 @@ class Instance extends ServiceObject {
     context = map['closureContext'];
     name = map['name'];
     length = map['length'];
+    pattern = map['pattern'];
 
     if (mapIsRef) {
       return;
     }
+
+    size = map['size'];
+
+    oneByteFunction = map['_oneByteFunction'];
+    twoByteFunction = map['_twoByteFunction'];
+    externalOneByteFunction = map['_externalOneByteFunction'];
+    externalTwoByteFunction = map['_externalTwoByteFunction'];
 
     nativeFields = map['_nativeFields'];
     fields = map['fields'];
@@ -2022,7 +2056,6 @@ class Context extends ServiceObject {
     // Extract full properties.
     _upgradeCollection(map, isolate);
 
-    size = map['size'];
     length = map['length'];
     parentContext = map['parent'];
 
@@ -2030,6 +2063,7 @@ class Context extends ServiceObject {
       return;
     }
 
+    size = map['size'];
     clazz = map['class'];
     variables = map['variables'];
 
@@ -2111,6 +2145,7 @@ class ServiceFunction extends ServiceObject with Coverage {
   @observable int usageCounter;
   @observable bool isDart;
   @observable ProfileFunction profile;
+  @observable Instance icDataArray;
 
   bool get immutable => false;
 
@@ -2124,7 +2159,7 @@ class ServiceFunction extends ServiceObject with Coverage {
 
     dartOwner = map['owner'];
     kind = FunctionKind.fromJSON(map['_kind']);
-    isDart = !kind.isSynthetic();
+    isDart = kind.isDart();
 
     if (dartOwner is ServiceFunction) {
       ServiceFunction ownerFunction = dartOwner;
@@ -2155,6 +2190,7 @@ class ServiceFunction extends ServiceObject with Coverage {
     unoptimizedCode = map['_unoptimizedCode'];
     deoptimizations = map['_deoptimizations'];
     usageCounter = map['_usageCounter'];
+    icDataArray = map['_icDataArray'];
   }
 }
 
@@ -2749,9 +2785,74 @@ class LocalVarDescriptors extends ServiceObject {
   }
 }
 
-class TokenStream extends ServiceObject {
-  @observable Class clazz;
-  @observable int size;
+class ObjectPool extends HeapObject {
+  bool get canCache => false;
+  bool get immutable => false;
+
+  @observable int length;
+  @observable List entries;
+
+  ObjectPool._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap m, bool mapIsRef) {
+    _upgradeCollection(m, isolate);
+    clazz = m['class'];
+    length = m['length'];
+    if (mapIsRef) {
+      return;
+    }
+    size = m['size'];
+    entries = m['_entries'];
+  }
+}
+
+class ICData extends HeapObject {
+  @observable ServiceObject dartOwner;
+  @observable String selector;
+  @observable Instance argumentsDescriptor;
+  @observable Instance entries;
+
+  bool get canCache => false;
+  bool get immutable => false;
+
+  ICData._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap m, bool mapIsRef) {
+    _upgradeCollection(m, isolate);
+    clazz = m['class'];
+    dartOwner = m['_owner'];
+    selector = m['_selector'];
+    if (mapIsRef) {
+      return;
+    }
+    size = m['size'];
+    argumentsDescriptor = m['_argumentsDescriptor'];
+    entries = m['_entries'];
+  }
+}
+
+class Instructions extends HeapObject {
+  bool get canCache => false;
+  bool get immutable => true;
+
+  @observable Code code;
+  @observable ObjectPool objectPool;
+
+  Instructions._empty(ServiceObjectOwner owner) : super._empty(owner);
+
+  void _update(ObservableMap m, bool mapIsRef) {
+    _upgradeCollection(m, isolate);
+    clazz = m['class'];
+    code = m['_code'];
+    if (mapIsRef) {
+      return;
+    }
+    size = m['size'];
+    objectPool = m['_objectPool'];
+  }
+}
+
+class TokenStream extends HeapObject {
   bool get canCache => false;
   bool get immutable => true;
 
@@ -2807,7 +2908,8 @@ class CodeInstruction extends Observable {
     }
   }
 
-  void _resolveJumpTarget(List<CodeInstruction> instructions) {
+  void _resolveJumpTarget(List<CodeInstruction> instructionsByAddressOffset,
+                          int startAddress) {
     if (!_isJumpInstruction()) {
       return;
     }
@@ -2815,13 +2917,8 @@ class CodeInstruction extends Observable {
     if (address == 0) {
       return;
     }
-    for (var i = 0; i < instructions.length; i++) {
-      var instruction = instructions[i];
-      if (instruction.address == address) {
-        jumpTarget = instruction;
-        return;
-      }
-    }
+
+    jumpTarget = instructionsByAddressOffset[address - startAddress];
   }
 }
 
@@ -2861,7 +2958,7 @@ class CodeInlineInterval {
   CodeInlineInterval(this.start, this.end);
 }
 
-class Code extends ServiceObject {
+class Code extends HeapObject {
   @observable CodeKind kind;
   @observable ServiceObject objectPool;
   @observable ServiceFunction function;
@@ -2870,6 +2967,8 @@ class Code extends ServiceObject {
   @reflectable int startAddress = 0;
   @reflectable int endAddress = 0;
   @reflectable final instructions = new ObservableList<CodeInstruction>();
+  List<CodeInstruction> instructionsByAddressOffset;
+
   @observable ProfileCode profile;
   final List<CodeInlineInterval> inlineIntervals =
       new List<CodeInlineInterval>();
@@ -2938,6 +3037,7 @@ class Code extends ServiceObject {
       return;
     }
     _loaded = true;
+    size = m['size'];
     startAddress = int.parse(m['_startAddress'], radix:16);
     endAddress = int.parse(m['_endAddress'], radix:16);
     function = isolate.getFromMap(m['function']);
@@ -3008,6 +3108,8 @@ class Code extends ServiceObject {
   void _processDisassembly(List<String> disassembly){
     assert(disassembly != null);
     instructions.clear();
+    instructionsByAddressOffset = new List(endAddress - startAddress);
+
     assert((disassembly.length % 3) == 0);
     for (var i = 0; i < disassembly.length; i += 3) {
       var address = 0;  // Assume code comment.
@@ -3021,36 +3123,36 @@ class Code extends ServiceObject {
       }
       var instruction = new CodeInstruction(address, pcOffset, machine, human);
       instructions.add(instruction);
+      if (disassembly[i] != '') {
+        // Not a code comment.
+        instructionsByAddressOffset[pcOffset] = instruction;
+      }
     }
     for (var instruction in instructions) {
-      instruction._resolveJumpTarget(instructions);
+      instruction._resolveJumpTarget(instructionsByAddressOffset, startAddress);
     }
   }
 
-  void _processDescriptor(Map d) {
-    var pcOffset = int.parse(d['pcOffset'], radix:16);
-    var address = startAddress + pcOffset;
-    var deoptId = d['deoptId'];
-    var tokenPos = d['tokenPos'];
-    var tryIndex = d['tryIndex'];
-    var kind = d['kind'].trim();
-    for (var instruction in instructions) {
-      if (instruction.address == address) {
+  void _processDescriptors(List<Map> descriptors) {
+    for (Map descriptor in descriptors) {
+      var pcOffset = int.parse(descriptor['pcOffset'], radix:16);
+      var address = startAddress + pcOffset;
+      var deoptId = descriptor['deoptId'];
+      var tokenPos = descriptor['tokenPos'];
+      var tryIndex = descriptor['tryIndex'];
+      var kind = descriptor['kind'].trim();
+
+      var instruction = instructionsByAddressOffset[address - startAddress];
+      if (instruction != null) {
         instruction.descriptors.add(new PcDescriptor(pcOffset,
                                                      deoptId,
                                                      tokenPos,
                                                      tryIndex,
                                                      kind));
-        return;
+      } else {
+        Logger.root.warning(
+          'Could not find instruction with pc descriptor address: $address');
       }
-    }
-    Logger.root.warning(
-        'Could not find instruction with pc descriptor address: $address');
-  }
-
-  void _processDescriptors(List<Map> descriptors) {
-    for (Map descriptor in descriptors) {
-      _processDescriptor(descriptor);
     }
   }
 

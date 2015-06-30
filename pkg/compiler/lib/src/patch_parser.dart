@@ -9,7 +9,7 @@
  * [FunctionElement]. Patches are introduced in patch libraries which are loaded
  * together with the corresponding origin library. Which libraries that are
  * patched is determined by the dart2jsPatchPath field of LibraryInfo found
- * in [:lib/_internal/libraries.dart:].
+ * in [:lib/_internal/sdk_library_metadata/lib/libraries.dart:].
  *
  * Patch libraries are parsed like regular library and thus provided with their
  * own elements. These elements which are distinct from the elements from the

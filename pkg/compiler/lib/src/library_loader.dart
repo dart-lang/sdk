@@ -102,9 +102,10 @@ import 'util/util.dart' show
  * 'dart:core' and 'dart:_js_helper' are not readable themselves but are instead
  * resolved into a readable URI using the library root URI provided from the
  * command line and the list of platform libraries found in
- * 'sdk/lib/_internal/libraries.dart'. This is done through the
- * [Compiler.translateResolvedUri] method which checks whether a library by that
- * name exists and in case of internal libraries whether access is granted.
+ * 'sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart'. This is done
+ * through the [Compiler.translateResolvedUri] method which checks whether a
+ * library by that name exists and in case of internal libraries whether access
+ * is granted.
  *
  * ## Resource URI ##
  *

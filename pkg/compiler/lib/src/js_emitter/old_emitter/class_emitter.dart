@@ -60,7 +60,7 @@ class ClassEmitter extends CodeEmitterHelper {
   * Emits the precompiled constructor when in CSP mode.
   */
   void emitConstructorsForCSP(Class cls) {
-    List<String> fieldNames = <String>[];
+    List<jsAst.Name> fieldNames = <jsAst.Name>[];
 
     if (!compiler.useContentSecurityPolicy) return;
 

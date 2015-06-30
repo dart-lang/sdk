@@ -160,9 +160,9 @@ class ResolverTask extends CompilerTask {
       if (element.isGenerativeConstructor) {
         // Even if there is no initializer list we still have to do the
         // resolution in case there is an implicit super constructor call.
-        InitializerResolver resolver = new InitializerResolver(visitor);
-        FunctionElement redirection =
-            resolver.resolveInitializers(element, tree);
+        InitializerResolver resolver =
+            new InitializerResolver(visitor, element, tree);
+        FunctionElement redirection = resolver.resolveInitializers();
         if (redirection != null) {
           resolveRedirectingConstructor(resolver, tree, element, redirection);
         }

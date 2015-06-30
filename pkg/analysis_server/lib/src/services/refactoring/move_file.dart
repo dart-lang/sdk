@@ -5,6 +5,7 @@
 library services.src.refactoring.move_file;
 
 import 'dart:async';
+import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/services/correction/status.dart';

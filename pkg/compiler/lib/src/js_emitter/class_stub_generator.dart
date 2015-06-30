@@ -12,7 +12,7 @@ class ClassStubGenerator {
   ClassStubGenerator(this.compiler, this.namer, this.backend);
 
   jsAst.Expression generateClassConstructor(ClassElement classElement,
-                                            Iterable<String> fields) {
+                                            Iterable<jsAst.Name> fields) {
     // TODO(sra): Implement placeholders in VariableDeclaration position:
     //
     //     String constructorName = namer.getNameOfClass(classElement);

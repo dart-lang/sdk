@@ -361,17 +361,19 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       node.name.staticElement = element;
       _setLocalElements(element, newElement);
     } on _DeclarationMismatchException {
-      _addedElements.add(newElement);
       _removeElement(element);
       // add new element
-      if (newElement is MethodElement) {
-        List<MethodElement> methods = _enclosingClass.methods;
-        methods.add(newElement);
-        _enclosingClass.methods = methods;
-      } else {
-        List<PropertyAccessorElement> accessors = _enclosingClass.accessors;
-        accessors.add(newElement);
-        _enclosingClass.accessors = accessors;
+      if (newElement != null) {
+        _addedElements.add(newElement);
+        if (newElement is MethodElement) {
+          List<MethodElement> methods = _enclosingClass.methods;
+          methods.add(newElement);
+          _enclosingClass.methods = methods;
+        } else {
+          List<PropertyAccessorElement> accessors = _enclosingClass.accessors;
+          accessors.add(newElement);
+          _enclosingClass.accessors = accessors;
+        }
       }
     }
   }
@@ -520,6 +522,29 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     }
   }
 
+  /**
+   * Asserts that there is an import with the same prefix as the given
+   * [prefixNode], which exposes the given [element].
+   */
+  void _assertElementVisibleWithPrefix(
+      SimpleIdentifier prefixNode, Element element) {
+    if (prefixNode == null) {
+      return;
+    }
+    String prefixName = prefixNode.name;
+    for (ImportElement import in _enclosingLibrary.imports) {
+      if (import.prefix != null && import.prefix.name == prefixName) {
+        Namespace namespace =
+            new NamespaceBuilder().createImportNamespaceForDirective(import);
+        Iterable<Element> visibleElements = namespace.definedNames.values;
+        if (visibleElements.contains(element)) {
+          return;
+        }
+      }
+    }
+    _assertTrue(false);
+  }
+
   void _assertEquals(Object a, Object b) {
     if (a != b) {
       throw new _DeclarationMismatchException();
@@ -617,29 +642,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       logger.log('node: $node type: $type  type.type: ${type.runtimeType}');
       _assertTrue(false);
     }
-  }
-
-  /**
-   * Asserts that there is an import with the same prefix as the given
-   * [prefixNode], which exposes the given [element].
-   */
-  void _assertElementVisibleWithPrefix(
-      SimpleIdentifier prefixNode, Element element) {
-    if (prefixNode == null) {
-      return;
-    }
-    String prefixName = prefixNode.name;
-    for (ImportElement import in _enclosingLibrary.imports) {
-      if (import.prefix != null && import.prefix.name == prefixName) {
-        Namespace namespace =
-            new NamespaceBuilder().createImportNamespaceForDirective(import);
-        Iterable<Element> visibleElements = namespace.definedNames.values;
-        if (visibleElements.contains(element)) {
-          return;
-        }
-      }
-    }
-    _assertTrue(false);
   }
 
   void _assertSameTypeParameter(
@@ -790,10 +792,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
 
   static void _setLocalElements(
       ExecutableElementImpl to, ExecutableElement from) {
-    to.functions = from.functions;
-    to.labels = from.labels;
-    to.localVariables = from.localVariables;
-    to.parameters = from.parameters;
+    if (from != null) {
+      to.functions = from.functions;
+      to.labels = from.labels;
+      to.localVariables = from.localVariables;
+      to.parameters = from.parameters;
+    }
   }
 }
 
@@ -1395,9 +1399,13 @@ class PoorMansIncrementalResolver {
                     newParent is MethodDeclaration ||
                 oldParent is ConstructorDeclaration &&
                     newParent is ConstructorDeclaration) {
-              oldNode = oldParent;
-              newNode = newParent;
-              found = true;
+              Element oldElement = (oldParent as Declaration).element;
+              if (new DeclarationMatcher().matches(newParent, oldElement) ==
+                  DeclarationMatchKind.MATCH) {
+                oldNode = oldParent;
+                newNode = newParent;
+                found = true;
+              }
             }
             if (oldParent is FunctionBody && newParent is FunctionBody) {
               oldNode = oldParent;
@@ -1471,6 +1479,8 @@ class PoorMansIncrementalResolver {
       Token token = _scan(code);
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
+      AnalysisOptions options = _unitElement.context.analysisOptions;
+      parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
       return unit;

@@ -328,7 +328,7 @@ class TreeTracer extends TracerUtil with StatementVisitor {
 
   @override
   visitForeignStatement(ForeignStatement node) {
-    printStatement(null, 'foreign');
+    printStatement(null, 'foreign ${node.codeTemplate.source}');
   }
 }
 
@@ -522,7 +522,7 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   @override
   String visitForeignExpression(ForeignExpression node) {
     String arguments = node.arguments.map(visitExpression).join(', ');
-    return 'Foreign "${node.codeTemplate}"($arguments)';
+    return 'Foreign "${node.codeTemplate.source}"($arguments)';
   }
 
   @override

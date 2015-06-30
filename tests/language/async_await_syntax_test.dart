@@ -13,6 +13,7 @@ get st => new Stream.fromIterable([]);
 a01a() async => null;                        /// a01a: ok
 a01b() async* => null;                       /// a01b: compile-time error
 a01c() sync* => null;                        /// a01c: compile-time error
+a01d() async => yield 5;                     /// a01d: compile-time error
 a02a() async {}                              /// a02a: ok
 a03a() async* {}                             /// a03a: ok
 a03b() async * {}                            /// a03b: ok
@@ -40,6 +41,12 @@ a05f() async {                               /// a05f: compile-time error
   var await = (a) {};                        /// a05f: continued
   await(0);                                  /// a05f: continued
 }                                            /// a05f: continued
+a05g() async {                               /// a05g: continued
+    yield 5;                                 /// a05g: compile-time error
+}                                            /// a05g: continued
+a05h() async {                               /// a05h: continued
+    yield* st;                               /// a05h: compile-time error
+}                                            /// a05h: continued
 a06a() async { await for (var o in st) {} }  /// a06a: ok
 a06b() sync* { await for (var o in st) {} }  /// a06b: compile-time error
 a07a() sync* { yield 0; }                    /// a07a: ok
@@ -116,6 +123,7 @@ class C extends B {
   b08a() sync* { yield* []; }                  /// b08a: ok
   b09a() async* { yield 0; }                   /// b09a: ok
   b10a() async* { yield* []; }                 /// b10a: static type warning
+  b10b() async { yield 0; }                    /// b10b: compile-time error
 
   get sync sync {}                             /// b11a: compile-time error
   get sync sync* {}                            /// b11b: ok
@@ -160,6 +168,8 @@ method1() {
   c08a() sync* { yield* []; } c08a();                  /// c08a: ok
   c09a() async* { yield 0; } c09a();                   /// c09a: ok
   c10a() async* { yield* []; } c10a();                 /// c10a: static type warning
+  c11a() async { yield -5; } c11a();                   /// c11a: compile-time error
+  c11b() async { yield* st; } c11b();                  /// c11b: compile-time error
 }
 
 method2() {
@@ -197,6 +207,7 @@ void main() {
   a01a();     /// a01a: continued
   a01b();     /// a01b: continued
   a01c();     /// a01c: continued
+  a01d();     /// a01d: continued
   a02a();     /// a02a: continued
   a03a();     /// a03a: continued
   a03b();     /// a03b: continued
@@ -209,6 +220,8 @@ void main() {
   a05d();     /// a05d: continued
   a05e();     /// a05e: continued
   a05f();     /// a05f: continued
+  a05g();     /// a05g: continued
+  a05h();     /// a05h: continued
   a06a();     /// a06a: continued
   a06b();     /// a06b: continued
   a07a();     /// a07a: continued
@@ -259,6 +272,7 @@ void main() {
   c.b08a();   /// b08a: continued
   c.b09a();   /// b09a: continued
   c.b10a();   /// b10a: continued
+  c.b10b();   /// b10b: continued
   a = c.sync;   /// b11a: continued
   a = c.sync;   /// b11b: continued
   a = c.async;  /// b11c: continued

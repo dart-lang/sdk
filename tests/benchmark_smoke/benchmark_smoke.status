@@ -9,4 +9,3 @@
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $cps_ir ]
-benchmark_smoke_test: Crash # Invalid argument(s)

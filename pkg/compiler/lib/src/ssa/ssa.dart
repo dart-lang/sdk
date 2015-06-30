@@ -25,13 +25,14 @@ import '../js_backend/js_backend.dart';
 import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
 import '../native/native.dart' as native;
 import '../resolution/operators.dart';
+import '../resolution/semantic_visitor.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../types/constants.dart' show computeTypeMask;
 import '../universe/universe.dart';
 import '../util/util.dart';
 import '../js/rewrite_async.dart';
-import 'package:_internal/compiler/js_lib/shared/embedded_names.dart';
+import 'package:js_runtime/shared/embedded_names.dart';
 
 part 'builder.dart';
 part 'codegen.dart';

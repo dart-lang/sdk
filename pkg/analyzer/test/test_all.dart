@@ -14,7 +14,6 @@ import 'instrumentation/test_all.dart' as instrumentation;
 import 'parse_compilation_unit_test.dart' as parse_compilation_unit;
 import 'source/test_all.dart' as source;
 import 'src/test_all.dart' as src;
-import 'task/test_all.dart' as task;
 
 /// Utility for manually running all tests.
 main() {
@@ -28,6 +27,5 @@ main() {
     parse_compilation_unit.main();
     source.main();
     src.main();
-    task.main();
   });
 }

@@ -1897,7 +1897,7 @@ class AnalyzeLibraryTestSuite extends DartcCompilationTestSuite {
     // NOTE: We exclude tests and patch files for now.
     return filename.endsWith(".dart") &&
         !filename.endsWith("_test.dart") &&
-        !filename.contains("_internal/compiler/js_lib");
+        !filename.contains("_internal/js_runtime/lib");
   }
 
   bool get listRecursively => true;

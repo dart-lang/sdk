@@ -73,7 +73,7 @@ import 'package:compiler/src/js_emitter/model.dart' show
 import 'package:compiler/src/js_emitter/program_builder.dart' show
     ProgramBuilder;
 
-import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
+import 'package:js_runtime/shared/embedded_names.dart'
     as embeddedNames;
 
 import 'package:compiler/src/js_backend/js_backend.dart' show

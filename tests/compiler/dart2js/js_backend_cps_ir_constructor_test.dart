@@ -43,7 +43,6 @@ main() {
 r"""
 function(x, y) {
   P.print(x);
-  return null;
 }"""),
 
   const TestEntry.forMethod('generative_constructor(Sub#)', """
@@ -163,7 +162,6 @@ main() {
 }""", r"""
 function() {
   P.print(V.C$(P.$int).foo$0());
-  return null;
 }"""),
   const TestEntry(r"""
 class C<T> {
@@ -174,7 +172,6 @@ main() {
 }""", r"""
 function() {
   P.print(V.C$().foo$0());
-  return null;
 }"""),
   const TestEntry.forMethod('generative_constructor(C#)', r"""
 class C<T> {
@@ -246,7 +243,6 @@ main() {
 }""", r"""
 function() {
   P.print(V.Foo$create(5));
-  return null;
 }"""),
 const TestEntry(r"""
 class A {
@@ -264,7 +260,6 @@ main() {
 }""", r"""
 function() {
   V.B$(5, P.$int).get$typevar();
-  return null;
 }"""),
 ];
 

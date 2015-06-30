@@ -289,9 +289,7 @@ class InvokeMethod extends Expression implements Invoke {
   final SourceInformation sourceInformation;
 
   /// If true, it is known that the receiver cannot be `null`.
-  ///
-  /// This field is `null` until initialized by optimization phases.
-  bool receiverIsNotNull;
+  bool receiverIsNotNull = false;
 
   InvokeMethod(Primitive receiver,
                this.selector,
@@ -616,7 +614,7 @@ class GetField extends Primitive {
   final Reference<Primitive> object;
   FieldElement field;
 
-  /// True if the receiver is known not to be null.
+  /// True if the object is known not to be null.
   // TODO(asgerf): This is a placeholder until we agree on how to track
   //               side effects.
   bool objectIsNotNull = false;

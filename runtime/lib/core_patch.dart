@@ -205,3 +205,27 @@ class _SyncIterator implements Iterator {
     }
   }
 }
+
+patch class Resource {
+  /* patch */ const factory Resource(String uri) = _Resource;
+}
+
+class _Resource implements Resource {
+  final String _location;
+
+  const _Resource(String uri) : _location = uri;
+
+  Uri get uri => Uri.base.resolve(_location);
+
+  Stream<List<int>> openRead() {
+    throw new UnimplementedError("openRead");
+  }
+
+  Future<List<int>> readAsBytes() {
+    throw new UnimplementedError("readAsBytes");
+  }
+
+  Future<String> readAsString({Encoding encoding}) {
+    throw new UnimplementedError("readAsString");
+  }
+}

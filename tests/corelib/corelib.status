@@ -36,6 +36,9 @@ int_parse_radix_test/01: Pass, Fail # JS implementations disagree on U+0085 bein
 int_parse_radix_test/02: Fail # No bigints.
 double_parse_test/01: Pass, Fail # JS implementations disagree on U+0085 being whitespace.
 integer_to_radix_string_test: RuntimeError # issue 22045
+int_modulo_arith_test/bignum: RuntimeError # No bigints.
+int_modulo_arith_test/modPow: RuntimeError # No bigints.
+
 
 # With the exception of 'void', const Symbol() should not accept reserved
 # words.
@@ -210,133 +213,47 @@ int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
-apply2_test: RuntimeError # Please triage this failure.
-apply3_test: RuntimeError # Please triage this failure.
-apply4_test: RuntimeError # Please triage this failure.
-apply_test: RuntimeError # Please triage this failure.
-collection_from_test: RuntimeError # Please triage this failure.
-collection_length_test: RuntimeError # Please triage this failure.
-collection_removes_test: RuntimeError # Please triage this failure.
-collection_test: RuntimeError # Please triage this failure.
-collection_to_string_test: RuntimeError # Please triage this failure.
-core_runtime_types_test: RuntimeError # Please triage this failure.
 date_time2_test: RuntimeError # Cannot read property 'prototype' of undefined
 date_time3_test: RuntimeError # Cannot read property 'prototype' of undefined
 date_time4_test: RuntimeError # Cannot read property 'prototype' of undefined
 date_time7_test: RuntimeError # Cannot read property 'prototype' of undefined
 date_time_parse_test: RuntimeError # Cannot read property 'prototype' of undefined
 error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a function
-for_in_test: RuntimeError # Please triage this failure.
-hash_set_test/none: RuntimeError # Please triage this failure.
 hashcode_test: RuntimeError # Please triage this failure.
-indexed_list_access_test: RuntimeError # Please triage this failure.
 int_parse_radix_test/01: Crash # Invalid argument(s)
 int_parse_radix_test/02: Crash # Invalid argument(s)
-int_parse_radix_test/none: Crash # Invalid argument(s)
-iterable_contains_test: RuntimeError # Please triage this failure.
 iterable_empty_test: RuntimeError # Please triage this failure.
-iterable_fold_test: RuntimeError # Please triage this failure.
-iterable_join_test: RuntimeError # Please triage this failure.
-iterable_mapping_test: RuntimeError # Please triage this failure.
-iterable_reduce_test: RuntimeError # Please triage this failure.
 iterable_return_type_test/none: RuntimeError # Please triage this failure.
-iterable_skip_test: RuntimeError # Please triage this failure.
-iterable_test: RuntimeError # Please triage this failure.
 iterable_to_list_test: RuntimeError # Please triage this failure.
 iterable_to_set_test: RuntimeError # Please triage this failure.
-iterable_tostring_test: RuntimeError # Please triage this failure.
-json_map_test: Crash # Internal Error: No default constructor available.
-linked_hash_map_test: RuntimeError # Please triage this failure.
-list_as_map_test: RuntimeError # Please triage this failure.
-list_contains_argument_order_test: RuntimeError # Please triage this failure.
-list_fill_range_test: RuntimeError # Please triage this failure.
-list_for_each_test: RuntimeError # Please triage this failure.
-list_get_range_test: RuntimeError # Please triage this failure.
-list_growable_test: RuntimeError # Please triage this failure.
-list_index_of2_test: RuntimeError # Please triage this failure.
-list_index_of_test: RuntimeError # Please triage this failure.
-list_insert_all_test: RuntimeError # Please triage this failure.
-list_insert_test: RuntimeError # Please triage this failure.
-list_iterators_test: RuntimeError # Please triage this failure.
-list_literal_is_growable_test: RuntimeError # Please triage this failure.
-list_literal_test: RuntimeError # Please triage this failure.
-list_map_test: RuntimeError # Please triage this failure.
-list_remove_range_test: RuntimeError # Please triage this failure.
-list_removeat_test: RuntimeError # Please triage this failure.
-list_replace_range_test: RuntimeError # Please triage this failure.
-list_reversed_test: RuntimeError # Please triage this failure.
-list_set_all_test: RuntimeError # Please triage this failure.
-list_set_range_test: RuntimeError # Please triage this failure.
-list_sort_test: RuntimeError # Please triage this failure.
 list_test/01: RuntimeError # this.get$length is not a function
 list_test/none: RuntimeError # this.get$length is not a function
-list_to_string2_test: RuntimeError # Please triage this failure.
-list_unmodifiable_test: RuntimeError # Please triage this failure.
 main_test: RuntimeError # receiver.get$_collection$_nums is not a function
-map_test: Crash # Internal Error: No default constructor available.
 map_values2_test: RuntimeError # Please triage this failure.
 map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.
 null_test: RuntimeError # Cannot read property 'prototype' of undefined
-queue_first_test: RuntimeError # Please triage this failure.
-queue_iterator_test: RuntimeError # Please triage this failure.
-queue_last_test: RuntimeError # Please triage this failure.
-queue_single_test: RuntimeError # Please triage this failure.
-queue_test: RuntimeError # Please triage this failure.
-range_error_test: RuntimeError # Please triage this failure.
 reg_exp_first_match_test: RuntimeError # Cannot read property 'prototype' of undefined
 reg_exp_group_test: RuntimeError # Cannot read property 'prototype' of undefined
-reg_exp_groups_test: RuntimeError # Please triage this failure.
 reg_exp_string_match_test: RuntimeError # Cannot read property 'prototype' of undefined
 regexp/capture-3_test: RuntimeError # Cannot read property 'prototype' of undefined
-regexp/capture_test: RuntimeError # Please triage this failure.
 regexp/extended-characters-match_test: RuntimeError # Cannot read property 'prototype' of undefined
-regexp/global_test: RuntimeError # Please triage this failure.
-regexp/many-brackets_test: RuntimeError # Please triage this failure.
 regexp/non-bmp_test: RuntimeError # Cannot read property 'prototype' of undefined
-regexp/non-capturing-groups_test: RuntimeError # Please triage this failure.
 regexp/pcre_test: Crash # Stack Overflow
-regexp/regexp_test: RuntimeError # Please triage this failure.
 regexp/regress-regexp-construct-result_test: RuntimeError # Cannot read property 'prototype' of undefined
 regexp/results-cache_test: RuntimeError # Cannot read property 'prototype' of undefined
-regexp/stack-overflow2_test: RuntimeError # Please triage this failure.
 regexp/stack-overflow_test: RuntimeError # Cannot read property 'prototype' of undefined
 regexp/unicode-handling_test: RuntimeError # Cannot read property 'prototype' of undefined
-regress_11099_test: RuntimeError # Please triage this failure.
-set_test: RuntimeError # Please triage this failure.
-set_to_string_test: RuntimeError # Please triage this failure.
 shuffle_test: RuntimeError # Please triage this failure.
-sort_test: RuntimeError # Please triage this failure.
-splay_tree_test: RuntimeError # Please triage this failure.
 stacktrace_fromstring_test: RuntimeError # receiver.get$_collection$_nums is not a function
 stopwatch2_test: RuntimeError # Cannot read property 'prototype' of undefined
 stopwatch_test: RuntimeError # Cannot read property 'prototype' of undefined
-string_codeunits_test: RuntimeError # Please triage this failure.
-string_from_list_test: RuntimeError # Please triage this failure.
 string_fromcharcodes_test: RuntimeError # Please triage this failure.
-string_pattern_test: RuntimeError # Please triage this failure.
 string_replace_all_test: RuntimeError # Cannot read property 'prototype' of undefined
-string_replace_test: RuntimeError # Please triage this failure.
-string_runes_test: RuntimeError # Please triage this failure.
-string_source_test: RuntimeError # Please triage this failure.
-string_split_test: RuntimeError # Please triage this failure.
-string_test: RuntimeError # Please triage this failure.
-string_to_lower_case_test: RuntimeError # Please triage this failure.
-strings_test: RuntimeError # Please triage this failure.
-symbol_operator_test/03: RuntimeError # Please triage this failure.
+symbol_operator_test/03 : RuntimeError # 
 symbol_reserved_word_test/03: Pass # Please triage this failure.
 symbol_reserved_word_test/06: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/09: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/12: RuntimeError # Please triage this failure.
 symbol_test/none: Crash # The null object does not have a getter '_element'.
-uri_base_test: Crash # Invalid argument(s)
-uri_file_test: Crash # Invalid argument(s)
-uri_http_test: Crash # Invalid argument(s)
-uri_ipv4_test: RuntimeError # Please triage this failure.
-uri_ipv6_test: Crash # Invalid argument(s)
-uri_normalize_path_test: RuntimeError # Please triage this failure.
-uri_parse_test: Crash # Invalid argument(s)
-uri_path_test: Crash # Invalid argument(s)
-uri_query_test: Crash # Internal Error: No default constructor available.
-uri_scheme_test: Crash # Invalid argument(s)
 uri_test: Crash # Invalid argument(s)

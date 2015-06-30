@@ -7,10 +7,8 @@ library js_backend;
 import 'dart:async' show EventSink, Future;
 import 'dart:collection' show HashMap;
 
-import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
-    as embeddedNames;
-import 'package:_internal/compiler/js_lib/shared/embedded_names.dart'
-    show JsGetName;
+import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/shared/embedded_names.dart' show JsGetName;
 
 import '../closure.dart';
 import '../compile_time_constants.dart';
@@ -55,6 +53,7 @@ part 'checked_mode_helpers.dart';
 part 'constant_emitter.dart';
 part 'constant_handler_javascript.dart';
 part 'custom_elements_analysis.dart';
+part 'field_naming_mixin.dart';
 part 'minify_namer.dart';
 part 'namer.dart';
 part 'no_such_method_registry.dart';

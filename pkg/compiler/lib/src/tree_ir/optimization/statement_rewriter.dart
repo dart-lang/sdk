@@ -307,7 +307,7 @@ class StatementRewriter extends Transformer implements Pass {
       // Handle constant assignments specially.
       // They are always safe to propagate (though we should avoid duplication).
       // Moreover, they should not prevent other expressions from propagating.
-      if (assign.variable.readCount <= 1) {
+      if (assign.variable.readCount == 1) {
         // A single-use constant should always be propagted to its use site.
         constantEnvironment[assign.variable] = assign.value;
         --assign.variable.writeCount;

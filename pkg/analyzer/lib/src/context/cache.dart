@@ -313,6 +313,12 @@ class CacheEntry {
   }
 
   /**
+   * Return a list of result descriptors for results whose state is not
+   * [CacheState.INVALID].
+   */
+  List<ResultDescriptor> get nonInvalidResults => _resultMap.keys.toList();
+
+  /**
    * Fix the state of the [exception] to match the current state of the entry.
    */
   void fixExceptionState() {
@@ -412,7 +418,7 @@ class CacheEntry {
    * Set the state of the result represented by the given [descriptor] to the
    * given [state].
    */
-  void setState(ResultDescriptor descriptor, CacheState state) {
+  void setState(ResultDescriptor descriptor, CacheState state, {Delta delta}) {
     if (state == CacheState.ERROR) {
       throw new ArgumentError('use setErrorState() to set the state to ERROR');
     }
@@ -423,7 +429,7 @@ class CacheEntry {
     if (state == CacheState.INVALID) {
       ResultData data = _resultMap[descriptor];
       if (data != null) {
-        _invalidate(descriptor);
+        _invalidate(descriptor, delta);
       }
     } else {
       ResultData data = getResultData(descriptor);
@@ -471,7 +477,7 @@ class CacheEntry {
   void setValueIncremental(ResultDescriptor descriptor, dynamic value) {
     ResultData data = getResultData(descriptor);
     List<TargetedResult> dependedOn = data.dependedOnResults;
-    _invalidate(descriptor);
+    _invalidate(descriptor, null);
     setValue(descriptor, value, dependedOn);
   }
 
@@ -491,29 +497,42 @@ class CacheEntry {
    * Invalidate the result represented by the given [descriptor] and propagate
    * invalidation to other results that depend on it.
    */
-  void _invalidate(ResultDescriptor descriptor) {
+  void _invalidate(ResultDescriptor descriptor, Delta delta) {
+    DeltaResult deltaResult = null;
+    if (delta != null) {
+      deltaResult = delta.validate(_partition.context, target, descriptor);
+      if (deltaResult == DeltaResult.STOP) {
+//        print('not-invalidate $descriptor for $target');
+        return;
+      }
+    }
 //    print('invalidate $descriptor for $target');
-    ResultData thisData = _resultMap.remove(descriptor);
+    ResultData thisData;
+    if (deltaResult == null || deltaResult == DeltaResult.INVALIDATE) {
+      thisData = _resultMap.remove(descriptor);
+    }
+    if (deltaResult == DeltaResult.KEEP_CONTINUE) {
+      thisData = _resultMap[descriptor];
+    }
     if (thisData == null) {
       return;
     }
     // Stop depending on other results.
     TargetedResult thisResult = new TargetedResult(target, descriptor);
-    thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
+    for (TargetedResult dependedOnResult in thisData.dependedOnResults) {
       ResultData data = _partition._getDataFor(dependedOnResult, orNull: true);
       if (data != null) {
         data.dependentResults.remove(thisResult);
       }
-    });
+    }
     // Invalidate results that depend on this result.
-    Set<TargetedResult> dependentResults = thisData.dependentResults;
-    thisData.dependentResults = new Set<TargetedResult>();
-    dependentResults.forEach((TargetedResult dependentResult) {
+    List<TargetedResult> dependentResults = thisData.dependentResults.toList();
+    for (TargetedResult dependentResult in dependentResults) {
       CacheEntry entry = _partition.get(dependentResult.target);
       if (entry != null) {
-        entry._invalidate(dependentResult.result);
+        entry._invalidate(dependentResult.result, delta);
       }
-    });
+    }
     // If empty, remove the entry altogether.
     if (_resultMap.isEmpty) {
       _partition._targetMap.remove(target);
@@ -530,7 +549,7 @@ class CacheEntry {
   void _invalidateAll() {
     List<ResultDescriptor> results = _resultMap.keys.toList();
     for (ResultDescriptor result in results) {
-      _invalidate(result);
+      _invalidate(result, null);
     }
   }
 
@@ -958,6 +977,29 @@ abstract class CachePartition {
     }
   }
 }
+
+/**
+ * The description for a change.
+ */
+class Delta {
+  final Source source;
+
+  Delta(this.source);
+
+  /**
+   * Check whether this delta affects the result described by the given
+   * [descriptor] and [target].
+   */
+  DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
+      ResultDescriptor descriptor) {
+    return DeltaResult.INVALIDATE;
+  }
+}
+
+/**
+ * The possible results of validating analysis results againt a [Delta].
+ */
+enum DeltaResult { INVALIDATE, KEEP_CONTINUE, STOP }
 
 /**
  * [InvalidatedResult] describes an invalidated result.

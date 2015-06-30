@@ -4,7 +4,7 @@
 
 library dart2js.new_js_emitter.emitter;
 
-import 'package:_internal/compiler/js_lib/shared/embedded_names.dart' show
+import 'package:js_runtime/shared/embedded_names.dart' show
     JsBuiltin,
     METADATA,
     TYPES;

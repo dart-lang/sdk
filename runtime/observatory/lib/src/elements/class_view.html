@@ -196,7 +196,7 @@
               </template>
               <template if="{{ mostRetained != null }}">
                 <template repeat="{{ most in mostRetained }}">
-                  {{ most.retainedSize | formatSize }}<instance-ref ref="{{ most }}"></instance-ref><br>
+                  {{ most.retainedSize | formatSize }}<any-service-ref ref="{{ most }}"></any-service-ref><br>
                 </template>
               </template>
             </div>

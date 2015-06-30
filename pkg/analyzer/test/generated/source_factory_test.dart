@@ -31,32 +31,33 @@ class SourceFactoryTest {
   void test_creation() {
     expect(new SourceFactory([]), isNotNull);
   }
+
   void test_fromEncoding_invalidUri() {
     SourceFactory factory = new SourceFactory([]);
-    try {
-      factory.fromEncoding("<:&%>");
-      fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException {}
+    expect(() => factory.fromEncoding("<:&%>"),
+        throwsA(new isInstanceOf<IllegalArgumentException>()));
   }
+
   void test_fromEncoding_noResolver() {
     SourceFactory factory = new SourceFactory([]);
-    try {
-      factory.fromEncoding("foo:/does/not/exist.dart");
-      fail("Expected IllegalArgumentException");
-    } on IllegalArgumentException {}
+    expect(() => factory.fromEncoding("foo:/does/not/exist.dart"),
+        throwsA(new isInstanceOf<IllegalArgumentException>()));
   }
+
   void test_fromEncoding_valid() {
     String encoding = "file:///does/not/exist.dart";
     SourceFactory factory = new SourceFactory(
         [new UriResolver_SourceFactoryTest_test_fromEncoding_valid(encoding)]);
     expect(factory.fromEncoding(encoding), isNotNull);
   }
+
   void test_resolveUri_absolute() {
     UriResolver_absolute resolver = new UriResolver_absolute();
     SourceFactory factory = new SourceFactory([resolver]);
     factory.resolveUri(null, "dart:core");
     expect(resolver.invoked, isTrue);
   }
+
   void test_resolveUri_nonAbsolute_absolute() {
     SourceFactory factory =
         new SourceFactory([new UriResolver_nonAbsolute_absolute()]);
@@ -67,6 +68,7 @@ class SourceFactoryTest {
     expect(result.fullName,
         FileUtilities2.createFile(absolutePath).getAbsolutePath());
   }
+
   void test_resolveUri_nonAbsolute_relative() {
     SourceFactory factory =
         new SourceFactory([new UriResolver_nonAbsolute_relative()]);
@@ -146,9 +148,7 @@ class UriResolver_nonAbsolute_relative extends UriResolver {
 
 class UriResolver_restoreUri extends UriResolver {
   Source source1;
-
   Uri expected1;
-
   UriResolver_restoreUri(this.source1, this.expected1);
 
   @override
@@ -166,7 +166,6 @@ class UriResolver_restoreUri extends UriResolver {
 class UriResolver_SourceFactoryTest_test_fromEncoding_valid
     extends UriResolver {
   String encoding;
-
   UriResolver_SourceFactoryTest_test_fromEncoding_valid(this.encoding);
 
   @override

@@ -18,7 +18,7 @@ import 'filenames.dart';
 import 'util/uri_extras.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
 import 'util/command_line.dart';
-import 'package:_internal/libraries.dart';
+import 'package:sdk_library_metadata/libraries.dart';
 import 'package:package_config/discovery.dart' show findPackages;
 
 const String LIBRARY_ROOT = '../../../../../sdk';

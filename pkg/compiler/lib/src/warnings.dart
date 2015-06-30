@@ -640,10 +640,11 @@ main() => new C<String>();
       "Not a compile-time constant.");
 
   static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT = const MessageKind(
-      "A Deferred value cannot be used as a compile-time constant.");
+      "A deferred value cannot be used as a compile-time constant.");
 
   static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION =
-      const MessageKind("A deferred class cannot be used to create a"
+      const MessageKind(
+          "A deferred class cannot be used to create a "
           "compile-time constant.");
 
   static const MessageKind CYCLIC_COMPILE_TIME_CONSTANTS = const MessageKind(
@@ -2203,7 +2204,7 @@ Please include the following information:
   static const MessageKind PREAMBLE = const MessageKind(
     "When run on the command-line, the compiled output might"
     " require a preamble file located in:\n"
-    "  <sdk>/lib/_internal/compiler/js_lib/preambles.");
+    "  <sdk>/lib/_internal/js_runtime/lib/preambles.");
 
   static const MessageKind INVALID_SYNC_MODIFIER = const MessageKind(
       "Invalid modifier 'sync'.",
