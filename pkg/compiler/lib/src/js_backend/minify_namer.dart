@@ -54,7 +54,7 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer {
   // OK to use them as fields, as we only access fields directly if we know
   // the receiver type.
   static const List<String> _reservedNativeProperties = const <String>[
-      'Q', 'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z',
+      'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z', 'Q',
       // 2-letter:
       'ch', 'cx', 'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1',
       'k2', 'k3', 'k4', 'r1', 'r2', 'rx', 'ry', 'x1', 'x2', 'y1', 'y2',
@@ -254,4 +254,3 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer {
     return super.instanceFieldPropertyName(element);
   }
 }
-
