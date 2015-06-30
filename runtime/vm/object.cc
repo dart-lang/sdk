@@ -6511,6 +6511,21 @@ RawInstance* Function::ImplicitStaticClosure() const {
 }
 
 
+RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
+  ASSERT(IsImplicitClosureFunction());
+  const Class& cls = Class::Handle(signature_class());
+  const Context& context = Context::Handle(Context::New(1));
+  context.SetAt(0, receiver);
+  const Instance& result = Instance::Handle(Closure::New(*this, context));
+  if (cls.NumTypeArguments() > 0) {
+    const TypeArguments& type_arguments =
+        TypeArguments::Handle(receiver.GetTypeArguments());
+    result.SetTypeArguments(type_arguments);
+  }
+  return result.raw();
+}
+
+
 RawString* Function::BuildSignature(bool instantiate,
                                     NameVisibility name_visibility,
                                     const TypeArguments& instantiator) const {

@@ -18,6 +18,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, lazy_dispatchers);
+
 #define PROPAGATE_IF_MALFORMED(type)                                           \
   if (type.IsMalformed()) {                                                    \
     Exceptions::PropagateError(Error::Handle(type.error()));                   \
@@ -739,37 +741,6 @@ static RawInstance* InvokeClassGetter(const Class& klass,
 }
 
 
-static RawInstance* InvokeInstanceGetter(const Class& klass,
-                                         const Instance& reflectee,
-                                         const String& getter_name,
-                                         const bool throw_nsm_if_absent) {
-  const String& internal_getter_name = String::Handle(
-      Field::GetterName(getter_name));
-  Function& function = Function::Handle(
-      Resolver::ResolveDynamicAnyArgs(klass, internal_getter_name));
-
-  if (!function.IsNull() || throw_nsm_if_absent) {
-    const int kNumArgs = 1;
-    const Array& args = Array::Handle(Array::New(kNumArgs));
-    args.SetAt(0, reflectee);
-    const Array& args_descriptor =
-        Array::Handle(ArgumentsDescriptor::New(args.Length()));
-
-    // InvokeDynamic invokes NoSuchMethod if the provided function is null.
-    return InvokeDynamicFunction(reflectee,
-                                 function,
-                                 internal_getter_name,
-                                 args,
-                                 args_descriptor);
-  }
-
-  // Fall through case: Indicate that we didn't find any function or field using
-  // a special null instance. This is different from a field being null. Callers
-  // make sure that this null does not leak into Dartland.
-  return Object::sentinel().raw();
-}
-
-
 static RawAbstractType* InstantiateType(const AbstractType& type,
                                         const AbstractType& instantiator) {
   ASSERT(type.IsFinalized());
@@ -1389,7 +1360,34 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
   GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
   Class& klass = Class::Handle(reflectee.clazz());
-  return InvokeInstanceGetter(klass, reflectee, getter_name, true);
+
+  const String& internal_getter_name = String::Handle(
+      Field::GetterName(getter_name));
+  Function& function = Function::Handle(
+      Resolver::ResolveDynamicAnyArgs(klass, internal_getter_name));
+
+  // Check for method extraction when method extractors are not created.
+  if (function.IsNull() && !FLAG_lazy_dispatchers) {
+    function = Resolver::ResolveDynamicAnyArgs(klass, getter_name);
+    if (!function.IsNull()) {
+      const Function& closure_function =
+        Function::Handle(function.ImplicitClosureFunction());
+      return closure_function.ImplicitInstanceClosure(reflectee);
+    }
+  }
+
+  const int kNumArgs = 1;
+  const Array& args = Array::Handle(Array::New(kNumArgs));
+  args.SetAt(0, reflectee);
+  const Array& args_descriptor =
+      Array::Handle(ArgumentsDescriptor::New(args.Length()));
+
+  // InvokeDynamic invokes NoSuchMethod if the provided function is null.
+  return InvokeDynamicFunction(reflectee,
+                               function,
+                               internal_getter_name,
+                               args,
+                               args_descriptor);
 }
 
 

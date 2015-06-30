@@ -151,7 +151,50 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
       return InvokeFunction(function, arguments, arguments_descriptor);
     }
   }
-  // There is no compatible 'call' method, so invoke noSuchMethod.
+
+  // There is no compatible 'call' method, see if there's a getter.
+  if (instance.IsClosure()) {
+    // Special case: closures are implemented with a call getter instead of a
+    // call method. If the arguments didn't match, go to noSuchMethod instead
+    // of infinitely recursing on the getter.
+  } else {
+    const String& getter_name = String::Handle(Symbols::New("get:call"));
+    Class& cls = Class::Handle(instance.clazz());
+    while (!cls.IsNull()) {
+      function ^= cls.LookupDynamicFunction(getter_name);
+      if (!function.IsNull()) {
+        // Getters don't have a stack overflow check, so do one in C++.
+
+        Isolate* isolate = Isolate::Current();
+#if defined(USING_SIMULATOR)
+        uword stack_pos = Simulator::Current()->get_register(SPREG);
+#else
+        uword stack_pos = Isolate::GetCurrentStackPointer();
+#endif
+        if (stack_pos < isolate->saved_stack_limit()) {
+          const Instance& exception =
+            Instance::Handle(isolate->object_store()->stack_overflow());
+          return UnhandledException::New(exception, Stacktrace::Handle());
+        }
+
+        const Array& getter_arguments = Array::Handle(Array::New(1));
+        getter_arguments.SetAt(0, instance);
+        const Object& getter_result =
+              Object::Handle(DartEntry::InvokeFunction(function,
+                                                       getter_arguments));
+        if (getter_result.IsError()) {
+          return getter_result.raw();
+        }
+        ASSERT(getter_result.IsNull() || getter_result.IsInstance());
+
+        arguments.SetAt(0, getter_result);
+        return InvokeClosure(arguments, arguments_descriptor);
+      }
+      cls = cls.SuperClass();
+    }
+  }
+
+  // No compatible method or getter so invoke noSuchMethod.
   return InvokeNoSuchMethod(instance,
                             Symbols::Call(),
                             arguments,

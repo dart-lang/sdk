@@ -724,6 +724,7 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
                                      const String& target_name,
                                      const Array& arguments_descriptor,
                                      Function* result) {
+  ASSERT(FLAG_lazy_dispatchers);
   // 1. Check if there is a getter with the same name.
   const String& getter_name = String::Handle(Field::GetterName(target_name));
   const int kNumArguments = 1;
@@ -764,6 +765,10 @@ static bool ResolveCallThroughGetter(const Instance& receiver,
 RawFunction* InlineCacheMissHelper(
     const Instance& receiver,
     const ICData& ic_data) {
+  if (!FLAG_lazy_dispatchers) {
+    return Function::null();  // We'll handle it in the runtime.
+  }
+
   const Array& args_descriptor = Array::Handle(ic_data.arguments_descriptor());
 
   const Class& receiver_class = Class::Handle(receiver.clazz());
@@ -775,9 +780,6 @@ RawFunction* InlineCacheMissHelper(
                                 target_name,
                                 args_descriptor,
                                 &result)) {
-    if (!FLAG_lazy_dispatchers) {
-      return result.raw();  // Return null.
-    }
     ArgumentsDescriptor desc(args_descriptor);
     const Function& target_function =
         Function::Handle(receiver_class.GetInvocationDispatcher(
@@ -1042,6 +1044,78 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
   const Array& orig_arguments_desc = Array::CheckedHandle(arguments.ArgAt(2));
   const Array& orig_arguments = Array::CheckedHandle(arguments.ArgAt(3));
   const String& target_name = String::Handle(ic_data.target_name());
+
+  Class& cls = Class::Handle(receiver.clazz());
+  Function& function = Function::Handle();
+
+  // Dart distinguishes getters and regular methods and allows their calls
+  // to mix with conversions, and its selectors are independent of arity. So do
+  // a zigzagged lookup to see if this call failed because of an arity mismatch,
+  // need for conversion, or there really is no such method.
+
+  const bool is_getter = Field::IsGetterName(target_name);
+  if (is_getter) {
+    // o.foo failed, closurize o.foo() if it exists
+    const String& field_name =
+      String::Handle(Field::NameFromGetter(target_name));
+    while (!cls.IsNull()) {
+      function ^= cls.LookupDynamicFunction(field_name);
+      if (!function.IsNull()) {
+        const Function& closure_function =
+            Function::Handle(function.ImplicitClosureFunction());
+        const Object& result =
+            Object::Handle(closure_function.ImplicitInstanceClosure(receiver));
+        arguments.SetReturn(result);
+        return;
+      }
+      cls = cls.SuperClass();
+    }
+  } else {
+    // o.foo(...) failed, invoke noSuchMethod is foo exists but has the wrong
+    // number of arguments, or try (o.foo).call(...)
+
+    if ((target_name.raw() == Symbols::Call().raw()) && receiver.IsClosure()) {
+      // Special case: closures are implemented with a call getter instead of a
+      // call method and with lazy dispatchers the field-invocation-dispatcher
+      // would perform the closure call.
+      const Object& result =
+        Object::Handle(DartEntry::InvokeClosure(orig_arguments,
+                                                orig_arguments_desc));
+      CheckResultError(result);
+      arguments.SetReturn(result);
+      return;
+    }
+
+    const String& getter_name = String::Handle(Field::GetterName(target_name));
+    while (!cls.IsNull()) {
+      function ^= cls.LookupDynamicFunction(target_name);
+      if (!function.IsNull()) {
+        ArgumentsDescriptor args_desc(orig_arguments_desc);
+        ASSERT(!function.AreValidArguments(args_desc, NULL));
+        break;  // mismatch, invoke noSuchMethod
+      }
+      function ^= cls.LookupDynamicFunction(getter_name);
+      if (!function.IsNull()) {
+        const Array& getter_arguments = Array::Handle(Array::New(1));
+        getter_arguments.SetAt(0, receiver);
+        const Object& getter_result =
+          Object::Handle(DartEntry::InvokeFunction(function,
+                                                   getter_arguments));
+        CheckResultError(getter_result);
+        ASSERT(getter_result.IsNull() || getter_result.IsInstance());
+
+        orig_arguments.SetAt(0, getter_result);
+        const Object& call_result =
+          Object::Handle(DartEntry::InvokeClosure(orig_arguments,
+                                                  orig_arguments_desc));
+        CheckResultError(call_result);
+        arguments.SetReturn(call_result);
+        return;
+      }
+      cls = cls.SuperClass();
+    }
+  }
+
   // Handle noSuchMethod invocation.
   const Object& result = Object::Handle(
       DartEntry::InvokeNoSuchMethod(receiver,

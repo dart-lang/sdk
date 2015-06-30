@@ -2190,6 +2190,8 @@ class Function : public Object {
   // If none exists yet, create one and remember it.
   RawInstance* ImplicitStaticClosure() const;
 
+  RawInstance* ImplicitInstanceClosure(const Instance& receiver) const;
+
   // Redirection information for a redirecting factory.
   bool IsRedirectingFactory() const;
   RawType* RedirectionType() const;

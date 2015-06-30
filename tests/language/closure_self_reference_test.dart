@@ -18,6 +18,6 @@ main() {
     }
   }
 
-  Expect.equals(0, inner(499));
-  Expect.equals(499, counter);
+  Expect.equals(0, inner(199));
+  Expect.equals(199, counter);
 }
