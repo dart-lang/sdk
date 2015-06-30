@@ -248,6 +248,18 @@ void ClassFinalizer::VerifyBootstrapClasses() {
 #endif  // defined(DART_NO_SNAPSHOT).
 
 
+static bool IsLoaded(const Type& type) {
+  if (type.HasResolvedTypeClass()) {
+    return true;
+  }
+  const UnresolvedClass& unresolved_class =
+      UnresolvedClass::Handle(type.unresolved_class());
+  const LibraryPrefix& prefix =
+      LibraryPrefix::Handle(unresolved_class.library_prefix());
+  return prefix.IsNull() || prefix.is_loaded();
+}
+
+
 // Resolve unresolved_class in the library of cls, or return null.
 RawClass* ClassFinalizer::ResolveClass(
       const Class& cls,
@@ -275,7 +287,7 @@ void ClassFinalizer::ResolveRedirectingFactory(const Class& cls,
   const Function& target = Function::Handle(factory.RedirectionTarget());
   if (target.IsNull()) {
     Type& type = Type::Handle(factory.RedirectionType());
-    if (!type.IsMalformed()) {
+    if (!type.IsMalformed() && IsLoaded(type)) {
       const GrowableObjectArray& visited_factories =
           GrowableObjectArray::Handle(GrowableObjectArray::New());
       ResolveRedirectingFactoryTarget(cls, factory, visited_factories);
@@ -1498,9 +1510,13 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         // The function may be a still unresolved redirecting factory. Do not
         // yet try to resolve it in order to avoid cycles in class finalization.
         // However, the redirection type should be finalized.
+        // If the redirection type is from a deferred library and is not
+        // yet loaded, do not attempt to resolve.
         Type& type = Type::Handle(I, function.RedirectionType());
-        type ^= FinalizeType(cls, type, kCanonicalize);
-        function.SetRedirectionType(type);
+        if (IsLoaded(type)) {
+          type ^= FinalizeType(cls, type, kCanonicalize);
+          function.SetRedirectionType(type);
+        }
       }
     } else if (function.IsGetterFunction() ||
                function.IsImplicitGetterFunction()) {
