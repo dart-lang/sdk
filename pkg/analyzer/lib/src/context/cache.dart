@@ -319,6 +319,22 @@ class CacheEntry {
   List<ResultDescriptor> get nonInvalidResults => _resultMap.keys.toList();
 
   /**
+   * Notifies the entry that the client is going to stop using it.
+   */
+  void dispose() {
+    _resultMap.forEach((descriptor, data) {
+      TargetedResult result = new TargetedResult(target, descriptor);
+      for (TargetedResult dependedOnResult in data.dependedOnResults) {
+        ResultData dependedOnData = _partition._getDataFor(dependedOnResult);
+        if (dependedOnData != null) {
+          dependedOnData.dependentResults.remove(result);
+        }
+      }
+    });
+    _resultMap.clear();
+  }
+
+  /**
    * Fix the state of the [exception] to match the current state of the entry.
    */
   void fixExceptionState() {
@@ -520,7 +536,7 @@ class CacheEntry {
     // Stop depending on other results.
     TargetedResult thisResult = new TargetedResult(target, descriptor);
     for (TargetedResult dependedOnResult in thisData.dependedOnResults) {
-      ResultData data = _partition._getDataFor(dependedOnResult, orNull: true);
+      ResultData data = _partition._getDataFor(dependedOnResult);
       if (data != null) {
         data.dependentResults.remove(thisResult);
       }
@@ -559,14 +575,14 @@ class CacheEntry {
   void _setDependedOnResults(ResultData thisData, TargetedResult thisResult,
       List<TargetedResult> dependedOn) {
     thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      ResultData data = _partition._getDataFor(dependedOnResult, orNull: true);
+      ResultData data = _partition._getDataFor(dependedOnResult);
       if (data != null) {
         data.dependentResults.remove(thisResult);
       }
     });
     thisData.dependedOnResults = dependedOn;
     thisData.dependedOnResults.forEach((TargetedResult dependedOnResult) {
-      ResultData data = _partition._getDataFor(dependedOnResult, orNull: true);
+      ResultData data = _partition._getDataFor(dependedOnResult);
       if (data != null) {
         data.dependentResults.add(thisResult);
       }
@@ -829,6 +845,16 @@ abstract class CachePartition {
       _onResultInvalidated.stream;
 
   /**
+   * Notifies the partition that the client is going to stop using it.
+   */
+  void dispose() {
+    for (CacheEntry entry in _targetMap.values) {
+      entry.dispose();
+    }
+    _targetMap.clear();
+  }
+
+  /**
    * Return the entry associated with the given [target].
    */
   CacheEntry get(AnalysisTarget target) => _targetMap[target];
@@ -929,13 +955,9 @@ abstract class CachePartition {
     }
   }
 
-  ResultData _getDataFor(TargetedResult result, {bool orNull: false}) {
+  ResultData _getDataFor(TargetedResult result) {
     CacheEntry entry = context.analysisCache.get(result.target);
-    if (orNull) {
-      return entry != null ? entry._resultMap[result.result] : null;
-    } else {
-      return entry.getResultData(result.result);
-    }
+    return entry != null ? entry._resultMap[result.result] : null;
   }
 
   /**

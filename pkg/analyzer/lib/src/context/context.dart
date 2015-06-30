@@ -678,6 +678,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       }
     }
     _pendingFutureTargets.clear();
+    _privatePartition.dispose();
   }
 
   @override
@@ -1717,8 +1718,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
               dartDelta.hasDirectiveChange = unitDelta.hasDirectiveChange;
               unitDelta.addedDeclarations.forEach(dartDelta.elementAdded);
               unitDelta.removedDeclarations.forEach(dartDelta.elementRemoved);
-              print(
-                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
+//              print(
+//                  'dartDelta: add=${dartDelta.addedNames} remove=${dartDelta.removedNames}');
               delta = dartDelta;
               entry.setState(CONTENT, CacheState.INVALID, delta: delta);
               return;
