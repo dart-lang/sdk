@@ -5,7 +5,6 @@
 library analyzer.src.task.dart;
 
 import 'dart:collection';
-import 'dart:math' as math;
 
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -59,17 +58,6 @@ final ListResultDescriptor<AnalysisError> BUILD_LIBRARY_ERRORS =
         'BUILD_LIBRARY_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
- * The [ClassElement]s of a [Source] representing a Dart library.
- *
- * The list contains the elements for all of the classes defined in the library,
- * not just those in the defining compilation unit. The list will be empty if
- * there are no classes, but will not be `null`.
- */
-final ListResultDescriptor<ClassElement> CLASS_ELEMENTS =
-    new ListResultDescriptor<ClassElement>('CLASS_ELEMENTS', null,
-        cachingPolicy: ELEMENT_CACHING_POLICY);
-
-/**
  * A list of the [ConstantEvaluationTarget]s defined in a unit.  This includes
  * constants defined at top level, statically inside classes, and local to
  * functions, as well as constant constructors, annotations, and default values
@@ -110,23 +98,6 @@ final ListResultDescriptor<ConstantEvaluationTarget> CONSTANT_DEPENDENCIES =
 final ResultDescriptor<ConstantEvaluationTarget> CONSTANT_VALUE =
     new ResultDescriptor<ConstantEvaluationTarget>('CONSTANT_VALUE', null,
         cachingPolicy: ELEMENT_CACHING_POLICY);
-
-/**
- * The [ConstructorElement]s of a [ClassElement].
- */
-final ListResultDescriptor<ConstructorElement> CONSTRUCTORS =
-    new ListResultDescriptor<ConstructorElement>('CONSTRUCTORS', null);
-
-/**
- * The errors produced while building a [ClassElement] constructors.
- *
- * The list will be empty if there were no errors, but will not be `null`.
- *
- * The result is only available for targets representing a [ClassElement].
- */
-final ListResultDescriptor<AnalysisError> CONSTRUCTORS_ERRORS =
-    new ListResultDescriptor<AnalysisError>(
-        'CONSTRUCTORS_ERRORS', AnalysisError.NO_ERRORS);
 
 /**
  * The sources representing the libraries that include a given source as a part.
@@ -230,17 +201,6 @@ final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT4 =
  */
 final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT5 =
     new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT5', null,
-        cachingPolicy: ELEMENT_CACHING_POLICY);
-
-/**
- * The partial [LibraryElement] associated with a library.
- *
- * [LIBRARY_ELEMENT5] plus resolved elements and types for all expressions.
- *
- * The result is only available for [Source]s representing a library.
- */
-final ResultDescriptor<LibraryElement> LIBRARY_ELEMENT6 =
-    new ResultDescriptor<LibraryElement>('LIBRARY_ELEMENT6', null,
         cachingPolicy: ELEMENT_CACHING_POLICY);
 
 /**
@@ -424,234 +384,6 @@ List<AnalysisError> removeDuplicateErrors(List<AnalysisError> errors) {
     return errors;
   }
   return errors.toSet().toList();
-}
-
-/**
- * A task that builds implicit constructors for a [ClassElement], or keeps
- * the existing explicit constructors if the class has them.
- */
-class BuildClassConstructorsTask extends SourceBasedAnalysisTask {
-  /**
-   * The name of the [CONSTRUCTORS] input for the superclass.
-   */
-  static const String SUPER_CONSTRUCTORS = 'SUPER_CONSTRUCTORS';
-
-  /**
-   * The task descriptor describing this kind of task.
-   */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'BuildConstructorsForClassTask', createTask, buildInputs,
-      <ResultDescriptor>[CONSTRUCTORS, CONSTRUCTORS_ERRORS]);
-
-  BuildClassConstructorsTask(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  TaskDescriptor get descriptor => DESCRIPTOR;
-
-  @override
-  void internalPerform() {
-    List<AnalysisError> errors = <AnalysisError>[];
-    //
-    // Prepare inputs.
-    //
-    ClassElementImpl classElement = this.target;
-    List<ConstructorElement> superConstructors = inputs[SUPER_CONSTRUCTORS];
-    DartType superType = classElement.supertype;
-    if (superType == null) {
-      return;
-    }
-    //
-    // Shortcut for ClassElement(s) without implicit constructors.
-    //
-    if (superConstructors == null) {
-      outputs[CONSTRUCTORS] = classElement.constructors;
-      outputs[CONSTRUCTORS_ERRORS] = AnalysisError.NO_ERRORS;
-      return;
-    }
-    //
-    // ClassTypeAlias
-    //
-    if (classElement.isMixinApplication) {
-      List<ConstructorElement> implicitConstructors =
-          new List<ConstructorElement>();
-      void callback(ConstructorElement explicitConstructor,
-          List<DartType> parameterTypes, List<DartType> argumentTypes) {
-        implicitConstructors.add(_createImplicitContructor(classElement.type,
-            explicitConstructor, parameterTypes, argumentTypes));
-      }
-      if (_findForwardedConstructors(classElement, superType, callback)) {
-        if (implicitConstructors.isEmpty) {
-          errors.add(new AnalysisError(classElement.source,
-              classElement.nameOffset, classElement.name.length,
-              CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
-              [superType.element.name]));
-        } else {
-          classElement.constructors = implicitConstructors;
-        }
-      }
-      outputs[CONSTRUCTORS] = classElement.constructors;
-      outputs[CONSTRUCTORS_ERRORS] = errors;
-    }
-    //
-    // ClassDeclaration
-    //
-    if (!classElement.isMixinApplication) {
-      bool constructorFound = false;
-      void callback(ConstructorElement explicitConstructor,
-          List<DartType> parameterTypes, List<DartType> argumentTypes) {
-        constructorFound = true;
-      }
-      if (_findForwardedConstructors(classElement, superType, callback) &&
-          !constructorFound) {
-        SourceRange withRange = classElement.withClauseRange;
-        errors.add(new AnalysisError(classElement.source, withRange.offset,
-            withRange.length, CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
-            [superType.element.name]));
-        classElement.mixinErrorsReported = true;
-      }
-      outputs[CONSTRUCTORS] = classElement.constructors;
-      outputs[CONSTRUCTORS_ERRORS] = errors;
-    }
-  }
-
-  /**
-   * Return a map from the names of the inputs of this kind of task to the task
-   * input descriptors describing those inputs for a task with the
-   * given [classElement].
-   */
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    ClassElement element = target;
-    Source librarySource = element.library.source;
-    DartType superType = element.supertype;
-    if (superType is InterfaceType) {
-      if (element.isMixinApplication || element.mixins.isNotEmpty) {
-        ClassElement superElement = superType.element;
-        return <String, TaskInput>{
-          'libraryDep': LIBRARY_ELEMENT5.of(librarySource),
-          SUPER_CONSTRUCTORS: CONSTRUCTORS.of(superElement)
-        };
-      }
-    }
-    // No implicit constructors.
-    // Depend on LIBRARY_ELEMENT5 for invalidation.
-    return <String, TaskInput>{
-      'libraryDep': LIBRARY_ELEMENT5.of(librarySource)
-    };
-  }
-
-  /**
-   * Create a [BuildClassConstructorsTask] based on the given
-   * [target] in the given [context].
-   */
-  static BuildClassConstructorsTask createTask(
-      AnalysisContext context, AnalysisTarget target) {
-    return new BuildClassConstructorsTask(context, target);
-  }
-
-  /**
-   * Create an implicit constructor that is copied from the given
-   * [explicitConstructor], but that is in the given class.
-   *
-   * [classType] - the class in which the implicit constructor is defined.
-   * [explicitConstructor] - the constructor on which the implicit constructor
-   *    is modeled.
-   * [parameterTypes] - the types to be replaced when creating parameters.
-   * [argumentTypes] - the types with which the parameters are to be replaced.
-   */
-  static ConstructorElement _createImplicitContructor(InterfaceType classType,
-      ConstructorElement explicitConstructor, List<DartType> parameterTypes,
-      List<DartType> argumentTypes) {
-    ConstructorElementImpl implicitConstructor =
-        new ConstructorElementImpl(explicitConstructor.name, -1);
-    implicitConstructor.synthetic = true;
-    implicitConstructor.redirectedConstructor = explicitConstructor;
-    implicitConstructor.const2 = explicitConstructor.isConst;
-    implicitConstructor.returnType = classType;
-    List<ParameterElement> explicitParameters = explicitConstructor.parameters;
-    int count = explicitParameters.length;
-    if (count > 0) {
-      List<ParameterElement> implicitParameters =
-          new List<ParameterElement>(count);
-      for (int i = 0; i < count; i++) {
-        ParameterElement explicitParameter = explicitParameters[i];
-        ParameterElementImpl implicitParameter =
-            new ParameterElementImpl(explicitParameter.name, -1);
-        implicitParameter.const3 = explicitParameter.isConst;
-        implicitParameter.final2 = explicitParameter.isFinal;
-        implicitParameter.parameterKind = explicitParameter.parameterKind;
-        implicitParameter.synthetic = true;
-        implicitParameter.type =
-            explicitParameter.type.substitute2(argumentTypes, parameterTypes);
-        implicitParameters[i] = implicitParameter;
-      }
-      implicitConstructor.parameters = implicitParameters;
-    }
-    FunctionTypeImpl type = new FunctionTypeImpl(implicitConstructor);
-    type.typeArguments = classType.typeArguments;
-    implicitConstructor.type = type;
-    return implicitConstructor;
-  }
-
-  /**
-   * Find all the constructors that should be forwarded from the given
-   * [superType], to the class or mixin application [classElement],
-   * and pass information about them to [callback].
-   *
-   * Return `true` if some constructors were considered. (A `false` return value
-   * can only happen if the supeclass is a built-in type, in which case it
-   * can't be used as a mixin anyway).
-   */
-  static bool _findForwardedConstructors(ClassElementImpl classElement,
-      InterfaceType superType, void callback(
-          ConstructorElement explicitConstructor, List<DartType> parameterTypes,
-          List<DartType> argumentTypes)) {
-    if (superType == null) {
-      return false;
-    }
-    ClassElement superclassElement = superType.element;
-    List<ConstructorElement> constructors = superclassElement.constructors;
-    int count = constructors.length;
-    if (count == 0) {
-      return false;
-    }
-    List<DartType> parameterTypes =
-        TypeParameterTypeImpl.getTypes(superType.typeParameters);
-    List<DartType> argumentTypes = _getArgumentTypes(superType, parameterTypes);
-    for (int i = 0; i < count; i++) {
-      ConstructorElement explicitConstructor = constructors[i];
-      if (!explicitConstructor.isFactory &&
-          classElement.isSuperConstructorAccessible(explicitConstructor)) {
-        callback(explicitConstructor, parameterTypes, argumentTypes);
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Return a list of argument types that corresponds to the [parameterTypes]
-   * and that are derived from the type arguments of the given [superType].
-   */
-  static List<DartType> _getArgumentTypes(
-      InterfaceType superType, List<DartType> parameterTypes) {
-    DynamicTypeImpl dynamic = DynamicTypeImpl.instance;
-    int parameterCount = parameterTypes.length;
-    List<DartType> types = new List<DartType>(parameterCount);
-    if (superType == null) {
-      types = new List<DartType>.filled(parameterCount, dynamic);
-    } else {
-      List<DartType> typeArguments = superType.typeArguments;
-      int argumentCount = math.min(typeArguments.length, parameterCount);
-      for (int i = 0; i < argumentCount; i++) {
-        types[i] = typeArguments[i];
-      }
-      for (int i = argumentCount; i < parameterCount; i++) {
-        types[i] = dynamic;
-      }
-    }
-    return types;
-  }
 }
 
 /**
@@ -1128,59 +860,6 @@ class BuildExportNamespaceTask extends SourceBasedAnalysisTask {
 }
 
 /**
- * This task builds [LIBRARY_ELEMENT6] by forcing building constructors for
- * all the classes of the defining and part units of a library.
- */
-class BuildLibraryConstructorsTask extends SourceBasedAnalysisTask {
-  /**
-   * The name of the [LIBRARY_ELEMENT5] input.
-   */
-  static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
-
-  /**
-   * The task descriptor describing this kind of task.
-   */
-  static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
-      'BuildLibraryConstructorsTask', createTask, buildInputs,
-      <ResultDescriptor>[LIBRARY_ELEMENT6]);
-
-  BuildLibraryConstructorsTask(
-      InternalAnalysisContext context, AnalysisTarget target)
-      : super(context, target);
-
-  @override
-  TaskDescriptor get descriptor => DESCRIPTOR;
-
-  @override
-  void internalPerform() {
-    LibraryElement library = getRequiredInput(LIBRARY_INPUT);
-    outputs[LIBRARY_ELEMENT6] = library;
-  }
-
-  /**
-   * Return a map from the names of the inputs of this kind of task to the task
-   * input descriptors describing those inputs for a task with the
-   * given [target].
-   */
-  static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
-    Source source = target;
-    return <String, TaskInput>{
-      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(source),
-      'resolvedConstructors': CLASS_ELEMENTS.of(source).toListOf(CONSTRUCTORS),
-    };
-  }
-
-  /**
-   * Create a [BuildLibraryConstructorsTask] based on the given [target] in
-   * the given [context].
-   */
-  static BuildLibraryConstructorsTask createTask(
-      AnalysisContext context, AnalysisTarget target) {
-    return new BuildLibraryConstructorsTask(context, target);
-  }
-}
-
-/**
  * A task that builds a library element for a Dart library.
  */
 class BuildLibraryElementTask extends SourceBasedAnalysisTask {
@@ -1201,7 +880,6 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
       'BuildLibraryElementTask', createTask, buildInputs, <ResultDescriptor>[
     BUILD_LIBRARY_ERRORS,
-    CLASS_ELEMENTS,
     LIBRARY_ELEMENT1,
     IS_LAUNCHABLE
   ]);
@@ -1337,17 +1015,9 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       _patchTopLevelAccessors(libraryElement);
     }
     //
-    // Prepare all class elements.
-    //
-    List<ClassElement> classElements = libraryElement.units
-        .map((CompilationUnitElement unitElement) => unitElement.types)
-        .expand((List<ClassElement> unitClassElements) => unitClassElements)
-        .toList();
-    //
     // Record outputs.
     //
     outputs[BUILD_LIBRARY_ERRORS] = errors;
-    outputs[CLASS_ELEMENTS] = classElements;
     outputs[LIBRARY_ELEMENT1] = libraryElement;
     outputs[IS_LAUNCHABLE] = entryPoint != null;
   }
@@ -2614,11 +2284,6 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
   static const String VERIFY_ERRORS_INPUT = 'VERIFY_ERRORS';
 
   /**
-   * The name of the [CONSTRUCTORS_ERRORS] input.
-   */
-  static const String CONSTRUCTORS_ERRORS_INPUT = 'CONSTRUCTORS_ERRORS';
-
-  /**
    * The task descriptor describing this kind of task.
    */
   static final TaskDescriptor DESCRIPTOR = new TaskDescriptor(
@@ -2637,7 +2302,6 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
     // Prepare inputs.
     //
     List<List<AnalysisError>> errorLists = <List<AnalysisError>>[];
-    errorLists.addAll(getRequiredInput(CONSTRUCTORS_ERRORS_INPUT));
     errorLists.add(getRequiredInput(HINTS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_REFERENCES_ERRORS_INPUT));
     errorLists.add(getRequiredInput(RESOLVE_TYPE_NAMES_ERRORS_INPUT));
@@ -2657,10 +2321,6 @@ class LibraryUnitErrorsTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     LibrarySpecificUnit unit = target;
     return <String, TaskInput>{
-      CONSTRUCTORS_ERRORS_INPUT: COMPILATION_UNIT_ELEMENT
-          .of(unit)
-          .mappedToList((CompilationUnitElement element) => element.types)
-          .toListOf(CONSTRUCTORS_ERRORS),
       HINTS_INPUT: HINTS.of(unit),
       RESOLVE_REFERENCES_ERRORS_INPUT: RESOLVE_REFERENCES_ERRORS.of(unit),
       RESOLVE_TYPE_NAMES_ERRORS_INPUT: RESOLVE_TYPE_NAMES_ERRORS.of(unit),
@@ -3010,7 +2670,7 @@ class ReferencedNamesBuilder extends RecursiveAstVisitor {
  */
 class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT6] input.
+   * The name of the [LIBRARY_ELEMENT5] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
@@ -3060,7 +2720,7 @@ class ResolveLibraryReferencesTask extends SourceBasedAnalysisTask {
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     Source source = target;
     return <String, TaskInput>{
-      LIBRARY_INPUT: LIBRARY_ELEMENT6.of(source),
+      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(source),
       UNITS_INPUT: UNITS.of(source).toList((Source unit) =>
           RESOLVED_UNIT5.of(new LibrarySpecificUnit(source, unit))),
       'resolvedUnits': IMPORT_EXPORT_SOURCE_CLOSURE
@@ -3140,7 +2800,7 @@ class ResolveLibraryTypeNamesTask extends SourceBasedAnalysisTask {
  */
 class ResolveUnitReferencesTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT6] input.
+   * The name of the [LIBRARY_ELEMENT5] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 
@@ -3206,8 +2866,8 @@ class ResolveUnitReferencesTask extends SourceBasedAnalysisTask {
     return <String, TaskInput>{
       'fullyBuiltLibraryElements': IMPORT_EXPORT_SOURCE_CLOSURE
           .of(unit.library)
-          .toListOf(LIBRARY_ELEMENT6),
-      LIBRARY_INPUT: LIBRARY_ELEMENT6.of(unit.library),
+          .toListOf(LIBRARY_ELEMENT5),
+      LIBRARY_INPUT: LIBRARY_ELEMENT5.of(unit.library),
       UNIT_INPUT: RESOLVED_UNIT4.of(unit),
       TYPE_PROVIDER_INPUT: TYPE_PROVIDER.of(AnalysisContextTarget.request)
     };
@@ -3313,7 +2973,7 @@ class ResolveUnitTypeNamesTask extends SourceBasedAnalysisTask {
  */
 class ResolveVariableReferencesTask extends SourceBasedAnalysisTask {
   /**
-   * The name of the [LIBRARY_ELEMENT6] input.
+   * The name of the [LIBRARY_ELEMENT1] input.
    */
   static const String LIBRARY_INPUT = 'LIBRARY_INPUT';
 

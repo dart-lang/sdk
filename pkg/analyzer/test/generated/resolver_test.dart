@@ -13365,11 +13365,6 @@ class TypeResolverVisitorTest extends EngineTestCase {
    */
   TypeResolverVisitor _visitor;
 
-  /**
-   * The visitor used to resolve types needed to form the type hierarchy.
-   */
-  ImplicitConstructorBuilder _implicitConstructorBuilder;
-
   void fail_visitConstructorDeclaration() {
     fail("Not yet tested");
     _listener.assertNoErrors();
@@ -13420,14 +13415,6 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _typeProvider = new TestTypeProvider();
     _visitor =
         new TypeResolverVisitor.con1(_library, librarySource, _typeProvider);
-    _implicitConstructorBuilder = new ImplicitConstructorBuilder(_listener,
-        (ClassElement classElement, ClassElement superclassElement,
-            void computation()) {
-      // For these tests, we assume the classes for which implicit
-      // constructors need to be built are visited in proper dependency order,
-      // so we just invoke the computation immediately.
-      computation();
-    });
   }
 
   void test_visitCatchClause_exception() {
@@ -13827,9 +13814,6 @@ class TypeResolverVisitorTest extends EngineTestCase {
       }
     }
     node.accept(_visitor);
-    if (node is Declaration) {
-      node.element.accept(_implicitConstructorBuilder);
-    }
   }
 }
 

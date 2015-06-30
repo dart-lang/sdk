@@ -184,7 +184,6 @@ class DeclarationMatcher extends RecursiveAstVisitor {
     _enclosingClass = element;
     _processElement(element);
     _assertSameTypeParameters(node.typeParameters, element.typeParameters);
-    _processElement(element.unnamedConstructor);
     super.visitClassTypeAlias(node);
   }
 

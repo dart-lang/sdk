@@ -5,9 +5,6 @@
 library engine.resolver;
 
 import 'dart:collection';
-import "dart:math" as math;
-
-import 'package:analyzer/src/generated/utilities_collection.dart';
 
 import 'ast.dart';
 import 'constant.dart';
@@ -2506,7 +2503,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     interfaceType.typeArguments = typeArguments;
     element.type = interfaceType;
     // set default constructor
-    element.constructors = _createDefaultConstructors(interfaceType);
     for (FunctionTypeImpl functionType in _functionTypesToFix) {
       functionType.typeArguments = typeArguments;
     }
@@ -2631,6 +2627,11 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     enumElement.enum2 = true;
     InterfaceTypeImpl enumType = new InterfaceTypeImpl(enumElement);
     enumElement.type = enumType;
+    // The equivalent code for enums in the spec shows a single constructor,
+    // but that constructor is not callable (since it is a compile-time error
+    // to subclass, mix-in, implement, or explicitly instantiate an enum).  So
+    // we represent this as having no constructors.
+    enumElement.constructors = ConstructorElement.EMPTY_LIST;
     _currentHolder.addEnum(enumElement);
     enumName.staticElement = enumElement;
     return super.visitEnumDeclaration(node);
@@ -5145,275 +5146,6 @@ class HtmlUnitBuilder implements ht.XmlVisitor<Object> {
 }
 
 /**
- * Instances of the class `ImplicitConstructorBuilder` are used to build
- * implicit constructors for mixin applications, and to check for errors
- * related to super constructor calls in class declarations with mixins.
- *
- * The visitor methods don't directly build the implicit constructors or check
- * for errors, since they don't in general visit the classes in the proper
- * order to do so correctly.  Instead, they pass closures to
- * ImplicitConstructorBuilderCallback to inform it of the computations to be
- * done and their ordering dependencies.
- */
-class ImplicitConstructorBuilder extends SimpleElementVisitor {
-  final AnalysisErrorListener errorListener;
-
-  /**
-   * Callback to receive the computations to be performed.
-   */
-  final ImplicitConstructorBuilderCallback _callback;
-
-  /**
-   * Initialize a newly created visitor to build implicit constructors.
-   *
-   * The visit methods will pass closures to [_callback] to indicate what
-   * computation needs to be performed, and its dependency order.
-   */
-  ImplicitConstructorBuilder(this.errorListener, this._callback);
-
-  @override
-  void visitClassElement(ClassElement classElement) {
-    (classElement as ClassElementImpl).mixinErrorsReported = false;
-    if (classElement.isMixinApplication) {
-      _visitClassTypeAlias(classElement);
-    } else {
-      _visitClassDeclaration(classElement);
-    }
-  }
-
-  @override
-  void visitCompilationUnitElement(CompilationUnitElement element) {
-    element.types.forEach(visitClassElement);
-  }
-
-  @override
-  void visitLibraryElement(LibraryElement element) {
-    element.units.forEach(visitCompilationUnitElement);
-  }
-
-  /**
-   * Create an implicit constructor that is copied from the given constructor, but that is in the
-   * given class.
-   *
-   * @param classType the class in which the implicit constructor is defined
-   * @param explicitConstructor the constructor on which the implicit constructor is modeled
-   * @param parameterTypes the types to be replaced when creating parameters
-   * @param argumentTypes the types with which the parameters are to be replaced
-   * @return the implicit constructor that was created
-   */
-  ConstructorElement _createImplicitContructor(InterfaceType classType,
-      ConstructorElement explicitConstructor, List<DartType> parameterTypes,
-      List<DartType> argumentTypes) {
-    ConstructorElementImpl implicitConstructor =
-        new ConstructorElementImpl(explicitConstructor.name, -1);
-    implicitConstructor.synthetic = true;
-    implicitConstructor.redirectedConstructor = explicitConstructor;
-    implicitConstructor.const2 = explicitConstructor.isConst;
-    implicitConstructor.returnType = classType;
-    List<ParameterElement> explicitParameters = explicitConstructor.parameters;
-    int count = explicitParameters.length;
-    if (count > 0) {
-      List<ParameterElement> implicitParameters =
-          new List<ParameterElement>(count);
-      for (int i = 0; i < count; i++) {
-        ParameterElement explicitParameter = explicitParameters[i];
-        ParameterElementImpl implicitParameter =
-            new ParameterElementImpl(explicitParameter.name, -1);
-        implicitParameter.const3 = explicitParameter.isConst;
-        implicitParameter.final2 = explicitParameter.isFinal;
-        implicitParameter.parameterKind = explicitParameter.parameterKind;
-        implicitParameter.synthetic = true;
-        implicitParameter.type =
-            explicitParameter.type.substitute2(argumentTypes, parameterTypes);
-        implicitParameters[i] = implicitParameter;
-      }
-      implicitConstructor.parameters = implicitParameters;
-    }
-    FunctionTypeImpl type = new FunctionTypeImpl(implicitConstructor);
-    type.typeArguments = classType.typeArguments;
-    implicitConstructor.type = type;
-    return implicitConstructor;
-  }
-
-  /**
-   * Find all the constructors that should be forwarded from the given
-   * [superType], to the class or mixin application [classElement],
-   * and pass information about them to [callback].
-   *
-   * Return true if some constructors were considered.  (A false return value
-   * can only happen if the supeclass is a built-in type, in which case it
-   * can't be used as a mixin anyway).
-   */
-  bool _findForwardedConstructors(ClassElementImpl classElement,
-      InterfaceType superType, void callback(
-          ConstructorElement explicitConstructor, List<DartType> parameterTypes,
-          List<DartType> argumentTypes)) {
-    ClassElement superclassElement = superType.element;
-    List<ConstructorElement> constructors = superclassElement.constructors;
-    int count = constructors.length;
-    if (count == 0) {
-      return false;
-    }
-    List<DartType> parameterTypes =
-        TypeParameterTypeImpl.getTypes(superType.typeParameters);
-    List<DartType> argumentTypes = _getArgumentTypes(superType, parameterTypes);
-    for (int i = 0; i < count; i++) {
-      ConstructorElement explicitConstructor = constructors[i];
-      if (!explicitConstructor.isFactory &&
-          classElement.isSuperConstructorAccessible(explicitConstructor)) {
-        callback(explicitConstructor, parameterTypes, argumentTypes);
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Return a list of argument types that corresponds to the [parameterTypes]
-   * and that are derived from the type arguments of the given [superType].
-   */
-  List<DartType> _getArgumentTypes(
-      InterfaceType superType, List<DartType> parameterTypes) {
-    DynamicTypeImpl dynamic = DynamicTypeImpl.instance;
-    int parameterCount = parameterTypes.length;
-    List<DartType> types = new List<DartType>(parameterCount);
-    if (superType == null) {
-      types = new List<DartType>.filled(parameterCount, dynamic);
-    } else {
-      List<DartType> typeArguments = superType.typeArguments;
-      int argumentCount = math.min(typeArguments.length, parameterCount);
-      for (int i = 0; i < argumentCount; i++) {
-        types[i] = typeArguments[i];
-      }
-      for (int i = argumentCount; i < parameterCount; i++) {
-        types[i] = dynamic;
-      }
-    }
-    return types;
-  }
-
-  void _visitClassDeclaration(ClassElementImpl classElement) {
-    DartType superType = classElement.supertype;
-    if (superType != null && classElement.mixins.isNotEmpty) {
-      // We don't need to build any implicitly constructors for the mixin
-      // application (since there isn't an explicit element for it), but we
-      // need to verify that they _could_ be built.
-      if (superType is! InterfaceType) {
-        TypeProvider typeProvider = classElement.context.typeProvider;
-        superType = typeProvider.objectType;
-      }
-      ClassElement superElement = superType.element;
-      if (superElement != null) {
-        _callback(classElement, superElement, () {
-          bool constructorFound = false;
-          void callback(ConstructorElement explicitConstructor,
-              List<DartType> parameterTypes, List<DartType> argumentTypes) {
-            constructorFound = true;
-          }
-          if (_findForwardedConstructors(classElement, superType, callback) &&
-              !constructorFound) {
-            SourceRange withRange = classElement.withClauseRange;
-            errorListener.onError(new AnalysisError(classElement.source,
-                withRange.offset, withRange.length,
-                CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
-                [superElement.name]));
-            classElement.mixinErrorsReported = true;
-          }
-        });
-      }
-    }
-  }
-
-  void _visitClassTypeAlias(ClassElementImpl classElement) {
-    InterfaceType superType = classElement.supertype;
-    if (superType is InterfaceType) {
-      ClassElement superElement = superType.element;
-      _callback(classElement, superElement, () {
-        List<ConstructorElement> implicitConstructors =
-            new List<ConstructorElement>();
-        void callback(ConstructorElement explicitConstructor,
-            List<DartType> parameterTypes, List<DartType> argumentTypes) {
-          implicitConstructors.add(_createImplicitContructor(classElement.type,
-              explicitConstructor, parameterTypes, argumentTypes));
-        }
-        if (_findForwardedConstructors(classElement, superType, callback)) {
-          if (implicitConstructors.isEmpty) {
-            errorListener.onError(new AnalysisError(classElement.source,
-                classElement.nameOffset, classElement.name.length,
-                CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
-                [superElement.name]));
-          } else {
-            classElement.constructors = implicitConstructors;
-          }
-        }
-      });
-    }
-  }
-}
-
-/**
- * An instance of this class is capable of running ImplicitConstructorBuilder
- * over all classes in a library cycle.
- */
-class ImplicitConstructorComputer {
-  /**
-   * Directed graph of dependencies between classes that need to have their
-   * implicit constructors computed.  Each edge in the graph points from a
-   * derived class to its superclass.  Implicit constructors will be computed
-   * for the superclass before they are compute for the derived class.
-   */
-  DirectedGraph<ClassElement> _dependencies = new DirectedGraph<ClassElement>();
-
-  /**
-   * Map from ClassElement to the function which will compute the class's
-   * implicit constructors.
-   */
-  Map<ClassElement, VoidFunction> _computations =
-      new HashMap<ClassElement, VoidFunction>();
-
-  /**
-   * Add the given [libraryElement] to the list of libraries which need to have
-   * implicit constructors built for them.
-   */
-  void add(AnalysisErrorListener errorListener, LibraryElement libraryElement) {
-    libraryElement
-        .accept(new ImplicitConstructorBuilder(errorListener, _defer));
-  }
-
-  /**
-   * Compute the implicit constructors for all compilation units that have been
-   * passed to [add].
-   */
-  void compute() {
-    List<List<ClassElement>> topologicalSort =
-        _dependencies.computeTopologicalSort();
-    for (List<ClassElement> classesInCycle in topologicalSort) {
-      // Note: a cycle could occur if there is a loop in the inheritance graph.
-      // Such loops are forbidden by Dart but could occur in the analysis of
-      // incorrect code.  If this happens, we simply visit the classes
-      // constituting the loop in any order.
-      for (ClassElement classElement in classesInCycle) {
-        VoidFunction computation = _computations[classElement];
-        if (computation != null) {
-          computation();
-        }
-      }
-    }
-  }
-
-  /**
-   * Defer execution of [computation], which builds implicit constructors for
-   * [classElement], until after implicit constructors have been built for
-   * [superclassElement].
-   */
-  void _defer(ClassElement classElement, ClassElement superclassElement,
-      void computation()) {
-    assert(!_computations.containsKey(classElement));
-    _computations[classElement] = computation;
-    _dependencies.addEdge(classElement, superclassElement);
-  }
-}
-
-/**
  * Instances of the class `ImplicitLabelScope` represent the scope statements
  * that can be the target of unlabeled break and continue statements.
  */
@@ -7917,7 +7649,6 @@ class LibraryResolver {
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     _buildEnumMembers();
     _buildTypeHierarchies();
-    _buildImplicitConstructors();
     //
     // Perform resolution and type analysis.
     //
@@ -8194,22 +7925,6 @@ class LibraryResolver {
           library.getAST(source).accept(builder);
         }
       }
-    });
-  }
-
-  /**
-   * Finish steps that the [buildTypeHierarchies] could not perform, see
-   * [ImplicitConstructorBuilder].
-   *
-   * @throws AnalysisException if any of the type hierarchies could not be resolved
-   */
-  void _buildImplicitConstructors() {
-    PerformanceStatistics.resolve.makeCurrentWhile(() {
-      ImplicitConstructorComputer computer = new ImplicitConstructorComputer();
-      for (Library library in _librariesInCycles) {
-        computer.add(_errorListener, library.libraryElement);
-      }
-      computer.compute();
     });
   }
 
@@ -8653,7 +8368,6 @@ class LibraryResolver2 {
     _typeProvider = new TypeProviderImpl(coreElement, asyncElement);
     _buildEnumMembers();
     _buildTypeHierarchies();
-    _buildImplicitConstructors();
     //
     // Perform resolution and type analysis.
     //
@@ -8852,22 +8566,6 @@ class LibraryResolver2 {
           library.getAST(source).accept(builder);
         }
       }
-    });
-  }
-
-  /**
-   * Finish steps that the [buildTypeHierarchies] could not perform, see
-   * [ImplicitConstructorBuilder].
-   *
-   * @throws AnalysisException if any of the type hierarchies could not be resolved
-   */
-  void _buildImplicitConstructors() {
-    PerformanceStatistics.resolve.makeCurrentWhile(() {
-      ImplicitConstructorComputer computer = new ImplicitConstructorComputer();
-      for (ResolvableLibrary library in _librariesInCycle) {
-        computer.add(_errorListener, library.libraryElement);
-      }
-      computer.compute();
     });
   }
 

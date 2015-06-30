@@ -501,9 +501,15 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   List<PropertyAccessorElement> _accessors = PropertyAccessorElement.EMPTY_LIST;
 
   /**
-   * A list containing all of the constructors contained in this class.
+   * For classes which are not mixin applications, a list containing all of the
+   * constructors contained in this class, or `null` if the list of
+   * constructors has not yet been built.
+   *
+   * For classes which are mixin applications, the list of constructors is
+   * computed on the fly by the [constructors] getter, and this field is
+   * `null`.
    */
-  List<ConstructorElement> _constructors = ConstructorElement.EMPTY_LIST;
+  List<ConstructorElement> _constructors;
 
   /**
    * A list containing all of the fields contained in this class.
@@ -586,16 +592,72 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  List<ConstructorElement> get constructors => _constructors;
+  List<ConstructorElement> get constructors {
+    if (!isMixinApplication) {
+      assert(_constructors != null);
+      return _constructors == null
+          ? ConstructorElement.EMPTY_LIST
+          : _constructors;
+    }
+
+    return _computeMixinAppConstructors();
+  }
 
   /**
    * Set the constructors contained in this class to the given [constructors].
+   *
+   * Should only be used for class elements that are not mixin applications.
    */
   void set constructors(List<ConstructorElement> constructors) {
+    assert(!isMixinApplication);
     for (ConstructorElement constructor in constructors) {
       (constructor as ConstructorElementImpl).enclosingElement = this;
     }
     this._constructors = constructors;
+  }
+
+  /**
+   * Return `true` if [CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS] should
+   * be reported for this class.
+   */
+  bool get doesMixinLackConstructors {
+    if (!isMixinApplication && mixins.isEmpty) {
+      // This class is not a mixin application and it doesn't have a "with"
+      // clause, so CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS is
+      // inapplicable.
+      return false;
+    }
+    if (supertype == null) {
+      // Should never happen, since Object is the only class that has no
+      // supertype, and it should have been caught by the test above.
+      assert(false);
+      return false;
+    }
+    // Find the nearest class in the supertype chain that is not a mixin
+    // application.
+    ClassElement nearestNonMixinClass = supertype.element;
+    if (nearestNonMixinClass.isMixinApplication) {
+      // Use a list to keep track of the classes we've seen, so that we won't
+      // go into an infinite loop in the event of a non-trivial loop in the
+      // class hierarchy.
+      List<ClassElementImpl> classesSeen = <ClassElementImpl>[this];
+      while (nearestNonMixinClass.isMixinApplication) {
+        if (classesSeen.contains(nearestNonMixinClass)) {
+          // Loop in the class hierarchy (which is reported elsewhere).  Don't
+          // confuse the user with further errors.
+          return false;
+        }
+        classesSeen.add(nearestNonMixinClass);
+        if (nearestNonMixinClass.supertype == null) {
+          // Should never happen, since Object is the only class that has no
+          // supertype, and it is not a mixin application.
+          assert(false);
+          return false;
+        }
+        nearestNonMixinClass = nearestNonMixinClass.supertype.element;
+      }
+    }
+    return !nearestNonMixinClass.constructors.any(isSuperConstructorAccessible);
   }
 
   /**
@@ -730,16 +792,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    */
   void set mixinApplication(bool isMixinApplication) {
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
-  }
-
-  bool get mixinErrorsReported => hasModifier(Modifier.MIXIN_ERRORS_REPORTED);
-
-  /**
-   * Set whether an error has reported explaining why this class is an
-   * invalid mixin application.
-   */
-  void set mixinErrorsReported(bool value) {
-    setModifier(Modifier.MIXIN_ERRORS_REPORTED, value);
   }
 
   @override
@@ -994,6 +1046,103 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         }
       }
     }
+  }
+
+  /**
+   * Compute a list of constructors for this class, which is a mixin
+   * application.  If specified, [visitedClasses] is a list of the other mixin
+   * application classes which have been visited on the way to reaching this
+   * one (this is used to detect circularities).
+   */
+  List<ConstructorElement> _computeMixinAppConstructors(
+      [List<ClassElementImpl> visitedClasses = null]) {
+    // First get the list of constructors of the superclass which need to be
+    // forwarded to this class.
+    Iterable<ConstructorElement> constructorsToForward;
+    if (supertype == null) {
+      // Shouldn't ever happen, since the only class with no supertype is
+      // Object, and it isn't a mixin application.  But for safety's sake just
+      // assume an empty list.
+      assert(false);
+      constructorsToForward = <ConstructorElement>[];
+    } else if (!supertype.element.isMixinApplication) {
+      List<ConstructorElement> superclassConstructors =
+          supertype.element.constructors;
+      // Filter out any constructors with optional parameters (see
+      // dartbug.com/15101).
+      constructorsToForward =
+          superclassConstructors.where(isSuperConstructorAccessible);
+    } else {
+      if (visitedClasses == null) {
+        visitedClasses = <ClassElementImpl>[this];
+      } else {
+        if (visitedClasses.contains(this)) {
+          // Loop in the class hierarchy.  Don't try to forward any
+          // constructors.
+          return <ConstructorElement>[];
+        }
+        visitedClasses.add(this);
+      }
+      try {
+        ClassElementImpl superclass = supertype.element;
+        constructorsToForward =
+            superclass._computeMixinAppConstructors(visitedClasses);
+      } finally {
+        visitedClasses.removeLast();
+      }
+    }
+
+    // Figure out the type parameter substitution we need to perform in order
+    // to produce constructors for this class.  We want to be robust in the
+    // face of errors, so drop any extra type arguments and fill in any missing
+    // ones with `dynamic`.
+    List<DartType> parameterTypes =
+        TypeParameterTypeImpl.getTypes(supertype.typeParameters);
+    List<DartType> argumentTypes = new List<DartType>.filled(
+        parameterTypes.length, DynamicTypeImpl.instance);
+    for (int i = 0; i < supertype.typeArguments.length; i++) {
+      if (i >= argumentTypes.length) {
+        break;
+      }
+      argumentTypes[i] = supertype.typeArguments[i];
+    }
+
+    // Now create an implicit constructor for every constructor found above,
+    // substituting type parameters as appropriate.
+    return constructorsToForward
+        .map((ConstructorElement superclassConstructor) {
+      ConstructorElementImpl implicitConstructor =
+          new ConstructorElementImpl(superclassConstructor.name, -1);
+      implicitConstructor.synthetic = true;
+      implicitConstructor.redirectedConstructor = superclassConstructor;
+      implicitConstructor.const2 = superclassConstructor.isConst;
+      implicitConstructor.returnType = type;
+      List<ParameterElement> superParameters = superclassConstructor.parameters;
+      int count = superParameters.length;
+      if (count > 0) {
+        List<ParameterElement> implicitParameters =
+            new List<ParameterElement>(count);
+        for (int i = 0; i < count; i++) {
+          ParameterElement superParameter = superParameters[i];
+          ParameterElementImpl implicitParameter =
+              new ParameterElementImpl(superParameter.name, -1);
+          implicitParameter.const3 = superParameter.isConst;
+          implicitParameter.final2 = superParameter.isFinal;
+          implicitParameter.parameterKind = superParameter.parameterKind;
+          implicitParameter.synthetic = true;
+          implicitParameter.type =
+              superParameter.type.substitute2(argumentTypes, parameterTypes);
+          implicitParameters[i] = implicitParameter;
+        }
+        implicitConstructor.parameters = implicitParameters;
+      }
+      FunctionTypeImpl constructorType =
+          new FunctionTypeImpl(implicitConstructor);
+      constructorType.typeArguments = type.typeArguments;
+      implicitConstructor.type = constructorType;
+      implicitConstructor.enclosingElement = this;
+      return implicitConstructor;
+    }).toList();
   }
 
   PropertyAccessorElement _internalLookUpConcreteGetter(
@@ -8073,41 +8222,34 @@ class Modifier extends Enum<Modifier> {
       const Modifier('MIXIN_APPLICATION', 12);
 
   /**
-   * Indicates that an error has reported explaining why this class is an
-   * invalid mixin application.
-   */
-  static const Modifier MIXIN_ERRORS_REPORTED =
-      const Modifier('MIXIN_ERRORS_REPORTED', 13);
-
-  /**
    * Indicates that the value of a parameter or local variable might be mutated
    * within the context.
    */
   static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT =
-      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 14);
+      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 13);
 
   /**
    * Indicates that the value of a parameter or local variable might be mutated
    * within the scope.
    */
   static const Modifier POTENTIALLY_MUTATED_IN_SCOPE =
-      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 15);
+      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 14);
 
   /**
    * Indicates that a class contains an explicit reference to 'super'.
    */
   static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 16);
+      const Modifier('REFERENCES_SUPER', 15);
 
   /**
    * Indicates that the pseudo-modifier 'set' was applied to the element.
    */
-  static const Modifier SETTER = const Modifier('SETTER', 17);
+  static const Modifier SETTER = const Modifier('SETTER', 16);
 
   /**
    * Indicates that the modifier 'static' was applied to the element.
    */
-  static const Modifier STATIC = const Modifier('STATIC', 18);
+  static const Modifier STATIC = const Modifier('STATIC', 17);
 
   /**
    * Indicates that the element does not appear in the source code but was
@@ -8115,7 +8257,7 @@ class Modifier extends Enum<Modifier> {
    * constructors, an implicit zero-argument constructor will be created and it
    * will be marked as being synthetic.
    */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 19);
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 18);
 
   static const List<Modifier> values = const [
     ABSTRACT,
@@ -8131,7 +8273,6 @@ class Modifier extends Enum<Modifier> {
     HAS_EXT_URI,
     MIXIN,
     MIXIN_APPLICATION,
-    MIXIN_ERRORS_REPORTED,
     POTENTIALLY_MUTATED_IN_CONTEXT,
     POTENTIALLY_MUTATED_IN_SCOPE,
     REFERENCES_SUPER,

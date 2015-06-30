@@ -268,6 +268,7 @@ class TestTypeProvider implements TypeProvider {
             "iterator", false, iteratorType.substitute4(<DartType>[eType])),
         ElementFactory.getterElement("last", false, eType)
       ]);
+      iterableElement.constructors = ConstructorElement.EMPTY_LIST;
       _propagateTypeArguments(iterableElement);
     }
     return _iterableType;
@@ -282,6 +283,7 @@ class TestTypeProvider implements TypeProvider {
       _setAccessors(iteratorElement, <PropertyAccessorElement>[
         ElementFactory.getterElement("current", false, eType)
       ]);
+      iteratorElement.constructors = ConstructorElement.EMPTY_LIST;
       _propagateTypeArguments(iteratorElement);
     }
     return _iteratorType;
@@ -330,6 +332,7 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.methodElement(
             "[]=", VoidTypeImpl.instance, [kType, vType])
       ];
+      mapElement.constructors = ConstructorElement.EMPTY_LIST;
       _propagateTypeArguments(mapElement);
     }
     return _mapType;
@@ -356,7 +359,9 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get nullType {
     if (_nullType == null) {
-      _nullType = ElementFactory.classElement2("Null").type;
+      ClassElementImpl nullElement = ElementFactory.classElement2("Null");
+      nullElement.constructors = ConstructorElement.EMPTY_LIST;
+      _nullType = nullElement.type;
     }
     return _nullType;
   }
@@ -552,7 +557,9 @@ class TestTypeProvider implements TypeProvider {
     ];
     fromEnvironment.factory = true;
     fromEnvironment.isCycleFree = true;
+    numElement.constructors = ConstructorElement.EMPTY_LIST;
     intElement.constructors = <ConstructorElement>[fromEnvironment];
+    doubleElement.constructors = ConstructorElement.EMPTY_LIST;
     List<FieldElement> fields = <FieldElement>[
       ElementFactory.fieldElement("NAN", true, false, true, _doubleType),
       ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType),
