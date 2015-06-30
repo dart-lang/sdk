@@ -2222,13 +2222,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // Prepare sources to invalidate hints in.
     List<Source> sources = <Source>[librarySource];
     sources.addAll(dartEntry.getValue(DartEntry.INCLUDED_PARTS));
-    // Invalidate hints.
+    // Invalidate hints and lints.
     for (Source source in sources) {
       DartEntry dartEntry = _cache.get(source);
       if (dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource) ==
           CacheState.VALID) {
         dartEntry.setStateInLibrary(
             DartEntry.HINTS, librarySource, CacheState.INVALID);
+      }
+      if (dartEntry.getStateInLibrary(DartEntry.LINTS, librarySource) ==
+          CacheState.VALID) {
+        dartEntry.setStateInLibrary(
+            DartEntry.LINTS, librarySource, CacheState.INVALID);
       }
     }
   }

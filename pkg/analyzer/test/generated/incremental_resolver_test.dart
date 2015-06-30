@@ -2486,7 +2486,7 @@ class IncrementalResolverTest extends ResolverTestCase {
   void resetWithOptions(AnalysisOptions options) {
     if (AnalysisEngine.instance.useTaskModel) {
       analysisContext2 =
-                AnalysisContextFactory.contextWithCoreAndOptions(options);
+          AnalysisContextFactory.contextWithCoreAndOptions(options);
     } else {
       analysisContext2 =
           AnalysisContextFactory.oldContextWithCoreAndOptions(options);
@@ -3711,7 +3711,7 @@ class A {
     expect(errors, isEmpty);
   }
 
-  void test_updateErrors_addNew_hint() {
+  void test_updateErrors_addNew_hint1() {
     _resolveUnit(r'''
 int main() {
   return 42;
@@ -3723,7 +3723,7 @@ int main() {
 ''');
   }
 
-  void test_updateErrors_addNew_hints() {
+  void test_updateErrors_addNew_hint2() {
     _resolveUnit(r'''
 main() {
   int v = 0;

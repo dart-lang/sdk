@@ -899,7 +899,6 @@ class IncrementalResolver {
 
   List<AnalysisError> _resolveErrors = AnalysisError.NO_ERRORS;
   List<AnalysisError> _verifyErrors = AnalysisError.NO_ERRORS;
-  List<AnalysisError> _lints = AnalysisError.NO_ERRORS;
 
   /**
    * Initialize a newly created incremental resolver to resolve a node in the
@@ -941,7 +940,6 @@ class IncrementalResolver {
       // verify
       _verify(rootNode);
       _context.invalidateLibraryHints(_librarySource);
-      _generateLints(rootNode);
       // update entry errors
       _updateEntry();
       // notify unit
@@ -1051,24 +1049,6 @@ class IncrementalResolver {
       node = node.parent;
     }
     throw new AnalysisException("Cannot resolve node: no resolvable node");
-  }
-
-  void _generateLints(AstNode node) {
-    LoggingTimer timer = logger.startTimer();
-    try {
-      if (_context.analysisOptions.lint) {
-        RecordingErrorListener errorListener = new RecordingErrorListener();
-        CompilationUnit unit = node.getAncestor((n) => n is CompilationUnit);
-        LintGenerator lintGenerator =
-            new LintGenerator(<CompilationUnit>[unit], errorListener);
-        lintGenerator.generate();
-        _lints = errorListener.getErrorsForSource(_source);
-      } else {
-        _lints = AnalysisError.NO_ERRORS;
-      }
-    } finally {
-      timer.stop('generate lints');
-    }
   }
 
   /**
@@ -1201,21 +1181,8 @@ class IncrementalResolver {
   }
 
   void _updateEntry_OLD() {
-    {
-      List<AnalysisError> oldErrors = oldEntry.getValueInLibrary(
-          DartEntry.RESOLUTION_ERRORS, _librarySource);
-      List<AnalysisError> errors = _updateErrors(oldErrors, _resolveErrors);
-      oldEntry.setValueInLibrary(
-          DartEntry.RESOLUTION_ERRORS, _librarySource, errors);
-    }
-    {
-      List<AnalysisError> oldErrors = oldEntry.getValueInLibrary(
-          DartEntry.VERIFICATION_ERRORS, _librarySource);
-      List<AnalysisError> errors = _updateErrors(oldErrors, _verifyErrors);
-      oldEntry.setValueInLibrary(
-          DartEntry.VERIFICATION_ERRORS, _librarySource, errors);
-    }
-    oldEntry.setValueInLibrary(DartEntry.LINTS, _librarySource, _lints);
+    _updateErrors_OLD(DartEntry.RESOLUTION_ERRORS, _resolveErrors);
+    _updateErrors_OLD(DartEntry.VERIFICATION_ERRORS, _verifyErrors);
   }
 
   List<AnalysisError> _updateErrors(
@@ -1247,6 +1214,14 @@ class IncrementalResolver {
     List<AnalysisError> oldErrors = newUnitEntry.getValue(descriptor);
     List<AnalysisError> errors = _updateErrors(oldErrors, newErrors);
     newUnitEntry.setValueIncremental(descriptor, errors);
+  }
+
+  void _updateErrors_OLD(DataDescriptor<List<AnalysisError>> descriptor,
+      List<AnalysisError> newErrors) {
+    List<AnalysisError> oldErrors =
+        oldEntry.getValueInLibrary(descriptor, _librarySource);
+    List<AnalysisError> errors = _updateErrors(oldErrors, newErrors);
+    oldEntry.setValueInLibrary(descriptor, _librarySource, errors);
   }
 
   void _verify(AstNode node) {
