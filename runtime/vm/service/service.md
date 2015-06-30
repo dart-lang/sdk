@@ -796,7 +796,9 @@ class Class extends Object {
   @Class super [optional];
 
   // A list of interface types for this class.
-  @Type[] interfaces;
+  //
+  // The value will be of the kind: Type.
+  @Instance[] interfaces;
 
   // A list of fields in this class. Does not include fields from
   // superclasses.
@@ -1061,7 +1063,10 @@ class @Field extends @Object {
   @Object owner;
 
   // The declared type of this field.
-  @Type declaredType;
+  //
+  // The value will always be of one of the kinds:
+  // Type, TypeRef, TypeParameter, BoundedType.
+  @Instance declaredType;
 
   // Is this field const?
   bool const;
@@ -1086,7 +1091,10 @@ class Field extends Object {
   @Object owner;
 
   // The declared type of this field.
-  @Type declaredType;
+  //
+  // The value will always be of one of the kinds:
+  // Type, TypeRef, TypeParameter, BoundedType.
+  @Instance declaredType;
 
   // Is this field const?
   bool const;
@@ -1421,7 +1429,7 @@ class Instance extends Object {
   // - or -
   // the referent of a TypeRef instance.
   //
-  // The value will always be one of:
+  // The value will always be of one of the kinds:
   // Type, TypeRef, TypeParameter, BoundedType.
   //
   // Provided for instance kinds:
@@ -1431,7 +1439,7 @@ class Instance extends Object {
 
   // The bound of a TypeParameter or BoundedType.
   //
-  // The value will always be one of:
+  // The value will always be of one of the kinds:
   // Type, TypeRef, TypeParameter, BoundedType.
   //
   // Provided for instance kinds:
@@ -1893,7 +1901,10 @@ class TypeArguments extends Object {
   string name;
 
   // A list of types.
-  @Type[] types;
+  //
+  // The value will always be one of the kinds:
+  // Type, TypeRef, TypeParameter, BoundedType.
+  @Instance[] types;
 }
 ```
 
