@@ -576,32 +576,26 @@ class OldEmitter implements Emitter {
       List<jsAst.Expression> laziesInfo = buildLaziesInfo(lazyFields);
       return js.statement('''
       (function(lazies) {
-        if (#notInMinifiedMode) {
-          var descriptorLength = 4;
-        } else {
-          var descriptorLength = 3;
-        }
-
-        for (var i = 0; i < lazies.length; i += descriptorLength) {
-          var fieldName = lazies [i];
-          var getterName = lazies[i + 1];
-          var lazyValue = lazies[i + 2];
-          if (#notInMinifiedMode) {
-            var staticName = lazies[i + 3];
+        for (var i = 0; i < lazies.length; ) {
+          var fieldName = lazies[i++];
+          var getterName = lazies[i++];
+          if (#notMinified) {
+            var staticName = lazies[i++];
           }
+          var lazyValue = lazies[i++];
 
           // We build the lazy-check here:
           //   lazyInitializer(fieldName, getterName, lazyValue, staticName);
           // 'staticName' is used for error reporting in non-minified mode.
           // 'lazyValue' must be a closure that constructs the initial value.
-          if (#notInMinifiedMode) {
+          if (#notMinified) {
             #lazy(fieldName, getterName, lazyValue, staticName);
           } else {
             #lazy(fieldName, getterName, lazyValue);
           }
         }
       })(#laziesInfo)
-      ''', {'notInMinifiedMode': !compiler.enableMinification,
+      ''', {'notMinified': !compiler.enableMinification,
             'laziesInfo': new jsAst.ArrayInitializer(laziesInfo),
             'lazy': js(lazyInitializerName)});
     } else {
@@ -617,20 +611,17 @@ class OldEmitter implements Emitter {
       // initialized field after all because of constant folding
       // before code generation.
       if (code == null) continue;
-      if (compiler.enableMinification) {
-        laziesInfo.addAll([js.quoteName(namer.globalPropertyName(element)),
-                           js.quoteName(namer.lazyInitializerName(element)),
-                           code]);
-      } else {
-        laziesInfo.addAll([js.quoteName(namer.globalPropertyName(element)),
-                           js.quoteName(namer.lazyInitializerName(element)),
-                           code,
-                           js.string(element.name)]);
+      laziesInfo.add(js.quoteName(namer.globalPropertyName(element)));
+      laziesInfo.add(js.quoteName(namer.lazyInitializerName(element)));
+      if (!compiler.enableMinification) {
+        laziesInfo.add(js.string(element.name));
       }
+      laziesInfo.add(code);
     }
     return laziesInfo;
   }
 
+  // TODO(sra): Remove this unused function.
   jsAst.Expression buildLazilyInitializedStaticField(
       VariableElement element, {String isolateProperties}) {
     jsAst.Expression code = backend.generatedCode[element];
