@@ -220,6 +220,17 @@ def Main():
              ignore=ignore_patterns('*.svn', 'doc', '*.py', '*.gypi', '*.sh',
                                     '.gitignore'))
 
+  # Copy libraries.dart to lib/_internal/libraries.dart for backwards
+  # compatibility.
+  #
+  # TODO(sigmund): stop copying libraries.dart. Old versions (<=0.25.1-alpha.4)
+  # of the analyzer package do not support the new location of this file. We
+  # should be able to remove the old file once we release a newer version of
+  # analyzer and popular frameworks have migrated to use it.
+  copyfile(join(HOME, 'sdk', 'lib', '_internal',
+                'sdk_library_metadata', 'lib', 'libraries.dart'),
+           join(LIB, '_internal', 'libraries.dart'))
+
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')
   os.makedirs(UTIL)
