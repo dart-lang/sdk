@@ -143,8 +143,11 @@ static_library("libdart_nosnapshot") {
 executable("gen_snapshot") {
   configs += ["..:dart_config"]
   deps = [
-    ":libdart_nosnapshot",
+    ":generate_builtin_cc_file",
+    ":generate_io_cc_file",
+    ":generate_io_patch_cc_file",
     ":libdart_builtin",
+    ":libdart_nosnapshot",
   ]
 
   sources = [
