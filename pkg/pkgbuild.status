@@ -8,7 +8,6 @@ pkg/docgen: Pass, Slow
 
 [ $use_repository_packages ]
 pkg/analyzer: PubGetError
-third_party/pkg/package_config: PubGetError # Issue 23763
 samples/third_party/angular_todo: Fail # angular needs to be updated
 samples/third_party/todomvc_performance: Skip # dependencies are not in the repo
 
