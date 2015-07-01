@@ -49,13 +49,6 @@ Assembler::Assembler(bool use_far_branches)
     } else {
       object_pool_wrapper_.AddObject(vacant);
     }
-
-    if (stub_code->CallToRuntime_entry() != NULL) {
-      object_pool_wrapper_.AddExternalLabel(
-          &stub_code->CallToRuntimeLabel(), kNotPatchable);
-    } else {
-      object_pool_wrapper_.AddObject(vacant);
-    }
   }
 }
 
