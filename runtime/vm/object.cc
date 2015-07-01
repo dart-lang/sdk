@@ -3551,6 +3551,7 @@ RawObject* Class::canonical_types() const {
   return raw_ptr()->canonical_types_;
 }
 
+
 void Class::set_canonical_types(const Object& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->canonical_types_, value.raw());

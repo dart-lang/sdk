@@ -3017,7 +3017,7 @@ void Assembler::SmiUntagOrCheckClass(Register object,
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   ASSERT(result != object);
   static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
 
@@ -3031,7 +3031,11 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   // Otherwise, the dummy object is used, and the result is kSmiCid.
   cmovne(result, object);
   LoadClassId(result, result);
+}
 
+
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  LoadClassIdMayBeSmi(result, object);
   // Tag the result.
   SmiTag(result);
 }

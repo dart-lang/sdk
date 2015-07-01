@@ -1524,6 +1524,31 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
 }
 
 
+// Return type quickly for simple types (not parameterized and not signature).
+void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ LoadClassIdMayBeSmi(RCX, RAX);
+
+  // RCX: untagged cid of instance (RAX).
+  __ LoadClassById(RDI, RCX, PP);
+  // RDI: class of instance (RAX).
+  __ movq(RCX, FieldAddress(RDI, Class::signature_function_offset()));
+  __ CompareObject(RCX, Object::null_object(), PP);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
+  __ cmpq(RCX, Immediate(0));
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  __ movq(RAX, FieldAddress(RDI, Class::canonical_types_offset()));
+  __ CompareObject(RAX, Object::null_object(), PP);
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
 void Intrinsifier::String_getHashCode(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
@@ -1932,7 +1957,8 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   // Registers are now set up for the lazy compile stub. It expects the function
   // in RAX, the argument descriptor in R10, and IC-Data in RCX.
   static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
-  __ LoadObject(R10, Array::Handle(ArgumentsDescriptor::New(arg_count)), PP);
+  __ LoadObject(R10,
+      Array::ZoneHandle(ArgumentsDescriptor::New(arg_count)), PP);
   __ xorq(RCX, RCX);
 
   // Tail-call the function.

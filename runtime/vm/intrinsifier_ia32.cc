@@ -1666,6 +1666,31 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
 }
 
 
+// Return type quickly for simple types (not parameterized and not signature).
+void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
+  Label fall_through;
+  __ movl(EAX, Address(ESP, + 1 * kWordSize));
+  __ LoadClassIdMayBeSmi(EDI, EAX);
+  __ LoadClassById(EBX, EDI);
+  // EBX: class of instance (EAX).
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ movl(EDI, FieldAddress(EBX, Class::signature_function_offset()));
+  __ cmpl(EDI, raw_null);
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ movzxw(EDI, FieldAddress(EBX, Class::num_type_arguments_offset()));
+  __ cmpl(EDI, Immediate(0));
+  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
+  __ movl(EAX, FieldAddress(EBX, Class::canonical_types_offset()));
+  __ cmpl(EAX, raw_null);
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Not yet set.
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
 void Intrinsifier::String_getHashCode(Assembler* assembler) {
   Label fall_through;
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // String object.
@@ -2073,7 +2098,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   // Registers are now set up for the lazy compile stub. It expects the function
   // in EAX, the argument descriptor in EDX, and IC-Data in ECX.
   static const intptr_t arg_count = RegExpMacroAssembler::kParamCount;
-  __ LoadObject(EDX, Array::Handle(ArgumentsDescriptor::New(arg_count)));
+  __ LoadObject(EDX, Array::ZoneHandle(ArgumentsDescriptor::New(arg_count)));
   __ xorl(ECX, ECX);
 
   // Tail-call the function.

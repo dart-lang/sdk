@@ -1336,6 +1336,7 @@ class Assembler : public ValueObject {
   void LoadClassById(Register result, Register class_id, Register pp);
   void LoadClass(Register result, Register object, Register pp);
   void CompareClassId(Register object, intptr_t class_id, Register pp);
+  void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   void ComputeRange(Register result,

@@ -1049,6 +1049,9 @@ class Class : public Object {
     }
     return reinterpret_cast<RawType*>(Object::null());
   }
+  static intptr_t canonical_types_offset() {
+    return OFFSET_OF(RawClass, canonical_types_);
+  }
 
   // The super type of this class, Object type if not explicitly specified.
   // Note that the super type may be bounded, as in this example:
@@ -1442,6 +1445,9 @@ class Class : public Object {
     return raw_ptr()->num_type_arguments_;
   }
   void set_num_type_arguments(intptr_t value) const;
+  static intptr_t num_type_arguments_offset() {
+    return OFFSET_OF(RawClass, num_type_arguments_);
+  }
 
   int16_t num_own_type_arguments() const {
     return raw_ptr()->num_own_type_arguments_;
@@ -1484,6 +1490,7 @@ class Class : public Object {
   friend class Instance;
   friend class Object;
   friend class Type;
+  friend class Intrinsifier;
 };
 
 

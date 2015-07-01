@@ -1009,7 +1009,7 @@ void Assembler::CompareClassId(
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   // Load up a null object. We only need it so we can use LoadClassId on it in
   // the case that object is a Smi..
   LoadObject(TMP, Object::null_object(), PP);
@@ -1024,6 +1024,11 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   LoadImmediate(TMP, kSmiCid, PP);
   // If object is a Smi, move the Smi cid into result. o/w leave alone.
   csel(result, TMP, result, EQ);
+}
+
+
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  LoadClassIdMayBeSmi(result, object);
   // Finally, tag the result.
   SmiTag(result);
 }

@@ -3786,7 +3786,7 @@ void Assembler::SmiUntagOrCheckClass(Register object,
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   ASSERT(result != object);
 
   // Load up a null object. We only need it so we can use LoadClassId on it in
@@ -3803,6 +3803,11 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   movq(object, Immediate(kSmiCid));
   // If object is a Smi, move the Smi cid into result. o/w leave alone.
   cmoveq(result, object);
+}
+
+
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  LoadClassIdMayBeSmi(result, object);
   // Finally, tag the result.
   SmiTag(result);
 }

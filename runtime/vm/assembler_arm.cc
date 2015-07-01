@@ -1966,13 +1966,18 @@ void Assembler::CompareClassId(Register object,
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
 
   LoadImmediate(TMP, reinterpret_cast<int32_t>(&kSmiCidSource) + 1);
   tst(object, Operand(kSmiTagMask));
   mov(TMP, Operand(object), NE);
   LoadClassId(result, TMP);
+}
+
+
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  LoadClassIdMayBeSmi(result, object);
   SmiTag(result);
 }
 

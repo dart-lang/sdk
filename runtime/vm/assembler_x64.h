@@ -859,6 +859,7 @@ class Assembler : public ValueObject {
 
   void CompareClassId(Register object, intptr_t class_id);
 
+  void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   // CheckClassIs fused with optimistic SmiUntag.

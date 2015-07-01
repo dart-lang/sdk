@@ -667,7 +667,7 @@ void Assembler::LoadClass(Register result, Register object) {
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
 
   LoadImmediate(TMP, reinterpret_cast<int32_t>(&kSmiCidSource) + 1);
@@ -677,6 +677,11 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   }
   movz(result, TMP, CMPRES1);
   LoadClassId(result, result);
+}
+
+
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  LoadClassIdMayBeSmi(result, object);
   SmiTag(result);
 }
 
