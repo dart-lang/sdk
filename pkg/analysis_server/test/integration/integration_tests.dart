@@ -462,7 +462,7 @@ class Server {
    * upward to the 'test' dir, and then going up one more directory.
    */
   String findRoot(String pathname) {
-    while (basename(pathname) != 'test') {
+    while (!['benchmark', 'test'].contains(basename(pathname))) {
       String parent = dirname(pathname);
       if (parent.length >= pathname.length) {
         throw new Exception("Can't find root directory");
