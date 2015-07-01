@@ -7,7 +7,8 @@ part of js_backend;
 /**
  * Assigns JavaScript identifiers to Dart variables, class-names and members.
  */
-class MinifyNamer extends Namer with _MinifiedFieldNamer {
+class MinifyNamer extends Namer with _MinifiedFieldNamer,
+    _MinifiedOneShotInterceptorNamer {
   MinifyNamer(Compiler compiler) : super(compiler) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
@@ -254,3 +255,23 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer {
     return super.instanceFieldPropertyName(element);
   }
 }
+
+abstract class _MinifiedOneShotInterceptorNamer implements Namer {
+  /// Property name used for the one-shot interceptor method for the given
+  /// [selector] and return-type specialization.
+  @override
+  jsAst.Name nameForGetOneShotInterceptor(Selector selector,
+      Iterable<ClassElement> classes) {
+    String root = selector.isOperator
+        ? operatorNameToIdentifier(selector.name)
+        : privateName(selector.memberName);
+    String prefix = selector.isGetter
+        ? r"$get"
+        : selector.isSetter ? r"$set" : "";
+    String arity = selector.isCall ? "${selector.argumentCount}" : "";
+    String suffix = suffixForGetInterceptor(classes);
+    String fullName = "\$intercepted$prefix\$$root$arity\$$suffix";
+    return _disambiguateInternalGlobal(fullName);
+  }
+}
+
