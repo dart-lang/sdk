@@ -286,7 +286,11 @@ class GeneratedDirectory extends GeneratedContent {
         String expectedContents = fileContentsComputer();
         File outputFile =
             new File(joinAll(posix.split(posix.join(outputDirPath, file))));
-        if (expectedContents != outputFile.readAsStringSync()) {
+        String actualContents = outputFile.readAsStringSync();
+        // Normalize Windows line endings to Unix line endings so that the
+        // comparison doesn't fail on Windows.
+        actualContents = actualContents.replaceAll('\r\n', '\n');
+        if (expectedContents != actualContents) {
           return false;
         }
       }
@@ -370,7 +374,11 @@ class GeneratedFile extends GeneratedContent {
   bool check() {
     String expectedContents = computeContents();
     try {
-      return expectedContents == outputFile.readAsStringSync();
+      String actualContents = outputFile.readAsStringSync();
+      // Normalize Windows line endings to Unix line endings so that the
+      // comparison doesn't fail on Windows.
+      actualContents = actualContents.replaceAll('\r\n', '\n');
+      return expectedContents == actualContents;
     } catch (e) {
       // There was a problem reading the file (most likely because it didn't
       // exist).  Treat that the same as if the file doesn't have the expected
