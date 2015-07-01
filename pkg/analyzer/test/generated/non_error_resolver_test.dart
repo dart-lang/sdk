@@ -3393,6 +3393,18 @@ class B extends A {
     verify([source]);
   }
 
+  void test_nonAbstractClassInheritsAbstractMemberOne_overridesMethodInObject() {
+    Source source = addSource(r'''
+class A {
+  String toString([String prefix = '']) => '${prefix}Hello';
+}
+class C {}
+class B extends A with C {}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_nonBoolExpression_functionType() {
     Source source = addSource(r'''
 bool makeAssertion() => true;

@@ -5769,9 +5769,14 @@ class InheritanceManager {
               String key = map.getKey(j);
               ExecutableElement value = map.getValue(j);
               if (key != null) {
-                if (resultMap.get(key) == null ||
-                    (resultMap.get(key) != null && !_isAbstract(value))) {
-                  resultMap.put(key, value);
+                ClassElement definingClass = value
+                    .getAncestor((Element element) => element is ClassElement);
+                if (!definingClass.type.isObject) {
+                  ExecutableElement existingValue = resultMap.get(key);
+                  if (existingValue == null ||
+                      (existingValue != null && !_isAbstract(value))) {
+                    resultMap.put(key, value);
+                  }
                 }
               }
             }
