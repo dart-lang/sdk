@@ -282,7 +282,7 @@ class OldEmitter implements Emitter {
         return backend.rti.representationGenerator.templateForIsFunctionType;
 
       case JsBuiltin.rawRtiToJsConstructorName:
-        return jsAst.js.expressionTemplateFor("#.name");
+        return jsAst.js.expressionTemplateFor("#.$typeNameProperty");
 
       case JsBuiltin.rawRuntimeType:
         return jsAst.js.expressionTemplateFor("#.constructor");
@@ -299,7 +299,7 @@ class OldEmitter implements Emitter {
             "('$isPrefix' + #) in #.prototype");
 
       case JsBuiltin.isGivenTypeRti:
-        return jsAst.js.expressionTemplateFor('#.name === #');
+        return jsAst.js.expressionTemplateFor('#.$typeNameProperty === #');
 
       case JsBuiltin.getMetadata:
         String metadataAccess =
@@ -1025,10 +1025,10 @@ class OldEmitter implements Emitter {
 
     cspPrecompiledFunctionFor(outputUnit).add(js.statement(r'''
         {
-          if (typeof #constructorName.name != "string") {
-            // IE does not store the name, but allows to modify the property.
-            #constructorName.name = #constructorNameString;
-          }
+          #constructorName.#typeNameProperty = #constructorNameString;
+          // IE does not have a name property.
+          if (!("name" in #constructorName))
+              #constructorName.name = #constructorNameString;
           $desc = $collectedClasses$.#constructorName[1];
           #constructorName.prototype = $desc;
           ''' /* next string is not a raw string */ '''
@@ -1037,6 +1037,7 @@ class OldEmitter implements Emitter {
           }
         }''',
         {"constructorName": constructorName,
+         "typeNameProperty": typeNameProperty,
          "constructorNameString": js.quoteName(constructorName),
          "hasIsolateSupport": hasIsolateSupport,
          "fieldNamesArray": fieldNamesArray}));
