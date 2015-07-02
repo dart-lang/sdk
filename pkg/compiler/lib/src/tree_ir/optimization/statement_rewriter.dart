@@ -8,7 +8,35 @@ import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
 
 /**
- * Performs the following transformations on the tree:
+ * Translates to direct-style.
+ *
+ * In addition to the general IR constraints (see [CheckTreeIntegrity]),
+ * the input is assumed to satisfy the following criteria:
+ *
+ * All expressions other than those nested in [Assign] or [ExpressionStatement]
+ * must be simple. A [VariableUse] and [This] is a simple expression.
+ * The right-hand of an [Assign] may not be an [Assign].
+ *
+ * Moreover, every variable must either be an SSA variable or a mutable
+ * variable, and must satisfy the corresponding criteria:
+ *
+ * SSA VARIABLE:
+ * An SSA variable must have a unique definition site, which is either an
+ * assignment or label. In case of a label, its target must act as the unique
+ * reaching definition of that variable at all uses of the variable and at
+ * all other label targets where the variable is in scope.
+ *
+ * (The second criterion is to ensure that we can move a use of an SSA variable
+ * across a label without changing its reaching definition).
+ *
+ * MUTABLE VARIABLE:
+ * Uses of mutable variables are considered complex expressions, and hence must
+ * not be nested in other expressions. Assignments to mutable variables must
+ * have simple right-hand sides.
+ *
+ * ----
+ *
+ * This pass performs the following transformations on the tree:
  * - Assignment inlining
  * - Assignment expression propagation
  * - If-to-conditional conversion
@@ -113,7 +141,9 @@ class StatementRewriter extends Transformer implements Pass {
 
   @override
   void rewrite(FunctionDefinition node) {
+    node.parameters.forEach(pushDominatingAssignment);
     node.body = visitStatement(node.body);
+    node.parameters.forEach(popDominatingAssignment);
   }
 
   /// The most recently evaluated impure expressions, with the most recent
@@ -144,6 +174,14 @@ class StatementRewriter extends Transformer implements Pass {
   /// Used to detect the first use of a variable (since we do backwards
   /// traversal, the first use is the last one seen).
   Map<Variable, int> unseenUses = <Variable, int>{};
+
+  /// Number of assignments to a given variable that dominate the current
+  /// position.
+  ///
+  /// Pure expressions will not be inlined if it uses a variable with more than
+  /// one dominating assignment, because the reaching definition of the used
+  /// variable might have changed since it was put in the environment.
+  final Map<Variable, int> dominatingAssignments = <Variable, int>{};
 
   /// Rewriter for methods.
   StatementRewriter() : constantEnvironment = <Variable, Expression>{};
@@ -196,6 +234,31 @@ class StatementRewriter extends Transformer implements Pass {
     return value is VariableUse ? value.variable : null;
   }
 
+  /// True if the given expression (taken from [constantEnvironment]) uses a
+  /// variable that might have been reassigned since [node] was evaluated.
+  bool hasUnsafeVariableUse(Expression node) {
+    bool wasFound = false;
+    VariableUseVisitor.visit(node, (VariableUse use) {
+      if (dominatingAssignments[use.variable] > 1) {
+        wasFound = true;
+      }
+    });
+    return wasFound;
+  }
+
+  void pushDominatingAssignment(Variable variable) {
+    if (variable != null) {
+      dominatingAssignments.putIfAbsent(variable, () => 0);
+      ++dominatingAssignments[variable];
+    }
+  }
+
+  void popDominatingAssignment(Variable variable) {
+    if (variable != null) {
+      --dominatingAssignments[variable];
+    }
+  }
+
   @override
   Expression visitVariableUse(VariableUse node) {
     // Count of number of unseen uses remaining.
@@ -210,7 +273,7 @@ class StatementRewriter extends Transformer implements Pass {
 
     // Propagate constant to use site.
     Expression constant = constantEnvironment[node.variable];
-    if (constant != null) {
+    if (constant != null && !hasUnsafeVariableUse(constant)) {
       --node.variable.readCount;
       return visitExpression(constant);
     }
@@ -301,6 +364,8 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Statement visitExpressionStatement(ExpressionStatement stmt) {
+    Variable leftHand = getLeftHand(stmt.expression);
+    pushDominatingAssignment(leftHand);
     if (isEffectivelyConstantAssignment(stmt.expression) &&
         !usesRecentlyAssignedVariable(stmt.expression)) {
       Assign assign = stmt.expression;
@@ -308,15 +373,25 @@ class StatementRewriter extends Transformer implements Pass {
       // They are always safe to propagate (though we should avoid duplication).
       // Moreover, they should not prevent other expressions from propagating.
       if (assign.variable.readCount == 1) {
-        // A single-use constant should always be propagted to its use site.
+        // A single-use constant should always be propagated to its use site.
         constantEnvironment[assign.variable] = assign.value;
-        --assign.variable.writeCount;
-        return visitStatement(stmt.next);
+        Statement next = visitStatement(stmt.next);
+        popDominatingAssignment(leftHand);
+        if (assign.variable.readCount > 0) {
+          // The assignment could not be propagated.
+          assign.value = visitExpression(assign.value);
+          stmt.next = next;
+          return stmt;
+        } else {
+          --assign.variable.writeCount;
+          return next;
+        }
       } else {
         // With more than one use, we cannot propagate the constant.
         // Visit the following statement without polluting [environment] so
         // that any preceding non-constant assignments might still propagate.
         stmt.next = visitStatement(stmt.next);
+        popDominatingAssignment(leftHand);
         assign.value = visitExpression(assign.value);
         return stmt;
       }
@@ -325,6 +400,7 @@ class StatementRewriter extends Transformer implements Pass {
     // until this has propagated.
     environment.add(stmt.expression);
     stmt.next = visitStatement(stmt.next);
+    popDominatingAssignment(leftHand);
     if (!environment.isEmpty && environment.last == stmt.expression) {
       // Retain the expression statement.
       environment.removeLast();
@@ -549,7 +625,9 @@ class StatementRewriter extends Transformer implements Pass {
       safeForInlining = new Set<Label>();
       node.tryBody = visitStatement(node.tryBody);
       safeForInlining = saved;
+      node.catchParameters.forEach(pushDominatingAssignment);
       node.catchBody = visitStatement(node.catchBody);
+      node.catchParameters.forEach(popDominatingAssignment);
     });
     return node;
   }
@@ -755,7 +833,11 @@ class StatementRewriter extends Transformer implements Pass {
       // We are not in risk of reprocessing the original subexpressions because
       // the combined expression will always hide them inside a Conditional.
       environment.add(values.combined);
+
+      Variable leftHand = getLeftHand(values.combined);
+      pushDominatingAssignment(leftHand);
       Statement next = combineStatements(s.next, t.next);
+      popDominatingAssignment(leftHand);
 
       if (next == null) {
         // Statements could not be combined.
@@ -830,7 +912,10 @@ class StatementRewriter extends Transformer implements Pass {
           combineExpressions(s.expression, t.expression);
       if (values == null) return null;
       environment.add(values.combined);
+      Variable leftHand = getLeftHand(values.combined);
+      pushDominatingAssignment(leftHand);
       Statement next = combineStatements(s.next, t.next);
+      popDominatingAssignment(leftHand);
       if (next == null) {
         // The successors could not be combined.
         // Restore the environment and uncombine the values again.
@@ -1045,4 +1130,20 @@ class IsVariableUsedVisitor extends RecursiveVisitor {
   }
 
   visitInnerFunction(FunctionDefinition node) {}
+}
+
+typedef VariableUseCallback(VariableUse use);
+
+class VariableUseVisitor extends RecursiveVisitor {
+  VariableUseCallback callback;
+
+  VariableUseVisitor(this.callback);
+
+  visitVariableUse(VariableUse use) => callback(use);
+
+  visitInnerFunction(FunctionDefinition node) {}
+
+  static void visit(Expression node, VariableUseCallback callback) {
+    new VariableUseVisitor(callback).visitExpression(node);
+  }
 }

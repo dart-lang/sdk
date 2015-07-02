@@ -596,3 +596,4 @@ type_variable_conflict2_test/01 : Crash # Internal Error: No default constructor
 async_await_syntax_test/a05h : Crash # bailout: (a05h()async{yield*st;}): cannot handle async/sync*/async* functions
 async_await_syntax_test/c11a : Crash # bailout: (c11a()async{yield-5;}): cannot handle async/sync*/async* functions
 async_await_syntax_test/c11b : Crash # bailout: (c11b()async{yield*st;}): cannot handle async/sync*/async* functions
+regress_23408_test : RuntimeError # TypeError: receiver.get$_nums is not a function

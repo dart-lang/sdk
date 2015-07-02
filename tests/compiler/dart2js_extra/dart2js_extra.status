@@ -86,7 +86,6 @@ deferred/deferred_function_test: RuntimeError # receiver.get$_collection$_nums i
 deferred/deferred_mirrors1_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred/deferred_mirrors2_test : RuntimeError # TypeError: receiver.get$_collection$_nums is not a function
 deferred/deferred_overlapping_test: RuntimeError # receiver.get$_collection$_nums is not a function
-for_test: RuntimeError # Please triage this failure.
 if_null_test: RuntimeError # receiver.get$_collection$_nums is not a function
 mirror_invalid_field_access3_test: Crash # Internal Error: No default constructor available.
 mirror_invalid_field_access_test: Crash # Internal Error: No default constructor available.
