@@ -223,9 +223,10 @@ class LetMutable extends Expression implements InteriorNode {
   accept(Visitor visitor) => visitor.visitLetMutable(this);
 }
 
-abstract class Invoke {
+abstract class Invoke implements Expression {
   Selector get selector;
   List<Reference<Primitive>> get arguments;
+  Reference<Continuation> get continuation;
 }
 
 /// Represents a node with a child node, which can be accessed through the

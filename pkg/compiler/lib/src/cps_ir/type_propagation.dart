@@ -426,8 +426,7 @@ class TypePropagator extends Pass {
     TransformingVisitor transformer = new TransformingVisitor(
         _compiler,
         _lattice,
-        analyzer.reachableNodes,
-        analyzer.values,
+        analyzer,
         replacements,
         _internalError);
     transformer.transform(root);
@@ -455,8 +454,7 @@ final Map<String, BuiltinOperator> NumBinaryBuiltins =
  * actual transformations on the CPS graph.
  */
 class TransformingVisitor extends RecursiveVisitor {
-  final Set<Node> reachable;
-  final Map<Node, AbstractValue> values;
+  final TypePropagationVisitor analyzer;
   final Map<Expression, ConstantValue> replacements;
   final ConstantPropagationLattice lattice;
   final dart2js.Compiler compiler;
@@ -464,13 +462,14 @@ class TransformingVisitor extends RecursiveVisitor {
   JavaScriptBackend get backend => compiler.backend;
   TypeMaskSystem get typeSystem => lattice.typeSystem;
   types.DartTypes get dartTypes => lattice.dartTypes;
+  Set<Node> get reachable => analyzer.reachableNodes;
+  Map<Node, AbstractValue> get values => analyzer.values;
 
   final dart2js.InternalErrorFunction internalError;
 
   TransformingVisitor(this.compiler,
                       this.lattice,
-                      this.reachable,
-                      this.values,
+                      this.analyzer,
                       this.replacements,
                       this.internalError);
 
@@ -480,7 +479,7 @@ class TransformingVisitor extends RecursiveVisitor {
 
   /// Removes the entire subtree of [node] and inserts [replacement].
   /// All references in the [node] subtree are unlinked, and parent pointers
-  /// in [replacement] are initialized.
+  /// in [replacement] are initialized and its types recomputed.
   ///
   /// [replacement] must be "fresh", i.e. it must not contain significant parts
   /// of the original IR inside of it since the [ParentVisitor] will
@@ -492,6 +491,7 @@ class TransformingVisitor extends RecursiveVisitor {
     node.parent = null;
     RemovalVisitor.remove(node);
     new ParentVisitor().visit(replacement);
+    analyzer.reanalyzeSubtree(replacement);
   }
 
   /// Make a constant primitive for [constant] and set its entry in [values].
@@ -525,7 +525,8 @@ class TransformingVisitor extends RecursiveVisitor {
   /// The new expression will be visited.
   ///
   /// Returns true if the node was replaced.
-  bool constifyExpression(Expression node, Continuation continuation) {
+  bool constifyExpression(Invoke node) {
+    Continuation continuation = node.continuation.definition;
     ConstantValue constant = replacements[node];
     if (constant == null) return false;
     Constant primitive = makeConstantPrimitive(constant);
@@ -585,7 +586,7 @@ class TransformingVisitor extends RecursiveVisitor {
   /// Replaces [node] with a more specialized instruction, if possible.
   ///
   /// Returns `true` if the node was replaced.
-  bool specializeInvoke(InvokeMethod node) {
+  bool specializeOperatorCall(InvokeMethod node) {
     Continuation cont = node.continuation.definition;
     bool replaceWithBinary(BuiltinOperator operator,
                            Primitive left,
@@ -698,10 +699,9 @@ class TransformingVisitor extends RecursiveVisitor {
   /// invocation with a direct access to a field.
   ///
   /// Returns `true` if the node was replaced.
-  bool inlineFieldAccess(InvokeMethod node) {
+  bool specializeFieldAccess(InvokeMethod node) {
     if (!node.selector.isGetter && !node.selector.isSetter) return false;
     AbstractValue receiver = getValue(getDartReceiver(node));
-    if (receiver.isNothing) return false;
     Element target =
         typeSystem.locateSingleElement(receiver.type, node.selector);
     if (target is! FieldElement) return false;
@@ -711,7 +711,6 @@ class TransformingVisitor extends RecursiveVisitor {
     Continuation cont = node.continuation.definition;
     if (node.selector.isGetter) {
       GetField get = new GetField(getDartReceiver(node), target);
-      get.objectIsNotNull = receiver.isDefinitelyNotNull;
       LetPrim let = makeLetPrimInvoke(get, cont);
       replaceSubtree(node, let);
       visitLetPrim(let);
@@ -731,10 +730,9 @@ class TransformingVisitor extends RecursiveVisitor {
   }
 
   void visitInvokeMethod(InvokeMethod node) {
-    Continuation cont = node.continuation.definition;
-    if (constifyExpression(node, cont)) return;
-    if (specializeInvoke(node)) return;
-    if (inlineFieldAccess(node)) return;
+    if (constifyExpression(node)) return;
+    if (specializeOperatorCall(node)) return;
+    if (specializeFieldAccess(node)) return;
 
     AbstractValue receiver = getValue(node.receiver.definition);
     node.receiverIsNotNull = receiver.isDefinitelyNotNull;
@@ -768,10 +766,10 @@ class TransformingVisitor extends RecursiveVisitor {
     super.visitTypeCast(node);
   }
 
-  /// Specialize calls to static methods.
+  /// Specialize calls to internal static methods.
   ///
   /// Returns true if the call was replaced.
-  bool specializeInvokeStatic(InvokeStatic node) {
+  bool specializeInternalMethodCall(InvokeStatic node) {
     // TODO(asgerf): This is written to easily scale to more cases,
     //               either add more cases or clean up.
     Continuation cont = node.continuation.definition;
@@ -794,8 +792,8 @@ class TransformingVisitor extends RecursiveVisitor {
   }
 
   void visitInvokeStatic(InvokeStatic node) {
-    if (constifyExpression(node, node.continuation.definition)) return;
-    if (specializeInvokeStatic(node)) return;
+    if (constifyExpression(node)) return;
+    if (specializeInternalMethodCall(node)) return;
   }
 
   AbstractValue getValue(Primitive primitive) {
@@ -986,12 +984,20 @@ class TypePropagationVisitor implements Visitor {
 
   void analyze(FunctionDefinition root) {
     reachableNodes.clear();
-    defWorkset.clear();
-    nodeWorklist.clear();
 
     // Initially, only the root node is reachable.
     setReachable(root);
 
+    iterateWorklist();
+  }
+
+  void reanalyzeSubtree(Node node) {
+    new ResetAnalysisInfo(reachableNodes, values).visit(node);
+    setReachable(node);
+    iterateWorklist();
+  }
+
+  void iterateWorklist() {
     while (true) {
       if (nodeWorklist.isNotEmpty) {
         // Process a new reachable expression.
@@ -1195,8 +1201,6 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
-    // Note that most built-in operators do not exist before the transformation
-    // pass after this analysis has finished.
     switch (node.operator) {
       case BuiltinOperator.StringConcatenate:
         DartString stringValue = const LiteralDartString('');
@@ -1252,8 +1256,31 @@ class TypePropagationVisitor implements Visitor {
         }
         break;
 
-      default:
-        setValue(node, nonConstant());
+      // TODO(asgerf): Implement constant propagation for builtins.
+      case BuiltinOperator.NumAdd:
+      case BuiltinOperator.NumSubtract:
+      case BuiltinOperator.NumMultiply:
+      case BuiltinOperator.NumAnd:
+      case BuiltinOperator.NumOr:
+      case BuiltinOperator.NumXor:
+        setValue(node, nonConstant(typeSystem.numType));
+        break;
+
+      case BuiltinOperator.NumLt:
+      case BuiltinOperator.NumLe:
+      case BuiltinOperator.NumGt:
+      case BuiltinOperator.NumGe:
+      case BuiltinOperator.StrictEq:
+      case BuiltinOperator.StrictNeq:
+      case BuiltinOperator.LooseEq:
+      case BuiltinOperator.LooseNeq:
+      case BuiltinOperator.IsFalsy:
+      case BuiltinOperator.IsNumber:
+      case BuiltinOperator.IsNotNumber:
+      case BuiltinOperator.IsFloor:
+      case BuiltinOperator.IsNumberAndFloor:
+        setValue(node, nonConstant(typeSystem.boolType));
+        break;
     }
   }
 
@@ -1541,7 +1568,7 @@ class AbstractValue {
   }
 
   AbstractValue.nothing()
-      : this._internal(NOTHING, null, null);
+      : this._internal(NOTHING, null, new TypeMask.nonNullEmpty());
 
   AbstractValue.constantValue(ConstantValue constant, TypeMask type)
       : this._internal(CONSTANT, constant, type);
@@ -1582,4 +1609,17 @@ class AbstractValue {
 /// Enum-like class with the names of internal methods we care about.
 abstract class InternalMethod {
   static const String Stringify = 'S';
+}
+
+class ResetAnalysisInfo extends RecursiveVisitor {
+  Set<Node> reachableNodes;
+  Map<Definition, AbstractValue> values;
+
+  ResetAnalysisInfo(this.reachableNodes, this.values);
+
+  visit(Node node) {
+    reachableNodes.remove(node);
+    if (node is Definition) values.remove(node);
+    node.accept(this);
+  }
 }
