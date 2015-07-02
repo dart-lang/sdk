@@ -377,7 +377,11 @@ class StatementRewriter extends Transformer implements Pass {
         Statement next = visitStatement(stmt.next);
         popDominatingAssignment(leftHand);
         if (assign.variable.readCount > 0) {
-          // The assignment could not be propagated.
+          // The assignment could not be propagated into the successor, either
+          // because it has an unsafe variable use (see [hasUnsafeVariableUse])
+          // or because the use is outside the current try block, and we do
+          // not currently support constant propagation out of a try block.
+          constantEnvironment.remove(assign.variable);
           assign.value = visitExpression(assign.value);
           stmt.next = next;
           return stmt;
