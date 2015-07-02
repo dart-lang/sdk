@@ -26,7 +26,7 @@ import 'elements/visitor.dart' as elements_visitor;
 import 'filenames.dart' as filenames;
 import 'inferrer/concrete_types_inferrer.dart' as concrete_types_inferrer;
 import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
-import 'io/code_output.dart' as io;
+import 'io/line_column_provider.dart' as io;
 import 'io/source_map_builder.dart' as io;
 import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
@@ -65,7 +65,7 @@ void main(List<String> arguments) {
   useColor();
   useFilenames();
   useSsa(null);
-  useIo(null, null);
+  useIo();
   usedByTests();
   useElements();
   useIr(null);
@@ -217,11 +217,13 @@ useSsa(ssa.HInstruction instruction) {
   new ssa.HStatementSequenceInformation(null);
 }
 
-useIo(io.CodeBuffer buffer, io.LineColumnMap map) {
+useIo([io.LineColumnMap map,
+       io.LineColumnProvider provider]) {
   map..addFirst(null, null, null)
      ..forEachLine(null)
      ..getFirstElementsInLine(null)
      ..forEachColumn(null, null);
+  provider.getOffset(null, null);
 }
 
 usedByTests() {
@@ -232,6 +234,7 @@ usedByTests() {
   compiler.currentlyInUserCode();
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
+  sourceFileProvider.getSourceFile(null);
   world.hasAnyUserDefinedGetter(null, null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);

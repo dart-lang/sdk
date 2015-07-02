@@ -360,7 +360,9 @@ class Printer implements NodeVisitor {
       out("else");
       if (elsePart is If) {
         pendingSpace = true;
+        startNode(elsePart);
         ifOut(elsePart, false);
+        endNode(elsePart);
       } else {
         blockBody(unwrapBlockIfSingleStatement(elsePart),
                   needsSeparation: true, needsNewline: true);
@@ -628,7 +630,10 @@ class Printer implements NodeVisitor {
     VarCollector vars = new VarCollector();
     vars.visitFunctionDeclaration(declaration);
     indent();
-    functionOut(declaration.function, declaration.name, vars);
+    startNode(declaration.function);
+    currentNode.closingPosition =
+        functionOut(declaration.function, declaration.name, vars);
+    endNode(declaration.function);
     lineOut();
   }
 
@@ -924,13 +929,17 @@ class Printer implements NodeVisitor {
       if (isValidJavaScriptId(fieldWithQuotes)) {
         if (access.receiver is LiteralNumber) out(" ", isWhitespace: true);
         out(".");
+        startNode(selector);
         out(fieldWithQuotes.substring(1, fieldWithQuotes.length - 1));
+        endNode(selector);
         return;
       }
     } else if (selector is Name) {
       if (access.receiver is LiteralNumber) out(" ", isWhitespace: true);
       out(".");
+      startNode(selector);
       out(selector.name);
+      endNode(selector);
       return;
     }
     out("[");
@@ -1022,7 +1031,9 @@ class Printer implements NodeVisitor {
         // in last position. Otherwise `[,]` (having length 1) would become
         // equal to `[]` (the empty array)
         // and [1,,] (array with 1 and a hole) would become [1,] = [1].
+        startNode(element);
         out(",");
+        endNode(element);
         continue;
       }
       if (i != 0) spaceOut();
@@ -1069,6 +1080,7 @@ class Printer implements NodeVisitor {
 
   @override
   void visitProperty(Property node) {
+    startNode(node.name);
     if (node.name is LiteralString) {
       LiteralString nameString = node.name;
       String name = nameString.value;
@@ -1084,6 +1096,7 @@ class Printer implements NodeVisitor {
       LiteralNumber nameNumber = node.name;
       out(nameNumber.value);
     }
+    endNode(node.name);
     out(":");
     spaceOut();
     visitNestedExpression(node.value, ASSIGNMENT,

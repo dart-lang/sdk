@@ -14,7 +14,7 @@ export 'package:compiler/src/filenames.dart'
        show currentDirectory;
 
 import 'package:compiler/src/io/source_file.dart'
-       show StringSourceFile;
+       show StringSourceFile, SourceFile;
 
 import 'package:compiler/src/source_file_provider.dart'
        show SourceFileProvider;
@@ -41,4 +41,15 @@ class MemorySourceFileProvider extends SourceFileProvider {
   }
 
   Future<String> call(Uri resourceUri) => readStringFromUri(resourceUri);
+
+  SourceFile getSourceFile(Uri resourceUri) {
+    if (resourceUri.scheme != 'memory') {
+      return super.getSourceFile(resourceUri);
+    }
+    String source = memorySourceFiles[resourceUri.path];
+    if (source == null) {
+      throw new Exception('No such file $resourceUri');
+    }
+    return new StringSourceFile.fromUri(resourceUri, source);
+  }
 }

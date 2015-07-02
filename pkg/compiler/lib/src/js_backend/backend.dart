@@ -617,8 +617,9 @@ class JavaScriptBackend extends Backend {
 
   bool enabledNoSuchMethod = false;
 
+  final SourceInformationStrategy sourceInformationStrategy;
+
   JavaScriptBackend(Compiler compiler,
-                    SourceInformationFactory sourceInformationFactory,
                     {bool generateSourceMap: true})
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<jsAst.Name, Selector>(),
@@ -626,6 +627,12 @@ class JavaScriptBackend extends Backend {
         rti = new RuntimeTypes(compiler),
         specializedGetInterceptors = new Map<jsAst.Name, Set<ClassElement>>(),
         annotations = new Annotations(compiler),
+        this.sourceInformationStrategy =
+            generateSourceMap
+                ? (useNewSourceInfo
+                     ? const PositionSourceInformationStrategy()
+                     : const StartEndSourceInformationStrategy())
+                : const JavaScriptSourceInformationStrategy(),
         super(compiler) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     typeVariableHandler = new TypeVariableHandler(compiler);
@@ -636,8 +643,8 @@ class JavaScriptBackend extends Backend {
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = compiler.useCpsIr
          ? new CpsFunctionCompiler(
-             compiler, this, sourceInformationFactory)
-         : new SsaFunctionCompiler(this, sourceInformationFactory);
+             compiler, this, sourceInformationStrategy)
+         : new SsaFunctionCompiler(this, sourceInformationStrategy);
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;

@@ -43,7 +43,7 @@ typedef void IrBuilderCallback(Element element, ir.FunctionDefinition irNode);
 /// This class is mainly there to correctly measure how long building the IR
 /// takes.
 class IrBuilderTask extends CompilerTask {
-  final SourceInformationFactory sourceInformationFactory;
+  final SourceInformationStrategy sourceInformationStrategy;
 
   String bailoutMessage = null;
 
@@ -51,7 +51,7 @@ class IrBuilderTask extends CompilerTask {
   /// [ir.FunctionDefinition] node that has been built.
   IrBuilderCallback builderCallback;
 
-  IrBuilderTask(Compiler compiler, this.sourceInformationFactory,
+  IrBuilderTask(Compiler compiler, this.sourceInformationStrategy,
       [this.builderCallback])
       : super(compiler);
 
@@ -65,7 +65,7 @@ class IrBuilderTask extends CompilerTask {
       element = element.implementation;
       return compiler.withCurrentElement(element, () {
         SourceInformationBuilder sourceInformationBuilder =
-            sourceInformationFactory.forContext(element);
+            sourceInformationStrategy.createBuilderForContext(element);
 
         IrBuilderVisitor builder =
             new JsIrBuilderVisitor(
@@ -3034,7 +3034,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           element, CallStructure.TWO_ARGS);
       return irBuilder.buildStaticFunctionInvocation(element,
           CallStructure.TWO_ARGS, arguments,
-          sourceInformation: sourceInformationBuilder.buildCall(node));
+          sourceInformation:
+                sourceInformationBuilder.buildCall(node, node.selector));
     }
 
     /// Lookup the value of the enum described by [node].
@@ -3220,7 +3221,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     } else {
       return irBuilder.buildStaticFunctionInvocation(function, callStructure,
           translateStaticArguments(argumentList, function, callStructure),
-          sourceInformation: sourceInformationBuilder.buildCall(node));
+          sourceInformation:
+              sourceInformationBuilder.buildCall(node, node.selector));
     }
   }
 }

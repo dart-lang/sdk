@@ -976,6 +976,9 @@ abstract class LocalElement extends Element
 
 /// A top level, static or instance field, a formal parameter or local variable.
 abstract class VariableElement extends ExecutableElement {
+  @override
+  VariableDefinitions get node;
+
   Expression get initializer;
 
   /// The constant expression defining the value of the variable if `const`,

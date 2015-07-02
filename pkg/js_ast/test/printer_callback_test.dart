@@ -12,14 +12,26 @@ import 'package:js_ast/js_ast.dart';
 import 'package:unittest/unittest.dart';
 
 enum TestMode {
+  INPUT,
   NONE,
   ENTER,
   DELIMITER,
   EXIT,
 }
 
-const DATA = const [
-  const {
+class TestCase {
+  final Map<TestMode, String> data;
+
+  /// Map from template names to the inserted values.
+  final Map<String, String> environment;
+
+  const TestCase(
+      this.data,
+      [this.environment = const {}]);
+}
+
+const List<TestCase> DATA = const <TestCase>[
+  const TestCase(const {
     TestMode.NONE: """
 function(a, b) {
   return null;
@@ -36,15 +48,15 @@ function(a, b) {
 function(a@1, b@2) {
   return null@5;
 @4}@3@0"""
-  },
+  }),
 
-  const {
+  const TestCase(const {
     TestMode.NONE: """
 function() {
   if (true) {
     foo1();
     foo2();
-  } else {
+  } else if (false) {
     bar1();
     bar2();
   }
@@ -58,13 +70,13 @@ function() {
   @2if (@3true) @4{
     @5@6@7foo1();
     @8@9@10foo2();
-  } else @11{
-    @12@13@14bar1();
-    @15@16@17bar2();
+  } else @11if (@12false) @13{
+    @14@15@16bar1();
+    @17@18@19bar2();
   }
-  @18while (@19false) @20{
-    @21@22@23baz3();
-    @24@25@26baz4();
+  @20while (@21false) @22{
+    @23@24@25baz3();
+    @26@27@28baz4();
   }
 }""",
     TestMode.DELIMITER: """
@@ -72,7 +84,7 @@ function() {
   if (true) {
     foo1();
     foo2();
-  } else {
+  } else if (false) {
     bar1();
     bar2();
   }
@@ -86,23 +98,101 @@ function() {
   if (true@3) {
     foo1@7()@6;
 @5    foo2@10()@9;
-@8  }@4 else {
-    bar1@14()@13;
-@12    bar2@17()@16;
-@15  }@11
-@2  while (false@19) {
-    baz3@23()@22;
-@21    baz4@26()@25;
-@24  }@20
-@18}@1@0""",
-  },
+@8  }@4 else if (false@12) {
+    bar1@16()@15;
+@14    bar2@19()@18;
+@17  }@13
+@11@2  while (false@21) {
+    baz3@25()@24;
+@23    baz4@28()@27;
+@26  }@22
+@20}@1@0""",
+  }),
+
+  const TestCase(const {
+    TestMode.NONE: """
+function() {
+  function foo() {
+  }
+}""",
+    TestMode.ENTER: """
+@0function() @1{
+  @2@3function @4foo() @5{
+  }
+}""",
+    TestMode.DELIMITER: """
+function() {
+  function foo() {
+  @3}
+@0}""",
+   TestMode.EXIT: """
+function() {
+  function foo@4() {
+  }@5@3
+@2}@1@0"""
+  }),
+
+  const TestCase(const {
+    TestMode.INPUT: """
+function() {
+  a['b'];
+  [1,, 2];
+}""",
+    TestMode.NONE: """
+function() {
+  a.b;
+  [1,, 2];
+}""",
+    TestMode.ENTER: """
+@0function() @1{
+  @2@3@4a.@5b;
+  @6@7[@81,@9, @102];
+}""",
+    TestMode.DELIMITER: """
+function() {
+  a.b;
+  [1,, 2];
+@0}""",
+   TestMode.EXIT: """
+function() {
+  a@4.b@5@3;
+@2  [1@8,,@9 2@10]@7;
+@6}@1@0""",
+  }),
+
+  const TestCase(const {
+    TestMode.INPUT: "a.#nameTemplate",
+    TestMode.NONE: "a.nameValue",
+    TestMode.ENTER: "@0@1a.@2nameValue",
+    TestMode.DELIMITER: "a.nameValue",
+    TestMode.EXIT: "a@1.nameValue@2@0",
+  }, const {'nameTemplate': 'nameValue'}),
 ];
 
-void check(Map<TestMode, String> map) {
-  String code = map[TestMode.NONE];
+class FixedName extends Name {
+  final String name;
+
+  FixedName(this.name);
+
+  @override
+  int compareTo(other) => 0;
+}
+
+void check(TestCase testCase) {
+  Map<TestMode, String> map = testCase.data;
+  String code = map[TestMode.INPUT];
+  if (code == null) {
+    // Input is the same as output.
+    code = map[TestMode.NONE];
+  }
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
-  Node node = js.parseForeignJS(code).instantiate({});
+  Map arguments = {};
+  testCase.environment.forEach((String name, String value) {
+    arguments[name] = new FixedName(value);
+  });
+  Node node = js.parseForeignJS(code).instantiate(arguments);
   map.forEach((TestMode mode, String expectedOutput) {
+    if (mode == TestMode.INPUT) return;
     Context context = new Context(mode);
     new Printer(options, context).visit(node);
     expect(context.getText(), equals(expectedOutput),
