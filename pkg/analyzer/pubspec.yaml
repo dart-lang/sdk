@@ -4,7 +4,7 @@ author: Dart Team <misc@dartlang.org>
 description: Static analyzer for Dart.
 homepage: http://www.dartlang.org
 environment:
-  sdk: '>=1.8.0 <2.0.0'
+  sdk: '>=1.12.0-dev.1.0 <2.0.0'
 dependencies:
   args: '>=0.12.1 <0.14.0'
   html: ^0.12.0
