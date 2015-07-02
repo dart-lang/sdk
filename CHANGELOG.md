@@ -1,3 +1,10 @@
+## 1.11.1
+
+### Tool changes
+
+* Pub will always load Dart SDK assets from the SDK whose `pub` executable was
+  run, even if a `DART_SDK` environment variable is set.
+
 ## 1.11.0
 
 ### Core library changes

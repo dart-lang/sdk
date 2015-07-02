@@ -267,7 +267,9 @@ class _Bigint extends _IntegerImplementation implements int {
     return r_used;
   }
 
-  // r_digits[0..r_used-1] = x_digits[0..x_used-1] << n.
+  // r_digits[ds..x_used+ds] = x_digits[0..x_used-1] << (n % _DIGIT_BITS)
+  // where ds = ceil(n / _DIGIT_BITS)
+  // Doesn't clear digits below ds.
   static void _lsh(Uint32List x_digits, int x_used, int n,
                    Uint32List r_digits) {
     final ds = n ~/ _DIGIT_BITS;
@@ -292,7 +294,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return _dlShift(ds);
     }
     var r_used = _used + ds + 1;
-    var r_digits = new Uint32List(r_used + 2 + (r_used & 1));  // +2 for 64-bit.
+    var r_digits = new Uint32List(r_used + 2 - (r_used & 1));  // for 64-bit.
     _lsh(_digits, _used, n, r_digits);
     return new _Bigint(_neg, r_used, r_digits);
   }
@@ -307,7 +309,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return _dlShiftDigits(x_digits, x_used, ds, r_digits);
     }
     var r_used = x_used + ds + 1;
-    assert(r_digits.length >= r_used + 2 + (r_used & 1));  // +2 for 64-bit.
+    assert(r_digits.length >= r_used + 2 - (r_used & 1));  // for 64-bit.
     _lsh(x_digits, x_used, n, r_digits);
     var i = ds;
     while (--i >= 0) {
@@ -1404,7 +1406,7 @@ class _Bigint extends _IntegerImplementation implements int {
     if (e == 0) return 1;
     m = m._toBigint();
     final m_used = m._used;
-    final m_used2p4 = 2*m_used + 4;
+    final m_used2p4 = 2 * m_used + 4;
     final e_bitlen = e.bitLength;
     if (e_bitlen <= 0) return 1;
     final bool cannotUseMontgomery = m.isEven || _abs() >= m;
@@ -1562,7 +1564,7 @@ class _Bigint extends _IntegerImplementation implements int {
       if (((x_used == 1) && (x_digits[0] == 1)) ||
           ((y_used == 1) && (y_digits[0] == 1))) return 1;
       bool xy_cloned = false;
-      while (x.isEven && y.isEven) {
+      while (((x_digits[0] & 1) == 0) && ((y_digits[0] & 1) == 0)) {
         _rsh(x_digits, x_used, 1, x_digits);
         _rsh(y_digits, y_used, 1, y_digits);
         s++;
@@ -1583,7 +1585,7 @@ class _Bigint extends _IntegerImplementation implements int {
       }
     }
     var u_digits = _cloneDigits(x_digits, 0, x_used, m_len);
-    var v_digits = _cloneDigits(y_digits, 0, y_used, m_len);
+    var v_digits = _cloneDigits(y_digits, 0, y_used, m_len + 2);  // +2 for lsh.
     final bool ac = (x_digits[0] & 1) == 0;
 
     // Variables a, b, c, and d require one more digit.
@@ -1747,7 +1749,7 @@ class _Bigint extends _IntegerImplementation implements int {
     }
     if (!inv) {
       if (s > 0) {
-        _lsh(v_digits, m_used, s, v_digits);
+        m_used = _lShiftDigits(v_digits, m_used, s, v_digits);
       }
       return new _Bigint(false, m_used, v_digits)._toValidInt();
     }
