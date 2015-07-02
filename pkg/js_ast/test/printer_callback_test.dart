@@ -195,7 +195,9 @@ void check(TestCase testCase) {
     if (mode == TestMode.INPUT) return;
     Context context = new Context(mode);
     new Printer(options, context).visit(node);
-    expect(context.getText(), equals(expectedOutput),
+    // TODO(johnniwinther): Remove `replaceAll(...)` when dart2js behaves as the
+    // VM on newline in multiline strings.
+    expect(context.getText(), equals(expectedOutput.replaceAll('\r\n', '\n')),
         reason: "Unexpected output for $code in $mode");
   });
 }
