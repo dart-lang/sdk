@@ -585,11 +585,16 @@ class Namer {
     return '$name\$${suffix.join(r'$')}';
   }
 
+  /// Name for a constructor body.
+  jsAst.Name constructorBodyName(FunctionElement ctor) {
+    return _disambiguateInternalMember(ctor,
+        () => _proposeNameForConstructorBody(ctor));
+  }
+
   /// Annotated name for [method] encoding arity and named parameters.
   jsAst.Name instanceMethodName(FunctionElement method) {
     if (method.isGenerativeConstructorBody) {
-      return _disambiguateInternalMember(method,
-          () => _proposeNameForConstructorBody(method));
+      return constructorBodyName(method);
     }
     return invocationName(new Selector.fromElement(method));
   }
@@ -910,6 +915,30 @@ class Namer {
         proposedName += r'$' + suffixes.join(r'$');
       }
       newName = getFreshName(proposedName,
+                             usedInstanceNames, suggestedInstanceNames,
+                             sanitizeForAnnotations: true);
+      userInstanceMembers[key] = newName;
+    }
+    return newName;
+  }
+
+  /// Returns the disambiguated name for the instance member identified by
+  /// [key].
+  ///
+  /// When a name for an element is requested by key, it may not be requested
+  /// by element at the same time, as two different names would be returned.
+  ///
+  /// If key has not yet been registered, [proposeName] is used to generate
+  /// a name proposal for the given key.
+  ///
+  /// [key] must not clash with valid instance names. This is typically
+  /// achieved by using at least one character in [key] that is not valid in
+  /// identifiers, for example the @ symbol.
+  jsAst.Name _disambiguateMemberByKey(String key, String proposeName()) {
+    jsAst.Name newName = userInstanceMembers[key];
+    if (newName == null) {
+      String name = proposeName();
+      newName = getFreshName(name,
                              usedInstanceNames, suggestedInstanceNames,
                              sanitizeForAnnotations: true);
       userInstanceMembers[key] = newName;

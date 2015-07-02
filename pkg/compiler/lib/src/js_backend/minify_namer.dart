@@ -8,7 +8,7 @@ part of js_backend;
  * Assigns JavaScript identifiers to Dart variables, class-names and members.
  */
 class MinifyNamer extends Namer with _MinifiedFieldNamer,
-    _MinifiedOneShotInterceptorNamer {
+    _MinifyConstructorBodyNamer, _MinifiedOneShotInterceptorNamer {
   MinifyNamer(Compiler compiler) : super(compiler) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
@@ -253,6 +253,80 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer,
       return proposed;
     }
     return super.instanceFieldPropertyName(element);
+  }
+}
+
+/// Implements naming for constructor bodies.
+///
+/// Constructor bodies are only called in settings where the target is
+/// statically known. Therefore, we can share their names between classes.
+/// However, to support calling the constructor body of a super constructor,
+/// each level in the inheritance tree has to use its own names.
+///
+/// This class implements a naming scheme by counting the distance from
+/// a given constructor to [Object], where distance is the number of
+/// constructors declared along the inheritance chain.
+class _ConstructorBodyNamingScope {
+  final int _startIndex;
+  final List _constructors;
+
+  int get numberOfConstructors => _constructors.length;
+
+  _ConstructorBodyNamingScope _superScope;
+
+  _ConstructorBodyNamingScope.rootScope(ClassElement cls)
+      : _superScope = null,
+        _startIndex = 0,
+        _constructors = cls.constructors.toList(growable: false);
+
+  _ConstructorBodyNamingScope.forClass(ClassElement cls,
+                                       _ConstructorBodyNamingScope superScope)
+      : _superScope = superScope,
+        _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+        _constructors = cls.constructors.toList(growable: false);
+
+  // Mixin Applications have constructors but we never generate code for them,
+  // so they do not count in the inheritance chain.
+  _ConstructorBodyNamingScope.forMixinApplication(ClassElement cls,
+      _ConstructorBodyNamingScope superScope)
+      : _superScope = superScope,
+        _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+        _constructors = const [];
+
+  factory _ConstructorBodyNamingScope(ClassElement cls,
+      Map<ClassElement, _ConstructorBodyNamingScope> registry) {
+    return registry.putIfAbsent(cls, () {
+      if (cls.superclass == null) {
+        return new _ConstructorBodyNamingScope.rootScope(cls);
+      } else if (cls.isMixinApplication) {
+        return new _ConstructorBodyNamingScope.forMixinApplication(cls,
+            new _ConstructorBodyNamingScope(cls.superclass, registry));
+      } else {
+        return new _ConstructorBodyNamingScope.forClass(cls,
+            new _ConstructorBodyNamingScope(cls.superclass, registry));
+      }
+    });
+  }
+
+  String constructorBodyKeyFor(ConstructorBodyElement body) {
+    int position = _constructors.indexOf(body.constructor);
+    assert(invariant(body, position >= 0, message: "constructor body missing"));
+    return "@constructorBody@${_startIndex + position}";
+  }
+}
+
+abstract class _MinifyConstructorBodyNamer implements Namer {
+  Map<ClassElement, _ConstructorBodyNamingScope> _constructorBodyScopes =
+      new Map<ClassElement, _ConstructorBodyNamingScope>();
+
+  @override
+  jsAst.Name constructorBodyName(FunctionElement method) {
+    _ConstructorBodyNamingScope scope =
+        new _ConstructorBodyNamingScope(method.enclosingClass,
+                                        _constructorBodyScopes);
+    String key = scope.constructorBodyKeyFor(method);
+    return _disambiguateMemberByKey(key,
+        () => _proposeNameForConstructorBody(method));
   }
 }
 
