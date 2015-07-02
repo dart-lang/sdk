@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 library dart2js.ir_nodes;
 
-import '../constants/expressions.dart';
 import '../constants/values.dart' as values show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../types/types.dart' show TypeMask;
-import '../universe/universe.dart' show Selector, SelectorKind;
+import '../universe/universe.dart' show Selector;
 
 import 'builtin_operator.dart';
 export 'builtin_operator.dart';
@@ -19,7 +18,6 @@ export 'builtin_operator.dart';
 // abstractions for native code and its type and effect system.
 import '../js/js.dart' as js show Template;
 import '../native/native.dart' as native show NativeBehavior;
-import '../types/types.dart' as types show TypeMask;
 
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
@@ -169,6 +167,9 @@ class LetCont extends Expression implements InteriorNode {
   LetCont(Continuation continuation, this.body)
       : continuations = <Continuation>[continuation];
 
+  LetCont.two(Continuation first, Continuation second, this.body)
+      : continuations = <Continuation>[first, second];
+
   LetCont.many(this.continuations, this.body);
 
   Expression plug(Expression expr) {
@@ -261,7 +262,7 @@ class InvokeStatic extends Expression implements Invoke {
                this.selector,
                List<Primitive> args,
                Continuation cont,
-               this.sourceInformation)
+               [this.sourceInformation])
       : arguments = _referenceList(args),
         continuation = new Reference<Continuation>(cont);
 
@@ -277,10 +278,6 @@ class InvokeStatic extends Expression implements Invoke {
 ///
 /// The [selector] records the names of named arguments. The value of named
 /// arguments occur at the end of the [arguments] list, in normalized order.
-///
-/// Discussion:
-/// If the [selector] is a [TypedSelector], the type information contained
-/// there is used by optimization passes. This is likely to change.
 class InvokeMethod extends Expression implements Invoke {
   Reference<Primitive> receiver;
   Selector selector;
@@ -297,7 +294,7 @@ class InvokeMethod extends Expression implements Invoke {
                this.mask,
                List<Primitive> arguments,
                Continuation continuation,
-               {this.sourceInformation})
+               [this.sourceInformation])
       : this.receiver = new Reference<Primitive>(receiver),
         this.arguments = _referenceList(arguments),
         this.continuation = new Reference<Continuation>(continuation);
@@ -635,7 +632,7 @@ class GetStatic extends Primitive {
   final Element element;
   final SourceInformation sourceInformation;
 
-  GetStatic(this.element, this.sourceInformation);
+  GetStatic(this.element, [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitGetStatic(this);
 }
@@ -647,7 +644,7 @@ class SetStatic extends Expression implements InteriorNode {
   Expression body;
   final SourceInformation sourceInformation;
 
-  SetStatic(this.element, Primitive value, this.sourceInformation)
+  SetStatic(this.element, Primitive value, [this.sourceInformation])
       : this.value = new Reference<Primitive>(value);
 
   Expression plug(Expression expr) {
@@ -671,7 +668,7 @@ class GetLazyStatic extends Expression {
 
   GetLazyStatic(this.element,
                 Continuation continuation,
-                this.sourceInformation)
+                [this.sourceInformation])
       : continuation = new Reference<Continuation>(continuation);
 
   accept(Visitor visitor) => visitor.visitGetLazyStatic(this);
@@ -727,7 +724,7 @@ class CreateInvocationMirror extends Primitive {
 
 class ForeignCode extends Expression {
   final js.Template codeTemplate;
-  final types.TypeMask type;
+  final TypeMask type;
   final List<Reference<Primitive>> arguments;
   final native.NativeBehavior nativeBehavior;
   final FunctionElement dependency;

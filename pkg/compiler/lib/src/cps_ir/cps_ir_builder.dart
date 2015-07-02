@@ -632,7 +632,7 @@ class IrBuilder {
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeMethod(receiver, selector, mask, arguments, k,
-            sourceInformation: sourceInformation));
+                                   sourceInformation));
   }
 
   ir.Primitive _buildInvokeCall(ir.Primitive target,
@@ -746,8 +746,7 @@ class IrBuilder {
     thenContinuation.body = thenBuilder._root;
     elseContinuation.body = elseBuilder._root;
     add(new ir.LetCont(join.continuation,
-            new ir.LetCont.many(<ir.Continuation>[thenContinuation,
-                                                  elseContinuation],
+            new ir.LetCont.two(thenContinuation, elseContinuation,
                 new ir.Branch(new ir.IsTrue(condition),
                               thenContinuation,
                               elseContinuation))));
@@ -1223,8 +1222,7 @@ class IrBuilder {
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              bodyContinuation],
+        new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           bodyContinuation,
                           exitContinuation));
@@ -1384,8 +1382,7 @@ class IrBuilder {
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              bodyContinuation],
+        new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           bodyContinuation,
                           exitContinuation));
@@ -1460,8 +1457,7 @@ class IrBuilder {
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              bodyContinuation],
+        new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           bodyContinuation,
                           exitContinuation));
@@ -1547,8 +1543,7 @@ class IrBuilder {
     repeatContinuation.body = repeatBuilder._root;
 
     continueBuilder.add(
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              repeatContinuation],
+        new ir.LetCont.two(exitContinuation, repeatContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           repeatContinuation,
                           exitContinuation)));
@@ -1614,8 +1609,7 @@ class IrBuilder {
       // continuation, to be plugged by the translation.  Therefore put the
       // else continuation first.
       casesBuilder.add(
-          new ir.LetCont.many(<ir.Continuation>[elseContinuation,
-                                                thenContinuation],
+          new ir.LetCont.two(elseContinuation, thenContinuation,
               new ir.Branch(new ir.IsTrue(condition),
                             thenContinuation,
                             elseContinuation)));
@@ -1820,8 +1814,7 @@ class IrBuilder {
             checkBuilder.buildTypeOperator(exceptionParameter,
                 clause.type,
                 isTypeTest: true);
-        checkBuilder.add(new ir.LetCont.many([thenContinuation,
-                                              elseContinuation],
+        checkBuilder.add(new ir.LetCont.two(thenContinuation, elseContinuation,
                 new ir.Branch(new ir.IsTrue(typeMatches),
                     thenContinuation,
                     elseContinuation)));
@@ -2092,8 +2085,7 @@ class IrBuilder {
         ..plug(new ir.InvokeContinuation(joinContinuation, [trueConstant]));
 
     add(new ir.LetCont(joinContinuation,
-          new ir.LetCont.many(<ir.Continuation>[thenContinuation,
-                                                elseContinuation],
+          new ir.LetCont.two(thenContinuation, elseContinuation,
               new ir.Branch(new ir.IsTrue(condition),
                             thenContinuation,
                             elseContinuation))));
@@ -2153,8 +2145,7 @@ class IrBuilder {
     rightFalseContinuation.body = rightFalseBuilder._root;
     // The right subexpression has two continuations.
     rightBuilder.add(
-        new ir.LetCont.many(<ir.Continuation>[rightTrueContinuation,
-                                              rightFalseContinuation],
+        new ir.LetCont.two(rightTrueContinuation, rightFalseContinuation,
             new ir.Branch(new ir.IsTrue(rightValue),
                           rightTrueContinuation,
                           rightFalseContinuation)));
@@ -2170,8 +2161,7 @@ class IrBuilder {
     }
 
     add(new ir.LetCont(join.continuation,
-            new ir.LetCont.many(<ir.Continuation>[leftTrueContinuation,
-                                                  leftFalseContinuation],
+            new ir.LetCont.two(leftTrueContinuation, leftFalseContinuation,
                 new ir.Branch(new ir.IsTrue(leftValue),
                               leftTrueContinuation,
                               leftFalseContinuation))));

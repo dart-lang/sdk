@@ -366,7 +366,7 @@ class Builder implements cps_ir.Visitor<Node> {
     // Calls are translated to direct style.
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeStatic(node.target, node.selector, arguments,
-        sourceInformation: node.sourceInformation);
+                                         node.sourceInformation);
     return continueWithExpression(node.continuation, invoke);
   }
 

@@ -350,7 +350,6 @@ class StatementRewriter extends Transformer implements Pass {
     return exp is Constant ||
            exp is This ||
            exp is CreateInvocationMirror ||
-           exp is InvokeStatic && exp.isEffectivelyConstant ||
            exp is Interceptor ||
            exp is ApplyBuiltinOperator ||
            exp is VariableUse && constantEnvironment.containsKey(exp.variable);
