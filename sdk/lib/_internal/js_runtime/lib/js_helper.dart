@@ -2283,11 +2283,14 @@ abstract class Closure implements Function {
     // Object.create to create the desired prototype.
     //
     // TODO(sra): Perhaps cache the prototype to avoid the allocation.
-    var prototype = isStatic
-        ? JS('StaticClosure', 'Object.create(#.constructor.prototype)',
-             new StaticClosure())
-        : JS('BoundClosure', 'Object.create(#.constructor.prototype)',
-             new BoundClosure(null, null, null, null));
+    TearOffClosure dummyObject = isStatic
+        ? new StaticClosure()
+        : new BoundClosure(null, null, null, null);
+
+    var prototype = JS(
+        'TearOffClosure',
+        'Object.create(#.constructor.prototype)',
+        dummyObject);
 
     JS('', '#.\$initialize = #', prototype, JS('', '#.constructor', prototype));
     var constructor = isStatic
@@ -2300,7 +2303,23 @@ abstract class Closure implements Function {
 
     // It is necessary to set the constructor property, otherwise it will be
     // "Object".
-    JS('', '#.constructor = #', prototype, constructor);
+    // We want the constructor.name property to have the name of the
+    // StaticClosure or BoundClosure class.
+    // Most browsers (except IE10) don't allow to change the name of a function
+    // as such we can't just set the property. However, we can work around this
+    // by creating an empty object with the name property set to the correct
+    // value and then setting the prototype to the original constructor.
+    // This works for all browsers except IE10 which doesn't have a way to
+    // change the prototype. There we simply set the name.
+    if (JS('bool', 'typeof Object.setPrototypeOf != "undefined"')) {
+      String tearOffClassName = JS('String', '#.constructor.name', dummyObject);
+      JS('', '#.constructor = {name: #}', prototype, tearOffClassName);
+      JS('', 'Object.setPrototypeOf(#.constructor, #)', prototype, constructor);
+    } else {
+      // IE10.
+      JS('', '#.constructor = #', prototype, constructor);
+      JS('', '#.constructor.name = #', prototype, propertyName);
+    }
 
     JS('', '#.prototype = #', constructor, prototype);
 

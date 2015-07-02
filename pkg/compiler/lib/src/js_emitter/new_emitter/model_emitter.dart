@@ -88,8 +88,6 @@ class ModelEmitter {
 
   static const String deferredExtension = "part.js";
 
-  static const String typeNameProperty = r"builtin$cls";
-
   ModelEmitter(Compiler compiler, Namer namer, this.nativeEmitter)
       : this.compiler = compiler,
         this.namer = namer {
@@ -478,7 +476,7 @@ class ModelEmitter {
     // to use a type-test to determine if a type has already been compiled.
     return js.js.statement('''function $readMetadataTypeName(index) {
       var type = #typesAccess[index];
-      if (typeof type == 'string') {
+      if (typeof type == "string") {
         type = expressionCompile(type);
         #typesAccess[index] = type;
       }
@@ -501,7 +499,7 @@ class ModelEmitter {
     // to use a type-test to determine if a type has already been compiled.
     return js.js.statement('''function $readMetadataName(index) {
       var lazyMetadata = #lazyMetadataAccess[index];
-      if (typeof lazyMetadata == 'string') {
+      if (typeof lazyMetadata == "string") {
         #metadataAccess[index] = expressionCompile(lazyMetadata);
         #lazyMetadataAccess[index] = null;
       }
@@ -1018,7 +1016,7 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
   }
 
   function setupStatic(name, holder, descriptor, typesOffset) {
-    if (typeof descriptor == 'string') {
+    if (typeof descriptor == "string") {
       holder[name] = function() {
         if (descriptor == null) {
           // Already compiled. This happens when we have calls to the static as
@@ -1185,7 +1183,10 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
                               typesOffset);
     }
 
-    constructor.$typeNameProperty = name;  // Needed for RTI.
+    if (typeof constructor.name != "string") {
+      // IE does not store the name, but allows to modify the property.
+      constructor.name = name;
+    }
     constructor.prototype = prototype;
     prototype[#operatorIsPrefix + name] = constructor;
     prototype.constructor = constructor;
