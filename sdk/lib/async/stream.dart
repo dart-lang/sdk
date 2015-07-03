@@ -1664,7 +1664,7 @@ abstract class StreamTransformer<S, T> {
 }
 
 /**
- * An [Iterable] like interface for the values of a [Stream].
+ * An [Iterator] like interface for the values of a [Stream].
  *
  * This wraps a [Stream] and a subscription on the stream. It listens
  * on the stream, and completes the future returned by [moveNext] when the
