@@ -171,6 +171,7 @@ function() {
 
 class FixedName extends Name {
   final String name;
+  String get key => name;
 
   FixedName(this.name);
 
