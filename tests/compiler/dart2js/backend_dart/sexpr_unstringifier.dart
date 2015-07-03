@@ -135,9 +135,10 @@ class SExpressionUnstringifier {
   static const String LET_CONT = "LetCont";
   static const String LET_MUTABLE = "LetMutable";
   static const String SET_MUTABLE_VARIABLE = "SetMutableVariable";
-  static const String TYPE_OPERATOR = "TypeOperator";
+  static const String TYPE_CAST = "TypeCast";
   static const String SET_STATIC = "SetStatic";
   static const String GET_LAZY_STATIC = "GetLazyStatic";
+  static const String UNREACHABLE = "Unreachable";
 
   // Primitives
   static const String CONSTANT = "Constant";
@@ -147,6 +148,8 @@ class SExpressionUnstringifier {
   static const String LITERAL_MAP = "LiteralMap";
   static const String REIFY_TYPE_VAR = "ReifyTypeVar";
   static const String GET_STATIC = "GetStatic";
+  static const String TYPE_TEST = "TypeTest";
+  static const String APPLY_BUILTIN_OPERATOR = "ApplyBuiltinOperator";
 
   // Other
   static const String FUNCTION_DEFINITION = "FunctionDefinition";
@@ -247,12 +250,14 @@ class SExpressionUnstringifier {
         return parseLetMutable();
       case SET_MUTABLE_VARIABLE:
         return parseSetMutableVariable();
-      case TYPE_OPERATOR:
-        return parseTypeOperator();
+      case TYPE_CAST:
+        return parseTypeCast();
       case SET_STATIC:
         return parseSetStatic();
       case GET_LAZY_STATIC:
         return parseGetLazyStatic();
+      case UNREACHABLE:
+        return parseUnreachable();
       default:
         assert(false);
     }
@@ -553,14 +558,12 @@ class SExpressionUnstringifier {
                   ..plug(body);
   }
 
-  /// (TypeOperator operator recv type cont)
-  TypeOperator parseTypeOperator() {
-    tokens.consumeStart(TYPE_OPERATOR);
+  /// (TypeCast value type args cont)
+  TypeCast parseTypeCast() {
+    tokens.consumeStart(TYPE_CAST);
 
-    String operator = tokens.read();
-
-    Primitive recv = name2variable[tokens.read()];
-    assert(recv != null);
+    Primitive value = name2variable[tokens.read()];
+    assert(value != null);
 
     dart_types.DartType type = new DummyNamedType(tokens.read());
 
@@ -570,8 +573,41 @@ class SExpressionUnstringifier {
     assert(cont != null);
 
     tokens.consumeEnd();
-    return new TypeOperator(recv, type, typeArguments, cont,
-                            isTypeTest: operator == 'is');
+    return new TypeCast(value, type, typeArguments, cont);
+  }
+
+  /// (TypeTest value type args)
+  TypeTest parseTypeTest() {
+    tokens.consumeStart(TYPE_TEST);
+
+    Primitive value = name2variable[tokens.read()];
+    assert(value != null);
+
+    dart_types.DartType type = new DummyNamedType(tokens.read());
+
+    List<ir.Primitive> typeArguments = parsePrimitiveList();
+
+    tokens.consumeEnd();
+    return new TypeTest(value, type, typeArguments);
+  }
+
+  /// (ApplyBuiltinOperator operator args)
+  ApplyBuiltinOperator parseApplyBuiltinOperator() {
+    tokens.consumeStart(APPLY_BUILTIN_OPERATOR);
+
+    String operatorName = tokens.read();
+    BuiltinOperator operator;
+    for (BuiltinOperator op in BuiltinOperator.values) {
+      if (op.toString() == operatorName) {
+        operator = op;
+        break;
+      }
+    }
+    assert(operator != null);
+    List<ir.Primitive> arguments = parsePrimitiveList();
+
+    tokens.consumeEnd();
+    return new ApplyBuiltinOperator(operator, arguments);
   }
 
   /// (SetStatic field value body)
@@ -597,6 +633,13 @@ class SExpressionUnstringifier {
 
     tokens.consumeEnd();
     return new GetLazyStatic(fieldElement, cont, null);
+  }
+
+  /// (Unreachable)
+  Unreachable parseUnreachable() {
+    tokens.consumeStart(UNREACHABLE);
+    tokens.consumeEnd();
+    return new Unreachable();
   }
 
   /// (LetPrim (name primitive) body)
@@ -637,6 +680,10 @@ class SExpressionUnstringifier {
         return parseReifyTypeVar();
       case GET_STATIC:
         return parseGetStatic();
+      case TYPE_TEST:
+        return parseTypeTest();
+      case APPLY_BUILTIN_OPERATOR:
+        return parseApplyBuiltinOperator();
       default:
         assert(false);
     }

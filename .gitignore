@@ -38,6 +38,9 @@
 .children
 .project
 
+# IntelliJ project files
+*.iml
+
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt
 

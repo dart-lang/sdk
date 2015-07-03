@@ -43,7 +43,6 @@ main() {
 r"""
 function(x, y) {
   P.print(x);
-  return null;
 }"""),
 
   const TestEntry.forMethod('generative_constructor(Sub#)', """
@@ -96,9 +95,9 @@ main() {
 }""",
 r"""
 function(x, y) {
-  var _box_0 = {}, v0;
+  var _box_0 = {}, v0 = new V.Sub(y, new V.Base_closure(_box_0));
   _box_0._captured_x1_0 = x;
-  (v0 = new V.Sub(y, new V.Base_closure(_box_0))).Base0$0();
+  v0.Base0$0();
   v0.Base$1(_box_0);
   v0.Sub$2(x, y);
   return v0;
@@ -163,7 +162,6 @@ main() {
 }""", r"""
 function() {
   P.print(V.C$(P.$int).foo$0());
-  return null;
 }"""),
   const TestEntry(r"""
 class C<T> {
@@ -174,7 +172,6 @@ main() {
 }""", r"""
 function() {
   P.print(V.C$().foo$0());
-  return null;
 }"""),
   const TestEntry.forMethod('generative_constructor(C#)', r"""
 class C<T> {
@@ -246,7 +243,6 @@ main() {
 }""", r"""
 function() {
   P.print(V.Foo$create(5));
-  return null;
 }"""),
 const TestEntry(r"""
 class A {
@@ -264,7 +260,6 @@ main() {
 }""", r"""
 function() {
   V.B$(5, P.$int).get$typevar();
-  return null;
 }"""),
 ];
 

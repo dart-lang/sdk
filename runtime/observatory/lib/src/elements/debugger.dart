@@ -110,21 +110,24 @@ class PrintCommand extends DebuggerCommand {
     alias = 'p';
   }
 
-  Future run(List<String> args) {
+  Future run(List<String> args) async {
     if (args.length < 1) {
       debugger.console.print('print expects arguments');
-      return new Future.value(null);
+      return;
     }
-    var expr = args.join('');
-    return debugger.isolate.evalFrame(debugger.currentFrame, expr)
-      .then((ServiceObject response) {
-        if (response is DartError) {
-          debugger.console.print(response.message);
-        } else {
-          debugger.console.print('= ', newline:false);
-          debugger.console.printRef(response);
-        }
-      });
+    if (debugger.currentFrame == null) {
+      debugger.console.print('No stack');
+      return;
+    }
+    var expression = args.join('');
+    var response = await debugger.isolate.evalFrame(debugger.currentFrame,
+                                                    expression);
+    if (response is DartError) {
+      debugger.console.print(response.message);
+    } else {
+      debugger.console.print('= ', newline:false);
+      debugger.console.printRef(response);
+    }
   }
 
   String helpShort = 'Evaluate and print an expression in the current frame';
@@ -315,7 +318,9 @@ class NextCommand extends DebuggerCommand {
 }
 
 class StepCommand extends DebuggerCommand {
-  StepCommand(Debugger debugger) : super(debugger, 'step', []);
+  StepCommand(Debugger debugger) : super(debugger, 'step', []) {
+    alias = 's';
+  }
 
   Future run(List<String> args) {
     if (debugger.isolatePaused()) {
@@ -364,6 +369,35 @@ class FinishCommand extends DebuggerCommand {
       'Continue running the isolate until the current function exits.\n'
       '\n'
       'Syntax: finish\n';
+}
+
+class SetCommand extends DebuggerCommand {
+  SetCommand(Debugger debugger)
+      : super(debugger, 'set', []);
+
+  Future run(List<String> args) async {
+    if (args.length == 2) {
+      var option = args[0].trim();
+      if (option == 'break-on-exceptions') {
+        var result = await debugger.isolate.setExceptionPauseInfo(args[1]);
+        if (result.isError) {
+          debugger.console.print(result.toString());
+        }
+      } else {
+        debugger.console.print("unknown option '$option'");
+      }
+    } else {
+      debugger.console.print("set expects 2 arguments");
+    }
+  }
+
+  String helpShort =
+      'Set a debugger option';
+
+  String helpLong =
+      'Set a debugger option'
+      '\n'
+      'Syntax: set break-on-exceptions "all" | "none" | "unhandled"\n';
 }
 
 class BreakCommand extends DebuggerCommand {
@@ -826,8 +860,10 @@ class ObservatoryDebugger extends Debugger {
   RootCommand cmd;
   DebuggerPageElement page;
   DebuggerConsoleElement console;
+  DebuggerInputElement input;
   DebuggerStackElement stackElement;
   ServiceMap stack;
+  String exceptions = "none";  // Last known setting.
 
   int get currentFrame => _currentFrame;
   void set currentFrame(int value) {
@@ -856,6 +892,7 @@ class ObservatoryDebugger extends Debugger {
         new StepCommand(this),
         new FinishCommand(this),
         new BreakCommand(this),
+        new SetCommand(this),
         new ClearCommand(this),
         new DeleteCommand(this),
         new InfoCommand(this),
@@ -869,6 +906,11 @@ class ObservatoryDebugger extends Debugger {
   void updateIsolate(Isolate iso) {
     _isolate = iso;
     if (_isolate != null) {
+      if (exceptions != iso.exceptionsPauseInfo) {
+        exceptions = iso.exceptionsPauseInfo;
+        console.print("Now pausing for $exceptions exceptions");
+      }
+
       _isolate.reload().then((response) {
         // TODO(turnidge): Currently the debugger relies on all libs
         // being loaded.  Fix this.
@@ -955,6 +997,7 @@ class ObservatoryDebugger extends Debugger {
       } else {
         currentFrame = null;
       }
+      input.focus();
     });
   }
 
@@ -992,9 +1035,12 @@ class ObservatoryDebugger extends Debugger {
           console.print('Paused at breakpoint ${bpId} at '
                         '${script.name}:${line}:${col}');
         } else if (event.exception != null) {
-          // TODO(turnidge): Test this.
-          console.print('Paused due to exception ${event.exception} at '
+          console.print('Paused due to exception at '
                         '${script.name}:${line}:${col}');
+          // This seems to be missing if we are paused-at-exception after
+          // paused-at-isolate-exit. Maybe we shutdown part of the debugger too
+          // soon?
+          console.printRef(event.exception);
         } else {
           console.print('Paused at ${script.name}:${line}:${col}');
         }
@@ -1053,6 +1099,13 @@ class ObservatoryDebugger extends Debugger {
             console.print(
                 "Isolate ${iso.number} '${iso.name}' has exited");
           }
+        }
+        break;
+
+      case ServiceEvent.kDebuggerSettingsUpdate:
+        if (exceptions != event.exceptions) {
+          exceptions = event.exceptions;
+          console.print("Now pausing for $exceptions exceptions");
         }
         break;
 
@@ -1131,7 +1184,7 @@ class ObservatoryDebugger extends Debugger {
         return completions[0];
       } else {
         // Ambigous completion.
-        completions = completions.map((s )=> s.trimRight()).toList();
+        completions = completions.map((s) => s.trimRight()).toList();
         console.printBold(completions.toString());
         return _foldCompletions(completions);
       }
@@ -1211,10 +1264,10 @@ class DebuggerPageElement extends ObservatoryElement {
     debugger.stackElement = stackElement;
     stackElement.debugger = debugger;
     debugger.console = $['console'];
-    $['commandline'].debugger = debugger;
+    debugger.input = $['commandline'];
+    debugger.input.debugger = debugger;
     debugger.init();
   }
-
 }
 
 @CustomTag('debugger-stack')
@@ -1665,6 +1718,10 @@ class DebuggerInputElement extends ObservatoryElement {
             break;
 	}
       });
+  }
+
+  void focus() {
+    $['textBox'].focus();
   }
 
   DebuggerInputElement.created() : super.created();

@@ -9,7 +9,18 @@ import '../constants/values.dart' as values;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
+import '../types/types.dart' show TypeMask;
 import '../universe/universe.dart' show Selector;
+
+import '../cps_ir/builtin_operator.dart';
+export '../cps_ir/builtin_operator.dart';
+
+// These imports are only used for the JavaScript specific nodes.  If we want to
+// support more than one native backend, we should probably create better
+// abstractions for native code and its type and effect system.
+import '../js/js.dart' as js show Template;
+import '../native/native.dart' as native show NativeBehavior;
+import '../types/types.dart' as types show TypeMask;
 
 // The Tree language is the target of translation out of the CPS-based IR.
 //
@@ -78,8 +89,7 @@ class Label {
 /**
  * A local variable in the tree IR.
  *
- * All tree IR variables are mutable, and may in Dart-mode be referenced inside
- * nested functions.
+ * All tree IR variables are mutable.
  *
  * To use a variable as an expression, reference it from a [VariableUse], with
  * one [VariableUse] per expression.
@@ -158,7 +168,6 @@ class Assign extends Expression {
  */
 abstract class Invoke {
   List<Expression> get arguments;
-  Selector get selector;
 }
 
 /**
@@ -172,16 +181,8 @@ class InvokeStatic extends Expression implements Invoke {
   final Selector selector;
   final SourceInformation sourceInformation;
 
-  /// True if the [target] is known not to diverge or read or write any
-  /// mutable state.
-  ///
-  /// This is set for calls to `getInterceptor` and `identical` to indicate
-  /// that they can be safely be moved across an impure expression
-  /// (assuming the [arguments] are not affected by the impure expression).
-  bool isEffectivelyConstant = false;
-
   InvokeStatic(this.target, this.selector, this.arguments,
-               {this.sourceInformation});
+               [this.sourceInformation]);
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeStatic(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -198,12 +199,13 @@ class InvokeStatic extends Expression implements Invoke {
 class InvokeMethod extends Expression implements Invoke {
   Expression receiver;
   final Selector selector;
+  final TypeMask mask;
   final List<Expression> arguments;
 
   /// If true, it is known that the receiver cannot be `null`.
   bool receiverIsNotNull = false;
 
-  InvokeMethod(this.receiver, this.selector, this.arguments) {
+  InvokeMethod(this.receiver, this.selector, this.mask, this.arguments) {
     assert(receiver != null);
   }
 
@@ -258,31 +260,16 @@ class InvokeConstructor extends Expression implements Invoke {
   }
 }
 
-/// Calls [toString] on each argument and concatenates the results.
-class ConcatenateStrings extends Expression {
-  final List<Expression> arguments;
-
-  ConcatenateStrings(this.arguments);
-
-  accept(ExpressionVisitor visitor) => visitor.visitConcatenateStrings(this);
-  accept1(ExpressionVisitor1 visitor, arg) {
-    return visitor.visitConcatenateStrings(this, arg);
-  }
-}
-
 /**
  * A constant.
  */
 class Constant extends Expression {
-  final ConstantExpression expression;
   final values.ConstantValue value;
 
-  Constant(this.expression, this.value);
+  Constant(this.value);
 
   Constant.bool(values.BoolConstantValue constantValue)
-      : expression = new BoolConstantExpression(
-          constantValue.primitiveValue),
-        value = constantValue;
+      : value = constantValue;
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitConstant(this, arg);
@@ -324,6 +311,10 @@ class LiteralMap extends Expression {
   }
 }
 
+/// Type test or type cast.
+///
+/// Note that if this is a type test, then [type] cannot be `Object`, `dynamic`,
+/// or the `Null` type. These cases are compiled to other node types.
 class TypeOperator extends Expression {
   Expression value;
   final DartType type;
@@ -339,6 +330,26 @@ class TypeOperator extends Expression {
   }
 
   String get operator => isTypeTest ? 'is' : 'as';
+}
+
+/**
+ * Apply a built-in operator.
+ *
+ * It must be known that the arguments have the proper types.
+ * Null is not a valid argument to any of the built-in operators.
+ */
+class ApplyBuiltinOperator extends Expression {
+  BuiltinOperator operator;
+  List<Expression> arguments;
+
+  ApplyBuiltinOperator(this.operator, this.arguments);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitApplyBuiltinOperator(this);
+  }
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitApplyBuiltinOperator(this, arg);
+  }
 }
 
 /// A conditional expression.
@@ -375,6 +386,8 @@ class LogicalOperator extends Expression {
 }
 
 /// Logical negation.
+// TODO(asgerf): Replace this class with the IsFalsy builtin operator?
+//               Right now the tree builder compiles IsFalsy to Not.
 class Not extends Expression {
   Expression operand;
 
@@ -618,6 +631,17 @@ class Try extends Statement {
   }
 }
 
+/// A statement that is known to be unreachable.
+class Unreachable extends Statement {
+  Statement get next => null;
+  void set next(Statement value) => throw 'UNREACHABLE';
+
+  accept(StatementVisitor visitor) => visitor.visitUnreachable(this);
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitUnreachable(this, arg);
+  }
+}
+
 class FunctionDefinition extends Node {
   final ExecutableElement element;
   final List<Variable> parameters;
@@ -737,6 +761,70 @@ class CreateInvocationMirror extends Expression {
   }
 }
 
+class Interceptor extends Expression {
+  Expression input;
+  Set<ClassElement> interceptedClasses;
+
+  Interceptor(this.input, this.interceptedClasses);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitInterceptor(this);
+  }
+
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitInterceptor(this, arg);
+  }
+}
+
+class ForeignCode extends Node {
+  final js.Template codeTemplate;
+  final types.TypeMask type;
+  final List<Expression> arguments;
+  final native.NativeBehavior nativeBehavior;
+  final Element dependency;
+
+  ForeignCode(this.codeTemplate, this.type, this.arguments, this.nativeBehavior,
+      this.dependency);
+}
+
+class ForeignExpression extends ForeignCode implements Expression {
+  ForeignExpression(js.Template codeTemplate, types.TypeMask type,
+      List<Expression> arguments, native.NativeBehavior nativeBehavior,
+      Element dependency)
+      : super(codeTemplate, type, arguments, nativeBehavior,
+          dependency);
+
+  accept(ExpressionVisitor visitor) {
+    return visitor.visitForeignExpression(this);
+  }
+
+  accept1(ExpressionVisitor1 visitor, arg) {
+    return visitor.visitForeignExpression(this, arg);
+  }
+}
+
+class ForeignStatement extends ForeignCode implements Statement {
+  ForeignStatement(js.Template codeTemplate, types.TypeMask type,
+      List<Expression> arguments, native.NativeBehavior nativeBehavior,
+      Element dependency)
+      : super(codeTemplate, type, arguments, nativeBehavior,
+          dependency);
+
+  accept(StatementVisitor visitor) {
+    return visitor.visitForeignStatement(this);
+  }
+
+  accept1(StatementVisitor1 visitor, arg) {
+    return visitor.visitForeignStatement(this, arg);
+  }
+
+  @override
+  Statement get next => null;
+
+  @override
+  void set next(Statement s) => throw 'UNREACHABLE';
+}
+
 /// Denotes the internal representation of [dartType], where all type variables
 /// are replaced by the values in [arguments].
 /// (See documentation on the TypeExpression CPS node for more details.)
@@ -763,7 +851,6 @@ abstract class ExpressionVisitor<E> {
   E visitInvokeMethod(InvokeMethod node);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node);
   E visitInvokeConstructor(InvokeConstructor node);
-  E visitConcatenateStrings(ConcatenateStrings node);
   E visitConstant(Constant node);
   E visitThis(This node);
   E visitConditional(Conditional node);
@@ -783,6 +870,9 @@ abstract class ExpressionVisitor<E> {
   E visitReadTypeVariable(ReadTypeVariable node);
   E visitTypeExpression(TypeExpression node);
   E visitCreateInvocationMirror(CreateInvocationMirror node);
+  E visitInterceptor(Interceptor node);
+  E visitApplyBuiltinOperator(ApplyBuiltinOperator node);
+  E visitForeignExpression(ForeignExpression node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
@@ -793,7 +883,6 @@ abstract class ExpressionVisitor1<E, A> {
   E visitInvokeMethod(InvokeMethod node, A arg);
   E visitInvokeMethodDirectly(InvokeMethodDirectly node, A arg);
   E visitInvokeConstructor(InvokeConstructor node, A arg);
-  E visitConcatenateStrings(ConcatenateStrings node, A arg);
   E visitConstant(Constant node, A arg);
   E visitThis(This node, A arg);
   E visitConditional(Conditional node, A arg);
@@ -813,6 +902,9 @@ abstract class ExpressionVisitor1<E, A> {
   E visitReadTypeVariable(ReadTypeVariable node, A arg);
   E visitTypeExpression(TypeExpression node, A arg);
   E visitCreateInvocationMirror(CreateInvocationMirror node, A arg);
+  E visitInterceptor(Interceptor node, A arg);
+  E visitApplyBuiltinOperator(ApplyBuiltinOperator node, A arg);
+  E visitForeignExpression(ForeignExpression node, A arg);
 }
 
 abstract class StatementVisitor<S> {
@@ -828,6 +920,8 @@ abstract class StatementVisitor<S> {
   S visitWhileCondition(WhileCondition node);
   S visitExpressionStatement(ExpressionStatement node);
   S visitTry(Try node);
+  S visitUnreachable(Unreachable node);
+  S visitForeignStatement(ForeignStatement node);
 }
 
 abstract class StatementVisitor1<S, A> {
@@ -843,6 +937,8 @@ abstract class StatementVisitor1<S, A> {
   S visitWhileCondition(WhileCondition node, A arg);
   S visitExpressionStatement(ExpressionStatement node, A arg);
   S visitTry(Try node, A arg);
+  S visitUnreachable(Unreachable node, A arg);
+  S visitForeignStatement(ForeignStatement node, A arg);
 }
 
 abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
@@ -877,10 +973,6 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   }
 
   visitInvokeConstructor(InvokeConstructor node) {
-    node.arguments.forEach(visitExpression);
-  }
-
-  visitConcatenateStrings(ConcatenateStrings node) {
     node.arguments.forEach(visitExpression);
   }
 
@@ -1007,6 +1099,24 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
   visitCreateInvocationMirror(CreateInvocationMirror node) {
     node.arguments.forEach(visitExpression);
   }
+
+  visitUnreachable(Unreachable node) {
+  }
+
+  visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    node.arguments.forEach(visitExpression);
+  }
+
+  visitInterceptor(Interceptor node) {
+    visitExpression(node.input);
+  }
+
+  visitForeignCode(ForeignCode node) {
+    node.arguments.forEach(visitExpression);
+  }
+
+  visitForeignExpression(ForeignExpression node) => visitForeignCode(node);
+  visitForeignStatement(ForeignStatement node) => visitForeignCode(node);
 }
 
 abstract class Transformer implements ExpressionVisitor<Expression>,
@@ -1051,11 +1161,6 @@ class RecursiveTransformer extends Transformer {
   }
 
   visitInvokeConstructor(InvokeConstructor node) {
-    _replaceExpressions(node.arguments);
-    return node;
-  }
-
-  visitConcatenateStrings(ConcatenateStrings node) {
     _replaceExpressions(node.arguments);
     return node;
   }
@@ -1202,5 +1307,65 @@ class RecursiveTransformer extends Transformer {
   visitCreateInvocationMirror(CreateInvocationMirror node) {
     _replaceExpressions(node.arguments);
     return node;
+  }
+
+  visitForeignExpression(ForeignExpression node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitForeignStatement(ForeignStatement node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitUnreachable(Unreachable node) {
+    return node;
+  }
+
+  visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    _replaceExpressions(node.arguments);
+    return node;
+  }
+
+  visitInterceptor(Interceptor node) {
+    node.input = visitExpression(node.input);
+    return node;
+  }
+}
+
+class FallthroughTarget {
+  final Statement target;
+  int useCount = 0;
+
+  FallthroughTarget(this.target);
+}
+
+/// A stack machine for tracking fallthrough while traversing the Tree IR.
+class FallthroughStack {
+  final List<FallthroughTarget> _stack =
+    <FallthroughTarget>[new FallthroughTarget(null)];
+
+  /// Set a new fallthrough target.
+  void push(Statement newFallthrough) {
+    _stack.add(new FallthroughTarget(newFallthrough));
+  }
+
+  /// Remove the current fallthrough target.
+  void pop() {
+    _stack.removeLast();
+  }
+
+  /// The current fallthrough target, or `null` if control will fall over
+  /// the end of the method.
+  Statement get target => _stack.last.target;
+
+  /// Number of uses of the current fallthrough target.
+  int get useCount => _stack.last.useCount;
+
+  /// Indicate that a statement will fall through to the current fallthrough
+  /// target.
+  void use() {
+    ++_stack.last.useCount;
   }
 }

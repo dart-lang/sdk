@@ -86,6 +86,10 @@ class BlockCollector extends StatementVisitor {
     _addStatement(node);
   }
 
+  visitUnreachable(Unreachable node) {
+    _addStatement(node);
+  }
+
   visitBreak(Break node) {
     _addStatement(node);
     blocks.last.addEdgeTo(breakTargets[node.target]);
@@ -167,6 +171,10 @@ class BlockCollector extends StatementVisitor {
   visitExpressionStatement(ExpressionStatement node) {
     _addStatement(node);
     visitStatement(node.next);
+  }
+
+  visitForeignStatement(ForeignStatement node) {
+    _addStatement(node);
   }
 }
 
@@ -261,6 +269,10 @@ class TreeTracer extends TracerUtil with StatementVisitor {
     printStatement(null, "rethrow");
   }
 
+  visitUnreachable(Unreachable node) {
+    printStatement(null, "unreachable");
+  }
+
   visitBreak(Break node) {
     printStatement(null, "break ${collector.breakTargets[node.target].name}");
   }
@@ -312,6 +324,11 @@ class TreeTracer extends TracerUtil with StatementVisitor {
 
   String expr(Expression e) {
     return e.accept(new SubexpressionVisitor(names));
+  }
+
+  @override
+  visitForeignStatement(ForeignStatement node) {
+    printStatement(null, 'foreign ${node.codeTemplate.source}');
   }
 }
 
@@ -366,11 +383,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     String args = formatArguments(node);
     String keyword = node.constant != null ? 'const' : 'new';
     return "$keyword $callName($args)";
-  }
-
-  String visitConcatenateStrings(ConcatenateStrings node) {
-    String args = node.arguments.map(visitExpression).join(', ');
-    return "concat [$args]";
   }
 
   String visitLiteralList(LiteralList node) {
@@ -500,6 +512,23 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   String visitCreateInvocationMirror(CreateInvocationMirror node) {
     String args = node.arguments.map(visitExpression).join(', ');
     return 'CreateInvocationMirror(${node.selector.name}, $args)';
+  }
+
+  @override
+  String visitInterceptor(Interceptor node) {
+    return 'Interceptor(${visitExpression(node.input)})';
+  }
+
+  @override
+  String visitForeignExpression(ForeignExpression node) {
+    String arguments = node.arguments.map(visitExpression).join(', ');
+    return 'Foreign "${node.codeTemplate.source}"($arguments)';
+  }
+
+  @override
+  String visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    String args = node.arguments.map(visitExpression).join(', ');
+    return 'ApplyBuiltinOperator ${node.operator} ($args)';
   }
 }
 

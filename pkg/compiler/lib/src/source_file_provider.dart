@@ -103,6 +103,10 @@ abstract class SourceFileProvider {
   Future/*<List<int> | String>*/ call(Uri resourceUri);
 
   relativizeUri(Uri uri) => relativize(cwd, uri, isWindows);
+
+  SourceFile getSourceFile(Uri resourceUri) {
+    return sourceFiles[resourceUri];
+  }
 }
 
 class CompilerSourceFileProvider extends SourceFileProvider {
@@ -173,10 +177,9 @@ class FormattingDiagnosticHandler {
 
     message = prefixMessage(message, kind);
 
-    // [previousKind]/[lastKind] records the previous non-INFO kind we saw.
+    // [lastKind] records the previous non-INFO kind we saw.
     // This is used to suppress info about a warning when warnings are
     // suppressed, and similar for hints.
-    var previousKind = lastKind;
     if (kind != api.Diagnostic.INFO) {
       lastKind = kind;
     }
@@ -254,7 +257,6 @@ class RandomAccessFileOutputProvider {
 
   EventSink<String> call(String name, String extension) {
     Uri uri;
-    String sourceMapFileName;
     bool isPrimaryOutput = false;
     // TODO (johnniwinther, sigurdm): Make a better interface for
     // output-providers.
@@ -264,8 +266,6 @@ class RandomAccessFileOutputProvider {
       if (extension == 'js' || extension == 'dart') {
         isPrimaryOutput = true;
         uri = out;
-        sourceMapFileName =
-            sourceMapOut.path.substring(sourceMapOut.path.lastIndexOf('/') + 1);
       } else if (extension == 'precompiled.js') {
         uri = computePrecompiledUri(out);
         onInfo("File ($uri) is compatible with header"

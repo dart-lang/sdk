@@ -9,6 +9,7 @@
 #include "vm/bitfield.h"
 #include "vm/code_observers.h"
 #include "vm/globals.h"
+#include "vm/growable_array.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
 
@@ -18,9 +19,11 @@
 namespace dart {
 
 // Forward declarations.
+class ProcessedSample;
+class ProcessedSampleBuffer;
+
 class Sample;
 class SampleBuffer;
-
 
 class Profiler : public AllStatic {
  public:
@@ -40,6 +43,8 @@ class Profiler : public AllStatic {
   static SampleBuffer* sample_buffer() {
     return sample_buffer_;
   }
+
+  static void RecordAllocation(Isolate* isolate, intptr_t cid);
 
  private:
   static bool initialized_;
@@ -107,24 +112,23 @@ class SampleVisitor : public ValueObject {
 };
 
 
-class PreprocessVisitor : public SampleVisitor {
+class SampleFilter : public ValueObject {
  public:
-  explicit PreprocessVisitor(Isolate* isolate);
+  explicit SampleFilter(Isolate* isolate) : isolate_(isolate) { }
+  virtual ~SampleFilter() { }
 
-  virtual void VisitSample(Sample* sample);
-
- private:
-  void CheckForMissingDartFrame(const Code& code, Sample* sample) const;
-
-  bool ContainedInDartCodeHeaps(uword pc) const;
-
-  Isolate* vm_isolate() const {
-    return vm_isolate_;
+  // Override this function.
+  // Return |true| if |sample| passes the filter.
+  virtual bool FilterSample(Sample* sample) {
+    return true;
   }
 
-  RawCode* FindCodeForPC(uword pc) const;
+  Isolate* isolate() const {
+    return isolate_;
+  }
 
-  Isolate* vm_isolate_;
+ private:
+  Isolate* isolate_;
 };
 
 
@@ -159,9 +163,8 @@ class Sample {
     }
     vm_tag_ = VMTag::kInvalidTagId;
     user_tag_ = UserTags::kDefaultUserTag;
-    sp_ = 0;
     lr_ = 0;
-    fp_ = 0;
+    metadata_ = 0;
     state_ = 0;
     uword* pcs = GetPCArray();
     for (intptr_t i = 0; i < pcs_length_; i++) {
@@ -216,22 +219,6 @@ class Sample {
 
   void set_pc_marker(uword pc_marker) {
     pc_marker_ = pc_marker;
-  }
-
-  uword sp() const {
-    return sp_;
-  }
-
-  void set_sp(uword sp) {
-    sp_ = sp;
-  }
-
-  uword fp() const {
-    return fp_;
-  }
-
-  void set_fp(uword fp) {
-    fp_ = fp;
   }
 
   uword lr() const {
@@ -306,6 +293,28 @@ class Sample {
     state_ = TruncatedTraceBit::update(truncated_trace, state_);
   }
 
+  bool is_allocation_sample() const {
+    return ClassAllocationSampleBit::decode(state_);
+  }
+
+  void set_is_allocation_sample(bool allocation_sample) {
+    state_ = ClassAllocationSampleBit::update(allocation_sample, state_);
+  }
+
+  intptr_t allocation_cid() const {
+    ASSERT(is_allocation_sample());
+    return metadata_;
+  }
+
+  void set_metadata(intptr_t metadata) {
+    metadata_ = metadata;
+  }
+
+  void SetAllocationCid(intptr_t cid) {
+    set_is_allocation_sample(true);
+    set_metadata(cid);
+  }
+
   static void InitOnce();
 
   static intptr_t instance_size() {
@@ -329,6 +338,7 @@ class Sample {
     kExitFrameBit = 3,
     kMissingFrameInsertedBit = 4,
     kTruncatedTrace = 5,
+    kClassAllocationSample = 6,
   };
   class ProcessedBit : public BitField<bool, kProcessedBit, 1> {};
   class LeafFrameIsDart : public BitField<bool, kLeafFrameIsDartBit, 1> {};
@@ -337,6 +347,8 @@ class Sample {
   class MissingFrameInsertedBit
     : public BitField<bool, kMissingFrameInsertedBit, 1> {};
   class TruncatedTraceBit : public BitField<bool, kTruncatedTrace, 1> {};
+  class ClassAllocationSampleBit
+      : public BitField<bool, kClassAllocationSample, 1> {};
 
   int64_t timestamp_;
   ThreadId tid_;
@@ -345,8 +357,7 @@ class Sample {
   uword stack_buffer_[kStackBufferSizeInWords];
   uword vm_tag_;
   uword user_tag_;
-  uword sp_;
-  uword fp_;
+  uword metadata_;
   uword lr_;
   uword state_;
 
@@ -404,7 +415,12 @@ class SampleBuffer {
     }
   }
 
+  ProcessedSampleBuffer* BuildProcessedSampleBuffer(SampleFilter* filter);
+
  private:
+  ProcessedSample* BuildProcessedSample(Sample* sample);
+  Sample* Next(Sample* sample);
+
   Sample* samples_;
   intptr_t capacity_;
   uintptr_t cursor_;
@@ -412,6 +428,115 @@ class SampleBuffer {
   DISALLOW_COPY_AND_ASSIGN(SampleBuffer);
 };
 
+
+// A |ProcessedSample| is a combination of 1 (or more) |Sample|(s) that have
+// been merged into a logical sample. The raw data may have been processed to
+// improve the quality of the stack trace.
+class ProcessedSample : public ZoneAllocated {
+ public:
+  ProcessedSample();
+
+  // Add |pc| to stack trace.
+  void Add(uword pc) {
+    pcs_.Add(pc);
+  }
+
+  // Insert |pc| at |index|.
+  void InsertAt(intptr_t index, uword pc) {
+    pcs_.InsertAt(index, pc);
+  }
+
+  // Number of pcs in stack trace.
+  intptr_t length() const { return pcs_.length(); }
+
+  // Get |pc| at |index|.
+  uword At(intptr_t index) const {
+    ASSERT(index >= 0);
+    ASSERT(index < length());
+    return pcs_[index];
+  }
+
+  // Timestamp sample was taken at.
+  int64_t timestamp() const { return timestamp_; }
+  void set_timestamp(int64_t timestamp) { timestamp_ = timestamp; }
+
+  // The VM tag.
+  uword vm_tag() const { return vm_tag_; }
+  void set_vm_tag(uword tag) { vm_tag_ = tag; }
+
+  // The user tag.
+  uword user_tag() const { return user_tag_; }
+  void set_user_tag(uword tag) { user_tag_ = tag; }
+
+  // The class id if this is an allocation profile sample. -1 otherwise.
+  intptr_t allocation_cid() const { return allocation_cid_; }
+  void set_allocation_cid(intptr_t cid) { allocation_cid_ = cid; }
+
+  // Was the stack trace truncated?
+  bool truncated() const { return truncated_; }
+  void set_truncated(bool truncated) { truncated_ = truncated; }
+
+  // Was the first frame in the stack trace executing?
+  bool first_frame_executing() const { return first_frame_executing_; }
+  void set_first_frame_executing(bool first_frame_executing) {
+    first_frame_executing_ = first_frame_executing;
+  }
+
+ private:
+  void FixupCaller(Isolate* isolate,
+                   Isolate* vm_isolate,
+                   uword pc_marker,
+                   uword* stack_buffer);
+
+  void CheckForMissingDartFrame(Isolate* isolate,
+                                Isolate* vm_isolate,
+                                const Code& code,
+                                uword pc_marker,
+                                uword* stack_buffer);
+
+  static RawCode* FindCodeForPC(Isolate* isolate,
+                                Isolate* vm_isolate,
+                                uword pc);
+
+  static bool ContainedInDartCodeHeaps(Isolate* isolate,
+                                       Isolate* vm_isolate,
+                                       uword pc);
+
+  ZoneGrowableArray<uword> pcs_;
+  int64_t timestamp_;
+  uword vm_tag_;
+  uword user_tag_;
+  intptr_t allocation_cid_;
+  bool truncated_;
+  bool first_frame_executing_;
+
+  friend class SampleBuffer;
+  DISALLOW_COPY_AND_ASSIGN(ProcessedSample);
+};
+
+
+// A collection of |ProcessedSample|s.
+class ProcessedSampleBuffer : public ZoneAllocated {
+ public:
+  ProcessedSampleBuffer();
+
+  void Add(ProcessedSample* sample) {
+    samples_.Add(sample);
+  }
+
+  intptr_t length() const {
+    return samples_.length();
+  }
+
+  ProcessedSample* At(intptr_t index) {
+    return samples_.At(index);
+  }
+
+ private:
+  ZoneGrowableArray<ProcessedSample*> samples_;
+
+  DISALLOW_COPY_AND_ASSIGN(ProcessedSampleBuffer);
+};
 
 }  // namespace dart
 

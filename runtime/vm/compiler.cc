@@ -71,7 +71,6 @@ DECLARE_FLAG(bool, trace_patching);
 
 
 bool Compiler::always_optimize_ = false;
-bool Compiler::guess_other_cid_ = true;
 
 
 // TODO(zerny): Factor out unoptimizing/optimizing pipelines and remove
@@ -340,6 +339,12 @@ RawError* Compiler::CompileClass(const Class& cls) {
     // Finalize these classes.
     for (intptr_t i = (parse_list.Length() - 1); i >=0 ; i--) {
       parse_class ^= parse_list.At(i);
+      ASSERT(!parse_class.IsNull());
+      ClassFinalizer::FinalizeClass(parse_class);
+      parse_class.reset_is_marked_for_parsing();
+    }
+    for (intptr_t i = (patch_list.Length() - 1); i >=0 ; i--) {
+      parse_class ^= patch_list.At(i);
       ASSERT(!parse_class.IsNull());
       ClassFinalizer::FinalizeClass(parse_class);
       parse_class.reset_is_marked_for_parsing();
@@ -880,15 +885,8 @@ static void DisassembleCode(const Function& function, bool optimized) {
     ISL_Print("}\n");
   }
 
-  const Array& object_pool = Array::Handle(code.ObjectPool());
-  if (object_pool.Length() > 0) {
-    ISL_Print("Object Pool: {\n");
-    for (intptr_t i = 0; i < object_pool.Length(); i++) {
-      ISL_Print("  %" Pd ": %s\n", i,
-          Object::Handle(object_pool.At(i)).ToCString());
-    }
-    ISL_Print("}\n");
-  }
+  const ObjectPool& object_pool = ObjectPool::Handle(code.GetObjectPool());
+  object_pool.DebugPrint();
 
   ISL_Print("Stackmaps for function '%s' {\n", function_fullname);
   if (code.stackmaps() != Array::null()) {
@@ -1071,7 +1069,10 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 
 RawError* Compiler::CompileFunction(Thread* thread,
                                     const Function& function) {
-  VMTagScope tagScope(thread->isolate(), VMTag::kCompileUnoptimizedTagId);
+  Isolate* isolate = thread->isolate();
+  VMTagScope tagScope(isolate, VMTag::kCompileUnoptimizedTagId);
+  TIMELINE_FUNCTION_COMPILATION_DURATION(isolate, "Function", function);
+
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
 
@@ -1116,7 +1117,11 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
 RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
-  VMTagScope tagScope(thread->isolate(), VMTag::kCompileOptimizedTagId);
+  Isolate* isolate = thread->isolate();
+  VMTagScope tagScope(isolate, VMTag::kCompileOptimizedTagId);
+  TIMELINE_FUNCTION_COMPILATION_DURATION(isolate,
+                                         "OptimizedFunction", function);
+
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline, function, true, osr_id);

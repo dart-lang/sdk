@@ -6,6 +6,7 @@ library analysis.server;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:core' hide Resource;
 import 'dart:math' show max;
 
 import 'package:analysis_server/plugin/analyzed_files.dart';
@@ -23,8 +24,6 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/context/cache.dart';
-import 'package:analyzer/src/context/context.dart' as newContext;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -33,8 +32,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
-import 'package:analyzer/src/task/dart.dart';
-import 'package:analyzer/task/dart.dart';
 import 'package:plugin/plugin.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -1026,24 +1023,12 @@ class AnalysisServer {
     });
   }
 
-  void test_flushResolvedUnit(String file) {
+  void test_flushAstStructures(String file) {
     if (AnalysisEngine.isDartFileName(file)) {
       ContextSourcePair contextSource = getContextSourcePair(file);
-      AnalysisContext context = contextSource.context;
+      InternalAnalysisContext context = contextSource.context;
       Source source = contextSource.source;
-      if (context is AnalysisContextImpl) {
-        DartEntry dartEntry = context.getReadableSourceEntryOrNull(source);
-        dartEntry.flushAstStructures();
-      } else if (context is newContext.AnalysisContextImpl) {
-        CacheEntry entry = context.getCacheEntry(source);
-        entry.setState(RESOLVED_UNIT1, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT2, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT3, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT4, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT5, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT6, CacheState.FLUSHED);
-        entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
-      }
+      context.test_flushAstStructures(source);
     }
   }
 

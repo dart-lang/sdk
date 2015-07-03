@@ -25,18 +25,24 @@ abstract class TreeElements {
   Selector getGetterSelectorInComplexSendSet(SendSet node);
   Selector getOperatorSelectorInComplexSendSet(SendSet node);
   DartType getType(Node node);
-  void setSelector(Node node, Selector selector);
-  void setGetterSelectorInComplexSendSet(SendSet node, Selector selector);
-  void setOperatorSelectorInComplexSendSet(SendSet node, Selector selector);
+  TypeMask getTypeMask(Node node);
+  TypeMask getGetterTypeMaskInComplexSendSet(SendSet node);
+  TypeMask getOperatorTypeMaskInComplexSendSet(SendSet node);
+  void setTypeMask(Node node, TypeMask mask);
+  void setGetterTypeMaskInComplexSendSet(SendSet node, TypeMask mask);
+  void setOperatorTypeMaskInComplexSendSet(SendSet node, TypeMask mask);
 
   /// Returns the for-in loop variable for [node].
   Element getForInVariable(ForIn node);
   Selector getIteratorSelector(ForIn node);
   Selector getMoveNextSelector(ForIn node);
   Selector getCurrentSelector(ForIn node);
-  void setIteratorSelector(ForIn node, Selector selector);
-  void setMoveNextSelector(ForIn node, Selector selector);
-  void setCurrentSelector(ForIn node, Selector selector);
+  TypeMask getIteratorTypeMask(ForIn node);
+  TypeMask getMoveNextTypeMask(ForIn node);
+  TypeMask getCurrentTypeMask(ForIn node);
+  void setIteratorTypeMask(ForIn node, TypeMask mask);
+  void setMoveNextTypeMask(ForIn node, TypeMask mask);
+  void setCurrentTypeMask(ForIn node, TypeMask mask);
   void setConstant(Node node, ConstantExpression constant);
   ConstantExpression getConstant(Node node);
   bool isAssert(Send send);
@@ -89,9 +95,10 @@ abstract class TreeElements {
   LabelDefinition getTargetLabel(GotoStatement node);
 }
 
-class TreeElementMapping implements TreeElements {
+class TreeElementMapping extends TreeElements {
   final AnalyzableElement analyzedElement;
   Map<Spannable, Selector> _selectors;
+  Map<Spannable, TypeMask> _typeMasks;
   Map<Node, DartType> _types;
   Setlet<Node> _superUses;
   Setlet<Element> _otherDependencies;
@@ -440,6 +447,67 @@ class TreeElementMapping implements TreeElements {
   LabelDefinition getTargetLabel(GotoStatement node) {
     assert(node.target != null);
     return _targetLabels != null ? _targetLabels[node] : null;
+  }
+
+  TypeMask _getTypeMask(Spannable node) {
+    return _typeMasks != null ? _typeMasks[node] : null;
+  }
+
+  void _setTypeMask(Spannable node, TypeMask mask) {
+    if (_typeMasks == null) {
+      _typeMasks = new Maplet<Spannable, TypeMask>();
+    }
+    _typeMasks[node] = mask;
+  }
+
+  void setTypeMask(Node node, TypeMask mask) {
+    _setTypeMask(node, mask);
+  }
+
+  TypeMask getTypeMask(Node node) => _getTypeMask(node);
+
+  void setGetterTypeMaskInComplexSendSet(SendSet node, TypeMask mask) {
+    _setTypeMask(node.selector, mask);
+  }
+
+  TypeMask getGetterTypeMaskInComplexSendSet(SendSet node) {
+    return _getTypeMask(node.selector);
+  }
+
+  void setOperatorTypeMaskInComplexSendSet(SendSet node, TypeMask mask) {
+    _setTypeMask(node.assignmentOperator, mask);
+  }
+
+  TypeMask getOperatorTypeMaskInComplexSendSet(SendSet node) {
+    return _getTypeMask(node.assignmentOperator);
+  }
+
+  // The following methods set selectors on the "for in" node. Since
+  // we're using three selectors, we need to use children of the node,
+  // and we arbitrarily choose which ones.
+
+  void setIteratorTypeMask(ForIn node, TypeMask mask) {
+    _setTypeMask(node, mask);
+  }
+
+  TypeMask getIteratorTypeMask(ForIn node) {
+    return _getTypeMask(node);
+  }
+
+  void setMoveNextTypeMask(ForIn node, TypeMask mask) {
+    _setTypeMask(node.forToken, mask);
+  }
+
+  TypeMask getMoveNextTypeMask(ForIn node) {
+    return _getTypeMask(node.forToken);
+  }
+
+  void setCurrentTypeMask(ForIn node, TypeMask mask) {
+    _setTypeMask(node.inToken, mask);
+  }
+
+  TypeMask getCurrentTypeMask(ForIn node) {
+    return _getTypeMask(node.inToken);
   }
 }
 

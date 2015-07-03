@@ -7,7 +7,9 @@
 
 #include "bin/process.h"
 
+#if !defined(TARGET_OS_IOS)
 #include <crt_externs.h>  // NOLINT
+#endif
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
 #include <poll.h>  // NOLINT
@@ -449,12 +451,14 @@ class ProcessStarter {
       ReportChildError();
     }
 
+#if !defined(TARGET_OS_IOS)
     if (program_environment_ != NULL) {
       // On MacOS you have to do a bit of magic to get to the
       // environment strings.
       char*** environ = _NSGetEnviron();
       *environ = program_environment_;
     }
+#endif
 
     VOID_TEMP_FAILURE_RETRY(
         execvp(path_, const_cast<char* const*>(program_arguments_)));

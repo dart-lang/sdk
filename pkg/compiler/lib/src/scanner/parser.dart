@@ -1326,10 +1326,8 @@ class Parser {
       externalModifier = token;
       token = token.next;
     }
-    Token constKeyword = null;
     if (optional('const', token)) {
-      constKeyword = token;
-      token = token.next;
+      token = token.next; // Skip const.
     }
     Token factoryKeyword = token;
     listener.beginFactoryMethod(factoryKeyword);

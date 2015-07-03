@@ -317,7 +317,6 @@ void Debugger::SignalIsolateEvent(DebuggerEvent::EventType type) {
 void Debugger::SignalIsolateInterrupted() {
   if (HasEventHandler()) {
     Debugger* debugger = Isolate::Current()->debugger();
-    ASSERT(debugger != NULL);
     debugger->SignalIsolateEvent(DebuggerEvent::kIsolateInterrupted);
   }
 }
@@ -476,6 +475,24 @@ void Debugger::PrintBreakpointsToJSONArray(JSONArray* jsarr) const {
       bpt = bpt->next();
     }
     sbpt = sbpt->next_;
+  }
+}
+
+
+void Debugger::PrintSettingsToJSONObject(JSONObject* jsobj) const {
+  // This won't cut it when we support filtering by class, etc.
+  switch (GetExceptionPauseInfo()) {
+    case kNoPauseOnExceptions:
+      jsobj->AddProperty("_exceptions", "none");
+      break;
+    case kPauseOnAllExceptions:
+      jsobj->AddProperty("_exceptions", "all");
+      break;
+    case kPauseOnUnhandledExceptions:
+      jsobj->AddProperty("_exceptions", "unhandled");
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 
@@ -1507,7 +1524,7 @@ void Debugger::SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info) {
 }
 
 
-Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() {
+Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() const {
   return exc_pause_info_;
 }
 
@@ -1949,17 +1966,39 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
 }
 
 
-Breakpoint* Debugger::SetBreakpointAtActivation(
-    const Instance& closure) {
+Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure) {
   if (!closure.IsClosure()) {
     return NULL;
   }
   const Function& func = Function::Handle(Closure::function(closure));
   const Script& script = Script::Handle(func.script());
-  BreakpointLocation* bpt = SetBreakpoint(script,
-                                          func.token_pos(),
-                                          func.end_token_pos());
-  return bpt->AddPerClosure(this, closure);
+  BreakpointLocation* bpt_location = SetBreakpoint(script,
+                                                   func.token_pos(),
+                                                   func.end_token_pos());
+  return bpt_location->AddPerClosure(this, closure);
+}
+
+
+Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
+  if (!closure.IsClosure()) {
+    return NULL;
+  }
+
+  BreakpointLocation* loc = breakpoint_locations_;
+  while (loc != NULL) {
+    Breakpoint* bpt = loc->breakpoints();
+    while (bpt != NULL) {
+      if (bpt->IsPerClosure()) {
+        if (closure.raw() == bpt->closure()) {
+          return bpt;
+        }
+      }
+      bpt = bpt->next();
+    }
+    loc = loc->next();
+  }
+
+  return NULL;
 }
 
 

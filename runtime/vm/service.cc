@@ -1521,6 +1521,8 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
     }
     return true;
   }
+  // TODO(rmacnak): There is no way to get the size retained by a class object.
+  // SizeRetainedByClass should be a separate RPC.
   if (obj.IsClass()) {
     const Class& cls = Class::Cast(obj);
     ObjectGraph graph(isolate);
@@ -1529,18 +1531,11 @@ static bool GetRetainedSize(Isolate* isolate, JSONStream* js) {
     result.PrintJSON(js, true);
     return true;
   }
-  if (obj.IsInstance() || obj.IsNull()) {
-    // We don't use Instance::Cast here because it doesn't allow null.
-    ObjectGraph graph(isolate);
-    intptr_t retained_size = graph.SizeRetainedByInstance(obj);
-    const Object& result = Object::Handle(Integer::New(retained_size));
-    result.PrintJSON(js, true);
-    return true;
-  }
-  js->PrintError(kInvalidParams,
-                 "%s: invalid 'targetId' parameter: "
-                 "id '%s' does not correspond to a "
-                 "library, class, or instance", js->method(), target_id);
+
+  ObjectGraph graph(isolate);
+  intptr_t retained_size = graph.SizeRetainedByInstance(obj);
+  const Object& result = Object::Handle(Integer::New(retained_size));
+  result.PrintJSON(js, true);
   return true;
 }
 
@@ -2224,13 +2219,13 @@ static const char* tags_enum_names[] = {
 };
 
 
-static ProfilerService::TagOrder tags_enum_values[] = {
-  ProfilerService::kNoTags,
-  ProfilerService::kUserVM,
-  ProfilerService::kUser,
-  ProfilerService::kVMUser,
-  ProfilerService::kVM,
-  ProfilerService::kNoTags,  // Default value.
+static Profile::TagOrder tags_enum_values[] = {
+  Profile::kNoTags,
+  Profile::kUserVM,
+  Profile::kUser,
+  Profile::kVMUser,
+  Profile::kVM,
+  Profile::kNoTags,  // Default value.
 };
 
 
@@ -2242,7 +2237,7 @@ static const MethodParameter* get_cpu_profile_params[] = {
 
 
 static bool GetCpuProfile(Isolate* isolate, JSONStream* js) {
-  ProfilerService::TagOrder tag_order =
+  Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   ProfilerService::PrintJSON(js, tag_order);
   return true;
@@ -2436,6 +2431,19 @@ static bool GetObjectByAddress(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_ports_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool GetPorts(Isolate* isolate, JSONStream* js) {
+  MessageHandler* message_handler = isolate->message_handler();
+  PortMap::PrintPortsForMessageHandler(message_handler, js);
+  return true;
+}
+
+
 static bool RespondWithMalformedJson(Isolate* isolate,
                                       JSONStream* js) {
   JSONObject jsobj(js);
@@ -2620,6 +2628,43 @@ static bool GetVM(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* set_exception_pause_info_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+static bool SetExceptionPauseInfo(Isolate* isolate, JSONStream* js) {
+  const char* exceptions = js->LookupParam("exceptions");
+  if (exceptions == NULL) {
+    PrintMissingParamError(js, "exceptions");
+    return true;
+  }
+
+  Dart_ExceptionPauseInfo info = kNoPauseOnExceptions;
+  if (strcmp(exceptions, "none") == 0) {
+    info = kNoPauseOnExceptions;
+  } else if (strcmp(exceptions, "all") == 0) {
+    info = kPauseOnAllExceptions;
+  } else if (strcmp(exceptions, "unhandled") == 0) {
+    info = kPauseOnUnhandledExceptions;
+  } else {
+    JSONObject jsobj(js);
+    jsobj.AddProperty("type", "Error");
+    jsobj.AddProperty("message", "illegal value for parameter 'exceptions'");
+    return true;
+  }
+
+  isolate->debugger()->SetExceptionPauseInfo(info);
+  if (Service::NeedsDebugEvents()) {
+    ServiceEvent event(isolate, ServiceEvent::kDebuggerSettingsUpdate);
+    Service::HandleEvent(&event);
+  }
+  PrintSuccess(js);
+  return true;
+}
+
+
 static const MethodParameter* get_flag_list_params[] = {
   NO_ISOLATE_PARAMETER,
   NULL,
@@ -2738,7 +2783,7 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_coverage_params },
   { "_getCpuProfile", GetCpuProfile,
     get_cpu_profile_params },
-  { "getFlagList", GetFlagList ,
+  { "getFlagList", GetFlagList,
     get_flag_list_params },
   { "_getHeapMap", GetHeapMap,
     get_heap_map_params },
@@ -2756,6 +2801,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     get_object_params },
   { "_getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
+  { "_getPorts", GetPorts,
+    get_ports_params },
   { "_getRetainedSize", GetRetainedSize,
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,
@@ -2782,6 +2829,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     resume_params },
   { "_requestHeapSnapshot", RequestHeapSnapshot,
     request_heap_snapshot_params },
+  { "_setExceptionPauseInfo", SetExceptionPauseInfo,
+    set_exception_pause_info_params },
   { "_setFlag", SetFlag,
     set_flags_params },
   { "setLibraryDebuggable", SetLibraryDebuggable,

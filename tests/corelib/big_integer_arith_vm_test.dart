@@ -5,6 +5,7 @@
 // Testing Bigints with and without intrinsics.
 // VMOptions=
 // VMOptions=--no_intrinsify
+// VMOptions=--optimization_counter_threshold=10
 
 library big_integer_test;
 import "package:expect/expect.dart";
@@ -223,6 +224,158 @@ testBigintModPow() {
   Expect.equals(40128068573873018143207285483, x.modPow(e, m));
 }
 
+testBigintModInverse() {
+  var x, m;
+  x = 1;
+  m = 1;
+  Expect.equals(0, x.modInverse(m));
+  x = 0;
+  m = 1000000001;
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
+  x = 1234567890;
+  m = 19;
+  Expect.equals(11, x.modInverse(m));
+  x = 1234567890;
+  m = 1000000001;
+  Expect.equals(189108911, x.modInverse(m));
+  x = 19;
+  m = 1000000001;
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
+  x = 19;
+  m = 1234567890;
+  Expect.equals(519818059, x.modInverse(m));
+  x = 1000000001;
+  m = 1234567890;
+  Expect.equals(1001100101, x.modInverse(m));
+  x = 1000000001;
+  m = 19;
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
+  x = 12345678901234567890;
+  m = 19;
+  Expect.equals(3, x.modInverse(m));
+  x = 12345678901234567890;
+  m = 10000000000000000001;
+  Expect.equals(9736746307686209582, x.modInverse(m));
+  x = 19;
+  m = 10000000000000000001;
+  Expect.equals(6315789473684210527, x.modInverse(m));
+  x = 19;
+  m = 12345678901234567890;
+  Expect.equals(10396361179987004539, x.modInverse(m));
+  x = 10000000000000000001;
+  m = 12345678901234567890;
+  Expect.equals(325004555487045911, x.modInverse(m));
+  x = 10000000000000000001;
+  m = 19;
+  Expect.equals(7, x.modInverse(m));
+  x = 12345678901234567890;
+  m = 10000000000000000001;
+  Expect.equals(9736746307686209582, x.modInverse(m));
+  x = 12345678901234567890;
+  m = 19;
+  Expect.equals(3, x.modInverse(m));
+  x = 123456789012345678901234567890;
+  m = 123456789012345678901234567899;
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
+  x = 123456789012345678901234567890;
+  m = 123456789012345678901234567891;
+  Expect.equals(123456789012345678901234567890, x.modInverse(m));
+  x = 123456789012345678901234567899;
+  m = 123456789012345678901234567891;
+  Expect.equals(77160493132716049313271604932, x.modInverse(m));
+  x = 123456789012345678901234567899;
+  m = 123456789012345678901234567890;
+  Expect.throws(() => x.modInverse(m), (e) => e is Exception);  // Not coprime.
+  x = 123456789012345678901234567891;
+  m = 123456789012345678901234567890;
+  Expect.equals(1, x.modInverse(m));
+  x = 123456789012345678901234567891;
+  m = 123456789012345678901234567899;
+  Expect.equals(46296295879629629587962962962, x.modInverse(m));
+}
+
+testBigintGcd() {
+  var x, m;
+  x = 1;
+  m = 1;
+  Expect.equals(1, x.gcd(m));
+  x = 693;
+  m = 609;
+  Expect.equals(21, x.gcd(m));
+  x = 693 << 40;
+  m = 609 << 40;
+  Expect.equals(21 << 40, x.gcd(m));
+  x = 609 << 40;;
+  m = 693 << 40;;
+  Expect.equals(21 <<40, x.gcd(m));
+  x = 0;
+  m = 1000000001;
+  Expect.throws(() => x.gcd(m), (e) => e is ArgumentError);
+  x = 1000000001;
+  m = 0;
+  Expect.throws(() => x.gcd(m), (e) => e is ArgumentError);
+  x = 1234567890;
+  m = 19;
+  Expect.equals(1, x.gcd(m));
+  x = 1234567890;
+  m = 1000000001;
+  Expect.equals(1, x.gcd(m));
+  x = 19;
+  m = 1000000001;
+  Expect.equals(19, x.gcd(m));
+  x = 19;
+  m = 1234567890;
+  Expect.equals(1, x.gcd(m));
+  x = 1000000001;
+  m = 1234567890;
+  Expect.equals(1, x.gcd(m));
+  x = 1000000001;
+  m = 19;
+  Expect.equals(19, x.gcd(m));
+  x = 12345678901234567890;
+  m = 19;
+  Expect.equals(1, x.gcd(m));
+  x = 12345678901234567890;
+  m = 10000000000000000001;
+  Expect.equals(1, x.gcd(m));
+  x = 19;
+  m = 10000000000000000001;
+  Expect.equals(1, x.gcd(m));
+  x = 19;
+  m = 12345678901234567890;
+  Expect.equals(1, x.gcd(m));
+  x = 10000000000000000001;
+  m = 12345678901234567890;
+  Expect.equals(1, x.gcd(m));
+  x = 10000000000000000001;
+  m = 19;
+  Expect.equals(1, x.gcd(m));
+  x = 12345678901234567890;
+  m = 10000000000000000001;
+  Expect.equals(1, x.gcd(m));
+  x = 12345678901234567890;
+  m = 19;
+  Expect.equals(1, x.gcd(m));
+  x = 123456789012345678901234567890;
+  m = 123456789012345678901234567899;
+  Expect.equals(9, x.gcd(m));
+  x = 123456789012345678901234567890;
+  m = 123456789012345678901234567891;
+  Expect.equals(1, x.gcd(m));
+  x = 123456789012345678901234567899;
+  m = 123456789012345678901234567891;
+  Expect.equals(1, x.gcd(m));
+  x = 123456789012345678901234567899;
+  m = 123456789012345678901234567890;
+  Expect.equals(9, x.gcd(m));
+  x = 123456789012345678901234567891;
+  m = 123456789012345678901234567890;
+  Expect.equals(1, x.gcd(m));
+  x = 123456789012345678901234567891;
+  m = 123456789012345678901234567899;
+  Expect.equals(1, x.gcd(m));
+}
+
 testBigintNegate() {
   var a = 0xF000000000000000F;
   var b = ~a;  // negate.
@@ -244,22 +397,26 @@ testShiftAmount() {
 }
 
 main() {
-  Expect.equals(1234567890123456789, foo());
-  Expect.equals(12345678901234567890, bar());
-  testSmiOverflow();
-  testBigintAdd();
-  testBigintSub();
-  testBigintMul();
-  testBigintTruncDiv();
-  testBigintDiv();
-  testBigintModulo();
-  testBigintModPow();
-  testBigintNegate();
-  testShiftAmount();
-  Expect.equals(12345678901234567890, (12345678901234567890).abs());
-  Expect.equals(12345678901234567890, (-12345678901234567890).abs());
-  var a = 10000000000000000000;
-  var b = 10000000000000000001;
-  Expect.equals(false, a.hashCode == b.hashCode);
-  Expect.equals(true, a.hashCode == (b - 1).hashCode);
+  for (int i = 0; i < 10; i++) {
+    Expect.equals(1234567890123456789, foo());
+    Expect.equals(12345678901234567890, bar());
+    testSmiOverflow();  /// overflow: ok
+    testBigintAdd();  /// add: ok
+    testBigintSub();  /// sub: ok
+    testBigintMul();  /// mul: ok
+    testBigintTruncDiv();  /// trunDiv: ok
+    testBigintDiv();  /// div: ok
+    testBigintModulo();  /// mod: ok
+    testBigintModPow();  /// modPow: ok
+    testBigintModInverse();  /// modInv: ok
+    testBigintGcd();  /// gcd: ok
+    testBigintNegate();  /// negate: ok
+    testShiftAmount();  /// shift: ok
+    Expect.equals(12345678901234567890, (12345678901234567890).abs());
+    Expect.equals(12345678901234567890, (-12345678901234567890).abs());
+    var a = 10000000000000000000;
+    var b = 10000000000000000001;
+    Expect.equals(false, a.hashCode == b.hashCode);
+    Expect.equals(true, a.hashCode == (b - 1).hashCode);
+  }
 }

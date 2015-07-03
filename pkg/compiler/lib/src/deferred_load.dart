@@ -4,7 +4,6 @@
 
 library deferred_load;
 
-import 'constants/expressions.dart';
 import 'constants/values.dart' show
     ConstantValue,
     ConstructedConstantValue,
@@ -17,9 +16,6 @@ import 'dart2jslib.dart' show
     CompilerTask,
     invariant,
     MessageKind;
-
-import 'dart_backend/dart_backend.dart' show
-    DartBackend;
 
 import 'js_backend/js_backend.dart' show
     JavaScriptBackend;
@@ -776,7 +772,7 @@ class DeferredLoadTask extends CompilerTask {
       });
     }
     if (isProgramSplit) {
-      isProgramSplit = compiler.backend.registerDeferredLoading(
+      isProgramSplit = compiler.backend.enableDeferredLoadingIfSupported(
             lastDeferred, compiler.globalDependencies);
     }
   }

@@ -61,12 +61,6 @@ def main():
     if options.revision is None:
       die('You must specify a --revision to specify which revision to promote')
 
-    # Make sure revision is a valid integer
-    try:
-      _ = int(options.revision)
-    except:
-      die('You must supply a valid integer argument to --revision to promote')
-
     # Make sure options.channel is a valid
     if not options.channel:
       die('Specify --channel=be/dev/stable')

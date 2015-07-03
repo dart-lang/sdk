@@ -7,13 +7,14 @@
 
 #include "bin/extensions.h"
 #include "bin/utils.h"
+#include "bin/utils_win.h"
 
 
 namespace dart {
 namespace bin {
 
 void* Extensions::LoadExtensionLibrary(const char* library_file) {
-  return LoadLibraryW(StringUtils::Utf8ToWide(library_file));
+  return LoadLibraryW(StringUtilsWin::Utf8ToWide(library_file));
 }
 
 void* Extensions::ResolveSymbol(void* lib_handle, const char* symbol) {

@@ -216,45 +216,61 @@ class AssemblerBuffer : public ValueObject {
 class ObjIndexPair {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
-  typedef const Object* Key;
+  typedef ObjectPool::Entry Key;
   typedef intptr_t Value;
   typedef ObjIndexPair Pair;
 
   static const intptr_t kNoIndex = -1;
 
-  ObjIndexPair() : key_(NULL), value_(kNoIndex) { }
+  ObjIndexPair() : key_(static_cast<uword>(NULL), ObjectPool::kTaggedObject),
+                   value_(kNoIndex) { }
 
-  ObjIndexPair(Key key, Value value)
-     : key_(key->IsNotTemporaryScopedHandle()
-         ? key : &Object::ZoneHandle(key->raw())),
-       value_(value) { }
+  ObjIndexPair(Key key, Value value) : value_(value) {
+    key_.type_ = key.type_;
+    if (key.type_ == ObjectPool::kTaggedObject) {
+      if (key.obj_->IsNotTemporaryScopedHandle()) {
+        key_.obj_ = key.obj_;
+      } else {
+        key_.obj_ = &Object::ZoneHandle(key.obj_->raw());
+      }
+    } else {
+      key_.raw_value_ = key.raw_value_;
+    }
+  }
 
   static Key KeyOf(Pair kv) { return kv.key_; }
 
   static Value ValueOf(Pair kv) { return kv.value_; }
 
   static intptr_t Hashcode(Key key) {
-    if (key->IsSmi()) {
-      return Smi::Cast(*key).Value();
+    if (key.type_ != ObjectPool::kTaggedObject) {
+      return key.raw_value_;
     }
-    if (key->IsDouble()) {
+    if (key.obj_->IsSmi()) {
+      return Smi::Cast(*key.obj_).Value();
+    }
+    if (key.obj_->IsDouble()) {
       return static_cast<intptr_t>(
           bit_cast<int32_t, float>(
-              static_cast<float>(Double::Cast(*key).value())));
+              static_cast<float>(Double::Cast(*key.obj_).value())));
     }
-    if (key->IsMint()) {
-      return static_cast<intptr_t>(Mint::Cast(*key).value());
+    if (key.obj_->IsMint()) {
+      return static_cast<intptr_t>(Mint::Cast(*key.obj_).value());
     }
-    if (key->IsString()) {
-      return String::Cast(*key).Hash();
+    if (key.obj_->IsString()) {
+      return String::Cast(*key.obj_).Hash();
     }
     // TODO(fschneider): Add hash function for other classes commonly used as
     // compile-time constants.
-    return key->GetClassId();
+    return key.obj_->GetClassId();
   }
 
   static inline bool IsKeyEqual(Pair kv, Key key) {
-    return kv.key_->raw() == key->raw();
+    if (kv.key_.type_ != key.type_) return false;
+    if (kv.key_.type_ == ObjectPool::kTaggedObject) {
+      return kv.key_.obj_->raw() == key.obj_->raw();
+    }
+    return kv.key_.raw_value_ == key.raw_value_;
   }
 
  private:
@@ -269,25 +285,26 @@ enum Patchability {
 };
 
 
-class ObjectPool : public ValueObject {
+class ObjectPoolWrapper : public ValueObject {
  public:
-  ObjectPool() : object_pool_(GrowableObjectArray::Handle()) { }
-
-  intptr_t AddObject(const Object& obj, Patchability patchable);
+  intptr_t AddObject(const Object& obj);
+  intptr_t AddImmediate(uword imm);
   intptr_t AddExternalLabel(const ExternalLabel* label,
                             Patchability patchable);
 
-  intptr_t FindObject(const Object& obj, Patchability patchable);
+  intptr_t FindObject(const Object& obj);
+  intptr_t FindImmediate(uword imm);
   intptr_t FindExternalLabel(const ExternalLabel* label,
                              Patchability patchable);
-  const GrowableObjectArray& data() const { return object_pool_; }
+
+  RawObjectPool* MakeObjectPool();
 
  private:
-  // Objects and jump targets.
-  GrowableObjectArray& object_pool_;
+  intptr_t AddObject(ObjectPool::Entry entry, Patchability patchable);
+  intptr_t FindObject(ObjectPool::Entry entry, Patchability patchable);
 
-  // Patchability of pool entries.
-  GrowableArray<Patchability> patchable_pool_entries_;
+  // Objects and jump targets.
+  GrowableArray<ObjectPool::Entry> object_pool_;
 
   // Hashmap for fast lookup in object pool.
   DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;

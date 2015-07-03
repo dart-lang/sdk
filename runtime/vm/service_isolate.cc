@@ -642,6 +642,8 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
+    isolate->RemoveTimelineEventRecorder();
+
     Thread::ExitIsolate();
 
     ServiceIsolate::ConstructExitMessageAndCache(isolate);

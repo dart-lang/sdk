@@ -4,3 +4,4 @@
 !.gitignore
 !pkg
 !pkg_tested
+!d8

@@ -7,6 +7,8 @@
 
 #include "bin/file_system_watcher.h"
 
+#if !defined(TARGET_OS_IOS)
+
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
 #include <unistd.h>  // NOLINT
@@ -391,5 +393,45 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
 
 }  // namespace bin
 }  // namespace dart
+
+#else  // !defined(TARGET_OS_IOS)
+
+namespace dart {
+namespace bin {
+
+// FSEvents are unavailable on iOS. Stub out related methods
+Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
+  return DartUtils::NewDartOSError();
+}
+
+intptr_t FileSystemWatcher::GetSocketId(intptr_t id, intptr_t path_id) {
+  return -1;
+}
+
+bool FileSystemWatcher::IsSupported() {
+  return false;
+}
+
+void FileSystemWatcher::UnwatchPath(intptr_t id, intptr_t path_id) {
+}
+
+intptr_t FileSystemWatcher::Init() {
+  return -1;
+}
+
+void FileSystemWatcher::Close(intptr_t id) {
+}
+
+intptr_t FileSystemWatcher::WatchPath(intptr_t id,
+                                      const char* path,
+                                      int events,
+                                      bool recursive) {
+  return -1;
+}
+
+}  // namespace bin
+}  // namespace dart
+
+#endif  // !defined(TARGET_OS_IOS)
 
 #endif  // defined(TARGET_OS_MACOS)

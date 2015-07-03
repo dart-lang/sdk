@@ -60,16 +60,6 @@
             </div>
           </template>
 
-          <template if="{{ instance.isMirrorReference }}">
-            <div class="memberItem">
-              <div class="memberName">referent</div>
-              <div class="memberValue">
-                <any-service-ref ref="{{ instance.referent }}">
-                </any-service-ref>
-              </div>
-            </div>
-          </template>
-
           <template if="{{ instance.typeClass != null }}">
             <div class="memberItem">
               <div class="memberName">type class</div>
@@ -95,21 +85,20 @@
                 </any-service-ref>
               </div>
             </div>
-          </template>
-
-          <template if="{{ instance.isWeakProperty }}">
             <div class="memberItem">
-              <div class="memberName">key</div>
+              <div class="memberName">closure breakpoint</div>
               <div class="memberValue">
-                <any-service-ref ref="{{ instance.key }}">
-                </any-service-ref>
-              </div>
-            </div>
-            <div class="memberItem">
-              <div class="memberName">value</div>
-              <div class="memberValue">
-                <any-service-ref ref="{{ instance.value }}">
-                </any-service-ref>
+                <template if="{{ instance.activationBreakpoint == null }}">
+                  <action-link callback="{{ setBreakOnActivation }}"
+                               label="break on activation">
+                  </action-link>
+                </template>
+                <template if="{{ instance.activationBreakpoint != null }}">
+                  {{ instance.activationBreakpoint.toString() }}
+                  <action-link callback="{{ clearBreakOnActivation }}"
+                               label="remove">
+                  </action-link>
+                </template>
               </div>
             </div>
           </template>
@@ -199,6 +188,86 @@
           </curly-block><br><br>
         </template>
 
+        <template if="{{ instance.typedElements.isNotEmpty }}">
+          elements ({{ instance.typedElements.length }})
+          <curly-block expand="{{ instance.typedElements.length <= 100 }}">
+            <div class="memberList">
+              <template repeat="{{ index in instance.typedElements.asMap().keys }}">
+                <div class="memberItem">
+                  <div class="memberName">[{{ index }}]</div>
+                  <div class="memberValue">{{ instance.typedElements[index].toString() }}</div>
+                </div>
+              </template>
+            </div>
+          </curly-block><br><br>
+        </template>
+
+        <template if="{{ instance.isRegExp }}">
+          <div class="memberList">
+            <div class="memberItem">
+              <div class="memberName">pattern</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ instance.pattern }}"></any-service-ref>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">oneByteFunction</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ instance.oneByteFunction }}"></any-service-ref>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">twoByteFunction</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ instance.twoByteFunction }}"></any-service-ref>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">externalOneByteFunction</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ instance.externalOneByteFunction }}"></any-service-ref>
+              </div>
+            </div>
+            <div class="memberItem">
+              <div class="memberName">externalTwoByteFunction</div>
+              <div class="memberValue">
+                <any-service-ref ref="{{ instance.externalTwoByteFunction }}"></any-service-ref>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <template if="{{ instance.isMirrorReference }}">
+          <div class="memberItem">
+            <div class="memberName">referent</div>
+            <div class="memberValue">
+              <any-service-ref ref="{{ instance.referent }}">
+              </any-service-ref>
+            </div>
+          </div>
+        </template>
+
+        <template if="{{ instance.isWeakProperty }}">
+          <div class="memberItem">
+            <div class="memberName">key</div>
+            <div class="memberValue">
+              <any-service-ref ref="{{ instance.key }}"></any-service-ref>
+            </div>
+          </div>
+          <div class="memberItem">
+            <div class="memberName">value</div>
+            <div class="memberValue">
+              <any-service-ref ref="{{ instance.value }}"></any-service-ref>
+            </div>
+          </div>
+        </template>
+
+      </div>
+
+      <div class="content-centered-big">
+        <template if="{{ instance.isClosure }}">
+          <source-inset location="{{ instance.function.location }}"></source-inset>
+        </template>
       </div>
 
     </template>

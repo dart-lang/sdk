@@ -8,7 +8,7 @@ import 'common.dart';
 import 'elements.dart';
 import '../constants/expressions.dart';
 import '../constants/constructors.dart';
-import '../helpers/helpers.dart';  // Included for debug helpers.
+import '../helpers/helpers.dart';
 import '../tree/tree.dart';
 import '../util/util.dart';
 import '../resolution/resolution.dart';
@@ -67,12 +67,6 @@ abstract class ElementX extends Element with ElementCommon {
     return null;
   }
 
-  DartType computeType(Compiler compiler) {
-    compiler.internalError(this,
-        "computeType not implemented on $this.");
-    return null;
-  }
-
   void addMetadata(MetadataAnnotationX annotation) {
     assert(annotation.annotatedElement == null);
     annotation.annotatedElement = this;
@@ -121,7 +115,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   SourceSpan get sourcePosition {
     if (position == null) return null;
-    Uri uri = compilationUnit.script.readableUri;
+    Uri uri = compilationUnit.script.resourceUri;
     return new SourceSpan(
         uri, position.charOffset, position.charOffset + position.charCount);
   }
@@ -302,6 +296,7 @@ class ErroneousElementX extends ElementX implements ErroneousElement {
   bool get isRedirectingFactory => unsupported();
 
   computeSignature(compiler) => unsupported();
+  computeType(compiler) => unsupported();
 
   bool get hasFunctionSignature => false;
 
@@ -1254,16 +1249,16 @@ class VariableList implements DeclarationSite {
 }
 
 abstract class ConstantVariableMixin implements VariableElement {
-  ConstantExpression _constant;
+  ConstantExpression constantCache;
 
   ConstantExpression get constant {
     if (isPatch) {
       ConstantVariableMixin originVariable = origin;
       return originVariable.constant;
     }
-    assert(invariant(this, _constant != null,
+    assert(invariant(this, constantCache != null,
         message: "Constant has not been computed for $this."));
-    return _constant;
+    return constantCache;
   }
 
   void set constant(ConstantExpression value) {
@@ -1272,9 +1267,9 @@ abstract class ConstantVariableMixin implements VariableElement {
       originVariable.constant = value;
       return null;
     }
-    assert(invariant(this, _constant == null || _constant == value,
+    assert(invariant(this, constantCache == null || constantCache == value,
         message: "Constant has already been computed for $this."));
-    _constant = value;
+    constantCache = value;
   }
 }
 
@@ -1972,6 +1967,25 @@ abstract class ConstantConstructorMixin implements ConstructorElement {
     return _constantConstructor;
   }
 
+  void set constantConstructor(ConstantConstructor value) {
+    if (isPatch) {
+      ConstantConstructorMixin originConstructor = origin;
+      originConstructor.constantConstructor = value;
+    } else {
+      assert(invariant(this, isConst,
+          message: "Constant constructor set on non-constant "
+                   "constructor $this."));
+      assert(invariant(this, !isFromEnvironmentConstructor,
+          message: "Constant constructor set on fromEnvironment "
+                   "constructor: $this."));
+      assert(invariant(this,
+          _constantConstructor == null || _constantConstructor == value,
+          message: "Constant constructor already computed for $this:"
+                   "Existing: $_constantConstructor, new: $value"));
+      _constantConstructor = value;
+    }
+  }
+
   bool get isFromEnvironmentConstructor {
     return name == 'fromEnvironment' &&
            library.isDartCore &&
@@ -2142,6 +2156,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
               Modifiers.EMPTY,
               enclosing) {
     typeCache = new FunctionType.synthesized(enclosingClass.thisType);
+    functionSignatureCache = new FunctionSignatureX(type: type);
   }
 
   FunctionExpression parseNode(DiagnosticListener listener) => null;
@@ -2166,18 +2181,16 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
 
   FunctionSignature computeSignature(compiler) {
     if (functionSignatureCache != null) return functionSignatureCache;
-    if (isDefaultConstructor) {
-      return functionSignatureCache = new FunctionSignatureX(
-          type: type);
-    }
     if (definingConstructor.isErroneous) {
       return functionSignatureCache =
           compiler.objectClass.localLookup('').computeSignature(compiler);
     }
     // TODO(johnniwinther): Ensure that the function signature (and with it the
     // function type) substitutes type variables correctly.
-    return functionSignatureCache =
-        definingConstructor.computeSignature(compiler);
+    definingConstructor.computeType(compiler);
+    functionSignatureCache = definingConstructor.functionSignature;
+    typeCache = definingConstructor.type;
+    return functionSignatureCache;
   }
 
   accept(ElementVisitor visitor, arg) {

@@ -10,4 +10,6 @@ class A {
 
 main() {
   Expect.isTrue(new A().className is Type);
+  Expect.isTrue(null.runtimeType is Type);
+  Expect.equals(null.runtimeType, Null);
 }

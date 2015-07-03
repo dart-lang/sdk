@@ -10,6 +10,8 @@ import 'dart:io';
 import 'package:analysis_server/src/channel/web_socket_channel.dart';
 import 'package:analysis_server/src/get_handler.dart';
 import 'package:analysis_server/src/socket_server.dart';
+import 'package:analysis_server/src/status/get_handler.dart' as newHandler;
+import 'package:analyzer/src/generated/engine.dart';
 
 /**
  * Instances of the class [HttpServer] implement a simple HTTP server. The
@@ -32,6 +34,11 @@ class HttpAnalysisServer {
    * An object that can handle GET requests.
    */
   GetHandler getHandler;
+
+  /**
+   * An object that can handle GET requests when the new task model is in use.
+   */
+  newHandler.GetHandler newGetHandler;
 
   /**
    * Future that is completed with the HTTP server once it is running.
@@ -77,10 +84,17 @@ class HttpAnalysisServer {
    * Handle a GET request received by the HTTP server.
    */
   void _handleGetRequest(HttpRequest request) {
-    if (getHandler == null) {
-      getHandler = new GetHandler(socketServer, _printBuffer);
+    if (AnalysisEngine.instance.useTaskModel) {
+      if (newGetHandler == null) {
+        newGetHandler = new newHandler.GetHandler(socketServer, _printBuffer);
+      }
+      newGetHandler.handleGetRequest(request);
+    } else {
+      if (getHandler == null) {
+        getHandler = new GetHandler(socketServer, _printBuffer);
+      }
+      getHandler.handleGetRequest(request);
     }
-    getHandler.handleGetRequest(request);
   }
 
   /**

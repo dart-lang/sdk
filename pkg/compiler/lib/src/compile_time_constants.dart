@@ -12,7 +12,6 @@ import 'dart_types.dart';
 import 'dart2jslib.dart' show Compiler, CompilerTask, MessageKind, WorldImpact, invariant;
 import 'elements/elements.dart';
 import 'elements/modelx.dart' show FunctionElementX;
-import 'helpers/helpers.dart';
 import 'resolution/resolution.dart';
 import 'resolution/operators.dart';
 import 'tree/tree.dart';
@@ -780,7 +779,7 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       Node node,
       CallStructure callStructure,
       Link<Node> arguments,
-      FunctionElement target,
+      ConstructorElement target,
       {AstConstant compileArgument(Node node)}) {
     assert(invariant(node, target.isImplementation));
 
@@ -789,9 +788,10 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
       return new AstConstant.fromDefaultValue(
           element, constant, handler.getConstantValue(constant));
     }
-    target.computeSignature(compiler);
+    target.computeType(compiler);
 
-    if (!callStructure.signatureApplies(target)) {
+    FunctionSignature signature = target.functionSignature;
+    if (!callStructure.signatureApplies(signature)) {
       String name = Elements.constructorNameForDiagnostics(
           target.enclosingClass.name, target.name);
       compiler.reportError(
@@ -1029,8 +1029,10 @@ class CompileTimeConstantEvaluator extends Visitor<AstConstant> {
                    "effective target: $constructor"));
       return new ErroneousAstConstant(context, node);
     }
-    assert(invariant(node, callStructure.signatureApplies(constructor) ||
-                     compiler.compilationFailed,
+    assert(invariant(
+        node,
+        callStructure.signatureApplies(constructor.functionSignature) ||
+            compiler.compilationFailed,
         message: "Call structure $callStructure does not apply to constructor "
                  "$constructor."));
 

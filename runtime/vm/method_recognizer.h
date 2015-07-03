@@ -190,6 +190,7 @@ namespace dart {
   V(_GrowableList, add, GrowableArray_add, 1675959698)                         \
   V(_JSSyntaxRegExp, _ExecuteMatch, JSRegExp_ExecuteMatch, 1711509198)         \
   V(Object, ==, ObjectEquals, 409406570)                                       \
+  V(Object, get:runtimeType, ObjectRuntimeType, 2076963579)                    \
   V(_StringBase, get:hashCode, String_getHashCode, 2103025405)                 \
   V(_StringBase, get:isEmpty, StringBaseIsEmpty, 780870414)                    \
   V(_StringBase, codeUnitAt, StringBaseCodeUnitAt, 397735324)                  \

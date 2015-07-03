@@ -439,8 +439,12 @@ class ScriptInsetElement extends ObservatoryElement {
                     ? script.tokenToLine(currentPos)
                     : null);
     _currentCol = (currentPos != null
-                   ? (script.tokenToCol(currentPos) - 1)  // make this 0-based.
+                   ? (script.tokenToCol(currentPos))
                    : null);
+    if (_currentCol != null) {
+      _currentCol--;  // make this 0-based.
+    }
+
     _endLine = (endPos != null
                 ? script.tokenToLine(endPos)
                 : script.lines.length + script.lineOffset);
@@ -449,7 +453,7 @@ class ScriptInsetElement extends ObservatoryElement {
 
     addCurrentExecutionAnnotation();
 
-    if (!inDebuggerContext) {
+    if (!inDebuggerContext && script.library != null) {
       loadDeclarationsOfLibrary(script.library);
 
       // Add fields before functions so they beat out conflicting
@@ -563,6 +567,10 @@ class ScriptInsetElement extends ObservatoryElement {
   Element linesTable() {
     var table = new DivElement();
     table.classes.add("sourceTable");
+
+    if (_startLine == null || _endLine == null) {
+      return table;
+    }
 
     annotationsCursor = 0;
 

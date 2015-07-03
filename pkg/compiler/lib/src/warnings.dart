@@ -530,6 +530,9 @@ main() => new C(0);"""]);
   static const MessageKind NOT_INSTANCE_FIELD = const MessageKind(
       "'#{fieldName}' is not an instance field.");
 
+  static const MessageKind THIS_PROPERTY = const MessageKind(
+      "Expected an identifier.");
+
   static const MessageKind NO_CATCH_NOR_FINALLY = const MessageKind(
       "Expected 'catch' or 'finally'.");
 
@@ -637,10 +640,11 @@ main() => new C<String>();
       "Not a compile-time constant.");
 
   static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT = const MessageKind(
-      "A Deferred value cannot be used as a compile-time constant.");
+      "A deferred value cannot be used as a compile-time constant.");
 
   static const MessageKind DEFERRED_COMPILE_TIME_CONSTANT_CONSTRUCTION =
-      const MessageKind("A deferred class cannot be used to create a"
+      const MessageKind(
+          "A deferred class cannot be used to create a "
           "compile-time constant.");
 
   static const MessageKind CYCLIC_COMPILE_TIME_CONSTANTS = const MessageKind(
@@ -1599,6 +1603,27 @@ import '../../Udyn[mic ils/expect.dart';
 main() {}
 """]);
 
+  static const MessageKind INVALID_PACKAGE_URI = const MessageKind(
+      "'#{uri}' is not a valid package URI (#{exception}).",
+      howToFix: DONT_KNOW_HOW_TO_FIX,
+      examples: const [
+        """
+// can't have a 'top level' package URI
+import 'package:foo.dart';
+
+main() {}
+""", """
+// can't have 2 slashes
+import 'package://foo/foo.dart';
+
+main() {}
+""", """
+// package name must be valid
+import 'package:not\valid/foo.dart';
+
+main() {}
+"""]);
+
   static const MessageKind READ_SCRIPT_ERROR = const MessageKind(
       "Can't read '#{uri}' (#{exception}).",
       // Don't know how to fix since the underlying error is unknown.
@@ -2179,7 +2204,7 @@ Please include the following information:
   static const MessageKind PREAMBLE = const MessageKind(
     "When run on the command-line, the compiled output might"
     " require a preamble file located in:\n"
-    "  <sdk>/lib/_internal/compiler/js_lib/preambles.");
+    "  <sdk>/lib/_internal/js_runtime/lib/preambles.");
 
   static const MessageKind INVALID_SYNC_MODIFIER = const MessageKind(
       "Invalid modifier 'sync'.",

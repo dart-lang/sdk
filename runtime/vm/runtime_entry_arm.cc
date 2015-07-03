@@ -40,16 +40,17 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
   entry =
       Simulator::RedirectExternalReference(entry, call_kind, argument_count);
 #endif
+  ExternalLabel label(entry);
   if (is_leaf()) {
     ASSERT(argument_count == this->argument_count());
-    ExternalLabel label(entry);
     __ BranchLink(&label);
   } else {
     // Argument count is not checked here, but in the runtime entry for a more
     // informative error message.
-    __ LoadImmediate(R5, entry);
+    __ LoadExternalLabel(R5, &label, kNotPatchable);
     __ LoadImmediate(R4, argument_count);
-    __ BranchLink(&Isolate::Current()->stub_code()->CallToRuntimeLabel());
+    __ BranchLink(&Isolate::Current()->stub_code()->CallToRuntimeLabel(),
+                  kNotPatchable);
   }
 }
 

@@ -28,6 +28,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, support_debugger);
+DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   RSP : points to return address.
@@ -43,7 +44,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
-  __ EnterFrame(0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT(
       (CallingConventions::kCalleeSaveCpuRegisters & (1 << R12)) != 0);
@@ -95,7 +96,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -140,7 +141,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t retval_offset =
       NativeArguments::retval_offset() + native_args_struct_offset;
 
-  __ EnterFrame(0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT(
       (CallingConventions::kCalleeSaveCpuRegisters & (1 << R12)) != 0);
@@ -192,7 +193,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -214,7 +215,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t retval_offset =
       NativeArguments::retval_offset() + native_args_struct_offset;
 
-  __ EnterFrame(0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT(
       (CallingConventions::kCalleeSaveCpuRegisters & (1 << R12)) != 0);
@@ -264,7 +265,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
 
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ ret();
 }
 
@@ -486,7 +487,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
-  __ EnterStubFrame(true);
+  __ EnterStubFrame();
   if (preserve_result) {
     __ pushq(Immediate(0));  // Workaround for dropped stack slot during GC.
     __ pushq(RBX);  // Preserve result, it will be GC-d here.
@@ -527,6 +528,36 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 }
 
 
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  const Immediate& raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ cmpq(RAX, raw_null);
+  __ j(NOT_EQUAL, call_target_function);
+  __ EnterStubFrame();
+  // Load the receiver.
+  __ movq(RDI, FieldAddress(R10, ArgumentsDescriptor::count_offset()));
+  __ movq(RAX, Address(
+      RBP, RDI, TIMES_HALF_WORD_SIZE, kParamEndSlotFromFp * kWordSize));
+  __ pushq(raw_null);  // Setup space on stack for result.
+  __ pushq(RAX);  // Receiver.
+  __ pushq(RBX);
+  __ pushq(R10);  // Arguments descriptor array.
+  __ movq(R10, RDI);
+  // EDX: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+  const intptr_t kNumArgs = 4;
+  __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
+  __ Drop(4);
+  __ popq(RAX);  // Return value.
+  __ LeaveStubFrame();
+  __ ret();
+}
+
+
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
   // Load the receiver into RAX.  The argument count in the arguments
@@ -554,6 +585,12 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ popq(R10);  // Restore arguments descriptor.
   __ popq(RBX);  // Restore IC data.
   __ LeaveStubFrame();
+
+  if (!FLAG_lazy_dispatchers) {
+    Label call_target_function;
+    GenerateDispatcherCode(assembler, &call_target_function);
+    __ Bind(&call_target_function);
+  }
 
   __ movq(RCX, FieldAddress(RAX, Function::instructions_offset()));
   __ addq(RCX, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
@@ -993,15 +1030,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ LockCmpxchgq(FieldAddress(RDX, Object::tags_offset()), RCX);
   __ j(NOT_EQUAL, &reload);
 
-  // Load the isolate.
-  // RDX: Address being stored
-  __ LoadIsolate(RAX);
-
-  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
   // RDX: Address being stored
-  // RAX: Isolate
-  __ movq(RAX, Address(RAX, Isolate::store_buffer_offset()));
+  __ movq(RAX, Address(THR, Thread::store_buffer_block_offset()));
   __ movl(RCX, Address(RAX, StoreBufferBlock::top_offset()));
   __ movq(Address(RAX, RCX, TIMES_8, StoreBufferBlock::pointers_offset()), RDX);
 
@@ -1022,7 +1054,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Bind(&L);
   // Setup frame, push callee-saved registers.
   __ EnterCallRuntimeFrame(0);
-  __ LoadIsolate(CallingConventions::kArg1Reg);
+  __ movq(CallingConventions::kArg1Reg, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ LeaveCallRuntimeFrame();
   __ ret();
@@ -1057,7 +1089,8 @@ void StubCode::GenerateAllocationStubForClass(
     __ movq(RDX, Address(RSP, kObjectTypeArgumentsOffset));
     // RDX: instantiated type arguments.
   }
-  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size) &&
+      !cls.trace_allocation()) {
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
@@ -1145,7 +1178,7 @@ void StubCode::GenerateAllocationStubForClass(
   // If is_cls_parameterized:
   // RDX: new object type arguments.
   // Create a stub frame.
-  __ EnterStubFrame(true);  // Uses PP to access class object.
+  __ EnterStubFrame();  // Uses PP to access class object.
   __ pushq(R12);  // Setup space on stack for return value.
   __ PushObject(cls, PP);  // Push class of object to be allocated.
   if (is_cls_parameterized) {
@@ -1464,7 +1497,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ popq(R10);  // Restore arguments descriptor array.
   __ LeaveStubFrame();
   Label call_target_function;
-  __ jmp(&call_target_function);
+  if (!FLAG_lazy_dispatchers) {
+    GenerateDispatcherCode(assembler, &call_target_function);
+  } else {
+    __ jmp(&call_target_function);
+  }
 
   __ Bind(&found);
   // R12: Pointer to an IC data check group.
@@ -2024,13 +2061,13 @@ void StubCode::GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ j(NOT_EQUAL, &reference_compare, Assembler::kNearJump);
   __ CompareClassId(right, kBigintCid);
   __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-  __ EnterFrame(0);
+  __ EnterStubFrame();
   __ ReserveAlignedFrameSpace(0);
   __ movq(CallingConventions::kArg1Reg, left);
   __ movq(CallingConventions::kArg2Reg, right);
   __ CallRuntime(kBigintCompareRuntimeEntry, 2);
   // Result in RAX, 0 means equal.
-  __ LeaveFrame();
+  __ LeaveStubFrame();
   __ cmpq(RAX, Immediate(0));
   __ jmp(&done);
 

@@ -158,7 +158,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
       func = cls.LookupFunctionAllowPrivate(tmp_name);
     }
 
-    // Case 3.  Lookup the funciton with the getter prefix prepended.
+    // Case 3.  Lookup the function with the getter prefix prepended.
     if (func.IsNull()) {
       tmp_name = Field::GetterName(func_name);
       func = cls.LookupFunctionAllowPrivate(tmp_name);

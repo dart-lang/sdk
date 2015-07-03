@@ -5,6 +5,7 @@
 library physical_file_system;
 
 import 'dart:async';
+import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
 import 'package:analyzer/src/generated/java_io.dart';
@@ -73,6 +74,9 @@ class PhysicalResourceProvider implements ResourceProvider {
  */
 class _PhysicalFile extends _PhysicalResource implements File {
   _PhysicalFile(io.File file) : super(file);
+
+  @override
+  Stream<WatchEvent> get changes => new FileWatcher(_entry.path).events;
 
   @override
   int get modificationStamp {

@@ -5,6 +5,7 @@
 #include "bin/dartutils.h"
 
 #include "include/dart_api.h"
+#include "include/dart_tools_api.h"
 #include "include/dart_native_api.h"
 
 #include "platform/assert.h"
@@ -15,6 +16,7 @@
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
+#include "bin/isolate_data.h"
 #include "bin/platform.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
@@ -486,7 +488,9 @@ Dart_Handle DartUtils::LoadScript(const char* script_uri,
     return NewDartUnsupportedError("Service did not return load port.");
   }
   Builtin::SetLoadPort(load_port);
-
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+  Dart_TimelineAsyncBegin("LoadScript", &(isolate_data->load_async_id));
   return LoadDataAsync_Invoke(Dart_Null(), uri, Dart_Null(), builtin_lib);
 }
 
@@ -591,6 +595,11 @@ void FUNCTION_NAME(Builtin_LoadSource)(Dart_NativeArguments args) {
 // no more outstanding load requests.
 void FUNCTION_NAME(Builtin_DoneLoading)(Dart_NativeArguments args) {
   Dart_Handle res = Dart_FinalizeLoading(true);
+  IsolateData* isolate_data =
+      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+  if (isolate_data->load_async_id >= 0) {
+    Dart_TimelineAsyncEnd("LoadScript", isolate_data->load_async_id);
+  }
   if (Dart_IsError(res)) {
     // TODO(hausner): If compilation/loading errors are supposed to
     // be observable by the program, we need to mark the bad library

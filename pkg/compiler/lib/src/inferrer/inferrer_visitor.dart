@@ -47,7 +47,7 @@ abstract class TypeSystem<T> {
   T nonNullExact(ClassElement type);
   T nonNullEmpty();
   bool isNull(T type);
-  Selector newTypedSelector(T receiver, Selector selector);
+  TypeMask newTypedSelector(T receiver, TypeMask mask);
 
   T allocateList(T type,
                  Node node,
@@ -110,7 +110,7 @@ abstract class TypeSystem<T> {
    * Returns `true` if `selector` should be updated to reflect the new
    * `receiverType`.
    */
-  bool selectorNeedsUpdate(T receiverType, Selector selector);
+  bool selectorNeedsUpdate(T receiverType, TypeMask mask);
 
   /**
    * Returns a new receiver type for this [selector] applied to
@@ -120,7 +120,10 @@ abstract class TypeSystem<T> {
    * conditional send (e.g.  `a?.selector`), in which case the returned type may
    * be null.
    */
-  T refineReceiver(Selector selector, T receiverType, bool isConditional);
+  T refineReceiver(Selector selector,
+                   TypeMask mask,
+                   T receiverType,
+                   bool isConditional);
 
   /**
    * Returns the internal inferrer representation for [mask].

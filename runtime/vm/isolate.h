@@ -14,12 +14,12 @@
 #include "vm/megamorphic_cache_table.h"
 #include "vm/metrics.h"
 #include "vm/random.h"
-#include "vm/store_buffer.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
 #include "vm/os_thread.h"
-#include "vm/trace_buffer.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
+#include "vm/trace_buffer.h"
 
 namespace dart {
 
@@ -76,6 +76,7 @@ class ServiceIdZone;
 class Simulator;
 class StackResource;
 class StackZone;
+class StoreBuffer;
 class StubCode;
 class TypeArguments;
 class TypeParameter;
@@ -141,10 +142,7 @@ class Isolate : public BaseIsolate {
                                   bool visit_prologue_weak_persistent_handles);
   void VisitPrologueWeakPersistentHandles(HandleVisitor* visitor);
 
-  StoreBuffer* store_buffer() { return &store_buffer_; }
-  static intptr_t store_buffer_offset() {
-    return OFFSET_OF(Isolate, store_buffer_);
-  }
+  StoreBuffer* store_buffer() { return store_buffer_; }
 
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
@@ -369,7 +367,10 @@ class Isolate : public BaseIsolate {
 
   Mutex* mutex() const { return mutex_; }
 
-  Debugger* debugger() const { return debugger_; }
+  Debugger* debugger() const {
+    ASSERT(debugger_ != NULL);
+    return debugger_;
+  }
 
   void set_single_step(bool value) { single_step_ = value; }
   bool single_step() const { return single_step_; }
@@ -555,6 +556,14 @@ class Isolate : public BaseIsolate {
     return trace_buffer_;
   }
 
+  void SetTimelineEventRecorder(TimelineEventRecorder* timeline_event_recorder);
+
+  TimelineEventRecorder* timeline_event_recorder() const {
+    return timeline_event_recorder_;
+  }
+
+  void RemoveTimelineEventRecorder();
+
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == NULL || deopt_context_ == NULL);
@@ -654,6 +663,11 @@ class Isolate : public BaseIsolate {
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_ACCESSOR);
 #undef ISOLATE_METRIC_ACCESSOR
 
+#define ISOLATE_TIMELINE_STREAM_ACCESSOR(name, enabled_by_default)             \
+  TimelineStream* Get##name##Stream() { return &stream_##name##_; }
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_ACCESSOR)
+#undef ISOLATE_TIMELINE_STREAM_ACCESSOR
+
   static intptr_t IsolateListLength();
 
   RawGrowableObjectArray* tag_table() const { return tag_table_; }
@@ -725,7 +739,7 @@ class Isolate : public BaseIsolate {
 
   Thread* mutator_thread_;
   uword vm_tag_;
-  StoreBuffer store_buffer_;
+  StoreBuffer* store_buffer_;
   ClassTable class_table_;
   MegamorphicCacheTable megamorphic_cache_table_;
   Dart_MessageNotifyCallback message_notify_callback_;
@@ -790,6 +804,9 @@ class Isolate : public BaseIsolate {
   // Trace buffer support.
   TraceBuffer* trace_buffer_;
 
+  // TimelineEvent buffer.
+  TimelineEventRecorder* timeline_event_recorder_;
+
   IsolateProfilerData* profiler_data_;
   Mutex profiler_data_mutex_;
   InterruptableThreadState* thread_state_;
@@ -831,6 +848,11 @@ class Isolate : public BaseIsolate {
   type metric_##variable##_;
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_VARIABLE);
 #undef ISOLATE_METRIC_VARIABLE
+
+#define ISOLATE_TIMELINE_STREAM_VARIABLE(name, enabled_by_default)             \
+  TimelineStream stream_##name##_;
+  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_VARIABLE)
+#undef ISOLATE_TIMELINE_STREAM_VARIABLE
 
   VMHandles reusable_handles_;
 

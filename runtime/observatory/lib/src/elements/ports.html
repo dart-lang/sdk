@@ -1,0 +1,43 @@
+<link rel="import" href="../../../../packages/polymer/polymer.html">
+<link rel="import" href="nav_bar.html">
+<link rel="import" href="observatory_element.html">
+
+<polymer-element name="ports-page" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+      ul li:hover:not(.selected) {
+        background-color: #FFF3E3;
+      }
+      .selected {
+        background-color: #0489c3;
+      }
+      .graph {
+        min-height: 600px;
+      }
+    </style>
+    <nav-bar>
+      <top-nav-menu></top-nav-menu>
+      <vm-nav-menu vm="{{ isolate.vm }}"></vm-nav-menu>
+      <isolate-nav-menu isolate="{{ isolate }}"></isolate-nav-menu>
+      <nav-menu link="{{ makeLink('/ports', isolate) }}" anchor="ports" last="{{ true }}"></nav-menu>
+      <nav-refresh callback="{{ refresh }}"></nav-refresh>
+    </nav-bar>
+    <div class="content">
+      <h1>Ports</h1>
+      <hr>
+      <div class="memberList">
+        <template repeat="{{ port in ports }}">
+          <div class="memberItem">
+            <div class="memberName">{{ port['name'] }}</div>
+            <div class="memberValue">
+              <any-service-ref ref="{{ port['handler'] }}"></any-service-ref>
+            </div>
+          </div>
+        </template>
+      </div>
+      <hr>
+      <view-footer></view-footer>
+    </div>
+  </template>
+</polymer-element>

@@ -8,12 +8,26 @@ import 'dart:async';
 
 import 'source_information.dart';
 
+/// Listener interface for [CodeOutput] activity.
 abstract class CodeOutputListener {
+  /// Called when [text] is added to the output.
   void onText(String text);
+
+  /// Called when the output is closed with a final length of [length].
   void onDone(int length);
 }
 
-abstract class CodeOutput {
+/// Interface for a mapping of target offsets to source locations.
+abstract class SourceLocations {
+  /// Adds a [sourceLocation] at the specified [targetOffset].
+  void addSourceLocation(int targetOffset, SourceLocation sourcePosition);
+
+  /// Applies [f] to every target offset and associated source location.
+  void forEachSourceLocation(void f(int targetOffset,
+                                    SourceLocation sourceLocation));
+}
+
+abstract class CodeOutput implements SourceLocations {
   /// Write [text] to this output.
   ///
   /// If the output is closed, a [StateError] is thrown.
@@ -33,13 +47,6 @@ abstract class CodeOutput {
 
   /// Closes the output. Further writes will cause a [StateError].
   void close();
-
-  /// Adds a [sourceLocation] at the specified [targetOffset] in the buffer.
-  void addSourceLocation(int targetOffset, SourceLocation sourcePosition);
-
-  /// Applies [f] to every marker in this output.
-  void forEachSourceLocation(void f(int targetOffset,
-                                    SourceLocation sourceLocation));
 }
 
 abstract class AbstractCodeOutput extends CodeOutput {

@@ -102,7 +102,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           'cyclic resolution of class $element');
     }
 
-    InterfaceType type = element.computeType(compiler);
+    element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
     // TODO(ahe): It is not safe to call resolveTypeVariableBounds yet.
     // As a side-effect, this may get us back here trying to
@@ -165,7 +165,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       } else {
         ConstructorElement superConstructor = superMember;
         Selector callToMatch = new Selector.call("", element.library, 0);
-        superConstructor.computeSignature(compiler);
+        superConstructor.computeType(compiler);
         if (!callToMatch.applies(superConstructor, compiler.world)) {
           MessageKind kind = MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT;
           compiler.reportError(node, kind);
@@ -243,7 +243,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
           MessageKind.DEPRECATED_TYPEDEF_MIXIN_SYNTAX);
     }
 
-    InterfaceType type = element.computeType(compiler);
+    element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
     resolveTypeVariableBounds(node.typeParameters);
 
@@ -296,14 +296,15 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     mixinApplication.supertypeLoadState = STATE_DONE;
     // Replace the synthetic type variables by the original type variables in
     // the returned type (which should be the type actually extended).
-    InterfaceType mixinThisType = mixinApplication.computeType(compiler);
+    InterfaceType mixinThisType = mixinApplication.thisType;
     return mixinThisType.subst(element.typeVariables,
                                mixinThisType.typeArguments);
   }
 
   bool isDefaultConstructor(FunctionElement constructor) {
-    return constructor.name == '' &&
-        constructor.computeSignature(compiler).parameterCount == 0;
+    if (constructor.name != '') return false;
+    constructor.computeType(compiler);
+    return constructor.functionSignature.parameterCount == 0;
   }
 
   FunctionElement createForwardingConstructor(ConstructorElement target,

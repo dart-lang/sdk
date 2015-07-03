@@ -13,13 +13,12 @@ namespace dart {
 
 intptr_t InstructionPattern::IndexFromPPLoad(uword start) {
   int32_t offset = *reinterpret_cast<int32_t*>(start);
-  offset += kHeapObjectTag;
-  return (offset - Array::data_offset()) / kWordSize;
+  return ObjectPool::IndexFromOffset(offset);
 }
 
 
 intptr_t InstructionPattern::OffsetFromPPIndex(intptr_t index) {
-  intptr_t offset = Array::element_offset(index);
+  intptr_t offset = ObjectPool::element_offset(index);
   return offset - kHeapObjectTag;
 }
 
@@ -40,15 +39,14 @@ bool InstructionPattern::TestBytesWith(const int* data, int num_bytes) const {
 uword JumpPattern::TargetAddress() const {
   ASSERT(IsValid());
   int index = InstructionPattern::IndexFromPPLoad(start() + 3);
-  return reinterpret_cast<uword>(object_pool_.At(index));
+  return object_pool_.RawValueAt(index);
 }
 
 
 void JumpPattern::SetTargetAddress(uword target) const {
   ASSERT(IsValid());
   int index = InstructionPattern::IndexFromPPLoad(start() + 3);
-  const Smi& smi = Smi::Handle(reinterpret_cast<RawSmi*>(target));
-  object_pool_.SetAt(index, smi);
+  object_pool_.SetRawValueAt(index, target);
   // No need to flush the instruction cache, since the code is not modified.
 }
 

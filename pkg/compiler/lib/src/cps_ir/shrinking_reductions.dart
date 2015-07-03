@@ -246,8 +246,11 @@ class ShrinkingReducer extends Pass {
   }
 }
 
-/// Returns true iff the bound primitive is unused.
-bool _isDeadVal(LetPrim node) => !node.primitive.hasAtLeastOneUse;
+/// Returns true iff the bound primitive is unused, and has no effects
+/// preventing it from being eliminated.
+bool _isDeadVal(LetPrim node) {
+  return node.primitive.hasNoUses && node.primitive.isSafeForElimination;
+}
 
 /// Returns true iff the continuation is unused.
 bool _isDeadCont(Continuation cont) {
@@ -275,9 +278,12 @@ bool _isBetaContLin(Continuation cont) {
 
   // Beta-reduction will move the continuation's body to its unique invocation
   // site.  This is not safe if the body is moved into an exception handler
-  // binding.
+  // binding.  Search from the invocation to the continuation binding to
+  // make sure that there is no binding for a handler.
   Node current = invoke.parent;
   while (current != cont.parent) {
+    // There is no need to reduce a beta-redex inside a deleted subterm.
+    if (current == ShrinkingReducer._DELETED) return false;
     if (current is LetHandler) return false;
     current = current.parent;
   }
@@ -551,20 +557,20 @@ class ParentVisitor extends RecursiveVisitor {
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
 
-  processConcatenateStrings(ConcatenateStrings node) {
-    node.continuation.parent = node;
-    node.arguments.forEach((Reference ref) => ref.parent = node);
-  }
-
   processBranch(Branch node) {
     node.condition.parent = node;
     node.trueContinuation.parent = node;
     node.falseContinuation.parent = node;
   }
 
-  processTypeOperator(TypeOperator node) {
+  processTypeCast(TypeCast node) {
     node.typeArguments.forEach((Reference ref) => ref.parent = node);
     node.continuation.parent = node;
+    node.value.parent = node;
+  }
+
+  processTypeTest(TypeTest node) {
+    node.typeArguments.forEach((Reference ref) => ref.parent = node);
     node.value.parent = node;
   }
 
@@ -608,11 +614,6 @@ class ParentVisitor extends RecursiveVisitor {
 
   processIsTrue(IsTrue node) {
     node.value.parent = node;
-  }
-
-  processIdentical(Identical node) {
-    node.left.parent = node;
-    node.right.parent = node;
   }
 
   processInterceptor(Interceptor node) {
@@ -662,6 +663,17 @@ class ParentVisitor extends RecursiveVisitor {
   }
 
   processCreateInvocationMirror(CreateInvocationMirror node) {
+    node.arguments.forEach((Reference ref) => ref.parent = node);
+  }
+
+  processApplyBuiltinOperator(ApplyBuiltinOperator node) {
+    node.arguments.forEach((Reference ref) => ref.parent = node);
+  }
+
+  processForeignCode(ForeignCode node) {
+    if (node.continuation != null) {
+      node.continuation.parent = node;
+    }
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
 }

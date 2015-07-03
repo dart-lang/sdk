@@ -15,7 +15,6 @@ import 'elements/modelx.dart'
          TypeDeclarationElementX,
          TypedefElementX;
 import 'elements/elements.dart';
-import 'helpers/helpers.dart';  // Included for debug helpers.
 import 'ordered_typeset.dart' show OrderedTypeSet;
 import 'util/util.dart' show CURRENT_ELEMENT_SPANNABLE, equalElements;
 
@@ -1232,6 +1231,10 @@ abstract class DartTypes {
 
   /// Returns `true` if [t] is a subtype of [s].
   bool isSubtype(DartType t, DartType s);
+
+  /// Returns `true` if [t] might be a subtype of [s] for some values of
+  /// type variables in [s] and [t].
+  bool isPotentialSubtype(DartType t, DartType s);
 }
 
 class Types implements DartTypes {
@@ -1590,8 +1593,6 @@ class Types implements DartTypes {
     List<DartType> bNamedParameterTypes = b.namedParameterTypes;
     int aIndex = 0;
     int bIndex = 0;
-    int prefixLength =
-        min(aNamedParameterTypes.length, bNamedParameterTypes.length);
     while (aIndex < aNamedParameters.length &&
            bIndex < bNamedParameters.length) {
       String aNamedParameter = aNamedParameters[aIndex];

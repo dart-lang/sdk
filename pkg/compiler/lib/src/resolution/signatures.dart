@@ -79,7 +79,6 @@ class SignatureResolver extends MappingVisitor<FormalElementX> {
   }
 
   void validateName(Identifier node) {
-    String name = node.source;
     if (isOptionalParameter &&
         optionalParametersAreNamed &&
         isPrivateName(node.source)) {

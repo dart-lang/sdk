@@ -93,17 +93,17 @@ class CodegenRegistry extends Registry {
     world.registerStaticUse(element);
   }
 
-  void registerDynamicInvocation(Selector selector) {
+  void registerDynamicInvocation(UniverseSelector selector) {
     world.registerDynamicInvocation(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
-  void registerDynamicSetter(Selector selector) {
+  void registerDynamicSetter(UniverseSelector selector) {
     world.registerDynamicSetter(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
 
-  void registerDynamicGetter(Selector selector) {
+  void registerDynamicGetter(UniverseSelector selector) {
     world.registerDynamicGetter(selector);
     compiler.dumpInfoTask.elementUsesSelector(currentElement, selector);
   }
@@ -135,8 +135,8 @@ class CodegenRegistry extends Registry {
     backend.registerTypeVariableBoundsSubtypeCheck(subtype, supertype);
   }
 
-  void registerClosureWithFreeTypeVariables(FunctionElement element) {
-    backend.registerClosureWithFreeTypeVariables(element, world, this);
+  void registerInstantiatedClosure(LocalFunctionElement element) {
+    backend.registerInstantiatedClosure(element, this);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
@@ -144,7 +144,7 @@ class CodegenRegistry extends Registry {
   }
 
   void registerSelectorUse(Selector selector) {
-    world.registerSelectorUse(selector);
+    world.registerSelectorUse(new UniverseSelector(selector, null));
   }
 
   void registerConstSymbol(String name) {
@@ -239,11 +239,11 @@ abstract class Registry {
 
   bool get isForResolution;
 
-  void registerDynamicInvocation(Selector selector);
+  void registerDynamicInvocation(UniverseSelector selector);
 
-  void registerDynamicGetter(Selector selector);
+  void registerDynamicGetter(UniverseSelector selector);
 
-  void registerDynamicSetter(Selector selector);
+  void registerDynamicSetter(UniverseSelector selector);
 
   void registerStaticInvocation(Element element);
 
@@ -271,6 +271,11 @@ abstract class Backend {
 
   /// Backend callback methods for the resolution phase.
   ResolutionCallbacks get resolutionCallbacks;
+
+  /// The strategy used for collecting and emitting source information.
+  SourceInformationStrategy get sourceInformationStrategy {
+    return const SourceInformationStrategy();
+  }
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   String get patchVersion => null;
@@ -302,8 +307,6 @@ abstract class Backend {
 
   List<CompilerTask> get tasks;
 
-  bool get canHandleCompilationFailed;
-
   void onResolutionComplete() {}
   void onTypeInferenceComplete() {}
 
@@ -314,9 +317,13 @@ abstract class Backend {
   bool classNeedsRti(ClassElement cls);
   bool methodNeedsRti(FunctionElement function);
 
-  /// Register deferred loading. Returns `true` if the backend supports deferred
+  /// Enable compilation of code with compile time errors. Returns `true` if
+  /// supported by the backend.
+  bool enableCodegenWithErrorsIfSupported(Spannable node);
+
+  /// Enable deferred loading. Returns `true` if the backend supports deferred
   /// loading.
-  bool registerDeferredLoading(Spannable node, Registry registry);
+  bool enableDeferredLoadingIfSupported(Spannable node, Registry registry);
 
   /// Called during codegen when [constant] has been used.
   void registerCompileTimeConstant(ConstantValue constant, Registry registry) {}
@@ -794,6 +801,9 @@ abstract class Compiler implements DiagnosticListener {
   /// Generate output even when there are compile-time errors.
   final bool generateCodeWithCompileTimeErrors;
 
+  /// The compiler is run from the build bot.
+  final bool testMode;
+
   bool disableInlining = false;
 
   List<Uri> librariesToAnalyzeWhenRun;
@@ -1053,6 +1063,7 @@ abstract class Compiler implements DiagnosticListener {
             this.allowNativeExtensions: false,
             this.enableNullAwareOperators: false,
             this.generateCodeWithCompileTimeErrors: false,
+            this.testMode: false,
             api.CompilerOutputProvider outputProvider,
             List<String> strips: const []})
       : this.disableTypeInferenceFlag =
@@ -1087,17 +1098,10 @@ abstract class Compiler implements DiagnosticListener {
     globalDependencies =
         new CodegenRegistry(this, new TreeElementMapping(null));
 
-    SourceInformationFactory sourceInformationFactory =
-        const SourceInformationFactory();
-    if (generateSourceMap) {
-      sourceInformationFactory =
-          const bool.fromEnvironment('USE_NEW_SOURCE_INFO', defaultValue: false)
-              ? const PositionSourceInformationFactory()
-              : const StartEndSourceInformationFactory();
-    }
     if (emitJavaScript) {
-      js_backend.JavaScriptBackend jsBackend = new js_backend.JavaScriptBackend(
-      this, sourceInformationFactory, generateSourceMap: generateSourceMap);
+      js_backend.JavaScriptBackend jsBackend =
+          new js_backend.JavaScriptBackend(
+              this, generateSourceMap: generateSourceMap);
       backend = jsBackend;
     } else {
       backend = new dart_backend.DartBackend(this, strips,
@@ -1116,7 +1120,7 @@ abstract class Compiler implements DiagnosticListener {
       resolver = new ResolverTask(this, backend.constantCompilerTask),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
-      irBuilder = new IrBuilderTask(this, sourceInformationFactory),
+      irBuilder = new IrBuilderTask(this, backend.sourceInformationStrategy),
       typesTask = new ti.TypesTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
@@ -1190,7 +1194,7 @@ abstract class Compiler implements DiagnosticListener {
     } else if (node is Element) {
       return spanFromElement(node);
     } else if (node is MetadataAnnotation) {
-      Uri uri = node.annotatedElement.compilationUnit.script.readableUri;
+      Uri uri = node.annotatedElement.compilationUnit.script.resourceUri;
       return spanFromTokens(node.beginToken, node.endToken, uri);
     } else if (node is Local) {
       Local local = node;
@@ -1328,7 +1332,6 @@ abstract class Compiler implements DiagnosticListener {
         // The maximum number of imports chains to show.
         final int compactChainLimit = verbose ? 20 : 10;
         int chainCount = 0;
-        bool limitExceeded = false;
         loadedLibraries.forEachImportChain(DART_MIRRORS,
             callback: (Link<Uri> importChainReversed) {
           Link<CodeLocation> compactImportChain = const Link<CodeLocation>();
@@ -1489,7 +1492,6 @@ abstract class Compiler implements DiagnosticListener {
     // suitably maintained static reference to the current compiler.
     StringToken.canonicalizedSubstrings.clear();
     Selector.canonicalizedValues.clear();
-    world.canonicalizedValues.clear();
 
     assert(uri != null || analyzeOnly || hasIncrementalSupport);
     return new Future.sync(() {
@@ -1545,7 +1547,8 @@ abstract class Compiler implements DiagnosticListener {
       mainFunction = backend.helperForBadMain();
     } else {
       mainFunction = main;
-      FunctionSignature parameters = mainFunction.computeSignature(this);
+      mainFunction.computeType(this);
+      FunctionSignature parameters = mainFunction.functionSignature;
       if (parameters.requiredParameterCount > 2) {
         int index = 0;
         parameters.orderedForEachParameter((Element parameter) {
@@ -1621,9 +1624,11 @@ abstract class Compiler implements DiagnosticListener {
       });
     }
 
-    // TODO(sigurdm): The dart backend should handle failed compilations.
-    if (compilationFailed && !backend.canHandleCompilationFailed) {
-      return;
+    if (compilationFailed){
+      if (!generateCodeWithCompileTimeErrors) return;
+      if (!backend.enableCodegenWithErrorsIfSupported(NO_LOCATION_SPANNABLE)) {
+        return;
+      }
     }
 
     if (analyzeOnly) {
@@ -1712,7 +1717,8 @@ abstract class Compiler implements DiagnosticListener {
     world.nativeEnqueuer.processNativeClasses(libraryLoader.libraries);
     if (main != null && !main.isErroneous) {
       FunctionElement mainMethod = main;
-      if (mainMethod.computeSignature(this).parameterCount != 0) {
+      mainMethod.computeType(this);
+      if (mainMethod.functionSignature.parameterCount != 0) {
         // The first argument could be a list of strings.
         backend.listImplementation.ensureResolved(this);
         world.registerInstantiatedType(
@@ -1797,8 +1803,7 @@ abstract class Compiler implements DiagnosticListener {
     Node tree = parser.parse(element);
     assert(invariant(element, !element.isSynthesized || tree == null));
     WorldImpact worldImpact = resolver.resolve(element);
-    if (tree != null && !analyzeSignaturesOnly &&
-        !suppressWarnings) {
+    if (tree != null && !analyzeSignaturesOnly && !suppressWarnings) {
       // Only analyze nodes with a corresponding [TreeElements].
       checker.check(element);
     }
@@ -1915,7 +1920,7 @@ abstract class Compiler implements DiagnosticListener {
       throw 'Cannot find tokens to produce error message.';
     }
     if (uri == null && currentElement != null) {
-      uri = currentElement.compilationUnit.script.readableUri;
+      uri = currentElement.compilationUnit.script.resourceUri;
     }
     return SourceSpan.withCharacterOffsets(begin, end,
       (beginOffset, endOffset) => new SourceSpan(uri, beginOffset, endOffset));
@@ -1947,11 +1952,15 @@ abstract class Compiler implements DiagnosticListener {
     if (element == null) {
       element = currentElement;
     }
+    if (element == null) {
+      return null;
+    }
+
     if (element.sourcePosition != null) {
       return element.sourcePosition;
     }
     Token position = element.position;
-    Uri uri = element.compilationUnit.script.readableUri;
+    Uri uri = element.compilationUnit.script.resourceUri;
     return (position == null)
         ? new SourceSpan(uri, 0, 0)
         : spanFromTokens(position, position, uri);
@@ -2155,7 +2164,14 @@ abstract class Compiler implements DiagnosticListener {
   }
 
   EventSink<String> outputProvider(String name, String extension) {
-    if (compilationFailed) return new NullSink('$name.$extension');
+    if (compilationFailed) {
+      if (!generateCodeWithCompileTimeErrors || testMode) {
+        // Disable output in test mode: The build bot currently uses the time
+        // stamp of the generated file to determine whether the output is
+        // up-to-date.
+        return new NullSink('$name.$extension');
+      }
+    }
     return userOutputProvider(name, extension);
   }
 }

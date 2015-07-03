@@ -882,7 +882,7 @@ void testBadFuture() {
   asyncStart();
   Completer completer = new Completer();
   completer.complete(bad);
-  completer.future.then((_) { fail("unreachable"); },
+  completer.future.then((_) { Expect.fail("unreachable"); },
                         onError: (e, s) {
                           Expect.isTrue(completer.isCompleted);
                           asyncEnd();
@@ -890,10 +890,40 @@ void testBadFuture() {
 
   asyncStart();
   var f = new Future.value().then((_) => bad);
-  f.then((_) { fail("unreachable"); },
+  f.then((_) { Expect.fail("unreachable"); },
          onError: (e, s) {
            asyncEnd();
          });
+}
+
+void testTypes() {
+  // Test that future is a Future<int> and not something less precise.
+  testType(name, future, [depth = 2]) {
+    var desc = "$name${".whenComplete"*(2-depth)}";
+    Expect.isTrue(future is Future<int>, "$desc is Future<int>");
+    Expect.isFalse(future is Future<String>, "$desc is! Future<String>");
+    var stream = future.asStream();
+    Expect.isTrue(stream is Stream<int>, "$desc.asStream() is Stream<int>");
+    Expect.isFalse(stream is Stream<String>,
+                   "$desc.asStream() is! Stream<String>");
+    if (depth > 0) {
+      testType(name, future.whenComplete((){}), depth - 1);
+    }
+  }
+  for (var value in [42, null]) {
+    testType("Future($value)",
+             new Future<int>(() => value));
+    testType("Future.delayed($value)",
+             new Future<int>.delayed(Duration.ZERO, () => value));
+    testType("Future.microtask($value)",
+             new Future<int>.microtask(() => value));
+    testType("Future.sync($value)", new Future<int>.sync(() => value));  /// 01: ok
+    testType("Future.sync(future($value))",                              /// 01: continued
+             new Future<int>.sync(() async => new Future.value(value))); /// 01: continued
+    testType("Future.value($value)", new Future<int>.value(value));
+  }
+  testType("Completer.future", new Completer<int>().future);
+  testType("Future.error", new Future<int>.error("ERR")..catchError((_){}));
 }
 
 main() {
@@ -957,6 +987,8 @@ main() {
 
   testBadFuture();
 
+  testTypes();
+
   asyncEnd();
 }
 
@@ -977,13 +1009,19 @@ class CustomFuture<T> implements Future<T> {
 }
 
 class BadFuture<T> implements Future<T> {
-  Future then(action(result)) {
+  Future then(action(T result), {Function onError}) {
     throw "then GOTCHA!";
   }
-  Future catchError(Function onError) {
+  Future catchError(Function onError, {bool test(e)}) {
     throw "catch GOTCHA!";
   }
   Future whenComplete(action()) {
     throw "finally GOTCHA!";
+  }
+  Stream<T> asStream() {
+    throw "asStream GOTCHA!";
+  }
+  Future timeout(Duration duration, {onTimeout()}) {
+    throw "timeout GOTCHA!";
   }
 }

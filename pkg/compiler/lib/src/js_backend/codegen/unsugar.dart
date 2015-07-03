@@ -82,21 +82,15 @@ class UnsugarVisitor extends RecursiveVisitor {
   }
 
   Constant get trueConstant {
-    return new Constant(
-        new BoolConstantExpression(true),
-        new TrueConstantValue());
+    return new Constant(new TrueConstantValue());
   }
 
   Constant get falseConstant {
-    return new Constant(
-        new BoolConstantExpression(false),
-        new FalseConstantValue());
+    return new Constant(new FalseConstantValue());
   }
 
   Constant get nullConstant {
-    return new Constant(
-        new NullConstantExpression(),
-        new NullConstantValue());
+    return new Constant(new NullConstantValue());
   }
 
   void insertLetPrim(Primitive primitive, Expression node) {
@@ -131,7 +125,9 @@ class UnsugarVisitor extends RecursiveVisitor {
                 function.returnContinuation, <Primitive>[falsePrimitive]));
 
     Primitive nullPrimitive = nullConstant;
-    Primitive test = new Identical(function.parameters.single, nullPrimitive);
+    Primitive test = new ApplyBuiltinOperator(
+        BuiltinOperator.Identical,
+          <Primitive>[function.parameters.single, nullPrimitive]);
 
     Expression newBody =
         new LetCont.many(<Continuation>[returnFalse, originalBody],
@@ -276,7 +272,9 @@ class UnsugarVisitor extends RecursiveVisitor {
     InteriorNode parent = node.parent;
     IsTrue condition = node.condition;
     Primitive t = trueConstant;
-    Primitive i = new Identical(condition.value.definition, t);
+    Primitive i = new ApplyBuiltinOperator(
+        BuiltinOperator.Identical,
+        <Primitive>[condition.value.definition, t]);
     LetPrim newNode = new LetPrim(t,
         new LetPrim(i,
             new Branch(new IsTrue(i),

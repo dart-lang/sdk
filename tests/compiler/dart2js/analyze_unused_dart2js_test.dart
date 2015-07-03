@@ -26,7 +26,7 @@ const Map<String, List<String>> WHITE_LIST = const {
 
   // Uncalled methods in SemanticSendVisitor and subclasses.
   "lib/src/resolution/semantic_visitor.dart": const [
-      "The method 'error", "The method 'visit"],
+      "The method 'error"],
   "lib/src/resolution/semantic_visitor_mixins.dart": const [
       "The class 'Base", "The method 'error", "The method 'visit"],
 
@@ -50,8 +50,6 @@ const Map<String, List<String>> WHITE_LIST = const {
   "/lib/src/dart_backend/backend_ast_to_frontend_ast.dart": const [
     " is never "
   ],
-
-  "/lib/src/cps_ir/type_propagation.dart": const ["UnitTypeSystem"],
 };
 
 void main() {

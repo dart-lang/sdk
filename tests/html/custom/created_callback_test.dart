@@ -86,7 +86,7 @@ main() {
 <x-b id="u"></x-b>
 <x-c id="v"></x-c>
 <x-b id="w"></x-b>
-""", treeSanitizer: new NullTreeSanitizer());
+""", treeSanitizer: NodeTreeSanitizer.trusted);
 
     upgradeCustomElements(div);
 
@@ -136,7 +136,7 @@ main() {
     var tag = ErrorConstructorElement.tag;
     expectGlobalError(() {
       dummy.setInnerHtml('<$tag></$tag>',
-          treeSanitizer: new NullTreeSanitizer());
+          treeSanitizer: NodeTreeSanitizer.trusted);
     });
 
     expect(ErrorConstructorElement.callCount, 1);

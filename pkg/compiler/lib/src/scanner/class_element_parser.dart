@@ -57,7 +57,7 @@ class PartialClassElement extends ClassElementX with PartialElement {
               invariant(
                   beginToken, listener.nodes.isEmpty,
                   message: "Non-empty listener stack: ${listener.nodes}"));
-        } on ParserError catch (e) {
+        } on ParserError {
           // TODO(ahe): Often, a ParserError is thrown while parsing the class
           // body. This means that the stack actually contains most of the
           // information synthesized below. Consider rewriting the parser so
@@ -186,7 +186,6 @@ class MemberListener extends NodeListener {
                                  {'name': enclosingClass.name});
       }
     }
-    ElementKind kind = ElementKind.FUNCTION;
     Element memberElement = new PartialConstructorElement(
         name, beginToken, endToken,
         ElementKind.FUNCTION,

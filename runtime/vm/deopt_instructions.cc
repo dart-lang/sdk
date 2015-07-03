@@ -12,6 +12,7 @@
 #include "vm/parser.h"
 #include "vm/stack_frame.h"
 #include "vm/thread.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -27,7 +28,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
                            fpu_register_t* fpu_registers,
                            intptr_t* cpu_registers)
     : code_(code.raw()),
-      object_pool_(code.ObjectPool()),
+      object_pool_(code.GetObjectPool()),
       deopt_info_(TypedData::null()),
       dest_frame_is_allocated_(false),
       dest_frame_(NULL),
@@ -41,6 +42,7 @@ DeoptContext::DeoptContext(const StackFrame* frame,
       deopt_reason_(ICData::kDeoptUnknown),
       deopt_flags_(0),
       thread_(Thread::Current()),
+      timeline_event_(NULL),
       deferred_slots_(NULL),
       deferred_objects_count_(0),
       deferred_objects_(NULL) {
@@ -92,6 +94,19 @@ DeoptContext::DeoptContext(const StackFrame* frame,
     dest_frame_is_allocated_ = true;
   }
 
+  if (dest_options != kDestIsAllocated) {
+    // kDestIsAllocated is used by the debugger to generate a stack trace
+    // and does not signal a real deopt.
+    Isolate* isolate = Isolate::Current();
+    TimelineStream* compiler_stream = isolate->GetCompilerStream();
+    ASSERT(compiler_stream != NULL);
+    timeline_event_ = compiler_stream->StartEvent();
+    if (timeline_event_ != NULL) {
+      timeline_event_->DurationBegin("Deoptimize");
+      timeline_event_->SetNumArguments(3);
+    }
+  }
+
   if (FLAG_trace_deoptimization || FLAG_trace_deoptimization_verbose) {
     OS::PrintErr(
         "Deoptimizing (reason %d '%s') at pc %#" Px " '%s' (count %d)\n",
@@ -126,6 +141,25 @@ DeoptContext::~DeoptContext() {
   delete[] deferred_objects_;
   deferred_objects_ = NULL;
   deferred_objects_count_ = 0;
+  if (timeline_event_ != NULL) {
+    const Code& code = Code::Handle(zone(), code_);
+    const Function& function = Function::Handle(zone(), code.function());
+    timeline_event_->CopyArgument(
+        0,
+        "function",
+        const_cast<char*>(function.QualifiedUserVisibleNameCString()));
+    timeline_event_->CopyArgument(
+        1,
+        "reason",
+        const_cast<char*>(DeoptReasonToCString(deopt_reason())));
+    timeline_event_->FormatArgument(
+        2,
+        "deoptimizationCount",
+        "%d",
+        function.deoptimization_counter());
+    timeline_event_->DurationEnd();
+    timeline_event_->Complete();
+  }
 }
 
 
@@ -774,7 +808,7 @@ class DeoptMaterializeObjectInstr : public DeoptInstr {
 
 
 uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
-                                const Array& object_table,
+                                const ObjectPool& object_table,
                                 Code* code) {
   ASSERT(instr->kind() == kRetAddress);
   DeoptRetAddressInstr* ret_address_instr =
@@ -786,7 +820,7 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Function& function = Function::Handle(zone);
-  function ^= object_table.At(ret_address_instr->object_table_index());
+  function ^= object_table.ObjectAt(ret_address_instr->object_table_index());
   ASSERT(code != NULL);
   const Error& error = Error::Handle(zone,
       Compiler::EnsureUnoptimizedCode(thread, function));
@@ -937,7 +971,7 @@ DeoptInfoBuilder::DeoptInfoBuilder(Zone* zone,
 
 
 intptr_t DeoptInfoBuilder::FindOrAddObjectInTable(const Object& obj) const {
-  return assembler_->object_pool().FindObject(obj, kNotPatchable);
+  return assembler_->object_pool_wrapper().FindObject(obj);
 }
 
 

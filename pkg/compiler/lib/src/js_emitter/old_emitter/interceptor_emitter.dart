@@ -5,15 +5,17 @@
 part of dart2js.js_emitter;
 
 class InterceptorEmitter extends CodeEmitterHelper {
-  final Set<String> interceptorInvocationNames = new Set<String>();
+  final Set<jsAst.Name> interceptorInvocationNames =
+      new Set<jsAst.Name>();
 
-  void recordMangledNameOfMemberMethod(FunctionElement member, String name) {
+  void recordMangledNameOfMemberMethod(FunctionElement member,
+                                       jsAst.Name name) {
     if (backend.isInterceptedMethod(member)) {
       interceptorInvocationNames.add(name);
     }
   }
 
-  jsAst.Expression buildGetInterceptorMethod(String key,
+  jsAst.Expression buildGetInterceptorMethod(jsAst.Name key,
                                              Set<ClassElement> classes) {
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(compiler, namer, backend);
@@ -31,9 +33,11 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
     parts.add(js.comment('getInterceptor methods'));
 
-    Map<String, Set<ClassElement>> specializedGetInterceptors =
+    Map<jsAst.Name, Set<ClassElement>> specializedGetInterceptors =
         backend.specializedGetInterceptors;
-    for (String name in specializedGetInterceptors.keys.toList()..sort()) {
+    List<jsAst.Name> names = specializedGetInterceptors.keys.toList()
+        ..sort();
+    for (jsAst.Name name in names) {
       Set<ClassElement> classes = specializedGetInterceptors[name];
       parts.add(
           js.statement('#.# = #',
@@ -47,13 +51,13 @@ class InterceptorEmitter extends CodeEmitterHelper {
 
   jsAst.Statement buildOneShotInterceptors() {
     List<jsAst.Statement> parts = <jsAst.Statement>[];
-    List<String> names = backend.oneShotInterceptors.keys.toList();
-    names.sort();
+    Iterable<jsAst.Name> names = backend.oneShotInterceptors.keys.toList()
+        ..sort();
 
     InterceptorStubGenerator stubGenerator =
         new InterceptorStubGenerator(compiler, namer, backend);
     String globalObject = namer.globalObjectFor(backend.interceptorsLibrary);
-    for (String name in names) {
+    for (jsAst.Name name in names) {
       jsAst.Expression function =
           stubGenerator.generateOneShotInterceptor(name);
       parts.add(js.statement('${globalObject}.# = #', [name, function]));
@@ -75,13 +79,11 @@ class InterceptorEmitter extends CodeEmitterHelper {
     // (which can easily be identified).
     if (!compiler.enabledInvokeOn) return null;
 
-    List<String> invocationNames = interceptorInvocationNames.toList()..sort();
-    List<jsAst.Property> properties =
-        new List<jsAst.Property>(invocationNames.length);
-    for (int i = 0; i < invocationNames.length; i++) {
-      String name = invocationNames[i];
-      properties[i] = new jsAst.Property(js.string(name), js.number(1));
-    }
+    Iterable<jsAst.Name> invocationNames = interceptorInvocationNames.toList()
+        ..sort();;
+    List<jsAst.Property> properties = invocationNames.map((jsAst.Name name) {
+      return new jsAst.Property(js.quoteName(name), js.number(1));
+    }).toList();
     return new jsAst.ObjectInitializer(properties, isOneLiner: true);
   }
 

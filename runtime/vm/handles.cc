@@ -6,6 +6,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/dart_api_state.h"
 #include "vm/flags.h"
 #include "vm/isolate.h"
 #include "vm/os.h"
@@ -43,7 +44,16 @@ void VMHandles::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 }
 
 
+#if defined(DEBUG)
+static bool IsCurrentApiNativeScope(Zone* zone) {
+  ApiNativeScope* scope = ApiNativeScope::Current();
+  return (scope != NULL) && (scope->zone() == zone);
+}
+#endif  // DEBUG
+
+
 uword VMHandles::AllocateHandle(Zone* zone) {
+  DEBUG_ASSERT(!IsCurrentApiNativeScope(zone));
   return Handles<kVMHandleSizeInWords,
                  kVMHandlesPerChunk,
                  kOffsetOfRawPtr>::AllocateHandle(zone);
@@ -51,6 +61,7 @@ uword VMHandles::AllocateHandle(Zone* zone) {
 
 
 uword VMHandles::AllocateZoneHandle(Zone* zone) {
+  DEBUG_ASSERT(!IsCurrentApiNativeScope(zone));
   return Handles<kVMHandleSizeInWords,
                  kVMHandlesPerChunk,
                  kOffsetOfRawPtr>::AllocateZoneHandle(zone);

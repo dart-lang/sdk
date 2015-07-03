@@ -47,6 +47,7 @@
 class _Bigint extends _IntegerImplementation implements int {
   // Bits per digit.
   static const int _DIGIT_BITS = 32;
+  static const int _LOG2_DIGIT_BITS = 5;
   static const int _DIGIT_BASE = 1 << _DIGIT_BITS;
   static const int _DIGIT_MASK = (1 << _DIGIT_BITS) - 1;
 
@@ -266,7 +267,9 @@ class _Bigint extends _IntegerImplementation implements int {
     return r_used;
   }
 
-  // r_digits[0..r_used-1] = x_digits[0..x_used-1] << n.
+  // r_digits[ds..x_used+ds] = x_digits[0..x_used-1] << (n % _DIGIT_BITS)
+  // where ds = ceil(n / _DIGIT_BITS)
+  // Doesn't clear digits below ds.
   static void _lsh(Uint32List x_digits, int x_used, int n,
                    Uint32List r_digits) {
     final ds = n ~/ _DIGIT_BITS;
@@ -291,7 +294,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return _dlShift(ds);
     }
     var r_used = _used + ds + 1;
-    var r_digits = new Uint32List(r_used + 2 + (r_used & 1));  // +2 for 64-bit.
+    var r_digits = new Uint32List(r_used + 2 - (r_used & 1));  // for 64-bit.
     _lsh(_digits, _used, n, r_digits);
     return new _Bigint(_neg, r_used, r_digits);
   }
@@ -306,7 +309,7 @@ class _Bigint extends _IntegerImplementation implements int {
       return _dlShiftDigits(x_digits, x_used, ds, r_digits);
     }
     var r_used = x_used + ds + 1;
-    assert(r_digits.length >= r_used + 2 + (r_used & 1));  // +2 for 64-bit.
+    assert(r_digits.length >= r_used + 2 - (r_used & 1));  // for 64-bit.
     _lsh(x_digits, x_used, n, r_digits);
     var i = ds;
     while (--i >= 0) {
@@ -1219,7 +1222,7 @@ class _Bigint extends _IntegerImplementation implements int {
   // This method must support smi._toBigint()._shrFromInt(int).
   int _shrFromInt(int other) {
     if (_used == 0) return other;  // Shift amount is zero.
-    if (_neg) throw new RangeError(this);
+    if (_neg) throw new RangeError.range(this, 0, null);
     assert(_DIGIT_BITS == 32);  // Otherwise this code needs to be revised.
     var shift;
     if ((_used > 2) || ((_used == 2) && (_digits[1] > 0x10000000))) {
@@ -1238,7 +1241,7 @@ class _Bigint extends _IntegerImplementation implements int {
   // An out of memory exception is thrown if the result cannot be allocated.
   int _shlFromInt(int other) {
     if (_used == 0) return other;  // Shift amount is zero.
-    if (_neg) throw new RangeError(this);
+    if (_neg) throw new RangeError.range(this, 0, null);
     assert(_DIGIT_BITS == 32);  // Otherwise this code needs to be revised.
     var shift;
     if (_used > 2 || (_used == 2 && _digits[1] > 0x10000000)) {
@@ -1265,15 +1268,9 @@ class _Bigint extends _IntegerImplementation implements int {
     return other._toBigintOrDouble()._mulFromInteger(this);
   }
   num operator ~/(num other) {
-    if ((other is int) && (other == 0)) {
-      throw const IntegerDivisionByZeroException();
-    }
     return other._toBigintOrDouble()._truncDivFromInteger(this);
   }
   num operator %(num other) {
-    if ((other is int) && (other == 0)) {
-      throw const IntegerDivisionByZeroException();
-    }
     return other._toBigintOrDouble()._moduloFromInteger(this);
   }
   int operator &(int other) {
@@ -1368,9 +1365,15 @@ class _Bigint extends _IntegerImplementation implements int {
     return other._toBigint()._mul(this)._toValidInt();
   }
   int _truncDivFromInteger(int other) {
+    if (_used == 0) {
+      throw const IntegerDivisionByZeroException();
+    }
     return other._toBigint()._div(this)._toValidInt();
   }
   int _moduloFromInteger(int other) {
+    if (_used == 0) {
+      throw const IntegerDivisionByZeroException();
+    }
     _Bigint result = other._toBigint()._rem(this);
     if (result._neg) {
       if (_neg) {
@@ -1382,6 +1385,9 @@ class _Bigint extends _IntegerImplementation implements int {
     return result._toValidInt();
   }
   int _remainderFromInteger(int other) {
+    if (_used == 0) {
+      throw const IntegerDivisionByZeroException();
+    }
     return other._toBigint()._rem(this)._toValidInt();
   }
   bool _greaterThanFromInteger(int other) {
@@ -1393,14 +1399,18 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // Returns pow(this, e) % m, with e >= 0, m > 0.
   int modPow(int e, int m) {
-    if (e is! int) throw new ArgumentError(e);
-    if (m is! int) throw new ArgumentError(m);
-    if (e < 0) throw new RangeError(e);
-    if (m <= 0) throw new RangeError(m);
+    if (e is! int) {
+      throw new ArgumentError.value(e, "exponent", "not an integer");
+    }
+    if (m is! int) {
+      throw new ArgumentError.value(m, "modulus", "not an integer");
+    }
+    if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
+    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
     m = m._toBigint();
     final m_used = m._used;
-    final m_used2p4 = 2*m_used + 4;
+    final m_used2p4 = 2 * m_used + 4;
     final e_bitlen = e.bitLength;
     if (e_bitlen <= 0) return 1;
     final bool cannotUseMontgomery = m.isEven || _abs() >= m;
@@ -1533,6 +1543,280 @@ class _Bigint extends _IntegerImplementation implements int {
     }
     assert(!is1);
     return z._revert(r_digits, r_used)._toValidInt();
+  }
+
+  // If inv is false, returns gcd(x, y).
+  // If inv is true and gcd(x, y) = 1, returns d, so that c*x + d*y = 1.
+  // If inv is true and gcd(x, y) != 1, throws Exception("Not coprime").
+  static int _binaryGcd(_Bigint x, _Bigint y, bool inv) {
+    var x_digits = x._digits;
+    var y_digits = y._digits;
+    var x_used = x._used;
+    var y_used = y._used;
+    var m_used = x_used > y_used ? x_used : y_used;
+    final m_len = m_used + (m_used & 1);
+    x_digits = _cloneDigits(x_digits, 0, x_used, m_len);
+    y_digits = _cloneDigits(y_digits, 0, y_used, m_len);
+    int s = 0;
+    if (inv) {
+      if ((y_used == 1) && (y_digits[0] == 1)) return 1;
+      if ((y_used == 0) || (y_digits[0].isEven && x_digits[0].isEven)) {
+        throw new Exception("Not coprime");
+      }
+    } else {
+      if (x_used == 0) {
+        throw new ArgumentError.value(0, "this", "must not be zero");
+      }
+      if (y_used == 0) {
+        throw new ArgumentError.value(0, "other", "must not be zero");
+      }
+      if (((x_used == 1) && (x_digits[0] == 1)) ||
+          ((y_used == 1) && (y_digits[0] == 1))) return 1;
+      bool xy_cloned = false;
+      while (((x_digits[0] & 1) == 0) && ((y_digits[0] & 1) == 0)) {
+        _rsh(x_digits, x_used, 1, x_digits);
+        _rsh(y_digits, y_used, 1, y_digits);
+        s++;
+      }
+      if (s >= _DIGIT_BITS) {
+        var sd = s >> _LOG2_DIGIT_BITS;
+        x_used -= sd;
+        y_used -= sd;
+        m_used -= sd;
+      }
+      if ((y_digits[0] & 1) == 1) {
+        var t_digits = x_digits;
+        var t_used = x_used;
+        x_digits = y_digits;
+        x_used = y_used;
+        y_digits = t_digits;
+        y_used = t_used;
+      }
+    }
+    var u_digits = _cloneDigits(x_digits, 0, x_used, m_len);
+    var v_digits = _cloneDigits(y_digits, 0, y_used, m_len + 2);  // +2 for lsh.
+    final bool ac = (x_digits[0] & 1) == 0;
+
+    // Variables a, b, c, and d require one more digit.
+    final abcd_used = m_used + 1;
+    final abcd_len = abcd_used + (abcd_used & 1) + 2;  // +2 to satisfy _absAdd.
+    var a_digits, b_digits, c_digits, d_digits;
+    bool a_neg, b_neg, c_neg, d_neg;
+    if (ac) {
+      a_digits = new Uint32List(abcd_len);
+      a_neg = false;
+      a_digits[0] = 1;
+      c_digits = new Uint32List(abcd_len);
+      c_neg = false;
+    }
+    b_digits = new Uint32List(abcd_len);
+    b_neg = false;
+    d_digits = new Uint32List(abcd_len);
+    d_neg = false;
+    d_digits[0] = 1;
+
+    while (true) {
+      while ((u_digits[0] & 1) == 0) {
+        _rsh(u_digits, m_used, 1, u_digits);
+        if (ac) {
+          if (((a_digits[0] & 1) == 1) || ((b_digits[0] & 1) == 1)) {
+            if (a_neg) {
+              if ((a_digits[m_used] != 0) ||
+                  (_compareDigits(a_digits, m_used, y_digits, m_used)) > 0) {
+                _absSub(a_digits, abcd_used, y_digits, m_used, a_digits);
+              } else {
+                _absSub(y_digits, m_used, a_digits, m_used, a_digits);
+                a_neg = false;
+              }
+            } else {
+              _absAdd(a_digits, abcd_used, y_digits, m_used, a_digits);
+            }
+            if (b_neg) {
+              _absAdd(b_digits, abcd_used, x_digits, m_used, b_digits);
+            } else if ((b_digits[m_used] != 0) ||
+                (_compareDigits(b_digits, m_used, x_digits, m_used) > 0)) {
+              _absSub(b_digits, abcd_used, x_digits, m_used, b_digits);
+            } else {
+              _absSub(x_digits, m_used, b_digits, m_used, b_digits);
+              b_neg = true;
+            }
+          }
+          _rsh(a_digits, abcd_used, 1, a_digits);
+        } else if ((b_digits[0] & 1) == 1) {
+          if (b_neg) {
+            _absAdd(b_digits, abcd_used, x_digits, m_used, b_digits);
+          } else if ((b_digits[m_used] != 0) ||
+                     (_compareDigits(b_digits, m_used, x_digits, m_used) > 0)) {
+            _absSub(b_digits, abcd_used, x_digits, m_used, b_digits);
+          } else {
+            _absSub(x_digits, m_used, b_digits, m_used, b_digits);
+            b_neg = true;
+          }
+        }
+        _rsh(b_digits, abcd_used, 1, b_digits);
+      }
+      while ((v_digits[0] & 1) == 0) {
+        _rsh(v_digits, m_used, 1, v_digits);
+        if (ac) {
+          if (((c_digits[0] & 1) == 1) || ((d_digits[0] & 1) == 1)) {
+            if (c_neg) {
+              if ((c_digits[m_used] != 0) ||
+                  (_compareDigits(c_digits, m_used, y_digits, m_used) > 0)) {
+                _absSub(c_digits, abcd_used, y_digits, m_used, c_digits);
+              } else {
+                _absSub(y_digits, m_used, c_digits, m_used, c_digits);
+                c_neg = false;
+              }
+            } else {
+              _absAdd(c_digits, abcd_used, y_digits, m_used, c_digits);
+            }
+            if (d_neg) {
+              _absAdd(d_digits, abcd_used, x_digits, m_used, d_digits);
+            } else if ((d_digits[m_used] != 0) ||
+                (_compareDigits(d_digits, m_used, x_digits, m_used) > 0)) {
+              _absSub(d_digits, abcd_used, x_digits, m_used, d_digits);
+            } else {
+              _absSub(x_digits, m_used, d_digits, m_used, d_digits);
+              d_neg = true;
+            }
+          }
+          _rsh(c_digits, abcd_used, 1, c_digits);
+        } else if ((d_digits[0] & 1) == 1) {
+          if (d_neg) {
+            _absAdd(d_digits, abcd_used, x_digits, m_used, d_digits);
+          } else if ((d_digits[m_used] != 0) ||
+                     (_compareDigits(d_digits, m_used, x_digits, m_used) > 0)) {
+            _absSub(d_digits, abcd_used, x_digits, m_used, d_digits);
+          } else {
+            _absSub(x_digits, m_used, d_digits, m_used, d_digits);
+            d_neg = true;
+          }
+        }
+        _rsh(d_digits, abcd_used, 1, d_digits);
+      }
+      if (_compareDigits(u_digits, m_used, v_digits, m_used) >= 0) {
+        _absSub(u_digits, m_used, v_digits, m_used, u_digits);
+        if (ac) {
+          if (a_neg == c_neg) {
+            var a_cmp_c =
+                _compareDigits(a_digits, abcd_used, c_digits, abcd_used);
+            if (a_cmp_c > 0) {
+              _absSub(a_digits, abcd_used, c_digits, abcd_used, a_digits);
+            } else {
+              _absSub(c_digits, abcd_used, a_digits, abcd_used, a_digits);
+              a_neg = !a_neg && (a_cmp_c != 0);
+            }
+          } else {
+            _absAdd(a_digits, abcd_used, c_digits, abcd_used, a_digits);
+          }
+        }
+        if (b_neg == d_neg) {
+          var b_cmp_d =
+              _compareDigits(b_digits, abcd_used, d_digits, abcd_used);
+          if (b_cmp_d > 0) {
+            _absSub(b_digits, abcd_used, d_digits, abcd_used, b_digits);
+          } else {
+            _absSub(d_digits, abcd_used, b_digits, abcd_used, b_digits);
+            b_neg = !b_neg && (b_cmp_d != 0);
+          }
+        } else {
+          _absAdd(b_digits, abcd_used, d_digits, abcd_used, b_digits);
+        }
+      } else {
+        _absSub(v_digits, m_used, u_digits, m_used, v_digits);
+        if (ac) {
+          if (c_neg == a_neg) {
+            var c_cmp_a =
+                _compareDigits(c_digits, abcd_used, a_digits, abcd_used);
+            if (c_cmp_a > 0) {
+              _absSub(c_digits, abcd_used, a_digits, abcd_used, c_digits);
+            } else {
+              _absSub(a_digits, abcd_used, c_digits, abcd_used, c_digits);
+              c_neg = !c_neg && (c_cmp_a != 0);
+            }
+          } else {
+            _absAdd(c_digits, abcd_used, a_digits, abcd_used, c_digits);
+          }
+        }
+        if (d_neg == b_neg) {
+          var d_cmp_b =
+              _compareDigits(d_digits, abcd_used, b_digits, abcd_used);
+          if (d_cmp_b > 0) {
+            _absSub(d_digits, abcd_used, b_digits, abcd_used, d_digits);
+          } else {
+            _absSub(b_digits, abcd_used, d_digits, abcd_used, d_digits);
+            d_neg = !d_neg && (d_cmp_ab != 0);
+          }
+        } else {
+          _absAdd(d_digits, abcd_used, b_digits, abcd_used, d_digits);
+        }
+      }
+      // Exit loop if u == 0.
+      var i = m_used;
+      while ((i > 0) && (u_digits[i - 1] == 0)) --i;
+      if (i == 0) break;
+    }
+    if (!inv) {
+      if (s > 0) {
+        m_used = _lShiftDigits(v_digits, m_used, s, v_digits);
+      }
+      return new _Bigint(false, m_used, v_digits)._toValidInt();
+    }
+    // No inverse if v != 1.
+    var i = m_used - 1;
+    while ((i > 0) && (v_digits[i] == 0)) --i;
+    if ((i != 0) || (v_digits[0] != 1)) {
+      throw new Exception("Not coprime");
+    }
+
+    if (d_neg) {
+      if ((d_digits[m_used] != 0) ||
+          (_compareDigits(d_digits, m_used, x_digits, m_used) > 0)) {
+        _absSub(d_digits, abcd_used, x_digits, m_used, d_digits);
+        if ((d_digits[m_used] != 0) ||
+            (_compareDigits(d_digits, m_used, x_digits, m_used) > 0)) {
+          _absSub(d_digits, abcd_used, x_digits, m_used, d_digits);
+        } else {
+          _absSub(x_digits, m_used, d_digits, m_used, d_digits);
+          d_neg = false;
+        }
+      } else {
+        _absSub(x_digits, m_used, d_digits, m_used, d_digits);
+        d_neg = false;
+      }
+    } else if ((d_digits[m_used] != 0) ||
+               (_compareDigits(d_digits, m_used, x_digits, m_used) > 0)) {
+      _absSub(d_digits, abcd_used, x_digits, m_used, d_digits);
+      if ((d_digits[m_used] != 0) ||
+          (_compareDigits(d_digits, m_used, x_digits, m_used) > 0)) {
+        _absSub(d_digits, abcd_used, x_digits, m_used, d_digits);
+      }
+    }
+    return new _Bigint(false, m_used, d_digits)._toValidInt();
+  }
+
+  // Returns 1/this % m, with m > 0.
+  int modInverse(int m) {
+    if (m is! int) {
+      throw new ArgumentError.value(m, "modulus", "not an integer");
+    }
+    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
+    if (m == 1) return 0;
+    m = m._toBigint();
+    var t = this;
+    if (t._neg || (t._absCompare(m) >= 0)) {
+      t %= m;
+      t = t._toBigint();
+    }
+    return _binaryGcd(m, t, true);
+  }
+
+  // Returns gcd of abs(this) and abs(other), with this != 0 and other !=0.
+  int gcd(int other) {
+    if (other is! int) {
+      throw new ArgumentError.value(other, "other", "not an integer");
+    }
+    return _binaryGcd(this, other._toBigint(), false);
   }
 }
 

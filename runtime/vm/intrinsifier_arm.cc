@@ -1570,6 +1570,35 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
 }
 
 
+// Return type quickly for simple types (not parameterized and not signature).
+void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
+  Label fall_through;
+  static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+
+  __ LoadImmediate(TMP, reinterpret_cast<int32_t>(&kSmiCidSource) + 1);
+  __ tst(R0, Operand(kSmiTagMask));
+  __ mov(TMP, Operand(R0), NE);
+  __ LoadClassId(R1, TMP);
+  __ LoadClassById(R2, R1);
+  // R2: class of instance (R0).
+  __ ldr(R3, FieldAddress(R2, Class::signature_function_offset()));
+  __ CompareImmediate(R3, reinterpret_cast<int32_t>(Object::null()));
+  __ b(&fall_through, NE);
+
+  __ ldrh(R3, FieldAddress(R2, Class::num_type_arguments_offset()));
+  __ CompareImmediate(R3, 0);
+  __ b(&fall_through, NE);
+
+  __ ldr(R0, FieldAddress(R2, Class::canonical_types_offset()));
+  __ CompareImmediate(R0, reinterpret_cast<int32_t>(Object::null()));
+  __ b(&fall_through, EQ);
+  __ Ret();
+
+  __ Bind(&fall_through);
+}
+
+
 void Intrinsifier::String_getHashCode(Assembler* assembler) {
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ ldr(R0, FieldAddress(R0, String::hash_offset()));

@@ -23,7 +23,8 @@ class IsolateData {
   explicit IsolateData(const char* url, const char* package_root)
       : script_url(strdup(url)),
         package_root(NULL),
-        udp_receive_buffer(NULL) {
+        udp_receive_buffer(NULL),
+        load_async_id(-1) {
     if (package_root != NULL) {
       this->package_root = strdup(package_root);
     }
@@ -37,6 +38,7 @@ class IsolateData {
   char* script_url;
   char* package_root;
   uint8_t* udp_receive_buffer;
+  int64_t load_async_id;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(IsolateData);

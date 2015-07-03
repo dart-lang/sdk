@@ -72,6 +72,8 @@ void Thread::EnterIsolate(Isolate* isolate) {
   Profiler::BeginExecution(isolate);
   isolate->set_thread_state(thread_state);
   isolate->set_vm_tag(VMTag::kVMTagId);
+  ASSERT(thread->store_buffer_block_ == NULL);
+  thread->store_buffer_block_ = isolate->store_buffer()->PopBlock();
 }
 
 
@@ -80,6 +82,9 @@ void Thread::ExitIsolate() {
   // TODO(koda): Audit callers; they should know whether they're in an isolate.
   if (thread == NULL || thread->isolate() == NULL) return;
   Isolate* isolate = thread->isolate();
+  StoreBufferBlock* block = thread->store_buffer_block_;
+  thread->store_buffer_block_ = NULL;
+  isolate->store_buffer()->PushBlock(block);
   if (isolate->is_runnable()) {
     isolate->set_vm_tag(VMTag::kIdleTagId);
   } else {
@@ -106,10 +111,49 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate) {
 
 void Thread::ExitIsolateAsHelper() {
   Thread* thread = Thread::Current();
+  // If the helper thread chose to use the store buffer, check that it has
+  // already been flushed manually.
+  ASSERT(thread->store_buffer_block_ == NULL);
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   thread->isolate_ = NULL;
   ASSERT(isolate->mutator_thread() != thread);
+}
+
+
+void Thread::PrepareForGC() {
+  Thread* thread = Thread::Current();
+  StoreBuffer* sb = thread->isolate()->store_buffer();
+  StoreBufferBlock* block = thread->store_buffer_block_;
+  thread->store_buffer_block_ = NULL;
+  const bool kCheckThreshold = false;  // Prevent scheduling another GC.
+  sb->PushBlock(block, kCheckThreshold);
+  thread->store_buffer_block_ = sb->PopEmptyBlock();
+}
+
+
+void Thread::StoreBufferBlockProcess(bool check_threshold) {
+  StoreBuffer* sb = isolate()->store_buffer();
+  StoreBufferBlock* block = store_buffer_block_;
+  store_buffer_block_ = NULL;
+  sb->PushBlock(block, check_threshold);
+  store_buffer_block_ = sb->PopBlock();
+}
+
+
+void Thread::StoreBufferAddObject(RawObject* obj) {
+  store_buffer_block_->Push(obj);
+  if (store_buffer_block_->IsFull()) {
+    StoreBufferBlockProcess(true);
+  }
+}
+
+
+void Thread::StoreBufferAddObjectGC(RawObject* obj) {
+  store_buffer_block_->Push(obj);
+  if (store_buffer_block_->IsFull()) {
+    StoreBufferBlockProcess(false);
+  }
 }
 
 

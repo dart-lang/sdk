@@ -87,7 +87,7 @@ main() {
 
   // Nor can it be used to assign to toplevel properties in libraries imported
   // via prefix.
-  Expect.throws(() => h?.topLevelVar = null, noMethod); /// 20: static type warning
-  Expect.throws(() => h?.topLevelVar += null, noMethod); /// 21: static type warning
-  Expect.throws(() => h?.topLevelVar ??= null, noMethod); /// 22: static type warning
+  h?.topLevelVar = null; /// 20: compile-time error
+  h?.topLevelVar += null; /// 21: compile-time error
+  h?.topLevelVar ??= null; /// 22: compile-time error
 }

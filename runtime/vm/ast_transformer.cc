@@ -436,7 +436,8 @@ void AwaitTransformer::VisitInstanceCallNode(InstanceCallNode* node) {
       new(Z) InstanceCallNode(node->token_pos(),
                               new_receiver,
                               node->function_name(),
-                              new_args));
+                              new_args,
+                              node->is_conditional()));
   result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
@@ -469,7 +470,8 @@ void AwaitTransformer::VisitInstanceGetterNode(InstanceGetterNode* node) {
   LocalVariable* result = AddToPreambleNewTempVar(
       new(Z) InstanceGetterNode(node->token_pos(),
                                 new_receiver,
-                                node->field_name()));
+                                node->field_name(),
+                                node->is_conditional()));
   result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 
@@ -484,7 +486,8 @@ void AwaitTransformer::VisitInstanceSetterNode(InstanceSetterNode* node) {
       new(Z) InstanceSetterNode(node->token_pos(),
                                 new_receiver,
                                 node->field_name(),
-                                new_value));
+                                new_value,
+                                node->is_conditional()));
   result_ = new(Z) LoadLocalNode(Scanner::kNoSourcePos, result);
 }
 

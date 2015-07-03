@@ -6,6 +6,7 @@ library context.directory.manager;
 
 import 'dart:async';
 import 'dart:collection';
+import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
@@ -387,11 +388,22 @@ abstract class ContextManager {
   }
 
   /**
+   * Cancel all dependency subscriptions for the given context.
+   */
+  void _cancelDependencySubscriptions(_ContextInfo info) {
+    for (StreamSubscription<WatchEvent> s in info.dependencySubscriptions) {
+      s.cancel();
+    }
+    info.dependencySubscriptions.clear();
+  }
+
+  /**
    * Compute the appropriate package URI resolver for [folder], and store
    * dependency information in [info]. Return `null` if no package map can
    * be computed.
    */
   UriResolver _computePackageUriResolver(Folder folder, _ContextInfo info) {
+    _cancelDependencySubscriptions(info);
     if (info.packageRoot != null) {
       info.packageMapInfo = null;
       JavaFile packagesDir = new JavaFile(info.packageRoot);
@@ -425,6 +437,25 @@ abstract class ContextManager {
             _packageMapProvider.computePackageMap(folder, info.packageMapInfo);
       });
       endComputePackageMap();
+      for (String dependencyPath in packageMapInfo.dependencies) {
+        Resource resource = resourceProvider.getResource(dependencyPath);
+        if (resource is File) {
+          StreamSubscription<WatchEvent> subscription;
+          subscription = resource.changes.listen((WatchEvent event) {
+            if (info.packageMapInfo != null &&
+                info.packageMapInfo.isChangedDependency(
+                    dependencyPath, resourceProvider)) {
+              _recomputePackageUriResolver(info);
+            }
+          }, onError: (error, StackTrace stackTrace) {
+            // Gracefully degrade if file is or becomes unwatchable
+            _instrumentationService.logException(error, stackTrace);
+            subscription.cancel();
+            info.dependencySubscriptions.remove(subscription);
+          });
+          info.dependencySubscriptions.add(subscription);
+        }
+      }
       info.packageMapInfo = packageMapInfo;
       if (packageMapInfo.packageMap == null) {
         return null;
@@ -447,9 +478,14 @@ abstract class ContextManager {
     info.changeSubscription = folder.changes.listen((WatchEvent event) {
       _handleWatchEvent(folder, info, event);
     });
-    UriResolver packageUriResolver = _computePackageUriResolver(folder, info);
-    info.context = addContext(folder, packageUriResolver);
-    info.context.name = folder.path;
+    try {
+      UriResolver packageUriResolver = _computePackageUriResolver(folder, info);
+      info.context = addContext(folder, packageUriResolver);
+      info.context.name = folder.path;
+    } catch (_) {
+      info.changeSubscription.cancel();
+      rethrow;
+    }
     return info;
   }
 
@@ -513,7 +549,9 @@ abstract class ContextManager {
    * Clean up and destroy the context associated with the given folder.
    */
   void _destroyContext(Folder folder) {
-    _contexts[folder].changeSubscription.cancel();
+    _ContextInfo info = _contexts[folder];
+    info.changeSubscription.cancel();
+    _cancelDependencySubscriptions(info);
     removeContext(folder);
     _contexts.remove(folder);
   }
@@ -747,6 +785,13 @@ class _ContextInfo {
    * changes.
    */
   StreamSubscription<WatchEvent> changeSubscription;
+
+  /**
+   * Stream subscriptions we are using to watch the files
+   * used to determine the package map.
+   */
+  final List<StreamSubscription<WatchEvent>> dependencySubscriptions =
+      <StreamSubscription<WatchEvent>>[];
 
   /**
    * The analysis context that was created for the [folder].

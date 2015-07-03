@@ -10,7 +10,8 @@ const DEBUG_FAST_OBJECTS = false;
 /**
  * Call-back for adding property with [name] and [value].
  */
-typedef jsAst.Property AddPropertyFunction(String name, jsAst.Expression value);
+typedef jsAst.Property AddPropertyFunction(jsAst.Name name,
+                                           jsAst.Expression value);
 
 /**
  * [member] is a field (instance, static, or top level).
@@ -31,8 +32,8 @@ typedef jsAst.Property AddPropertyFunction(String name, jsAst.Expression value);
  * type assertions are enabled (checked mode).
  */
 typedef void AcceptField(VariableElement member,
-                         String name,
-                         String accessorName,
+                         jsAst.Name name,
+                         jsAst.Name accessorName,
                          bool needsGetter,
                          bool needsSetter,
                          bool needsCheckedSetter);

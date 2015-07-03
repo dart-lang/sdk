@@ -518,12 +518,12 @@ class Request {
    * have the following format:
    *
    *   {
+   *     'clientRequestTime': millisecondsSinceEpoch
    *     'id': String,
    *     'method': methodName,
    *     'params': {
    *       paramter_name: value
    *     }
-   *     'clientRequestTime': millisecondsSinceEpoch
    *   }
    *
    * where both the parameters and clientRequestTime are optional.
@@ -534,25 +534,48 @@ class Request {
   factory Request.fromString(String data) {
     try {
       var result = JSON.decode(data);
-      if (result is! Map) {
-        return null;
+      if (result is Map) {
+        return new Request.fromJson(result);
       }
-      var id = result[Request.ID];
-      var method = result[Request.METHOD];
-      if (id is! String || method is! String) {
-        return null;
-      }
-      var time = result[Request.CLIENT_REQUEST_TIME];
-      if (time != null && time is! int) {
-        return null;
-      }
-      var params = result[Request.PARAMS];
-      if (params is Map || params == null) {
-        return new Request(id, method, params, time);
-      } else {
-        return null;
-      }
+      return null;
     } catch (exception) {
+      return null;
+    }
+  }
+
+  /**
+   * Return a request parsed from the given json, or `null` if the [data] is
+   * not a valid json representation of a request. The [data] is expected to
+   * have the following format:
+   *
+   *   {
+   *     'clientRequestTime': millisecondsSinceEpoch
+   *     'id': String,
+   *     'method': methodName,
+   *     'params': {
+   *       paramter_name: value
+   *     }
+   *   }
+   *
+   * where both the parameters and clientRequestTime are optional.
+   * The parameters can contain any number of name/value pairs.
+   * The clientRequestTime must be an int representing the time at which
+   * the client issued the request (milliseconds since epoch).
+   */
+  factory Request.fromJson(Map<String, dynamic> result) {
+    var id = result[Request.ID];
+    var method = result[Request.METHOD];
+    if (id is! String || method is! String) {
+      return null;
+    }
+    var time = result[Request.CLIENT_REQUEST_TIME];
+    if (time != null && time is! int) {
+      return null;
+    }
+    var params = result[Request.PARAMS];
+    if (params is Map || params == null) {
+      return new Request(id, method, params, time);
+    } else {
       return null;
     }
   }

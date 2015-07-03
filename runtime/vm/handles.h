@@ -283,6 +283,9 @@ class VMHandles : public Handles<kVMHandleSizeInWords,
   // Returns number of handles, these functions are used for testing purposes.
   static int ScopedHandleCount();
   static int ZoneHandleCount();
+
+  friend class ApiZone;
+  friend class ApiNativeScope;
 };
 
 

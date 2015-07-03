@@ -5,10 +5,12 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
+#include "bin/file.h"
 #include "bin/platform.h"
 #include "bin/log.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
+#include "bin/utils_win.h"
 
 
 namespace dart {
@@ -65,7 +67,7 @@ char** Platform::Environment(intptr_t* count) {
   tmp = strings;
   for (intptr_t current = 0; current < i;) {
     // Skip the strings that were not counted above.
-    if (*tmp != '=') result[current++] = StringUtils::WideToUtf8(tmp);
+    if (*tmp != '=') result[current++] = StringUtilsWin::WideToUtf8(tmp);
     tmp += (wcslen(tmp) + 1);
   }
   FreeEnvironmentStringsW(strings);
@@ -95,9 +97,12 @@ char* Platform::ResolveExecutablePath() {
     free(tmp_buffer);
     return NULL;
   }
-  char* path = StringUtils::WideToUtf8(tmp_buffer);
+  char* path = StringUtilsWin::WideToUtf8(tmp_buffer);
   free(tmp_buffer);
-  return path;
+  // Return the canonical path as the returned path might contain symlinks.
+  char* canon_path = File::GetCanonicalPath(path);
+  free(path);
+  return canon_path;
 }
 
 }  // namespace bin

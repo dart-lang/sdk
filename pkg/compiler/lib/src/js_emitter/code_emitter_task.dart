@@ -216,8 +216,8 @@ class CodeEmitterTask extends CompilerTask {
           backend.retainMetadataOf(cls);
           oldEmitter.classEmitter.visitFields(cls, false,
               (Element member,
-               String name,
-               String accessorName,
+               jsAst.Name name,
+               jsAst.Name accessorName,
                bool needsGetter,
                bool needsSetter,
                bool needsCheckedSetter) {

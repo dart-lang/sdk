@@ -237,6 +237,27 @@ class AnalysisCacheTest extends AbstractCacheTest {
 
 @reflectiveTest
 class CacheEntryTest extends AbstractCacheTest {
+  test_dispose() {
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', -2);
+    AnalysisTarget target1 = new TestSource('1.dart');
+    AnalysisTarget target2 = new TestSource('2.dart');
+    TargetedResult result1 = new TargetedResult(target1, descriptor1);
+    TargetedResult result2 = new TargetedResult(target2, descriptor2);
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    cache.put(entry1);
+    cache.put(entry2);
+    entry1.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
+    entry2.setValue(descriptor2, 2, <TargetedResult>[result1]);
+    // target2 is listed as dependent in target1
+    expect(
+        entry1.getResultData(descriptor1).dependentResults, contains(result2));
+    // dispose entry2, result2 is removed from result1
+    entry2.dispose();
+    expect(entry1.getResultData(descriptor1).dependentResults, isEmpty);
+  }
+
   test_explicitlyAdded() {
     AnalysisTarget target = new TestSource();
     CacheEntry entry = new CacheEntry(target);
@@ -491,10 +512,18 @@ class CacheEntryTest extends AbstractCacheTest {
     entry.setValue(result, 10, TargetedResult.EMPTY_LIST);
     expect(entry.getState(result), CacheState.VALID);
     expect(entry.getValue(result), 10);
+    // listen, expect "result" invalidation event
+    int numberOfEvents = 0;
+    cache.onResultInvalidated.listen((event) {
+      numberOfEvents++;
+      expect(event.entry, same(entry));
+      expect(event.descriptor, same(result));
+    });
     // set INVALID
     entry.setState(result, CacheState.INVALID);
     expect(entry.getState(result), CacheState.INVALID);
     expect(entry.getValue(result), 1);
+    expect(numberOfEvents, 1);
   }
 
   test_setState_invalid_dependencyCycle() {
@@ -510,11 +539,24 @@ class CacheEntryTest extends AbstractCacheTest {
     entry2.setValue(result, 200, [new TargetedResult(target1, result)]);
     expect(entry1.getState(result), CacheState.VALID);
     expect(entry2.getState(result), CacheState.VALID);
+    // Listen, expect entry1.result and entry2.result invalidation events.
+    int numberOfEvents = 0;
+    bool wasEntry1 = false;
+    bool wasEntry2 = false;
+    cache.onResultInvalidated.listen((event) {
+      numberOfEvents++;
+      if (event.entry == entry1) wasEntry1 = true;
+      if (event.entry == entry2) wasEntry2 = true;
+      expect(event.descriptor, same(result));
+    });
     // Invalidate entry1.result; this should cause entry2 to be also
     // cleared without going into an infinite regress.
     entry1.setState(result, CacheState.INVALID);
     expect(cache.get(target1), isNull);
     expect(cache.get(target2), isNull);
+    expect(numberOfEvents, 2);
+    expect(wasEntry1, isTrue);
+    expect(wasEntry2, isTrue);
   }
 
   test_setState_invalid_invalidateDependent() {
@@ -960,6 +1002,37 @@ class SdkCachePartitionTest extends CachePartitionTest {
 class UniversalCachePartitionTest extends CachePartitionTest {
   CachePartition createPartition() {
     return new UniversalCachePartition(null);
+  }
+
+  test_dispose() {
+    InternalAnalysisContext context = new _InternalAnalysisContextMock();
+    CachePartition partition1 = new UniversalCachePartition(context);
+    CachePartition partition2 = new UniversalCachePartition(context);
+    AnalysisCache cache = new AnalysisCache([partition1, partition2]);
+    when(context.analysisCache).thenReturn(cache);
+    // configure
+    // prepare entries
+    ResultDescriptor descriptor1 = new ResultDescriptor('result1', -1);
+    ResultDescriptor descriptor2 = new ResultDescriptor('result2', -2);
+    AnalysisTarget target1 = new TestSource('1.dart');
+    AnalysisTarget target2 = new TestSource('2.dart');
+    TargetedResult result1 = new TargetedResult(target1, descriptor1);
+    TargetedResult result2 = new TargetedResult(target2, descriptor2);
+    CacheEntry entry1 = new CacheEntry(target1);
+    CacheEntry entry2 = new CacheEntry(target2);
+    partition1.put(entry1);
+    partition2.put(entry2);
+    entry1.setValue(descriptor1, 1, TargetedResult.EMPTY_LIST);
+    entry2.setValue(descriptor2, 2, <TargetedResult>[result1]);
+    // target2 is listed as dependent in target1
+    expect(
+        entry1.getResultData(descriptor1).dependentResults, contains(result2));
+    // dispose
+    partition2.dispose();
+    expect(partition1.get(target1), same(entry1));
+    expect(partition2.get(target2), isNull);
+    // result2 is removed from result1
+    expect(entry1.getResultData(descriptor1).dependentResults, isEmpty);
   }
 
   void test_contains() {

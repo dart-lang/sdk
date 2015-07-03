@@ -76,6 +76,7 @@ mirrors/method_mirror_source_line_ending_test : RuntimeError # Issue 6490
 mirrors/method_mirror_location_test: RuntimeError # Issue 6490
 mirrors/mirrors_test: RuntimeError # TODO(ahe): I'm working on fixing this. When removing this line please change the "endsWith" to "/mirrors_test.dart".
 mirrors/mirrors_nsm_test/dart2js: RuntimeError # Issue 19353
+mirrors/mirrors_nsm_mismatch_test: RuntimeError # Issue 19353
 mirrors/mixin_test: RuntimeError # Issue 12464
 mirrors/mixin_application_test: RuntimeError # Issue 12464
 mirrors/other_declarations_location_test: CompileTimeError # Issue 10905
@@ -277,6 +278,7 @@ mirrors/redirecting_factory_test/none: StaticWarning # test issue X, The return 
 mirrors/immutable_collections_test: StaticWarning, OK # Expect failure for any type of Iterable.
 mirrors/inference_and_no_such_method_test: StaticWarning, OK # Expect to trigger noSuchMethod.
 mirrors/mirrors_nsm_test: StaticWarning, OK # Expect to trigger noSuchMethod.
+mirrors/mirrors_nsm_mismatch_test: StaticWarning, OK # Expect to trigger noSuchMethod.
 
 mirrors/repeated_private_anon_mixin_app_test: StaticWarning, OK # Intentional library name conflict.
 mirrors/removed_api_test: StaticWarning, OK # Deliberately refers to undeclared members.
@@ -288,8 +290,6 @@ developer/metrics_test: Fail # Issue 20309
 developer/metrics_num_test: Fail # Issue 20309
 profiler/metrics_test: Fail # Issue 20309
 profiler/metrics_num_test: Fail # Issue 20309
-
-async/future_test: StaticWarning, OK # Deliberately broken implementation.
 
 [ ($compiler == dartanalyzer || $compiler == dart2analyzer) && $checked ]
 mirrors/regress_16321_test/01: MissingCompileTimeError # Issue 16391
@@ -328,315 +328,388 @@ mirrors/immutable_collections_test: SkipSlow  # Timeout.
 convert/streamed_conversion_json_utf8_decode_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
-async/first_regression_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/future_timeout_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/future_value_chain4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-async/multiple_timer_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/schedule_microtask2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/schedule_microtask3_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/schedule_microtask5_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/schedule_microtask_test: Crash # Please triage this failure.
-async/stream_controller_async_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_controller_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-async/stream_first_where_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_from_iterable_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_iterator_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_join_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_last_where_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_listen_zone_test: Crash #  Unhandled node
-async/stream_periodic2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_periodic3_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_periodic4_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_periodic5_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_periodic_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_single_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_single_to_multi_subscriber_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_state_nonzero_timer_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_state_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_subscription_as_future_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_subscription_cancel_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_timeout_test: Crash # Please triage this failure.
-async/stream_transform_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/stream_transformation_broadcast_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/timer_cancel1_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/timer_cancel2_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/timer_cancel_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/timer_isActive_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/timer_repeat_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-async/timer_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-collection/linked_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/ascii_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/chunked_conversion2_test: RuntimeError # Please triage this failure.
-convert/chunked_conversion_utf82_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/chunked_conversion_utf86_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/chunked_conversion_utf87_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/json_chunk_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/json_lib_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-convert/json_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/json_toEncodable_reviver_test: RuntimeError # Please triage this failure.
-convert/json_utf8_chunk_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/json_util_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/latin1_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/line_splitter_test: Crash # Please triage this failure.
-convert/utf82_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/utf8_encode_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-convert/utf8_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-js/null_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-math/math_parse_double_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-math/min_max_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-math/point_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-math/random_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-math/rectangle_test: Crash # Please triage this failure.
-mirrors/abstract_class_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/abstract_class_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/abstract_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/accessor_cache_overflow_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/basic_types_in_dart_core_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/circular_factory_redirection_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/circular_factory_redirection_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/circular_factory_redirection_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/class_declarations_test/01: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/class_declarations_test/none: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/class_mirror_location_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/class_mirror_type_variables_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/closures_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/closurization_equivalence_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/constructor_kinds_test/01: Crash # (=Class.factoryConstructor;): Unhandled node
-mirrors/constructor_kinds_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/constructor_private_name_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/constructors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/dart2js_mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/declarations_type_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/deferred_mirrors_metadata_test: RuntimeError # Please triage this failure.
-mirrors/deferred_mirrors_metatarget_test: RuntimeError # Please triage this failure.
-mirrors/deferred_mirrors_update_test: RuntimeError # Please triage this failure.
-mirrors/deferred_type_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/delegate_call_through_getter_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/delegate_test: RuntimeError # Please triage this failure.
-mirrors/enum_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/equality_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/fake_function_with_call_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/fake_function_without_call_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/field_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/function_type_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_by_type_parameter_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_by_type_parameter_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_by_type_parameter_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_bounded_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_class_declaration_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_f_bounded_mixin_application_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_f_bounded_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_f_bounded_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_function_typedef_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/generic_interface_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_interface_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_local_function_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_mixin_applications_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_mixin_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_superclass_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_superclass_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generic_type_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_double_substitution_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_double_substitution_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_dynamic_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_special_types_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_substitution_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/generics_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/generics_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/globalized_closures2_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/globalized_closures2_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/globalized_closures_test/00: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/globalized_closures_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/hierarchy_invariants_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/hot_get_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/hot_set_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/immutable_collections_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/inference_and_no_such_method_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/inherit_field_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/inherited_metadata_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/initializing_formals_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/initializing_formals_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/initializing_formals_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/instance_members_easier_test: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/instance_members_test: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/instance_members_unimplemented_interface_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/instance_members_with_override_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/instantiate_abstract_class_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/intercepted_cache_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/intercepted_class_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/intercepted_object_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/intercepted_superclass_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_call_on_closure_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_call_through_getter_previously_accessed_test/named: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_call_through_getter_previously_accessed_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_call_through_getter_test/named: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_call_through_getter_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_call_through_implicit_getter_previously_accessed_test/named: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_call_through_implicit_getter_previously_accessed_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_call_through_implicit_getter_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_closurization2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_closurization_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_import_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_named_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_named_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_natives_malicious_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_private_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_private_wrong_library_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/invoke_throws_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/is_odd_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/lazy_static_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/libraries_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_declarations_test/01: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/library_declarations_test/none: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/library_enumeration_deferred_loading_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_exports_hidden_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_exports_shown_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_import_deferred_loading_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_imports_bad_metadata_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_imports_bad_metadata_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_imports_deferred_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_imports_hidden_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_imports_metadata_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_imports_prefixed_show_hide_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_imports_prefixed_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_imports_shown_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/library_uri_package_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/list_constructor_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/list_constructor_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/load_library_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/local_function_is_static_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/local_isolate_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/05: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/08: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/10: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/11: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/13: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/14: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/15: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/16: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/23: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/24: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/25: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/26: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/27: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_allowed_values_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_constructed_constant_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_constructor_arguments_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_constructor_arguments_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_constructor_arguments_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_constructor_arguments_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_constructor_arguments_test/05: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_constructor_arguments_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_constructor_arguments_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_constructor_arguments_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/04: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/05: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/06: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/07: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/08: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/09: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/metadata_nested_constructor_call_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/method_mirror_location_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/method_mirror_name_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/method_mirror_properties_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/method_mirror_returntype_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/method_mirror_source_line_ending_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/method_mirror_source_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/mirrors_nsm_test/dart2js: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mirrors_nsm_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mirrors_reader_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mirrors_resolve_fields_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mirrors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mirrors_used_inheritance_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mixin_application_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mixin_members_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/mixin_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/model_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/native_class_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/new_instance_with_type_arguments_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/no_metadata_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/null2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/null_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/operator_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/parameter_is_const_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/parameter_is_const_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/parameter_of_mixin_app_constructor_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/private_symbol_mangling_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/private_symbol_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/private_types_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/proxy_type_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/raw_type_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/raw_type_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/redirecting_factory_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/redirecting_factory_test/02: Crash # Please triage this failure.
-mirrors/redirecting_factory_test/none: Crash # Please triage this failure.
-mirrors/reflect_class_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflect_class_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflect_class_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflect_model_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_classes_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_classes_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_classes_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_classes_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_function_type_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/reflected_type_special_types_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_test/02: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_test/03: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_typedefs_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/reflected_type_typevars_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/regress_14304_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/regress_19731_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/relation_assignable_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/relation_subclass_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/relation_subtype_test: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/removed_api_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/repeated_private_anon_mixin_app_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/set_field_with_final_inheritance_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/set_field_with_final_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/spawn_function_root_library_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/static_members_easier_test: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/static_members_test: Crash # (=Superclass.inheritedNormalFactory;): Unhandled node
-mirrors/static_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/superclass2_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/superclass_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/symbol_validation_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/symbol_validation_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/synthetic_accessor_properties_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/to_string_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/top_level_accessors_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/type_argument_is_type_variable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/type_variable_is_static_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/type_variable_owner_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/type_variable_owner_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/typearguments_mirror_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/typedef_deferred_library_test: RuntimeError # Please triage this failure.
-mirrors/typedef_reflected_type_test/01: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/typedef_reflected_type_test/none: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/unnamed_library_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-mirrors/variable_is_const_test/01: Crash # Instance of 'TypeOperator': type casts not implemented.
-mirrors/variable_is_const_test/none: Crash # Instance of 'TypeOperator': type casts not implemented.
-profiler/metrics_num_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-profiler/metrics_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-profiler/user_tags_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/constructor_checks_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/float32x4_shuffle_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/float32x4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/int32x4_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/typed_data_list_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
-typed_data/typed_list_iterable_test: Crash # Instance of 'TypeOperator': type check unimplemented for _Nullary.
+async/catch_errors11_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors12_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors13_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors14_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors15_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors16_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors17_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors18_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors19_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors20_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors21_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors22_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors23_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors24_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors25_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors26_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors27_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors28_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors2_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors3_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors4_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors5_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors6_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors7_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors8_test: RuntimeError # receiver.get$_nums is not a function
+async/catch_errors_test: RuntimeError # receiver.get$_nums is not a function
+async/first_regression_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/future_constructor_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/future_delayed_error_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/future_microtask_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/future_test/01: Crash # (()async=>new Future.value(value)): cannot handle async/sync*/async* functions
+async/future_test/none: RuntimeError # receiver.get$_nums is not a function
+async/future_timeout_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/future_value_chain2_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/future_value_chain3_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/future_value_chain4_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/future_value_chain_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/futures_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/intercept_print1_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/intercept_schedule_microtask1_test: RuntimeError # receiver.get$_nums is not a function
+async/intercept_schedule_microtask2_test: RuntimeError # receiver.get$_nums is not a function
+async/intercept_schedule_microtask3_test: RuntimeError # receiver.get$_nums is not a function
+async/intercept_schedule_microtask4_test: RuntimeError # receiver.get$_nums is not a function
+async/intercept_schedule_microtask5_test: RuntimeError # receiver.get$_nums is not a function
+async/intercept_schedule_microtask6_test: RuntimeError # receiver.get$_nums is not a function
+async/multiple_timer_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/print_test/none: RuntimeError # receiver.get$_nums is not a function
+async/run_zoned1_test: RuntimeError # receiver.get$_nums is not a function
+async/run_zoned4_test: RuntimeError # receiver.get$_nums is not a function
+async/run_zoned5_test: RuntimeError # receiver.get$_nums is not a function
+async/run_zoned6_test/none: RuntimeError # receiver.get$_nums is not a function
+async/run_zoned7_test: RuntimeError # receiver.get$_nums is not a function
+async/run_zoned8_test: RuntimeError # receiver.get$_nums is not a function
+async/run_zoned9_test/none: RuntimeError # receiver.get$_nums is not a function
+async/schedule_microtask2_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/schedule_microtask3_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/schedule_microtask5_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/schedule_microtask_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/slow_consumer2_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/slow_consumer3_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/slow_consumer_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace01_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace02_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace03_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace04_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace05_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace06_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace07_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace08_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace09_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace10_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace11_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace12_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace13_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace14_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace15_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace16_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace17_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace18_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace19_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace20_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace21_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace22_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace23_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace24_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stack_trace25_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stream_controller_async_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_controller_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stream_empty_test: Crash # (Future runTest()asy...  cannot handle async/sync*/async* functions
+async/stream_event_transformed_test: RuntimeError # receiver.get$_nums is not a function
+async/stream_first_where_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_from_iterable_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_iterator_double_cancel_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stream_iterator_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_join_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_last_where_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_listen_zone_test: RuntimeError # receiver.get$_nums is not a function
+async/stream_periodic2_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_periodic3_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_periodic4_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_periodic5_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_periodic_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_single_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_single_to_multi_subscriber_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_state_nonzero_timer_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_state_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_subscription_as_future_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_subscription_cancel_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_timeout_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_transform_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_transformation_broadcast_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_transformer_from_handlers_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stream_transformer_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/stream_zones_test: RuntimeError # receiver.get$_nums is not a function
+async/timer_cancel1_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/timer_cancel2_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/timer_cancel_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/timer_isActive_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/timer_regress22626_test: RuntimeError # receiver.get$_collection$_nums is not a function
+async/timer_repeat_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/timer_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/zone_bind_callback_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_bind_callback_unary_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_bind_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_create_periodic_timer_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_create_timer2_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_create_timer_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_debug_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_empty_description2_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_empty_description_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_error_callback_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_fork_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_future_schedule_microtask_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_register_callback_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_register_callback_unary_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_root_bind_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_run_guarded_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_run_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_run_unary_test: RuntimeError # receiver.get$_nums is not a function
+async/zone_value_test: RuntimeError # receiver.get$_collection$_nums is not a function
+convert/ascii_test: RuntimeError # Please triage this failure.
+convert/chunked_conversion_utf88_test: RuntimeError # Please triage this failure.
+convert/codec1_test: RuntimeError # Cannot read property 'prototype' of undefined
+convert/encoding_test: RuntimeError # receiver.get$_collection$_nums is not a function
+convert/html_escape_test: RuntimeError # receiver.get$_collection$_nums is not a function
+convert/json_lib_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+convert/latin1_test: RuntimeError # Please triage this failure.
+convert/line_splitter_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+convert/streamed_conversion_json_decode1_test: RuntimeError # receiver.get$_collection$_nums is not a function
+convert/streamed_conversion_json_encode1_test : RuntimeError # TypeError: receiver.get$_collection$_nums is not a function
+convert/streamed_conversion_json_utf8_decode_test: RuntimeError # receiver.get$_collection$_nums is not a function
+convert/streamed_conversion_json_utf8_encode_test : RuntimeError # TypeError: receiver.get$_collection$_nums is not a function
+convert/streamed_conversion_utf8_decode_test: RuntimeError # receiver.get$_collection$_nums is not a function
+convert/streamed_conversion_utf8_encode_test: RuntimeError # receiver.get$_collection$_nums is not a function
+math/pi_test: RuntimeError # receiver.get$_collection$_nums is not a function
+math/point_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+math/rectangle_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+mirrors/abstract_class_test/00: Crash # Internal Error: No default constructor available.
+mirrors/abstract_class_test/none: Crash # Internal Error: No default constructor available.
+mirrors/abstract_test: Crash # Internal Error: No default constructor available.
+mirrors/accessor_cache_overflow_test: Crash # Internal Error: No default constructor available.
+mirrors/array_tracing2_test: Crash # Internal Error: No default constructor available.
+mirrors/array_tracing3_test: Crash # Internal Error: No default constructor available.
+mirrors/array_tracing_test: Crash # Internal Error: No default constructor available.
+mirrors/basic_types_in_dart_core_test: Crash # Internal Error: No default constructor available.
+mirrors/circular_factory_redirection_test/none: Crash # Internal Error: No default constructor available.
+mirrors/class_declarations_test/01: Crash # Internal Error: No default constructor available.
+mirrors/class_declarations_test/none: Crash # Internal Error: No default constructor available.
+mirrors/class_mirror_location_test: Crash # Internal Error: No default constructor available.
+mirrors/class_mirror_type_variables_test: Crash # Internal Error: No default constructor available.
+mirrors/closures_test: Crash # Internal Error: No default constructor available.
+mirrors/closurization_equivalence_test: Crash # Internal Error: No default constructor available.
+mirrors/constructor_kinds_test/01: Crash # Internal Error: No default constructor available.
+mirrors/constructor_kinds_test/none: Crash # Internal Error: No default constructor available.
+mirrors/constructors_test: Crash # Internal Error: No default constructor available.
+mirrors/dart2js_mirrors_test: Crash # Internal Error: No default constructor available.
+mirrors/declarations_type_test: Crash # Internal Error: No default constructor available.
+mirrors/deferred_mirrors_metadata_test: Crash # Internal Error: No default constructor available.
+mirrors/deferred_mirrors_metatarget_test: Crash # Internal Error: No default constructor available.
+mirrors/deferred_mirrors_update_test : RuntimeError # TypeError: receiver.get$_collection$_nums is not a function
+mirrors/deferred_type_test: Crash # Internal Error: No default constructor available.
+mirrors/delegate_call_through_getter_test : RuntimeError # 
+mirrors/delegate_test : RuntimeError # 
+mirrors/disable_tree_shaking_test: Crash # Internal Error: No default constructor available.
+mirrors/empty_test: Crash # Internal Error: No default constructor available.
+mirrors/enum_test: Crash # Internal Error: No default constructor available.
+mirrors/equality_test: Crash # Internal Error: No default constructor available.
+mirrors/fake_function_with_call_test: Crash # Internal Error: No default constructor available.
+mirrors/fake_function_without_call_test: Crash # Internal Error: No default constructor available.
+mirrors/field_type_test: Crash # Internal Error: No default constructor available.
+mirrors/function_type_mirror_test: Crash # Internal Error: No default constructor available.
+mirrors/generic_bounded_by_type_parameter_test/01: Crash # Internal Error: No default constructor available.
+mirrors/generic_bounded_by_type_parameter_test/02: Crash # Internal Error: No default constructor available.
+mirrors/generic_bounded_by_type_parameter_test/none: Crash # Internal Error: No default constructor available.
+mirrors/generic_bounded_test/01: Crash # Internal Error: No default constructor available.
+mirrors/generic_bounded_test/02: Crash # Internal Error: No default constructor available.
+mirrors/generic_bounded_test/none: Crash # Internal Error: No default constructor available.
+mirrors/generic_class_declaration_test: Crash # Internal Error: No default constructor available.
+mirrors/generic_f_bounded_mixin_application_test: Crash # Internal Error: No default constructor available.
+mirrors/generic_f_bounded_test/01: Crash # Internal Error: No default constructor available.
+mirrors/generic_f_bounded_test/none: Crash # Internal Error: No default constructor available.
+mirrors/generic_function_typedef_test: Crash # Internal Error: No default constructor available.
+mirrors/generic_interface_test/01: Crash # Internal Error: No default constructor available.
+mirrors/generic_interface_test/none: Crash # Internal Error: No default constructor available.
+mirrors/generic_list_test: Crash # Internal Error: No default constructor available.
+mirrors/generic_local_function_test: Crash # Internal Error: No default constructor available.
+mirrors/generic_mixin_applications_test: Crash # Internal Error: No default constructor available.
+mirrors/generic_mixin_test: Crash # Internal Error: No default constructor available.
+mirrors/generic_superclass_test/01: Crash # Internal Error: No default constructor available.
+mirrors/generic_superclass_test/none: Crash # Internal Error: No default constructor available.
+mirrors/generic_type_mirror_test: Crash # Internal Error: No default constructor available.
+mirrors/generics_double_substitution_test/01: Crash # Internal Error: No default constructor available.
+mirrors/generics_double_substitution_test/none: Crash # Internal Error: No default constructor available.
+mirrors/generics_dynamic_test: Crash # Internal Error: No default constructor available.
+mirrors/generics_special_types_test: Crash # Internal Error: No default constructor available.
+mirrors/generics_substitution_test: Crash # Internal Error: No default constructor available.
+mirrors/generics_test/01: Crash # Internal Error: No default constructor available.
+mirrors/generics_test/none: Crash # Internal Error: No default constructor available.
+mirrors/get_field_static_test/00: Crash # Internal Error: No default constructor available.
+mirrors/get_field_static_test/none: Crash # Internal Error: No default constructor available.
+mirrors/globalized_closures2_test/00: Crash # Internal Error: No default constructor available.
+mirrors/globalized_closures2_test/none: Crash # Internal Error: No default constructor available.
+mirrors/globalized_closures_test/00: Crash # Internal Error: No default constructor available.
+mirrors/globalized_closures_test/none: Crash # Internal Error: No default constructor available.
+mirrors/hierarchy_invariants_test: Crash # Internal Error: No default constructor available.
+mirrors/immutable_collections_test: Crash # Internal Error: No default constructor available.
+mirrors/inherit_field_test: Crash # Internal Error: No default constructor available.
+mirrors/initializing_formals_test/01: Crash # Internal Error: No default constructor available.
+mirrors/initializing_formals_test/none: Crash # Internal Error: No default constructor available.
+mirrors/instance_members_easier_test: Crash # Internal Error: No default constructor available.
+mirrors/instance_members_test: Crash # Internal Error: No default constructor available.
+mirrors/instance_members_unimplemented_interface_test: Crash # Internal Error: No default constructor available.
+mirrors/instance_members_with_override_test: Crash # Internal Error: No default constructor available.
+mirrors/instantiate_abstract_class_test: Crash # Internal Error: No default constructor available.
+mirrors/intercepted_cache_test: Crash # Internal Error: No default constructor available.
+mirrors/intercepted_class_test: Crash # Internal Error: No default constructor available.
+mirrors/intercepted_object_test: Crash # Internal Error: No default constructor available.
+mirrors/intercepted_superclass_test: Crash # Internal Error: No default constructor available.
+mirrors/invocation_fuzz_test/emptyarray: Crash # Internal Error: No default constructor available.
+mirrors/invocation_fuzz_test/false: Crash # Internal Error: No default constructor available.
+mirrors/invocation_fuzz_test/none: Crash # Internal Error: No default constructor available.
+mirrors/invocation_fuzz_test/smi: Crash # Internal Error: No default constructor available.
+mirrors/invocation_fuzz_test/string: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_on_closure_test: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_getter_previously_accessed_test/named: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_getter_previously_accessed_test/none: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_getter_test/named: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_getter_test/none: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_implicit_getter_previously_accessed_test/named: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_implicit_getter_previously_accessed_test/none: Crash # Internal Error: No default constructor available.
+mirrors/invoke_call_through_implicit_getter_test: Crash # Internal Error: No default constructor available.
+mirrors/invoke_closurization2_test: Crash # Internal Error: No default constructor available.
+mirrors/invoke_closurization_test: Crash # Internal Error: No default constructor available.
+mirrors/invoke_import_test: Crash # Internal Error: No default constructor available.
+mirrors/invoke_named_test/01: Crash # Internal Error: No default constructor available.
+mirrors/invoke_named_test/none: Crash # Internal Error: No default constructor available.
+mirrors/invoke_natives_malicious_test: Crash # Internal Error: No default constructor available.
+mirrors/invoke_test: Crash # Internal Error: No default constructor available.
+mirrors/invoke_throws_test: Crash # Internal Error: No default constructor available.
+mirrors/is_odd_test: Crash # Internal Error: No default constructor available.
+mirrors/lazy_static_test: Crash # Internal Error: No default constructor available.
+mirrors/libraries_test: Crash # Internal Error: No default constructor available.
+mirrors/library_declarations_test/01: Crash # Internal Error: No default constructor available.
+mirrors/library_declarations_test/none: Crash # Internal Error: No default constructor available.
+mirrors/library_enumeration_deferred_loading_test: Crash # Internal Error: No default constructor available.
+mirrors/library_exports_hidden_test: Crash # Internal Error: No default constructor available.
+mirrors/library_exports_shown_test: Crash # Internal Error: No default constructor available.
+mirrors/library_import_deferred_loading_test: Crash # Internal Error: No default constructor available.
+mirrors/library_imports_bad_metadata_test/none: Crash # Internal Error: No default constructor available.
+mirrors/library_imports_deferred_test: Crash # Internal Error: No default constructor available.
+mirrors/library_imports_hidden_test: Crash # Internal Error: No default constructor available.
+mirrors/library_imports_metadata_test: Crash # Internal Error: No default constructor available.
+mirrors/library_imports_prefixed_show_hide_test: Crash # Internal Error: No default constructor available.
+mirrors/library_imports_prefixed_test: Crash # Internal Error: No default constructor available.
+mirrors/library_imports_shown_test: Crash # Internal Error: No default constructor available.
+mirrors/library_metadata2_test/none: Crash # Internal Error: No default constructor available.
+mirrors/library_metadata_test: Crash # Internal Error: No default constructor available.
+mirrors/library_uri_package_test: Crash # Invalid argument(s)
+mirrors/list_constructor_test/01: Crash # Internal Error: No default constructor available.
+mirrors/list_constructor_test/none: Crash # Internal Error: No default constructor available.
+mirrors/load_library_test: Crash # Internal Error: No default constructor available.
+mirrors/local_function_is_static_test: Crash # Internal Error: No default constructor available.
+mirrors/local_isolate_test: Crash # Internal Error: No default constructor available.
+mirrors/metadata_allowed_values_test/01: Crash # Internal Error: No default constructor available.
+mirrors/metadata_allowed_values_test/05: Crash # Internal Error: No default constructor available.
+mirrors/metadata_allowed_values_test/10: Crash # Internal Error: No default constructor available.
+mirrors/metadata_allowed_values_test/11: Crash # Internal Error: No default constructor available.
+mirrors/metadata_allowed_values_test/13: Crash # Internal Error: No default constructor available.
+mirrors/metadata_allowed_values_test/14: Crash # Internal Error: No default constructor available.
+mirrors/metadata_allowed_values_test/none: Crash # Internal Error: No default constructor available.
+mirrors/metadata_class_mirror_test: Crash # Internal Error: No default constructor available.
+mirrors/metadata_constructed_constant_test: Crash # Internal Error: No default constructor available.
+mirrors/metadata_constructor_arguments_test/none: Crash # Internal Error: No default constructor available.
+mirrors/metadata_nested_constructor_call_test/none: Crash # Internal Error: No default constructor available.
+mirrors/metadata_test: Crash # Internal Error: No default constructor available.
+mirrors/method_mirror_location_test: Crash # Internal Error: No default constructor available.
+mirrors/method_mirror_name_test: Crash # Internal Error: No default constructor available.
+mirrors/method_mirror_properties_test: Crash # Internal Error: No default constructor available.
+mirrors/method_mirror_returntype_test: Crash # Internal Error: No default constructor available.
+mirrors/method_mirror_source_line_ending_test: Crash # Internal Error: No default constructor available.
+mirrors/method_mirror_source_test: Crash # Internal Error: No default constructor available.
+mirrors/mirror_in_static_init_test/none: Crash # Internal Error: No default constructor available.
+mirrors/mirrors_nsm_mismatch_test: Crash # Internal Error: No default constructor available.
+mirrors/mirrors_nsm_test/dart2js: Crash # Internal Error: No default constructor available.
+mirrors/mirrors_nsm_test/none: Crash # Internal Error: No default constructor available.
+mirrors/mirrors_reader_test: Crash # Internal Error: No default constructor available.
+mirrors/mirrors_resolve_fields_test: Crash # Internal Error: No default constructor available.
+mirrors/mirrors_test: Crash # Internal Error: No default constructor available.
+mirrors/mixin_application_test: Crash # Internal Error: No default constructor available.
+mirrors/mixin_members_test: Crash # Internal Error: No default constructor available.
+mirrors/mixin_test: Crash # Internal Error: No default constructor available.
+mirrors/native_class_test: Crash # Internal Error: No default constructor available.
+mirrors/new_instance_optional_arguments_test: Crash # Internal Error: No default constructor available.
+mirrors/new_instance_with_type_arguments_test: Crash # Internal Error: No default constructor available.
+mirrors/no_metadata_test: Crash # Internal Error: No default constructor available.
+mirrors/null2_test: Crash # Internal Error: No default constructor available.
+mirrors/null_test: Crash # Invalid argument(s)
+mirrors/operator_test: Crash # Internal Error: No default constructor available.
+mirrors/parameter_is_const_test/none: Crash # Internal Error: No default constructor available.
+mirrors/parameter_metadata_test: Crash # Internal Error: No default constructor available.
+mirrors/parameter_of_mixin_app_constructor_test: Crash # Internal Error: No default constructor available.
+mirrors/parameter_test/none: Crash # Internal Error: No default constructor available.
+mirrors/private_symbol_mangling_test: Crash # Internal Error: No default constructor available.
+mirrors/private_types_test: Crash # Internal Error: No default constructor available.
+mirrors/proxy_type_test: Crash # Internal Error: No default constructor available.
+mirrors/raw_type_test/01: Crash # Internal Error: No default constructor available.
+mirrors/raw_type_test/none: Crash # Internal Error: No default constructor available.
+mirrors/redirecting_factory_test/01: Crash # Internal Error: No default constructor available.
+mirrors/redirecting_factory_test/02: Crash # Internal Error: No default constructor available.
+mirrors/redirecting_factory_test/none: Crash # Internal Error: No default constructor available.
+mirrors/reflect_class_test/01: Crash # Internal Error: No default constructor available.
+mirrors/reflect_class_test/02: Crash # Internal Error: No default constructor available.
+mirrors/reflect_class_test/none: Crash # Internal Error: No default constructor available.
+mirrors/reflect_model_test: Crash # Internal Error: No default constructor available.
+mirrors/reflect_runtime_type_test: Crash # Internal Error: No default constructor available.
+mirrors/reflect_uninstantiated_class_test: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_classes_test/01: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_classes_test/02: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_classes_test/03: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_classes_test/none: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_function_type_test: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_special_types_test: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_test/01: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_test/02: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_test/03: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_test/none: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_typedefs_test: Crash # Internal Error: No default constructor available.
+mirrors/reflected_type_typevars_test: Crash # Internal Error: No default constructor available.
+mirrors/reflectively_instantiate_uninstantiated_class_test: Crash # Internal Error: No default constructor available.
+mirrors/regress_14304_test: Crash # Internal Error: No default constructor available.
+mirrors/regress_16321_test/01: Crash # Internal Error: No default constructor available.
+mirrors/regress_16321_test/none: Crash # Internal Error: No default constructor available.
+mirrors/regress_19731_test: Crash # Internal Error: No default constructor available.
+mirrors/relation_assignable_test: Crash # Internal Error: No default constructor available.
+mirrors/relation_subclass_test: Crash # Internal Error: No default constructor available.
+mirrors/relation_subtype_test: Crash # Internal Error: No default constructor available.
+mirrors/removed_api_test: Crash # Internal Error: No default constructor available.
+mirrors/repeated_private_anon_mixin_app_test: Crash # Internal Error: No default constructor available.
+mirrors/set_field_with_final_inheritance_test: Crash # Internal Error: No default constructor available.
+mirrors/set_field_with_final_test: Crash # Internal Error: No default constructor available.
+mirrors/spawn_function_root_library_test: Crash # Internal Error: No default constructor available.
+mirrors/static_members_easier_test: Crash # Internal Error: No default constructor available.
+mirrors/static_members_test: Crash # Internal Error: No default constructor available.
+mirrors/static_test: Crash # Internal Error: No default constructor available.
+mirrors/superclass2_test: Crash # Internal Error: No default constructor available.
+mirrors/superclass_test: Crash # Internal Error: No default constructor available.
+mirrors/symbol_validation_test/01: Crash # Internal Error: No default constructor available.
+mirrors/symbol_validation_test/none: RuntimeError # Please triage this failure.
+mirrors/syntax_error_test/none: Crash # Internal Error: No default constructor available.
+mirrors/synthetic_accessor_properties_test: Crash # Internal Error: No default constructor available.
+mirrors/to_string_test: Crash # Internal Error: No default constructor available.
+mirrors/top_level_accessors_test: Crash # Internal Error: No default constructor available.
+mirrors/type_argument_is_type_variable_test: Crash # Internal Error: No default constructor available.
+mirrors/type_variable_is_static_test: Crash # Internal Error: No default constructor available.
+mirrors/type_variable_owner_test/01: Crash # Internal Error: No default constructor available.
+mirrors/type_variable_owner_test/none: Crash # Internal Error: No default constructor available.
+mirrors/typearguments_mirror_test: Crash # Internal Error: No default constructor available.
+mirrors/typedef_deferred_library_test : RuntimeError # TypeError: receiver.get$_collection$_nums is not a function
+mirrors/typedef_metadata_test: Crash # Internal Error: No default constructor available.
+mirrors/typedef_reflected_type_test/01: Crash # Internal Error: No default constructor available.
+mirrors/typedef_reflected_type_test/none: Crash # Internal Error: No default constructor available.
+mirrors/typedef_test: Crash # Internal Error: No default constructor available.
+mirrors/unnamed_library_test: Crash # Internal Error: No default constructor available.
+mirrors/variable_is_const_test/none: Crash # Internal Error: No default constructor available.
+typed_data/typed_data_list_test: RuntimeError # Please triage this failure.

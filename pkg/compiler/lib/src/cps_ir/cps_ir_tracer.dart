@@ -175,13 +175,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     printStmt(dummy, "InvokeConstructor $callName ($args) $kont");
   }
 
-  visitConcatenateStrings(cps_ir.ConcatenateStrings node) {
-    String dummy = names.name(node);
-    String args = node.arguments.map(formatReference).join(', ');
-    String kont = formatReference(node.continuation);
-    printStmt(dummy, "ConcatenateStrings ($args) $kont");
-  }
-
   visitThrow(cps_ir.Throw node) {
     String dummy = names.name(node);
     String value = formatReference(node.value);
@@ -191,6 +184,11 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitRethrow(cps_ir.Rethrow node) {
     String dummy = names.name(node);
     printStmt(dummy, "Rethrow");
+  }
+
+  visitUnreachable(cps_ir.Unreachable node) {
+    String dummy = names.name(node);
+    printStmt(dummy, 'Unreachable');
   }
 
   visitLiteralList(cps_ir.LiteralList node) {
@@ -210,13 +208,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     printStmt(dummy, "LiteralMap (${entries.join(', ')})");
   }
 
-  visitTypeOperator(cps_ir.TypeOperator node) {
+  visitTypeCast(cps_ir.TypeCast node) {
     String dummy = names.name(node);
-    String operator = node.isTypeTest ? 'is' : 'as';
-    List<String> entries = new List<String>();
     String value = formatReference(node.value);
+    String args = node.typeArguments.map(formatReference).join(', ');
     String kont = formatReference(node.continuation);
-    printStmt(dummy, "TypeOperator ($operator $value ${node.type}) $kont");
+    printStmt(dummy, "TypeCast ($value ${node.type} ($args)) $kont");
   }
 
   visitInvokeContinuation(cps_ir.InvokeContinuation node) {
@@ -319,12 +316,6 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     return 'CreateInstance $className ($arguments) <$typeInformation>';
   }
 
-  visitIdentical(cps_ir.Identical node) {
-    String left = formatReference(node.left);
-    String right = formatReference(node.right);
-    return "Identical($left, $right)";
-  }
-
   visitInterceptor(cps_ir.Interceptor node) {
     return "Interceptor(${formatReference(node.input)})";
   }
@@ -360,6 +351,28 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
     String args = node.arguments.map(formatReference).join(', ');
     return "CreateInvocationMirror(${node.selector.name}, $args)";
+  }
+
+  visitTypeTest(cps_ir.TypeTest node) {
+    String value = formatReference(node.value);
+    String args = node.typeArguments.map(formatReference).join(', ');
+    return "TypeTest ($value ${node.type} ($args))";
+  }
+
+  visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
+    String operator = node.operator.toString();
+    String args = node.arguments.map(formatReference).join(', ');
+    return 'ApplyBuiltinOperator $operator ($args)';
+  }
+
+  @override
+  visitForeignCode(cps_ir.ForeignCode node) {
+    String id = names.name(node);
+    String arguments = node.arguments.map(formatReference).join(', ');
+    String continuation = node.continuation == null ? ''
+        : ' ${formatReference(node.continuation)}';
+    printStmt(id, "ForeignCode ${node.type} ${node.codeTemplate.source} "
+        "$arguments $continuation");
   }
 }
 
@@ -487,14 +500,13 @@ class BlockCollector implements cps_ir.Visitor {
     addEdgeToContinuation(exp.continuation);
   }
 
-  visitConcatenateStrings(cps_ir.ConcatenateStrings exp) {
-    addEdgeToContinuation(exp.continuation);
-  }
-
   visitThrow(cps_ir.Throw exp) {
   }
 
   visitRethrow(cps_ir.Rethrow exp) {
+  }
+
+  visitUnreachable(cps_ir.Unreachable node) {
   }
 
   visitSetMutableVariable(cps_ir.SetMutableVariable exp) {
@@ -524,7 +536,7 @@ class BlockCollector implements cps_ir.Visitor {
     }
   }
 
-  visitTypeOperator(cps_ir.TypeOperator exp) {
+  visitTypeCast(cps_ir.TypeCast exp) {
     addEdgeToContinuation(exp.continuation);
   }
 
@@ -544,42 +556,51 @@ class BlockCollector implements cps_ir.Visitor {
   visitLiteralList(cps_ir.LiteralList node) {
     unexpectedNode(node);
   }
+
   visitLiteralMap(cps_ir.LiteralMap node) {
     unexpectedNode(node);
   }
+
   visitConstant(cps_ir.Constant node) {
     unexpectedNode(node);
   }
+
   visitCreateFunction(cps_ir.CreateFunction node) {
     unexpectedNode(node);
   }
+
   visitGetMutableVariable(cps_ir.GetMutableVariable node) {
     unexpectedNode(node);
   }
+
   visitParameter(cps_ir.Parameter node) {
     unexpectedNode(node);
   }
+
   visitMutableVariable(cps_ir.MutableVariable node) {
     unexpectedNode(node);
   }
+
   visitGetField(cps_ir.GetField node) {
     unexpectedNode(node);
   }
+
   visitGetStatic(cps_ir.GetStatic node) {
     unexpectedNode(node);
   }
+
   visitCreateBox(cps_ir.CreateBox node) {
     unexpectedNode(node);
   }
+
   visitCreateInstance(cps_ir.CreateInstance node) {
     unexpectedNode(node);
   }
+
   visitIsTrue(cps_ir.IsTrue node) {
     unexpectedNode(node);
   }
-  visitIdentical(cps_ir.Identical node) {
-    unexpectedNode(node);
-  }
+
   visitInterceptor(cps_ir.Interceptor node) {
     unexpectedNode(node);
   }
@@ -602,5 +623,20 @@ class BlockCollector implements cps_ir.Visitor {
 
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
     unexpectedNode(node);
+  }
+
+  visitTypeTest(cps_ir.TypeTest node) {
+    unexpectedNode(node);
+  }
+
+  visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
+    unexpectedNode(node);
+  }
+
+  @override
+  visitForeignCode(cps_ir.ForeignCode node) {
+    if (node.continuation != null) {
+      addEdgeToContinuation(node.continuation);
+    }
   }
 }

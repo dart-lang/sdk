@@ -26,6 +26,29 @@ class BufferedEventSink implements EventSink<String> {
   }
 }
 
+class CloningEventSink implements EventSink<String> {
+  final List<EventSink<String>> sinks;
+
+  CloningEventSink(this.sinks);
+
+  @override
+  void add(String event) {
+    sinks.forEach((EventSink<String> sink) => sink.add(event));
+  }
+
+  @override
+  void addError(errorEvent, [StackTrace stackTrace]) {
+    sinks.forEach((EventSink<String> sink) {
+      sink.addError(errorEvent, stackTrace);
+    });
+  }
+
+  @override
+  void close() {
+    sinks.forEach((EventSink<String> sink) => sink.close());
+  }
+}
+
 class OutputCollector {
   Map<String, Map<String, BufferedEventSink>> outputMap = {};
 

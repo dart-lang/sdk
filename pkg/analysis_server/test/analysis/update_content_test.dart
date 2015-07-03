@@ -205,7 +205,7 @@ f() {}
     await server.onAnalysisComplete;
     // clear errors and make a no-op change
     filesErrors.clear();
-    server.test_flushResolvedUnit(testFile);
+    server.test_flushAstStructures(testFile);
     server.updateContent('2', {
       testFile: new ChangeContentOverlay([new SourceEdit(0, 4, 'main')])
     });

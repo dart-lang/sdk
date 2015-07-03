@@ -27,6 +27,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, support_debugger);
+DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   RA : return address.
@@ -44,11 +45,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ Comment("CallToRuntimeStub");
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
   __ LoadIsolate(S6);
@@ -112,11 +109,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -153,11 +146,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ Comment("CallNativeCFunctionStub");
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
   __ LoadIsolate(S6);
@@ -229,11 +218,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -251,11 +236,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   __ SetPrologueOffset();
   __ Comment("CallNativeCFunctionStub");
-  __ addiu(SP, SP, Immediate(-3 * kWordSize));
-  __ sw(ZR, Address(SP, 2 * kWordSize));  // Push 0 for the PC marker
-  __ sw(RA, Address(SP, 1 * kWordSize));
-  __ sw(FP, Address(SP, 0 * kWordSize));
-  __ mov(FP, SP);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << S6)) != 0);
   __ LoadIsolate(S6);
@@ -322,11 +303,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   // Reset exit frame information in Isolate structure.
   __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
 
-  __ mov(SP, FP);
-  __ lw(RA, Address(SP, 1 * kWordSize));
-  __ lw(FP, Address(SP, 0 * kWordSize));
-  __ Ret();
-  __ delay_slot()->addiu(SP, SP, Immediate(3 * kWordSize));
+  __ LeaveStubFrameAndReturn();
 }
 
 
@@ -591,7 +568,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
-  __ EnterStubFrame(true);
+  __ EnterStubFrame();
   if (preserve_result) {
     __ Push(T1);  // Preserve result, it will be GC-d here.
   }
@@ -621,6 +598,41 @@ void StubCode::GenerateDeoptimizeLazyStub(Assembler* assembler) {
 
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   GenerateDeoptimizationSequence(assembler, false);  // Don't preserve V0.
+}
+
+
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  __ BranchNotEqual(T0, Object::null_object(), call_target_function);
+  __ EnterStubFrame();
+  // Load the receiver.
+  __ lw(A1, FieldAddress(S4, ArgumentsDescriptor::count_offset()));
+  __ sll(TMP, A1, 1);  // A1 is a Smi.
+  __ addu(TMP, FP, TMP);
+  __ lw(T6, Address(TMP, kParamEndSlotFromFp * kWordSize));
+
+  // Push space for the return value.
+  // Push the receiver.
+  // Push IC data object.
+  // Push arguments descriptor array.
+  // Push original arguments array.
+  __ addiu(SP, SP, Immediate(-4 * kWordSize));
+  __ LoadImmediate(TMP, reinterpret_cast<intptr_t>(Object::null()));
+  __ sw(TMP, Address(SP, 3 * kWordSize));
+  __ sw(T6, Address(SP, 2 * kWordSize));
+  __ sw(S5, Address(SP, 1 * kWordSize));
+  __ sw(S4, Address(SP, 0 * kWordSize));
+  // A1: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+  const intptr_t kNumArgs = 4;
+  __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
+  __ lw(V0, Address(SP, 4 * kWordSize));  // Return value.
+  __ addiu(SP, SP, Immediate(5 * kWordSize));
+  __ LeaveStubFrame();
+  __ Ret();
 }
 
 
@@ -656,6 +668,12 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ addiu(SP, SP, Immediate(6 * kWordSize));
 
   __ LeaveStubFrame();
+
+  if (!FLAG_lazy_dispatchers) {
+    Label call_target_function;
+    GenerateDispatcherCode(assembler, &call_target_function);
+    __ Bind(&call_target_function);
+  }
 
   __ lw(T2, FieldAddress(T0, Function::instructions_offset()));
   __ AddImmediate(T2, Instructions::HeaderSize() - kHeapObjectTag);
@@ -1098,15 +1116,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ ori(T2, T2, Immediate(1 << RawObject::kRememberedBit));
   __ sw(T2, FieldAddress(T0, Object::tags_offset()));
 
-  // Load the isolate.
-  // Spilled: T1, T2, T3.
-  // T0: Address being stored.
-  __ LoadIsolate(T1);
-
-  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
-  // T1: Isolate.
-  __ lw(T1, Address(T1, Isolate::store_buffer_offset()));
+  __ lw(T1, Address(THR, Thread::store_buffer_block_offset()));
   __ lw(T2, Address(T1, StoreBufferBlock::top_offset()));
   __ sll(T3, T2, 2);
   __ addu(T3, T1, T3);
@@ -1132,7 +1144,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(1 * kWordSize);
-  __ LoadIsolate(A0);
+  __ mov(A0, THR);
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   __ Comment("UpdateStoreBufferStub return");
   // Restore callee-saved registers, tear down frame.
@@ -1166,7 +1178,8 @@ void StubCode::GenerateAllocationStubForClass(
     __ lw(T1, Address(SP, 0 * kWordSize));
     // T1: type arguments.
   }
-  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size) &&
+      !cls.trace_allocation()) {
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
@@ -1249,7 +1262,7 @@ void StubCode::GenerateAllocationStubForClass(
   // T1: new object type arguments (instantiated or not).
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
+  __ EnterStubFrame();  // Uses pool pointer to pass cls to runtime.
   __ LoadObject(TMP, cls);
 
   __ addiu(SP, SP, Immediate(-3 * kWordSize));
@@ -1598,7 +1611,12 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ LeaveStubFrame();
 
   Label call_target_function;
-  __ b(&call_target_function);
+  if (!FLAG_lazy_dispatchers) {
+    __ mov(T0, T3);
+    GenerateDispatcherCode(assembler, &call_target_function);
+  } else {
+    __ b(&call_target_function);
+  }
 
   __ Bind(&found);
   __ Comment("Update caller's counter");

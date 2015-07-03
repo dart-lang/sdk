@@ -193,11 +193,11 @@ abstract class Dart2JsElementMirror extends Dart2JsDeclarationMirror {
     Script script = getScript();
     SourceSpan span;
     if (beginToken == null) {
-      span = new SourceSpan(script.readableUri, 0, 0);
+      span = new SourceSpan(script.resourceUri, 0, 0);
     } else {
       Token endToken = getEndToken();
       span = mirrorSystem.compiler.spanFromTokens(
-          beginToken, endToken, script.readableUri);
+          beginToken, endToken, script.resourceUri);
     }
     return new Dart2JsSourceLocation(script, span);
   }

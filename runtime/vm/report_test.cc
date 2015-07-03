@@ -15,7 +15,7 @@ TEST_CASE(TraceJSWarning) {
   const String& url = String::Handle(isolate, String::New("Plug"));
   const String& source = String::Handle(isolate, String::New("240 100"));
   const Script& script = Script::Handle(isolate,
-      Script::New(url, source, RawScript::kScriptTag));
+      Script::New(url, source, RawScript::kEvaluateTag));
   script.Tokenize(String::Handle(String::New("")));
   {
     const intptr_t token_pos = 0;
@@ -29,10 +29,11 @@ TEST_CASE(TraceJSWarning) {
                        js.ToCString());
       // Skip time.
       EXPECT_SUBSTRING("\"message\":{\"type\":\"JSCompatibilityWarning\","
-                       "\"script\":{\"type\":\"@Script\",\"fixedId\":true,"
-                       "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
-                       "\"uri\":\"Plug\","
-                       "\"_kind\":\"script\"},\"tokenPos\":0,"
+                       "\"script\":{\"type\":\"@Script\"",
+                       js.ToCString());
+      // Skip object ring id.
+      EXPECT_SUBSTRING("\"uri\":\"Plug\","
+                       "\"_kind\":\"evaluate\"},\"tokenPos\":0,"
                        "\"message\":{\"type\":\"@Instance\"",
                        js.ToCString());
       // Skip private _OneByteString.
@@ -47,10 +48,11 @@ TEST_CASE(TraceJSWarning) {
   }
   EXPECT_EQ(2, trace_buffer->Length());
   EXPECT_SUBSTRING("{\"type\":\"JSCompatibilityWarning\",\"script\":{\"type\":"
-                   "\"@Script\",\"fixedId\":true,"
-                   "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
-                   "\"uri\":\"Plug\","
-                   "\"_kind\":\"script\"},\"tokenPos\":0,"
+                   "\"@Script\"",
+                   trace_buffer->At(0)->message);
+  // Skip object ring id.
+  EXPECT_SUBSTRING("\"uri\":\"Plug\","
+                   "\"_kind\":\"evaluate\"},\"tokenPos\":0,"
                    "\"message\":{\"type\":\"@Instance\"",
                    trace_buffer->At(0)->message);
   // Skip private _OneByteString.
@@ -58,10 +60,11 @@ TEST_CASE(TraceJSWarning) {
                    trace_buffer->At(0)->message);
 
   EXPECT_SUBSTRING("{\"type\":\"JSCompatibilityWarning\",\"script\":{\"type\":"
-                   "\"@Script\",\"fixedId\":true,"
-                   "\"id\":\"libraries\\/-1\\/scripts\\/Plug\","
-                   "\"uri\":\"Plug\","
-                   "\"_kind\":\"script\"},\"tokenPos\":1,"
+                   "\"@Script\"",
+                   trace_buffer->At(1)->message);
+  // Skip object ring id.
+  EXPECT_SUBSTRING("\"uri\":\"Plug\","
+                   "\"_kind\":\"evaluate\"},\"tokenPos\":1,"
                    "\"message\":{\"type\":\"@Instance\"",
                    trace_buffer->At(1)->message);
   // Skip private _OneByteString.

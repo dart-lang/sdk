@@ -172,6 +172,11 @@ ObjectGraph::~ObjectGraph() {
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
+  PageSpace* old_space = isolate()->heap()->old_space();
+  MonitorLocker ml(old_space->tasks_lock());
+  while (old_space->tasks() > 0) {
+    ml.Wait();
+  }
   Stack stack(isolate());
   isolate()->VisitObjectPointers(&stack, false, false);
   stack.TraverseGraph(visitor);
@@ -182,6 +187,11 @@ void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
 void ObjectGraph::IterateObjectsFrom(const Object& root,
                                      ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
+  PageSpace* old_space = isolate()->heap()->old_space();
+  MonitorLocker ml(old_space->tasks_lock());
+  while (old_space->tasks() > 0) {
+    ml.Wait();
+  }
   Stack stack(isolate());
   RawObject* root_raw = root.raw();
   stack.VisitPointer(&root_raw);

@@ -268,6 +268,16 @@ void Assembler::movw(const Address& dst, Register src) {
 }
 
 
+void Assembler::movw(const Address& dst, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandSizeOverride();
+  EmitUint8(0xC7);
+  EmitOperand(0, dst);
+  EmitUint8(imm.value() & 0xFF);
+  EmitUint8((imm.value() >> 8) & 0xFF);
+}
+
+
 void Assembler::leal(Register dst, const Address& src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitUint8(0x8D);
@@ -1414,6 +1424,24 @@ void Assembler::cmpl(const Address& address, Register reg) {
 void Assembler::cmpl(const Address& address, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitComplex(7, address, imm);
+}
+
+
+void Assembler::cmpw(Register reg, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandSizeOverride();
+  EmitUint8(0x3B);
+  EmitOperand(reg, address);
+}
+
+
+void Assembler::cmpw(const Address& address, const Immediate& imm) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandSizeOverride();
+  EmitUint8(0x81);
+  EmitOperand(7, address);
+  EmitUint8(imm.value() & 0xFF);
+  EmitUint8((imm.value() >> 8) & 0xFF);
 }
 
 
@@ -2989,7 +3017,7 @@ void Assembler::SmiUntagOrCheckClass(Register object,
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   ASSERT(result != object);
   static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
 
@@ -3003,7 +3031,11 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   // Otherwise, the dummy object is used, and the result is kSmiCid.
   cmovne(result, object);
   LoadClassId(result, result);
+}
 
+
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  LoadClassIdMayBeSmi(result, object);
   // Tag the result.
   SmiTag(result);
 }

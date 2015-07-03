@@ -12,16 +12,16 @@ class ContainerBuilder extends CodeEmitterHelper {
 
   void addMemberMethod(DartMethod method, ClassBuilder builder) {
     MethodElement member = method.element;
-    String name = method.name;
+    jsAst.Name name = method.name;
     FunctionSignature parameters = member.functionSignature;
     jsAst.Expression code = method.code;
     bool needsStubs = method.parameterStubs.isNotEmpty;
     bool canBeApplied = method.canBeApplied;
     bool canBeReflected = method.canBeReflected;
     bool canTearOff = method.needsTearOff;
-    String tearOffName = method.tearOffName;
+    jsAst.Name tearOffName = method.tearOffName;
     bool isClosure = method is InstanceMethod && method.isClosure;
-    String superAlias = method is InstanceMethod ? method.aliasName : null;
+    jsAst.Name superAlias = method is InstanceMethod ? method.aliasName : null;
     bool hasSuperAlias = superAlias != null;
     jsAst.Expression memberTypeExpression = method.functionType;
 
@@ -77,7 +77,7 @@ class ContainerBuilder extends CodeEmitterHelper {
 
     // Create the optional aliasing entry if this method is called via super.
     if (hasSuperAlias) {
-      expressions.add(new jsAst.LiteralString('"${superAlias}"'));
+      expressions.add(js.quoteName(superAlias));
     }
 
     expressions.add(code);
@@ -93,9 +93,11 @@ class ContainerBuilder extends CodeEmitterHelper {
       return;
     }
 
-    String callSelectorString = 'null';
-    if (method.callName != null) {
-      callSelectorString = '"${method.callName}"';
+    jsAst.Literal callSelectorString;
+    if (method.callName == null) {
+      callSelectorString = new jsAst.LiteralNull();
+    } else {
+      callSelectorString = js.quoteName(method.callName);
     }
 
     // On [requiredParameterCount], the lower bit is set if this method can be
@@ -106,54 +108,53 @@ class ContainerBuilder extends CodeEmitterHelper {
     int optionalParameterCount = parameters.optionalParameterCount << 1;
     if (parameters.optionalParametersAreNamed) optionalParameterCount++;
 
-    // TODO(sra): Don't use LiteralString for non-strings.
-    List tearOffInfo = [new jsAst.LiteralString(callSelectorString)];
+    List tearOffInfo = [callSelectorString];
 
     for (ParameterStubMethod stub in method.parameterStubs) {
-      String invocationName = stub.name;
+      jsAst.Name invocationName = stub.name;
       emitter.interceptorEmitter
           .recordMangledNameOfMemberMethod(member, invocationName);
 
       expressions.add(stub.code);
       if (member.isInstanceMember) {
-        expressions.add(js.string(invocationName));
+        expressions.add(js.quoteName(invocationName));
       }
-      String callName = stub.callName;
-      String callSelectorString = (callName == null) ? 'null' : '"$callName"';
-      tearOffInfo.add(new jsAst.LiteralString(callSelectorString));
+      jsAst.Name callName = stub.callName;
+      jsAst.Literal callSelectorString =
+          (callName == null) ? new jsAst.LiteralNull() : js.quoteName(callName);
+      tearOffInfo.add(callSelectorString);
     }
 
     expressions
         ..addAll(tearOffInfo)
         ..add((tearOffName == null || member.isAccessor)
-              ? js("null") : js.string(tearOffName))
+              ? js("null") : js.quoteName(tearOffName))
         ..add(js.number(requiredParameterCount))
         ..add(js.number(optionalParameterCount))
         ..add(memberTypeExpression == null ? js("null") : memberTypeExpression)
-        ..addAll(task.metadataCollector
-            .reifyDefaultArguments(member).map(js.number));
+        ..addAll(task.metadataCollector.reifyDefaultArguments(member));
 
     if (canBeReflected || canBeApplied) {
       parameters.forEachParameter((Element parameter) {
-        expressions.add(
-            js.number(task.metadataCollector.reifyName(parameter.name)));
+        expressions.add(task.metadataCollector.reifyName(parameter.name));
         if (backend.mustRetainMetadata) {
-          Iterable<int> metadataIndices =
+          Iterable<jsAst.Expression> metadataIndices =
               parameter.metadata.map((MetadataAnnotation annotation) {
             ConstantValue constant =
                 backend.constants.getConstantValueForMetadata(annotation);
             backend.constants.addCompileTimeConstantForEmission(constant);
             return task.metadataCollector.reifyMetadata(annotation);
           });
-          expressions.add(new jsAst.ArrayInitializer(
-              metadataIndices.map(js.number).toList()));
+          expressions.add(new jsAst.ArrayInitializer(metadataIndices.toList()));
         }
       });
     }
     if (canBeReflected) {
       jsAst.LiteralString reflectionName;
       if (member.isConstructor) {
-        String reflectionNameString = emitter.getReflectionName(member, name);
+        // TODO(herhut): This registers name as a mangled name. Do we need this
+        //               given that we use a different name below?
+        emitter.getReflectionName(member, name);
         reflectionName =
             new jsAst.LiteralString(
                 '"new ${Elements.reconstructConstructorName(member)}"');
@@ -163,8 +164,7 @@ class ContainerBuilder extends CodeEmitterHelper {
       }
       expressions
           ..add(reflectionName)
-          ..addAll(task.metadataCollector
-              .computeMetadata(member).map(js.number));
+          ..addAll(task.metadataCollector.computeMetadata(member));
     } else if (isClosure && canBeApplied) {
       expressions.add(js.string(namer.privateName(member.memberName)));
     }

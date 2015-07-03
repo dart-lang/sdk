@@ -18,6 +18,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, lazy_dispatchers);
+
 #define PROPAGATE_IF_MALFORMED(type)                                           \
   if (type.IsMalformed()) {                                                    \
     Exceptions::PropagateError(Error::Handle(type.error()));                   \
@@ -47,6 +49,7 @@ static void ThrowNoSuchMethod(const Instance& receiver,
                               const String& function_name,
                               const Function& function,
                               const Array& arguments,
+                              const Array& argument_names,
                               const InvocationMirror::Call call,
                               const InvocationMirror::Type type) {
   const Smi& invocation_type = Smi::Handle(Smi::New(
@@ -57,19 +60,26 @@ static void ThrowNoSuchMethod(const Instance& receiver,
   args.SetAt(1, function_name);
   args.SetAt(2, invocation_type);
   args.SetAt(3, arguments);
-  // TODO(rmacnak): Argument 4 (attempted argument names).
+  if (!argument_names.IsNull() && (argument_names.Length() > 0)) {
+    // Empty and null are treated differently for some reason. Don't pass empty
+    // to match the non-reflective error.
+    args.SetAt(4, argument_names);
+  }
   if (!function.IsNull()) {
-    const intptr_t total_num_parameters = function.NumParameters();
-    const Array& array = Array::Handle(Array::New(total_num_parameters));
-    String& param_name = String::Handle();
-    for (int i = 0; i < total_num_parameters; i++) {
-      param_name = function.ParameterNameAt(i);
-      array.SetAt(i, param_name);
-    }
+    const Array& array = Array::Handle(Array::New(1));
+    array.SetAt(0, String::Handle(function.UserVisibleFormalParameters()));
     args.SetAt(5, array);
   }
 
-  Exceptions::ThrowByType(Exceptions::kNoSuchMethod, args);
+  const Library& libcore = Library::Handle(Library::CoreLibrary());
+  const Class& NoSuchMethodError = Class::Handle(
+      libcore.LookupClass(Symbols::NoSuchMethodError()));
+  const Function& throwNew = Function::Handle(
+      NoSuchMethodError.LookupFunctionAllowPrivate(Symbols::ThrowNew()));
+  const Object& result = Object::Handle(
+      DartEntry::InvokeFunction(throwNew, args));
+  ASSERT(result.IsError());
+  Exceptions::PropagateError(Error::Cast(result));
   UNREACHABLE();
 }
 
@@ -672,6 +682,7 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
                       getter_name,
                       getter,
                       Object::null_array(),
+                      Object::null_array(),
                       InvocationMirror::kTopLevel,
                       InvocationMirror::kGetter);
     UNREACHABLE();
@@ -710,6 +721,7 @@ static RawInstance* InvokeClassGetter(const Class& klass,
                           getter_name,
                           getter,
                           Object::null_array(),
+                          Object::null_array(),
                           InvocationMirror::kStatic,
                           InvocationMirror::kGetter);
         UNREACHABLE();
@@ -726,37 +738,6 @@ static RawInstance* InvokeClassGetter(const Class& klass,
     return ReturnResult(result);
   }
   return field.value();
-}
-
-
-static RawInstance* InvokeInstanceGetter(const Class& klass,
-                                         const Instance& reflectee,
-                                         const String& getter_name,
-                                         const bool throw_nsm_if_absent) {
-  const String& internal_getter_name = String::Handle(
-      Field::GetterName(getter_name));
-  Function& function = Function::Handle(
-      Resolver::ResolveDynamicAnyArgs(klass, internal_getter_name));
-
-  if (!function.IsNull() || throw_nsm_if_absent) {
-    const int kNumArgs = 1;
-    const Array& args = Array::Handle(Array::New(kNumArgs));
-    args.SetAt(0, reflectee);
-    const Array& args_descriptor =
-        Array::Handle(ArgumentsDescriptor::New(args.Length()));
-
-    // InvokeDynamic invokes NoSuchMethod if the provided function is null.
-    return InvokeDynamicFunction(reflectee,
-                                 function,
-                                 internal_getter_name,
-                                 args,
-                                 args_descriptor);
-  }
-
-  // Fall through case: Indicate that we didn't find any function or field using
-  // a special null instance. This is different from a field being null. Callers
-  // make sure that this null does not leak into Dartland.
-  return Object::sentinel().raw();
 }
 
 
@@ -1379,7 +1360,34 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
   GET_NATIVE_ARGUMENT(Instance, reflectee, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
   Class& klass = Class::Handle(reflectee.clazz());
-  return InvokeInstanceGetter(klass, reflectee, getter_name, true);
+
+  const String& internal_getter_name = String::Handle(
+      Field::GetterName(getter_name));
+  Function& function = Function::Handle(
+      Resolver::ResolveDynamicAnyArgs(klass, internal_getter_name));
+
+  // Check for method extraction when method extractors are not created.
+  if (function.IsNull() && !FLAG_lazy_dispatchers) {
+    function = Resolver::ResolveDynamicAnyArgs(klass, getter_name);
+    if (!function.IsNull()) {
+      const Function& closure_function =
+        Function::Handle(function.ImplicitClosureFunction());
+      return closure_function.ImplicitInstanceClosure(reflectee);
+    }
+  }
+
+  const int kNumArgs = 1;
+  const Array& args = Array::Handle(Array::New(kNumArgs));
+  args.SetAt(0, reflectee);
+  const Array& args_descriptor =
+      Array::Handle(ArgumentsDescriptor::New(args.Length()));
+
+  // InvokeDynamic invokes NoSuchMethod if the provided function is null.
+  return InvokeDynamicFunction(reflectee,
+                               function,
+                               internal_getter_name,
+                               args,
+                               args_descriptor);
 }
 
 
@@ -1513,7 +1521,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       function_name,
                       function,
-                      Object::null_array(),
+                      args,
+                      arg_names,
                       InvocationMirror::kStatic,
                       InvocationMirror::kMethod);
     UNREACHABLE();
@@ -1567,6 +1576,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
                         internal_setter_name,
                         setter,
                         args,
+                        Object::null_array(),
                         InvocationMirror::kStatic,
                         InvocationMirror::kSetter);
       UNREACHABLE();
@@ -1586,6 +1596,7 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
                       internal_setter_name,
                       setter,
+                      Object::null_array(),
                       Object::null_array(),
                       InvocationMirror::kStatic,
                       InvocationMirror::kSetter);
@@ -1611,11 +1622,13 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   // unnamed constructor for class 'A' is labeled 'A.'.
   // This convention prevents users from explicitly calling constructors.
   const String& klass_name = String::Handle(klass.Name());
+  String& external_constructor_name = String::Handle(klass_name.raw());
   String& internal_constructor_name =
       String::Handle(String::Concat(klass_name, Symbols::Dot()));
-  if (!constructor_name.IsNull()) {
+  if (!constructor_name.IsNull() && constructor_name.Length() > 0) {
     internal_constructor_name =
         String::Concat(internal_constructor_name, constructor_name);
+    external_constructor_name = internal_constructor_name.raw();
   }
 
   Function& lookup_constructor = Function::Handle(
@@ -1624,13 +1637,11 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   if (lookup_constructor.IsNull() ||
       (lookup_constructor.kind() != RawFunction::kConstructor) ||
       !lookup_constructor.is_reflectable()) {
-    // Pretend we didn't find the constructor at all when the arity is wrong
-    // so as to produce the same NoSuchMethodError as the non-reflective case.
-    lookup_constructor = Function::null();
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
-                      internal_constructor_name,
+                      external_constructor_name,
                       lookup_constructor,
-                      Object::null_array(),
+                      explicit_args,
+                      arg_names,
                       InvocationMirror::kConstructor,
                       InvocationMirror::kMethod);
     UNREACHABLE();
@@ -1702,13 +1713,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
   if (!redirected_constructor.AreValidArguments(args_descriptor, NULL) ||
       !redirected_constructor.is_reflectable()) {
-    // Pretend we didn't find the constructor at all when the arity is wrong
-    // so as to produce the same NoSuchMethodError as the non-reflective case.
-    redirected_constructor = Function::null();
+    external_constructor_name = redirected_constructor.name();
     ThrowNoSuchMethod(AbstractType::Handle(klass.RareType()),
-                      internal_constructor_name,
+                      external_constructor_name,
                       redirected_constructor,
-                      Object::null_array(),
+                      explicit_args,
+                      arg_names,
                       InvocationMirror::kConstructor,
                       InvocationMirror::kMethod);
     UNREACHABLE();
@@ -1805,7 +1815,8 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invoke, 5) {
     ThrowNoSuchMethod(Instance::null_instance(),
                       function_name,
                       function,
-                      Object::null_array(),
+                      args,
+                      arg_names,
                       InvocationMirror::kTopLevel,
                       InvocationMirror::kMethod);
     UNREACHABLE();
@@ -1862,6 +1873,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
                         internal_setter_name,
                         setter,
                         args,
+                        Object::null_array(),
                         InvocationMirror::kTopLevel,
                         InvocationMirror::kSetter);
       UNREACHABLE();
@@ -1881,6 +1893,7 @@ DEFINE_NATIVE_ENTRY(LibraryMirror_invokeSetter, 4) {
     ThrowNoSuchMethod(Instance::null_instance(),
                       internal_setter_name,
                       setter,
+                      Object::null_array(),
                       Object::null_array(),
                       InvocationMirror::kTopLevel,
                       InvocationMirror::kSetter);

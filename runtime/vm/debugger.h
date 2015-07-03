@@ -5,7 +5,7 @@
 #ifndef VM_DEBUGGER_H_
 #define VM_DEBUGGER_H_
 
-#include "include/dart_debugger_api.h"
+#include "include/dart_tools_api.h"
 
 #include "vm/object.h"
 #include "vm/port.h"
@@ -427,6 +427,7 @@ class Debugger {
   Breakpoint* SetBreakpointAtEntry(const Function& target_function,
                                    bool single_shot);
   Breakpoint* SetBreakpointAtActivation(const Instance& closure);
+  Breakpoint* BreakpointAtActivation(const Instance& closure);
 
   // TODO(turnidge): script_url may no longer be specific enough.
   Breakpoint* SetBreakpointAtLine(const String& script_url,
@@ -454,7 +455,7 @@ class Debugger {
   const DebuggerEvent* PauseEvent() const { return pause_event_; }
 
   void SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info);
-  Dart_ExceptionPauseInfo GetExceptionPauseInfo();
+  Dart_ExceptionPauseInfo GetExceptionPauseInfo() const;
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
@@ -516,6 +517,7 @@ class Debugger {
   uword GetPatchedStubAddress(uword breakpoint_address);
 
   void PrintBreakpointsToJSONArray(JSONArray* jsarr) const;
+  void PrintSettingsToJSONObject(JSONObject* jsobj) const;
 
   static bool IsDebuggable(const Function& func);
 

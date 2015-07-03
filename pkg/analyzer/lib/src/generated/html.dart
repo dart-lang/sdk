@@ -508,6 +508,7 @@ class HtmlParser extends XmlParser {
  * Instances of the class `HtmlScriptTagNode` represent a script tag within an HTML file that
  * references a Dart script.
  */
+@deprecated
 class HtmlScriptTagNode extends XmlTagNode {
   /**
    * The AST structure representing the Dart code within this tag.
@@ -563,6 +564,7 @@ class HtmlScriptTagNode extends XmlTagNode {
 /**
  * Instances of the class `HtmlUnit` represent the contents of an HTML file.
  */
+@deprecated
 class HtmlUnit extends XmlNode {
   /**
    * The first token in the token stream that was parsed to form this HTML unit.

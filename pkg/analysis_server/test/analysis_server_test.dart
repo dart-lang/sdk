@@ -320,12 +320,12 @@ import "../foo/foo.dart";
       subscriptions[service] = <String>[bar.path].toSet();
     }
     server.setAnalysisSubscriptions(subscriptions);
-    await pumpEventQueue(200);
+    await pumpEventQueue(500);
     expect(server.statusAnalyzing, isFalse);
     channel.notificationsReceived.clear();
     server.updateContent(
         '0', {bar.path: new AddContentOverlay('library bar; void f() {}')});
-    await pumpEventQueue(200);
+    await pumpEventQueue(500);
     expect(server.statusAnalyzing, isFalse);
     expect(channel.notificationsReceived, isNotEmpty);
     Set<String> notificationTypesReceived = new Set<String>();
@@ -428,6 +428,7 @@ import "../foo/foo.dart";
     AnalysisResult firstResult = new AnalysisResult([notice], 0, '', 0);
     AnalysisResult lastResult = new AnalysisResult(null, 1, '', 1);
     when(context.analysisOptions).thenReturn(new AnalysisOptionsImpl());
+    when(context.validateCacheConsistency()).thenReturn(false);
     when(context.performAnalysisTask)
         .thenReturnList([firstResult, firstResult, firstResult, lastResult]);
     server.serverServices.add(ServerService.STATUS);

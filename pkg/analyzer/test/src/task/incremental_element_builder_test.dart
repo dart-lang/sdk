@@ -543,6 +543,54 @@ typedef B();
     expect(unitDelta.removedDeclarations, unorderedEquals([]));
   }
 
+  test_unitMembers_topLevelVariable() {
+    _buildOldUnit(r'''
+bool a = 1, b = 2;
+int c = 3;
+''');
+    List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
+    _buildNewUnit(r'''
+int c = 3;
+
+bool a =1, b = 2;
+''');
+    List<CompilationUnitMember> newNodes = newUnit.declarations;
+    {
+      TopLevelVariableDeclaration newNode = newNodes[0];
+      expect(newNode, same(oldNodes[1]));
+      expect(getNodeText(newNode), 'int c = 3;');
+      {
+        TopLevelVariableElement element =
+            newNode.variables.variables[0].element;
+        expect(element, isNotNull);
+        expect(element.name, 'c');
+        expect(element.nameOffset, newCode.indexOf('c = 3'));
+      }
+    }
+    {
+      TopLevelVariableDeclaration newNode = newNodes[1];
+      expect(newNode, same(oldNodes[0]));
+      expect(getNodeText(newNode), 'bool a =1, b = 2;');
+      {
+        TopLevelVariableElement element =
+            newNode.variables.variables[0].element;
+        expect(element, isNotNull);
+        expect(element.name, 'a');
+        expect(element.nameOffset, newCode.indexOf('a =1'));
+      }
+      {
+        TopLevelVariableElement element =
+            newNode.variables.variables[1].element;
+        expect(element, isNotNull);
+        expect(element.name, 'b');
+        expect(element.nameOffset, newCode.indexOf('b = 2'));
+      }
+    }
+    // verify delta
+    expect(unitDelta.addedDeclarations, unorderedEquals([]));
+    expect(unitDelta.removedDeclarations, unorderedEquals([]));
+  }
+
   test_unitMembers_topLevelVariable_add() {
     _buildOldUnit(r'''
 int a, b;
@@ -585,47 +633,25 @@ int c, d;
     ]));
   }
 
-  test_unitMembers_topLevelVariableDeclaration() {
+  test_unitMembers_topLevelVariable_final() {
     _buildOldUnit(r'''
-bool a = 1, b = 2;
-int c = 3;
+final int a = 1;
 ''');
     List<CompilationUnitMember> oldNodes = oldUnit.declarations.toList();
     _buildNewUnit(r'''
-int c = 3;
-
-bool a =1, b = 2;
+final int a =  1;
 ''');
     List<CompilationUnitMember> newNodes = newUnit.declarations;
     {
       TopLevelVariableDeclaration newNode = newNodes[0];
-      expect(newNode, same(oldNodes[1]));
-      expect(getNodeText(newNode), 'int c = 3;');
-      {
-        TopLevelVariableElement element =
-            newNode.variables.variables[0].element;
-        expect(element, isNotNull);
-        expect(element.name, 'c');
-        expect(element.nameOffset, newCode.indexOf('c = 3'));
-      }
-    }
-    {
-      TopLevelVariableDeclaration newNode = newNodes[1];
       expect(newNode, same(oldNodes[0]));
-      expect(getNodeText(newNode), 'bool a =1, b = 2;');
+      expect(getNodeText(newNode), 'final int a =  1;');
       {
         TopLevelVariableElement element =
             newNode.variables.variables[0].element;
         expect(element, isNotNull);
         expect(element.name, 'a');
-        expect(element.nameOffset, newCode.indexOf('a =1'));
-      }
-      {
-        TopLevelVariableElement element =
-            newNode.variables.variables[1].element;
-        expect(element, isNotNull);
-        expect(element.name, 'b');
-        expect(element.nameOffset, newCode.indexOf('b = 2'));
+        expect(element.nameOffset, newCode.indexOf('a =  1'));
       }
     }
     // verify delta

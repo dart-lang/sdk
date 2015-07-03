@@ -34,6 +34,7 @@
 #include "vm/intrinsifier.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/profiler.h"
 #include "vm/report.h"
 #include "vm/reusable_handles.h"
 #include "vm/runtime_entry.h"
@@ -94,6 +95,7 @@ Instance* Object::null_instance_ = NULL;
 TypeArguments* Object::null_type_arguments_ = NULL;
 Array* Object::empty_array_ = NULL;
 Array* Object::zero_array_ = NULL;
+ObjectPool* Object::empty_object_pool_ = NULL;
 PcDescriptors* Object::empty_descriptors_ = NULL;
 LocalVarDescriptors* Object::empty_var_descriptors_ = NULL;
 ExceptionHandlers* Object::empty_exception_handlers_ = NULL;
@@ -132,6 +134,7 @@ RawClass* Object::library_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::namespace_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::code_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instructions_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::object_pool_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::pc_descriptors_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::stackmap_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::var_descriptors_class_ =
@@ -378,12 +381,31 @@ static type SpecialCharacter(type value) {
 }
 
 
-void Object::InitOnce(Isolate* isolate) {
+void Object::InitNull(Isolate* isolate) {
   // Should only be run by the vm isolate.
   ASSERT(isolate == Dart::vm_isolate());
 
   // TODO(iposva): NoSafepointScope needs to be added here.
   ASSERT(class_class() == null_);
+
+  Heap* heap = isolate->heap();
+
+  // Allocate and initialize the null instance.
+  // 'null_' must be the first object allocated as it is used in allocation to
+  // clear the object.
+  {
+    uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
+    null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
+    // The call below is using 'null_' to initialize itself.
+    InitializeObject(address, kNullCid, Instance::InstanceSize());
+  }
+}
+
+
+void Object::InitOnce(Isolate* isolate) {
+  // Should only be run by the vm isolate.
+  ASSERT(isolate == Dart::vm_isolate());
+
   // Initialize the static vtable values.
   {
     Object fake_object;
@@ -402,6 +424,7 @@ void Object::InitOnce(Isolate* isolate) {
   null_type_arguments_ = TypeArguments::ReadOnlyHandle();
   empty_array_ = Array::ReadOnlyHandle();
   zero_array_ = Array::ReadOnlyHandle();
+  empty_object_pool_ = ObjectPool::ReadOnlyHandle();
   empty_descriptors_ = PcDescriptors::ReadOnlyHandle();
   empty_var_descriptors_ = LocalVarDescriptors::ReadOnlyHandle();
   empty_exception_handlers_ = ExceptionHandlers::ReadOnlyHandle();
@@ -417,17 +440,6 @@ void Object::InitOnce(Isolate* isolate) {
   snapshot_writer_error_ = LanguageError::ReadOnlyHandle();
   branch_offset_error_ = LanguageError::ReadOnlyHandle();
   vm_isolate_snapshot_object_table_ = Array::ReadOnlyHandle();
-
-
-  // Allocate and initialize the null instance.
-  // 'null_' must be the first object allocated as it is used in allocation to
-  // clear the object.
-  {
-    uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
-    null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
-    // The call below is using 'null_' to initialize itself.
-    InitializeObject(address, kNullCid, Instance::InstanceSize());
-  }
 
   *null_object_ = Object::null();
   *null_array_ = Array::null();
@@ -543,6 +555,9 @@ void Object::InitOnce(Isolate* isolate) {
   cls = Class::New<Instructions>();
   instructions_class_ = cls.raw();
 
+  cls = Class::New<ObjectPool>();
+  object_pool_class_ = cls.raw();
+
   cls = Class::New<PcDescriptors>();
   pc_descriptors_class_ = cls.raw();
 
@@ -633,6 +648,20 @@ void Object::InitOnce(Isolate* isolate) {
     zero_array_->StoreSmi(&zero_array_->raw_ptr()->length_, Smi::New(1));
     smi = Smi::New(0);
     zero_array_->SetAt(0, smi);
+  }
+
+  // Allocate and initialize the canonical empty object pool object.
+  {
+    uword address =
+        heap->Allocate(ObjectPool::InstanceSize(0), Heap::kOld);
+    InitializeObject(address,
+                     kObjectPoolCid,
+                     ObjectPool::InstanceSize(0));
+    ObjectPool::initializeHandle(
+        empty_object_pool_,
+        reinterpret_cast<RawObjectPool*>(address + kHeapObjectTag));
+    empty_object_pool_->StoreNonPointer(
+        &empty_object_pool_->raw_ptr()->length_, 0);
   }
 
   // Allocate and initialize the empty_descriptors instance.
@@ -821,6 +850,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   SET_CLASS_NAME(namespace, Namespace);
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
+  SET_CLASS_NAME(object_pool, ObjectPool);
   SET_CLASS_NAME(pc_descriptors, PcDescriptors);
   SET_CLASS_NAME(stackmap, Stackmap);
   SET_CLASS_NAME(var_descriptors, LocalVarDescriptors);
@@ -1702,10 +1732,15 @@ RawObject* Object::Allocate(intptr_t cls_id,
     Exceptions::Throw(thread, exception);
     UNREACHABLE();
   }
+  ClassTable* class_table = isolate->class_table();
   if (space == Heap::kNew) {
-    isolate->class_table()->UpdateAllocatedNew(cls_id, size);
+    class_table->UpdateAllocatedNew(cls_id, size);
   } else {
-    isolate->class_table()->UpdateAllocatedOld(cls_id, size);
+    class_table->UpdateAllocatedOld(cls_id, size);
+  }
+  const Class& cls = Class::Handle(class_table->At(cls_id));
+  if (cls.trace_allocation()) {
+    Profiler::RecordAllocation(isolate, cls_id);
   }
   NoSafepointScope no_safepoint;
   InitializeObject(address, cls_id, size);
@@ -1717,8 +1752,8 @@ RawObject* Object::Allocate(intptr_t cls_id,
 
 class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
  public:
-  explicit StoreBufferUpdateVisitor(Isolate* isolate, RawObject* obj) :
-      ObjectPointerVisitor(isolate), old_obj_(obj) {
+  explicit StoreBufferUpdateVisitor(Thread* thread, RawObject* obj) :
+      ObjectPointerVisitor(thread->isolate()), thread_(thread), old_obj_(obj) {
     ASSERT(old_obj_->IsOldObject());
   }
 
@@ -1727,7 +1762,7 @@ class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
       RawObject* raw_obj = *curr;
       if (raw_obj->IsHeapObject() && raw_obj->IsNewObject()) {
         old_obj_->SetRememberedBit();
-        isolate()->store_buffer()->AddObject(old_obj_);
+        thread_->StoreBufferAddObject(old_obj_);
         // Remembered this object. There is no need to continue searching.
         return;
       }
@@ -1735,6 +1770,7 @@ class StoreBufferUpdateVisitor : public ObjectPointerVisitor {
   }
 
  private:
+  Thread* thread_;
   RawObject* old_obj_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreBufferUpdateVisitor);
@@ -1776,7 +1812,7 @@ RawObject* Object::Clone(const Object& orig, Heap::Space space) {
     // Old original doesn't need to be remembered, so neither does the clone.
     return raw_clone;
   }
-  StoreBufferUpdateVisitor visitor(Isolate::Current(), raw_clone);
+  StoreBufferUpdateVisitor visitor(Thread::Current(), raw_clone);
   raw_clone->VisitPointers(&visitor);
   return raw_clone;
 }
@@ -2695,6 +2731,16 @@ void Class::DisableCHAOptimizedCode() {
 }
 
 
+void Class::SetTraceAllocation(bool trace_allocation) const {
+  const bool changed = trace_allocation != this->trace_allocation();
+  set_state_bits(
+      TraceAllocationBit::update(trace_allocation, raw_ptr()->state_bits_));
+  if (changed) {
+    DisableAllocationStub();
+  }
+}
+
+
 void Class::set_cha_codes(const Array& cache) const {
   StorePointer(&raw_ptr()->cha_codes_, cache.raw());
 }
@@ -2846,7 +2892,7 @@ static RawFunction* EvaluateHelper(const Class& cls,
   Script& script = Script::Handle();
   script = Script::New(Symbols::EvalSourceUri(),
                        func_src,
-                       RawScript::kSourceTag);
+                       RawScript::kEvaluateTag);
   // In order to tokenize the source, we need to get the key to mangle
   // private names from the library from which the class originates.
   const Library& lib = Library::Handle(cls.library());
@@ -3228,6 +3274,8 @@ RawString* Class::GenerateUserVisibleName() const {
       return Symbols::Code().raw();
     case kInstructionsCid:
       return Symbols::Instructions().raw();
+    case kObjectPoolCid:
+      return Symbols::ObjectPool().raw();
     case kPcDescriptorsCid:
       return Symbols::PcDescriptors().raw();
     case kStackmapCid:
@@ -3301,9 +3349,15 @@ RawString* Class::GenerateUserVisibleName() const {
     case kTypedDataUint64ArrayCid:
     case kExternalTypedDataUint64ArrayCid:
       return Symbols::Uint64List().raw();
+    case kTypedDataInt32x4ArrayCid:
+    case kExternalTypedDataInt32x4ArrayCid:
+      return Symbols::Int32x4List().raw();
     case kTypedDataFloat32x4ArrayCid:
     case kExternalTypedDataFloat32x4ArrayCid:
       return Symbols::Float32x4List().raw();
+    case kTypedDataFloat64x2ArrayCid:
+    case kExternalTypedDataFloat64x2ArrayCid:
+      return Symbols::Float64x2List().raw();
     case kTypedDataFloat32ArrayCid:
     case kExternalTypedDataFloat32ArrayCid:
       return Symbols::Float32List().raw();
@@ -3497,6 +3551,7 @@ RawObject* Class::canonical_types() const {
   return raw_ptr()->canonical_types_;
 }
 
+
 void Class::set_canonical_types(const Object& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->canonical_types_, value.raw());
@@ -3579,6 +3634,14 @@ void Class::set_allocation_stub(const Code& value) const {
 
 
 void Class::DisableAllocationStub() const {
+  const Code& existing_stub = Code::Handle(allocation_stub());
+  if (existing_stub.IsNull()) {
+    return;
+  }
+  ASSERT(!CodePatcher::IsEntryPatched(existing_stub));
+  // Patch the stub so that the next caller will regenerate the stub.
+  CodePatcher::PatchEntry(existing_stub);
+  // Disassociate the existing stub from class.
   StorePointer(&raw_ptr()->allocation_stub_, Code::null());
 }
 
@@ -6262,7 +6325,7 @@ RawFunction* Function::NewEvalFunction(const Class& owner,
                     0));
   ASSERT(!script.IsNull());
   result.set_is_debuggable(false);
-  result.set_is_visible(false);
+  result.set_is_visible(true);
   result.set_eval_script(script);
   return result.raw();
 }
@@ -6449,6 +6512,21 @@ RawInstance* Function::ImplicitStaticClosure() const {
 }
 
 
+RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
+  ASSERT(IsImplicitClosureFunction());
+  const Class& cls = Class::Handle(signature_class());
+  const Context& context = Context::Handle(Context::New(1));
+  context.SetAt(0, receiver);
+  const Instance& result = Instance::Handle(Closure::New(*this, context));
+  if (cls.NumTypeArguments() > 0) {
+    const TypeArguments& type_arguments =
+        TypeArguments::Handle(receiver.GetTypeArguments());
+    result.SetTypeArguments(type_arguments);
+  }
+  return result.raw();
+}
+
+
 RawString* Function::BuildSignature(bool instantiate,
                                     NameVisibility name_visibility,
                                     const TypeArguments& instantiator) const {
@@ -6571,6 +6649,12 @@ bool Function::HasOptimizedCode() const {
 RawString* Function::PrettyName() const {
   const String& str = String::Handle(name());
   return String::IdentifierPrettyName(str);
+}
+
+
+const char* Function::QualifiedUserVisibleNameCString() const {
+  const String& str = String::Handle(QualifiedUserVisibleName());
+  return str.ToCString();
 }
 
 
@@ -6918,6 +7002,10 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   Code& code = Code::Handle(CurrentCode());
   if (!code.IsNull()) {
     jsobj.AddProperty("code", code);
+  }
+  Array& ics = Array::Handle(ic_data_array());
+  if (!ics.IsNull()) {
+    jsobj.AddProperty("_icDataArray", ics);
   }
   jsobj.AddProperty("_optimizable", is_optimizable());
   jsobj.AddProperty("_inlinable", is_inlinable());
@@ -8287,6 +8375,8 @@ const char* Script::GetKindAsCString() const {
       return "source";
     case RawScript::kPatchTag:
       return "patch";
+    case RawScript::kEvaluateTag:
+      return "evaluate";
     default:
       UNIMPLEMENTED();
   }
@@ -8562,16 +8652,22 @@ void Script::PrintJSONImpl(JSONStream* stream, bool ref) const {
   const String& encoded_uri = String::Handle(String::EncodeIRI(uri));
   ASSERT(!encoded_uri.IsNull());
   const Library& lib = Library::Handle(FindLibrary());
-  // TODO(rmacnak): This can fail for eval scripts. Use a ring-id for those.
-  intptr_t lib_index = (lib.IsNull()) ? -1 : lib.index();
-  jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s",
-      lib_index, encoded_uri.ToCString());
+  if (lib.IsNull()) {
+    ASSERT(kind() == RawScript::kEvaluateTag);
+    jsobj.AddServiceId(*this);
+  } else {
+    ASSERT(kind() != RawScript::kEvaluateTag);
+    jsobj.AddFixedServiceId("libraries/%" Pd "/scripts/%s",
+        lib.index(), encoded_uri.ToCString());
+  }
   jsobj.AddPropertyStr("uri", uri);
   jsobj.AddProperty("_kind", GetKindAsCString());
   if (ref) {
     return;
   }
-  jsobj.AddProperty("library", lib);
+  if (!lib.IsNull()) {
+    jsobj.AddProperty("library", lib);
+  }
   const String& source = String::Handle(Source());
   jsobj.AddProperty("lineOffset", line_offset());
   jsobj.AddProperty("columnOffset", col_offset());
@@ -8695,6 +8791,25 @@ void LibraryPrefixIterator::Advance() {
     next_ix_++;
     obj = array_.At(next_ix_);
   }
+}
+
+
+static void ReportTooManyImports(const Library& lib) {
+  const String& url = String::Handle(lib.url());
+  Report::MessageF(Report::kError,
+                   Script::Handle(lib.LookupScript(url)),
+                   Scanner::kNoSourcePos,
+                   "too many imports in library '%s'",
+                   url.ToCString());
+  UNREACHABLE();
+}
+
+
+void Library::set_num_imports(intptr_t value) const {
+  if (!Utils::IsUint(16, value)) {
+    ReportTooManyImports(*this);
+  }
+  StoreNonPointer(&raw_ptr()->num_imports_, value);
 }
 
 
@@ -10294,6 +10409,9 @@ void LibraryPrefix::set_imports(const Array& value) const {
 
 
 void LibraryPrefix::set_num_imports(intptr_t value) const {
+  if (!Utils::IsUint(16, value)) {
+    ReportTooManyImports(Library::Handle(importer()));
+  }
   StoreNonPointer(&raw_ptr()->num_imports_, value);
 }
 
@@ -10619,7 +10737,14 @@ const char* Instructions::ToCString() const {
 
 
 void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("_code", Code::Handle(code()));
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_objectPool", ObjectPool::Handle(object_pool()));
 }
 
 
@@ -10662,6 +10787,101 @@ intptr_t PcDescriptors::DecodeInteger(intptr_t* byte_index) const {
 }
 
 
+RawObjectPool* ObjectPool::New(intptr_t len) {
+  ASSERT(Object::object_pool_class() != Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ObjectPool::New: invalid length %" Pd "\n", len);
+  }
+  ObjectPool& result = ObjectPool::Handle();
+  {
+    uword size = ObjectPool::InstanceSize(len);
+    RawObject* raw = Object::Allocate(ObjectPool::kClassId,
+                                      size,
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(len);
+  }
+
+  // TODO(fschneider): Compress info array to just use just enough bits for
+  // the entry type enum.
+  const TypedData& info_array = TypedData::Handle(
+      TypedData::New(kTypedDataInt8ArrayCid, len, Heap::kOld));
+  result.set_info_array(info_array);
+  return result.raw();
+}
+
+
+void ObjectPool::set_info_array(const TypedData& info_array) const {
+  StorePointer(&raw_ptr()->info_array_, info_array.raw());
+}
+
+
+ObjectPool::EntryType ObjectPool::InfoAt(intptr_t index) const {
+  const TypedData& array = TypedData::Handle(info_array());
+  return static_cast<EntryType>(array.GetInt8(index));
+}
+
+
+void ObjectPool::SetInfoAt(intptr_t index, EntryType info) const {
+  const TypedData& array = TypedData::Handle(info_array());
+  array.SetInt8(index, static_cast<int8_t>(info));
+}
+
+const char* ObjectPool::ToCString() const {
+  return "ObjectPool";
+}
+
+
+void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+
+  {
+    JSONArray jsarr(&jsobj, "_entries");
+    uword imm;
+    Object& obj = Object::Handle();
+    for (intptr_t i = 0; i < Length(); i++) {
+      switch (InfoAt(i)) {
+      case ObjectPool::kTaggedObject:
+        obj = ObjectAt(i);
+        jsarr.AddValue(obj);
+        break;
+      case ObjectPool::kImmediate:
+        // We might want to distingiush between immediates and addresses
+        // in the future.
+        imm = RawValueAt(i);
+        jsarr.AddValue64(imm);
+        break;
+      default:
+        UNREACHABLE();
+      }
+    }
+  }
+}
+
+
+void ObjectPool::DebugPrint() const {
+  ISL_Print("Object Pool: {\n");
+  for (intptr_t i = 0; i < Length(); i++) {
+    if (InfoAt(i) == kTaggedObject) {
+      ISL_Print("  %" Pd ": 0x%" Px " %s (obj)\n", i,
+          reinterpret_cast<uword>(ObjectAt(i)),
+          Object::Handle(ObjectAt(i)).ToCString());
+    } else {
+      ISL_Print("  %" Pd ": 0x%" Px " (raw)\n", i, RawValueAt(i));
+    }
+  }
+  ISL_Print("}\n");
+}
+
+
 intptr_t PcDescriptors::Length() const {
   return raw_ptr()->length_;
 }
@@ -10696,6 +10916,25 @@ RawPcDescriptors* PcDescriptors::New(GrowableArray<uint8_t>* data) {
     result ^= raw;
     result.SetLength(data->length());
     result.CopyData(data);
+  }
+  return result.raw();
+}
+
+
+RawPcDescriptors* PcDescriptors::New(intptr_t length) {
+  ASSERT(Object::pc_descriptors_class() != Class::null());
+  Isolate* isolate = Isolate::Current();
+  PcDescriptors& result = PcDescriptors::Handle(isolate);
+  {
+    uword size = PcDescriptors::InstanceSize(length);
+    RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
+                                      size,
+                                      Heap::kOld);
+    INC_STAT(isolate, total_code_size, size);
+    INC_STAT(isolate, pc_desc_size, size);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(length);
   }
   return result.raw();
 }
@@ -10893,6 +11132,40 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
   for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
+  result.SetRegisterBitCount(register_bit_count);
+  return result.raw();
+}
+
+
+RawStackmap* Stackmap::New(intptr_t length,
+                           intptr_t register_bit_count,
+                           intptr_t pc_offset) {
+  ASSERT(Object::stackmap_class() != Class::null());
+  Stackmap& result = Stackmap::Handle();
+  // Guard against integer overflow of the instance size computation.
+  intptr_t payload_size =
+  Utils::RoundUp(length, kBitsPerByte) / kBitsPerByte;
+  if ((payload_size < 0) ||
+      (payload_size > kMaxLengthInBytes)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Stackmap::New: invalid length %" Pd "\n",
+           length);
+  }
+  {
+    // Stackmap data objects are associated with a code object, allocate them
+    // in old generation.
+    RawObject* raw = Object::Allocate(Stackmap::kClassId,
+                                      Stackmap::InstanceSize(length),
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.SetLength(length);
+  }
+  // When constructing a stackmap we store the pc offset in the stackmap's
+  // PC. StackmapTableBuilder::FinalizeStackmaps will replace it with the pc
+  // address.
+  ASSERT(pc_offset >= 0);
+  result.SetPcOffset(pc_offset);
   result.SetRegisterBitCount(register_bit_count);
   return result.raw();
 }
@@ -11214,6 +11487,29 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   const Array& handled_types_data = (num_handlers == 0) ?
       Object::empty_array() :
       Array::Handle(Array::New(num_handlers));
+  result.set_handled_types_data(handled_types_data);
+  return result.raw();
+}
+
+
+RawExceptionHandlers* ExceptionHandlers::New(const Array& handled_types_data) {
+  ASSERT(Object::exception_handlers_class() != Class::null());
+  const intptr_t num_handlers = handled_types_data.Length();
+  if ((num_handlers < 0) || (num_handlers >= kMaxHandlers)) {
+    FATAL1("Fatal error in ExceptionHandlers::New(): "
+           "invalid num_handlers %" Pd "\n",
+           num_handlers);
+  }
+  ExceptionHandlers& result = ExceptionHandlers::Handle();
+  {
+    uword size = ExceptionHandlers::InstanceSize(num_handlers);
+    RawObject* raw = Object::Allocate(ExceptionHandlers::kClassId,
+                                      size,
+                                      Heap::kOld);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+    result.StoreNonPointer(&result.raw_ptr()->num_entries_, num_handlers);
+  }
   result.set_handled_types_data(handled_types_data);
   return result.raw();
 }
@@ -11979,7 +12275,17 @@ RawICData* ICData::NewFrom(const ICData& from, intptr_t num_args_tested) {
 
 
 void ICData::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Object::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("_owner", Object::Handle(owner()));
+  jsobj.AddProperty("_selector", String::Handle(target_name()).ToCString());
+  if (ref) {
+    return;
+  }
+  jsobj.AddProperty("_argumentsDescriptor",
+                    Object::Handle(arguments_descriptor()));
+  jsobj.AddProperty("_entries", Object::Handle(ic_data()));
 }
 
 
@@ -12459,6 +12765,8 @@ RawCode* Code::FinalizeCode(const char* name,
                             Assembler* assembler,
                             bool optimized) {
   ASSERT(assembler != NULL);
+  const ObjectPool& object_pool =
+      ObjectPool::Handle(assembler->object_pool_wrapper().MakeObjectPool());
 
   // Allocate the Code and Instructions objects.  Code is allocated first
   // because a GC during allocation of the code will leave the instruction
@@ -12484,7 +12792,6 @@ RawCode* Code::FinalizeCode(const char* name,
                            assembler->prologue_offset(),
                            instrs.size(),
                            optimized);
-
   {
     NoSafepointScope no_safepoint;
     const ZoneGrowableArray<intptr_t>& pointer_offsets =
@@ -12509,17 +12816,10 @@ RawCode* Code::FinalizeCode(const char* name,
     code.set_is_alive(true);
 
     // Set object pool in Instructions object.
-    const GrowableObjectArray& object_pool = assembler->object_pool_data();
-    if (object_pool.IsNull()) {
-      instrs.set_object_pool(Object::empty_array().raw());
-    } else {
-      INC_STAT(Isolate::Current(),
-               total_code_size, object_pool.Length() * sizeof(uintptr_t));
-      // TODO(regis): Once MakeArray takes a Heap::Space argument, call it here
-      // with Heap::kOld and change the ARM and MIPS assemblers to work with a
-      // GrowableObjectArray in new space.
-      instrs.set_object_pool(Array::MakeArray(object_pool));
-    }
+    INC_STAT(Isolate::Current(),
+             total_code_size, object_pool.Length() * sizeof(uintptr_t));
+    instrs.set_object_pool(object_pool.raw());
+
     if (FLAG_write_protect_code) {
       uword address = RawObject::ToAddr(instrs.raw());
       bool status = VirtualMemory::Protect(
@@ -12747,15 +13047,15 @@ void Code::PrintJSONImpl(JSONStream* stream, bool ref) const {
     // Generate a fake function reference.
     JSONObject func(&jsobj, "function");
     func.AddProperty("type", "@Function");
-    func.AddProperty("kind", "Stub");
+    func.AddProperty("_kind", "Stub");
     func.AddProperty("name", user_name.ToCString());
     AddNameProperties(&func, user_name, vm_name);
   }
   jsobj.AddPropertyF("_startAddress", "%" Px "", EntryPoint());
   jsobj.AddPropertyF("_endAddress", "%" Px "", EntryPoint() + Size());
   jsobj.AddProperty("_alive", is_alive());
-  const Array& array = Array::Handle(ObjectPool());
-  jsobj.AddProperty("_objectPool", array);
+  const ObjectPool& object_pool = ObjectPool::Handle(GetObjectPool());
+  jsobj.AddProperty("_objectPool", object_pool);
   {
     JSONArray jsarr(&jsobj, "_disassembly");
     if (is_alive()) {
@@ -13229,6 +13529,7 @@ RawMegamorphicCache* MegamorphicCache::New() {
   }
   const intptr_t capacity = kInitialCapacity;
   const Array& buckets = Array::Handle(Array::New(kEntryLength * capacity));
+  ASSERT(Isolate::Current()->megamorphic_cache_table()->miss_handler() != NULL);
   const Function& handler = Function::Handle(
       Isolate::Current()->megamorphic_cache_table()->miss_handler());
   for (intptr_t i = 0; i < capacity; ++i) {
@@ -14235,6 +14536,13 @@ void Instance::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   if (ref) {
     return;
+  }
+  if (IsClosure()) {
+    Debugger* debugger = Isolate::Current()->debugger();
+    Breakpoint* bpt = debugger->BreakpointAtActivation(*this);
+    if (bpt != NULL) {
+      jsobj.AddProperty("_activationBreakpoint", bpt);
+    }
   }
 }
 
@@ -15568,6 +15876,7 @@ void TypeParameter::set_parameterized_class(const Class& value) const {
 
 void TypeParameter::set_index(intptr_t value) const {
   ASSERT(value >= 0);
+  ASSERT(Utils::IsInt(16, value));
   StoreNonPointer(&raw_ptr()->index_, value);
 }
 
@@ -20108,7 +20417,23 @@ const char* TypedData::ToCString() const {
 
 
 void TypedData::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  const Class& cls = Class::Handle(clazz());
+  const String& kind = String::Handle(cls.UserVisibleName());
+  jsobj.AddProperty("kind", kind.ToCString());
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+
+  {
+    NoSafepointScope no_safepoint;
+    jsobj.AddPropertyBase64("bytes",
+                            reinterpret_cast<const uint8_t*>(DataAddr(0)),
+                            LengthInBytes());
+  }
 }
 
 
@@ -20143,7 +20468,23 @@ const char* ExternalTypedData::ToCString() const {
 
 void ExternalTypedData::PrintJSONImpl(JSONStream* stream,
                                       bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  const Class& cls = Class::Handle(clazz());
+  const String& kind = String::Handle(cls.UserVisibleName());
+  jsobj.AddProperty("kind", kind.ToCString());
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+
+  {
+    NoSafepointScope no_safepoint;
+    jsobj.AddPropertyBase64("bytes",
+                            reinterpret_cast<const uint8_t*>(DataAddr(0)),
+                            LengthInBytes());
+  }
 }
 
 
@@ -20440,6 +20781,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         char* chars = isolate->current_zone()->Alloc<char>(truncated_len);
         OS::SNPrint(chars, truncated_len, "%s", kTruncated);
         frame_strings.Add(chars);
+        total_len += truncated_len;
       }
     } else if (function.is_visible() || FLAG_show_invisible_frames) {
       code = CodeAtFrame(i);
@@ -20581,7 +20923,26 @@ const char* JSRegExp::ToCString() const {
 
 
 void JSRegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  Instance::PrintJSONImpl(stream, ref);
+  JSONObject jsobj(stream);
+  PrintSharedInstanceJSON(&jsobj, ref);
+  jsobj.AddProperty("kind", "RegExp");
+  jsobj.AddServiceId(*this);
+
+  jsobj.AddProperty("pattern", String::Handle(pattern()));
+
+  if (ref) {
+    return;
+  }
+
+  Function& func = Function::Handle();
+  func = function(kOneByteStringCid);
+  jsobj.AddProperty("_oneByteFunction", func);
+  func = function(kTwoByteStringCid);
+  jsobj.AddProperty("_twoByteFunction", func);
+  func = function(kExternalOneByteStringCid);
+  jsobj.AddProperty("_externalOneByteFunction", func);
+  func = function(kExternalTwoByteStringCid);
+  jsobj.AddProperty("_externalTwoByteFunction", func);
 }
 
 

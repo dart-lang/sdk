@@ -12,12 +12,12 @@ class TypeTestProperties {
   /// If the is tests were generated with `storeFunctionTypeInMetadata` set to
   /// `false`, this field is `null`, and the [properties] contain a property
   /// that encodes the function type.
-  int functionTypeIndex;
+  jsAst.Expression functionTypeIndex;
 
   /// The properties that must be installed on the prototype of the
   /// JS constructor of the [ClassElement] for which the is checks were
   /// generated.
-  final Map<String, jsAst.Node> properties = <String, jsAst.Node>{};
+  final Map<jsAst.Name, jsAst.Node> properties = <jsAst.Name, jsAst.Node>{};
 }
 
 class RuntimeTypeGenerator {
@@ -79,7 +79,7 @@ class RuntimeTypeGenerator {
         ClosureFieldElement thisLocal =
             closureData.freeVariableMap[closureData.thisLocal];
         if (thisLocal != null) {
-          String thisName = namer.instanceFieldPropertyName(thisLocal);
+          jsAst.Name thisName = namer.instanceFieldPropertyName(thisLocal);
           thisAccess = js('this.#', thisName);
         }
       }
@@ -90,7 +90,8 @@ class RuntimeTypeGenerator {
       } else {
         RuntimeTypes rti = backend.rti;
         jsAst.Expression encoding = rti.getSignatureEncoding(type, thisAccess);
-        String operatorSignature = namer.operatorSignature;
+        jsAst.Name operatorSignature =
+            namer.asName(namer.operatorSignature);
         result.properties[operatorSignature] = encoding;
       }
     }
@@ -161,7 +162,6 @@ class RuntimeTypeGenerator {
       }
     }
 
-    RuntimeTypes rti = backend.rti;
     ClassElement superclass = cls.superclass;
 
     bool haveSameTypeVariables(ClassElement a, ClassElement b) {
@@ -213,6 +213,7 @@ class RuntimeTypeGenerator {
         call = cls.lookupBackendMember(Compiler.CALL_OPERATOR_NAME);
       }
       if (call != null && call.isFunction) {
+        FunctionElement callFunction = call;
         // A superclass might already implement the Function interface. In such
         // a case, we can avoid emiting the is test here.
         if (!cls.superclass.implementsFunction(compiler)) {
@@ -221,8 +222,8 @@ class RuntimeTypeGenerator {
                                     generateSubstitution,
                                     generated);
         }
-        FunctionType callType = call.computeType(compiler);
-        generateFunctionTypeSignature(call, callType);
+        FunctionType callType = callFunction.computeType(compiler);
+        generateFunctionTypeSignature(callFunction, callType);
       }
     }
 
@@ -267,7 +268,6 @@ class RuntimeTypeGenerator {
 
   List<StubMethod> generateTypeVariableReaderStubs(ClassElement classElement) {
     List<StubMethod> stubs = <StubMethod>[];
-    List typeVariables = [];
     ClassElement superclass = classElement;
     while (superclass != null) {
         for (TypeVariableType parameter in superclass.typeVariables) {
@@ -284,7 +284,7 @@ class RuntimeTypeGenerator {
 
   StubMethod _generateTypeVariableReader(ClassElement cls,
                                          TypeVariableElement element) {
-    String name = namer.nameForReadTypeVariable(element);
+    jsAst.Name name = namer.nameForReadTypeVariable(element);
     int index = RuntimeTypes.getTypeVariableIndex(element);
     jsAst.Expression computeTypeVariable;
 

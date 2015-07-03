@@ -32,7 +32,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
   if ((kind == Snapshot::kFull) ||
       (kind == Snapshot::kScript && !RawObject::IsCreatedFromSnapshot(tags))) {
     // Read in the base information.
-    int32_t class_id = reader->Read<int32_t>();
+    classid_t class_id = reader->ReadClassIDValue();
 
     // Allocate class object of specified kind.
     if (kind == Snapshot::kFull) {
@@ -96,8 +96,8 @@ void RawClass::WriteTo(SnapshotWriter* writer,
 
     // Write out all the non object pointer fields.
     // NOTE: cpp_vtable_ is not written.
-    int32_t class_id = ptr()->id_;
-    writer->Write<int32_t>(class_id);
+    classid_t class_id = ptr()->id_;
+    writer->Write<classid_t>(class_id);
     if (!RawObject::IsInternalVMdefinedClassId(class_id)) {
       // We don't write the instance size of VM defined classes as they
       // are already setup during initialization as part of pre populating
@@ -106,8 +106,8 @@ void RawClass::WriteTo(SnapshotWriter* writer,
       writer->Write<int32_t>(ptr()->next_field_offset_in_words_);
     }
     writer->Write<int32_t>(ptr()->type_arguments_field_offset_in_words_);
-    writer->Write<int16_t>(ptr()->num_type_arguments_);
-    writer->Write<int16_t>(ptr()->num_own_type_arguments_);
+    writer->Write<uint16_t>(ptr()->num_type_arguments_);
+    writer->Write<uint16_t>(ptr()->num_own_type_arguments_);
     writer->Write<uint16_t>(ptr()->num_native_fields_);
     writer->Write<int32_t>(ptr()->token_pos_);
     writer->Write<uint16_t>(ptr()->state_bits_);
@@ -332,8 +332,8 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
   type_parameter.set_tags(tags);
 
   // Set all non object fields.
-  type_parameter.set_index(reader->Read<int32_t>());
   type_parameter.set_token_pos(reader->Read<int32_t>());
+  type_parameter.set_index(reader->Read<int16_t>());
   type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -367,8 +367,8 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->Write<int32_t>(ptr()->index_);
   writer->Write<int32_t>(ptr()->token_pos_);
+  writer->Write<int16_t>(ptr()->index_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
@@ -706,7 +706,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_num_fixed_parameters(reader->Read<int16_t>());
   func.set_num_optional_parameters(reader->Read<int16_t>());
   func.set_deoptimization_counter(reader->Read<int16_t>());
-  func.set_regexp_cid(reader->Read<int16_t>());
+  func.set_regexp_cid(reader->ReadClassIDValue());
   func.set_kind_tag(reader->Read<uint32_t>());
   func.set_optimized_instruction_count(reader->Read<uint16_t>());
   func.set_optimized_call_site_count(reader->Read<uint16_t>());
@@ -750,7 +750,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->Write<int16_t>(ptr()->num_fixed_parameters_);
   writer->Write<int16_t>(ptr()->num_optional_parameters_);
   writer->Write<int16_t>(ptr()->deoptimization_counter_);
-  writer->Write<int16_t>(ptr()->regexp_cid_);
+  writer->WriteClassIDValue(ptr()->regexp_cid_);
   writer->Write<uint32_t>(ptr()->kind_tag_);
   writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
   writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
@@ -1039,29 +1039,22 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
 
     // Set all non object fields.
     library.StoreNonPointer(&library.raw_ptr()->index_,
-                            reader->Read<int32_t>());
-    library.StoreNonPointer(&library.raw_ptr()->num_imports_,
-                            reader->Read<int32_t>());
+                            reader->ReadClassIDValue());
     library.StoreNonPointer(&library.raw_ptr()->num_anonymous_,
-                            reader->Read<int32_t>());
+                            reader->ReadClassIDValue());
+    library.StoreNonPointer(&library.raw_ptr()->num_imports_,
+                            reader->Read<uint16_t>());
+    library.StoreNonPointer(&library.raw_ptr()->load_state_,
+                            reader->Read<int8_t>());
     library.StoreNonPointer(&library.raw_ptr()->corelib_imported_,
                             reader->Read<bool>());
     library.StoreNonPointer(&library.raw_ptr()->is_dart_scheme_,
                             reader->Read<bool>());
     library.StoreNonPointer(&library.raw_ptr()->debuggable_,
                             reader->Read<bool>());
-    library.StoreNonPointer(&library.raw_ptr()->load_state_,
-                            reader->Read<int8_t>());
-    // The native resolver is not serialized.
-    Dart_NativeEntryResolver resolver =
-        reader->Read<Dart_NativeEntryResolver>();
-    ASSERT(resolver == NULL);
-    library.set_native_entry_resolver(resolver);
-    // The symbol resolver is not serialized.
-    Dart_NativeEntrySymbol symbol_resolver =
-        reader->Read<Dart_NativeEntrySymbol>();
-    ASSERT(symbol_resolver == NULL);
-    library.set_native_entry_symbol_resolver(symbol_resolver);
+    // The native resolver and symbolizer are not serialized.
+    library.set_native_entry_resolver(NULL);
+    library.set_native_entry_symbol_resolver(NULL);
     // The cache of loaded scripts is not serialized.
     library.StorePointer(&library.raw_ptr()->loaded_scripts_, Array::null());
 
@@ -1102,19 +1095,15 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     writer->WriteObjectImpl(ptr()->url_);
   } else {
     // Write out all non object fields.
-    writer->Write<int32_t>(ptr()->index_);
-    writer->Write<int32_t>(ptr()->num_imports_);
-    writer->Write<int32_t>(ptr()->num_anonymous_);
+    writer->WriteClassIDValue(ptr()->index_);
+    writer->WriteClassIDValue(ptr()->num_anonymous_);
+    writer->Write<uint16_t>(ptr()->num_imports_);
+    writer->Write<int8_t>(ptr()->load_state_);
     writer->Write<bool>(ptr()->corelib_imported_);
     writer->Write<bool>(ptr()->is_dart_scheme_);
     writer->Write<bool>(ptr()->debuggable_);
-    writer->Write<int8_t>(ptr()->load_state_);
-    // We do not serialize the native resolver over, this needs to be explicitly
-    // set after deserialization.
-    writer->Write<Dart_NativeEntryResolver>(NULL);
-    // We do not serialize the native entry symbol, this needs to be explicitly
-    // set after deserialization.
-    writer->Write<Dart_NativeEntrySymbol>(NULL);
+    // We do not serialize the native resolver or symbolizer. These need to be
+    // explicitly set after deserialization.
     // We do not write the loaded_scripts_ cache to the snapshot. It gets
     // set to NULL when reading the library from the snapshot, and will
     // be rebuilt lazily.
@@ -1145,7 +1134,7 @@ RawLibraryPrefix* LibraryPrefix::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   prefix.StoreNonPointer(&prefix.raw_ptr()->num_imports_,
-                         reader->Read<int32_t>());
+                         reader->Read<int16_t>());
   prefix.StoreNonPointer(&prefix.raw_ptr()->is_deferred_load_,
                          reader->Read<bool>());
   prefix.StoreNonPointer(&prefix.raw_ptr()->is_loaded_, reader->Read<bool>());
@@ -1180,7 +1169,7 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all non object fields.
-  writer->Write<int32_t>(ptr()->num_imports_);
+  writer->Write<int16_t>(ptr()->num_imports_);
   writer->Write<bool>(ptr()->is_deferred_load_);
   writer->Write<bool>(ptr()->is_loaded_);
 
@@ -1276,19 +1265,62 @@ void RawInstructions::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
+                                    intptr_t object_id,
+                                    intptr_t tags,
+                                    Snapshot::Kind kind) {
+  UNREACHABLE();
+  return ObjectPool::null();
+}
+
+
+void RawObjectPool::WriteTo(SnapshotWriter* writer,
+                            intptr_t object_id,
+                            Snapshot::Kind kind) {
+  UNREACHABLE();
+}
+
+
 RawPcDescriptors* PcDescriptors::ReadFrom(SnapshotReader* reader,
                                           intptr_t object_id,
                                           intptr_t tags,
                                           Snapshot::Kind kind) {
-  UNREACHABLE();
-  return PcDescriptors::null();
+  ASSERT(reader->allow_code());
+
+  const int32_t length = reader->Read<int32_t>();
+  PcDescriptors& result = PcDescriptors::ZoneHandle(reader->zone(),
+                                                    PcDescriptors::New(length));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  if (result.Length() > 0) {
+    NoSafepointScope no_safepoint;
+    intptr_t len = result.Length();
+    uint8_t* data = result.UnsafeMutableNonPointer(result.raw_ptr()->data());
+    reader->ReadBytes(data, len);
+  }
+
+  return result.raw();
 }
 
 
 void RawPcDescriptors::WriteTo(SnapshotWriter* writer,
                                intptr_t object_id,
                                Snapshot::Kind kind) {
-  UNREACHABLE();
+  ASSERT(writer->allow_code());
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+  writer->WriteIndexedObject(kPcDescriptorsCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->Write<int32_t>(ptr()->length_);
+  if (ptr()->length_ > 0) {
+    intptr_t len = ptr()->length_;
+    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->WriteBytes(data, len);
+  }
 }
 
 
@@ -1296,15 +1328,48 @@ RawStackmap* Stackmap::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
                                 Snapshot::Kind kind) {
-  UNREACHABLE();
-  return Stackmap::null();
+  ASSERT(reader->allow_code());
+
+  const int32_t length = reader->Read<int32_t>();
+  const int32_t register_bit_count = reader->Read<int32_t>();
+  const uword pc_offset = reader->Read<uint32_t>();
+
+  Stackmap& result =
+      Stackmap::ZoneHandle(reader->zone(),
+        Stackmap::New(length, register_bit_count, pc_offset));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  if (result.Length() > 0) {
+    NoSafepointScope no_safepoint;
+    intptr_t len = (result.Length() + 7) / 8;
+    uint8_t* data = result.UnsafeMutableNonPointer(result.raw_ptr()->data());
+    reader->ReadBytes(data, len);
+  }
+
+  return result.raw();
 }
 
 
 void RawStackmap::WriteTo(SnapshotWriter* writer,
                           intptr_t object_id,
                           Snapshot::Kind kind) {
-  UNREACHABLE();
+  ASSERT(writer->allow_code());
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+  writer->WriteIndexedObject(kStackmapCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->Write<int32_t>(ptr()->length_);
+  writer->Write<int32_t>(ptr()->register_bit_count_);
+  writer->Write<uint32_t>(ptr()->pc_offset_);
+  if (ptr()->length_ > 0) {
+    intptr_t len = (ptr()->length_ + 7) / 8;
+    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->WriteBytes(data, len);
+  }
 }
 
 
@@ -1312,15 +1377,54 @@ RawLocalVarDescriptors* LocalVarDescriptors::ReadFrom(SnapshotReader* reader,
                                                       intptr_t object_id,
                                                       intptr_t tags,
                                                       Snapshot::Kind kind) {
-  UNREACHABLE();
-  return LocalVarDescriptors::null();
+  ASSERT(reader->allow_code());
+
+  const int32_t num_entries = reader->Read<int32_t>();
+
+  LocalVarDescriptors& result =
+      LocalVarDescriptors::ZoneHandle(reader->zone(),
+        LocalVarDescriptors::New(num_entries));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  for (intptr_t i = 0; i < num_entries; i++) {
+    (*reader->StringHandle()) ^= reader->ReadObjectRef();
+    result.StorePointer(result.raw()->nameAddrAt(i),
+                        reader->StringHandle()->raw());
+  }
+
+  if (num_entries > 0) {
+    NoSafepointScope no_safepoint;
+    intptr_t len = num_entries * sizeof(RawLocalVarDescriptors::VarInfo);
+    uint8_t* data = result.UnsafeMutableNonPointer(
+        reinterpret_cast<const uint8_t*>(result.raw()->data()));
+    reader->ReadBytes(data, len);
+  }
+
+  return result.raw();
 }
 
 
 void RawLocalVarDescriptors::WriteTo(SnapshotWriter* writer,
                                      intptr_t object_id,
                                      Snapshot::Kind kind) {
-  UNREACHABLE();
+  ASSERT(writer->allow_code());
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+  writer->WriteIndexedObject(kLocalVarDescriptorsCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->Write<int32_t>(ptr()->num_entries_);
+  for (intptr_t i = 0; i < ptr()->num_entries_; i++) {
+    writer->WriteObjectImpl(ptr()->names()[i]);
+  }
+  if (ptr()->num_entries_ > 0) {
+    intptr_t len = ptr()->num_entries_ * sizeof(VarInfo);
+    uint8_t* data = reinterpret_cast<uint8_t*>(this->data());
+    writer->WriteBytes(data, len);
+  }
 }
 
 
@@ -1328,15 +1432,47 @@ RawExceptionHandlers* ExceptionHandlers::ReadFrom(SnapshotReader* reader,
                                                   intptr_t object_id,
                                                   intptr_t tags,
                                                   Snapshot::Kind kind) {
-  UNREACHABLE();
-  return ExceptionHandlers::null();
+  ASSERT(reader->allow_code());
+
+  *(reader->ArrayHandle()) ^= reader->ReadObjectImpl();  // handled_types_data_
+
+  ExceptionHandlers& result =
+      ExceptionHandlers::ZoneHandle(reader->zone(),
+        ExceptionHandlers::New(*reader->ArrayHandle()));
+  reader->AddBackRef(object_id, &result, kIsDeserialized);
+
+  // Set the object tags.
+  result.set_tags(tags);
+
+  if (result.num_entries() > 0) {
+    NoSafepointScope no_safepoint;
+    const intptr_t len =
+        result.num_entries() * sizeof(RawExceptionHandlers::HandlerInfo);
+    uint8_t* data = result.UnsafeMutableNonPointer(
+        reinterpret_cast<const uint8_t*>(result.raw_ptr()->data()));
+    reader->ReadBytes(data, len);
+  }
+
+  return result.raw();
 }
 
 
 void RawExceptionHandlers::WriteTo(SnapshotWriter* writer,
                                    intptr_t object_id,
                                    Snapshot::Kind kind) {
-  UNREACHABLE();
+  ASSERT(writer->allow_code());
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+  writer->WriteIndexedObject(kExceptionHandlersCid);
+  writer->WriteTags(writer->GetObjectTags(this));
+  writer->WriteObjectImpl(ptr()->handled_types_data_);
+
+  if (ptr()->num_entries_ > 0) {
+    intptr_t len = ptr()->num_entries_ * sizeof(HandlerInfo);
+    uint8_t* data = reinterpret_cast<uint8_t*>(ptr()->data());
+    writer->WriteBytes(data, len);
+  }
 }
 
 
@@ -1700,6 +1836,8 @@ RawInteger* Mint::ReadFrom(SnapshotReader* reader,
   Mint& mint = Mint::ZoneHandle(reader->zone(), Mint::null());
   if (kind == Snapshot::kFull) {
     mint = reader->NewMint(value);
+    // Set the object tags.
+    mint.set_tags(tags);
   } else {
     // When reading a script snapshot we need to canonicalize only those object
     // references that are objects from the core library (loaded from a
@@ -1710,15 +1848,16 @@ RawInteger* Mint::ReadFrom(SnapshotReader* reader,
         (RawObject::IsCreatedFromSnapshot(tags) ||
          (kind == Snapshot::kMessage))) {
       mint = Mint::NewCanonical(value);
+      ASSERT(mint.IsCanonical() &&
+             (kind == Snapshot::kMessage ||
+              RawObject::IsCreatedFromSnapshot(mint.raw()->ptr()->tags_)));
     } else {
       mint = Mint::New(value, HEAP_SPACE(kind));
+      // Set the object tags.
+      mint.set_tags(tags);
     }
   }
   reader->AddBackRef(object_id, &mint, kIsDeserialized);
-
-  // Set the object tags.
-  mint.set_tags(tags);
-
   return mint.raw();
 }
 
@@ -1768,16 +1907,21 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
   // full snapshot). Objects that are only in the script need not be
   // canonicalized as they are already canonical.
   // When reading a message snapshot we always have to canonicalize the object.
-  if ((kind != Snapshot::kFull) && RawObject::IsCanonical(tags) &&
-      (RawObject::IsCreatedFromSnapshot(tags) ||
-       (kind == Snapshot::kMessage))) {
+  if (kind == Snapshot::kFull) {
+    // Set the object tags.
+    obj.set_tags(tags);
+  } else if (RawObject::IsCanonical(tags) &&
+             (RawObject::IsCreatedFromSnapshot(tags) ||
+              (kind == Snapshot::kMessage))) {
     obj ^= obj.CheckAndCanonicalize(NULL);
     ASSERT(!obj.IsNull());
+    ASSERT(obj.IsCanonical() &&
+           (kind == Snapshot::kMessage ||
+            RawObject::IsCreatedFromSnapshot(obj.raw()->ptr()->tags_)));
+  } else {
+    // Set the object tags.
+    obj.set_tags(tags);
   }
-
-  // Set the object tags.
-  obj.set_tags(tags);
-
   return obj.raw();
 }
 
@@ -1813,6 +1957,8 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
   Double& dbl = Double::ZoneHandle(reader->zone(), Double::null());
   if (kind == Snapshot::kFull) {
     dbl = reader->NewDouble(value);
+    // Set the object tags.
+    dbl.set_tags(tags);
   } else {
     // When reading a script snapshot we need to canonicalize only those object
     // references that are objects from the core library (loaded from a
@@ -1821,15 +1967,16 @@ RawDouble* Double::ReadFrom(SnapshotReader* reader,
     if (RawObject::IsCanonical(tags) &&
         RawObject::IsCreatedFromSnapshot(tags)) {
       dbl = Double::NewCanonical(value);
+      ASSERT(dbl.IsCanonical() &&
+             (kind == Snapshot::kMessage ||
+              RawObject::IsCreatedFromSnapshot(dbl.raw()->ptr()->tags_)));
     } else {
       dbl = Double::New(value, HEAP_SPACE(kind));
+      // Set the object tags.
+      dbl.set_tags(tags);
     }
   }
   reader->AddBackRef(object_id, &dbl, kIsDeserialized);
-
-  // Set the object tags.
-  dbl.set_tags(tags);
-
   return dbl.raw();
 }
 

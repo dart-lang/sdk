@@ -10,7 +10,6 @@ import '../../js_emitter/js_emitter.dart';
 import '../../js/js.dart' as js;
 import '../../constants/values.dart';
 import '../../elements/elements.dart';
-import '../../constants/expressions.dart';
 import '../../dart_types.dart' show DartType, TypeVariableType, InterfaceType;
 
 /// Encapsulates the dependencies of the function-compiler to the compiler,
@@ -34,10 +33,6 @@ class Glue {
 
   js.Expression constantReference(ConstantValue value) {
     return _emitter.constantReference(value);
-  }
-
-  Element getStringConversion() {
-    return _backend.getStringInterpolationHelper();
   }
 
   reportInternalError(String message) {
@@ -84,7 +79,7 @@ class Glue {
 
   FunctionElement get identicalFunction => _compiler.identicalFunction;
 
-  String invocationName(Selector selector) {
+  js.Name invocationName(Selector selector) {
     return _namer.invocationName(selector);
   }
 
@@ -116,11 +111,11 @@ class Glue {
     return _backend.emitter.constructorAccess(element);
   }
 
-  String instanceFieldPropertyName(Element field) {
+  js.Name instanceFieldPropertyName(Element field) {
     return _namer.instanceFieldPropertyName(field);
   }
 
-  String instanceMethodName(FunctionElement element) {
+  js.Name instanceMethodName(FunctionElement element) {
     return _namer.instanceMethodName(element);
   }
 
@@ -130,7 +125,7 @@ class Glue {
         hasBeenInstantiated: hasBeenInstantiated);
   }
 
-  String getInterceptorName(Set<ClassElement> interceptedClasses) {
+  js.Name getInterceptorName(Set<ClassElement> interceptedClasses) {
     return _backend.namer.nameForGetInterceptor(interceptedClasses);
   }
 
@@ -176,13 +171,23 @@ class Glue {
     return _backend.getCheckSubtype();
   }
 
+  /// subtypeCast(value, $isT, typeArgs, $asT)
+  FunctionElement getSubtypeCast() {
+    return _backend.getSubtypeCast();
+  }
+
   /// checkSubtypeOfRuntime(value, runtimeType)
-  FunctionElement getCheckSubtypeOfRuntime() {
+  FunctionElement getCheckSubtypeOfRuntimeType() {
     return _backend.getCheckSubtypeOfRuntimeType();
   }
 
+  /// subtypeOfRuntimeTypeCast(value, runtimeType)
+  FunctionElement getSubtypeOfRuntimeTypeCast() {
+    return _backend.getSubtypeOfRuntimeTypeCast();
+  }
+
   js.Expression getRuntimeTypeName(ClassElement cls) {
-    return js.string(_namer.runtimeTypeName(cls));
+    return js.quoteName(_namer.runtimeTypeName(cls));
   }
 
   int getTypeVariableIndex(TypeVariableType variable) {
@@ -214,11 +219,11 @@ class Glue {
     _backend.registerIsCheckForCodegen(type, _enqueuer, registry);
   }
 
-  String getTypeTestTag(DartType type) {
+  js.Name getTypeTestTag(DartType type) {
     return _backend.namer.operatorIsType(type);
   }
 
-  String getTypeSubstitutionTag(ClassElement element) {
+  js.Name getTypeSubstitutionTag(ClassElement element) {
     return _backend.namer.substitutionName(element);
   }
 
@@ -229,4 +234,7 @@ class Glue {
   bool hasStrictSubtype(ClassElement element) {
     return _compiler.world.hasAnyStrictSubtype(element);
   }
+
+  ClassElement get jsExtendableArrayClass => _backend.jsExtendableArrayClass;
+  ClassElement get jsMutableArrayClass => _backend.jsMutableArrayClass;
 }

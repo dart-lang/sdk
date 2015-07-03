@@ -17,7 +17,7 @@
           'action_name': 'generate_analysis_server_snapshot',
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '../../sdk/lib/_internal/libraries.dart',
+            '../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             '<(SHARED_INTERMEDIATE_DIR)/pkg_files.stamp',
           ],

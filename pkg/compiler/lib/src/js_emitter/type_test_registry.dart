@@ -53,10 +53,7 @@ class TypeTestRegistry {
     TypeChecks typeChecks = backend.rti.requiredChecks;
     Set<ClassElement> result = new Set<ClassElement>();
     for (ClassElement cls in typeChecks) {
-      for (TypeCheck check in typeChecks[cls]) {
-        result.add(cls);
-        break;
-      }
+      if (typeChecks[cls].isNotEmpty) result.add(cls);
     }
     return result;
   }

@@ -5,7 +5,7 @@
 #ifndef VM_SERVICE_H_
 #define VM_SERVICE_H_
 
-#include "include/dart_api.h"
+#include "include/dart_tools_api.h"
 
 #include "vm/allocation.h"
 #include "vm/object_id_ring.h"

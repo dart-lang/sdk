@@ -1081,3 +1081,15 @@ class _StreamIteratorImpl<T> implements StreamIterator<T> {
     _state = _STATE_EXTRA_DONE;
   }
 }
+
+/** An empty broadcast stream, sending a done event as soon as possible. */
+class _EmptyStream<T> extends Stream<T> {
+  const _EmptyStream() : super._internal();
+  bool get isBroadcast => true;
+  StreamSubscription<T> listen(void onData(T data),
+                               {Function onError,
+                                void onDone(),
+                                bool cancelOnError}) {
+    return new _DoneStreamSubscription<T>(onDone);
+  }
+}

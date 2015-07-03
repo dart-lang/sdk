@@ -13,7 +13,7 @@ namespace dart {
 namespace bin {
 
 const char* Platform::executable_name_ = NULL;
-bool Platform::executable_name_resolved_ = false;
+const char* Platform::resolved_executable_name_ = NULL;
 const char* Platform::package_root_ = NULL;
 int Platform::script_index_ = 1;
 char** Platform::argv_ = NULL;
@@ -48,6 +48,16 @@ void FUNCTION_NAME(Platform_ExecutableName)(Dart_NativeArguments args) {
   ASSERT(Platform::GetExecutableName() != NULL);
   Dart_SetReturnValue(
       args, Dart_NewStringFromCString(Platform::GetExecutableName()));
+}
+
+
+void FUNCTION_NAME(Platform_ResolvedExecutableName)(Dart_NativeArguments args) {
+  if (Platform::GetResolvedExecutableName() != NULL) {
+    Dart_SetReturnValue(
+        args, Dart_NewStringFromCString(Platform::GetResolvedExecutableName()));
+  } else {
+    Dart_SetReturnValue(args, Dart_Null());
+  }
 }
 
 

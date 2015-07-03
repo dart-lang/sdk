@@ -51,3 +51,96 @@ class Indentation {
     return result;
   }
 }
+
+abstract class Tagging<N> implements Indentation {
+
+  StringBuffer sb = new StringBuffer();
+  Link<String> tagStack = const Link<String>();
+
+  void pushTag(String tag) {
+    tagStack = tagStack.prepend(tag);
+    indentMore();
+  }
+
+  String popTag() {
+    assert(!tagStack.isEmpty);
+    String tag = tagStack.head;
+    tagStack = tagStack.tail;
+    indentLess();
+    return tag;
+  }
+
+  /**
+   * Adds given string to result string.
+   */
+  void add(String string) {
+    sb.write(string);
+  }
+
+  /// Adds default parameters for [node] into [params].
+  void addDefaultParameters(N node, Map params) {}
+
+  /**
+   * Adds given node type to result string.
+   * The method "opens" the node, meaning that all output after calling
+   * this method and before calling closeNode() will represent contents
+   * of given node.
+   */
+  void openNode(N node, String type, [Map params]) {
+    if (params == null) params = new Map();
+    addCurrentIndent();
+    sb.write("<");
+    addDefaultParameters(node, params);
+    addTypeWithParams(type, params);
+    sb.write(">\n");
+    pushTag(type);
+  }
+
+  /**
+   * Adds given node to result string.
+   */
+  void openAndCloseNode(N node, String type, [Map params]) {
+    if (params == null) params = {};
+    addCurrentIndent();
+    sb.write("<");
+    addDefaultParameters(node, params);
+    addTypeWithParams(type, params);
+    sb.write("/>\n");
+  }
+
+  /**
+   * Closes current node type.
+   */
+  void closeNode() {
+    String tag = popTag();
+    addCurrentIndent();
+    sb.write("</");
+    addTypeWithParams(tag);
+    sb.write(">\n");
+  }
+
+  void addTypeWithParams(String type, [Map params]) {
+    if (params == null) params = new Map();
+    sb.write("${type}");
+    params.forEach((k, v) {
+      String value;
+      if (v != null) {
+        String str = valueToString(v);
+        value = str
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "'");
+      } else {
+        value = "[null]";
+      }
+      sb.write(' $k="$value"');
+    });
+  }
+
+  void addCurrentIndent() {
+    sb.write(indentation);
+  }
+
+  /// Converts a parameter value into a string.
+  String valueToString(var value) => value;
+}

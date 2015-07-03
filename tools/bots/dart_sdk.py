@@ -7,6 +7,7 @@
 import os.path
 import shutil
 import sys
+import subprocess
 
 import bot
 import bot_utils
@@ -29,6 +30,23 @@ def BuildAPIDocs():
          '--arch=ia32', 'api_docs'])
     Run([sys.executable, './tools/build.py', '--mode=release',
          '--arch=ia32', 'dartdocgen'])
+
+def BuildDartdocAPIDocs(dirname):
+  dart_sdk = os.path.join(bot_utils.DART_DIR,
+                          utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
+                          'dart-sdk')
+  dart_exe =  os.path.join(dart_sdk, 'bin', 'dart')
+  dartdoc_dart = os.path.join(bot_utils.DART_DIR,
+                              'third_party', 'pkg' , 'dartdoc' , 'bin' , 
+                              'dartdoc.dart')
+  packages_dir = os.path.join(bot_utils.DART_DIR,
+                              utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
+                              'packages')
+  with bot.BuildStep('Build API docs by dartdoc'):
+    subprocess.call([dart_exe, '--package-root=' + packages_dir, dartdoc_dart, 
+                     '--sdk-docs','--output', dirname, '--dart-sdk', dart_sdk, 
+                     '--package-root=%s' % packages_dir], 
+                     stdout=open(os.devnull, 'wb'))
 
 def CreateUploadVersionFile():
   file_path = os.path.join(bot_utils.DART_DIR,
@@ -86,12 +104,23 @@ def CreateUploadAPIDocs():
   api_zip = os.path.join(bot_utils.DART_DIR,
                          utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
                          'dart-api-docs.zip')
+  dartdoc_dir =  os.path.join(bot_utils.DART_DIR,
+                              utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
+                              'gen-dartdocs')
+  dartdoc_zip =  os.path.join(bot_utils.DART_DIR,
+                              utils.GetBuildRoot(BUILD_OS, 'release', 'ia32'),
+                              'dartdocs-api.zip')
   shutil.rmtree(api_path, ignore_errors=True)
   FileDelete(api_zip)
   BuildAPIDocs()
   UploadApiDocs(api_path)
+  UploadApiLatestFile()
   CreateZip(api_path, api_zip)
   DartArchiveUploadAPIDocs(api_zip)
+  BuildDartdocAPIDocs(dartdoc_dir) 
+  UploadDartdocApiDocs(dartdoc_dir)  
+  CreateZip(dartdoc_dir, dartdoc_zip)  
+  DartArchiveUploadDartdocAPIDocs(dartdoc_zip)
 
 def DartArchiveUploadAPIDocs(api_zip):
   namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
@@ -120,6 +149,36 @@ def UploadApiDocs(dir_name):
   gsutil.upload(dir_name, apidocs_destination_gcsdir, recursive=True,
                 public=True)
 
+def DartArchiveUploadDartdocAPIDocs(api_zip):
+  namer = bot_utils.GCSNamer(CHANNEL, bot_utils.ReleaseType.RAW)
+  revision = utils.GetArchiveVersion()
+  for revision in [revision, 'latest']:
+    destination = (namer.apidocs_directory(revision) + '/' +
+        namer.dartdocs_zipfilename())
+    DartArchiveFile(api_zip, destination, checksum_files=False)
+
+def UploadDartdocApiDocs(dir_name):
+  apidocs_namer = bot_utils.GCSNamerApiDocs(CHANNEL)
+  revision = utils.GetArchiveVersion()
+  dartdocs_destination_gcsdir = apidocs_namer.dartdocs_dirpath(revision)
+
+  # Return early if the documents have already been uploaded.
+  # This can happen if a build was forced, or a commit had no changes in the
+  # dart repository (e.g. DEPS file update).
+  if GsutilExists(dartdocs_destination_gcsdir):
+    print ("Not uploading api docs, since %s is already present."
+           % dartdocs_destination_gcsdir)
+    return
+
+  # Upload everything inside the built apidocs directory.
+  gsutil = bot_utils.GSUtil()
+  gsutil.upload(dir_name, dartdocs_destination_gcsdir, recursive=True,
+                public=True, multithread=True)
+
+def UploadApiLatestFile():
+  apidocs_namer = bot_utils.GCSNamerApiDocs(CHANNEL)
+  revision = utils.GetArchiveVersion()
+  apidocs_destination_latestfile = apidocs_namer.docs_latestpath(revision)
   # Update latest.txt to contain the newest revision.
   with utils.TempDir('latest_file') as temp_dir:
     latest_file = os.path.join(temp_dir, 'latest.txt')

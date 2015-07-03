@@ -28,13 +28,13 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, ic_range_profiling, true,
+    "Generate special IC stubs collecting range information "
+    "for binary and unary arithmetic operations");
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DEFINE_FLAG(bool, two_args_smi_icd, true,
     "Generate special IC stubs for two args Smi operations");
-DEFINE_FLAG(bool, ic_range_profiling, true,
-    "Generate special IC stubs collecting range information "
-    "for binary and unary arithmetic operations");
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, eliminate_type_checks);
@@ -1656,7 +1656,7 @@ RawInteger* BinaryIntegerOpInstr::Evaluate(const Integer& left,
     case Token::kTRUNCDIV:
     case Token::kMOD:
       // Check right value for zero.
-      if (right.AsInt64Value() == 0) {
+      if (right.IsSmi() && right.AsInt64Value() == 0) {
         break;  // Will throw.
       }
       // Fall through.
@@ -3056,6 +3056,29 @@ bool PolymorphicInstanceCallInstr::HasOnlyDispatcherTargets() const {
     }
   }
   return true;
+}
+
+void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  ASSERT(ic_data().NumArgsTested() == 1);
+  if (!with_checks()) {
+    ASSERT(ic_data().HasOneTarget());
+    const Function& target = Function::ZoneHandle(ic_data().GetTargetAt(0));
+    compiler->GenerateStaticCall(deopt_id(),
+                                 instance_call()->token_pos(),
+                                 target,
+                                 instance_call()->ArgumentCount(),
+                                 instance_call()->argument_names(),
+                                 locs(),
+                                 ICData::Handle());
+    return;
+  }
+
+  compiler->EmitPolymorphicInstanceCall(ic_data(),
+                                        instance_call()->ArgumentCount(),
+                                        instance_call()->argument_names(),
+                                        deopt_id(),
+                                        instance_call()->token_pos(),
+                                        locs());
 }
 
 

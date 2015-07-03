@@ -24,7 +24,7 @@ import 'package:compiler/src/dart2jslib.dart' show
     MessageKind,
     NullSink;
 
-import 'package:_internal/libraries.dart' show
+import 'package:sdk_library_metadata/libraries.dart' show
     DART2JS_PLATFORM,
     LibraryInfo;
 

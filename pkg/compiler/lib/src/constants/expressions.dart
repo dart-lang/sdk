@@ -18,6 +18,7 @@ import '../elements/elements.dart' show
 import '../resolution/operators.dart';
 import '../tree/tree.dart' show DartString;
 import '../universe/universe.dart' show CallStructure;
+import '../util/util.dart';
 import 'values.dart';
 
 enum ConstantExpressionKind {
@@ -41,6 +42,7 @@ enum ConstantExpressionKind {
   STRING_FROM_ENVIRONMENT,
   STRING_LENGTH,
   SYMBOL,
+  SYNTHETIC,
   TYPE,
   UNARY,
   VARIABLE,
@@ -140,6 +142,23 @@ class GenerativeConstantConstructor implements ConstantConstructor{
     return appliedFieldMap;
   }
 
+  int get hashCode {
+    int hash = Hashing.objectHash(type);
+    hash = Hashing.mapHash(defaultValues, hash);
+    hash = Hashing.mapHash(fieldMap, hash);
+    return Hashing.objectHash(superConstructorInvocation, hash);
+  }
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! GenerativeConstantConstructor) return false;
+    return
+        type == other.type &&
+        superConstructorInvocation == other.superConstructorInvocation &&
+        mapEquals(defaultValues, other.defaultValues) &&
+        mapEquals(fieldMap, other.fieldMap);
+  }
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("{'type': $type");
@@ -154,6 +173,16 @@ class GenerativeConstantConstructor implements ConstantConstructor{
     }
     sb.write("}");
     return sb.toString();
+  }
+
+  static bool mapEquals(Map map1, Map map2) {
+    if (map1.length != map1.length) return false;
+    for (var key in map1.keys) {
+      if (map1[key] != map2[key]) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /// Creates the field-to-constant map from applying [args] to
@@ -204,6 +233,20 @@ class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
     return appliedFieldMap;
   }
 
+  int get hashCode {
+    int hash = Hashing.objectHash(thisConstructorInvocation);
+    return Hashing.mapHash(defaultValues, hash);
+  }
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! RedirectingGenerativeConstantConstructor) return false;
+    return
+        thisConstructorInvocation == other.thisConstructorInvocation &&
+        GenerativeConstantConstructor.mapEquals(
+            defaultValues, other.defaultValues);
+  }
+
   String toString() {
     StringBuffer sb = new StringBuffer();
     sb.write("{'type': ${thisConstructorInvocation.type}");
@@ -237,6 +280,16 @@ class RedirectingFactoryConstantConstructor implements ConstantConstructor {
     ConstantConstructor constantConstructor =
         targetConstructorInvocation.target.constantConstructor;
     return constantConstructor.computeInstanceFields(arguments, callStructure);
+  }
+
+  int get hashCode {
+    return Hashing.objectHash(targetConstructorInvocation);
+  }
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! RedirectingFactoryConstantConstructor) return false;
+    return targetConstructorInvocation == other.targetConstructorInvocation;
   }
 
   String toString() {
@@ -333,6 +386,35 @@ class ErroneousConstantExpression extends ConstantExpression {
   @override
   bool _equals(ErroneousConstantExpression other) => true;
 }
+
+// TODO(johnniwinther): Avoid the need for this class.
+class SyntheticConstantExpression extends ConstantExpression {
+  final SyntheticConstantValue value;
+
+  SyntheticConstantExpression(this.value);
+
+  @override
+  ConstantValue evaluate(Environment environment,
+                         ConstantSystem constantSystem) {
+    return value;
+  }
+
+  @override
+  int _computeHashCode() => 13 * value.hashCode;
+
+  accept(ConstantExpressionVisitor visitor, [context]) {
+    throw "unsupported";
+  }
+
+  @override
+  bool _equals(SyntheticConstantExpression other) {
+    return value == other.value;
+  }
+
+  ConstantExpressionKind get kind => ConstantExpressionKind.SYNTHETIC;
+}
+
+
 
 /// A boolean, int, double, string, or null constant.
 abstract class PrimitiveConstantExpression extends ConstantExpression {
@@ -1499,15 +1581,6 @@ abstract class ConstantExpressionVisitor<R, A> {
 
   R visitPositional(PositionalArgumentReference exp, A context);
   R visitNamed(NamedArgumentReference exp, A context);
-}
-
-/// Represents the declaration of a constant [element] with value [expression].
-// TODO(johnniwinther): Where does this class belong?
-class ConstDeclaration {
-  final VariableElement element;
-  final ConstantExpression expression;
-
-  ConstDeclaration(this.element, this.expression);
 }
 
 class ConstExpPrinter extends ConstantExpressionVisitor {

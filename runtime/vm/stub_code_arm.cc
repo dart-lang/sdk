@@ -28,6 +28,7 @@ DEFINE_FLAG(bool, use_slow_path, false,
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, support_debugger);
+DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   LR : return address.
@@ -43,9 +44,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   const intptr_t retval_offset = NativeArguments::retval_offset();
   const intptr_t exitframe_last_param_slot_from_fp = 2;
 
-  __ mov(IP, Operand(0));
-  __ Push(IP);  // Push 0 for the PC marker.
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R9)) != 0);
   __ LoadIsolate(R9);
@@ -104,9 +103,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ LoadImmediate(R2, 0);
   __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
 
-  __ LeaveFrame((1 << FP) | (1 << LR));
-  // Adjust SP for the empty PC marker.
-  __ AddImmediate(SP, kWordSize);
+  __ LeaveStubFrame();
   __ Ret();
 }
 
@@ -142,9 +139,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
-  __ mov(IP, Operand(0));
-  __ Push(IP);  // Push 0 for the PC marker.
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R9)) != 0);
   __ LoadIsolate(R9);
@@ -216,9 +211,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ LoadImmediate(R2, 0);
   __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
 
-  __ LeaveFrame((1 << FP) | (1 << LR));
-  // Adjust SP for the empty PC marker.
-  __ AddImmediate(SP, kWordSize);
+  __ LeaveStubFrame();
   __ Ret();
 }
 
@@ -235,9 +228,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   const intptr_t argv_offset = NativeArguments::argv_offset();
   const intptr_t retval_offset = NativeArguments::retval_offset();
 
-  __ mov(IP, Operand(0));
-  __ Push(IP);  // Push 0 for the PC marker.
-  __ EnterFrame((1 << FP) | (1 << LR), 0);
+  __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R9)) != 0);
   __ LoadIsolate(R9);
@@ -300,9 +291,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ LoadImmediate(R2, 0);
   __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
 
-  __ LeaveFrame((1 << FP) | (1 << LR));
-  // Adjust SP for the empty PC marker.
-  __ AddImmediate(SP, kWordSize);
+  __ LeaveStubFrame();
   __ Ret();
 }
 
@@ -534,7 +523,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   // Materialize any objects that were deferred by FillFrame because they
   // require allocation.
   // Enter stub frame with loading PP. The caller's PP is not materialized yet.
-  __ EnterStubFrame(true);
+  __ EnterStubFrame();
   if (preserve_result) {
     __ Push(R1);  // Preserve result, it will be GC-d here.
   }
@@ -566,6 +555,33 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
 }
 
 
+static void GenerateDispatcherCode(Assembler* assembler,
+                                   Label* call_target_function) {
+  __ Comment("NoSuchMethodDispatch");
+  // When lazily generated invocation dispatchers are disabled, the
+  // miss-handler may return null.
+  __ CompareObject(R0, Object::null_object());
+  __ b(call_target_function, NE);
+  __ EnterStubFrame();
+  // Load the receiver.
+  __ ldr(R2, FieldAddress(R4, ArgumentsDescriptor::count_offset()));
+  __ add(IP, FP, Operand(R2, LSL, 1));  // R2 is Smi.
+  __ ldr(R6, Address(IP, kParamEndSlotFromFp * kWordSize));
+  __ PushObject(Object::null_object());
+  __ Push(R6);
+  __ Push(R5);
+  __ Push(R4);
+  // R2: Smi-tagged arguments array length.
+  PushArgumentsArray(assembler);
+  const intptr_t kNumArgs = 4;
+  __ CallRuntime(kInvokeNoSuchMethodDispatcherRuntimeEntry, kNumArgs);
+  __ Drop(4);
+  __ Pop(R0);  // Return value.
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+
 void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ EnterStubFrame();
 
@@ -592,6 +608,12 @@ void StubCode::GenerateMegamorphicMissStub(Assembler* assembler) {
   __ PopList((1 << R4) | (1 << R5));
 
   __ LeaveStubFrame();
+
+  if (!FLAG_lazy_dispatchers) {
+    Label call_target_function;
+    GenerateDispatcherCode(assembler, &call_target_function);
+    __ Bind(&call_target_function);
+  }
 
   // Tail-call to target function.
   __ ldr(R2, FieldAddress(R0, Function::instructions_offset()));
@@ -1009,15 +1031,9 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
     __ b(&retry, EQ);
   }
 
-  // Load the isolate.
-  // Spilled: R1, R2, R3.
-  // R0: address being stored.
-  __ LoadIsolate(R1);
-
-  // Load the StoreBuffer block out of the isolate. Then load top_ out of the
+  // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
-  // R1: isolate.
-  __ ldr(R1, Address(R1, Isolate::store_buffer_offset()));
+  __ ldr(R1, Address(THR, Thread::store_buffer_block_offset()));
   __ ldr(R2, Address(R1, StoreBufferBlock::top_offset()));
   __ add(R3, R1, Operand(R2, LSL, 2));
   __ str(R0, Address(R3, StoreBufferBlock::pointers_offset()));
@@ -1039,7 +1055,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Setup frame, push callee-saved registers.
 
   __ EnterCallRuntimeFrame(0 * kWordSize);
-  __ LoadIsolate(R0);
+  __ mov(R0, Operand(THR));
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry, 1);
   // Restore callee-saved registers, tear down frame.
   __ LeaveCallRuntimeFrame();
@@ -1067,7 +1083,8 @@ void StubCode::GenerateAllocationStubForClass(
   const int kInlineInstanceSize = 12;
   const intptr_t instance_size = cls.instance_size();
   ASSERT(instance_size > 0);
-  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size)) {
+  if (FLAG_inline_alloc && Heap::IsAllocatableInNewSpace(instance_size) &&
+      !cls.trace_allocation()) {
     Label slow_case;
     // Allocate the object and update top to point to
     // next object start and initialize the allocated object.
@@ -1163,7 +1180,7 @@ void StubCode::GenerateAllocationStubForClass(
   // R4: new object type arguments.
   // Create a stub frame as we are pushing some objects on the stack before
   // calling into the runtime.
-  __ EnterStubFrame(true);  // Uses pool pointer to pass cls to runtime.
+  __ EnterStubFrame();  // Uses pool pointer to pass cls to runtime.
   __ LoadImmediate(R2, reinterpret_cast<intptr_t>(Object::null()));
   __ Push(R2);  // Setup space on stack for return value.
   __ PushObject(cls);  // Push class of object to be allocated.
@@ -1464,7 +1481,11 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ PopList((1 << R0) | (1 << R4) | (1 << R5));
   __ LeaveStubFrame();
   Label call_target_function;
-  __ b(&call_target_function);
+  if (!FLAG_lazy_dispatchers) {
+    GenerateDispatcherCode(assembler, &call_target_function);
+  } else {
+    __ b(&call_target_function);
+  }
 
   __ Bind(&found);
   // R6: pointer to an IC data check group.
