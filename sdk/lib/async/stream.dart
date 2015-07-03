@@ -1673,27 +1673,35 @@ abstract class StreamTransformer<S, T> {
 abstract class StreamIterator<T> {
 
   /** Create a [StreamIterator] on [stream]. */
-  factory StreamIterator(Stream<T> stream)
-      // TODO(lrn): use redirecting factory constructor when type
-      // arguments are supported.
-      => new _StreamIteratorImpl<T>(stream);
+  factory StreamIterator(Stream<T> stream) = _StreamIteratorImpl<T>;
 
   /**
    * Wait for the next stream value to be available.
    *
-   * It is not allowed to call this function again until the future has
-   * completed. If the returned future completes with anything except `true`,
-   * the iterator is done, and no new value will ever be available.
+   * Returns a future which will complete with either `true` or `false`.
+   * Completing with `true` means that another event has been received and
+   * can be read as [current].
+   * Completing with `false` means that the stream itearation is done and
+   * no further events will ever be available.
+   * The future may complete with an error, if the stream produces an error,
+   * which also ends iteration.
    *
-   * The future may complete with an error, if the stream produces an error.
+   * The function must not be called again until the future returned by a
+   * previous call is completed.
    */
   Future<bool> moveNext();
 
   /**
    * The current value of the stream.
    *
-   * Only valid when the future returned by [moveNext] completes with `true`
-   * as value, and only until the next call to [moveNext].
+   * Is `null` before the first call to [moveNext] and after a call to
+   * `moveNext` completes with a `false` result or an error.
+   *
+   * When a `moveNext` call completes with `true`, the `current` field holds
+   * the most recent event of the stream, and it stays like that until the next
+   * call to `moveNext`.
+   * Between a call to `moveNext` and when its returned future completes,
+   * the value is unspecified.
    */
   T get current;
 
@@ -1703,12 +1711,13 @@ abstract class StreamIterator<T> {
    * The stream iterator is automatically canceled if the [moveNext] future
    * completes with either `false` or an error.
    *
-   * If a [moveNext] call has been made, it will complete with `false` as value,
-   * as will all further calls to [moveNext].
-   *
    * If you need to stop listening for values before the stream iterator is
    * automatically closed, you must call [cancel] to ensure that the stream
    * is properly closed.
+   *
+   * If [moveNext] has been called when the iterator is cancelled,
+   * its returned future will complete with `false` as value,
+   * as will all further calls to [moveNext].
    *
    * Returns a future if the cancel-operation is not completed synchronously.
    * Otherwise returns `null`.
