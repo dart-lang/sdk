@@ -8,6 +8,11 @@
     `setInnerHtml` or other methods that create DOM from text. It is
     also more efficient, skipping the creation of a `DocumentFragment`.
 
+* `dart:io`
+  * Added two new file modes, `WRITE_ONLY` and `WRITE_ONLY_APPEND` for
+    opening a file write only.
+    [eaeecf2](https://github.com/dart-lang/sdk/commit/eaeecf2ed13ba6c7fbfd653c3c592974a7120960)
+
 ### Tool changes
 
 * Pub
