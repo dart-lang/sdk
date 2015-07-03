@@ -181,5 +181,4 @@ io/observatory_test: Crash # Invalid argument(s)
 io/socket_bind_test: Crash # (testListenCloseList...  cannot handle async/sync*/async* functions
 io/socket_source_address_test: Crash # (Future testConnect(...  cannot handle async/sync*/async* functions
 priority_queue_stress_test: RuntimeError # receiver.get$_collection$_nums is not a function
-slowpath_safepoints_test: RuntimeError # Cannot read property 'prototype' of undefined
 typed_array_test: RuntimeError # receiver.get$_collection$_nums is not a function

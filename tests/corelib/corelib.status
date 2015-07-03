@@ -213,11 +213,6 @@ int_parse_radix_test/*: Pass, Slow
 big_integer_parsed_mul_div_vm_test: Pass, Slow
 
 [ $compiler == dart2js && $cps_ir ]
-date_time2_test: RuntimeError # Cannot read property 'prototype' of undefined
-date_time3_test: RuntimeError # Cannot read property 'prototype' of undefined
-date_time4_test: RuntimeError # Cannot read property 'prototype' of undefined
-date_time7_test: RuntimeError # Cannot read property 'prototype' of undefined
-date_time_parse_test: RuntimeError # Cannot read property 'prototype' of undefined
 error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a function
 hashcode_test: RuntimeError # Please triage this failure.
 int_parse_radix_test/01: Crash # Invalid argument(s)
@@ -232,24 +227,10 @@ main_test: RuntimeError # receiver.get$_collection$_nums is not a function
 map_values2_test: RuntimeError # Please triage this failure.
 map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.
-null_test: RuntimeError # Cannot read property 'prototype' of undefined
-reg_exp_first_match_test: RuntimeError # Cannot read property 'prototype' of undefined
-reg_exp_group_test: RuntimeError # Cannot read property 'prototype' of undefined
-reg_exp_string_match_test: RuntimeError # Cannot read property 'prototype' of undefined
-regexp/capture-3_test: RuntimeError # Cannot read property 'prototype' of undefined
-regexp/extended-characters-match_test: RuntimeError # Cannot read property 'prototype' of undefined
-regexp/non-bmp_test: RuntimeError # Cannot read property 'prototype' of undefined
 regexp/pcre_test: Crash # Stack Overflow
-regexp/regress-regexp-construct-result_test: RuntimeError # Cannot read property 'prototype' of undefined
-regexp/results-cache_test: RuntimeError # Cannot read property 'prototype' of undefined
-regexp/stack-overflow_test: RuntimeError # Cannot read property 'prototype' of undefined
-regexp/unicode-handling_test: RuntimeError # Cannot read property 'prototype' of undefined
 shuffle_test: RuntimeError # Please triage this failure.
 stacktrace_fromstring_test: RuntimeError # receiver.get$_collection$_nums is not a function
-stopwatch2_test: RuntimeError # Cannot read property 'prototype' of undefined
-stopwatch_test: RuntimeError # Cannot read property 'prototype' of undefined
 string_fromcharcodes_test: RuntimeError # Please triage this failure.
-string_replace_all_test: RuntimeError # Cannot read property 'prototype' of undefined
 symbol_operator_test/03 : RuntimeError # 
 symbol_reserved_word_test/03: Pass # Please triage this failure.
 symbol_reserved_word_test/06: RuntimeError # Please triage this failure.

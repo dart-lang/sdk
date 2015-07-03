@@ -470,7 +470,6 @@ async/zone_run_unary_test: RuntimeError # receiver.get$_nums is not a function
 async/zone_value_test: RuntimeError # receiver.get$_collection$_nums is not a function
 convert/ascii_test: RuntimeError # Please triage this failure.
 convert/chunked_conversion_utf88_test: RuntimeError # Please triage this failure.
-convert/codec1_test: RuntimeError # Cannot read property 'prototype' of undefined
 convert/encoding_test: RuntimeError # receiver.get$_collection$_nums is not a function
 convert/html_escape_test: RuntimeError # receiver.get$_collection$_nums is not a function
 convert/json_lib_test : RuntimeError # TypeError: receiver.get$_nums is not a function

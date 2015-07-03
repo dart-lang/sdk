@@ -357,28 +357,16 @@ await_not_started_immediately_test: Crash # (foo()async{x++ ;await 1;x++ ;}): ca
 await_postfix_expr_test: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 await_regression_test: Crash # (main()async{testNes...  cannot handle async/sync*/async* functions
 await_test: Crash # (others()async{var a...  cannot handle async/sync*/async* functions
-bind_test: RuntimeError # Cannot read property 'prototype' of undefined
-canonical_const3_test: RuntimeError # Cannot read property 'prototype' of undefined
-cascade_test/none: RuntimeError # Cannot read property 'prototype' of undefined
 cha_deopt1_test: RuntimeError # receiver.get$_collection$_nums is not a function
 cha_deopt2_test: RuntimeError # receiver.get$_collection$_nums is not a function
 cha_deopt3_test: RuntimeError # receiver.get$_collection$_nums is not a function
-closure7_test: RuntimeError # Cannot read property 'prototype' of undefined
-closure8_test: RuntimeError # Cannot read property 'prototype' of undefined
 closure_cycles_test: RuntimeError # receiver.get$_collection$_nums is not a function
 closure_in_constructor_test: Crash # Invalid argument(s)
-closure_shared_state_test: RuntimeError # Cannot read property 'prototype' of undefined
 closure_type_variables_test: Crash # Invalid argument(s)
-closures_initializer2_test: RuntimeError # Cannot read property 'prototype' of undefined
 const_evaluation_test/01: Crash # Internal Error: No default constructor available.
 constructor12_test: RuntimeError # Please triage this failure.
 crash_6725_test/01: Crash # The null object does not have a getter '_element'.
 custom_await_stack_trace_test: Crash # (main()async{try {va...  cannot handle async/sync*/async* functions
-cyclic_type_test/00: RuntimeError # Cannot read property 'prototype' of undefined
-cyclic_type_test/01: RuntimeError # Cannot read property 'prototype' of undefined
-cyclic_type_test/02: RuntimeError # Cannot read property 'prototype' of undefined
-cyclic_type_test/03: RuntimeError # Cannot read property 'prototype' of undefined
-cyclic_type_test/04: RuntimeError # Cannot read property 'prototype' of undefined
 deferred_closurize_load_library_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_constant_list_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_constraints_constants_test/none: Crash # Internal Error: No default constructor available.
@@ -418,11 +406,7 @@ deferred_shadow_load_library_test: RuntimeError # receiver.get$_collection$_nums
 deferred_shared_and_unshared_classes_test: RuntimeError # receiver.get$_collection$_nums is not a function
 deferred_static_seperate_test: RuntimeError # receiver.get$_collection$_nums is not a function
 enum_mirror_test: Crash # Internal Error: No default constructor available.
-f_bounded_equality_test: RuntimeError # Cannot read property 'prototype' of undefined
 final_super_field_set_test/01 : RuntimeError # 
-fixed_type_variable_test/02: RuntimeError # Cannot read property 'prototype' of undefined
-fixed_type_variable_test/04: RuntimeError # Cannot read property 'prototype' of undefined
-fixed_type_variable_test/06: RuntimeError # Cannot read property 'prototype' of undefined
 flatten_test/01: Crash # (test()async{int x=await new Derived<int>();}): cannot handle async/sync*/async* functions
 flatten_test/02: Crash # (test()async{Future<int> f()async=>new Derived<int>();}): cannot handle async/sync*/async* functions
 flatten_test/03: Crash # (test()async{Future<...  cannot handle async/sync*/async* functions
@@ -438,26 +422,7 @@ flatten_test/12: Crash # (test()async{Future<...  cannot handle async/sync*/asyn
 flatten_test/none: Crash # (test()async{}): cannot handle async/sync*/async* functions
 for2_test: Crash # The null object does not have a getter 'field'.
 for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
-function_getter_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_literals_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_bound_closure0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_bound_closure1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_call0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_factory1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_local0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_local1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_named1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_not0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_optional1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_simple0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_simple1_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_simple2_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_subtype_top_level0_test: RuntimeError # Cannot read property 'prototype' of undefined
-function_type_alias6_test/none: RuntimeError # Cannot read property 'prototype' of undefined
-generic_creation_test: RuntimeError # Cannot read property 'prototype' of undefined
 generic_field_mixin3_test: RuntimeError # Please triage this failure.
-identical_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
 if_null_assignment_static_test/01: RuntimeError # Issue 23669
 if_null_assignment_static_test/03: RuntimeError # Issue 23669
 if_null_assignment_static_test/04: RuntimeError # Issue 23669
@@ -466,17 +431,11 @@ if_null_assignment_static_test/36: RuntimeError # Issue 23669
 if_null_assignment_static_test/38: RuntimeError # Issue 23669
 if_null_assignment_static_test/39: RuntimeError # Issue 23669
 if_null_assignment_static_test/40: RuntimeError # Issue 23669
-implicit_closure1_test: RuntimeError # Cannot read property 'prototype' of undefined
-implicit_closure2_test: RuntimeError # Cannot read property 'prototype' of undefined
-implicit_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
-inlined_conditional_test: RuntimeError # Cannot read property 'prototype' of undefined
 instance_creation_in_function_annotation_test: Crash # Internal Error: No default constructor available.
 instanceof4_test/01: RuntimeError # Please triage this failure.
 invocation_mirror_invoke_on_test : RuntimeError # 
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
-is_function_test: RuntimeError # Cannot read property 'prototype' of undefined
-issue13179_test: RuntimeError # Cannot read property 'prototype' of undefined
 issue_1751477_test: RuntimeError # receiver.get$_collection$_nums is not a function
 large_class_declaration_test: Crash # Stack Overflow
 list_test: RuntimeError # Please triage this failure.
@@ -493,31 +452,16 @@ main_test/43: RuntimeError # receiver.get$_collection$_nums is not a function
 main_test/44: RuntimeError # receiver.get$_collection$_nums is not a function
 main_test/45: RuntimeError # receiver.get$_collection$_nums is not a function
 many_overridden_no_such_method_test : RuntimeError # 
-method_binding_test: RuntimeError # Cannot read property 'prototype' of undefined
-methods_as_constants2_test: RuntimeError # Cannot read property 'prototype' of undefined
-mint_compares_test: RuntimeError # Cannot read property 'prototype' of undefined
 mixin_super_constructor_named_test/01: Crash # Internal Error: No default constructor available.
 mixin_super_constructor_positionals_test/01: Crash # Internal Error: No default constructor available.
 mixin_type_parameters_mixin_extends_test: Crash # The null object does not have a getter '_element'.
 mixin_type_parameters_mixin_test: Crash # The null object does not have a getter '_element'.
 mixin_type_parameters_super_extends_test: Crash # The null object does not have a getter '_element'.
 mixin_type_parameters_super_test: Crash # The null object does not have a getter '_element'.
-named_parameters_with_conversions_test: RuntimeError # Cannot read property 'prototype' of undefined
 nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled switch case
 no_such_method_test : RuntimeError # 
 null_test/none: Crash # Internal Error: No default constructor available.
-null_to_string2_test: RuntimeError # Cannot read property 'prototype' of undefined
-null_to_string_test: RuntimeError # Cannot read property 'prototype' of undefined
 overridden_no_such_method_test : RuntimeError # 
-override_method_with_field_test/02: RuntimeError # Cannot read property 'prototype' of undefined
-override_method_with_field_test/none: RuntimeError # Cannot read property 'prototype' of undefined
-prefix14_test: RuntimeError # Cannot read property 'prototype' of undefined
-prefix15_test: RuntimeError # Cannot read property 'prototype' of undefined
-prefix21_test: RuntimeError # Cannot read property 'prototype' of undefined
-range_analysis_test: RuntimeError # Cannot read property 'prototype' of undefined
-recursive_calls_test: RuntimeError # Cannot read property 'prototype' of undefined
-reg_ex2_test: RuntimeError # Cannot read property 'prototype' of undefined
-reg_exp2_test: RuntimeError # Cannot read property 'prototype' of undefined
 regress_18535_test: Crash # Internal Error: No default constructor available.
 regress_22438_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22443_test: RuntimeError # receiver.get$_collection$_nums is not a function
@@ -531,11 +475,6 @@ regress_23498_test: Crash # (main()async{var err...  cannot handle async/sync*/a
 regress_23500_test/01: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/02: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/none: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
-static_closure_identical_test: RuntimeError # Cannot read property 'prototype' of undefined
-static_field_test/none: RuntimeError # Cannot read property 'prototype' of undefined
-static_implicit_closure_test: RuntimeError # Cannot read property 'prototype' of undefined
-string_interpolation_test/01: RuntimeError # Cannot read property 'prototype' of undefined
-string_interpolation_test/none: RuntimeError # Cannot read property 'prototype' of undefined
 super_bound_closure_test/01: RuntimeError # Cannot read property 'call' of undefined
 super_bound_closure_test/none: RuntimeError # Cannot read property 'call' of undefined
 super_call4_test : RuntimeError # 
@@ -561,11 +500,7 @@ sync_generator3_test/test2: Crash # (g()sync*{try {yield...  cannot handle async
 syncstar_yield_test/copyParameters: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yield_test/none: Crash # (Iterable<int> foo3(...  cannot handle async/sync*/async* functions
 syncstar_yieldstar_test: Crash # (main()async{Expect....  cannot handle async/sync*/async* functions
-top_level_in_initializer_test: RuntimeError # Cannot read property 'prototype' of undefined
 try_catch_test/none: Crash # The null object does not have a getter '_element'.
-type_check_const_function_typedef2_test/00: RuntimeError # Cannot read property 'prototype' of undefined
-type_check_const_function_typedef2_test/none: RuntimeError # Cannot read property 'prototype' of undefined
-type_check_const_function_typedef_test: RuntimeError # Cannot read property 'prototype' of undefined
 type_parameter_test/01: Crash # Invalid argument(s)
 type_parameter_test/02: Crash # Invalid argument(s)
 type_parameter_test/03: Crash # Invalid argument(s)
@@ -573,24 +508,8 @@ type_parameter_test/04: Crash # Invalid argument(s)
 type_parameter_test/05: Crash # Invalid argument(s)
 type_parameter_test/06: Crash # Invalid argument(s)
 type_parameter_test/none: Crash # Invalid argument(s)
-type_promotion_functions_test/01: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/02: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/03: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/04: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/05: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/06: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/07: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/08: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/09: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/10: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/11: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/12: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/13: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/14: RuntimeError # Cannot read property 'prototype' of undefined
-type_promotion_functions_test/none: RuntimeError # Cannot read property 'prototype' of undefined
 type_variable_closure2_test: RuntimeError # Please triage this failure.
 type_variable_closure_test: Crash # Invalid argument(s)
-typedef_is_test: RuntimeError # Cannot read property 'prototype' of undefined
 invocation_mirror2_test : Crash # Internal Error: No default constructor available.
 type_variable_conflict2_test/01 : Crash # Internal Error: No default constructor available.
 async_await_syntax_test/a05h : Crash # bailout: (a05h()async{yield*st;}): cannot handle async/sync*/async* functions

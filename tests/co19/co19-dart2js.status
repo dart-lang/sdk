@@ -9602,65 +9602,19 @@ WebPlatformTest/webstorage/storage_local_setitem_t01: RuntimeError # Please tria
 WebPlatformTest/webstorage/storage_session_setitem_t01: RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $cps_ir ]
-Language/12_Expressions/05_Strings/1_String_Interpolation_A01_t12: RuntimeError # Cannot read property 'prototype' of undefined
-Language/12_Expressions/05_Strings/1_String_Interpolation_A02_t02: RuntimeError # Cannot read property 'prototype' of undefined
 Language/12_Expressions/12_Instance_Creation/1_New_A06_t12: RuntimeError # Please triage this failure.
-Language/12_Expressions/13_Property_Extraction_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
-Language/12_Expressions/13_Property_Extraction_A01_t02: RuntimeError # Cannot read property 'prototype' of undefined
-Language/12_Expressions/13_Property_Extraction_A01_t03: RuntimeError # Cannot read property 'prototype' of undefined
 Language/12_Expressions/13_Property_Extraction_A03_t01: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/13_Property_Extraction_A03_t02: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/13_Property_Extraction_A03_t03: RuntimeError # Cannot read property 'call' of undefined
 Language/12_Expressions/13_Spawning_an_Isolate_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
-Language/12_Expressions/15_Method_Invocation/1_Ordinary_Invocation_A05_t04: RuntimeError # Cannot read property 'prototype' of undefined
-Language/12_Expressions/15_Method_Invocation/3_Static_Invocation_A04_t05: RuntimeError # Cannot read property 'prototype' of undefined
 Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A01_t01: RuntimeError # Cannot read property 'call' of undefined
-Language/12_Expressions/15_Method_Invocation/4_Super_Invocation_A03_t04: RuntimeError # Cannot read property 'prototype' of undefined
 Language/12_Expressions/29_Assignable_Expressions_A01_t08: RuntimeError # receiver.get$_first is not a function
 Language/12_Expressions/30_Identifier_Reference_A09_t03: Crash # (i=0): For-loop variable captured in loop header
-Language/12_Expressions/30_Identifier_Reference_A10_t01: RuntimeError # Cannot read property 'prototype' of undefined
-Language/12_Expressions/30_Identifier_Reference_A10_t02: RuntimeError # Cannot read property 'prototype' of undefined
-Language/13_Statements/02_Expression_Statements_A01_t06: RuntimeError # Cannot read property 'prototype' of undefined
 Language/13_Statements/06_For_A01_t07: Crash # unsupported operation on erroneous element
 Language/13_Statements/12_Labels_A03_t04: Crash # (switch (i){L:case 0:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/13_Statements/14_Continue_A02_t12: Crash # (switch (2){L:case 1:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/13_Statements/14_Continue_A02_t13: Crash # (switch (2){case 2:continue L;L:case 1:flag=true;}): continue to a labeled switch case
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: RuntimeError # receiver.get$_collection$_nums is not a function
-Language/15_Types/3_Type_Declarations/1_Typedef_A02_t01: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/3_Type_Declarations/1_Typedef_A02_t02: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/3_Type_Declarations/1_Typedef_A02_t03: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/3_Type_Declarations/1_Typedef_A03_t01: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/3_Type_Declarations/1_Typedef_A04_t02: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/4_Interface_Types_A12_t18: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A01_t03: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A01_t04: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A01_t05: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A01_t06: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A01_t08: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A01_t09: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A01_t11: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A02_t01: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A02_t02: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A02_t03: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A02_t04: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A02_t05: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A02_t09: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A02_t10: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A03_t01: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A03_t02: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A03_t03: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A03_t04: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A03_t06: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A03_t08: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A03_t09: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A03_t10: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A03_t11: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A03_t12: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A03_t13: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A05_t02: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A05_t05: RuntimeError # Cannot read property 'prototype' of undefined
-Language/15_Types/5_Function_Types_A06_t01: RuntimeError # Cannot read property 'prototype' of undefined
 LibTest/async/Completer/Completer.sync_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/async/Completer/completeError_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/async/Completer/completeError_A01_t02: RuntimeError # receiver.get$_collection$_nums is not a function
@@ -9949,10 +9903,7 @@ LibTest/convert/JsonCodec/encode_A01_t01: Crash # Internal Error: No default con
 LibTest/convert/JsonCodec/encode_A01_t02: Crash # Internal Error: No default constructor available.
 LibTest/convert/JsonDecoder/fuse_A01_t01: Crash # Internal Error: No default constructor available.
 LibTest/convert/JsonEncoder/convert_A01_t01: Crash # Internal Error: No default constructor available.
-LibTest/core/DateTime/parse_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
-LibTest/core/DateTime/parse_A01_t02: RuntimeError # Cannot read property 'prototype' of undefined
 LibTest/core/DateTime/parse_A03_t01: Pass # Please triage this failure.
-LibTest/core/DateTime/timeZoneName_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
 LibTest/core/Invocation/isAccessor_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/isGetter_A01_t01 : RuntimeError # 
 LibTest/core/Invocation/isGetter_A01_t02 : RuntimeError # 
@@ -9962,11 +9913,7 @@ LibTest/core/Invocation/isSetter_A01_t02 : RuntimeError #
 LibTest/core/Invocation/memberName_A01_t01: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 LibTest/core/Invocation/positionalArguments_A01_t01 : RuntimeError # 
 LibTest/core/List/List_class_A01_t02: Crash # Stack Overflow
-LibTest/core/Match/end_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
-LibTest/core/Match/groupCount_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
 LibTest/core/NoSuchMethodError/toString_A01_t01: RuntimeError # receiver.get$_first is not a function
-LibTest/core/RegExp/stringMatch_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
-LibTest/core/Stopwatch/Stopwatch_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
 LibTest/core/Stopwatch/elapsedInMs_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/core/Stopwatch/elapsedInUs_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/core/Stopwatch/elapsedTicks_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
@@ -9975,7 +9922,6 @@ LibTest/core/Stopwatch/elapsedTicks_A01_t03: RuntimeError # receiver.get$_collec
 LibTest/core/Stopwatch/elapsed_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/core/Stopwatch/elapsed_A01_t02: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/core/Stopwatch/elapsed_A01_t03: RuntimeError # receiver.get$_collection$_nums is not a function
-LibTest/core/Stopwatch/frequency_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
 LibTest/core/Stopwatch/start_A01_t01: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/core/Stopwatch/start_A01_t02: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/core/Stopwatch/start_A01_t03: RuntimeError # receiver.get$_collection$_nums is not a function
@@ -9984,7 +9930,6 @@ LibTest/core/Symbol/Symbol_A01_t03: RuntimeError # Please triage this failure.
 LibTest/core/Symbol/Symbol_A01_t05: RuntimeError # Please triage this failure.
 LibTest/core/double/INFINITY_A01_t04: Pass # Please triage this failure.
 LibTest/core/double/NEGATIVE_INFINITY_A01_t04: Pass # Please triage this failure.
-LibTest/core/int/parse_A01_t01: RuntimeError # Cannot read property 'prototype' of undefined
 LibTest/isolate/Isolate/spawnUri_A02_t02: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/isolate/Isolate/spawnUri_A02_t03: RuntimeError # receiver.get$_collection$_nums is not a function
 LibTest/isolate/Isolate/spawnUri_A02_t04: RuntimeError # receiver.get$_collection$_nums is not a function

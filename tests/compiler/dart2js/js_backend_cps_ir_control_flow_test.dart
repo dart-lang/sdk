@@ -57,11 +57,11 @@ main() {
 }""", """
 function() {
   var i = 0;
-  L1:
+  L2:
     while (P.identical(V.foo(true), true)) {
       P.print(1);
       if (P.identical(V.foo(false), true))
-        break L1;
+        break L2;
       i = V.foo(i);
     }
   P.print(2);

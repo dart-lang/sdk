@@ -205,7 +205,6 @@ class CodeGenerator extends tree_ir.StatementVisitor
     if (node.constant != null) return giveup(node);
 
     registry.registerInstantiatedType(node.type);
-    Selector selector = node.selector;
     FunctionElement target = node.target;
     List<js.Expression> arguments = visitExpressionList(node.arguments);
     return buildStaticInvoke(target, arguments);
@@ -325,6 +324,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
       } else if (clazz == glue.jsMutableArrayClass) {
         return js.js(r'!#.immutable$list', <js.Expression>[value]);
       }
+
+      // The helper we use needs the JSArray class to exist, but for some
+      // reason the helper does not cause this dependency to be registered.
+      // TODO(asgerf): Most programs need List anyway, but we should fix this.
+      registry.registerInstantiatedClass(glue.listClass);
 
       // We use one of the two helpers:
       //
