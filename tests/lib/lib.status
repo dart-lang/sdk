@@ -151,7 +151,6 @@ async/timer_isActive_test: RuntimeError # Timer interface not supported: Issue 7
 async/zone_empty_description2_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_create_timer2_test: RuntimeError # Timer interface not supported: Issue 7728.
 async/zone_create_periodic_timer_test: RuntimeError # Timer interface not supported: Issue 7728.
-async/stream_iterator_test: RuntimeError, OK # Timer interface not supported: Issue 7728.
 async/catch_errors12_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors13_test: Fail # Timer interface not supported: Issue 7728.
 async/catch_errors14_test: Fail # Timer interface not supported: Issue 7728.
@@ -508,8 +507,8 @@ mirrors/deferred_mirrors_metadata_test: Crash # Internal Error: No default const
 mirrors/deferred_mirrors_metatarget_test: Crash # Internal Error: No default constructor available.
 mirrors/deferred_mirrors_update_test : RuntimeError # TypeError: receiver.get$_collection$_nums is not a function
 mirrors/deferred_type_test: Crash # Internal Error: No default constructor available.
-mirrors/delegate_call_through_getter_test : RuntimeError # 
-mirrors/delegate_test : RuntimeError # 
+mirrors/delegate_call_through_getter_test : RuntimeError #
+mirrors/delegate_test : RuntimeError #
 mirrors/disable_tree_shaking_test: Crash # Internal Error: No default constructor available.
 mirrors/empty_test: Crash # Internal Error: No default constructor available.
 mirrors/enum_test: Crash # Internal Error: No default constructor available.

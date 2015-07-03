@@ -1673,7 +1673,10 @@ abstract class StreamTransformer<S, T> {
 abstract class StreamIterator<T> {
 
   /** Create a [StreamIterator] on [stream]. */
-  factory StreamIterator(Stream<T> stream) = _StreamIteratorImpl<T>;
+  factory StreamIterator(Stream<T> stream)
+      // TODO(lrn): use redirecting factory constructor when type
+      // arguments are supported.
+      => new _StreamIteratorImpl<T>(stream);
 
   /**
    * Wait for the next stream value to be available.
