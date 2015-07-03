@@ -704,6 +704,8 @@ abstract class Compiler implements DiagnosticListener {
 
   final bool enableMinification;
 
+  final bool useFrequencyNamer;
+
   /// When `true` emits URIs in the reflection metadata.
   final bool preserveUris;
 
@@ -1047,6 +1049,7 @@ abstract class Compiler implements DiagnosticListener {
             bool analyzeSignaturesOnly: false,
             this.preserveComments: false,
             this.useCpsIr: false,
+            this.useFrequencyNamer: false,
             this.verbose: false,
             this.sourceMapUri: null,
             this.outputUri: null,

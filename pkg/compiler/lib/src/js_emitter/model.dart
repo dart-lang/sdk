@@ -4,7 +4,8 @@
 
 library dart2js.new_js_emitter.model;
 
-import '../js/js.dart' as js show Expression, Statement, Name, Literal;
+import '../js/js.dart' as js show Expression, Statement, Name, Literal,
+    TokenFinalizer;
 import '../constants/values.dart' show ConstantValue;
 
 import '../deferred_load.dart' show OutputUnit;
@@ -29,13 +30,14 @@ class Program {
   // TODO(floitsch): we should store the metadata directly instead of storing
   // the collector. However, the old emitter still updates the data.
   final MetadataCollector _metadataCollector;
-  TokenFinalizer get metadataFinalizer => _metadataCollector;
+  final Iterable<js.TokenFinalizer> finalizers;
 
   Program(this.fragments,
           this.holders,
           this.loadMap,
           this.typeToInterceptorMap,
           this._metadataCollector,
+          this.finalizers,
           {this.needsNativeSupport,
            this.outputContainsConstantList,
            this.hasIsolateSupport}) {

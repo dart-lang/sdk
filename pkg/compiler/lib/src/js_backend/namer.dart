@@ -387,6 +387,15 @@ class Namer {
   final Map<String, jsAst.Name> userInstanceOperators =
       new HashMap<String, jsAst.Name>();
 
+  Set<String> getUsedNames(NamingScope scope) {
+    if (scope == NamingScope.global) {
+      return usedGlobalNames;
+    } else {
+      assert(scope == NamingScope.instance);
+      return usedInstanceNames;
+    }
+  }
+
   final Map<String, int> popularNameCounters = <String, int>{};
 
   final Map<LibraryElement, String> libraryLongNames =
@@ -412,6 +421,16 @@ class Namer {
   /// names to things that tend to be used very often.
   final Map<String, String> suggestedGlobalNames = <String, String>{};
   final Map<String, String> suggestedInstanceNames = <String, String>{};
+
+  Map<String, String> getSuggestedNames(NamingScope scope) {
+    if (scope == NamingScope.global) {
+      return suggestedGlobalNames;
+    } else {
+      assert(scope == NamingScope.instance);
+      return suggestedInstanceNames;
+    }
+  }
+
 
   /// Used to store unique keys for library names. Keys are not used as names,
   /// nor are they visible in the output. The only serve as an internal
@@ -505,7 +524,7 @@ class Namer {
     jsAst.Name result = constantNames[constant];
     if (result == null) {
       String longName = constantLongName(constant);
-      result = getFreshName(longName, usedGlobalNames, suggestedGlobalNames);
+      result = getFreshName(NamingScope.global, longName);
       constantNames[constant] = result;
     }
     return result;
@@ -826,7 +845,7 @@ class Namer {
   jsAst.Name _disambiguateInternalGlobal(String name) {
     jsAst.Name newName = internalGlobals[name];
     if (newName == null) {
-      newName = getFreshName(name, usedGlobalNames, suggestedGlobalNames);
+      newName = getFreshName(NamingScope.global, name);
       internalGlobals[name] = newName;
     }
     return newName;
@@ -873,8 +892,7 @@ class Namer {
     jsAst.Name newName = userGlobals[element];
     if (newName == null) {
       String proposedName = _proposeNameForGlobal(element);
-      newName = getFreshName(proposedName, usedGlobalNames,
-                             suggestedGlobalNames);
+      newName = getFreshName(NamingScope.global, proposedName);
       userGlobals[element] = newName;
     }
     return newName;
@@ -914,8 +932,7 @@ class Namer {
         // proposed name must be a valid identifier, but not necessarily unique.
         proposedName += r'$' + suffixes.join(r'$');
       }
-      newName = getFreshName(proposedName,
-                             usedInstanceNames, suggestedInstanceNames,
+      newName = getFreshName(NamingScope.instance, proposedName,
                              sanitizeForAnnotations: true);
       userInstanceMembers[key] = newName;
     }
@@ -938,8 +955,7 @@ class Namer {
     jsAst.Name newName = userInstanceMembers[key];
     if (newName == null) {
       String name = proposeName();
-      newName = getFreshName(name,
-                             usedInstanceNames, suggestedInstanceNames,
+      newName = getFreshName(NamingScope.instance, name,
                              sanitizeForAnnotations: true);
       userInstanceMembers[key] = newName;
     }
@@ -978,8 +994,7 @@ class Namer {
     if (newName == null) {
       String name = proposeName();
       bool mayClashNative = _isUserClassExtendingNative(element.enclosingClass);
-      newName = getFreshName(name,
-                             usedInstanceNames, suggestedInstanceNames,
+      newName = getFreshName(NamingScope.instance, name,
                              sanitizeForAnnotations: true,
                              sanitizeForNatives: mayClashNative);
       internalInstanceMembers[element] = newName;
@@ -996,30 +1011,17 @@ class Namer {
   jsAst.Name _disambiguateOperator(String operatorIdentifier) {
     jsAst.Name newName = userInstanceOperators[operatorIdentifier];
     if (newName == null) {
-      newName = getFreshName(operatorIdentifier, usedInstanceNames,
-                             suggestedInstanceNames);
+      newName = getFreshName(NamingScope.instance, operatorIdentifier);
       userInstanceOperators[operatorIdentifier] = newName;
     }
     return newName;
   }
 
-  /// Returns an unused name.
-  ///
-  /// [proposedName] must be a valid JavaScript identifier.
-  ///
-  /// If [sanitizeForAnnotations] is `true`, then the result is guaranteed not
-  /// to have the form of an annotated name.
-  ///
-  /// If [sanitizeForNatives] it `true`, then the result is guaranteed not to
-  /// clash with a property name on a native object.
-  ///
-  /// Note that [MinifyNamer] overrides this method with one that produces
-  /// minified names.
-  jsAst.Name getFreshName(String proposedName,
-                          Set<String> usedNames,
-                          Map<String, String> suggestedNames,
-                          {bool sanitizeForAnnotations: false,
-                           bool sanitizeForNatives: false}) {
+  String _generateFreshStringForName(String proposedName,
+      Set<String> usedNames,
+      Map<String, String> suggestedNames,
+      {bool sanitizeForAnnotations: false,
+       bool sanitizeForNatives: false}) {
     if (sanitizeForAnnotations) {
       proposedName = _sanitizeForAnnotations(proposedName);
     }
@@ -1040,6 +1042,32 @@ class Namer {
       candidate = "$proposedName$i";
     }
     usedNames.add(candidate);
+    return candidate;
+  }
+
+  /// Returns an unused name.
+  ///
+  /// [proposedName] must be a valid JavaScript identifier.
+  ///
+  /// If [sanitizeForAnnotations] is `true`, then the result is guaranteed not
+  /// to have the form of an annotated name.
+  ///
+  /// If [sanitizeForNatives] it `true`, then the result is guaranteed not to
+  /// clash with a property name on a native object.
+  ///
+  /// Note that [MinifyNamer] overrides this method with one that produces
+  /// minified names.
+  jsAst.Name getFreshName(NamingScope scope,
+                          String proposedName,
+                          {bool sanitizeForAnnotations: false,
+                           bool sanitizeForNatives: false}) {
+    String candidate =
+        _generateFreshStringForName(proposedName,
+                                    getUsedNames(scope),
+                                    getSuggestedNames(scope),
+                                    sanitizeForAnnotations:
+                                        sanitizeForAnnotations,
+                                    sanitizeForNatives: sanitizeForNatives);
     return new StringBackedName(candidate);
   }
 
@@ -1369,8 +1397,7 @@ class Namer {
   jsAst.Name getFunctionTypeName(FunctionType functionType) {
     return functionTypeNameMap.putIfAbsent(functionType, () {
       String proposedName = functionTypeNamer.computeName(functionType);
-      return getFreshName(proposedName, usedInstanceNames,
-                          suggestedInstanceNames);
+      return getFreshName(NamingScope.instance, proposedName);
     });
   }
 
@@ -1508,133 +1535,6 @@ class Namer {
     invariant(element, globalName != null, message: 'No global name.');
     usedGlobalNames.remove(globalName);
     userGlobals.remove(element);
-  }
-}
-
-abstract class _NamerName extends jsAst.Name {
-  int get _kind;
-}
-
-class StringBackedName extends _NamerName {
-  final String name;
-  int get _kind => 1;
-  
-  StringBackedName(this.name);
-
-  toString() => throw new UnsupportedError("Cannot convert a name to a string");
-
-  operator==(other) {
-    if (identical(this, other)) return true;
-    return (other is StringBackedName) && other.name == name;
-  }
-
-  int get hashCode => name.hashCode;
-
-  int compareTo(_NamerName other) {
-    if (other._kind != _kind) return other._kind - _kind;
-    return name.compareTo(other.name);
-  }
-}
-
-abstract class _PrefixedName extends _NamerName {
-  final jsAst.Name prefix;
-  final jsAst.Name base;
-  int get _kind;
-
-  _PrefixedName(this.prefix, this.base);
-  
-  String get name => prefix.name + base.name;
-
-  toString() => throw new UnsupportedError("Cannot convert a name to a string");
-
-  bool operator==(other) {
-    if (identical(this, other)) return true;
-    if (other is! _PrefixedName) return false;
-    return other.base == base && other.prefix == prefix;
-  }
-
-  int get hashCode => base.hashCode * 13 + prefix.hashCode;
-
-  int compareTo(_NamerName other) {
-    if (other._kind != _kind) return other._kind - _kind;
-    _PrefixedName otherSameKind = other;
-    int result = prefix.compareTo(otherSameKind.prefix);
-    if (result == 0) {
-      result = name.compareTo(otherSameKind.name);
-    }
-    return result;
-  }
-}
-
-class GetterName extends _PrefixedName {
-  int get _kind => 2;
-
-  GetterName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
-}
-
-class SetterName extends _PrefixedName {
-  int get _kind => 3;
-
-  SetterName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
-}
-
-class _AsyncName extends _PrefixedName {
-  int get _kind => 4;
-
-  _AsyncName(jsAst.Name prefix, jsAst.Name base) : super(prefix, base);
-
-  @override
-  bool get allowRename => true;
-}
-
-class CompoundName extends _NamerName {
-  final List<_NamerName> _parts;
-  int get _kind => 4;
-  String _cachedName;
-  int _cachedHashCode = -1;
-
-  CompoundName(this._parts);
-
-  String get name {
-    if (_cachedName == null) {
-      _cachedName = _parts.map((jsAst.Name name) => name.name).join();
-    }
-    return _cachedName;
-  }
-
-  toString() => throw new UnsupportedError("Cannot convert a name to a string");
-
-  bool operator==(other) {
-    if (identical(this, other)) return true;
-    if (other is! CompoundName) return false;
-    if (other._parts.length != _parts.length) return false;
-    for (int i = 0; i < _parts.length; ++i) {
-      if (other._parts[i] != _parts[i]) return false;
-    }
-    return true;
-  }
-
-  int get hashCode {
-    if (_cachedHashCode < 0) {
-      _cachedHashCode = 0;
-      for (jsAst.Name name in _parts) {
-        _cachedHashCode = (_cachedHashCode * 17 + name.hashCode) & 0x7fffffff;
-      }
-    }
-    return _cachedHashCode;
-  }
-
-  int compareTo(_NamerName other) {
-    if (other._kind != _kind) return other._kind - _kind;
-    CompoundName otherSameKind = other;
-    if (otherSameKind._parts.length != _parts.length) {
-      return otherSameKind._parts.length - _parts.length;
-    }
-    int result = 0;
-    for (int pos = 0; result == 0 && pos < _parts.length; pos++) {
-      result = _parts[pos].compareTo(otherSameKind._parts[pos]);
-    }
-    return result;
   }
 }
 
@@ -2072,4 +1972,9 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
       }
     }
   }
+}
+
+enum NamingScope {
+  global,
+  instance
 }

@@ -60,6 +60,8 @@ class Compiler extends leg.Compiler {
             trustPrimitives:
                 hasOption(options, '--trust-primitives'),
             enableMinification: hasOption(options, '--minify'),
+            useFrequencyNamer:
+                !hasOption(options, "--no-frequency-based-minification"),
             preserveUris: hasOption(options, '--preserve-uris'),
             enableNativeLiveTypeAnalysis:
                 !hasOption(options, '--disable-native-live-type-analysis'),

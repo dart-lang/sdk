@@ -123,12 +123,19 @@ class ProgramBuilder {
 
     assert(!needsNativeSupport || nativeClasses.isNotEmpty);
 
+    List<js.TokenFinalizer> finalizers = [_task.metadataCollector];
+    if (backend.namer is js.TokenFinalizer) {
+      var namingFinalizer = backend.namer;
+      finalizers.add(namingFinalizer);
+    }
+
     return new Program(
         fragments,
         holders,
         _buildLoadMap(),
         _buildTypeToInterceptorMap(),
         _task.metadataCollector,
+        finalizers,
         needsNativeSupport: needsNativeSupport,
         outputContainsConstantList: _task.outputContainsConstantList,
         hasIsolateSupport: _compiler.hasIsolateSupport);

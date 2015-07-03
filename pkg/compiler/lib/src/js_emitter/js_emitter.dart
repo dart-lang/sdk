@@ -34,8 +34,7 @@ import '../elements/elements.dart' show
 import '../hash/sha1.dart' show Hasher;
 
 import '../js/js.dart' as jsAst;
-import '../js/js.dart' show
-    js;
+import '../js/js.dart' show js;
 
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 

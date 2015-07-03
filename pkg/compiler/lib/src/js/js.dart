@@ -17,13 +17,16 @@ import 'js_source_mapping.dart';
 CodeBuffer prettyPrint(Node node,
                        leg.Compiler compiler,
                        {DumpInfoTask monitor,
-                        bool allowVariableMinification: true}) {
+                        bool allowVariableMinification: true,
+                        Renamer renamerForNames:
+                            JavaScriptPrintingOptions.identityRenamer}) {
   JavaScriptSourceInformationStrategy sourceInformationFactory =
       compiler.backend.sourceInformationStrategy;
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
       shouldCompressOutput: compiler.enableMinification,
       minifyLocalVariables: allowVariableMinification,
-      preferSemicolonToNewlineInMinifiedOutput: USE_NEW_EMITTER);
+      preferSemicolonToNewlineInMinifiedOutput: USE_NEW_EMITTER,
+      renamerForNames: renamerForNames);
   CodeBuffer outBuffer = new CodeBuffer();
   SourceInformationProcessor sourceInformationProcessor =
       sourceInformationFactory.createProcessor(
@@ -73,4 +76,84 @@ class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
     codePositionListener.onPositions(
         node, startPosition, endPosition, closingPosition);
   }
+}
+
+/// Interface for ast nodes that encapsulate an ast that needs to be
+/// traversed when counting tokens.
+abstract class AstContainer implements Node {
+  Iterable<Node> get containedNodes;
+}
+
+/// Interface for tasks in the compiler that need to finalize tokens after
+/// counting them.
+abstract class TokenFinalizer {
+  void finalizeTokens();
+}
+
+/// Implements reference counting for instances of [ReferenceCountedAstNode]
+class TokenCounter extends BaseVisitor {
+  @override
+  visitNode(Node node) {
+    if (node is AstContainer) {
+      for (Node element in node.containedNodes) {
+        element.accept(this);
+      }
+    } else if (node is ReferenceCountedAstNode) {
+      node.markSeen(this);
+    } else {
+      super.visitNode(node);
+    }
+  }
+
+  void countTokens(Node node) => node.accept(this);
+}
+
+abstract class ReferenceCountedAstNode implements Node {
+  markSeen(TokenCounter visitor);
+}
+
+/// Represents the LiteralString resulting from unparsing [expression]. The
+/// actual unparsing is done on demand when requesting the [value] of this
+/// node.
+///
+/// This is used when generated code needs to be represented as a string,
+/// for example by the lazy emitter or when generating code generators.
+class UnparsedNode extends DeferredString
+                   implements AstContainer {
+  @override
+  final Node tree;
+  final leg.Compiler _compiler;
+  final bool _protectForEval;
+  LiteralString _cachedLiteral;
+
+  Iterable<Node> get containedNodes => [tree];
+
+  /// A [js.Literal] that represents the string result of unparsing [ast].
+  ///
+  /// When its string [value] is requested, the node pretty-prints the given
+  /// [ast] and, if [protectForEval] is true, wraps the resulting
+  /// string in parenthesis. The result is also escaped.
+  UnparsedNode(this.tree, this._compiler, this._protectForEval);
+
+  LiteralString get _literal {
+    if (_cachedLiteral == null) {
+      String text = prettyPrint(tree, _compiler).getText();
+      if (_protectForEval) {
+        if (tree is Fun) text = '($text)';
+        if (tree is LiteralExpression) {
+          LiteralExpression literalExpression = tree;
+          String template = literalExpression.template;
+          if (template.startsWith("function ") ||
+          template.startsWith("{")) {
+            text = '($text)';
+          }
+        }
+      }
+      _cachedLiteral = js.escapedString(text);
+    }
+    return _cachedLiteral;
+  }
+
+  @override
+  String get value => _literal.value;
 }

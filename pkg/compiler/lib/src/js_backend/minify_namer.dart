@@ -33,11 +33,11 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer,
   /// [sanitizeForNatives] and [sanitizeForAnnotations] are ignored because the
   /// minified names will always avoid clashing with annotated names or natives.
   @override
-  jsAst.Name getFreshName(String proposedName,
-                          Set<String> usedNames,
-                          Map<String, String> suggestedNames,
-                          {bool sanitizeForNatives: false,
-                           bool sanitizeForAnnotations: false}) {
+  String _generateFreshStringForName(String proposedName,
+      Set<String> usedNames,
+      Map<String, String> suggestedNames,
+      {bool sanitizeForNatives: false,
+       bool sanitizeForAnnotations: false}) {
     String freshName;
     String suggestion = suggestedNames[proposedName];
     if (suggestion != null && !usedNames.contains(suggestion)) {
@@ -47,7 +47,7 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer,
           suggestedNames.values);
     }
     usedNames.add(freshName);
-    return new StringBackedName(freshName);
+    return freshName;
   }
 
   // From issue 7554.  These should not be used on objects (as instance
@@ -193,7 +193,7 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer,
 
   /// Instance members starting with g and s are reserved for getters and
   /// setters.
-  bool _hasBannedPrefix(String name) {
+  static bool _hasBannedPrefix(String name) {
     int code = name.codeUnitAt(0);
     return code == $g || code == $s;
   }

@@ -588,6 +588,12 @@ abstract class Name extends Literal
     implements Declaration, Parameter, Comparable {
   accept(NodeVisitor visitor) => visitor.visitName(this);
 
+  /// Returns a unique [key] for this name.
+  ///
+  /// The key is unrelated to the actual name and is not intended for human
+  /// consumption. As such, it might be long or cryptic.
+  String get key;
+
   bool get allowRename => false;
 }
 
@@ -597,6 +603,10 @@ class LiteralStringFromName extends LiteralString {
   LiteralStringFromName(this.name) : super(null);
 
   String get value => '"${name.name}"';
+
+  void visitChildren(NodeVisitor visitor) {
+    name.accept(visitor);
+  }
 }
 
 class LiteralExpression extends Expression {

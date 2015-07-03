@@ -1642,9 +1642,14 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
   void finalizeTokensInAst(jsAst.Program main,
                            Iterable<jsAst.Program> deferredParts) {
-    task.metadataCollector.countTokensInAst(main);
-    deferredParts.forEach(task.metadataCollector.countTokensInAst);
+    jsAst.TokenCounter counter = new jsAst.TokenCounter();
+    counter.countTokens(main);
+    deferredParts.forEach(counter.countTokens);
     task.metadataCollector.finalizeTokens();
+    if (backend.namer is jsAst.TokenFinalizer) {
+      var finalizer = backend.namer;
+      finalizer.finalizeTokens();
+    }
   }
 
   int emitProgram(ProgramBuilder programBuilder) {

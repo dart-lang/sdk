@@ -5,15 +5,21 @@
 part of js_ast;
 
 
+typedef String Renamer(Name);
+
 class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
+  final Renamer renamerForNames;
 
   JavaScriptPrintingOptions(
       {this.shouldCompressOutput: false,
        this.minifyLocalVariables: false,
-       this.preferSemicolonToNewlineInMinifiedOutput: false});
+       this.preferSemicolonToNewlineInMinifiedOutput: false,
+       this.renamerForNames: identityRenamer});
+
+  static String identityRenamer(Name name) => name.name;
 }
 
 
@@ -938,7 +944,7 @@ class Printer implements NodeVisitor {
       if (access.receiver is LiteralNumber) out(" ", isWhitespace: true);
       out(".");
       startNode(selector);
-      out(selector.name);
+      selector.accept(this);
       endNode(selector);
       return;
     }
@@ -1007,7 +1013,7 @@ class Printer implements NodeVisitor {
 
   @override
   visitName(Name node) {
-    out(node.name);
+    out(options.renamerForNames(node));
   }
 
   @override

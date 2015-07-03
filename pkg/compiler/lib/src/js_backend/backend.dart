@@ -683,7 +683,9 @@ class JavaScriptBackend extends Backend {
 
   static Namer determineNamer(Compiler compiler) {
     return compiler.enableMinification ?
-        new MinifyNamer(compiler) :
+        compiler.useFrequencyNamer ?
+            new FrequencyBasedNamer(compiler) :
+            new MinifyNamer(compiler) :
         new Namer(compiler);
   }
 
@@ -1469,6 +1471,14 @@ class JavaScriptBackend extends Backend {
    */
   String assembleCode(Element element) {
     assert(invariant(element, element.isDeclaration));
+    var code = generatedCode[element];
+    if (namer is jsAst.TokenFinalizer) {
+      jsAst.TokenCounter counter = new jsAst.TokenCounter();
+      counter.countTokens(code);
+      // Avoid a warning.
+      var finalizer = namer;
+      finalizer.finalizeTokens();
+    }
     return jsAst.prettyPrint(generatedCode[element], compiler).getText();
   }
 
