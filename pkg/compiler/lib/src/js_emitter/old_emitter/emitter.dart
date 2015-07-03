@@ -204,7 +204,7 @@ class OldEmitter implements Emitter {
 
   /// Contains the global state that is needed to initialize and load a
   /// deferred library.
-  jsAst.Name get globalsHolder => namer.internalGlobal("globalsHolder");
+  String get globalsHolder => r"$globals$";
 
   @override
   jsAst.Expression generateEmbeddedGlobalAccess(String global) {
