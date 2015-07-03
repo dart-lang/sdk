@@ -95,7 +95,11 @@ abstract class Primitive extends Definition<Primitive> {
   ///
   /// False must be returned for primitives that may throw, diverge, or have
   /// observable side-effects.
-  bool get isSafeForElimination => true;
+  bool get isSafeForElimination;
+
+  /// True if time-of-evaluation is irrelevant for the given primitive,
+  /// assuming its inputs are the same values.
+  bool get isSafeForReordering;
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
@@ -266,6 +270,12 @@ class InvokeStatic extends Expression implements Invoke {
       : arguments = _referenceList(args),
         continuation = new Reference<Continuation>(cont);
 
+  InvokeStatic.byReference(this.target,
+                           this.selector,
+                           this.arguments,
+                           this.continuation,
+                           [this.sourceInformation]);
+
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
 
@@ -298,6 +308,13 @@ class InvokeMethod extends Expression implements Invoke {
       : this.receiver = new Reference<Primitive>(receiver),
         this.arguments = _referenceList(arguments),
         this.continuation = new Reference<Continuation>(continuation);
+
+  InvokeMethod.byReference(this.receiver,
+                           this.selector,
+                           this.mask,
+                           this.arguments,
+                           this.continuation,
+                           [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }
@@ -404,6 +421,9 @@ class TypeTest extends Primitive {
     this.typeArguments = _referenceList(typeArguments);
 
   accept(Visitor visitor) => visitor.visitTypeTest(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// An "as" type cast.
@@ -446,6 +466,9 @@ class ApplyBuiltinOperator extends Primitive {
       : this.arguments = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitApplyBuiltinOperator(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Throw a value.
@@ -481,6 +504,9 @@ class NonTailThrow extends Primitive {
   NonTailThrow(Primitive value) : value = new Reference<Primitive>(value);
 
   accept(Visitor visitor) => visitor.visitNonTailThrow(this);
+
+  bool get isSafeForElimination => false;
+  bool get isSafeForReordering => false;
 }
 
 /// An expression that is known to be unreachable.
@@ -505,6 +531,9 @@ class GetMutableVariable extends Primitive {
       : this.variable = new Reference<MutableVariable>(variable);
 
   accept(Visitor visitor) => visitor.visitGetMutableVariable(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => false;
 }
 
 /// Assign a [MutableVariable].
@@ -622,11 +651,13 @@ class GetField extends Primitive {
 
   accept(Visitor visitor) => visitor.visitGetField(this);
 
-  @override
   bool get isSafeForElimination => objectIsNotNull;
+  bool get isSafeForReordering => objectIsNotNull && field.isFinal;
 }
 
 /// Reads the value of a static field or tears off a static method.
+///
+/// Note that lazily initialized fields should be read using GetLazyStatic.
 class GetStatic extends Primitive {
   /// Can be [FieldElement] or [FunctionElement].
   final Element element;
@@ -635,6 +666,13 @@ class GetStatic extends Primitive {
   GetStatic(this.element, [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitGetStatic(this);
+  
+  bool get isSafeForElimination {
+    return true;
+  }
+  bool get isSafeForReordering {
+    return element is FunctionElement || element.isFinal;
+  }
 }
 
 /// Sets the value of a static field.
@@ -677,6 +715,9 @@ class GetLazyStatic extends Expression {
 /// Creates an object for holding boxed variables captured by a closure.
 class CreateBox extends Primitive {
   accept(Visitor visitor) => visitor.visitCreateBox(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Creates an instance of a class and initializes its fields and runtime type
@@ -701,6 +742,9 @@ class CreateInstance extends Primitive {
         this.typeInformation = _referenceList(typeInformation);
 
   accept(Visitor visitor) => visitor.visitCreateInstance(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class Interceptor extends Primitive {
@@ -709,6 +753,9 @@ class Interceptor extends Primitive {
   Interceptor(Primitive input, this.interceptedClasses)
       : this.input = new Reference<Primitive>(input);
   accept(Visitor visitor) => visitor.visitInterceptor(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Create an instance of [Invocation] for use in a call to `noSuchMethod`.
@@ -720,6 +767,9 @@ class CreateInvocationMirror extends Primitive {
       : this.arguments = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitCreateInvocationMirror(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class ForeignCode extends Expression {
@@ -748,6 +798,9 @@ class Constant extends Primitive {
   Constant(this.value);
 
   accept(Visitor visitor) => visitor.visitConstant(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class LiteralList extends Primitive {
@@ -759,6 +812,9 @@ class LiteralList extends Primitive {
       : this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class LiteralMapEntry {
@@ -777,6 +833,9 @@ class LiteralMap extends Primitive {
   LiteralMap(this.type, this.entries);
 
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Currently unused.
@@ -795,6 +854,9 @@ class CreateFunction extends Primitive {
   CreateFunction(this.definition);
 
   accept(Visitor visitor) => visitor.visitCreateFunction(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class Parameter extends Primitive {
@@ -811,6 +873,9 @@ class Parameter extends Primitive {
   accept(Visitor visitor) => visitor.visitParameter(this);
 
   String toString() => 'Parameter(${hint == null ? null : hint.name})';
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Continuations are normally bound by 'let cont'.  A continuation with one
@@ -877,6 +942,9 @@ class ReifyRuntimeType extends Primitive {
 
   @override
   accept(Visitor visitor) => visitor.visitReifyRuntimeType(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Read the value the type variable [variable] from the target object.
@@ -893,6 +961,9 @@ class ReadTypeVariable extends Primitive {
 
   @override
   accept(Visitor visitor) => visitor.visitReadTypeVariable(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Representation of a closed type (that is, a type without type variables).
@@ -915,6 +986,9 @@ class TypeExpression extends Primitive {
   accept(Visitor visitor) {
     return visitor.visitTypeExpression(this);
   }
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {

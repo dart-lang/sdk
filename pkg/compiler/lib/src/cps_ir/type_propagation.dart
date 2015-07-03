@@ -53,6 +53,10 @@ class TypeMaskSystem {
     return mask.locateSingleElement(selector, mask, classWorld.compiler);
   }
 
+  bool needsNoSuchMethodHandling(TypeMask mask, Selector selector) {
+    return mask.needsNoSuchMethodHandling(selector, classWorld);
+  }
+
   TypeMask getReceiverType(MethodElement method) {
     assert(method.isInstanceMember);
     return nonNullSubclass(method.enclosingClass);
@@ -477,21 +481,34 @@ class TransformingVisitor extends RecursiveVisitor {
     visit(root);
   }
 
+  /// Sets parent pointers and computes types for the given subtree.
+  void reanalyze(Node node) {
+    new ParentVisitor().visit(node);
+    analyzer.reanalyzeSubtree(node);
+  }
+
   /// Removes the entire subtree of [node] and inserts [replacement].
-  /// All references in the [node] subtree are unlinked, and parent pointers
-  /// in [replacement] are initialized and its types recomputed.
+  ///
+  /// By default, all references in the [node] subtree are unlinked, and parent
+  /// pointers in [replacement] are initialized and its types recomputed.
+  ///
+  /// If the caller needs to manually unlink the node, because some references
+  /// were adopted by other nodes, it can be disabled by passing `false`
+  /// as the [unlink] parameter.
   ///
   /// [replacement] must be "fresh", i.e. it must not contain significant parts
   /// of the original IR inside of it since the [ParentVisitor] will
   /// redundantly reprocess it.
-  void replaceSubtree(Expression node, Expression replacement) {
+  void replaceSubtree(Expression node, Expression replacement,
+                      {bool unlink: true}) {
     InteriorNode parent = node.parent;
     parent.body = replacement;
     replacement.parent = parent;
     node.parent = null;
-    RemovalVisitor.remove(node);
-    new ParentVisitor().visit(replacement);
-    analyzer.reanalyzeSubtree(replacement);
+    if (unlink) {
+      RemovalVisitor.remove(node);
+    }
+    reanalyze(replacement);
   }
 
   /// Make a constant primitive for [constant] and set its entry in [values].
@@ -729,10 +746,144 @@ class TransformingVisitor extends RecursiveVisitor {
     }
   }
 
+  /// If [prim] is the parameter to a call continuation, returns the
+  /// corresponding call.
+  Invoke getInvocationWithResult(Primitive prim) {
+    if (prim is Parameter && prim.parent is Continuation) {
+      Continuation cont = prim.parent;
+      if (cont.hasExactlyOneUse) {
+        Node use = cont.firstRef.parent;
+        if (use is Invoke) {
+          return use;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// True if any side effect immediately before [current] can safely be
+  /// postponed until immediately before [target].
+  ///
+  /// An expression `e` can be moved right before [target] if
+  /// `canPostponeSideEffects(e.body, target)` is true and no reference
+  /// falls out of scope.
+  ///
+  /// A more sophisticated analysis would track side-effect dependencies
+  /// between `e` and the expressions between `e` and the target.
+  bool canPostponeSideEffects(Expression current, Expression target) {
+    Expression exp = current;
+    while (exp != target) {
+      if (exp is LetPrim && exp.primitive.isSafeForReordering) {
+        LetPrim let = exp;
+        exp = let.body;
+      } else if (exp is LetCont) {
+        LetCont let = exp;
+        exp = let.body;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Rewrites an invocation of a torn-off method into a method call directly
+  /// on the receiver. For example:
+  ///
+  ///     obj.get$foo().call$<n>(<args>)
+  ///       =>
+  ///     obj.foo$<n>(<args>)
+  ///
+  bool specializeClosureCall(InvokeMethod node) {
+    Selector call = node.selector;
+    if (!call.isClosureCall) return false;
+
+    assert(!isInterceptedSelector(call));
+    assert(call.argumentCount == node.arguments.length);
+
+    Primitive tearOff = node.receiver.definition;
+    // Note: We don't know if [tearOff] is actually a tear-off.
+    // We name variables based on the pattern we are trying to match.
+
+    if (tearOff is GetStatic && tearOff.element.isFunction) {
+      FunctionElement target = tearOff.element;
+      FunctionSignature signature = target.functionSignature;
+
+      // If the selector does not apply, don't bother (will throw at runtime).
+      if (!call.signatureApplies(target)) return false;
+
+      // If some optional arguments are missing, give up.
+      // TODO(asgerf): Improve optimization by inserting default arguments.
+      if (call.argumentCount != signature.parameterCount) return false;
+
+      InvokeStatic invoke = new InvokeStatic.byReference(
+          target,
+          new Selector.fromElement(target),
+          node.arguments,
+          node.continuation,
+          node.sourceInformation);
+      node.receiver.unlink();
+      replaceSubtree(node, invoke, unlink: false);
+      visitInvokeStatic(invoke);
+      return true;
+    }
+    Invoke tearOffInvoke = getInvocationWithResult(tearOff);
+    if (tearOffInvoke is InvokeMethod && tearOffInvoke.selector.isGetter) {
+      Selector getter = tearOffInvoke.selector;
+      Continuation getterCont = tearOffInvoke.continuation.definition;
+      Primitive object = tearOffInvoke.receiver.definition;
+
+      // Ensure that the object actually has a foo member, since we might
+      // otherwise alter a noSuchMethod call.
+      TypeMask type = getValue(object).type;
+      if (typeSystem.needsNoSuchMethodHandling(type, getter)) return false;
+
+      // Determine if the getter invocation can have side-effects.
+      Element element = typeSystem.locateSingleElement(type, getter);
+      bool isPure = element != null && !element.isGetter;
+
+      // If there are multiple uses, we cannot eliminate the getter call and
+      // therefore risk duplicating its side effects.
+      if (!isPure && tearOff.hasMultipleUses) return false;
+
+      // If the getter call is impure, we risk reordering side effects.
+      if (!isPure && !canPostponeSideEffects(getterCont.body, node)) {
+        return false;
+      }
+
+      InvokeMethod invoke = new InvokeMethod.byReference(
+        new Reference<Primitive>(object),
+        new Selector(SelectorKind.CALL, getter.memberName, call.callStructure),
+        type,
+        node.arguments,
+        node.continuation,
+        node.sourceInformation);
+      node.receiver.unlink();
+      replaceSubtree(node, invoke, unlink: false);
+
+      if (tearOff.hasNoUses) {
+        // Eliminate the getter call if it has no more uses.
+        // This cannot be delegated to other optimizations because we need to
+        // avoid duplication of side effects.
+        getterCont.parameters.clear();
+        replaceSubtree(tearOffInvoke, new InvokeContinuation(getterCont, []));
+      } else {
+        // There are more uses, so we cannot eliminate the getter call. This
+        // means we duplicated the effects of the getter call, but we should
+        // only get here if the getter has no side effects.
+        assert(isPure);
+      }
+
+      visitInvokeMethod(invoke);
+      return true;
+    }
+    return false;
+  }
+
   void visitInvokeMethod(InvokeMethod node) {
     if (constifyExpression(node)) return;
     if (specializeOperatorCall(node)) return;
     if (specializeFieldAccess(node)) return;
+    if (specializeClosureCall(node)) return;
 
     AbstractValue receiver = getValue(node.receiver.definition);
     node.receiverIsNotNull = receiver.isDefinitelyNotNull;
@@ -846,6 +997,7 @@ class TransformingVisitor extends RecursiveVisitor {
             node.arguments[k] = null; // Remove the argument after the loop.
           }
           node.arguments[startOfSequence] = new Reference<Primitive>(prim);
+          node.arguments[startOfSequence].parent = node;
           argumentsWereRemoved = true;
         }
         if (argumentsWereRemoved) {
@@ -909,16 +1061,15 @@ class TransformingVisitor extends RecursiveVisitor {
       newPrim.substituteFor(node.primitive);
       RemovalVisitor.remove(node.primitive);
       node.primitive = newPrim;
+      newPrim.parent = node;
     } else {
       Primitive newPrim = visit(node.primitive);
       if (newPrim != null) {
-        if (!values.containsKey(newPrim)) {
-          // If the type was not set, default to the same type as before.
-          values[newPrim] = values[node.primitive];
-        }
         newPrim.substituteFor(node.primitive);
         RemovalVisitor.remove(node.primitive);
         node.primitive = newPrim;
+        newPrim.parent = node;
+        reanalyze(newPrim);
       }
       if (node.primitive.hasNoUses && node.primitive.isSafeForElimination) {
         // Remove unused primitives before entering the body.

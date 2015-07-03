@@ -106,6 +106,86 @@ r"""
 function() {
   return new V.A_b_closure(this);
 }"""),
+
+  const TestEntry("""
+staticMethod(x) => x;
+main(x) {
+  var tearOff = staticMethod;
+  print(tearOff(123));
+}
+""",
+r"""
+function(x) {
+  P.print(V.staticMethod(123));
+}"""),
+
+  const TestEntry("""
+class Foo {
+  instanceMethod(x) => x;
+}
+main(x) {
+  var tearOff = new Foo().instanceMethod;
+  print(tearOff(123));
+}
+""",
+r"""
+function(x) {
+  P.print(V.Foo$().instanceMethod$1(123));
+}"""),
+
+  const TestEntry("""
+class Foo {
+  instanceMethod(x) => x;
+}
+main(x) {
+  var tearOff = new Foo().instanceMethod;
+  print(tearOff(123));
+  print(tearOff(321));
+}
+""",
+r"""
+function(x) {
+  var v0 = V.Foo$();
+  P.print(v0.instanceMethod$1(123));
+  P.print(v0.instanceMethod$1(321));
+}"""),
+
+  const TestEntry("""
+class Foo {
+  get getter {
+    print('getter');
+    return (x) => x;
+  }
+}
+main(x) {
+  var notTearOff = new Foo().getter;
+  print(notTearOff(123));
+  print(notTearOff(321));
+}
+""",
+r"""
+function(x) {
+  var notTearOff = V.Foo$().get$getter();
+  P.print(notTearOff.call$1(123));
+  P.print(notTearOff.call$1(321));
+}"""),
+
+  const TestEntry("""
+class Foo {
+  get getter {
+    print('getter');
+    return (x) => x;
+  }
+}
+main(x) {
+  var notTearOff = new Foo().getter;
+  print(notTearOff(123));
+}
+""",
+r"""
+function(x) {
+  P.print(V.Foo$().getter$1(123));
+}"""),
 ];
 
 void main() {

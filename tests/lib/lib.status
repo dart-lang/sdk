@@ -421,7 +421,7 @@ async/stream_event_transformed_test: RuntimeError # receiver.get$_nums is not a 
 async/stream_first_where_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/stream_from_iterable_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/stream_iterator_double_cancel_test: RuntimeError # receiver.get$_collection$_nums is not a function
-async/stream_iterator_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+async/stream_iterator_test : Crash # bailout: (()async{var stream=createStream();StreamIterator iterator=new StreamIterator(stream);expect(iterator.current,isNull);expect(await iterator.moveNext(),isTrue);expect(iterator.current,42);expect(await iterator.moveNext(),isTrue);expect(iterator.current,37);expect(await iterator.moveNext(),isFalse);expect(iterator.current,isNull);expect(await iterator.moveNext(),isFalse);}): cannot handle async/sync*/async* functions
 async/stream_join_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/stream_last_where_test : RuntimeError # TypeError: receiver.get$_nums is not a function
 async/stream_listen_zone_test: RuntimeError # receiver.get$_nums is not a function
