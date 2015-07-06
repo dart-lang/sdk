@@ -733,14 +733,12 @@ class OldEmitter implements Emitter {
   }
 
   jsAst.Statement buildFunctionThatReturnsNull() {
-    return js.statement('#.# = function() {}',
-                        [namer.isolateName,
-                         backend.rti.getFunctionThatReturnsNullName]);
+    return js.statement('# = function() {}',
+                        [backend.rti.getFunctionThatReturnsNullName]);
   }
 
   jsAst.Expression generateFunctionThatReturnsNull() {
-    return js("#.#", [namer.isolateName,
-                      backend.rti.getFunctionThatReturnsNullName]);
+    return js("#", [backend.rti.getFunctionThatReturnsNullName]);
   }
 
   buildMain(jsAst.Statement invokeMain) {
