@@ -682,8 +682,10 @@ class TransformingVisitor extends RecursiveVisitor {
         }
         else if (lattice.isDefinitelyString(left, allowNull: false) &&
                  lattice.isDefinitelyString(right, allowNull: false)) {
-          return replaceWithBinary(BuiltinOperator.StringConcatenate,
-                                   leftArg, rightArg);
+          if (node.selector.name == '+') {
+            return replaceWithBinary(BuiltinOperator.StringConcatenate,
+                                     leftArg, rightArg);
+          }
         }
       }
     }
