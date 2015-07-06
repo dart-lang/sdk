@@ -2575,6 +2575,10 @@ class IrBuilder {
       }
       return addPrimitive(new ir.TypeTest(value, type, typeArguments));
     } else {
+      if (type.isObject || type.isDynamic) {
+        // `x as Object` and `x as dynamic` are the same as `x`.
+        return value;
+      }
       return _continueWithExpression(
               (k) => new ir.TypeCast(value, type, typeArguments, k));
     }
