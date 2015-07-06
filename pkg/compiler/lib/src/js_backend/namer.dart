@@ -387,12 +387,17 @@ class Namer {
   final Map<String, jsAst.Name> userInstanceOperators =
       new HashMap<String, jsAst.Name>();
 
+  /// Used to disambiguate names for constants in [constantName].
+  final Set<String> usedConstantNames = new Set<String>();
+
   Set<String> getUsedNames(NamingScope scope) {
     if (scope == NamingScope.global) {
       return usedGlobalNames;
-    } else {
-      assert(scope == NamingScope.instance);
+    } else if (scope == NamingScope.instance){
       return usedInstanceNames;
+    } else {
+      assert(scope == NamingScope.constant);
+      return usedConstantNames;
     }
   }
 
@@ -425,9 +430,11 @@ class Namer {
   Map<String, String> getSuggestedNames(NamingScope scope) {
     if (scope == NamingScope.global) {
       return suggestedGlobalNames;
-    } else {
-      assert(scope == NamingScope.instance);
+    } else if (scope == NamingScope.instance) {
       return suggestedInstanceNames;
+    } else {
+      assert(scope == NamingScope.constant);
+      return const {};
     }
   }
 
@@ -524,7 +531,7 @@ class Namer {
     jsAst.Name result = constantNames[constant];
     if (result == null) {
       String longName = constantLongName(constant);
-      result = getFreshName(NamingScope.global, longName);
+      result = getFreshName(NamingScope.constant, longName);
       constantNames[constant] = result;
     }
     return result;
@@ -1976,5 +1983,6 @@ class FunctionTypeNamer extends BaseDartTypeVisitor {
 
 enum NamingScope {
   global,
-  instance
+  instance,
+  constant
 }
