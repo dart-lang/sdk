@@ -295,8 +295,14 @@ class B {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('B.named');
-      assertHasTarget('named();');
+      {
+        assertHasRegionString('B.named;', 'B'.length);
+        assertHasTarget('named();');
+      }
+      {
+        assertHasRegionString('named;', 'named'.length);
+        assertHasTarget('named();');
+      }
     });
   }
 
@@ -320,7 +326,7 @@ class C<T> {
         assertHasTarget('A {');
       }
       {
-        assertHasRegion('.named;', '.named'.length);
+        assertHasRegion('named;', 'named'.length);
         assertHasTarget('named() {}');
       }
     });
@@ -445,7 +451,7 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('new A');
+      assertHasRegionString('A()', 'A'.length);
       assertHasTarget('A {');
     });
   }
@@ -460,7 +466,7 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        assertHasRegion('new B<A>', 'new B'.length);
+        assertHasRegion('B<A>', 'B'.length);
         assertHasTarget('B<T> {');
       }
       {
@@ -480,8 +486,14 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('new A.named');
-      assertHasTarget('named() {}');
+      {
+        assertHasRegionString('A.named();', 'A'.length);
+        assertHasTarget('named() {}');
+      }
+      {
+        assertHasRegionString('named();', 'named'.length);
+        assertHasTarget('named() {}');
+      }
     });
   }
 
@@ -497,7 +509,7 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        assertHasRegionString('new B');
+        assertHasRegionString('B<A>', 'B'.length);
         assertHasTarget('named() {}');
       }
       {
@@ -505,7 +517,7 @@ main() {
         assertHasTarget('A {');
       }
       {
-        assertHasRegion('.named();', '.named'.length);
+        assertHasRegion('named();', 'named'.length);
         assertHasTarget('named() {}');
       }
     });
@@ -521,7 +533,7 @@ main() {
 }
 ''');
     return prepareNavigation().then((_) {
-      assertHasRegionString('new A');
+      assertHasRegionString('A();', 'A'.length);
       assertHasTarget('A() {}', 0);
     });
   }
@@ -538,7 +550,7 @@ main() {
 ''');
     return prepareNavigation().then((_) {
       {
-        assertHasRegionString('new B');
+        assertHasRegionString('B<A>();', 'B'.length);
         assertHasTarget('B() {}', 0);
       }
       {

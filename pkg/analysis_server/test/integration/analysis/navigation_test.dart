@@ -41,7 +41,7 @@ function(FunctionTypeAlias parameter) {
 int topLevelVariable;
 
 main() {
-  Class<int> localVariable = new Class<int>.constructor();
+  Class<int> localVariable = new Class<int>.constructor(); // usage
   function(() => localVariable.field);
   localVariable.method();
   localVariable.field = 1;
@@ -101,7 +101,10 @@ part of foo;
       checkLocal('Class<int>', 'Class<TypeParameter>', ElementKind.CLASS);
       checkRemote(
           "part 'test2.dart';", r'test2.dart$', ElementKind.COMPILATION_UNIT);
-      checkLocal('new Class<int>.constructor',
+      checkLocal('Class<int>.constructor',
+          'constructor(); /* constructor declaration */',
+          ElementKind.CONSTRUCTOR);
+      checkLocal('constructor(); // usage',
           'constructor(); /* constructor declaration */',
           ElementKind.CONSTRUCTOR);
       checkLocal('field;', 'field;', ElementKind.FIELD);
