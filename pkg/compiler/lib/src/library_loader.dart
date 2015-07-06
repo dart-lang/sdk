@@ -483,7 +483,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
           then((Script sourceScript) {
             if (sourceScript == null) return;
 
-            CompilationUnitElement unit =
+            CompilationUnitElementX unit =
                 new CompilationUnitElementX(sourceScript, library);
             compiler.withCurrentElement(unit, () {
               compiler.scanner.scan(unit);
@@ -524,6 +524,23 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         });
   }
 
+  /// Loads the deserialized [library] with the [handler].
+  ///
+  /// All libraries imported or exported transitively from [library] will be
+  /// loaded as well.
+  Future<LibraryElement> loadDeserializedLibrary(
+      LibraryDependencyHandler handler,
+      LibraryElement library) async {
+    compiler.onLibraryCreated(library);
+    libraryCanonicalUriMap[library.canonicalUri] = library;
+    await compiler.onLibraryScanned(library, handler);
+    for (LibraryTag tag in library.tags) {
+      LibraryElement dependency = library.getLibraryFromTag(tag);
+      await createLibrary(handler, library, dependency.canonicalUri);
+    }
+    return library;
+  }
+
   /**
    * Create (or reuse) a library element for the library specified by the
    * [resolvedUri].
@@ -539,6 +556,10 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     LibraryElement library = libraryCanonicalUriMap[resolvedUri];
     if (library != null) {
       return new Future.value(library);
+    }
+    library = compiler.serialization.readLibrary(resolvedUri);
+    if (library != null) {
+      return loadDeserializedLibrary(handler, library);
     }
     var readScript = compiler.readScript;
     if (readableUri == null) {

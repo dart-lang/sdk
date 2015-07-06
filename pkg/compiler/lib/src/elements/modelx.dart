@@ -652,6 +652,7 @@ class ScopeX {
 }
 
 class CompilationUnitElementX extends ElementX
+    with CompilationUnitElementCommon
     implements CompilationUnitElement {
   final Script script;
   PartOf partTag;
@@ -717,11 +718,6 @@ class CompilationUnitElementX extends ElementX
   }
 
   bool get hasMembers => !localMembers.isEmpty;
-
-  int compareTo(CompilationUnitElement other) {
-    if (this == other) return 0;
-    return '${script.readableUri}'.compareTo('${other.script.readableUri}');
-  }
 
   Element get analyzableElement => library;
 
@@ -1070,24 +1066,6 @@ class LibraryElementX
     return libraryTag.name.toString();
   }
 
-  /**
-   * Returns the library name (as defined by the library tag) or for script
-   * (which have no library tag) the script file name. The latter case is used
-   * to private 'library name' for scripts to use for instance in dartdoc.
-   *
-   * Note: the returned filename will still be escaped ("a%20b.dart" instead of
-   * "a b.dart").
-   */
-  String getLibraryOrScriptName() {
-    if (libraryTag != null) {
-      return libraryTag.name.toString();
-    } else {
-      // Use the file name as script name.
-      String path = canonicalUri.path;
-      return path.substring(path.lastIndexOf('/') + 1);
-    }
-  }
-
   Scope buildScope() => new LibraryScope(this);
 
   String toString() {
@@ -1098,11 +1076,6 @@ class LibraryElementX
     } else {
       return 'library(${canonicalUri})';
     }
-  }
-
-  int compareTo(LibraryElement other) {
-    if (this == other) return 0;
-    return getLibraryOrScriptName().compareTo(other.getLibraryOrScriptName());
   }
 
   accept(ElementVisitor visitor, arg) {
@@ -2194,7 +2167,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
   }
 
   accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
+    return visitor.visitConstructorElement(this, arg);
   }
 }
 
@@ -2275,12 +2248,12 @@ abstract class TypeDeclarationElementX<T extends GenericType>
     // Create types and elements for type variable.
     Link<Node> nodes = parameters.nodes;
     List<DartType> arguments =
-        new List.generate(nodes.slowLength(), (_) {
+        new List.generate(nodes.slowLength(), (int index) {
       TypeVariable node = nodes.head;
       String variableName = node.name.source;
       nodes = nodes.tail;
       TypeVariableElementX variableElement =
-          new TypeVariableElementX(variableName, this, node);
+          new TypeVariableElementX(variableName, this, index, node);
       TypeVariableType variableType = new TypeVariableType(variableElement);
       variableElement.typeCache = variableType;
       return variableType;
@@ -2760,11 +2733,15 @@ class JumpTargetX implements JumpTarget {
 
 class TypeVariableElementX extends ElementX with AstElementMixin
     implements TypeVariableElement {
+  final int index;
   final Node node;
   TypeVariableType typeCache;
   DartType boundCache;
 
-  TypeVariableElementX(String name, TypeDeclarationElement enclosing, this.node)
+  TypeVariableElementX(String name,
+                       TypeDeclarationElement enclosing,
+                       this.index,
+                       this.node)
     : super(name, ElementKind.TYPE_VARIABLE, enclosing);
 
   TypeDeclarationElement get typeDeclaration => enclosingElement;

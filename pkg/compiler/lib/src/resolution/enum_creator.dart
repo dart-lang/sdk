@@ -14,11 +14,9 @@ import '../util/util.dart';
 
 // TODO(johnniwinther): Merge functionality with the `TreePrinter`.
 class AstBuilder {
-  final Token position;
+  final int charOffset;
 
-  AstBuilder(this.position);
-
-  int get charOffset => position.charOffset;
+  AstBuilder(this.charOffset);
 
   Modifiers modifiers({bool isConst: false,
                        bool isFinal: false,
@@ -43,7 +41,7 @@ class AstBuilder {
   }
 
   Token keywordToken(String text) {
-    return new KeywordToken(Keyword.keywords[text], position.charOffset);
+    return new KeywordToken(Keyword.keywords[text], charOffset);
   }
 
   Token stringToken(String text) {
@@ -183,7 +181,7 @@ class EnumCreator {
   void createMembers() {
     Enum node = enumClass.node;
     InterfaceType enumType = enumClass.thisType;
-    AstBuilder builder = new AstBuilder(enumClass.position);
+    AstBuilder builder = new AstBuilder(enumClass.position.charOffset);
 
     InterfaceType intType = compiler.intClass.computeType(compiler);
     InterfaceType stringType = compiler.stringClass.computeType(compiler);
@@ -239,7 +237,7 @@ class EnumCreator {
          !link.isEmpty;
          link = link.tail) {
       Identifier name = link.head;
-      AstBuilder valueBuilder = new AstBuilder(name.token);
+      AstBuilder valueBuilder = new AstBuilder(name.token.charOffset);
 
       // Add reference for the `values` field.
       valueReferences.add(valueBuilder.reference(name));

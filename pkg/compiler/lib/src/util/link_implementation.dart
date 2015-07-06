@@ -180,7 +180,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
     return list;
   }
 
-  void addLast(T t) {
+  Link<T> addLast(T t) {
     length++;
     LinkEntry<T> entry = new LinkEntry<T>(t, null);
     if (head == null) {
@@ -189,6 +189,7 @@ class LinkBuilderImplementation<T> implements LinkBuilder<T> {
       lastLink.tail = entry;
     }
     lastLink = entry;
+    return entry;
   }
 
   bool get isEmpty => length == 0;
