@@ -253,7 +253,7 @@ class ModelEmitter {
         generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG);
     js.Expression leafTagsAccess =
         generateEmbeddedGlobalAccess(LEAF_TAGS);
-    js.Statement nativeInfoHandler = nativeEmitter.buildNativeInfoHandler(
+    js.Statement nativeInfoHandler = NativeGenerator.buildNativeInfoHandler(
         nativeInfoAccess,
         constructorAccess,
         subclassReadGenerator,
@@ -591,10 +591,11 @@ class ModelEmitter {
       js.Literal name = js.quoteName(cls.name);
       js.LiteralNumber holderIndex = js.number(cls.holder.index);
       js.Expression emittedClass = emitClass(cls);
-      if (cls.nativeInfo == null) {
+      js.Expression nativeInfo = NativeGenerator.encodeNativeInfo(cls);
+      if (nativeInfo == null) {
         return [name, emittedClass, holderIndex];
       } else {
-        return [name, emittedClass, cls.nativeInfo, holderIndex];
+        return [name, emittedClass, nativeInfo, holderIndex];
       }
     });
 

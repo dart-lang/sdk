@@ -328,10 +328,10 @@ class OldEmitter implements Emitter {
       jsAst.Expression subclassReadGenerator(jsAst.Expression subclass),
       jsAst.Expression interceptorsByTagAccess,
       jsAst.Expression leafTagsAccess) {
-    return nativeEmitter.buildNativeInfoHandler(infoAccess, constructorAccess,
-                                                subclassReadGenerator,
-                                                interceptorsByTagAccess,
-                                                leafTagsAccess);
+    return NativeGenerator.buildNativeInfoHandler(infoAccess, constructorAccess,
+                                                  subclassReadGenerator,
+                                                  interceptorsByTagAccess,
+                                                  leafTagsAccess);
   }
 
   jsAst.ObjectInitializer generateInterceptedNamesSet() {
