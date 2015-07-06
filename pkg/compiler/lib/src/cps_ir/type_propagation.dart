@@ -832,6 +832,10 @@ class TransformingVisitor extends RecursiveVisitor {
     if (tearOffInvoke is InvokeMethod && tearOffInvoke.selector.isGetter) {
       Selector getter = tearOffInvoke.selector;
       Continuation getterCont = tearOffInvoke.continuation.definition;
+
+      // TODO(asgerf): Support torn-off intercepted methods.
+      if (isInterceptedSelector(getter)) return false;
+
       Primitive object = tearOffInvoke.receiver.definition;
 
       // Ensure that the object actually has a foo member, since we might
