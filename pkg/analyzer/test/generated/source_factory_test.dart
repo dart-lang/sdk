@@ -7,8 +7,6 @@
 
 library analyzer.test.generated.source_factory;
 
-import 'dart:convert';
-
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -17,10 +15,6 @@ import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
-import 'package:package_config/packages.dart';
-import 'package:package_config/packages_file.dart' as pkgfile show parse;
-import 'package:package_config/src/packages_impl.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
@@ -30,147 +24,6 @@ import 'test_support.dart';
 main() {
   groupSep = ' | ';
   runReflectiveTests(SourceFactoryTest);
-  runPackageMapTests();
-}
-
-void runPackageMapTests() {
-  final Uri baseUri = new Uri.file('test/base');
-  final List<UriResolver> testResolvers = [new FileUriResolver()];
-
-  Packages createPackageMap(Uri base, String configFileContents) {
-    List<int> bytes = UTF8.encode(configFileContents);
-    Map<String, Uri> map = pkgfile.parse(bytes, base);
-    return new MapPackages(map);
-  }
-
-  Map<String, List<Folder>> getPackageMap(String config) {
-    Packages packages = createPackageMap(baseUri, config);
-    SourceFactory factory = new SourceFactory(testResolvers, packages);
-    return factory.packageMap;
-  }
-
-  String resolvePackageUri({String uri, String config, Source containingSource,
-      UriResolver customResolver}) {
-    Packages packages = createPackageMap(baseUri, config);
-    List<UriResolver> resolvers = testResolvers.toList();
-    if (customResolver != null) {
-      resolvers.add(customResolver);
-    }
-    SourceFactory factory = new SourceFactory(resolvers, packages);
-    Source source = factory.resolveUri(containingSource, uri);
-    return source != null ? source.fullName : null;
-  }
-
-  Uri restorePackageUri(
-      {Source source, String config, UriResolver customResolver}) {
-    Packages packages = createPackageMap(baseUri, config);
-    List<UriResolver> resolvers = testResolvers.toList();
-    if (customResolver != null) {
-      resolvers.add(customResolver);
-    }
-    SourceFactory factory = new SourceFactory(resolvers, packages);
-    return factory.restoreUri(source);
-  }
-
-  group('SourceFactoryTest', () {
-    group('package mapping', () {
-      group('resolveUri', () {
-        test('URI in mapping', () {
-          String uri = resolvePackageUri(config: '''
-unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/
-async:/home/somebody/.pub/cache/async-1.1.0/lib/
-quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
-''', uri: 'package:unittest/unittest.dart');
-          expect(uri, equals(
-              '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart'));
-        });
-        test('URI not in mapping', () {
-          String uri = resolvePackageUri(
-              config: 'unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/',
-              uri: 'package:foo/foo.dart');
-          expect(uri, isNull);
-        });
-        test('Non-package URI', () {
-          var testResolver = new CustomUriResolver(uriPath: 'test_uri');
-          String uri = resolvePackageUri(
-              config: 'unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/',
-              uri: 'custom:custom.dart',
-              customResolver: testResolver);
-          expect(uri, testResolver.uriPath);
-        });
-        test('Invalid URI', () {
-          // TODO(pquitslund): fix clients to handle errors appropriately
-          //   CLI: print message 'invalid package file format'
-          //   SERVER: best case tell user somehow and recover...
-          expect(() => resolvePackageUri(
-                  config: 'foo:<:&%>', uri: 'package:foo/bar.dart'),
-              throwsA(new isInstanceOf('FormatException')));
-        });
-        test('Valid URI that cannot be further resolved', () {
-          String uri = resolvePackageUri(
-              config: 'foo:http://www.google.com', uri: 'package:foo/bar.dart');
-          expect(uri, isNull);
-        });
-        test('Relative URIs', () {
-          Source containingSource = createSource(
-              path: '/foo/bar/baz/foo.dart', uri: 'package:foo/foo.dart');
-          String uri = resolvePackageUri(
-              config: 'foo:/foo/bar/baz',
-              uri: 'bar.dart',
-              containingSource: containingSource);
-          expect(uri, isNotNull);
-          expect(uri, equals('/foo/bar/baz/bar.dart'));
-        });
-      });
-      group('restoreUri', () {
-        test('URI in mapping', () {
-          Uri uri = restorePackageUri(config: '''
-unittest:/home/somebody/.pub/cache/unittest-0.9.9/lib/
-async:/home/somebody/.pub/cache/async-1.1.0/lib/
-quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
-''',
-              source: new FileBasedSource(FileUtilities2.createFile(
-                  '/home/somebody/.pub/cache/unittest-0.9.9/lib/unittest.dart')));
-          expect(uri, isNotNull);
-          expect(uri.toString(), equals('package:unittest/unittest.dart'));
-        });
-      });
-      group('packageMap', () {
-        test('non-file URIs filtered', () {
-          Map<String, List<Folder>> map = getPackageMap('''
-quiver:/home/somebody/.pub/cache/quiver-1.2.1/lib
-foo:http://www.google.com
-''');
-          expect(map.keys, unorderedEquals(['quiver']));
-        });
-      });
-    });
-  });
-
-  group('URI utils', () {
-    group('URI', () {
-      test('startsWith', () {
-        expect(utils.startsWith(Uri.parse('/foo/bar/'), Uri.parse('/foo/')),
-            isTrue);
-        expect(utils.startsWith(Uri.parse('/foo/bar/'), Uri.parse('/foo/bar/')),
-            isTrue);
-        expect(utils.startsWith(Uri.parse('/foo/bar'), Uri.parse('/foo/b')),
-            isFalse);
-      });
-    });
-  });
-}
-
-Source createSource({String path, String uri}) => new MemoryResourceProvider()
-    .getFile(path)
-    .createSource(uri != null ? Uri.parse(uri) : null);
-
-class CustomUriResolver extends UriResolver {
-  String uriPath;
-  CustomUriResolver({this.uriPath});
-
-  @override
-  Source resolveAbsolute(Uri uri) => createSource(path: uriPath);
 }
 
 @reflectiveTest

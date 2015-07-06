@@ -65,12 +65,6 @@ class MemoryResourceProvider implements ResourceProvider {
   }
 
   @override
-  File getFile(String path) => new _MemoryFile(this, path);
-
-  @override
-  Folder getFolder(String path) => newFolder(path);
-
-  @override
   Resource getResource(String path) {
     path = posix.normalize(path);
     Resource resource = _pathToResource[path];

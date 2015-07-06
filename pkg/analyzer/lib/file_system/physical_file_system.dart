@@ -41,17 +41,13 @@ class PhysicalResourceProvider implements ResourceProvider {
   Context get pathContext => io.Platform.isWindows ? windows : posix;
 
   @override
-  File getFile(String path) => new _PhysicalFile(new io.File(path));
-
-  @override
-  Folder getFolder(String path) => new _PhysicalFolder(new io.Directory(path));
-
-  @override
   Resource getResource(String path) {
     if (io.FileSystemEntity.isDirectorySync(path)) {
-      return getFolder(path);
+      io.Directory directory = new io.Directory(path);
+      return new _PhysicalFolder(directory);
     } else {
-      return getFile(path);
+      io.File file = new io.File(path);
+      return new _PhysicalFile(file);
     }
   }
 
