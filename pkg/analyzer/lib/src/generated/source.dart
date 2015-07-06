@@ -11,8 +11,11 @@ import 'dart:collection';
 import "dart:math" as math;
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/task/model.dart';
+import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
 
 import 'engine.dart';
@@ -575,6 +578,17 @@ class SourceFactory {
   AnalysisContext context;
 
   /**
+   * URI processor used to find mappings for `package:` URIs found in a `.packages` config
+   * file.
+   */
+  final Packages _packages;
+
+  /**
+   * Resource provider used in working with package maps.
+   */
+  final ResourceProvider _resourceProvider;
+
+  /**
    * The resolvers used to resolve absolute URI's.
    */
   final List<UriResolver> _resolvers;
@@ -585,11 +599,14 @@ class SourceFactory {
   LocalSourcePredicate _localSourcePredicate = LocalSourcePredicate.NOT_SDK;
 
   /**
-   * Initialize a newly created source factory.
-   *
-   * @param resolvers the resolvers used to resolve absolute URI's
+   * Initialize a newly created source factory with the given absolute URI [resolvers] and
+   * optional [packages] resolution helper.
    */
-  SourceFactory(this._resolvers);
+  SourceFactory(this._resolvers,
+      [this._packages = Packages.noPackages, ResourceProvider resourceProvider])
+      : _resourceProvider = resourceProvider != null
+          ? resourceProvider
+          : PhysicalResourceProvider.INSTANCE;
 
   /**
    * Return the [DartSdk] associated with this [SourceFactory], or `null` if there
@@ -620,6 +637,19 @@ class SourceFactory {
   /// A table mapping package names to paths of directories containing
   /// the package (or [null] if there is no registered package URI resolver).
   Map<String, List<Folder>> get packageMap {
+    // Start by looking in .packages.
+    if (_packages != Packages.noPackages) {
+      Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
+      _packages.asMap().forEach((String name, Uri uri) {
+        if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
+          packageMap[name] =
+              <Folder>[_resourceProvider.getFolder(uri.toFilePath())];
+        }
+      });
+      return packageMap;
+    }
+
+    // Default to the PackageMapUriResolver.
     PackageMapUriResolver resolver = _resolvers.firstWhere(
         (r) => r is PackageMapUriResolver, orElse: () => null);
     return resolver != null ? resolver.packageMap : null;
@@ -727,13 +757,39 @@ class SourceFactory {
    * @return the absolute URI representing the given source
    */
   Uri restoreUri(Source source) {
+    // First see if a resolver can restore the URI.
     for (UriResolver resolver in _resolvers) {
       Uri uri = resolver.restoreAbsolute(source);
       if (uri != null) {
+        // Now see if there's a package mapping.
+        Uri packageMappedUri = _getPackageMapping(uri);
+        if (packageMappedUri != null) {
+          return packageMappedUri;
+        }
+        // Fall back to the resolver's computed URI.
         return uri;
       }
     }
+
     return null;
+  }
+
+  Uri _getPackageMapping(Uri sourceUri) {
+    if (sourceUri.scheme != 'file') {
+      //TODO(pquitslund): verify this works for non-file URIs.
+      return null;
+    }
+
+    Uri packageUri;
+    _packages.asMap().forEach((String name, Uri uri) {
+      if (packageUri == null) {
+        if (utils.startsWith(sourceUri, uri)) {
+          packageUri = Uri.parse(
+              'package:$name/${sourceUri.path.substring(uri.path.length)}');
+        }
+      }
+    });
+    return packageUri;
   }
 
   /**
@@ -754,6 +810,15 @@ class SourceFactory {
             "Cannot resolve a relative URI without a containing source: $containedUri");
       }
       containedUri = containingSource.resolveRelativeUri(containedUri);
+    }
+    // Now check .packages.
+    if (containedUri.scheme == 'package') {
+      Uri packageUri =
+          _packages.resolve(containedUri, notFound: (Uri packageUri) => null);
+      //TODO(pquitslund): package_config needs to be updated to set schemes for file URIs.
+      if (packageUri != null && packageUri.scheme == '') {
+        containedUri = new Uri.file(packageUri.toFilePath());
+      }
     }
     for (UriResolver resolver in _resolvers) {
       Source result = resolver.resolveAbsolute(containedUri);
