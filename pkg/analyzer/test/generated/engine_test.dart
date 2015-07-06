@@ -10,6 +10,7 @@ library engine.engine_test;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/generated/ast.dart';
@@ -445,6 +446,41 @@ import 'libB.dart';''';
       listener.assertEvent(wereSourcesRemovedOrDeleted: true);
       listener.assertNoMoreEvents();
     });
+  }
+
+  /**
+   * IDEA uses the following scenario:
+   * 1. Add overlay.
+   * 2. Change overlay.
+   * 3. If the contents of the document buffer is the same as the contents
+   *    of the file, remove overlay.
+   * So, we need to try to use incremental resolution for removing overlays too.
+   */
+  void test_applyChanges_remove_incremental() {
+    MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
+    Source source = resourceProvider.newFile('/test.dart', r'''
+main() {
+  print(1);
+}
+''').createSource();
+    _context = AnalysisContextFactory.oldContextWithCore();
+    _context.analysisOptions = new AnalysisOptionsImpl()..incremental = true;
+    _context.applyChanges(new ChangeSet()..addedSource(source));
+    // remember compilation unit
+    _analyzeAll_assertFinished();
+    CompilationUnit unit = _context.getResolvedCompilationUnit2(source, source);
+    // add overlay
+    _context.setContents(source, r'''
+main() {
+  print(12);
+}
+''');
+    _analyzeAll_assertFinished();
+    expect(_context.getResolvedCompilationUnit2(source, source), unit);
+    // remove overlay
+    _context.setContents(source, null);
+    _analyzeAll_assertFinished();
+    expect(_context.getResolvedCompilationUnit2(source, source), unit);
   }
 
   Future test_applyChanges_removeContainer() {

@@ -955,7 +955,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     bool changed = newContents != originalContents;
     if (newContents != null) {
-      if (newContents != originalContents) {
+      if (changed) {
         if (!analysisOptions.incremental ||
             !_tryPoorMansIncrementalResolution(source, newContents)) {
           _sourceChanged(source);
@@ -966,7 +966,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         entry.modificationTime = _contentCache.getModificationStamp(source);
       }
     } else if (originalContents != null) {
-      changed = newContents != originalContents;
       // We are removing the overlay for the file, check if the file's
       // contents is the same as it was in the overlay.
       try {
@@ -977,11 +976,15 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           entry.modificationTime = fileContents.modificationTime;
           changed = false;
         }
+        newContents = fileContentsData;
       } catch (e) {}
       // If not the same content (e.g. the file is being closed without save),
       // then force analysis.
       if (changed) {
-        _sourceChanged(source);
+        if (!analysisOptions.incremental ||
+            !_tryPoorMansIncrementalResolution(source, newContents)) {
+          _sourceChanged(source);
+        }
       }
     }
     if (notify && changed) {
