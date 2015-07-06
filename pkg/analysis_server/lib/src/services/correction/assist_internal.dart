@@ -87,6 +87,7 @@ class AssistProcessor {
     _addProposal_convertToIsNot_onIs();
     _addProposal_convertToIsNot_onNot();
     _addProposal_convertToIsNotEmpty();
+    _addProposal_convertToNormalParameter();
     _addProposal_encapsulateField();
     _addProposal_exchangeOperands();
     _addProposal_importAddShow();
@@ -671,6 +672,38 @@ class AssistProcessor {
     _addReplaceEdit(rangeNode(isEmptyIdentifier), 'isNotEmpty');
     // add proposal
     _addAssist(DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY, []);
+  }
+
+  void _addProposal_convertToNormalParameter() {
+    if (node is SimpleIdentifier &&
+        node.parent is FieldFormalParameter &&
+        node.parent.parent is FormalParameterList &&
+        node.parent.parent.parent is ConstructorDeclaration) {
+      ConstructorDeclaration constructor = node.parent.parent.parent;
+      FormalParameterList parameterList = node.parent.parent;
+      FieldFormalParameter parameter = node.parent;
+      ParameterElement parameterElement = parameter.element;
+      String name = (node as SimpleIdentifier).name;
+      // prepare type
+      DartType type = parameterElement.type;
+      Set<LibraryElement> librariesToImport = new Set<LibraryElement>();
+      String typeCode = utils.getTypeSource(type, librariesToImport);
+      // replace parameter
+      if (type.isDynamic) {
+        _addReplaceEdit(rangeNode(parameter), name);
+      } else {
+        _addReplaceEdit(rangeNode(parameter), '$typeCode $name');
+      }
+      // add field initializer
+      List<ConstructorInitializer> initializers = constructor.initializers;
+      if (initializers.isEmpty) {
+        _addInsertEdit(parameterList.end, ' : $name = $name');
+      } else {
+        _addInsertEdit(initializers.last.end, ', $name = $name');
+      }
+      // add proposal
+      _addAssist(DartAssistKind.CONVERT_TO_NORMAL_PARAMETER, []);
+    }
   }
 
   void _addProposal_encapsulateField() {
