@@ -11,6 +11,7 @@ import 'package:analysis_server/src/protocol.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_file_index.dart';
 import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
+import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
@@ -27,6 +28,7 @@ class SocketServer {
   final DirectoryBasedDartSdk defaultSdk;
   final InstrumentationService instrumentationService;
   final ServerPlugin serverPlugin;
+  final ResolverProvider packageResolverProvider;
 
   /**
    * The analysis server that was created when a client established a
@@ -40,7 +42,8 @@ class SocketServer {
   List<Plugin> userDefinedPlugins;
 
   SocketServer(this.analysisServerOptions, this.defaultSdk,
-      this.instrumentationService, this.serverPlugin);
+      this.instrumentationService, this.serverPlugin,
+      this.packageResolverProvider);
 
   /**
    * Create an analysis server which will communicate with the client using the
@@ -78,7 +81,9 @@ class SocketServer {
     analysisServer = new AnalysisServer(serverChannel, resourceProvider,
         new OptimizingPubPackageMapProvider(resourceProvider, defaultSdk),
         index, serverPlugin, analysisServerOptions, defaultSdk,
-        instrumentationService, rethrowExceptions: false);
+        instrumentationService,
+        packageResolverProvider: packageResolverProvider,
+        rethrowExceptions: false);
     analysisServer.userDefinedPlugins = userDefinedPlugins;
   }
 }

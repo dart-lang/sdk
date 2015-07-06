@@ -20,6 +20,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mocks.dart';
+import 'package:analysis_server/uri/resolver_provider.dart';
 
 main() {
   groupSep = ' | ';
@@ -59,6 +60,8 @@ class ContextManagerTest {
 
   MockPackageMapProvider packageMapProvider;
 
+  UriResolver packageResolver = null;
+
   String projPath = '/my/proj';
 
   String newFile(List<String> pathComponents, [String content = '']) {
@@ -73,10 +76,14 @@ class ContextManagerTest {
     return folderPath;
   }
 
+  UriResolver providePackageResolver(Folder folder) {
+    return packageResolver;
+  }
+
   void setUp() {
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    manager = new TestContextManager(resourceProvider, packageMapProvider);
+    manager = new TestContextManager(resourceProvider, providePackageResolver, packageMapProvider);
     resourceProvider.newFolder(projPath);
   }
 
@@ -195,6 +202,29 @@ class ContextManagerTest {
     var filePaths = manager.currentContextFilePaths[projPath];
     expect(filePaths, hasLength(1));
     expect(filePaths, contains(filePath));
+    List<AnalysisContext> contextsInAnalysisRoot = manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(contextsInAnalysisRoot, hasLength(1));
+    AnalysisContext context = contextsInAnalysisRoot[0];
+    expect(context, isNotNull);
+    Source result = context.sourceFactory.forUri('package:foo/foo.dart');
+    expect(result, isNotNull);
+    expect(result.exists(), isFalse);
+  }
+
+  void test_setRoots_packageResolver() {
+    Uri uri = Uri.parse('package:foo/foo.dart');
+    Source source = new TestSource();
+    packageResolver = new TestUriResolver({uri : source});
+    String filePath = posix.join(projPath, 'foo.dart');
+    resourceProvider.newFile(filePath, 'contents');
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+
+    List<AnalysisContext> contextsInAnalysisRoot = manager.contextsInAnalysisRoot(resourceProvider.newFolder(projPath));
+    expect(contextsInAnalysisRoot, hasLength(1));
+    AnalysisContext context = contextsInAnalysisRoot[0];
+    expect(context, isNotNull);
+    Source result = context.sourceFactory.forUri2(uri);
+    expect(result, same(source));
   }
 
   void test_setRoots_addFolderWithDartFileInSubfolder() {
@@ -981,8 +1011,9 @@ class TestContextManager extends ContextManager {
       <String, UriResolver>{};
 
   TestContextManager(MemoryResourceProvider resourceProvider,
+                     ResolverProvider packageResolverProvider,
       OptimizingPubPackageMapProvider packageMapProvider)
-      : super(resourceProvider, packageMapProvider,
+      : super(resourceProvider, packageResolverProvider, packageMapProvider,
           InstrumentationService.NULL_SERVICE);
 
   /**
@@ -1065,4 +1096,25 @@ class TestContextManager extends ContextManager {
       Folder contextFolder, UriResolver packageUriResolver) {
     currentContextPackageUriResolvers[contextFolder.path] = packageUriResolver;
   }
+}
+
+class TestUriResolver extends UriResolver {
+  Map<Uri, Source> uriMap;
+
+  TestUriResolver(this.uriMap);
+
+  @override
+  Source resolveAbsolute(Uri uri) {
+    return uriMap[uri];
+  }
+}
+
+/**
+ * A [Source] that knows it's [fullName].
+ */
+class TestSource implements Source {
+  TestSource();
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

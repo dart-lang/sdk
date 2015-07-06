@@ -111,7 +111,7 @@ class SocketServerTest {
     manager.processPlugins([serverPlugin]);
     return new SocketServer(new AnalysisServerOptions(),
         DirectoryBasedDartSdk.defaultSdk, InstrumentationService.NULL_SERVICE,
-        serverPlugin);
+        serverPlugin, null);
   }
 }
 

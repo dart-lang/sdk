@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
+import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -260,13 +261,14 @@ class AnalysisServer {
       OptimizingPubPackageMapProvider packageMapProvider, Index _index,
       this.serverPlugin, AnalysisServerOptions analysisServerOptions,
       this.defaultSdk, this.instrumentationService,
-      {this.rethrowExceptions: true})
+      {ResolverProvider packageResolverProvider: null,
+      this.rethrowExceptions: true})
       : index = _index,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
     operationQueue = new ServerOperationQueue();
-    contextDirectoryManager = new ServerContextManager(
-        this, resourceProvider, packageMapProvider, instrumentationService);
+    contextDirectoryManager = new ServerContextManager(this, resourceProvider,
+        packageResolverProvider, packageMapProvider, instrumentationService);
     contextDirectoryManager.defaultOptions.incremental = true;
     contextDirectoryManager.defaultOptions.incrementalApi =
         analysisServerOptions.enableIncrementalResolutionApi;
@@ -1310,9 +1312,11 @@ class ServerContextManager extends ContextManager {
   StreamController<ContextsChangedEvent> _onContextsChangedController;
 
   ServerContextManager(this.analysisServer, ResourceProvider resourceProvider,
+      ResolverProvider packageResolverProvider,
       OptimizingPubPackageMapProvider packageMapProvider,
       InstrumentationService service)
-      : super(resourceProvider, packageMapProvider, service) {
+      : super(resourceProvider, packageResolverProvider, packageMapProvider,
+          service) {
     _onContextsChangedController =
         new StreamController<ContextsChangedEvent>.broadcast();
   }

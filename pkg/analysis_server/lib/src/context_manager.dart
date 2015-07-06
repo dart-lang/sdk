@@ -10,6 +10,7 @@ import 'dart:core' hide Resource;
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.dart';
+import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
@@ -80,6 +81,13 @@ abstract class ContextManager {
   Map<String, String> normalizedPackageRoots = <String, String>{};
 
   /**
+   * A function that will return a [UriResolver] that can be used to resolve
+   * `package:` URI's within a given folder, or `null` if we should fall back
+   * to the standard URI resolver.
+   */
+  final ResolverProvider packageResolverProvider;
+
+  /**
    * Provider which is used to determine the mapping from package name to
    * package folder.
    */
@@ -90,8 +98,8 @@ abstract class ContextManager {
    */
   final InstrumentationService _instrumentationService;
 
-  ContextManager(this.resourceProvider, this._packageMapProvider,
-      this._instrumentationService) {
+  ContextManager(this.resourceProvider, this.packageResolverProvider,
+      this._packageMapProvider, this._instrumentationService) {
     pathContext = resourceProvider.pathContext;
   }
 
@@ -431,6 +439,12 @@ abstract class ContextManager {
       return new PackageUriResolver([packagesDir]);
     } else {
       beginComputePackageMap();
+      if (packageResolverProvider != null) {
+        UriResolver resolver = packageResolverProvider(folder);
+        if (resolver != null) {
+          return resolver;
+        }
+      }
       OptimizingPubPackageMapInfo packageMapInfo;
       ServerPerformanceStatistics.pub.makeCurrentWhile(() {
         packageMapInfo =
