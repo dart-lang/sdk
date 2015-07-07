@@ -24,4 +24,3 @@ sample_extension/test/sample_extension_test: Skip # Issue 14705
 [ $arch == simarm64 ]
 *: Skip
 
-[ $compiler == dart2js && $cps_ir ]

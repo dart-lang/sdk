@@ -215,26 +215,24 @@ big_integer_parsed_mul_div_vm_test: Pass, Slow
 [ $compiler == dart2js && $cps_ir ]
 error_stack_trace1_test: Pass # H.unwrapException(...).get$stackTrace is not a function
 hashcode_test: RuntimeError # Please triage this failure.
-int_parse_radix_test/01: Crash # Invalid argument(s)
-int_parse_radix_test/02: Crash # Invalid argument(s)
 iterable_empty_test: RuntimeError # Please triage this failure.
 iterable_return_type_test/none: RuntimeError # Please triage this failure.
 iterable_to_list_test: RuntimeError # Please triage this failure.
 iterable_to_set_test: RuntimeError # Please triage this failure.
 list_test/01: RuntimeError # this.get$length is not a function
 list_test/none: RuntimeError # this.get$length is not a function
-main_test: RuntimeError # receiver.get$_collection$_nums is not a function
+main_test: RuntimeError # receiver.get$_nums is not a function
 map_values2_test: RuntimeError # Please triage this failure.
 map_values3_test: RuntimeError # Please triage this failure.
 map_values4_test: RuntimeError # Please triage this failure.
 regexp/pcre_test: Crash # Stack Overflow
-shuffle_test: RuntimeError # Please triage this failure.
-stacktrace_fromstring_test: RuntimeError # receiver.get$_collection$_nums is not a function
-string_fromcharcodes_test: RuntimeError # Please triage this failure.
-symbol_operator_test/03 : RuntimeError # 
+shuffle_test: RuntimeError # this.get$length is not a function
+stacktrace_fromstring_test: RuntimeError # receiver.get$_nums is not a function
+string_fromcharcodes_test: RuntimeError # this.get$length is not a function
+symbol_operator_test/03: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/03: Pass # Please triage this failure.
 symbol_reserved_word_test/06: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/09: RuntimeError # Please triage this failure.
 symbol_reserved_word_test/12: RuntimeError # Please triage this failure.
 symbol_test/none: Crash # The null object does not have a getter '_element'.
-uri_test: Crash # Invalid argument(s)
+uri_test: Crash # The null object does not have a getter '_element'.

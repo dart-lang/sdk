@@ -67,34 +67,25 @@ deferred_fail_and_retry_worker_test: SkipByDesign # Uses eval to simulate failed
 16407_test: Pass # Please triage this failure.
 22868_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
 22895_test: Crash # (main()async{var clo...  cannot handle async/sync*/async* functions
-23432_test : RuntimeError # 
+23432_test: RuntimeError # Please triage this failure.
 async_stacktrace_test/asyncStar: Crash # (runTests()async{awa...  cannot handle async/sync*/async* functions
 async_stacktrace_test/none: Crash # (runTests()async{awa...  cannot handle async/sync*/async* functions
 closure_capture5_test: Crash # (i=0): For-loop variable captured in loop header
-conditional_send_test: RuntimeError # receiver.get$_collection$_nums is not a function
-deferred/deferred_class_test: RuntimeError # receiver.get$_collection$_nums is not a function
-deferred/deferred_constant2_test: RuntimeError # receiver.get$_collection$_nums is not a function
-deferred/deferred_constant3_test: RuntimeError # receiver.get$_collection$_nums is not a function
-deferred/deferred_constant4_test: RuntimeError # receiver.get$_collection$_nums is not a function
-deferred/deferred_function_test: RuntimeError # receiver.get$_collection$_nums is not a function
-deferred/deferred_mirrors1_test: RuntimeError # receiver.get$_collection$_nums is not a function
-deferred/deferred_mirrors2_test : RuntimeError # TypeError: receiver.get$_collection$_nums is not a function
-deferred/deferred_overlapping_test: RuntimeError # receiver.get$_collection$_nums is not a function
-if_null_test: RuntimeError # receiver.get$_collection$_nums is not a function
-mirror_invalid_field_access3_test: Crash # Internal Error: No default constructor available.
-mirror_invalid_field_access_test: Crash # Internal Error: No default constructor available.
-mirror_invalid_invoke3_test: Crash # Internal Error: No default constructor available.
-mirror_invalid_invoke_test: Crash # Internal Error: No default constructor available.
-mirror_printer_test: Crash # Internal Error: No default constructor available.
-mirror_test: Crash # Internal Error: No default constructor available.
-mirror_type_inference_field2_test: Crash # Internal Error: No default constructor available.
-mirror_type_inference_field_test: Crash # Internal Error: No default constructor available.
-mirror_type_inference_function_test: Crash # Internal Error: No default constructor available.
-mirrors_used_warning2_test : RuntimeError # TypeError: receiver.get$_nums is not a function
-mirrors_used_warning_test/minif : RuntimeError # TypeError: receiver.get$_nums is not a function
-mirrors_used_warning_test/none : RuntimeError # TypeError: receiver.get$_nums is not a function
-reflect_native_types_test: Crash # Internal Error: No default constructor available.
+conditional_send_test: RuntimeError # receiver.get$_nums is not a function
+deferred/deferred_class_test: RuntimeError # receiver.get$_nums is not a function
+deferred/deferred_constant2_test: RuntimeError # receiver.get$_nums is not a function
+deferred/deferred_constant3_test: RuntimeError # receiver.get$_nums is not a function
+deferred/deferred_constant4_test: RuntimeError # receiver.get$_nums is not a function
+deferred/deferred_function_test: RuntimeError # receiver.get$_nums is not a function
+deferred/deferred_mirrors1_test: RuntimeError # receiver.get$_nums is not a function
+deferred/deferred_mirrors2_test: RuntimeError # receiver.get$_collection$_nums is not a function
+deferred/deferred_overlapping_test: RuntimeError # receiver.get$_nums is not a function
+if_null_test: RuntimeError # receiver.get$_nums is not a function
+mirror_printer_test: Crash # (=_EmptyStream<T>;): Unhandled node
+mirror_test: Crash # (=_EmptyStream<T>;): Unhandled node
+mirrors_used_warning2_test: RuntimeError # receiver.get$_nums is not a function
+mirrors_used_warning_test/minif: RuntimeError # receiver.get$_nums is not a function
+mirrors_used_warning_test/none: RuntimeError # receiver.get$_nums is not a function
+reflect_native_types_test: Crash # (=_EmptyStream<T>;): Unhandled node
 switch_test/none: Crash # (switch (val){foo:ba...  continue to a labeled switch case
-timer_test: RuntimeError # receiver.get$_collection$_nums is not a function
-no_such_method_test : Crash # Internal Error: No default constructor available.
-mirrors_used_closure_test : Crash # Internal Error: No default constructor available.
+timer_test: RuntimeError # receiver.get$_nums is not a function
