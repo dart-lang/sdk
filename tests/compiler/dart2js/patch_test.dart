@@ -136,13 +136,13 @@ testPatchFunction() {
 
 
 testPatchVersioned() {
-  String oldPatch = "test(){return 'string';}";
-  String newPatch = "test(){return 'new and improved string';}";
+  String fullPatch = "test(){return 'string';}";
+  String lazyPatch = "test(){return 'new and improved string';}";
 
   String patchSource =
       """
-      @patch_old $oldPatch 
-      @patch_new $newPatch 
+      @patch_full $fullPatch
+      @patch_lazy $lazyPatch
       """;
 
   test(String patchVersion,
@@ -192,11 +192,11 @@ testPatchVersioned() {
     }));
   }
 
-  test('old', patchText: oldPatch);
-  test('new', patchText: newPatch);
+  test('full', patchText: fullPatch);
+  test('lazy', patchText: lazyPatch);
   test('unknown', expectIsPatched: false,
        expectedError: 'External method without an implementation.');
-  test('old',
+  test('full',
        defaultPatch: "@patch test(){}",
        expectedInternalError: "Trying to patch a function more than once.");
 }

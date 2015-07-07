@@ -436,10 +436,10 @@ class PatchAnnotationHandler implements EagerAnnotationHandler<PatchVersion> {
     if (annotation.beginToken != null) {
       if (annotation.beginToken.next.value == 'patch') {
         return const PatchVersion(null);
-      } else if (annotation.beginToken.next.value == 'patch_old') {
-        return const PatchVersion('old');
-      } else if (annotation.beginToken.next.value == 'patch_new') {
-        return const PatchVersion('new');
+      } else if (annotation.beginToken.next.value == 'patch_full') {
+        return const PatchVersion('full');
+      } else if (annotation.beginToken.next.value == 'patch_lazy') {
+        return const PatchVersion('lazy');
       }
     }
     return null;

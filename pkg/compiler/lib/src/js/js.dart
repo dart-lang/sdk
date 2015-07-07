@@ -8,7 +8,7 @@ import 'package:js_ast/js_ast.dart';
 export 'package:js_ast/js_ast.dart';
 
 import '../io/code_output.dart' show CodeOutput, CodeBuffer;
-import '../js_emitter/js_emitter.dart' show USE_NEW_EMITTER;
+import '../js_emitter/js_emitter.dart' show USE_LAZY_EMITTER;
 import '../dart2jslib.dart' as leg;
 import '../util/util.dart' show NO_LOCATION_SPANNABLE, Indentation, Tagging;
 import '../dump_info.dart' show DumpInfoTask;
@@ -25,7 +25,7 @@ CodeBuffer prettyPrint(Node node,
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
       shouldCompressOutput: compiler.enableMinification,
       minifyLocalVariables: allowVariableMinification,
-      preferSemicolonToNewlineInMinifiedOutput: USE_NEW_EMITTER,
+      preferSemicolonToNewlineInMinifiedOutput: USE_LAZY_EMITTER,
       renamerForNames: renamerForNames);
   CodeBuffer outBuffer = new CodeBuffer();
   SourceInformationProcessor sourceInformationProcessor =

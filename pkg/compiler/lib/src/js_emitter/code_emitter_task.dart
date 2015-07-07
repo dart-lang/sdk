@@ -4,7 +4,7 @@
 
 part of dart2js.js_emitter;
 
-const USE_NEW_EMITTER = const bool.fromEnvironment("dart2js.use.new.emitter");
+const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
 
 /**
  * Generates the code for all used classes in the program. Static fields (even
@@ -54,8 +54,8 @@ class CodeEmitterTask extends CompilerTask {
         this.typeTestRegistry = new TypeTestRegistry(compiler) {
     nativeEmitter = new NativeEmitter(this);
     oldEmitter = new OldEmitter(compiler, namer, generateSourceMap, this);
-    emitter = USE_NEW_EMITTER
-        ? new new_js_emitter.Emitter(compiler, namer, nativeEmitter)
+    emitter = USE_LAZY_EMITTER
+        ? new lazy_js_emitter.Emitter(compiler, namer, nativeEmitter)
         : oldEmitter;
     metadataCollector = new MetadataCollector(compiler, emitter);
   }

@@ -57,7 +57,7 @@ import '../js_backend/js_backend.dart' show
 import 'model.dart';
 import 'program_builder.dart';
 
-import 'new_emitter/emitter.dart' as new_js_emitter;
+import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
 
 import '../io/line_column_provider.dart' show
     LineColumnCollector,
@@ -108,12 +108,12 @@ part 'parameter_stub_generator.dart';
 part 'runtime_type_generator.dart';
 part 'type_test_registry.dart';
 
-part 'old_emitter/class_builder.dart';
-part 'old_emitter/class_emitter.dart';
-part 'old_emitter/code_emitter_helper.dart';
-part 'old_emitter/container_builder.dart';
-part 'old_emitter/declarations.dart';
-part 'old_emitter/emitter.dart';
-part 'old_emitter/interceptor_emitter.dart';
-part 'old_emitter/nsm_emitter.dart';
-part 'old_emitter/setup_program_builder.dart';
+part 'full_emitter/class_builder.dart';
+part 'full_emitter/class_emitter.dart';
+part 'full_emitter/code_emitter_helper.dart';
+part 'full_emitter/container_builder.dart';
+part 'full_emitter/declarations.dart';
+part 'full_emitter/emitter.dart';
+part 'full_emitter/interceptor_emitter.dart';
+part 'full_emitter/nsm_emitter.dart';
+part 'full_emitter/setup_program_builder.dart';
