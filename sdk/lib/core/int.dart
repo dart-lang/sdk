@@ -122,10 +122,17 @@ abstract class int extends num {
   int modInverse(int modulus);
 
   /**
-   * Returns the greatest common divisor of the absolute value of
-   * this integer and the absolute value of [other].
+   * Returns the greatest common divisor of this integer and [other].
    *
-   * Both this and [other] must be non-zero.
+   * If either number is non-zero, the result is the numerically greatest
+   * integer dividing both `this` and `other`.
+   *
+   * The greatest common divisor is independent of the order,
+   * so `x.gcd(y)` is  always the same as `y.gcd(x)`.
+   *
+   * For any integer `x`, `x.gcd(x)` is `x.abs()`.
+   *
+   * If both `this` and `other` is zero, the result is also zero.
    */
   int gcd(int other);
 

@@ -1811,10 +1811,13 @@ class _Bigint extends _IntegerImplementation implements int {
     return _binaryGcd(m, t, true);
   }
 
-  // Returns gcd of abs(this) and abs(other), with this != 0 and other !=0.
+  // Returns gcd of abs(this) and abs(other).
   int gcd(int other) {
     if (other is! int) {
       throw new ArgumentError.value(other, "other", "not an integer");
+    }
+    if (other == 0) {
+      return this.abs();
     }
     return _binaryGcd(this, other._toBigint(), false);
   }

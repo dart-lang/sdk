@@ -141,14 +141,15 @@ testGcd() {
   // Test that gcd of value and other (non-negative) is expectedResult.
   // Tests all combinations of positive and negative values and order of
   // operands, so use positive values and order is not important.
-  test(value, other, [expectedResult]) {
-    assert(value % expectedResult == 0);  // Check for bug in test.
-    assert(other % expectedResult == 0);
+  test(value, other, expectedResult) {
+    // Check for bug in test.
+    assert(expectedResult == 0 || value % expectedResult == 0);
+    assert(expectedResult == 0 || other % expectedResult == 0);
     callCombos(value, other, (a, b) {
       var result = a.gcd(b);
       /// Check that the result is a divisor.
-      Expect.equals(0, a % result, "$result | $a");
-      Expect.equals(0, b % result, "$result | $b");
+      Expect.equals(0, result == 0 ? a : a % result, "$result | $a");
+      Expect.equals(0, result == 0 ? b : b % result, "$result | $b");
       // Check for bug in test. If assert fails, the expected value is too low,
       // and the gcd call has found a greater common divisor.
       assert(result >= expectedResult);
@@ -163,9 +164,8 @@ testGcd() {
     });
   }
 
-  // Throws if either operand is zero, and if both operands are zero.
-  testThrows(0, 1000);
-  testThrows(0, 0);
+  testThrows(2.5, 5);  // Not a method on double.
+  testThrows(5, 2.5);  // Not accepting non-int arguments.
 
   // Format:
   //  test(value1, value2, expectedResult);
@@ -175,6 +175,9 @@ testGcd() {
   test(37, 37, 37);  // Same larger prime.
 
   test(9999, 7272, 909);  // Larger numbers
+
+  test(0, 1000, 1000);  // One operand is zero.
+  test(0, 0, 0);        // Both operands are zero.
 
   // Multiplying both operands by a number multiplies result by same number.
   test(693, 609, 21);

@@ -503,19 +503,15 @@ class JSInt extends JSNumber implements int, double {
     return _binaryGcd(m, t, true);
   }
 
-  // Returns gcd of abs(this) and abs(other), with this != 0 and other !=0.
+  // Returns gcd of abs(this) and abs(other).
   int gcd(int other) {
     if (other is! int) {
       throw new ArgumentError.value(other, "other", "not an integer");
     }
-    if (this == 0) {
-      throw new ArgumentError.value(this, "first operand", "must not be zero");
-    }
-    if (other == 0) {
-      throw new ArgumentError.value(this, "second operand", "must not be zero");
-    }
     int x = this.abs();
     int y = other.abs();
+    if (x == 0) return y;
+    if (y == 0) return x;
     if ((x == 1) || (y == 1)) return 1;
     return _binaryGcd(x, y, false);
   }
