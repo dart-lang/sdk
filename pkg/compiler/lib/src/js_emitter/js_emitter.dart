@@ -55,7 +55,7 @@ import '../js_backend/js_backend.dart' show
     TypeVariableHandler;
 
 import 'model.dart';
-import 'program_builder.dart';
+import 'program_builder/program_builder.dart';
 
 import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
 

@@ -31,7 +31,7 @@ import 'io/source_map_builder.dart' as io;
 import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'js_emitter/js_emitter.dart' as js_emitter;
-import 'js_emitter/program_builder.dart' as program_builder;
+import 'js_emitter/program_builder/program_builder.dart' as program_builder;
 import 'resolution/semantic_visitor.dart' as semantic_visitor;
 import 'resolution/operators.dart' as operators;
 import 'source_file_provider.dart' as source_file_provider;

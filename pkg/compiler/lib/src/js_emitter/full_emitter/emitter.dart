@@ -1624,7 +1624,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
       if (descriptors != null && descriptors.isNotEmpty) {
         Iterable<LibraryElement> libraries =
-        task.outputLibraryLists[outputUnit];
+            task.outputLibraryLists[outputUnit];
         if (libraries == null) libraries = [];
 
         // TODO(johnniwinther): Avoid creating [CodeBuffer]s.

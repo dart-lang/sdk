@@ -4,18 +4,18 @@
 
 library dart2js.js_emitter.program_builder;
 
-import 'js_emitter.dart' show computeMixinClass;
-import 'model.dart';
+import '../js_emitter.dart' show computeMixinClass;
+import '../model.dart';
 
-import '../common.dart';
-import '../js/js.dart' as js;
+import '../../common.dart';
+import '../../js/js.dart' as js;
 
-import '../js_backend/js_backend.dart' show
+import '../../js_backend/js_backend.dart' show
     Namer,
     JavaScriptBackend,
     JavaScriptConstantCompiler;
 
-import 'js_emitter.dart' show
+import '../js_emitter.dart' show
     ClassStubGenerator,
     CodeEmitterTask,
     InterceptorStubGenerator,
@@ -24,13 +24,15 @@ import 'js_emitter.dart' show
     RuntimeTypeGenerator,
     TypeTestProperties;
 
-import '../elements/elements.dart' show ParameterElement, MethodElement;
+import '../../elements/elements.dart' show ParameterElement, MethodElement;
 
-import '../universe/universe.dart' show Universe, TypeMaskSet;
-import '../deferred_load.dart' show DeferredLoadTask, OutputUnit;
+import '../../universe/universe.dart' show Universe, TypeMaskSet;
+import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 
 part 'registry.dart';
 
+/// Builds a self-contained representation of the program that can then be
+/// emitted more easily by the individual emitters.
 class ProgramBuilder {
   final Compiler _compiler;
   final Namer namer;
