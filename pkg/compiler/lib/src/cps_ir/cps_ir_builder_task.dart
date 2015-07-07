@@ -2187,6 +2187,10 @@ class GlobalProgramInformation {
   TypeMask getTypeMaskForForeign(NativeBehavior behavior) {
     return TypeMaskFactory.fromNativeBehavior(behavior, _compiler);
   }
+
+  FieldElement locateSingleField(Selector selector, TypeMask type) {
+    return _compiler.world.locateSingleField(selector, type);
+  }
 }
 
 /// IR builder specific to the JavaScript backend, coupled to the [JsIrBuilder].

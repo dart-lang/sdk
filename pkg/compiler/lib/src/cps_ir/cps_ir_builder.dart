@@ -869,8 +869,15 @@ class IrBuilder {
                                Selector selector,
                                TypeMask mask) {
     assert(selector.isGetter);
-    return _buildInvokeDynamic(
-        receiver, selector, mask, const <ir.Primitive>[]);
+    FieldElement field = program.locateSingleField(selector, mask);
+    if (field != null) {
+      // If the world says this resolves to a unique field, then it MUST be
+      // treated as a field access, since the getter might not be emitted.
+      return buildFieldGet(receiver, field);
+    } else {
+      return _buildInvokeDynamic(
+          receiver, selector, mask, const <ir.Primitive>[]);
+    }
   }
 
   /// Create a dynamic setter invocation on [receiver] where the setter name and
@@ -880,7 +887,14 @@ class IrBuilder {
                                TypeMask mask,
                                ir.Primitive value) {
     assert(selector.isSetter);
-    _buildInvokeDynamic(receiver, selector, mask, <ir.Primitive>[value]);
+    FieldElement field = program.locateSingleField(selector, mask);
+    if (field != null) {
+      // If the world says this resolves to a unique field, then it MUST be
+      // treated as a field access, since the setter might not be emitted.
+      buildFieldSet(receiver, field, value);
+    } else {
+      _buildInvokeDynamic(receiver, selector, mask, <ir.Primitive>[value]);
+    }
     return value;
   }
 
@@ -2393,6 +2407,16 @@ class IrBuilder {
     if (state.enclosingThis != null) return state.enclosingThis;
     assert(state.thisParameter != null);
     return state.thisParameter;
+  }
+
+  ir.Primitive buildFieldGet(ir.Primitive receiver, FieldElement target) {
+    return addPrimitive(new ir.GetField(receiver, target));
+  }
+
+  void buildFieldSet(ir.Primitive receiver, 
+                     FieldElement target, 
+                     ir.Primitive value) {
+    add(new ir.SetField(receiver, target, value));
   }
 
   ir.Primitive buildSuperFieldGet(FieldElement target) {

@@ -482,7 +482,6 @@ super_bound_closure_test/none: RuntimeError # Cannot read property 'call' of und
 super_call4_test: RuntimeError # Please triage this failure.
 super_getter_setter_test: Crash # Class 'PartialMethodElement' has no instance getter 'initializer'.
 super_implicit_closure_test: RuntimeError # Cannot read property 'call' of undefined
-super_operator_index2_test: RuntimeError # this.get$map is not a function
 super_operator_index5_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index7_test: Crash # (super[0]=42): visitUnresolvedSuperIndexSet
 super_operator_index8_test: Crash # (super[f()]=g()): visitUnresolvedSuperIndexSet
