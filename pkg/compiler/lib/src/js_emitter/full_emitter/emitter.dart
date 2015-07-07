@@ -38,11 +38,6 @@ class OldEmitter implements Emitter {
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
 
   String classesCollector;
-  Set<ClassElement> get neededClasses => task.neededClasses;
-  Map<OutputUnit, List<ClassElement>> get outputClassLists
-      => task.outputClassLists;
-  Map<OutputUnit, List<ConstantValue>> get outputConstantLists
-      => task.outputConstantLists;
   final Map<jsAst.Name, String> mangledFieldNames =
       new HashMap<jsAst.Name, String>();
   final Map<jsAst.Name, String> mangledGlobalFieldNames =
