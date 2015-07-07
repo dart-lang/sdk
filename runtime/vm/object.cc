@@ -14898,6 +14898,12 @@ bool AbstractType::IsNumberType() const {
 }
 
 
+bool AbstractType::IsSmiType() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::SmiType()).type_class());
+}
+
+
 bool AbstractType::IsStringType() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::StringType()).type_class());

@@ -5039,6 +5039,9 @@ class AbstractType : public Instance {
   // Check if this type represents the 'num' type.
   bool IsNumberType() const;
 
+  // Check if this type represents the '_Smi' type.
+  bool IsSmiType() const;
+
   // Check if this type represents the 'String' type.
   bool IsStringType() const;
 
