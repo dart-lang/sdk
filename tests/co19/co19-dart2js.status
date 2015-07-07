@@ -2649,7 +2649,6 @@ LayoutTests/fast/table/anonymous-table-section-removed_t01: RuntimeError # Pleas
 LayoutTests/fast/table/border-changes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/caption-orthogonal-writing-mode-sizing_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/css-table-max-width_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/table/incorrect-colgroup-span-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/large-shrink-wrapped-width_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/min-width-css-block-table_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/table/min-width-css-inline-table_t01: RuntimeError # Please triage this failure
@@ -3124,6 +3123,7 @@ LayoutTests/fast/css/parsing-object-fit_t01: RuntimeError # Please triage this f
 LayoutTests/fast/css3-text/css3-text-decoration/getComputedStyle/getComputedStyle-text-decoration-style_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-options-attributes_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dom/MutationObserver/observe-options-character-data_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/table/incorrect-colgroup-span-values_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
 LibTest/html/HttpRequest/responseType_A01_t02: RuntimeError # Please triage this failure
 
