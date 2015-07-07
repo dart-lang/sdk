@@ -24,6 +24,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, interpret_irregexp);
+
 // When entering intrinsics code:
 // ECX: IC Data
 // EDX: Arguments descriptor
@@ -2077,6 +2079,8 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 
 
 void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+  if (FLAG_interpret_irregexp) return;
+
   static const intptr_t kRegExpParamOffset = 3 * kWordSize;
   static const intptr_t kStringParamOffset = 2 * kWordSize;
   // start_index smi is located at offset 1.

@@ -7670,9 +7670,16 @@ class JSRegExp : public Instance {
   bool is_ignore_case() const { return (flags() & kIgnoreCase); }
   bool is_multi_line() const { return (flags() & kMultiLine); }
 
+  intptr_t num_registers() const { return raw_ptr()->num_registers_; }
+
   RawString* pattern() const { return raw_ptr()->pattern_; }
   RawSmi* num_bracket_expressions() const {
     return raw_ptr()->num_bracket_expressions_;
+  }
+
+  RawTypedData* bytecode(bool is_one_byte) const {
+    return is_one_byte ? raw_ptr()->one_byte_bytecode_
+                       : raw_ptr()->two_byte_bytecode_;
   }
 
   static intptr_t function_offset(intptr_t cid) {
@@ -7702,6 +7709,7 @@ class JSRegExp : public Instance {
 
   void set_pattern(const String& pattern) const;
   void set_function(intptr_t cid, const Function& value) const;
+  void set_bytecode(bool is_one_byte, const TypedData& bytecode) const;
 
   void set_num_bracket_expressions(intptr_t value) const;
   void set_is_global() const { set_flags(flags() | kGlobal); }
@@ -7709,6 +7717,9 @@ class JSRegExp : public Instance {
   void set_is_multi_line() const { set_flags(flags() | kMultiLine); }
   void set_is_simple() const { set_type(kSimple); }
   void set_is_complex() const { set_type(kComplex); }
+  void set_num_registers(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->num_registers_, value);
+  }
 
   void* GetDataStartAddress() const;
   static RawJSRegExp* FromDataStartAddress(void* data);

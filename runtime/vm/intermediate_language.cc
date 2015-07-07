@@ -18,7 +18,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/os.h"
-#include "vm/regexp_assembler.h"
+#include "vm/regexp_assembler_ir.h"
 #include "vm/resolver.h"
 #include "vm/scopes.h"
 #include "vm/stub_code.h"

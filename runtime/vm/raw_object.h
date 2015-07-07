@@ -1904,9 +1904,13 @@ class RawJSRegExp : public RawInstance {
   RawFunction* two_byte_function_;
   RawFunction* external_one_byte_function_;
   RawFunction* external_two_byte_function_;
+  RawTypedData* one_byte_bytecode_;
+  RawTypedData* two_byte_bytecode_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->external_two_byte_function_);
+    return reinterpret_cast<RawObject**>(&ptr()->two_byte_bytecode_);
   }
+
+  intptr_t num_registers_;
 
   // A bitfield with two fields:
   // type: Uninitialized, simple or complex.

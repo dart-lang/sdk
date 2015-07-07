@@ -20842,6 +20842,15 @@ void JSRegExp::set_function(intptr_t cid, const Function& value) const {
 }
 
 
+void JSRegExp::set_bytecode(bool is_one_byte, const TypedData& bytecode) const {
+  if (is_one_byte) {
+    StorePointer(&raw_ptr()->one_byte_bytecode_, bytecode.raw());
+  } else {
+    StorePointer(&raw_ptr()->two_byte_bytecode_, bytecode.raw());
+  }
+}
+
+
 void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
   StoreSmi(&raw_ptr()->num_bracket_expressions_, Smi::New(value));
 }
@@ -20857,6 +20866,7 @@ RawJSRegExp* JSRegExp::New(Heap::Space space) {
     result ^= raw;
     result.set_type(kUnitialized);
     result.set_flags(0);
+    result.set_num_registers(-1);
   }
   return result.raw();
 }

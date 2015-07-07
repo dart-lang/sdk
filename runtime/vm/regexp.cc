@@ -6,6 +6,8 @@
 
 #include "vm/dart_entry.h"
 #include "vm/regexp_assembler.h"
+#include "vm/regexp_assembler_bytecode.h"
+#include "vm/regexp_assembler_ir.h"
 #include "vm/regexp_ast.h"
 #include "vm/unibrow-inl.h"
 #include "vm/unicode.h"
@@ -17,6 +19,8 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_irregexp);
+DEFINE_FLAG(bool, interpret_irregexp, false,
+            "Use irregexp bytecode interpreter");
 
 // Default to generating optimized regexp code.
 static const bool kRegexpOptimization = true;
@@ -294,16 +298,23 @@ class RegExpCompiler : public ValueObject {
  public:
   RegExpCompiler(intptr_t capture_count,
                  bool ignore_case,
-                 intptr_t specialization_cid);
+                 bool is_one_byte);
 
   intptr_t AllocateRegister() {
     return next_register_++;
   }
 
-  RegExpEngine::CompilationResult Assemble(IRRegExpMacroAssembler* assembler,
-                                           RegExpNode* start,
-                                           intptr_t capture_count,
-                                           const String& pattern);
+  RegExpEngine::CompilationResult Assemble(
+      IRRegExpMacroAssembler* assembler,
+      RegExpNode* start,
+      intptr_t capture_count,
+      const String& pattern);
+
+  RegExpEngine::CompilationResult Assemble(
+      BytecodeRegExpMacroAssembler* assembler,
+      RegExpNode* start,
+      intptr_t capture_count,
+      const String& pattern);
 
   inline void AddWork(RegExpNode* node) { work_list_->Add(node); }
 
@@ -311,7 +322,7 @@ class RegExpCompiler : public ValueObject {
   static const intptr_t kNumberOfRegistersOffset = 0;
   static const intptr_t kCodeOffset = 1;
 
-  IRRegExpMacroAssembler* macro_assembler() { return macro_assembler_; }
+  RegExpMacroAssembler* macro_assembler() { return macro_assembler_; }
   EndNode* accept() { return accept_; }
 
   static const intptr_t kMaxRecursion = 100;
@@ -322,11 +333,7 @@ class RegExpCompiler : public ValueObject {
   void SetRegExpTooBig() { reg_exp_too_big_ = true; }
 
   inline bool ignore_case() { return ignore_case_; }
-  inline bool one_byte() const {
-    return (specialization_cid_ == kOneByteStringCid ||
-            specialization_cid_ == kExternalOneByteStringCid);
-  }
-  inline intptr_t specialization_cid() { return specialization_cid_; }
+  inline bool one_byte() const { return is_one_byte_; }
   FrequencyCollator* frequency_collator() { return &frequency_collator_; }
 
   intptr_t current_expansion_factor() { return current_expansion_factor_; }
@@ -343,9 +350,9 @@ class RegExpCompiler : public ValueObject {
   intptr_t next_register_;
   ZoneGrowableArray<RegExpNode*>* work_list_;
   intptr_t recursion_depth_;
-  IRRegExpMacroAssembler* macro_assembler_;
+  RegExpMacroAssembler* macro_assembler_;
   bool ignore_case_;
-  intptr_t specialization_cid_;
+  bool is_one_byte_;
   bool reg_exp_too_big_;
   intptr_t current_expansion_factor_;
   FrequencyCollator frequency_collator_;
@@ -371,13 +378,14 @@ static RegExpEngine::CompilationResult IrregexpRegExpTooBig() {
 
 // Attempts to compile the regexp using an Irregexp code generator.  Returns
 // a fixed array or a null handle depending on whether it succeeded.
-RegExpCompiler::RegExpCompiler(intptr_t capture_count, bool ignore_case,
-                               intptr_t specialization_cid)
+RegExpCompiler::RegExpCompiler(intptr_t capture_count,
+                               bool ignore_case,
+                               bool is_one_byte)
     : next_register_(2 * (capture_count + 1)),
       work_list_(NULL),
       recursion_depth_(0),
       ignore_case_(ignore_case),
-      specialization_cid_(specialization_cid),
+      is_one_byte_(is_one_byte),
       reg_exp_too_big_(false),
       current_expansion_factor_(1),
       zone_(Thread::Current()->zone()) {
@@ -390,9 +398,7 @@ RegExpEngine::CompilationResult RegExpCompiler::Assemble(
     RegExpNode* start,
     intptr_t capture_count,
     const String& pattern) {
-  static const bool use_slow_safe_regexp_compiler = false;
-
-  macro_assembler->set_slow_safe(use_slow_safe_regexp_compiler);
+  macro_assembler->set_slow_safe(false /* use_slow_safe_regexp_compiler */);
   macro_assembler_ = macro_assembler;
 
   ZoneGrowableArray<RegExpNode*> work_list(0);
@@ -414,7 +420,34 @@ RegExpEngine::CompilationResult RegExpCompiler::Assemble(
   return RegExpEngine::CompilationResult(macro_assembler->backtrack_goto(),
                                          macro_assembler->graph_entry(),
                                          macro_assembler->num_blocks(),
-                                         macro_assembler->num_stack_locals());
+                                         macro_assembler->num_stack_locals(),
+                                         next_register_);
+}
+
+
+RegExpEngine::CompilationResult RegExpCompiler::Assemble(
+    BytecodeRegExpMacroAssembler* macro_assembler,
+    RegExpNode* start,
+    intptr_t capture_count,
+    const String& pattern) {
+  macro_assembler->set_slow_safe(false /* use_slow_safe_regexp_compiler */);
+  macro_assembler_ = macro_assembler;
+
+  ZoneGrowableArray<RegExpNode*> work_list(0);
+  work_list_ = &work_list;
+  BlockLabel fail;
+  macro_assembler_->PushBacktrack(&fail);
+  Trace new_trace;
+  start->Emit(this, &new_trace);
+  macro_assembler_->BindBlock(&fail);
+  macro_assembler_->Fail();
+  while (!work_list.is_empty()) {
+    work_list.RemoveLast()->Emit(this, &new_trace);
+  }
+  if (reg_exp_too_big_) return IrregexpRegExpTooBig();
+
+  TypedData& bytecode = TypedData::ZoneHandle(macro_assembler->GetBytecode());
+  return RegExpEngine::CompilationResult(&bytecode, next_register_);
 }
 
 
@@ -4976,10 +5009,11 @@ void TextNode::FillInBMInfo(intptr_t initial_offset,
 }
 
 
-RegExpEngine::CompilationResult RegExpEngine::Compile(
+RegExpEngine::CompilationResult RegExpEngine::CompileIR(
     RegExpCompileData* data,
     const ParsedFunction* parsed_function,
     const ZoneGrowableArray<const ICData*>& ic_data_array) {
+  ASSERT(!FLAG_interpret_irregexp);
   Zone* zone = Thread::Current()->zone();
 
   const Function& function = parsed_function->function();
@@ -4995,7 +5029,7 @@ RegExpEngine::CompilationResult RegExpEngine::Compile(
   const bool ignore_case = regexp.is_ignore_case();
   const bool is_global = regexp.is_global();
 
-  RegExpCompiler compiler(data->capture_count, ignore_case, specialization_cid);
+  RegExpCompiler compiler(data->capture_count, ignore_case, is_one_byte);
 
   // TODO(zerny): Frequency sampling is currently disabled because of several
   // issues. We do not want to store subject strings in the regexp object since
@@ -5067,6 +5101,120 @@ RegExpEngine::CompilationResult RegExpEngine::Compile(
                                        parsed_function,
                                        ic_data_array,
                                        zone);
+
+  // Inserted here, instead of in Assembler, because it depends on information
+  // in the AST that isn't replicated in the Node structure.
+  static const intptr_t kMaxBacksearchLimit = 1024;
+  if (is_end_anchored &&
+      !is_start_anchored &&
+      max_length < kMaxBacksearchLimit) {
+    macro_assembler->SetCurrentPositionFromEnd(max_length);
+  }
+
+  if (is_global) {
+    macro_assembler->set_global_mode(
+        (data->tree->min_match() > 0)
+            ? RegExpMacroAssembler::GLOBAL_NO_ZERO_LENGTH_CHECK
+            : RegExpMacroAssembler::GLOBAL);
+  }
+
+  RegExpEngine::CompilationResult result =
+      compiler.Assemble(macro_assembler,
+                        node,
+                        data->capture_count,
+                        pattern);
+
+  if (FLAG_trace_irregexp) {
+    macro_assembler->PrintBlocks();
+  }
+
+  return result;
+}
+
+
+RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
+    RegExpCompileData* data,
+    const JSRegExp& regexp,
+    bool is_one_byte,
+    Zone* zone) {
+  ASSERT(FLAG_interpret_irregexp);
+  const String& pattern = String::Handle(zone, regexp.pattern());
+
+  ASSERT(!regexp.IsNull());
+  ASSERT(!pattern.IsNull());
+
+  const bool ignore_case = regexp.is_ignore_case();
+  const bool is_global = regexp.is_global();
+
+  RegExpCompiler compiler(data->capture_count, ignore_case, is_one_byte);
+
+  // TODO(zerny): Frequency sampling is currently disabled because of several
+  // issues. We do not want to store subject strings in the regexp object since
+  // they might be long and we should not prevent their garbage collection.
+  // Passing them to this function explicitly does not help, since we must
+  // generate exactly the same IR for both the unoptimizing and optimizing
+  // pipelines (otherwise it gets confused when i.e. deopt id's differ).
+  // An option would be to store sampling results in the regexp object, but
+  // I'm not sure the performance gains are relevant enough.
+
+  // Wrap the body of the regexp in capture #0.
+  RegExpNode* captured_body = RegExpCapture::ToNode(data->tree,
+                                                    0,
+                                                    &compiler,
+                                                    compiler.accept());
+
+  RegExpNode* node = captured_body;
+  bool is_end_anchored = data->tree->IsAnchoredAtEnd();
+  bool is_start_anchored = data->tree->IsAnchoredAtStart();
+  intptr_t max_length = data->tree->max_match();
+  if (!is_start_anchored) {
+    // Add a .*? at the beginning, outside the body capture, unless
+    // this expression is anchored at the beginning.
+    RegExpNode* loop_node =
+        RegExpQuantifier::ToNode(0,
+                                 RegExpTree::kInfinity,
+                                 false,
+                                 new(zone) RegExpCharacterClass('*'),
+                                 &compiler,
+                                 captured_body,
+                                 data->contains_anchor);
+
+    if (data->contains_anchor) {
+      // Unroll loop once, to take care of the case that might start
+      // at the start of input.
+      ChoiceNode* first_step_node = new(zone) ChoiceNode(2, zone);
+      first_step_node->AddAlternative(GuardedAlternative(captured_body));
+      first_step_node->AddAlternative(GuardedAlternative(
+          new(zone) TextNode(
+              new(zone) RegExpCharacterClass('*'), loop_node)));
+      node = first_step_node;
+    } else {
+      node = loop_node;
+    }
+  }
+  if (is_one_byte) {
+    node = node->FilterOneByte(RegExpCompiler::kMaxRecursion, ignore_case);
+    // Do it again to propagate the new nodes to places where they were not
+    // put because they had not been calculated yet.
+    if (node != NULL) {
+      node = node->FilterOneByte(RegExpCompiler::kMaxRecursion, ignore_case);
+    }
+  }
+
+  if (node == NULL) node = new(zone) EndNode(EndNode::BACKTRACK, zone);
+  data->node = node;
+  Analysis analysis(ignore_case, is_one_byte);
+  analysis.EnsureAnalyzed(node);
+  if (analysis.has_failed()) {
+    const char* error_message = analysis.error_message();
+    return CompilationResult(error_message);
+  }
+
+  // Bytecode regexp implementation.
+
+  ZoneGrowableArray<uint8_t> buffer(zone, 1024);
+  BytecodeRegExpMacroAssembler* macro_assembler =
+      new(zone) BytecodeRegExpMacroAssembler(&buffer, zone);
 
   // Inserted here, instead of in Assembler, because it depends on information
   // in the AST that isn't replicated in the Node structure.
