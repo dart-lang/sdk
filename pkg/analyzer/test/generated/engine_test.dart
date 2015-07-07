@@ -479,6 +479,7 @@ main() {
     expect(_context.getResolvedCompilationUnit2(source, source), unit);
     // remove overlay
     _context.setContents(source, null);
+    _context.validateCacheConsistency();
     _analyzeAll_assertFinished();
     expect(_context.getResolvedCompilationUnit2(source, source), unit);
   }

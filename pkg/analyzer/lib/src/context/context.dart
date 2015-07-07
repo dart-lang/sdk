@@ -970,13 +970,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // contents is the same as it was in the overlay.
       try {
         TimestampedData<String> fileContents = getContents(source);
-        String fileContentsData = fileContents.data;
-        if (fileContentsData == originalContents) {
-          entry.setValue(CONTENT, fileContentsData, TargetedResult.EMPTY_LIST);
-          entry.modificationTime = fileContents.modificationTime;
+        newContents = fileContents.data;
+        entry.modificationTime = fileContents.modificationTime;
+        if (newContents == originalContents) {
+          entry.setValue(CONTENT, newContents, TargetedResult.EMPTY_LIST);
           changed = false;
         }
-        newContents = fileContentsData;
       } catch (e) {}
       // If not the same content (e.g. the file is being closed without save),
       // then force analysis.

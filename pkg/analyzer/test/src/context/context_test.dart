@@ -308,6 +308,7 @@ main() {
     expect(context.getResolvedCompilationUnit2(source, source), unit);
     // remove overlay
     context.setContents(source, null);
+    context.validateCacheConsistency();
     _analyzeAll_assertFinished();
     expect(context.getResolvedCompilationUnit2(source, source), unit);
   }
