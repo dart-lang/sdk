@@ -322,7 +322,7 @@ testBigintGcd() {
   Expect.equals(-x, x.gcd(m));
   x = 0;
   m = 0;
-  Expect.throws(() => x.gcd(m), (e) => e is ArgumentError);
+  Expect.equals(0, x.gcd(m));
   x = 0;
   m = 123456789012345678901234567890;
   Expect.equals(m, x.gcd(m));
@@ -335,9 +335,6 @@ testBigintGcd() {
   x = -123456789012345678901234567890;
   m = 0;
   Expect.equals(-x, x.gcd(m));
-  x = 0;
-  m = 0;
-  Expect.throws(() => x.gcd(m), (e) => e is ArgumentError);
   x = 1234567890;
   m = 19;
   Expect.equals(1, x.gcd(m));
