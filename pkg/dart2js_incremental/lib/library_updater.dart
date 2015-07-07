@@ -70,8 +70,8 @@ import 'package:compiler/src/js_emitter/model.dart' show
     Class,
     Method;
 
-import 'package:compiler/src/js_emitter/program_builder.dart' show
-    ProgramBuilder;
+import 'package:compiler/src/js_emitter/program_builder/program_builder.dart'
+    show ProgramBuilder;
 
 import 'package:js_runtime/shared/embedded_names.dart'
     as embeddedNames;
