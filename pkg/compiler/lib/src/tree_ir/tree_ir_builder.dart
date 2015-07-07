@@ -54,15 +54,6 @@ class Builder implements cps_ir.Visitor<Node> {
   // is the mapping from continuations to labels.
   final Map<cps_ir.Continuation, Label> labels = <cps_ir.Continuation, Label>{};
 
-  /// A stack of singly-used labels that can be safely inlined at their use
-  /// site.
-  ///
-  /// Code for continuations with exactly one use is inlined at the use site.
-  /// This is not safe if the code is moved inside the scope of an exception
-  /// handler (i.e., into a try block).  We keep a stack of singly-referenced
-  /// continuations that are in scope without crossing a binding for a handler.
-  List<cps_ir.Continuation> safeForInlining = <cps_ir.Continuation>[];
-
   ExecutableElement currentElement;
   /// The 'this' Parameter for currentElement or the enclosing method.
   cps_ir.Parameter thisParameter;
@@ -318,16 +309,12 @@ class Builder implements cps_ir.Visitor<Node> {
 
   Statement visitLetCont(cps_ir.LetCont node) {
     // Introduce labels for continuations that need them.
-    int safeForInliningLengthOnEntry = safeForInlining.length;
     for (cps_ir.Continuation continuation in node.continuations) {
       if (continuation.hasMultipleUses || continuation.isRecursive) {
         labels[continuation] = new Label();
-      } else {
-        safeForInlining.add(continuation);
       }
     }
     Statement body = visit(node.body);
-    safeForInlining.length = safeForInliningLengthOnEntry;
     // Continuations are bound at the same level, but they have to be
     // translated as if nested.  This is because the body can invoke any
     // of them from anywhere, so it must be nested inside all of them.
@@ -352,10 +339,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Statement visitLetHandler(cps_ir.LetHandler node) {
-    List<cps_ir.Continuation> saved = safeForInlining;
-    safeForInlining = <cps_ir.Continuation>[];
     Statement tryBody = visit(node.body);
-    safeForInlining = saved;
     List<Variable> catchParameters =
         node.handler.parameters.map(getVariable).toList();
     Statement catchBody = visit(node.handler.body);
@@ -490,7 +474,7 @@ class Builder implements cps_ir.Visitor<Node> {
                   : new WhileTrue(labels[cont], visit(cont.body));
             } else {
               if (cont.hasExactlyOneUse) {
-                if (safeForInlining.contains(cont)) {
+                if (!node.isEscapingTry) {
                   return visit(cont.body);
                 }
                 labels[cont] = new Label();

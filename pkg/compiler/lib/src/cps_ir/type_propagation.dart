@@ -174,6 +174,15 @@ class TypeMaskSystem {
     // TODO(asgerf): Support function types, and what else might be missing.
     return AbstractBool.Maybe;
   }
+
+  /// Returns whether [type] is one of the falsy values: false, 0, -0, NaN,
+  /// the empty string, or null.
+  AbstractBool boolify(TypeMask type) {
+    if (isDefinitelyNotNumStringBool(type) && !type.isNullable) {
+      return AbstractBool.True;
+    }
+    return AbstractBool.Maybe;
+  }
 }
 
 class ConstantPropagationLattice {
@@ -371,6 +380,30 @@ class ConstantPropagationLattice {
     }
   }
 
+  bool isEmptyString(ConstantValue value) {
+    return value is StringConstantValue && value.primitiveValue.isEmpty;
+  }
+
+  /// Returns whether [value] is one of the falsy values: false, 0, -0, NaN,
+  /// the empty string, or null.
+  AbstractBool boolify(AbstractValue value) {
+    if (value.isNothing) return AbstractBool.Nothing;
+    if (value.isConstant) {
+      ConstantValue constantValue = value.constant;
+      if (constantValue.isFalse ||
+          constantValue.isNull  ||
+          constantValue.isZero ||
+          constantValue.isMinusZero ||
+          constantValue.isNaN ||
+          isEmptyString(constantValue)) {
+        return AbstractBool.False;
+      } else {
+        return AbstractBool.True;
+      }
+    }
+    return typeSystem.boolify(value.type);
+  }
+
   /// The possible return types of a method that may be targeted by
   /// [typedSelector]. If the given selector is not a [TypedSelector], any
   /// reachable method matching the selector may be targeted.
@@ -560,44 +593,49 @@ class TransformingVisitor extends RecursiveVisitor {
   //
   // (Branch (IsTrue true) k0 k1) -> (InvokeContinuation k0)
   void visitBranch(Branch node) {
-    bool trueReachable  = reachable.contains(node.trueContinuation.definition);
-    bool falseReachable = reachable.contains(node.falseContinuation.definition);
-    bool bothReachable  = (trueReachable && falseReachable);
-    bool noneReachable  = !(trueReachable || falseReachable);
+    Continuation trueCont = node.trueContinuation.definition;
+    Continuation falseCont = node.falseContinuation.definition;
+    IsTrue conditionNode = node.condition;
+    Primitive condition = conditionNode.value.definition;
 
-    if (bothReachable || noneReachable) {
-      // Nothing to do, shrinking reductions take care of the unreachable case.
-      super.visitBranch(node);
+    AbstractValue conditionValue = getValue(condition);
+    AbstractBool boolifiedValue = lattice.boolify(conditionValue);
+
+    if (boolifiedValue == AbstractBool.True) {
+      InvokeContinuation invoke = new InvokeContinuation(trueCont, []);
+      replaceSubtree(node, invoke);
+      visitInvokeContinuation(invoke);
+      return;
+    }
+    if (boolifiedValue == AbstractBool.False) {
+      InvokeContinuation invoke = new InvokeContinuation(falseCont, []);
+      replaceSubtree(node, invoke);
+      visitInvokeContinuation(invoke);
       return;
     }
 
-    Continuation successor = (trueReachable) ?
-        node.trueContinuation.definition : node.falseContinuation.definition;
-
-    // Replace the branch by a continuation invocation.
-
-    assert(successor.parameters.isEmpty);
-    InvokeContinuation invoke =
-        new InvokeContinuation(successor, <Primitive>[]);
-
-    replaceSubtree(node, invoke);
-    visitInvokeContinuation(invoke);
-  }
-
-  /// True if the given reference is a use that converts its value to a boolean
-  /// and only uses the coerced value.
-  bool isBoolifyingUse(Reference<Primitive> ref) {
-    Node use = ref.parent;
-    return use is IsTrue ||
-      use is ApplyBuiltinOperator && use.operator == BuiltinOperator.IsFalsy;
-  }
-
-  /// True if all uses of [prim] only use its value after boolean conversion.
-  bool isAlwaysBoolified(Primitive prim) {
-    for (Reference ref = prim.firstRef; ref != null; ref = ref.next) {
-      if (!isBoolifyingUse(ref)) return false;
+    if (condition is ApplyBuiltinOperator && 
+        condition.operator == BuiltinOperator.LooseEq) {
+      Primitive leftArg = condition.arguments[0].definition;
+      Primitive rightArg = condition.arguments[1].definition;
+      AbstractValue left = getValue(leftArg);
+      AbstractValue right = getValue(rightArg);
+      if (right.isNullConstant && 
+          lattice.isDefinitelyNotNumStringBool(left)) {
+        // Rewrite:
+        //   if (x == null) S1 else S2
+        //     =>
+        //   if (x) S2 else S1   (note the swapped branches)
+        Branch branch = new Branch(new IsTrue(leftArg), falseCont, trueCont);
+        replaceSubtree(node, branch);
+        return;
+      } else if (left.isNullConstant && 
+                 lattice.isDefinitelyNotNumStringBool(right)) {
+        Branch branch = new Branch(new IsTrue(rightArg), falseCont, trueCont);
+        replaceSubtree(node, branch);
+        return;
+      }
     }
-    return true;
   }
 
   /// Replaces [node] with a more specialized instruction, if possible.
@@ -615,15 +653,6 @@ class TransformingVisitor extends RecursiveVisitor {
       visitLetPrim(let);
       return true; // So returning early is more convenient.
     }
-    bool replaceWithUnary(BuiltinOperator operator,
-                          Primitive argument) {
-      Primitive prim =
-          new ApplyBuiltinOperator(operator, <Primitive>[argument]);
-      LetPrim let = makeLetPrimInvoke(prim, cont);
-      replaceSubtree(node, let);
-      visitLetPrim(let);
-      return true;
-    }
 
     if (node.selector.isOperator && node.arguments.length == 2) {
       // The operators we specialize are are intercepted calls, so the operands
@@ -637,19 +666,6 @@ class TransformingVisitor extends RecursiveVisitor {
         // Equality is special due to its treatment of null values and the
         // fact that Dart-null corresponds to both JS-null and JS-undefined.
         // Please see documentation for IsFalsy, StrictEq, and LooseEq.
-        bool isBoolified = isAlwaysBoolified(cont.parameters.single);
-        // Comparison with null constants.
-        if (isBoolified &&
-            right.isNullConstant &&
-            lattice.isDefinitelyNotNumStringBool(left)) {
-          // TODO(asgerf): This is shorter but might confuse te VM? Evaluate.
-          return replaceWithUnary(BuiltinOperator.IsFalsy, leftArg);
-        }
-        if (isBoolified &&
-            left.isNullConstant &&
-            lattice.isDefinitelyNotNumStringBool(right)) {
-          return replaceWithUnary(BuiltinOperator.IsFalsy, rightArg);
-        }
         if (left.isNullConstant || right.isNullConstant) {
           return replaceWithBinary(BuiltinOperator.LooseEq, leftArg, rightArg);
         }
@@ -1088,6 +1104,41 @@ class TransformingVisitor extends RecursiveVisitor {
       }
     }
     visit(node.body);
+  }
+
+  void visitLetCont(LetCont node) {
+    // Visit body before continuations to ensure more information is available
+    // about the parameters. In particular, if this is a call continuation, its
+    // invocation should be specialized before the body is processed, because
+    // we specialize definitions before their uses.
+    visit(node.body);
+    node.continuations.forEach(visit);
+  }
+
+  void visitInvokeContinuation(InvokeContinuation node) {
+    // Inline the single-use continuations. These are often introduced when
+    // specializing an invocation node. These would also be inlined by a later
+    // pass, but doing it here helps simplify pattern matching code, since the
+    // effective definition of a primitive can then be found without going
+    // through redundant InvokeContinuations.
+    Continuation cont = node.continuation.definition;
+    if (cont.hasExactlyOneUse &&
+        !cont.isReturnContinuation &&
+        !cont.isRecursive &&
+        !node.isEscapingTry) {
+      for (int i = 0; i < node.arguments.length; ++i) {
+        node.arguments[i].definition.substituteFor(cont.parameters[i]);
+        node.arguments[i].unlink();
+      }
+      node.continuation.unlink();
+      InteriorNode parent = node.parent;
+      Expression body = cont.body;
+      parent.body = body;
+      body.parent = parent;
+      cont.body = new Unreachable();
+      cont.body.parent = cont;
+      visit(body);
+    }
   }
 }
 
@@ -1559,7 +1610,12 @@ class TypePropagationVisitor implements Visitor {
 
   void visitConstant(Constant node) {
     ConstantValue value = node.value;
-    setValue(node, constantValue(value, typeSystem.getTypeOf(value)));
+    if (value.isDummy || !value.isConstant) {
+      // TODO(asgerf): Explain how this happens and why we don't want them.
+      setValue(node, nonConstant(typeSystem.getTypeOf(value)));
+    } else {
+      setValue(node, constantValue(value, typeSystem.getTypeOf(value)));
+    }
   }
 
   void visitCreateFunction(CreateFunction node) {
@@ -1722,6 +1778,7 @@ class AbstractValue {
 
   AbstractValue._internal(this.kind, this.constant, this.type) {
     assert(kind != CONSTANT || constant != null);
+    assert(constant is! SyntheticConstantValue);
   }
 
   AbstractValue.nothing()

@@ -191,6 +191,12 @@ abstract class JumpCollector {
       }
     }
   }
+
+  /// True if a jump inserted now will escape from a try block.
+  /// 
+  /// Concretely, this is true when [enterTry] has been called without
+  /// its corresponding [leaveTry] call.
+  bool get isEscapingTry => _boxedTryVariables.isNotEmpty;
 }
 
 /// A class to collect 'forward' jumps.
@@ -241,7 +247,8 @@ class ForwardJumpCollector extends JumpCollector {
   void addJump(IrBuilder builder, [ir.Primitive value]) {
     assert(_continuation == null);
     _buildTryExit(builder);
-    ir.InvokeContinuation invoke = new ir.InvokeContinuation.uninitialized();
+    ir.InvokeContinuation invoke = new ir.InvokeContinuation.uninitialized(
+        isEscapingTry: isEscapingTry);
     builder.add(invoke);
     _invocations.add(invoke);
     // Truncate the environment at the invocation site so it only includes
@@ -360,7 +367,8 @@ class BackwardJumpCollector extends JumpCollector {
     if (value != null) builder.environment.extend(null, value);
     builder.add(new ir.InvokeContinuation(_continuation,
         builder.environment.index2value,
-        isRecursive: true));
+        isRecursive: true,
+        isEscapingTry: isEscapingTry));
     builder._current = null;
   }
 }

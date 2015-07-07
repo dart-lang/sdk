@@ -568,8 +568,13 @@ class InvokeContinuation extends Expression {
   // the continuation itself.
   bool isRecursive;
 
+  /// True if this invocation escapes from the body of a [LetHandler]
+  /// (i.e. a try block). Notably, such an invocation cannot be inlined.
+  bool isEscapingTry;
+
   InvokeContinuation(Continuation cont, List<Primitive> args,
-                     {this.isRecursive: false})
+                     {this.isRecursive: false,
+                      this.isEscapingTry: false})
       : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(cont.parameters == null || cont.parameters.length == args.length);
@@ -581,7 +586,8 @@ class InvokeContinuation extends Expression {
   ///
   /// Used as a placeholder for a jump whose target is not yet created
   /// (e.g., in the translation of break and continue).
-  InvokeContinuation.uninitialized({this.isRecursive: false})
+  InvokeContinuation.uninitialized({this.isRecursive: false, 
+                                    this.isEscapingTry: false})
       : continuation = null,
         arguments = null;
 
@@ -897,7 +903,9 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
 
   Continuation(this.parameters, {this.isRecursive: false});
 
-  Continuation.retrn() : parameters = <Parameter>[new Parameter(null)];
+  Continuation.retrn() 
+    : parameters = <Parameter>[new Parameter(null)],
+      isRecursive = false;
 
   accept(Visitor visitor) => visitor.visitContinuation(this);
 }
