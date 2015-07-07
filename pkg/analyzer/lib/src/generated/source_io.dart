@@ -283,6 +283,14 @@ class FileUriResolver extends UriResolver {
     return new FileBasedSource(new JavaFile.fromUri(uri), uri);
   }
 
+  @override
+  Uri restoreAbsolute(Source source) {
+    if (source is FileBasedSource) {
+      return new Uri.file(source.fullName);
+    }
+    return null;
+  }
+  
   /**
    * Return `true` if the given URI is a `file` URI.
    *
