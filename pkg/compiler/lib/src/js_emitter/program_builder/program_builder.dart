@@ -325,7 +325,7 @@ class ProgramBuilder {
   }
 
   Class _buildClass(ClassElement element) {
-    bool onlyForRti = _task.typeTestRegistry.rtiNeededClasses.contains(element);
+    bool onlyForRti = _task.classesOnlyNeededForRti.contains(element);
 
     List<Method> methods = [];
     List<StubMethod> callStubs = <StubMethod>[];
