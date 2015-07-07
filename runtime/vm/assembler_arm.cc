@@ -1563,7 +1563,10 @@ void Assembler::LoadIsolate(Register rd) {
 }
 
 
-void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
+void Assembler::LoadObjectHelper(Register rd,
+                                 const Object& object,
+                                 Condition cond,
+                                 bool is_unique) {
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()), cond);
@@ -1574,10 +1577,23 @@ void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
   } else {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
-    const int32_t offset =
-        ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
+    const int32_t offset = ObjectPool::element_offset(
+       is_unique ? object_pool_wrapper_.AddObject(object)
+                 : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag, cond);
   }
+}
+
+
+void Assembler::LoadObject(Register rd, const Object& object, Condition cond) {
+  LoadObjectHelper(rd, object, cond, false);
+}
+
+
+void Assembler::LoadUniqueObject(Register rd,
+                                 const Object& object,
+                                 Condition cond) {
+  LoadObjectHelper(rd, object, cond, true);
 }
 
 

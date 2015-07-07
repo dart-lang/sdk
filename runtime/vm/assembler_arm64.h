@@ -1321,6 +1321,7 @@ class Assembler : public ValueObject {
                               Register pp);
   void LoadIsolate(Register dst, Register pp);
   void LoadObject(Register dst, const Object& obj, Register pp);
+  void LoadUniqueObject(Register dst, const Object& obj, Register pp);
   void LoadDecodableImmediate(Register reg, int64_t imm, Register pp);
   void LoadImmediateFixed(Register reg, int64_t imm);
   void LoadImmediate(Register reg, int64_t imm, Register pp);
@@ -1443,6 +1444,11 @@ class Assembler : public ValueObject {
   GrowableArray<CodeComment*> comments_;
 
   bool allow_constant_pool_;
+
+  void LoadObjectHelper(Register dst,
+                        const Object& obj,
+                        Register pp,
+                        bool is_unique);
 
   void AddSubHelper(OperandSize os, bool set_flags, bool subtract,
                     Register rd, Register rn, Operand o) {

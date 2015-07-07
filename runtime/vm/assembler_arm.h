@@ -666,6 +666,7 @@ class Assembler : public ValueObject {
   void LoadIsolate(Register rd);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
+  void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
   void LoadExternalLabel(Register dst,
                          const ExternalLabel* label,
                          Patchability patchable,
@@ -1000,6 +1001,11 @@ class Assembler : public ValueObject {
   GrowableArray<CodeComment*> comments_;
 
   bool allow_constant_pool_;
+
+  void LoadObjectHelper(Register rd,
+                        const Object& object,
+                        Condition cond,
+                        bool is_unique);
 
   void EmitType01(Condition cond,
                   int type,

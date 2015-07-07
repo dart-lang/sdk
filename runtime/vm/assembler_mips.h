@@ -1539,6 +1539,7 @@ class Assembler : public ValueObject {
 
   void LoadWordFromPoolOffset(Register rd, int32_t offset);
   void LoadObject(Register rd, const Object& object);
+  void LoadUniqueObject(Register rd, const Object& object);
   void LoadExternalLabel(Register rd,
                          const ExternalLabel* label,
                          Patchability patchable);
@@ -1650,6 +1651,8 @@ class Assembler : public ValueObject {
   GrowableArray<CodeComment*> comments_;
 
   bool allow_constant_pool_;
+
+  void LoadObjectHelper(Register rd, const Object& object, bool is_unique);
 
   void Emit(int32_t value) {
     // Emitting an instruction clears the delay slot state.

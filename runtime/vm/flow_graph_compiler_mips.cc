@@ -227,7 +227,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   const SubtypeTestCache& type_test_cache =
       SubtypeTestCache::ZoneHandle(SubtypeTestCache::New());
   StubCode* stub_code = isolate()->stub_code();
-  __ LoadObject(A2, type_test_cache);
+  __ LoadUniqueObject(A2, type_test_cache);
   if (test_kind == kTestTypeOneArg) {
     ASSERT(type_arguments_reg == kNoRegister);
     __ LoadImmediate(A1, reinterpret_cast<int32_t>(Object::null()));
@@ -616,7 +616,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t token_pos,
     __ sw(TMP, Address(SP, 3 * kWordSize));  // Push the type.
     __ sw(A2, Address(SP, 2 * kWordSize));  // Push instantiator.
     __ sw(A1, Address(SP, 1 * kWordSize));  // Push type arguments.
-    __ LoadObject(A0, test_cache);
+    __ LoadUniqueObject(A0, test_cache);
     __ sw(A0, Address(SP, 0 * kWordSize));
     GenerateRuntimeCall(token_pos, deopt_id, kInstanceofRuntimeEntry, 5, locs);
     // Pop the parameters supplied to the runtime entry. The result of the
@@ -726,7 +726,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t token_pos,
   __ sw(A1, Address(SP, 2 * kWordSize));  // Push type arguments.
   __ LoadObject(TMP, dst_name);
   __ sw(TMP, Address(SP, 1 * kWordSize));  // Push the name of the destination.
-  __ LoadObject(T0, test_cache);
+  __ LoadUniqueObject(T0, test_cache);
   __ sw(T0, Address(SP, 0 * kWordSize));
 
   GenerateRuntimeCall(token_pos, deopt_id, kTypeCheckRuntimeEntry, 6, locs);
@@ -1227,7 +1227,7 @@ void FlowGraphCompiler::EmitEdgeCounter() {
   const Array& counter = Array::ZoneHandle(Array::New(1, Heap::kOld));
   counter.SetAt(0, Smi::Handle(Smi::New(0)));
   __ Comment("Edge counter");
-  __ LoadObject(T0, counter);
+  __ LoadUniqueObject(T0, counter);
   __ lw(T1, FieldAddress(T0, Array::element_offset(0)));
   __ AddImmediate(T1, T1, Smi::RawValue(1));
   __ sw(T1, FieldAddress(T0, Array::element_offset(0)));
@@ -1250,7 +1250,7 @@ void FlowGraphCompiler::EmitOptimizedInstanceCall(
   // Pass the function explicitly, it is used in IC stub.
   __ Comment("OptimizedInstanceCall");
   __ LoadObject(T0, parsed_function().function());
-  __ LoadObject(S5, ic_data);
+  __ LoadUniqueObject(S5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
                    target_label,
@@ -1268,7 +1268,7 @@ void FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                          LocationSummary* locs) {
   ASSERT(Array::Handle(ic_data.arguments_descriptor()).Length() > 0);
   __ Comment("InstanceCall");
-  __ LoadObject(S5, ic_data);
+  __ LoadUniqueObject(S5, ic_data);
   GenerateDartCall(deopt_id,
                    token_pos,
                    target_label,

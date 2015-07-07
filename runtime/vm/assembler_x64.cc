@@ -2834,10 +2834,14 @@ void Assembler::LoadIsolate(Register dst) {
 }
 
 
-void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
+void Assembler::LoadObjectHelper(Register dst,
+                                 const Object& object,
+                                 Register pp,
+                                 bool is_unique) {
   if (CanLoadFromObjectPool(object)) {
-    const int32_t offset =
-        ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
+    const int32_t offset = ObjectPool::element_offset(
+        is_unique ? object_pool_wrapper_.AddObject(object)
+                  : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(dst, pp, offset - kHeapObjectTag);
   } else {
     ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
@@ -2845,6 +2849,18 @@ void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
            object.InVMHeap());
     LoadImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())), pp);
   }
+}
+
+
+void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
+  LoadObjectHelper(dst, object, pp, false);
+}
+
+
+void Assembler::LoadUniqueObject(Register dst,
+                                 const Object& object,
+                                 Register pp) {
+  LoadObjectHelper(dst, object, pp, true);
 }
 
 
