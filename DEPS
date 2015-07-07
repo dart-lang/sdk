@@ -40,6 +40,7 @@ vars = {
   "7zip_rev" : "@19997",
   "analyzer_cli_rev" : "@8bf3516dd645ca289d7ebc641f7c228d5b3d37c4",
   "args_tag": "@0.13.0",
+  "async_tag": "@1.2.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
@@ -50,7 +51,7 @@ vars = {
   "csslib_tag" : "@0.12.0",
   "dartdoc_rev" : "@3cf49275e8e967b1dff5324fe40694112a4d5648",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@0.1.8",
+  "dart_style_tag": "@0.1.8+1",
   "dev_compiler_rev": "@0.1.1",
   "fake_async_rev" : "@38614",
   "firefox_jsshell_rev" : "@45554",
@@ -82,23 +83,24 @@ vars = {
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
-  "pool_rev": "@22e12aeb16ad0b626900dbe79e4a25391ddfb28c",
+  "pool_rev": "@e454b4b54d2987e8d2f0fbd3ac519641ada9bd0f",
   "pub_rev": "@8884f572979f35a7918549caa5f258b89715aff1",
   "pub_cache_tag": "@v0.0.1+2",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
-  "scheduled_test_tag": "@0.11.8+1",
+  "scheduled_test_tag": "@0.12.1+2",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
   "source_maps_rev": "@379b4f31c4e2987eb15934d1ad8b419c6cc897b3",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
   "shelf_static_rev": "@v0.2.1",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
+  "source_map_stack_trace_tag": "@1.0.4",
   "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
-  "stack_trace_tag": "@1.2.1",
+  "stack_trace_tag": "@1.3.4",
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "test_tag": "@0.12.1",
+  "test_tag": "@0.12.3+4",
   "test_reflective_loader_tag": "@0.0.3",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
   "unittest_tag": "@0.11.6",
@@ -180,6 +182,8 @@ deps = {
       (Var("github_mirror") % "analyzer_cli") + Var("analyzer_cli_rev"),
   Var("dart_root") + "/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
+  Var("dart_root") + "/third_party/pkg/async":
+      "https://github.com/dart-lang/async.git" + Var("async_tag"),
   Var("dart_root") + "/third_party/pkg/barback":
       (Var("github_mirror") % "barback") + Var("barback_rev"),
   Var("dart_root") + "/third_party/pkg/charcode":
@@ -273,6 +277,9 @@ deps = {
       (Var("github_mirror") % "source_maps") + Var("source_maps_rev"),
   Var("dart_root") + "/third_party/pkg/source_span":
       (Var("github_mirror") % "source_span") + Var("source_span_rev"),
+  Var("dart_root") + "/third_party/pkg/source_map_stack_trace":
+      "https://github.com/dart-lang/source_map_stack_trace.git" +
+      Var("source_map_stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
       (Var("github_mirror") % "stack_trace") + Var("stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/string_scanner":

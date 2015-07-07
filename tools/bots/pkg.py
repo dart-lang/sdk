@@ -11,6 +11,7 @@ Runs tests for packages that are hosted in the main Dart repo and in
 third_party/pkg_tested.
 """
 
+import os
 import re
 import sys
 
@@ -38,12 +39,6 @@ def PkgConfig(name, is_buildbot):
                        builder_tag=locale)
 
 def PkgSteps(build_info):
-  with bot.BuildStep('Build package-root'):
-    args = [sys.executable, './tools/build.py', '--mode=' + build_info.mode,
-            'packages']
-    print 'Building package-root: %s' % (' '.join(args))
-    bot.RunProcess(args)
-
   common_args = ['--write-test-outcome-log']
   if build_info.builder_tag:
     common_args.append('--builder-tag=%s' % build_info.builder_tag)
@@ -57,27 +52,31 @@ def PkgSteps(build_info):
   # Experiment with not running concurrent calls.
   if build_info.system == 'windows':
     common_args.append('-j1')
-  if build_info.mode == 'release':
-    bot.RunTest('pkg ', build_info,
-                common_args + ['pkg', 'docs', 'pkg_tested'],
-                swallow_error=True)
-  else:
-    # Pkg tests currently have a lot of timeouts when run in debug mode.
-    # See issue 18479
-    bot.RunTest('pkg', build_info, common_args + ['pkg', 'docs'],
-                swallow_error=True)
 
-  if build_info.mode == 'release':
-    pkgbuild_build_info = bot.BuildInfo('none', 'vm', build_info.mode,
-                                        build_info.system, checked=False)
-    bot.RunTest('pkgbuild_repo_pkgs', pkgbuild_build_info,
-                common_args + ['--append_logs', '--use-repository-packages',
-                               'pkgbuild'],
-                swallow_error=True)
+  bot.RunTest('pkg ', build_info,
+              common_args + ['pkg', 'docs'],
+              swallow_error=True)
 
-    public_args = (common_args +
-                   ['--append_logs', '--use-public-packages', 'pkgbuild'])
-    bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info, public_args)
+  # Pkg tests currently have a lot of timeouts when run in debug mode.
+  # See issue 18479
+  if build_info.mode != 'release': return
+
+  with bot.BuildStep('third_party pkg tests', swallow_error=True):
+    pkg_tested = os.path.join('third_party', 'pkg_tested')
+    for entry in os.listdir(pkg_tested):
+      path = os.path.join(pkg_tested, entry)
+      if os.path.isdir(path): bot.RunTestRunner(build_info, path)
+
+  pkgbuild_build_info = bot.BuildInfo('none', 'vm', build_info.mode,
+                                      build_info.system, checked=False)
+  bot.RunTest('pkgbuild_repo_pkgs', pkgbuild_build_info,
+              common_args + ['--append_logs', '--use-repository-packages',
+                             'pkgbuild'],
+              swallow_error=True)
+
+  public_args = (common_args +
+                 ['--append_logs', '--use-public-packages', 'pkgbuild'])
+  bot.RunTest('pkgbuild_public_pkgs', pkgbuild_build_info, public_args)
 
 if __name__ == '__main__':
   bot.RunBot(PkgConfig, PkgSteps)
