@@ -61,6 +61,7 @@ class _Serializer {
     if (x is _WorkerSendPort) return serializeWorkerSendPort(x);
 
     if (x is Closure) return serializeClosure(x);
+    if (x is CapabilityImpl) return serializeCapability(x);
 
     return serializeDartObject(x);
   }
@@ -204,6 +205,7 @@ class _Deserializer {
       case "raw sendport": return deserializeRawSendPort(x);
       case "js-object": return deserializeJSObject(x);
       case "function": return deserializeClosure(x);
+      case "capability": return deserializeCapability(x);
       case "dart": return deserializeDartObject(x);
       default: throw "couldn't deserialize: $x";
     }
@@ -343,6 +345,12 @@ class _Deserializer {
     Function result = IsolateNatives._getJSFunctionFromName(name);
     deserializedObjects.add(result);
     return result;
+  }
+
+  // ['capability', <id>].
+  Capability deserializeCapability(x) {
+    assert(x[0] == 'capability');
+    return new CapabilityImpl._internal(x[1]);
   }
 
   // ['dart', <class-id>, <field-list>].
