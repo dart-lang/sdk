@@ -3185,11 +3185,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           String name = backend.namer.currentIsolate;
           return irBuilder.buildForeignCode(js.js.parseForeignJS(name),
               const <ir.Primitive>[], NativeBehavior.PURE);
-        } else {
-          return buildIsolateHelperInvocation('_currentIsolate',
-              CallStructure.NO_ARGS);
         }
-        break;
+        return buildIsolateHelperInvocation('_currentIsolate',
+            CallStructure.NO_ARGS);
 
       case 'JS_CALL_IN_ISOLATE':
         validateArgumentCount(exactly: 2);
@@ -3198,11 +3196,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           ir.Primitive closure = visit(argumentNodes.tail.head);
           return irBuilder.buildCallInvocation(closure, CallStructure.NO_ARGS,
               const <ir.Primitive>[]);
-        } else {
-          return buildIsolateHelperInvocation('_callInIsolate',
-              CallStructure.TWO_ARGS);
         }
-        break;
+        return buildIsolateHelperInvocation('_callInIsolate',
+            CallStructure.TWO_ARGS);
 
       default:
         giveup(node, 'unplemented native construct: ${function.name}');
