@@ -91,7 +91,7 @@ vars = {
   "scheduled_test_tag": "@0.12.1+2",
   "shelf_rev": "@1e87b79b21ac5e6fa2f93576d6c06eaa65285ef4",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
-  "source_maps_rev": "@379b4f31c4e2987eb15934d1ad8b419c6cc897b3",
+  "source_maps_tag": "@0.10.1",
   "sqlite_rev": "@38811b79f42801662adc0458a25270ab690a6b81",
   "shelf_static_rev": "@v0.2.1",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
@@ -274,7 +274,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/smoke":
       (Var("github_mirror") % "smoke") + Var("smoke_rev"),
   Var("dart_root") + "/third_party/pkg/source_maps":
-      (Var("github_mirror") % "source_maps") + Var("source_maps_rev"),
+      (Var("github_mirror") % "source_maps") + Var("source_maps_tag"),
   Var("dart_root") + "/third_party/pkg/source_span":
       (Var("github_mirror") % "source_span") + Var("source_span_rev"),
   Var("dart_root") + "/third_party/pkg/source_map_stack_trace":
