@@ -818,10 +818,11 @@ class SourceFactory {
     if (_packages != null && containedUri.scheme == 'package') {
       Uri packageUri =
           _packages.resolve(containedUri, notFound: (Uri packageUri) => null);
-      //TODO(pquitslund): package_config needs to be updated to set schemes for file URIs.
+      // Ensure scheme is set.
       if (packageUri != null && packageUri.scheme == '') {
-        containedUri = packageUri.replace(scheme: 'file');
+        packageUri = packageUri.replace(scheme: 'file');
       }
+      containedUri = packageUri;
     }
     for (UriResolver resolver in _resolvers) {
       Source result = resolver.resolveAbsolute(containedUri);
