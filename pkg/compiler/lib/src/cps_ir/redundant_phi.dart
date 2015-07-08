@@ -152,7 +152,7 @@ class RedundantPhiEliminator extends RecursiveVisitor implements Pass {
       // invokes, and all such invokes must be within the scope of
       // [uniqueDefinition]. Note that this is linear in the depth of
       // the binding of [uniqueDefinition].
-      assert(letCont != null);
+      letCont = _makeUniqueBinding(cont);
       _moveIntoScopeOf(letCont, uniqueDefinition);
     }
 
@@ -200,4 +200,20 @@ void _moveIntoScopeOf(LetCont letCont, Definition definition) {
 
   binding.body = letCont;
   letCont.parent = binding;
+}
+
+/// Ensures [continuation] has its own LetCont binding by creating
+/// a new LetCont below its current binding, if necessary.
+/// 
+/// Returns the LetCont that now binds [continuation].
+LetCont _makeUniqueBinding(Continuation continuation) {
+  LetCont letCont = continuation.parent;
+  if (letCont.continuations.length == 1) return letCont;
+  letCont.continuations.remove(continuation);
+  LetCont newBinding = new LetCont(continuation, letCont.body);
+  newBinding.body.parent = newBinding;
+  newBinding.parent = letCont;
+  letCont.body = newBinding;
+  continuation.parent = newBinding;
+  return newBinding;
 }
