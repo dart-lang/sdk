@@ -424,7 +424,9 @@ class PageSpace {
   // Keep track of running MarkSweep tasks.
   Monitor* tasks_lock_;
   intptr_t tasks_;
-
+#if defined(DEBUG)
+  bool is_iterating_;
+#endif
   PageSpaceController page_space_controller_;
 
   int64_t gc_time_micros_;
@@ -433,6 +435,7 @@ class PageSpace {
   friend class ExclusivePageIterator;
   friend class ExclusiveCodePageIterator;
   friend class ExclusiveLargePageIterator;
+  friend class HeapIterationScope;
   friend class PageSpaceController;
   friend class SweeperTask;
 

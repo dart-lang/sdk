@@ -133,9 +133,9 @@ class Isolate : public BaseIsolate {
   void ValidateClassTable();
 
   // Visit all object pointers.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor,
-                           bool visit_prologue_weak_persistent_handles,
-                           bool validate_frames);
+  void IterateObjectPointers(ObjectPointerVisitor* visitor,
+                             bool visit_prologue_weak_persistent_handles,
+                             bool validate_frames);
 
   // Visits weak object pointers.
   void VisitWeakPersistentHandles(HandleVisitor* visitor,
@@ -727,6 +727,12 @@ class Isolate : public BaseIsolate {
 
   void ProfileIdle();
 
+  // Visit all object pointers. Caller must ensure concurrent sweeper is not
+  // running, and the visitor must not allocate.
+  void VisitObjectPointers(ObjectPointerVisitor* visitor,
+                           bool visit_prologue_weak_persistent_handles,
+                           bool validate_frames);
+
   void set_user_tag(uword tag) {
     user_tag_ = tag;
   }
@@ -882,6 +888,8 @@ class Isolate : public BaseIsolate {
 REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
 #undef REUSABLE_FRIEND_DECLARATION
 
+  friend class GCMarker;  // VisitObjectPointers
+  friend class Scavenger;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;
 

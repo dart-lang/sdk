@@ -1522,7 +1522,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
   isolate->heap()->CollectAllGarbage();
 #if defined(DEBUG)
   FunctionVisitor check_canonical(isolate);
-  isolate->heap()->VisitObjects(&check_canonical);
+  isolate->heap()->IterateObjects(&check_canonical);
 #endif  // #if defined(DEBUG).
 
   // Since this is only a snapshot the root library should not be set.

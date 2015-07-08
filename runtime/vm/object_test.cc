@@ -4248,19 +4248,9 @@ class ObjectAccumulator : public ObjectVisitor {
 TEST_CASE(PrintJSON) {
   Heap* heap = Isolate::Current()->heap();
   heap->CollectAllGarbage();
-  // We don't want to print garbage objects, so wait for concurrent sweeper.
-  // TODO(21620): Add heap iteration interface that excludes garbage (or
-  // use ObjectGraph).
-  PageSpace* old_space = heap->old_space();
-  {
-    MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->tasks() > 0) {
-      ml.Wait();
-    }
-  }
   GrowableArray<Object*> objects;
   ObjectAccumulator acc(&objects);
-  heap->VisitObjects(&acc);
+  heap->IterateObjects(&acc);
   for (intptr_t i = 0; i < objects.length(); ++i) {
     JSONStream js;
     objects[i]->PrintJSON(&js, false);

@@ -1567,11 +1567,11 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
   // and then fill it up with the script objects.
   ASSERT(isolate_ != NULL);
   ScriptVisitor scripts_counter(isolate_);
-  heap->old_space()->VisitObjects(&scripts_counter);
+  heap->IterateOldObjects(&scripts_counter);
   intptr_t count = scripts_counter.count();
   scripts_ = Array::New(count, Heap::kOld);
   ScriptVisitor script_visitor(isolate_, &scripts_);
-  heap->old_space()->VisitObjects(&script_visitor);
+  heap->IterateOldObjects(&script_visitor);
 
   // Stash the symbol table away for writing and reading into the vm isolate,
   // and reset the symbol table for the regular isolate so that we do not
