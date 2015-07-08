@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analysis_server.test.src.sdk_ext;
+library test.source.sdk_ext;
 
-import 'package:analysis_server/src/sdk_ext.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/sdk_ext.dart';
 import 'package:unittest/unittest.dart';
 
 MemoryResourceProvider resourceProvider;
