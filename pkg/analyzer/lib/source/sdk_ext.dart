@@ -17,9 +17,9 @@ import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
 import 'package:path/path.dart' as pathos;
 
 /// Given a packageMap (see [PackageMapProvider]), check in each package's lib
-/// directory for the existence of a `.sdkext` file. This file must contain a
+/// directory for the existence of a `_sdkext` file. This file must contain a
 /// JSON encoded map. Each key in the map is a `dart:` library name. Each value
-/// is a path (relative to the directory containing `.sdkext`) to a dart script
+/// is a path (relative to the directory containing `_sdkext`) to a dart script
 /// for the given library. For example:
 /// {
 ///   "dart:sky": "../sdk_ext/dart_sky.dart"
@@ -27,7 +27,7 @@ import 'package:path/path.dart' as pathos;
 ///
 /// If a key doesn't begin with `dart:` it is ignored.
 class SdkExtUriResolver extends UriResolver {
-  static const String DOT_SDK_EXT_NAME = '.sdkext';
+  static const String SDK_EXT_NAME = '_sdkext';
   static const String DART_COLON_PREFIX = 'dart:';
 
   final Map<String, String> _urlMappings = <String,String>{};
@@ -139,10 +139,10 @@ class SdkExtUriResolver extends UriResolver {
     }
   }
 
-  /// Read the contents of [libDir]/[DOT_SDK_EXT_NAME] as a string.
+  /// Read the contents of [libDir]/[SDK_EXT_NAME] as a string.
   /// Returns null if the file doesn't exist.
   String _readDotSdkExt(Folder libDir) {
-    var file = libDir.getChild(DOT_SDK_EXT_NAME);
+    var file = libDir.getChild(SDK_EXT_NAME);
     try {
       return file.readAsStringSync();
     } on FileSystemException catch (e) {

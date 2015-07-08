@@ -15,7 +15,7 @@ buildResourceProvider() {
   resourceProvider = new MemoryResourceProvider();
   resourceProvider.newFolder('/empty');
   resourceProvider.newFolder('/tmp');
-  resourceProvider.newFile('/tmp/.sdkext', r'''
+  resourceProvider.newFile('/tmp/_sdkext', r'''
   {
     "dart:fox": "slippy.dart",
     "dart:bear": "grizzly.dart",
