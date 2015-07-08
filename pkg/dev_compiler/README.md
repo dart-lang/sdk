@@ -11,7 +11,7 @@ The Dart Dev Compiler (DDC) is an **experimental** development tool and transpil
 
 DDC attempts to map to idiomatic EcmaScript 6 (ES6) as cleanly as possible.  To do this while cohering to Dart semantics, DDC relies heavily on static type information, static checking, and runtime assertions.
 
-DDC is intended to support a very large subset of Dart.  If a program does not statically check, DDC will not result in valid generated code.  Our goal is that a program execution (of a valid program) that runs without triggering runtime assertions should run the same on other Dart platforms under checked mode or production mode.
+DDC is intended to support [a very large subset of Dart](https://github.com/dart-lang/dev_compiler/blob/master/STRONG_MODE.md).  If a program does not statically check, DDC will not result in valid generated code.  Our goal is that a program execution (of a valid program) that runs without triggering runtime assertions should run the same on other Dart platforms under checked mode or production mode.
 
 DDC does support untyped Dart code, but it will typically result in less readable and less efficient ES6 output.
 
