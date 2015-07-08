@@ -19,16 +19,20 @@ import '../dart2jslib.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../io/code_output.dart';
-import '../io/source_information.dart' show SourceInformationFactory;
+import '../io/source_information.dart' show
+    SourceInformationStrategy,
+    useNewSourceInfo;
+import '../io/position_information.dart' show
+    PositionSourceInformationStrategy;
+import '../io/start_end_information.dart' show
+    StartEndSourceInformationStrategy;
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
+import '../js/js_source_mapping.dart' show
+    JavaScriptSourceInformationStrategy;
 import '../js_emitter/js_emitter.dart'
-    show Emitter,
-         CodeEmitterTask,
-         ClassBuilder,
-         MetadataCollector,
-         Placeholder,
-         USE_NEW_EMITTER;
+    show ClassBuilder, CodeEmitterTask, Emitter, MetadataCollector, Placeholder,
+        TokenFinalizer, USE_LAZY_EMITTER;
 
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
@@ -53,9 +57,11 @@ part 'checked_mode_helpers.dart';
 part 'constant_emitter.dart';
 part 'constant_handler_javascript.dart';
 part 'custom_elements_analysis.dart';
+part 'frequency_namer.dart';
 part 'field_naming_mixin.dart';
 part 'minify_namer.dart';
 part 'namer.dart';
+part 'namer_names.dart';
 part 'no_such_method_registry.dart';
 part 'runtime_types.dart';
 part 'type_variable_handler.dart';

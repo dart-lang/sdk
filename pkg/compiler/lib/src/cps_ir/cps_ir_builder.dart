@@ -191,6 +191,12 @@ abstract class JumpCollector {
       }
     }
   }
+
+  /// True if a jump inserted now will escape from a try block.
+  /// 
+  /// Concretely, this is true when [enterTry] has been called without
+  /// its corresponding [leaveTry] call.
+  bool get isEscapingTry => _boxedTryVariables.isNotEmpty;
 }
 
 /// A class to collect 'forward' jumps.
@@ -241,7 +247,8 @@ class ForwardJumpCollector extends JumpCollector {
   void addJump(IrBuilder builder, [ir.Primitive value]) {
     assert(_continuation == null);
     _buildTryExit(builder);
-    ir.InvokeContinuation invoke = new ir.InvokeContinuation.uninitialized();
+    ir.InvokeContinuation invoke = new ir.InvokeContinuation.uninitialized(
+        isEscapingTry: isEscapingTry);
     builder.add(invoke);
     _invocations.add(invoke);
     // Truncate the environment at the invocation site so it only includes
@@ -360,7 +367,8 @@ class BackwardJumpCollector extends JumpCollector {
     if (value != null) builder.environment.extend(null, value);
     builder.add(new ir.InvokeContinuation(_continuation,
         builder.environment.index2value,
-        isRecursive: true));
+        isRecursive: true,
+        isEscapingTry: isEscapingTry));
     builder._current = null;
   }
 }
@@ -632,7 +640,7 @@ class IrBuilder {
     assert(isOpen);
     return _continueWithExpression(
         (k) => new ir.InvokeMethod(receiver, selector, mask, arguments, k,
-            sourceInformation: sourceInformation));
+                                   sourceInformation));
   }
 
   ir.Primitive _buildInvokeCall(ir.Primitive target,
@@ -746,8 +754,7 @@ class IrBuilder {
     thenContinuation.body = thenBuilder._root;
     elseContinuation.body = elseBuilder._root;
     add(new ir.LetCont(join.continuation,
-            new ir.LetCont.many(<ir.Continuation>[thenContinuation,
-                                                  elseContinuation],
+            new ir.LetCont.two(thenContinuation, elseContinuation,
                 new ir.Branch(new ir.IsTrue(condition),
                               thenContinuation,
                               elseContinuation))));
@@ -862,8 +869,15 @@ class IrBuilder {
                                Selector selector,
                                TypeMask mask) {
     assert(selector.isGetter);
-    return _buildInvokeDynamic(
-        receiver, selector, mask, const <ir.Primitive>[]);
+    FieldElement field = program.locateSingleField(selector, mask);
+    if (field != null) {
+      // If the world says this resolves to a unique field, then it MUST be
+      // treated as a field access, since the getter might not be emitted.
+      return buildFieldGet(receiver, field);
+    } else {
+      return _buildInvokeDynamic(
+          receiver, selector, mask, const <ir.Primitive>[]);
+    }
   }
 
   /// Create a dynamic setter invocation on [receiver] where the setter name and
@@ -873,7 +887,14 @@ class IrBuilder {
                                TypeMask mask,
                                ir.Primitive value) {
     assert(selector.isSetter);
-    _buildInvokeDynamic(receiver, selector, mask, <ir.Primitive>[value]);
+    FieldElement field = program.locateSingleField(selector, mask);
+    if (field != null) {
+      // If the world says this resolves to a unique field, then it MUST be
+      // treated as a field access, since the setter might not be emitted.
+      buildFieldSet(receiver, field, value);
+    } else {
+      _buildInvokeDynamic(receiver, selector, mask, <ir.Primitive>[value]);
+    }
     return value;
   }
 
@@ -1223,8 +1244,7 @@ class IrBuilder {
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              bodyContinuation],
+        new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           bodyContinuation,
                           exitContinuation));
@@ -1384,8 +1404,7 @@ class IrBuilder {
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              bodyContinuation],
+        new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           bodyContinuation,
                           exitContinuation));
@@ -1460,8 +1479,7 @@ class IrBuilder {
     // Note the order of continuations: the first one is the one that will
     // be filled by LetCont.plug.
     ir.LetCont branch =
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              bodyContinuation],
+        new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           bodyContinuation,
                           exitContinuation));
@@ -1547,8 +1565,7 @@ class IrBuilder {
     repeatContinuation.body = repeatBuilder._root;
 
     continueBuilder.add(
-        new ir.LetCont.many(<ir.Continuation>[exitContinuation,
-                                              repeatContinuation],
+        new ir.LetCont.two(exitContinuation, repeatContinuation,
             new ir.Branch(new ir.IsTrue(condition),
                           repeatContinuation,
                           exitContinuation)));
@@ -1614,8 +1631,7 @@ class IrBuilder {
       // continuation, to be plugged by the translation.  Therefore put the
       // else continuation first.
       casesBuilder.add(
-          new ir.LetCont.many(<ir.Continuation>[elseContinuation,
-                                                thenContinuation],
+          new ir.LetCont.two(elseContinuation, thenContinuation,
               new ir.Branch(new ir.IsTrue(condition),
                             thenContinuation,
                             elseContinuation)));
@@ -1820,8 +1836,7 @@ class IrBuilder {
             checkBuilder.buildTypeOperator(exceptionParameter,
                 clause.type,
                 isTypeTest: true);
-        checkBuilder.add(new ir.LetCont.many([thenContinuation,
-                                              elseContinuation],
+        checkBuilder.add(new ir.LetCont.two(thenContinuation, elseContinuation,
                 new ir.Branch(new ir.IsTrue(typeMatches),
                     thenContinuation,
                     elseContinuation)));
@@ -2092,8 +2107,7 @@ class IrBuilder {
         ..plug(new ir.InvokeContinuation(joinContinuation, [trueConstant]));
 
     add(new ir.LetCont(joinContinuation,
-          new ir.LetCont.many(<ir.Continuation>[thenContinuation,
-                                                elseContinuation],
+          new ir.LetCont.two(thenContinuation, elseContinuation,
               new ir.Branch(new ir.IsTrue(condition),
                             thenContinuation,
                             elseContinuation))));
@@ -2153,8 +2167,7 @@ class IrBuilder {
     rightFalseContinuation.body = rightFalseBuilder._root;
     // The right subexpression has two continuations.
     rightBuilder.add(
-        new ir.LetCont.many(<ir.Continuation>[rightTrueContinuation,
-                                              rightFalseContinuation],
+        new ir.LetCont.two(rightTrueContinuation, rightFalseContinuation,
             new ir.Branch(new ir.IsTrue(rightValue),
                           rightTrueContinuation,
                           rightFalseContinuation)));
@@ -2170,8 +2183,7 @@ class IrBuilder {
     }
 
     add(new ir.LetCont(join.continuation,
-            new ir.LetCont.many(<ir.Continuation>[leftTrueContinuation,
-                                                  leftFalseContinuation],
+            new ir.LetCont.two(leftTrueContinuation, leftFalseContinuation,
                 new ir.Branch(new ir.IsTrue(leftValue),
                               leftTrueContinuation,
                               leftFalseContinuation))));
@@ -2397,6 +2409,16 @@ class IrBuilder {
     return state.thisParameter;
   }
 
+  ir.Primitive buildFieldGet(ir.Primitive receiver, FieldElement target) {
+    return addPrimitive(new ir.GetField(receiver, target));
+  }
+
+  void buildFieldSet(ir.Primitive receiver, 
+                     FieldElement target, 
+                     ir.Primitive value) {
+    add(new ir.SetField(receiver, target, value));
+  }
+
   ir.Primitive buildSuperFieldGet(FieldElement target) {
     return addPrimitive(new ir.GetField(buildThis(), target));
   }
@@ -2585,6 +2607,10 @@ class IrBuilder {
       }
       return addPrimitive(new ir.TypeTest(value, type, typeArguments));
     } else {
+      if (type.isObject || type.isDynamic) {
+        // `x as Object` and `x as dynamic` are the same as `x`.
+        return value;
+      }
       return _continueWithExpression(
               (k) => new ir.TypeCast(value, type, typeArguments, k));
     }

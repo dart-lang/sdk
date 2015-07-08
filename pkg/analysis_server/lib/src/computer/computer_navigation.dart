@@ -246,17 +246,15 @@ class _DartUnitNavigationComputerVisitor extends RecursiveAstVisitor {
     }
     // add regions
     TypeName typeName = node.type;
+    computer._addRegionForNode(typeName.name, element);
+    // <TypeA, TypeB>
     TypeArgumentList typeArguments = typeName.typeArguments;
-    if (typeArguments == null) {
-      computer._addRegion_nodeStart_nodeEnd(parent, node, element);
-    } else {
-      computer._addRegion_nodeStart_nodeEnd(parent, typeName.name, element);
-      // <TypeA, TypeB>
+    if (typeArguments != null) {
       typeArguments.accept(this);
-      // optional ".name"
-      if (node.period != null) {
-        computer._addRegion_tokenStart_nodeEnd(node.period, node, element);
-      }
+    }
+    // optional "name"
+    if (node.name != null) {
+      computer._addRegionForNode(node.name, element);
     }
   }
 

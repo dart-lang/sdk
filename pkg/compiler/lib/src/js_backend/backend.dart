@@ -242,7 +242,7 @@ class JavaScriptBackend extends Backend {
   static const String START_ROOT_ISOLATE = 'startRootIsolate';
 
 
-  String get patchVersion => USE_NEW_EMITTER ? 'new' : 'old';
+  String get patchVersion => USE_LAZY_EMITTER ? 'lazy' : 'full';
 
   final Annotations annotations;
 
@@ -617,8 +617,9 @@ class JavaScriptBackend extends Backend {
 
   bool enabledNoSuchMethod = false;
 
+  final SourceInformationStrategy sourceInformationStrategy;
+
   JavaScriptBackend(Compiler compiler,
-                    SourceInformationFactory sourceInformationFactory,
                     {bool generateSourceMap: true})
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<jsAst.Name, Selector>(),
@@ -626,6 +627,12 @@ class JavaScriptBackend extends Backend {
         rti = new RuntimeTypes(compiler),
         specializedGetInterceptors = new Map<jsAst.Name, Set<ClassElement>>(),
         annotations = new Annotations(compiler),
+        this.sourceInformationStrategy =
+            generateSourceMap
+                ? (useNewSourceInfo
+                     ? const PositionSourceInformationStrategy()
+                     : const StartEndSourceInformationStrategy())
+                : const JavaScriptSourceInformationStrategy(),
         super(compiler) {
     emitter = new CodeEmitterTask(compiler, namer, generateSourceMap);
     typeVariableHandler = new TypeVariableHandler(compiler);
@@ -636,8 +643,8 @@ class JavaScriptBackend extends Backend {
     patchResolverTask = new PatchResolverTask(compiler);
     functionCompiler = compiler.useCpsIr
          ? new CpsFunctionCompiler(
-             compiler, this, sourceInformationFactory)
-         : new SsaFunctionCompiler(this, sourceInformationFactory);
+             compiler, this, sourceInformationStrategy)
+         : new SsaFunctionCompiler(this, sourceInformationStrategy);
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;
@@ -676,7 +683,9 @@ class JavaScriptBackend extends Backend {
 
   static Namer determineNamer(Compiler compiler) {
     return compiler.enableMinification ?
-        new MinifyNamer(compiler) :
+        compiler.useFrequencyNamer ?
+            new FrequencyBasedNamer(compiler) :
+            new MinifyNamer(compiler) :
         new Namer(compiler);
   }
 
@@ -1462,6 +1471,14 @@ class JavaScriptBackend extends Backend {
    */
   String assembleCode(Element element) {
     assert(invariant(element, element.isDeclaration));
+    var code = generatedCode[element];
+    if (namer is jsAst.TokenFinalizer) {
+      jsAst.TokenCounter counter = new jsAst.TokenCounter();
+      counter.countTokens(code);
+      // Avoid a warning.
+      var finalizer = namer;
+      finalizer.finalizeTokens();
+    }
     return jsAst.prettyPrint(generatedCode[element], compiler).getText();
   }
 

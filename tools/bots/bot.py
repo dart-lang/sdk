@@ -15,7 +15,11 @@ from os.path import dirname
 import subprocess
 import sys
 
-DART_PATH = dirname(dirname(dirname(abspath(__file__))))
+import bot_utils
+
+utils = bot_utils.GetUtils()
+
+BUILD_OS = utils.GuessOS()
 
 BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
 BUILDER_CLOBBER = 'BUILDBOT_CLOBBER'
@@ -151,7 +155,7 @@ def RunBot(parse_name, custom_steps, build_step=BuildSDK):
   build_info.PrintBuildInfo()
 
   # Make sure we are in the dart directory
-  os.chdir(DART_PATH)
+  os.chdir(bot_utils.DART_DIR)
 
   try:
     Clobber()
@@ -238,6 +242,32 @@ def RunTest(name, build_info, targets, flags=None, swallow_error=False):
 
     print 'Running: %s' % (' '.join(map(lambda arg: '"%s"' % arg, cmd)))
     RunProcess(cmd)
+
+
+def RunTestRunner(build_info, path):
+  """
+  Runs the test package's runner on the package at 'path'.
+  """
+  sdk_bin = os.path.join(
+      bot_utils.DART_DIR,
+      utils.GetBuildSdkBin(BUILD_OS, build_info.mode, build_info.arch))
+
+  build_root = utils.GetBuildRoot(
+      BUILD_OS, build_info.mode, build_info.arch)
+  package_root = os.path.abspath(os.path.join(build_root, 'packages'))
+
+  dart_name = 'dart.exe' if build_info.system == 'windows' else 'dart'
+  dart_bin = os.path.join(sdk_bin, dart_name)
+
+  test_bin = os.path.abspath(
+      os.path.join('third_party', 'pkg', 'test', 'bin', 'test.dart'))
+
+  with utils.ChangedWorkingDirectory(path):
+    args = [dart_bin, '--package-root=' + package_root, test_bin,
+            '--package-root', package_root, '--reporter', 'expanded',
+            '--no-color']
+    print("Running %s" % ' '.join(args))
+    RunProcess(args)
 
 
 def RunProcess(command):

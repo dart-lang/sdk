@@ -49,6 +49,14 @@ class UnaryOperator {
       default: return null;
     }
   }
+
+  static UnaryOperator fromKind(UnaryOperatorKind kind) {
+    switch (kind) {
+      case UnaryOperatorKind.NOT: return NOT;
+      case UnaryOperatorKind.NEGATE: return NEGATE;
+      case UnaryOperatorKind.COMPLEMENT: return COMPLEMENT;
+    }
+  }
 }
 
 enum BinaryOperatorKind {
@@ -196,6 +204,32 @@ class BinaryOperator {
       case '||': return LOGICAL_OR;
       case '??': return IF_NULL;
       default: return null;
+    }
+  }
+
+  static BinaryOperator fromKind(BinaryOperatorKind kind) {
+    switch (kind) {
+      case BinaryOperatorKind.EQ: return EQ;
+      case BinaryOperatorKind.NOT_EQ: return NOT_EQ;
+      case BinaryOperatorKind.INDEX: return INDEX;
+      case BinaryOperatorKind.MUL: return MUL;
+      case BinaryOperatorKind.DIV: return DIV;
+      case BinaryOperatorKind.MOD: return MOD;
+      case BinaryOperatorKind.IDIV: return IDIV;
+      case BinaryOperatorKind.ADD: return ADD;
+      case BinaryOperatorKind.SUB: return SUB;
+      case BinaryOperatorKind.SHL: return SHL;
+      case BinaryOperatorKind.SHR: return SHR;
+      case BinaryOperatorKind.GTEQ: return GTEQ;
+      case BinaryOperatorKind.GT: return GT;
+      case BinaryOperatorKind.LTEQ: return LTEQ;
+      case BinaryOperatorKind.LT: return LT;
+      case BinaryOperatorKind.AND: return AND;
+      case BinaryOperatorKind.XOR: return XOR;
+      case BinaryOperatorKind.OR: return OR;
+      case BinaryOperatorKind.LOGICAL_AND: return LOGICAL_AND;
+      case BinaryOperatorKind.LOGICAL_OR: return LOGICAL_OR;
+      case BinaryOperatorKind.IF_NULL: return IF_NULL;
     }
   }
 }

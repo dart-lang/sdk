@@ -38,3 +38,27 @@ class ParameterKind extends Enum<ParameterKind> {
   const ParameterKind(String name, int ordinal, this.isOptional)
       : super(name, ordinal);
 }
+
+/**
+ * Check whether [uri1] starts with (or 'is prefixed by') [uri2] by checking
+ * path segments.
+ */
+bool startsWith(Uri uri1, Uri uri2) {
+  List<String> uri1Segments = uri1.pathSegments;
+  List<String> uri2Segments = uri2.pathSegments.toList();
+  // Trim trailing empty segments ('/foo/' => ['foo', ''])
+  if (uri2Segments.last == '') {
+    uri2Segments.removeLast();
+  }
+
+  if (uri2Segments.length > uri1Segments.length) {
+    return false;
+  }
+
+  for (int i = 0; i < uri2Segments.length; ++i) {
+    if (uri2Segments[i] != uri1Segments[i]) {
+      return false;
+    }
+  }
+  return true;
+}

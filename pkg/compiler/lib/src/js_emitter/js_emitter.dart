@@ -34,8 +34,7 @@ import '../elements/elements.dart' show
 import '../hash/sha1.dart' show Hasher;
 
 import '../js/js.dart' as jsAst;
-import '../js/js.dart' show
-    js;
+import '../js/js.dart' show js;
 
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 
@@ -56,9 +55,9 @@ import '../js_backend/js_backend.dart' show
     TypeVariableHandler;
 
 import 'model.dart';
-import 'program_builder.dart';
+import 'program_builder/program_builder.dart';
 
-import 'new_emitter/emitter.dart' as new_js_emitter;
+import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
 
 import '../io/line_column_provider.dart' show
     LineColumnCollector,
@@ -109,12 +108,12 @@ part 'parameter_stub_generator.dart';
 part 'runtime_type_generator.dart';
 part 'type_test_registry.dart';
 
-part 'old_emitter/class_builder.dart';
-part 'old_emitter/class_emitter.dart';
-part 'old_emitter/code_emitter_helper.dart';
-part 'old_emitter/container_builder.dart';
-part 'old_emitter/declarations.dart';
-part 'old_emitter/emitter.dart';
-part 'old_emitter/interceptor_emitter.dart';
-part 'old_emitter/nsm_emitter.dart';
-part 'old_emitter/setup_program_builder.dart';
+part 'full_emitter/class_builder.dart';
+part 'full_emitter/class_emitter.dart';
+part 'full_emitter/code_emitter_helper.dart';
+part 'full_emitter/container_builder.dart';
+part 'full_emitter/declarations.dart';
+part 'full_emitter/emitter.dart';
+part 'full_emitter/interceptor_emitter.dart';
+part 'full_emitter/nsm_emitter.dart';
+part 'full_emitter/setup_program_builder.dart';

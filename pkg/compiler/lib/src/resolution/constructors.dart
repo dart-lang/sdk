@@ -221,7 +221,7 @@ class InitializerResolver {
           diagnosticNode, kind, {'constructorName': fullConstructorName});
       isValidAsConstant = false;
     } else {
-      lookedupConstructor.computeSignature(visitor.compiler);
+      lookedupConstructor.computeType(visitor.compiler);
       if (!call.signatureApplies(lookedupConstructor.functionSignature)) {
         MessageKind kind = isImplicitSuperCall
                            ? MessageKind.NO_MATCHING_CONSTRUCTOR_FOR_IMPLICIT

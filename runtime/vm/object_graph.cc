@@ -148,7 +148,7 @@ class Unmarker : public ObjectVisitor {
 
   static void UnmarkAll(Isolate* isolate) {
     Unmarker unmarker(isolate);
-    isolate->heap()->VisitObjects(&unmarker);
+    isolate->heap()->IterateObjects(&unmarker);
   }
 
  private:
@@ -172,13 +172,8 @@ ObjectGraph::~ObjectGraph() {
 
 void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
-  PageSpace* old_space = isolate()->heap()->old_space();
-  MonitorLocker ml(old_space->tasks_lock());
-  while (old_space->tasks() > 0) {
-    ml.Wait();
-  }
   Stack stack(isolate());
-  isolate()->VisitObjectPointers(&stack, false, false);
+  isolate()->IterateObjectPointers(&stack, false, false);
   stack.TraverseGraph(visitor);
   Unmarker::UnmarkAll(isolate());
 }
@@ -187,11 +182,6 @@ void ObjectGraph::IterateObjects(ObjectGraph::Visitor* visitor) {
 void ObjectGraph::IterateObjectsFrom(const Object& root,
                                      ObjectGraph::Visitor* visitor) {
   NoSafepointScope no_safepoint_scope_;
-  PageSpace* old_space = isolate()->heap()->old_space();
-  MonitorLocker ml(old_space->tasks_lock());
-  while (old_space->tasks() > 0) {
-    ml.Wait();
-  }
   Stack stack(isolate());
   RawObject* root_raw = root.raw();
   stack.VisitPointer(&root_raw);
@@ -377,7 +367,7 @@ intptr_t ObjectGraph::InboundReferences(Object* obj, const Array& references) {
   Object& scratch = Object::Handle();
   NoSafepointScope no_safepoint_scope_;
   InboundReferencesVisitor visitor(isolate(), obj->raw(), references, &scratch);
-  isolate()->heap()->VisitObjects(&visitor);
+  isolate()->heap()->IterateObjects(&visitor);
   return visitor.length();
 }
 
@@ -466,7 +456,7 @@ intptr_t ObjectGraph::Serialize(WriteStream* stream) {
   stream->WriteUnsigned(0);
   {
     WritePointerVisitor ptr_writer(isolate(), stream);
-    isolate()->VisitObjectPointers(&ptr_writer, false, false);
+    isolate()->IterateObjectPointers(&ptr_writer, false, false);
   }
   stream->WriteUnsigned(0);
   IterateObjects(&visitor);

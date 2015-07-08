@@ -108,6 +108,22 @@ abstract class ConstantConstructor {
   Map<FieldElement, ConstantExpression> computeInstanceFields(
       List<ConstantExpression> arguments,
       CallStructure callStructure);
+
+  accept(ConstantConstructorVisitor visitor, arg);
+}
+
+abstract class ConstantConstructorVisitor<R, A> {
+  const ConstantConstructorVisitor();
+
+  R visit(ConstantConstructor constantConstructor, A context) {
+    return constantConstructor.accept(this, context);
+  }
+
+  R visitGenerative(GenerativeConstantConstructor constructor, A arg);
+  R visitRedirectingGenerative(
+      RedirectingGenerativeConstantConstructor constructor, A arg);
+  R visitRedirectingFactory(
+      RedirectingFactoryConstantConstructor constructor, A arg);
 }
 
 /// A generative constant constructor.
@@ -140,6 +156,10 @@ class GenerativeConstantConstructor implements ConstantConstructor{
      appliedFieldMap[field] = constant.apply(args);
     });
     return appliedFieldMap;
+  }
+
+  accept(ConstantConstructorVisitor visitor, arg) {
+    return visitor.visitGenerative(this, arg);
   }
 
   int get hashCode {
@@ -233,6 +253,10 @@ class RedirectingGenerativeConstantConstructor implements ConstantConstructor {
     return appliedFieldMap;
   }
 
+  accept(ConstantConstructorVisitor visitor, arg) {
+    return visitor.visitRedirectingGenerative(this, arg);
+  }
+
   int get hashCode {
     int hash = Hashing.objectHash(thisConstructorInvocation);
     return Hashing.mapHash(defaultValues, hash);
@@ -280,6 +304,10 @@ class RedirectingFactoryConstantConstructor implements ConstantConstructor {
     ConstantConstructor constantConstructor =
         targetConstructorInvocation.target.constantConstructor;
     return constantConstructor.computeInstanceFields(arguments, callStructure);
+  }
+
+  accept(ConstantConstructorVisitor visitor, arg) {
+    return visitor.visitRedirectingFactory(this, arg);
   }
 
   int get hashCode {

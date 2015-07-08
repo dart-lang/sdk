@@ -416,4 +416,3 @@ typing_test: StaticWarning
 webgl_1_test: StaticWarning
 window_nosuchmethod_test: StaticWarning
 
-[ $compiler == dart2js && $cps_ir ]

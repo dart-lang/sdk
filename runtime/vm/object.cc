@@ -876,7 +876,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
   PremarkingVisitor premarker(isolate);
   isolate->heap()->WriteProtect(false);
   ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
-  isolate->heap()->old_space()->VisitObjects(&premarker);
+  isolate->heap()->IterateOldObjects(&premarker);
   isolate->heap()->WriteProtect(true);
 }
 
@@ -3550,6 +3550,7 @@ void Class::set_constants(const Array& value) const {
 RawObject* Class::canonical_types() const {
   return raw_ptr()->canonical_types_;
 }
+
 
 void Class::set_canonical_types(const Object& value) const {
   ASSERT(!value.IsNull());
@@ -6508,6 +6509,21 @@ RawInstance* Function::ImplicitStaticClosure() const {
     set_implicit_static_closure(closure);
   }
   return implicit_static_closure();
+}
+
+
+RawInstance* Function::ImplicitInstanceClosure(const Instance& receiver) const {
+  ASSERT(IsImplicitClosureFunction());
+  const Class& cls = Class::Handle(signature_class());
+  const Context& context = Context::Handle(Context::New(1));
+  context.SetAt(0, receiver);
+  const Instance& result = Instance::Handle(Closure::New(*this, context));
+  if (cls.NumTypeArguments() > 0) {
+    const TypeArguments& type_arguments =
+        TypeArguments::Handle(receiver.GetTypeArguments());
+    result.SetTypeArguments(type_arguments);
+  }
+  return result.raw();
 }
 
 
@@ -14882,6 +14898,12 @@ bool AbstractType::IsNumberType() const {
 }
 
 
+bool AbstractType::IsSmiType() const {
+  return HasResolvedTypeClass() &&
+      (type_class() == Type::Handle(Type::SmiType()).type_class());
+}
+
+
 bool AbstractType::IsStringType() const {
   return HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::StringType()).type_class());
@@ -20820,6 +20842,15 @@ void JSRegExp::set_function(intptr_t cid, const Function& value) const {
 }
 
 
+void JSRegExp::set_bytecode(bool is_one_byte, const TypedData& bytecode) const {
+  if (is_one_byte) {
+    StorePointer(&raw_ptr()->one_byte_bytecode_, bytecode.raw());
+  } else {
+    StorePointer(&raw_ptr()->two_byte_bytecode_, bytecode.raw());
+  }
+}
+
+
 void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
   StoreSmi(&raw_ptr()->num_bracket_expressions_, Smi::New(value));
 }
@@ -20835,6 +20866,7 @@ RawJSRegExp* JSRegExp::New(Heap::Space space) {
     result ^= raw;
     result.set_type(kUnitialized);
     result.set_flags(0);
+    result.set_num_registers(-1);
   }
   return result.raw();
 }

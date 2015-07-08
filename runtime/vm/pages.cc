@@ -160,6 +160,9 @@ PageSpace::PageSpace(Heap* heap,
       max_external_in_words_(max_external_in_words),
       tasks_lock_(new Monitor()),
       tasks_(0),
+#if defined(DEBUG)
+      is_iterating_(false),
+#endif
       page_space_controller_(heap,
                              FLAG_old_gen_growth_space_ratio,
                              FLAG_old_gen_growth_rate,
@@ -778,7 +781,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
 
   if (FLAG_verify_before_gc) {
     OS::PrintErr("Verifying before marking...");
-    heap_->Verify();
+    heap_->VerifyGC();
     OS::PrintErr(" done.\n");
   }
 
@@ -810,7 +813,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   {
     if (FLAG_verify_before_gc) {
       OS::PrintErr("Verifying before sweeping...");
-      heap_->Verify(kAllowMarked);
+      heap_->VerifyGC(kAllowMarked);
       OS::PrintErr(" done.\n");
     }
     GCSweeper sweeper;
@@ -871,7 +874,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
       }
       if (FLAG_verify_after_gc) {
         OS::PrintErr("Verifying after sweeping...");
-        heap_->Verify(kForbidMarked);
+        heap_->VerifyGC(kForbidMarked);
         OS::PrintErr(" done.\n");
       }
     } else {

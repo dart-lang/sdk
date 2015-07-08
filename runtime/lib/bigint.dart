@@ -1222,7 +1222,7 @@ class _Bigint extends _IntegerImplementation implements int {
   // This method must support smi._toBigint()._shrFromInt(int).
   int _shrFromInt(int other) {
     if (_used == 0) return other;  // Shift amount is zero.
-    if (_neg) throw new RangeError(this);
+    if (_neg) throw new RangeError.range(this, 0, null);
     assert(_DIGIT_BITS == 32);  // Otherwise this code needs to be revised.
     var shift;
     if ((_used > 2) || ((_used == 2) && (_digits[1] > 0x10000000))) {
@@ -1241,7 +1241,7 @@ class _Bigint extends _IntegerImplementation implements int {
   // An out of memory exception is thrown if the result cannot be allocated.
   int _shlFromInt(int other) {
     if (_used == 0) return other;  // Shift amount is zero.
-    if (_neg) throw new RangeError(this);
+    if (_neg) throw new RangeError.range(this, 0, null);
     assert(_DIGIT_BITS == 32);  // Otherwise this code needs to be revised.
     var shift;
     if (_used > 2 || (_used == 2 && _digits[1] > 0x10000000)) {
@@ -1399,10 +1399,14 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // Returns pow(this, e) % m, with e >= 0, m > 0.
   int modPow(int e, int m) {
-    if (e is! int) throw new ArgumentError(e);
-    if (m is! int) throw new ArgumentError(m);
-    if (e < 0) throw new RangeError(e);
-    if (m <= 0) throw new RangeError(m);
+    if (e is! int) {
+      throw new ArgumentError.value(e, "exponent", "not an integer");
+    }
+    if (m is! int) {
+      throw new ArgumentError.value(m, "modulus", "not an integer");
+    }
+    if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
+    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
     m = m._toBigint();
     final m_used = m._used;
@@ -1543,7 +1547,7 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // If inv is false, returns gcd(x, y).
   // If inv is true and gcd(x, y) = 1, returns d, so that c*x + d*y = 1.
-  // If inv is true and gcd(x, y) != 1, throws RangeError("Not coprime").
+  // If inv is true and gcd(x, y) != 1, throws Exception("Not coprime").
   static int _binaryGcd(_Bigint x, _Bigint y, bool inv) {
     var x_digits = x._digits;
     var y_digits = y._digits;
@@ -1557,10 +1561,15 @@ class _Bigint extends _IntegerImplementation implements int {
     if (inv) {
       if ((y_used == 1) && (y_digits[0] == 1)) return 1;
       if ((y_used == 0) || (y_digits[0].isEven && x_digits[0].isEven)) {
-        throw new RangeError("Not coprime");
+        throw new Exception("Not coprime");
       }
     } else {
-      if ((x_used == 0) || (y_used == 0)) throw new RangeError(0);
+      if (x_used == 0) {
+        throw new ArgumentError.value(0, "this", "must not be zero");
+      }
+      if (y_used == 0) {
+        throw new ArgumentError.value(0, "other", "must not be zero");
+      }
       if (((x_used == 1) && (x_digits[0] == 1)) ||
           ((y_used == 1) && (y_digits[0] == 1))) return 1;
       bool xy_cloned = false;
@@ -1756,7 +1765,9 @@ class _Bigint extends _IntegerImplementation implements int {
     // No inverse if v != 1.
     var i = m_used - 1;
     while ((i > 0) && (v_digits[i] == 0)) --i;
-    if ((i != 0) || (v_digits[0] != 1)) throw new RangeError("Not coprime");
+    if ((i != 0) || (v_digits[0] != 1)) {
+      throw new Exception("Not coprime");
+    }
 
     if (d_neg) {
       if ((d_digits[m_used] != 0) ||
@@ -1786,8 +1797,10 @@ class _Bigint extends _IntegerImplementation implements int {
 
   // Returns 1/this % m, with m > 0.
   int modInverse(int m) {
-    if (m is! int) throw new ArgumentError(m);
-    if (m <= 0) throw new RangeError(m);
+    if (m is! int) {
+      throw new ArgumentError.value(m, "modulus", "not an integer");
+    }
+    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
     m = m._toBigint();
     var t = this;
@@ -1798,9 +1811,14 @@ class _Bigint extends _IntegerImplementation implements int {
     return _binaryGcd(m, t, true);
   }
 
-  // Returns gcd of abs(this) and abs(other), with this != 0 and other !=0.
+  // Returns gcd of abs(this) and abs(other).
   int gcd(int other) {
-    if (other is! int) throw new ArgumentError(other);
+    if (other is! int) {
+      throw new ArgumentError.value(other, "other", "not an integer");
+    }
+    if (other == 0) {
+      return this.abs();
+    }
     return _binaryGcd(this, other._toBigint(), false);
   }
 }

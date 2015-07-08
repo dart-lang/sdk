@@ -7,7 +7,8 @@ part of js_backend;
 /**
  * Assigns JavaScript identifiers to Dart variables, class-names and members.
  */
-class MinifyNamer extends Namer with _MinifiedFieldNamer {
+class MinifyNamer extends Namer with _MinifiedFieldNamer,
+    _MinifyConstructorBodyNamer, _MinifiedOneShotInterceptorNamer {
   MinifyNamer(Compiler compiler) : super(compiler) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
@@ -32,11 +33,11 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer {
   /// [sanitizeForNatives] and [sanitizeForAnnotations] are ignored because the
   /// minified names will always avoid clashing with annotated names or natives.
   @override
-  jsAst.Name getFreshName(String proposedName,
-                          Set<String> usedNames,
-                          Map<String, String> suggestedNames,
-                          {bool sanitizeForNatives: false,
-                           bool sanitizeForAnnotations: false}) {
+  String _generateFreshStringForName(String proposedName,
+      Set<String> usedNames,
+      Map<String, String> suggestedNames,
+      {bool sanitizeForNatives: false,
+       bool sanitizeForAnnotations: false}) {
     String freshName;
     String suggestion = suggestedNames[proposedName];
     if (suggestion != null && !usedNames.contains(suggestion)) {
@@ -46,7 +47,7 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer {
           suggestedNames.values);
     }
     usedNames.add(freshName);
-    return new StringBackedName(freshName);
+    return freshName;
   }
 
   // From issue 7554.  These should not be used on objects (as instance
@@ -54,7 +55,7 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer {
   // OK to use them as fields, as we only access fields directly if we know
   // the receiver type.
   static const List<String> _reservedNativeProperties = const <String>[
-      'Q', 'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z',
+      'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z', 'Q',
       // 2-letter:
       'ch', 'cx', 'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1',
       'k2', 'k3', 'k4', 'r1', 'r2', 'rx', 'ry', 'x1', 'x2', 'y1', 'y2',
@@ -192,7 +193,7 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer {
 
   /// Instance members starting with g and s are reserved for getters and
   /// setters.
-  bool _hasBannedPrefix(String name) {
+  static bool _hasBannedPrefix(String name) {
     int code = name.codeUnitAt(0);
     return code == $g || code == $s;
   }
@@ -252,6 +253,99 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer {
       return proposed;
     }
     return super.instanceFieldPropertyName(element);
+  }
+}
+
+/// Implements naming for constructor bodies.
+///
+/// Constructor bodies are only called in settings where the target is
+/// statically known. Therefore, we can share their names between classes.
+/// However, to support calling the constructor body of a super constructor,
+/// each level in the inheritance tree has to use its own names.
+///
+/// This class implements a naming scheme by counting the distance from
+/// a given constructor to [Object], where distance is the number of
+/// constructors declared along the inheritance chain.
+class _ConstructorBodyNamingScope {
+  final int _startIndex;
+  final List _constructors;
+
+  int get numberOfConstructors => _constructors.length;
+
+  _ConstructorBodyNamingScope _superScope;
+
+  _ConstructorBodyNamingScope.rootScope(ClassElement cls)
+      : _superScope = null,
+        _startIndex = 0,
+        _constructors = cls.constructors.toList(growable: false);
+
+  _ConstructorBodyNamingScope.forClass(ClassElement cls,
+                                       _ConstructorBodyNamingScope superScope)
+      : _superScope = superScope,
+        _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+        _constructors = cls.constructors.toList(growable: false);
+
+  // Mixin Applications have constructors but we never generate code for them,
+  // so they do not count in the inheritance chain.
+  _ConstructorBodyNamingScope.forMixinApplication(ClassElement cls,
+      _ConstructorBodyNamingScope superScope)
+      : _superScope = superScope,
+        _startIndex = superScope._startIndex + superScope.numberOfConstructors,
+        _constructors = const [];
+
+  factory _ConstructorBodyNamingScope(ClassElement cls,
+      Map<ClassElement, _ConstructorBodyNamingScope> registry) {
+    return registry.putIfAbsent(cls, () {
+      if (cls.superclass == null) {
+        return new _ConstructorBodyNamingScope.rootScope(cls);
+      } else if (cls.isMixinApplication) {
+        return new _ConstructorBodyNamingScope.forMixinApplication(cls,
+            new _ConstructorBodyNamingScope(cls.superclass, registry));
+      } else {
+        return new _ConstructorBodyNamingScope.forClass(cls,
+            new _ConstructorBodyNamingScope(cls.superclass, registry));
+      }
+    });
+  }
+
+  String constructorBodyKeyFor(ConstructorBodyElement body) {
+    int position = _constructors.indexOf(body.constructor);
+    assert(invariant(body, position >= 0, message: "constructor body missing"));
+    return "@constructorBody@${_startIndex + position}";
+  }
+}
+
+abstract class _MinifyConstructorBodyNamer implements Namer {
+  Map<ClassElement, _ConstructorBodyNamingScope> _constructorBodyScopes =
+      new Map<ClassElement, _ConstructorBodyNamingScope>();
+
+  @override
+  jsAst.Name constructorBodyName(FunctionElement method) {
+    _ConstructorBodyNamingScope scope =
+        new _ConstructorBodyNamingScope(method.enclosingClass,
+                                        _constructorBodyScopes);
+    String key = scope.constructorBodyKeyFor(method);
+    return _disambiguateMemberByKey(key,
+        () => _proposeNameForConstructorBody(method));
+  }
+}
+
+abstract class _MinifiedOneShotInterceptorNamer implements Namer {
+  /// Property name used for the one-shot interceptor method for the given
+  /// [selector] and return-type specialization.
+  @override
+  jsAst.Name nameForGetOneShotInterceptor(Selector selector,
+      Iterable<ClassElement> classes) {
+    String root = selector.isOperator
+        ? operatorNameToIdentifier(selector.name)
+        : privateName(selector.memberName);
+    String prefix = selector.isGetter
+        ? r"$get"
+        : selector.isSetter ? r"$set" : "";
+    String arity = selector.isCall ? "${selector.argumentCount}" : "";
+    String suffix = suffixForGetInterceptor(classes);
+    String fullName = "\$intercepted$prefix\$$root$arity\$$suffix";
+    return _disambiguateInternalGlobal(fullName);
   }
 }
 

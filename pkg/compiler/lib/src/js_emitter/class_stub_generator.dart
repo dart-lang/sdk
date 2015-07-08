@@ -220,52 +220,49 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
   Compiler compiler = backend.compiler;
 
   Element closureFromTearOff = backend.findHelper('closureFromTearOff');
-  String tearOffAccessText;
   jsAst.Expression tearOffAccessExpression;
-  String tearOffGlobalObjectName;
-  String tearOffGlobalObject;
+  jsAst.Expression tearOffGlobalObjectString;
+  jsAst.Expression tearOffGlobalObject;
   if (closureFromTearOff != null) {
-    // We need both the AST that references [closureFromTearOff] and a string
-    // for the NoCsp version that constructs a function.
     tearOffAccessExpression =
         backend.emitter.staticFunctionAccess(closureFromTearOff);
-    tearOffAccessText =
-        jsAst.prettyPrint(tearOffAccessExpression, compiler).getText();
-    tearOffGlobalObjectName = tearOffGlobalObject =
-        namer.globalObjectFor(closureFromTearOff);
+    tearOffGlobalObject =
+        js.stringPart(namer.globalObjectFor(closureFromTearOff));
+    tearOffGlobalObjectString =
+        js.string(namer.globalObjectFor(closureFromTearOff));
   } else {
     // Default values for mocked-up test libraries.
-    tearOffAccessText =
-        r'''function() { throw "Helper 'closureFromTearOff' missing." }''';
-    tearOffAccessExpression = js(tearOffAccessText);
-    tearOffGlobalObjectName = 'MissingHelperFunction';
-    tearOffGlobalObject = '($tearOffAccessText())';
+    tearOffAccessExpression = js(
+        r'''function() { throw "Helper 'closureFromTearOff' missing." }''');
+    tearOffGlobalObjectString = js.string('MissingHelperFunction');
+    tearOffGlobalObject = js(
+        r'''(function() { throw "Helper 'closureFromTearOff' missing." })()''');
   }
 
   jsAst.Statement tearOffGetter;
   if (!compiler.useContentSecurityPolicy) {
-    // This template is uncached because it is constructed from code fragments
-    // that can change from compilation to compilation.  Some of these could be
-    // avoided, except for the string literals that contain the compiled access
-    // path to 'closureFromTearOff'.
-    tearOffGetter = js.uncachedStatementTemplate('''
+    jsAst.Expression tearOffAccessText =
+        new jsAst.UnparsedNode(tearOffAccessExpression, compiler, false);
+    tearOffGetter = js.statement('''
 function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {
   return isIntercepted
       ? new Function("funcs", "reflectionInfo", "name",
-                     "$tearOffGlobalObjectName", "c",
+                     #tearOffGlobalObjectString, "c",
           "return function tearOff_" + name + (functionCounter++) + "(x) {" +
-            "if (c === null) c = $tearOffAccessText(" +
+            "if (c === null) c = " + #tearOffAccessText + "(" +
                 "this, funcs, reflectionInfo, false, [x], name);" +
                 "return new c(this, funcs[0], x, name);" +
-                "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null)
+                "}")(funcs, reflectionInfo, name, #tearOffGlobalObject, null)
       : new Function("funcs", "reflectionInfo", "name",
-                     "$tearOffGlobalObjectName", "c",
+                     #tearOffGlobalObjectString, "c",
           "return function tearOff_" + name + (functionCounter++)+ "() {" +
-            "if (c === null) c = $tearOffAccessText(" +
+            "if (c === null) c = " + #tearOffAccessText + "(" +
                 "this, funcs, reflectionInfo, false, [], name);" +
                 "return new c(this, funcs[0], null, name);" +
-                "}")(funcs, reflectionInfo, name, $tearOffGlobalObject, null);
-}''').instantiate([]);
+                "}")(funcs, reflectionInfo, name, #tearOffGlobalObject, null);
+}''', {'tearOffAccessText': tearOffAccessText,
+       'tearOffGlobalObject': tearOffGlobalObject,
+       'tearOffGlobalObjectString': tearOffGlobalObjectString});
   } else {
     tearOffGetter = js.statement('''
       function tearOffGetter(funcs, reflectionInfo, name, isIntercepted) {

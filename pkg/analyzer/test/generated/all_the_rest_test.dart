@@ -1061,6 +1061,8 @@ class ConstantFinderTest extends EngineTestCase {
           ElementFactory.constructorElement(classElement, '', true);
       constructorDeclaration.element = constructorElement;
       classElement.constructors = <ConstructorElement>[constructorElement];
+    } else {
+      classElement.constructors = ConstructorElement.EMPTY_LIST;
     }
     return variableDeclaration;
   }
@@ -8255,7 +8257,6 @@ final Map<String, LibraryInfo> LIBRARIES = const <String, LibraryInfo> {
     expect(second.isVmLibrary, false);
   }
 }
-
 
 @reflectiveTest
 class StringScannerTest extends AbstractScannerTest {

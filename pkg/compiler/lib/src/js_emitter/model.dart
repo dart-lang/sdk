@@ -4,7 +4,8 @@
 
 library dart2js.new_js_emitter.model;
 
-import '../js/js.dart' as js show Expression, Statement, Name, Literal;
+import '../js/js.dart' as js show Expression, Statement, Name, Literal,
+    TokenFinalizer;
 import '../constants/values.dart' show ConstantValue;
 
 import '../deferred_load.dart' show OutputUnit;
@@ -29,13 +30,14 @@ class Program {
   // TODO(floitsch): we should store the metadata directly instead of storing
   // the collector. However, the old emitter still updates the data.
   final MetadataCollector _metadataCollector;
-  TokenFinalizer get metadataFinalizer => _metadataCollector;
+  final Iterable<js.TokenFinalizer> finalizers;
 
   Program(this.fragments,
           this.holders,
           this.loadMap,
           this.typeToInterceptorMap,
           this._metadataCollector,
+          this.finalizers,
           {this.needsNativeSupport,
            this.outputContainsConstantList,
            this.hasIsolateSupport}) {
@@ -241,8 +243,14 @@ class Class implements FieldContainer {
   /// Whether the class must be evaluated eagerly.
   bool isEager = false;
 
-  /// Data that must be emitted with the class for native interop.
-  js.Literal nativeInfo;
+  /// Leaf tags. See [NativeEmitter.prepareNativeClasses].
+  List<String> nativeLeafTags;
+
+  /// Non-leaf tags. See [NativeEmitter.prepareNativeClasses].
+  List<String> nativeNonLeafTags;
+
+  /// Native extensions. See [NativeEmitter.prepareNativeClasses].
+  List<Class> nativeExtensions;
 
   Class(this.element, this.name, this.holder,
         this.methods,

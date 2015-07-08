@@ -172,11 +172,14 @@ class HGraph {
     return result;
   }
 
-  HConstant addConstant(ConstantValue constant, Compiler compiler) {
+  HConstant addConstant(ConstantValue constant, Compiler compiler,
+                        {SourceInformation sourceInformation}) {
     HConstant result = constants[constant];
+    // TODO(johnniwinther): Support source information per constant reference.
     if (result == null) {
       TypeMask type = computeTypeMask(compiler, constant);
-      result = new HConstant.internal(constant, type);
+      result = new HConstant.internal(constant, type)
+          ..sourceInformation = sourceInformation;
       entry.addAtExit(result);
       constants[constant] = result;
     } else if (result.block == null) {
@@ -187,12 +190,13 @@ class HGraph {
   }
 
   HConstant addDeferredConstant(ConstantValue constant, PrefixElement prefix,
+                                SourceInformation sourceInformation,
                                 Compiler compiler) {
     // TODO(sigurdm,johnniwinter): These deferred constants should be created
     // by the constant evaluator.
     ConstantValue wrapper = new DeferredConstantValue(constant, prefix);
     compiler.deferredLoadTask.registerConstantDeferredUse(wrapper, prefix);
-    return addConstant(wrapper, compiler);
+    return addConstant(wrapper, compiler, sourceInformation: sourceInformation);
   }
 
   HConstant addConstantInt(int i, Compiler compiler) {
@@ -1316,6 +1320,7 @@ class HBoolify extends HInstruction {
   HBoolify(HInstruction value, TypeMask type)
       : super(<HInstruction>[value], type) {
     setUseGvn();
+    sourceInformation = value.sourceInformation;
   }
 
   accept(HVisitor visitor) => visitor.visitBoolify(this);
@@ -1528,8 +1533,11 @@ class HInvokeSuper extends HInvokeStatic {
                this.selector,
                inputs,
                type,
+               SourceInformation sourceInformation,
                {this.isSetter})
-      : super(element, inputs, type);
+      : super(element, inputs, type) {
+    this.sourceInformation = sourceInformation;
+  }
 
   HInstruction get receiver => inputs[0];
   HInstruction getDartReceiver(Compiler compiler) {
@@ -2302,14 +2310,19 @@ class HLessEqual extends HRelational {
 }
 
 class HReturn extends HControlFlow {
-  HReturn(value) : super(<HInstruction>[value]);
+  HReturn(HInstruction value, SourceInformation sourceInformation)
+      : super(<HInstruction>[value]) {
+    this.sourceInformation = sourceInformation;
+  }
   toString() => 'return';
   accept(HVisitor visitor) => visitor.visitReturn(this);
 }
 
 class HThrowExpression extends HInstruction {
-  HThrowExpression(value)
-      : super(<HInstruction>[value], const TypeMask.nonNullEmpty());
+  HThrowExpression(HInstruction value, SourceInformation sourceInformation)
+      : super(<HInstruction>[value], const TypeMask.nonNullEmpty()) {
+    this.sourceInformation = sourceInformation;
+  }
   toString() => 'throw expression';
   accept(HVisitor visitor) => visitor.visitThrowExpression(this);
   bool canThrow() => true;
@@ -2337,7 +2350,12 @@ class HYield extends HInstruction {
 
 class HThrow extends HControlFlow {
   final bool isRethrow;
-  HThrow(value, {this.isRethrow: false}) : super(<HInstruction>[value]);
+  HThrow(HInstruction value,
+         SourceInformation sourceInformation,
+         {this.isRethrow: false})
+      : super(<HInstruction>[value]) {
+    this.sourceInformation = sourceInformation;
+  }
   toString() => 'throw';
   accept(HVisitor visitor) => visitor.visitThrow(this);
 }

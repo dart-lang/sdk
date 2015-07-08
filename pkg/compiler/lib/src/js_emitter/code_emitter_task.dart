@@ -4,7 +4,7 @@
 
 part of dart2js.js_emitter;
 
-const USE_NEW_EMITTER = const bool.fromEnvironment("dart2js.use.new.emitter");
+const USE_LAZY_EMITTER = const bool.fromEnvironment("dart2js.use.lazy.emitter");
 
 /**
  * Generates the code for all used classes in the program. Static fields (even
@@ -22,6 +22,7 @@ class CodeEmitterTask extends CompilerTask {
   Emitter emitter;
 
   final Set<ClassElement> neededClasses = new Set<ClassElement>();
+  Set<ClassElement> classesOnlyNeededForRti;
   final Map<OutputUnit, List<ClassElement>> outputClassLists =
       new Map<OutputUnit, List<ClassElement>>();
   final Map<OutputUnit, List<ConstantValue>> outputConstantLists =
@@ -54,8 +55,8 @@ class CodeEmitterTask extends CompilerTask {
         this.typeTestRegistry = new TypeTestRegistry(compiler) {
     nativeEmitter = new NativeEmitter(this);
     oldEmitter = new OldEmitter(compiler, namer, generateSourceMap, this);
-    emitter = USE_NEW_EMITTER
-        ? new new_js_emitter.Emitter(compiler, namer, nativeEmitter)
+    emitter = USE_LAZY_EMITTER
+        ? new lazy_js_emitter.Emitter(compiler, namer, nativeEmitter)
         : oldEmitter;
     metadataCollector = new MetadataCollector(compiler, emitter);
   }
@@ -211,7 +212,7 @@ class CodeEmitterTask extends CompilerTask {
         }
       }
       for (ClassElement cls in neededClasses) {
-        final onlyForRti = typeTestRegistry.rtiNeededClasses.contains(cls);
+        final onlyForRti = classesOnlyNeededForRti.contains(cls);
         if (!onlyForRti) {
           backend.retainMetadataOf(cls);
           oldEmitter.classEmitter.visitFields(cls, false,
@@ -253,7 +254,7 @@ class CodeEmitterTask extends CompilerTask {
   }
 
   /// Compute all the classes and typedefs that must be emitted.
-  void computeNeededDeclarations() {
+  void computeNeededDeclarations(Set<ClassElement> rtiNeededClasses) {
     // Compute needed typedefs.
     typedefsNeededForReflection = Elements.sortedByPosition(
         compiler.world.allTypedefs
@@ -297,13 +298,9 @@ class CodeEmitterTask extends CompilerTask {
     // these are thought to not have been instantiated, so we neeed to be able
     // to identify them later and make sure we only emit "empty shells" without
     // fields, etc.
-    typeTestRegistry.computeRtiNeededClasses();
+    classesOnlyNeededForRti = rtiNeededClasses.difference(neededClasses);
 
-    // TODO(floitsch): either change the name, or get the rti-classes
-    // differently.
-    typeTestRegistry.rtiNeededClasses.removeAll(neededClasses);
-    // rtiNeededClasses now contains only the "empty shells".
-    neededClasses.addAll(typeTestRegistry.rtiNeededClasses);
+    neededClasses.addAll(classesOnlyNeededForRti);
 
     // TODO(18175, floitsch): remove once issue 18175 is fixed.
     if (neededClasses.contains(backend.jsIntClass)) {
@@ -330,7 +327,7 @@ class CodeEmitterTask extends CompilerTask {
 
     for (ClassElement element in sortedClasses) {
       if (Elements.isNativeOrExtendsNative(element) &&
-          !typeTestRegistry.rtiNeededClasses.contains(element)) {
+          !classesOnlyNeededForRti.contains(element)) {
         // For now, native classes and related classes cannot be deferred.
         nativeClassesAndSubclasses.add(element);
         assert(invariant(element,
@@ -390,8 +387,10 @@ class CodeEmitterTask extends CompilerTask {
     // Compute the required type checks to know which classes need a
     // 'is$' method.
     typeTestRegistry.computeRequiredTypeChecks();
+    // Compute the classes needed by RTI.
+    Set<ClassElement> rtiClasses = typeTestRegistry.computeRtiNeededClasses();
 
-    computeNeededDeclarations();
+    computeNeededDeclarations(rtiClasses);
     computeNeededConstants();
     computeNeededStatics();
     computeNeededStaticNonFinalFields();

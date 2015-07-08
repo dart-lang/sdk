@@ -2068,8 +2068,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       switch (semantics.kind) {
         case AccessKind.STATIC_METHOD:
         case AccessKind.TOPLEVEL_METHOD:
-          MethodElementX method = semantics.element;
-          method.computeSignature(compiler);
+          MethodElement method = semantics.element;
+          method.computeType(compiler);
           if (!callStructure.signatureApplies(method.functionSignature)) {
             registry.registerThrowNoSuchMethod();
             registry.registerDynamicInvocation(

@@ -1049,7 +1049,7 @@ class ElementResolver extends SimpleAstVisitor<Object> {
     ConstructorElement element =
         superType.lookUpConstructor(superName, _definingLibrary);
     if (element == null ||
-        (!enclosingClass.mixinErrorsReported &&
+        (!enclosingClass.doesMixinLackConstructors &&
             !enclosingClass.isSuperConstructorAccessible(element))) {
       if (name != null) {
         _resolver.reportErrorForNode(

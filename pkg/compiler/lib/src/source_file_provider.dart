@@ -103,6 +103,10 @@ abstract class SourceFileProvider {
   Future/*<List<int> | String>*/ call(Uri resourceUri);
 
   relativizeUri(Uri uri) => relativize(cwd, uri, isWindows);
+
+  SourceFile getSourceFile(Uri resourceUri) {
+    return sourceFiles[resourceUri];
+  }
 }
 
 class CompilerSourceFileProvider extends SourceFileProvider {

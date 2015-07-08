@@ -259,7 +259,7 @@ abstract class Enqueuer {
         recentClasses.add(cls);
         cls.ensureResolved(compiler);
         cls.implementation.forEachMember(processInstantiatedClassMember);
-        if (isResolutionQueue) {
+        if (isResolutionQueue && !cls.isSynthesized) {
           compiler.resolver.checkClass(cls);
         }
         // We only tell the backend once that [cls] was instantiated, so
@@ -724,6 +724,7 @@ class ResolutionEnqueuer extends Enqueuer {
 
   bool internalAddToWorkList(Element element) {
     if (element.isErroneous) return false;
+
     assert(invariant(element, element is AnalyzableElement,
         message: 'Element $element is not analyzable.'));
     if (hasBeenResolved(element)) return false;
@@ -734,7 +735,15 @@ class ResolutionEnqueuer extends Enqueuer {
 
     compiler.world.registerUsedElement(element);
 
-    queue.add(new ResolutionWorkItem(element, itemCompilationContextCreator()));
+    ResolutionWorkItem workItem;
+    if (compiler.serialization.isDeserialized(element)) {
+      workItem = compiler.serialization.createResolutionWorkItem(
+          element, itemCompilationContextCreator());
+    } else {
+      workItem = new ResolutionWorkItem(
+          element, itemCompilationContextCreator());
+    }
+    queue.add(workItem);
 
     // Enable isolate support if we start using something from the isolate
     // library, or timers for the async library.  We exclude constant fields,

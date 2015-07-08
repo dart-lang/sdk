@@ -191,28 +191,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return buildConstant(glue.getConstantValueForVariable(parameter));
   }
 
-  // TODO(karlklose): get rid of the selector argument.
-  js.Expression buildStaticInvoke(Selector selector,
-                                  Element target,
+  js.Expression buildStaticInvoke(Element target,
                                   List<js.Expression> arguments,
                                   {SourceInformation sourceInformation}) {
     registry.registerStaticInvocation(target.declaration);
-    if (target == glue.getInterceptorMethod) {
-      // This generates a call to the specialized interceptor function, which
-      // does not have a specialized element yet, but is emitted as a stub from
-      // the emitter in [InterceptorStubGenerator].
-      // TODO(karlklose): Either change [InvokeStatic] to take an [Entity]
-      //   instead of an [Element] and model the getInterceptor functions as
-      //   [Entity]s or add a specialized Tree-IR node for interceptor calls.
-      registry.registerUseInterceptor();
-      js.VariableUse interceptorLibrary = glue.getInterceptorLibrary();
-      return js.propertyCall(interceptorLibrary, js.string(selector.name),
-                             arguments);
-    } else {
-      js.Expression elementAccess = glue.staticFunctionAccess(target);
-      return new js.Call(elementAccess, arguments,
-          sourceInformation: sourceInformation);
-    }
+    js.Expression elementAccess = glue.staticFunctionAccess(target);
+    return new js.Call(elementAccess, arguments,
+        sourceInformation: sourceInformation);
   }
 
   @override
@@ -220,10 +205,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
     if (node.constant != null) return giveup(node);
 
     registry.registerInstantiatedType(node.type);
-    Selector selector = node.selector;
     FunctionElement target = node.target;
     List<js.Expression> arguments = visitExpressionList(node.arguments);
-    return buildStaticInvoke(selector, target, arguments);
+    return buildStaticInvoke(target, arguments);
   }
 
   void registerMethodInvoke(tree_ir.InvokeMethod node) {
@@ -255,12 +239,10 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitInvokeStatic(tree_ir.InvokeStatic node) {
-    Selector selector = node.selector;
-    assert(selector.isGetter || selector.isSetter || selector.isCall);
     FunctionElement target = node.target;
     List<js.Expression> arguments = visitExpressionList(node.arguments);
-    return buildStaticInvoke(selector, target, arguments,
-        sourceInformation: node.sourceInformation);
+    return buildStaticInvoke(target, arguments,
+          sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -305,10 +287,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     List<js.Expression> args = entries.isEmpty
          ? <js.Expression>[]
          : <js.Expression>[new js.ArrayInitializer(entries)];
-    return buildStaticInvoke(
-        new Selector.call(constructor.name, constructor.library, 2),
-        constructor,
-        args);
+    return buildStaticInvoke(constructor, args);
   }
 
   @override
@@ -345,6 +324,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
       } else if (clazz == glue.jsMutableArrayClass) {
         return js.js(r'!#.immutable$list', <js.Expression>[value]);
       }
+
+      // The helper we use needs the JSArray class to exist, but for some
+      // reason the helper does not cause this dependency to be registered.
+      // TODO(asgerf): Most programs need List anyway, but we should fix this.
+      registry.registerInstantiatedClass(glue.listClass);
 
       // We use one of the two helpers:
       //
@@ -683,8 +667,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression buildStaticHelperInvocation(FunctionElement helper,
                                             List<js.Expression> arguments) {
     registry.registerStaticUse(helper);
-    return buildStaticInvoke(new Selector.fromElement(helper), helper,
-        arguments);
+    return buildStaticInvoke(helper, arguments);
   }
 
   @override

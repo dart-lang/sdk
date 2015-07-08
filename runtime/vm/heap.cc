@@ -219,6 +219,50 @@ void Heap::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
+HeapIterationScope::HeapIterationScope()
+    : StackResource(Thread::Current()->isolate()),
+      old_space_(isolate()->heap()->old_space()) {
+  // It's not yet safe to iterate over a paged space while it's concurrently
+  // sweeping, so wait for any such task to complete first.
+  MonitorLocker ml(old_space_->tasks_lock());
+#if defined(DEBUG)
+  // We currently don't support nesting of HeapIterationScopes.
+  ASSERT(!old_space_->is_iterating_);
+  old_space_->is_iterating_ = true;
+#endif
+  while (old_space_->tasks() > 0) {
+    ml.Wait();
+  }
+  old_space_->set_tasks(1);
+}
+
+
+HeapIterationScope::~HeapIterationScope() {
+  MonitorLocker ml(old_space_->tasks_lock());
+#if defined(DEBUG)
+  ASSERT(old_space_->is_iterating_);
+  old_space_->is_iterating_ = false;
+#endif
+  ASSERT(old_space_->tasks() == 1);
+  old_space_->set_tasks(0);
+  ml.Notify();
+}
+
+
+void Heap::IterateObjects(ObjectVisitor* visitor) const {
+  // The visitor must not allocate from the heap.
+  NoSafepointScope no_safepoint_scope_;
+  new_space_->VisitObjects(visitor);
+  IterateOldObjects(visitor);
+}
+
+
+void Heap::IterateOldObjects(ObjectVisitor* visitor) const {
+  HeapIterationScope heap_iteration_scope;
+  old_space_->VisitObjects(visitor);
+}
+
+
 void Heap::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   new_space_->VisitObjectPointers(visitor);
   old_space_->VisitObjectPointers(visitor);
@@ -235,11 +279,7 @@ RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) const {
 
 
 RawObject* Heap::FindOldObject(FindObjectVisitor* visitor) const {
-  // Wait for any concurrent GC tasks to finish before walking.
-  MonitorLocker ml(old_space_->tasks_lock());
-  while (old_space_->tasks() > 0) {
-    ml.Wait();
-  }
+  HeapIterationScope heap_iteration_scope;
   return old_space_->FindObject(visitor, HeapPage::kData);
 }
 
@@ -250,7 +290,8 @@ RawObject* Heap::FindNewObject(FindObjectVisitor* visitor) const {
 
 
 RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
-  ASSERT(isolate()->no_safepoint_scope_depth() != 0);
+  // The visitor must not allocate from the heap.
+  NoSafepointScope no_safepoint_scope;
   RawObject* raw_obj = FindNewObject(visitor);
   if (raw_obj != Object::null()) {
     return raw_obj;
@@ -489,6 +530,12 @@ ObjectSet* Heap::CreateAllocatedObjectSet(
 
 
 bool Heap::Verify(MarkExpectation mark_expectation) const {
+  HeapIterationScope heap_iteration_scope;
+  return VerifyGC(mark_expectation);
+}
+
+
+bool Heap::VerifyGC(MarkExpectation mark_expectation) const {
   ObjectSet* allocated_set = CreateAllocatedObjectSet(mark_expectation);
   VerifyPointersVisitor visitor(isolate(), allocated_set);
   VisitObjectPointers(&visitor);

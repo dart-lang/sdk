@@ -26,8 +26,6 @@ abstract class WorkItem {
    */
   final AstElement element;
 
-  TreeElements get resolutionTree;
-
   WorkItem(this.element, this.compilationContext) {
     assert(invariant(element, element.isDeclaration));
   }
@@ -37,7 +35,7 @@ abstract class WorkItem {
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
 class ResolutionWorkItem extends WorkItem {
-  TreeElements resolutionTree;
+  bool _isAnalyzed = false;
 
   ResolutionWorkItem(AstElement element,
                      ItemCompilationContext compilationContext)
@@ -45,11 +43,11 @@ class ResolutionWorkItem extends WorkItem {
 
   WorldImpact run(Compiler compiler, ResolutionEnqueuer world) {
     WorldImpact impact = compiler.analyze(this, world);
-    resolutionTree = element.resolvedAst.elements;
+    _isAnalyzed = true;
     return impact;
   }
 
-  bool isAnalyzed() => resolutionTree != null;
+  bool get isAnalyzed => _isAnalyzed;
 }
 
 // TODO(johnniwinther): Split this class into interface and implementation.
@@ -271,6 +269,11 @@ abstract class Backend {
 
   /// Backend callback methods for the resolution phase.
   ResolutionCallbacks get resolutionCallbacks;
+
+  /// The strategy used for collecting and emitting source information.
+  SourceInformationStrategy get sourceInformationStrategy {
+    return const SourceInformationStrategy();
+  }
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   String get patchVersion => null;
@@ -699,6 +702,8 @@ abstract class Compiler implements DiagnosticListener {
 
   final bool enableMinification;
 
+  final bool useFrequencyNamer;
+
   /// When `true` emits URIs in the reflection metadata.
   final bool preserveUris;
 
@@ -944,6 +949,7 @@ abstract class Compiler implements DiagnosticListener {
   ParserTask parser;
   PatchParserTask patchParser;
   LibraryLoaderTask libraryLoader;
+  SerializationTask serialization;
   ResolverTask resolver;
   closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
@@ -1042,6 +1048,7 @@ abstract class Compiler implements DiagnosticListener {
             bool analyzeSignaturesOnly: false,
             this.preserveComments: false,
             this.useCpsIr: false,
+            this.useFrequencyNamer: false,
             this.verbose: false,
             this.sourceMapUri: null,
             this.outputUri: null,
@@ -1093,17 +1100,10 @@ abstract class Compiler implements DiagnosticListener {
     globalDependencies =
         new CodegenRegistry(this, new TreeElementMapping(null));
 
-    SourceInformationFactory sourceInformationFactory =
-        const SourceInformationFactory();
-    if (generateSourceMap) {
-      sourceInformationFactory =
-          const bool.fromEnvironment('USE_NEW_SOURCE_INFO', defaultValue: false)
-              ? const PositionSourceInformationFactory()
-              : const StartEndSourceInformationFactory();
-    }
     if (emitJavaScript) {
-      js_backend.JavaScriptBackend jsBackend = new js_backend.JavaScriptBackend(
-      this, sourceInformationFactory, generateSourceMap: generateSourceMap);
+      js_backend.JavaScriptBackend jsBackend =
+          new js_backend.JavaScriptBackend(
+              this, generateSourceMap: generateSourceMap);
       backend = jsBackend;
     } else {
       backend = new dart_backend.DartBackend(this, strips,
@@ -1115,6 +1115,7 @@ abstract class Compiler implements DiagnosticListener {
 
     tasks = [
       libraryLoader = new LibraryLoaderTask(this),
+      serialization = new SerializationTask(this),
       scanner = new ScannerTask(this),
       dietParser = new DietParserTask(this),
       parser = new ParserTask(this),
@@ -1122,7 +1123,7 @@ abstract class Compiler implements DiagnosticListener {
       resolver = new ResolverTask(this, backend.constantCompilerTask),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
-      irBuilder = new IrBuilderTask(this, sourceInformationFactory),
+      irBuilder = new IrBuilderTask(this, backend.sourceInformationStrategy),
       typesTask = new ti.TypesTask(this),
       constants = backend.constantCompilerTask,
       deferredLoadTask = new DeferredLoadTask(this),
@@ -1815,7 +1816,7 @@ abstract class Compiler implements DiagnosticListener {
 
   WorldImpact analyze(ResolutionWorkItem work, ResolutionEnqueuer world) {
     assert(invariant(work.element, identical(world, enqueuer.resolution)));
-    assert(invariant(work.element, !work.isAnalyzed(),
+    assert(invariant(work.element, !work.isAnalyzed,
         message: 'Element ${work.element} has already been analyzed'));
     if (shouldPrintProgress) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
@@ -2239,6 +2240,20 @@ class SourceSpan implements Spannable {
     return f(beginOffset, endOffset);
   }
 
+  int get hashCode {
+    return 13 * uri.hashCode +
+           17 * begin.hashCode +
+           19 * end.hashCode;
+  }
+
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! SourceSpan) return false;
+    return uri == other.uri &&
+           begin == other.begin &&
+           end == other.end;
+  }
+
   String toString() => 'SourceSpan($uri, $begin, $end)';
 }
 
@@ -2413,22 +2428,22 @@ class AnyLocation implements CodeLocation {
 class _CompilerCoreTypes implements CoreTypes {
   final Compiler compiler;
 
-  ClassElementX objectClass;
-  ClassElementX boolClass;
-  ClassElementX numClass;
-  ClassElementX intClass;
-  ClassElementX doubleClass;
-  ClassElementX stringClass;
-  ClassElementX functionClass;
-  ClassElementX nullClass;
-  ClassElementX listClass;
-  ClassElementX typeClass;
-  ClassElementX mapClass;
-  ClassElementX symbolClass;
-  ClassElementX stackTraceClass;
-  ClassElementX futureClass;
-  ClassElementX iterableClass;
-  ClassElementX streamClass;
+  ClassElement objectClass;
+  ClassElement boolClass;
+  ClassElement numClass;
+  ClassElement intClass;
+  ClassElement doubleClass;
+  ClassElement stringClass;
+  ClassElement functionClass;
+  ClassElement nullClass;
+  ClassElement listClass;
+  ClassElement typeClass;
+  ClassElement mapClass;
+  ClassElement symbolClass;
+  ClassElement stackTraceClass;
+  ClassElement futureClass;
+  ClassElement iterableClass;
+  ClassElement streamClass;
 
   _CompilerCoreTypes(this.compiler);
 

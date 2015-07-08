@@ -135,7 +135,7 @@ class ConstantConstructorComputer extends SemanticVisitor
       NodeList parameters,
       Node body, _) {
     // TODO(johnniwinther): Handle constant constructors with errors.
-    internalError(node, "Factory constructor cannot be constant.");
+    internalError(node, "Factory constructor cannot be constant: $node.");
   }
 
   applyParameters(NodeList parameters, _) {

@@ -46,6 +46,7 @@ DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
 DEFINE_FLAG(bool, enable_mirrors, true,
     "Disable to make importing dart:mirrors an error.");
+DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Quick access to the current isolate and zone.
 #define I (isolate())
@@ -1330,6 +1331,8 @@ SequenceNode* Parser::ParseImplicitClosure(const Function& func,
 
 SequenceNode* Parser::ParseMethodExtractor(const Function& func) {
   TRACE_PARSER("ParseMethodExtractor");
+  ASSERT(FLAG_lazy_dispatchers);
+
   ParamList params;
 
   const intptr_t ident_pos = func.token_pos();
@@ -1402,6 +1405,7 @@ void Parser::BuildDispatcherScope(const Function& func,
 SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
                                                   Array* default_values) {
   TRACE_PARSER("ParseNoSuchMethodDispatcher");
+  ASSERT(FLAG_lazy_dispatchers);
 
   ASSERT(func.IsNoSuchMethodDispatcher());
   intptr_t token_pos = func.token_pos();
@@ -1459,6 +1463,7 @@ SequenceNode* Parser::ParseNoSuchMethodDispatcher(const Function& func,
 SequenceNode* Parser::ParseInvokeFieldDispatcher(const Function& func,
                                                  Array* default_values) {
   TRACE_PARSER("ParseInvokeFieldDispatcher");
+  ASSERT(FLAG_lazy_dispatchers);
 
   ASSERT(func.IsInvokeFieldDispatcher());
   intptr_t token_pos = func.token_pos();
@@ -3573,7 +3578,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
         (LookaheadToken(3) == Token::kPERIOD);
     const AbstractType& type = AbstractType::Handle(Z,
         ParseType(ClassFinalizer::kResolveTypeParameters,
-                  false,  // Deferred types not allowed.
+                  true,
                   consume_unresolved_prefix));
     if (!type.IsMalformed() && type.IsTypeParameter()) {
       // Replace the type with a malformed type and compile a throw when called.
@@ -12019,13 +12024,16 @@ RawAbstractType* Parser::ParseType(
       // If deferred prefixes are allowed but it is not yet loaded,
       // remember that this function depends on the prefix.
       if (allow_deferred_type && !prefix.is_loaded()) {
-        ASSERT(parsed_function() != NULL);
-        parsed_function()->AddDeferredPrefix(prefix);
+        if (parsed_function() != NULL) {
+          parsed_function()->AddDeferredPrefix(prefix);
+        }
       }
-      // If the deferred prefixes are not allowed, or if the prefix
-      // is not yet loaded, return a malformed type. Otherwise, handle
-      // resolution below, as needed.
-      if (!prefix.is_loaded() || !allow_deferred_type) {
+      // If the deferred prefixes are not allowed, or if the prefix is not yet
+      // loaded when finalization is requested, return a malformed type.
+      // Otherwise, handle resolution below, as needed.
+      if (!allow_deferred_type ||
+          (!prefix.is_loaded()
+              && (finalization > ClassFinalizer::kResolveTypeParameters))) {
         ParseTypeArguments(ClassFinalizer::kIgnore);
         return ClassFinalizer::NewFinalizedMalformedType(
             Error::Handle(Z),  // No previous error.
@@ -12702,6 +12710,28 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
               String::Handle(Z, redirect_type.UserVisibleName()).ToCString());
         }
       }
+      if (!redirect_type.HasResolvedTypeClass()) {
+        // If the redirection type is unresolved, we convert the allocation
+        // into throwing a type error.
+        const UnresolvedClass& cls =
+            UnresolvedClass::Handle(Z, redirect_type.unresolved_class());
+        const LibraryPrefix& prefix =
+            LibraryPrefix::Handle(Z, cls.library_prefix());
+        if (!prefix.IsNull() && !prefix.is_loaded()) {
+          // If the redirection type is unresolved because it refers to
+          // an unloaded deferred prefix, mark this function as depending
+          // on the library prefix. It will then get invalidated when the
+          // prefix is loaded.
+          parsed_function()->AddDeferredPrefix(prefix);
+        }
+        redirect_type = ClassFinalizer::NewFinalizedMalformedType(
+            Error::Handle(Z),
+            script_,
+            call_pos,
+            "redirection type '%s' is not loaded",
+            String::Handle(Z, redirect_type.UserVisibleName()).ToCString());
+      }
+
       if (redirect_type.IsMalformedOrMalbounded()) {
         if (is_const) {
           ReportError(Error::Handle(Z, redirect_type.error()));

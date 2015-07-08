@@ -298,106 +298,68 @@ class GetHandler {
       _writePage(buffer, 'Analysis Server - Analysis Performance', [],
           (StringBuffer buffer) {
         buffer.write('<h3>Analysis Performance</h3>');
-
         //
         // Write performance tags.
         //
-        {
-          buffer.write('<p><b>Time spent in each phase of analysis</b></p>');
-          buffer.write(
-              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
-          _writeRow(buffer, ['Time (in ms)', 'Percent', 'Analysis Phase'],
-              header: true);
-          // prepare sorted tags
-          List<PerformanceTag> tags = PerformanceTag.all.toList();
-          tags.remove(ServerPerformanceStatistics.idle);
-          tags.sort((a, b) => b.elapsedMs - a.elapsedMs);
-          // prepare total time
-          int totalTime = 0;
-          tags.forEach((PerformanceTag tag) {
-            totalTime += tag.elapsedMs;
-          });
-          // write rows
-          void writeRow(PerformanceTag tag) {
-            double percent = (tag.elapsedMs * 100) / totalTime;
-            String percentStr = '${percent.toStringAsFixed(2)}%';
-            _writeRow(buffer, [tag.elapsedMs, percentStr, tag.label],
-                classes: ["right", "right", null]);
-          }
-          tags.forEach(writeRow);
-          buffer.write('</table>');
+        buffer.write('<p><b>Performance tag data</b></p>');
+        buffer.write(
+            '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+        _writeRow(buffer, ['Time (in ms)', 'Percent', 'Tag name'],
+            header: true);
+        // prepare sorted tags
+        List<PerformanceTag> tags = PerformanceTag.all.toList();
+        tags.remove(ServerPerformanceStatistics.idle);
+        tags.sort((a, b) => b.elapsedMs - a.elapsedMs);
+        // prepare total time
+        int totalTagTime = 0;
+        tags.forEach((PerformanceTag tag) {
+          totalTagTime += tag.elapsedMs;
+        });
+        // write rows
+        void writeRow(PerformanceTag tag) {
+          double percent = (tag.elapsedMs * 100) / totalTagTime;
+          String percentStr = '${percent.toStringAsFixed(2)}%';
+          _writeRow(buffer, [tag.elapsedMs, percentStr, tag.label],
+              classes: ["right", "right", null]);
         }
+        tags.forEach(writeRow);
+        buffer.write('</table>');
+        //
+        // Write task model timing information.
+        //
+        buffer.write('<p><b>Task performace data</b></p>');
+        buffer.write(
+            '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+        _writeRow(buffer, [
+          'Task Name',
+          'Count',
+          'Total Time (in ms)',
+          'Average Time (in ms)'
+        ], header: true);
 
-        //
-        // Write new task model timing information.
-        //
-        if (AnalysisEngine.instance.useTaskModel) {
-          buffer.write('<p><b>Task performace data</b></p>');
-          buffer.write(
-              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+        Map<Type, int> countMap = AnalysisTask.countMap;
+        Map<Type, Stopwatch> stopwatchMap = AnalysisTask.stopwatchMap;
+        List<Type> taskClasses = stopwatchMap.keys.toList();
+        taskClasses.sort((Type first, Type second) =>
+            first.toString().compareTo(second.toString()));
+        int totalTaskTime = 0;
+        taskClasses.forEach((Type taskClass) {
+          int count = countMap[taskClass];
+          if (count == null) {
+            count = 0;
+          }
+          int taskTime = stopwatchMap[taskClass].elapsedMilliseconds;
+          totalTaskTime += taskTime;
           _writeRow(buffer, [
-            'Task Name',
-            'Count',
-            'Total Time (in ms)',
-            'Average Time (in ms)'
-          ], header: true);
-
-          Map<Type, int> countMap = AnalysisTask.countMap;
-          Map<Type, Stopwatch> stopwatchMap = AnalysisTask.stopwatchMap;
-          List<Type> taskClasses = stopwatchMap.keys.toList();
-          taskClasses.sort((Type first, Type second) =>
-              first.toString().compareTo(second.toString()));
-          int totalTime = 0;
-          taskClasses.forEach((Type taskClass) {
-            int count = countMap[taskClass];
-            if (count == null) {
-              count = 0;
-            }
-            int taskTime = stopwatchMap[taskClass].elapsedMilliseconds;
-            totalTime += taskTime;
-            _writeRow(buffer, [
-              taskClass.toString(),
-              count,
-              taskTime,
-              count <= 0 ? '-' : (taskTime / count).toStringAsFixed(3)
-            ], classes: [null, "right", "right", "right"]);
-          });
-          _writeRow(buffer, ['Total', '-', totalTime, '-'],
-              classes: [null, "right", "right", "right"]);
-          buffer.write('</table>');
-        }
-
-        //
-        // Write old task model transition information.
-        //
-        {
-          Map<DataDescriptor, Map<CacheState, int>> transitionMap =
-              SourceEntry.transitionMap;
-          buffer.write(
-              '<p><b>Number of times a state transitioned to VALID (grouped by descriptor)</b></p>');
-          if (transitionMap.isEmpty) {
-            buffer.write('<p>none</p>');
-          } else {
-            List<DataDescriptor> descriptors = transitionMap.keys.toList();
-            descriptors.sort((DataDescriptor first, DataDescriptor second) =>
-                first.toString().compareTo(second.toString()));
-            for (DataDescriptor key in descriptors) {
-              Map<CacheState, int> countMap = transitionMap[key];
-              List<CacheState> oldStates = countMap.keys.toList();
-              oldStates.sort((CacheState first, CacheState second) =>
-                  first.toString().compareTo(second.toString()));
-              buffer.write('<p>${key.toString()}</p>');
-              buffer.write(
-                  '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
-              _writeRow(buffer, ['Count', 'Previous State'], header: true);
-              for (CacheState state in oldStates) {
-                _writeRow(buffer, [countMap[state], state.toString()],
-                    classes: ["right", null]);
-              }
-              buffer.write('</table>');
-            }
-          }
-        }
+            taskClass.toString(),
+            count,
+            taskTime,
+            count <= 0 ? '-' : (taskTime / count).toStringAsFixed(3)
+          ], classes: [null, "right", "right", "right"]);
+        });
+        _writeRow(buffer, ['Total', '-', totalTaskTime, '-'],
+            classes: [null, "right", "right", "right"]);
+        buffer.write('</table>');
       });
     });
   }

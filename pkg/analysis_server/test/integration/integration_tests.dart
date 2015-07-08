@@ -462,7 +462,7 @@ class Server {
    * upward to the 'test' dir, and then going up one more directory.
    */
   String findRoot(String pathname) {
-    while (basename(pathname) != 'test') {
+    while (!['benchmark', 'test'].contains(basename(pathname))) {
       String parent = dirname(pathname);
       if (parent.length >= pathname.length) {
         throw new Exception("Can't find root directory");
@@ -584,7 +584,7 @@ class Server {
    * `true`, the server will be started with "--observe" and
    * "--pause-isolates-on-exit", allowing the observatory to be used.
    */
-  Future start({bool debugServer: false, bool profileServer: false}) {
+  Future start({bool debugServer: false, int diagnosticPort, bool profileServer: false}) {
     if (_process != null) {
       throw new Exception('Process already started');
     }
@@ -606,6 +606,10 @@ class Server {
     }
     arguments.add('--checked');
     arguments.add(serverPath);
+    if (diagnosticPort != null) {
+      arguments.add('--port');
+      arguments.add(diagnosticPort.toString());
+    }
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
       process.exitCode.then((int code) {

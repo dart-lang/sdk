@@ -43,7 +43,7 @@ typedef void IrBuilderCallback(Element element, ir.FunctionDefinition irNode);
 /// This class is mainly there to correctly measure how long building the IR
 /// takes.
 class IrBuilderTask extends CompilerTask {
-  final SourceInformationFactory sourceInformationFactory;
+  final SourceInformationStrategy sourceInformationStrategy;
 
   String bailoutMessage = null;
 
@@ -51,7 +51,7 @@ class IrBuilderTask extends CompilerTask {
   /// [ir.FunctionDefinition] node that has been built.
   IrBuilderCallback builderCallback;
 
-  IrBuilderTask(Compiler compiler, this.sourceInformationFactory,
+  IrBuilderTask(Compiler compiler, this.sourceInformationStrategy,
       [this.builderCallback])
       : super(compiler);
 
@@ -65,7 +65,7 @@ class IrBuilderTask extends CompilerTask {
       element = element.implementation;
       return compiler.withCurrentElement(element, () {
         SourceInformationBuilder sourceInformationBuilder =
-            sourceInformationFactory.forContext(element);
+            sourceInformationStrategy.createBuilderForContext(element);
 
         IrBuilderVisitor builder =
             new JsIrBuilderVisitor(
@@ -2187,6 +2187,10 @@ class GlobalProgramInformation {
   TypeMask getTypeMaskForForeign(NativeBehavior behavior) {
     return TypeMaskFactory.fromNativeBehavior(behavior, _compiler);
   }
+
+  FieldElement locateSingleField(Selector selector, TypeMask type) {
+    return _compiler.world.locateSingleField(selector, type);
+  }
 }
 
 /// IR builder specific to the JavaScript backend, coupled to the [JsIrBuilder].
@@ -3034,7 +3038,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           element, CallStructure.TWO_ARGS);
       return irBuilder.buildStaticFunctionInvocation(element,
           CallStructure.TWO_ARGS, arguments,
-          sourceInformation: sourceInformationBuilder.buildCall(node));
+          sourceInformation:
+                sourceInformationBuilder.buildCall(node, node.selector));
     }
 
     /// Lookup the value of the enum described by [node].
@@ -3181,14 +3186,18 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (!compiler.hasIsolateSupport) {
           // If the isolate library is not used, we just generate code
           // to fetch the current isolate.
-          String name = backend.namer.currentIsolate;
-          return irBuilder.buildForeignCode(js.js.parseForeignJS(name),
-              const <ir.Primitive>[], NativeBehavior.PURE);
-        } else {
-          return buildIsolateHelperInvocation('_currentIsolate',
-              CallStructure.NO_ARGS);
+          continue GET_CURRENT_ISOLATE;
         }
-        break;
+        return buildIsolateHelperInvocation('_currentIsolate',
+            CallStructure.NO_ARGS);
+
+      GET_CURRENT_ISOLATE: case 'JS_CURRENT_ISOLATE':
+        validateArgumentCount(exactly: 0);
+
+        return irBuilder.buildForeignCode(
+            js.js.parseForeignJS(backend.namer.currentIsolate),
+            const <ir.Primitive>[],
+            NativeBehavior.PURE);
 
       case 'JS_CALL_IN_ISOLATE':
         validateArgumentCount(exactly: 2);
@@ -3197,11 +3206,9 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
           ir.Primitive closure = visit(argumentNodes.tail.head);
           return irBuilder.buildCallInvocation(closure, CallStructure.NO_ARGS,
               const <ir.Primitive>[]);
-        } else {
-          return buildIsolateHelperInvocation('_callInIsolate',
-              CallStructure.TWO_ARGS);
         }
-        break;
+        return buildIsolateHelperInvocation('_callInIsolate',
+            CallStructure.TWO_ARGS);
 
       default:
         giveup(node, 'unplemented native construct: ${function.name}');
@@ -3220,7 +3227,8 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
     } else {
       return irBuilder.buildStaticFunctionInvocation(function, callStructure,
           translateStaticArguments(argumentList, function, callStructure),
-          sourceInformation: sourceInformationBuilder.buildCall(node));
+          sourceInformation:
+              sourceInformationBuilder.buildCall(node, node.selector));
     }
   }
 }

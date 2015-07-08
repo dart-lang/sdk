@@ -1811,6 +1811,44 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   ValueGraphVisitor for_left_value(owner());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
+
+  if (!FLAG_warn_on_javascript_compatibility) {
+    if (type.IsNumberType() || type.IsIntType() || type.IsDoubleType() ||
+        type.IsSmiType() || type.IsStringType()) {
+      String& method_name = String::ZoneHandle(Z);
+      if (type.IsNumberType()) {
+        method_name = Symbols::_instanceOfNum().raw();
+      } else if (type.IsIntType()) {
+        method_name = Symbols::_instanceOfInt().raw();
+      } else if (type.IsDoubleType()) {
+        method_name = Symbols::_instanceOfDouble().raw();
+      } else if (type.IsSmiType()) {
+        method_name = Symbols::_instanceOfSmi().raw();
+      } else if (type.IsStringType()) {
+        method_name = Symbols::_instanceOfString().raw();
+      }
+      ASSERT(!method_name.IsNull());
+      PushArgumentInstr* push_left = PushArgument(for_left_value.value());
+      ZoneGrowableArray<PushArgumentInstr*>* arguments =
+          new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
+      arguments->Add(push_left);
+      const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
+      Value* negate_arg = Bind(new(Z) ConstantInstr(negate));
+      arguments->Add(PushArgument(negate_arg));
+      const intptr_t kNumArgsChecked = 1;
+      InstanceCallInstr* call = new(Z) InstanceCallInstr(
+          node->token_pos(),
+          Library::PrivateCoreLibName(method_name),
+          node->kind(),
+          arguments,
+          Object::null_array(),  // No argument names.
+          kNumArgsChecked,
+          owner()->ic_data_array());
+      ReturnDefinition(call);
+      return;
+    }
+  }
+
   PushArgumentInstr* push_left = PushArgument(for_left_value.value());
   PushArgumentInstr* push_instantiator = NULL;
   PushArgumentInstr* push_type_args = NULL;
@@ -1828,9 +1866,8 @@ void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   arguments->Add(push_instantiator);
   arguments->Add(push_type_args);
   ASSERT(!node->right()->AsTypeNode()->type().IsNull());
-  Value* type_arg = Bind(
-      new(Z) ConstantInstr(node->right()->AsTypeNode()->type()));
-  arguments->Add(PushArgument(type_arg));
+  Value* type_const = Bind(new(Z) ConstantInstr(type));
+  arguments->Add(PushArgument(type_const));
   const Bool& negate = Bool::Get(node->kind() == Token::kISNOT);
   Value* negate_arg = Bind(new(Z) ConstantInstr(negate));
   arguments->Add(PushArgument(negate_arg));

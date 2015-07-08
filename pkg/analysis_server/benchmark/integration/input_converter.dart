@@ -70,7 +70,13 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
    */
   final String tmpSrcDirPath;
 
-  CommonInputConverter(this.tmpSrcDirPath, this.srcPathMap);
+  /**
+   * The diagnostic port for Analysis Server or `null` if none.
+   */
+  final int diagnosticPort;
+
+  CommonInputConverter(this.tmpSrcDirPath, this.srcPathMap,
+      {this.diagnosticPort});
 
   /**
    * Return an operation for the notification or `null` if none.
@@ -89,7 +95,7 @@ abstract class CommonInputConverter extends Converter<String, Operation> {
     }
     if (event == SERVER_CONNECTED) {
       // {"event":"server.connected","params":{"version":"1.7.0"}}
-      return new StartServerOperation();
+      return new StartServerOperation(diagnosticPort: diagnosticPort);
     }
     if (eventsSeen.add(event)) {
       logger.log(Level.INFO, 'Ignored notification: $event\n  $json');
@@ -284,6 +290,11 @@ class InputConverter extends Converter<String, Operation> {
   final String tmpSrcDirPath;
 
   /**
+   * The diagnostic port for Analysis Server or `null` if none.
+   */
+  final int diagnosticPort;
+
+  /**
    * The number of lines read before the underlying converter was determined
    * or the end of file was reached.
    */
@@ -301,7 +312,7 @@ class InputConverter extends Converter<String, Operation> {
    */
   bool active = true;
 
-  InputConverter(this.tmpSrcDirPath, this.srcPathMap);
+  InputConverter(this.tmpSrcDirPath, this.srcPathMap, {this.diagnosticPort});
 
   @override
   Operation convert(String line) {
@@ -320,9 +331,11 @@ class InputConverter extends Converter<String, Operation> {
       throw 'Failed to determine input file format';
     }
     if (InstrumentationInputConverter.isFormat(line)) {
-      converter = new InstrumentationInputConverter(tmpSrcDirPath, srcPathMap);
+      converter = new InstrumentationInputConverter(tmpSrcDirPath, srcPathMap,
+          diagnosticPort: diagnosticPort);
     } else if (LogFileInputConverter.isFormat(line)) {
-      converter = new LogFileInputConverter(tmpSrcDirPath, srcPathMap);
+      converter = new LogFileInputConverter(tmpSrcDirPath, srcPathMap,
+          diagnosticPort: diagnosticPort);
     }
     if (converter != null) {
       return converter.convert(line);

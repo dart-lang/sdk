@@ -52,13 +52,6 @@ Assembler::Assembler(bool use_far_branches)
     } else {
       object_pool_wrapper_.AddObject(vacant);
     }
-
-    if (stub_code->CallToRuntime_entry() != NULL) {
-      object_pool_wrapper_.AddExternalLabel(
-          &stub_code->CallToRuntimeLabel(), kNotPatchable);
-    } else {
-      object_pool_wrapper_.AddObject(vacant);
-    }
   }
 }
 
@@ -464,10 +457,14 @@ void Assembler::LoadIsolate(Register dst, Register pp) {
 }
 
 
-void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
+void Assembler::LoadObjectHelper(Register dst,
+                                 const Object& object,
+                                 Register pp,
+                                 bool is_unique) {
   if (CanLoadObjectFromPool(object)) {
-    const int32_t offset =
-        ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
+    const int32_t offset = ObjectPool::element_offset(
+        is_unique ? object_pool_wrapper_.AddObject(object)
+                  : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(dst, pp, offset);
   } else {
     ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
@@ -475,6 +472,18 @@ void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
            object.InVMHeap());
     LoadDecodableImmediate(dst, reinterpret_cast<int64_t>(object.raw()), pp);
   }
+}
+
+
+void Assembler::LoadObject(Register dst, const Object& object, Register pp) {
+  LoadObjectHelper(dst, object, pp, false);
+}
+
+
+void Assembler::LoadUniqueObject(Register dst,
+                                 const Object& object,
+                                 Register pp) {
+  LoadObjectHelper(dst, object, pp, true);
 }
 
 
@@ -1016,7 +1025,7 @@ void Assembler::CompareClassId(
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   // Load up a null object. We only need it so we can use LoadClassId on it in
   // the case that object is a Smi..
   LoadObject(TMP, Object::null_object(), PP);
@@ -1031,6 +1040,11 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   LoadImmediate(TMP, kSmiCid, PP);
   // If object is a Smi, move the Smi cid into result. o/w leave alone.
   csel(result, TMP, result, EQ);
+}
+
+
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  LoadClassIdMayBeSmi(result, object);
   // Finally, tag the result.
   SmiTag(result);
 }

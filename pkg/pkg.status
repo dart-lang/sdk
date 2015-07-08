@@ -150,47 +150,46 @@ third_party/di_tests/di_test: Pass, Slow # Issue 22896
 analyzer/test/*: PubGetError
 
 [ $compiler == dart2js && $cps_ir ]
-analyzer/test/cancelable_future_test: Crash # Invalid argument(s)
-analyzer/test/enum_test: Crash # Invalid argument(s)
-analyzer/test/file_system/memory_file_system_test: Crash # Invalid argument(s)
-analyzer/test/file_system/physical_resource_provider_test: Crash # Invalid argument(s)
-analyzer/test/file_system/resource_uri_resolver_test: Crash # Invalid argument(s)
-analyzer/test/generated/all_the_rest_test: Crash # Invalid argument(s)
-analyzer/test/generated/ast_test: Crash # Invalid argument(s)
-analyzer/test/generated/compile_time_error_code_test: Crash # Invalid argument(s)
-analyzer/test/generated/element_test: Crash # Invalid argument(s)
-analyzer/test/generated/incremental_resolver_test: Crash # Invalid argument(s)
-analyzer/test/generated/incremental_scanner_test: Crash # Invalid argument(s)
-analyzer/test/generated/java_core_test : RuntimeError # TypeError: receiver.get$_nums is not a function
-analyzer/test/generated/non_error_resolver_test: Crash # Invalid argument(s)
-analyzer/test/generated/parser_test: Crash # Invalid argument(s)
-analyzer/test/generated/resolver_test: Crash # Invalid argument(s)
-analyzer/test/generated/scanner_test: Crash # Invalid argument(s)
-analyzer/test/generated/static_type_warning_code_test: Crash # Invalid argument(s)
-analyzer/test/generated/static_warning_code_test: Crash # Invalid argument(s)
-analyzer/test/generated/type_system_test: Crash # Invalid argument(s)
-analyzer/test/generated/utilities_test: Crash # Invalid argument(s)
-analyzer/test/instrumentation/instrumentation_test: Crash # Invalid argument(s)
-analyzer/test/parse_compilation_unit_test: Crash # Invalid argument(s)
-analyzer/test/source/package_map_provider_test: Crash # Invalid argument(s)
-analyzer/test/source/package_map_resolver_test: Crash # Invalid argument(s)
-analyzer/test/src/context/cache_test: Crash # Invalid argument(s)
-analyzer/test/src/context/context_test: Crash # Invalid argument(s)
-analyzer/test/src/task/dart_test: Crash # Invalid argument(s)
-analyzer/test/src/task/dart_work_manager_test: Crash # Invalid argument(s)
-analyzer/test/src/task/driver_test: Crash # Invalid argument(s)
-analyzer/test/src/task/general_test: Crash # Invalid argument(s)
-analyzer/test/src/task/html_test: Crash # Invalid argument(s)
-analyzer/test/src/task/html_work_manager_test: Crash # Invalid argument(s)
-analyzer/test/src/task/incremental_element_builder_test: Crash # Invalid argument(s)
-analyzer/test/src/task/inputs_test: Crash # Invalid argument(s)
-analyzer/test/src/task/manager_test: Crash # Invalid argument(s)
-analyzer/test/src/task/model_test: Crash # Invalid argument(s)
-analyzer/test/src/util/asserts_test: Crash # Invalid argument(s)
-analyzer/test/src/util/lru_map_test: Crash # Invalid argument(s)
-fixnum/test/int_32_test : RuntimeError # TypeError: receiver.get$_nums is not a function
-fixnum/test/int_64_test : RuntimeError # TypeError: receiver.get$_nums is not a function
-typed_data/test/typed_buffers_test/01: Crash # Invalid argument(s)
-typed_data/test/typed_buffers_test/none : RuntimeError # TypeError: receiver.get$_nums is not a function
-typed_mock/test/typed_mock_test : RuntimeError # TypeError: receiver.get$_nums is not a function
-analyzer/test/generated/source_factory_test : Crash # Invalid argument(s)
+analyzer/test/cancelable_future_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/enum_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/file_system/memory_file_system_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/file_system/physical_resource_provider_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/file_system/resource_uri_resolver_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/all_the_rest_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/ast_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/compile_time_error_code_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/element_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/incremental_resolver_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/incremental_scanner_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/java_core_test: RuntimeError # receiver.get$_nums is not a function
+analyzer/test/generated/non_error_resolver_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/parser_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/resolver_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/scanner_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/source_factory_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/static_type_warning_code_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/static_warning_code_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/type_system_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/generated/utilities_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/instrumentation/instrumentation_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/parse_compilation_unit_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/source/package_map_provider_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/source/package_map_resolver_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/context/cache_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/context/context_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/task/dart_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/task/dart_work_manager_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/task/driver_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/task/general_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/task/html_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/task/html_work_manager_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/task/incremental_element_builder_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/task/inputs_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/task/manager_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/task/model_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/util/asserts_test: Crash # The null object does not have a getter '_element'.
+analyzer/test/src/util/lru_map_test: Crash # The null object does not have a getter '_element'.
+fixnum/test/int_32_test: RuntimeError # receiver.get$_nums is not a function
+fixnum/test/int_64_test: RuntimeError # receiver.get$_nums is not a function
+typed_data/test/typed_buffers_test/none: RuntimeError # receiver.get$_nums is not a function
+typed_mock/test/typed_mock_test: RuntimeError # receiver.get$_nums is not a function

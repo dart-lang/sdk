@@ -1426,12 +1426,6 @@ void Isolate::Shutdown() {
   ASSERT(top_resource() == NULL);
 #if defined(DEBUG)
   if (heap_ != NULL) {
-    // Wait for concurrent GC tasks to finish before final verification.
-    PageSpace* old_space = heap_->old_space();
-    MonitorLocker ml(old_space->tasks_lock());
-    while (old_space->tasks() > 0) {
-      ml.Wait();
-    }
     // The VM isolate keeps all objects marked.
     heap_->Verify(this == Dart::vm_isolate() ? kRequireMarked : kForbidMarked);
   }
@@ -1511,6 +1505,14 @@ Dart_EntropySource Isolate::entropy_source_callback_ = NULL;
 
 Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;
+
+
+void Isolate::IterateObjectPointers(ObjectPointerVisitor* visitor,
+                                    bool visit_prologue_weak_handles,
+                                    bool validate_frames) {
+  HeapIterationScope heap_iteration_scope;
+  VisitObjectPointers(visitor, visit_prologue_weak_handles, validate_frames);
+}
 
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,

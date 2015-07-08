@@ -9,30 +9,22 @@ import 'dart:math' show min;
 import 'core_types.dart';
 import 'dart2jslib.dart' show Compiler, invariant, Script, Message;
 import 'elements/modelx.dart'
-    show VoidElementX,
-         LibraryElementX,
-         BaseClassElementX,
+    show LibraryElementX,
          TypeDeclarationElementX,
          TypedefElementX;
 import 'elements/elements.dart';
 import 'ordered_typeset.dart' show OrderedTypeSet;
 import 'util/util.dart' show CURRENT_ELEMENT_SPANNABLE, equalElements;
 
-class TypeKind {
-  final String id;
-
-  const TypeKind(String this.id);
-
-  static const TypeKind FUNCTION = const TypeKind('function');
-  static const TypeKind INTERFACE = const TypeKind('interface');
-  static const TypeKind STATEMENT = const TypeKind('statement');
-  static const TypeKind TYPEDEF = const TypeKind('typedef');
-  static const TypeKind TYPE_VARIABLE = const TypeKind('type variable');
-  static const TypeKind MALFORMED_TYPE = const TypeKind('malformed');
-  static const TypeKind DYNAMIC = const TypeKind('dynamic');
-  static const TypeKind VOID = const TypeKind('void');
-
-  String toString() => id;
+enum TypeKind {
+  FUNCTION,
+  INTERFACE,
+  STATEMENT,
+  TYPEDEF,
+  TYPE_VARIABLE,
+  MALFORMED_TYPE,
+  DYNAMIC,
+  VOID,
 }
 
 abstract class DartType {
@@ -451,9 +443,9 @@ class InterfaceType extends GenericType {
     assert(invariant(element, element.isDeclaration));
   }
 
-  InterfaceType.forUserProvidedBadType(BaseClassElementX element,
-                                       [List<DartType> typeArguments =
-                                           const <DartType>[]])
+  InterfaceType.forUserProvidedBadType(
+      ClassElement element,
+      [List<DartType> typeArguments = const <DartType>[]])
       : super(element, typeArguments, checkTypeArgumentCount: false);
 
   ClassElement get element => super.element;

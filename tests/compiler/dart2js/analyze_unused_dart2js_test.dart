@@ -38,6 +38,10 @@ const Map<String, List<String>> WHITE_LIST = const {
   "lib/src/constants/expressions.dart": const [
       "The method 'readFromEnvironment' is never called"],
 
+  // Serialization code is only used in test.
+  "lib/src/serialization/": const [
+      "is never"],
+
   // Nested functions are currently kept alive in the IR.
   "lib/src/tree_ir/": const [
     "accept", "FunctionExpression", "CreateFunction"

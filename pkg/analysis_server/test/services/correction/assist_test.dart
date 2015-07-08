@@ -939,6 +939,95 @@ fff() {
     assertNoAssistAt('fff()', DartAssistKind.CONVERT_INTO_EXPRESSION_BODY);
   }
 
+  void test_convertToFieldParameter_BAD_additionalUse() {
+    resolveTestUnit('''
+class A {
+  int aaa2;
+  int bbb2;
+  A(int aaa) : aaa2 = aaa, bbb2 = aaa;
+}
+''');
+    assertNoAssistAt('aaa)', DartAssistKind.CONVERT_TO_FIELD_PARAMETER);
+  }
+
+  void test_convertToFieldParameter_BAD_notPureAssignment() {
+    resolveTestUnit('''
+class A {
+  int aaa2;
+  A(int aaa) : aaa2 = aaa * 2;
+}
+''');
+    assertNoAssistAt('aaa)', DartAssistKind.CONVERT_TO_FIELD_PARAMETER);
+  }
+
+  void test_convertToFieldParameter_OK_firstInitializer() {
+    resolveTestUnit('''
+class A {
+  double aaa2;
+  int bbb2;
+  A(int aaa, int bbb) : aaa2 = aaa, bbb2 = bbb;
+}
+''');
+    assertHasAssistAt('aaa, ', DartAssistKind.CONVERT_TO_FIELD_PARAMETER, '''
+class A {
+  double aaa2;
+  int bbb2;
+  A(this.aaa2, int bbb) : bbb2 = bbb;
+}
+''');
+  }
+
+  void test_convertToFieldParameter_OK_onParameterName_inInitializer() {
+    resolveTestUnit('''
+class A {
+  int test2;
+  A(int test) : test2 = test {
+  }
+}
+''');
+    assertHasAssistAt('test {', DartAssistKind.CONVERT_TO_FIELD_PARAMETER, '''
+class A {
+  int test2;
+  A(this.test2) {
+  }
+}
+''');
+  }
+
+  void test_convertToFieldParameter_OK_onParameterName_inParameters() {
+    resolveTestUnit('''
+class A {
+  int test;
+  A(int test) : test = test {
+  }
+}
+''');
+    assertHasAssistAt('test)', DartAssistKind.CONVERT_TO_FIELD_PARAMETER, '''
+class A {
+  int test;
+  A(this.test) {
+  }
+}
+''');
+  }
+
+  void test_convertToFieldParameter_OK_secondInitializer() {
+    resolveTestUnit('''
+class A {
+  double aaa2;
+  int bbb2;
+  A(int aaa, int bbb) : aaa2 = aaa, bbb2 = bbb;
+}
+''');
+    assertHasAssistAt('bbb)', DartAssistKind.CONVERT_TO_FIELD_PARAMETER, '''
+class A {
+  double aaa2;
+  int bbb2;
+  A(int aaa, this.bbb2) : aaa2 = aaa;
+}
+''');
+  }
+
   void test_convertToForIndex_BAD_bodyNotBlock() {
     resolveTestUnit('''
 main(List<String> items) {
@@ -1337,6 +1426,57 @@ main(int p) {
 }
 ''');
     assertNoAssistAt('isEven;', DartAssistKind.CONVERT_INTO_IS_NOT_EMPTY);
+  }
+
+  void test_convertToNormalParameter_OK_dynamic() {
+    resolveTestUnit('''
+class A {
+  var test;
+  A(this.test) {
+  }
+}
+''');
+    assertHasAssistAt('test)', DartAssistKind.CONVERT_TO_NORMAL_PARAMETER, '''
+class A {
+  var test;
+  A(test) : test = test {
+  }
+}
+''');
+  }
+
+  void test_convertToNormalParameter_OK_firstInitializer() {
+    resolveTestUnit('''
+class A {
+  int test;
+  A(this.test) {
+  }
+}
+''');
+    assertHasAssistAt('test)', DartAssistKind.CONVERT_TO_NORMAL_PARAMETER, '''
+class A {
+  int test;
+  A(int test) : test = test {
+  }
+}
+''');
+  }
+
+  void test_convertToNormalParameter_OK_secondInitializer() {
+    resolveTestUnit('''
+class A {
+  double aaa;
+  int bbb;
+  A(this.bbb) : aaa = 1.0;
+}
+''');
+    assertHasAssistAt('bbb)', DartAssistKind.CONVERT_TO_NORMAL_PARAMETER, '''
+class A {
+  double aaa;
+  int bbb;
+  A(int bbb) : aaa = 1.0, bbb = bbb;
+}
+''');
   }
 
   void test_encapsulateField_BAD_alreadyPrivate() {

@@ -38,11 +38,6 @@ class OldEmitter implements Emitter {
   Map<OutputUnit, CodeOutput> outputBuffers = new Map<OutputUnit, CodeOutput>();
 
   String classesCollector;
-  Set<ClassElement> get neededClasses => task.neededClasses;
-  Map<OutputUnit, List<ClassElement>> get outputClassLists
-      => task.outputClassLists;
-  Map<OutputUnit, List<ConstantValue>> get outputConstantLists
-      => task.outputConstantLists;
   final Map<jsAst.Name, String> mangledFieldNames =
       new HashMap<jsAst.Name, String>();
   final Map<jsAst.Name, String> mangledGlobalFieldNames =
@@ -204,7 +199,7 @@ class OldEmitter implements Emitter {
 
   /// Contains the global state that is needed to initialize and load a
   /// deferred library.
-  jsAst.Name get globalsHolder => namer.internalGlobal("globalsHolder");
+  String get globalsHolder => r"$globals$";
 
   @override
   jsAst.Expression generateEmbeddedGlobalAccess(String global) {
@@ -328,10 +323,10 @@ class OldEmitter implements Emitter {
       jsAst.Expression subclassReadGenerator(jsAst.Expression subclass),
       jsAst.Expression interceptorsByTagAccess,
       jsAst.Expression leafTagsAccess) {
-    return nativeEmitter.buildNativeInfoHandler(infoAccess, constructorAccess,
-                                                subclassReadGenerator,
-                                                interceptorsByTagAccess,
-                                                leafTagsAccess);
+    return NativeGenerator.buildNativeInfoHandler(infoAccess, constructorAccess,
+                                                  subclassReadGenerator,
+                                                  interceptorsByTagAccess,
+                                                  leafTagsAccess);
   }
 
   jsAst.ObjectInitializer generateInterceptedNamesSet() {
@@ -576,32 +571,26 @@ class OldEmitter implements Emitter {
       List<jsAst.Expression> laziesInfo = buildLaziesInfo(lazyFields);
       return js.statement('''
       (function(lazies) {
-        if (#notInMinifiedMode) {
-          var descriptorLength = 4;
-        } else {
-          var descriptorLength = 3;
-        }
-
-        for (var i = 0; i < lazies.length; i += descriptorLength) {
-          var fieldName = lazies [i];
-          var getterName = lazies[i + 1];
-          var lazyValue = lazies[i + 2];
-          if (#notInMinifiedMode) {
-            var staticName = lazies[i + 3];
+        for (var i = 0; i < lazies.length; ) {
+          var fieldName = lazies[i++];
+          var getterName = lazies[i++];
+          if (#notMinified) {
+            var staticName = lazies[i++];
           }
+          var lazyValue = lazies[i++];
 
           // We build the lazy-check here:
           //   lazyInitializer(fieldName, getterName, lazyValue, staticName);
           // 'staticName' is used for error reporting in non-minified mode.
           // 'lazyValue' must be a closure that constructs the initial value.
-          if (#notInMinifiedMode) {
+          if (#notMinified) {
             #lazy(fieldName, getterName, lazyValue, staticName);
           } else {
             #lazy(fieldName, getterName, lazyValue);
           }
         }
       })(#laziesInfo)
-      ''', {'notInMinifiedMode': !compiler.enableMinification,
+      ''', {'notMinified': !compiler.enableMinification,
             'laziesInfo': new jsAst.ArrayInitializer(laziesInfo),
             'lazy': js(lazyInitializerName)});
     } else {
@@ -617,20 +606,17 @@ class OldEmitter implements Emitter {
       // initialized field after all because of constant folding
       // before code generation.
       if (code == null) continue;
-      if (compiler.enableMinification) {
-        laziesInfo.addAll([js.quoteName(namer.globalPropertyName(element)),
-                           js.quoteName(namer.lazyInitializerName(element)),
-                           code]);
-      } else {
-        laziesInfo.addAll([js.quoteName(namer.globalPropertyName(element)),
-                           js.quoteName(namer.lazyInitializerName(element)),
-                           code,
-                           js.string(element.name)]);
+      laziesInfo.add(js.quoteName(namer.globalPropertyName(element)));
+      laziesInfo.add(js.quoteName(namer.lazyInitializerName(element)));
+      if (!compiler.enableMinification) {
+        laziesInfo.add(js.string(element.name));
       }
+      laziesInfo.add(code);
     }
     return laziesInfo;
   }
 
+  // TODO(sra): Remove this unused function.
   jsAst.Expression buildLazilyInitializedStaticField(
       VariableElement element, {String isolateProperties}) {
     jsAst.Expression code = backend.generatedCode[element];
@@ -742,12 +728,14 @@ class OldEmitter implements Emitter {
   }
 
   jsAst.Statement buildFunctionThatReturnsNull() {
-    return js.statement('# = function() {}',
-                        [backend.rti.getFunctionThatReturnsNullName]);
+    return js.statement('#.# = function() {}',
+                        [namer.isolateName,
+                         backend.rti.getFunctionThatReturnsNullName]);
   }
 
   jsAst.Expression generateFunctionThatReturnsNull() {
-    return js("#", [backend.rti.getFunctionThatReturnsNullName]);
+    return js("#.#", [namer.isolateName,
+                      backend.rti.getFunctionThatReturnsNullName]);
   }
 
   buildMain(jsAst.Statement invokeMain) {
@@ -887,6 +875,8 @@ class OldEmitter implements Emitter {
           if (#outputContainsConstantList) {
             Isolate.#makeConstListProperty = oldIsolate.#makeConstListProperty;
           }
+          Isolate.#functionThatReturnsNullProperty =
+              oldIsolate.#functionThatReturnsNullProperty;
           if (#hasIncrementalSupport) {
             Isolate.#lazyInitializerProperty =
                 oldIsolate.#lazyInitializerProperty;
@@ -904,6 +894,8 @@ class OldEmitter implements Emitter {
             'isolatePropertiesName': namer.isolatePropertiesName,
             'outputContainsConstantList': task.outputContainsConstantList,
             'makeConstListProperty': makeConstListProperty,
+            'functionThatReturnsNullProperty':
+                backend.rti.getFunctionThatReturnsNullName,
             'hasIncrementalSupport': compiler.hasIncrementalSupport,
             'lazyInitializerProperty': lazyInitializerProperty,});
   }
@@ -1632,7 +1624,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
       if (descriptors != null && descriptors.isNotEmpty) {
         Iterable<LibraryElement> libraries =
-        task.outputLibraryLists[outputUnit];
+            task.outputLibraryLists[outputUnit];
         if (libraries == null) libraries = [];
 
         // TODO(johnniwinther): Avoid creating [CodeBuffer]s.
@@ -1651,9 +1643,14 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
   void finalizeTokensInAst(jsAst.Program main,
                            Iterable<jsAst.Program> deferredParts) {
-    task.metadataCollector.countTokensInAst(main);
-    deferredParts.forEach(task.metadataCollector.countTokensInAst);
+    jsAst.TokenCounter counter = new jsAst.TokenCounter();
+    counter.countTokens(main);
+    deferredParts.forEach(counter.countTokens);
     task.metadataCollector.finalizeTokens();
+    if (backend.namer is jsAst.TokenFinalizer) {
+      var finalizer = backend.namer;
+      finalizer.finalizeTokens();
+    }
   }
 
   int emitProgram(ProgramBuilder programBuilder) {

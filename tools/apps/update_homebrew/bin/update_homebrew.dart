@@ -234,7 +234,7 @@ class Dart < Formula
     bin.install_symlink "#{libexec}/bin/dart"
     bin.write_exec_script Dir["#{libexec}/bin/{pub,docgen,dart?*}"]
 
-    if build.with? 'content-shell'
+    if build.with? 'dartium'
       dartium_binary = 'Chromium.app/Contents/MacOS/Chromium'
       prefix.install resource('dartium')
       (bin+"dartium").write shim_script dartium_binary
@@ -260,7 +260,7 @@ class Dart < Formula
 
     --with-dartium:
       To use with IntelliJ, set the Dartium execute home to:
-        #{prefix}/Chromium.app
+        #{opt_prefix}/Chromium.app
     EOS
   end
 

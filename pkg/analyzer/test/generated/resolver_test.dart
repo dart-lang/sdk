@@ -1934,7 +1934,10 @@ class ElementResolverTest extends EngineTestCase {
     _definingLibrary.definingCompilationUnit = definingCompilationUnit;
     Library library = new Library(context, _listener, source);
     library.libraryElement = _definingLibrary;
-    _visitor = new ResolverVisitor.con1(library, source, _typeProvider);
+    _visitor = new ResolverVisitor(
+        library.libraryElement, source, _typeProvider, library.errorListener,
+        nameScope: library.libraryScope,
+        inheritanceManager: library.inheritanceManager);
     try {
       return _visitor.elementResolver;
     } catch (exception) {
@@ -11084,7 +11087,10 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
     Library library = new Library(context, _listener, source);
     library.libraryElement = definingLibrary;
-    _visitor = new ResolverVisitor.con1(library, source, _typeProvider);
+    _visitor = new ResolverVisitor(
+        library.libraryElement, source, _typeProvider, library.errorListener,
+        nameScope: library.libraryScope,
+        inheritanceManager: library.inheritanceManager);
     _visitor.overrideManager.enterScope();
     try {
       return _visitor.typeAnalyzer;
@@ -13365,11 +13371,6 @@ class TypeResolverVisitorTest extends EngineTestCase {
    */
   TypeResolverVisitor _visitor;
 
-  /**
-   * The visitor used to resolve types needed to form the type hierarchy.
-   */
-  ImplicitConstructorBuilder _implicitConstructorBuilder;
-
   void fail_visitConstructorDeclaration() {
     fail("Not yet tested");
     _listener.assertNoErrors();
@@ -13418,16 +13419,9 @@ class TypeResolverVisitorTest extends EngineTestCase {
         new CompilationUnitElementImpl("lib.dart");
     _library.libraryElement = element;
     _typeProvider = new TestTypeProvider();
-    _visitor =
-        new TypeResolverVisitor.con1(_library, librarySource, _typeProvider);
-    _implicitConstructorBuilder = new ImplicitConstructorBuilder(_listener,
-        (ClassElement classElement, ClassElement superclassElement,
-            void computation()) {
-      // For these tests, we assume the classes for which implicit
-      // constructors need to be built are visited in proper dependency order,
-      // so we just invoke the computation immediately.
-      computation();
-    });
+    _visitor = new TypeResolverVisitor(_library.libraryElement, librarySource,
+        _typeProvider, _library.errorListener,
+        nameScope: _library.libraryScope);
   }
 
   void test_visitCatchClause_exception() {
@@ -13827,9 +13821,6 @@ class TypeResolverVisitorTest extends EngineTestCase {
       }
     }
     node.accept(_visitor);
-    if (node is Declaration) {
-      node.element.accept(_implicitConstructorBuilder);
-    }
   }
 }
 

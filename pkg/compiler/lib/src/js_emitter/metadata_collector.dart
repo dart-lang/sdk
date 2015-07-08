@@ -10,7 +10,7 @@ part of dart2js.js_emitter;
 /// ast for a program.
 /// [value] is the actual position, once they have been finalized.
 abstract class _MetadataEntry extends jsAst.DeferredNumber
-    implements Comparable {
+    implements Comparable, jsAst.ReferenceCountedAstNode {
   jsAst.Expression get entry;
   int get value;
   int get _rc;
@@ -18,7 +18,7 @@ abstract class _MetadataEntry extends jsAst.DeferredNumber
   // Mark this entry as seen. On the first time this is seen, the visitor
   // will be applied to the [entry] to also mark potential [_MetadataEntry]
   // instances in the [entry] as seen.
-  markSeen(jsAst.BaseVisitor visitor);
+  markSeen(jsAst.TokenCounter visitor);
 }
 
 class _BoundMetadataEntry extends _MetadataEntry {
@@ -107,7 +107,7 @@ class _MetadataList extends jsAst.DeferredExpression {
   int get precedenceLevel => js_precedence.PRIMARY;
 }
 
-class MetadataCollector implements TokenFinalizer {
+class MetadataCollector implements jsAst.TokenFinalizer {
   final Compiler _compiler;
   final Emitter _emitter;
 
@@ -232,7 +232,10 @@ class MetadataCollector implements TokenFinalizer {
   }
 
   _MetadataEntry _addGlobalMetadata(jsAst.Node node) {
-    String printed = jsAst.prettyPrint(node, _compiler).getText();
+    String nameToKey(jsAst.Name name) => "${name.key}";
+    String printed = jsAst.prettyPrint(node, _compiler,
+                                       renamerForNames: nameToKey)
+                          .getText();
     return _globalMetadataMap.putIfAbsent(printed, () {
       _BoundMetadataEntry result = new _BoundMetadataEntry(node);
       if (_compiler.hasIncrementalSupport) {
@@ -298,12 +301,6 @@ class MetadataCollector implements TokenFinalizer {
   }
 
   @override
-  void countTokensInAst(jsAst.Node ast) {
-    TokenCounter visitor = new TokenCounter();
-    visitor.countTokens(ast);
-  }
-
-  @override
   void finalizeTokens() {
     bool checkTokensInTypes(OutputUnit outputUnit, entries) {
       UnBoundDebugger debugger = new UnBoundDebugger(outputUnit);
@@ -316,7 +313,7 @@ class MetadataCollector implements TokenFinalizer {
       return true;
     }
     void countTokensInTypes(Iterable<_BoundMetadataEntry> entries) {
-      TokenCounter counter = new TokenCounter();
+      jsAst.TokenCounter counter = new jsAst.TokenCounter();
       entries.where((_BoundMetadataEntry e) => e._rc > 0)
              .map((_BoundMetadataEntry e) => e.entry)
              .forEach(counter.countTokens);
@@ -358,39 +355,6 @@ class MetadataCollector implements TokenFinalizer {
       }
     });
   }
-}
-
-/// Interface for ast nodes that encapsulate an ast that needs to be
-/// traversed when counting tokens.
-///
-/// TODO(herhut): Find a shared place once namer also uses tokens.
-abstract class AstContainer implements jsAst.Node {
-  jsAst.Node get ast;
-}
-
-abstract class TokenFinalizer {
-  void countTokensInAst(jsAst.Node ast);
-  void finalizeTokens();
-}
-
-class TokenCounter extends jsAst.BaseVisitor {
-  @override
-  visitNode(jsAst.Node node) {
-    if (node is AstContainer) {
-      node.ast.accept(this);
-    } else {
-      super.visitNode(node);
-    }
-  }
-
-  @override
-  visitDeferredNumber(jsAst.DeferredNumber token) {
-    if (token is _MetadataEntry) {
-      token.markSeen(this);
-    }
-  }
-
-  void countTokens(jsAst.Node node) => node.accept(this);
 }
 
 class UnBoundDebugger extends jsAst.BaseVisitor {

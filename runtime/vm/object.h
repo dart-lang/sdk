@@ -1049,6 +1049,9 @@ class Class : public Object {
     }
     return reinterpret_cast<RawType*>(Object::null());
   }
+  static intptr_t canonical_types_offset() {
+    return OFFSET_OF(RawClass, canonical_types_);
+  }
 
   // The super type of this class, Object type if not explicitly specified.
   // Note that the super type may be bounded, as in this example:
@@ -1442,6 +1445,9 @@ class Class : public Object {
     return raw_ptr()->num_type_arguments_;
   }
   void set_num_type_arguments(intptr_t value) const;
+  static intptr_t num_type_arguments_offset() {
+    return OFFSET_OF(RawClass, num_type_arguments_);
+  }
 
   int16_t num_own_type_arguments() const {
     return raw_ptr()->num_own_type_arguments_;
@@ -1484,6 +1490,7 @@ class Class : public Object {
   friend class Instance;
   friend class Object;
   friend class Type;
+  friend class Intrinsifier;
 };
 
 
@@ -2189,6 +2196,8 @@ class Function : public Object {
   // Return the closure implicitly created for this function.
   // If none exists yet, create one and remember it.
   RawInstance* ImplicitStaticClosure() const;
+
+  RawInstance* ImplicitInstanceClosure(const Instance& receiver) const;
 
   // Redirection information for a redirecting factory.
   bool IsRedirectingFactory() const;
@@ -5030,6 +5039,9 @@ class AbstractType : public Instance {
   // Check if this type represents the 'num' type.
   bool IsNumberType() const;
 
+  // Check if this type represents the '_Smi' type.
+  bool IsSmiType() const;
+
   // Check if this type represents the 'String' type.
   bool IsStringType() const;
 
@@ -7658,9 +7670,16 @@ class JSRegExp : public Instance {
   bool is_ignore_case() const { return (flags() & kIgnoreCase); }
   bool is_multi_line() const { return (flags() & kMultiLine); }
 
+  intptr_t num_registers() const { return raw_ptr()->num_registers_; }
+
   RawString* pattern() const { return raw_ptr()->pattern_; }
   RawSmi* num_bracket_expressions() const {
     return raw_ptr()->num_bracket_expressions_;
+  }
+
+  RawTypedData* bytecode(bool is_one_byte) const {
+    return is_one_byte ? raw_ptr()->one_byte_bytecode_
+                       : raw_ptr()->two_byte_bytecode_;
   }
 
   static intptr_t function_offset(intptr_t cid) {
@@ -7690,6 +7709,7 @@ class JSRegExp : public Instance {
 
   void set_pattern(const String& pattern) const;
   void set_function(intptr_t cid, const Function& value) const;
+  void set_bytecode(bool is_one_byte, const TypedData& bytecode) const;
 
   void set_num_bracket_expressions(intptr_t value) const;
   void set_is_global() const { set_flags(flags() | kGlobal); }
@@ -7697,6 +7717,9 @@ class JSRegExp : public Instance {
   void set_is_multi_line() const { set_flags(flags() | kMultiLine); }
   void set_is_simple() const { set_type(kSimple); }
   void set_is_complex() const { set_type(kComplex); }
+  void set_num_registers(intptr_t value) const {
+    StoreNonPointer(&raw_ptr()->num_registers_, value);
+  }
 
   void* GetDataStartAddress() const;
   static RawJSRegExp* FromDataStartAddress(void* data);

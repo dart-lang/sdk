@@ -10,16 +10,11 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as path;
 
 import 'driver.dart';
 import 'input_converter.dart';
 import 'operation.dart';
-
-/**
- * The amount of time to give the server to respond to a shutdown request
- * before forcibly terminating it.
- */
-const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 25);
 
 /**
  * Launch and interact with the analysis server.
@@ -57,9 +52,17 @@ main(List<String> rawArgs) {
   });
 }
 
+const DIAGNOSTIC_PORT_OPTION = 'diagnosticPort';
 const HELP_CMDLINE_OPTION = 'help';
 const INPUT_CMDLINE_OPTION = 'input';
 const MAP_OPTION = 'map';
+
+/**
+ * The amount of time to give the server to respond to a shutdown request
+ * before forcibly terminating it.
+ */
+const Duration SHUTDOWN_TIMEOUT = const Duration(seconds: 25);
+
 const TMP_SRC_DIR_OPTION = 'tmpSrcDir';
 const VERBOSE_CMDLINE_OPTION = 'verbose';
 const VERY_VERBOSE_CMDLINE_OPTION = 'vv';
@@ -84,7 +87,8 @@ Stream<Operation> openInput(PerfArgs args) {
   return inputRaw
       .transform(SYSTEM_ENCODING.decoder)
       .transform(new LineSplitter())
-      .transform(new InputConverter(args.tmpSrcDirPath, args.srcPathMap));
+      .transform(new InputConverter(args.tmpSrcDirPath, args.srcPathMap,
+          diagnosticPort: args.diagnosticPort));
 }
 
 /**
@@ -109,6 +113,9 @@ PerfArgs parseArgs(List<String> rawArgs) {
   parser.addOption(TMP_SRC_DIR_OPTION, abbr: 't', help: '<dirPath>\n'
       'The temporary directory containing source used during performance measurement.\n'
       'WARNING: The contents of the target directory will be modified');
+  parser.addOption(DIAGNOSTIC_PORT_OPTION,
+      abbr: 'd',
+      help: 'localhost port on which server will provide diagnostic web pages');
   parser.addFlag(VERBOSE_CMDLINE_OPTION,
       abbr: 'v', help: 'Verbose logging', negatable: false);
   parser.addFlag(VERY_VERBOSE_CMDLINE_OPTION,
@@ -141,10 +148,9 @@ PerfArgs parseArgs(List<String> rawArgs) {
     if (pair is String) {
       int index = pair.indexOf(',');
       if (index != -1 && pair.indexOf(',', index + 1) == -1) {
-        String oldSrcPath = pair.substring(0, index);
-        String newSrcPath = pair.substring(index + 1);
-        if (new Directory(oldSrcPath).existsSync() &&
-            new Directory(newSrcPath).existsSync()) {
+        String oldSrcPath = _withTrailingSeparator(pair.substring(0, index));
+        String newSrcPath = _withTrailingSeparator(pair.substring(index + 1));
+        if (new Directory(newSrcPath).existsSync()) {
           perfArgs.srcPathMap[oldSrcPath] = newSrcPath;
           continue;
         }
@@ -154,10 +160,18 @@ PerfArgs parseArgs(List<String> rawArgs) {
     showHelp = true;
   }
 
-  perfArgs.tmpSrcDirPath = args[TMP_SRC_DIR_OPTION];
+  perfArgs.tmpSrcDirPath = _withTrailingSeparator(args[TMP_SRC_DIR_OPTION]);
   if (isMissing(TMP_SRC_DIR_OPTION)) {
     print('missing $TMP_SRC_DIR_OPTION argument');
     showHelp = true;
+  }
+
+  String portText = args[DIAGNOSTIC_PORT_OPTION];
+  if (portText != null) {
+    perfArgs.diagnosticPort = int.parse(portText, onError: (s) {
+      print('invalid $DIAGNOSTIC_PORT_OPTION: $s');
+      showHelp = true;
+    });
   }
 
   if (args[VERY_VERBOSE_CMDLINE_OPTION] || rawArgs.contains('-vv')) {
@@ -184,12 +198,24 @@ void printHelp(ArgParser parser) {
 }
 
 /**
+ * Ensure that the given path has a trailing separator
+ */
+String _withTrailingSeparator(String dirPath) {
+  if (dirPath != null && dirPath.length > 4) {
+    if (!dirPath.endsWith(path.separator)) {
+      return '$dirPath${path.separator}';
+    }
+  }
+  return dirPath;
+}
+
+/**
  * The performance measurement arguments specified on the command line.
  */
 class PerfArgs {
 
   /**
-   * The file path of the instrumentation or log file 
+   * The file path of the instrumentation or log file
    * used to drive performance measurement,
    * or 'stdin' if this information should be read from standard input.
    */
@@ -206,4 +232,9 @@ class PerfArgs {
    * The temporary directory containing source used during performance measurement.
    */
   String tmpSrcDirPath;
+
+  /**
+   * The diagnostic port for Analysis Server or `null` if none.
+   */
+  int diagnosticPort;
 }

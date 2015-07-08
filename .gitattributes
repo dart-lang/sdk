@@ -23,7 +23,6 @@ tests/lib/mirrors/method_mirror_source_line_ending_crlf.dart -text
 tests/lib/mirrors/method_mirror_source_line_ending_lf.dart -text
 tests/lib/mirrors/method_mirror_source_test.dart -text
 tests/lib/mirrors/method_mirror_source_other.dart -text
-pkg/js_ast/test/printer_callback_test.dart -text
 
 # Files to leave alone and not diff.
 *.png binary

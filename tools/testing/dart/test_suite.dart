@@ -410,9 +410,9 @@ abstract class TestSuite {
      * Layout of packages inside the dart repository:
      *  dart/
      *      pkg/PACKAGE_NAME
-     *      pkg/third_party/PACKAGE_NAME
      *      third_party/pkg/PACKAGE_NAME
      *      runtime/observatory/PACKAGE_NAME
+     *      sdk/lib/_internal/PACKAGE_NAME
      */
 
     // Directories containing "-" are not valid pub packages and we therefore
@@ -425,6 +425,7 @@ abstract class TestSuite {
       listDir(dartDir.append('pkg'), isValid),
       listDir(dartDir.append('third_party').append('pkg'), isValid),
       listDir(dartDir.append('runtime').append('observatory'), isValid),
+      listDir(dartDir.append('sdk').append('lib').append('_internal'), isValid),
     ];
     return Future.wait(futures).then((results) {
       var packageDirectories = {};

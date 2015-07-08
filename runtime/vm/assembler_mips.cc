@@ -456,7 +456,9 @@ void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
 }
 
 
-void Assembler::LoadObject(Register rd, const Object& object) {
+void Assembler::LoadObjectHelper(Register rd,
+                                 const Object& object,
+                                 bool is_unique) {
   ASSERT(!in_delay_slot_);
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
@@ -471,10 +473,21 @@ void Assembler::LoadObject(Register rd, const Object& object) {
   } else {
     // Make sure that class CallPattern is able to decode this load from the
     // object pool.
-    const int32_t offset =
-        ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
+    const int32_t offset = ObjectPool::element_offset(
+        is_unique ? object_pool_wrapper_.AddObject(object)
+                  : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(rd, offset - kHeapObjectTag);
   }
+}
+
+
+void Assembler::LoadObject(Register rd, const Object& object) {
+  LoadObjectHelper(rd, object, false);
+}
+
+
+void Assembler::LoadUniqueObject(Register rd, const Object& object) {
+  LoadObjectHelper(rd, object, true);
 }
 
 
@@ -667,7 +680,7 @@ void Assembler::LoadClass(Register result, Register object) {
 }
 
 
-void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+void Assembler::LoadClassIdMayBeSmi(Register result, Register object) {
   static const intptr_t kSmiCidSource = kSmiCid << RawObject::kClassIdTagPos;
 
   LoadImmediate(TMP, reinterpret_cast<int32_t>(&kSmiCidSource) + 1);
@@ -677,6 +690,11 @@ void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
   }
   movz(result, TMP, CMPRES1);
   LoadClassId(result, result);
+}
+
+
+void Assembler::LoadTaggedClassIdMayBeSmi(Register result, Register object) {
+  LoadClassIdMayBeSmi(result, object);
   SmiTag(result);
 }
 

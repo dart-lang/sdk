@@ -175,21 +175,23 @@ class _IntegerImplementation extends _Num {
   double truncateToDouble() { return this.toDouble(); }
 
   num clamp(num lowerLimit, num upperLimit) {
-    if (lowerLimit is! num) throw new ArgumentError(lowerLimit);
-    if (upperLimit is! num) throw new ArgumentError(upperLimit);
+    if (lowerLimit is! num) {
+      throw new ArgumentError.value(lowerLimit, "lowerLimit");
+    }
+    if (upperLimit is! num) {
+      throw new ArgumentError.value(upperLimit, "upperLimit");
+    }
 
     // Special case for integers.
-    if (lowerLimit is int && upperLimit is int) {
-      if (lowerLimit > upperLimit) {
-        throw new ArgumentError(lowerLimit);
-      }
+    if (lowerLimit is int && upperLimit is int &&
+        lowerLimit <= upperLimit) {
       if (this < lowerLimit) return lowerLimit;
       if (this > upperLimit) return upperLimit;
       return this;
     }
-    // Generic case involving doubles.
+    // Generic case involving doubles, and invalid integer ranges.
     if (lowerLimit.compareTo(upperLimit) > 0) {
-      throw new ArgumentError(lowerLimit);
+      throw new RangeError.range(upperLimit, lowerLimit, null, "upperLimit");
     }
     if (lowerLimit.isNaN) return lowerLimit;
     // Note that we don't need to care for -0.0 for the lower limit.
@@ -216,8 +218,8 @@ class _IntegerImplementation extends _Num {
   static const _digits = "0123456789abcdefghijklmnopqrstuvwxyz";
 
   String toRadixString(int radix) {
-    if (radix is! int || radix < 2 || radix > 36) {
-      throw new ArgumentError(radix);
+    if (radix < 2 || 36 < radix) {
+      throw new RangeError.range(radix, 2, 36, "radix");
     }
     if (radix & (radix - 1) == 0) {
       return _toPow2String(radix);
@@ -267,10 +269,14 @@ class _IntegerImplementation extends _Num {
 
   // Returns pow(this, e) % m.
   int modPow(int e, int m) {
-    if (e is! int) throw new ArgumentError(e);
-    if (m is! int) throw new ArgumentError(m);
-    if (e < 0) throw new RangeError(e);
-    if (m <= 0) throw new RangeError(m);
+    if (e is! int) {
+      throw new ArgumentError.value(e, "exponent", "not an integer");
+    }
+    if (m is! int) {
+      throw new ArgumentError.value(m, "modulus", "not an integer");
+    }
+    if (e < 0) throw new RangeError.range(e, 0, null, "exponent");
+    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (e == 0) return 1;
     if (e is _Bigint || m is _Bigint) {
       return _toBigint().modPow(e, m);
@@ -292,7 +298,7 @@ class _IntegerImplementation extends _Num {
 
   // If inv is false, returns gcd(x, y).
   // If inv is true and gcd(x, y) = 1, returns d, so that c*x + d*y = 1.
-  // If inv is true and gcd(x, y) != 1, throws RangeError("Not coprime").
+  // If inv is true and gcd(x, y) != 1, throws Exception("Not coprime").
   static int _binaryGcd(int x, int y, bool inv) {
     int s = 0;
     if (!inv) {
@@ -352,7 +358,9 @@ class _IntegerImplementation extends _Num {
       }
     } while (u != 0);
     if (!inv) return v << s;
-    if (v != 1) throw new RangeError("Not coprime");
+    if (v != 1) {
+      throw new Exception("Not coprime");
+    }
     if (d < 0) {
       d += x;
       if (d < 0) d += x;
@@ -365,8 +373,10 @@ class _IntegerImplementation extends _Num {
 
   // Returns 1/this % m, with m > 0.
   int modInverse(int m) {
-    if (m is! int) throw new ArgumentError(m);
-    if (m <= 0) throw new RangeError(m);
+    if (m is! int) {
+      throw new ArgumentError.value(m, "modulus", "not an integer");
+    }
+    if (m <= 0) throw new RangeError.range(m, 1, null, "modulus");
     if (m == 1) return 0;
     if (m is _Bigint) {
       return _toBigint().modInverse(m);
@@ -374,16 +384,21 @@ class _IntegerImplementation extends _Num {
     int t = this;
     if ((t < 0) || (t >= m)) t %= m;
     if (t == 1) return 1;
-    if ((t == 0) || (t.isEven && m.isEven)) throw new RangeError("Not coprime");
+    if ((t == 0) || (t.isEven && m.isEven)) {
+      throw new Exception("Not coprime");
+    }
     return _binaryGcd(m, t, true);
   }
 
-  // Returns gcd of abs(this) and abs(other), with this != 0 and other !=0.
+  // Returns gcd of abs(this) and abs(other).
   int gcd(int other) {
-    if (other is! int) throw new ArgumentError(other);
-    if ((this == 0) || (other == 0)) throw new RangeError(0);
+    if (other is! int) {
+      throw new ArgumentError.value(other, "other", "not an integer");
+    }
     int x = this.abs();
     int y = other.abs();
+    if (x == 0) return y;
+    if (y == 0) return x;
     if ((x == 1) || (y == 1)) return 1;
     if (other is _Bigint) {
       return _toBigint().gcd(other);

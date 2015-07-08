@@ -5,12 +5,13 @@
 library server.driver;
 
 import 'dart:async';
-import 'dart:math' show max;
+import 'dart:math' show max, sqrt;
 
+import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:logging/logging.dart';
 
-import '../integration/integration_test_methods.dart';
-import '../integration/integration_tests.dart';
+import '../../test/integration/integration_test_methods.dart';
+import '../../test/integration/integration_tests.dart';
 import 'operation.dart';
 
 final SPACE = ' '.codeUnitAt(0);
@@ -96,7 +97,7 @@ class Driver extends IntegrationTestMixin {
    * Launch the analysis server.
    * Return a [Future] that completes when analysis server has started.
    */
-  Future startServer() async {
+  Future startServer({int diagnosticPort}) async {
     logger.log(Level.FINE, 'starting server');
     initializeInttestMixin();
     server = new Server();
@@ -106,7 +107,9 @@ class Driver extends IntegrationTestMixin {
       serverConnected.complete();
     });
     running = true;
-    return server.start(/*profileServer: true*/).then((params) {
+    return server
+        .start(diagnosticPort: diagnosticPort /*profileServer: true*/)
+        .then((params) {
       server.listenToOutput(dispatchNotification);
       server.exitCode.then((_) {
         logger.log(Level.FINE, 'server stopped');
@@ -169,14 +172,29 @@ class Measurement {
       minTime = minTime.compareTo(elapsed) < 0 ? minTime : elapsed;
       totalTimeMicros += timeMicros;
     }
-    int averageTimeMicros = (totalTimeMicros / count).round();
+    int meanTime = (totalTimeMicros / count).round();
+    List<Duration> sorted = elapsedTimes.toList()..sort();
+    Duration time90th = sorted[(sorted.length * 0.90).round() - 1];
+    Duration time99th = sorted[(sorted.length * 0.99).round() - 1];
+    int differenceFromMeanSquared = 0;
+    for (Duration elapsed in elapsedTimes) {
+      int timeMicros = elapsed.inMicroseconds;
+      int differenceFromMean = timeMicros - meanTime;
+      differenceFromMeanSquared += differenceFromMean * differenceFromMean;
+    }
+    double variance = differenceFromMeanSquared / count;
+    int standardDeviation = sqrt(variance).round();
+
     StringBuffer sb = new StringBuffer();
     _printColumn(sb, tag, keyLen);
     _printColumn(sb, count.toString(), 6, rightJustified: true);
     _printColumn(sb, errorCount.toString(), 6, rightJustified: true);
     _printColumn(sb, unexpectedResultCount.toString(), 6, rightJustified: true);
+    _printDuration(sb, new Duration(microseconds: meanTime));
+    _printDuration(sb, time90th);
+    _printDuration(sb, time99th);
+    _printColumn(sb, standardDeviation.toString(), 15, rightJustified: true);
     _printDuration(sb, minTime);
-    _printDuration(sb, new Duration(microseconds: averageTimeMicros));
     _printDuration(sb, maxTime);
     _printDuration(sb, new Duration(microseconds: totalTimeMicros));
     print(sb.toString());
@@ -213,6 +231,11 @@ class Results {
   void printResults() {
     print('');
     print('==================================================================');
+    if (engine.AnalysisEngine.instance.useTaskModel) {
+      print('New task model');
+    } else {
+      print('Old task model');
+    }
     print('');
     List<String> keys = measurements.keys.toList()..sort();
     int keyLen = keys.fold(0, (int len, String key) => max(len, key.length));
@@ -229,7 +252,8 @@ class Results {
         totalUnexpectedResultCount += m.unexpectedResultCount;
       }
     }
-    _printTotals(keyLen, totalCount, totalErrorCount, totalUnexpectedResultCount);
+    _printTotals(
+        keyLen, totalCount, totalErrorCount, totalUnexpectedResultCount);
     print('');
     _printGroupHeader('Notifications', keyLen);
     for (String tag in keys) {
@@ -265,19 +289,23 @@ class Results {
 
   void _printGroupHeader(String groupName, int keyLen) {
     StringBuffer sb = new StringBuffer();
-        _printColumn(sb, groupName, keyLen);
-        _printColumn(sb, 'count', 6, rightJustified: true);
-        _printColumn(sb, 'error', 6, rightJustified: true);
-        _printColumn(sb, 'uxr(1)', 6, rightJustified: true);
-        sb.write('  ');
-        _printColumn(sb, 'minimum', 15);
-        _printColumn(sb, 'average', 15);
-        _printColumn(sb, 'maximum', 15);
-        _printColumn(sb, 'total', 15);
-        print(sb.toString());
+    _printColumn(sb, groupName, keyLen);
+    _printColumn(sb, 'count', 6, rightJustified: true);
+    _printColumn(sb, 'error', 6, rightJustified: true);
+    _printColumn(sb, 'uxr(1)', 6, rightJustified: true);
+    sb.write('  ');
+    _printColumn(sb, 'mean', 15);
+    _printColumn(sb, '90th', 15);
+    _printColumn(sb, '99th', 15);
+    _printColumn(sb, 'std-dev', 15);
+    _printColumn(sb, 'minimum', 15);
+    _printColumn(sb, 'maximum', 15);
+    _printColumn(sb, 'total', 15);
+    print(sb.toString());
   }
 
-  void _printTotals(int keyLen, int totalCount, int totalErrorCount, int totalUnexpectedResultCount) {
+  void _printTotals(int keyLen, int totalCount, int totalErrorCount,
+      int totalUnexpectedResultCount) {
     StringBuffer sb = new StringBuffer();
     _printColumn(sb, 'Totals', keyLen);
     _printColumn(sb, totalCount.toString(), 6, rightJustified: true);

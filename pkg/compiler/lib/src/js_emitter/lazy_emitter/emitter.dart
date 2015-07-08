@@ -9,7 +9,7 @@ import 'package:js_runtime/shared/embedded_names.dart' show
     METADATA,
     TYPES;
 
-import '../program_builder.dart' show ProgramBuilder;
+import '../program_builder/program_builder.dart' show ProgramBuilder;
 import '../model.dart';
 import 'model_emitter.dart';
 import '../../common.dart';

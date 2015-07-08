@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 library dart2js.ir_nodes;
 
-import '../constants/expressions.dart';
 import '../constants/values.dart' as values show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType, TypeVariableType;
 import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../types/types.dart' show TypeMask;
-import '../universe/universe.dart' show Selector, SelectorKind;
+import '../universe/universe.dart' show Selector;
 
 import 'builtin_operator.dart';
 export 'builtin_operator.dart';
@@ -19,7 +18,6 @@ export 'builtin_operator.dart';
 // abstractions for native code and its type and effect system.
 import '../js/js.dart' as js show Template;
 import '../native/native.dart' as native show NativeBehavior;
-import '../types/types.dart' as types show TypeMask;
 
 abstract class Node {
   /// A pointer to the parent node. Is null until set by optimization passes.
@@ -97,7 +95,11 @@ abstract class Primitive extends Definition<Primitive> {
   ///
   /// False must be returned for primitives that may throw, diverge, or have
   /// observable side-effects.
-  bool get isSafeForElimination => true;
+  bool get isSafeForElimination;
+
+  /// True if time-of-evaluation is irrelevant for the given primitive,
+  /// assuming its inputs are the same values.
+  bool get isSafeForReordering;
 }
 
 /// Operands to invocations and primitives are always variables.  They point to
@@ -169,6 +171,9 @@ class LetCont extends Expression implements InteriorNode {
   LetCont(Continuation continuation, this.body)
       : continuations = <Continuation>[continuation];
 
+  LetCont.two(Continuation first, Continuation second, this.body)
+      : continuations = <Continuation>[first, second];
+
   LetCont.many(this.continuations, this.body);
 
   Expression plug(Expression expr) {
@@ -223,9 +228,10 @@ class LetMutable extends Expression implements InteriorNode {
   accept(Visitor visitor) => visitor.visitLetMutable(this);
 }
 
-abstract class Invoke {
+abstract class Invoke implements Expression {
   Selector get selector;
   List<Reference<Primitive>> get arguments;
+  Reference<Continuation> get continuation;
 }
 
 /// Represents a node with a child node, which can be accessed through the
@@ -260,9 +266,15 @@ class InvokeStatic extends Expression implements Invoke {
                this.selector,
                List<Primitive> args,
                Continuation cont,
-               this.sourceInformation)
+               [this.sourceInformation])
       : arguments = _referenceList(args),
         continuation = new Reference<Continuation>(cont);
+
+  InvokeStatic.byReference(this.target,
+                           this.selector,
+                           this.arguments,
+                           this.continuation,
+                           [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
 }
@@ -276,10 +288,6 @@ class InvokeStatic extends Expression implements Invoke {
 ///
 /// The [selector] records the names of named arguments. The value of named
 /// arguments occur at the end of the [arguments] list, in normalized order.
-///
-/// Discussion:
-/// If the [selector] is a [TypedSelector], the type information contained
-/// there is used by optimization passes. This is likely to change.
 class InvokeMethod extends Expression implements Invoke {
   Reference<Primitive> receiver;
   Selector selector;
@@ -296,10 +304,17 @@ class InvokeMethod extends Expression implements Invoke {
                this.mask,
                List<Primitive> arguments,
                Continuation continuation,
-               {this.sourceInformation})
+               [this.sourceInformation])
       : this.receiver = new Reference<Primitive>(receiver),
         this.arguments = _referenceList(arguments),
         this.continuation = new Reference<Continuation>(continuation);
+
+  InvokeMethod.byReference(this.receiver,
+                           this.selector,
+                           this.mask,
+                           this.arguments,
+                           this.continuation,
+                           [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 }
@@ -406,6 +421,9 @@ class TypeTest extends Primitive {
     this.typeArguments = _referenceList(typeArguments);
 
   accept(Visitor visitor) => visitor.visitTypeTest(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// An "as" type cast.
@@ -448,6 +466,9 @@ class ApplyBuiltinOperator extends Primitive {
       : this.arguments = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitApplyBuiltinOperator(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Throw a value.
@@ -483,6 +504,9 @@ class NonTailThrow extends Primitive {
   NonTailThrow(Primitive value) : value = new Reference<Primitive>(value);
 
   accept(Visitor visitor) => visitor.visitNonTailThrow(this);
+
+  bool get isSafeForElimination => false;
+  bool get isSafeForReordering => false;
 }
 
 /// An expression that is known to be unreachable.
@@ -507,6 +531,9 @@ class GetMutableVariable extends Primitive {
       : this.variable = new Reference<MutableVariable>(variable);
 
   accept(Visitor visitor) => visitor.visitGetMutableVariable(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => false;
 }
 
 /// Assign a [MutableVariable].
@@ -541,8 +568,13 @@ class InvokeContinuation extends Expression {
   // the continuation itself.
   bool isRecursive;
 
+  /// True if this invocation escapes from the body of a [LetHandler]
+  /// (i.e. a try block). Notably, such an invocation cannot be inlined.
+  bool isEscapingTry;
+
   InvokeContinuation(Continuation cont, List<Primitive> args,
-                     {this.isRecursive: false})
+                     {this.isRecursive: false,
+                      this.isEscapingTry: false})
       : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(cont.parameters == null || cont.parameters.length == args.length);
@@ -554,7 +586,8 @@ class InvokeContinuation extends Expression {
   ///
   /// Used as a placeholder for a jump whose target is not yet created
   /// (e.g., in the translation of break and continue).
-  InvokeContinuation.uninitialized({this.isRecursive: false})
+  InvokeContinuation.uninitialized({this.isRecursive: false, 
+                                    this.isEscapingTry: false})
       : continuation = null,
         arguments = null;
 
@@ -624,19 +657,28 @@ class GetField extends Primitive {
 
   accept(Visitor visitor) => visitor.visitGetField(this);
 
-  @override
   bool get isSafeForElimination => objectIsNotNull;
+  bool get isSafeForReordering => objectIsNotNull && field.isFinal;
 }
 
 /// Reads the value of a static field or tears off a static method.
+///
+/// Note that lazily initialized fields should be read using GetLazyStatic.
 class GetStatic extends Primitive {
   /// Can be [FieldElement] or [FunctionElement].
   final Element element;
   final SourceInformation sourceInformation;
 
-  GetStatic(this.element, this.sourceInformation);
+  GetStatic(this.element, [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitGetStatic(this);
+  
+  bool get isSafeForElimination {
+    return true;
+  }
+  bool get isSafeForReordering {
+    return element is FunctionElement || element.isFinal;
+  }
 }
 
 /// Sets the value of a static field.
@@ -646,7 +688,7 @@ class SetStatic extends Expression implements InteriorNode {
   Expression body;
   final SourceInformation sourceInformation;
 
-  SetStatic(this.element, Primitive value, this.sourceInformation)
+  SetStatic(this.element, Primitive value, [this.sourceInformation])
       : this.value = new Reference<Primitive>(value);
 
   Expression plug(Expression expr) {
@@ -670,7 +712,7 @@ class GetLazyStatic extends Expression {
 
   GetLazyStatic(this.element,
                 Continuation continuation,
-                this.sourceInformation)
+                [this.sourceInformation])
       : continuation = new Reference<Continuation>(continuation);
 
   accept(Visitor visitor) => visitor.visitGetLazyStatic(this);
@@ -679,6 +721,9 @@ class GetLazyStatic extends Expression {
 /// Creates an object for holding boxed variables captured by a closure.
 class CreateBox extends Primitive {
   accept(Visitor visitor) => visitor.visitCreateBox(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Creates an instance of a class and initializes its fields and runtime type
@@ -703,6 +748,9 @@ class CreateInstance extends Primitive {
         this.typeInformation = _referenceList(typeInformation);
 
   accept(Visitor visitor) => visitor.visitCreateInstance(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class Interceptor extends Primitive {
@@ -711,6 +759,9 @@ class Interceptor extends Primitive {
   Interceptor(Primitive input, this.interceptedClasses)
       : this.input = new Reference<Primitive>(input);
   accept(Visitor visitor) => visitor.visitInterceptor(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Create an instance of [Invocation] for use in a call to `noSuchMethod`.
@@ -722,11 +773,14 @@ class CreateInvocationMirror extends Primitive {
       : this.arguments = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitCreateInvocationMirror(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class ForeignCode extends Expression {
   final js.Template codeTemplate;
-  final types.TypeMask type;
+  final TypeMask type;
   final List<Reference<Primitive>> arguments;
   final native.NativeBehavior nativeBehavior;
   final FunctionElement dependency;
@@ -750,6 +804,9 @@ class Constant extends Primitive {
   Constant(this.value);
 
   accept(Visitor visitor) => visitor.visitConstant(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class LiteralList extends Primitive {
@@ -761,6 +818,9 @@ class LiteralList extends Primitive {
       : this.values = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class LiteralMapEntry {
@@ -779,6 +839,9 @@ class LiteralMap extends Primitive {
   LiteralMap(this.type, this.entries);
 
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Currently unused.
@@ -797,6 +860,9 @@ class CreateFunction extends Primitive {
   CreateFunction(this.definition);
 
   accept(Visitor visitor) => visitor.visitCreateFunction(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 class Parameter extends Primitive {
@@ -813,6 +879,9 @@ class Parameter extends Primitive {
   accept(Visitor visitor) => visitor.visitParameter(this);
 
   String toString() => 'Parameter(${hint == null ? null : hint.name})';
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Continuations are normally bound by 'let cont'.  A continuation with one
@@ -834,7 +903,9 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
 
   Continuation(this.parameters, {this.isRecursive: false});
 
-  Continuation.retrn() : parameters = <Parameter>[new Parameter(null)];
+  Continuation.retrn() 
+    : parameters = <Parameter>[new Parameter(null)],
+      isRecursive = false;
 
   accept(Visitor visitor) => visitor.visitContinuation(this);
 }
@@ -879,6 +950,9 @@ class ReifyRuntimeType extends Primitive {
 
   @override
   accept(Visitor visitor) => visitor.visitReifyRuntimeType(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Read the value the type variable [variable] from the target object.
@@ -895,6 +969,9 @@ class ReadTypeVariable extends Primitive {
 
   @override
   accept(Visitor visitor) => visitor.visitReadTypeVariable(this);
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 /// Representation of a closed type (that is, a type without type variables).
@@ -917,6 +994,9 @@ class TypeExpression extends Primitive {
   accept(Visitor visitor) {
     return visitor.visitTypeExpression(this);
   }
+
+  bool get isSafeForElimination => true;
+  bool get isSafeForReordering => true;
 }
 
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {

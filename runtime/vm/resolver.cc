@@ -14,7 +14,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, trace_resolving, false, "Trace resolving.");
-
+DECLARE_FLAG(bool, lazy_dispatchers);
 
 // The actual names of named arguments are not checked by the dynamic resolver,
 // but by the method entry code. It is important that the dynamic resolver
@@ -66,6 +66,7 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
 // owning method M.
 static RawFunction* CreateMethodExtractor(const String& getter_name,
                                           const Function& method) {
+  ASSERT(FLAG_lazy_dispatchers);
   const Function& closure_function =
       Function::Handle(method.ImplicitClosureFunction());
 
@@ -124,13 +125,15 @@ RawFunction* Resolver::ResolveDynamicAnyArgs(
       return function.raw();
     }
     // Getter invocation might actually be a method extraction.
-    if (is_getter && function.IsNull()) {
-      function ^= cls.LookupDynamicFunction(field_name);
-      if (!function.IsNull()) {
-        // We were looking for the getter but found a method with the same name.
-        // Create a method extractor and return it.
-        function ^= CreateMethodExtractor(function_name, function);
-        return function.raw();
+    if (FLAG_lazy_dispatchers) {
+      if (is_getter && function.IsNull()) {
+        function ^= cls.LookupDynamicFunction(field_name);
+        if (!function.IsNull()) {
+          // We were looking for the getter but found a method with the same
+          // name. Create a method extractor and return it.
+          function ^= CreateMethodExtractor(function_name, function);
+          return function.raw();
+        }
       }
     }
     cls = cls.SuperClass();

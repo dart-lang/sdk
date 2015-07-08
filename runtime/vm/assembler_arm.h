@@ -666,6 +666,7 @@ class Assembler : public ValueObject {
   void LoadIsolate(Register rd);
 
   void LoadObject(Register rd, const Object& object, Condition cond = AL);
+  void LoadUniqueObject(Register rd, const Object& object, Condition cond = AL);
   void LoadExternalLabel(Register dst,
                          const ExternalLabel* label,
                          Patchability patchable,
@@ -739,6 +740,7 @@ class Assembler : public ValueObject {
   void LoadClassById(Register result, Register class_id);
   void LoadClass(Register result, Register object, Register scratch);
   void CompareClassId(Register object, intptr_t class_id, Register scratch);
+  void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   void ComputeRange(Register result,
@@ -999,6 +1001,11 @@ class Assembler : public ValueObject {
   GrowableArray<CodeComment*> comments_;
 
   bool allow_constant_pool_;
+
+  void LoadObjectHelper(Register rd,
+                        const Object& object,
+                        Condition cond,
+                        bool is_unique);
 
   void EmitType01(Condition cond,
                   int type,

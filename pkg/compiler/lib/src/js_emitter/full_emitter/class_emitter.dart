@@ -275,8 +275,9 @@ class ClassEmitter extends CodeEmitterHelper {
   }
 
   void emitNativeInfo(Class cls, ClassBuilder builder) {
-    if (cls.nativeInfo != null) {
-      builder.addPropertyByName(namer.nativeSpecProperty, cls.nativeInfo);
+    jsAst.Expression nativeInfo = NativeGenerator.encodeNativeInfo(cls);
+    if (nativeInfo != null) {
+      builder.addPropertyByName(namer.nativeSpecProperty, nativeInfo);
     }
   }
 

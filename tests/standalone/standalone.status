@@ -170,16 +170,15 @@ io/test_runner_test: Skip  # Timeout.
 io/http_client_stays_alive_test: Skip  # Timeout.
 
 [ $compiler == dart2js && $cps_ir ]
-io/file_test: Crash # Invalid argument(s)
+io/file_test: Crash # (static testWriteFro...  cannot handle async/sync*/async* functions
 io/file_write_only_test: Crash # (main()async{asyncSt...  cannot handle async/sync*/async* functions
 io/http_bind_test: Crash # (testBindShared(Stri...  cannot handle async/sync*/async* functions
-io/http_parser_test : RuntimeError # TypeError: receiver.get$_nums is not a function
+io/http_parser_test: RuntimeError # receiver.get$_nums is not a function
 io/https_bad_certificate_test: Crash # (main()async{var cli...  cannot handle async/sync*/async* functions
 io/issue_22636_test: Crash # (test()async{server=...  cannot handle async/sync*/async* functions
 io/issue_22637_test: Crash # (test()async{server=...  cannot handle async/sync*/async* functions
-io/observatory_test: Crash # Invalid argument(s)
+io/observatory_test: Crash # (=_ByteCallbackSink;): Unhandled node
 io/socket_bind_test: Crash # (testListenCloseList...  cannot handle async/sync*/async* functions
 io/socket_source_address_test: Crash # (Future testConnect(...  cannot handle async/sync*/async* functions
-priority_queue_stress_test: RuntimeError # receiver.get$_collection$_nums is not a function
-slowpath_safepoints_test: RuntimeError # Cannot read property 'prototype' of undefined
+priority_queue_stress_test: RuntimeError # receiver.get$_nums is not a function
 typed_array_test: RuntimeError # receiver.get$_collection$_nums is not a function

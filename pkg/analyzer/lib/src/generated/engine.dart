@@ -2170,7 +2170,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     }
     bool changed = newContents != originalContents;
     if (newContents != null) {
-      if (newContents != originalContents) {
+      if (changed) {
         _incrementalAnalysisCache =
             IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
         if (!analysisOptions.incremental ||
@@ -2187,22 +2187,24 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     } else if (originalContents != null) {
       _incrementalAnalysisCache =
           IncrementalAnalysisCache.clear(_incrementalAnalysisCache, source);
-      changed = newContents != originalContents;
       // We are removing the overlay for the file, check if the file's
       // contents is the same as it was in the overlay.
       try {
         TimestampedData<String> fileContents = getContents(source);
-        String fileContentsData = fileContents.data;
-        if (fileContentsData == originalContents) {
-          sourceEntry.setValue(SourceEntry.CONTENT, fileContentsData);
-          sourceEntry.modificationTime = fileContents.modificationTime;
+        newContents = fileContents.data;
+        sourceEntry.modificationTime = fileContents.modificationTime;
+        if (newContents == originalContents) {
+          sourceEntry.setValue(SourceEntry.CONTENT, newContents);
           changed = false;
         }
       } catch (e) {}
       // If not the same content (e.g. the file is being closed without save),
       // then force analysis.
       if (changed) {
-        _sourceChanged(source);
+        if (!analysisOptions.incremental ||
+            !_tryPoorMansIncrementalResolution(source, newContents)) {
+          _sourceChanged(source);
+        }
       }
     }
     if (notify && changed) {
@@ -2222,13 +2224,18 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     // Prepare sources to invalidate hints in.
     List<Source> sources = <Source>[librarySource];
     sources.addAll(dartEntry.getValue(DartEntry.INCLUDED_PARTS));
-    // Invalidate hints.
+    // Invalidate hints and lints.
     for (Source source in sources) {
       DartEntry dartEntry = _cache.get(source);
       if (dartEntry.getStateInLibrary(DartEntry.HINTS, librarySource) ==
           CacheState.VALID) {
         dartEntry.setStateInLibrary(
             DartEntry.HINTS, librarySource, CacheState.INVALID);
+      }
+      if (dartEntry.getStateInLibrary(DartEntry.LINTS, librarySource) ==
+          CacheState.VALID) {
+        dartEntry.setStateInLibrary(
+            DartEntry.LINTS, librarySource, CacheState.INVALID);
       }
     }
   }
@@ -10728,7 +10735,7 @@ class ResolveDartUnitTask extends AnalysisTask {
     // Resolve the type names.
     //
     RecordingErrorListener errorListener = new RecordingErrorListener();
-    TypeResolverVisitor typeResolverVisitor = new TypeResolverVisitor.con2(
+    TypeResolverVisitor typeResolverVisitor = new TypeResolverVisitor(
         _libraryElement, source, typeProvider, errorListener);
     unit.accept(typeResolverVisitor);
     //
@@ -10736,8 +10743,9 @@ class ResolveDartUnitTask extends AnalysisTask {
     //
     InheritanceManager inheritanceManager =
         new InheritanceManager(_libraryElement);
-    ResolverVisitor resolverVisitor = new ResolverVisitor.con2(_libraryElement,
-        source, typeProvider, inheritanceManager, errorListener);
+    ResolverVisitor resolverVisitor = new ResolverVisitor(
+        _libraryElement, source, typeProvider, errorListener,
+        inheritanceManager: inheritanceManager);
     unit.accept(resolverVisitor);
     //
     // Perform additional error checking.

@@ -6,8 +6,8 @@
 import "dart:_internal" as _symbol_dev;
 import 'dart:_interceptors';
 import 'dart:_js_helper' show patch,
-                              patch_new,
-                              patch_old,
+                              patch_full,
+                              patch_lazy,
                               checkInt,
                               getRuntimeType,
                               jsonEncodeNative,
@@ -60,7 +60,7 @@ class Object {
 // Patch for Function implementation.
 @patch
 class Function {
-  @patch_old
+  @patch_full
   static apply(Function function,
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {
@@ -69,7 +69,7 @@ class Function {
         namedArguments == null ? null : _toMangledNames(namedArguments));
   }
 
-  @patch_new
+  @patch_lazy
   static apply(Function function,
                List positionalArguments,
                [Map<Symbol, dynamic> namedArguments]) {

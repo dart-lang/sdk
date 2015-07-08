@@ -836,10 +836,8 @@ abstract class CompilationUnitElement extends Element {
   get enclosingElement;
 
   Script get script;
-  PartOf get partTag;
 
   void forEachLocalMember(f(Element element));
-  bool get hasMembers;
 
   int compareTo(CompilationUnitElement other);
 }
@@ -902,6 +900,15 @@ abstract class LibraryElement extends Element
 
   bool hasLibraryName();
   String getLibraryName();
+
+  /**
+   * Returns the library name (as defined by the library tag) or for script
+   * (which have no library tag) the script file name. The latter case is used
+   * to provide a 'library name' for scripts to use for instance in dartdoc.
+   *
+   * Note: the returned filename is still escaped ("a%20b.dart" instead of
+   * "a b.dart").
+   */
   String getLibraryOrScriptName();
 
   int compareTo(LibraryElement other);
@@ -976,6 +983,9 @@ abstract class LocalElement extends Element
 
 /// A top level, static or instance field, a formal parameter or local variable.
 abstract class VariableElement extends ExecutableElement {
+  @override
+  VariableDefinitions get node;
+
   Expression get initializer;
 
   /// The constant expression defining the value of the variable if `const`,
@@ -1489,6 +1499,9 @@ abstract class TypeVariableElement extends Element
 
   /// The class or typedef on which this type variable is defined.
   TypeDeclarationElement get typeDeclaration;
+
+  /// The index of this type variable within its type declaration.
+  int get index;
 
   /// The [type] defined by the type variable.
   TypeVariableType get type;

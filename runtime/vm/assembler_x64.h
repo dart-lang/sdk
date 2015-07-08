@@ -762,6 +762,7 @@ class Assembler : public ValueObject {
   void LoadImmediate(Register reg, const Immediate& imm, Register pp);
   void LoadIsolate(Register dst);
   void LoadObject(Register dst, const Object& obj, Register pp);
+  void LoadUniqueObject(Register dst, const Object& obj, Register pp);
   void LoadExternalLabel(Register dst,
                          const ExternalLabel* label,
                          Patchability patchable,
@@ -859,6 +860,7 @@ class Assembler : public ValueObject {
 
   void CompareClassId(Register object, intptr_t class_id);
 
+  void LoadClassIdMayBeSmi(Register result, Register object);
   void LoadTaggedClassIdMayBeSmi(Register result, Register object);
 
   // CheckClassIs fused with optimistic SmiUntag.
@@ -1066,6 +1068,10 @@ class Assembler : public ValueObject {
 
   intptr_t FindImmediate(int64_t imm);
   bool CanLoadFromObjectPool(const Object& object);
+  void LoadObjectHelper(Register dst,
+                        const Object& obj,
+                        Register pp,
+                        bool is_unique);
   void LoadWordFromPoolOffset(Register dst, Register pp, int32_t offset);
 
   inline void EmitUint8(uint8_t value);

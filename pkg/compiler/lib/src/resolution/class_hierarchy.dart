@@ -270,21 +270,22 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         new Modifiers.withFlags(new NodeList.empty(), Modifiers.FLAG_ABSTRACT));
     // Create synthetic type variables for the mixin application.
     List<DartType> typeVariables = <DartType>[];
-    element.typeVariables.forEach((TypeVariableType type) {
+    int index = 0;
+    for (TypeVariableType type in element.typeVariables) {
       TypeVariableElementX typeVariableElement = new TypeVariableElementX(
-          type.name, mixinApplication, type.element.node);
+          type.name, mixinApplication, index, type.element.node);
       TypeVariableType typeVariable = new TypeVariableType(typeVariableElement);
       typeVariables.add(typeVariable);
-    });
+      index++;
+    }
     // Setup bounds on the synthetic type variables.
-    int index = 0;
-    element.typeVariables.forEach((TypeVariableType type) {
-      TypeVariableType typeVariable = typeVariables[index++];
+    for (TypeVariableType type in element.typeVariables) {
+      TypeVariableType typeVariable = typeVariables[type.element.index];
       TypeVariableElementX typeVariableElement = typeVariable.element;
       typeVariableElement.typeCache = typeVariable;
       typeVariableElement.boundCache =
           type.element.bound.subst(typeVariables, element.typeVariables);
-    });
+    }
     // Setup this and raw type for the mixin application.
     mixinApplication.computeThisAndRawType(compiler, typeVariables);
     // Substitute in synthetic type variables in super and mixin types.
@@ -309,8 +310,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   FunctionElement createForwardingConstructor(ConstructorElement target,
                                               ClassElement enclosing) {
-    return new SynthesizedConstructorElementX.notForDefault(
-        target.name, target, enclosing);
+    FunctionElement constructor =
+        new SynthesizedConstructorElementX.notForDefault(
+            target.name, target, enclosing);
+    constructor.computeType(compiler);
+    return constructor;
   }
 
   void doApplyMixinTo(MixinApplicationElementX mixinApplication,
@@ -566,8 +570,10 @@ class ClassSupertypeResolver extends CommonResolverVisitor {
       super(compiler);
 
   void loadSupertype(ClassElement element, Node from) {
-    compiler.resolver.loadSupertypes(element, from);
-    element.ensureResolved(compiler);
+    if (!element.isResolved) {
+      compiler.resolver.loadSupertypes(element, from);
+      element.ensureResolved(compiler);
+    }
   }
 
   void visitNodeList(NodeList node) {

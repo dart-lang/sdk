@@ -5,6 +5,7 @@
 library driver;
 
 import 'package:analysis_server/src/server/driver.dart';
+import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:plugin/plugin.dart';
 
@@ -21,6 +22,13 @@ abstract class ServerStarter {
    * Set the instrumentation [server] that is to be used by the analysis server.
    */
   void set instrumentationServer(InstrumentationServer server);
+
+  /**
+   * Set the package resolver provider used to override the way package URI's
+   * are resolved in some contexts. The provider should return `null` if the
+   * default package resolution scheme should be used instead.
+   */
+  void set packageResolverProvider(ResolverProvider provider);
 
   /**
    * Set the [plugins] that are defined outside the analysis_server package.

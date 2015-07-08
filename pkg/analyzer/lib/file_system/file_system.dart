@@ -139,6 +139,20 @@ abstract class ResourceProvider {
   Context get pathContext;
 
   /**
+   * Return a [File] that corresponds to the given [path].
+   * 
+   * A file may or may not exist at this location.
+   */
+  File getFile(String path);
+
+  /**
+   * Return a [Folder] that corresponds to the given [path].
+   * 
+   * A folder may or may not exist at this location.
+   */
+  Folder getFolder(String path);
+
+  /**
    * Return the [Resource] that corresponds to the given [path].
    */
   Resource getResource(String path);

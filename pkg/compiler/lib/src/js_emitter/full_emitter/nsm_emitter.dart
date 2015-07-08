@@ -291,16 +291,17 @@ class NsmEmitter extends CodeEmitterHelper {
 ///
 /// See [buildTrivialNsmHandlers].
 class _DiffEncodedListOfNames extends jsAst.DeferredString
-                              implements AstContainer {
+                              implements jsAst.AstContainer {
   String _cachedValue;
-  jsAst.ArrayInitializer ast;
+  List<jsAst.ArrayInitializer> ast;
+
+  Iterable<jsAst.Node> get containedNodes => ast;
 
   _DiffEncodedListOfNames(Iterable<Iterable<jsAst.Name>> names) {
     // Store the names in ArrayInitializer nodes to make them discoverable
     // by traversals of the ast.
-    ast = new jsAst.ArrayInitializer(
-        names.map((Iterable i) => new jsAst.ArrayInitializer(i.toList()))
-             .toList());
+    ast = names.map((Iterable i) => new jsAst.ArrayInitializer(i.toList()))
+               .toList();
   }
 
   void _computeDiffEncodingForList(Iterable<jsAst.Name> names,
@@ -367,7 +368,7 @@ class _DiffEncodedListOfNames extends jsAst.DeferredString
 
   String _computeDiffEncoding() {
     StringBuffer buffer = new StringBuffer();
-    for (jsAst.ArrayInitializer list in ast.elements) {
+    for (jsAst.ArrayInitializer list in ast) {
       if (buffer.isNotEmpty) {
         // Emit period that resets the diff base to zero when we switch to
         // normal calling convention (this avoids the need to code negative

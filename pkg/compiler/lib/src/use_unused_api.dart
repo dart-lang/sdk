@@ -26,13 +26,14 @@ import 'elements/visitor.dart' as elements_visitor;
 import 'filenames.dart' as filenames;
 import 'inferrer/concrete_types_inferrer.dart' as concrete_types_inferrer;
 import 'inferrer/type_graph_inferrer.dart' as type_graph_inferrer;
-import 'io/code_output.dart' as io;
+import 'io/line_column_provider.dart' as io;
 import 'io/source_map_builder.dart' as io;
 import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'js_emitter/js_emitter.dart' as js_emitter;
-import 'js_emitter/program_builder.dart' as program_builder;
+import 'js_emitter/program_builder/program_builder.dart' as program_builder;
 import 'resolution/semantic_visitor.dart' as semantic_visitor;
+import 'resolution/operators.dart' as operators;
 import 'source_file_provider.dart' as source_file_provider;
 import 'ssa/ssa.dart' as ssa;
 import 'tree/tree.dart' as tree;
@@ -50,7 +51,7 @@ void main(List<String> arguments) {
   useApi(null);
   dart2js.main(arguments);
   dart2jslib.isPublicName(null);
-  useConstant(null, null, null, null, null);
+  useConstant();
   useNode(null);
   useUtil(null);
   useSetlet(null);
@@ -65,7 +66,7 @@ void main(List<String> arguments) {
   useColor();
   useFilenames();
   useSsa(null);
-  useIo(null, null);
+  useIo();
   usedByTests();
   useElements();
   useIr(null);
@@ -81,16 +82,38 @@ void main(List<String> arguments) {
 useApi(api.ReadStringFromUri uri) {
 }
 
-void useConstant(constants.ConstantValue constant,
-                 constants.ConstantExpression expression,
-                 constants.ConstructedConstantExpression constructedConstant,
-                 constants.ConstantSystem cs,
-                 constants.Environment env) {
+class NullConstantConstructorVisitor extends constants.ConstantConstructorVisitor {
+  @override
+  visitGenerative(constants.GenerativeConstantConstructor constructor, arg) {
+  }
+
+  @override
+  visitRedirectingFactory(
+      constants.RedirectingFactoryConstantConstructor constructor, arg) {
+  }
+
+  @override
+  visitRedirectingGenerative(
+      constants.RedirectingGenerativeConstantConstructor constructor, arg) {
+  }
+}
+
+void useConstant([constants.ConstantValue constant,
+                  constants.ConstantExpression expression,
+                  constants.ConstructedConstantExpression constructedConstant,
+                  constants.ConstantSystem cs,
+                  constants.Environment env]) {
   constant.isObject;
   cs.isBool(constant);
   constructedConstant.computeInstanceType();
   constructedConstant.computeInstanceFields();
   expression.evaluate(null, null);
+  new NullConstantConstructorVisitor()
+      ..visit(null, null)
+      ..visitGenerative(null, null)
+      ..visitRedirectingFactory(null, null)
+      ..visitRedirectingGenerative(null, null);
+
 }
 
 void useNode(tree.Node node) {
@@ -217,11 +240,13 @@ useSsa(ssa.HInstruction instruction) {
   new ssa.HStatementSequenceInformation(null);
 }
 
-useIo(io.CodeBuffer buffer, io.LineColumnMap map) {
+useIo([io.LineColumnMap map,
+       io.LineColumnProvider provider]) {
   map..addFirst(null, null, null)
      ..forEachLine(null)
      ..getFirstElementsInLine(null)
      ..forEachColumn(null, null);
+  provider.getOffset(null, null);
 }
 
 usedByTests() {
@@ -232,6 +257,7 @@ usedByTests() {
   compiler.currentlyInUserCode();
   type_graph_inferrer.TypeGraphInferrer typeGraphInferrer = null;
   source_file_provider.SourceFileProvider sourceFileProvider = null;
+  sourceFileProvider.getSourceFile(null);
   world.hasAnyUserDefinedGetter(null, null);
   typeGraphInferrer.getCallersOf(null);
   dart_types.Types.sorted(null);
@@ -290,6 +316,8 @@ useProgramBuilder(program_builder.ProgramBuilder builder) {
 }
 
 useSemanticVisitor() {
+  operators.UnaryOperator.fromKind(null);
+  operators.BinaryOperator.fromKind(null);
   new semantic_visitor.BulkSendVisitor()
       ..apply(null, null)
       ..visitSuperFieldFieldCompound(null, null, null, null, null, null);

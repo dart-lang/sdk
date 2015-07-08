@@ -638,7 +638,7 @@ class RawClass : public RawObject {
   int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
   classid_t id_;  // Class Id, also index in the class table.
-  int16_t num_type_arguments_;  // Number of type arguments in flatten vector.
+  int16_t num_type_arguments_;  // Number of type arguments in flattened vector.
   int16_t num_own_type_arguments_;  // Number of non-overlapping type arguments.
   uint16_t num_native_fields_;  // Number of native fields in class.
   uint16_t state_bits_;
@@ -1904,9 +1904,13 @@ class RawJSRegExp : public RawInstance {
   RawFunction* two_byte_function_;
   RawFunction* external_one_byte_function_;
   RawFunction* external_two_byte_function_;
+  RawTypedData* one_byte_bytecode_;
+  RawTypedData* two_byte_bytecode_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->external_two_byte_function_);
+    return reinterpret_cast<RawObject**>(&ptr()->two_byte_bytecode_);
   }
+
+  intptr_t num_registers_;
 
   // A bitfield with two fields:
   // type: Uninitialized, simple or complex.

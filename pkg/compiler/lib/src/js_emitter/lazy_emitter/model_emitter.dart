@@ -33,47 +33,6 @@ import 'package:js_runtime/shared/embedded_names.dart' show
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
 
-/// Represents the LiteralString resulting from unparsing [expression]. The
-/// actual unparsing is done on demand when requesting the [value] of this
-/// node.
-class _UnparsedNode extends js.DeferredString
-                    implements AstContainer {
-  @override
-  final js.Node ast;
-  final Compiler _compiler;
-  final bool _protectForEval;
-  js.LiteralString _cachedLiteral;
-
-  /// A [js.Literal] that represents the string result of unparsing [ast].
-  ///
-  /// When its string [value] is requested, the node pretty-prints the given
-  /// [ast] and, if [protectForEval] is true, wraps the resulting
-  /// string in parenthesis. The result is also escaped.
-  _UnparsedNode(this.ast, this._compiler, this._protectForEval);
-
-  js.LiteralString get _literal {
-    if (_cachedLiteral == null) {
-      String text = js.prettyPrint(ast, _compiler).getText();
-      if (_protectForEval) {
-        if (ast is js.Fun) text = '($text)';
-        if (ast is js.LiteralExpression) {
-          js.LiteralExpression literalExpression = ast;
-          String template = literalExpression.template;
-          if (template.startsWith("function ") ||
-              template.startsWith("{")) {
-            text = '($text)';
-          }
-        }
-      }
-      _cachedLiteral = js.js.escapedString(text);
-    }
-    return _cachedLiteral;
-  }
-
-  @override
-  String get value => _literal.value;
-}
-
 class ModelEmitter {
   final Compiler compiler;
   final Namer namer;
@@ -185,9 +144,11 @@ class ModelEmitter {
 
     js.Statement mainAst = emitMainFragment(program);
 
-    fragmentsCode.forEach(program.metadataFinalizer.countTokensInAst);
-    program.metadataFinalizer.countTokensInAst(mainAst);
-    program.metadataFinalizer.finalizeTokens();
+    js.TokenCounter counter = new js.TokenCounter();
+    fragmentsCode.forEach(counter.countTokens);
+    counter.countTokens(mainAst);
+
+    program.finalizers.forEach((js.TokenFinalizer f) => f.finalizeTokens());
 
     for (int i = 0; i < fragmentsCode.length; ++i) {
       String code = js.prettyPrint(fragmentsCode[i], compiler).getText();
@@ -217,7 +178,7 @@ class ModelEmitter {
   /// See [_UnparsedNode] for details.
   js.Literal unparse(Compiler compiler, js.Node value,
                      {bool protectForEval: true}) {
-    return new _UnparsedNode(value, compiler, protectForEval);
+    return new js.UnparsedNode(value, compiler, protectForEval);
   }
 
   String buildGeneratedBy(compiler) {
@@ -292,7 +253,7 @@ class ModelEmitter {
         generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG);
     js.Expression leafTagsAccess =
         generateEmbeddedGlobalAccess(LEAF_TAGS);
-    js.Statement nativeInfoHandler = nativeEmitter.buildNativeInfoHandler(
+    js.Statement nativeInfoHandler = NativeGenerator.buildNativeInfoHandler(
         nativeInfoAccess,
         constructorAccess,
         subclassReadGenerator,
@@ -630,10 +591,11 @@ class ModelEmitter {
       js.Literal name = js.quoteName(cls.name);
       js.LiteralNumber holderIndex = js.number(cls.holder.index);
       js.Expression emittedClass = emitClass(cls);
-      if (cls.nativeInfo == null) {
+      js.Expression nativeInfo = NativeGenerator.encodeNativeInfo(cls);
+      if (nativeInfo == null) {
         return [name, emittedClass, holderIndex];
       } else {
-        return [name, emittedClass, cls.nativeInfo, holderIndex];
+        return [name, emittedClass, nativeInfo, holderIndex];
       }
     });
 

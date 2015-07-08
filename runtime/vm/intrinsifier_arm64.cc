@@ -17,6 +17,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, interpret_irregexp);
+
 // When entering intrinsics code:
 // R5: IC Data
 // R4: Arguments descriptor
@@ -1646,6 +1648,30 @@ void Intrinsifier::ObjectEquals(Assembler* assembler) {
 }
 
 
+// Return type quickly for simple types (not parameterized and not signature).
+void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
+  Label fall_through;
+  __ ldr(R0, Address(SP, 0 * kWordSize));
+  __ LoadClassIdMayBeSmi(R1, R0);
+  __ LoadClassById(R2, R1, PP);
+  // R2: class of instance (R0).
+  __ ldr(R3, FieldAddress(R2, Class::signature_function_offset()));
+  __ CompareObject(R3, Object::null_object(), PP);
+  __ b(&fall_through, NE);
+
+  __ ldr(R3, FieldAddress(R2, Class::num_type_arguments_offset()), kHalfword);
+  __ CompareImmediate(R3, 0, kNoPP);
+  __ b(&fall_through, NE);
+
+  __ ldr(R0, FieldAddress(R2, Class::canonical_types_offset()));
+  __ CompareObject(R0, Object::null_object(), PP);
+  __ b(&fall_through, EQ);
+  __ ret();
+
+  __ Bind(&fall_through);
+}
+
+
 void Intrinsifier::String_getHashCode(Assembler* assembler) {
   Label fall_through;
   __ ldr(R0, Address(SP, 0 * kWordSize));
@@ -2043,6 +2069,8 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 
 
 void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+  if (FLAG_interpret_irregexp) return;
+
   static const intptr_t kRegExpParamOffset = 2 * kWordSize;
   static const intptr_t kStringParamOffset = 1 * kWordSize;
   // start_index smi is located at offset 0.

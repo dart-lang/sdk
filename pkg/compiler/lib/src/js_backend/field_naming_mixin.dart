@@ -44,7 +44,7 @@ abstract class _MinifiedFieldNamer implements Namer {
  * hierarchy is encoded using instances of [_FieldNamingScope].
  */
 class _FieldNamingRegistry {
-  final MinifyNamer namer;
+  final Namer namer;
 
   final Map<Entity, _FieldNamingScope> scopes =
       new Map<Entity, _FieldNamingScope>();
@@ -77,8 +77,7 @@ class _FieldNamingRegistry {
         nameStore.add(
             new StringBackedName(MinifyNamer._reservedNativeProperties[index]));
       } else {
-        nameStore.add(namer.getFreshName("field$index", namer.usedInstanceNames,
-            namer.suggestedInstanceNames));
+        nameStore.add(namer.getFreshName(NamingScope.instance, "field$index"));
       }
     }
 

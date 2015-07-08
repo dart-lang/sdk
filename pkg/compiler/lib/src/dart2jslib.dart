@@ -52,6 +52,7 @@ import 'resolution/semantic_visitor.dart';
 import 'resolution/send_structure.dart';
 import 'resolution/operators.dart' as op;
 import 'scanner/scannerlib.dart';
+import 'serialization/task.dart';
 import 'ssa/ssa.dart';
 import 'io/source_file.dart' show SourceFile;
 import 'tracer.dart' show Tracer;
