@@ -10111,6 +10111,17 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitBinaryExpression_minusID_propagated() {
+    // a - b
+    BinaryExpression node = AstFactory.binaryExpression(
+        _propagatedVariable(_typeProvider.intType, 'a'), TokenType.MINUS,
+        _propagatedVariable(_typeProvider.doubleType, 'b'));
+    node.propagatedElement = getMethod(_typeProvider.numType, "+");
+    _analyze(node);
+    expect(node.propagatedType, same(_typeProvider.doubleType));
+    _listener.assertNoErrors();
+  }
+
   void test_visitBinaryExpression_notEquals() {
     // 2 != 3
     Expression node = AstFactory.binaryExpression(
@@ -10134,6 +10145,17 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         _resolvedInteger(1), TokenType.PLUS, _resolvedInteger(2));
     node.staticElement = getMethod(_typeProvider.numType, "+");
     expect(_analyze(node), same(_typeProvider.intType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitBinaryExpression_plusII_propagated() {
+    // a + b
+    BinaryExpression node = AstFactory.binaryExpression(
+        _propagatedVariable(_typeProvider.intType, 'a'), TokenType.PLUS,
+        _propagatedVariable(_typeProvider.intType, 'b'));
+    node.propagatedElement = getMethod(_typeProvider.numType, "+");
+    _analyze(node);
+    expect(node.propagatedType, same(_typeProvider.intType));
     _listener.assertNoErrors();
   }
 
@@ -11102,6 +11124,25 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   DartType _flatten(DartType type) =>
       StaticTypeAnalyzer.flattenFutures(_typeProvider, type);
+
+  /**
+   * Return a simple identifier that has been resolved to a variable element with the given type.
+   *
+   * @param type the type of the variable being represented
+   * @param variableName the name of the variable
+   * @return a simple identifier that has been resolved to a variable element with the given type
+   */
+  SimpleIdentifier _propagatedVariable(
+      InterfaceType type, String variableName) {
+    SimpleIdentifier identifier = AstFactory.identifier3(variableName);
+    VariableElementImpl element =
+        ElementFactory.localVariableElement(identifier);
+    element.type = type;
+    identifier.staticType = _typeProvider.dynamicType;
+    identifier.propagatedElement = element;
+    identifier.propagatedType = type;
+    return identifier;
+  }
 
   /**
    * Return an integer literal that has been resolved to the correct type.
