@@ -26,13 +26,16 @@ var tests = [
   Completer completer = new Completer();
   // Expect at least this many GC events.
   int gcCountdown = 3;
-  isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.kind == ServiceEvent.kGC) {
+  isolate.vm.getEventStream(VM.kGCStream).then((stream) {
+    var subscription;
+    subscription = stream.listen((ServiceEvent event) {
+      assert(event.kind == ServiceEvent.kGC);
       print('Received GC event');
       if (--gcCountdown == 0) {
+        subscription.cancel();
         completer.complete();
       }
-    }
+    });
   });
   return completer.future;
 },

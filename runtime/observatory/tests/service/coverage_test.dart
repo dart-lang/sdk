@@ -57,11 +57,15 @@ var tests = [
   return isolate.rootLibrary.load().then((_) {
       // Set up a listener to wait for breakpoint events.
       Completer completer = new Completer();
-      isolate.vm.events.stream.listen((ServiceEvent event) {
-        if (event.kind == ServiceEvent.kPauseBreakpoint) {
-          print('Breakpoint reached');
-          completer.complete();
-        }
+      isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
+        var subscription;
+        subscription = stream.listen((ServiceEvent event) {
+          if (event.kind == ServiceEvent.kPauseBreakpoint) {
+            print('Breakpoint reached');
+            completer.complete();
+            subscription.cancel();
+          }
+        });
       });
 
       // Create a timer to set a breakpoint with a short delay.

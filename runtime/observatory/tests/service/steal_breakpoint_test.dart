@@ -29,8 +29,9 @@ var tests = [
 
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print('Isolate paused at breakpoint');
       subscription.cancel();
@@ -61,8 +62,9 @@ var tests = [
 // Resume
 (Isolate isolate) async {
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kResume) {
       print('Isolate resumed');
       subscription.cancel();

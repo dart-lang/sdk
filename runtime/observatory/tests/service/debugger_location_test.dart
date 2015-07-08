@@ -56,10 +56,14 @@ var tests = [
   return isolate.rootLibrary.load().then((_) {
       // Listen for breakpoint event.
       Completer completer = new Completer();
-      isolate.vm.events.stream.listen((ServiceEvent event) {
-        if (event.kind == ServiceEvent.kPauseBreakpoint) {
-          completer.complete();
-        }
+      isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
+        var subscription;
+        subscription = stream.listen((ServiceEvent event) {
+          if (event.kind == ServiceEvent.kPauseBreakpoint) {
+            subscription.cancel();
+            completer.complete();
+          }
+        });
       });
 
       // Add the breakpoint.

@@ -22,12 +22,11 @@ var tests = [
 
 (Isolate isolate) async {
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    print(event);
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kInspect) {
       expect((event.inspectee as Instance).clazz.name, equals('Point'));
-
       subscription.cancel();
       completer.complete();
     }

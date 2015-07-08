@@ -23,6 +23,7 @@ class ObservatoryApplication extends Observable {
   @observable Page currentPage;
   VM _vm;
   VM get vm => _vm;
+
   set vm(VM vm) {
     if (_vm == vm) {
       // Do nothing.
@@ -53,7 +54,8 @@ class ObservatoryApplication extends Observable {
                 new ServiceEvent.connectionClosed(reason)));
       });
 
-      vm.events.stream.listen(_onEvent);
+      vm.listenEventStream(VM.kIsolateStream, _onEvent);
+      vm.listenEventStream(VM.kDebugStream, _onEvent);
     }
     _vm = vm;
   }
@@ -88,11 +90,9 @@ class ObservatoryApplication extends Observable {
     switch(event.kind) {
       case ServiceEvent.kIsolateStart:
       case ServiceEvent.kIsolateUpdate:
-      case ServiceEvent.kGraph:
       case ServiceEvent.kBreakpointAdded:
       case ServiceEvent.kBreakpointResolved:
       case ServiceEvent.kBreakpointRemoved:
-      case ServiceEvent.kGC:
       case ServiceEvent.kDebuggerSettingsUpdate:
         // Ignore for now.
         break;

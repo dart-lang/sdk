@@ -97,6 +97,7 @@ class ServiceObjectViewElement extends ObservatoryElement {
             element.object = object;
             return element;
         }
+        break;
       case 'SocketList':
         IOSocketListViewElement element =
             new Element.tag('io-socket-list-view');

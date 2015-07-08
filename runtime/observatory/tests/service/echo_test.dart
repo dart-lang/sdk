@@ -22,19 +22,22 @@ var tests = [
     expect(result['text'], equals('hello'));
   }),
 
-(Isolate isolate) {
+(Isolate isolate) async {
   Completer completer = new Completer();
-  isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.kind == '_Echo') {
-      expect(event.data.lengthInBytes, equals(3));
-      expect(event.data.getUint8(0), equals(0));
-      expect(event.data.getUint8(1), equals(128));
-      expect(event.data.getUint8(2), equals(255));
-      completer.complete();
-    }
+  var stream = await isolate.vm.getEventStream('_Echo');
+  var subscription;
+  subscription = stream.listen((ServiceEvent event) {
+    assert(event.kind == '_Echo');
+    expect(event.data.lengthInBytes, equals(3));
+    expect(event.data.getUint8(0), equals(0));
+    expect(event.data.getUint8(1), equals(128));
+    expect(event.data.getUint8(2), equals(255));
+    subscription.cancel();
+    completer.complete();
   });
-  isolate.invokeRpc('_triggerEchoEvent', { 'text': 'hello' });
-  return completer.future;
+  
+  await isolate.invokeRpc('_triggerEchoEvent', { 'text': 'hello' });
+  await completer.future;
 },
 
 ];

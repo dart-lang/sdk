@@ -69,7 +69,8 @@ testAsync(Isolate isolate) async {
         expect(result.valueAsString, equals('true'));
       });
 
-  await for (ServiceEvent event in isolate.vm.events.stream) {
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
+  await for (ServiceEvent event in stream) {
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
       var bp = event.breakpoint;
       print('Hit $bp');

@@ -78,8 +78,9 @@ testMethod(Isolate isolate) async {
   expect(bpt is Breakpoint, isTrue);  // I.e, not null.
 
   bool hitBreakpoint = false;
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var sub;
-  sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
+  sub = stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;
@@ -126,8 +127,9 @@ testMethod2(Isolate isolate) async {
   expect(bpt is Breakpoint, isTrue);  // I.e, not null.
 
   bool hitBreakpoint = false;
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var sub;
-  sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
+  sub = stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;
@@ -174,8 +176,9 @@ testMethod3(Isolate isolate) async {
   expect(bpt is Breakpoint, isTrue);  // I.e, not null.
 
   bool hitBreakpoint = false;
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var sub;
-  sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
+  sub = stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;
@@ -215,8 +218,9 @@ testMethod4(Isolate isolate) async {
   expect(bpt is Breakpoint, isTrue);  // I.e, not null.
 
   bool hitBreakpoint = false;
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var sub;
-  sub = isolate.vm.events.stream.listen((ServiceEvent event) async {
+  sub = stream.listen((ServiceEvent event) async {
     print("Event $event");
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
       var frameNumber = 1, r;

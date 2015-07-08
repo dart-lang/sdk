@@ -43,7 +43,7 @@ class HeapProfileElement extends ObservatoryElement {
   var _classTableBody;
 
   @published bool autoRefresh = false;
-  var _subscription;
+  var _subscriptionFuture;
 
   @published Isolate isolate;
   @observable ServiceMap profile;
@@ -93,13 +93,14 @@ class HeapProfileElement extends ObservatoryElement {
     _oldPieChart = new Chart('PieChart',
         shadowRoot.querySelector('#oldPieChart'));
     _classTableBody = shadowRoot.querySelector('#classTableBody');
-    _subscription = app.vm.events.stream.where(
-        (event) => event.isolate == isolate).listen(_onEvent);
+    _subscriptionFuture =
+        app.vm.listenEventStream(VM.kGCStream, _onEvent);
   }
 
   @override
   void detached() {
-    _subscription.cancel();
+    cancelFutureSubscription(_subscriptionFuture);
+    _subscriptionFuture = null;
     super.detached();
   }
 
@@ -108,7 +109,8 @@ class HeapProfileElement extends ObservatoryElement {
   bool refreshAutoQueued = false;
 
   void _onEvent(ServiceEvent event) {
-    if (autoRefresh && event.kind == 'GC') {
+    assert(event.kind == 'GC');
+    if (autoRefresh) {
       if (!refreshAutoPending) {
         refreshAuto();
       } else {

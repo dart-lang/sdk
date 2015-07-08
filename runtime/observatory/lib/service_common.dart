@@ -208,7 +208,8 @@ abstract class CommonWebSocketVM extends VM {
         return;
       }
       var event = map['event'];
-      postServiceEvent(event, data);
+      var streamId = map['streamId'];
+      postServiceEvent(streamId, event, data);
     });
   }
 
@@ -219,7 +220,8 @@ abstract class CommonWebSocketVM extends VM {
     }
     var event = map['event'];
     if (event != null) {
-      postServiceEvent(event, null);
+      var streamId = map['streamId'];
+      postServiceEvent(streamId, event, null);
       return;
     }
 

@@ -4,10 +4,8 @@
 // VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
-import 'package:observatory/debugger.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
-import 'dart:async';
 
 export 'dart:collection';
 import 'dart:mirrors' as mirrors;
