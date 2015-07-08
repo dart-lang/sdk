@@ -9,13 +9,17 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:core' hide Resource;
 
-import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
 import 'package:path/path.dart' as pathos;
+
+class _SdkExtFileBasedSource extends FileBasedSource {
+  _SdkExtFileBasedSource(JavaFile file, Uri uri)
+      : super(file, uri);
+}
 
 /// Given a packageMap (see [PackageMapProvider]), check in each package's lib
 /// directory for the existence of a `.sdkext` file. This file must contain a
@@ -61,14 +65,14 @@ class SdkExtUriResolver extends UriResolver {
     var partUri = new Uri.file(pathos.join(directory, partPath));
     assert(partUri.isAbsolute);
     JavaFile javaFile = new JavaFile.fromUri(partUri);
-    return new FileBasedSource(javaFile, importUri);
+    return new _SdkExtFileBasedSource(javaFile, importUri);
   }
 
   /// Resolve an import of an sdk extension.
   Source _resolveEntry(Uri libraryEntry, Uri importUri) {
     // Library entry.
     JavaFile javaFile = new JavaFile.fromUri(libraryEntry);
-    return new FileBasedSource(javaFile, importUri);
+    return new _SdkExtFileBasedSource(javaFile, importUri);
   }
 
   @override
@@ -106,7 +110,10 @@ class SdkExtUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    return source.uri;
+    if (source is _SdkExtFileBasedSource) {
+      return source.uri;
+    }
+    return null;
   }
 
   /// Given a package [name] and a list of folders ([libDirs]),
