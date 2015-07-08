@@ -5,6 +5,7 @@
 # BSD-style license that can be found in the LICENSE file.
 #
 
+import os
 import shutil
 import sys
 import subprocess
