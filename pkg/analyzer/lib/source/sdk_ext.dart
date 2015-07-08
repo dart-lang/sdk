@@ -16,11 +16,6 @@ import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
 import 'package:path/path.dart' as pathos;
 
-class _SdkExtFileBasedSource extends FileBasedSource {
-  _SdkExtFileBasedSource(JavaFile file, Uri uri)
-      : super(file, uri);
-}
-
 /// Given a packageMap (see [PackageMapProvider]), check in each package's lib
 /// directory for the existence of a `.sdkext` file. This file must contain a
 /// JSON encoded map. Each key in the map is a `dart:` library name. Each value
@@ -65,29 +60,45 @@ class SdkExtUriResolver extends UriResolver {
     var partUri = new Uri.file(pathos.join(directory, partPath));
     assert(partUri.isAbsolute);
     JavaFile javaFile = new JavaFile.fromUri(partUri);
-    return new _SdkExtFileBasedSource(javaFile, importUri);
+    return new FileBasedSource(javaFile, importUri);
   }
 
   /// Resolve an import of an sdk extension.
   Source _resolveEntry(Uri libraryEntry, Uri importUri) {
     // Library entry.
     JavaFile javaFile = new JavaFile.fromUri(libraryEntry);
-    return new _SdkExtFileBasedSource(javaFile, importUri);
+    return new FileBasedSource(javaFile, importUri);
+  }
+
+  /// Return the library name of [importUri].
+  String _libraryName(Uri importUri) {
+    var uri = importUri.toString();
+    int index = uri.indexOf('/');
+    if (index >= 0) {
+      return uri.substring(0, index);
+    }
+    return uri;
+  }
+
+  /// Return the part path of [importUri].
+  String _partPath(Uri importUri) {
+    var uri = importUri.toString();
+    int index = uri.indexOf('/');
+    if (index >= 0) {
+      return uri.substring(index + 1);
+    }
+    return null;
+  }
+
+  /// Returns true if [libraryName] is a registered sdk extension.
+  bool _registeredSdkExtension(String libraryName) {
+    return _urlMappings[libraryName] != null;
   }
 
   @override
   Source resolveAbsolute(Uri importUri) {
-    // Split import uri into library name and (optionally) a part path.
-    var uri = importUri.toString();
-    String libraryName;
-    String partPath;
-    int index = uri.indexOf('/');
-    if (index >= 0) {
-      libraryName = uri.substring(0, index);
-      partPath = uri.substring(index + 1);
-    } else {
-      libraryName = uri;
-    }
+    String libraryName = _libraryName(importUri);
+    String partPath = _partPath(importUri);
     // Lookup library name in mappings.
     String mapping = _urlMappings[libraryName];
     if (mapping == null) {
@@ -101,7 +112,7 @@ class SdkExtUriResolver extends UriResolver {
       return null;
     }
 
-    if (index >= 0) {
+    if (partPath != null) {
       return _resolvePart(libraryEntry, partPath, importUri);
     } else {
       return _resolveEntry(libraryEntry, importUri);
@@ -110,7 +121,8 @@ class SdkExtUriResolver extends UriResolver {
 
   @override
   Uri restoreAbsolute(Source source) {
-    if (source is _SdkExtFileBasedSource) {
+    String libraryName = _libraryName(source.uri);
+    if (_registeredSdkExtension(libraryName)) {
       return source.uri;
     }
     return null;
