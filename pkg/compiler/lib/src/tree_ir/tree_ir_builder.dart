@@ -612,5 +612,20 @@ class Builder implements cps_ir.Visitor<Node> {
           node.dependency);
     }
   }
+
+  Expression visitGetLength(cps_ir.GetLength node) {
+    return new GetLength(getVariableUse(node.object));
+  }
+
+  Expression visitGetIndex(cps_ir.GetIndex node) {
+    return new GetIndex(getVariableUse(node.object),
+                        getVariableUse(node.index));
+  }
+
+  Expression visitSetIndex(cps_ir.SetIndex node) {
+    return new SetIndex(getVariableUse(node.object),
+                        getVariableUse(node.index),
+                        getVariableUse(node.value));
+  }
 }
 

@@ -17,6 +17,8 @@ import '../elements/elements.dart';
 import '../dart2jslib.dart' show ClassWorld, World;
 import '../universe/universe.dart';
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../io/source_information.dart' show SourceInformation;
+import 'cps_fragment.dart';
 
 enum AbstractBool {
   True, False, Maybe, Nothing
@@ -25,6 +27,7 @@ enum AbstractBool {
 class TypeMaskSystem {
   final TypesTask inferrer;
   final World classWorld;
+  final JavaScriptBackend backend;
 
   TypeMask get dynamicType => inferrer.dynamicType;
   TypeMask get typeType => inferrer.typeType;
@@ -37,13 +40,15 @@ class TypeMaskSystem {
   TypeMask get listType => inferrer.listType;
   TypeMask get mapType => inferrer.mapType;
   TypeMask get nonNullType => inferrer.nonNullType;
+  TypeMask get mutableNativeListType => backend.mutableArrayType;
 
   TypeMask numStringBoolType;
 
   // TODO(karlklose): remove compiler here.
   TypeMaskSystem(dart2js.Compiler compiler)
     : inferrer = compiler.typesTask,
-      classWorld = compiler.world {
+      classWorld = compiler.world,
+      backend = compiler.backend {
     numStringBoolType =
       new TypeMask.unionOf(<TypeMask>[numType, stringType, boolType],
                            classWorld);
@@ -135,6 +140,26 @@ class TypeMaskSystem {
     // We currently exploit that there are no subclasses of double that are
     // not integers (e.g. there is no UnsignedDouble class or whatever).
     return areDisjoint(t, doubleType);
+  }
+
+  bool isDefinitelyInt(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.satisfies(backend.jsIntClass, classWorld);
+  }
+
+  bool isDefinitelyNativeList(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.satisfies(backend.jsArrayClass, classWorld);
+  }
+
+  bool isDefinitelyMutableNativeList(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.satisfies(backend.jsMutableArrayClass, classWorld);
+  }
+
+  bool isDefinitelyFixedNativeList(TypeMask t, {bool allowNull: false}) {
+    if (!allowNull && t.isNullable) return false;
+    return t.satisfies(backend.jsFixedArrayClass, classWorld);
   }
 
   bool areDisjoint(TypeMask leftType, TypeMask rightType) {
@@ -265,6 +290,32 @@ class ConstantPropagationLattice {
       typeSystem.isDefinitelyNotNonIntegerDouble(value.type);
   }
 
+  bool isDefinitelyInt(AbstractValue value,
+                       {bool allowNull: false}) {
+    return value.isNothing ||
+        typeSystem.isDefinitelyInt(value.type, allowNull: allowNull);
+  }
+
+  bool isDefinitelyNativeList(AbstractValue value,
+                              {bool allowNull: false}) {
+    return value.isNothing ||
+        typeSystem.isDefinitelyNativeList(value.type, allowNull: allowNull);
+  }
+
+  bool isDefinitelyMutableNativeList(AbstractValue value,
+                                     {bool allowNull: false}) {
+    return value.isNothing ||
+         typeSystem.isDefinitelyMutableNativeList(value.type,
+                                                  allowNull: allowNull);
+  }
+
+  bool isDefinitelyFixedNativeList(AbstractValue value,
+                                   {bool allowNull: false}) {
+    return value.isNothing ||
+        typeSystem.isDefinitelyFixedNativeList(value.type,
+                                               allowNull: allowNull);
+  }
+
   /// Returns whether the given [value] is an instance of [type].
   ///
   /// Since [value] and [type] are not always known, [AbstractBool.Maybe] is
@@ -357,7 +408,19 @@ class ConstantPropagationLattice {
       if (result == null) return anything;
       return constant(result);
     }
-    return null; // TODO(asgerf): Look up type?
+    // TODO(asgerf): Handle remaining operators and the UIntXX types.
+    switch (operator.kind) {
+      case BinaryOperatorKind.ADD:
+      case BinaryOperatorKind.SUB:
+      case BinaryOperatorKind.MUL:
+        if (isDefinitelyInt(left) && isDefinitelyInt(right)) {
+          return nonConstant(typeSystem.intType);
+        }
+        return null;
+
+      default:
+        return null; // The caller will use return type from type inference.
+    }
   }
 
   AbstractValue stringConstant(String value) {
@@ -764,6 +827,185 @@ class TransformingVisitor extends RecursiveVisitor {
     }
   }
 
+  /// Create a check that throws if [index] is not a valid index on [list].
+  /// 
+  /// This function assumes that [index] is an integer.
+  ///
+  /// Returns a CPS fragment whose context is the branch where no error
+  /// was thrown.
+  CpsFragment makeBoundsCheck(Primitive list,
+                              Primitive index,
+                              SourceInformation sourceInfo) {
+    CpsFragment cps = new CpsFragment(sourceInfo);
+    Continuation fail = cps.letCont();
+    Primitive isTooSmall = cps.applyBuiltin(
+        BuiltinOperator.NumLt,
+        <Primitive>[index, cps.makeZero()]);
+    cps.ifTrue(isTooSmall).invokeContinuation(fail);
+    Primitive isTooLarge = cps.applyBuiltin(
+        BuiltinOperator.NumGe,
+        <Primitive>[index, cps.letPrim(new GetLength(list))]);
+    cps.ifTrue(isTooLarge).invokeContinuation(fail);
+    cps.insideContinuation(fail).invokeStaticThrower(
+        backend.getThrowIndexOutOfBoundsError(),
+        <Primitive>[list, index]);
+    return cps;
+  }
+
+  /// Create a check that throws if the length of [list] is not equal to
+  /// [originalLength].
+  ///
+  /// Returns a CPS fragment whose context is the branch where no error
+  /// was thrown.
+  CpsFragment makeConcurrentModificationCheck(Primitive list,
+                                              Primitive originalLength,
+                                              SourceInformation sourceInfo) {
+    CpsFragment cps = new CpsFragment(sourceInfo);
+    Primitive lengthChanged = cps.applyBuiltin(
+        BuiltinOperator.StrictNeq,
+        <Primitive>[originalLength, cps.letPrim(new GetLength(list))]);
+    cps.ifTrue(lengthChanged).invokeStaticThrower(
+        backend.getThrowConcurrentModificationError(),
+        <Primitive>[list]);
+    return cps;
+  }
+
+  /// Counts number of index accesses on [list] and determines based on
+  /// that number if we should try to inline them.
+  ///
+  /// This is a short-term solution to avoid inserting a lot of bounds checks,
+  /// since there is currently no optimization for eliminating them.
+  bool hasTooManyIndexAccesses(Primitive list) {
+    int count = 0;
+    for (Reference ref = list.firstRef; ref != null; ref = ref.next) {
+      Node use = ref.parent;
+      if (use is InvokeMethod && 
+          (use.selector.isIndex || use.selector.isIndexSet) &&
+          getDartReceiver(use) == list) {
+        ++count;
+      } else if (use is GetIndex && use.object.definition == list) {
+        ++count;
+      } else if (use is SetIndex && use.object.definition == list) {
+        ++count;
+      }
+      if (count > 2) return true;
+    }
+    return false;
+  }
+
+  /// Tries to replace [node] with one or more direct array access operations.
+  ///
+  /// Returns `true` if the node was replaced.
+  bool specializeArrayAccess(InvokeMethod node) {
+    Primitive list = getDartReceiver(node);
+    AbstractValue listValue = getValue(list);
+    // Ensure that the object is a native list or null.
+    if (!lattice.isDefinitelyNativeList(listValue, allowNull: true)) {
+      return false;
+    }
+    bool isFixedLength = 
+        lattice.isDefinitelyFixedNativeList(listValue, allowNull: true);
+    bool isMutable =
+        lattice.isDefinitelyMutableNativeList(listValue, allowNull: true);
+    SourceInformation sourceInfo = node.sourceInformation;
+    Continuation cont = node.continuation.definition;
+    switch (node.selector.name) {
+      case 'length':
+        if (!node.selector.isGetter) return false;
+        CpsFragment cps = new CpsFragment(sourceInfo);
+        cps.invokeContinuation(cont, [cps.letPrim(new GetLength(list))]);
+        replaceSubtree(node, cps.result);
+        visit(cps.result);
+        return true;
+
+      case '[]':
+        if (listValue.isNullable) return false;
+        if (hasTooManyIndexAccesses(list)) return false;
+        Primitive index = getDartArgument(node, 0);
+        if (!lattice.isDefinitelyInt(getValue(index))) return false;
+        CpsFragment cps = makeBoundsCheck(list, index, sourceInfo);
+        GetIndex get = cps.letPrim(new GetIndex(list, index));
+        cps.invokeContinuation(cont, [get]);
+        replaceSubtree(node, cps.result);
+        visit(cps.result);
+        return true;
+
+      case '[]=':
+        if (listValue.isNullable) return false;
+        if (hasTooManyIndexAccesses(list)) return false;
+        Primitive index = getDartArgument(node, 0);
+        Primitive value = getDartArgument(node, 1);
+        if (!isMutable) return false;
+        if (!lattice.isDefinitelyInt(getValue(index))) return false;
+        CpsFragment cps = makeBoundsCheck(list, index, sourceInfo);
+        cps.letPrim(new SetIndex(list, index, value));
+        assert(cont.parameters.single.hasNoUses);
+        cont.parameters.clear();
+        cps.invokeContinuation(cont, []);
+        replaceSubtree(node, cps.result);
+        visit(cps.result);
+        return true;
+
+      case 'forEach':
+        if (!node.selector.isCall ||
+            node.selector.positionalArgumentCount != 1 ||
+            node.selector.namedArgumentCount != 0) {
+          return false;
+        }
+        Primitive callback = getDartArgument(node, 0);
+        // Rewrite to:
+        //   var originalLength = array.length, i = 0;
+        //   while (i < array.length) {
+        //     callback(array[i]);
+        //     if (array.length !== originalLength) throw;
+        //     i = i + 1;
+        //   }
+        CpsFragment cps = new CpsFragment(sourceInfo);
+        Primitive originalLength = cps.letPrim(new GetLength(list));
+        originalLength.hint = new OriginalLengthEntity();
+
+        // Build a loop.
+        Parameter loopIndex = new Parameter(new LoopIndexEntity());
+        Continuation loop = cps.beginLoop(
+            <Parameter>[loopIndex], [cps.makeZero()]);
+
+        // Check for loop exit.
+        Primitive loopCondition = cps.applyBuiltin(
+            BuiltinOperator.NumLt,
+            [loopIndex, cps.letPrim(new GetLength(list))]);
+        CpsFragment exitBranch = cps.ifFalse(loopCondition);
+        exitBranch.invokeContinuation(cont, [exitBranch.makeNull()]);
+
+        // Invoke the callback.
+        Primitive arrayItem = cps.letPrim(new GetIndex(list, loopIndex));
+        cps.invokeMethod(callback,
+                         new Selector.callClosure(1),
+                         getValue(callback).type,
+                         [arrayItem]);
+
+        // Check for concurrent modification, unless the list is fixed-length.
+        if (!isFixedLength) {
+          cps.append(
+            makeConcurrentModificationCheck(list, originalLength, sourceInfo));
+        }
+
+        // Increment i and continue the loop.
+        Primitive addOne = cps.applyBuiltin(
+            BuiltinOperator.NumAdd,
+            [loopIndex, cps.makeOne()]);
+        cps.continueLoop(loop, [addOne]);
+
+        replaceSubtree(node, cps.result);
+        visit(cps.result);
+        return true;
+
+      // TODO(asgerf): Rewrite 'iterator', 'add', 'removeLast', ...
+
+      default:
+        return false;
+    }
+  }
+
   /// If [prim] is the parameter to a call continuation, returns the
   /// corresponding call.
   Invoke getInvocationWithResult(Primitive prim) {
@@ -847,6 +1089,10 @@ class TransformingVisitor extends RecursiveVisitor {
     Invoke tearOffInvoke = getInvocationWithResult(tearOff);
     if (tearOffInvoke is InvokeMethod && tearOffInvoke.selector.isGetter) {
       Selector getter = tearOffInvoke.selector;
+
+      // TODO(asgerf): Support torn-off intercepted methods.
+      if (isInterceptedSelector(getter)) return false;
+
       Continuation getterCont = tearOffInvoke.continuation.definition;
 
       // TODO(asgerf): Support torn-off intercepted methods.
@@ -905,6 +1151,7 @@ class TransformingVisitor extends RecursiveVisitor {
     if (constifyExpression(node)) return;
     if (specializeOperatorCall(node)) return;
     if (specializeFieldAccess(node)) return;
+    if (specializeArrayAccess(node)) return;
     if (specializeClosureCall(node)) return;
 
     AbstractValue receiver = getValue(node.receiver.definition);
@@ -1075,6 +1322,10 @@ class TransformingVisitor extends RecursiveVisitor {
     node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
   }
 
+  void visitGetLength(GetLength node) {
+    node.objectIsNotNull = getValue(node.object.definition).isDefinitelyNotNull;
+  }
+
   void visitLetPrim(LetPrim node) {
     AbstractValue value = getValue(node.primitive);
     if (node.primitive is! Constant && value.isConstant) {
@@ -1127,6 +1378,7 @@ class TransformingVisitor extends RecursiveVisitor {
         !cont.isRecursive &&
         !node.isEscapingTry) {
       for (int i = 0; i < node.arguments.length; ++i) {
+        node.arguments[i].definition.useElementAsHint(cont.parameters[i].hint);
         node.arguments[i].definition.substituteFor(cont.parameters[i]);
         node.arguments[i].unlink();
       }
@@ -1471,7 +1723,13 @@ class TypePropagationVisitor implements Visitor {
       case BuiltinOperator.NumAnd:
       case BuiltinOperator.NumOr:
       case BuiltinOperator.NumXor:
-        setValue(node, nonConstant(typeSystem.numType));
+        AbstractValue left = getValue(node.arguments[0].definition);
+        AbstractValue right = getValue(node.arguments[1].definition);
+        if (lattice.isDefinitelyInt(left) && lattice.isDefinitelyInt(right)) {
+          setValue(node, nonConstant(typeSystem.intType));
+        } else {
+          setValue(node, nonConstant(typeSystem.numType));
+        }
         break;
 
       case BuiltinOperator.NumLt:
@@ -1599,7 +1857,7 @@ class TypePropagationVisitor implements Visitor {
   void visitLiteralList(LiteralList node) {
     // Constant lists are translated into (Constant ListConstant(...)) IR nodes,
     // and thus LiteralList nodes are NonConst.
-    setValue(node, nonConstant(typeSystem.listType));
+    setValue(node, nonConstant(typeSystem.mutableNativeListType));
   }
 
   void visitLiteralMap(LiteralMap node) {
@@ -1756,6 +2014,21 @@ class TypePropagationVisitor implements Visitor {
       setValue(returnValue, nonConstant(node.type));
     }
   }
+
+  @override
+  void visitGetLength(GetLength node) {
+    setValue(node, nonConstant(typeSystem.intType));
+  }
+
+  @override
+  void visitGetIndex(GetIndex node) {
+    setValue(node, nonConstant());
+  }
+
+  @override
+  void visitSetIndex(SetIndex node) {
+    setValue(node, nonConstant());
+  }
 }
 
 /// Represents the abstract value of a primitive value at some point in the
@@ -1787,8 +2060,16 @@ class AbstractValue {
   AbstractValue.constantValue(ConstantValue constant, TypeMask type)
       : this._internal(CONSTANT, constant, type);
 
-  AbstractValue.nonConstant(TypeMask type)
-      : this._internal(NONCONST, null, type);
+  factory AbstractValue.nonConstant(TypeMask type) {
+    if (type.isEmpty) {
+      if (type.isNullable)
+        return new AbstractValue.constantValue(new NullConstantValue(), type);
+      else
+        return new AbstractValue.nothing();
+    } else {
+      return new AbstractValue._internal(NONCONST, null, type);
+    }
+  }
 
   bool get isNothing  => (kind == NOTHING);
   bool get isConstant => (kind == CONSTANT);
@@ -1823,6 +2104,17 @@ class AbstractValue {
 /// Enum-like class with the names of internal methods we care about.
 abstract class InternalMethod {
   static const String Stringify = 'S';
+}
+
+/// Suggested name for a synthesized loop index.
+class LoopIndexEntity extends Entity {
+  String get name => 'i';
+}
+
+/// Suggested name for the original length of a list, for use in checks
+/// for concurrent modification.
+class OriginalLengthEntity extends Entity {
+  String get name => 'length';
 }
 
 class ResetAnalysisInfo extends RecursiveVisitor {

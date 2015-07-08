@@ -340,6 +340,27 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
         : ' ${access(node.continuation)}';
     return '(JS ${node.type} ${node.codeTemplate} ($arguments)$continuation)';
   }
+
+  @override
+  String visitGetLength(GetLength node) {
+    String object = access(node.object);
+    return '(GetLength $object)';
+  }
+
+  @override
+  String visitGetIndex(GetIndex node) {
+    String object = access(node.object);
+    String index = access(node.index);
+    return '(GetIndex $object $index)';
+  }
+
+  @override
+  String visitSetIndex(SetIndex node) {
+    String object = access(node.object);
+    String index = access(node.index);
+    String value = access(node.value);
+    return '(SetIndex $object $index $value)';
+  }
 }
 
 class ConstantStringifier extends ConstantValueVisitor<String, Null> {

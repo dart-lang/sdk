@@ -426,10 +426,16 @@ flatten_test/none: Crash # (test()async{}): cannot handle async/sync*/async* fun
 for2_test: Crash # The null object does not have a getter 'field'.
 for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
 generic_field_mixin3_test: RuntimeError # Please triage this failure.
+if_null_assignment_behavior_test/12: RuntimeError # Expect.listEquals fails
+if_null_assignment_behavior_test/28: RuntimeError # Expect.listEquals fails
 if_null_assignment_static_test/01: RuntimeError # v0.get$a is not a function
 if_null_assignment_static_test/03: RuntimeError # v0.get$a is not a function
 if_null_assignment_static_test/04: RuntimeError # v0.get$b is not a function
 if_null_assignment_static_test/05: RuntimeError # v0.get$a is not a function
+if_null_assignment_static_test/29: RuntimeError # TypeError: v0.get$a is not a function
+if_null_assignment_static_test/31: RuntimeError # TypeError: v0.get$a is not a function
+if_null_assignment_static_test/32: RuntimeError # TypeError: v0.get$b is not a function
+if_null_assignment_static_test/33: RuntimeError # TypeError: v0.get$a is not a function
 if_null_assignment_static_test/36: RuntimeError # v0.get$a is not a function
 if_null_assignment_static_test/38: RuntimeError # v0.get$a is not a function
 if_null_assignment_static_test/39: RuntimeError # v0.get$b is not a function

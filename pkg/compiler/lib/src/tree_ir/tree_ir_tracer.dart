@@ -530,6 +530,27 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     String args = node.arguments.map(visitExpression).join(', ');
     return 'ApplyBuiltinOperator ${node.operator} ($args)';
   }
+
+  @override
+  String visitGetLength(GetLength node) {
+    String object = visitExpression(node.object);
+    return 'GetLength($object)';
+  }
+
+  @override
+  String visitGetIndex(GetIndex node) {
+    String object = visitExpression(node.object);
+    String index = visitExpression(node.index);
+    return 'GetIndex($object, $index)';
+  }
+
+  @override
+  String visitSetIndex(SetIndex node) {
+    String object = visitExpression(node.object);
+    String index = visitExpression(node.index);
+    String value = visitExpression(node.value);
+    return 'SetIndex($object, $index, $value)';
+  }
 }
 
 /**

@@ -664,6 +664,26 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return new js.Assignment(field, value);
   }
 
+  @override
+  js.Expression visitGetLength(tree_ir.GetLength node) {
+    return new js.PropertyAccess.field(visitExpression(node.object), 'length');
+  }
+
+  @override
+  js.Expression visitGetIndex(tree_ir.GetIndex node) {
+    return new js.PropertyAccess(
+        visitExpression(node.object),
+        visitExpression(node.index));
+  }
+
+  @override
+  js.Expression visitSetIndex(tree_ir.SetIndex node) {
+    return js.js('#[#] = #',
+        [visitExpression(node.object),
+         visitExpression(node.index),
+         visitExpression(node.value)]);
+  }
+
   js.Expression buildStaticHelperInvocation(FunctionElement helper,
                                             List<js.Expression> arguments) {
     registry.registerStaticUse(helper);

@@ -661,6 +661,62 @@ class GetField extends Primitive {
   bool get isSafeForReordering => objectIsNotNull && field.isFinal;
 }
 
+/// Get the length of a native list.
+class GetLength extends Primitive {
+  final Reference<Primitive> object;
+
+  /// True if the object is known not to be null.
+  bool objectIsNotNull = false;
+
+  GetLength(Primitive object) : this.object = new Reference<Primitive>(object);
+
+  bool get isSafeForElimination => objectIsNotNull;
+  bool get isSafeForReordering => false;
+
+  accept(Visitor v) => v.visitGetLength(this);
+}
+
+/// Read an entry from a native list.
+///
+/// [object] must be null or a native list, and [index] must be an integer.
+class GetIndex extends Primitive {
+  final Reference<Primitive> object;
+  final Reference<Primitive> index;
+
+  /// True if the object is known not to be null.
+  bool objectIsNotNull = false;
+
+  GetIndex(Primitive object, Primitive index)
+      : this.object = new Reference<Primitive>(object),
+        this.index = new Reference<Primitive>(index);
+
+  bool get isSafeForElimination => objectIsNotNull;
+  bool get isSafeForReordering => false;
+
+  accept(Visitor v) => v.visitGetIndex(this);
+}
+
+/// Set an entry on a native list.
+///
+/// [object] must be null or a native list, and [index] must be an integer.
+///
+/// The primitive itself has no value and may not be referenced.
+class SetIndex extends Primitive {
+  final Reference<Primitive> object;
+  final Reference<Primitive> index;
+  final Reference<Primitive> value;
+
+  SetIndex(Primitive object, Primitive index, Primitive value)
+      : this.object = new Reference<Primitive>(object),
+        this.index = new Reference<Primitive>(index),
+        this.value = new Reference<Primitive>(value);
+
+  bool get isSafeForElimination => false;
+  bool get isSafeForReordering => false;
+
+  accept(Visitor v) => v.visitSetIndex(this);
+}
+
 /// Reads the value of a static field or tears off a static method.
 ///
 /// Note that lazily initialized fields should be read using GetLazyStatic.
@@ -672,7 +728,7 @@ class GetStatic extends Primitive {
   GetStatic(this.element, [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitGetStatic(this);
-  
+
   bool get isSafeForElimination {
     return true;
   }
@@ -1052,6 +1108,9 @@ abstract class Visitor<T> {
   T visitCreateInvocationMirror(CreateInvocationMirror node);
   T visitTypeTest(TypeTest node);
   T visitApplyBuiltinOperator(ApplyBuiltinOperator node);
+  T visitGetLength(GetLength node);
+  T visitGetIndex(GetIndex node);
+  T visitSetIndex(SetIndex node);
 
   // Conditions.
   T visitIsTrue(IsTrue node);
@@ -1341,6 +1400,27 @@ class RecursiveVisitor implements Visitor {
   processUnreachable(Unreachable node) {}
   visitUnreachable(Unreachable node) {
     processUnreachable(node);
+  }
+
+  processGetLength(GetLength node) {}
+  visitGetLength(GetLength node) {
+    processGetLength(node);
+    processReference(node.object);
+  }
+
+  processGetIndex(GetIndex node) {}
+  visitGetIndex(GetIndex node) {
+    processGetIndex(node);
+    processReference(node.object);
+    processReference(node.index);
+  }
+
+  processSetIndex(SetIndex node) {}
+  visitSetIndex(SetIndex node) {
+    processSetIndex(node);
+    processReference(node.object);
+    processReference(node.index);
+    processReference(node.value);
   }
 }
 

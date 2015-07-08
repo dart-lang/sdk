@@ -150,6 +150,9 @@ class SExpressionUnstringifier {
   static const String GET_STATIC = "GetStatic";
   static const String TYPE_TEST = "TypeTest";
   static const String APPLY_BUILTIN_OPERATOR = "ApplyBuiltinOperator";
+  static const String GET_LENGTH = "GetLength";
+  static const String GET_INDEX = "GetIndex";
+  static const String SET_INDEX = "SetIndex";
 
   // Other
   static const String FUNCTION_DEFINITION = "FunctionDefinition";
@@ -610,6 +613,33 @@ class SExpressionUnstringifier {
     return new ApplyBuiltinOperator(operator, arguments);
   }
 
+  /// (GetLength object)
+  GetLength parseGetLength() {
+    tokens.consumeStart(GET_LENGTH);
+    Primitive object = name2variable[tokens.read()];
+    tokens.consumeEnd();
+    return new GetLength(object);
+  }
+
+  /// (GetIndex object index)
+  GetIndex parseGetIndex() {
+    tokens.consumeStart(GET_INDEX);
+    Primitive object = name2variable[tokens.read()];
+    Primitive index = name2variable[tokens.read()];
+    tokens.consumeEnd();
+    return new GetIndex(object, index);
+  }
+
+  /// (SetIndex object index value)
+  SetIndex parseSetIndex() {
+    tokens.consumeStart(SET_INDEX);
+    Primitive object = name2variable[tokens.read()];
+    Primitive index = name2variable[tokens.read()];
+    Primitive value = name2variable[tokens.read()];
+    tokens.consumeEnd();
+    return new SetIndex(object, index, value);
+  }
+
   /// (SetStatic field value body)
   SetStatic parseSetStatic() {
     tokens.consumeStart(SET_STATIC);
@@ -684,6 +714,12 @@ class SExpressionUnstringifier {
         return parseTypeTest();
       case APPLY_BUILTIN_OPERATOR:
         return parseApplyBuiltinOperator();
+      case GET_LENGTH:
+        return parseGetLength();
+      case GET_INDEX:
+        return parseGetIndex();
+      case SET_INDEX:
+        return parseSetIndex();
       default:
         assert(false);
     }

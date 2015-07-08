@@ -1737,6 +1737,10 @@ class JavaScriptBackend extends Backend {
     return findHelper('throwConcurrentModificationError');
   }
 
+  Element getThrowIndexOutOfBoundsError() {
+    return findHelper('ioore');
+  }
+
   Element getStringInterpolationHelper() {
     return findHelper('S');
   }

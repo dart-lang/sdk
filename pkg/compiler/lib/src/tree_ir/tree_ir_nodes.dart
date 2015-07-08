@@ -717,6 +717,36 @@ class SetStatic extends Expression {
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetStatic(this, arg);
 }
 
+class GetLength extends Expression {
+  Expression object;
+
+  GetLength(this.object);
+
+  accept(ExpressionVisitor v) => v.visitGetLength(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitGetLength(this, arg);
+}
+
+class GetIndex extends Expression {
+  Expression object;
+  Expression index;
+
+  GetIndex(this.object, this.index);
+
+  accept(ExpressionVisitor v) => v.visitGetIndex(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitGetIndex(this, arg);
+}
+
+class SetIndex extends Expression {
+  Expression object;
+  Expression index;
+  Expression value;
+
+  SetIndex(this.object, this.index, this.value);
+
+  accept(ExpressionVisitor v) => v.visitSetIndex(this);
+  accept1(ExpressionVisitor1 v, arg) => v.visitSetIndex(this, arg);
+}
+
 class ReifyRuntimeType extends Expression {
   Expression value;
 
@@ -873,6 +903,9 @@ abstract class ExpressionVisitor<E> {
   E visitInterceptor(Interceptor node);
   E visitApplyBuiltinOperator(ApplyBuiltinOperator node);
   E visitForeignExpression(ForeignExpression node);
+  E visitGetLength(GetLength node);
+  E visitGetIndex(GetIndex node);
+  E visitSetIndex(SetIndex node);
 }
 
 abstract class ExpressionVisitor1<E, A> {
@@ -905,6 +938,9 @@ abstract class ExpressionVisitor1<E, A> {
   E visitInterceptor(Interceptor node, A arg);
   E visitApplyBuiltinOperator(ApplyBuiltinOperator node, A arg);
   E visitForeignExpression(ForeignExpression node, A arg);
+  E visitGetLength(GetLength node, A arg);
+  E visitGetIndex(GetIndex node, A arg);
+  E visitSetIndex(SetIndex node, A arg);
 }
 
 abstract class StatementVisitor<S> {
@@ -1117,6 +1153,21 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
 
   visitForeignExpression(ForeignExpression node) => visitForeignCode(node);
   visitForeignStatement(ForeignStatement node) => visitForeignCode(node);
+
+  visitGetLength(GetLength node) {
+    visitExpression(node.object);
+  }
+
+  visitGetIndex(GetIndex node) {
+    visitExpression(node.object);
+    visitExpression(node.index);
+  }
+
+  visitSetIndex(SetIndex node) {
+    visitExpression(node.object);
+    visitExpression(node.index);
+    visitExpression(node.value);
+  }
 }
 
 abstract class Transformer implements ExpressionVisitor<Expression>,
@@ -1330,6 +1381,24 @@ class RecursiveTransformer extends Transformer {
 
   visitInterceptor(Interceptor node) {
     node.input = visitExpression(node.input);
+    return node;
+  }
+
+  visitGetLength(GetLength node) {
+    node.object = visitExpression(node.object);
+    return node;
+  }
+
+  visitGetIndex(GetIndex node) {
+    node.object = visitExpression(node.object);
+    node.index = visitExpression(node.index);
+    return node;
+  }
+
+  visitSetIndex(SetIndex node) {
+    node.object = visitExpression(node.object);
+    node.index = visitExpression(node.index);
+    node.value = visitExpression(node.value);
     return node;
   }
 }

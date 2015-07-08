@@ -350,6 +350,7 @@ class StatementRewriter extends Transformer implements Pass {
     return exp is Constant ||
            exp is This ||
            exp is CreateInvocationMirror ||
+           exp is GetStatic && exp.element.isFunction ||
            exp is Interceptor ||
            exp is ApplyBuiltinOperator ||
            exp is VariableUse && constantEnvironment.containsKey(exp.variable);
@@ -714,6 +715,24 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitInterceptor(Interceptor node) {
     node.input = visitExpression(node.input);
+    return node;
+  }
+
+  Expression visitGetLength(GetLength node) {
+    node.object = visitExpression(node.object);
+    return node;
+  }
+
+  Expression visitGetIndex(GetIndex node) {
+    node.index = visitExpression(node.index);
+    node.object = visitExpression(node.object);
+    return node;
+  }
+
+  Expression visitSetIndex(SetIndex node) {
+    node.value = visitExpression(node.value);
+    node.index = visitExpression(node.index);
+    node.object = visitExpression(node.object);
     return node;
   }
 
