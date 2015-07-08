@@ -96,7 +96,7 @@ vars = {
   "shelf_static_rev": "@v0.2.1",
   "shelf_web_socket_rev": "@ff170cec2c0e4e5722cdf47c557be63b5035a602",
   "source_map_stack_trace_tag": "@1.0.4",
-  "source_span_rev": "@42501132e43599a151ba6727d340e44442f86c05",
+  "source_span_tag": "@1.1.2",
   "stack_trace_tag": "@1.3.4",
   "string_scanner_rev": "@3e7617d6f74ba382e9b6130b1cc12091d89a9bc5",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
@@ -276,7 +276,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/source_maps":
       (Var("github_mirror") % "source_maps") + Var("source_maps_tag"),
   Var("dart_root") + "/third_party/pkg/source_span":
-      (Var("github_mirror") % "source_span") + Var("source_span_rev"),
+      (Var("github_mirror") % "source_span") + Var("source_span_tag"),
   Var("dart_root") + "/third_party/pkg/source_map_stack_trace":
       "https://github.com/dart-lang/source_map_stack_trace.git" +
       Var("source_map_stack_trace_tag"),
