@@ -12898,7 +12898,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
       if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
         _insertAdjacentHtml(where, html);
       } else {
-        _insertAdjacentNode(where, createFragment(html,
+        _insertAdjacentNode(where, new DocumentFragment.html(html,
             validator: validator, treeSanitizer: treeSanitizer));
       }
   }

@@ -62,19 +62,6 @@ main() {
       expect(fragment.children.length, equals(1));
       expect(fragment.children[0], isSpanElement);
     });
-
-    test('html interpreted in correct context', () {
-      var el = new TableElement();
-      el.appendHtml('<tr><td>foo</td></tr>');
-      expect(el.children.length, 1);
-      var section = el.children.first;
-      expect(section is TableSectionElement, isTrue);
-      var row = section.children.first;
-      expect(row is TableRowElement, isTrue);
-      var item = row.children.first;
-      expect(item is TableCellElement, isTrue);
-      expect(item.innerHtml, 'foo');
-    });    
   });
 
   group('appendText', () {
