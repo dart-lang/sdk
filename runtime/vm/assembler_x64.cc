@@ -28,28 +28,6 @@ Assembler::Assembler(bool use_far_branches)
       allow_constant_pool_(true) {
   // Far branching mode is only needed and implemented for MIPS and ARM.
   ASSERT(!use_far_branches);
-  Isolate* isolate = Isolate::Current();
-  if (isolate != Dart::vm_isolate()) {
-    // These objects and labels need to be accessible through every pool-pointer
-    // at the same index.
-    intptr_t index = object_pool_wrapper_.AddObject(Object::null_object());
-    ASSERT(index == 0);
-
-    index = object_pool_wrapper_.AddObject(Bool::True());
-    ASSERT(index == 1);
-
-    index = object_pool_wrapper_.AddObject(Bool::False());
-    ASSERT(index == 2);
-
-    const Smi& vacant = Smi::Handle(Smi::New(0xfa >> kSmiTagShift));
-    StubCode* stub_code = isolate->stub_code();
-    if (stub_code->UpdateStoreBuffer_entry() != NULL) {
-      object_pool_wrapper_.AddExternalLabel(
-          &stub_code->UpdateStoreBufferLabel(), kNotPatchable);
-    } else {
-      object_pool_wrapper_.AddObject(vacant);
-    }
-  }
 }
 
 
@@ -2794,18 +2772,10 @@ void Assembler::Drop(intptr_t stack_elements, Register tmp) {
 }
 
 
-// A set of VM objects that are present in every constant pool.
-static bool IsAlwaysInConstantPool(const Object& object) {
-  // TODO(zra): Evaluate putting all VM heap objects into the pool.
-  return (object.raw() == Object::null())
-      || (object.raw() == Bool::True().raw())
-      || (object.raw() == Bool::False().raw());
-}
-
-
-bool Assembler::CanLoadFromObjectPool(const Object& object) {
+bool Assembler::CanLoadFromObjectPool(const Object& object) const {
+  ASSERT(!Thread::CanLoadFromThread(object));
   if (!allow_constant_pool()) {
-    return IsAlwaysInConstantPool(object);
+    return false;
   }
 
   // TODO(zra, kmillikin): Also load other large immediates from the object
@@ -2838,7 +2808,9 @@ void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
                                  Register pp,
                                  bool is_unique) {
-  if (CanLoadFromObjectPool(object)) {
+  if (Thread::CanLoadFromThread(object)) {
+    movq(dst, Address(THR, Thread::OffsetFromThread(object)));
+  } else if (CanLoadFromObjectPool(object)) {
     const int32_t offset = ObjectPool::element_offset(
         is_unique ? object_pool_wrapper_.AddObject(object)
                   : object_pool_wrapper_.FindObject(object));
@@ -2866,7 +2838,10 @@ void Assembler::LoadUniqueObject(Register dst,
 
 void Assembler::StoreObject(const Address& dst, const Object& object,
                             Register pp) {
-  if (CanLoadFromObjectPool(object)) {
+  if (Thread::CanLoadFromThread(object)) {
+    movq(TMP, Address(THR, Thread::OffsetFromThread(object)));
+    movq(dst, TMP);
+  } else if (CanLoadFromObjectPool(object)) {
     LoadObject(TMP, object, pp);
     movq(dst, TMP);
   } else {
@@ -2876,7 +2851,9 @@ void Assembler::StoreObject(const Address& dst, const Object& object,
 
 
 void Assembler::PushObject(const Object& object, Register pp) {
-  if (CanLoadFromObjectPool(object)) {
+  if (Thread::CanLoadFromThread(object)) {
+    pushq(Address(THR, Thread::OffsetFromThread(object)));
+  } else if (CanLoadFromObjectPool(object)) {
     LoadObject(TMP, object, pp);
     pushq(TMP);
   } else {
@@ -2886,7 +2863,9 @@ void Assembler::PushObject(const Object& object, Register pp) {
 
 
 void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
-  if (CanLoadFromObjectPool(object)) {
+  if (Thread::CanLoadFromThread(object)) {
+    cmpq(reg, Address(THR, Thread::OffsetFromThread(object)));
+  } else if (CanLoadFromObjectPool(object)) {
     const int32_t offset =
         ObjectPool::element_offset(object_pool_wrapper_.FindObject(object));
     cmpq(reg, Address(pp, offset-kHeapObjectTag));
@@ -3090,8 +3069,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != RDX) {
     movq(RDX, object);
   }
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  Call(&stub_code->UpdateStoreBufferLabel(), PP);
+  movq(TMP, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  call(TMP);
   if (value != RDX) popq(RDX);
   Bind(&done);
 }

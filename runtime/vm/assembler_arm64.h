@@ -1311,7 +1311,7 @@ class Assembler : public ValueObject {
   void LoadWordFromPoolOffset(Register dst, Register pp, uint32_t offset);
   void LoadWordFromPoolOffsetFixed(Register dst, Register pp, uint32_t offset);
   intptr_t FindImmediate(int64_t imm);
-  bool CanLoadObjectFromPool(const Object& object);
+  bool CanLoadFromObjectPool(const Object& object) const;
   bool CanLoadImmediateFromPool(int64_t imm, Register pp);
   void LoadExternalLabel(Register dst, const ExternalLabel* label,
                          Patchability patchable, Register pp);

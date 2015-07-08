@@ -14,6 +14,25 @@ namespace dart {
 
 class CHA;
 class Isolate;
+class RawBool;
+class RawObject;
+class Object;
+
+
+// List of VM-global objects/addresses cached in each Thread object.
+#define CACHED_VM_OBJECTS_LIST(V)                                              \
+  V(RawObject*, object_null_, Object::null(), NULL)                            \
+  V(RawBool*, bool_true_, Object::bool_true().raw(), NULL)                     \
+  V(RawBool*, bool_false_, Object::bool_false().raw(), NULL)                   \
+
+#define CACHED_ADDRESSES_LIST(V)                                               \
+  V(uword, update_store_buffer_entry_point_,                                   \
+    StubCode::UpdateStoreBufferEntryPoint(), 0)
+
+#define CACHED_CONSTANTS_LIST(V)                                               \
+  CACHED_VM_OBJECTS_LIST(V)                                                    \
+  CACHED_ADDRESSES_LIST(V)
+
 
 // A VM thread; may be executing Dart code or performing helper tasks like
 // garbage collection or compilation. The Thread structure associated with
@@ -53,7 +72,8 @@ class Thread {
 #endif
 
   // Called at VM startup.
-  static void InitOnce();
+  static void InitOnceBeforeIsolate();
+  static void InitOnceAfterObjectAndStubCode();
 
   // The topmost zone used for allocation in this thread.
   Zone* zone() {
@@ -83,14 +103,29 @@ class Thread {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
 
+#define DEFINE_OFFSET_METHOD(type_name, member_name, expr, default_init_value) \
+  static intptr_t member_name##offset() {                                      \
+    return OFFSET_OF(Thread, member_name);                                     \
+  }
+CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
+#undef DEFINE_OFFSET_METHOD
+
+  static bool CanLoadFromThread(const Object& object);
+  static intptr_t OffsetFromThread(const Object& object);
+
  private:
   static ThreadLocalKey thread_key_;
 
   Isolate* isolate_;
   StoreBufferBlock* store_buffer_block_;
+#define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
+  type_name member_name;
+CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
+#undef DECLARE_MEMBERS
 
-  Thread()
-      : isolate_(NULL), store_buffer_block_(NULL) {}
+  explicit Thread(bool init_vm_constants = true);
+
+  void InitVMConstants();
 
   static void SetCurrent(Thread* current);
 

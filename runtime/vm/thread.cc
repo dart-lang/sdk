@@ -5,8 +5,10 @@
 #include "vm/thread.h"
 
 #include "vm/isolate.h"
+#include "vm/object.h"
 #include "vm/os_thread.h"
 #include "vm/profiler.h"
+#include "vm/stub_code.h"
 #include "vm/thread_interrupter.h"
 
 
@@ -23,10 +25,21 @@ static void DeleteThread(void* thread) {
 }
 
 
-void Thread::InitOnce() {
+void Thread::InitOnceBeforeIsolate() {
   ASSERT(thread_key_ == OSThread::kUnsetThreadLocalKey);
   thread_key_ = OSThread::CreateThreadLocal(DeleteThread);
   ASSERT(thread_key_ != OSThread::kUnsetThreadLocalKey);
+  ASSERT(Thread::Current() == NULL);
+  // Postpone initialization of VM constants for this first thread.
+  SetCurrent(new Thread(false));
+}
+
+
+void Thread::InitOnceAfterObjectAndStubCode() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  ASSERT(thread->isolate() == Dart::vm_isolate());
+  thread->InitVMConstants();
 }
 
 
@@ -51,6 +64,28 @@ void Thread::CleanUp() {
   SetCurrent(NULL);
 }
 #endif
+
+
+Thread::Thread(bool init_vm_constants)
+    : isolate_(NULL),
+      store_buffer_block_(NULL) {
+#define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
+    member_name = default_init_value;
+CACHED_CONSTANTS_LIST(DEFAULT_INIT)
+#undef DEFAULT_INIT
+  if (init_vm_constants) {
+    InitVMConstants();
+  }
+}
+
+
+void Thread::InitVMConstants() {
+#define INIT_VALUE(type_name, member_name, init_expr, default_init_value)      \
+  ASSERT(member_name == default_init_value);                                   \
+  member_name = init_expr;
+CACHED_CONSTANTS_LIST(INIT_VALUE)
+#undef INIT_VALUE
+}
 
 
 void Thread::EnterIsolate(Isolate* isolate) {
@@ -166,6 +201,25 @@ CHA* Thread::cha() const {
 void Thread::set_cha(CHA* value) {
   ASSERT(isolate_ != NULL);
   isolate_->cha_ = value;
+}
+
+
+bool Thread::CanLoadFromThread(const Object& object) {
+#define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
+  if (object.raw() == expr) return true;
+CACHED_VM_OBJECTS_LIST(CHECK_OBJECT)
+#undef CHECK_OBJECT
+  return false;
+}
+
+
+intptr_t Thread::OffsetFromThread(const Object& object) {
+#define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
+  if (object.raw() == expr) return Thread::member_name##offset();
+CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
+#undef COMPUTE_OFFSET
+  UNREACHABLE();
+  return -1;
 }
 
 }  // namespace dart

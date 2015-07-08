@@ -22,6 +22,7 @@ class RawCode;
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(GetStackPointer)                                                           \
   V(JumpToExceptionHandler)                                                    \
+  V(UpdateStoreBuffer)                                                         \
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.
@@ -47,7 +48,6 @@ class RawCode;
   V(FixAllocateArrayStubTarget)                                                \
   V(CallClosureNoSuchMethod)                                                   \
   V(AllocateContext)                                                           \
-  V(UpdateStoreBuffer)                                                         \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(SmiAddInlineCache)                                                         \

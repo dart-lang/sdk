@@ -1067,7 +1067,7 @@ class Assembler : public ValueObject {
   bool allow_constant_pool_;
 
   intptr_t FindImmediate(int64_t imm);
-  bool CanLoadFromObjectPool(const Object& object);
+  bool CanLoadFromObjectPool(const Object& object) const;
   void LoadObjectHelper(Register dst,
                         const Object& obj,
                         Register pp,
