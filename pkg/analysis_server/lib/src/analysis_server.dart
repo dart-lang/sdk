@@ -18,6 +18,7 @@ import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/protocol.dart' hide Element;
+import 'package:analysis_server/src/sdk_ext.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -25,6 +26,7 @@ import 'package:analysis_server/src/source/optimizing_pub_package_map_provider.d
 import 'package:analysis_server/uri/resolver_provider.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -1429,9 +1431,17 @@ class ServerContextManager extends ContextManager {
   SourceFactory _createSourceFactory(UriResolver packageUriResolver) {
     UriResolver dartResolver = new DartUriResolver(analysisServer.defaultSdk);
     UriResolver resourceResolver = new ResourceUriResolver(resourceProvider);
-    List<UriResolver> resolvers = packageUriResolver != null
-        ? <UriResolver>[dartResolver, packageUriResolver, resourceResolver]
-        : <UriResolver>[dartResolver, resourceResolver];
+    List<UriResolver> resolvers = [];
+    resolvers.add(dartResolver);
+    if (packageUriResolver is PackageMapUriResolver) {
+      UriResolver sdkExtResolver =
+          new SdkExtUriResolver(packageUriResolver.packageMap);
+      resolvers.add(sdkExtResolver);
+    }
+    if (packageUriResolver != null) {
+      resolvers.add(packageUriResolver);
+    }
+    resolvers.add(resourceResolver);
     return new SourceFactory(resolvers);
   }
 }

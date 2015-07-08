@@ -6,6 +6,7 @@ library test.src;
 
 import 'package:unittest/unittest.dart';
 
+import 'sdk_ext_test.dart' as sdk_ext_test;
 import 'utilities/test_all.dart' as utilities_all;
 
 /**
@@ -14,6 +15,7 @@ import 'utilities/test_all.dart' as utilities_all;
 main() {
   groupSep = ' | ';
   group('analysis_server', () {
+    sdk_ext_test.main();
     utilities_all.main();
   });
 }
