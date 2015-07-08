@@ -2075,7 +2075,7 @@ RawFunction* SnapshotWriter::IsSerializableClosure(RawClass* cls,
     UnmarkAll();  // Unmark objects now as we are about to print stuff.
     intptr_t len = OS::SNPrint(NULL, 0, format,
                                clazz.ToCString(), errorFunc.ToCString()) + 1;
-    char* chars = isolate()->current_zone()->Alloc<char>(len);
+    char* chars = Thread::Current()->zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, format, clazz.ToCString(), errorFunc.ToCString());
     SetWriteException(Exceptions::kArgument, chars);
   }
@@ -2104,7 +2104,7 @@ void SnapshotWriter::CheckForNativeFields(RawClass* cls) {
     UnmarkAll();  // Unmark objects now as we are about to print stuff.
     const Class& clazz = Class::Handle(isolate(), cls);
     intptr_t len = OS::SNPrint(NULL, 0, format, clazz.ToCString()) + 1;
-    char* chars = isolate()->current_zone()->Alloc<char>(len);
+    char* chars = Thread::Current()->zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, format, clazz.ToCString());
     SetWriteException(Exceptions::kArgument, chars);
   }

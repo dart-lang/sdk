@@ -82,7 +82,7 @@ class PerfCodeObserver : public CodeObserver {
     const char* format = "%" Px " %" Px " %s%s\n";
     const char* marker = optimized ? "*" : "";
     intptr_t len = OS::SNPrint(NULL, 0, format, base, size, marker, name);
-    char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
     OS::SNPrint(buffer, len + 1, format, base, size, marker, name);
     {
       MutexLocker ml(CodeObservers::mutex());
@@ -118,7 +118,7 @@ class GdbCodeObserver : public CodeObserver {
       // <name> for rest of the code (first instruction is prologue sequence).
       const char* kFormat = "%s_%s";
       intptr_t len = OS::SNPrint(NULL, 0, kFormat, name, "entry");
-      char* pname = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+      char* pname = Thread::Current()->zone()->Alloc<char>(len + 1);
       OS::SNPrint(pname, (len + 1), kFormat, name, "entry");
       DebugInfo::RegisterSection(pname, base, size);
       DebugInfo::RegisterSection(name,
@@ -248,7 +248,7 @@ class JitdumpCodeObserver : public CodeObserver {
     const char* format = "%s%s";
     const char* marker = optimized ? "*" : "";
     intptr_t len = OS::SNPrint(NULL, 0, format, marker, name);
-    char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+    char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
     OS::SNPrint(buffer, len + 1, format, marker, name);
     return buffer;
   }

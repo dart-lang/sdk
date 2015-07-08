@@ -404,7 +404,7 @@ const char* Debugger::QualifiedFunctionName(const Function& func) {
       func_class.IsTopLevel() ? "" : ".",
       func_name.ToCString());
   len++;  // String terminator.
-  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  char* chars = Thread::Current()->zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat,
               func_class.IsTopLevel() ? "" : class_name.ToCString(),
               func_class.IsTopLevel() ? "" : ".",
@@ -1020,7 +1020,7 @@ const char* ActivationFrame::ToCString() {
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
   const char* func_name = Debugger::QualifiedFunctionName(function());
-  return Isolate::Current()->current_zone()->
+  return Thread::Current()->zone()->
       PrintToString("[ Frame pc(0x%" Px ") fp(0x%" Px ") sp(0x%" Px ")\n"
                     "\tfunction = %s\n"
                     "\turl = %s\n"

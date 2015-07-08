@@ -1191,7 +1191,7 @@ intptr_t DeoptInfoBuilder::FindMaterialization(
 static uint8_t* ZoneReAlloc(uint8_t* ptr,
                             intptr_t old_size,
                             intptr_t new_size) {
-  return Isolate::Current()->current_zone()->Realloc<uint8_t>(
+  return Thread::Current()->zone()->Realloc<uint8_t>(
       ptr, old_size, new_size);
 }
 

@@ -252,7 +252,7 @@ void CodeCoverage::Write(Isolate* isolate) {
   intptr_t pid = OS::ProcessId();
   intptr_t len = OS::SNPrint(NULL, 0, format,
                              FLAG_coverage_dir, pid, isolate->main_port());
-  char* filename = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+  char* filename = Thread::Current()->zone()->Alloc<char>(len + 1);
   OS::SNPrint(filename, len + 1, format,
               FLAG_coverage_dir, pid, isolate->main_port());
   void* file = (*file_open)(filename, true);

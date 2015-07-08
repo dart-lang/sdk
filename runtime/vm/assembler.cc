@@ -24,7 +24,7 @@ DECLARE_FLAG(bool, disassemble);
 DECLARE_FLAG(bool, disassemble_optimized);
 
 static uword NewContents(intptr_t capacity) {
-  Zone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Thread::Current()->zone();
   uword result = zone->AllocUnsafe(capacity);
 #if defined(DEBUG)
   // Initialize the buffer with kBreakPointInstruction to force a break

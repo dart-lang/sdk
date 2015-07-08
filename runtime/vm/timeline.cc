@@ -371,7 +371,7 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
   intptr_t pid = OS::ProcessId();
   intptr_t len = OS::SNPrint(NULL, 0, format,
                              directory, pid, isolate->main_port());
-  char* filename = isolate->current_zone()->Alloc<char>(len + 1);
+  char* filename = Thread::Current()->zone()->Alloc<char>(len + 1);
   OS::SNPrint(filename, len + 1, format,
               directory, pid, isolate->main_port());
   void* file = (*file_open)(filename, true);

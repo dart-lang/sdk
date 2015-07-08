@@ -252,7 +252,7 @@ void ProfileCode::SetName(const char* name) {
     name_ = NULL;
   }
   intptr_t len = strlen(name);
-  name_ = Isolate::Current()->current_zone()->Alloc<const char>(len + 1);
+  name_ = Thread::Current()->zone()->Alloc<const char>(len + 1);
   strncpy(const_cast<char*>(name_), name, len);
   const_cast<char*>(name_)[len] = '\0';
 }
