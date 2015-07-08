@@ -155,14 +155,18 @@ class IncrementalCompilerContext extends _IncrementalCompilerContext {
 
   void _captureState(Compiler compiler) {
     JavaScriptBackend backend = compiler.backend;
-    _emittedClasses = new Set.from(backend.emitter.neededClasses);
+    Set neededClasses = backend.emitter.neededClasses;
+    if (neededClasses == null) {
+      neededClasses = new Set();
+    }
+    _emittedClasses = new Set.from(neededClasses);
 
     _directlyInstantiatedClasses =
         new Set.from(compiler.codegenWorld.directlyInstantiatedClasses);
 
-    List<ConstantValue> constants =
-        backend.emitter.outputConstantLists[
-            compiler.deferredLoadTask.mainOutputUnit];
+    // This breaks constant tracking of the incremental compiler. It would need
+    // to capture the emitted constants.
+    List<ConstantValue> constants = null;
     if (constants == null) constants = <ConstantValue>[];
     _compiledConstants = new Set<ConstantValue>.identity()..addAll(constants);
   }
