@@ -51,8 +51,6 @@ void main() {
     var foo1 = lib1.find("foo1");
     var foo2 = lib2.find("foo2");
 
-    var outputClassLists = backend.emitter.outputClassLists;
-
     Expect.notEquals(mainOutputUnit, outputUnitForElement(foo2));
   }));
 }

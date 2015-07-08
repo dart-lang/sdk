@@ -9,6 +9,12 @@ class OldEmitter implements Emitter {
   final Compiler compiler;
   final CodeEmitterTask task;
 
+  // The following fields will be set to copies of the program-builder's
+  // collector.
+  Map<OutputUnit, List<VariableElement>> outputStaticNonFinalFieldLists;
+  Map<OutputUnit, Set<LibraryElement>> outputLibraryLists;
+  List<TypedefElement> typedefsNeededForReflection;
+
   final ContainerBuilder containerBuilder = new ContainerBuilder();
   final ClassEmitter classEmitter = new ClassEmitter();
   final NsmEmitter nsmEmitter = new NsmEmitter();
@@ -43,9 +49,6 @@ class OldEmitter implements Emitter {
   final Map<jsAst.Name, String> mangledGlobalFieldNames =
       new HashMap<jsAst.Name, String>();
   final Set<jsAst.Name> recordedMangledNames = new Set<jsAst.Name>();
-
-  List<TypedefElement> get typedefsNeededForReflection =>
-      task.typedefsNeededForReflection;
 
   JavaScriptBackend get backend => compiler.backend;
   TypeVariableHandler get typeVariableHandler => backend.typeVariableHandler;
@@ -533,7 +536,7 @@ class OldEmitter implements Emitter {
     JavaScriptConstantCompiler handler = backend.constants;
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
-    Iterable<Element> fields = task.outputStaticNonFinalFieldLists[outputUnit];
+    Iterable<Element> fields = outputStaticNonFinalFieldLists[outputUnit];
     // If the outputUnit does not contain any static non-final fields, then
     // [fields] is `null`.
     if (fields != null) {
@@ -545,10 +548,10 @@ class OldEmitter implements Emitter {
       }
     }
 
-    if (inMainUnit && task.outputStaticNonFinalFieldLists.length > 1) {
+    if (inMainUnit && outputStaticNonFinalFieldLists.length > 1) {
       // In the main output-unit we output a stub initializer for deferred
       // variables, so that `isolateProperties` stays a fast object.
-      task.outputStaticNonFinalFieldLists.forEach(
+      outputStaticNonFinalFieldLists.forEach(
           (OutputUnit fieldsOutputUnit, Iterable<VariableElement> fields) {
         if (fieldsOutputUnit == outputUnit) return;  // Skip the main unit.
         for (Element element in fields) {
@@ -710,8 +713,8 @@ class OldEmitter implements Emitter {
     return js('${namer.isolateName}.#(#)', [makeConstListProperty, array]);
   }
 
-  jsAst.Statement buildMakeConstantList() {
-    if (task.outputContainsConstantList) {
+  jsAst.Statement buildMakeConstantList(bool outputContainsConstantList) {
+    if (outputContainsConstantList) {
       return js.statement(r'''
           // Functions are stored in the hidden class and not as properties in
           // the object. We never actually look at the value, but only want
@@ -758,7 +761,7 @@ class OldEmitter implements Emitter {
     return new jsAst.Block(parts);
   }
 
-  jsAst.Statement buildInitFunction() {
+  jsAst.Statement buildInitFunction(bool outputContainsConstantList) {
     jsAst.Expression allClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
     jsAst.Expression getTypeFromNameAccess =
@@ -892,7 +895,7 @@ class OldEmitter implements Emitter {
             'needsLazyInitializer': needsLazyInitializer,
             'lazies': laziesAccess, 'cyclicThrow': cyclicThrow,
             'isolatePropertiesName': namer.isolatePropertiesName,
-            'outputContainsConstantList': task.outputContainsConstantList,
+            'outputContainsConstantList': outputContainsConstantList,
             'makeConstListProperty': makeConstListProperty,
             'functionThatReturnsNullProperty':
                 backend.rti.getFunctionThatReturnsNullName,
@@ -1277,8 +1280,7 @@ class OldEmitter implements Emitter {
 
     checkEverythingEmitted(descriptors.keys);
 
-    Iterable<LibraryElement> libraries =
-        task.outputLibraryLists[mainOutputUnit];
+    Iterable<LibraryElement> libraries = outputLibraryLists[mainOutputUnit];
     if (libraries == null) libraries = <LibraryElement>[];
 
     List<jsAst.Expression> parts = <jsAst.Expression>[];
@@ -1438,7 +1440,8 @@ class OldEmitter implements Emitter {
       "cspPrecompiledFunctions": buildCspPrecompiledFunctionFor(mainOutputUnit),
       "getInterceptorMethods": interceptorEmitter.buildGetInterceptorMethods(),
       "oneShotInterceptors": interceptorEmitter.buildOneShotInterceptors(),
-      "makeConstantList": buildMakeConstantList(),
+      "makeConstantList":
+          buildMakeConstantList(program.outputContainsConstantList),
       "compileTimeConstants":  buildCompileTimeConstants(mainFragment.constants,
                                                          isMainFragment: true),
       "deferredBoilerPlate": buildDeferredBoilerPlate(deferredLoadHashes),
@@ -1453,7 +1456,7 @@ class OldEmitter implements Emitter {
       "convertGlobalObjectsToFastObjects":
           buildConvertGlobalObjectToFastObjects(),
       "debugFastObjects": buildDebugFastObjectCode(),
-      "init": buildInitFunction(),
+      "init": buildInitFunction(program.outputContainsConstantList),
       "main": buildMain(mainFragment.invokeMain)
     }));
 
@@ -1623,8 +1626,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       Map<Element, ClassBuilder> descriptors = elementDescriptors[fragment];
 
       if (descriptors != null && descriptors.isNotEmpty) {
-        Iterable<LibraryElement> libraries =
-            task.outputLibraryLists[outputUnit];
+        Iterable<LibraryElement> libraries = outputLibraryLists[outputUnit];
         if (libraries == null) libraries = [];
 
         // TODO(johnniwinther): Avoid creating [CodeBuffer]s.
@@ -1654,8 +1656,14 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   }
 
   int emitProgram(ProgramBuilder programBuilder) {
-    Program program = programBuilder.buildProgram(
-        storeFunctionTypesInMetadata: true);
+    Program program =
+        programBuilder.buildProgram(storeFunctionTypesInMetadata: true);
+
+    outputStaticNonFinalFieldLists =
+        programBuilder.collector.outputStaticNonFinalFieldLists;
+    outputLibraryLists = programBuilder.collector.outputLibraryLists;
+    typedefsNeededForReflection =
+       programBuilder.collector.typedefsNeededForReflection;
 
     assembleProgram(program);
 
@@ -1710,7 +1718,6 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
   ClassBuilder getElementDescriptor(Element element, Fragment fragment) {
     Element owner = element.library;
-    bool isClass = false;
     if (!element.isLibrary && !element.isTopLevel && !element.isNative) {
       // For static (not top level) elements, record their code in a buffer
       // specific to the class. For now, not supported for native classes and

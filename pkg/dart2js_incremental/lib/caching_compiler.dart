@@ -139,16 +139,6 @@ Future<Compiler> reuseCompiler(
         ..clearCspPrecompiledNodes()
         ..elementDescriptors.clear();
 
-    backend.emitter
-        ..nativeClassesAndSubclasses.clear()
-        ..outputContainsConstantList = false
-        ..neededClasses.clear()
-        ..outputClassLists.clear()
-        ..outputConstantLists.clear()
-        ..outputStaticLists.clear()
-        ..outputStaticNonFinalFieldLists.clear()
-        ..outputLibraryLists.clear();
-
     backend
         ..preMirrorsMethodCount = 0;
 

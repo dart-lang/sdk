@@ -61,7 +61,6 @@ void main() {
     var lib4 = lookupLibrary("memory:lib4.dart");
     var bar1 = lib4.find("bar1");
     var bar2 = lib4.find("bar2");
-    var outputClassLists = backend.emitter.outputClassLists;
 
     OutputUnit ou_lib1 = outputUnitForElement(foo1);
     OutputUnit ou_lib2 = outputUnitForElement(foo2);
