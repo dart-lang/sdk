@@ -104,9 +104,7 @@ class Compiler extends leg.Compiler {
                 hasOption(options, '--generate-code-with-compile-time-errors'),
             testMode: hasOption(options, '--test-mode'),
             allowNativeExtensions:
-                hasOption(options, '--allow-native-extensions'),
-            enableNullAwareOperators:
-                hasOption(options, '--enable-null-aware-operators')) {
+                hasOption(options, '--allow-native-extensions')) {
     tasks.addAll([
         userHandlerTask = new leg.GenericTask('Diagnostic handler', this),
         userProviderTask = new leg.GenericTask('Input provider', this),

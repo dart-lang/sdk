@@ -29,8 +29,7 @@ class ScannerTask extends CompilerTask {
   void scanElements(CompilationUnitElement compilationUnit) {
     Script script = compilationUnit.script;
     Token tokens = new Scanner(script.file,
-        includeComments: compiler.preserveComments,
-        enableNullAwareOperators: compiler.enableNullAwareOperators).tokenize();
+        includeComments: compiler.preserveComments).tokenize();
     if (compiler.preserveComments) {
       tokens = compiler.processAndStripComments(tokens);
     }
