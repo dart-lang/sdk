@@ -16,10 +16,10 @@ namespace dart {
 // Unordered collection of threads relating to a particular isolate.
 class ThreadRegistry {
  public:
-  ThreadRegistry() : mutex_(), entries_() {}
+  ThreadRegistry() : mutex_(new Mutex()), entries_() {}
 
   bool RestoreStateTo(Thread* thread, Thread::State* state) {
-    MutexLocker ml(&mutex_);
+    MutexLocker ml(mutex_);
     Entry* entry = FindEntry(thread);
     if (entry != NULL) {
       Thread::State st = entry->state;
@@ -50,7 +50,7 @@ class ThreadRegistry {
   }
 
   void SaveStateFrom(Thread* thread, const Thread::State& state) {
-    MutexLocker ml(&mutex_);
+    MutexLocker ml(mutex_);
     Entry* entry = FindEntry(thread);
     ASSERT(entry != NULL);
     ASSERT(entry->scheduled);
@@ -59,12 +59,12 @@ class ThreadRegistry {
   }
 
   bool Contains(Thread* thread) {
-    MutexLocker ml(&mutex_);
+    MutexLocker ml(mutex_);
     return (FindEntry(thread) != NULL);
   }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
-    MutexLocker ml(&mutex_);
+    MutexLocker ml(mutex_);
     for (int i = 0; i < entries_.length(); ++i) {
       const Entry& entry = entries_[i];
       Zone* zone = entry.scheduled ? entry.thread->zone() : entry.state.zone;
@@ -84,7 +84,7 @@ class ThreadRegistry {
   // Returns Entry corresponding to thread in registry or NULL.
   // Note: Lock should be taken before this function is called.
   Entry* FindEntry(Thread* thread) {
-    DEBUG_ASSERT(mutex_.IsOwnedByCurrentThread());
+    DEBUG_ASSERT(mutex_->IsOwnedByCurrentThread());
     for (int i = 0; i < entries_.length(); ++i) {
       if (entries_[i].thread == thread) {
         return &entries_[i];
@@ -93,7 +93,7 @@ class ThreadRegistry {
     return NULL;
   }
 
-  Mutex mutex_;
+  Mutex* mutex_;
   MallocGrowableArray<Entry> entries_;
 
 
