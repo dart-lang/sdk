@@ -6,6 +6,7 @@
 #define VM_OS_THREAD_H_
 
 #include "platform/globals.h"
+#include "vm/globals.h"
 
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(TARGET_OS_ANDROID)
