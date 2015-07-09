@@ -205,7 +205,7 @@ class _ExpectedErrorVisitor extends UnifyingAstVisitor {
     var span = _createSpan(actual.offset, actual.length);
     var levelName = _actualErrorLevel(actual).name.toLowerCase();
     var msg = span.message(actual.message, color: colorOf(levelName));
-    return '$levelName: $msg';
+    return '$levelName: [${actual.errorCode.name}] $msg';
   }
 
   SourceSpan _createSpan(int offset, int len) {

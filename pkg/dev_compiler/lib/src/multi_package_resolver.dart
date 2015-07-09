@@ -26,7 +26,7 @@ class MultiPackageResolver extends UriResolver {
     for (var path in candidates) {
       var resolvedPath = _resolve(path);
       if (resolvedPath != null) {
-        return new FileBasedSource.con2(uri, new JavaFile(resolvedPath));
+        return new FileBasedSource(new JavaFile(resolvedPath), uri);
       }
     }
     return null;

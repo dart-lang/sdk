@@ -63,7 +63,7 @@ class StrongChecker {
       var category = '${msg.runtimeType}';
       var errorCode = errorCodeFactory(category, msg.message);
       var len = msg.end - msg.begin;
-      errors.add(new AnalysisError.con2(source, msg.begin, len, errorCode));
+      errors.add(new AnalysisError(source, msg.begin, len, errorCode));
     };
 
     for (Source librarySource in _context.getLibrariesContaining(source)) {

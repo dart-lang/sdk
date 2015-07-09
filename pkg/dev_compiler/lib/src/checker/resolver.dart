@@ -49,8 +49,9 @@ class LibraryResolverWithInference extends LibraryResolver {
   void _resolveVariableReferences() {
     for (Library library in resolvedLibraries) {
       for (Source source in library.compilationUnitSources) {
-        library.getAST(source).accept(
-            new VariableResolverVisitor.con1(library, source, typeProvider));
+        library.getAST(source).accept(new VariableResolverVisitor(
+            library.libraryElement, source, typeProvider, library.errorListener,
+            nameScope: library.libraryScope));
       }
     }
   }
@@ -358,7 +359,10 @@ class RestrictedResolverVisitor extends ResolverVisitor {
   RestrictedResolverVisitor(Library library, Source source,
       TypeProvider typeProvider, StrongModeOptions options)
       : _typeProvider = typeProvider,
-        super.con1(library, source, typeProvider,
+        super(
+            library.libraryElement, source, typeProvider, library.errorListener,
+            nameScope: library.libraryScope,
+            inheritanceManager: library.inheritanceManager,
             typeAnalyzerFactory: RestrictedStaticTypeAnalyzer.constructor);
 
   reanalyzeInitializer(VariableDeclaration variable) {

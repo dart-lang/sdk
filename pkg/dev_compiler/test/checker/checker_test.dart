@@ -836,39 +836,41 @@ void main() {
     testChecker({
       '/main.dart': '''
 
-      class A {}
-      class B extends A {}
+    class A {}
+    class B extends A {}
 
-      typedef T Function2<S, T>(S z);
+    typedef T Function2<S, T>(S z);
 
-      void main() {
-        {
-          Function2<Function2<A, B>, Function2<B, A>> top;
-          Function2<Function2<B, A>, Function2<B, A>> right;
-          Function2<Function2<A, B>, Function2<A, B>> left;
-          Function2<Function2<B, A>, Function2<A, B>> bot;
+    void main() {
+      {
+        Function2<Function2<A, B>, Function2<B, A>> top;
+        Function2<Function2<B, A>, Function2<B, A>> right;
+        Function2<Function2<A, B>, Function2<A, B>> left;
+        Function2<Function2<B, A>, Function2<A, B>> bot;
 
-          top = right;
-          top = bot;
-          top = top;
-          top = left;
+        top = right;
+        top = bot;
+        top = top;
+        top = left;
 
-          left = /*pass should be warning:DownCastComposite*/top;
-          left = left;
-          left = /*pass should be severe:StaticTypeError*/right;
-          left = bot;
+        left = /*warning:DownCastComposite*/top;
+        left = left;
+        left =
+            /*warning:DownCastComposite should be severe:StaticTypeError*/right;
+        left = bot;
 
-          right = /*pass should be warning:DownCastComposite*/top;
-          right = /*pass should be severe:StaticTypeError*/left;
-          right = right;
-          right = bot;
+        right = /*warning:DownCastComposite*/top;
+        right =
+            /*warning:DownCastComposite should be severe:StaticTypeError*/left;
+        right = right;
+        right = bot;
 
-          bot = /*pass should be warning:DownCastComposite*/top;
-          bot = /*pass should be warning:DownCastComposite*/left;
-          bot = /*pass should be warning:DownCastComposite*/right;
-          bot = bot;
-        }
+        bot = /*warning:DownCastComposite*/top;
+        bot = /*warning:DownCastComposite*/left;
+        bot = /*warning:DownCastComposite*/right;
+        bot = bot;
       }
+    }
    '''
     });
   });

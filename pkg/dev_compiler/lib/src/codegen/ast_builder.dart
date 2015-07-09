@@ -429,7 +429,7 @@ class RawAstBuilder {
 
   static Expression functionExpressionInvocation(
       Expression function, ArgumentList es) {
-    return new FunctionExpressionInvocation(function, es);
+    return new FunctionExpressionInvocation(function, null, es);
   }
 
   static FormalParameterList formalParameterList(List<FormalParameter> params) {
@@ -477,12 +477,12 @@ class RawAstBuilder {
       {bool isStatic: false}) {
     Token st = isStatic ? new KeywordToken(Keyword.STATIC, 0) : null;
     return new MethodDeclaration(
-        null, null, null, st, rt, null, null, m, fl, body);
+        null, null, null, st, rt, null, null, m, null, fl, body);
   }
 
   static FunctionExpression functionExpression(
       FormalParameterList fl, FunctionBody body) {
-    return new FunctionExpression(fl, body);
+    return new FunctionExpression(null, fl, body);
   }
 
   static FunctionDeclarationStatement functionDeclarationStatement(
@@ -502,7 +502,8 @@ class RawAstBuilder {
 
   static FunctionTypedFormalParameter functionTypedFormalParameter(
       TypeName ret, Identifier v, FormalParameterList ps) {
-    return new FunctionTypedFormalParameter(null, <Annotation>[], ret, v, ps);
+    return new FunctionTypedFormalParameter(
+        null, <Annotation>[], ret, v, null, ps);
   }
 
   static FormalParameter requiredFormalParameter(NormalFormalParameter fp) {

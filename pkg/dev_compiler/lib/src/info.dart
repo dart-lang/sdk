@@ -444,8 +444,7 @@ abstract class InvalidOverride extends StaticError {
         fromMixin = node.parent is WithClause,
         super(node);
 
-  ClassDeclaration get parent =>
-      element.enclosingElement.node as ClassDeclaration;
+  ClassElement get parent => element.enclosingElement;
 
   String _messageHelper(String errorName) {
     var name = element.name;

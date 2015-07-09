@@ -96,7 +96,9 @@ class ConstFieldVisitor {
   final ConstantVisitor _constantVisitor;
 
   ConstFieldVisitor(TypeProvider types, CompilationUnit unit)
-      : _constantVisitor = new ConstantVisitor.con1(types,
+      // TODO(jmesserly): support -D variables on the command line
+      : _constantVisitor = new ConstantVisitor(
+          new ConstantEvaluationEngine(types, new DeclaredVariables()),
           new ErrorReporter(new RecordingErrorListener(), unit.element.source));
 
   // TODO(jmesserly): this is used to determine if the field initialization is

@@ -70,10 +70,10 @@ warning: line 121, column 7 of dart:math/rectangle.dart: [DownCastComposite] thi
 warning: line 123, column 7 of dart:math/rectangle.dart: [DownCastComposite] this.top + this.height (num) will need runtime check to cast to type T
       this.top + this.height);
       ^^^^^^^^^^^^^^^^^^^^^^
-warning: line 151, column 22 of dart:math/rectangle.dart: [DownCastComposite] (width < 0) ? -width * 0 : width (dynamic) will need runtime check to cast to type T
+warning: line 151, column 22 of dart:math/rectangle.dart: [DownCastComposite] (width < 0) ? -width * 0 : width (num) will need runtime check to cast to type T
       : this.width = (width < 0) ? -width * 0 : width,  // Inline _clampToZero.
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 152, column 23 of dart:math/rectangle.dart: [DownCastComposite] (height < 0) ? -height * 0 : height (dynamic) will need runtime check to cast to type T
+warning: line 152, column 23 of dart:math/rectangle.dart: [DownCastComposite] (height < 0) ? -height * 0 : height (num) will need runtime check to cast to type T
         this.height = (height < 0) ?  -height * 0 : height;
                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 warning: line 167, column 14 of dart:math/rectangle.dart: [DownCastComposite] min(a.x, b.x) (num) will need runtime check to cast to type T
@@ -88,10 +88,10 @@ warning: line 169, column 13 of dart:math/rectangle.dart: [DownCastComposite] mi
 warning: line 170, column 16 of dart:math/rectangle.dart: [DownCastComposite] max(a.y, b.y) - top (num) will need runtime check to cast to type T
     T height = max(a.y, b.y) - top;
                ^^^^^^^^^^^^^^^^^^^
-warning: line 212, column 23 of dart:math/rectangle.dart: [DownCastComposite] (width < 0) ? _clampToZero(width) : width (dynamic) will need runtime check to cast to type T
+warning: line 212, column 23 of dart:math/rectangle.dart: [DownCastComposite] (width < 0) ? _clampToZero(width) : width (num) will need runtime check to cast to type T
       : this._width = (width < 0) ? _clampToZero(width) : width,
                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 213, column 24 of dart:math/rectangle.dart: [DownCastComposite] (height < 0) ? _clampToZero(height) : height (dynamic) will need runtime check to cast to type T
+warning: line 213, column 24 of dart:math/rectangle.dart: [DownCastComposite] (height < 0) ? _clampToZero(height) : height (num) will need runtime check to cast to type T
         this._height = (height < 0) ? _clampToZero(height) : height;
                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 warning: line 228, column 14 of dart:math/rectangle.dart: [DownCastComposite] min(a.x, b.x) (num) will need runtime check to cast to type T
@@ -418,7 +418,7 @@ severe: line 396, column 30 of dart:async/stream.dart: [AnalyzerMessage] The get
 warning: line 90, column 25 of dart:async/stream.dart: [DownCastComposite] value (dynamic) will need runtime check to cast to type T
         controller._add(value);
                         ^^^^^
-warning: line 217, column 41 of dart:async/stream.dart: [DownCastComposite] mapSink ((EventSink<T>) → EventSink<dynamic>) will need runtime check to cast to type (EventSink<dynamic>) → EventSink
+warning: line 217, column 41 of dart:async/stream.dart: [DownCastComposite] mapSink ((EventSink<T>) → EventSink<dynamic>) will need runtime check to cast to type (EventSink<dynamic>) → EventSink<dynamic>
     return new _BoundSinkStream(source, mapSink);
                                         ^^^^^^^
 warning: line 249, column 44 of dart:async/stream.dart: [DownCastComposite] onListen ((StreamSubscription<T>) → void) will need runtime check to cast to type (StreamSubscription<dynamic>) → void
@@ -529,7 +529,7 @@ warning: line 235, column 21 of dart:async/stream_pipe.dart: [DownCastComposite]
 warning: line 426, column 29 of dart:async/stream_pipe.dart: [DownCastComposite] _previous (Object) will need runtime check to cast to type T
           isEqual = _equals(_previous, inputEvent);
                             ^^^^^^^^^
-warning: line 187, column 18 of dart:async/stream_transformers.dart: [DownCastComposite] _sinkMapper ((EventSink<T>) → EventSink<S>) will need runtime check to cast to type (EventSink<dynamic>) → EventSink
+warning: line 187, column 18 of dart:async/stream_transformers.dart: [DownCastComposite] _sinkMapper ((EventSink<T>) → EventSink<S>) will need runtime check to cast to type (EventSink<dynamic>) → EventSink<dynamic>
         _stream, _sinkMapper, onData, onError, onDone, cancelOnError);
                  ^^^^^^^^^^^
 warning: line 233, column 15 of dart:async/stream_transformers.dart: [UninferredClosure] (EventSink<T> outputSink) {if (handleData == null) handleData = _defaultHandleData; if (handleError == null) handleError = _defaultHandleError; if (handleDone == null) handleDone = _defaultHandleDone; return new _HandlerEventSink<S, T>(handleData, handleError, handleDone, outputSink);} ((EventSink<T>) → dynamic) will need runtime check to cast to type (EventSink<T>) → EventSink<S>
@@ -646,7 +646,7 @@ warning: line 259, column 40 of dart:core/duration.dart: [DownCastImplicit] inSe
 warning: line 261, column 19 of dart:core/duration.dart: [DownCastImplicit] inMicroseconds.remainder(MICROSECONDS_PER_SECOND) (num) will need runtime check to cast to type int
         sixDigits(inMicroseconds.remainder(MICROSECONDS_PER_SECOND));
                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 319, column 22 of dart:core/iterable.dart: [DownCastComposite] (generator != null) ? generator : _id (dynamic) will need runtime check to cast to type (int) → E
+warning: line 319, column 22 of dart:core/iterable.dart: [DownCastComposite] (generator != null) ? generator : _id (Function) will need runtime check to cast to type (int) → E
         _generator = (generator != null) ? generator : _id;
                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 warning: line 121, column 16 of dart:core/list.dart: [DownCastComposite] e (dynamic) will need runtime check to cast to type E
@@ -976,7 +976,7 @@ warning: line 151, column 12 of dart:collection/splay_tree.dart: [DownCastCompos
 warning: line 167, column 12 of dart:collection/splay_tree.dart: [DownCastComposite] current (_SplayTreeNode<dynamic>) will need runtime check to cast to type _SplayTreeNode<K>
     return current;
            ^^^^^^^
-warning: line 265, column 23 of dart:collection/splay_tree.dart: [DownCastComposite] (compare == null) ? Comparable.compare : compare (dynamic) will need runtime check to cast to type (K, K) → int
+warning: line 265, column 23 of dart:collection/splay_tree.dart: [DownCastComposite] (compare == null) ? Comparable.compare : compare (Function) will need runtime check to cast to type (K, K) → int
       : _comparator = (compare == null) ? Comparable.compare : compare,
                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 severe: line 266, column 65 of dart:collection/splay_tree.dart: [InvalidRuntimeCheckError] Invalid runtime check on non-ground type K
@@ -1042,7 +1042,7 @@ warning: line 633, column 42 of dart:collection/splay_tree.dart: [DownCastCompos
 warning: line 641, column 55 of dart:collection/splay_tree.dart: [DownCastComposite] node (_SplayTreeNode<dynamic>) will need runtime check to cast to type _SplayTreeNode<K>
   _SplayTreeNode<K> _getValue(_SplayTreeNode node) => node;
                                                       ^^^^
-warning: line 691, column 23 of dart:collection/splay_tree.dart: [DownCastComposite] (compare == null) ? Comparable.compare : compare (dynamic) will need runtime check to cast to type (E, E) → int
+warning: line 691, column 23 of dart:collection/splay_tree.dart: [DownCastComposite] (compare == null) ? Comparable.compare : compare (Function) will need runtime check to cast to type (E, E) → int
       : _comparator = (compare == null) ? Comparable.compare : compare,
                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 severe: line 692, column 65 of dart:collection/splay_tree.dart: [InvalidRuntimeCheckError] Invalid runtime check on non-ground type E

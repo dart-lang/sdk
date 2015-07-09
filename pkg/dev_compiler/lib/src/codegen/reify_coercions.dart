@@ -430,7 +430,7 @@ class TypeManager {
     // This is the type corresponding to the typedef.  Note that
     // almost all methods on this type delegate to the element, so it
     // cannot be safely be used for anything until the element is fully resolved
-    FunctionTypeImpl substType = new FunctionTypeImpl.con2(element);
+    FunctionTypeImpl substType = new FunctionTypeImpl.forTypedef(element);
     element.type = substType;
     // Link the type and the element into the identifier for the typedef
     t.staticType = substType;
