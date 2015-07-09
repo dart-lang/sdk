@@ -101,6 +101,6 @@ _processLoadRequest(request) {
   } else if ((uri.scheme == 'data')) {
     _loadDataUri(sp, id, uri);
   } else {
-    sp.send('Unknown scheme (${uri.scheme}) for $uri');
+    sp.send([id, 'Unknown scheme (${uri.scheme}) for $uri']);
   }
 }
