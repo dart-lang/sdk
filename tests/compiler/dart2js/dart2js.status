@@ -45,6 +45,7 @@ backend_dart/opt_redundant_phi_test: Skip
 # These tests run the compiler multiple times.
 js_backend_cps_ir_basic_test: Pass, Slow
 js_backend_cps_ir_closures_test: Pass, Slow
+js_backend_cps_ir_constructor_test: Pass, Slow
 
 [ $unchecked ]
 exit_code_test: Skip # This tests requires checked mode.
