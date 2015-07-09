@@ -13,31 +13,6 @@ const DEBUG_FAST_OBJECTS = false;
 typedef jsAst.Property AddPropertyFunction(jsAst.Name name,
                                            jsAst.Expression value);
 
-/**
- * [member] is a field (instance, static, or top level).
- *
- * [name] is the field name that the [Namer] has picked for this field's
- * storage, that is, the JavaScript property name.
- *
- * [accessorName] is the name of the accessor. For instance fields this is
- * mostly the same as [name] except when [member] is shadowing a field in its
- * superclass.  For other fields, they are rarely the same.
- *
- * [needsGetter] and [needsSetter] represent if a getter or a setter
- * respectively is needed.  There are many factors in this, for example, if the
- * accessor can be inlined.
- *
- * [needsCheckedSetter] indicates that a checked getter is needed, and in this
- * case, [needsSetter] is always false. [needsCheckedSetter] is only true when
- * type assertions are enabled (checked mode).
- */
-typedef void AcceptField(VariableElement member,
-                         jsAst.Name name,
-                         jsAst.Name accessorName,
-                         bool needsGetter,
-                         bool needsSetter,
-                         bool needsCheckedSetter);
-
 // Function signatures used in the generation of runtime type information.
 typedef void FunctionTypeSignatureEmitter(Element method,
                                           FunctionType methodType);

@@ -133,7 +133,7 @@ class CodeEmitterTask extends CompilerTask {
 
       Set<ClassElement> rtiNeededClasses = _finalizeRti();
       ProgramBuilder programBuilder = new ProgramBuilder(
-          compiler, namer, this, emitter, oldEmitter, rtiNeededClasses);
+          compiler, namer, this, emitter, rtiNeededClasses);
       int size = emitter.emitProgram(programBuilder);
       // TODO(floitsch): we shouldn't need the `neededClasses` anymore.
       neededClasses = programBuilder.collector.neededClasses;

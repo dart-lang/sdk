@@ -8,6 +8,7 @@ import '../js_emitter.dart' show computeMixinClass, Emitter;
 import '../model.dart';
 
 import '../../common.dart';
+import '../../closure.dart' show ClosureFieldElement;
 import '../../js/js.dart' as js;
 
 import '../../js_backend/js_backend.dart' show
@@ -24,7 +25,9 @@ import '../js_emitter.dart' show
     RuntimeTypeGenerator,
     TypeTestProperties;
 
-import '../../elements/elements.dart' show FieldElement, MethodElement,
+import '../../elements/elements.dart' show
+    FieldElement,
+    MethodElement,
     ParameterElement;
 
 import '../../universe/universe.dart' show Universe, TypeMaskSet;
@@ -32,6 +35,7 @@ import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 
 part 'collector.dart';
 part 'registry.dart';
+part 'field_visitor.dart';
 
 /// Builds a self-contained representation of the program that can then be
 /// emitted more easily by the individual emitters.
@@ -43,7 +47,8 @@ class ProgramBuilder {
   /// Contains the collected information the program builder used to build
   /// the model.
   // The collector will be filled on the first call to `buildProgram`.
-  // It is stored and publicly exposed for backwards compatibility.
+  // It is stored and publicly exposed for backwards compatibility. New code
+  // (and in particular new emitters) should not use it.
   final Collector collector;
 
   final Registry _registry;
@@ -55,12 +60,11 @@ class ProgramBuilder {
                  Namer namer,
                  this._task,
                  Emitter emitter,
-                 Emitter oldEmitter,
                  Set<ClassElement> rtiNeededClasses)
       : this._compiler = compiler,
         this.namer = namer,
-        this.collector = new Collector(
-            compiler, namer, rtiNeededClasses, emitter, oldEmitter),
+        this.collector =
+            new Collector(compiler, namer, rtiNeededClasses, emitter),
         this._registry = new Registry(compiler);
 
   JavaScriptBackend get backend => _compiler.backend;
@@ -662,7 +666,7 @@ class ProgramBuilder {
 
   List<Field> _buildFields(Element holder, bool visitStatics) {
     List<Field> fields = <Field>[];
-    _task.oldEmitter.classEmitter.visitFields(
+    new FieldVisitor(_compiler, namer).visitFields(
         holder, visitStatics, (VariableElement field,
                                js.Name name,
                                js.Name accessorName,

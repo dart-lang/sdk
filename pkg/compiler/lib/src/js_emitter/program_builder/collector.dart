@@ -16,12 +16,9 @@ class Collector {
   final Compiler compiler;
   final Set<ClassElement> rtiNeededClasses;
   final Emitter emitter;
-  // TODO(floitsch): remove this field.
-  // The field is untyped, because we don't want to import the full emitter
-  // class.
-  final oldEmitter;
 
   final Set<ClassElement> neededClasses = new Set<ClassElement>();
+  // This field is set in [computeNeededDeclarations].
   Set<ClassElement> classesOnlyNeededForRti;
   final Map<OutputUnit, List<ClassElement>> outputClassLists =
       new Map<OutputUnit, List<ClassElement>>();
@@ -45,8 +42,7 @@ class Collector {
 
   JavaScriptBackend get backend => compiler.backend;
 
-  Collector(this.compiler, this.namer, this.rtiNeededClasses,
-            this.emitter, this.oldEmitter);
+  Collector(this.compiler, this.namer, this.rtiNeededClasses, this.emitter);
 
   Set<ClassElement> computeInterceptorsReferencedFromConstants() {
     Set<ClassElement> classes = new Set<ClassElement>();
@@ -129,7 +125,7 @@ class Collector {
         final onlyForRti = classesOnlyNeededForRti.contains(cls);
         if (!onlyForRti) {
           backend.retainMetadataOf(cls);
-          oldEmitter.classEmitter.visitFields(cls, false,
+          new FieldVisitor(compiler, namer).visitFields(cls, false,
               (Element member,
                js.Name name,
                js.Name accessorName,
