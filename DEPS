@@ -79,12 +79,12 @@ vars = {
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "observatory_pub_packages_rev": "@45565",
   "package_config_tag": "@0.1.1",
-  "path_rev": "@93b3e2aa1db0ac0c8bab9d341588d77acda60320",
+  "path_tag": "@1.3.6",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@e454b4b54d2987e8d2f0fbd3ac519641ada9bd0f",
-  "pub_rev": "@9cb2334b6c0c1a2be2ca0558b5aceb1f0a27216e",
+  "pub_rev": "@7d57d8b1cfeb244b8d60242b1cd4f7488e5aa831",
   "pub_cache_tag": "@v0.0.1+2",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
@@ -245,7 +245,7 @@ deps = {
       (Var("github_mirror") % "package_config") +
       Var("package_config_tag"),
   Var("dart_root") + "/third_party/pkg/path":
-      (Var("github_mirror") % "path") + Var("path_rev"),
+      (Var("github_mirror") % "path") + Var("path_tag"),
   Var("dart_root") + "/third_party/pkg/plugin":
       (Var("github_mirror") % "plugin") + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
