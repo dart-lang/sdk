@@ -401,6 +401,9 @@ main() {}""",
   static const MessageKind NOT_A_PREFIX = const MessageKind(
       "'#{node}' is not a prefix.");
 
+  static const MessageKind PREFIX_AS_EXPRESSION = const MessageKind(
+      "Library prefix '#{prefix}' is not a valid expression.");
+
   static const MessageKind CANNOT_FIND_CONSTRUCTOR = const MessageKind(
       "Cannot find constructor '#{constructorName}'.");
 

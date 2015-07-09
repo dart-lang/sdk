@@ -749,7 +749,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         ''',
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_GET,
                     element: 'getter(o)')),
-    // TODO(johnniwinther): Expect [VISIT_TOP_LEVEL_SETTER_GET] instead.
     const Test(
         '''
         set o(_) {}
@@ -764,8 +763,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         '''
         m() => p.o;
         ''',
-        const Visit(VisitKind.VISIT_UNRESOLVED_GET,
-                    name: 'o')),
+        const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_GET,
+                    element: 'setter(o)')),
     // TODO(johnniwinther): Expect [VISIT_TOP_LEVEL_GETTER_SET] instead.
     const Test(
         '''
@@ -815,7 +814,6 @@ const Map<String, List<Test>> SEND_TESTS = const {
         const Visit(VisitKind.VISIT_TOP_LEVEL_GETTER_INVOKE,
                     element: 'getter(o)',
                     arguments: '(null,42)')),
-    // TODO(johnniwinther): Expected [VISIT_TOP_LEVEL_SETTER_INVOKE] instead.
     const Test(
         '''
         set o(_) {}
@@ -829,8 +827,8 @@ const Map<String, List<Test>> SEND_TESTS = const {
         set o(_) {}
         ''',
         'm() { p.o(null, 42); }',
-        const Visit(VisitKind.VISIT_UNRESOLVED_INVOKE,
-                    name: 'o',
+        const Visit(VisitKind.VISIT_TOP_LEVEL_SETTER_INVOKE,
+                    element: 'setter(o)',
                     arguments: '(null,42)')),
   ],
   'Top level functions': const [

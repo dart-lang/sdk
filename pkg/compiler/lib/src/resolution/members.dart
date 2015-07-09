@@ -46,7 +46,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   Scope scope;
   ClassElement currentClass;
   ExpressionStatement currentExpressionStatement;
+
+  /// `true` if a [Send] or [SendSet] is visited as the prefix of member access.
+  /// For instance `Class` in `Class.staticField` or `prefix.Class` in
+  /// `prefix.Class.staticMethod()`.
   bool sendIsMemberAccess = false;
+
   StatementScope statementScope;
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
       | ElementCategory.IMPLIES_TYPE;
@@ -1332,7 +1337,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (leftResult.isConstant && rightResult.isConstant) {
         bool isValidConstant;
         ConstantExpression leftConstant = leftResult.constant;
-        ConstantExpression rightConstant = leftResult.constant;
+        ConstantExpression rightConstant = rightResult.constant;
         DartType knownLeftType = leftConstant.getKnownType(coreTypes);
         DartType knownRightType = rightConstant.getKnownType(coreTypes);
         switch (operator.kind) {
@@ -1770,12 +1775,54 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
+  /// Handle qualified [Send] where the receiver resolves to a [prefix],
+  /// like `prefix.toplevelFunction()` or `prefix.Class.staticField` where
+  /// `prefix` is a library prefix.
+  ResolutionResult handleLibraryPrefixSend(
+      Send node, PrefixElement prefix, Name name) {
+    Element member = prefix.lookupLocalMember(name.text);
+    if (member == null) {
+      registry.registerThrowNoSuchMethod();
+      Element error = reportAndCreateErroneousElement(
+          node, name.text, MessageKind.NO_SUCH_LIBRARY_MEMBER,
+          {'libraryName': prefix.name, 'memberName': name});
+      registry.useElement(node, error);
+      return new ElementResult(error);
+    } else {
+      return handleResolvedSend(node, name, member);
+    }
+  }
+
+  /// Handle a [Send] that resolves to a [prefix]. Like `prefix` in
+  /// `prefix.Class` or `prefix` in `prefix()`, the latter being a compile time
+  /// error.
+  ResolutionResult handleLibraryPrefix(
+      Send node,
+      Name name,
+      PrefixElement prefix) {
+    if ((ElementCategory.PREFIX & allowedCategory) == 0) {
+      compiler.reportError(
+          node,
+          MessageKind.PREFIX_AS_EXPRESSION,
+          {'prefix': name});
+      return const NoneResult();
+    }
+    if (prefix.isDeferred) {
+      // TODO(johnniwinther): Remove this when deferred access is detected
+      // through a [SendStructure].
+      registry.useElement(node.selector, prefix);
+    }
+    registry.useElement(node, prefix);
+    return new ElementResult(prefix);
+  }
+
+
   /// Handle qualified [Send] where the receiver resolves to an [Element], like
   /// `a.b` where `a` is a local, field, class, or prefix, etc.
   ResolutionResult handleResolvedQualifiedSend(
       Send node, Name name, Element element) {
     if (element.isPrefix) {
-      return oldVisitSend(node);
+      return handleLibraryPrefixSend(node, element, name);
     } else if (element.isClass) {
       return handleStaticMemberAccess(node, name, element);
     }
@@ -1909,15 +1956,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Name name,
       AmbiguousElement element) {
 
-    compiler.reportError(
-        node, element.messageKind, element.messageArguments);
-    element.diagnose(enclosingElement, compiler);
-
-    ErroneousElement error = new ErroneousElementX(
-        element.messageKind,
-        element.messageArguments,
+    ErroneousElement error = reportAndCreateErroneousElement(
+        node,
         name.text,
-        enclosingElement);
+        element.messageKind,
+        element.messageArguments);
+    element.diagnose(enclosingElement, compiler);
+    registry.registerThrowNoSuchMethod();
 
     // TODO(johnniwinther): Support ambiguous access as an [AccessSemantics].
     AccessSemantics accessSemantics = new StaticAccess.unresolved(error);
@@ -2192,7 +2237,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else if (element.isTypeVariable) {
       return oldVisitSend(node);
     } else if (element.isPrefix) {
-      return oldVisitSend(node);
+      return handleLibraryPrefix(node, name, element);
     } else if (element.isLocal) {
       return handleLocalAccess(node, name, element);
     } else if (element.isStatic || element.isTopLevel) {

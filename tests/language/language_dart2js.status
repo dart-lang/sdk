@@ -33,10 +33,6 @@ stacktrace_test: Pass, RuntimeError # # Issue 12698
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError # Issue 12698
 stacktrace_rethrow_error_test: Pass, RuntimeError # Issue 12698
 instantiate_type_variable_test/01: CompileTimeError # Issue 13631
-library_ambiguous_test/00: CompileTimeError # Issue 13632
-library_ambiguous_test/01: CompileTimeError # Issue 13632
-library_ambiguous_test/02: CompileTimeError # Issue 13632
-library_ambiguous_test/03: CompileTimeError # Issue 13632
 type_variable_conflict_test/01: Fail # Issue 13702
 type_variable_conflict_test/02: Fail # Issue 13702
 type_variable_conflict_test/03: Fail # Issue 13702
@@ -64,21 +60,12 @@ if_null_assignment_behavior_test/13: Crash # Issue 23491
 if_null_assignment_behavior_test/14: Crash # Issue 23491
 nullaware_opt_test: Fail # Fails at e?.f ??= 200;
 
-conditional_method_invocation_test/11: MissingCompileTimeError # Issue 23611
-conditional_property_access_test/09: MissingCompileTimeError # Issue 23611
-conditional_property_assignment_test/20: MissingCompileTimeError # Issue 23611
-conditional_property_assignment_test/21: MissingCompileTimeError # Issue 23611
-conditional_property_assignment_test/22: MissingCompileTimeError # Issue 23611
 if_null_assignment_behavior_test/29: Crash # Issue 23611
 if_null_assignment_behavior_test/30: Crash # Issue 23611
 prefix_assignment_test/01: Crash # Issue 23611
 prefix_assignment_test/02: Crash # Issue 23611
-prefix_identifier_reference_test/01: MissingCompileTimeError # Issue 23611
-prefix_identifier_reference_test/02: MissingCompileTimeError # Issue 23611
-prefix_identifier_reference_test/03: MissingCompileTimeError # Issue 23611
 prefix_identifier_reference_test/04: Crash # Issue 23611
 prefix_identifier_reference_test/05: Crash # Issue 23611
-prefix_unqualified_invocation_test/01: RuntimeError # Issue 23611
 
 const_error_multiply_initialized_test/02: CompileTimeError # Issue 23618
 const_error_multiply_initialized_test/04: CompileTimeError # Issue 23618
@@ -205,10 +192,6 @@ numbers_test: RuntimeError, OK # Issue 1533
 canonical_const2_test: RuntimeError, OK # Issue 1533
 bit_operations_test: RuntimeError, OK # Issue 1533
 expect_test: RuntimeError, OK # Issue 13080
-
-illegal_invocation_test/01: MissingCompileTimeError # Issue 23611
-prefix_unqualified_invocation_test/01: MissingCompileTimeError # Issue 23611
-prefix_unqualified_invocation_test/02: MissingCompileTimeError # Issue 23611
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
