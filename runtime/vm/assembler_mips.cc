@@ -459,6 +459,12 @@ void Assembler::SubuDetectOverflow(Register rd, Register rs, Register rt,
 void Assembler::LoadObjectHelper(Register rd,
                                  const Object& object,
                                  bool is_unique) {
+  // Load common VM constants from the thread. This works also in places where
+  // no constant pool is set up (e.g. intrinsic code).
+  if (Thread::CanLoadFromThread(object)) {
+    lw(rd, Address(THR, Thread::OffsetFromThread(object)));
+    return;
+  }
   ASSERT(!in_delay_slot_);
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
@@ -568,8 +574,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != T0) {
     mov(T0, object);
   }
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  BranchLink(&stub_code->UpdateStoreBufferLabel());
+  lw(T9, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  jalr(T9);
   lw(RA, Address(SP, 0 * kWordSize));
   if (value != T0) {
     // Restore T0.

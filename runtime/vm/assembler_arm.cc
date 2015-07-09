@@ -1567,6 +1567,12 @@ void Assembler::LoadObjectHelper(Register rd,
                                  const Object& object,
                                  Condition cond,
                                  bool is_unique) {
+  // Load common VM constants from the thread. This works also in places where
+  // no constant pool is set up (e.g. intrinsic code).
+  if (Thread::CanLoadFromThread(object)) {
+    ldr(rd, Address(THR, Thread::OffsetFromThread(object)), cond);
+    return;
+  }
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()), cond);
@@ -1808,8 +1814,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != R0) {
     mov(R0, Operand(object));
   }
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  BranchLink(&stub_code->UpdateStoreBufferLabel());
+  ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  blx(LR);
   PopList(regs);
   Bind(&done);
 }

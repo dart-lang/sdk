@@ -70,7 +70,7 @@ Thread::Thread(bool init_vm_constants)
     : isolate_(NULL),
       store_buffer_block_(NULL) {
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
-    member_name = default_init_value;
+  member_name = default_init_value;
 CACHED_CONSTANTS_LIST(DEFAULT_INIT)
 #undef DEFAULT_INIT
   if (init_vm_constants) {
@@ -80,9 +80,14 @@ CACHED_CONSTANTS_LIST(DEFAULT_INIT)
 
 
 void Thread::InitVMConstants() {
+#define ASSERT_VM_HEAP(type_name, member_name, init_expr, default_init_value)  \
+  ASSERT((init_expr)->IsOldObject());
+CACHED_VM_OBJECTS_LIST(ASSERT_VM_HEAP)
+#undef ASSERT_VM_HEAP
+
 #define INIT_VALUE(type_name, member_name, init_expr, default_init_value)      \
   ASSERT(member_name == default_init_value);                                   \
-  member_name = init_expr;
+  member_name = (init_expr);
 CACHED_CONSTANTS_LIST(INIT_VALUE)
 #undef INIT_VALUE
 }
@@ -215,6 +220,7 @@ CACHED_VM_OBJECTS_LIST(CHECK_OBJECT)
 
 intptr_t Thread::OffsetFromThread(const Object& object) {
 #define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
+  ASSERT((expr)->IsVMHeapObject());                                            \
   if (object.raw() == expr) return Thread::member_name##offset();
 CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
 #undef COMPUTE_OFFSET
