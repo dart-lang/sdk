@@ -53,7 +53,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), EBP);
+  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), EBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -91,7 +91,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -143,7 +143,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to dart VM code.
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), EBP);
+  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), EBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -185,7 +185,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -216,7 +216,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to dart VM code.
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), EBP);
+  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), EBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -255,7 +255,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveFrame();
   __ ret();
@@ -757,15 +757,15 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save top resource and top exit frame info. Use EDX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ movl(EDX, Address(EDI, Isolate::top_resource_offset()));
+  __ movl(EDX, Address(THR, Thread::top_resource_offset()));
   __ pushl(EDX);
-  __ movl(Address(EDI, Isolate::top_resource_offset()), Immediate(0));
+  __ movl(Address(THR, Thread::top_resource_offset()), Immediate(0));
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
   ASSERT(kExitLinkSlotFromEntryFp == -6);
-  __ movl(EDX, Address(EDI, Isolate::top_exit_frame_info_offset()));
+  __ movl(EDX, Address(THR, Thread::top_exit_frame_info_offset()));
   __ pushl(EDX);
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   // Load arguments descriptor array into EDX.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
@@ -809,8 +809,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure.
   __ LoadIsolate(EDI);
-  __ popl(Address(EDI, Isolate::top_exit_frame_info_offset()));
-  __ popl(Address(EDI, Isolate::top_resource_offset()));
+  __ popl(Address(THR, Thread::top_exit_frame_info_offset()));
+  __ popl(Address(THR, Thread::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
   __ popl(Address(EDI, Isolate::vm_tag_offset()));
@@ -1926,7 +1926,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ movl(Address(EDI, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
   // Clear top exit frame.
-  __ movl(Address(EDI, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movl(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
   __ jmp(EBX);  // Jump to the exception handler code.
 }
 

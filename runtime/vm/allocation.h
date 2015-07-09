@@ -8,6 +8,7 @@
 #include "platform/assert.h"
 #include "vm/base_isolate.h"
 #include "vm/globals.h"
+#include "vm/thread.h"
 
 namespace dart {
 
@@ -36,42 +37,62 @@ class ValueObject {
 // to a stack frame above the frame where these objects were allocated.
 class StackResource {
  public:
-  explicit StackResource(Isolate* isolate)
-      : isolate_(reinterpret_cast<BaseIsolate*>(isolate)), previous_(NULL) {
-    // We can only have longjumps and exceptions when there is a current
-    // isolate.  If there is no current isolate, we don't need to
-    // protect this case.
-    if (isolate_ != NULL) {
-      previous_ = isolate_->top_resource();
-      isolate_->set_top_resource(this);
-    }
+  // DEPRECATED: Use Thread-based interface. During migration, this defaults
+  // to using the mutator thread (which must also be the current thread).
+  explicit StackResource(Isolate* isolate) : thread_(NULL), previous_(NULL) {
+    Init((isolate == NULL) ?
+        NULL : reinterpret_cast<BaseIsolate*>(isolate)->mutator_thread_);
+  }
+
+  explicit StackResource(Thread* thread) : thread_(NULL), previous_(NULL) {
+    Init(thread);
   }
 
   virtual ~StackResource() {
-    if (isolate_ != NULL) {
-      StackResource* top = isolate_->top_resource();
+    if (thread_ != NULL) {
+      StackResource* top = thread_->top_resource();
       ASSERT(top == this);
-      isolate_->set_top_resource(previous_);
+      thread_->set_top_resource(previous_);
     }
 #if defined(DEBUG)
-    if (isolate_ != NULL) {
-      BaseIsolate::AssertCurrent(isolate_);
+    if (thread_ != NULL) {
+      ASSERT(Thread::Current() == thread_);
+      BaseIsolate::AssertCurrent(reinterpret_cast<BaseIsolate*>(isolate()));
     }
 #endif
   }
 
-  // We can only create StackResources with Isolates, so provide the original
-  // isolate to the subclasses. The only reason we have a BaseIsolate in the
-  // StackResource is to break the header include cycles.
-  Isolate* isolate() const { return reinterpret_cast<Isolate*>(isolate_); }
+  // Convenient access to the isolate of the thread of this resource.
+  Isolate* isolate() const {
+    return thread_ == NULL ? NULL : thread_->isolate();
+  }
+
+  // The thread that owns this resource.
+  Thread* thread() const { return thread_; }
 
   // Destroy stack resources of isolate until top exit frame.
+  // TODO(koda): Migrate to Thread.
   static void Unwind(Isolate* isolate) { UnwindAbove(isolate, NULL); }
+  // TODO(koda): Migrate to Thread.
   // Destroy stack resources of isolate above new_top, exclusive.
   static void UnwindAbove(Isolate* isolate, StackResource* new_top);
 
  private:
-  BaseIsolate* const isolate_;  // Current isolate for this stack resource.
+  void Init(Thread* thread) {
+    // We can only have longjumps and exceptions when there is a current
+    // thread and isolate.  If there is no current thread, we don't need to
+    // protect this case.
+    // TODO(23807): Eliminate this special case.
+    if (thread != NULL) {
+      ASSERT(Thread::Current() == thread);
+      thread_ = thread;
+      previous_ = thread_->top_resource();
+      ASSERT((previous_ == NULL) || (previous_->thread_ == thread));
+      thread_->set_top_resource(this);
+    }
+  }
+
+  Thread* thread_;
   StackResource* previous_;
 
   DISALLOW_ALLOCATION();

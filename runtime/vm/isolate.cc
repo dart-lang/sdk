@@ -36,6 +36,7 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
+#include "vm/thread_registry.h"
 #include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
@@ -622,9 +623,9 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
   object##_handle_(NULL),
 
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
-  :   mutator_thread_(NULL),
-      vm_tag_(0),
+  :   vm_tag_(0),
       store_buffer_(new StoreBuffer()),
+      thread_registry_(new ThreadRegistry()),
       message_notify_callback_(NULL),
       name_(NULL),
       debugger_name_(NULL),
@@ -726,6 +727,7 @@ Isolate::~Isolate() {
     compiler_stats_ = NULL;
   }
   RemoveTimelineEventRecorder();
+  delete thread_registry_;
 }
 
 
@@ -1532,9 +1534,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit objects in per isolate stubs.
   StubCode::VisitObjectPointers(visitor);
 
-  // Visit objects in zones.
-  current_zone()->VisitObjectPointers(visitor);
-
   // Visit objects in isolate specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
 
@@ -1571,6 +1570,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   if (deopt_context() != NULL) {
     deopt_context()->VisitObjectPointers(visitor);
   }
+
+  // Visit objects in thread registry (e.g., handles in zones).
+  thread_registry()->VisitObjectPointers(visitor);
 }
 
 

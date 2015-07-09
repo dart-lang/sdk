@@ -52,7 +52,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -94,7 +94,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveStubFrame();
   __ ret();
@@ -149,7 +149,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -191,7 +191,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveStubFrame();
   __ ret();
@@ -223,7 +223,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), RBP);
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), RBP);
 
 #if defined(DEBUG)
   { Label ok;
@@ -263,7 +263,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
           Immediate(VMTag::kDartTagId));
 
   // Reset exit frame information in Isolate structure.
-  __ movq(Address(R12, Isolate::top_exit_frame_info_offset()), Immediate(0));
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()), Immediate(0));
 
   __ LeaveStubFrame();
   __ ret();
@@ -787,11 +787,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save top resource and top exit frame info. Use RAX as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ movq(RAX, Address(kIsolateReg, Isolate::top_resource_offset()));
+  __ movq(RAX, Address(THR, Thread::top_resource_offset()));
   __ pushq(RAX);
-  __ movq(Address(kIsolateReg, Isolate::top_resource_offset()),
+  __ movq(Address(THR, Thread::top_resource_offset()),
           Immediate(0));
-  __ movq(RAX, Address(kIsolateReg, Isolate::top_exit_frame_info_offset()));
+  __ movq(RAX, Address(THR, Thread::top_exit_frame_info_offset()));
   // The constant kExitLinkSlotFromEntryFp must be kept in sync with the
   // code below.
   __ pushq(RAX);
@@ -805,7 +805,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ Bind(&ok);
   }
 #endif
-  __ movq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()),
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()),
           Immediate(0));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
@@ -849,8 +849,8 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure.
   __ LoadIsolate(kIsolateReg);
-  __ popq(Address(kIsolateReg, Isolate::top_exit_frame_info_offset()));
-  __ popq(Address(kIsolateReg, Isolate::top_resource_offset()));
+  __ popq(Address(THR, Thread::top_exit_frame_info_offset()));
+  __ popq(Address(THR, Thread::top_resource_offset()));
 
   // Restore the current VMTag from the stack.
   __ popq(Address(kIsolateReg, Isolate::vm_tag_offset()));
@@ -1985,7 +1985,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ movq(Address(isolate_reg, Isolate::vm_tag_offset()),
           Immediate(VMTag::kDartTagId));
   // Clear top exit frame.
-  __ movq(Address(isolate_reg, Isolate::top_exit_frame_info_offset()),
+  __ movq(Address(THR, Thread::top_exit_frame_info_offset()),
           Immediate(0));
   __ jmp(CallingConventions::kArg1Reg);  // Jump to the exception handler code.
 }

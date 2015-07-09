@@ -7,6 +7,8 @@
 #include "vm/lockers.h"
 #include "vm/unit_test.h"
 #include "vm/profiler.h"
+#include "vm/thread_pool.h"
+#include "vm/thread_registry.h"
 
 namespace dart {
 
@@ -80,6 +82,144 @@ UNIT_TEST_CASE(Monitor) {
   isolate->Shutdown();
   delete isolate;
   delete monitor;
+}
+
+
+class ObjectCounter : public ObjectPointerVisitor {
+ public:
+  explicit ObjectCounter(Isolate* isolate, const Object* obj)
+      : ObjectPointerVisitor(isolate), obj_(obj), count_(0) { }
+
+  virtual void VisitPointers(RawObject** first, RawObject** last) {
+    for (RawObject** current = first; current <= last; ++current) {
+      if (*current == obj_->raw()) {
+        ++count_;
+      }
+    }
+  }
+
+  intptr_t count() const { return count_; }
+
+ private:
+  const Object* obj_;
+  intptr_t count_;
+};
+
+
+class TaskWithZoneAllocation : public ThreadPool::Task {
+ public:
+  TaskWithZoneAllocation(Isolate* isolate,
+                         const String& foo,
+                         Monitor* monitor,
+                         bool* done,
+                         intptr_t id)
+      : isolate_(isolate), foo_(foo), monitor_(monitor), done_(done), id_(id) {}
+  virtual void Run() {
+    Thread::EnterIsolateAsHelper(isolate_);
+    {
+      // Create a zone (which is also a stack resource) and exercise it a bit.
+      StackZone stack_zone(Thread::Current());
+      Zone* zone = Thread::Current()->zone();
+      EXPECT_EQ(zone, stack_zone.GetZone());
+      ZoneGrowableArray<bool>* a0 = new(zone) ZoneGrowableArray<bool>(zone, 1);
+      GrowableArray<bool> a1(zone, 1);
+      for (intptr_t i = 0; i < 100000; ++i) {
+        a0->Add(true);
+        a1.Add(true);
+      }
+      // Check that we can create handles (but not yet allocate heap objects).
+      String& str = String::Handle(zone, foo_.raw());
+      EXPECT(str.Equals("foo"));
+      const intptr_t unique_smi = id_ + 928327281;
+      Smi& smi = Smi::Handle(zone, Smi::New(unique_smi));
+      EXPECT(smi.Value() == unique_smi);
+      ObjectCounter counter(isolate_, &smi);
+      // Ensure that our particular zone is visited.
+      // TODO(koda): Remove "->thread_registry()" after updating stack walker.
+      isolate_->thread_registry()->VisitObjectPointers(&counter);
+      EXPECT_EQ(1, counter.count());
+    }
+    Thread::ExitIsolateAsHelper();
+    {
+      MonitorLocker ml(monitor_);
+      *done_ = true;
+      ml.Notify();
+    }
+  }
+
+ private:
+  Isolate* isolate_;
+  const String& foo_;
+  Monitor* monitor_;
+  bool* done_;
+  intptr_t id_;
+};
+
+
+TEST_CASE(ManyTasksWithZones) {
+  const int kTaskCount = 100;
+  Monitor sync[kTaskCount];
+  bool done[kTaskCount];
+  Isolate* isolate = Thread::Current()->isolate();
+  String& foo = String::Handle(String::New("foo"));
+
+  for (int i = 0; i < kTaskCount; i++) {
+    done[i] = false;
+    Dart::thread_pool()->Run(
+        new TaskWithZoneAllocation(isolate, foo, &sync[i], &done[i], i));
+  }
+  for (int i = 0; i < kTaskCount; i++) {
+    // Check that main mutator thread can still freely use its own zone.
+    String& bar = String::Handle(String::New("bar"));
+    if (i % 10 == 0) {
+      // Mutator thread is free to independently move in/out/between isolates.
+      Thread::ExitIsolate();
+    }
+    MonitorLocker ml(&sync[i]);
+    while (!done[i]) {
+      ml.Wait();
+    }
+    EXPECT(done[i]);
+    if (i % 10 == 0) {
+      Thread::EnterIsolate(isolate);
+    }
+    EXPECT(bar.Equals("bar"));
+  }
+}
+
+
+TEST_CASE(ThreadRegistry) {
+  Isolate* orig = Thread::Current()->isolate();
+  Zone* orig_zone = Thread::Current()->zone();
+  char* orig_str = orig_zone->PrintToString("foo");
+  Thread::ExitIsolate();
+  Isolate::Flags vm_flags;
+  Dart_IsolateFlags api_flags;
+  vm_flags.CopyTo(&api_flags);
+  Isolate* isos[2];
+  // Create and enter a new isolate.
+  isos[0] = Isolate::Init(NULL, api_flags);
+  Zone* zone0 = Thread::Current()->zone();
+  EXPECT(zone0 != orig_zone);
+  isos[0]->Shutdown();
+  Thread::ExitIsolate();
+  // Create and enter yet another isolate.
+  isos[1] = Isolate::Init(NULL, api_flags);
+  {
+    // Create a stack resource this time, and exercise it.
+    StackZone stack_zone(Thread::Current());
+    Zone* zone1 = Thread::Current()->zone();
+    EXPECT(zone1 != zone0);
+    EXPECT(zone1 != orig_zone);
+  }
+  isos[1]->Shutdown();
+  Thread::ExitIsolate();
+  Thread::EnterIsolate(orig);
+  // Original zone should be preserved.
+  EXPECT_EQ(orig_zone, Thread::Current()->zone());
+  EXPECT_STREQ("foo", orig_str);
+  delete isos[0];
+  delete isos[1];
 }
 
 }  // namespace dart

@@ -174,27 +174,21 @@ class Zone {
 
 class StackZone : public StackResource {
  public:
-  // Create an empty zone and set is at the current zone for the Isolate.
-  explicit StackZone(Isolate* isolate)
-    : StackResource(isolate),
-      zone_() {
-#ifdef DEBUG
-    if (FLAG_trace_zones) {
-      OS::PrintErr("*** Starting a new Stack zone 0x%" Px "(0x%" Px ")\n",
-                   reinterpret_cast<intptr_t>(this),
-                   reinterpret_cast<intptr_t>(&zone_));
-    }
-#endif
-    BaseIsolate* base_isolate = reinterpret_cast<BaseIsolate*>(isolate);
-    zone_.Link(base_isolate->current_zone());
-    base_isolate->set_current_zone(&zone_);
+  // Create an empty zone and set is at the current zone for the Thread.
+  explicit StackZone(Thread* thread) : StackResource(thread), zone_() {
+    Initialize();
+  }
+
+  // DEPRECATED: Use Thread-based interface. During migration, this defaults
+  // to using the mutator thread (which must also be the current thread).
+  explicit StackZone(Isolate* isolate) : StackResource(isolate), zone_() {
+    Initialize();
   }
 
   // Delete all memory associated with the zone.
   ~StackZone() {
-    BaseIsolate* base_isolate = reinterpret_cast<BaseIsolate*>(isolate());
-    ASSERT(base_isolate->current_zone() == &zone_);
-    base_isolate->set_current_zone(zone_.previous_);
+    ASSERT(thread()->zone() == &zone_);
+    thread()->set_zone(zone_.previous_);
 #ifdef DEBUG
     if (FLAG_trace_zones) {
       OS::PrintErr("*** Deleting Stack zone 0x%" Px "(0x%" Px ")\n",
@@ -212,6 +206,18 @@ class StackZone : public StackResource {
 
  private:
   Zone zone_;
+
+  void Initialize() {
+#ifdef DEBUG
+    if (FLAG_trace_zones) {
+      OS::PrintErr("*** Starting a new Stack zone 0x%" Px "(0x%" Px ")\n",
+                   reinterpret_cast<intptr_t>(this),
+                   reinterpret_cast<intptr_t>(&zone_));
+    }
+#endif
+    zone_.Link(thread()->zone());
+    thread()->set_zone(&zone_);
+  }
 
   template<typename T> friend class GrowableArray;
   template<typename T> friend class ZoneGrowableArray;

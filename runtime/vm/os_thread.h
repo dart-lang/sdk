@@ -6,7 +6,6 @@
 #define VM_OS_THREAD_H_
 
 #include "platform/globals.h"
-#include "vm/allocation.h"
 
 // Declare the OS-specific types ahead of defining the generic classes.
 #if defined(TARGET_OS_ANDROID)
@@ -24,7 +23,8 @@
 namespace dart {
 
 // Low-level operations on OS platform threads.
-class OSThread : AllStatic {
+// TODO(koda): Move to runtime/platform.
+class OSThread {
  public:
   static ThreadLocalKey kUnsetThreadLocalKey;
   static ThreadId kInvalidThreadId;

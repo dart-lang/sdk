@@ -51,7 +51,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;
@@ -101,7 +101,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Reset exit frame information in Isolate structure.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
 
   __ LeaveStubFrame();
   __ Ret();
@@ -146,7 +146,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;
@@ -209,7 +209,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Reset exit frame information in Isolate structure.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
 
   __ LeaveStubFrame();
   __ Ret();
@@ -235,7 +235,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ StoreToOffset(kWord, FP, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, FP, THR, Thread::top_exit_frame_info_offset());
 
 #if defined(DEBUG)
   { Label ok;
@@ -289,7 +289,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Reset exit frame information in Isolate structure.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
 
   __ LeaveStubFrame();
   __ Ret();
@@ -795,11 +795,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save top resource and top exit frame info. Use R4-6 as temporary registers.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ LoadFromOffset(kWord, R5, R9, Isolate::top_exit_frame_info_offset());
-  __ LoadFromOffset(kWord, R4, R9, Isolate::top_resource_offset());
+  __ LoadFromOffset(kWord, R5, THR, Thread::top_exit_frame_info_offset());
+  __ LoadFromOffset(kWord, R4, THR, Thread::top_resource_offset());
   __ LoadImmediate(R6, 0);
-  __ StoreToOffset(kWord, R6, R9, Isolate::top_resource_offset());
-  __ StoreToOffset(kWord, R6, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R6, THR, Thread::top_resource_offset());
+  __ StoreToOffset(kWord, R6, THR, Thread::top_exit_frame_info_offset());
 
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
   __ Push(R4);
@@ -842,9 +842,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure. Uses R5 as a temporary register for this.
   __ Pop(R5);
-  __ StoreToOffset(kWord, R5, R9, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R5, THR, Thread::top_exit_frame_info_offset());
   __ Pop(R5);
-  __ StoreToOffset(kWord, R5, R9, Isolate::top_resource_offset());
+  __ StoreToOffset(kWord, R5, THR, Thread::top_resource_offset());
 
   // Restore the current VMTag from the stack.
   __ Pop(R4);
@@ -1922,7 +1922,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ StoreToOffset(kWord, R2, R3, Isolate::vm_tag_offset());
   // Clear top exit frame.
   __ LoadImmediate(R2, 0);
-  __ StoreToOffset(kWord, R2, R3, Isolate::top_exit_frame_info_offset());
+  __ StoreToOffset(kWord, R2, THR, Thread::top_exit_frame_info_offset());
   __ bx(LR);  // Jump to the exception handler code.
 }
 

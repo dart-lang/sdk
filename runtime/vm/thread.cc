@@ -4,13 +4,15 @@
 
 #include "vm/thread.h"
 
+#include "vm/growable_array.h"
 #include "vm/isolate.h"
+#include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/os_thread.h"
 #include "vm/profiler.h"
 #include "vm/stub_code.h"
 #include "vm/thread_interrupter.h"
-
+#include "vm/thread_registry.h"
 
 namespace dart {
 
@@ -69,6 +71,7 @@ void Thread::CleanUp() {
 Thread::Thread(bool init_vm_constants)
     : isolate_(NULL),
       store_buffer_block_(NULL) {
+  ClearState();
 #define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
   member_name = default_init_value;
 CACHED_CONSTANTS_LIST(DEFAULT_INIT)
@@ -93,6 +96,23 @@ CACHED_CONSTANTS_LIST(INIT_VALUE)
 }
 
 
+void Thread::Schedule(Isolate* isolate) {
+  State st;
+  if (isolate->thread_registry()->RestoreStateTo(this, &st)) {
+    ASSERT(isolate->thread_registry()->Contains(this));
+    state_ = st;
+  }
+}
+
+
+void Thread::Unschedule() {
+  ThreadRegistry* reg = isolate_->thread_registry();
+  ASSERT(reg->Contains(this));
+  reg->SaveStateFrom(this, state_);
+  ClearState();
+}
+
+
 void Thread::EnterIsolate(Isolate* isolate) {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
@@ -114,6 +134,7 @@ void Thread::EnterIsolate(Isolate* isolate) {
   isolate->set_vm_tag(VMTag::kVMTagId);
   ASSERT(thread->store_buffer_block_ == NULL);
   thread->store_buffer_block_ = isolate->store_buffer()->PopBlock();
+  thread->Schedule(isolate);
 }
 
 
@@ -122,6 +143,7 @@ void Thread::ExitIsolate() {
   // TODO(koda): Audit callers; they should know whether they're in an isolate.
   if (thread == NULL || thread->isolate() == NULL) return;
   Isolate* isolate = thread->isolate();
+  thread->Unschedule();
   StoreBufferBlock* block = thread->store_buffer_block_;
   thread->store_buffer_block_ = NULL;
   isolate->store_buffer()->PushBlock(block);
@@ -146,6 +168,7 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate) {
   // Do not update isolate->mutator_thread, but perform sanity check:
   // this thread should not be both the main mutator and helper.
   ASSERT(isolate->mutator_thread() != thread);
+  thread->Schedule(isolate);
 }
 
 
@@ -156,6 +179,7 @@ void Thread::ExitIsolateAsHelper() {
   ASSERT(thread->store_buffer_block_ == NULL);
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
+  thread->Unschedule();
   thread->isolate_ = NULL;
   ASSERT(isolate->mutator_thread() != thread);
 }

@@ -5,7 +5,6 @@
 #ifndef VM_THREAD_H_
 #define VM_THREAD_H_
 
-#include "vm/base_isolate.h"
 #include "vm/globals.h"
 #include "vm/os_thread.h"
 #include "vm/store_buffer.h"
@@ -14,10 +13,11 @@ namespace dart {
 
 class CHA;
 class Isolate;
+class Object;
 class RawBool;
 class RawObject;
-class Object;
-
+class StackResource;
+class Zone;
 
 // List of VM-global objects/addresses cached in each Thread object.
 #define CACHED_VM_OBJECTS_LIST(V)                                              \
@@ -76,9 +76,7 @@ class Thread {
   static void InitOnceAfterObjectAndStubCode();
 
   // The topmost zone used for allocation in this thread.
-  Zone* zone() {
-    return reinterpret_cast<BaseIsolate*>(isolate())->current_zone();
-  }
+  Zone* zone() const { return state_.zone; }
 
   // The isolate that this thread is operating on, or NULL if none.
   Isolate* isolate() const { return isolate_; }
@@ -103,6 +101,27 @@ class Thread {
     return OFFSET_OF(Thread, store_buffer_block_);
   }
 
+  uword top_exit_frame_info() const { return state_.top_exit_frame_info; }
+  static intptr_t top_exit_frame_info_offset() {
+    return OFFSET_OF(Thread, state_) + OFFSET_OF(State, top_exit_frame_info);
+  }
+
+  StackResource* top_resource() const { return state_.top_resource; }
+  void set_top_resource(StackResource* value) {
+    state_.top_resource = value;
+  }
+  static intptr_t top_resource_offset() {
+    return OFFSET_OF(Thread, state_) + OFFSET_OF(State, top_resource);
+  }
+
+  // Collection of isolate-specific state of a thread that is saved/restored
+  // on isolate exit/re-entry.
+  struct State {
+    Zone* zone;
+    uword top_exit_frame_info;
+    StackResource* top_resource;
+  };
+
 #define DEFINE_OFFSET_METHOD(type_name, member_name, expr, default_init_value) \
   static intptr_t member_name##offset() {                                      \
     return OFFSET_OF(Thread, member_name);                                     \
@@ -117,6 +136,7 @@ CACHED_CONSTANTS_LIST(DEFINE_OFFSET_METHOD)
   static ThreadLocalKey thread_key_;
 
   Isolate* isolate_;
+  State state_;
   StoreBufferBlock* store_buffer_block_;
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
@@ -127,8 +147,25 @@ CACHED_CONSTANTS_LIST(DECLARE_MEMBERS)
 
   void InitVMConstants();
 
+  void ClearState() {
+    memset(&state_, 0, sizeof(state_));
+  }
+
+  void set_zone(Zone* zone) {
+    state_.zone = zone;
+  }
+
+  void set_top_exit_frame_info(uword top_exit_frame_info) {
+    state_.top_exit_frame_info = top_exit_frame_info;
+  }
+
   static void SetCurrent(Thread* current);
 
+  void Schedule(Isolate* isolate);
+  void Unschedule();
+
+  friend class Isolate;
+  friend class StackZone;
   DISALLOW_COPY_AND_ASSIGN(Thread);
 };
 
