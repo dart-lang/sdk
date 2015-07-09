@@ -1,3 +1,7 @@
+## 0.25.2-alpha.1
+
+* `dart:sdk` extension `.sdkext` changed to `_sdkext` (to play nicer with pub).
+
 ## 0.25.2-alpha.0
 
 * Initial support for analyzing `dart:sdk` extensions from `.sdkext`. 
