@@ -46,6 +46,7 @@ void main(List<String> argv) {
   var libContents = new File(path.join(sdkLibIn, '_internal', 'libraries.dart'))
       .readAsStringSync();
   _writeSync(path.join(sdkOut, '_internal', 'libraries.dart'), libContents);
+  _writeSync(path.join(sdkOut, '_internal', 'sdk_library_metadata', 'lib', 'libraries.dart'), libContents);
   _writeSync(path.join(sdkOut, '..', 'version'),
       new File(path.join(sdkLibIn, '..', 'version')).readAsStringSync());
 

@@ -1,7 +1,8 @@
-# Don’t commit the following directories created by pub.
+# Don’t commit the following files and directories created by pub.
 .pub
 build/
 packages
+.packages
 
 # Ignore files created by tools.
 *.dart.precompiled.js
