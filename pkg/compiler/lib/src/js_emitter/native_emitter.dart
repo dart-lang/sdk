@@ -6,7 +6,8 @@ part of dart2js.js_emitter;
 
 class NativeEmitter {
 
-  final Map<Element, ClassBuilder> cachedBuilders;
+  // TODO(floitsch): the native-emitter should not know about ClassBuilders.
+  final Map<Element, full_js_emitter.ClassBuilder> cachedBuilders;
 
   final CodeEmitterTask emitterTask;
 

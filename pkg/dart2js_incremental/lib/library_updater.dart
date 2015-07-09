@@ -63,9 +63,11 @@ import 'package:compiler/src/js_emitter/js_emitter.dart' show
     ClassEmitter,
     CodeEmitterTask,
     ContainerBuilder,
-    OldEmitter,
     MemberInfo,
     computeMixinClass;
+
+import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
+    as full show Emitter;
 
 import 'package:compiler/src/js_emitter/model.dart' show
     Class,
@@ -902,7 +904,7 @@ class LibraryUpdater extends JsFeatures {
       if (constants != null) {
         for (ConstantValue constant in constants) {
           if (!_compiledConstants.contains(constant)) {
-            OldEmitter fullEmitter = emitter.emitter;
+            full.Emitter fullEmitter = emitter.emitter;
             jsAst.Statement constantInitializer =
                 fullEmitter.buildConstantInitializer(constant).toStatement();
             updates.add(constantInitializer);
@@ -981,7 +983,7 @@ if (this.pendingStubs) {
     }
     // A static (or top-level) field.
     if (backend.constants.lazyStatics.contains(element)) {
-      OldEmitter fullEmitter = emitter.emitter;
+      full.Emitter fullEmitter = emitter.emitter;
       jsAst.Expression init =
           fullEmitter.buildLazilyInitializedStaticField(
               element, isolateProperties: namer.currentIsolate);
@@ -1477,7 +1479,7 @@ abstract class JsFeatures {
   CodeEmitterTask get emitter => backend.emitter;
 
   ContainerBuilder get containerBuilder {
-    OldEmitter fullEmitter = emitter.emitter;
+    full.Emitter fullEmitter = emitter.emitter;
     return fullEmitter.containerBuilder;
   }
 
@@ -1490,7 +1492,7 @@ class EmitterHelper extends JsFeatures {
   EmitterHelper(this.compiler);
 
   ClassEmitter get classEmitter {
-    OldEmitter fullEmitter = emitter.emitter;
+    full.Emitter fullEmitter = emitter.emitter;
     return fullEmitter.classEmitter;
   }
 

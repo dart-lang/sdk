@@ -65,7 +65,7 @@ Future<Compiler> reuseCompiler(
         null);
     JavaScriptBackend backend = compiler.backend;
 
-    OldEmitter emitter = backend.emitter.emitter;
+    full.Emitter emitter = backend.emitter.emitter;
 
     // Much like a scout, an incremental compiler is always prepared. For
     // mixins, classes, and lazy statics, at least.
@@ -102,7 +102,7 @@ Future<Compiler> reuseCompiler(
         ..enqueuer.codegen.hasEnqueuedReflectiveStaticFields = false
         ..compilationFailed = false;
     JavaScriptBackend backend = compiler.backend;
-    OldEmitter emitter = backend.emitter.emitter;
+    full.Emitter emitter = backend.emitter.emitter;
 
     // TODO(ahe): Seems this cache only serves to tell
     // [emitter.invalidateCaches] if it was invoked on a full compile (in

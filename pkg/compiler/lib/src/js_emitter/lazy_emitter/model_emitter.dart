@@ -83,7 +83,7 @@ class ModelEmitter {
     return false;
   }
 
-  // TODO(floitsch): copied from OldEmitter. Adjust or share.
+  // TODO(floitsch): copied from full emitter. Adjust or share.
   int compareConstants(ConstantValue a, ConstantValue b) {
     // Inlined constants don't affect the order and sometimes don't even have
     // names.

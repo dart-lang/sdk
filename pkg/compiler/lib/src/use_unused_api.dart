@@ -31,6 +31,7 @@ import 'io/source_map_builder.dart' as io;
 import 'js/js.dart' as js;
 import 'js_backend/js_backend.dart' as js_backend;
 import 'js_emitter/js_emitter.dart' as js_emitter;
+import 'js_emitter/full_emitter/emitter.dart' as full;
 import 'js_emitter/program_builder/program_builder.dart' as program_builder;
 import 'resolution/semantic_visitor.dart' as semantic_visitor;
 import 'resolution/operators.dart' as operators;
@@ -301,7 +302,7 @@ useTypes() {
 }
 
 useCodeEmitterTask(js_emitter.CodeEmitterTask codeEmitterTask) {
-  js_emitter.OldEmitter fullEmitter = codeEmitterTask.emitter;
+  full.Emitter fullEmitter = codeEmitterTask.emitter;
   fullEmitter.clearCspPrecompiledNodes();
   fullEmitter.buildLazilyInitializedStaticField(null, isolateProperties: null);
 }

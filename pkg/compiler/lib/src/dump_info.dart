@@ -21,7 +21,7 @@ import 'dart2jslib.dart' show
 import 'types/types.dart' show TypeMask;
 import 'deferred_load.dart' show OutputUnit;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
-import 'js_emitter/js_emitter.dart' show OldEmitter;
+import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'js/js.dart' as jsAst;
 import 'universe/universe.dart' show Selector, UniverseSelector;
 import 'util/util.dart' show NO_LOCATION_SPANNABLE;
@@ -599,7 +599,7 @@ class DumpInfoTask extends CompilerTask {
     JavaScriptBackend backend = compiler.backend;
     // Dump-info currently only works with the full emitter. If another
     // emitter is used it will fail here.
-    OldEmitter fullEmitter = backend.emitter.emitter;
+    full.Emitter fullEmitter = backend.emitter.emitter;
 
     for (OutputUnit outputUnit in
         infoCollector.mapper._outputUnit._elementToId.keys) {

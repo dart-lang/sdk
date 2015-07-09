@@ -40,7 +40,7 @@ class CodeEmitterTask extends CompilerTask {
     nativeEmitter = new NativeEmitter(this);
     emitter = USE_LAZY_EMITTER
         ? new lazy_js_emitter.Emitter(compiler, namer, nativeEmitter)
-        : new OldEmitter(compiler, namer, generateSourceMap, this);
+        : new full_js_emitter.Emitter(compiler, namer, generateSourceMap, this);
     metadataCollector = new MetadataCollector(compiler, emitter);
   }
 

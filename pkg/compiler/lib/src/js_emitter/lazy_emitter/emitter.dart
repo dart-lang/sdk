@@ -47,13 +47,13 @@ class Emitter implements emitterTask.Emitter {
     return _emitter.emitProgram(program);
   }
 
-  // TODO(floitsch): copied from OldEmitter. Adjust or share.
+  // TODO(floitsch): copied from full emitter. Adjust or share.
   @override
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
     return _emitter.isConstantInlinedOrAlreadyEmitted(constant);
   }
 
-  // TODO(floitsch): copied from OldEmitter. Adjust or share.
+  // TODO(floitsch): copied from full emitter. Adjust or share.
   @override
   int compareConstants(ConstantValue a, ConstantValue b) {
     return _emitter.compareConstants(a, b);

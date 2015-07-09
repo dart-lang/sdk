@@ -4,9 +4,6 @@
 
 library dart2js.js_emitter;
 
-import 'dart:convert';
-import 'dart:collection' show HashMap;
-
 import '../common.dart';
 
 import '../constants/values.dart';
@@ -20,8 +17,6 @@ import '../closure.dart' show
 import '../dart_types.dart' show
     TypedefType;
 
-import '../io/code_output.dart';
-
 import '../elements/elements.dart' show
     ConstructorBodyElement,
     ElementKind,
@@ -30,8 +25,6 @@ import '../elements/elements.dart' show
     TypeVariableElement,
     MethodElement,
     MemberElement;
-
-import '../hash/sha1.dart' show Hasher;
 
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
@@ -58,36 +51,15 @@ import 'model.dart';
 import 'program_builder/program_builder.dart';
 
 import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
-
-import '../io/line_column_provider.dart' show
-    LineColumnCollector,
-    LineColumnProvider;
-
-import '../io/source_map_builder.dart' show
-    SourceMapBuilder;
+import 'full_emitter/emitter.dart' as full_js_emitter;
 
 import '../universe/universe.dart' show
     TypeMaskSet,
     TypedSelector;
 
-import '../util/characters.dart' show
-    $$,
-    $A,
-    $HASH,
-    $PERIOD,
-    $Z,
-    $a,
-    $z;
-
 import '../util/util.dart' show
     NO_LOCATION_SPANNABLE,
     Setlet;
-
-import '../util/uri_extras.dart' show
-    relativize;
-
-import '../util/util.dart' show
-    equalElements;
 
 import '../deferred_load.dart' show
     OutputUnit;
@@ -96,6 +68,7 @@ import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
 
 import '../native/native.dart' as native;
+
 part 'class_stub_generator.dart';
 part 'code_emitter_task.dart';
 part 'helpers.dart';
@@ -107,13 +80,3 @@ part 'native_generator.dart';
 part 'parameter_stub_generator.dart';
 part 'runtime_type_generator.dart';
 part 'type_test_registry.dart';
-
-part 'full_emitter/class_builder.dart';
-part 'full_emitter/class_emitter.dart';
-part 'full_emitter/code_emitter_helper.dart';
-part 'full_emitter/container_builder.dart';
-part 'full_emitter/declarations.dart';
-part 'full_emitter/emitter.dart';
-part 'full_emitter/interceptor_emitter.dart';
-part 'full_emitter/nsm_emitter.dart';
-part 'full_emitter/setup_program_builder.dart';

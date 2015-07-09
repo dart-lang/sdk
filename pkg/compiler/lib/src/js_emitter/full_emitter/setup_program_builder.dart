@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+part of dart2js.js_emitter.full_emitter;
 
 // TODO(ahe): Share these with js_helper.dart.
 const FUNCTION_INDEX = 0;
@@ -29,7 +29,7 @@ const String typeNameProperty = r'builtin$cls';
 jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
                                 JavaScriptBackend backend,
                                 Namer namer,
-                                OldEmitter emitter) {
+                                Emitter emitter) {
 
   jsAst.Expression typeInformationAccess =
       emitter.generateEmbeddedGlobalAccess(embeddedNames.TYPE_INFORMATION);
@@ -111,7 +111,7 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
      'inCspMode': compiler.useContentSecurityPolicy,
      'deferredAction': namer.deferredAction,
      'hasIsolateSupport': program.hasIsolateSupport,
-     'fieldNamesProperty': js.string(OldEmitter.FIELD_NAMES_PROPERTY_NAME),
+     'fieldNamesProperty': js.string(Emitter.FIELD_NAMES_PROPERTY_NAME),
      'hasIncrementalSupport': compiler.hasIncrementalSupport,
      'incrementalHelper': namer.accessIncrementalHelper,
      'createNewIsolateFunction': createNewIsolateFunctionAccess,

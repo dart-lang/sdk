@@ -11,6 +11,8 @@ import 'package:compiler/src/io/source_information.dart';
 import "mock_compiler.dart";
 import 'package:compiler/src/js_backend/js_backend.dart';
 import 'package:compiler/src/js_emitter/js_emitter.dart';
+import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
+    as full show Emitter;
 
 Future<CodeBuffer> compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler.internal();
@@ -20,7 +22,7 @@ Future<CodeBuffer> compileAll(SourceFile sourceFile) {
   return compiler.runCompiler(uri).then((_) {
     // TODO(floitsch): the outputBuffers are only accessible in the full
     // emitter.
-    OldEmitter fullEmitter = backend.emitter.emitter;
+    full.Emitter fullEmitter = backend.emitter.emitter;
     return fullEmitter
         .outputBuffers[compiler.deferredLoadTask.mainOutputUnit];
   });

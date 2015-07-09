@@ -2,10 +2,93 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.full_emitter;
+
+import 'dart:convert';
+import 'dart:collection' show HashMap;
+
+import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
+
+import '../js_emitter.dart' hide Emitter;
+import '../js_emitter.dart' as js_emitter show Emitter;
+
+import '../model.dart';
+import '../program_builder/program_builder.dart';
+
+import '../../common.dart';
+
+import '../../constants/values.dart';
+
+import '../../deferred_load.dart' show OutputUnit;
+
+import '../../elements/elements.dart' show
+    ConstructorBodyElement,
+    ElementKind,
+    FieldElement,
+    ParameterElement,
+    TypeVariableElement,
+    MethodElement,
+    MemberElement;
+
+import '../../hash/sha1.dart' show Hasher;
+
+import '../../io/code_output.dart';
+
+import '../../io/line_column_provider.dart' show
+    LineColumnCollector,
+    LineColumnProvider;
+
+import '../../io/source_map_builder.dart' show
+    SourceMapBuilder;
+
+import '../../js/js.dart' as jsAst;
+import '../../js/js.dart' show js;
+
+import '../../js_backend/js_backend.dart' show
+    CheckedModeHelper,
+    CompoundName,
+    ConstantEmitter,
+    CustomElementsAnalysis,
+    GetterName,
+    JavaScriptBackend,
+    JavaScriptConstantCompiler,
+    Namer,
+    RuntimeTypes,
+    SetterName,
+    Substitution,
+    TypeCheck,
+    TypeChecks,
+    TypeVariableHandler;
+
+import '../../util/characters.dart' show
+    $$,
+    $A,
+    $HASH,
+    $PERIOD,
+    $Z,
+    $a,
+    $z;
+
+import '../../util/uri_extras.dart' show
+    relativize;
+
+import '../../util/util.dart' show
+    NO_LOCATION_SPANNABLE,
+    equalElements;
+
+part 'class_builder.dart';
+part 'class_emitter.dart';
+part 'code_emitter_helper.dart';
+part 'container_builder.dart';
+part 'declarations.dart';
+part 'deferred_output_unit_hash.dart';
+part 'interceptor_emitter.dart';
+part 'nsm_emitter.dart';
+part 'setup_program_builder.dart';
 
 
-class OldEmitter implements Emitter {
+class Emitter implements js_emitter.Emitter {
   final Compiler compiler;
   final CodeEmitterTask task;
 
@@ -86,7 +169,7 @@ class OldEmitter implements Emitter {
 
   final bool generateSourceMap;
 
-  OldEmitter(Compiler compiler, Namer namer, this.generateSourceMap, this.task)
+  Emitter(Compiler compiler, Namer namer, this.generateSourceMap, this.task)
       : this.compiler = compiler,
         this.namer = namer,
         cachedEmittedConstants = compiler.cacheStrategy.newSet(),
