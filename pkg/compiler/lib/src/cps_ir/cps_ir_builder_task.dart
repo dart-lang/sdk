@@ -252,6 +252,42 @@ abstract class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return null;
   }
 
+  /// Construct a method that executes the forwarding call to the target
+  /// constructor.  This is only required, if the forwarding factory
+  /// constructor can potentially be the target of a reflective call, because
+  /// the builder shortcuts calls to redirecting factories at the call site
+  /// (see [JsIrBuilderVisitor.handleConstructorInvoke]).
+  visitRedirectingFactoryBody(ast.RedirectingFactoryBody node) {
+    ConstructorElement targetConstructor =
+        elements.getRedirectingTargetConstructor(node).implementation;
+    ConstructorElement redirectingConstructor =
+        irBuilder.state.currentElement.implementation;
+    List<ir.Primitive> arguments = <ir.Primitive>[];
+    FunctionSignature redirectingSignature =
+        redirectingConstructor.functionSignature;
+    List<String> namedParameters = <String>[];
+    redirectingSignature.forEachParameter((ParameterElement parameter) {
+      arguments.add(irBuilder.environment.lookup(parameter));
+      if (parameter.isNamed) {
+        namedParameters.add(parameter.name);
+      }
+    });
+    ClassElement cls = redirectingConstructor.enclosingClass;
+    InterfaceType targetType =
+          redirectingConstructor.computeEffectiveTargetType(cls.thisType);
+    CallStructure callStructure = new CallStructure(
+        redirectingSignature.parameterCount,
+        namedParameters);
+    arguments = normalizeStaticArguments(callStructure, targetConstructor,
+        arguments);
+    ir.Primitive instance = irBuilder.buildConstructorInvocation(
+        targetConstructor,
+        callStructure,
+        targetType,
+        arguments);
+    irBuilder.buildReturn(instance);
+  }
+
   visitFor(ast.For node) {
     List<LocalElement> loopVariables = <LocalElement>[];
     if (node.initializer is ast.VariableDefinitions) {

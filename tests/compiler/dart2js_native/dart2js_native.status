@@ -21,14 +21,14 @@ optimization_hints_test: Fail, OK # Test relies on unminified names.
 compute_this_script_test: Skip # Issue 17458
 
 [ $compiler == dart2js && $cps_ir ]
-compute_this_script_test: RuntimeError # receiver.get$_nums is not a function
-event_loop_test: RuntimeError # receiver.get$_nums is not a function
-internal_library_test: RuntimeError # receiver.get$_nums is not a function
-mirror_intercepted_field_test: Crash # (=_EmptyStream<T>;): Unhandled node
+compute_this_script_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
+event_loop_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
+internal_library_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
+mirror_intercepted_field_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 native_closure_identity_frog_test: RuntimeError # invoke is not a function
 native_exception_test: RuntimeError # J.getInterceptor(...).toString$0 is not a function
 native_method_inlining_test: RuntimeError # Please triage this failure.
-native_mirror_test: Crash # (=_EmptyStream<T>;): Unhandled node
+native_mirror_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 native_no_such_method_exception3_frog_test: RuntimeError # Please triage this failure.
 native_wrapping_function3_frog_test: RuntimeError # invoke is not a function
 native_wrapping_function_frog_test: RuntimeError # invoke is not a function
