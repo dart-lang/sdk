@@ -85,7 +85,7 @@ class CodeGenerator {
   /**
    * Generate a doc comment based on the HTML in [docs].
    *
-   * When generating java code, the output is compatable with Javadoc, which
+   * When generating java code, the output is compatible with Javadoc, which
    * understands certain HTML constructs.
    */
   void docComment(List<dom.Node> docs) {
