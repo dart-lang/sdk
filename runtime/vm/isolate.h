@@ -221,12 +221,13 @@ class Isolate : public BaseIsolate {
     ASSERT(Thread::Current() == mutator_thread_);
     mutator_thread_->set_top_resource(value);
   }
+  // DEPRECATED: Use Thread's methods instead. During migration, these default
+  // to using the mutator thread.
+  // NOTE: These are also used by the profiler.
   uword top_exit_frame_info() const {
-    ASSERT(Thread::Current() == mutator_thread_);
     return mutator_thread_->top_exit_frame_info();
   }
   void set_top_exit_frame_info(uword value) {
-    ASSERT(Thread::Current() == mutator_thread_);
     mutator_thread_->set_top_exit_frame_info(value);
   }
 
