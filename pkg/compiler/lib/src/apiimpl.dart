@@ -369,46 +369,52 @@ class Compiler extends leg.Compiler {
         });
   }
 
-  Future setupPackages(Uri uri) async {
+  Future setupPackages(Uri uri) {
     if (packageRoot != null) {
       // Use "non-file" packages because the file version requires a [Directory]
       // and we can't depend on 'dart:io' classes.
       packages = new NonFilePackagesDirectoryPackages(packageRoot);
     } else if (packageConfig != null) {
-      var packageConfigContents = await provider(packageConfig);
-      if (packageConfigContents is String) {
-        packageConfigContents = UTF8.encode(packageConfigContents);
-      }
-      packages =
-          new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
+      return provider(packageConfig).then((packageConfigContents) {
+        if (packageConfigContents is String) {
+          packageConfigContents = UTF8.encode(packageConfigContents);
+        }
+        packages =
+            new MapPackages(pkgs.parse(packageConfigContents, packageConfig));
+      });
     } else {
       if (packagesDiscoveryProvider == null) {
         packages = Packages.noPackages;
       } else {
-        packages = await callUserPackagesDiscovery(uri);
+        return callUserPackagesDiscovery(uri).then((p) {
+          packages = p;
+        });
       }
     }
+    return new Future.value();
   }
 
-  Future<bool> run(Uri uri) async {
+  Future<bool> run(Uri uri) {
     log('Allowed library categories: $allowedLibraryCategories');
 
-    await setupPackages(uri);
-    assert(packages != null);
+    return setupPackages(uri).then((_) {
+      assert(packages != null);
 
-    bool success = await super.run(uri);
-    int cumulated = 0;
-    for (final task in tasks) {
-      int elapsed = task.timing;
-      if (elapsed != 0) {
-        cumulated += elapsed;
-        log('${task.name} took ${elapsed}msec');
-      }
-    }
-    int total = totalCompileTime.elapsedMilliseconds;
-    log('Total compile-time ${total}msec;'
-        ' unaccounted ${total - cumulated}msec');
-    return success;
+      return super.run(uri).then((bool success) {
+        int cumulated = 0;
+        for (final task in tasks) {
+          int elapsed = task.timing;
+          if (elapsed != 0) {
+            cumulated += elapsed;
+            log('${task.name} took ${elapsed}msec');
+          }
+        }
+        int total = totalCompileTime.elapsedMilliseconds;
+        log('Total compile-time ${total}msec;'
+            ' unaccounted ${total - cumulated}msec');
+        return success;
+      });
+    });
   }
 
   void reportDiagnostic(leg.Spannable node,
