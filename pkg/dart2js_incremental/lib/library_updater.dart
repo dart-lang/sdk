@@ -63,6 +63,7 @@ import 'package:compiler/src/js_emitter/js_emitter.dart' show
     ClassEmitter,
     CodeEmitterTask,
     ContainerBuilder,
+    OldEmitter,
     MemberInfo,
     computeMixinClass;
 
@@ -901,9 +902,9 @@ class LibraryUpdater extends JsFeatures {
       if (constants != null) {
         for (ConstantValue constant in constants) {
           if (!_compiledConstants.contains(constant)) {
+            OldEmitter fullEmitter = emitter.emitter;
             jsAst.Statement constantInitializer =
-                emitter.oldEmitter.buildConstantInitializer(constant)
-                .toStatement();
+                fullEmitter.buildConstantInitializer(constant).toStatement();
             updates.add(constantInitializer);
           }
         }
@@ -980,8 +981,9 @@ if (this.pendingStubs) {
     }
     // A static (or top-level) field.
     if (backend.constants.lazyStatics.contains(element)) {
+      OldEmitter fullEmitter = emitter.emitter;
       jsAst.Expression init =
-          emitter.oldEmitter.buildLazilyInitializedStaticField(
+          fullEmitter.buildLazilyInitializedStaticField(
               element, isolateProperties: namer.currentIsolate);
       if (init == null) {
         throw new StateError("Initializer optimized away for $element");
@@ -1474,7 +1476,10 @@ abstract class JsFeatures {
 
   CodeEmitterTask get emitter => backend.emitter;
 
-  ContainerBuilder get containerBuilder => emitter.oldEmitter.containerBuilder;
+  ContainerBuilder get containerBuilder {
+    OldEmitter fullEmitter = emitter.emitter;
+    return fullEmitter.containerBuilder;
+  }
 
   EnqueueTask get enqueuer => compiler.enqueuer;
 }
@@ -1484,7 +1489,10 @@ class EmitterHelper extends JsFeatures {
 
   EmitterHelper(this.compiler);
 
-  ClassEmitter get classEmitter => backend.emitter.oldEmitter.classEmitter;
+  ClassEmitter get classEmitter {
+    OldEmitter fullEmitter = emitter.emitter;
+    return fullEmitter.classEmitter;
+  }
 
   List<String> computeFields(ClassElement classElement) {
     Class cls = new ProgramBuilder(compiler, namer, emitter)
