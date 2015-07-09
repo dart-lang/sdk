@@ -569,21 +569,46 @@ part of lib;
     });
   }
 
-  test_DYNAMIC_TYPE() {
+  test_DYNAMIC_LOCAL_VARIABLE() {
     addTestFile('''
 f() {}
 main(p) {
-  print(p);
-  var v1 = f();
-  int v2;
-  var v3 = v2;
+  var v = f();
+  v;
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.DYNAMIC_TYPE, 'p)');
-      assertHasRegion(HighlightRegionType.DYNAMIC_TYPE, 'v1 =');
-      assertNoRegion(HighlightRegionType.DYNAMIC_TYPE, 'v2;');
-      assertNoRegion(HighlightRegionType.DYNAMIC_TYPE, 'v3 =');
+      assertHasRegion(
+          HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_DECLARATION, 'v = f()');
+      assertHasRegion(
+          HighlightRegionType.DYNAMIC_LOCAL_VARIABLE_REFERENCE, 'v;');
+    });
+  }
+
+  test_DYNAMIC_PARAMETER() {
+    addTestFile('''
+main(p) {
+  print(p);
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.DYNAMIC_PARAMETER_DECLARATION, 'p)');
+      assertHasRegion(HighlightRegionType.DYNAMIC_PARAMETER_REFERENCE, 'p);');
+    });
+  }
+
+  test_DYNAMIC_VARIABLE_field() {
+    addTestFile('''
+class A {
+  var f;
+  m() {
+    f = 1;
+  }
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.INSTANCE_FIELD_DECLARATION, 'f;');
+      assertHasRegion(HighlightRegionType.INSTANCE_SETTER_REFERENCE, 'f = 1');
     });
   }
 
@@ -614,61 +639,6 @@ main() {
     });
   }
 
-  test_FIELD() {
-    addTestFile('''
-class A {
-  int aaa = 1;
-  int bbb = 2;
-  A([this.bbb = 3]);
-}
-main(A a) {
-  a.aaa = 4;
-  a.bbb = 5;
-}
-''');
-    return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.FIELD, 'aaa = 1');
-      assertHasRegion(HighlightRegionType.FIELD, 'bbb = 2');
-      assertHasRegion(HighlightRegionType.FIELD, 'bbb = 3');
-      assertHasRegion(HighlightRegionType.FIELD, 'aaa = 4');
-      assertHasRegion(HighlightRegionType.FIELD, 'bbb = 5');
-    });
-  }
-
-  test_FIELD_STATIC() {
-    addTestFile('''
-class A {
-  static aaa = 1;
-  static get bbb => null;
-  static set ccc(x) {}
-}
-main() {
-  A.aaa = 2;
-  A.bbb;
-  A.ccc = 3;
-}
-''');
-    return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.FIELD_STATIC, 'aaa = 1');
-      assertHasRegion(HighlightRegionType.FIELD_STATIC, 'aaa = 2');
-      assertHasRegion(HighlightRegionType.FIELD_STATIC, 'bbb;');
-      assertHasRegion(HighlightRegionType.FIELD_STATIC, 'ccc = 3');
-    });
-  }
-
-  test_FUNCTION() {
-    addTestFile('''
-fff(p) {}
-main() {
-  fff(42);
-}
-''');
-    return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.FUNCTION_DECLARATION, 'fff(p) {}');
-      assertHasRegion(HighlightRegionType.FUNCTION, 'fff(42)');
-    });
-  }
-
   test_FUNCTION_TYPE_ALIAS() {
     addTestFile('''
 typedef FFF(p);
@@ -681,22 +651,29 @@ main(FFF fff) {
     });
   }
 
-  test_GETTER_DECLARATION() {
+  test_GETTER() {
     addTestFile('''
 get aaa => null;
 class A {
   get bbb => null;
+  static get ccc => null;
 }
 main(A a) {
   aaa;
   a.bbb;
+  A.ccc;
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.GETTER_DECLARATION, 'aaa => null');
-      assertHasRegion(HighlightRegionType.GETTER_DECLARATION, 'bbb => null');
-      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'aaa;');
-      assertHasRegion(HighlightRegionType.FIELD, 'bbb;');
+      assertHasRegion(
+          HighlightRegionType.TOP_LEVEL_GETTER_DECLARATION, 'aaa => null');
+      assertHasRegion(
+          HighlightRegionType.INSTANCE_GETTER_DECLARATION, 'bbb => null');
+      assertHasRegion(
+          HighlightRegionType.STATIC_GETTER_DECLARATION, 'ccc => null');
+      assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'aaa;');
+      assertHasRegion(HighlightRegionType.INSTANCE_GETTER_REFERENCE, 'bbb;');
+      assertHasRegion(HighlightRegionType.STATIC_GETTER_REFERENCE, 'ccc;');
     });
   }
 
@@ -725,6 +702,29 @@ main() {
     return prepareHighlights().then((_) {
       assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'ma;');
       assertHasRegion(HighlightRegionType.IMPORT_PREFIX, 'ma.max');
+    });
+  }
+
+  test_INSTANCE_FIELD() {
+    addTestFile('''
+class A {
+  int aaa = 1;
+  int bbb = 2;
+  A([this.bbb = 3]);
+}
+main(A a) {
+  a.aaa = 4;
+  a.bbb = 5;
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(
+          HighlightRegionType.INSTANCE_FIELD_DECLARATION, 'aaa = 1');
+      assertHasRegion(
+          HighlightRegionType.INSTANCE_FIELD_DECLARATION, 'bbb = 2');
+      assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'bbb = 3');
+      assertHasRegion(HighlightRegionType.INSTANCE_SETTER_REFERENCE, 'aaa = 4');
+      assertHasRegion(HighlightRegionType.INSTANCE_SETTER_REFERENCE, 'bbb = 5');
     });
   }
 
@@ -862,6 +862,22 @@ myLabel:
     });
   }
 
+  test_LOCAL_FUNCTION() {
+    addTestFile('''
+main() {
+  fff() {}
+  fff();
+  fff;
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(
+          HighlightRegionType.LOCAL_FUNCTION_DECLARATION, 'fff() {}');
+      assertHasRegion(HighlightRegionType.LOCAL_FUNCTION_REFERENCE, 'fff();');
+      assertHasRegion(HighlightRegionType.LOCAL_FUNCTION_REFERENCE, 'fff;');
+    });
+  }
+
   test_LOCAL_VARIABLE() {
     addTestFile('''
 main() {
@@ -873,8 +889,8 @@ main() {
     return prepareHighlights().then((_) {
       assertHasRegion(
           HighlightRegionType.LOCAL_VARIABLE_DECLARATION, 'vvv = 0');
-      assertHasRegion(HighlightRegionType.LOCAL_VARIABLE, 'vvv;');
-      assertHasRegion(HighlightRegionType.LOCAL_VARIABLE, 'vvv = 1;');
+      assertHasRegion(HighlightRegionType.LOCAL_VARIABLE_REFERENCE, 'vvv;');
+      assertHasRegion(HighlightRegionType.LOCAL_VARIABLE_REFERENCE, 'vvv = 1;');
     });
   }
 
@@ -892,13 +908,14 @@ main(A a) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.METHOD_DECLARATION, 'aaa() {}');
       assertHasRegion(
-          HighlightRegionType.METHOD_DECLARATION_STATIC, 'bbb() {}');
-      assertHasRegion(HighlightRegionType.METHOD, 'aaa();');
-      assertHasRegion(HighlightRegionType.METHOD, 'aaa;');
-      assertHasRegion(HighlightRegionType.METHOD_STATIC, 'bbb();');
-      assertHasRegion(HighlightRegionType.METHOD_STATIC, 'bbb;');
+          HighlightRegionType.INSTANCE_METHOD_DECLARATION, 'aaa() {}');
+      assertHasRegion(
+          HighlightRegionType.STATIC_METHOD_DECLARATION, 'bbb() {}');
+      assertHasRegion(HighlightRegionType.INSTANCE_METHOD_REFERENCE, 'aaa();');
+      assertHasRegion(HighlightRegionType.INSTANCE_METHOD_REFERENCE, 'aaa;');
+      assertHasRegion(HighlightRegionType.STATIC_METHOD_REFERENCE, 'bbb();');
+      assertHasRegion(HighlightRegionType.STATIC_METHOD_REFERENCE, 'bbb;');
     });
   }
 
@@ -911,7 +928,8 @@ main(p) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.METHOD, 'add(null)');
+      assertHasRegion(
+          HighlightRegionType.INSTANCE_METHOD_REFERENCE, 'add(null)');
     });
   }
 
@@ -923,9 +941,9 @@ main(int p) {
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.PARAMETER, 'p) {');
-      assertHasRegion(HighlightRegionType.PARAMETER, 'p;');
-      assertHasRegion(HighlightRegionType.PARAMETER, 'p = 42');
+      assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'p) {');
+      assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'p;');
+      assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'p = 42');
     });
   }
 
@@ -934,35 +952,82 @@ main(int p) {
 set aaa(x) {}
 class A {
   set bbb(x) {}
+  static set ccc(x) {}
 }
 main(A a) {
   aaa = 1;
   a.bbb = 2;
+  A.ccc = 3;
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.SETTER_DECLARATION, 'aaa(x)');
-      assertHasRegion(HighlightRegionType.SETTER_DECLARATION, 'bbb(x)');
-      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'aaa = 1');
-      assertHasRegion(HighlightRegionType.FIELD, 'bbb = 2');
+      assertHasRegion(
+          HighlightRegionType.TOP_LEVEL_SETTER_DECLARATION, 'aaa(x)');
+      assertHasRegion(
+          HighlightRegionType.INSTANCE_SETTER_DECLARATION, 'bbb(x)');
+      assertHasRegion(HighlightRegionType.STATIC_SETTER_DECLARATION, 'ccc(x)');
+      assertHasRegion(
+          HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE, 'aaa = 1');
+      assertHasRegion(HighlightRegionType.INSTANCE_SETTER_REFERENCE, 'bbb = 2');
+      assertHasRegion(HighlightRegionType.STATIC_SETTER_REFERENCE, 'ccc = 3');
+    });
+  }
+
+  test_STATIC_FIELD() {
+    addTestFile('''
+class A {
+  static aaa = 1;
+  static get bbb => null;
+  static set ccc(x) {}
+}
+main() {
+  A.aaa = 2;
+  A.bbb;
+  A.ccc = 3;
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(HighlightRegionType.STATIC_FIELD_DECLARATION, 'aaa = 1');
+      assertHasRegion(HighlightRegionType.STATIC_SETTER_REFERENCE, 'aaa = 2');
+      assertHasRegion(HighlightRegionType.STATIC_GETTER_REFERENCE, 'bbb;');
+      assertHasRegion(HighlightRegionType.STATIC_SETTER_REFERENCE, 'ccc = 3');
+    });
+  }
+
+  test_TOP_LEVEL_FUNCTION() {
+    addTestFile('''
+fff(p) {}
+main() {
+  fff(42);
+}
+''');
+    return prepareHighlights().then((_) {
+      assertHasRegion(
+          HighlightRegionType.TOP_LEVEL_FUNCTION_DECLARATION, 'fff(p) {}');
+      assertHasRegion(
+          HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE, 'fff(42)');
     });
   }
 
   test_TOP_LEVEL_VARIABLE() {
     addTestFile('''
-const VVV = 0;
-@VVV // annotation
+const V1 = 1;
+var V2 = 2;
+@V1 // annotation
 main() {
-  print(VVV);
-  VVV = 1;
+  print(V1);
+  V2 = 3;
 }
 ''');
     return prepareHighlights().then((_) {
-      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV = 0');
       assertHasRegion(
-          HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV // annotation');
-      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV);');
-      assertHasRegion(HighlightRegionType.TOP_LEVEL_VARIABLE, 'VVV = 1');
+          HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION, 'V1 = 1');
+      assertHasRegion(
+          HighlightRegionType.TOP_LEVEL_VARIABLE_DECLARATION, 'V2 = 2');
+      assertHasRegion(
+          HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1 // annotation');
+      assertHasRegion(HighlightRegionType.TOP_LEVEL_GETTER_REFERENCE, 'V1);');
+      assertHasRegion(HighlightRegionType.TOP_LEVEL_SETTER_REFERENCE, 'V2 = 3');
     });
   }
 

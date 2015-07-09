@@ -5,7 +5,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.7.0</version></h1>
+    <h1 style="color:#999999">Version <version>2.0.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -2494,17 +2494,24 @@
           <value><code>COMMENT_END_OF_LINE</code></value>
           <value><code>CONSTRUCTOR</code></value>
           <value><code>DIRECTIVE</code></value>
-          <value><code>DYNAMIC_TYPE</code></value>
+          <value><code>DYNAMIC_LOCAL_VARIABLE_DECLARATION</code></value>
+          <value><code>DYNAMIC_LOCAL_VARIABLE_REFERENCE</code></value>
+          <value><code>DYNAMIC_PARAMETER_DECLARATION</code></value>
+          <value><code>DYNAMIC_PARAMETER_REFERENCE</code></value>
           <value><code>ENUM</code></value>
           <value><code>ENUM_CONSTANT</code></value>
-          <value><code>FIELD</code></value>
-          <value><code>FIELD_STATIC</code></value>
-          <value><code>FUNCTION</code></value>
-          <value><code>FUNCTION_DECLARATION</code></value>
           <value><code>FUNCTION_TYPE_ALIAS</code></value>
-          <value><code>GETTER_DECLARATION</code></value>
           <value><code>IDENTIFIER_DEFAULT</code></value>
           <value><code>IMPORT_PREFIX</code></value>
+          <value><code>INSTANCE_FIELD_DECLARATION</code></value>
+          <value><code>INSTANCE_FIELD_REFERENCE</code></value>
+          <value><code>INSTANCE_GETTER_DECLARATION</code></value>
+          <value><code>INSTANCE_GETTER_REFERENCE</code></value>
+          <value><code>INSTANCE_METHOD_DECLARATION</code></value>
+          <value><code>INSTANCE_METHOD_REFERENCE</code></value>
+          <value><code>INSTANCE_SETTER_DECLARATION</code></value>
+          <value><code>INSTANCE_SETTER_REFERENCE</code></value>
+          <value><code>INVALID_STRING_ESCAPE</code></value>
           <value><code>KEYWORD</code></value>
           <value><code>LABEL</code></value>
           <value><code>LITERAL_BOOLEAN</code></value>
@@ -2513,17 +2520,30 @@
           <value><code>LITERAL_LIST</code></value>
           <value><code>LITERAL_MAP</code></value>
           <value><code>LITERAL_STRING</code></value>
-          <value><code>LOCAL_VARIABLE</code></value>
+          <value><code>LOCAL_FUNCTION_DECLARATION</code></value>
+          <value><code>LOCAL_FUNCTION_REFERENCE</code></value>
           <value><code>LOCAL_VARIABLE_DECLARATION</code></value>
-          <value><code>METHOD</code></value>
-          <value><code>METHOD_DECLARATION</code></value>
-          <value><code>METHOD_DECLARATION_STATIC</code></value>
-          <value><code>METHOD_STATIC</code></value>
-          <value><code>PARAMETER</code></value>
-          <value><code>SETTER_DECLARATION</code></value>
-          <value><code>TOP_LEVEL_VARIABLE</code></value>
+          <value><code>LOCAL_VARIABLE_REFERENCE</code></value>
+          <value><code>PARAMETER_DECLARATION</code></value>
+          <value><code>PARAMETER_REFERENCE</code></value>
+          <value><code>STATIC_FIELD_DECLARATION</code></value>
+          <value><code>STATIC_GETTER_DECLARATION</code></value>
+          <value><code>STATIC_GETTER_REFERENCE</code></value>
+          <value><code>STATIC_METHOD_DECLARATION</code></value>
+          <value><code>STATIC_METHOD_REFERENCE</code></value>
+          <value><code>STATIC_SETTER_DECLARATION</code></value>
+          <value><code>STATIC_SETTER_REFERENCE</code></value>
+          <value><code>TOP_LEVEL_FUNCTION_DECLARATION</code></value>
+          <value><code>TOP_LEVEL_FUNCTION_REFERENCE</code></value>
+          <value><code>TOP_LEVEL_GETTER_DECLARATION</code></value>
+          <value><code>TOP_LEVEL_GETTER_REFERENCE</code></value>
+          <value><code>TOP_LEVEL_SETTER_DECLARATION</code></value>
+          <value><code>TOP_LEVEL_SETTER_REFERENCE</code></value>
+          <value><code>TOP_LEVEL_VARIABLE_DECLARATION</code></value>
           <value><code>TYPE_NAME_DYNAMIC</code></value>
           <value><code>TYPE_PARAMETER</code></value>
+          <value><code>UNRESOLVED_INSTANCE_MEMBER_REFERENCE</code></value>
+          <value><code>VALID_STRING_ESCAPE</code></value>
         </enum>
       </type>
       <type name="HoverInformation">
