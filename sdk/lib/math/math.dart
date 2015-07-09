@@ -220,13 +220,15 @@ external double acos(num x);
 
 /**
  * Converts [x] to a double and returns the arc sine of the value.
+ * 
  * Returns a value in the range -PI..PI, or  NaN if [x] is outside
  * the range -1..1.
  */
 external double asin(num x);
 
 /**
- * Converts [x] to a dobule and returns the arc tangent of the vlaue.
+ * Converts [x] to a dobule and returns the arc tangent of the value.
+ * 
  * Returns a value in the range -PI/2..PI/2, or NaN if [x] is NaN.
  */
 external double atan(num x);
@@ -241,12 +243,14 @@ external double sqrt(num x);
 /**
  * Converts [x] to a double and returns the natural exponent, [E],
  * to the power [x].
+ * 
  * Returns NaN if [x] is NaN.
  */
 external double exp(num x);
 
 /**
  * Converts [x] to a double and returns the natural logarithm of the value.
+ * 
  * Returns negative infinity if [x] is equal to zero.
  * Returns NaN if [x] is NaN or less than zero.
  */
