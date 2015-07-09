@@ -378,6 +378,13 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 1) {
 }
 
 
+DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 1) {
+  const LibraryPrefix& prefix =
+      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+  return Bool::Get(prefix.is_loaded()).raw();
+}
+
+
 DEFINE_NATIVE_ENTRY(Internal_inquireIs64Bit, 0) {
 #if defined(ARCH_IS_64_BIT)
   return Bool::True().raw();

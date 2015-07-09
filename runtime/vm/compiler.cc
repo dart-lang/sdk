@@ -64,6 +64,7 @@ DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 
+DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DECLARE_FLAG(bool, trace_irregexp);
@@ -71,6 +72,7 @@ DECLARE_FLAG(bool, trace_patching);
 
 
 bool Compiler::always_optimize_ = false;
+bool Compiler::allow_recompilation_ = true;
 
 
 // TODO(zerny): Factor out unoptimizing/optimizing pipelines and remove
@@ -788,6 +790,7 @@ static bool CompileParsedFunctionHelper(CompilationPipeline* pipeline,
           ASSERT(CodePatcher::CodeIsPatchable(code));
         }
         if (parsed_function->HasDeferredPrefixes()) {
+          ASSERT(!FLAG_load_deferred_eagerly);
           ZoneGrowableArray<const LibraryPrefix*>* prefixes =
               parsed_function->deferred_prefixes();
           for (intptr_t i = 0; i < prefixes->length(); i++) {
@@ -972,6 +975,11 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
                                        intptr_t osr_id) {
+  // Check that we optimize if 'Compiler::always_optimize()' is set to true,
+  // except if the function is marked as not optimizable.
+  ASSERT(!function.IsOptimizable() ||
+         !Compiler::always_optimize() || optimized);
+  ASSERT(Compiler::allow_recompilation() || !function.HasCode());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();

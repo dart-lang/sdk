@@ -10,6 +10,7 @@ class _LibraryPrefix {
 
   bool _load() native "LibraryPrefix_load";
   Error _loadError() native "LibraryPrefix_loadError";
+  bool isLoaded() native "LibraryPrefix_isLoaded";
 
   bool _invalidateDependentCode()
       native "LibraryPrefix_invalidateDependentCode";

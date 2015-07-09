@@ -66,6 +66,7 @@ class ObjectPointerVisitor;
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
   V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(ThrowNew, "_throwNew")                                                     \
+  V(ThrowNewIfNotLoaded, "_throwNewIfNotLoaded")                               \
   V(Symbol, "Symbol")                                                          \
   V(SymbolCtor, "Symbol.")                                                     \
   V(List, "List")                                                              \

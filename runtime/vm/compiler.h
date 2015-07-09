@@ -90,8 +90,14 @@ class Compiler : public AllStatic {
   static bool always_optimize() { return always_optimize_; }
   static void set_always_optimize(bool value) { always_optimize_ = value; }
 
+  static bool allow_recompilation() { return allow_recompilation_; }
+  static void set_allow_recompilation(bool value) {
+    allow_recompilation_ = value;
+  }
+
  private:
   static bool always_optimize_;
+  static bool allow_recompilation_;
 };
 
 }  // namespace dart

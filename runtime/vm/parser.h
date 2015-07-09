@@ -432,6 +432,12 @@ class Parser : public ValueObject {
   RawAbstractType* ParseType(ClassFinalizer::FinalizationKind finalization,
                              bool allow_deferred_type = false,
                              bool consume_unresolved_prefix = true);
+  RawAbstractType* ParseType(
+      ClassFinalizer::FinalizationKind finalization,
+      bool allow_deferred_type,
+      bool consume_unresolved_prefix,
+      LibraryPrefix* prefix);
+
   void ParseTypeParameters(const Class& cls);
   RawTypeArguments* ParseTypeArguments(
       ClassFinalizer::FinalizationKind finalization);
@@ -763,14 +769,16 @@ class Parser : public ValueObject {
                           ArgumentListNode* arguments);
   String& Interpolate(const GrowableArray<AstNode*>& values);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
-  AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
+  AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type,
+                           LibraryPrefix* prefix = NULL);
   AstNode* ThrowNoSuchMethodError(intptr_t call_pos,
                                   const Class& cls,
                                   const String& function_name,
                                   ArgumentListNode* function_arguments,
                                   InvocationMirror::Call call,
                                   InvocationMirror::Type type,
-                                  const Function* func);
+                                  const Function* func,
+                                  const LibraryPrefix* prefix = NULL);
 
   void SetupSavedTryContext(LocalVariable* saved_try_context);
 

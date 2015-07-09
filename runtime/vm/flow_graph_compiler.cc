@@ -81,10 +81,14 @@ static void NooptModeHandler(bool value) {
     FLAG_collect_code = false;
     FLAG_load_deferred_eagerly = true;
     FLAG_deoptimize_alot = false;  // Used in some tests.
-    FLAG_deoptimize_every = 0;  // Used in some tests.
+    FLAG_deoptimize_every = 0;     // Used in some tests.
     FLAG_collect_code = false;
     FLAG_guess_other_cid = true;
     Compiler::set_always_optimize(true);
+    // Triggers assert if we try to recompile (e.g., because of deferred
+    // loading, deoptimization, ...). Noopt mode simulates behavior
+    // of precompiled code, therefore do not allow recompilation.
+    Compiler::set_allow_recompilation(false);
     // TODO(srdjan): Enable CHA deoptimization when eager class finalization is
     // implemented, either with precompilation or as a special pass.
     FLAG_use_cha_deopt = false;

@@ -66,12 +66,14 @@ DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 DEFINE_FLAG(bool, trace_field_guards, false, "Trace changes in field's cids.");
 
+DECLARE_FLAG(charp, coverage_dir);
+DECLARE_FLAG(bool, load_deferred_eagerly);
+DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
-DECLARE_FLAG(bool, show_invisible_frames);
-DECLARE_FLAG(charp, coverage_dir);
 DECLARE_FLAG(bool, write_protect_code);
+
 
 static const char* kGetterPrefix = "get:";
 static const intptr_t kGetterPrefixLength = strlen(kGetterPrefix);
@@ -10219,7 +10221,7 @@ void LibraryPrefix::AddImport(const Namespace& import) const {
 
 
 RawObject* LibraryPrefix::LookupObject(const String& name) const {
-  if (!is_loaded()) {
+  if (!is_loaded() && !FLAG_load_deferred_eagerly) {
     return Object::null();
   }
   Array& imports = Array::Handle(this->imports());
