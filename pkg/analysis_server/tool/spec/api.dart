@@ -176,7 +176,7 @@ class HierarchicalApiVisitor extends ApiVisitor {
 }
 
 /**
- * Description of a request method.
+ * Description of a notification method.
  */
 class Notification extends ApiNode {
   /**
@@ -429,7 +429,7 @@ class TypeObjectField extends ApiNode {
   final bool optional;
 
   /**
-   * Value which the field is required to contain, or null if it may vary.
+   * Value that the field is required to contain, or null if it may vary.
    */
   final Object value;
 
