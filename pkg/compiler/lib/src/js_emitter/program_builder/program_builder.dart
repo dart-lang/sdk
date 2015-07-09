@@ -24,7 +24,8 @@ import '../js_emitter.dart' show
     RuntimeTypeGenerator,
     TypeTestProperties;
 
-import '../../elements/elements.dart' show ParameterElement, MethodElement;
+import '../../elements/elements.dart' show FieldElement, MethodElement,
+    ParameterElement;
 
 import '../../universe/universe.dart' show Universe, TypeMaskSet;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;

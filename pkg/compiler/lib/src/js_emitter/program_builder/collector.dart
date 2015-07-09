@@ -274,15 +274,25 @@ class Collector {
 
   void computeNeededStaticNonFinalFields() {
     JavaScriptConstantCompiler handler = backend.constants;
+    addToOutputUnit(Element element) {
+      List<VariableElement> list = outputStaticNonFinalFieldLists.putIfAbsent(
+          compiler.deferredLoadTask.outputUnitForElement(element),
+              () => new List<VariableElement>());
+      list.add(element);
+    }
+
     Iterable<VariableElement> staticNonFinalFields = handler
         .getStaticNonFinalFieldsForEmission()
         .where(compiler.codegenWorld.allReferencedStaticFields.contains);
-    for (Element element in Elements.sortedByPosition(staticNonFinalFields)) {
-      List<VariableElement> list = outputStaticNonFinalFieldLists.putIfAbsent(
-          compiler.deferredLoadTask.outputUnitForElement(element),
-          () => new List<VariableElement>());
-      list.add(element);
-    }
+
+    Elements.sortedByPosition(staticNonFinalFields).forEach(addToOutputUnit);
+
+    // We also need to emit static const fields if they are available for
+    // reflection.
+    compiler.codegenWorld.allReferencedStaticFields
+        .where((FieldElement field) => field.isConst)
+        .where(backend.isAccessibleByReflection)
+        .forEach(addToOutputUnit);
   }
 
   void computeNeededLibraries() {
