@@ -584,17 +584,15 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Statement visitIf(If node) {
-    node.condition = visitExpression(node.condition);
-
-    // Do not propagate assignments into branches.  Doing so will lead to code
-    // duplication.
-    // TODO(kmillikin): Rethink this. Propagating some assignments
-    // (e.g. variables) is benign.  If they can occur here, they should
-    // be handled well.
+    // Do not propagate assignments into branches.
     inEmptyEnvironment(() {
       node.thenStatement = visitStatement(node.thenStatement);
       node.elseStatement = visitStatement(node.elseStatement);
+    });
 
+    node.condition = visitExpression(node.condition);
+
+    inEmptyEnvironment(() {
       tryCollapseIf(node);
     });
 
