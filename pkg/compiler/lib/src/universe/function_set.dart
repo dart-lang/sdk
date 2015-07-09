@@ -243,7 +243,7 @@ class FullFunctionSetQuery extends FunctionSetQuery {
    * Compute the type of all potential receivers of this function set.
    */
   TypeMask computeMask(ClassWorld classWorld) {
-    assert(classWorld.hasAnySubclass(classWorld.objectClass));
+    assert(classWorld.hasAnyStrictSubclass(classWorld.objectClass));
     if (_mask != null) return _mask;
     return _mask = new TypeMask.unionOf(functions
         .expand((element) {

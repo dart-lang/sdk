@@ -103,7 +103,7 @@ class UnionTypeMask implements TypeMask {
     int bestSize;
     for (ClassElement candidate in candidates) {
       Iterable<ClassElement> subclasses = useSubclass
-          ? classWorld.subclassesOf(candidate)
+          ? classWorld.strictSubclassesOf(candidate)
           : const <ClassElement>[];
       int size;
       int kind;
@@ -114,10 +114,10 @@ class UnionTypeMask implements TypeMask {
         // subtype type mask.
         kind = FlatTypeMask.SUBCLASS;
         size = subclasses.length;
-        assert(size <= classWorld.subtypesOf(candidate).length);
+        assert(size <= classWorld.strictSubtypesOf(candidate).length);
       } else {
         kind = FlatTypeMask.SUBTYPE;
-        size = classWorld.subtypesOf(candidate).length;
+        size = classWorld.strictSubtypesOf(candidate).length;
       }
       // Update the best candidate if the new one is better.
       if (bestElement == null || size < bestSize) {
@@ -212,10 +212,10 @@ class UnionTypeMask implements TypeMask {
     // Check for other members.
     Iterable<ClassElement> members;
     if (flat.isSubclass) {
-      members = classWorld.subclassesOf(flat.base);
+      members = classWorld.strictSubclassesOf(flat.base);
     } else {
       assert(flat.isSubtype);
-      members = classWorld.subtypesOf(flat.base);
+      members = classWorld.strictSubtypesOf(flat.base);
     }
     return members.every((ClassElement cls) => this.contains(cls, classWorld));
   }
