@@ -539,6 +539,34 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
     EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
+
+  float32_list_class.SetTraceAllocation(false);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, float32_list_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+
+  float32_list_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, float32_list_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should now have two allocation samples.
+    EXPECT_EQ(2, profile.sample_count());
+  }
 }
 
 }  // namespace dart
