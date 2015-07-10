@@ -57,13 +57,12 @@ main() {
 }""", """
 function() {
   var i = 0;
-  L2:
-    while (P.identical(V.foo(true), true)) {
-      P.print(1);
-      if (P.identical(V.foo(false), true))
-        break L2;
-      i = V.foo(i);
-    }
+  while (P.identical(V.foo(true), true)) {
+    P.print(1);
+    if (P.identical(V.foo(false), true))
+      break;
+    i = V.foo(i);
+  }
   P.print(2);
 }"""),
 const TestEntry("""
