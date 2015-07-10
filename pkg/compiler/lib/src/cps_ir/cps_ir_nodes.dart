@@ -128,6 +128,17 @@ class Reference<T extends Definition<T>> {
     }
     if (next != null) next.previous = previous;
   }
+
+  /// Changes the definition referenced by this object and updates
+  /// the reference chains accordingly.
+  void changeTo(Definition<T> newDefinition) {
+    unlink();
+    previous = null;
+    definition = newDefinition;
+    next = definition.firstRef;
+    if (next != null) next.previous = this;
+    definition.firstRef = this;
+  }
 }
 
 /// Evaluates a primitive and binds it to variable: `let val x = V in E`.

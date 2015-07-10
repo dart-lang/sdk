@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'optimizers.dart' show Pass, ParentVisitor;
+import 'optimizers.dart';
 
 import '../constants/constant_system.dart';
 import '../resolution/operators.dart';
@@ -443,22 +443,13 @@ class ConstantPropagationLattice {
     }
   }
 
-  bool isEmptyString(ConstantValue value) {
-    return value is StringConstantValue && value.primitiveValue.isEmpty;
-  }
-
   /// Returns whether [value] is one of the falsy values: false, 0, -0, NaN,
   /// the empty string, or null.
   AbstractBool boolify(AbstractValue value) {
     if (value.isNothing) return AbstractBool.Nothing;
     if (value.isConstant) {
       ConstantValue constantValue = value.constant;
-      if (constantValue.isFalse ||
-          constantValue.isNull  ||
-          constantValue.isZero ||
-          constantValue.isMinusZero ||
-          constantValue.isNaN ||
-          isEmptyString(constantValue)) {
+      if (isFalsyConstant(constantValue)) {
         return AbstractBool.False;
       } else {
         return AbstractBool.True;

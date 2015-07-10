@@ -5,9 +5,11 @@
 library dart2js.cps_ir.optimizers;
 
 import 'cps_ir_nodes.dart';
+import '../constants/values.dart';
 
 export 'type_propagation.dart' show TypePropagator;
 export 'redundant_phi.dart' show RedundantPhiEliminator;
+export 'redundant_join.dart' show RedundantJoinEliminator;
 export 'shrinking_reductions.dart' show ShrinkingReducer, ParentVisitor;
 
 /// An optimization pass over the CPS IR.
@@ -16,4 +18,16 @@ abstract class Pass {
   void rewrite(FunctionDefinition root);
 
   String get passName;
+}
+
+// Shared code between optimizations
+
+/// Returns true if [value] is false, null, 0, -0, NaN, or the empty string.
+bool isFalsyConstant(ConstantValue value) {
+  return value.isFalse ||
+      value.isNull  ||
+      value.isZero ||
+      value.isMinusZero ||
+      value.isNaN ||
+      value is StringConstantValue && value.primitiveValue.isEmpty;
 }
