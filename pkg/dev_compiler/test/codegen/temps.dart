@@ -11,9 +11,9 @@ class FormalCollision {
 }
 
 class OptionalArg {
-  int _opt;
+  int opt, _opt;
   OptionalArg([this._opt = 123]);
-  OptionalArg.named({this._opt: 456});
+  OptionalArg.named({this.opt: 456});
 }
 
 main() {

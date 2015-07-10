@@ -9,10 +9,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analyzer/src/generated/error.dart'
-    show AnalysisError, ErrorSeverity, ErrorType;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, ChangeSet;
+import 'package:analyzer/src/generated/error.dart'
+    show AnalysisError, AnalysisErrorListener, ErrorSeverity, ErrorType;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:logging/logging.dart' show Level, Logger, LogRecord;
 import 'package:path/path.dart' as path;
@@ -54,7 +54,7 @@ abstract class AbstractCompiler {
 class Compiler implements AbstractCompiler {
   final CompilerOptions options;
   final AnalysisContext context;
-  final CompilerReporter _reporter;
+  final AnalysisErrorListener _reporter;
   final TypeRules rules;
   final CodeChecker _checker;
   final SourceNode _entryNode;
@@ -64,7 +64,7 @@ class Compiler implements AbstractCompiler {
   bool _failure = false;
 
   factory Compiler(CompilerOptions options,
-      {AnalysisContext context, CompilerReporter reporter}) {
+      {AnalysisContext context, AnalysisErrorListener reporter}) {
     var strongOpts = options.strongOptions;
     var sourceOpts = options.sourceOptions;
     if (context == null) {
@@ -124,14 +124,11 @@ class Compiler implements AbstractCompiler {
 
   void _buildHtmlFile(HtmlSourceNode node) {
     if (outputDir == null) return;
-    var uri = node.source.uri;
-    _reporter.enterHtml(uri);
     var output = generateEntryHtml(node, options);
     if (output == null) {
       _failure = true;
       return;
     }
-    _reporter.leaveHtml();
     var filename = path.basename(node.uri.path);
     String outputFile = path.join(outputDir, filename);
     new File(outputFile).writeAsStringSync(output);
@@ -169,7 +166,6 @@ class Compiler implements AbstractCompiler {
     } else {
       node.info = current = new LibraryInfo(lib, _isEntry(node));
     }
-    _reporter.enterLibrary(source.uri);
     _libraries.add(current);
     rules.currentLibraryInfo = current;
 
@@ -180,12 +176,9 @@ class Compiler implements AbstractCompiler {
     bool failureInLib = false;
     for (var unit in libraryUnit.libraryThenParts) {
       var unitSource = unit.element.source;
-      _reporter.enterCompilationUnit(unit);
-      // TODO(sigmund): integrate analyzer errors with static-info (issue #6).
       failureInLib = logErrors(unitSource) || failureInLib;
       _checker.visitCompilationUnit(unit);
       if (_checker.failure) failureInLib = true;
-      _reporter.leaveCompilationUnit();
     }
     if (failureInLib) {
       _failure = true;
@@ -196,7 +189,6 @@ class Compiler implements AbstractCompiler {
       var hash = cg.generateLibrary(libraryUnit, current);
       if (_hashing) node.cachingHash = hash;
     }
-    _reporter.leaveLibrary();
   }
 
   /// Log any errors encountered when resolving [source] and return whether any
@@ -216,9 +208,9 @@ class Compiler implements AbstractCompiler {
           continue;
         }
 
-        var message = new AnalyzerMessage.from(error);
-        if (message.level == Level.SEVERE) failure = true;
-        _reporter.log(message);
+        // All analyzer warnings or errors are errors for DDC.
+        failure = true;
+        _reporter.onError(error);
       }
     }
     return failure;

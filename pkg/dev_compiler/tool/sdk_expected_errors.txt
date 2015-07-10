@@ -112,7 +112,7 @@ warning: line 247, column 28 of dart:math/rectangle.dart: [DownCastComposite] _c
 warning: line 263, column 30 of dart:math/rectangle.dart: [DownCastComposite] _clampToZero(height) (num) will need runtime check to cast to type T
     if (height < 0) height = _clampToZero(height);
                              ^^^^^^^^^^^^^^^^^^^^
-warning: line 29, column 45 of dart:_interceptors: [AnalyzerMessage] Classes cannot implement 'bool'
+severe: line 29, column 45 of dart:_interceptors: [AnalyzerMessage] Classes cannot implement 'bool'
 class JSBool extends Interceptor implements bool {
                                             ^^^^
 warning: line 80, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('var', r'#.pop()', this) (dynamic) will need runtime check to cast to type E
@@ -136,19 +136,19 @@ warning: line 177, column 12 of dart:_interceptors/js_array.dart: [DownCastCompo
 warning: line 313, column 12 of dart:_interceptors/js_array.dart: [DownCastComposite] JS('var', '#[#]', this, index) (dynamic) will need runtime check to cast to type E
     return JS('var', '#[#]', this, index);
            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-warning: line 420, column 44 of dart:_interceptors/js_number.dart: [AnalyzerMessage] Classes cannot implement 'double'
+severe: line 420, column 44 of dart:_interceptors/js_number.dart: [AnalyzerMessage] Classes cannot implement 'double'
 class JSDouble extends JSNumber implements double {
                                            ^^^^^^
-warning: line 349, column 41 of dart:_interceptors/js_number.dart: [AnalyzerMessage] Classes cannot implement 'int'
+severe: line 349, column 41 of dart:_interceptors/js_number.dart: [AnalyzerMessage] Classes cannot implement 'int'
 class JSInt extends JSNumber implements int, double {
                                         ^^^
-warning: line 16, column 47 of dart:_interceptors/js_number.dart: [AnalyzerMessage] Classes cannot implement 'num'
+severe: line 16, column 47 of dart:_interceptors/js_number.dart: [AnalyzerMessage] Classes cannot implement 'num'
 class JSNumber extends Interceptor implements num {
                                               ^^^
 severe: line 110, column 17 of dart:_interceptors/js_number.dart: [AnalyzerMessage] The return type 'JSNumber' is not a 'double', as defined by the method 'toDouble'
   toDouble() => this;
                 ^^^^
-warning: line 349, column 46 of dart:_interceptors/js_number.dart: [AnalyzerMessage] Classes cannot implement 'double'
+severe: line 349, column 46 of dart:_interceptors/js_number.dart: [AnalyzerMessage] Classes cannot implement 'double'
 class JSInt extends JSNumber implements int, double {
                                              ^^^^^^
 warning: line 83, column 28 of dart:_interceptors/js_number.dart: [DownCastImplicit] JS('num', r'Math.ceil(#)', this) (num) will need runtime check to cast to type double
@@ -220,7 +220,7 @@ class JSDouble extends JSNumber implements double {
 severe: line 420, column 16 of dart:_interceptors/js_number.dart: [InvalidMethodOverride] Base class introduces an invalid override. The type of JSNumber.sign (() → num) is not a subtype of double.sign (() → double).
 class JSDouble extends JSNumber implements double {
                ^^^^^^^^^^^^^^^^
-warning: line 14, column 47 of dart:_interceptors/js_string.dart: [AnalyzerMessage] Classes cannot implement 'String'
+severe: line 14, column 47 of dart:_interceptors/js_string.dart: [AnalyzerMessage] Classes cannot implement 'String'
 class JSString extends Interceptor implements String, JSIndexable {
                                               ^^^^^^
 warning: line 86, column 14 of dart:_interceptors/js_string.dart: [DownCastComposite] JS('JSExtendableArray', r'#.split(#)', this, pattern) (dynamic) will need runtime check to cast to type List<String>

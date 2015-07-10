@@ -24,8 +24,9 @@ import 'package:analyzer/src/generated/constant.dart' show DartObjectImpl;
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
+import 'package:analyzer/src/generated/error.dart' show ErrorCode;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/analyzer.dart' show parseDirectives;
 import 'package:crypto/crypto.dart' show CryptoUtils, MD5;
 import 'package:source_span/source_span.dart';
@@ -292,12 +293,10 @@ class OutWriter {
   }
 }
 
-SourceLocation locationForOffset(CompilationUnit unit, Uri uri, int offset) {
-  var lineInfo = unit.lineInfo.getLocation(offset);
+SourceLocation locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
+  var loc = lineInfo.getLocation(offset);
   return new SourceLocation(offset,
-      sourceUrl: uri,
-      line: lineInfo.lineNumber - 1,
-      column: lineInfo.columnNumber - 1);
+      sourceUrl: uri, line: loc.lineNumber - 1, column: loc.columnNumber - 1);
 }
 
 /// Computes a hash for the given contents.
@@ -436,34 +435,36 @@ InterfaceType findSupertype(InterfaceType type, bool match(InterfaceType t)) {
   return findSupertype(s, match);
 }
 
-SourceSpanWithContext createSpan(
-    AnalysisContext context, CompilationUnit unit, int start, int end,
-    [Source source]) {
-  if (source == null) source = unit.element.source;
-  var content = context.getContents(source).data;
-  return createSpanHelper(unit, start, end, source, content);
-}
-
 SourceSpanWithContext createSpanHelper(
-    CompilationUnit unit, int start, int end, Source source, String content) {
-  var startLoc = locationForOffset(unit, source.uri, start);
-  var endLoc = locationForOffset(unit, source.uri, end);
+    LineInfo lineInfo, int start, int end, Source source, String content) {
+  var startLoc = locationForOffset(lineInfo, source.uri, start);
+  var endLoc = locationForOffset(lineInfo, source.uri, end);
 
   var lineStart = startLoc.offset - startLoc.column;
   // Find the end of the line. This is not exposed directly on LineInfo, but
   // we can find it pretty easily.
   // TODO(jmesserly): for now we do the simple linear scan. Ideally we can get
   // some help from the LineInfo API.
-  var lineInfo = unit.lineInfo;
   int lineEnd = endLoc.offset;
-  int unitEnd = unit.endToken.end;
   int lineNum = lineInfo.getLocation(lineEnd).lineNumber;
-  while (lineEnd < unitEnd &&
+  while (lineEnd < content.length &&
       lineInfo.getLocation(++lineEnd).lineNumber == lineNum);
 
   var text = content.substring(start, end);
   var lineText = content.substring(lineStart, lineEnd);
   return new SourceSpanWithContext(startLoc, endLoc, text, lineText);
+}
+
+String errorCodeName(ErrorCode errorCode) {
+  var name = errorCode.name;
+  final prefix = 'dev_compiler.';
+  if (name.startsWith(prefix)) {
+    return name.substring(prefix.length);
+  } else {
+    // TODO(jmesserly): this is for backwards compat, but not sure it's very
+    // useful to log this.
+    return 'AnalyzerMessage';
+  }
 }
 
 bool isInlineJS(Element e) => e is FunctionElement &&

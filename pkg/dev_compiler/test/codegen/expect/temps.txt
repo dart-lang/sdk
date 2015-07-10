@@ -1,4 +1,1 @@
 // Messages from compiling temps.dart
-warning: line 16, column 22 of test/codegen/temps.dart: [AnalyzerMessage] Named optional parameters cannot start with an underscore
-  OptionalArg.named({this._opt: 456});
-                     ^^^^^^^^^

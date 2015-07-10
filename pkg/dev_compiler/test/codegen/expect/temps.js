@@ -24,17 +24,19 @@ dart_library.library('temps', null, /* Imports */[
       if (opt === void 0)
         opt = 123;
       this[_opt] = opt;
+      this.opt = null;
     }
     named(opts) {
-      let opt = opts && '_opt' in opts ? opts._opt : 456;
-      this[_opt] = opt;
+      let opt = opts && 'opt' in opts ? opts.opt : 456;
+      this.opt = opt;
+      this[_opt] = null;
     }
   }
   dart.defineNamedConstructor(OptionalArg, 'named');
   dart.setSignature(OptionalArg, {
     constructors: () => ({
       OptionalArg: [OptionalArg, [], [core.int]],
-      named: [OptionalArg, [], {_opt: core.int}]
+      named: [OptionalArg, [], {opt: core.int}]
     })
   });
   function main() {

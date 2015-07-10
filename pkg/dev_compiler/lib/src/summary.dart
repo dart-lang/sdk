@@ -5,6 +5,9 @@
 /// Summary of error messages produced by a `SummaryReporter`.
 library dev_compiler.src.summary;
 
+import 'dart:collection' show HashSet;
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:source_span/source_span.dart';
 
 /// Summary information computed by the DDC checker.
@@ -94,11 +97,23 @@ class LibrarySummary implements IndividualSummary {
   /// All messages collected for the library.
   final List<MessageSummary> messages;
 
-  /// Total lines of code (including all parts of the library).
-  int lines;
+  /// All parts of this library. Only used for computing _lines.
+  final _uris = new HashSet<Uri>();
 
-  LibrarySummary(this.name, [List<MessageSummary> messages, this.lines = 0])
-      : messages = messages == null ? <MessageSummary>[] : messages;
+  int _lines;
+
+  LibrarySummary(this.name, {List<MessageSummary> messages, lines})
+      : messages = messages == null ? <MessageSummary>[] : messages,
+        _lines = lines == null ? lines : 0;
+
+  void clear() {
+    _uris.clear();
+    _lines = 0;
+    messages.clear();
+  }
+
+  /// Total lines of code (including all parts of the library).
+  int get lines => _lines;
 
   Map toJsonMap() => {
     'library_name': name,
@@ -106,11 +121,24 @@ class LibrarySummary implements IndividualSummary {
     'lines': lines,
   };
 
+  void countSourceLines(AnalysisContext context, Source source) {
+    if (_uris.add(source.uri)) {
+      // TODO(jmesserly): parsing is serious overkill for this.
+      // Should be cached, but still.
+      // On the other hand, if we are going to parse, we could get a much better
+      // source lines of code estimate by excluding things like comments,
+      // blank lines, and closing braces.
+      var unit = context.parseCompilationUnit(source);
+      _lines += unit.lineInfo.getLocation(unit.endToken.end).lineNumber;
+    }
+  }
+
   void accept(SummaryVisitor visitor) => visitor.visitLibrary(this);
 
   static LibrarySummary parse(Map json) => new LibrarySummary(
-      json['library_name'], json['messages'].map(MessageSummary.parse).toList(),
-      json['lines']);
+      json['library_name'],
+      messages: json['messages'].map(MessageSummary.parse).toList(),
+      lines: json['lines']);
 }
 
 /// A summary at the level of an HTML file.

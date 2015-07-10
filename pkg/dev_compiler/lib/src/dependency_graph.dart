@@ -21,6 +21,7 @@ import 'package:analyzer/src/generated/ast.dart'
         UriBasedDirective;
 import 'package:analyzer/src/generated/engine.dart'
     show ParseDartTask, AnalysisContext;
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
 import 'package:html/dom.dart' show Document, Node, Element;
 import 'package:html/parser.dart' as html;
@@ -44,7 +45,7 @@ class SourceGraph {
 
   /// Analyzer used to resolve source files.
   final AnalysisContext _context;
-  final CompilerReporter _reporter;
+  final AnalysisErrorListener _reporter;
   final CompilerOptions _options;
 
   SourceGraph(this._context, this._reporter, this._options) {
@@ -181,7 +182,10 @@ class HtmlSourceNode extends SourceNode {
   void update() {
     super.update();
     if (needsRebuild) {
-      graph._reporter.clearHtml(uri);
+      var reporter = graph._reporter;
+      if (reporter is SummaryReporter) {
+        reporter.clearHtml(uri);
+      }
       document = html.parse(contents, generateSpans: true);
       var newScripts = new Set<DartSourceNode>();
       var tags = document.querySelectorAll('script[type="application/dart"]');
@@ -232,11 +236,12 @@ class HtmlSourceNode extends SourceNode {
   }
 
   void _reportError(SourceGraph graph, String message, Node node) {
-    graph._reporter.enterHtml(_source.uri);
     var span = node.sourceSpan;
-    graph._reporter.log(
-        new Message(message, Level.SEVERE, span.start.offset, span.end.offset));
-    graph._reporter.leaveHtml();
+
+    // TODO(jmesserly): should these be errors or warnings?
+    var errorCode = new HtmlWarningCode('dev_compiler.$runtimeType', message);
+    graph._reporter.onError(new AnalysisError(
+        _source, span.start.offset, span.length, errorCode));
   }
 }
 
@@ -281,7 +286,11 @@ class DartSourceNode extends SourceNode {
     super.update();
 
     if (needsRebuild) {
-      graph._reporter.clearLibrary(uri);
+      var reporter = graph._reporter;
+      if (reporter is SummaryReporter) {
+        reporter.clearLibrary(uri);
+      }
+
       // If the defining compilation-unit changed, the structure might have
       // changed.
       var unit = parseDirectives(contents, name: _source.fullName);
@@ -306,7 +315,7 @@ class DartSourceNode extends SourceNode {
             targetUri, () => new DartSourceNode(graph, targetUri, target));
         //var node = graph.nodeFromUri(targetUri);
         if (node._source == null || !node._source.exists()) {
-          _reportError(graph, 'File $targetUri not found', unit, d);
+          _reportError(graph, 'File $targetUri not found', d);
         }
 
         if (d is ImportDirective) {
@@ -360,14 +369,9 @@ class DartSourceNode extends SourceNode {
     }
   }
 
-  void _reportError(
-      SourceGraph graph, String message, CompilationUnit unit, AstNode node) {
-    graph._reporter
-      ..enterLibrary(_source.uri)
-      ..enterCompilationUnit(unit, _source)
-      ..log(new Message(message, Level.SEVERE, node.offset, node.end))
-      ..leaveCompilationUnit()
-      ..leaveLibrary();
+  void _reportError(SourceGraph graph, String message, AstNode node) {
+    graph._reporter.onError(new AnalysisError(_source, node.offset,
+        node.length, new CompileTimeErrorCode('dev_compiler.$runtimeType', message)));
   }
 }
 

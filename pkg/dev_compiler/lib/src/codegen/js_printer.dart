@@ -84,7 +84,8 @@ class SourceMapPrintingContext extends JS.JavaScriptPrintingContext {
     }
   }
 
-  SourceLocation _location(int offset) => locationForOffset(unit, uri, offset);
+  SourceLocation _location(int offset) =>
+      locationForOffset(unit.lineInfo, uri, offset);
 
   Uri _makeRelativeUri(Uri src) {
     return new Uri(path: path.relative(src.path, from: outputDir));

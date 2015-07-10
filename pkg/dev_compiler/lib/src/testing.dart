@@ -178,7 +178,7 @@ class _ExpectedErrorVisitor extends UnifyingAstVisitor {
         var actualMsg = _formatActualError(actual);
         expect(_actualErrorLevel(actual), expected.level,
             reason: 'expected different error code at:\n\n$actualMsg');
-        expect(actual.errorCode.name, expected.typeName,
+        expect(errorCodeName(actual.errorCode), expected.typeName,
             reason: 'expected different error type at:\n\n$actualMsg');
 
         // We found it. Stop the search.
@@ -205,12 +205,12 @@ class _ExpectedErrorVisitor extends UnifyingAstVisitor {
     var span = _createSpan(actual.offset, actual.length);
     var levelName = _actualErrorLevel(actual).name.toLowerCase();
     var msg = span.message(actual.message, color: colorOf(levelName));
-    return '$levelName: [${actual.errorCode.name}] $msg';
+    return '$levelName: [${errorCodeName(actual.errorCode)}] $msg';
   }
 
   SourceSpan _createSpan(int offset, int len) {
     return createSpanHelper(
-        _unit, offset, offset + len, _unit.element.source, _unitSourceCode);
+        _unit.lineInfo, offset, offset + len, _unit.element.source, _unitSourceCode);
   }
 }
 

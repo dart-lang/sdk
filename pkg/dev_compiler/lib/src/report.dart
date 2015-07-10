@@ -7,123 +7,73 @@ library dev_compiler.src.report;
 
 import 'dart:math' show max;
 
-import 'package:analyzer/src/generated/ast.dart' show AstNode, CompilationUnit;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer/src/generated/error.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 
-import 'info.dart';
 import 'utils.dart';
 import 'summary.dart';
 
-/// A message (error or warning) produced by the dev_compiler and it's location
-/// information.
-///
-/// Currently the location information includes only the offsets within a file
-/// where the error occurs. This is used in the context of a [CheckerReporter],
-/// where the current file is being tracked.
-class Message {
-  // Message description.
-  final String message;
-
-  /// Log level. This is a placeholder for severity.
-  final Level level;
-
-  /// Offset where the error message begins in the tracked source file.
-  final int begin;
-
-  /// Offset where the error message ends in the tracked source file.
-  final int end;
-
-  const Message(this.message, this.level, this.begin, this.end);
-}
-
-// Interface used to report error messages from the checker.
-abstract class CheckerReporter {
-  void log(Message message);
-}
-
-// Interface used to report error messages from the compiler.
-abstract class CompilerReporter extends CheckerReporter {
-  final AnalysisContext _context;
-  CompilationUnit _unit;
-  Source _unitSource;
-
-  CompilerReporter(this._context);
-
-  /// Called when starting to process a library.
-  void enterLibrary(Uri uri);
-  void leaveLibrary();
-
-  /// Called when starting to process an HTML source file.
-  void enterHtml(Uri uri);
-  void leaveHtml();
-
-  /// Called when starting to process a source. All subsequent log entries must
-  /// belong to this source until the next call to enterSource.
-  void enterCompilationUnit(CompilationUnit unit, [Source source]) {
-    _unit = unit;
-    _unitSource = source;
-  }
-  void leaveCompilationUnit() {
-    _unit = null;
-    _unitSource = null;
-  }
-
-  // Called in server-mode.
-  void clearLibrary(Uri uri);
-  void clearHtml(Uri uri);
-  void clearAll();
-
-  SourceSpanWithContext _createSpan(int start, int end) =>
-      createSpan(_context, _unit, start, end, _unitSource);
-}
-
 final _checkerLogger = new Logger('dev_compiler.checker');
 
+SourceSpanWithContext _toSpan(AnalysisContext context, AnalysisError error) {
+  var source = error.source;
+  var lineInfo = context.computeLineInfo(source);
+  var content = context.getContents(source).data;
+  var start = error.offset;
+  var end = start + error.length;
+  return createSpanHelper(lineInfo, start, end, source, content);
+}
 /// Simple reporter that logs checker messages as they are seen.
-class LogReporter extends CompilerReporter {
+class LogReporter implements AnalysisErrorListener {
+  final AnalysisContext _context;
   final bool useColors;
-  Source _current;
 
-  LogReporter(AnalysisContext context, {this.useColors: false})
-      : super(context);
+  LogReporter(this._context, {this.useColors: false});
 
-  void enterLibrary(Uri uri) {}
-  void leaveLibrary() {}
+  void onError(AnalysisError error) {
+    var level = _severityToLevel[error.errorCode.errorSeverity];
 
-  void enterHtml(Uri uri) {}
-  void leaveHtml() {}
-
-  void log(Message message) {
-    if (message is StaticInfo) {
-      assert(message.node.root == _unit);
+    // Upgrade analyzer warnings to errors.
+    // TODO(jmesserly: reconcile this...
+    if (!error.errorCode.name.startsWith('dev_compiler.') &&
+        level == Level.WARNING) {
+      level = Level.SEVERE;
     }
-    // TODO(sigmund): convert to use span information from AST (issue #73)
-    final span = _createSpan(message.begin, message.end);
-    final level = message.level;
-    final color = useColors ? colorOf(level.name) : null;
-    final text = '[${message.runtimeType}] ${message.message}';
-    _checkerLogger.log(level, span.message(text, color: color));
-  }
 
-  void clearLibrary(Uri uri) {}
-  void clearHtml(Uri uri) {}
-  void clearAll() {}
+    var color = useColors ? colorOf(level.name) : null;
+
+    // TODO(jmesserly): figure out what to do with the error's name.
+    var text = '[${errorCodeName(error.errorCode)}] ' + error.message;
+    text = _toSpan(_context, error).message(text, color: color);
+
+    // TODO(jmesserly): just print these instead of sending through logger?
+    _checkerLogger.log(level, text);
+  }
 }
 
+// TODO(jmesserly): remove log levels, instead just use severity.
+const _severityToLevel = const {
+  ErrorSeverity.ERROR: Level.SEVERE,
+  ErrorSeverity.WARNING: Level.WARNING,
+  ErrorSeverity.INFO: Level.INFO
+};
+
 /// A reporter that gathers all the information in a [GlobalSummary].
-class SummaryReporter extends CompilerReporter {
+class SummaryReporter implements AnalysisErrorListener {
   GlobalSummary result = new GlobalSummary();
-  IndividualSummary _current;
   final Level _level;
+  final AnalysisContext _context;
 
-  SummaryReporter(AnalysisContext context, [this._level = Level.ALL])
-      : super(context);
+  SummaryReporter(this._context, [this._level = Level.ALL]);
 
-  void enterLibrary(Uri uri) {
+  IndividualSummary _getIndividualSummary(Uri uri) {
+    if (uri.path.endsWith('.html')) {
+      return result.loose.putIfAbsent('$uri', () => new HtmlSummary('$uri'));
+    }
+
     var container;
     if (uri.scheme == 'package') {
       var pname = path.split(uri.path)[0];
@@ -134,52 +84,30 @@ class SummaryReporter extends CompilerReporter {
     } else {
       container = result.loose;
     }
-    _current = container.putIfAbsent('$uri', () => new LibrarySummary('$uri'));
+    return container.putIfAbsent('$uri', () => new LibrarySummary('$uri'));
   }
 
-  void leaveLibrary() {
-    _current = null;
-  }
-
-  void enterHtml(Uri uri) {
-    _current = result.loose.putIfAbsent('$uri', () => new HtmlSummary('$uri'));
-  }
-
-  void leaveHtml() {
-    _current = null;
-  }
-
-  @override
-  void enterCompilationUnit(CompilationUnit unit, [Source source]) {
-    super.enterCompilationUnit(unit, source);
-    if (_current is LibrarySummary) {
-      int lines = _unit.lineInfo.getLocation(_unit.endToken.end).lineNumber;
-      (_current as LibrarySummary).lines += lines;
-    }
-  }
-
-  void log(Message message) {
+  void onError(AnalysisError error) {
     // Only summarize messages per configured logging level
-    if (message.level < _level) return;
-    final span = _createSpan(message.begin, message.end);
-    _current.messages.add(new MessageSummary('${message.runtimeType}',
-        message.level.name.toLowerCase(), span, message.message));
+    var code = error.errorCode;
+    if (_severityToLevel[code.errorSeverity] < _level) return;
+
+    var span = _toSpan(_context, error);
+    var summary = _getIndividualSummary(error.source.uri);
+    if (summary is LibrarySummary) {
+      summary.countSourceLines(_context, error.source);
+    }
+    summary.messages.add(new MessageSummary(
+        errorCodeName(code), code.errorSeverity.displayName, span, error.message));
   }
 
   void clearLibrary(Uri uri) {
-    enterLibrary(uri);
-    _current.messages.clear();
-    (_current as LibrarySummary).lines = 0;
-    leaveLibrary();
+    (_getIndividualSummary(uri) as LibrarySummary).clear();
   }
 
   void clearHtml(Uri uri) {
     HtmlSummary htmlSummary = result.loose['$uri'];
     if (htmlSummary != null) htmlSummary.messages.clear();
-  }
-
-  clearAll() {
-    result = new GlobalSummary();
   }
 }
 

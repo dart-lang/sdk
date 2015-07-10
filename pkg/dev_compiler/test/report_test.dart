@@ -52,7 +52,7 @@ void main() {
 
       var mainMessage = mainLib.messages[1];
       expect(mainMessage.kind, "StaticTypeError");
-      expect(mainMessage.level, "severe");
+      expect(mainMessage.level, "error");
       expect(mainMessage.span.text, '"hi"');
       expect(
           mainMessage.span.context, '  x = /*severe:StaticTypeError*/"hi";\n');

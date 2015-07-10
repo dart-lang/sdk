@@ -8,14 +8,10 @@ library dev_compiler.src.info;
 
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/error.dart'
-    show AnalysisError, ErrorSeverity;
-import 'package:logging/logging.dart' show Level;
+import 'package:analyzer/src/generated/error.dart';
 
 import 'package:dev_compiler/src/checker/rules.dart';
 import 'package:dev_compiler/src/utils.dart' as utils;
-
-import 'report.dart' show Message;
 
 /// Represents a summary of the results collected by running the program
 /// checker.
@@ -91,18 +87,31 @@ class CoercionError extends Coercion {
   CoercionError() : super(null, null);
 }
 
-abstract class StaticInfo implements Message {
+// TODO(jmesserly): this could use some refactoring. These are essentially
+// like ErrorCodes in analyzer, but we're including some details in our message.
+// Analyzer instead has template strings, and replaces '{0}' with the first
+// argument.
+abstract class StaticInfo {
   /// AST Node this info is attached to.
-  // TODO(jmesserly): this is somewhat redundant with SemanticNode.
   AstNode get node;
 
-  @override
-  int get begin => node is AnnotatedNode
-      ? (node as AnnotatedNode).firstTokenAfterCommentAndMetadata.offset
-      : node.offset;
+  // TODO(jmesserly): review the usage of error codes. We probably want our own,
+  // as well as some DDC specific [ErrorType]s.
+  ErrorCode toErrorCode();
 
-  @override
-  int get end => node.end;
+  // TODO(jmesserly): what convention to use here?
+  String get name => 'dev_compiler.$runtimeType';
+
+  List<Object> get arguments => [node];
+
+  AnalysisError toAnalysisError() {
+    int begin = node is AnnotatedNode
+        ? (node as AnnotatedNode).firstTokenAfterCommentAndMetadata.offset
+        : node.offset;
+    int length = node.end - begin;
+    var source = (node.root as CompilationUnit).element.source;
+    return new AnalysisError(source, begin, length, toErrorCode(), arguments);
+  }
 }
 
 /// Implicitly injected expression conversion.
@@ -118,12 +127,8 @@ abstract class CoercionInfo extends StaticInfo {
   DartType get baseType => rules.getStaticType(node);
   DartType get staticType => convertedType;
 
-  // safe iff this cannot throw
-  bool get safe => false;
-
-  Level get level => safe ? Level.CONFIG : Level.INFO;
-
-  String get description => '${this.runtimeType}: $baseType to $convertedType';
+  String get message;
+  toErrorCode() => new HintCode(name, message);
 
   static const String _propertyName = 'dev_compiler.src.info.CoercionInfo';
 
@@ -155,8 +160,9 @@ abstract class DownCast extends CoercionInfo {
 
   DartType get convertedType => _cast.toType;
 
-  String get message => '$node ($baseType) will need runtime check '
-      'to cast to type $convertedType';
+  @override List<Object> get arguments => [node, baseType, convertedType];
+  @override String get message => '{0} ({1}) will need runtime check '
+      'to cast to type {2}';
 
   // Factory to create correct DownCast variant.
   static StaticInfo create(TypeRules rules, Expression expression, Cast cast,
@@ -231,7 +237,7 @@ class DynamicCast extends DownCast {
   DynamicCast(TypeRules rules, Expression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
-  final Level level = Level.INFO;
+  toErrorCode() => new HintCode(name, message);
 }
 
 // A down cast due to a variable declaration to a ground type.  E.g.,
@@ -242,7 +248,7 @@ class AssignmentCast extends DownCast {
   AssignmentCast(TypeRules rules, Expression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
-  final Level level = Level.INFO;
+  toErrorCode() => new HintCode(name, message);
 }
 
 //
@@ -259,7 +265,7 @@ class UninferredClosure extends DownCast {
   UninferredClosure(TypeRules rules, FunctionExpression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
-  final Level level = Level.WARNING;
+  toErrorCode() => new StaticTypeWarningCode(name, message);
 }
 
 //
@@ -272,7 +278,7 @@ class DownCastComposite extends DownCast {
   DownCastComposite(TypeRules rules, Expression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
-  final Level level = Level.WARNING;
+  toErrorCode() => new StaticTypeWarningCode(name, message);
 }
 
 // A down cast to a non-ground type.  These behave differently from standard
@@ -281,7 +287,7 @@ class DownCastImplicit extends DownCast {
   DownCastImplicit(TypeRules rules, Expression expression, Cast cast)
       : super._internal(rules, expression, cast);
 
-  final Level level = Level.WARNING;
+  toErrorCode() => new StaticTypeWarningCode(name, message);
 }
 
 // An inferred type for the wrapped expression, which may need to be
@@ -294,8 +300,10 @@ abstract class InferredTypeBase extends CoercionInfo {
 
   DartType get type => _type;
   DartType get convertedType => type;
-  String get message => '$node has inferred type $type';
-  Level get level => Level.INFO;
+  @override String get message => '{0} has inferred type {1}';
+  @override List get arguments => [node, type];
+
+  toErrorCode() => new HintCode(name, message);
 }
 
 // Standard / unspecialized inferred type
@@ -344,8 +352,8 @@ class DynamicInvoke extends CoercionInfo {
       : super(rules, expression);
 
   DartType get convertedType => rules.provider.dynamicType;
-  String get message => '$node requires dynamic invoke';
-  Level get level => Level.INFO;
+  String get message => '{0} requires dynamic invoke';
+  toErrorCode() => new HintCode(name, message);
 
   static const String _propertyName = 'dev_compiler.src.info.DynamicInvoke';
 
@@ -369,7 +377,9 @@ abstract class StaticError extends StaticInfo {
 
   StaticError(this.node);
 
-  Level get level => Level.SEVERE;
+  String get message;
+
+  toErrorCode() => new CompileTimeErrorCode(name, message);
 }
 
 class StaticTypeError extends StaticError {
@@ -382,8 +392,9 @@ class StaticTypeError extends StaticError {
       : baseType = rules.getStaticType(expression),
         super(expression);
 
-  String get message =>
-      'Type check failed: $node ($baseType) is not of type $expectedType' +
+  @override List<Object> get arguments => [node, baseType, expectedType];
+  @override String get message =>
+      'Type check failed: {0} ({1}) is not of type {2}' +
           ((reason == null) ? '' : ' because $reason');
 }
 
@@ -394,7 +405,8 @@ class InvalidVariableDeclaration extends StaticError {
       TypeRules rules, AstNode declaration, this.expectedType)
       : super(declaration);
 
-  String get message => 'Type check failed: null is not of type $expectedType';
+  @override List<Object> get arguments => [expectedType];
+  @override String get message => 'Type check failed: null is not of type {0}';
 }
 
 class InvalidParameterDeclaration extends StaticError {
@@ -404,7 +416,8 @@ class InvalidParameterDeclaration extends StaticError {
       TypeRules rules, FormalParameter declaration, this.expectedType)
       : super(declaration);
 
-  String get message => 'Type check failed: $node is not of type $expectedType';
+  @override List<Object> get arguments => [node, expectedType];
+  @override String get message => 'Type check failed: {0} is not of type {1}';
 }
 
 class InvalidRuntimeCheckError extends StaticError {
@@ -414,12 +427,13 @@ class InvalidRuntimeCheckError extends StaticError {
     assert(node is IsExpression || node is AsExpression);
   }
 
-  String get message => "Invalid runtime check on non-ground type $type";
+  @override List<Object> get arguments => [type];
+  String get message => "Invalid runtime check on non-ground type {0}";
 }
 
 // Invalid override of an instance member of a class.
 abstract class InvalidOverride extends StaticError {
-  /// Member delaration with the invalid override.
+  /// Member declaration with the invalid override.
   final ExecutableElement element;
 
   /// Type (class or interface) that provides the base declaration.
@@ -446,14 +460,15 @@ abstract class InvalidOverride extends StaticError {
 
   ClassElement get parent => element.enclosingElement;
 
+  @override List<Object> get arguments => [parent.name, element.name, subType, base, baseType];
+
   String _messageHelper(String errorName) {
-    var name = element.name;
     var lcErrorName = errorName.toLowerCase();
     var intro = fromBaseClass
         ? 'Base class introduces an $lcErrorName'
         : (fromMixin ? 'Mixin introduces an $lcErrorName' : errorName);
-    return '$intro. The type of ${parent.name}.$name ($subType) is not a '
-        'subtype of $base.$name ($baseType).';
+    return '$intro. The type of {0}.{1} ({2}) is not a '
+        'subtype of {3}.{1} ({4}).';
   }
 }
 
@@ -475,7 +490,7 @@ class InferableOverride extends InvalidOverride {
       DartType subType, DartType baseType)
       : super(node, element, base, subType, baseType);
 
-  Level get level => Level.SEVERE;
+  toErrorCode() => new CompileTimeErrorCode(name, message);
   String get message => _messageHelper('Invalid but inferable override');
 }
 
@@ -485,11 +500,13 @@ class InferableOverride extends InvalidOverride {
 // the analyzer, so this should likely be removed in the future.
 class MissingTypeError extends StaticInfo {
   final AstNode node;
-  Level get level => Level.WARNING;
+  toErrorCode() => new StaticTypeWarningCode(name, message);
 
-  String get message =>
-      "type analysis didn't compute the type of: $node ${node.runtimeType}";
   MissingTypeError(this.node);
+
+  @override List<Object> get arguments => [node, node.runtimeType];
+  String get message =>
+      "type analysis didn't compute the type of: {0} {1}";
 }
 
 /// Dart constructors have one weird quirk, illustrated with this example:
@@ -524,20 +541,6 @@ class MissingTypeError extends StaticInfo {
 class InvalidSuperInvocation extends StaticError {
   InvalidSuperInvocation(SuperConstructorInvocation node) : super(node);
 
-  String get message => "super call must be last in an initializer list "
-      "(see http://goo.gl/q1T4BB): $node";
-}
-
-class AnalyzerMessage extends Message {
-  factory AnalyzerMessage.from(AnalysisError error) {
-    var severity = error.errorCode.type.severity;
-    var isError = severity == ErrorSeverity.WARNING;
-    var level = isError ? Level.SEVERE : Level.WARNING;
-    int begin = error.offset;
-    int end = begin + error.length;
-    return new AnalyzerMessage(error.message, level, begin, end);
-  }
-
-  const AnalyzerMessage(String message, Level level, int begin, int end)
-      : super(message, level, begin, end);
+  @override String get message => "super call must be last in an initializer "
+      "list (see http://goo.gl/q1T4BB): {0}";
 }

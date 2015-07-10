@@ -8,10 +8,8 @@ import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
-import 'package:logging/logging.dart' as logger;
 
 import 'package:dev_compiler/src/info.dart';
-import 'package:dev_compiler/src/report.dart' show CheckerReporter;
 import 'package:dev_compiler/src/utils.dart' show getMemberType;
 import 'package:dev_compiler/strong_mode.dart' show StrongModeOptions;
 import 'rules.dart';
@@ -22,7 +20,7 @@ import 'rules.dart';
 class _OverrideChecker {
   bool _failure = false;
   final TypeRules _rules;
-  final CheckerReporter _reporter;
+  final AnalysisErrorListener _reporter;
   final bool _inferFromOverrides;
   _OverrideChecker(this._rules, this._reporter, StrongModeOptions options)
       : _inferFromOverrides = options.inferFromOverrides;
@@ -327,21 +325,22 @@ class _OverrideChecker {
 
   void _recordMessage(StaticInfo info) {
     if (info == null) return;
-    if (info.level >= logger.Level.SEVERE) _failure = true;
-    _reporter.log(info);
+    var error = info.toAnalysisError();
+    if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) _failure = true;
+    _reporter.onError(error);
   }
 }
 
 /// Checks the body of functions and properties.
 class CodeChecker extends RecursiveAstVisitor {
   final TypeRules _rules;
-  final CheckerReporter _reporter;
+  final AnalysisErrorListener _reporter;
   final _OverrideChecker _overrideChecker;
   bool _failure = false;
   bool get failure => _failure || _overrideChecker._failure;
 
-  CodeChecker(
-      TypeRules rules, CheckerReporter reporter, StrongModeOptions options)
+  CodeChecker(TypeRules rules, AnalysisErrorListener reporter,
+      StrongModeOptions options)
       : _rules = rules,
         _reporter = reporter,
         _overrideChecker = new _OverrideChecker(rules, reporter, options);
@@ -349,7 +348,7 @@ class CodeChecker extends RecursiveAstVisitor {
   @override
   void visitCompilationUnit(CompilationUnit unit) {
     void report(Expression expr) {
-      _reporter.log(new MissingTypeError(expr));
+      _reporter.onError(new MissingTypeError(expr).toAnalysisError());
     }
     var callback = _rules.reportMissingType;
     _rules.reportMissingType = report;
@@ -988,8 +987,7 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   void _recordDynamicInvoke(AstNode node, AstNode target) {
-    var dinvoke = new DynamicInvoke(_rules, node);
-    _reporter.log(dinvoke);
+    _reporter.onError(new DynamicInvoke(_rules, node).toAnalysisError());
     // TODO(jmesserly): we may eventually want to record if the whole operation
     // (node) was dynamic, rather than the target, but this is an easier fit
     // with what we used to do.
@@ -998,8 +996,10 @@ class CodeChecker extends RecursiveAstVisitor {
 
   void _recordMessage(StaticInfo info) {
     if (info == null) return;
-    if (info.level >= logger.Level.SEVERE) _failure = true;
-    _reporter.log(info);
+    var error = info.toAnalysisError();
+    if (error.errorCode.errorSeverity == ErrorSeverity.ERROR) _failure = true;
+    _reporter.onError(error);
+
     if (info is CoercionInfo) {
       assert(CoercionInfo.get(info.node) == null);
       CoercionInfo.set(info.node, info);

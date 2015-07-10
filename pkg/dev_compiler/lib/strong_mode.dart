@@ -11,28 +11,27 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/error.dart'
     show
         AnalysisError,
-        ErrorCode,
+        AnalysisErrorListener,
         CompileTimeErrorCode,
-        StaticTypeWarningCode,
-        HintCode;
+        ErrorCode,
+        ErrorSeverity,
+        HintCode,
+        StaticTypeWarningCode;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:args/args.dart';
-import 'package:logging/logging.dart' show Level;
 
 import 'src/checker/checker.dart' show CodeChecker;
 import 'src/checker/resolver.dart' show LibraryResolverWithInference;
 import 'src/checker/rules.dart' show RestrictedRules;
-import 'src/report.dart' show CheckerReporter, Message;
 
 /// A type checker for Dart code that operates under stronger rules, and has
 /// the ability to do local type inference in some situations.
 class StrongChecker {
   final AnalysisContextImpl _context;
   final CodeChecker _checker;
-  final _ErrorReporter _reporter;
-  final StrongModeOptions _options;
+  final _ErrorCollector _reporter;
 
-  StrongChecker._(this._context, this._options, this._checker, this._reporter);
+  StrongChecker._(this._context, this._checker, this._reporter);
 
   factory StrongChecker(
       AnalysisContextImpl context, StrongModeOptions options) {
@@ -45,46 +44,38 @@ class StrongChecker {
         (c) => new LibraryResolverWithInference(c, options);
 
     var rules = new RestrictedRules(context.typeProvider, options: options);
-    var reporter = new _ErrorReporter();
+    var reporter = new _ErrorCollector(options.hints);
     var checker = new CodeChecker(rules, reporter, options);
-    return new StrongChecker._(context, options, checker, reporter);
+    return new StrongChecker._(context, checker, reporter);
   }
 
   /// Computes and returns DDC errors for the [source].
   AnalysisErrorInfo computeErrors(Source source) {
     var errors = new List<AnalysisError>();
-
-    // TODO(jmesserly): change DDC to emit ErrorCodes directly.
-    _reporter._log = (Message msg) {
-      // Skip hints unless requested.
-      if (msg.level < Level.WARNING && !_options.hints) return;
-
-      var errorCodeFactory = _levelToErrorCode[msg.level];
-      var category = '${msg.runtimeType}';
-      var errorCode = errorCodeFactory(category, msg.message);
-      var len = msg.end - msg.begin;
-      errors.add(new AnalysisError(source, msg.begin, len, errorCode));
-    };
+    _reporter.errors = errors;
 
     for (Source librarySource in _context.getLibrariesContaining(source)) {
       var resolved = _context.resolveCompilationUnit2(source, librarySource);
       _checker.visitCompilationUnit(resolved);
     }
-    _reporter._log = null;
+    _reporter.errors = null;
+
     return new AnalysisErrorInfoImpl(errors, _context.getLineInfo(source));
   }
 }
 
-/// Maps a DDC log level to an analyzer ErrorCode subclass.
-final _levelToErrorCode = <Level, _ErrorCodeFactory>{
-  Level.SEVERE: (n, m) => new CompileTimeErrorCode(n, m),
-  Level.WARNING: (n, m) => new StaticTypeWarningCode(n, m),
-  Level.INFO: (n, m) => new HintCode(n, m)
-};
+class _ErrorCollector implements AnalysisErrorListener {
+  List<AnalysisError> errors;
+  final bool hints;
+  _ErrorCollector(this.hints);
 
-class _ErrorReporter implements CheckerReporter {
-  _CheckerReporterLog _log;
-  void log(Message message) => _log(message);
+  void onError(AnalysisError error) {
+    // Unless DDC hints are requested, filter them out.
+    var HINT = ErrorSeverity.INFO.ordinal;
+    if (hints || error.errorCode.errorSeverity.ordinal > HINT) {
+      errors.add(error);
+    }
+  }
 }
 
 class StrongModeOptions {
@@ -195,9 +186,6 @@ class StrongModeOptions {
         new Set.from(nonnullableTypes).containsAll(s.nonnullableTypes);
   }
 }
-
-typedef void _CheckerReporterLog(Message message);
-typedef ErrorCode _ErrorCodeFactory(String name, String message);
 
 List<String> _optionsToList(String option,
     {List<String> defaultValue: const <String>[]}) {
