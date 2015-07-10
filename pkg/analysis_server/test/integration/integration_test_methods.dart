@@ -277,6 +277,11 @@ abstract class IntegrationTestMixin {
    * region that starts at the beginning of a line and ends at the end of a
    * (possibly different) line in the file.
    *
+   * If a request is made for a file which does not exist, or which is not
+   * currently subject to analysis (e.g. because it is not associated with any
+   * analysis root specified to analysis.setAnalysisRoots), an error of type
+   * GET_NAVIGATION_INVALID_FILE will be generated.
+   *
    * Parameters
    *
    * file ( FilePath )

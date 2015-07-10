@@ -555,6 +555,13 @@ dt.typeDefinition {
           always choosing a region that starts at the beginning of a line and
           ends at the end of a (possibly different) line in the file.
         </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>GET_NAVIGATION_INVALID_FILE</tt> will be generated.
+        </p>
         
         
       <h4>Parameters</h4><dl><dt class="field"><b><i>file ( <a href="#type_FilePath">FilePath</a> )</i></b></dt><dd>
@@ -3155,6 +3162,13 @@ dt.typeDefinition {
               errors.
             </p>
           </dd><dt class="value">GET_ERRORS_INVALID_FILE</dt><dd>
+            
+            <p>
+              An "analysis.getErrors" request specified a FilePath
+              which does not match a file currently subject to
+              analysis.
+            </p>
+          </dd><dt class="value">GET_NAVIGATION_INVALID_FILE</dt><dd>
             
             <p>
               An "analysis.getErrors" request specified a FilePath
