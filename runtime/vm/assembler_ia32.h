@@ -871,6 +871,13 @@ class Assembler : public ValueObject {
     return kEntryPointToPcMarkerOffset;
   }
 
+  // If allocation tracing for |cid| is enabled, will jump to |trace| label,
+  // which will allocate in the runtime where tracing occurs.
+  void MaybeTraceAllocation(intptr_t cid,
+                            Register temp_reg,
+                            Label* trace,
+                            bool near_jump);
+
   void UpdateAllocationStats(intptr_t cid,
                              Register temp_reg,
                              Heap::Space space);

@@ -82,6 +82,12 @@ void ClassTable::FreeOldTables() {
 }
 
 
+void ClassTable::TraceAllocationsFor(intptr_t cid, bool trace) {
+  ClassHeapStats* stats = PreliminaryStatsAt(cid);
+  stats->set_trace_allocation(trace);
+}
+
+
 void ClassTable::Register(const Class& cls) {
   intptr_t index = cls.id();
   if (index != kIllegalCid) {
@@ -233,6 +239,7 @@ void ClassHeapStats::Initialize() {
   last_reset.Reset();
   promoted_count = 0;
   promoted_size = 0;
+  state_ = 0;
 }
 
 

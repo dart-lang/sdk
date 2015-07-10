@@ -678,7 +678,7 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R3, cid, space);
+  __ LoadAllocationStatsAddress(R3, cid);
   __ str(R7, Address(R6, 0));
   __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -913,7 +913,7 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
     // R2: object size.
     // R3: next object start.
     // R5: top address.
-    __ LoadAllocationStatsAddress(R6, cid, space);
+    __ LoadAllocationStatsAddress(R6, cid);
     __ str(R3, Address(R5, 0));
     __ add(R0, R0, Operand(kHeapObjectTag));
 
@@ -1108,7 +1108,7 @@ void StubCode::GenerateAllocationStubForClass(
 
     // Load the address of the allocation stats table. We split up the load
     // and the increment so that the dependent load is not too nearby.
-    __ LoadAllocationStatsAddress(R5, cls.id(), space);
+    __ LoadAllocationStatsAddress(R5, cls.id());
 
     // R0: new object start.
     // R1: next object start.

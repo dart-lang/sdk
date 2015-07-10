@@ -312,6 +312,10 @@ class Assembler : public ValueObject {
                                      Heap::Space space);
 
 
+  void MaybeTraceAllocation(intptr_t cid,
+                            Register temp_reg,
+                            Label* trace);
+
   // Inlined allocation of an instance of class 'cls', code has no runtime
   // calls. Jump to 'failure' if the instance cannot be allocated here.
   // Allocated instance is returned in 'instance_reg'.

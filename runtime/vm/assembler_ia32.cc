@@ -2683,6 +2683,45 @@ static void ComputeCounterAddressesForCid(intptr_t cid,
 }
 
 
+static void ComputeHeapStatsStateAddressForCid(intptr_t cid,
+                                               Address* state_address) {
+  ASSERT(cid < kNumPredefinedCids);
+  Isolate* isolate = Isolate::Current();
+  ClassTable* class_table = isolate->class_table();
+  const uword class_heap_stats_table_address =
+      class_table->PredefinedClassHeapStatsTableAddress();
+  const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+  const uword state_offset = ClassHeapStats::state_offset();
+  *state_address = Address::Absolute(class_heap_stats_table_address +
+                                     class_offset +
+                                     state_offset);
+}
+
+
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Label* trace,
+                                     bool near_jump) {
+  ASSERT(cid > 0);
+  Address state_address(kNoRegister, 0);
+  if (cid < kNumPredefinedCids) {
+    ComputeHeapStatsStateAddressForCid(cid, &state_address);
+  } else {
+    ASSERT(temp_reg != kNoRegister);
+    const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+    const uword state_offset = ClassHeapStats::state_offset();
+    // temp_reg gets address of class table pointer.
+    ClassTable* class_table = Isolate::Current()->class_table();
+    movl(temp_reg, Address::Absolute(class_table->ClassStatsTableAddress()));
+    state_address = Address(temp_reg, class_offset + state_offset);
+  }
+  testb(state_address, Immediate(ClassHeapStats::TraceAllocationMask()));
+  // We are tracing for this class, jump to the trace label which will use
+  // the allocation stub.
+  j(NOT_ZERO, trace, near_jump);
+}
+
+
 void Assembler::UpdateAllocationStats(intptr_t cid,
                                       Register temp_reg,
                                       Heap::Space space) {
@@ -2739,6 +2778,10 @@ void Assembler::TryAllocate(const Class& cls,
                             Register temp_reg) {
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    MaybeTraceAllocation(cls.id(), temp_reg, failure, near_jump);
     Heap* heap = Isolate::Current()->heap();
     const intptr_t instance_size = cls.instance_size();
     Heap::Space space = heap->SpaceForAllocation(cls.id());

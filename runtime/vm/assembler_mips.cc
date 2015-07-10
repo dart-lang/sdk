@@ -890,6 +890,33 @@ void Assembler::UpdateAllocationStatsWithSize(intptr_t cid,
 }
 
 
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Label* trace) {
+  ASSERT(cid > 0);
+  ASSERT(!in_delay_slot_);
+  ASSERT(temp_reg != kNoRegister);
+  ASSERT(temp_reg != TMP);
+  Isolate* isolate = Isolate::Current();
+  ClassTable* class_table = isolate->class_table();
+  const uword class_offset = cid * sizeof(ClassHeapStats);  // NOLINT
+  if (cid < kNumPredefinedCids) {
+    const uword class_heap_stats_table_address =
+        class_table->PredefinedClassHeapStatsTableAddress();
+    LoadImmediate(temp_reg, class_heap_stats_table_address + class_offset);
+  } else {
+    LoadImmediate(temp_reg, class_table->ClassStatsTableAddress());
+    lw(temp_reg, Address(temp_reg, 0));
+    AddImmediate(temp_reg, class_offset);
+  }
+  const uword state_offset = ClassHeapStats::state_offset();
+  const Address& state_address = Address(temp_reg, state_offset);
+  lw(temp_reg, state_address);
+  andi(CMPRES1, temp_reg, Immediate(ClassHeapStats::TraceAllocationMask()));
+  bne(CMPRES1, ZR, trace);
+}
+
+
 void Assembler::TryAllocate(const Class& cls,
                             Label* failure,
                             Register instance_reg,
@@ -897,6 +924,10 @@ void Assembler::TryAllocate(const Class& cls,
   ASSERT(!in_delay_slot_);
   ASSERT(failure != NULL);
   if (FLAG_inline_alloc) {
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    MaybeTraceAllocation(cls.id(), temp_reg, failure);
     const intptr_t instance_size = cls.instance_size();
     Heap* heap = Isolate::Current()->heap();
     Heap::Space space = heap->SpaceForAllocation(cls.id());

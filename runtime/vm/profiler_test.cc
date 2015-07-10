@@ -313,4 +313,71 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
   }
 }
 
+
+TEST_CASE(Profiler_IntrinsicAllocation) {
+  const char* kScript = "double foo(double a, double b) => a + b;";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = Isolate::Current();
+
+  const Class& double_class =
+      Class::Handle(isolate->object_store()->double_class());
+  EXPECT(!double_class.IsNull());
+
+  Dart_Handle args[2] = { Dart_NewDouble(1.0), Dart_NewDouble(2.0), };
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, double_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  double_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, double_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_Double._add", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_Double.+", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+
+  double_class.SetTraceAllocation(false);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, double_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+}
+
 }  // namespace dart

@@ -225,7 +225,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ LoadAllocationStatsAddress(R4, cid, space);                               \
+  __ LoadAllocationStatsAddress(R4, cid);                                      \
   __ LoadImmediate(R3, heap->TopAddress(space));                               \
   __ str(R1, Address(R3, 0));                                                  \
   __ AddImmediate(R0, kHeapObjectTag);                                         \
@@ -1793,7 +1793,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R4, cid, space);
+  __ LoadAllocationStatsAddress(R4, cid);
   __ str(R1, Address(R3, 0));
   __ AddImmediate(R0, kHeapObjectTag);
 

@@ -3343,8 +3343,7 @@ void Assembler::LeaveStubFrame() {
 
 
 void Assembler::LoadAllocationStatsAddress(Register dest,
-                                           intptr_t cid,
-                                           Heap::Space space) {
+                                           intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
   ASSERT(cid > 0);
@@ -3361,6 +3360,18 @@ void Assembler::LoadAllocationStatsAddress(Register dest,
     ldr(dest, Address(dest, 0));
     AddImmediate(dest, class_offset);
   }
+}
+
+
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Label* trace) {
+  LoadAllocationStatsAddress(temp_reg, cid);
+  const uword state_offset = ClassHeapStats::state_offset();
+  const Address& state_address = Address(temp_reg, state_offset);
+  ldr(temp_reg, state_address);
+  tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
+  b(trace, NE);
 }
 
 
@@ -3414,6 +3425,10 @@ void Assembler::TryAllocate(const Class& cls,
     ASSERT(temp_reg != IP);
     const intptr_t instance_size = cls.instance_size();
     ASSERT(instance_size != 0);
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    MaybeTraceAllocation(cls.id(), temp_reg, failure);
     Heap* heap = Isolate::Current()->heap();
     Heap::Space space = heap->SpaceForAllocation(cls.id());
     const uword top_address = heap->TopAddress(space);
@@ -3435,7 +3450,7 @@ void Assembler::TryAllocate(const Class& cls,
     // next object start and store the class in the class field of object.
     str(instance_reg, Address(temp_reg));
 
-    LoadAllocationStatsAddress(temp_reg, cls.id(), space);
+    LoadAllocationStatsAddress(temp_reg, cls.id());
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
@@ -3478,7 +3493,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
-    LoadAllocationStatsAddress(temp2, cid, space);
+    LoadAllocationStatsAddress(temp2, cid);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

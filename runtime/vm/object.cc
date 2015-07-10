@@ -2738,6 +2738,9 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
   set_state_bits(
       TraceAllocationBit::update(trace_allocation, raw_ptr()->state_bits_));
   if (changed) {
+    Isolate* isolate = Isolate::Current();
+    ClassTable* class_table = isolate->class_table();
+    class_table->TraceAllocationsFor(id(), trace_allocation);
     DisableAllocationStub();
   }
 }

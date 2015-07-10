@@ -6,6 +6,7 @@
 #define VM_CLASS_TABLE_H_
 
 #include "platform/assert.h"
+#include "vm/bitfield.h"
 #include "vm/globals.h"
 
 namespace dart {
@@ -102,6 +103,12 @@ class ClassHeapStats {
     return OFFSET_OF(ClassHeapStats, recent) +
            OFFSET_OF(AllocStats<intptr_t>, old_size);
   }
+  static intptr_t state_offset() {
+    return OFFSET_OF(ClassHeapStats, state_);
+  }
+  static intptr_t TraceAllocationMask() {
+    return (1 << kTraceAllocationBit);
+  }
 
   void Initialize();
   void ResetAtNewGC();
@@ -112,10 +119,25 @@ class ClassHeapStats {
   void PrintToJSONObject(const Class& cls, JSONObject* obj) const;
   void Verify();
 
+  bool trace_allocation() const {
+    return TraceAllocationBit::decode(state_);
+  }
+
+  void set_trace_allocation(bool trace_allocation) {
+    state_ = TraceAllocationBit::update(trace_allocation, state_);
+  }
+
  private:
+  enum StateBits {
+    kTraceAllocationBit = 0,
+  };
+
+  class TraceAllocationBit : public BitField<bool, kTraceAllocationBit, 1> {};
+
   // Recent old at start of last new GC (used to compute promoted_*).
   intptr_t old_pre_new_gc_count_;
   intptr_t old_pre_new_gc_size_;
+  intptr_t state_;
 };
 
 
@@ -193,6 +215,8 @@ class ClassTable {
 
   // Deallocates table copies. Do not call during concurrent access to table.
   void FreeOldTables();
+
+  void TraceAllocationsFor(intptr_t cid, bool trace);
 
  private:
   friend class MarkingVisitor;
