@@ -1237,9 +1237,9 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
                                      Label* not_double_smi) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(ZERO, is_smi, Assembler::kFarJump);  // Jump if Smi.
+  __ j(ZERO, is_smi);  // Jump if Smi.
   __ CompareClassId(RAX, kDoubleCid);
-  __ j(NOT_EQUAL, not_double_smi, Assembler::kFarJump);
+  __ j(NOT_EQUAL, not_double_smi);
   // Fall through if double.
 }
 
@@ -1353,7 +1353,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   // Only smis allowed.
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kFarJump);
+  __ j(NOT_ZERO, &fall_through);
   // Is Smi.
   __ SmiUntag(RAX);
   __ cvtsi2sdq(XMM1, RAX);
@@ -1378,7 +1378,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kFarJump);
+  __ j(NOT_ZERO, &fall_through);
   // Is Smi.
   __ SmiUntag(RAX);
   __ cvtsi2sdq(XMM0, RAX);
