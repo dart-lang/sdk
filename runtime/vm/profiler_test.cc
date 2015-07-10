@@ -569,4 +569,166 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
   }
 }
 
+
+TEST_CASE(Profiler_StringAllocation) {
+  const char* kScript = "String foo(String a, String b) => a + b;";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = Isolate::Current();
+
+  const Class& one_byte_string_class =
+      Class::Handle(isolate->object_store()->one_byte_string_class());
+  EXPECT(!one_byte_string_class.IsNull());
+
+  Dart_Handle args[2] = { NewString("a"), NewString("b"), };
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  one_byte_string_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_StringBase.+", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+
+  one_byte_string_class.SetTraceAllocation(false);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+
+  one_byte_string_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should now have two allocation samples.
+    EXPECT_EQ(2, profile.sample_count());
+  }
+}
+
+
+TEST_CASE(Profiler_StringInterpolation) {
+  const char* kScript = "String foo(String a, String b) => '$a | $b';";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = Isolate::Current();
+
+  const Class& one_byte_string_class =
+      Class::Handle(isolate->object_store()->one_byte_string_class());
+  EXPECT(!one_byte_string_class.IsNull());
+
+  Dart_Handle args[2] = { NewString("a"), NewString("b"), };
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  one_byte_string_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_OneByteString._allocate", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_OneByteString._concatAll", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_StringBase._interpolate", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+
+  one_byte_string_class.SetTraceAllocation(false);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+
+  one_byte_string_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should now have two allocation samples.
+    EXPECT_EQ(2, profile.sample_count());
+  }
+}
+
 }  // namespace dart

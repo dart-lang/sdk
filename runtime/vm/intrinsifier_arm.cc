@@ -1763,7 +1763,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* failure) {
   const Register length_reg = R2;
   Label fail;
-
+  __ MaybeTraceAllocation(kOneByteStringCid, R0, failure);
   __ mov(R6, Operand(length_reg));  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);

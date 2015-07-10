@@ -1869,6 +1869,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
+  __ MaybeTraceAllocation(kOneByteStringCid, EAX, failure, false);
   if (length_reg != EDI) {
     __ movl(EDI, length_reg);
   }

@@ -1727,6 +1727,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
+  __ MaybeTraceAllocation(kOneByteStringCid, failure, false);
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
   }
