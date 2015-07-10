@@ -12072,7 +12072,7 @@ RawAbstractType* Parser::ParseType(
             Error::Handle(Z),  // No previous error.
             script_,
             ident_pos,
-            !prefix->is_loaded()
+            !prefix->is_loaded() && allow_deferred_type
                 ? "deferred type '%s.%s' is not yet loaded"
                 : "using deferred type '%s.%s' is invalid",
             String::Handle(Z, prefix->name()).ToCString(),
