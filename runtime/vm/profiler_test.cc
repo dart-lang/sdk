@@ -103,7 +103,7 @@ TEST_CASE(Profiler_AllocationSampleTest) {
 
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(name))));
+      lib.LookupClassAllowPrivate(String::Handle(Symbols::New(name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
@@ -479,6 +479,64 @@ TEST_CASE(Profiler_ArrayAllocation) {
     EXPECT_STREQ("List.List", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("bar", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+}
+
+
+TEST_CASE(Profiler_TypedArrayAllocation) {
+  const char* kScript =
+      "import 'dart:typed_data';\n"
+      "List foo() => new Float32List(4);\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = Isolate::Current();
+
+  const Library& typed_data_library =
+      Library::Handle(isolate->object_store()->typed_data_library());
+
+  const Class& float32_list_class =
+      Class::Handle(GetClass(typed_data_library, "_Float32Array"));
+  EXPECT(!float32_list_class.IsNull());
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, float32_list_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  float32_list_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, float32_list_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_Float32Array._new", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_Float32Array._Float32Array", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("Float32List.Float32List", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 }
