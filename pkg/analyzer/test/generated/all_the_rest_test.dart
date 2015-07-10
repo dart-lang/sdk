@@ -5391,6 +5391,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(declaration.functionExpression.element, same(function));
     expect(function.isExternal, isTrue);
     expect(function.isSynthetic, isFalse);
+    expect(function.typeParameters, hasLength(0));
   }
 
   void test_visitFunctionDeclaration_getter() {
@@ -5412,6 +5413,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(accessor.isExternal, isFalse);
     expect(accessor.isSetter, isFalse);
     expect(accessor.isSynthetic, isFalse);
+    expect(accessor.typeParameters, hasLength(0));
     PropertyInducingElement variable = accessor.variable;
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
         TopLevelVariableElement, variable);
@@ -5435,6 +5437,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(declaration.functionExpression.element, same(function));
     expect(function.isExternal, isFalse);
     expect(function.isSynthetic, isFalse);
+    expect(function.typeParameters, hasLength(0));
   }
 
   void test_visitFunctionDeclaration_setter() {
@@ -5456,10 +5459,38 @@ class ElementBuilderTest extends EngineTestCase {
     expect(accessor.isExternal, isFalse);
     expect(accessor.isSetter, isTrue);
     expect(accessor.isSynthetic, isFalse);
+    expect(accessor.typeParameters, hasLength(0));
     PropertyInducingElement variable = accessor.variable;
     EngineTestCase.assertInstanceOf((obj) => obj is TopLevelVariableElement,
         TopLevelVariableElement, variable);
     expect(variable.isSynthetic, isTrue);
+  }
+
+  void test_visitFunctionDeclaration_typeParameters() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String functionName = 'f';
+    String typeParameterName = 'E';
+    FunctionExpression expression = AstFactory.functionExpression3(
+        AstFactory.typeParameterList([typeParameterName]),
+        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2());
+    FunctionDeclaration declaration =
+        AstFactory.functionDeclaration(null, null, functionName, expression);
+    declaration.accept(builder);
+    List<FunctionElement> functions = holder.functions;
+    expect(functions, hasLength(1));
+    FunctionElement function = functions[0];
+    expect(function, isNotNull);
+    expect(function.name, functionName);
+    expect(function.isExternal, isFalse);
+    expect(function.isSynthetic, isFalse);
+    expect(declaration.element, same(function));
+    expect(expression.element, same(function));
+    List<TypeParameterElement> typeParameters = function.typeParameters;
+    expect(typeParameters, hasLength(1));
+    TypeParameterElement typeParameter = typeParameters[0];
+    expect(typeParameter, isNotNull);
+    expect(typeParameter.name, typeParameterName);
   }
 
   void test_visitFunctionExpression() {
@@ -5474,6 +5505,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(function, isNotNull);
     expect(expression.element, same(function));
     expect(function.isSynthetic, isFalse);
+    expect(function.typeParameters, hasLength(0));
   }
 
   void test_visitFunctionTypeAlias() {
@@ -5515,11 +5547,34 @@ class ElementBuilderTest extends EngineTestCase {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    {
-      SourceRange visibleRange = parameter.visibleRange;
-      expect(100, visibleRange.offset);
-      expect(110, visibleRange.end);
-    }
+    SourceRange visibleRange = parameter.visibleRange;
+    expect(100, visibleRange.offset);
+    expect(110, visibleRange.end);
+  }
+
+  void test_visitFunctionTypedFormalParameter_withTypeParameters() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String parameterName = "p";
+    FunctionTypedFormalParameter formalParameter =
+        AstFactory.functionTypedFormalParameter(null, parameterName);
+    formalParameter.typeParameters = AstFactory.typeParameterList(['F']);
+    _useParameterInMethod(formalParameter, 100, 110);
+    formalParameter.accept(builder);
+    List<ParameterElement> parameters = holder.parameters;
+    expect(parameters, hasLength(1));
+    ParameterElement parameter = parameters[0];
+    expect(parameter, isNotNull);
+    expect(parameter.name, parameterName);
+    expect(parameter.initializer, isNull);
+    expect(parameter.isConst, isFalse);
+    expect(parameter.isFinal, isFalse);
+    expect(parameter.isSynthetic, isFalse);
+    expect(parameter.parameterKind, ParameterKind.REQUIRED);
+    expect(parameter.typeParameters, hasLength(1));
+    SourceRange visibleRange = parameter.visibleRange;
+    expect(100, visibleRange.offset);
+    expect(110, visibleRange.end);
   }
 
   void test_visitLabeledStatement() {
@@ -5554,6 +5609,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.labels, hasLength(0));
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isTrue);
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
@@ -5579,6 +5635,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.labels, hasLength(0));
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isExternal, isTrue);
     expect(method.isStatic, isFalse);
@@ -5691,6 +5748,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.labels, hasLength(0));
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
@@ -5716,6 +5774,7 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.labels, hasLength(0));
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(1));
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
@@ -5831,9 +5890,35 @@ class ElementBuilderTest extends EngineTestCase {
     expect(method.labels, hasLength(0));
     expect(method.localVariables, hasLength(0));
     expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isTrue);
+    expect(method.isSynthetic, isFalse);
+  }
+
+  void test_visitMethodDeclaration_typeParameters() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = new ElementBuilder(holder);
+    String methodName = "m";
+    MethodDeclaration methodDeclaration = AstFactory.methodDeclaration2(null,
+        null, null, null, AstFactory.identifier3(methodName),
+        AstFactory.formalParameterList(), AstFactory.blockFunctionBody2());
+    methodDeclaration.typeParameters = AstFactory.typeParameterList(['E']);
+    methodDeclaration.accept(builder);
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    MethodElement method = methods[0];
+    expect(method, isNotNull);
+    expect(method.name, methodName);
+    expect(method.functions, hasLength(0));
+    expect(method.labels, hasLength(0));
+    expect(method.localVariables, hasLength(0));
+    expect(method.parameters, hasLength(0));
+    expect(method.typeParameters, hasLength(1));
+    expect(method.isAbstract, isFalse);
+    expect(method.isExternal, isFalse);
+    expect(method.isStatic, isFalse);
     expect(method.isSynthetic, isFalse);
   }
 
@@ -5863,6 +5948,7 @@ class ElementBuilderTest extends EngineTestCase {
     MethodElement method = methods[0];
     expect(method, isNotNull);
     expect(method.name, methodName);
+    expect(method.typeParameters, hasLength(0));
     expect(method.isAbstract, isFalse);
     expect(method.isExternal, isFalse);
     expect(method.isStatic, isFalse);
