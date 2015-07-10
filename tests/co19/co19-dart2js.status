@@ -9611,7 +9611,10 @@ Language/13_Statements/06_For_A01_t07: Crash # unsupported operation on erroneou
 Language/13_Statements/12_Labels_A03_t04: Crash # (switch (i){L:case 0:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/13_Statements/14_Continue_A02_t12: Crash # (switch (2){L:case 1:flag=true;break;case 2:continue L;}): continue to a labeled switch case
 Language/13_Statements/14_Continue_A02_t13: Crash # (switch (2){case 2:continue L;L:case 1:flag=true;}): continue to a labeled switch case
+Language/14_Libraries_and_Scripts/13_Libraries_and_Scripts_A05_t04: Crash # The null object does not have a getter 'name'.
 Language/14_Libraries_and_Scripts/4_Scripts_A03_t03: RuntimeError # receiver._addHashTableEntry$2 is not a function
+LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: Crash # The null object does not have a getter 'name'.
+LayoutTests/fast/canvas/webgl/webgl-specific_t01: Crash # The null object does not have a getter 'name'.
 LibTest/async/Completer/Completer.sync_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
 LibTest/async/Completer/completeError_A01_t01: RuntimeError # receiver._addHashTableEntry$2 is not a function
 LibTest/async/Completer/completeError_A01_t02: RuntimeError # receiver._addHashTableEntry$2 is not a function

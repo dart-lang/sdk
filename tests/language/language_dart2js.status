@@ -391,6 +391,7 @@ deferred_regression_22995_test: RuntimeError # receiver._addHashTableEntry$2 is 
 deferred_shadow_load_library_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
 deferred_shared_and_unshared_classes_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
 deferred_static_seperate_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
+dynamic_prefix_core_test/01: Crash # The null object does not have a getter 'name'.
 enum_mirror_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 final_super_field_set_test/01: RuntimeError # Please triage this failure.
 flatten_test/01: Crash # (test()async{int x=await new Derived<int>();}): cannot handle async/sync*/async* functions
@@ -409,20 +410,21 @@ flatten_test/none: Crash # (test()async{}): cannot handle async/sync*/async* fun
 for2_test: Crash # The null object does not have a getter 'field'.
 for_variable_capture_test: Crash # (i=0): For-loop variable captured in loop header
 generic_field_mixin3_test: RuntimeError # Please triage this failure.
-if_null_assignment_behavior_test/12: RuntimeError # Expect.listEquals fails
-if_null_assignment_behavior_test/28: RuntimeError # Expect.listEquals fails
+if_null_assignment_behavior_test/12: RuntimeError # Please triage this failure.
+if_null_assignment_behavior_test/28: RuntimeError # Please triage this failure.
 if_null_assignment_static_test/01: RuntimeError # v0.get$a is not a function
 if_null_assignment_static_test/03: RuntimeError # v0.get$a is not a function
 if_null_assignment_static_test/04: RuntimeError # v0.get$b is not a function
 if_null_assignment_static_test/05: RuntimeError # v0.get$a is not a function
-if_null_assignment_static_test/29: RuntimeError # TypeError: v0.get$a is not a function
-if_null_assignment_static_test/31: RuntimeError # TypeError: v0.get$a is not a function
-if_null_assignment_static_test/32: RuntimeError # TypeError: v0.get$b is not a function
-if_null_assignment_static_test/33: RuntimeError # TypeError: v0.get$a is not a function
+if_null_assignment_static_test/29: RuntimeError # v0.get$a is not a function
+if_null_assignment_static_test/31: RuntimeError # v0.get$a is not a function
+if_null_assignment_static_test/32: RuntimeError # v0.get$b is not a function
+if_null_assignment_static_test/33: RuntimeError # v0.get$a is not a function
 if_null_assignment_static_test/36: RuntimeError # v0.get$a is not a function
 if_null_assignment_static_test/38: RuntimeError # v0.get$a is not a function
 if_null_assignment_static_test/39: RuntimeError # v0.get$b is not a function
 if_null_assignment_static_test/40: RuntimeError # v0.get$a is not a function
+import_self_test/01: Crash # The null object does not have a getter 'name'.
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
 instance_creation_in_function_annotation_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 instanceof4_test/01: RuntimeError # Please triage this failure.
@@ -452,6 +454,9 @@ nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled
 no_such_method_test: RuntimeError # Please triage this failure.
 null_test/none: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 overridden_no_such_method_test: RuntimeError # Please triage this failure.
+prefix12_negative_test: Crash # The null object does not have a getter 'name'.
+prefix2_negative_test: Crash # The null object does not have a getter 'name'.
+private_access_test/02: Crash # The null object does not have a getter 'name'.
 redirecting_factory_reflection_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 regress_18535_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 regress_22438_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
