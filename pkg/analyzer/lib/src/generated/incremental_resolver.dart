@@ -10,7 +10,6 @@ import 'dart:math' as math;
 import 'package:analyzer/src/context/cache.dart'
     show CacheEntry, TargetedResult;
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/dart.dart'
     show
         HINTS,

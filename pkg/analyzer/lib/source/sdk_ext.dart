@@ -4,15 +4,12 @@
 
 library source.sdk_ext;
 
-import 'dart:async';
-import 'dart:collection';
 import 'dart:convert';
 import 'dart:core' hide Resource;
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
 import 'package:path/path.dart' as pathos;
 
@@ -41,58 +38,16 @@ class SdkExtUriResolver extends UriResolver {
     packageMap.forEach(_processPackage);
   }
 
-  /// Programmatically add a new SDK extension given a JSON description
-  /// ([sdkExtJSON]) and a lib directory ([libDir]).
-  void addSdkExt(String sdkExtJSON, Folder libDir) {
-    _processSdkExt(sdkExtJSON, libDir);
-  }
+  /// Number of sdk extensions.
+  int get length => _urlMappings.length;
 
   /// Return the path mapping for [libName] or null if there is none.
   String operator[](String libName) => _urlMappings[libName];
 
-  /// Number of sdk extensions.
-  int get length => _urlMappings.length;
-
-  /// Resolve a 'part' statement inside an sdk extension.
-  Source _resolvePart(Uri libraryEntry, String partPath, Uri importUri) {
-    // Library part.
-    var directory = pathos.dirname(libraryEntry.path);
-    var partUri = new Uri.file(pathos.join(directory, partPath));
-    assert(partUri.isAbsolute);
-    JavaFile javaFile = new JavaFile.fromUri(partUri);
-    return new FileBasedSource(javaFile, importUri);
-  }
-
-  /// Resolve an import of an sdk extension.
-  Source _resolveEntry(Uri libraryEntry, Uri importUri) {
-    // Library entry.
-    JavaFile javaFile = new JavaFile.fromUri(libraryEntry);
-    return new FileBasedSource(javaFile, importUri);
-  }
-
-  /// Return the library name of [importUri].
-  String _libraryName(Uri importUri) {
-    var uri = importUri.toString();
-    int index = uri.indexOf('/');
-    if (index >= 0) {
-      return uri.substring(0, index);
-    }
-    return uri;
-  }
-
-  /// Return the part path of [importUri].
-  String _partPath(Uri importUri) {
-    var uri = importUri.toString();
-    int index = uri.indexOf('/');
-    if (index >= 0) {
-      return uri.substring(index + 1);
-    }
-    return null;
-  }
-
-  /// Returns true if [libraryName] is a registered sdk extension.
-  bool _registeredSdkExtension(String libraryName) {
-    return _urlMappings[libraryName] != null;
+  /// Programmatically add a new SDK extension given a JSON description
+  /// ([sdkExtJSON]) and a lib directory ([libDir]).
+  void addSdkExt(String sdkExtJSON, Folder libDir) {
+    _processSdkExt(sdkExtJSON, libDir);
   }
 
   @override
@@ -128,6 +83,26 @@ class SdkExtUriResolver extends UriResolver {
     return null;
   }
 
+  /// Return the library name of [importUri].
+  String _libraryName(Uri importUri) {
+    var uri = importUri.toString();
+    int index = uri.indexOf('/');
+    if (index >= 0) {
+      return uri.substring(0, index);
+    }
+    return uri;
+  }
+
+  /// Return the part path of [importUri].
+  String _partPath(Uri importUri) {
+    var uri = importUri.toString();
+    int index = uri.indexOf('/');
+    if (index >= 0) {
+      return uri.substring(index + 1);
+    }
+    return null;
+  }
+
   /// Given a package [name] and a list of folders ([libDirs]),
   /// add any found sdk extensions.
   void _processPackage(String name, List<Folder> libDirs) {
@@ -136,18 +111,6 @@ class SdkExtUriResolver extends UriResolver {
       if (sdkExt != null) {
         _processSdkExt(sdkExt, libDir);
       }
-    }
-  }
-
-  /// Read the contents of [libDir]/[SDK_EXT_NAME] as a string.
-  /// Returns null if the file doesn't exist.
-  String _readDotSdkExt(Folder libDir) {
-    var file = libDir.getChild(SDK_EXT_NAME);
-    try {
-      return file.readAsStringSync();
-    } on FileSystemException catch (e) {
-      // File can't be read.
-      return null;
     }
   }
 
@@ -175,5 +138,39 @@ class SdkExtUriResolver extends UriResolver {
     var key = name;
     var value = libDir.canonicalizePath(file);
     _urlMappings[key] = value;
+  }
+
+  /// Read the contents of [libDir]/[SDK_EXT_NAME] as a string.
+  /// Returns null if the file doesn't exist.
+  String _readDotSdkExt(Folder libDir) {
+    var file = libDir.getChild(SDK_EXT_NAME);
+    try {
+      return file.readAsStringSync();
+    } on FileSystemException {
+      // File can't be read.
+      return null;
+    }
+  }
+
+  /// Returns true if [libraryName] is a registered sdk extension.
+  bool _registeredSdkExtension(String libraryName) {
+    return _urlMappings[libraryName] != null;
+  }
+
+  /// Resolve an import of an sdk extension.
+  Source _resolveEntry(Uri libraryEntry, Uri importUri) {
+    // Library entry.
+    JavaFile javaFile = new JavaFile.fromUri(libraryEntry);
+    return new FileBasedSource(javaFile, importUri);
+  }
+
+  /// Resolve a 'part' statement inside an sdk extension.
+  Source _resolvePart(Uri libraryEntry, String partPath, Uri importUri) {
+    // Library part.
+    var directory = pathos.dirname(libraryEntry.path);
+    var partUri = new Uri.file(pathos.join(directory, partPath));
+    assert(partUri.isAbsolute);
+    JavaFile javaFile = new JavaFile.fromUri(partUri);
+    return new FileBasedSource(javaFile, importUri);
   }
 }

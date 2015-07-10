@@ -4,30 +4,9 @@
 
 library test.source.sdk_ext;
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/sdk_ext.dart';
 import 'package:unittest/unittest.dart';
-
-MemoryResourceProvider resourceProvider;
-
-buildResourceProvider() {
-  resourceProvider = new MemoryResourceProvider();
-  resourceProvider.newFolder('/empty');
-  resourceProvider.newFolder('/tmp');
-  resourceProvider.newFile('/tmp/_sdkext', r'''
-  {
-    "dart:fox": "slippy.dart",
-    "dart:bear": "grizzly.dart",
-    "dart:relative": "../relative.dart",
-    "dart:deep": "deep/directory/file.dart",
-    "fart:loudly": "nomatter.dart"
-  }''');
-}
-
-clearResourceProvider() {
-  resourceProvider = null;
-}
 
 main() {
   groupSep = ' | ';
@@ -94,4 +73,24 @@ main() {
       expect(restoreUri.path, equals('fox/foo.dart'));
     });
   });
+}
+
+MemoryResourceProvider resourceProvider;
+
+buildResourceProvider() {
+  resourceProvider = new MemoryResourceProvider();
+  resourceProvider.newFolder('/empty');
+  resourceProvider.newFolder('/tmp');
+  resourceProvider.newFile('/tmp/_sdkext', r'''
+  {
+    "dart:fox": "slippy.dart",
+    "dart:bear": "grizzly.dart",
+    "dart:relative": "../relative.dart",
+    "dart:deep": "deep/directory/file.dart",
+    "fart:loudly": "nomatter.dart"
+  }''');
+}
+
+clearResourceProvider() {
+  resourceProvider = null;
 }

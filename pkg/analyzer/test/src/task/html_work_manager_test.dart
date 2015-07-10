@@ -16,7 +16,6 @@ import 'package:analyzer/src/generated/engine.dart'
 import 'package:analyzer/src/generated/error.dart'
     show AnalysisError, HtmlErrorCode;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
-import 'package:analyzer/src/generated/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/driver.dart';
 import 'package:analyzer/src/task/html.dart';
