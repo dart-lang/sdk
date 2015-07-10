@@ -1237,9 +1237,9 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
                                      Label* not_double_smi) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(ZERO, is_smi, Assembler::kNearJump);  // Jump if Smi.
+  __ j(ZERO, is_smi, Assembler::kFarJump);  // Jump if Smi.
   __ CompareClassId(RAX, kDoubleCid);
-  __ j(NOT_EQUAL, not_double_smi, Assembler::kNearJump);
+  __ j(NOT_EQUAL, not_double_smi, Assembler::kFarJump);
   // Fall through if double.
 }
 
@@ -1319,7 +1319,7 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class,
                  &fall_through,
-                 Assembler::kNearJump,
+                 Assembler::kFarJump,
                  RAX,  // Result register.
                  kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
@@ -1353,7 +1353,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   // Only smis allowed.
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  __ j(NOT_ZERO, &fall_through, Assembler::kFarJump);
   // Is Smi.
   __ SmiUntag(RAX);
   __ cvtsi2sdq(XMM1, RAX);
@@ -1364,7 +1364,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class,
                  &fall_through,
-                 Assembler::kNearJump,
+                 Assembler::kFarJump,
                  RAX,  // Result register.
                  kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
@@ -1378,7 +1378,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  __ j(NOT_ZERO, &fall_through, Assembler::kFarJump);
   // Is Smi.
   __ SmiUntag(RAX);
   __ cvtsi2sdq(XMM0, RAX);
@@ -1386,7 +1386,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class,
                  &fall_through,
-                 Assembler::kNearJump,
+                 Assembler::kFarJump,
                  RAX,  // Result register.
                  kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
@@ -1460,7 +1460,7 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class,
                  &fall_through,
-                 Assembler::kNearJump,
+                 Assembler::kFarJump,
                  RAX,  // Result register.
                  kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
