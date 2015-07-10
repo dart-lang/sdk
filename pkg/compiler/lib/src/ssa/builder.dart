@@ -2191,8 +2191,10 @@ class SsaBuilder extends ast.Visitor
           constructorArguments,
           instantiatedTypes);
       if (function != null) {
+        // TODO(johnniwinther): Provide source information for creation
+        // through synthetic constructors.
         newObject.sourceInformation =
-            sourceInformationBuilder.buildGeneric(function);
+            sourceInformationBuilder.buildCreate(function);
       }
       add(newObject);
     } else {
@@ -3147,7 +3149,7 @@ class SsaBuilder extends ast.Visitor
     TypeMask type =
         new TypeMask.nonNullExact(compiler.functionClass, compiler.world);
     push(new HForeignNew(closureClassElement, type, capturedVariables)
-        ..sourceInformation = sourceInformationBuilder.buildGeneric(node));
+        ..sourceInformation = sourceInformationBuilder.buildCreate(node));
 
     Element methodElement = nestedClosureData.closureElement;
     registry.registerInstantiatedClosure(methodElement);

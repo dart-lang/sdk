@@ -344,12 +344,14 @@ class InvokeMethodDirectly extends Expression implements Invoke {
   final Selector selector;
   final List<Reference<Primitive>> arguments;
   final Reference<Continuation> continuation;
+  final SourceInformation sourceInformation;
 
   InvokeMethodDirectly(Primitive receiver,
                        this.target,
                        this.selector,
                        List<Primitive> arguments,
-                       Continuation continuation)
+                       Continuation continuation,
+                       this.sourceInformation)
       : this.receiver = new Reference<Primitive>(receiver),
         this.arguments = _referenceList(arguments),
         this.continuation = new Reference<Continuation>(continuation);
@@ -378,12 +380,14 @@ class InvokeConstructor extends Expression implements Invoke {
   final List<Reference<Primitive>> arguments;
   final Reference<Continuation> continuation;
   final Selector selector;
+  final SourceInformation sourceInformation;
 
   InvokeConstructor(this.type,
                     this.target,
                     this.selector,
                     List<Primitive> args,
-                    Continuation cont)
+                    Continuation cont,
+                    this.sourceInformation)
       : arguments = _referenceList(args),
         continuation = new Reference<Continuation>(cont);
 
@@ -563,6 +567,7 @@ class SetMutableVariable extends Expression implements InteriorNode {
 class InvokeContinuation extends Expression {
   Reference<Continuation> continuation;
   List<Reference<Primitive>> arguments;
+  SourceInformation sourceInformation;
 
   // An invocation of a continuation is recursive if it occurs in the body of
   // the continuation itself.
@@ -574,7 +579,8 @@ class InvokeContinuation extends Expression {
 
   InvokeContinuation(Continuation cont, List<Primitive> args,
                      {this.isRecursive: false,
-                      this.isEscapingTry: false})
+                      this.isEscapingTry: false,
+                      this.sourceInformation})
       : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(cont.parameters == null || cont.parameters.length == args.length);
@@ -586,10 +592,11 @@ class InvokeContinuation extends Expression {
   ///
   /// Used as a placeholder for a jump whose target is not yet created
   /// (e.g., in the translation of break and continue).
-  InvokeContinuation.uninitialized({this.isRecursive: false, 
+  InvokeContinuation.uninitialized({this.isRecursive: false,
                                     this.isEscapingTry: false})
       : continuation = null,
-        arguments = null;
+        arguments = null,
+        sourceInformation = null;
 
   accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
 }
@@ -798,8 +805,11 @@ class CreateInstance extends Primitive {
   /// is not needed at runtime.
   final List<Reference<Primitive>> typeInformation;
 
+  final SourceInformation sourceInformation;
+
   CreateInstance(this.classElement, List<Primitive> arguments,
-      List<Primitive> typeInformation)
+      List<Primitive> typeInformation,
+      this.sourceInformation)
       : this.arguments = _referenceList(arguments),
         this.typeInformation = _referenceList(typeInformation);
 
@@ -856,8 +866,9 @@ class ForeignCode extends Expression {
 
 class Constant extends Primitive {
   final values.ConstantValue value;
+  final SourceInformation sourceInformation;
 
-  Constant(this.value);
+  Constant(this.value, {this.sourceInformation});
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 
@@ -959,7 +970,7 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
 
   Continuation(this.parameters, {this.isRecursive: false});
 
-  Continuation.retrn() 
+  Continuation.retrn()
     : parameters = <Parameter>[new Parameter(null)],
       isRecursive = false;
 
@@ -1001,7 +1012,10 @@ class ReifyRuntimeType extends Primitive {
   /// Reference to the internal representation of a type (as produced, for
   /// example, by [ReadTypeVariable]).
   final Reference<Primitive> value;
-  ReifyRuntimeType(Primitive value)
+
+  final SourceInformation sourceInformation;
+
+  ReifyRuntimeType(Primitive value, this.sourceInformation)
     : this.value = new Reference<Primitive>(value);
 
   @override
@@ -1019,8 +1033,9 @@ class ReifyRuntimeType extends Primitive {
 class ReadTypeVariable extends Primitive {
   final TypeVariableType variable;
   final Reference<Primitive> target;
+  final SourceInformation sourceInformation;
 
-  ReadTypeVariable(this.variable, Primitive target)
+  ReadTypeVariable(this.variable, Primitive target, this.sourceInformation)
       : this.target = new Reference<Primitive>(target);
 
   @override

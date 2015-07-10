@@ -274,7 +274,8 @@ class Builder implements cps_ir.Visitor<Node> {
     return new CreateInstance(
         node.classElement,
         translateArguments(node.arguments),
-        translateArguments(node.typeInformation));
+        translateArguments(node.typeInformation),
+        node.sourceInformation);
   }
 
   Expression visitGetField(cps_ir.GetField node) {
@@ -355,10 +356,12 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Statement visitInvokeMethod(cps_ir.InvokeMethod node) {
-    InvokeMethod invoke = new InvokeMethod(getVariableUse(node.receiver),
-                                           node.selector,
-                                           node.mask,
-                                           translateArguments(node.arguments));
+    InvokeMethod invoke = new InvokeMethod(
+        getVariableUse(node.receiver),
+        node.selector,
+        node.mask,
+        translateArguments(node.arguments),
+        node.sourceInformation);
     invoke.receiverIsNotNull = node.receiverIsNotNull;
     return continueWithExpression(node.continuation, invoke);
   }
@@ -367,7 +370,7 @@ class Builder implements cps_ir.Visitor<Node> {
     Expression receiver = getVariableUse(node.receiver);
     List<Expression> arguments = translateArguments(node.arguments);
     Expression invoke = new InvokeMethodDirectly(receiver, node.target,
-        node.selector, arguments);
+        node.selector, arguments, node.sourceInformation);
     return continueWithExpression(node.continuation, invoke);
   }
 
@@ -439,7 +442,8 @@ class Builder implements cps_ir.Visitor<Node> {
         node.type,
         node.target,
         node.selector,
-        arguments);
+        arguments,
+        node.sourceInformation);
     return continueWithExpression(node.continuation, invoke);
   }
 
@@ -452,7 +456,8 @@ class Builder implements cps_ir.Visitor<Node> {
     cps_ir.Continuation cont = node.continuation.definition;
     if (cont == returnContinuation) {
       assert(node.arguments.length == 1);
-      return new Return(getVariableUse(node.arguments.single));
+      return new Return(getVariableUse(node.arguments.single),
+                        sourceInformation: node.sourceInformation);
     } else {
       List<Expression> arguments = translateArguments(node.arguments);
       return buildPhiAssignments(cont.parameters, arguments,
@@ -500,7 +505,7 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitConstant(cps_ir.Constant node) {
-    return new Constant(node.value);
+    return new Constant(node.value, sourceInformation: node.sourceInformation);
   }
 
   Expression visitLiteralList(cps_ir.LiteralList node) {
@@ -552,11 +557,15 @@ class Builder implements cps_ir.Visitor<Node> {
   }
 
   Expression visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
-    return new ReifyRuntimeType(getVariableUse(node.value));
+    return new ReifyRuntimeType(
+        getVariableUse(node.value), node.sourceInformation);
   }
 
   Expression visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
-    return new ReadTypeVariable(node.variable, getVariableUse(node.target));
+    return new ReadTypeVariable(
+        node.variable,
+        getVariableUse(node.target),
+        node.sourceInformation);
   }
 
   @override

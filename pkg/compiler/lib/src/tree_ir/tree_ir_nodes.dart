@@ -201,11 +201,16 @@ class InvokeMethod extends Expression implements Invoke {
   final Selector selector;
   final TypeMask mask;
   final List<Expression> arguments;
+  final SourceInformation sourceInformation;
 
   /// If true, it is known that the receiver cannot be `null`.
   bool receiverIsNotNull = false;
 
-  InvokeMethod(this.receiver, this.selector, this.mask, this.arguments) {
+  InvokeMethod(this.receiver,
+               this.selector,
+               this.mask,
+               this.arguments,
+               this.sourceInformation) {
     assert(receiver != null);
   }
 
@@ -224,9 +229,10 @@ class InvokeMethodDirectly extends Expression implements Invoke {
   final Element target;
   final Selector selector;
   final List<Expression> arguments;
+  final SourceInformation sourceInformation;
 
   InvokeMethodDirectly(this.receiver, this.target, this.selector,
-      this.arguments);
+      this.arguments, this.sourceInformation);
 
   accept(ExpressionVisitor visitor) => visitor.visitInvokeMethodDirectly(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -242,12 +248,13 @@ class InvokeConstructor extends Expression implements Invoke {
   final FunctionElement target;
   final List<Expression> arguments;
   final Selector selector;
+  final SourceInformation sourceInformation;
   /// TODO(karlklose): get rid of this field.  Instead use the constant's
   /// expression to find the constructor to be called in dart2dart.
   final values.ConstantValue constant;
 
   InvokeConstructor(this.type, this.target, this.selector, this.arguments,
-                    [this.constant]);
+                    this.sourceInformation, [this.constant]);
 
   ClassElement get targetClass => target.enclosingElement;
 
@@ -265,14 +272,18 @@ class InvokeConstructor extends Expression implements Invoke {
  */
 class Constant extends Expression {
   final values.ConstantValue value;
+  final SourceInformation sourceInformation;
 
-  Constant(this.value);
+  Constant(this.value, {this.sourceInformation});
 
   Constant.bool(values.BoolConstantValue constantValue)
-      : value = constantValue;
+      : value = constantValue,
+        sourceInformation = null;
 
   accept(ExpressionVisitor visitor) => visitor.visitConstant(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitConstant(this, arg);
+
+  String toString() => 'Constant(value=${value.toStructuredString()})';
 }
 
 class This extends Expression {
@@ -364,6 +375,9 @@ class Conditional extends Expression {
   accept1(ExpressionVisitor1 visitor, arg) {
     return visitor.visitConditional(this, arg);
   }
+
+  String toString() => 'Conditional(condition=$condition,thenExpression='
+                       '$thenExpression,elseExpression=$elseExpression)';
 }
 
 /// An && or || expression. The operator is internally represented as a boolean
@@ -383,6 +397,8 @@ class LogicalOperator extends Expression {
   accept1(ExpressionVisitor1 visitor, arg) {
     return visitor.visitLogicalOperator(this, arg);
   }
+
+  String toString() => 'LogicalOperator(left=$left,right=$right,isAnd=$isAnd)';
 }
 
 /// Logical negation.
@@ -541,11 +557,12 @@ class Return extends Statement {
   /// Even in constructors this holds true. Take special care when translating
   /// back to dart, where `return null;` in a constructor is an error.
   Expression value;
+  SourceInformation sourceInformation;
 
   Statement get next => null;
   void set next(Statement s) => throw 'UNREACHABLE';
 
-  Return(this.value);
+  Return(this.value, {this.sourceInformation});
 
   accept(StatementVisitor visitor) => visitor.visitReturn(this);
   accept1(StatementVisitor1 visitor, arg) => visitor.visitReturn(this, arg);
@@ -664,8 +681,10 @@ class CreateInstance extends Expression {
   ClassElement classElement;
   List<Expression> arguments;
   List<Expression> typeInformation;
+  SourceInformation sourceInformation;
 
-  CreateInstance(this.classElement, this.arguments, this.typeInformation);
+  CreateInstance(this.classElement, this.arguments,
+                 this.typeInformation, this.sourceInformation);
 
   accept(ExpressionVisitor visitor) => visitor.visitCreateInstance(this);
   accept1(ExpressionVisitor1 visitor, arg) {
@@ -749,8 +768,9 @@ class SetIndex extends Expression {
 
 class ReifyRuntimeType extends Expression {
   Expression value;
+  SourceInformation sourceInformation;
 
-  ReifyRuntimeType(this.value);
+  ReifyRuntimeType(this.value, this.sourceInformation);
 
   accept(ExpressionVisitor visitor) {
     return visitor.visitReifyRuntimeType(this);
@@ -764,8 +784,9 @@ class ReifyRuntimeType extends Expression {
 class ReadTypeVariable extends Expression {
   final TypeVariableType variable;
   Expression target;
+  final SourceInformation sourceInformation;
 
-  ReadTypeVariable(this.variable, this.target);
+  ReadTypeVariable(this.variable, this.target, this.sourceInformation);
 
   accept(ExpressionVisitor visitor) {
     return visitor.visitReadTypeVariable(this);

@@ -36,6 +36,7 @@ invokes(parameter) {
   parameter();
   localVariable();
   localFunction();
+  (parameter)();
 
   parameter.dynamicInvoke();
   new C(parameter).instanceInvokes();

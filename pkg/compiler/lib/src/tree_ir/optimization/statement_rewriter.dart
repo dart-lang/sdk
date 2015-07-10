@@ -6,6 +6,7 @@ library tree_ir.optimization.statement_rewriter;
 
 import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
+import '../../io/source_information.dart';
 
 /**
  * Translates to direct-style.
@@ -924,7 +925,11 @@ class StatementRewriter extends Transformer implements Pass {
     if (s is Return && t is Return) {
       CombinedExpressions values = combineExpressions(s.value, t.value);
       if (values != null) {
-        return new Return(values.combined);
+        // TODO(johnniwinther): Handle multiple source informations.
+        SourceInformation sourceInformation = s.sourceInformation != null
+            ? s.sourceInformation : t.sourceInformation;
+        return new Return(values.combined,
+            sourceInformation: sourceInformation);
       }
     }
     if (s is ExpressionStatement && t is ExpressionStatement) {
