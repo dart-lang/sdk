@@ -12,6 +12,8 @@
   * Added two new file modes, `WRITE_ONLY` and `WRITE_ONLY_APPEND` for
     opening a file write only.
     [eaeecf2](https://github.com/dart-lang/sdk/commit/eaeecf2ed13ba6c7fbfd653c3c592974a7120960)
+  * Change stdout/stderr to binary mode on Windows.
+    [4205b29](https://github.com/dart-lang/sdk/commit/4205b2997e01f2cea8e2f44c6f46ed6259ab7277)
 
 ### Tool changes
 
