@@ -60,10 +60,15 @@ class CpsFragment {
 
   CpsFragment([this.sourceInformation, this.context]);
 
-  /// Asserts that the fragment is closed and returns the IR that was built.
+  bool get isOpen => root == null || context != null;
+  bool get isClosed => !isOpen;
+  bool get isEmpty => root == null;
+
+  /// Asserts that the fragment is non-empty and closed and returns the IR that
+  /// was built.
   Expression get result {
-    assert(context == null);
-    assert(root != null);
+    assert(!isEmpty);
+    assert(isClosed);
     return root;
   }
 
@@ -99,6 +104,8 @@ class CpsFragment {
   Primitive makeZero() => makeConstant(new IntConstantValue(0));
   Primitive makeOne() => makeConstant(new IntConstantValue(1));
   Primitive makeNull() => makeConstant(new NullConstantValue());
+  Primitive makeTrue() => makeConstant(new TrueConstantValue());
+  Primitive makeFalse() => makeConstant(new FalseConstantValue());
 
   /// Invoke a built-in operator.
   Primitive applyBuiltin(BuiltinOperator op, List<Primitive> args) {
@@ -262,5 +269,24 @@ class CpsFragment {
     context = other.context;
     other.context = null;
     other.root = null;
+  }
+
+  /// Reads the value of the given mutable variable.
+  Primitive getMutable(MutableVariable variable) {
+    return letPrim(new GetMutableVariable(variable));
+  }
+
+  /// Sets the value of the given mutable variable.
+  void setMutable(MutableVariable variable, Primitive value) {
+    SetMutableVariable setter = new SetMutableVariable(variable, value);
+    put(setter);
+    context = setter;
+  }
+
+  /// Declare a new mutable variable.
+  void letMutable(MutableVariable variable, Primitive initialValue) {
+    LetMutable let = new LetMutable(variable, initialValue);
+    put(let);
+    context = let;
   }
 }

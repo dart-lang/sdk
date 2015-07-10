@@ -607,6 +607,30 @@ class TransformingVisitor extends RecursiveVisitor {
     reanalyze(replacement);
   }
 
+  /// Inserts [insertedCode] before [node].
+  /// 
+  /// [node] will end up in the hole of [insertedCode], and [insertedCode]
+  /// will become rooted where [node] was.
+  void insertBefore(Expression node, CpsFragment insertedCode) {
+    if (insertedCode.isEmpty) return; // Nothing to do.
+    assert(insertedCode.isOpen);
+    InteriorNode parent = node.parent;
+    InteriorNode context = insertedCode.context;
+
+    parent.body = insertedCode.root;
+    insertedCode.root.parent = parent;
+
+    // We want to recompute the types for [insertedCode] without
+    // traversing the entire subtree of [node]. Temporarily close the
+    // term with a dummy node while recomputing types.
+    context.body = new Unreachable(); 
+    new ParentVisitor().visit(insertedCode.root);
+    reanalyze(insertedCode.root);
+
+    context.body = node;
+    node.parent = context;
+  }
+
   /// Make a constant primitive for [constant] and set its entry in [values].
   Constant makeConstantPrimitive(ConstantValue constant) {
     Constant primitive = new Constant(constant);
@@ -999,7 +1023,161 @@ class TransformingVisitor extends RecursiveVisitor {
         visit(cps.result);
         return true;
 
-      // TODO(asgerf): Rewrite 'iterator', 'add', 'removeLast', ...
+      case 'iterator':
+        if (!node.selector.isGetter) return false;
+        Primitive iterator = cont.parameters.single;
+        Continuation iteratorCont = cont;
+
+        // Check that all uses of the iterator are 'moveNext' and 'current'.
+        Selector moveNextSelector = new Selector.call('moveNext', null, 0);
+        Selector currentSelector = new Selector.getter('current', null);
+        assert(!isInterceptedSelector(moveNextSelector));
+        assert(!isInterceptedSelector(currentSelector));
+        for (Reference ref = iterator.firstRef; ref != null; ref = ref.next) {
+          if (ref.parent is! InvokeMethod) return false;
+          InvokeMethod use = ref.parent;
+          if (ref != use.receiver) return false;
+          if (use.selector != moveNextSelector &&
+              use.selector != currentSelector) {
+            return false;
+          }
+        }
+
+        // Rewrite the iterator variable to 'current' and 'index' variables.
+        Primitive originalLength = new GetLength(list);
+        originalLength.hint = new OriginalLengthEntity();
+        MutableVariable index = new MutableVariable(new LoopIndexEntity());
+        MutableVariable current = new MutableVariable(new LoopItemEntity());
+
+        // Rewrite all uses of the iterator.
+        while (iterator.firstRef != null) { 
+          InvokeMethod use = iterator.firstRef.parent;
+          Continuation useCont = use.continuation.definition;
+          if (use.selector == currentSelector) { 
+            // Rewrite iterator.current to a use of the 'current' variable.
+            Parameter result = useCont.parameters.single;
+            if (result.hint != null) {
+              // If 'current' was originally moved into a named variable, use
+              // that variable name for the mutable variable.
+              current.hint = result.hint; 
+            }
+            LetPrim let = 
+                makeLetPrimInvoke(new GetMutableVariable(current), useCont);
+            replaceSubtree(use, let);
+          } else {
+            assert (use.selector == moveNextSelector);
+            // Rewrite iterator.moveNext() to: 
+            //
+            //   if (index < list.length) {
+            //     current = null;
+            //     continuation(false);
+            //   } else {
+            //     current = list[index];
+            //     index = index + 1;
+            //     continuation(true);
+            //   }
+            //
+            // (The above does not show concurrent modification checks)
+
+            // [cps] contains the code we insert instead of moveNext().
+            CpsFragment cps = new CpsFragment(node.sourceInformation);
+
+            // We must check for concurrent modification when calling moveNext.
+            // When moveNext is used as a loop condition, the check prevents
+            // `index < list.length` from becoming the loop condition, and we 
+            // get code like this:
+            //
+            //    while (true) {
+            //      if (originalLength !== list.length) throw;
+            //      if (index < list.length) { 
+            //        ...
+            //      } else { 
+            //        ... 
+            //        break; 
+            //      }
+            //    }
+            //
+            // For loops, we therefore check for concurrent modification before
+            // invoking the recursive continuation, so the loop becomes:
+            //
+            //    if (originalLength !== list.length) throw;
+            //    while (index < list.length) {
+            //      ...
+            //      if (originalLength !== list.length) throw;
+            //    }
+            //
+            // The check before the loop can often be eliminated because it 
+            // follows immediately after the 'iterator' call.
+            InteriorNode parent = getEffectiveParent(use);
+            if (!isFixedLength) {
+              if (parent is Continuation && parent.isRecursive) {
+                // Check for concurrent modification before every invocation
+                // of the continuation.
+                // TODO(asgerf): Do this in a continuation so multiple 
+                //               continues can share the same code.
+                for (Reference ref = parent.firstRef; 
+                     ref != null; 
+                     ref = ref.next) {
+                  Expression invocationCaller = ref.parent;
+                  if (getEffectiveParent(invocationCaller) == iteratorCont) {
+                    // No need to check for concurrent modification immediately
+                    // after the call to 'iterator'.
+                    continue;
+                  }
+                  CpsFragment check = makeConcurrentModificationCheck(
+                      list, originalLength, sourceInfo);
+                  insertBefore(invocationCaller, check);
+                }
+              } else {
+                cps.append(makeConcurrentModificationCheck(
+                    list, originalLength, sourceInfo));
+              }
+            }
+
+            // Check if there are more elements.
+            Primitive hasMore = cps.applyBuiltin(
+                BuiltinOperator.NumLt,
+                [cps.getMutable(index), cps.letPrim(new GetLength(list))]);
+
+            // Return false if there are no more.
+            CpsFragment falseBranch = cps.ifFalse(hasMore);
+            falseBranch
+              ..setMutable(current, falseBranch.makeNull())
+              ..invokeContinuation(useCont, [falseBranch.makeFalse()]);
+
+            // Return true if there are more element.
+            cps.setMutable(current, 
+                cps.letPrim(new GetIndex(list, cps.getMutable(index))));
+            cps.setMutable(index, cps.applyBuiltin(
+                BuiltinOperator.NumAdd,
+                [cps.getMutable(index), cps.makeOne()]));
+            cps.invokeContinuation(useCont, [cps.makeTrue()]);
+
+            // Replace the moveNext() call. It will be visited later.
+            replaceSubtree(use, cps.result);
+          }
+        }
+
+        // Rewrite the iterator call to initializers for 'index' and 'current'.
+        CpsFragment cps = new CpsFragment();
+        cps.letMutable(index, cps.makeZero());
+        cps.letMutable(current, cps.makeNull());
+        cps.letPrim(originalLength);
+
+        // Insert this fragment before the continuation body and replace the
+        // iterator call with a call to the continuation without arguments.
+        // For scoping reasons, the variables must be bound inside the
+        // continuation, not at the invocation-site.
+        iteratorCont.parameters.clear();
+        insertBefore(iteratorCont.body, cps);
+        InvokeContinuation invoke = new InvokeContinuation(iteratorCont, []);
+        replaceSubtree(node, invoke);
+        visit(invoke);
+        // TODO(asgerf): A procedure for rewriting mutables into parameters
+        //               might enable further optimizations after this.
+        return true;
+
+      // TODO(asgerf): Rewrite 'add', 'removeLast', ...
 
       default:
         return false;
@@ -1021,29 +1199,17 @@ class TransformingVisitor extends RecursiveVisitor {
     return null;
   }
 
-  /// True if any side effect immediately before [current] can safely be
-  /// postponed until immediately before [target].
-  ///
-  /// An expression `e` can be moved right before [target] if
-  /// `canPostponeSideEffects(e.body, target)` is true and no reference
-  /// falls out of scope.
-  ///
-  /// A more sophisticated analysis would track side-effect dependencies
-  /// between `e` and the expressions between `e` and the target.
-  bool canPostponeSideEffects(Expression current, Expression target) {
-    Expression exp = current;
-    while (exp != target) {
-      if (exp is LetPrim && exp.primitive.isSafeForReordering) {
-        LetPrim let = exp;
-        exp = let.body;
-      } else if (exp is LetCont) {
-        LetCont let = exp;
-        exp = let.body;
+  /// Returns the first parent of [node] that is not a pure expression.
+  InteriorNode getEffectiveParent(Expression node) {
+    while (true) {
+      Node parent = node.parent;
+      if (parent is LetCont ||
+          parent is LetPrim && parent.primitive.isSafeForReordering) {
+        node = parent;
       } else {
-        return false;
+        return parent;
       }
     }
-    return true;
   }
 
   /// Rewrites an invocation of a torn-off method into a method call directly
@@ -1114,7 +1280,7 @@ class TransformingVisitor extends RecursiveVisitor {
       if (!isPure && tearOff.hasMultipleUses) return false;
 
       // If the getter call is impure, we risk reordering side effects.
-      if (!isPure && !canPostponeSideEffects(getterCont.body, node)) {
+      if (!isPure && getEffectiveParent(node) != getterCont) {
         return false;
       }
 
@@ -2109,6 +2275,11 @@ abstract class InternalMethod {
 /// Suggested name for a synthesized loop index.
 class LoopIndexEntity extends Entity {
   String get name => 'i';
+}
+
+/// Suggested name for the current element of a list being iterated.
+class LoopItemEntity extends Entity {
+  String get name => 'current';
 }
 
 /// Suggested name for the original length of a list, for use in checks
