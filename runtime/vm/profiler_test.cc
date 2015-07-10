@@ -380,4 +380,107 @@ TEST_CASE(Profiler_IntrinsicAllocation) {
   }
 }
 
+
+TEST_CASE(Profiler_ArrayAllocation) {
+  const char* kScript =
+      "List foo() => new List(4);\n"
+      "List bar() => new List();\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = Isolate::Current();
+
+  const Class& array_class =
+      Class::Handle(isolate->object_store()->array_class());
+  EXPECT(!array_class.IsNull());
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, array_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  array_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, array_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_List._List", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("List.List", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+
+  array_class.SetTraceAllocation(false);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, array_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+
+  // Clear the samples.
+  ProfilerService::ClearSamples();
+
+  // Compile bar (many List objects allocated).
+  result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Enable again.
+  array_class.SetTraceAllocation(true);
+
+  // Run bar.
+  result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, array_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_List._List", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_GrowableList._GrowableList", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("List.List", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("bar", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+}
+
 }  // namespace dart

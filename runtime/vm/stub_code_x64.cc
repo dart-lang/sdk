@@ -611,13 +611,20 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ LoadPoolPointer(new_pp);
   *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
+  Isolate* isolate = Isolate::Current();
+  const Class& cls = Class::Handle(isolate->object_store()->array_class());
+  ASSERT(!cls.IsNull());
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   __ movq(RDI, R10);  // Array Length.
   // Check that length is a positive Smi.
   __ testq(RDI, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &slow_case);
+  if (FLAG_use_slow_path || cls.trace_allocation()) {
+    __ jmp(&slow_case);
+  } else {
+    __ j(NOT_ZERO, &slow_case);
+  }
   __ cmpq(RDI, Immediate(0));
   __ j(LESS, &slow_case);
   // Check for maximum allowed length.
@@ -630,7 +637,6 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   ASSERT(kSmiTagShift == 1);
   __ andq(RDI, Immediate(-kObjectAlignment));
 
-  Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   const intptr_t cid = kArrayCid;
   Heap::Space space = heap->SpaceForAllocation(cid);

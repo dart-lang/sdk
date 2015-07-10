@@ -589,12 +589,16 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   const Immediate& raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
+  Isolate* isolate = Isolate::Current();
+  const Class& cls = Class::Handle(isolate->object_store()->array_class());
+  ASSERT(!cls.IsNull());
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   // Assert that length is a Smi.
   __ testl(EDX, Immediate(kSmiTagMask));
-  if (FLAG_use_slow_path) {
+
+  if (FLAG_use_slow_path || cls.trace_allocation()) {
     __ jmp(&slow_case);
   } else {
     __ j(NOT_ZERO, &slow_case);
@@ -617,7 +621,6 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   // EDX: array length as Smi.
   // EDI: allocation size.
 
-  Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   const intptr_t cid = kArrayCid;
   Heap::Space space = heap->SpaceForAllocation(cid);
