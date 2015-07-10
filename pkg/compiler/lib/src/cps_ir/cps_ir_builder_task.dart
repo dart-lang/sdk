@@ -3296,16 +3296,16 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         if (!compiler.hasIsolateSupport) {
           // If the isolate library is not used, we just generate code
           // to fetch the current isolate.
-          continue GET_CURRENT_ISOLATE;
+          continue GET_STATIC_STATE;
         }
         return buildIsolateHelperInvocation('_currentIsolate',
             CallStructure.NO_ARGS);
 
-      GET_CURRENT_ISOLATE: case 'JS_CURRENT_ISOLATE':
+      GET_STATIC_STATE: case 'JS_GET_STATIC_STATE':
         validateArgumentCount(exactly: 0);
 
         return irBuilder.buildForeignCode(
-            js.js.parseForeignJS(backend.namer.currentIsolate),
+            js.js.parseForeignJS(backend.namer.staticStateHolder),
             const <ir.Primitive>[],
             NativeBehavior.PURE);
 

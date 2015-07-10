@@ -99,9 +99,9 @@ class ProgramBuilder {
     collector.outputStaticNonFinalFieldLists.forEach(
         _registry.registerElements);
 
-    // TODO(kasperl): There's code that implicitly needs access to the special
-    // $ holder so we have to register that. Can we track if we have to?
-    _registry.registerHolder(r'$');
+    // We always add the current isolate holder.
+    _registry.registerHolder(
+        namer.staticStateHolder, isStaticStateHolder: true);
 
     // We need to run the native-preparation before we build the output. The
     // preparation code, in turn needs the classes to be set up.

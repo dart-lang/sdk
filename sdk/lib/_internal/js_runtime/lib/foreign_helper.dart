@@ -184,9 +184,9 @@ external DART_CLOSURE_TO_JS(Function function);
 external RAW_DART_FUNCTION_REF(Function function);
 
 /**
- * Sets the current isolate to [isolate].
+ * Sets the current static state to [staticState].
  */
-external void JS_SET_CURRENT_ISOLATE(isolate);
+external void JS_SET_STATIC_STATE(staticState);
 
 /**
  * Returns the interceptor for class [type].  The interceptor is the type's
@@ -197,9 +197,9 @@ external void JS_SET_CURRENT_ISOLATE(isolate);
 external JS_INTERCEPTOR_CONSTANT(Type type);
 
 /**
- * Returns the object corresponding to Namer.CURRENT_ISOLATE.
+ * Returns the object corresponding to Namer.staticStateHolder.
  */
-external JS_CURRENT_ISOLATE();
+external JS_GET_STATIC_STATE();
 
 /// Returns the JS name for [name] from the Namer.
 external String JS_GET_NAME(JsGetName name);

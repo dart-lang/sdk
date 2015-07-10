@@ -321,7 +321,7 @@ class Namer {
   }
 
   final String asyncPrefix = r"$async$";
-  final String currentIsolate = r'$';
+  final String staticStateHolder = r'$';
   final String getterPrefix = r'get$';
   final String lazyGetterPrefix = r'$get$';
   final String setterPrefix = r'set$';
@@ -1313,17 +1313,19 @@ class Namer {
         : globalPropertyName(method);
   }
 
-  /// Returns true if [element] is stored on current isolate ('$').  We intend
-  /// to store only mutable static state in [currentIsolate], constants are
-  /// stored in 'C', and functions, accessors, classes, etc. are stored in one
-  /// of the other objects in [reservedGlobalObjectNames].
-  bool isPropertyOfCurrentIsolate(Element element) {
+  /// Returns true if [element] is stored in the static state holder
+  /// ([staticStateHolder]).  We intend to store only mutable static state
+  /// there, whereas constants are stored in 'C'. Functions, accessors,
+  /// classes, etc. are stored in one of the other objects in
+  /// [reservedGlobalObjectNames].
+  bool _isPropertyOfStaticStateHolder(Element element) {
     // TODO(ahe): Make sure this method's documentation is always true and
     // remove the word "intend".
     return
         // TODO(ahe): Re-write these tests to be positive (so it only returns
         // true for static/top-level mutable fields). Right now, a number of
-        // other elements, such as bound closures also live in [currentIsolate].
+        // other elements, such as bound closures also live in
+        // [staticStateHolder].
         !element.isAccessor &&
         !element.isClass &&
         !element.isTypedef &&
@@ -1332,9 +1334,9 @@ class Namer {
         !element.isLibrary;
   }
 
-  /// Returns [currentIsolate] or one of [reservedGlobalObjectNames].
+  /// Returns [staticStateHolder] or one of [reservedGlobalObjectNames].
   String globalObjectFor(Element element) {
-    if (isPropertyOfCurrentIsolate(element)) return currentIsolate;
+    if (_isPropertyOfStaticStateHolder(element)) return staticStateHolder;
     LibraryElement library = element.library;
     if (library == backend.interceptorsLibrary) return 'J';
     if (library.isInternalLibrary) return 'H';

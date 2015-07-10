@@ -610,8 +610,7 @@ class Emitter implements js_emitter.Emitter {
       OutputUnit outputUnit) {
     jsAst.Statement buildInitialization(Element element,
                                        jsAst.Expression initialValue) {
-      // Note: `namer.currentIsolate` refers to the isolate properties here.
-      return js.statement('${namer.currentIsolate}.# = #',
+      return js.statement('${namer.staticStateHolder}.# = #',
                           [namer.globalPropertyName(element), initialValue]);
     }
 
@@ -1466,7 +1465,7 @@ class Emitter implements js_emitter.Emitter {
        // We abuse the short name used for the isolate here to store
        // the isolate properties. This is safe as long as the real isolate
        // object does not exist yet.
-       var ${namer.currentIsolate} = #isolatePropertiesName;
+       var ${namer.staticStateHolder} = #isolatePropertiesName;
 
        // Constants in checked mode call into RTI code to set type information
        // which may need getInterceptor (and one-shot interceptor) methods, so
@@ -1478,7 +1477,7 @@ class Emitter implements js_emitter.Emitter {
        // constants to be set up.
        #staticNonFinalInitializers;
 
-       ${namer.currentIsolate} = null;
+       ${namer.staticStateHolder} = null;
 
        #deferredBoilerPlate;
 
@@ -1488,7 +1487,7 @@ class Emitter implements js_emitter.Emitter {
 
        #isolateName = $finishIsolateConstructorName(#isolateName);
 
-       ${namer.currentIsolate} = new #isolateName();
+       ${namer.staticStateHolder} = new #isolateName();
 
        #metadata;
 
@@ -1843,7 +1842,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
           // Function for initializing a loaded hunk, given its hash.
           #initializeLoadedHunk = function(hunkHash) {
             $deferredInitializers[hunkHash](
-            #globalsHolder, ${namer.currentIsolate});
+            #globalsHolder, ${namer.staticStateHolder});
             #deferredInitialized[hunkHash] = true;
           };
         }
@@ -1952,9 +1951,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
           ..add(js.statement('${typesAccess}.push.apply(${typesAccess}, '
                              '${namer.deferredTypesName});'));
 
-      // Set the currentIsolate variable to the current isolate (which is
-      // provided as second argument).
-      body.add(js.statement("${namer.currentIsolate} = arguments[1];"));
+      // Sets the static state variable to the state of the current isolate
+      // (which is provided as second argument).
+      body.add(js.statement("${namer.staticStateHolder} = arguments[1];"));
 
       body.add(buildCompileTimeConstants(fragment.constants,
                                          isMainFragment: false));

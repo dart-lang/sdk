@@ -83,7 +83,9 @@ class Program {
 class Holder {
   final String name;
   final int index;
-  Holder(this.name, this.index);
+  final bool isStaticStateHolder;
+
+  Holder(this.name, this.index, {this.isStaticStateHolder: false});
 }
 
 /**

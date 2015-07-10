@@ -113,9 +113,10 @@ class Registry {
     // Ignore for now.
   }
 
-  Holder registerHolder(String name) {
-    return _holdersMap.putIfAbsent(
-        name,
-        () => new Holder(name, _holdersMap.length));
+  Holder registerHolder(String name, {bool isStaticStateHolder: false}) {
+    return _holdersMap.putIfAbsent(name, () {
+      return new Holder(name, _holdersMap.length,
+          isStaticStateHolder: isStaticStateHolder);
+    });
   }
 }

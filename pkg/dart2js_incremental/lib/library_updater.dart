@@ -986,7 +986,7 @@ if (this.pendingStubs) {
       full.Emitter fullEmitter = emitter.emitter;
       jsAst.Expression init =
           fullEmitter.buildLazilyInitializedStaticField(
-              element, isolateProperties: namer.currentIsolate);
+              element, isolateProperties: namer.staticStateHolder);
       if (init == null) {
         throw new StateError("Initializer optimized away for $element");
       }

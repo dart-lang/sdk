@@ -305,7 +305,7 @@ class ModelEmitter {
     }
 
     if (program.hasIsolateSupport) {
-      String isolateName = namer.currentIsolate;
+      String isolateName = namer.staticStateHolder;
       globals.add(
           new js.Property(js.string(CREATE_NEW_ISOLATE),
                           js.js('function () { return $isolateName; }')));
