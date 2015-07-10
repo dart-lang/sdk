@@ -33,6 +33,6 @@ class D extends C {
 main() {
   Expect.throws(new A().m);          /// 01: continued
   Expect.throws(() => new D.name()); /// 02: continued
-  Expect.throws(() => (p).x);        /// 03: static type warning
+  Expect.throws(() => (p).x);        /// 03: compile-time error
 }
 
