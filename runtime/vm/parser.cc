@@ -12052,7 +12052,7 @@ RawAbstractType* Parser::ParseType(
           "using '%s' in this context is invalid",
           type_name.ToCString());
     }
-    if (!FLAG_load_deferred_eagerly &&
+    if ((!FLAG_load_deferred_eagerly || !allow_deferred_type) &&
         !prefix->IsNull() && prefix->is_deferred_load()) {
       // If deferred prefixes are allowed but it is not yet loaded,
       // remember that this function depends on the prefix.
