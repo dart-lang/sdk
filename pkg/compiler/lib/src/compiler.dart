@@ -792,7 +792,7 @@ abstract class Compiler implements DiagnosticListener {
   final bool allowNativeExtensions;
 
   /// Output provider from user of Compiler API.
-  api.CompilerOutputProvider userOutputProvider;
+  api.CompilerOutput userOutputProvider;
 
   /// Generate output even when there are compile-time errors.
   final bool generateCodeWithCompileTimeErrors;
@@ -1061,7 +1061,7 @@ abstract class Compiler implements DiagnosticListener {
             this.allowNativeExtensions: false,
             this.generateCodeWithCompileTimeErrors: false,
             this.testMode: false,
-            api.CompilerOutputProvider outputProvider,
+            api.CompilerOutput outputProvider,
             List<String> strips: const []})
       : this.disableTypeInferenceFlag =
           disableTypeInferenceFlag || !emitJavaScript,
@@ -1071,9 +1071,8 @@ abstract class Compiler implements DiagnosticListener {
         this.analyzeAllFlag = analyzeAllFlag,
         this.hasIncrementalSupport = hasIncrementalSupport,
         cacheStrategy = new CacheStrategy(hasIncrementalSupport),
-        this.userOutputProvider = (outputProvider == null)
-            ? NullSink.outputProvider
-            : outputProvider {
+        this.userOutputProvider = outputProvider == null
+            ? const NullCompilerOutput() : outputProvider {
     if (hasIncrementalSupport) {
       // TODO(ahe): This is too much. Any method from platform and package
       // libraries can be inlined.
@@ -2170,7 +2169,7 @@ abstract class Compiler implements DiagnosticListener {
         return new NullSink('$name.$extension');
       }
     }
-    return userOutputProvider(name, extension);
+    return userOutputProvider.createEventSink(name, extension);
   }
 }
 
@@ -2303,26 +2302,6 @@ bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
 
 /// Returns `true` when [s] is public if used as an identifier.
 bool isPublicName(String s) => !isPrivateName(s);
-
-/// A sink that drains into /dev/null.
-class NullSink implements EventSink<String> {
-  final String name;
-
-  NullSink(this.name);
-
-  add(String value) {}
-
-  void addError(Object error, [StackTrace stackTrace]) {}
-
-  void close() {}
-
-  toString() => name;
-
-  /// Convenience method for getting an [api.CompilerOutputProvider].
-  static NullSink outputProvider(String name, String extension) {
-    return new NullSink('$name.$extension');
-  }
-}
 
 /// Information about suppressed warnings and hints for a given library.
 class SuppressionInfo {

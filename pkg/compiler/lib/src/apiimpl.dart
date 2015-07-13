@@ -7,7 +7,7 @@ library leg_apiimpl;
 import 'dart:async';
 import 'dart:convert';
 
-import '../compiler.dart' as api;
+import '../compiler_new.dart' as api;
 import 'dart2jslib.dart' as leg;
 import 'tree/tree.dart' as tree;
 import 'elements/elements.dart' as elements;
@@ -24,8 +24,8 @@ const bool forceIncrementalSupport =
     const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');
 
 class Compiler extends leg.Compiler {
-  api.CompilerInputProvider provider;
-  api.DiagnosticHandler handler;
+  api.CompilerInput provider;
+  api.CompilerDiagnostics handler;
   final Uri libraryRoot;
   final Uri packageConfig;
   final Uri packageRoot;
@@ -41,7 +41,7 @@ class Compiler extends leg.Compiler {
   leg.GenericTask userPackagesDiscoveryTask;
 
   Compiler(this.provider,
-           api.CompilerOutputProvider outputProvider,
+           api.CompilerOutput outputProvider,
            this.handler,
            this.libraryRoot,
            this.packageRoot,
@@ -196,7 +196,7 @@ class Compiler extends leg.Compiler {
   }
 
   void log(message) {
-    handler(null, null, null, message, api.Diagnostic.VERBOSE_INFO);
+    callUserHandler(null, null, null, message, api.Diagnostic.VERBOSE_INFO);
   }
 
   /// See [leg.Compiler.translateResolvedUri].
@@ -373,7 +373,7 @@ class Compiler extends leg.Compiler {
       // and we can't depend on 'dart:io' classes.
       packages = new NonFilePackagesDirectoryPackages(packageRoot);
     } else if (packageConfig != null) {
-      return provider(packageConfig).then((packageConfigContents) {
+      return callUserProvider(packageConfig).then((packageConfigContents) {
         if (packageConfigContents is String) {
           packageConfigContents = UTF8.encode(packageConfigContents);
         }
@@ -442,7 +442,7 @@ class Compiler extends leg.Compiler {
                        String message, api.Diagnostic kind) {
     try {
       userHandlerTask.measure(() {
-        handler(uri, begin, end, message, kind);
+        handler.report(uri, begin, end, message, kind);
       });
     } catch (ex, s) {
       diagnoseCrashInUserCode(
@@ -453,7 +453,7 @@ class Compiler extends leg.Compiler {
 
   Future callUserProvider(Uri uri) {
     try {
-      return userProviderTask.measure(() => provider(uri));
+      return userProviderTask.measure(() => provider.readFromUri(uri));
     } catch (ex, s) {
       diagnoseCrashInUserCode('Uncaught exception in input provider', ex, s);
       rethrow;

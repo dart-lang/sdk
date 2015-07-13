@@ -7,6 +7,7 @@
 library output_collector;
 
 import 'dart:async';
+import 'package:compiler/compiler_new.dart';
 
 class BufferedEventSink implements EventSink<String> {
   StringBuffer sb = new StringBuffer();
@@ -49,13 +50,11 @@ class CloningEventSink implements EventSink<String> {
   }
 }
 
-class OutputCollector {
+class OutputCollector implements CompilerOutput {
   Map<String, Map<String, BufferedEventSink>> outputMap = {};
 
   EventSink<String> call(String name, String extension) {
-    Map<String, BufferedEventSink> sinkMap =
-        outputMap.putIfAbsent(extension, () => {});
-    return sinkMap.putIfAbsent(name, () => new BufferedEventSink());
+    return createEventSink(name, extension);
   }
 
   String getOutput(String name, String extension) {
@@ -63,5 +62,25 @@ class OutputCollector {
     if (sinkMap == null) return null;
     BufferedEventSink sink = sinkMap[name];
     return sink != null ? sink.text : null;
+  }
+
+  /// `true` if any output has been collected.
+  bool get hasOutput => !outputMap.isEmpty;
+
+  /// `true` if any output other than main output has been collected.
+  bool get hasExtraOutput {
+    for (String extension in outputMap.keys) {
+      for (String name in outputMap[extension].keys) {
+        if (name != '') return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  EventSink<String> createEventSink(String name, String extension) {
+    Map<String, BufferedEventSink> sinkMap =
+        outputMap.putIfAbsent(extension, () => {});
+    return sinkMap.putIfAbsent(name, () => new BufferedEventSink());
   }
 }

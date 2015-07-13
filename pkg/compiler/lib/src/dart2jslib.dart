@@ -9,7 +9,7 @@ import 'dart:collection' show Queue;
 import 'dart:profiler' show
     UserTag;
 
-import '../compiler.dart' as api;
+import '../compiler_new.dart' as api;
 import 'cache_strategy.dart';
 import 'closure.dart' as closureMapping;
 import 'compile_time_constants.dart';
@@ -43,6 +43,7 @@ import 'library_loader.dart'
          LibraryLoaderTask,
          LoadedLibraries;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
+import 'null_compiler_output.dart';
 import 'native/native.dart' as native;
 import 'ordered_typeset.dart';
 import 'patch_parser.dart';

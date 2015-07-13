@@ -5,32 +5,24 @@
 // Test that the additional runtime type support is output to the right
 // Files when using deferred loading.
 
-import 'package:expect/expect.dart';
 import 'package:async_helper/async_helper.dart';
-import 'memory_source_file_helper.dart';
+import 'package:compiler/src/dart2jslib.dart';
+import 'package:compiler/src/js_backend/js_backend.dart'
+       show JavaScriptBackend;
+import 'package:expect/expect.dart';
+import 'memory_compiler.dart';
 import 'output_collector.dart';
 
 void main() {
-  Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = script.resolve('./packages/');
-
-  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
-  var handler = new FormattingDiagnosticHandler(provider);
-
   OutputCollector collector = new OutputCollector();
-
-  Compiler compiler = new Compiler(provider.readStringFromUri,
-      collector,
-                                   handler.diagnosticHandler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   [],
-                                   {});
+  Compiler compiler = compilerFor(
+      MEMORY_SOURCE_FILES,
+      outputProvider: collector);
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     String mainOutput = collector.getOutput('', 'js');
     String deferredOutput =  collector.getOutput('out_1', 'part.js');
-    String isPrefix = compiler.backend.namer.operatorIsPrefix;
+    JavaScriptBackend backend = compiler.backend;
+    String isPrefix = backend.namer.operatorIsPrefix;
     Expect.isTrue(deferredOutput.contains('${isPrefix}A: 1'),
         "Deferred output doesn't contain '${isPrefix}A: 1':\n"
         "$deferredOutput");

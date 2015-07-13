@@ -12,6 +12,8 @@ import 'package:compiler/src/dart2jslib.dart' show
     MessageKind;
 import 'package:compiler/src/dart_backend/dart_backend.dart' show
     DartBackend;
+import 'package:compiler/src/old_to_new_api.dart' show
+    LegacyCompilerDiagnostics;
 
 import 'memory_compiler.dart';
 
@@ -79,7 +81,7 @@ Future<Compiler> check(MessageKind kind, Compiler cachedCompiler) {
 
     Compiler compiler = compilerFor(
         example,
-        diagnosticHandler: collect,
+        diagnosticHandler: new LegacyCompilerDiagnostics(collect),
         options: ['--analyze-only',
                   '--enable-experimental-mirrors']..addAll(kind.options),
         cachedCompiler:

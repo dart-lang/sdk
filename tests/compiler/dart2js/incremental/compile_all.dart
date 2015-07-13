@@ -14,6 +14,8 @@ import 'dart:developer' show
 
 import 'package:dart2js_incremental/dart2js_incremental.dart' show
     IncrementalCompiler;
+import 'package:compiler/src/source_file_provider.dart' show
+    FormattingDiagnosticHandler;
 
 import '../memory_source_file_helper.dart' show
     Compiler;
@@ -42,13 +44,14 @@ void compileTests(Map<String, String> sources) {
   int skipCount = 0;
   Set<String> crashes = new Set<String>();
   Compiler memoryCompiler = compilerFor(sources);
-  memoryCompiler.handler.verbose = verbose;
+  FormattingDiagnosticHandler handler = memoryCompiler.handler;
+  handler.verbose = verbose;
   var options = ['--analyze-main'];
   if (true || verbose) options.add('--verbose');
   IncrementalCompiler compiler = new IncrementalCompiler(
       libraryRoot: memoryCompiler.libraryRoot,
       inputProvider: memoryCompiler.provider,
-      outputProvider: memoryCompiler.outputProvider,
+      outputProvider: memoryCompiler.userOutputProvider,
       diagnosticHandler: memoryCompiler.handler,
       packageRoot: memoryCompiler.packageRoot,
       options: options);

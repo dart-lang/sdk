@@ -16,6 +16,7 @@ import 'package:compiler/src/js_backend/js_backend.dart'
 import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/tree/tree.dart';
+import 'package:compiler/src/old_to_new_api.dart';
 import 'package:compiler/src/util/util.dart';
 import 'parser_helper.dart';
 
@@ -93,7 +94,7 @@ class MockCompiler extends Compiler {
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
               showPackageWarnings: true,
-              outputProvider: outputProvider) {
+              outputProvider: new LegacyCompilerOutput(outputProvider)) {
     this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);

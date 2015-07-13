@@ -5,51 +5,17 @@
 // Test that we do not accidentially leak code from deferred libraries but do
 // allow inlining of empty functions and from main.
 
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/dart2jslib.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'memory_source_file_helper.dart';
-import "dart:async";
-
-import 'package:compiler/src/dart2jslib.dart'
-       as dart2js;
-
-class MemoryOutputSink extends EventSink<String> {
-  StringBuffer mem = new StringBuffer();
-  void add(String event) {
-    mem.write(event);
-  }
-  void addError(String event, [StackTrace stackTrace]) {
-    Expect.isTrue(false);
-  }
-  void close() {}
-}
+import 'memory_compiler.dart';
+import 'output_collector.dart';
 
 void main() {
-  Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = script.resolve('./packages/');
-
-  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
-  var handler = new FormattingDiagnosticHandler(provider);
-
-  Map<String, MemoryOutputSink> outputs = new Map<String, MemoryOutputSink>();
-
-  MemoryOutputSink outputSaver(name, extension) {
-    if (name == '') {
-      name = 'main';
-    }
-    return outputs.putIfAbsent("$name.$extension", () {
-      return new MemoryOutputSink();
-    });
-  }
-
-  Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   outputSaver,
-                                   handler.diagnosticHandler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   [],
-                                   {});
+  OutputCollector collector = new OutputCollector();
+  Compiler compiler = compilerFor(
+      MEMORY_SOURCE_FILES,
+      outputProvider: collector);
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     lookupLibrary(name) {
       return compiler.libraryLoader.lookupLibrary(Uri.parse(name));
@@ -68,9 +34,9 @@ void main() {
     // Test that we actually got differnt output units.
     Expect.notEquals(ou_lib1.name, ou_lib3.name);
 
-    String mainOutput = outputs["main.js"].mem.toString();
-    String lib1Output = outputs["out_${ou_lib1.name}.part.js"].mem.toString();
-    String lib3Output = outputs["out_${ou_lib3.name}.part.js"].mem.toString();
+    String mainOutput = collector.getOutput("", "js");
+    String lib1Output = collector.getOutput("out_${ou_lib1.name}", "part.js");
+    String lib3Output = collector.getOutput("out_${ou_lib3.name}", "part.js");
 
     RegExp re1 = new RegExp(r"inlined as empty");
     RegExp re2 = new RegExp(r"inlined from main");

@@ -4,45 +4,22 @@
 
 // Test that no parts are emitted when deferred loading isn't used.
 
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/dart2jslib.dart';
 import 'package:expect/expect.dart';
-import "package:async_helper/async_helper.dart";
-import 'memory_source_file_helper.dart';
-
-import 'package:compiler/src/dart2jslib.dart'
-       show NullSink;
-
-import 'package:compiler/compiler.dart'
-       show Diagnostic;
-
-import 'dart:async';
+import 'memory_compiler.dart';
 
 main() {
-  Uri script = currentDirectory.resolveUri(Platform.script);
-  Uri libraryRoot = script.resolve('../../../sdk/');
-  Uri packageRoot = script.resolve('./packages/');
+  DiagnosticCollector diagnostics = new DiagnosticCollector();
+  OutputCollector output = new OutputCollector();
+  Compiler compiler = compilerFor(
+      MEMORY_SOURCE_FILES,
+      diagnosticHandler: diagnostics,
+      outputProvider: output);
 
-  var provider = new MemorySourceFileProvider(MEMORY_SOURCE_FILES);
-  void diagnosticHandler(Uri uri, int begin, int end,
-                         String message, Diagnostic kind) {
-    if (kind == Diagnostic.VERBOSE_INFO) {
-      return;
-    }
-    throw '$uri:$begin:$end:$message:$kind';
-  }
-
-  EventSink<String> outputProvider(String name, String extension) {
-    if (name != '') throw 'Attempt to output file "$name.$extension"';
-    return new NullSink('$name.$extension');
-  }
-
-  Compiler compiler = new Compiler(provider.readStringFromUri,
-                                   outputProvider,
-                                   diagnosticHandler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   [],
-                                   {});
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
+    Expect.isFalse(diagnostics.hasRegularMessages);
+    Expect.isFalse(output.hasExtraOutput);
     Expect.isFalse(compiler.compilationFailed);
   }));
 }

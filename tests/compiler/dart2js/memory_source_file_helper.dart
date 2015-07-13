@@ -52,4 +52,7 @@ class MemorySourceFileProvider extends SourceFileProvider {
     }
     return new StringSourceFile.fromUri(resourceUri, source);
   }
+
+  @override
+  Future readFromUri(Uri resourceUri) => readStringFromUri(resourceUri);
 }

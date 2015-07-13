@@ -7,9 +7,9 @@ part of dart2js_incremental;
 /// Do not call this method directly. It will be made private.
 // TODO(ahe): Make this method private.
 Future<Compiler> reuseCompiler(
-    {DiagnosticHandler diagnosticHandler,
-     CompilerInputProvider inputProvider,
-     CompilerOutputProvider outputProvider,
+    {CompilerDiagnostics diagnosticHandler,
+     CompilerInput inputProvider,
+     CompilerOutput outputProvider,
      List<String> options: const [],
      Compiler cachedCompiler,
      Uri libraryRoot,

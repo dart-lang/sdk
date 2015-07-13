@@ -29,6 +29,9 @@ import 'package:compiler/src/js_backend/js_backend.dart' show
 import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
     as full show Emitter;
 
+import 'package:compiler/src/old_to_new_api.dart' show
+    LegacyCompilerDiagnostics;
+
 void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
   if (kind.name == 'verbose info') {
     print(message);
@@ -48,7 +51,8 @@ void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
 
 void main() {
   Compiler compiler = compilerFor(
-      MEMORY_SOURCE_FILES, diagnosticHandler: expectOnlyVerboseInfo,
+      MEMORY_SOURCE_FILES,
+      diagnosticHandler: new LegacyCompilerDiagnostics(expectOnlyVerboseInfo),
       options: ['--enable-experimental-mirrors']);
   asyncTest(() => compiler.runCompiler(Uri.parse('memory:main.dart')).then((_) {
     print('');
