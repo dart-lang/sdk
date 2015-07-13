@@ -153,7 +153,7 @@ compileToStream(
 class OutputProvider implements CompilerOutput {
   final Map<String, String> output = new Map<String, String>();
 
-  EventSink<String> createSink(String name, String extension) {
+  EventSink<String> createEventSink(String name, String extension) {
     return new StringEventSink((String data) {
       output['$name.$extension'] = data;
     });
