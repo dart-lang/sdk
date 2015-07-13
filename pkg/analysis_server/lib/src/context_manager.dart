@@ -22,24 +22,24 @@ import 'package:path/path.dart' as pathos;
 import 'package:watcher/watcher.dart';
 
 /**
- * The name of `packages` folders.
- */
-const String PACKAGES_NAME = 'packages';
-
-/**
- * File name of pubspec files.
- */
-const String PUBSPEC_NAME = 'pubspec.yaml';
-
-/**
  * Class that maintains a mapping from included/excluded paths to a set of
  * folders that should correspond to analysis contexts.
  */
-abstract class ContextManager {
+abstract class AbstractContextManager implements ContextManager {
   /**
    * The name of the `lib` directory.
    */
   static const String LIB_DIR_NAME = 'lib';
+
+  /**
+   * The name of `packages` folders.
+   */
+  static const String PACKAGES_NAME = 'packages';
+
+  /**
+   * File name of pubspec files.
+   */
+  static const String PUBSPEC_NAME = 'pubspec.yaml';
 
   /**
    * [_ContextInfo] object for each included directory in the most
@@ -98,7 +98,7 @@ abstract class ContextManager {
    */
   final InstrumentationService _instrumentationService;
 
-  ContextManager(this.resourceProvider, this.packageResolverProvider,
+  AbstractContextManager(this.resourceProvider, this.packageResolverProvider,
       this._packageMapProvider, this._instrumentationService) {
     pathContext = resourceProvider.pathContext;
   }
@@ -145,10 +145,7 @@ abstract class ContextManager {
     return flushedFiles.toList(growable: false);
   }
 
-  /**
-   * Return a list containing all of the contexts contained in the given
-   * [analysisRoot].
-   */
+  @override
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot) {
     List<AnalysisContext> contexts = <AnalysisContext>[];
     _contexts.forEach((Folder contextFolder, _ContextInfo info) {
@@ -166,10 +163,7 @@ abstract class ContextManager {
     // Do nothing.
   }
 
-  /**
-   * Returns `true` if the given absolute [path] is in one of the current
-   * root folders and is not excluded.
-   */
+  @override
   bool isInAnalysisRoot(String path) {
     // check if excluded
     if (_isExcluded(path)) {
@@ -185,12 +179,7 @@ abstract class ContextManager {
     return false;
   }
 
-  /**
-   * Rebuild the set of contexts from scratch based on the data last sent to
-   * setRoots(). Only contexts contained in the given list of analysis [roots]
-   * will be rebuilt, unless the list is `null`, in which case every context
-   * will be rebuilt.
-   */
+  @override
   void refresh(List<Resource> roots) {
     // Destroy old contexts
     List<Folder> contextFolders = _contexts.keys.toList();
@@ -215,10 +204,7 @@ abstract class ContextManager {
    */
   void removeContext(Folder folder);
 
-  /**
-   * Change the set of paths which should be used as starting points to
-   * determine the context directories.
-   */
+  @override
   void setRoots(List<String> includedPaths, List<String> excludedPaths,
       Map<String, String> packageRoots) {
     this.packageRoots = packageRoots;
@@ -763,6 +749,105 @@ abstract class ContextManager {
     Uri uri = context.sourceFactory.restoreUri(source);
     return file.createSource(uri);
   }
+}
+
+/**
+ * Class that maintains a mapping from included/excluded paths to a set of
+ * folders that should correspond to analysis contexts.
+ */
+abstract class ContextManager {
+  // TODO(brianwilkerson) Support:
+  //   setting the default analysis options
+  //   setting the default content cache
+  //   setting the default SDK
+  //   maintaining AnalysisContext.folderMap (or remove it)
+  //   telling server when a context has been added or removed (see onContextsChanged)
+  //   telling server when a context needs to be re-analyzed
+  //   notifying the client when results should be flushed
+  //   using analyzeFileFunctions to determine which files to analyze
+  //
+  // TODO(brianwilkerson) Move this class to a public library.
+
+//  /**
+//   * The default options used to create new analysis contexts.
+//   */
+//  AnalysisOptionsImpl get defaultOptions;
+
+  /**
+   * Return the list of excluded paths (folders and files) most recently passed
+   * to [setRoots].
+   */
+  List<String> get excludedPaths;
+
+  /**
+   * Return the list of included paths (folders and files) most recently passed
+   * to [setRoots].
+   */
+  List<String> get includedPaths;
+
+//  /**
+//   * A stream that is notified when contexts are added or removed.
+//   */
+//  Stream<ContextsChangedEvent> get onContextsChanged;
+
+  /**
+   * Return a list containing all of the contexts contained in the given
+   * [analysisRoot].
+   */
+  List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot);
+
+  /**
+   * Return `true` if the given absolute [path] is in one of the current
+   * root folders and is not excluded.
+   */
+  bool isInAnalysisRoot(String path);
+
+  /**
+   * Rebuild the set of contexts from scratch based on the data last sent to
+   * [setRoots]. Only contexts contained in the given list of analysis [roots]
+   * will be rebuilt, unless the list is `null`, in which case every context
+   * will be rebuilt.
+   */
+  void refresh(List<Resource> roots);
+
+  /**
+   * Change the set of paths which should be used as starting points to
+   * determine the context directories.
+   */
+  void setRoots(List<String> includedPaths, List<String> excludedPaths,
+      Map<String, String> packageRoots);
+}
+
+/**
+ * An indication that one or more contexts were added, changed, or removed.
+ *
+ * The lists of [added], [changed] and [removed] contexts will not contain
+ * duplications (that is, a single context will not be in any list multiple
+ * times), nor will there be any overlap between the lists (that is, a single
+ * context will not be in more than one list).
+ */
+class ContextsChangedEvent {
+  /**
+   * The contexts that were added to the server.
+   */
+  final List<AnalysisContext> added;
+
+  /**
+   * The contexts that were changed.
+   */
+  final List<AnalysisContext> changed;
+
+  /**
+   * The contexts that were removed from the server.
+   */
+  final List<AnalysisContext> removed;
+
+  /**
+   * Initialize a newly created event to indicate which contexts have changed.
+   */
+  ContextsChangedEvent({this.added: AnalysisContext.EMPTY_LIST,
+      this.changed: AnalysisContext.EMPTY_LIST,
+      this.removed: AnalysisContext.EMPTY_LIST});
 }
 
 /**

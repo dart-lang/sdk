@@ -9,6 +9,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/server/stdio_server.dart';
@@ -284,9 +285,16 @@ class Driver implements ServerStarter {
   InstrumentationServer instrumentationServer;
 
   /**
+   * The context manager used to create analysis contexts within each of the
+   * analysis roots.
+   */
+  ContextManager contextManager;
+
+  /**
    * The package resolver provider used to override the way package URI's are
    * resolved in some contexts.
    */
+  @deprecated
   ResolverProvider packageResolverProvider;
 
   /**
@@ -396,7 +404,7 @@ class Driver implements ServerStarter {
     // Create the sockets and start listening for requests.
     //
     socketServer = new SocketServer(analysisServerOptions, defaultSdk, service,
-        serverPlugin, packageResolverProvider);
+        serverPlugin, contextManager, packageResolverProvider);
     httpServer = new HttpAnalysisServer(socketServer);
     stdioServer = new StdioAnalysisServer(socketServer);
     socketServer.userDefinedPlugins = _userDefinedPlugins;

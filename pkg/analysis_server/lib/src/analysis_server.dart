@@ -108,10 +108,10 @@ class AnalysisServer {
   final ServerPlugin serverPlugin;
 
   /**
-   * [ContextManager] which handles the mapping from analysis roots
-   * to context directories.
+   * The [ContextManager] that handles the mapping from analysis roots to
+   * context directories.
    */
-  ServerContextManager contextDirectoryManager;
+  ServerContextManager contextManager;
 
   /**
    * A flag indicating whether the server is running.  When false, contexts
@@ -254,6 +254,9 @@ class AnalysisServer {
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
+   * If a [contextManager] is provided, then the [packageResolverProvider] will
+   * be ignored.
+   *
    * If [rethrowExceptions] is true, then any exceptions thrown by analysis are
    * propagated up the call stack.  The default is true to allow analysis
    * exceptions to show up in unit tests, but it should be set to false when
@@ -263,20 +266,30 @@ class AnalysisServer {
       OptimizingPubPackageMapProvider packageMapProvider, Index _index,
       this.serverPlugin, AnalysisServerOptions analysisServerOptions,
       this.defaultSdk, this.instrumentationService,
-      {ResolverProvider packageResolverProvider: null,
+      {ContextManager contextManager: null,
+      ResolverProvider packageResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
     operationQueue = new ServerOperationQueue();
-    contextDirectoryManager = new ServerContextManager(this, resourceProvider,
-        packageResolverProvider, packageMapProvider, instrumentationService);
-    contextDirectoryManager.defaultOptions.incremental = true;
-    contextDirectoryManager.defaultOptions.incrementalApi =
-        analysisServerOptions.enableIncrementalResolutionApi;
-    contextDirectoryManager.defaultOptions.incrementalValidation =
-        analysisServerOptions.enableIncrementalResolutionValidation;
-    contextDirectoryManager.defaultOptions.generateImplicitErrors = false;
+    if (contextManager == null) {
+      contextManager = new ServerContextManager(this, resourceProvider,
+          packageResolverProvider, packageMapProvider, instrumentationService);
+      AnalysisOptionsImpl options =
+          (contextManager as ServerContextManager).defaultOptions;
+      options.incremental = true;
+      options.incrementalApi =
+          analysisServerOptions.enableIncrementalResolutionApi;
+      options.incrementalValidation =
+          analysisServerOptions.enableIncrementalResolutionValidation;
+      options.generateImplicitErrors = false;
+    } else if (contextManager is! ServerContextManager) {
+      // TODO(brianwilkerson) Remove this when the interface is complete.
+      throw new StateError(
+          'The contextManager must be an instance of ServerContextManager');
+    }
+    this.contextManager = contextManager;
     _noErrorNotification = analysisServerOptions.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger();
     _onAnalysisStartedController = new StreamController.broadcast();
@@ -321,7 +334,7 @@ class AnalysisServer {
    * The stream that is notified when contexts are added or removed.
    */
   Stream<ContextsChangedEvent> get onContextsChanged =>
-      contextDirectoryManager.onContextsChanged;
+      contextManager.onContextsChanged;
 
   /**
    * The stream that is notified when a single file has been analyzed.
@@ -374,7 +387,7 @@ class AnalysisServer {
    * analyzed.
    */
   void fileAnalyzed(ChangeNotice notice) {
-    if (contextDirectoryManager.isInAnalysisRoot(notice.source.fullName)) {
+    if (contextManager.isInAnalysisRoot(notice.source.fullName)) {
       _onFileAnalyzedController.add(notice);
     }
   }
@@ -465,14 +478,15 @@ class AnalysisServer {
     {
       AnalysisContext containingContext = getContainingContext(path);
       if (containingContext != null) {
-        Source source =
-            ContextManager.createSourceInContext(containingContext, file);
+        Source source = AbstractContextManager.createSourceInContext(
+            containingContext, file);
         return new ContextSourcePair(containingContext, source);
       }
     }
     // try to find a context that analysed the file
     for (AnalysisContext context in folderMap.values) {
-      Source source = ContextManager.createSourceInContext(context, file);
+      Source source =
+          AbstractContextManager.createSourceInContext(context, file);
       SourceKind kind = context.getKindOf(source);
       if (kind != SourceKind.UNKNOWN) {
         return new ContextSourcePair(context, source);
@@ -772,7 +786,7 @@ class AnalysisServer {
     }
     // Instruct the contextDirectoryManager to rebuild all contexts from
     // scratch.
-    contextDirectoryManager.refresh(roots);
+    contextManager.refresh(roots);
   }
 
   /**
@@ -877,8 +891,7 @@ class AnalysisServer {
   void setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths, Map<String, String> packageRoots) {
     try {
-      contextDirectoryManager.setRoots(
-          includedPaths, excludedPaths, packageRoots);
+      contextManager.setRoots(includedPaths, excludedPaths, packageRoots);
     } on UnimplementedError catch (e) {
       throw new RequestFailure(
           new Response.unsupportedFeature(requestId, e.message));
@@ -962,7 +975,8 @@ class AnalysisServer {
             Uri uri = context.sourceFactory.restoreUri(source);
             if (uri.scheme != 'file') {
               preferredContext = context;
-              source = ContextManager.createSourceInContext(context, resource);
+              source = AbstractContextManager.createSourceInContext(
+                  context, resource);
               break;
             }
           }
@@ -1009,8 +1023,7 @@ class AnalysisServer {
    * absolute path.
    */
   bool shouldSendErrorsNotificationFor(String file) {
-    return !_noErrorNotification &&
-        contextDirectoryManager.isInAnalysisRoot(file);
+    return !_noErrorNotification && contextManager.isInAnalysisRoot(file);
   }
 
   void shutdown() {
@@ -1157,11 +1170,13 @@ class AnalysisServer {
         optionUpdater(options);
       });
       context.analysisOptions = options;
+      // TODO(brianwilkerson) As far as I can tell, this doesn't cause analysis
+      // to be scheduled for this context.
     });
     //
     // Update the defaults used to create new contexts.
     //
-    AnalysisOptionsImpl options = contextDirectoryManager.defaultOptions;
+    AnalysisOptionsImpl options = contextManager.defaultOptions;
     optionUpdaters.forEach((OptionUpdater optionUpdater) {
       optionUpdater(options);
     });
@@ -1175,8 +1190,7 @@ class AnalysisServer {
     Set<AnalysisContext> contexts = new HashSet<AnalysisContext>();
     resources.forEach((Resource resource) {
       if (resource is Folder) {
-        contexts
-            .addAll(contextDirectoryManager.contextsInAnalysisRoot(resource));
+        contexts.addAll(contextManager.contextsInAnalysisRoot(resource));
       }
     });
     return contexts;
@@ -1243,34 +1257,6 @@ class AnalysisServerOptions {
 }
 
 /**
- * A [ContextsChangedEvent] indicate what contexts were added or removed.
- *
- * No context should be added to the event more than once. It does not make
- * sense, for example, for a context to be both added and removed.
- */
-class ContextsChangedEvent {
-
-  /**
-   * The contexts that were added to the server.
-   */
-  final List<AnalysisContext> added;
-
-  /**
-   * The contexts that were changed.
-   */
-  final List<AnalysisContext> changed;
-
-  /**
-   * The contexts that were removed from the server.
-   */
-  final List<AnalysisContext> removed;
-
-  ContextsChangedEvent({this.added: AnalysisContext.EMPTY_LIST,
-      this.changed: AnalysisContext.EMPTY_LIST,
-      this.removed: AnalysisContext.EMPTY_LIST});
-}
-
-/**
  * Information about a file - an [AnalysisContext] that analyses the file,
  * and the [Source] representing the file in this context.
  */
@@ -1300,7 +1286,7 @@ class PriorityChangeEvent {
   PriorityChangeEvent(this.firstSource);
 }
 
-class ServerContextManager extends ContextManager {
+class ServerContextManager extends AbstractContextManager {
   final AnalysisServer analysisServer;
 
   /**

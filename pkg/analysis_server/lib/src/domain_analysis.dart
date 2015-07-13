@@ -191,7 +191,7 @@ class AnalysisDomainHandler implements RequestHandler {
         new AnalysisReanalyzeParams.fromRequest(request);
     List<String> roots = params.roots;
     if (roots == null || roots.isNotEmpty) {
-      List<String> includedPaths = server.contextDirectoryManager.includedPaths;
+      List<String> includedPaths = server.contextManager.includedPaths;
       List<Resource> rootResources = null;
       if (roots != null) {
         rootResources = <Resource>[];

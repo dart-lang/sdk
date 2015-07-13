@@ -193,7 +193,7 @@ class ExecutionDomainHandler implements RequestHandler {
    * analysis root.
    */
   bool _isInAnalysisRoot(String filePath) =>
-      server.contextDirectoryManager.isInAnalysisRoot(filePath);
+      server.contextManager.isInAnalysisRoot(filePath);
 
   void _reportCurrentFileStatus() {
     for (AnalysisContext context in server.getAnalysisContexts()) {
