@@ -89,7 +89,7 @@ Window get window {
   if (_window != null) {
     return _window;
   }
-  _window = _Utils.window();
+  _window = wrap_jso(js.context['window']);
   return _window;
 }
 
@@ -620,10 +620,583 @@ Type _getSvgType(String key) {
 }
 
 
-unwrap_jso(dartClass_instance) => dartClass_instance;
-wrap_jso(jsObject) => jsObject;
-wrap_jso_list(jso_nodes) => jso_nodes;
-make_dart_rectangle(r) => r;
+// FIXME: Can we make this private?
+final htmlBlinkFunctionMap = {
+  'AbstractWorker': () => AbstractWorker.internalCreateAbstractWorker,
+  'Animation': () => Animation.internalCreateAnimation,
+  'AnimationEffect': () => AnimationEffect.internalCreateAnimationEffect,
+  'AnimationNode': () => AnimationNode.internalCreateAnimationNode,
+  'AnimationPlayer': () => AnimationPlayer.internalCreateAnimationPlayer,
+  'AnimationPlayerEvent': () => AnimationPlayerEvent.internalCreateAnimationPlayerEvent,
+  'AnimationTimeline': () => AnimationTimeline.internalCreateAnimationTimeline,
+  'ApplicationCache': () => ApplicationCache.internalCreateApplicationCache,
+  'ApplicationCacheErrorEvent': () => ApplicationCacheErrorEvent.internalCreateApplicationCacheErrorEvent,
+  'Attr': () => _Attr.internalCreate_Attr,
+  'AudioTrack': () => AudioTrack.internalCreateAudioTrack,
+  'AudioTrackList': () => AudioTrackList.internalCreateAudioTrackList,
+  'AutocompleteErrorEvent': () => AutocompleteErrorEvent.internalCreateAutocompleteErrorEvent,
+  'BarProp': () => BarProp.internalCreateBarProp,
+  'BatteryManager': () => BatteryManager.internalCreateBatteryManager,
+  'BeforeUnloadEvent': () => BeforeUnloadEvent.internalCreateBeforeUnloadEvent,
+  'Blob': () => Blob.internalCreateBlob,
+  'Body': () => Body.internalCreateBody,
+  'CDATASection': () => CDataSection.internalCreateCDataSection,
+  'CSS': () => Css.internalCreateCss,
+  'CSSCharsetRule': () => CssCharsetRule.internalCreateCssCharsetRule,
+  'CSSFontFaceRule': () => CssFontFaceRule.internalCreateCssFontFaceRule,
+  'CSSImportRule': () => CssImportRule.internalCreateCssImportRule,
+  'CSSKeyframeRule': () => CssKeyframeRule.internalCreateCssKeyframeRule,
+  'CSSKeyframesRule': () => CssKeyframesRule.internalCreateCssKeyframesRule,
+  'CSSMediaRule': () => CssMediaRule.internalCreateCssMediaRule,
+  'CSSPageRule': () => CssPageRule.internalCreateCssPageRule,
+  'CSSPrimitiveValue': () => _CSSPrimitiveValue.internalCreate_CSSPrimitiveValue,
+  'CSSRule': () => CssRule.internalCreateCssRule,
+  'CSSRuleList': () => _CssRuleList.internalCreate_CssRuleList,
+  'CSSStyleDeclaration': () => CssStyleDeclaration.internalCreateCssStyleDeclaration,
+  'CSSStyleRule': () => CssStyleRule.internalCreateCssStyleRule,
+  'CSSStyleSheet': () => CssStyleSheet.internalCreateCssStyleSheet,
+  'CSSSupportsRule': () => CssSupportsRule.internalCreateCssSupportsRule,
+  'CSSUnknownRule': () => _CSSUnknownRule.internalCreate_CSSUnknownRule,
+  'CSSValue': () => _CSSValue.internalCreate_CSSValue,
+  'CSSValueList': () => _CssValueList.internalCreate_CssValueList,
+  'CSSViewportRule': () => CssViewportRule.internalCreateCssViewportRule,
+  'Cache': () => _Cache.internalCreate_Cache,
+  'CacheStorage': () => CacheStorage.internalCreateCacheStorage,
+  'Canvas2DContextAttributes': () => Canvas2DContextAttributes.internalCreateCanvas2DContextAttributes,
+  'CanvasGradient': () => CanvasGradient.internalCreateCanvasGradient,
+  'CanvasPathMethods': () => _CanvasPathMethods.internalCreate_CanvasPathMethods,
+  'CanvasPattern': () => CanvasPattern.internalCreateCanvasPattern,
+  'CanvasRenderingContext2D': () => CanvasRenderingContext2D.internalCreateCanvasRenderingContext2D,
+  'CharacterData': () => CharacterData.internalCreateCharacterData,
+  'ChildNode': () => ChildNode.internalCreateChildNode,
+  'CircularGeofencingRegion': () => CircularGeofencingRegion.internalCreateCircularGeofencingRegion,
+  'ClientRect': () => _ClientRect.internalCreate_ClientRect,
+  'ClientRectList': () => _ClientRectList.internalCreate_ClientRectList,
+  'CloseEvent': () => CloseEvent.internalCreateCloseEvent,
+  'Comment': () => Comment.internalCreateComment,
+  'CompositionEvent': () => CompositionEvent.internalCreateCompositionEvent,
+  'Console': () => Console.internalCreateConsole,
+  'ConsoleBase': () => ConsoleBase.internalCreateConsoleBase,
+  'Coordinates': () => Coordinates.internalCreateCoordinates,
+  'Counter': () => _Counter.internalCreate_Counter,
+  'Credential': () => Credential.internalCreateCredential,
+  'CredentialsContainer': () => CredentialsContainer.internalCreateCredentialsContainer,
+  'Crypto': () => Crypto.internalCreateCrypto,
+  'CryptoKey': () => CryptoKey.internalCreateCryptoKey,
+  'CustomEvent': () => CustomEvent.internalCreateCustomEvent,
+  'DOMError': () => DomError.internalCreateDomError,
+  'DOMException': () => DomException.internalCreateDomException,
+  'DOMFileSystem': () => FileSystem.internalCreateFileSystem,
+  'DOMFileSystemSync': () => _DOMFileSystemSync.internalCreate_DOMFileSystemSync,
+  'DOMImplementation': () => DomImplementation.internalCreateDomImplementation,
+  'DOMMatrix': () => DomMatrix.internalCreateDomMatrix,
+  'DOMMatrixReadOnly': () => DomMatrixReadOnly.internalCreateDomMatrixReadOnly,
+  'DOMParser': () => DomParser.internalCreateDomParser,
+  'DOMPoint': () => DomPoint.internalCreateDomPoint,
+  'DOMPointReadOnly': () => DomPointReadOnly.internalCreateDomPointReadOnly,
+  'DOMRect': () => _DomRect.internalCreate_DomRect,
+  'DOMRectReadOnly': () => DomRectReadOnly.internalCreateDomRectReadOnly,
+  'DOMSettableTokenList': () => DomSettableTokenList.internalCreateDomSettableTokenList,
+  'DOMStringList': () => DomStringList.internalCreateDomStringList,
+  'DOMStringMap': () => DomStringMap.internalCreateDomStringMap,
+  'DOMTokenList': () => DomTokenList.internalCreateDomTokenList,
+  'DataTransfer': () => DataTransfer.internalCreateDataTransfer,
+  'DataTransferItem': () => DataTransferItem.internalCreateDataTransferItem,
+  'DataTransferItemList': () => DataTransferItemList.internalCreateDataTransferItemList,
+  'DedicatedWorkerGlobalScope': () => DedicatedWorkerGlobalScope.internalCreateDedicatedWorkerGlobalScope,
+  'DeprecatedStorageInfo': () => DeprecatedStorageInfo.internalCreateDeprecatedStorageInfo,
+  'DeprecatedStorageQuota': () => DeprecatedStorageQuota.internalCreateDeprecatedStorageQuota,
+  'DeviceAcceleration': () => DeviceAcceleration.internalCreateDeviceAcceleration,
+  'DeviceLightEvent': () => DeviceLightEvent.internalCreateDeviceLightEvent,
+  'DeviceMotionEvent': () => DeviceMotionEvent.internalCreateDeviceMotionEvent,
+  'DeviceOrientationEvent': () => DeviceOrientationEvent.internalCreateDeviceOrientationEvent,
+  'DeviceRotationRate': () => DeviceRotationRate.internalCreateDeviceRotationRate,
+  'DirectoryEntry': () => DirectoryEntry.internalCreateDirectoryEntry,
+  'DirectoryEntrySync': () => _DirectoryEntrySync.internalCreate_DirectoryEntrySync,
+  'DirectoryReader': () => DirectoryReader.internalCreateDirectoryReader,
+  'DirectoryReaderSync': () => _DirectoryReaderSync.internalCreate_DirectoryReaderSync,
+  'Document': () => Document.internalCreateDocument,
+  'DocumentFragment': () => DocumentFragment.internalCreateDocumentFragment,
+  'DocumentType': () => _DocumentType.internalCreate_DocumentType,
+  'Element': () => Element.internalCreateElement,
+  'Entry': () => Entry.internalCreateEntry,
+  'EntrySync': () => _EntrySync.internalCreate_EntrySync,
+  'ErrorEvent': () => ErrorEvent.internalCreateErrorEvent,
+  'Event': () => Event.internalCreateEvent,
+  'EventSource': () => EventSource.internalCreateEventSource,
+  'EventTarget': () => EventTarget.internalCreateEventTarget,
+  'ExtendableEvent': () => ExtendableEvent.internalCreateExtendableEvent,
+  'FederatedCredential': () => FederatedCredential.internalCreateFederatedCredential,
+  'FetchEvent': () => FetchEvent.internalCreateFetchEvent,
+  'File': () => File.internalCreateFile,
+  'FileEntry': () => FileEntry.internalCreateFileEntry,
+  'FileEntrySync': () => _FileEntrySync.internalCreate_FileEntrySync,
+  'FileError': () => FileError.internalCreateFileError,
+  'FileList': () => FileList.internalCreateFileList,
+  'FileReader': () => FileReader.internalCreateFileReader,
+  'FileReaderSync': () => _FileReaderSync.internalCreate_FileReaderSync,
+  'FileWriter': () => FileWriter.internalCreateFileWriter,
+  'FileWriterSync': () => _FileWriterSync.internalCreate_FileWriterSync,
+  'FocusEvent': () => FocusEvent.internalCreateFocusEvent,
+  'FontFace': () => FontFace.internalCreateFontFace,
+  'FontFaceSet': () => FontFaceSet.internalCreateFontFaceSet,
+  'FontFaceSetLoadEvent': () => FontFaceSetLoadEvent.internalCreateFontFaceSetLoadEvent,
+  'FormData': () => FormData.internalCreateFormData,
+  'Gamepad': () => Gamepad.internalCreateGamepad,
+  'GamepadButton': () => GamepadButton.internalCreateGamepadButton,
+  'GamepadEvent': () => GamepadEvent.internalCreateGamepadEvent,
+  'GamepadList': () => _GamepadList.internalCreate_GamepadList,
+  'Geofencing': () => Geofencing.internalCreateGeofencing,
+  'GeofencingRegion': () => GeofencingRegion.internalCreateGeofencingRegion,
+  'Geolocation': () => Geolocation.internalCreateGeolocation,
+  'Geoposition': () => Geoposition.internalCreateGeoposition,
+  'GlobalEventHandlers': () => GlobalEventHandlers.internalCreateGlobalEventHandlers,
+  'HTMLAllCollection': () => _HTMLAllCollection.internalCreate_HTMLAllCollection,
+  'HTMLAnchorElement': () => AnchorElement.internalCreateAnchorElement,
+  'HTMLAppletElement': () => _HTMLAppletElement.internalCreate_HTMLAppletElement,
+  'HTMLAreaElement': () => AreaElement.internalCreateAreaElement,
+  'HTMLAudioElement': () => AudioElement.internalCreateAudioElement,
+  'HTMLBRElement': () => BRElement.internalCreateBRElement,
+  'HTMLBaseElement': () => BaseElement.internalCreateBaseElement,
+  'HTMLBodyElement': () => BodyElement.internalCreateBodyElement,
+  'HTMLButtonElement': () => ButtonElement.internalCreateButtonElement,
+  'HTMLCanvasElement': () => CanvasElement.internalCreateCanvasElement,
+  'HTMLCollection': () => HtmlCollection.internalCreateHtmlCollection,
+  'HTMLContentElement': () => ContentElement.internalCreateContentElement,
+  'HTMLDListElement': () => DListElement.internalCreateDListElement,
+  'HTMLDataListElement': () => DataListElement.internalCreateDataListElement,
+  'HTMLDetailsElement': () => DetailsElement.internalCreateDetailsElement,
+  'HTMLDialogElement': () => DialogElement.internalCreateDialogElement,
+  'HTMLDirectoryElement': () => _HTMLDirectoryElement.internalCreate_HTMLDirectoryElement,
+  'HTMLDivElement': () => DivElement.internalCreateDivElement,
+  'HTMLDocument': () => HtmlDocument.internalCreateHtmlDocument,
+  'HTMLElement': () => HtmlElement.internalCreateHtmlElement,
+  'HTMLEmbedElement': () => EmbedElement.internalCreateEmbedElement,
+  'HTMLFieldSetElement': () => FieldSetElement.internalCreateFieldSetElement,
+  'HTMLFontElement': () => _HTMLFontElement.internalCreate_HTMLFontElement,
+  'HTMLFormControlsCollection': () => HtmlFormControlsCollection.internalCreateHtmlFormControlsCollection,
+  'HTMLFormElement': () => FormElement.internalCreateFormElement,
+  'HTMLFrameElement': () => _HTMLFrameElement.internalCreate_HTMLFrameElement,
+  'HTMLFrameSetElement': () => _HTMLFrameSetElement.internalCreate_HTMLFrameSetElement,
+  'HTMLHRElement': () => HRElement.internalCreateHRElement,
+  'HTMLHeadElement': () => HeadElement.internalCreateHeadElement,
+  'HTMLHeadingElement': () => HeadingElement.internalCreateHeadingElement,
+  'HTMLHtmlElement': () => HtmlHtmlElement.internalCreateHtmlHtmlElement,
+  'HTMLIFrameElement': () => IFrameElement.internalCreateIFrameElement,
+  'HTMLImageElement': () => ImageElement.internalCreateImageElement,
+  'HTMLInputElement': () => InputElement.internalCreateInputElement,
+  'HTMLKeygenElement': () => KeygenElement.internalCreateKeygenElement,
+  'HTMLLIElement': () => LIElement.internalCreateLIElement,
+  'HTMLLabelElement': () => LabelElement.internalCreateLabelElement,
+  'HTMLLegendElement': () => LegendElement.internalCreateLegendElement,
+  'HTMLLinkElement': () => LinkElement.internalCreateLinkElement,
+  'HTMLMapElement': () => MapElement.internalCreateMapElement,
+  'HTMLMarqueeElement': () => _HTMLMarqueeElement.internalCreate_HTMLMarqueeElement,
+  'HTMLMediaElement': () => MediaElement.internalCreateMediaElement,
+  'HTMLMenuElement': () => MenuElement.internalCreateMenuElement,
+  'HTMLMenuItemElement': () => MenuItemElement.internalCreateMenuItemElement,
+  'HTMLMetaElement': () => MetaElement.internalCreateMetaElement,
+  'HTMLMeterElement': () => MeterElement.internalCreateMeterElement,
+  'HTMLModElement': () => ModElement.internalCreateModElement,
+  'HTMLOListElement': () => OListElement.internalCreateOListElement,
+  'HTMLObjectElement': () => ObjectElement.internalCreateObjectElement,
+  'HTMLOptGroupElement': () => OptGroupElement.internalCreateOptGroupElement,
+  'HTMLOptionElement': () => OptionElement.internalCreateOptionElement,
+  'HTMLOptionsCollection': () => HtmlOptionsCollection.internalCreateHtmlOptionsCollection,
+  'HTMLOutputElement': () => OutputElement.internalCreateOutputElement,
+  'HTMLParagraphElement': () => ParagraphElement.internalCreateParagraphElement,
+  'HTMLParamElement': () => ParamElement.internalCreateParamElement,
+  'HTMLPictureElement': () => PictureElement.internalCreatePictureElement,
+  'HTMLPreElement': () => PreElement.internalCreatePreElement,
+  'HTMLProgressElement': () => ProgressElement.internalCreateProgressElement,
+  'HTMLQuoteElement': () => QuoteElement.internalCreateQuoteElement,
+  'HTMLScriptElement': () => ScriptElement.internalCreateScriptElement,
+  'HTMLSelectElement': () => SelectElement.internalCreateSelectElement,
+  'HTMLShadowElement': () => ShadowElement.internalCreateShadowElement,
+  'HTMLSourceElement': () => SourceElement.internalCreateSourceElement,
+  'HTMLSpanElement': () => SpanElement.internalCreateSpanElement,
+  'HTMLStyleElement': () => StyleElement.internalCreateStyleElement,
+  'HTMLTableCaptionElement': () => TableCaptionElement.internalCreateTableCaptionElement,
+  'HTMLTableCellElement': () => TableCellElement.internalCreateTableCellElement,
+  'HTMLTableColElement': () => TableColElement.internalCreateTableColElement,
+  'HTMLTableElement': () => TableElement.internalCreateTableElement,
+  'HTMLTableRowElement': () => TableRowElement.internalCreateTableRowElement,
+  'HTMLTableSectionElement': () => TableSectionElement.internalCreateTableSectionElement,
+  'HTMLTemplateElement': () => TemplateElement.internalCreateTemplateElement,
+  'HTMLTextAreaElement': () => TextAreaElement.internalCreateTextAreaElement,
+  'HTMLTitleElement': () => TitleElement.internalCreateTitleElement,
+  'HTMLTrackElement': () => TrackElement.internalCreateTrackElement,
+  'HTMLUListElement': () => UListElement.internalCreateUListElement,
+  'HTMLUnknownElement': () => UnknownElement.internalCreateUnknownElement,
+  'HTMLVideoElement': () => VideoElement.internalCreateVideoElement,
+  'HashChangeEvent': () => HashChangeEvent.internalCreateHashChangeEvent,
+  'Headers': () => Headers.internalCreateHeaders,
+  'History': () => History.internalCreateHistory,
+  'ImageBitmap': () => ImageBitmap.internalCreateImageBitmap,
+  'ImageData': () => ImageData.internalCreateImageData,
+  'InjectedScriptHost': () => InjectedScriptHost.internalCreateInjectedScriptHost,
+  'InputMethodContext': () => InputMethodContext.internalCreateInputMethodContext,
+  'InstallEvent': () => InstallEvent.internalCreateInstallEvent,
+  'Iterator': () => DomIterator.internalCreateDomIterator,
+  'KeyboardEvent': () => KeyboardEvent.internalCreateKeyboardEvent,
+  'LocalCredential': () => LocalCredential.internalCreateLocalCredential,
+  'Location': () => Location.internalCreateLocation,
+  'MIDIAccess': () => MidiAccess.internalCreateMidiAccess,
+  'MIDIConnectionEvent': () => MidiConnectionEvent.internalCreateMidiConnectionEvent,
+  'MIDIInput': () => MidiInput.internalCreateMidiInput,
+  'MIDIInputMap': () => MidiInputMap.internalCreateMidiInputMap,
+  'MIDIMessageEvent': () => MidiMessageEvent.internalCreateMidiMessageEvent,
+  'MIDIOutput': () => MidiOutput.internalCreateMidiOutput,
+  'MIDIOutputMap': () => MidiOutputMap.internalCreateMidiOutputMap,
+  'MIDIPort': () => MidiPort.internalCreateMidiPort,
+  'MediaController': () => MediaController.internalCreateMediaController,
+  'MediaDeviceInfo': () => MediaDeviceInfo.internalCreateMediaDeviceInfo,
+  'MediaError': () => MediaError.internalCreateMediaError,
+  'MediaKeyError': () => MediaKeyError.internalCreateMediaKeyError,
+  'MediaKeyEvent': () => MediaKeyEvent.internalCreateMediaKeyEvent,
+  'MediaKeyMessageEvent': () => MediaKeyMessageEvent.internalCreateMediaKeyMessageEvent,
+  'MediaKeyNeededEvent': () => MediaKeyNeededEvent.internalCreateMediaKeyNeededEvent,
+  'MediaKeySession': () => MediaKeySession.internalCreateMediaKeySession,
+  'MediaKeys': () => MediaKeys.internalCreateMediaKeys,
+  'MediaList': () => MediaList.internalCreateMediaList,
+  'MediaQueryList': () => MediaQueryList.internalCreateMediaQueryList,
+  'MediaQueryListEvent': () => MediaQueryListEvent.internalCreateMediaQueryListEvent,
+  'MediaSource': () => MediaSource.internalCreateMediaSource,
+  'MediaStream': () => MediaStream.internalCreateMediaStream,
+  'MediaStreamEvent': () => MediaStreamEvent.internalCreateMediaStreamEvent,
+  'MediaStreamTrack': () => MediaStreamTrack.internalCreateMediaStreamTrack,
+  'MediaStreamTrackEvent': () => MediaStreamTrackEvent.internalCreateMediaStreamTrackEvent,
+  'MemoryInfo': () => MemoryInfo.internalCreateMemoryInfo,
+  'MessageChannel': () => MessageChannel.internalCreateMessageChannel,
+  'MessageEvent': () => MessageEvent.internalCreateMessageEvent,
+  'MessagePort': () => MessagePort.internalCreateMessagePort,
+  'Metadata': () => Metadata.internalCreateMetadata,
+  'MimeType': () => MimeType.internalCreateMimeType,
+  'MimeTypeArray': () => MimeTypeArray.internalCreateMimeTypeArray,
+  'MouseEvent': () => MouseEvent.internalCreateMouseEvent,
+  'MutationEvent': () => _MutationEvent.internalCreate_MutationEvent,
+  'MutationObserver': () => MutationObserver.internalCreateMutationObserver,
+  'MutationRecord': () => MutationRecord.internalCreateMutationRecord,
+  'NamedNodeMap': () => _NamedNodeMap.internalCreate_NamedNodeMap,
+  'Navigator': () => Navigator.internalCreateNavigator,
+  'NavigatorCPU': () => NavigatorCpu.internalCreateNavigatorCpu,
+  'NavigatorID': () => NavigatorID.internalCreateNavigatorID,
+  'NavigatorLanguage': () => NavigatorLanguage.internalCreateNavigatorLanguage,
+  'NavigatorOnLine': () => NavigatorOnLine.internalCreateNavigatorOnLine,
+  'NavigatorUserMediaError': () => NavigatorUserMediaError.internalCreateNavigatorUserMediaError,
+  'NetworkInformation': () => NetworkInformation.internalCreateNetworkInformation,
+  'Node': () => Node.internalCreateNode,
+  'NodeFilter': () => NodeFilter.internalCreateNodeFilter,
+  'NodeIterator': () => NodeIterator.internalCreateNodeIterator,
+  'NodeList': () => NodeList.internalCreateNodeList,
+  'Notification': () => Notification.internalCreateNotification,
+  'OverflowEvent': () => OverflowEvent.internalCreateOverflowEvent,
+  'PagePopupController': () => _PagePopupController.internalCreate_PagePopupController,
+  'PageTransitionEvent': () => PageTransitionEvent.internalCreatePageTransitionEvent,
+  'ParentNode': () => ParentNode.internalCreateParentNode,
+  'Path2D': () => Path2D.internalCreatePath2D,
+  'Performance': () => Performance.internalCreatePerformance,
+  'PerformanceEntry': () => PerformanceEntry.internalCreatePerformanceEntry,
+  'PerformanceMark': () => PerformanceMark.internalCreatePerformanceMark,
+  'PerformanceMeasure': () => PerformanceMeasure.internalCreatePerformanceMeasure,
+  'PerformanceNavigation': () => PerformanceNavigation.internalCreatePerformanceNavigation,
+  'PerformanceResourceTiming': () => PerformanceResourceTiming.internalCreatePerformanceResourceTiming,
+  'PerformanceTiming': () => PerformanceTiming.internalCreatePerformanceTiming,
+  'Plugin': () => Plugin.internalCreatePlugin,
+  'PluginArray': () => PluginArray.internalCreatePluginArray,
+  'PluginPlaceholderElement': () => PluginPlaceholderElement.internalCreatePluginPlaceholderElement,
+  'PopStateEvent': () => PopStateEvent.internalCreatePopStateEvent,
+  'PositionError': () => PositionError.internalCreatePositionError,
+  'Presentation': () => Presentation.internalCreatePresentation,
+  'ProcessingInstruction': () => ProcessingInstruction.internalCreateProcessingInstruction,
+  'ProgressEvent': () => ProgressEvent.internalCreateProgressEvent,
+  'PushEvent': () => PushEvent.internalCreatePushEvent,
+  'PushManager': () => PushManager.internalCreatePushManager,
+  'PushRegistration': () => PushRegistration.internalCreatePushRegistration,
+  'RGBColor': () => _RGBColor.internalCreate_RGBColor,
+  'RTCDTMFSender': () => RtcDtmfSender.internalCreateRtcDtmfSender,
+  'RTCDTMFToneChangeEvent': () => RtcDtmfToneChangeEvent.internalCreateRtcDtmfToneChangeEvent,
+  'RTCDataChannel': () => RtcDataChannel.internalCreateRtcDataChannel,
+  'RTCDataChannelEvent': () => RtcDataChannelEvent.internalCreateRtcDataChannelEvent,
+  'RTCIceCandidate': () => RtcIceCandidate.internalCreateRtcIceCandidate,
+  'RTCIceCandidateEvent': () => RtcIceCandidateEvent.internalCreateRtcIceCandidateEvent,
+  'RTCPeerConnection': () => RtcPeerConnection.internalCreateRtcPeerConnection,
+  'RTCSessionDescription': () => RtcSessionDescription.internalCreateRtcSessionDescription,
+  'RTCStatsReport': () => RtcStatsReport.internalCreateRtcStatsReport,
+  'RTCStatsResponse': () => RtcStatsResponse.internalCreateRtcStatsResponse,
+  'RadioNodeList': () => _RadioNodeList.internalCreate_RadioNodeList,
+  'Range': () => Range.internalCreateRange,
+  'ReadableStream': () => ReadableStream.internalCreateReadableStream,
+  'Rect': () => _Rect.internalCreate_Rect,
+  'RelatedEvent': () => RelatedEvent.internalCreateRelatedEvent,
+  'Request': () => _Request.internalCreate_Request,
+  'ResourceProgressEvent': () => ResourceProgressEvent.internalCreateResourceProgressEvent,
+  'Response': () => _Response.internalCreate_Response,
+  'Screen': () => Screen.internalCreateScreen,
+  'ScreenOrientation': () => ScreenOrientation.internalCreateScreenOrientation,
+  'SecurityPolicyViolationEvent': () => SecurityPolicyViolationEvent.internalCreateSecurityPolicyViolationEvent,
+  'Selection': () => Selection.internalCreateSelection,
+  'ServiceWorker': () => _ServiceWorker.internalCreate_ServiceWorker,
+  'ServiceWorkerClient': () => ServiceWorkerClient.internalCreateServiceWorkerClient,
+  'ServiceWorkerClients': () => ServiceWorkerClients.internalCreateServiceWorkerClients,
+  'ServiceWorkerContainer': () => ServiceWorkerContainer.internalCreateServiceWorkerContainer,
+  'ServiceWorkerGlobalScope': () => ServiceWorkerGlobalScope.internalCreateServiceWorkerGlobalScope,
+  'ServiceWorkerRegistration': () => ServiceWorkerRegistration.internalCreateServiceWorkerRegistration,
+  'ShadowRoot': () => ShadowRoot.internalCreateShadowRoot,
+  'SharedWorker': () => SharedWorker.internalCreateSharedWorker,
+  'SharedWorkerGlobalScope': () => SharedWorkerGlobalScope.internalCreateSharedWorkerGlobalScope,
+  'SourceBuffer': () => SourceBuffer.internalCreateSourceBuffer,
+  'SourceBufferList': () => SourceBufferList.internalCreateSourceBufferList,
+  'SourceInfo': () => SourceInfo.internalCreateSourceInfo,
+  'SpeechGrammar': () => SpeechGrammar.internalCreateSpeechGrammar,
+  'SpeechGrammarList': () => SpeechGrammarList.internalCreateSpeechGrammarList,
+  'SpeechRecognition': () => SpeechRecognition.internalCreateSpeechRecognition,
+  'SpeechRecognitionAlternative': () => SpeechRecognitionAlternative.internalCreateSpeechRecognitionAlternative,
+  'SpeechRecognitionError': () => SpeechRecognitionError.internalCreateSpeechRecognitionError,
+  'SpeechRecognitionEvent': () => SpeechRecognitionEvent.internalCreateSpeechRecognitionEvent,
+  'SpeechRecognitionResult': () => SpeechRecognitionResult.internalCreateSpeechRecognitionResult,
+  'SpeechRecognitionResultList': () => _SpeechRecognitionResultList.internalCreate_SpeechRecognitionResultList,
+  'SpeechSynthesis': () => SpeechSynthesis.internalCreateSpeechSynthesis,
+  'SpeechSynthesisEvent': () => SpeechSynthesisEvent.internalCreateSpeechSynthesisEvent,
+  'SpeechSynthesisUtterance': () => SpeechSynthesisUtterance.internalCreateSpeechSynthesisUtterance,
+  'SpeechSynthesisVoice': () => SpeechSynthesisVoice.internalCreateSpeechSynthesisVoice,
+  'Storage': () => Storage.internalCreateStorage,
+  'StorageEvent': () => StorageEvent.internalCreateStorageEvent,
+  'StorageInfo': () => StorageInfo.internalCreateStorageInfo,
+  'StorageQuota': () => StorageQuota.internalCreateStorageQuota,
+  'Stream': () => FileStream.internalCreateFileStream,
+  'StyleMedia': () => StyleMedia.internalCreateStyleMedia,
+  'StyleSheet': () => StyleSheet.internalCreateStyleSheet,
+  'StyleSheetList': () => _StyleSheetList.internalCreate_StyleSheetList,
+  'SubtleCrypto': () => _SubtleCrypto.internalCreate_SubtleCrypto,
+  'Text': () => Text.internalCreateText,
+  'TextEvent': () => TextEvent.internalCreateTextEvent,
+  'TextMetrics': () => TextMetrics.internalCreateTextMetrics,
+  'TextTrack': () => TextTrack.internalCreateTextTrack,
+  'TextTrackCue': () => TextTrackCue.internalCreateTextTrackCue,
+  'TextTrackCueList': () => TextTrackCueList.internalCreateTextTrackCueList,
+  'TextTrackList': () => TextTrackList.internalCreateTextTrackList,
+  'TimeRanges': () => TimeRanges.internalCreateTimeRanges,
+  'Timing': () => Timing.internalCreateTiming,
+  'Touch': () => Touch.internalCreateTouch,
+  'TouchEvent': () => TouchEvent.internalCreateTouchEvent,
+  'TouchList': () => TouchList.internalCreateTouchList,
+  'TrackEvent': () => TrackEvent.internalCreateTrackEvent,
+  'TransitionEvent': () => TransitionEvent.internalCreateTransitionEvent,
+  'TreeWalker': () => TreeWalker.internalCreateTreeWalker,
+  'UIEvent': () => UIEvent.internalCreateUIEvent,
+  'URL': () => Url.internalCreateUrl,
+  'URLUtils': () => UrlUtils.internalCreateUrlUtils,
+  'URLUtilsReadOnly': () => UrlUtilsReadOnly.internalCreateUrlUtilsReadOnly,
+  'VTTCue': () => VttCue.internalCreateVttCue,
+  'VTTRegion': () => VttRegion.internalCreateVttRegion,
+  'VTTRegionList': () => VttRegionList.internalCreateVttRegionList,
+  'ValidityState': () => ValidityState.internalCreateValidityState,
+  'VideoPlaybackQuality': () => VideoPlaybackQuality.internalCreateVideoPlaybackQuality,
+  'VideoTrack': () => VideoTrack.internalCreateVideoTrack,
+  'VideoTrackList': () => VideoTrackList.internalCreateVideoTrackList,
+  'WebKitAnimationEvent': () => AnimationEvent.internalCreateAnimationEvent,
+  'WebKitCSSFilterRule': () => CssFilterRule.internalCreateCssFilterRule,
+  'WebKitCSSFilterValue': () => _WebKitCSSFilterValue.internalCreate_WebKitCSSFilterValue,
+  'WebKitCSSMatrix': () => _WebKitCSSMatrix.internalCreate_WebKitCSSMatrix,
+  'WebKitCSSTransformValue': () => _WebKitCSSTransformValue.internalCreate_WebKitCSSTransformValue,
+  'WebSocket': () => WebSocket.internalCreateWebSocket,
+  'WheelEvent': () => WheelEvent.internalCreateWheelEvent,
+  'Window': () => Window.internalCreateWindow,
+  'WindowBase64': () => WindowBase64.internalCreateWindowBase64,
+  'WindowEventHandlers': () => WindowEventHandlers.internalCreateWindowEventHandlers,
+  'WindowTimers': () => _WindowTimers.internalCreate_WindowTimers,
+  'Worker': () => Worker.internalCreateWorker,
+  'WorkerConsole': () => WorkerConsole.internalCreateWorkerConsole,
+  'WorkerGlobalScope': () => WorkerGlobalScope.internalCreateWorkerGlobalScope,
+  'WorkerLocation': () => _WorkerLocation.internalCreate_WorkerLocation,
+  'WorkerNavigator': () => _WorkerNavigator.internalCreate_WorkerNavigator,
+  'WorkerPerformance': () => WorkerPerformance.internalCreateWorkerPerformance,
+  'XMLDocument': () => XmlDocument.internalCreateXmlDocument,
+  'XMLHttpRequest': () => HttpRequest.internalCreateHttpRequest,
+  'XMLHttpRequestEventTarget': () => HttpRequestEventTarget.internalCreateHttpRequestEventTarget,
+  'XMLHttpRequestProgressEvent': () => _XMLHttpRequestProgressEvent.internalCreate_XMLHttpRequestProgressEvent,
+  'XMLHttpRequestUpload': () => HttpRequestUpload.internalCreateHttpRequestUpload,
+  'XMLSerializer': () => XmlSerializer.internalCreateXmlSerializer,
+  'XPathEvaluator': () => XPathEvaluator.internalCreateXPathEvaluator,
+  'XPathExpression': () => XPathExpression.internalCreateXPathExpression,
+  'XPathNSResolver': () => XPathNSResolver.internalCreateXPathNSResolver,
+  'XPathResult': () => XPathResult.internalCreateXPathResult,
+  'XSLTProcessor': () => XsltProcessor.internalCreateXsltProcessor,
+  'polymer-element': () => HtmlElement.internalCreateHtmlElement,
+
+};
+
+// TODO(terry): We may want to move this elsewhere if html becomes
+// a package to avoid dartium depending on pkg:html.
+getHtmlCreateFunction(String key) {
+  var result;
+
+  // TODO(vsm): Add Cross Frame and JS types here as well.
+
+  // Check the html library.
+  result = _getHtmlFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web gl library.
+  result = _getWebGlFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the indexed db library.
+  result = _getIndexDbFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web audio library.
+  result = _getWebAudioFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the web sql library.
+  result = _getWebSqlFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  // Check the svg library.
+  result = _getSvgFunction(key);
+  if (result != null) {
+    return result;
+  }
+
+  return null;
+}
+
+Type _getHtmlFunction(String key) {
+  if (htmlBlinkFunctionMap.containsKey(key)) {
+    return htmlBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+Type _getWebGlFunction(String key) {
+  if (web_glBlinkFunctionMap.containsKey(key)) {
+    return web_glBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+Type _getIndexDbFunction(String key) {
+  if (indexed_dbBlinkFunctionMap.containsKey(key)) {
+    return indexed_dbBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+Type _getWebAudioFunction(String key) {
+  if (web_audioBlinkFunctionMap.containsKey(key)) {
+    return web_audioBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+Type _getWebSqlFunction(String key) {
+  if (web_sqlBlinkFunctionMap.containsKey(key)) {
+    return web_sqlBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+Type _getSvgFunction(String key) {
+  if (svgBlinkFunctionMap.containsKey(key)) {
+    return svgBlinkFunctionMap[key]();
+  }
+  return null;
+}
+
+
+/******************************************************************************
+ **********                                                          **********
+ **********                    JS Interop Support                    **********
+ **********                                                          **********
+ ******************************************************************************/
+
+Rectangle make_dart_rectangle(r) => new Rectangle(r['top'], r['left'], r['width'], r['height']);
+
+
+/** Expando for JsObject, used by every Dart class associated with a Javascript
+ *  class (e.g., DOM, WebAudio, etc.).
+ */
+
+/**
+ * Return the JsObject associated with a Dart class [dartClass_instance].
+ */
+js.JsObject unwrap_jso(dartClass_instance) {
+  try {
+      if (dartClass_instance != null)
+          return dartClass_instance is! Function ? dartClass_instance.blink_jsObject : dartClass_instance;
+      else
+          return null;
+//      return dartClass_instance.dartium_expando[dartClass_instance.expandoJsObject];
+  } catch(NoSuchMethodException) {
+      // No blink_jsObject then return the dartClass_instance is probably an
+      // array that was already converted to a Dart class e.g., Uint8ClampedList.
+      return dartClass_instance;
+  }
+}
+
+/**
+ * Create Dart class that maps to the JS Type, add the JsObject as an expando
+ * on the Dart class and return the created Dart class. 
+ */
+wrap_jso(jsObject) {
+try {
+//  debug_or_assert("jsObject != null", jsObject != null);
+  if (jsObject is! js.JsObject) {
+      // JS Interop converted the object to a Dart class e.g., Uint8ClampedList.
+      return jsObject;
+  }
+  var constructor = jsObject['constructor'];
+  debug_or_assert("constructor != null", constructor != null);
+  var jsTypeName = constructor['name'];
+  debug_or_assert("constructor != null && jsTypeName.length > 0", constructor != null && jsTypeName.length > 0);
+  var func = getHtmlCreateFunction(jsTypeName);
+  debug_or_assert("func != null name = ${jsTypeName}", func != null);
+  var dartClass_instance = func();
+  dartClass_instance.blink_jsObject = jsObject;
+//  dartClass_instance.dartium_expando[dartClass_instance.expandoJsObject] = jsObject;
+  return dartClass_instance;
+} catch(e, stacktrace){
+  if (e is DebugAssertException)
+    window.console.log("${e.message}\n ${stacktrace}");
+  else
+    window.console.log("${stacktrace}");
+}
+}
+
+class DebugAssertException implements Exception {
+  String message;
+  DebugAssertException(this.message);
+}
+
+debug_or_assert(message, expression) {
+  if (!expression) {
+    throw new DebugAssertException("$message");
+  }
+}
+
+// Wrap JsObject node list to return a List<node>.
+List<Node> wrap_jso_list(jso_nodes) {
+  List<Node> nodes = new List<Node>();
+  var collectionLen = jso_nodes['length'];
+  for (var i = 0; i < collectionLen; i++) {
+    nodes.add(wrap_jso(jso_nodes.callMethod('item', [i])));
+  }
+  var frozen_nodes = new _FrozenElementList._wrap(nodes);
+  frozen_nodes.dartClass_instance = jso_nodes;
+  return frozen_nodes;
+}
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -4963,7 +5536,7 @@ class CssRule extends NativeFieldWrapperClass2 {
 
 
 @DomName('CSSStyleDeclaration')
-class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
+ class CssStyleDeclaration extends
     CssStyleDeclarationBase  {
   factory CssStyleDeclaration() => new CssStyleDeclaration.css('');
 
@@ -5009,7 +5582,7 @@ class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
   }
 
   bool _hasProperty(String propertyName) =>
-      _blink.BlinkCSSStyleDeclaration.$__propertyQuery___Callback_1(this, propertyName);
+      _blink.BlinkCSSStyleDeclaration.instance.$__propertyQuery___Callback_1_(unwrap_jso(this), propertyName) != null;
 
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
@@ -5119,7 +5692,7 @@ class CssStyleDeclaration  extends NativeFieldWrapperClass2 with
   
 }
 
-class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
+class _CssStyleDeclarationSet extends CssStyleDeclarationBase {
   final Iterable<Element> _elementIterable;
   Iterable<CssStyleDeclaration> _elementCssStyleDeclarationSetIterable;
 
@@ -5146,9 +5719,11 @@ class _CssStyleDeclarationSet extends Object with CssStyleDeclarationBase {
   // items in the MEMBERS set if you want that functionality.
 }
 
-abstract class CssStyleDeclarationBase {
-  String getPropertyValue(String propertyName);
-  void setProperty(String propertyName, String value, [String priority]);
+class CssStyleDeclarationBase {
+  String getPropertyValue(String propertyName) =>
+    throw new StateError('getProperty not overridden in dart:html');
+  void setProperty(String propertyName, String value, [String priority]) =>
+    throw new StateError('setProperty not overridden in dart:html');
 
   /** Gets the value of "align-content" */
   String get alignContent =>
@@ -10324,7 +10899,7 @@ class Document extends Node
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList<Element> querySelectorAll(String selectors) {
-    return new _FrozenElementList._wrap(_querySelectorAll(selectors));
+    return _querySelectorAll(selectors);
   }
 
   /**
@@ -10357,12 +10932,7 @@ class Document extends Node
 
   @DomName('Document.createElement')
   Element createElement(String tagName, [String typeExtension]) {
-    if (typeExtension != null) {  
-      return _createElement(tagName, typeExtension);  
-    } else {  
-      // Fast-path for Dartium when typeExtension is not needed.  
-      return _Utils.createElement(this, tagName); 
-    } 
+    return _createElement(tagName, typeExtension);
   }
 
 }
@@ -10421,7 +10991,7 @@ class DocumentFragment extends Node implements ParentNode {
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList<Element> querySelectorAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+    _querySelectorAll(selectors);
 
 
   String get innerHtml {
@@ -12567,7 +13137,11 @@ class _FrozenElementList extends ListBase
     implements ElementList, NodeListWrapper {
   final List<Node> _nodeList;
 
-  _FrozenElementList._wrap(this._nodeList);
+  var dartClass_instance;
+
+  _FrozenElementList._wrap(this._nodeList) {
+      this.dartClass_instance = this._nodeList;
+  }
 
   int get length => _nodeList.length;
 
@@ -13346,7 +13920,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    *       element.style.background = 'red'; // Turns every child of body red.
    *     }
    */
-  List<Element> get children => new _ChildrenElementList._wrap(this);
+  List<Element> get children => new FilteredElementList(this);
 
   void set children(List<Element> value) {
     // Copy list first since we don't want liveness during iteration.
@@ -13369,7 +13943,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
    */
   @DomName('Element.querySelectorAll')
   ElementList<Element> querySelectorAll(String selectors) =>
-    new _FrozenElementList._wrap(_querySelectorAll(selectors));
+    _querySelectorAll(selectors);
 
   /**
    * Alias for [querySelector]. Note this function is deprecated because its
@@ -13985,59 +14559,59 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  int get offsetHeight => _blink.BlinkElement.offsetHeight_Getter_(this).round();
+  int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  int get offsetLeft => _blink.BlinkElement.offsetLeft_Getter_(this).round();
+  int get offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  int get offsetTop => _blink.BlinkElement.offsetTop_Getter_(this).round();
+  int get offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  int get offsetWidth => _blink.BlinkElement.offsetWidth_Getter_(this).round();
+  int get offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.clientHeight')
   @DocsEditable()
-  int get clientHeight => _blink.BlinkElement.clientHeight_Getter_(this).round();
+  int get clientHeight => _blink.BlinkElement.instance.clientHeight_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.clientLeft')
   @DocsEditable()
-  int get clientLeft => _blink.BlinkElement.clientLeft_Getter_(this).round();
+  int get clientLeft => _blink.BlinkElement.instance.clientLeft_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.clientTop')
   @DocsEditable()
-  int get clientTop => _blink.BlinkElement.clientTop_Getter_(this).round();
+  int get clientTop => _blink.BlinkElement.instance.clientTop_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.clientWidth')
   @DocsEditable()
-  int get clientWidth => _blink.BlinkElement.clientWidth_Getter_(this).round();
+  int get clientWidth => _blink.BlinkElement.instance.clientWidth_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  int get scrollHeight => _blink.BlinkElement.scrollHeight_Getter_(this).round();
+  int get scrollHeight => _blink.BlinkElement.instance.scrollHeight_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int get scrollLeft => _blink.BlinkElement.scrollLeft_Getter_(this).round();
+  int get scrollLeft => _blink.BlinkElement.instance.scrollLeft_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => _blink.BlinkElement.scrollLeft_Setter_(this, value.round());
+  void set scrollLeft(int value) => _blink.BlinkElement.instance.scrollLeft_Setter_(unwrap_jso(this), value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int get scrollTop => _blink.BlinkElement.scrollTop_Getter_(this).round();
+  int get scrollTop => _blink.BlinkElement.instance.scrollTop_Getter_(unwrap_jso(this)).round();
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => _blink.BlinkElement.scrollTop_Setter_(this, value.round());
+  void set scrollTop(int value) => _blink.BlinkElement.instance.scrollTop_Setter_(unwrap_jso(this), value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  int get scrollWidth => _blink.BlinkElement.scrollWidth_Getter_(this).round();
+  int get scrollWidth => _blink.BlinkElement.instance.scrollWidth_Getter_(unwrap_jso(this)).round();
 
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
@@ -26196,7 +26770,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
     return true;
   }
   @DocsEditable()
-  static MutationObserver _create(callback) => _blink.BlinkMutationObserver.instance.constructorCallback_1_((List<MutationRecord> mutations, MutationObserver observer) {
+  static MutationObserver _create(callback) => wrap_jso(_blink.BlinkMutationObserver.instance.constructorCallback_1_((List<MutationRecord> mutations, MutationObserver observer) {
       var wrapped_mutations = [];
       for (var mutation in mutations) {
         // Wrap the Javascript object for each MutationRecord.
@@ -26204,7 +26778,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
       }
       // Wrap the MutationObserver too.
       callback(wrapped_mutations, wrap_jso(observer));
-  });
+  }));
 
   /**
    * Observes the target for the specified changes.
@@ -27134,6 +27708,8 @@ class Node extends EventTarget {
     return value == null ? super.toString() : value;
   }
 
+  List<Node> _childNodes;
+
   /**
    * A list of this node's children.
    *
@@ -27145,10 +27721,19 @@ class Node extends EventTarget {
    */
   @DomName('Node.childNodes')
   @DocsEditable()
-  @Returns('NodeList')
-  @Creates('NodeList')
-  final List<Node> childNodes;
-
+  List<Node> get childNodes {
+    if (_childNodes == null) {
+       window.console.log(">>> construct childNodes collection/list");
+       List<Node> nodes = new List<Node>();
+       var jsCollection = _blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this));
+       var collectionLen = jsCollection['length'];
+       for (var i = 0; i < collectionLen; i++) {
+         nodes.add(wrap_jso(jsCollection.callMethod('item', [i])));
+       }
+      _childNodes = nodes;
+    }
+    return _childNodes;
+  }
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
@@ -41267,7 +41852,7 @@ abstract class _MutationEvent extends Event {
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap
 @deprecated // deprecated
-class _NamedNodeMap extends NativeFieldWrapperClass2 with ListMixin<Node>, ImmutableListMixin<Node> implements List<Node> {
+class _NamedNodeMap extends NativeFieldWrapperClass2 implements List<Node> {
   // To suppress missing implicit constructor warnings.
   factory _NamedNodeMap._() { throw new UnsupportedError("Not supported"); }
 

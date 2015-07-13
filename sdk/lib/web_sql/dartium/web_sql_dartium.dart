@@ -34,6 +34,15 @@ final web_sqlBlinkMap = {
 
 };
 
+// FIXME: Can we make this private?
+final web_sqlBlinkFunctionMap = {
+  'Database': () => SqlDatabase.internalCreateSqlDatabase,
+  'SQLError': () => SqlError.internalCreateSqlError,
+  'SQLResultSet': () => SqlResultSet.internalCreateSqlResultSet,
+  'SQLResultSetRowList': () => SqlResultSetRowList.internalCreateSqlResultSetRowList,
+  'SQLTransaction': () => SqlTransaction.internalCreateSqlTransaction,
+
+};
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

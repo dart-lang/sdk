@@ -58,6 +58,45 @@ final web_glBlinkMap = {
 
 };
 
+// FIXME: Can we make this private?
+final web_glBlinkFunctionMap = {
+  'ANGLEInstancedArrays': () => AngleInstancedArrays.internalCreateAngleInstancedArrays,
+  'EXTBlendMinMax': () => ExtBlendMinMax.internalCreateExtBlendMinMax,
+  'EXTFragDepth': () => ExtFragDepth.internalCreateExtFragDepth,
+  'EXTShaderTextureLOD': () => ExtShaderTextureLod.internalCreateExtShaderTextureLod,
+  'EXTTextureFilterAnisotropic': () => ExtTextureFilterAnisotropic.internalCreateExtTextureFilterAnisotropic,
+  'OESElementIndexUint': () => OesElementIndexUint.internalCreateOesElementIndexUint,
+  'OESStandardDerivatives': () => OesStandardDerivatives.internalCreateOesStandardDerivatives,
+  'OESTextureFloat': () => OesTextureFloat.internalCreateOesTextureFloat,
+  'OESTextureFloatLinear': () => OesTextureFloatLinear.internalCreateOesTextureFloatLinear,
+  'OESTextureHalfFloat': () => OesTextureHalfFloat.internalCreateOesTextureHalfFloat,
+  'OESTextureHalfFloatLinear': () => OesTextureHalfFloatLinear.internalCreateOesTextureHalfFloatLinear,
+  'OESVertexArrayObject': () => OesVertexArrayObject.internalCreateOesVertexArrayObject,
+  'WebGLActiveInfo': () => ActiveInfo.internalCreateActiveInfo,
+  'WebGLBuffer': () => Buffer.internalCreateBuffer,
+  'WebGLCompressedTextureATC': () => CompressedTextureAtc.internalCreateCompressedTextureAtc,
+  'WebGLCompressedTextureETC1': () => CompressedTextureETC1.internalCreateCompressedTextureETC1,
+  'WebGLCompressedTexturePVRTC': () => CompressedTexturePvrtc.internalCreateCompressedTexturePvrtc,
+  'WebGLCompressedTextureS3TC': () => CompressedTextureS3TC.internalCreateCompressedTextureS3TC,
+  'WebGLContextAttributes': () => ContextAttributes.internalCreateContextAttributes,
+  'WebGLContextEvent': () => ContextEvent.internalCreateContextEvent,
+  'WebGLDebugRendererInfo': () => DebugRendererInfo.internalCreateDebugRendererInfo,
+  'WebGLDebugShaders': () => DebugShaders.internalCreateDebugShaders,
+  'WebGLDepthTexture': () => DepthTexture.internalCreateDepthTexture,
+  'WebGLDrawBuffers': () => DrawBuffers.internalCreateDrawBuffers,
+  'WebGLFramebuffer': () => Framebuffer.internalCreateFramebuffer,
+  'WebGLLoseContext': () => LoseContext.internalCreateLoseContext,
+  'WebGLProgram': () => Program.internalCreateProgram,
+  'WebGLRenderbuffer': () => Renderbuffer.internalCreateRenderbuffer,
+  'WebGLRenderingContext': () => RenderingContext.internalCreateRenderingContext,
+  'WebGLRenderingContextBase': () => _WebGLRenderingContextBase.internalCreate_WebGLRenderingContextBase,
+  'WebGLShader': () => Shader.internalCreateShader,
+  'WebGLShaderPrecisionFormat': () => ShaderPrecisionFormat.internalCreateShaderPrecisionFormat,
+  'WebGLTexture': () => Texture.internalCreateTexture,
+  'WebGLUniformLocation': () => UniformLocation.internalCreateUniformLocation,
+  'WebGLVertexArrayObjectOES': () => VertexArrayObject.internalCreateVertexArrayObject,
+
+};
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

@@ -49,6 +49,37 @@ final web_audioBlinkMap = {
 
 };
 
+// FIXME: Can we make this private?
+final web_audioBlinkFunctionMap = {
+  'AnalyserNode': () => AnalyserNode.internalCreateAnalyserNode,
+  'AudioBuffer': () => AudioBuffer.internalCreateAudioBuffer,
+  'AudioBufferSourceNode': () => AudioBufferSourceNode.internalCreateAudioBufferSourceNode,
+  'AudioContext': () => AudioContext.internalCreateAudioContext,
+  'AudioDestinationNode': () => AudioDestinationNode.internalCreateAudioDestinationNode,
+  'AudioListener': () => AudioListener.internalCreateAudioListener,
+  'AudioNode': () => AudioNode.internalCreateAudioNode,
+  'AudioParam': () => AudioParam.internalCreateAudioParam,
+  'AudioProcessingEvent': () => AudioProcessingEvent.internalCreateAudioProcessingEvent,
+  'AudioSourceNode': () => AudioSourceNode.internalCreateAudioSourceNode,
+  'BiquadFilterNode': () => BiquadFilterNode.internalCreateBiquadFilterNode,
+  'ChannelMergerNode': () => ChannelMergerNode.internalCreateChannelMergerNode,
+  'ChannelSplitterNode': () => ChannelSplitterNode.internalCreateChannelSplitterNode,
+  'ConvolverNode': () => ConvolverNode.internalCreateConvolverNode,
+  'DelayNode': () => DelayNode.internalCreateDelayNode,
+  'DynamicsCompressorNode': () => DynamicsCompressorNode.internalCreateDynamicsCompressorNode,
+  'GainNode': () => GainNode.internalCreateGainNode,
+  'MediaElementAudioSourceNode': () => MediaElementAudioSourceNode.internalCreateMediaElementAudioSourceNode,
+  'MediaStreamAudioDestinationNode': () => MediaStreamAudioDestinationNode.internalCreateMediaStreamAudioDestinationNode,
+  'MediaStreamAudioSourceNode': () => MediaStreamAudioSourceNode.internalCreateMediaStreamAudioSourceNode,
+  'OfflineAudioCompletionEvent': () => OfflineAudioCompletionEvent.internalCreateOfflineAudioCompletionEvent,
+  'OfflineAudioContext': () => OfflineAudioContext.internalCreateOfflineAudioContext,
+  'OscillatorNode': () => OscillatorNode.internalCreateOscillatorNode,
+  'PannerNode': () => PannerNode.internalCreatePannerNode,
+  'PeriodicWave': () => PeriodicWave.internalCreatePeriodicWave,
+  'ScriptProcessorNode': () => ScriptProcessorNode.internalCreateScriptProcessorNode,
+  'WaveShaperNode': () => WaveShaperNode.internalCreateWaveShaperNode,
+
+};
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

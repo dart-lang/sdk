@@ -122,6 +122,21 @@ final indexed_dbBlinkMap = {
 
 };
 
+// FIXME: Can we make this private?
+final indexed_dbBlinkFunctionMap = {
+  'IDBCursor': () => Cursor.internalCreateCursor,
+  'IDBCursorWithValue': () => CursorWithValue.internalCreateCursorWithValue,
+  'IDBDatabase': () => Database.internalCreateDatabase,
+  'IDBFactory': () => IdbFactory.internalCreateIdbFactory,
+  'IDBIndex': () => Index.internalCreateIndex,
+  'IDBKeyRange': () => KeyRange.internalCreateKeyRange,
+  'IDBObjectStore': () => ObjectStore.internalCreateObjectStore,
+  'IDBOpenDBRequest': () => OpenDBRequest.internalCreateOpenDBRequest,
+  'IDBRequest': () => Request.internalCreateRequest,
+  'IDBTransaction': () => Transaction.internalCreateTransaction,
+  'IDBVersionChangeEvent': () => VersionChangeEvent.internalCreateVersionChangeEvent,
+
+};
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
