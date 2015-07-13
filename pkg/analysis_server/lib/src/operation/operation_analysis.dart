@@ -101,11 +101,24 @@ void scheduleNotificationOperations(AnalysisServer server, String file,
 
 void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
   _sendNotification(server, () {
+    // TODO(paulberry): if it proves to be too inefficient to recompute the set
+    // of analyzed files each time analysis is complete, consider modifying the
+    // analysis engine to update this set incrementally as analysis is
+    // performed.
     LibraryDependencyCollector collector =
         new LibraryDependencyCollector(server.getAnalysisContexts().toList());
-    Set<String> directories = collector.collectLibraryDependencies();
+    Set<String> analyzedFiles = collector.collectLibraryDependencies();
+    Set<String> prevAnalyzedFiles = server.prevAnalyzedFiles;
+    if (prevAnalyzedFiles != null &&
+        prevAnalyzedFiles.length == analyzedFiles.length &&
+        prevAnalyzedFiles.difference(analyzedFiles).isEmpty) {
+      // No change to the set of analyzed files.  No need to send another
+      // notification.
+      return;
+    }
+    server.prevAnalyzedFiles = analyzedFiles;
     protocol.AnalysisAnalyzedFilesParams params =
-        new protocol.AnalysisAnalyzedFilesParams(directories.toList());
+        new protocol.AnalysisAnalyzedFilesParams(analyzedFiles.toList());
     server.sendNotification(params.toNotification());
   });
 }

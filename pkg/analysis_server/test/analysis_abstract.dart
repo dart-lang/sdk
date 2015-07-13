@@ -156,6 +156,13 @@ class AbstractAnalysisTest {
     }
   }
 
+  void removeGeneralAnalysisSubscription(GeneralAnalysisService service) {
+    generalServices.remove(service);
+    Request request = new AnalysisSetGeneralSubscriptionsParams(generalServices)
+        .toRequest('0');
+    handleSuccessfulRequest(request);
+  }
+
   void setUp() {
     serverChannel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();

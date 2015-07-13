@@ -257,6 +257,15 @@ class AnalysisServer {
   List<Plugin> userDefinedPlugins;
 
   /**
+   * If the "analysis.analyzedFiles" notification is currently being subscribed
+   * to (see [generalAnalysisServices]), and at least one such notification has
+   * been sent since the subscription was enabled, the set of analyzed files
+   * that was delivered in the most recently sent notification.  Otherwise
+   * `null`.
+   */
+  Set<String> prevAnalyzedFiles;
+
+  /**
    * Initialize a newly created server to receive requests from and send
    * responses to the given [channel].
    *
@@ -970,6 +979,10 @@ class AnalysisServer {
             .contains(GeneralAnalysisService.ANALYZED_FILES) &&
         isAnalysisComplete()) {
       sendAnalysisNotificationAnalyzedFiles(this);
+    } else if (!newServices.contains(GeneralAnalysisService.ANALYZED_FILES) &&
+        generalAnalysisServices
+            .contains(GeneralAnalysisService.ANALYZED_FILES)) {
+      prevAnalyzedFiles = null;
     }
     generalAnalysisServices = newServices;
   }
