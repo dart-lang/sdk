@@ -20,8 +20,8 @@ import 'package:compiler/compiler_new.dart' show
     CompilerOutput,
     Diagnostic;
 
-import 'package:compiler/src/dart2jslib.dart' show
-    NullSink;
+import 'package:compiler/src/null_compiler_output.dart' show
+    NullCompilerOutput;
 
 import 'package:compiler/src/js_backend/js_backend.dart' show
     JavaScriptBackend;

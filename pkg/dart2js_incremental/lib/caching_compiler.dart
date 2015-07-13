@@ -28,7 +28,7 @@ Future<Compiler> reuseCompiler(
     throw 'Missing diagnosticHandler';
   }
   if (outputProvider == null) {
-    outputProvider = NullSink.outputProvider;
+    outputProvider = const NullCompilerOutput();
   }
   if (environment == null) {
     environment = {};
