@@ -2241,7 +2241,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       options.analyzeFunctionBodies = booleanValue;
       options.cacheSize = i;
       options.dart2jsHint = booleanValue;
-      options.enableNullAwareOperators = booleanValue;
       options.enableStrictCallChecks = booleanValue;
       options.generateImplicitErrors = booleanValue;
       options.generateSdkErrors = booleanValue;
@@ -2252,7 +2251,6 @@ class AnalysisOptionsImplTest extends EngineTestCase {
       expect(copy.analyzeFunctionBodies, options.analyzeFunctionBodies);
       expect(copy.cacheSize, options.cacheSize);
       expect(copy.dart2jsHint, options.dart2jsHint);
-      expect(copy.enableNullAwareOperators, options.enableNullAwareOperators);
       expect(copy.enableStrictCallChecks, options.enableStrictCallChecks);
       expect(copy.generateImplicitErrors, options.generateImplicitErrors);
       expect(copy.generateSdkErrors, options.generateSdkErrors);

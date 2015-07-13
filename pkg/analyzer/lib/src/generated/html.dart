@@ -416,7 +416,6 @@ class HtmlParser extends XmlParser {
       LineInfo_Location location = _lineInfo.getLocation(contentOffset);
       sc.Scanner scanner = new sc.Scanner(source,
           new sc.SubSequenceReader(contents, contentOffset), _errorListener);
-      scanner.enableNullAwareOperators = _options.enableNullAwareOperators;
       scanner.setSourceStart(location.lineNumber, location.columnNumber);
       sc.Token firstToken = scanner.tokenize();
       Parser parser = new Parser(source, _errorListener);

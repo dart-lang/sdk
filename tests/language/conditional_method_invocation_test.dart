@@ -4,8 +4,6 @@
 
 // Verify semantics of the ?. operator when it is used to invoke a method.
 
-// SharedOptions=--enable-null-aware-operators
-
 import "package:expect/expect.dart";
 import "conditional_access_helper.dart" as h;
 

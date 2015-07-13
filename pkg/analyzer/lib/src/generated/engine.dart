@@ -1102,8 +1102,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         this._options.dart2jsHint != options.dart2jsHint ||
         (this._options.hint && !options.hint) ||
         this._options.preserveComments != options.preserveComments ||
-        this._options.enableNullAwareOperators !=
-            options.enableNullAwareOperators ||
         this._options.enableStrictCallChecks != options.enableStrictCallChecks;
     int cacheSize = options.cacheSize;
     if (this._options.cacheSize != cacheSize) {
@@ -1129,7 +1127,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.generateImplicitErrors = options.generateImplicitErrors;
     this._options.generateSdkErrors = options.generateSdkErrors;
     this._options.dart2jsHint = options.dart2jsHint;
-    this._options.enableNullAwareOperators = options.enableNullAwareOperators;
     this._options.enableStrictCallChecks = options.enableStrictCallChecks;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
@@ -6102,6 +6099,7 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to enable null-aware operators (DEP 9).
    */
+  @deprecated // Always true
   bool get enableNullAwareOperators;
 
   /**
@@ -6203,11 +6201,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool enableGenericMethods = false;
 
   /**
-   * A flag indicating whether null-aware operators should be parsed (DEP 9).
-   */
-  bool enableNullAwareOperators = false;
-
-  /**
    * A flag indicating whether analysis is to strictly follow the specification
    * when generating warnings on "call" methods (fixes dartbug.com/21938).
    */
@@ -6273,7 +6266,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
-    enableNullAwareOperators = options.enableNullAwareOperators;
     enableStrictCallChecks = options.enableStrictCallChecks;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
@@ -6293,7 +6285,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     analyzeFunctionBodiesPredicate = options.analyzeFunctionBodiesPredicate;
     cacheSize = options.cacheSize;
     dart2jsHint = options.dart2jsHint;
-    enableNullAwareOperators = options.enableNullAwareOperators;
     enableStrictCallChecks = options.enableStrictCallChecks;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
@@ -6360,6 +6351,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   @deprecated
   void set enableEnum(bool enable) {
     // Enum support cannot be disabled
+  }
+
+  @deprecated
+  @override
+  bool get enableNullAwareOperators => true;
+
+  @deprecated
+  void set enableNullAwareOperators(bool enable) {
+    // Null-aware operator support cannot be disabled
   }
 
   /**
@@ -10996,8 +10996,6 @@ class ScanDartTask extends AnalysisTask {
         Scanner scanner = new Scanner(
             source, new CharSequenceReader(_content), errorListener);
         scanner.preserveComments = context.analysisOptions.preserveComments;
-        scanner.enableNullAwareOperators =
-            context.analysisOptions.enableNullAwareOperators;
         _tokenStream = scanner.tokenize();
         _lineInfo = new LineInfo(scanner.lineStarts);
         _errors = errorListener.getErrorsForSource(source);

@@ -4,8 +4,6 @@
 
 // Verify that '??' binds tighter than '?:' and less tightly than '||'.
 
-// SharedOptions=--enable-null-aware-operators
-
 import "package:expect/expect.dart";
 
 assertionError(e) => e is AssertionError;

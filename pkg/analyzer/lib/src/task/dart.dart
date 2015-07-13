@@ -3115,8 +3115,6 @@ class ScanDartTask extends SourceBasedAnalysisTask {
           errorListener);
       scanner.setSourceStart(fragment.line, fragment.column);
       scanner.preserveComments = context.analysisOptions.preserveComments;
-      scanner.enableNullAwareOperators =
-          context.analysisOptions.enableNullAwareOperators;
 
       outputs[TOKEN_STREAM] = scanner.tokenize();
       outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
@@ -3127,8 +3125,6 @@ class ScanDartTask extends SourceBasedAnalysisTask {
       Scanner scanner =
           new Scanner(source, new CharSequenceReader(content), errorListener);
       scanner.preserveComments = context.analysisOptions.preserveComments;
-      scanner.enableNullAwareOperators =
-          context.analysisOptions.enableNullAwareOperators;
 
       outputs[TOKEN_STREAM] = scanner.tokenize();
       outputs[LINE_INFO] = new LineInfo(scanner.lineStarts);
