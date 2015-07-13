@@ -178,6 +178,7 @@ class ClassTable {
 
   void PrintToJSONObject(JSONObject* object);
 
+  // Used by the generated code.
   static intptr_t table_offset() {
     return OFFSET_OF(ClassTable, table_);
   }
@@ -192,11 +193,6 @@ class ClassTable {
   void ResetCountersNew();
   // Called immediately after a new GC.
   void UpdatePromoted();
-
-  // Used by the generated code.
-  uword TableAddress() {
-    return reinterpret_cast<uword>(&table_);
-  }
 
   // Used by the generated code.
   uword PredefinedClassHeapStatsTableAddress() {

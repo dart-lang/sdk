@@ -670,8 +670,10 @@ void Assembler::LoadClassId(Register result, Register object) {
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(!in_delay_slot_);
   ASSERT(result != class_id);
-  LoadImmediate(result, Isolate::Current()->class_table()->TableAddress());
-  lw(result, Address(result, 0));
+  LoadIsolate(result);
+  const intptr_t offset =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  lw(result, Address(result, offset));
   sll(TMP, class_id, 2);
   addu(result, result, TMP);
   lw(result, Address(result));

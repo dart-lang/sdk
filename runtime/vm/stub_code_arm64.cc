@@ -48,7 +48,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
-  __ LoadIsolate(R28, kNoPP);
+  __ LoadIsolate(R28);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
@@ -148,7 +148,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
-  __ LoadIsolate(R28, kNoPP);
+  __ LoadIsolate(R28);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -250,7 +250,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ EnterStubFrame();
 
   COMPILE_ASSERT((kAbiPreservedCpuRegs & (1 << R28)) != 0);
-  __ LoadIsolate(R28, kNoPP);
+  __ LoadIsolate(R28);
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
@@ -841,7 +841,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
     __ mov(THR, R3);
   }
   // Load Isolate pointer into temporary register R5.
-  __ LoadIsolate(R5, PP);
+  __ LoadIsolate(R5);
 
   // Save the current VMTag on the stack.
   __ LoadFromOffset(R4, R5, Isolate::vm_tag_offset(), PP);
@@ -898,7 +898,7 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Get rid of arguments pushed on the stack.
   __ AddImmediate(SP, FP, kExitLinkSlotFromEntryFp * kWordSize, PP);
 
-  __ LoadIsolate(R28, PP);
+  __ LoadIsolate(R28);
 
   // Restore the saved top exit frame info and top resource back into the
   // Isolate structure. Uses R6 as a temporary register for this.
@@ -1433,7 +1433,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   Label stepping, done_stepping;
   if (FLAG_support_debugger && !optimized) {
     __ Comment("Check single stepping");
-    __ LoadIsolate(R6, kNoPP);
+    __ LoadIsolate(R6);
     __ LoadFromOffset(
         R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
     __ CompareRegisters(R6, ZR);
@@ -1727,7 +1727,7 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
     if (FLAG_support_debugger) {
-    __ LoadIsolate(R6, kNoPP);
+    __ LoadIsolate(R6);
     __ LoadFromOffset(
         R6, R6, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
     __ CompareImmediate(R6, 0, kNoPP);
@@ -1843,7 +1843,7 @@ void StubCode::GenerateDebugStepCheckStub(
     Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
-  __ LoadIsolate(R1, kNoPP);
+  __ LoadIsolate(R1);
   __ LoadFromOffset(
       R1, R1, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
   __ CompareImmediate(R1, 0, kNoPP);
@@ -1991,7 +1991,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ mov(R0, R3);  // Exception object.
   __ mov(R1, R4);  // StackTrace object.
   __ mov(THR, R5);
-  __ LoadIsolate(R5, kNoPP);
+  __ LoadIsolate(R5);
   // Set the tag.
   __ LoadImmediate(R2, VMTag::kDartTagId, kNoPP);
   __ StoreToOffset(R2, R5, Isolate::vm_tag_offset(), kNoPP);
@@ -2098,7 +2098,7 @@ void StubCode::GenerateUnoptimizedIdenticalWithNumberCheckStub(
   // Check single stepping.
   Label stepping, done_stepping;
   if (FLAG_support_debugger) {
-    __ LoadIsolate(R1, kNoPP);
+    __ LoadIsolate(R1);
     __ LoadFromOffset(
         R1, R1, Isolate::single_step_offset(), kNoPP, kUnsignedByte);
     __ CompareImmediate(R1, 0, kNoPP);

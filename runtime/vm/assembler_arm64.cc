@@ -416,7 +416,7 @@ void Assembler::LoadExternalLabelFixed(Register dst,
 }
 
 
-void Assembler::LoadIsolate(Register dst, Register pp) {
+void Assembler::LoadIsolate(Register dst) {
   ldr(dst, Address(THR, Thread::isolate_offset()));
 }
 
@@ -964,8 +964,10 @@ void Assembler::LoadClassId(Register result, Register object, Register pp) {
 
 void Assembler::LoadClassById(Register result, Register class_id, Register pp) {
   ASSERT(result != class_id);
-  LoadImmediate(result, Isolate::Current()->class_table()->TableAddress(), pp);
-  LoadFromOffset(result, result, 0, pp);
+  LoadIsolate(result);
+  const intptr_t offset =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  LoadFromOffset(result, result, offset, pp);
   ldr(result, Address(result, class_id, UXTX, Address::Scaled));
 }
 

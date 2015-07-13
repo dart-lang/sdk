@@ -3781,9 +3781,10 @@ void Assembler::LoadClassId(Register result, Register object) {
 
 void Assembler::LoadClassById(Register result, Register class_id, Register pp) {
   ASSERT(result != class_id);
-  Isolate* isolate = Isolate::Current();
-  LoadImmediate(result, Immediate(isolate->class_table()->TableAddress()), pp);
-  movq(result, Address(result, 0));
+  LoadIsolate(result);
+  const intptr_t offset =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  movq(result, Address(result, offset));
   movq(result, Address(result, class_id, TIMES_8, 0));
 }
 

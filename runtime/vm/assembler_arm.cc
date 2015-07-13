@@ -1967,8 +1967,10 @@ void Assembler::LoadClassId(Register result, Register object, Condition cond) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
-  LoadImmediate(result, Isolate::Current()->class_table()->TableAddress());
-  LoadFromOffset(kWord, result, result, 0);
+  LoadIsolate(result);
+  const intptr_t offset =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  LoadFromOffset(kWord, result, result, offset);
   ldr(result, Address(result, class_id, LSL, 2));
 }
 

@@ -54,6 +54,9 @@ class RawCode;
   V(ZeroArgsUnoptimizedStaticCall)                                             \
   V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \
+  V(Subtype1TestCache)                                                         \
+  V(Subtype2TestCache)                                                         \
+  V(Subtype3TestCache)                                                         \
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.
@@ -66,9 +69,6 @@ class RawCode;
 #define STUB_CODE_LIST(V)                                                      \
   V(CallClosureNoSuchMethod)                                                   \
   V(AllocateContext)                                                           \
-  V(Subtype1TestCache)                                                         \
-  V(Subtype2TestCache)                                                         \
-  V(Subtype3TestCache)                                                         \
 
 
 // class StubEntry is used to describe stub methods generated in dart to

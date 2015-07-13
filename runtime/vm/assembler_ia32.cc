@@ -3023,8 +3023,10 @@ void Assembler::LoadClassId(Register result, Register object) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
-  movl(result,
-       Address::Absolute(Isolate::Current()->class_table()->TableAddress()));
+  LoadIsolate(result);
+  const intptr_t offset =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  movl(result, Address(result, offset));
   movl(result, Address(result, class_id, TIMES_4, 0));
 }
 
