@@ -12898,7 +12898,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
       if (treeSanitizer is _TrustedHtmlTreeSanitizer) {
         _insertAdjacentHtml(where, html);
       } else {
-        _insertAdjacentNode(where, createFragment(html,
+        _insertAdjacentNode(where, new DocumentFragment.html(html,
             validator: validator, treeSanitizer: treeSanitizer));
       }
   }
@@ -13188,9 +13188,7 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
       _parseDocument.head.append(base);
     }
     var contextElement;
-    // Head and Area elements can't be used to create document fragments.
-    // Use the body instead.
-    if (this is BodyElement || _cannotBeUsedToCreateContextualFragment) {
+    if (this is BodyElement) {
       contextElement = _parseDocument.body;
     } else {
       contextElement = _parseDocument.createElement(tagName);
@@ -13218,20 +13216,6 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
     return fragment;
   }
-
-  /** Test if createContextualFragment is supported for this element types */
-  bool get _cannotBeUsedToCreateContextualFragment =>
-      _tagsForWhichCreateContextualFragmentIsNotSupported.contains(tagName);
-
-  /**
-   * A hard-coded list of the tag names for which createContextualFragment
-   * isn't supported.
-   */
-  static const _tagsForWhichCreateContextualFragmentIsNotSupported =
-      const ['HEAD', 'AREA',
-      'BASE', 'BASEFONT', 'BR', 'COL', 'COLGROUP', 'EMBED', 'FRAME', 'FRAMESET',
-      'HR', 'IMAGE', 'IMG', 'INPUT', 'ISINDEX', 'LINK', 'META', 'PARAM',
-      'SOURCE', 'STYLE', 'TITLE', 'WBR'];
 
   /**
    * Parses the HTML fragment and sets it as the contents of this element.
