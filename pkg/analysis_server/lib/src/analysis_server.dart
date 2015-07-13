@@ -72,7 +72,7 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.7.0';
+  static final String VERSION = '1.8.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
@@ -162,6 +162,12 @@ class AnalysisServer {
    * A set of the [ServerService]s to send notifications for.
    */
   Set<ServerService> serverServices = new HashSet<ServerService>();
+
+  /**
+   * A set of the [GeneralAnalysisService]s to send notifications for.
+   */
+  Set<GeneralAnalysisService> generalAnalysisServices =
+      new HashSet<GeneralAnalysisService>();
 
   /**
    * A table mapping [AnalysisService]s to the file paths for which these
@@ -761,6 +767,10 @@ class AnalysisServer {
         ServerPerformanceStatistics.intertask.makeCurrent();
         _schedulePerformOperation();
       } else {
+        if (generalAnalysisServices
+            .contains(GeneralAnalysisService.ANALYZED_FILES)) {
+          sendAnalysisNotificationAnalyzedFiles(this);
+        }
         sendStatusNotification(null);
         if (_onAnalysisCompleteCompleter != null) {
           _onAnalysisCompleteCompleter.complete();
@@ -947,6 +957,21 @@ class AnalysisServer {
     });
     // remember new subscriptions
     this.analysisServices = subscriptions;
+  }
+
+  /**
+   * Implementation for `analysis.setGeneralSubscriptions`.
+   */
+  void setGeneralAnalysisSubscriptions(
+      List<GeneralAnalysisService> subscriptions) {
+    Set<GeneralAnalysisService> newServices = subscriptions.toSet();
+    if (newServices.contains(GeneralAnalysisService.ANALYZED_FILES) &&
+        !generalAnalysisServices
+            .contains(GeneralAnalysisService.ANALYZED_FILES) &&
+        isAnalysisComplete()) {
+      sendAnalysisNotificationAnalyzedFiles(this);
+    }
+    generalAnalysisServices = newServices;
   }
 
   /**

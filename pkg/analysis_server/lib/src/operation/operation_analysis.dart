@@ -12,6 +12,7 @@ import 'package:analysis_server/src/computer/computer_outline.dart';
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
+import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -96,6 +97,17 @@ void scheduleNotificationOperations(AnalysisServer server, String file,
     server.scheduleOperation(
         new _NotificationErrorsOperation(context, file, lineInfo, errors));
   }
+}
+
+void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
+  _sendNotification(server, () {
+    LibraryDependencyCollector collector =
+        new LibraryDependencyCollector(server.getAnalysisContexts().toList());
+    Set<String> directories = collector.collectLibraryDependencies();
+    protocol.AnalysisAnalyzedFilesParams params =
+        new protocol.AnalysisAnalyzedFilesParams(directories.toList());
+    server.sendNotification(params.toNotification());
+  });
 }
 
 void sendAnalysisNotificationErrors(AnalysisServer server, String file,

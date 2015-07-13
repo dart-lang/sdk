@@ -1582,6 +1582,105 @@ class AnalysisSetAnalysisRootsResult {
 }
 
 /**
+ * analysis.setGeneralSubscriptions params
+ *
+ * {
+ *   "subscriptions": List<GeneralAnalysisService>
+ * }
+ */
+class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
+  List<GeneralAnalysisService> _subscriptions;
+
+  /**
+   * A list of the services being subscribed to.
+   */
+  List<GeneralAnalysisService> get subscriptions => _subscriptions;
+
+  /**
+   * A list of the services being subscribed to.
+   */
+  void set subscriptions(List<GeneralAnalysisService> value) {
+    assert(value != null);
+    this._subscriptions = value;
+  }
+
+  AnalysisSetGeneralSubscriptionsParams(List<GeneralAnalysisService> subscriptions) {
+    this.subscriptions = subscriptions;
+  }
+
+  factory AnalysisSetGeneralSubscriptionsParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<GeneralAnalysisService> subscriptions;
+      if (json.containsKey("subscriptions")) {
+        subscriptions = jsonDecoder._decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new GeneralAnalysisService.fromJson(jsonDecoder, jsonPath, json));
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "subscriptions");
+      }
+      return new AnalysisSetGeneralSubscriptionsParams(subscriptions);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.setGeneralSubscriptions params");
+    }
+  }
+
+  factory AnalysisSetGeneralSubscriptionsParams.fromRequest(Request request) {
+    return new AnalysisSetGeneralSubscriptionsParams.fromJson(
+        new RequestDecoder(request), "params", request._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["subscriptions"] = subscriptions.map((GeneralAnalysisService value) => value.toJson()).toList();
+    return result;
+  }
+
+  Request toRequest(String id) {
+    return new Request(id, "analysis.setGeneralSubscriptions", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisSetGeneralSubscriptionsParams) {
+      return _listEqual(subscriptions, other.subscriptions, (GeneralAnalysisService a, GeneralAnalysisService b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, subscriptions.hashCode);
+    return _JenkinsSmiHash.finish(hash);
+  }
+}
+/**
+ * analysis.setGeneralSubscriptions result
+ */
+class AnalysisSetGeneralSubscriptionsResult {
+  Response toResponse(String id) {
+    return new Response(id, result: null);
+  }
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisSetGeneralSubscriptionsResult) {
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    return 386759562;
+  }
+}
+
+/**
  * analysis.setPriorityFiles params
  *
  * {
@@ -2009,6 +2108,84 @@ class AnalysisUpdateOptionsResult {
   @override
   int get hashCode {
     return 179689467;
+  }
+}
+
+/**
+ * analysis.analyzedFiles params
+ *
+ * {
+ *   "directories": List<FilePath>
+ * }
+ */
+class AnalysisAnalyzedFilesParams implements HasToJson {
+  List<String> _directories;
+
+  /**
+   * A list of the paths of the files that are being analyzed.
+   */
+  List<String> get directories => _directories;
+
+  /**
+   * A list of the paths of the files that are being analyzed.
+   */
+  void set directories(List<String> value) {
+    assert(value != null);
+    this._directories = value;
+  }
+
+  AnalysisAnalyzedFilesParams(List<String> directories) {
+    this.directories = directories;
+  }
+
+  factory AnalysisAnalyzedFilesParams.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json == null) {
+      json = {};
+    }
+    if (json is Map) {
+      List<String> directories;
+      if (json.containsKey("directories")) {
+        directories = jsonDecoder._decodeList(jsonPath + ".directories", json["directories"], jsonDecoder._decodeString);
+      } else {
+        throw jsonDecoder.missingKey(jsonPath, "directories");
+      }
+      return new AnalysisAnalyzedFilesParams(directories);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, "analysis.analyzedFiles params");
+    }
+  }
+
+  factory AnalysisAnalyzedFilesParams.fromNotification(Notification notification) {
+    return new AnalysisAnalyzedFilesParams.fromJson(
+        new ResponseDecoder(null), "params", notification._params);
+  }
+
+  Map<String, dynamic> toJson() {
+    Map<String, dynamic> result = {};
+    result["directories"] = directories;
+    return result;
+  }
+
+  Notification toNotification() {
+    return new Notification("analysis.analyzedFiles", toJson());
+  }
+
+  @override
+  String toString() => JSON.encode(toJson());
+
+  @override
+  bool operator==(other) {
+    if (other is AnalysisAnalyzedFilesParams) {
+      return _listEqual(directories, other.directories, (String a, String b) => a == b);
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode {
+    int hash = 0;
+    hash = _JenkinsSmiHash.combine(hash, directories.hashCode);
+    return _JenkinsSmiHash.finish(hash);
   }
 }
 
@@ -7455,6 +7632,10 @@ class AnalysisService implements Enum {
 
   static const HIGHLIGHTS = const AnalysisService._("HIGHLIGHTS");
 
+  /**
+   * This service is not currently implemented and will become a
+   * GeneralAnalysisService in a future release.
+   */
   static const INVALIDATE = const AnalysisService._("INVALIDATE");
 
   static const NAVIGATION = const AnalysisService._("NAVIGATION");
@@ -9161,6 +9342,50 @@ class FoldingRegion implements HasToJson {
     hash = _JenkinsSmiHash.combine(hash, length.hashCode);
     return _JenkinsSmiHash.finish(hash);
   }
+}
+
+/**
+ * GeneralAnalysisService
+ *
+ * enum {
+ *   ANALYZED_FILES
+ * }
+ */
+class GeneralAnalysisService implements Enum {
+  static const ANALYZED_FILES = const GeneralAnalysisService._("ANALYZED_FILES");
+
+  /**
+   * A list containing all of the enum values that are defined.
+   */
+  static const List<GeneralAnalysisService> VALUES = const <GeneralAnalysisService>[ANALYZED_FILES];
+
+  final String name;
+
+  const GeneralAnalysisService._(this.name);
+
+  factory GeneralAnalysisService(String name) {
+    switch (name) {
+      case "ANALYZED_FILES":
+        return ANALYZED_FILES;
+    }
+    throw new Exception('Illegal enum value: $name');
+  }
+
+  factory GeneralAnalysisService.fromJson(JsonDecoder jsonDecoder, String jsonPath, Object json) {
+    if (json is String) {
+      try {
+        return new GeneralAnalysisService(json);
+      } catch(_) {
+        // Fall through
+      }
+    }
+    throw jsonDecoder.mismatch(jsonPath, "GeneralAnalysisService");
+  }
+
+  @override
+  String toString() => "GeneralAnalysisService.$name";
+
+  String toJson() => name;
 }
 
 /**

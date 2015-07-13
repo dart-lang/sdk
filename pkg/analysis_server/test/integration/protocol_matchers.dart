@@ -243,6 +243,23 @@ final Matcher isAnalysisSetAnalysisRootsParams = new LazyMatcher(() => new Match
 final Matcher isAnalysisSetAnalysisRootsResult = isNull;
 
 /**
+ * analysis.setGeneralSubscriptions params
+ *
+ * {
+ *   "subscriptions": List<GeneralAnalysisService>
+ * }
+ */
+final Matcher isAnalysisSetGeneralSubscriptionsParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.setGeneralSubscriptions params", {
+    "subscriptions": isListOf(isGeneralAnalysisService)
+  }));
+
+/**
+ * analysis.setGeneralSubscriptions result
+ */
+final Matcher isAnalysisSetGeneralSubscriptionsResult = isNull;
+
+/**
  * analysis.setPriorityFiles params
  *
  * {
@@ -313,6 +330,18 @@ final Matcher isAnalysisUpdateOptionsParams = new LazyMatcher(() => new MatchesJ
  * analysis.updateOptions result
  */
 final Matcher isAnalysisUpdateOptionsResult = isNull;
+
+/**
+ * analysis.analyzedFiles params
+ *
+ * {
+ *   "directories": List<FilePath>
+ * }
+ */
+final Matcher isAnalysisAnalyzedFilesParams = new LazyMatcher(() => new MatchesJsonObject(
+  "analysis.analyzedFiles params", {
+    "directories": isListOf(isFilePath)
+  }));
 
 /**
  * analysis.errors params
@@ -1343,6 +1372,17 @@ final Matcher isFoldingRegion = new LazyMatcher(() => new MatchesJsonObject(
     "offset": isInt,
     "length": isInt
   }));
+
+/**
+ * GeneralAnalysisService
+ *
+ * enum {
+ *   ANALYZED_FILES
+ * }
+ */
+final Matcher isGeneralAnalysisService = new MatchesEnum("GeneralAnalysisService", [
+  "ANALYZED_FILES"
+]);
 
 /**
  * HighlightRegion

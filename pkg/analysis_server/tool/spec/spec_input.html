@@ -5,7 +5,7 @@
   </head>
   <body>
     <h1>Analysis Server API Specification</h1>
-    <h1 style="color:#999999">Version <version>1.7.0</version></h1>
+    <h1 style="color:#999999">Version <version>1.8.0</version></h1>
     <p>
       This document contains a specification of the API provided by the
       analysis server.  The API in this document is currently under
@@ -396,6 +396,10 @@
           Return library dependency information for use in client-side indexing
           and package URI resolution.
         </p>
+        <p>
+        Clients that are only using the libraries field should consider using the
+        analyzedFiles notification instead.
+        </p>
         <result>
           <field name="libraries">
             <list><ref>FilePath</ref></list>
@@ -591,6 +595,24 @@
           </field>
         </params>
       </request>
+     <request method="setGeneralSubscriptions">
+        <p>
+          Subscribe for general services (that is, services that are not
+          specific to individual files). All previous subscriptions are replaced
+          by the given set of services.
+        </p>
+        <p>
+          It is an error if any of the elements in the list are not valid
+          services. If there is an error, then the current subscriptions will
+          remain unchanged.
+        </p>
+        <params>
+          <field name="subscriptions">
+            <list><ref>GeneralAnalysisService</ref></list>
+            <p>A list of the services being subscribed to.</p>
+          </field>
+        </params>
+      </request>
       <request method="setPriorityFiles">
         <p>
           Set the priority files to the files in the given list. A
@@ -628,11 +650,11 @@
       </request>
       <request method="setSubscriptions">
         <p>
-          Subscribe for services. All previous subscriptions are
-          replaced by the current set of subscriptions. If a given
-          service is not included as a key in the map then no files
-          will be subscribed to the service, exactly as if the service
-          had been included in the map with an explicit empty list of
+          Subscribe for services that are specific to individual files.
+          All previous subscriptions are replaced by the current set of
+          subscriptions. If a given service is not included as a key in the map
+          then no files will be subscribed to the service, exactly as if the
+          service had been included in the map with an explicit empty list of
           files.
         </p>
         <p>
@@ -724,6 +746,24 @@
           </field>
         </params>
       </request>
+      <notification event="analyzedFiles">
+        <p>
+          Reports the paths of the files that are being analyzed.
+        </p>
+        <p>
+          This notification is not subscribed to by default. Clients can
+          subscribe by including the value <tt>"ANALYZED_FILES"</tt> in the list
+          of services passed in an analysis.setGeneralSubscriptions request.
+        </p>
+        <params>
+          <field name="directories">
+            <list><ref>FilePath</ref></list>
+              <p>
+                A list of the paths of the files that are being analyzed.
+              </p>
+            </field>
+        </params>
+      </notification>
       <notification event="errors">
         <p>
           Reports the errors associated with a given file. The set of
@@ -2002,13 +2042,19 @@
       </type>
       <type name="AnalysisService">
         <p>
-          An enumeration of the services provided by the analysis
-          domain.
+          An enumeration of the services provided by the analysis domain that
+          are related to a specific list of files.
         </p>
         <enum>
           <value><code>FOLDING</code></value>
           <value><code>HIGHLIGHTS</code></value>
-          <value><code>INVALIDATE</code></value>
+          <value>
+            <code>INVALIDATE</code>
+            <p>
+              This service is not currently implemented and will become a
+              GeneralAnalysisService in a future release.
+            </p>
+          </value>
           <value><code>NAVIGATION</code></value>
           <value><code>OCCURRENCES</code></value>
           <value><code>OUTLINE</code></value>
@@ -2460,6 +2506,15 @@
             </p>
           </field>
         </object>
+      </type>
+      <type name="GeneralAnalysisService">
+        <p>
+          An enumeration of the services provided by the analysis domain that are
+          general in nature (that is, are not specific to some list of files).
+        </p>
+        <enum>
+          <value><code>ANALYZED_FILES</code></value>
+        </enum>
       </type>
       <type name="HighlightRegion">
         <p>

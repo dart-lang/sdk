@@ -46,6 +46,8 @@ class AbstractAnalysisTest {
   RequestHandler handler;
 
   final List<ServerErrorParams> serverErrors = <ServerErrorParams>[];
+  final List<GeneralAnalysisService> generalServices =
+      <GeneralAnalysisService>[];
   final Map<AnalysisService, List<String>> analysisSubscriptions = {};
 
   String projectPath = '/project';
@@ -72,6 +74,13 @@ class AbstractAnalysisTest {
   String addFile(String path, String content) {
     resourceProvider.newFile(path, content);
     return path;
+  }
+
+  void addGeneralAnalysisSubscription(GeneralAnalysisService service) {
+    generalServices.add(service);
+    Request request = new AnalysisSetGeneralSubscriptionsParams(generalServices)
+        .toRequest('0');
+    handleSuccessfulRequest(request);
   }
 
   String addTestFile(String content) {

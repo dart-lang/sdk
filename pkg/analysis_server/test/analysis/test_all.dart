@@ -8,6 +8,8 @@ import 'package:unittest/unittest.dart';
 import 'get_errors_test.dart' as get_errors_test;
 import 'get_hover_test.dart' as get_hover_test;
 import 'get_navigation_test.dart' as get_navigation_test;
+import 'notification_analyzedFiles_test.dart'
+    as notification_analyzedFiles_test;
 import 'notification_errors_test.dart' as notification_errors_test;
 import 'notification_highlights_test.dart' as notification_highlights_test;
 import 'notification_navigation_test.dart' as notification_navigation_test;
@@ -25,6 +27,7 @@ main() {
     get_errors_test.main();
     get_hover_test.main();
     get_navigation_test.main();
+    notification_analyzedFiles_test.main();
     notification_errors_test.main();
     notification_highlights_test.main();
     notification_navigation_test.main();

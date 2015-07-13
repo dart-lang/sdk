@@ -17,29 +17,13 @@
 package org.dartlang.analysis.server.protocol;
 
 /**
- * An enumeration of the services provided by the analysis domain that are related to a specific
- * list of files.
+ * An enumeration of the services provided by the analysis domain that are general in nature (that
+ * is, are not specific to some list of files).
  *
  * @coverage dart.server.generated.types
  */
-public class AnalysisService {
+public class GeneralAnalysisService {
 
-  public static final String FOLDING = "FOLDING";
-
-  public static final String HIGHLIGHTS = "HIGHLIGHTS";
-
-  /**
-   * This service is not currently implemented and will become a GeneralAnalysisService in a future
-   * release.
-   */
-  public static final String INVALIDATE = "INVALIDATE";
-
-  public static final String NAVIGATION = "NAVIGATION";
-
-  public static final String OCCURRENCES = "OCCURRENCES";
-
-  public static final String OUTLINE = "OUTLINE";
-
-  public static final String OVERRIDES = "OVERRIDES";
+  public static final String ANALYZED_FILES = "ANALYZED_FILES";
 
 }
