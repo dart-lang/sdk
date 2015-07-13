@@ -109,3 +109,10 @@ class _KeyRangeFactoryProvider {
 final indexed_dbBlinkMap = {
 $!TYPE_MAP
 };
+
+$if JSINTEROP
+// FIXME: Can we make this private?
+final indexed_dbBlinkFunctionMap = {
+$!TYPE_FUNCTION_MAP
+};
+$endif

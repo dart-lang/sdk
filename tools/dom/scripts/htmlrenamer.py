@@ -787,6 +787,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'Node.get:DOCUMENT_POSITION_FOLLOWING',
     'Node.get:DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC',
     'Node.get:DOCUMENT_POSITION_PRECEDING',
+    'Node.get:childNodes',
     'Node.get:prefix',
     'Node.hasAttributes',
     'Node.isDefaultNamespace',

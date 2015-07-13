@@ -3366,6 +3366,7 @@ class CssStyleDeclaration  extends Interceptor with
     return JS('bool', '# in #', propertyName, this);
   }
 
+
   @DomName('CSSStyleDeclaration.setProperty')
   void setProperty(String propertyName, String value, [String priority]) {
     return _setPropertyHelper(_browserPropertyName(propertyName),
@@ -9907,7 +9908,6 @@ class DocumentFragment extends Node implements ParentNode {
    */
   ElementList<Element> querySelectorAll(String selectors) =>
     new _FrozenElementList._wrap(_querySelectorAll(selectors));
-
 
 
   String get innerHtml {
@@ -23738,6 +23738,22 @@ class Node extends EventTarget {
     String value = nodeValue;  // Fetch DOM Node property once.
     return value == null ? super.toString() : value;
   }
+
+  /**
+   * A list of this node's children.
+   *
+   * ## Other resources
+   *
+   * * [Node.childNodes]
+   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
+   * from MDN.
+   */
+  @DomName('Node.childNodes')
+  @DocsEditable()
+  @Returns('NodeList')
+  @Creates('NodeList')
+  final List<Node> childNodes;
+
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
@@ -23793,21 +23809,6 @@ class Node extends EventTarget {
   @DomName('Node.baseURI')
   @DocsEditable()
   final String baseUri;
-
-  /**
-   * A list of this node's children.
-   *
-   * ## Other resources
-   *
-   * * [Node.childNodes]
-   * (https://developer.mozilla.org/en-US/docs/Web/API/Node.childNodes)
-   * from MDN.
-   */
-  @DomName('Node.childNodes')
-  @DocsEditable()
-  @Returns('NodeList')
-  @Creates('NodeList')
-  final List<Node> childNodes;
 
   /**
    * The first child of this node.

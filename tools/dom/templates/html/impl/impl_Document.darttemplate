@@ -26,7 +26,11 @@ $!MEMBERS
    * [CSS selector specification](http://www.w3.org/TR/css3-selectors/).
    */
   ElementList<Element> querySelectorAll(String selectors) {
+$if JSINTEROP
+    return _querySelectorAll(selectors);
+$else
     return new _FrozenElementList._wrap(_querySelectorAll(selectors));
+$endif
   }
 
   /**
@@ -66,12 +70,16 @@ $endif
 $if DART2JS
     return _createElement(tagName, typeExtension);
 $else
-    if (typeExtension != null) {
-      return _createElement(tagName, typeExtension);
-    } else {
-      // Fast-path for Dartium when typeExtension is not needed.
-      return _Utils.createElement(this, tagName);
-    }
+  $if JSINTEROP
+    return _createElement(tagName, typeExtension);
+  $else
+    if (typeExtension != null) {  
+      return _createElement(tagName, typeExtension);  
+    } else {  
+      // Fast-path for Dartium when typeExtension is not needed.  
+      return _Utils.createElement(this, tagName); 
+    } 
+  $endif
 $endif
   }
 

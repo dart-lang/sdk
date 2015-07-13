@@ -786,6 +786,13 @@ class HtmlDartGenerator(object):
     if type_name in _secure_base_types:
       return _secure_base_types[type_name]
 
+  def is_DOM_type(self, type_name):
+    try:
+        self._type_registry.TypeInfo(type_name)
+        return True
+    except RuntimeError:
+        return False
+
   def _NarrowToImplementationType(self, type_name):
     return self._type_registry.TypeInfo(type_name).narrow_dart_type()
 
