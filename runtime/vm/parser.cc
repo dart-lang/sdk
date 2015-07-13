@@ -6736,13 +6736,13 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(intptr_t async_func_pos) {
 //     ... source code of f ...
 //   }
 //   var :async_op = f_async_body;
-//   :controller = new _AsyncStarStreamController(f_async_body);
+//   :controller = new _AsyncStarStreamController(:async_op);
 //   return :controller.stream;
 // }
-SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure,
+SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure_func,
                                                   SequenceNode* closure_body) {
   TRACE_PARSER("CloseAsyncGeneratorFunction");
-  ASSERT(!closure.IsNull());
+  ASSERT(!closure_func.IsNull());
   ASSERT(closure_body != NULL);
 
   // The block for the async closure body has already been closed. Close the
@@ -6775,19 +6775,17 @@ SequenceNode* Parser::CloseAsyncGeneratorFunction(const Function& closure,
   //   :async_op = <closure>;  (containing the original body)
   LocalVariable* async_op_var =
       current_block_->scope->LookupVariable(Symbols::AsyncOperation(), false);
-  ClosureNode* cn = new(Z) ClosureNode(
-      Scanner::kNoSourcePos, closure, NULL, closure_body->scope());
+  ClosureNode* closure_obj = new(Z) ClosureNode(
+      Scanner::kNoSourcePos, closure_func, NULL, closure_body->scope());
   StoreLocalNode* store_async_op = new (Z) StoreLocalNode(
       Scanner::kNoSourcePos,
       async_op_var,
-      cn);
+      closure_obj);
   current_block_->statements->Add(store_async_op);
 
   // :controller = new _AsyncStarStreamController(body_closure);
   ArgumentListNode* arguments = new(Z) ArgumentListNode(Scanner::kNoSourcePos);
-  ClosureNode* closure_obj = new(Z) ClosureNode(
-      Scanner::kNoSourcePos, closure, NULL, closure_body->scope());
-  arguments->Add(closure_obj);
+  arguments->Add(new (Z) LoadLocalNode(Scanner::kNoSourcePos, async_op_var));
   ConstructorCallNode* controller_constructor_call =
       new(Z) ConstructorCallNode(Scanner::kNoSourcePos,
                                  TypeArguments::ZoneHandle(Z),
