@@ -93,13 +93,9 @@ void Assembler::CallPatchable(const ExternalLabel* label) {
 
 
 void Assembler::Call(const ExternalLabel* label, Register pp) {
-  if (Isolate::Current() == Dart::vm_isolate()) {
-    call(label);
-  } else {
-    const int32_t offset = ObjectPool::element_offset(
-        object_pool_wrapper_.FindExternalLabel(label, kNotPatchable));
-    call(Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
-  }
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindExternalLabel(label, kNotPatchable));
+  call(Address::AddressBaseImm32(pp, offset - kHeapObjectTag));
 }
 
 
@@ -2787,7 +2783,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   }
   ASSERT(object.IsNotTemporaryScopedHandle());
   ASSERT(object.IsOld());
-  return (Isolate::Current() != Dart::vm_isolate());
+  return true;
 }
 
 
@@ -2816,9 +2812,7 @@ void Assembler::LoadObjectHelper(Register dst,
                   : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(dst, pp, offset - kHeapObjectTag);
   } else {
-    ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
-           object.IsSmi() ||
-           object.InVMHeap());
+    ASSERT(object.IsSmi() || object.InVMHeap());
     LoadImmediate(dst, Immediate(reinterpret_cast<int64_t>(object.raw())), pp);
   }
 }
@@ -2877,7 +2871,6 @@ void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
 
 
 intptr_t Assembler::FindImmediate(int64_t imm) {
-  ASSERT(Isolate::Current() != Dart::vm_isolate());
   return object_pool_wrapper_.FindImmediate(imm);
 }
 
@@ -2886,9 +2879,7 @@ bool Assembler::CanLoadImmediateFromPool(const Immediate& imm, Register pp) {
   if (!allow_constant_pool()) {
     return false;
   }
-  return !imm.is_int32() &&
-         (pp != kNoRegister) &&
-         (Isolate::Current() != Dart::vm_isolate());
+  return !imm.is_int32() && (pp != kNoRegister);
 }
 
 

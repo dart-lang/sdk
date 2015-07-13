@@ -360,7 +360,6 @@ void Assembler::LoadWordFromPoolOffsetFixed(Register dst, Register pp,
 
 
 intptr_t Assembler::FindImmediate(int64_t imm) {
-  ASSERT(Isolate::Current() != Dart::vm_isolate());
   return object_pool_wrapper_.FindImmediate(imm);
 }
 
@@ -380,7 +379,7 @@ bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   }
   ASSERT(object.IsNotTemporaryScopedHandle());
   ASSERT(object.IsOld());
-  return (Isolate::Current() != Dart::vm_isolate());
+  return true;
 }
 
 
@@ -388,12 +387,7 @@ bool Assembler::CanLoadImmediateFromPool(int64_t imm, Register pp) {
   if (!allow_constant_pool()) {
     return false;
   }
-  return !Utils::IsInt(32, imm) &&
-         (pp != kNoPP) &&
-         // We *could* put constants in the pool in a VM isolate, but it is
-         // simpler to maintain the invariant that the object pool is not used
-         // in the VM isolate.
-         (Isolate::Current() != Dart::vm_isolate());
+  return !Utils::IsInt(32, imm) && (pp != kNoPP);
 }
 
 
@@ -439,9 +433,7 @@ void Assembler::LoadObjectHelper(Register dst,
                   : object_pool_wrapper_.FindObject(object));
     LoadWordFromPoolOffset(dst, pp, offset);
   } else {
-    ASSERT((Isolate::Current() == Dart::vm_isolate()) ||
-           object.IsSmi() ||
-           object.InVMHeap());
+    ASSERT(object.IsSmi() || object.InVMHeap());
     LoadDecodableImmediate(dst, reinterpret_cast<int64_t>(object.raw()), pp);
   }
 }
@@ -473,17 +465,9 @@ void Assembler::CompareObject(Register reg, const Object& object, Register pp) {
 
 
 void Assembler::LoadDecodableImmediate(Register reg, int64_t imm, Register pp) {
-  if ((pp != kNoPP) &&
-      (Isolate::Current() != Dart::vm_isolate()) &&
-      allow_constant_pool()) {
-    int64_t val_smi_tag = imm & kSmiTagMask;
-    imm &= ~kSmiTagMask;  // Mask off the tag bits.
+  if ((pp != kNoPP) && allow_constant_pool()) {
     const int32_t offset = ObjectPool::element_offset(FindImmediate(imm));
     LoadWordFromPoolOffset(reg, pp, offset);
-    if (val_smi_tag != 0) {
-      // Add back the tag bits.
-      orri(reg, reg, Immediate(val_smi_tag));
-    }
   } else {
     // TODO(zra): Since this sequence only needs to be decodable, it can be
     // of variable length.

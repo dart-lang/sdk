@@ -1347,9 +1347,8 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   Label stepping, done_stepping;
   if (FLAG_support_debugger && !optimized) {
     __ Comment("Check single stepping");
-    uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
-        Isolate::single_step_offset();
-    __ cmpb(Address::Absolute(single_step_address), Immediate(0));
+    __ LoadIsolate(EAX);
+    __ cmpb(Address(EAX, Isolate::single_step_offset()), Immediate(0));
     __ j(NOT_EQUAL, &stepping);
     __ Bind(&done_stepping);
   }
@@ -1649,9 +1648,8 @@ void StubCode::GenerateZeroArgsUnoptimizedStaticCallStub(Assembler* assembler) {
   // Check single stepping.
   Label stepping, done_stepping;
   if (FLAG_support_debugger) {
-    uword single_step_address = reinterpret_cast<uword>(Isolate::Current()) +
-        Isolate::single_step_offset();
-    __ cmpb(Address::Absolute(single_step_address), Immediate(0));
+    __ LoadIsolate(EAX);
+    __ cmpb(Address(EAX, Isolate::single_step_offset()), Immediate(0));
     __ j(NOT_EQUAL, &stepping, Assembler::kNearJump);
     __ Bind(&done_stepping);
   }

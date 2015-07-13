@@ -629,6 +629,9 @@ void Object::InitOnce(Isolate* isolate) {
   // isolate.
   Class::NewExternalTypedDataClass(kExternalTypedDataUint8ArrayCid);
 
+  // Needed for object pools of VM isolate stubs.
+  Class::NewTypedDataClass(kTypedDataInt8ArrayCid);
+
   // Allocate and initialize the empty_array instance.
   {
     uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
@@ -1442,7 +1445,6 @@ RawError* Object::Init(Isolate* isolate) {
 
   // Finish the initialization by compiling the bootstrap scripts containing the
   // base interfaces and the implementation of the internal classes.
-  StubCode::InitBootstrapStubs(isolate);
   const Error& error = Error::Handle(Bootstrap::LoadandCompileScripts());
   if (!error.IsNull()) {
     return error.raw();
@@ -1595,7 +1597,6 @@ RawError* Object::Init(Isolate* isolate) {
                                            Context::New(0, Heap::kOld));
   object_store->set_empty_context(context);
 
-  StubCode::InitBootstrapStubs(isolate);
 #endif  // defined(DART_NO_SNAPSHOT).
 
   return Error::null();
