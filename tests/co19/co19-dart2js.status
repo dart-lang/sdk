@@ -3989,7 +3989,6 @@ LayoutTests/fast/writing-mode/positionForPoint_t01: RuntimeError # Please triage
 LayoutTests/fast/writing-mode/table-hit-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/writing-mode/vertical-font-vmtx-units-per-em_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-get_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-html-document-responsetype-quirks_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responseXML-xml-text-responsetype_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-arraybuffer_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open-sync-request_t01: RuntimeError # Please triage this failure
@@ -9079,7 +9078,6 @@ LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open-sync-req
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-before-open_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-responsetype-sync-request_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xmlhttprequest/xmlhttprequest-set-responsetype_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/xmlhttprequest/xmlhttprequest-withcredentials-before-open_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/cz_20030217_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/kd_20010423_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Borrowed/namespace-nodes_t01: RuntimeError # Please triage this failure
@@ -9283,8 +9281,7 @@ LibTest/html/Window/requestFileSystem_A02_t01: RuntimeError # Please triage this
 LibTest/html/Window/resizeBy_A01_t01: RuntimeError # Please triage this failure
 LibTest/html/Window/resizeTo_A01_t01: RuntimeError # Please triage this failure
 LibTest/math/sqrt_A02_t02: Skip # Times out. Please triage this failure
-LibTest/typed_data/ByteData/ByteData.view_A01_t01: RuntimeError # Please triage this failure
-LibTest/typed_data/ByteData/offsetInBytes_A01_t01: RuntimeError # Please triage this failure
+LibTest/typed_data/ByteData/ByteData.view_A01_t01: Pass, RuntimeError # Please triage this failure
 LibTest/typed_data/Float32List/removeWhere_A01_t01: Skip # Times out. Please triage this failure
 LibTest/typed_data/Float32x4List/Float32x4List.view_A06_t01: RuntimeError # Please triage this failure
 LibTest/typed_data/Int32List/lastWhere_A01_t01: Skip # Times out. Please triage this failure
