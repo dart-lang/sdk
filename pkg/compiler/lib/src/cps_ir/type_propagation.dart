@@ -599,7 +599,7 @@ class TransformingVisitor extends RecursiveVisitor {
   }
 
   /// Inserts [insertedCode] before [node].
-  /// 
+  ///
   /// [node] will end up in the hole of [insertedCode], and [insertedCode]
   /// will become rooted where [node] was.
   void insertBefore(Expression node, CpsFragment insertedCode) {
@@ -614,7 +614,7 @@ class TransformingVisitor extends RecursiveVisitor {
     // We want to recompute the types for [insertedCode] without
     // traversing the entire subtree of [node]. Temporarily close the
     // term with a dummy node while recomputing types.
-    context.body = new Unreachable(); 
+    context.body = new Unreachable();
     new ParentVisitor().visit(insertedCode.root);
     reanalyze(insertedCode.root);
 
@@ -653,7 +653,7 @@ class TransformingVisitor extends RecursiveVisitor {
   /// The new expression will be visited.
   ///
   /// Returns true if the node was replaced.
-  bool constifyExpression(Invoke node) {
+  bool constifyExpression(CallExpression node) {
     Continuation continuation = node.continuation.definition;
     ConstantValue constant = replacements[node];
     if (constant == null) return false;
@@ -692,13 +692,13 @@ class TransformingVisitor extends RecursiveVisitor {
       return;
     }
 
-    if (condition is ApplyBuiltinOperator && 
+    if (condition is ApplyBuiltinOperator &&
         condition.operator == BuiltinOperator.LooseEq) {
       Primitive leftArg = condition.arguments[0].definition;
       Primitive rightArg = condition.arguments[1].definition;
       AbstractValue left = getValue(leftArg);
       AbstractValue right = getValue(rightArg);
-      if (right.isNullConstant && 
+      if (right.isNullConstant &&
           lattice.isDefinitelyNotNumStringBool(left)) {
         // Rewrite:
         //   if (x == null) S1 else S2
@@ -707,7 +707,7 @@ class TransformingVisitor extends RecursiveVisitor {
         Branch branch = new Branch(new IsTrue(leftArg), falseCont, trueCont);
         replaceSubtree(node, branch);
         return;
-      } else if (left.isNullConstant && 
+      } else if (left.isNullConstant &&
                  lattice.isDefinitelyNotNumStringBool(right)) {
         Branch branch = new Branch(new IsTrue(rightArg), falseCont, trueCont);
         replaceSubtree(node, branch);
@@ -843,7 +843,7 @@ class TransformingVisitor extends RecursiveVisitor {
   }
 
   /// Create a check that throws if [index] is not a valid index on [list].
-  /// 
+  ///
   /// This function assumes that [index] is an integer.
   ///
   /// Returns a CPS fragment whose context is the branch where no error
@@ -894,7 +894,7 @@ class TransformingVisitor extends RecursiveVisitor {
     int count = 0;
     for (Reference ref = list.firstRef; ref != null; ref = ref.next) {
       Node use = ref.parent;
-      if (use is InvokeMethod && 
+      if (use is InvokeMethod &&
           (use.selector.isIndex || use.selector.isIndexSet) &&
           getDartReceiver(use) == list) {
         ++count;
@@ -918,7 +918,7 @@ class TransformingVisitor extends RecursiveVisitor {
     if (!lattice.isDefinitelyNativeList(listValue, allowNull: true)) {
       return false;
     }
-    bool isFixedLength = 
+    bool isFixedLength =
         lattice.isDefinitelyFixedNativeList(listValue, allowNull: true);
     bool isMutable =
         lattice.isDefinitelyMutableNativeList(listValue, allowNull: true);
@@ -1041,23 +1041,23 @@ class TransformingVisitor extends RecursiveVisitor {
         MutableVariable current = new MutableVariable(new LoopItemEntity());
 
         // Rewrite all uses of the iterator.
-        while (iterator.firstRef != null) { 
+        while (iterator.firstRef != null) {
           InvokeMethod use = iterator.firstRef.parent;
           Continuation useCont = use.continuation.definition;
-          if (use.selector == currentSelector) { 
+          if (use.selector == currentSelector) {
             // Rewrite iterator.current to a use of the 'current' variable.
             Parameter result = useCont.parameters.single;
             if (result.hint != null) {
               // If 'current' was originally moved into a named variable, use
               // that variable name for the mutable variable.
-              current.hint = result.hint; 
+              current.hint = result.hint;
             }
-            LetPrim let = 
+            LetPrim let =
                 makeLetPrimInvoke(new GetMutableVariable(current), useCont);
             replaceSubtree(use, let);
           } else {
             assert (use.selector == moveNextSelector);
-            // Rewrite iterator.moveNext() to: 
+            // Rewrite iterator.moveNext() to:
             //
             //   if (index < list.length) {
             //     current = null;
@@ -1075,16 +1075,16 @@ class TransformingVisitor extends RecursiveVisitor {
 
             // We must check for concurrent modification when calling moveNext.
             // When moveNext is used as a loop condition, the check prevents
-            // `index < list.length` from becoming the loop condition, and we 
+            // `index < list.length` from becoming the loop condition, and we
             // get code like this:
             //
             //    while (true) {
             //      if (originalLength !== list.length) throw;
-            //      if (index < list.length) { 
+            //      if (index < list.length) {
             //        ...
-            //      } else { 
-            //        ... 
-            //        break; 
+            //      } else {
+            //        ...
+            //        break;
             //      }
             //    }
             //
@@ -1097,17 +1097,17 @@ class TransformingVisitor extends RecursiveVisitor {
             //      if (originalLength !== list.length) throw;
             //    }
             //
-            // The check before the loop can often be eliminated because it 
+            // The check before the loop can often be eliminated because it
             // follows immediately after the 'iterator' call.
             InteriorNode parent = getEffectiveParent(use);
             if (!isFixedLength) {
               if (parent is Continuation && parent.isRecursive) {
                 // Check for concurrent modification before every invocation
                 // of the continuation.
-                // TODO(asgerf): Do this in a continuation so multiple 
+                // TODO(asgerf): Do this in a continuation so multiple
                 //               continues can share the same code.
-                for (Reference ref = parent.firstRef; 
-                     ref != null; 
+                for (Reference ref = parent.firstRef;
+                     ref != null;
                      ref = ref.next) {
                   Expression invocationCaller = ref.parent;
                   if (getEffectiveParent(invocationCaller) == iteratorCont) {
@@ -1137,7 +1137,7 @@ class TransformingVisitor extends RecursiveVisitor {
               ..invokeContinuation(useCont, [falseBranch.makeFalse()]);
 
             // Return true if there are more element.
-            cps.setMutable(current, 
+            cps.setMutable(current,
                 cps.letPrim(new GetIndex(list, cps.getMutable(index))));
             cps.setMutable(index, cps.applyBuiltin(
                 BuiltinOperator.NumAdd,
@@ -1177,12 +1177,12 @@ class TransformingVisitor extends RecursiveVisitor {
 
   /// If [prim] is the parameter to a call continuation, returns the
   /// corresponding call.
-  Invoke getInvocationWithResult(Primitive prim) {
+  CallExpression getCallWithResult(Primitive prim) {
     if (prim is Parameter && prim.parent is Continuation) {
       Continuation cont = prim.parent;
       if (cont.hasExactlyOneUse) {
         Node use = cont.firstRef.parent;
-        if (use is Invoke) {
+        if (use is CallExpression) {
           return use;
         }
       }
@@ -1243,7 +1243,7 @@ class TransformingVisitor extends RecursiveVisitor {
       visitInvokeStatic(invoke);
       return true;
     }
-    Invoke tearOffInvoke = getInvocationWithResult(tearOff);
+    CallExpression tearOffInvoke = getCallWithResult(tearOff);
     if (tearOffInvoke is InvokeMethod && tearOffInvoke.selector.isGetter) {
       Selector getter = tearOffInvoke.selector;
 

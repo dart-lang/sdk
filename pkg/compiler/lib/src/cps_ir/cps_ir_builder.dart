@@ -193,7 +193,7 @@ abstract class JumpCollector {
   }
 
   /// True if a jump inserted now will escape from a try block.
-  /// 
+  ///
   /// Concretely, this is true when [enterTry] has been called without
   /// its corresponding [leaveTry] call.
   bool get isEscapingTry => _boxedTryVariables.isNotEmpty;
@@ -546,7 +546,8 @@ class IrBuilder {
 
   /// Creates a [ir.MutableVariable] for the given local.
   void makeMutableVariable(Local local) {
-    mutableVariables[local] = new ir.MutableVariable(local);
+    mutableVariables[local] =
+        new ir.MutableVariable(local);
   }
 
   /// Remove an [ir.MutableVariable] for a local.
@@ -2439,8 +2440,8 @@ class IrBuilder {
     return addPrimitive(new ir.GetField(receiver, target));
   }
 
-  void buildFieldSet(ir.Primitive receiver, 
-                     FieldElement target, 
+  void buildFieldSet(ir.Primitive receiver,
+                     FieldElement target,
                      ir.Primitive value) {
     add(new ir.SetField(receiver, target, value));
   }
@@ -2581,21 +2582,19 @@ class IrBuilder {
                                 NativeBehavior behavior,
                                 {Element dependency}) {
     types.TypeMask type = program.getTypeMaskForForeign(behavior);
-    if (codeTemplate.isExpression) {
-      return _continueWithExpression((k) => new ir.ForeignCode(
+    ir.Primitive result = _continueWithExpression((k) => new ir.ForeignCode(
         codeTemplate,
         type,
         arguments,
         behavior,
-        continuation: k,
+        k,
         dependency: dependency));
-    } else {
-      assert(isOpen);
-      add(new ir.ForeignCode(codeTemplate, type, arguments, behavior,
-          dependency: dependency));
+    if (!codeTemplate.isExpression) {
+      // Close the term if this is a "throw" expression.
+      add(new ir.Unreachable());
       _current = null;
-      return null;
     }
+    return result;
   }
 
   /// Creates a type test or type cast of [value] against [type].

@@ -612,7 +612,7 @@ class Builder implements cps_ir.Visitor<Node> {
           node.dependency);
       return continueWithExpression(node.continuation, foreignCode);
     } else {
-      assert(node.continuation == null);
+      assert(node.continuation.definition.body is cps_ir.Unreachable);
       return new ForeignStatement(
           node.codeTemplate,
           node.type,
