@@ -936,7 +936,7 @@ class HeapSnapshot {
     var result = [];
     for (ObjectVertex v in graph.getMostRetained(classId: classId,
                                                  limit: limit)) {
-      result.add(isolate.getObjectByAddress(v.address.toRadixString(16))
+      result.add(isolate.getObjectByAddress(v.address)
                         .then((ServiceObject obj) {
         if (obj is Instance) {
           // TODO(rmacnak): size/retainedSize are properties of all heap
