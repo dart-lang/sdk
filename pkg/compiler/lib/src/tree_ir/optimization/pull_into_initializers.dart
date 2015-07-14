@@ -315,6 +315,24 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
+  Expression visitGetLength(GetLength node) {
+    super.visitGetLength(node);
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitGetIndex(GetIndex node) {
+    super.visitGetIndex(node);
+    ++impureCounter;
+    return node;
+  }
+
+  Expression visitSetIndex(SetIndex node) {
+    super.visitSetIndex(node);
+    ++impureCounter;
+    return node;
+  }
+
   void visitInnerFunction(FunctionDefinition node) {
     new PullIntoInitializers().rewrite(node);
   }

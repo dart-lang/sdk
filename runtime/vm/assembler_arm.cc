@@ -1567,6 +1567,12 @@ void Assembler::LoadObjectHelper(Register rd,
                                  const Object& object,
                                  Condition cond,
                                  bool is_unique) {
+  // Load common VM constants from the thread. This works also in places where
+  // no constant pool is set up (e.g. intrinsic code).
+  if (Thread::CanLoadFromThread(object)) {
+    ldr(rd, Address(THR, Thread::OffsetFromThread(object)), cond);
+    return;
+  }
   // Smis and VM heap objects are never relocated; do not use object pool.
   if (object.IsSmi()) {
     LoadImmediate(rd, reinterpret_cast<int32_t>(object.raw()), cond);
@@ -1808,8 +1814,8 @@ void Assembler::StoreIntoObject(Register object,
   if (object != R0) {
     mov(R0, Operand(object));
   }
-  StubCode* stub_code = Isolate::Current()->stub_code();
-  BranchLink(&stub_code->UpdateStoreBufferLabel());
+  ldr(LR, Address(THR, Thread::update_store_buffer_entry_point_offset()));
+  blx(LR);
   PopList(regs);
   Bind(&done);
 }
@@ -1961,8 +1967,10 @@ void Assembler::LoadClassId(Register result, Register object, Condition cond) {
 
 void Assembler::LoadClassById(Register result, Register class_id) {
   ASSERT(result != class_id);
-  LoadImmediate(result, Isolate::Current()->class_table()->TableAddress());
-  LoadFromOffset(kWord, result, result, 0);
+  LoadIsolate(result);
+  const intptr_t offset =
+      Isolate::class_table_offset() + ClassTable::table_offset();
+  LoadFromOffset(kWord, result, result, offset);
   ldr(result, Address(result, class_id, LSL, 2));
 }
 
@@ -3337,8 +3345,7 @@ void Assembler::LeaveStubFrame() {
 
 
 void Assembler::LoadAllocationStatsAddress(Register dest,
-                                           intptr_t cid,
-                                           Heap::Space space) {
+                                           intptr_t cid) {
   ASSERT(dest != kNoRegister);
   ASSERT(dest != TMP);
   ASSERT(cid > 0);
@@ -3355,6 +3362,18 @@ void Assembler::LoadAllocationStatsAddress(Register dest,
     ldr(dest, Address(dest, 0));
     AddImmediate(dest, class_offset);
   }
+}
+
+
+void Assembler::MaybeTraceAllocation(intptr_t cid,
+                                     Register temp_reg,
+                                     Label* trace) {
+  LoadAllocationStatsAddress(temp_reg, cid);
+  const uword state_offset = ClassHeapStats::state_offset();
+  const Address& state_address = Address(temp_reg, state_offset);
+  ldr(temp_reg, state_address);
+  tst(temp_reg, Operand(ClassHeapStats::TraceAllocationMask()));
+  b(trace, NE);
 }
 
 
@@ -3408,6 +3427,10 @@ void Assembler::TryAllocate(const Class& cls,
     ASSERT(temp_reg != IP);
     const intptr_t instance_size = cls.instance_size();
     ASSERT(instance_size != 0);
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    MaybeTraceAllocation(cls.id(), temp_reg, failure);
     Heap* heap = Isolate::Current()->heap();
     Heap::Space space = heap->SpaceForAllocation(cls.id());
     const uword top_address = heap->TopAddress(space);
@@ -3429,7 +3452,7 @@ void Assembler::TryAllocate(const Class& cls,
     // next object start and store the class in the class field of object.
     str(instance_reg, Address(temp_reg));
 
-    LoadAllocationStatsAddress(temp_reg, cls.id(), space);
+    LoadAllocationStatsAddress(temp_reg, cls.id());
 
     ASSERT(instance_size >= kHeapObjectTag);
     AddImmediate(instance_reg, -instance_size + kHeapObjectTag);
@@ -3456,6 +3479,10 @@ void Assembler::TryAllocateArray(intptr_t cid,
                                  Register temp1,
                                  Register temp2) {
   if (FLAG_inline_alloc) {
+    // If this allocation is traced, program will jump to failure path
+    // (i.e. the allocation stub) which will allocate the object and trace the
+    // allocation call site.
+    MaybeTraceAllocation(cid, temp1, failure);
     Isolate* isolate = Isolate::Current();
     Heap* heap = isolate->heap();
     Heap::Space space = heap->SpaceForAllocation(cid);
@@ -3472,7 +3499,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     cmp(end_address, Operand(temp2));
     b(failure, CS);
 
-    LoadAllocationStatsAddress(temp2, cid, space);
+    LoadAllocationStatsAddress(temp2, cid);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

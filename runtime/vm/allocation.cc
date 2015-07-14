@@ -20,12 +20,12 @@ static void* Allocate(uword size, Zone* zone) {
 
 
 void* ZoneAllocated::operator new(uword size) {
-  return Allocate(size, Isolate::Current()->current_zone());
+  return Allocate(size, Thread::Current()->zone());
 }
 
 
 void* ZoneAllocated::operator new(uword size, Zone* zone) {
-  ASSERT(zone == Isolate::Current()->current_zone());
+  ASSERT(zone == Thread::Current()->zone());
   return Allocate(size, zone);
 }
 

@@ -44,7 +44,7 @@ import 'dart:_foreign_helper' show
     JS_BUILTIN,
     JS_CALL_IN_ISOLATE,
     JS_CONST,
-    JS_CURRENT_ISOLATE,
+    JS_GET_STATIC_STATEC,
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EFFECT,
     JS_EMBEDDED_GLOBAL,

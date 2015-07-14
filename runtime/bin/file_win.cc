@@ -196,6 +196,7 @@ File* File::OpenStdio(int fd) {
     default:
       UNREACHABLE();
   }
+  _setmode(fd, _O_BINARY);
   return new File(new FileHandle(fd));
 }
 

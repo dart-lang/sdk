@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library dart2js.new_js_emitter.model_emitter;
+library dart2js.js_emitter.lazy_emitter.model_emitter;
 
 import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
 import '../../dart2jslib.dart' show Compiler;
@@ -83,7 +83,7 @@ class ModelEmitter {
     return false;
   }
 
-  // TODO(floitsch): copied from OldEmitter. Adjust or share.
+  // TODO(floitsch): copied from full emitter. Adjust or share.
   int compareConstants(ConstantValue a, ConstantValue b) {
     // Inlined constants don't affect the order and sometimes don't even have
     // names.
@@ -305,7 +305,7 @@ class ModelEmitter {
     }
 
     if (program.hasIsolateSupport) {
-      String isolateName = namer.currentIsolate;
+      String isolateName = namer.staticStateHolder;
       globals.add(
           new js.Property(js.string(CREATE_NEW_ISOLATE),
                           js.js('function () { return $isolateName; }')));

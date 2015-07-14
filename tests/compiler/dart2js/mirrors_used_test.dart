@@ -26,6 +26,9 @@ import 'package:compiler/src/elements/elements.dart' show
 import 'package:compiler/src/js_backend/js_backend.dart' show
     JavaScriptBackend;
 
+import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
+    as full show Emitter;
+
 void expectOnlyVerboseInfo(Uri uri, int begin, int end, String message, kind) {
   if (kind.name == 'verbose info') {
     print(message);
@@ -89,10 +92,13 @@ void main() {
     expectedNames = expectedNames.map(backend.namer.asName).toList();
     expectedNames.addAll(nativeNames);
 
+    // Mirrors only work in the full emitter. We can thus be certain that the
+    // emitter is the full emitter.
+    full.Emitter fullEmitter = backend.emitter.emitter;
     Set recordedNames = new Set()
-        ..addAll(backend.emitter.oldEmitter.recordedMangledNames)
-        ..addAll(backend.emitter.oldEmitter.mangledFieldNames.keys)
-        ..addAll(backend.emitter.oldEmitter.mangledGlobalFieldNames.keys);
+        ..addAll(fullEmitter.recordedMangledNames)
+        ..addAll(fullEmitter.mangledFieldNames.keys)
+        ..addAll(fullEmitter.mangledGlobalFieldNames.keys);
     Expect.setEquals(new Set.from(expectedNames), recordedNames);
 
     for (var library in compiler.libraryLoader.libraries) {

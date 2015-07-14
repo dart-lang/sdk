@@ -203,9 +203,10 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
   }
 
   @override
-  SourceInformation buildReturn(Node node) {
-    return buildGeneric(node);
-  }
+  SourceInformation buildCreate(Node node) => buildGeneric(node);
+
+  @override
+  SourceInformation buildReturn(Node node) => buildGeneric(node);
 
   @override
   SourceInformation buildGet(Node node) => buildGeneric(node);

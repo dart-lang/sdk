@@ -189,6 +189,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_shift)           \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 0 * kWordSize;                      \
+  __ MaybeTraceAllocation(cid, R2, &fall_through);                             \
   __ ldr(R2, Address(SP, kArrayLengthStackOffset));  /* Array length. */       \
   /* Check that length is a positive Smi. */                                   \
   /* R2: requested array length argument. */                                   \
@@ -225,7 +226,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
                                                                                \
   /* Successfully allocated the object(s), now update top to point to */       \
   /* next object start and initialize the object. */                           \
-  __ LoadAllocationStatsAddress(R4, cid, space);                               \
+  __ LoadAllocationStatsAddress(R4, cid);                                      \
   __ LoadImmediate(R3, heap->TopAddress(space));                               \
   __ str(R1, Address(R3, 0));                                                  \
   __ AddImmediate(R0, kHeapObjectTag);                                         \
@@ -1762,7 +1763,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* failure) {
   const Register length_reg = R2;
   Label fail;
-
+  __ MaybeTraceAllocation(kOneByteStringCid, R0, failure);
   __ mov(R6, Operand(length_reg));  // Save the length register.
   // TODO(koda): Protect against negative length and overflow here.
   __ SmiUntag(length_reg);
@@ -1793,7 +1794,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
-  __ LoadAllocationStatsAddress(R4, cid, space);
+  __ LoadAllocationStatsAddress(R4, cid);
   __ str(R1, Address(R3, 0));
   __ AddImmediate(R0, kHeapObjectTag);
 

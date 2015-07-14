@@ -26,6 +26,9 @@ import 'package:compiler/src/dart2jslib.dart' show
 import 'package:compiler/src/js_backend/js_backend.dart' show
     JavaScriptBackend;
 
+import 'package:compiler/src/js_emitter/full_emitter/emitter.dart'
+    as full show Emitter;
+
 import 'package:compiler/src/elements/elements.dart' show
     LibraryElement;
 

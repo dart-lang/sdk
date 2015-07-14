@@ -746,9 +746,6 @@ class Listener {
           break;
       }
       reportError(token, kind, arguments);
-    } else if (token is UnsupportedNullAwareToken) {
-      reportError(token, MessageKind.NULL_AWARE_OPERATORS_DISABLED,
-          {'operator' : token.operator});
     } else if (token is UnmatchedToken) {
       String begin = token.begin.value;
       String end = closeBraceFor(begin);

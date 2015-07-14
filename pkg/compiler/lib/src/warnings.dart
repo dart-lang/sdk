@@ -401,6 +401,9 @@ main() {}""",
   static const MessageKind NOT_A_PREFIX = const MessageKind(
       "'#{node}' is not a prefix.");
 
+  static const MessageKind PREFIX_AS_EXPRESSION = const MessageKind(
+      "Library prefix '#{prefix}' is not a valid expression.");
+
   static const MessageKind CANNOT_FIND_CONSTRUCTOR = const MessageKind(
       "Cannot find constructor '#{constructorName}'.");
 
@@ -1202,7 +1205,6 @@ main() => new C();"""]);
       "Cannot assign a value to a type. Note that types are never null, "
       "so this ??= assignment has no effect.",
       howToFix: "Try removing the '??=' assignment.",
-      options: const ['--enable-null-aware-operators'],
       examples: const [
           "class A {} main() { print(A ??= 3);}",
       ]);
@@ -2021,10 +2023,6 @@ main() => r\"\"\"
   static const MessageKind UNTERMINATED_TOKEN = const MessageKind(
       // This is a fall-back message that shouldn't happen.
       "Incomplete token.");
-
-  static const MessageKind NULL_AWARE_OPERATORS_DISABLED = const MessageKind(
-      "Null-aware operators like '#{operator}' are currently experimental. "
-      "You can enable them using the --enable-null-aware-operators flag.");
 
   static const MessageKind EXPONENT_MISSING = const MessageKind(
       "Numbers in exponential notation should always contain an exponent"

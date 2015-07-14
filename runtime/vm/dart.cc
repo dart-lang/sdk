@@ -95,7 +95,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   Isolate::SetEntropySourceCallback(entropy_source);
   OS::InitOnce();
   VirtualMemory::InitOnce();
-  Thread::InitOnce();
+  Thread::InitOnceBeforeIsolate();
   Isolate::InitOnce();
   PortMap::InitOnce();
   FreeListElement::InitOnce();
@@ -120,7 +120,6 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     ASSERT(vm_isolate_ == NULL);
     ASSERT(Flags::Initialized());
     const bool is_vm_isolate = true;
-    Thread::EnsureInit();
 
     // Setup default flags for the VM isolate.
     Isolate::Flags vm_flags;
@@ -140,6 +139,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     Object::InitOnce(vm_isolate_);
     ArgumentsDescriptor::InitOnce();
     StubCode::InitOnce();
+    Thread::InitOnceAfterObjectAndStubCode();
     // Now that the needed stub has been generated, set the stack limit.
     vm_isolate_->InitializeStackLimit();
     if (vm_isolate_snapshot != NULL) {

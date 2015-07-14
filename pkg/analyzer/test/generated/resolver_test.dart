@@ -10111,6 +10111,17 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
+  void test_visitBinaryExpression_minusID_propagated() {
+    // a - b
+    BinaryExpression node = AstFactory.binaryExpression(
+        _propagatedVariable(_typeProvider.intType, 'a'), TokenType.MINUS,
+        _propagatedVariable(_typeProvider.doubleType, 'b'));
+    node.propagatedElement = getMethod(_typeProvider.numType, "+");
+    _analyze(node);
+    expect(node.propagatedType, same(_typeProvider.doubleType));
+    _listener.assertNoErrors();
+  }
+
   void test_visitBinaryExpression_notEquals() {
     // 2 != 3
     Expression node = AstFactory.binaryExpression(
@@ -10134,6 +10145,17 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         _resolvedInteger(1), TokenType.PLUS, _resolvedInteger(2));
     node.staticElement = getMethod(_typeProvider.numType, "+");
     expect(_analyze(node), same(_typeProvider.intType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitBinaryExpression_plusII_propagated() {
+    // a + b
+    BinaryExpression node = AstFactory.binaryExpression(
+        _propagatedVariable(_typeProvider.intType, 'a'), TokenType.PLUS,
+        _propagatedVariable(_typeProvider.intType, 'b'));
+    node.propagatedElement = getMethod(_typeProvider.numType, "+");
+    _analyze(node);
+    expect(node.propagatedType, same(_typeProvider.intType));
     _listener.assertNoErrors();
   }
 
@@ -11102,6 +11124,25 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
 
   DartType _flatten(DartType type) =>
       StaticTypeAnalyzer.flattenFutures(_typeProvider, type);
+
+  /**
+   * Return a simple identifier that has been resolved to a variable element with the given type.
+   *
+   * @param type the type of the variable being represented
+   * @param variableName the name of the variable
+   * @return a simple identifier that has been resolved to a variable element with the given type
+   */
+  SimpleIdentifier _propagatedVariable(
+      InterfaceType type, String variableName) {
+    SimpleIdentifier identifier = AstFactory.identifier3(variableName);
+    VariableElementImpl element =
+        ElementFactory.localVariableElement(identifier);
+    element.type = type;
+    identifier.staticType = _typeProvider.dynamicType;
+    identifier.propagatedElement = element;
+    identifier.propagatedType = type;
+    return identifier;
+  }
 
   /**
    * Return an integer literal that has been resolved to the correct type.
@@ -13376,22 +13417,7 @@ class TypeResolverVisitorTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void fail_visitFunctionDeclaration() {
-    fail("Not yet tested");
-    _listener.assertNoErrors();
-  }
-
   void fail_visitFunctionTypeAlias() {
-    fail("Not yet tested");
-    _listener.assertNoErrors();
-  }
-
-  void fail_visitFunctionTypedFormalParameter() {
-    fail("Not yet tested");
-    _listener.assertNoErrors();
-  }
-
-  void fail_visitMethodDeclaration() {
     fail("Not yet tested");
     _listener.assertNoErrors();
   }
@@ -13695,6 +13721,148 @@ class TypeResolverVisitorTest extends EngineTestCase {
     node.identifier.staticElement =
         ElementFactory.requiredParameter(parameterName);
     expect(_resolveFormalParameter(node, [intType.element]), same(intType));
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionDeclaration() {
+    // R f(P p) {}
+    // class R {}
+    // class P {}
+    ClassElement elementR = ElementFactory.classElement2('R');
+    ClassElement elementP = ElementFactory.classElement2('P');
+    FunctionElement elementF = ElementFactory.functionElement('f');
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        AstFactory.typeName4('R'), null, 'f', AstFactory.functionExpression2(
+            AstFactory.formalParameterList([
+      AstFactory.simpleFormalParameter4(AstFactory.typeName4('P'), 'p')
+    ]), null));
+    declaration.name.staticElement = elementF;
+    _resolveNode(declaration, [elementR, elementP]);
+    expect(declaration.returnType.type, elementR.type);
+    SimpleFormalParameter parameter =
+        declaration.functionExpression.parameters.parameters[0];
+    expect(parameter.type.type, elementP.type);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionDeclaration_typeParameter() {
+    // E f<E>(E e) {}
+    TypeParameterElement elementE = ElementFactory.typeParameterElement('E');
+    FunctionElementImpl elementF = ElementFactory.functionElement('f');
+    elementF.typeParameters = <TypeParameterElement>[elementE];
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        AstFactory.typeName4('E'), null, 'f', AstFactory.functionExpression2(
+            AstFactory.formalParameterList([
+      AstFactory.simpleFormalParameter4(AstFactory.typeName4('E'), 'e')
+    ]), null));
+    declaration.name.staticElement = elementF;
+    _resolveNode(declaration, []);
+    expect(declaration.returnType.type, elementE.type);
+    SimpleFormalParameter parameter =
+        declaration.functionExpression.parameters.parameters[0];
+    expect(parameter.type.type, elementE.type);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionTypedFormalParameter() {
+    // R f(R g(P p)) {}
+    // class R {}
+    // class P {}
+    ClassElement elementR = ElementFactory.classElement2('R');
+    ClassElement elementP = ElementFactory.classElement2('P');
+    FunctionElement elementF = ElementFactory.functionElement('f');
+    ParameterElementImpl requiredParameter =
+        ElementFactory.requiredParameter('p');
+    FunctionTypedFormalParameter parameterDeclaration = AstFactory
+        .functionTypedFormalParameter(AstFactory.typeName4('R'), 'g', [
+      AstFactory.simpleFormalParameter4(AstFactory.typeName4('P'), 'p')
+    ]);
+    parameterDeclaration.identifier.staticElement = requiredParameter;
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        AstFactory.typeName4('R'), null, 'f', AstFactory.functionExpression2(
+            AstFactory.formalParameterList([parameterDeclaration]), null));
+    declaration.name.staticElement = elementF;
+    _resolveNode(declaration, [elementR, elementP]);
+    expect(declaration.returnType.type, elementR.type);
+    FunctionTypedFormalParameter parameter =
+        declaration.functionExpression.parameters.parameters[0];
+    expect(parameter.returnType.type, elementR.type);
+    SimpleFormalParameter innerParameter = parameter.parameters.parameters[0];
+    expect(innerParameter.type.type, elementP.type);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitFunctionTypedFormalParameter_typeParameter() {
+    // R f(R g<E>(E e)) {}
+    // class R {}
+    ClassElement elementR = ElementFactory.classElement2('R');
+    TypeParameterElement elementE = ElementFactory.typeParameterElement('E');
+    FunctionElement elementF = ElementFactory.functionElement('f');
+    ParameterElementImpl requiredParameter =
+        ElementFactory.requiredParameter('g');
+    requiredParameter.typeParameters = <TypeParameterElement>[elementE];
+    FunctionTypedFormalParameter parameterDeclaration = AstFactory
+        .functionTypedFormalParameter(AstFactory.typeName4('R'), 'g', [
+      AstFactory.simpleFormalParameter4(AstFactory.typeName4('E'), 'e')
+    ]);
+    parameterDeclaration.identifier.staticElement = requiredParameter;
+    FunctionDeclaration declaration = AstFactory.functionDeclaration(
+        AstFactory.typeName4('R'), null, 'f', AstFactory.functionExpression2(
+            AstFactory.formalParameterList([parameterDeclaration]), null));
+    declaration.name.staticElement = elementF;
+    _resolveNode(declaration, [elementR]);
+    expect(declaration.returnType.type, elementR.type);
+    FunctionTypedFormalParameter parameter =
+        declaration.functionExpression.parameters.parameters[0];
+    expect(parameter.returnType.type, elementR.type);
+    SimpleFormalParameter innerParameter = parameter.parameters.parameters[0];
+    expect(innerParameter.type.type, elementE.type);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitMethodDeclaration() {
+    // class A {
+    //   R m(P p) {}
+    // }
+    // class R {}
+    // class P {}
+    ClassElementImpl elementA = ElementFactory.classElement2('A');
+    ClassElement elementR = ElementFactory.classElement2('R');
+    ClassElement elementP = ElementFactory.classElement2('P');
+    MethodElement elementM = ElementFactory.methodElement('m', null);
+    elementA.methods = <MethodElement>[elementM];
+    MethodDeclaration declaration = AstFactory.methodDeclaration(null,
+        AstFactory.typeName4('R'), null, null, AstFactory.identifier3('m'),
+        AstFactory.formalParameterList([
+      AstFactory.simpleFormalParameter4(AstFactory.typeName4('P'), 'p')
+    ]));
+    declaration.name.staticElement = elementM;
+    _resolveNode(declaration, [elementA, elementR, elementP]);
+    expect(declaration.returnType.type, elementR.type);
+    SimpleFormalParameter parameter = declaration.parameters.parameters[0];
+    expect(parameter.type.type, elementP.type);
+    _listener.assertNoErrors();
+  }
+
+  void test_visitMethodDeclaration_typeParameter() {
+    // class A {
+    //   E m<E>(E e) {}
+    // }
+    ClassElementImpl elementA = ElementFactory.classElement2('A');
+    TypeParameterElement elementE = ElementFactory.typeParameterElement('E');
+    MethodElementImpl elementM = ElementFactory.methodElement('m', null);
+    elementM.typeParameters = <TypeParameterElement>[elementE];
+    elementA.methods = <MethodElement>[elementM];
+    MethodDeclaration declaration = AstFactory.methodDeclaration(null,
+        AstFactory.typeName4('E'), null, null, AstFactory.identifier3('m'),
+        AstFactory.formalParameterList([
+      AstFactory.simpleFormalParameter4(AstFactory.typeName4('E'), 'e')
+    ]));
+    declaration.name.staticElement = elementM;
+    _resolveNode(declaration, [elementA]);
+    expect(declaration.returnType.type, elementE.type);
+    SimpleFormalParameter parameter = declaration.parameters.parameters[0];
+    expect(parameter.type.type, elementE.type);
     _listener.assertNoErrors();
   }
 

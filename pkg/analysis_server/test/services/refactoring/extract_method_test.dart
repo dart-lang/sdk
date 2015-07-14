@@ -1804,7 +1804,7 @@ main() {
   var a = res(v1, v2); // marker
 }
 
-num res(int v1, int v2) => v1 + v2 + v1;
+int res(int v1, int v2) => v1 + v2 + v1;
 ''');
   }
 

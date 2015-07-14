@@ -61,6 +61,10 @@ class SourceInformationBuilder {
   @deprecated
   SourceInformation buildGeneric(Node node) => null;
 
+  /// Generate [SourceInformation] for an instantiation of a class using [node]
+  /// for the source position.
+  SourceInformation buildCreate(Node node) => null;
+
   /// Generate [SourceInformation] for the return [node].
   SourceInformation buildReturn(Node node) => null;
 

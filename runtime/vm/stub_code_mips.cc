@@ -52,7 +52,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to Dart VM C++ code.
-  __ sw(FP, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(FP, Address(THR, Thread::top_exit_frame_info_offset()));
 
 #if defined(DEBUG)
   { Label ok;
@@ -107,7 +107,7 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
   __ sw(A2, Address(S6, Isolate::vm_tag_offset()));
 
   // Reset exit frame information in Isolate structure.
-  __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
 
   __ LeaveStubFrameAndReturn();
 }
@@ -153,7 +153,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ sw(FP, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(FP, Address(THR, Thread::top_exit_frame_info_offset()));
 
 #if defined(DEBUG)
   { Label ok;
@@ -216,7 +216,7 @@ void StubCode::GenerateCallNativeCFunctionStub(Assembler* assembler) {
   __ sw(A2, Address(S6, Isolate::vm_tag_offset()));
 
   // Reset exit frame information in Isolate structure.
-  __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
 
   __ LeaveStubFrameAndReturn();
 }
@@ -243,7 +243,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
 
   // Save exit frame information to enable stack walking as we are about
   // to transition to native code.
-  __ sw(FP, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(FP, Address(THR, Thread::top_exit_frame_info_offset()));
 
 #if defined(DEBUG)
   { Label ok;
@@ -301,7 +301,7 @@ void StubCode::GenerateCallBootstrapCFunctionStub(Assembler* assembler) {
   __ sw(A2, Address(S6, Isolate::vm_tag_offset()));
 
   // Reset exit frame information in Isolate structure.
-  __ sw(ZR, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
 
   __ LeaveStubFrameAndReturn();
 }
@@ -693,6 +693,9 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
   __ Comment("AllocateArrayStub");
   *entry_patch_offset = assembler->CodeSize();
   Label slow_case;
+  Isolate* isolate = Isolate::Current();
+  const Class& cls = Class::Handle(isolate->object_store()->array_class());
+  ASSERT(!cls.IsNull());
 
   // Compute the size to be allocated, it is based on the array length
   // and is computed as:
@@ -701,7 +704,11 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   // Check that length is a positive Smi.
   __ andi(CMPRES1, T3, Immediate(kSmiTagMask));
-  __ bne(CMPRES1, ZR, &slow_case);
+  if (FLAG_use_slow_path || cls.trace_allocation()) {
+    __ b(&slow_case);
+  } else {
+    __ bne(CMPRES1, ZR, &slow_case);
+  }
   __ bltz(T3, &slow_case);
 
   // Check for maximum allowed length.
@@ -719,7 +726,6 @@ void StubCode::GeneratePatchableAllocateArrayStub(Assembler* assembler,
 
   // T2: Allocation size.
 
-  Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
   const intptr_t cid = kArrayCid;
   Heap::Space space = heap->SpaceForAllocation(cid);
@@ -884,11 +890,11 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
 
   // Save top resource and top exit frame info. Use T0 as a temporary register.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ lw(T0, Address(T2, Isolate::top_resource_offset()));
-  __ sw(ZR, Address(T2, Isolate::top_resource_offset()));
+  __ lw(T0, Address(THR, Thread::top_resource_offset()));
+  __ sw(ZR, Address(THR, Thread::top_resource_offset()));
   __ sw(T0, Address(SP, 1 * kWordSize));
-  __ lw(T0, Address(T2, Isolate::top_exit_frame_info_offset()));
-  __ sw(ZR, Address(T2, Isolate::top_exit_frame_info_offset()));
+  __ lw(T0, Address(THR, Thread::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
   // kExitLinkSlotFromEntryFp must be kept in sync with the code below.
   ASSERT(kExitLinkSlotFromEntryFp == -23);
   __ sw(T0, Address(SP, 0 * kWordSize));
@@ -940,9 +946,9 @@ void StubCode::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Restore the saved top resource and top exit frame info back into the
   // Isolate structure. Uses T0 as a temporary register for this.
   __ lw(T0, Address(SP, 1 * kWordSize));
-  __ sw(T0, Address(S6, Isolate::top_resource_offset()));
+  __ sw(T0, Address(THR, Thread::top_resource_offset()));
   __ lw(T0, Address(SP, 0 * kWordSize));
-  __ sw(T0, Address(S6, Isolate::top_exit_frame_info_offset()));
+  __ sw(T0, Address(THR, Thread::top_exit_frame_info_offset()));
 
   // Restore C++ ABI callee-saved registers.
   for (int i = S0; i <= S7; i++) {
@@ -2087,7 +2093,7 @@ void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
   __ LoadImmediate(A2, VMTag::kDartTagId);
   __ sw(A2, Address(A3, Isolate::vm_tag_offset()));
   // Clear top exit frame.
-  __ sw(ZR, Address(A3, Isolate::top_exit_frame_info_offset()));
+  __ sw(ZR, Address(THR, Thread::top_exit_frame_info_offset()));
 
   __ jr(A0);  // Jump to the exception handler code.
   __ delay_slot()->mov(SP, A1);  // Stack pointer.

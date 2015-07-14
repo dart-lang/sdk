@@ -4,6 +4,12 @@
 
 part of dart2js.js_emitter;
 
+// Function signatures used in the generation of runtime type information.
+typedef void FunctionTypeSignatureEmitter(Element method,
+                                          FunctionType methodType);
+
+typedef void SubstitutionEmitter(Element element, {bool emitNull});
+
 class TypeTestProperties {
   /// The index of the function type into the metadata.
   ///

@@ -46,30 +46,16 @@ abstract class ClassWorld {
   /// instance of [y].
   bool isSubtypeOf(ClassElement x, ClassElement y);
 
-  /// Returns an iterable over the live classes that extend [cls] including
-  /// [cls] itself.
-  Iterable<ClassElement> subclassesOf(ClassElement cls);
-
   /// Returns an iterable over the live classes that extend [cls] _not_
   /// including [cls] itself.
   Iterable<ClassElement> strictSubclassesOf(ClassElement cls);
-
-  /// Returns an iterable over the live classes that implement [cls] including
-  /// [cls] if it is live.
-  Iterable<ClassElement> subtypesOf(ClassElement cls);
 
   /// Returns an iterable over the live classes that implement [cls] _not_
   /// including [cls] if it is live.
   Iterable<ClassElement> strictSubtypesOf(ClassElement cls);
 
-  /// Returns `true` if any live class extends [cls].
-  bool hasAnySubclass(ClassElement cls);
-
   /// Returns `true` if any live class other than [cls] extends [cls].
   bool hasAnyStrictSubclass(ClassElement cls);
-
-  /// Returns `true` if any live class implements [cls].
-  bool hasAnySubtype(ClassElement cls);
 
   /// Returns `true` if any live class other than [cls] implements [cls].
   bool hasAnyStrictSubtype(ClassElement cls);
@@ -159,9 +145,9 @@ class World implements ClassWorld {
     return compiler.resolverWorld.isInstantiated(cls);
   }
 
-  /// Returns an iterable over the live classes that extend [cls] including
-  /// [cls] itself.
-  Iterable<ClassElement> subclassesOf(ClassElement cls) {
+  /// Returns an iterable over the live classes that extend [cls] _not_
+  /// including [cls] itself.
+  Iterable<ClassElement> strictSubclassesOf(ClassElement cls) {
     Set<ClassElement> subclasses = _subclasses[cls.declaration];
     if (subclasses == null) return const <ClassElement>[];
     assert(invariant(cls, isInstantiated(cls.declaration),
@@ -169,38 +155,16 @@ class World implements ClassWorld {
     return subclasses;
   }
 
-  /// Returns an iterable over the live classes that extend [cls] _not_
-  /// including [cls] itself.
-  Iterable<ClassElement> strictSubclassesOf(ClassElement cls) {
-    return subclassesOf(cls).where((c) => c != cls);
-  }
-
-  /// Returns an iterable over the live classes that implement [cls] including
-  /// [cls] if it is live.
-  Iterable<ClassElement> subtypesOf(ClassElement cls) {
-    Set<ClassElement> subtypes = _subtypes[cls.declaration];
-    return subtypes != null ? subtypes : const <ClassElement>[];
-  }
-
   /// Returns an iterable over the live classes that implement [cls] _not_
   /// including [cls] if it is live.
   Iterable<ClassElement> strictSubtypesOf(ClassElement cls) {
-    return subtypesOf(cls).where((c) => c != cls);
-  }
-
-  /// Returns `true` if any live class extends [cls].
-  bool hasAnySubclass(ClassElement cls) {
-    return !subclassesOf(cls).isEmpty;
+    Set<ClassElement> subtypes = _subtypes[cls.declaration];
+    return subtypes != null ? subtypes : const <ClassElement>[];
   }
 
   /// Returns `true` if any live class other than [cls] extends [cls].
   bool hasAnyStrictSubclass(ClassElement cls) {
     return !strictSubclassesOf(cls).isEmpty;
-  }
-
-  /// Returns `true` if any live class implements [cls].
-  bool hasAnySubtype(ClassElement cls) {
-    return !subtypesOf(cls).isEmpty;
   }
 
   /// Returns `true` if any live class other than [cls] implements [cls].
@@ -210,9 +174,9 @@ class World implements ClassWorld {
 
   /// Returns `true` if all live classes that implement [cls] extend it.
   bool hasOnlySubclasses(ClassElement cls) {
-    Iterable<ClassElement> subtypes = subtypesOf(cls);
+    Iterable<ClassElement> subtypes = strictSubtypesOf(cls);
     if (subtypes == null) return true;
-    Iterable<ClassElement> subclasses = subclassesOf(cls);
+    Iterable<ClassElement> subclasses = strictSubclassesOf(cls);
     return subclasses != null && (subclasses.length == subtypes.length);
   }
 

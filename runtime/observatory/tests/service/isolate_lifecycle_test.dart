@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
 import 'dart:async';
 import 'dart:isolate' as I;
@@ -54,7 +54,8 @@ var tests = [
   (VM vm) async {
     // Wait for the testee to start all of the isolates.
     if (vm.isolates.length != spawnCount + 1) {
-      await processServiceEvents(vm, (event, sub, completer) {
+      await processServiceEvents(vm, VM.kIsolateStream,
+                                 (event, sub, completer) {
         if (event.kind == ServiceEvent.kIsolateStart) {
           if (vm.isolates.length == spawnCount + 1) {
             sub.cancel();
@@ -76,7 +77,8 @@ var tests = [
   (VM vm) async {
     // Wait for all spawned isolates to hit pause-at-exit.
     if (numPaused(vm) != spawnCount) {
-      await processServiceEvents(vm, (event, sub, completer) {
+      await processServiceEvents(vm, VM.kDebugStream,
+                                 (event, sub, completer) {
         if (event.kind == ServiceEvent.kPauseExit) {
           if (numPaused(vm) == spawnCount) {
             sub.cancel();
@@ -92,7 +94,8 @@ var tests = [
 
   (VM vm) async {
     var resumedReceived = 0;
-    var eventsDone = processServiceEvents(vm, (event, sub, completer) {
+    var eventsDone = processServiceEvents(vm, VM.kIsolateStream,
+                                          (event, sub, completer) {
       if (event.kind == ServiceEvent.kIsolateExit) {
         resumedReceived++;
         if (resumedReceived == resumeCount) {

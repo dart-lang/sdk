@@ -133,8 +133,8 @@ void sendAnalysisNotificationHighlights(
 void sendAnalysisNotificationNavigation(
     AnalysisServer server, String file, CompilationUnit dartUnit) {
   _sendNotification(server, () {
-    var computer = new DartUnitNavigationComputer(dartUnit);
-    computer.compute();
+    var computer = new DartUnitNavigationComputer();
+    computer.compute(dartUnit);
     var params = new protocol.AnalysisNavigationParams(
         file, computer.regions, computer.targets, computer.files);
     server.sendNotification(params.toNotification());

@@ -47,6 +47,12 @@ public class RequestErrorCode {
   public static final String GET_ERRORS_INVALID_FILE = "GET_ERRORS_INVALID_FILE";
 
   /**
+   * An "analysis.getErrors" request specified a FilePath which does not match a file currently
+   * subject to analysis.
+   */
+  public static final String GET_NAVIGATION_INVALID_FILE = "GET_NAVIGATION_INVALID_FILE";
+
+  /**
    * A path passed as an argument to a request (such as analysis.reanalyze) is required to be an
    * analysis root, but isn't.
    */

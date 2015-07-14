@@ -2672,7 +2672,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     //
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
-    (node.element as ParameterElementImpl).parameters = holder.parameters;
+    ParameterElementImpl element = node.element;
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
     holder.validate();
     return null;
   }
@@ -2702,6 +2704,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         element.labels = holder.labels;
         element.localVariables = holder.localVariables;
         element.parameters = holder.parameters;
+        element.typeParameters = holder.typeParameters;
         if (body.isAsynchronous) {
           element.asynchronous = true;
         }
@@ -2809,6 +2812,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     element.labels = holder.labels;
     element.localVariables = holder.localVariables;
     element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
     if (body.isAsynchronous) {
       element.asynchronous = true;
     }
@@ -2871,7 +2875,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     //
     ElementHolder holder = new ElementHolder();
     _visitChildren(holder, node);
-    (node.element as ParameterElementImpl).parameters = holder.parameters;
+    ParameterElementImpl element = node.element;
+    element.parameters = holder.parameters;
+    element.typeParameters = holder.typeParameters;
     holder.validate();
     return null;
   }
@@ -2921,6 +2927,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         element.localVariables = holder.localVariables;
         element.parameters = holder.parameters;
         element.static = isStatic;
+        element.typeParameters = holder.typeParameters;
         if (body.isAsynchronous) {
           element.asynchronous = true;
         }
@@ -4295,28 +4302,35 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
 }
 
 /**
- * Instances of the class `FunctionScope` implement the scope defined by a function.
+ * The scope defined by a function.
  */
 class FunctionScope extends EnclosedScope {
+  /**
+   * The element representing the function that defines this scope.
+   */
   final ExecutableElement _functionElement;
 
+  /**
+   * A flag indicating whether the parameters have already been defined, used to
+   * prevent the parameters from being defined multiple times.
+   */
   bool _parametersDefined = false;
 
   /**
-   * Initialize a newly created scope enclosed within another scope.
-   *
-   * @param enclosingScope the scope in which this scope is lexically enclosed
-   * @param functionElement the element representing the type represented by this scope
+   * Initialize a newly created scope enclosed within the [enclosingScope] that
+   * represents the given [_functionElement].
    */
   FunctionScope(Scope enclosingScope, this._functionElement)
-      : super(new EnclosedScope(enclosingScope)) {
+      : super(new EnclosedScope(new EnclosedScope(enclosingScope))) {
     if (_functionElement == null) {
       throw new IllegalArgumentException("function element cannot be null");
     }
+    _defineTypeParameters();
   }
 
   /**
-   * Define the parameters for the given function in the scope that encloses this function.
+   * Define the parameters for the given function in the scope that encloses
+   * this function.
    */
   void defineParameters() {
     if (_parametersDefined) {
@@ -4330,11 +4344,21 @@ class FunctionScope extends EnclosedScope {
       }
     }
   }
+
+  /**
+   * Define the type parameters for the function.
+   */
+  void _defineTypeParameters() {
+    Scope typeParameterScope = enclosingScope.enclosingScope;
+    for (TypeParameterElement typeParameter
+        in _functionElement.typeParameters) {
+      typeParameterScope.define(typeParameter);
+    }
+  }
 }
 
 /**
- * Instances of the class `FunctionTypeScope` implement the scope defined by a function type
- * alias.
+ * The scope defined by a function type alias.
  */
 class FunctionTypeScope extends EnclosedScope {
   final FunctionTypeAliasElement _typeElement;
@@ -4342,10 +4366,8 @@ class FunctionTypeScope extends EnclosedScope {
   bool _parametersDefined = false;
 
   /**
-   * Initialize a newly created scope enclosed within another scope.
-   *
-   * @param enclosingScope the scope in which this scope is lexically enclosed
-   * @param typeElement the element representing the type alias represented by this scope
+   * Initialize a newly created scope enclosed within the [enclosingScope] that
+   * represents the given [_typeElement].
    */
   FunctionTypeScope(Scope enclosingScope, this._typeElement)
       : super(new EnclosedScope(enclosingScope)) {
@@ -4354,8 +4376,6 @@ class FunctionTypeScope extends EnclosedScope {
 
   /**
    * Define the parameters for the function type alias.
-   *
-   * @param typeElement the element representing the type represented by this scope
    */
   void defineParameters() {
     if (_parametersDefined) {
@@ -4369,8 +4389,6 @@ class FunctionTypeScope extends EnclosedScope {
 
   /**
    * Define the type parameters for the function type alias.
-   *
-   * @param typeElement the element representing the type represented by this scope
    */
   void _defineTypeParameters() {
     Scope typeParameterScope = enclosingScope;
@@ -12073,6 +12091,29 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     try {
       nameScope = new FunctionTypeScope(nameScope, node.element);
       super.visitFunctionTypeAlias(node);
+    } finally {
+      nameScope = outerScope;
+    }
+    return null;
+  }
+
+  @override
+  Object visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+    Scope outerScope = nameScope;
+    try {
+      ParameterElement parameterElement = node.element;
+      if (parameterElement == null) {
+        AnalysisEngine.instance.logger.logInformation(
+            "Missing element for function typed formal parameter ${node.identifier.name} in ${definingLibrary.source.fullName}",
+            new CaughtException(new AnalysisException(), null));
+      } else {
+        nameScope = new EnclosedScope(nameScope);
+        for (TypeParameterElement typeParameter
+            in parameterElement.typeParameters) {
+          nameScope.define(typeParameter);
+        }
+      }
+      super.visitFunctionTypedFormalParameter(node);
     } finally {
       nameScope = outerScope;
     }

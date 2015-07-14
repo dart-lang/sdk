@@ -850,7 +850,7 @@ class JavaScriptBackend extends Backend {
     Iterable<MixinApplicationElement> uses = classWorld.mixinUsesOf(mixin);
     Set<ClassElement> result = null;
     for (MixinApplicationElement use in uses) {
-      Iterable<ClassElement> subclasses = classWorld.subclassesOf(use);
+      Iterable<ClassElement> subclasses = classWorld.strictSubclassesOf(use);
       for (ClassElement subclass in subclasses) {
         if (Elements.isNativeOrExtendsNative(subclass)) {
           if (result == null) result = new Set<ClassElement>();
@@ -1737,6 +1737,10 @@ class JavaScriptBackend extends Backend {
     return findHelper('throwConcurrentModificationError');
   }
 
+  Element getThrowIndexOutOfBoundsError() {
+    return findHelper('ioore');
+  }
+
   Element getStringInterpolationHelper() {
     return findHelper('S');
   }
@@ -2333,8 +2337,8 @@ class JavaScriptBackend extends Backend {
           }
         });
         // 4) all overriding members of subclasses/subtypes (should be resolved)
-        if (compiler.world.hasAnySubtype(cls)) {
-          for (ClassElement subcls in compiler.world.subtypesOf(cls)) {
+        if (compiler.world.hasAnyStrictSubtype(cls)) {
+          for (ClassElement subcls in compiler.world.strictSubtypesOf(cls)) {
             subcls.forEachClassMember((Member member) {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.

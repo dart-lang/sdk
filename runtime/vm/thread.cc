@@ -4,11 +4,15 @@
 
 #include "vm/thread.h"
 
+#include "vm/growable_array.h"
 #include "vm/isolate.h"
+#include "vm/lockers.h"
+#include "vm/object.h"
 #include "vm/os_thread.h"
 #include "vm/profiler.h"
+#include "vm/stub_code.h"
 #include "vm/thread_interrupter.h"
-
+#include "vm/thread_registry.h"
 
 namespace dart {
 
@@ -23,10 +27,21 @@ static void DeleteThread(void* thread) {
 }
 
 
-void Thread::InitOnce() {
+void Thread::InitOnceBeforeIsolate() {
   ASSERT(thread_key_ == OSThread::kUnsetThreadLocalKey);
   thread_key_ = OSThread::CreateThreadLocal(DeleteThread);
   ASSERT(thread_key_ != OSThread::kUnsetThreadLocalKey);
+  ASSERT(Thread::Current() == NULL);
+  // Postpone initialization of VM constants for this first thread.
+  SetCurrent(new Thread(false));
+}
+
+
+void Thread::InitOnceAfterObjectAndStubCode() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != NULL);
+  ASSERT(thread->isolate() == Dart::vm_isolate());
+  thread->InitVMConstants();
 }
 
 
@@ -53,6 +68,51 @@ void Thread::CleanUp() {
 #endif
 
 
+Thread::Thread(bool init_vm_constants)
+    : isolate_(NULL),
+      store_buffer_block_(NULL) {
+  ClearState();
+#define DEFAULT_INIT(type_name, member_name, init_expr, default_init_value)    \
+  member_name = default_init_value;
+CACHED_CONSTANTS_LIST(DEFAULT_INIT)
+#undef DEFAULT_INIT
+  if (init_vm_constants) {
+    InitVMConstants();
+  }
+}
+
+
+void Thread::InitVMConstants() {
+#define ASSERT_VM_HEAP(type_name, member_name, init_expr, default_init_value)  \
+  ASSERT((init_expr)->IsOldObject());
+CACHED_VM_OBJECTS_LIST(ASSERT_VM_HEAP)
+#undef ASSERT_VM_HEAP
+
+#define INIT_VALUE(type_name, member_name, init_expr, default_init_value)      \
+  ASSERT(member_name == default_init_value);                                   \
+  member_name = (init_expr);
+CACHED_CONSTANTS_LIST(INIT_VALUE)
+#undef INIT_VALUE
+}
+
+
+void Thread::Schedule(Isolate* isolate) {
+  State st;
+  if (isolate->thread_registry()->RestoreStateTo(this, &st)) {
+    ASSERT(isolate->thread_registry()->Contains(this));
+    state_ = st;
+  }
+}
+
+
+void Thread::Unschedule() {
+  ThreadRegistry* reg = isolate_->thread_registry();
+  ASSERT(reg->Contains(this));
+  reg->SaveStateFrom(this, state_);
+  ClearState();
+}
+
+
 void Thread::EnterIsolate(Isolate* isolate) {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL);
@@ -74,6 +134,7 @@ void Thread::EnterIsolate(Isolate* isolate) {
   isolate->set_vm_tag(VMTag::kVMTagId);
   ASSERT(thread->store_buffer_block_ == NULL);
   thread->store_buffer_block_ = isolate->store_buffer()->PopBlock();
+  thread->Schedule(isolate);
 }
 
 
@@ -82,6 +143,7 @@ void Thread::ExitIsolate() {
   // TODO(koda): Audit callers; they should know whether they're in an isolate.
   if (thread == NULL || thread->isolate() == NULL) return;
   Isolate* isolate = thread->isolate();
+  thread->Unschedule();
   StoreBufferBlock* block = thread->store_buffer_block_;
   thread->store_buffer_block_ = NULL;
   isolate->store_buffer()->PushBlock(block);
@@ -106,6 +168,7 @@ void Thread::EnterIsolateAsHelper(Isolate* isolate) {
   // Do not update isolate->mutator_thread, but perform sanity check:
   // this thread should not be both the main mutator and helper.
   ASSERT(isolate->mutator_thread() != thread);
+  thread->Schedule(isolate);
 }
 
 
@@ -116,6 +179,7 @@ void Thread::ExitIsolateAsHelper() {
   ASSERT(thread->store_buffer_block_ == NULL);
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
+  thread->Unschedule();
   thread->isolate_ = NULL;
   ASSERT(isolate->mutator_thread() != thread);
 }
@@ -166,6 +230,26 @@ CHA* Thread::cha() const {
 void Thread::set_cha(CHA* value) {
   ASSERT(isolate_ != NULL);
   isolate_->cha_ = value;
+}
+
+
+bool Thread::CanLoadFromThread(const Object& object) {
+#define CHECK_OBJECT(type_name, member_name, expr, default_init_value)         \
+  if (object.raw() == expr) return true;
+CACHED_VM_OBJECTS_LIST(CHECK_OBJECT)
+#undef CHECK_OBJECT
+  return false;
+}
+
+
+intptr_t Thread::OffsetFromThread(const Object& object) {
+#define COMPUTE_OFFSET(type_name, member_name, expr, default_init_value)       \
+  ASSERT((expr)->IsVMHeapObject());                                            \
+  if (object.raw() == expr) return Thread::member_name##offset();
+CACHED_VM_OBJECTS_LIST(COMPUTE_OFFSET)
+#undef COMPUTE_OFFSET
+  UNREACHABLE();
+  return -1;
 }
 
 }  // namespace dart

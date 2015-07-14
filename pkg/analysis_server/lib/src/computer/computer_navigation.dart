@@ -16,21 +16,17 @@ import 'package:analyzer/src/generated/source.dart';
  * A computer for navigation regions in a Dart [CompilationUnit].
  */
 class DartUnitNavigationComputer {
-  final CompilationUnit _unit;
-
   final List<String> files = <String>[];
   final Map<String, int> fileMap = new HashMap<String, int>();
   final List<protocol.NavigationTarget> targets = <protocol.NavigationTarget>[];
   final Map<Element, int> targetMap = new HashMap<Element, int>();
   final List<protocol.NavigationRegion> regions = <protocol.NavigationRegion>[];
 
-  DartUnitNavigationComputer(this._unit);
-
   /**
    * Computes [regions], [targets] and [files].
    */
-  void compute() {
-    _unit.accept(new _DartUnitNavigationComputerVisitor(this));
+  void compute(AstNode node) {
+    node.accept(new _DartUnitNavigationComputerVisitor(this));
   }
 
   int _addFile(String file) {

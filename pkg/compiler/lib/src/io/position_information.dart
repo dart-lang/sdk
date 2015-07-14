@@ -149,6 +149,9 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformation buildGeneric(Node node) => buildBegin(node);
 
   @override
+  SourceInformation buildCreate(Node node) => buildBegin(node);
+
+  @override
   SourceInformation buildReturn(Node node) => buildBegin(node);
 
   @override

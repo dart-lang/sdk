@@ -31,9 +31,8 @@ import 'dart:_js_helper' show
 import 'dart:_foreign_helper' show DART_CLOSURE_TO_JS,
                                    JS,
                                    JS_CURRENT_ISOLATE_CONTEXT,
-                                   JS_CURRENT_ISOLATE,
                                    JS_EMBEDDED_GLOBAL,
-                                   JS_SET_CURRENT_ISOLATE,
+                                   JS_SET_STATIC_STATE,
                                    IsolateContext;
 
 import 'dart:_interceptors' show Interceptor,
@@ -482,7 +481,7 @@ class _IsolateContext implements IsolateContext {
   }
 
   void _setGlobals() {
-    JS_SET_CURRENT_ISOLATE(isolateStatics);
+    JS_SET_STATIC_STATE(isolateStatics);
   }
 
   /**

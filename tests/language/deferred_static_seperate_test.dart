@@ -14,6 +14,7 @@ import "deferred_static_seperate_lib2.dart" deferred as lib2;
 
 void main() {
   asyncStart();
+  Expect.throws(() => new lib1.C());
   lib1.loadLibrary().then((_) {
     lib2.loadLibrary().then((_) {
       print("HERE");

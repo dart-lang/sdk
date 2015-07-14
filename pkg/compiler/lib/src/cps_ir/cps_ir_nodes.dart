@@ -128,6 +128,17 @@ class Reference<T extends Definition<T>> {
     }
     if (next != null) next.previous = previous;
   }
+
+  /// Changes the definition referenced by this object and updates
+  /// the reference chains accordingly.
+  void changeTo(Definition<T> newDefinition) {
+    unlink();
+    previous = null;
+    definition = newDefinition;
+    next = definition.firstRef;
+    if (next != null) next.previous = this;
+    definition.firstRef = this;
+  }
 }
 
 /// Evaluates a primitive and binds it to variable: `let val x = V in E`.
@@ -344,12 +355,14 @@ class InvokeMethodDirectly extends Expression implements Invoke {
   final Selector selector;
   final List<Reference<Primitive>> arguments;
   final Reference<Continuation> continuation;
+  final SourceInformation sourceInformation;
 
   InvokeMethodDirectly(Primitive receiver,
                        this.target,
                        this.selector,
                        List<Primitive> arguments,
-                       Continuation continuation)
+                       Continuation continuation,
+                       this.sourceInformation)
       : this.receiver = new Reference<Primitive>(receiver),
         this.arguments = _referenceList(arguments),
         this.continuation = new Reference<Continuation>(continuation);
@@ -378,12 +391,14 @@ class InvokeConstructor extends Expression implements Invoke {
   final List<Reference<Primitive>> arguments;
   final Reference<Continuation> continuation;
   final Selector selector;
+  final SourceInformation sourceInformation;
 
   InvokeConstructor(this.type,
                     this.target,
                     this.selector,
                     List<Primitive> args,
-                    Continuation cont)
+                    Continuation cont,
+                    this.sourceInformation)
       : arguments = _referenceList(args),
         continuation = new Reference<Continuation>(cont);
 
@@ -563,6 +578,7 @@ class SetMutableVariable extends Expression implements InteriorNode {
 class InvokeContinuation extends Expression {
   Reference<Continuation> continuation;
   List<Reference<Primitive>> arguments;
+  SourceInformation sourceInformation;
 
   // An invocation of a continuation is recursive if it occurs in the body of
   // the continuation itself.
@@ -574,7 +590,8 @@ class InvokeContinuation extends Expression {
 
   InvokeContinuation(Continuation cont, List<Primitive> args,
                      {this.isRecursive: false,
-                      this.isEscapingTry: false})
+                      this.isEscapingTry: false,
+                      this.sourceInformation})
       : continuation = new Reference<Continuation>(cont),
         arguments = _referenceList(args) {
     assert(cont.parameters == null || cont.parameters.length == args.length);
@@ -586,10 +603,11 @@ class InvokeContinuation extends Expression {
   ///
   /// Used as a placeholder for a jump whose target is not yet created
   /// (e.g., in the translation of break and continue).
-  InvokeContinuation.uninitialized({this.isRecursive: false, 
+  InvokeContinuation.uninitialized({this.isRecursive: false,
                                     this.isEscapingTry: false})
       : continuation = null,
-        arguments = null;
+        arguments = null,
+        sourceInformation = null;
 
   accept(Visitor visitor) => visitor.visitInvokeContinuation(this);
 }
@@ -661,6 +679,62 @@ class GetField extends Primitive {
   bool get isSafeForReordering => objectIsNotNull && field.isFinal;
 }
 
+/// Get the length of a native list.
+class GetLength extends Primitive {
+  final Reference<Primitive> object;
+
+  /// True if the object is known not to be null.
+  bool objectIsNotNull = false;
+
+  GetLength(Primitive object) : this.object = new Reference<Primitive>(object);
+
+  bool get isSafeForElimination => objectIsNotNull;
+  bool get isSafeForReordering => false;
+
+  accept(Visitor v) => v.visitGetLength(this);
+}
+
+/// Read an entry from a native list.
+///
+/// [object] must be null or a native list, and [index] must be an integer.
+class GetIndex extends Primitive {
+  final Reference<Primitive> object;
+  final Reference<Primitive> index;
+
+  /// True if the object is known not to be null.
+  bool objectIsNotNull = false;
+
+  GetIndex(Primitive object, Primitive index)
+      : this.object = new Reference<Primitive>(object),
+        this.index = new Reference<Primitive>(index);
+
+  bool get isSafeForElimination => objectIsNotNull;
+  bool get isSafeForReordering => false;
+
+  accept(Visitor v) => v.visitGetIndex(this);
+}
+
+/// Set an entry on a native list.
+///
+/// [object] must be null or a native list, and [index] must be an integer.
+///
+/// The primitive itself has no value and may not be referenced.
+class SetIndex extends Primitive {
+  final Reference<Primitive> object;
+  final Reference<Primitive> index;
+  final Reference<Primitive> value;
+
+  SetIndex(Primitive object, Primitive index, Primitive value)
+      : this.object = new Reference<Primitive>(object),
+        this.index = new Reference<Primitive>(index),
+        this.value = new Reference<Primitive>(value);
+
+  bool get isSafeForElimination => false;
+  bool get isSafeForReordering => false;
+
+  accept(Visitor v) => v.visitSetIndex(this);
+}
+
 /// Reads the value of a static field or tears off a static method.
 ///
 /// Note that lazily initialized fields should be read using GetLazyStatic.
@@ -672,7 +746,7 @@ class GetStatic extends Primitive {
   GetStatic(this.element, [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitGetStatic(this);
-  
+
   bool get isSafeForElimination {
     return true;
   }
@@ -742,8 +816,11 @@ class CreateInstance extends Primitive {
   /// is not needed at runtime.
   final List<Reference<Primitive>> typeInformation;
 
+  final SourceInformation sourceInformation;
+
   CreateInstance(this.classElement, List<Primitive> arguments,
-      List<Primitive> typeInformation)
+      List<Primitive> typeInformation,
+      this.sourceInformation)
       : this.arguments = _referenceList(arguments),
         this.typeInformation = _referenceList(typeInformation);
 
@@ -800,8 +877,9 @@ class ForeignCode extends Expression {
 
 class Constant extends Primitive {
   final values.ConstantValue value;
+  final SourceInformation sourceInformation;
 
-  Constant(this.value);
+  Constant(this.value, {this.sourceInformation});
 
   accept(Visitor visitor) => visitor.visitConstant(this);
 
@@ -903,7 +981,7 @@ class Continuation extends Definition<Continuation> implements InteriorNode {
 
   Continuation(this.parameters, {this.isRecursive: false});
 
-  Continuation.retrn() 
+  Continuation.retrn()
     : parameters = <Parameter>[new Parameter(null)],
       isRecursive = false;
 
@@ -945,7 +1023,10 @@ class ReifyRuntimeType extends Primitive {
   /// Reference to the internal representation of a type (as produced, for
   /// example, by [ReadTypeVariable]).
   final Reference<Primitive> value;
-  ReifyRuntimeType(Primitive value)
+
+  final SourceInformation sourceInformation;
+
+  ReifyRuntimeType(Primitive value, this.sourceInformation)
     : this.value = new Reference<Primitive>(value);
 
   @override
@@ -963,8 +1044,9 @@ class ReifyRuntimeType extends Primitive {
 class ReadTypeVariable extends Primitive {
   final TypeVariableType variable;
   final Reference<Primitive> target;
+  final SourceInformation sourceInformation;
 
-  ReadTypeVariable(this.variable, Primitive target)
+  ReadTypeVariable(this.variable, Primitive target, this.sourceInformation)
       : this.target = new Reference<Primitive>(target);
 
   @override
@@ -1052,6 +1134,9 @@ abstract class Visitor<T> {
   T visitCreateInvocationMirror(CreateInvocationMirror node);
   T visitTypeTest(TypeTest node);
   T visitApplyBuiltinOperator(ApplyBuiltinOperator node);
+  T visitGetLength(GetLength node);
+  T visitGetIndex(GetIndex node);
+  T visitSetIndex(SetIndex node);
 
   // Conditions.
   T visitIsTrue(IsTrue node);
@@ -1341,6 +1426,27 @@ class RecursiveVisitor implements Visitor {
   processUnreachable(Unreachable node) {}
   visitUnreachable(Unreachable node) {
     processUnreachable(node);
+  }
+
+  processGetLength(GetLength node) {}
+  visitGetLength(GetLength node) {
+    processGetLength(node);
+    processReference(node.object);
+  }
+
+  processGetIndex(GetIndex node) {}
+  visitGetIndex(GetIndex node) {
+    processGetIndex(node);
+    processReference(node.object);
+    processReference(node.index);
+  }
+
+  processSetIndex(SetIndex node) {}
+  visitSetIndex(SetIndex node) {
+    processSetIndex(node);
+    processReference(node.object);
+    processReference(node.index);
+    processReference(node.value);
   }
 }
 

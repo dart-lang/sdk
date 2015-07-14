@@ -342,9 +342,11 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
     String prefix = selector.isGetter
         ? r"$get"
         : selector.isSetter ? r"$set" : "";
-    String arity = selector.isCall ? "${selector.argumentCount}" : "";
+    String callSuffix =
+        selector.isCall ? callSuffixForStructure(selector.callStructure).join()
+                        : "";
     String suffix = suffixForGetInterceptor(classes);
-    String fullName = "\$intercepted$prefix\$$root$arity\$$suffix";
+    String fullName = "\$intercepted$prefix\$$root$callSuffix\$$suffix";
     return _disambiguateInternalGlobal(fullName);
   }
 }

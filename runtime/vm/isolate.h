@@ -78,6 +78,7 @@ class StackResource;
 class StackZone;
 class StoreBuffer;
 class StubCode;
+class ThreadRegistry;
 class TypeArguments;
 class TypeParameter;
 class UserTag;
@@ -144,6 +145,8 @@ class Isolate : public BaseIsolate {
 
   StoreBuffer* store_buffer() { return store_buffer_; }
 
+  ThreadRegistry* thread_registry() { return thread_registry_; }
+
   ClassTable* class_table() { return &class_table_; }
   static intptr_t class_table_offset() {
     return OFFSET_OF(Isolate, class_table_);
@@ -208,10 +211,24 @@ class Isolate : public BaseIsolate {
     return OFFSET_OF(Isolate, object_store_);
   }
 
-  uword top_exit_frame_info() const { return top_exit_frame_info_; }
-  void set_top_exit_frame_info(uword value) { top_exit_frame_info_ = value; }
-  static intptr_t top_exit_frame_info_offset() {
-    return OFFSET_OF(Isolate, top_exit_frame_info_);
+  // DEPRECATED: Use Thread's methods instead. During migration, these default
+  // to using the mutator thread (which must also be the current thread).
+  StackResource* top_resource() const {
+    ASSERT(Thread::Current() == mutator_thread_);
+    return mutator_thread_->top_resource();
+  }
+  void set_top_resource(StackResource* value) {
+    ASSERT(Thread::Current() == mutator_thread_);
+    mutator_thread_->set_top_resource(value);
+  }
+  // DEPRECATED: Use Thread's methods instead. During migration, these default
+  // to using the mutator thread.
+  // NOTE: These are also used by the profiler.
+  uword top_exit_frame_info() const {
+    return mutator_thread_->top_exit_frame_info();
+  }
+  void set_top_exit_frame_info(uword value) {
+    mutator_thread_->set_top_exit_frame_info(value);
   }
 
   uword vm_tag() const {
@@ -719,6 +736,17 @@ class Isolate : public BaseIsolate {
   // Handle service messages until we are told to resume execution.
   void PauseEventHandler();
 
+  // DEPRECATED: Use Thread's methods instead. During migration, these default
+  // to using the mutator thread (which must also be the current thread).
+  Zone* current_zone() const {
+    ASSERT(Thread::Current() == mutator_thread_);
+    return mutator_thread_->zone();
+  }
+  void set_current_zone(Zone* zone) {
+    ASSERT(Thread::Current() == mutator_thread_);
+    mutator_thread_->set_zone(zone);
+  }
+
  private:
   explicit Isolate(const Dart_IsolateFlags& api_flags);
 
@@ -743,9 +771,9 @@ class Isolate : public BaseIsolate {
 
   template<class T> T* AllocateReusableHandle();
 
-  Thread* mutator_thread_;
   uword vm_tag_;
   StoreBuffer* store_buffer_;
+  ThreadRegistry* thread_registry_;
   ClassTable class_table_;
   MegamorphicCacheTable megamorphic_cache_table_;
   Dart_MessageNotifyCallback message_notify_callback_;

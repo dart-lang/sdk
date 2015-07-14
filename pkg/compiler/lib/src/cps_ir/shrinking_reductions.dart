@@ -676,6 +676,21 @@ class ParentVisitor extends RecursiveVisitor {
     }
     node.arguments.forEach((Reference ref) => ref.parent = node);
   }
+
+  processGetLength(GetLength node) {
+    node.object.parent = node;
+  }
+
+  processGetIndex(GetIndex node) {
+    node.object.parent = node;
+    node.index.parent = node;
+  }
+
+  processSetIndex(SetIndex node) {
+    node.object.parent = node;
+    node.index.parent = node;
+    node.value.parent = node;
+  }
 }
 
 class _ReductionKind {

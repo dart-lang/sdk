@@ -177,7 +177,7 @@ class CompilerDeoptInfoWithStub : public CompilerDeoptInfo {
     const char* kFormat = "Deopt stub for id %d, reason: %s";
     const intptr_t len = OS::SNPrint(NULL, 0, kFormat,
         deopt_id(), DeoptReasonToCString(reason())) + 1;
-    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+    char* chars = Thread::Current()->zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, kFormat,
         deopt_id(), DeoptReasonToCString(reason()));
     return chars;

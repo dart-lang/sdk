@@ -513,37 +513,6 @@ class Request {
       : _params = params != null ? params : new HashMap<String, Object>();
 
   /**
-   * Return a request parsed from the given [data], or `null` if the [data] is
-   * not a valid json representation of a request. The [data] is expected to
-   * have the following format:
-   *
-   *   {
-   *     'clientRequestTime': millisecondsSinceEpoch
-   *     'id': String,
-   *     'method': methodName,
-   *     'params': {
-   *       paramter_name: value
-   *     }
-   *   }
-   *
-   * where both the parameters and clientRequestTime are optional.
-   * The parameters can contain any number of name/value pairs.
-   * The clientRequestTime must be an int representing the time at which
-   * the client issued the request (milliseconds since epoch).
-   */
-  factory Request.fromString(String data) {
-    try {
-      var result = JSON.decode(data);
-      if (result is Map) {
-        return new Request.fromJson(result);
-      }
-      return null;
-    } catch (exception) {
-      return null;
-    }
-  }
-
-  /**
    * Return a request parsed from the given json, or `null` if the [data] is
    * not a valid json representation of a request. The [data] is expected to
    * have the following format:
@@ -576,6 +545,37 @@ class Request {
     if (params is Map || params == null) {
       return new Request(id, method, params, time);
     } else {
+      return null;
+    }
+  }
+
+  /**
+   * Return a request parsed from the given [data], or `null` if the [data] is
+   * not a valid json representation of a request. The [data] is expected to
+   * have the following format:
+   *
+   *   {
+   *     'clientRequestTime': millisecondsSinceEpoch
+   *     'id': String,
+   *     'method': methodName,
+   *     'params': {
+   *       paramter_name: value
+   *     }
+   *   }
+   *
+   * where both the parameters and clientRequestTime are optional.
+   * The parameters can contain any number of name/value pairs.
+   * The clientRequestTime must be an int representing the time at which
+   * the client issued the request (milliseconds since epoch).
+   */
+  factory Request.fromString(String data) {
+    try {
+      var result = JSON.decode(data);
+      if (result is Map) {
+        return new Request.fromJson(result);
+      }
+      return null;
+    } catch (exception) {
       return null;
     }
   }
@@ -761,6 +761,14 @@ class Response {
   Response.getErrorsInvalidFile(Request request) : this(request.id,
           error: new RequestError(RequestErrorCode.GET_ERRORS_INVALID_FILE,
               'Error during `analysis.getErrors`: invalid file.'));
+
+  /**
+   * Initialize a newly created instance to represent the
+   * GET_NAVIGATION_INVALID_FILE error condition.
+   */
+  Response.getNavigationInvalidFile(Request request) : this(request.id,
+          error: new RequestError(RequestErrorCode.GET_NAVIGATION_INVALID_FILE,
+              'Error during `analysis.getNavigation`: invalid file.'));
 
   /**
    * Initialize a newly created instance to represent an error condition caused

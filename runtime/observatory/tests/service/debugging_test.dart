@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -28,8 +28,9 @@ var tests = [
 // Pause
 (Isolate isolate) async {
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseInterrupted) {
       subscription.cancel();
       completer.complete();
@@ -42,8 +43,9 @@ var tests = [
 // Resume
 (Isolate isolate) async {
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kResume) {
       subscription.cancel();
       completer.complete();
@@ -59,8 +61,9 @@ var tests = [
 
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print('Breakpoint reached');
       subscription.cancel();
@@ -98,8 +101,9 @@ var tests = [
 (Isolate isolate) async {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print('Breakpoint reached');
       subscription.cancel();
@@ -126,8 +130,9 @@ var tests = [
 (Isolate isolate) async {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kBreakpointRemoved) {
       print('Breakpoint removed');
       expect(isolate.breakpoints.length, equals(0));
@@ -145,8 +150,9 @@ var tests = [
 // Resume
 (Isolate isolate) async {
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kResume) {
       subscription.cancel();
       completer.complete();
@@ -160,8 +166,9 @@ var tests = [
 (Isolate isolate) async {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
+  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
   var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
+  subscription = stream.listen((ServiceEvent event) {
     if (event.kind == ServiceEvent.kPauseBreakpoint) {
       print('Breakpoint reached');
       subscription.cancel();

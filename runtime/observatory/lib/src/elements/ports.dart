@@ -5,9 +5,7 @@
 library ports;
 
 import 'dart:async';
-import 'dart:html';
 import 'observatory_element.dart';
-import 'package:observatory/app.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
@@ -16,7 +14,7 @@ class PortsPageElement extends ObservatoryElement {
   PortsPageElement.created() : super.created();
 
   @observable Isolate isolate;
-  @observable /*ObservableList | ServiceObject*/ ports;
+  @observable var /*ObservableList | ServiceObject*/ ports;
 
   void isolateChanged(oldValue) {
     if (isolate != null) {

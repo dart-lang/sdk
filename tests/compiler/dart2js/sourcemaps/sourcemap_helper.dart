@@ -7,7 +7,8 @@ library sourcemap.helper;
 import 'dart:async';
 import 'package:compiler/src/apiimpl.dart' as api;
 import 'package:compiler/src/dart2jslib.dart' show NullSink;
-import "package:compiler/src/elements/elements.dart";
+import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/helpers/helpers.dart';
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/io/source_information.dart';
@@ -106,20 +107,23 @@ class SourceMapProcessor {
   }
 
   /// Computes the [SourceMapInfo] for the compiled elements.
-  Future<List<SourceMapInfo>> process(List<String> options) async {
+  Future<List<SourceMapInfo>> process(
+      List<String> options,
+      {bool verbose: true}) async {
     OutputProvider outputProvider = outputToFile
         ? new OutputProvider()
         : new CloningOutputProvider(targetUri, sourceMapFileUri);
     if (options.contains('--use-new-source-info')) {
-      print('Using the new source information system.');
+      if (verbose) print('Using the new source information system.');
       useNewSourceInfo = true;
     }
     api.Compiler compiler = await compilerFor({},
         outputProvider: outputProvider,
+        // TODO(johnniwinther): Use [verbose] to avoid showing diagnostics.
         options: ['--out=$targetUri', '--source-map=$sourceMapFileUri']
             ..addAll(options));
     if (options.contains('--disable-inlining')) {
-      print('Inlining disabled');
+      if (verbose) print('Inlining disabled');
       compiler.disableInlining = true;
     }
 

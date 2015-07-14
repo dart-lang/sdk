@@ -57,6 +57,18 @@ class _TypeError extends _AssertionError implements TypeError {
                    String error_msg)
       native "TypeError_throwNew";
 
+  static _throwNewIfNotLoaded(_LibraryPrefix prefix,
+                              int location,
+                              Object src_value,
+                              String dst_type_name,
+                              String dst_name,
+                              String error_msg) {
+    if (!prefix.isLoaded()) {
+      _throwNew(location, src_value, dst_type_name, dst_name, error_msg);
+    }
+  }
+
+
   String toString() {
     String str = (_errorMsg != null) ? _errorMsg : "";
     if ((_dstName != null) && (_dstName.length > 0)) {
@@ -179,6 +191,19 @@ patch class NoSuchMethodError {
                                           positionalArguments,
                                           namedArguments,
                                           existingArgumentNames);
+  }
+
+  static void _throwNewIfNotLoaded(_LibraryPrefix prefix,
+                                   Object receiver,
+                                   String memberName,
+                                   int invocation_type,
+                                   List arguments,
+                                   List argumentNames,
+                                   List existingArgumentNames) {
+    if (!prefix.isLoaded()) {
+      _throwNew(receiver, memberName, invocation_type, arguments,
+                argumentNames, existingArgumentNames);
+    }
   }
 
   // Remember the type from the invocation mirror or static compilation

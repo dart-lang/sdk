@@ -1,7 +1,7 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
@@ -54,14 +54,14 @@ var tests = [
 
   var breaksHit = 0;
 
-  var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.kind == ServiceEvent.kPauseBreakpoint) {
-      print("Hit breakpoint ${event.breakpoint}");
-      breaksHit++;
-      isolate.resume();
-    }
-  });
+  var subscriptionFuture = isolate.vm.listenEventStream(
+      VM.kDebugStream, (ServiceEvent event) {
+        if (event.kind == ServiceEvent.kPauseBreakpoint) {
+          print("Hit breakpoint ${event.breakpoint}");
+          breaksHit++;
+          isolate.resume();
+        }
+      });
 
   valueOfField(String name) async {
     var field = rootLib.variables.singleWhere((v) => v.name == name);
@@ -91,7 +91,7 @@ var tests = [
   expect(res is Instance, isTrue); // Not error.
   expect(breaksHit, equals(1));
 
-  await subscription.cancel();
+  await cancelFutureSubscription(subscriptionFuture);
 },
 
 (Isolate isolate) async {
@@ -99,14 +99,14 @@ var tests = [
 
   var breaksHit = 0;
 
-  var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.kind == ServiceEvent.kPauseBreakpoint) {
-      print("Hit breakpoint ${event.breakpoint}");
-      breaksHit++;
-      isolate.resume();
-    }
-  });
+  var subscriptionFuture = isolate.vm.listenEventStream(
+      VM.kDebugStream, (ServiceEvent event) {
+        if (event.kind == ServiceEvent.kPauseBreakpoint) {
+          print("Hit breakpoint ${event.breakpoint}");
+          breaksHit++;
+          isolate.resume();
+        }
+      });
 
   valueOfField(String name) async {
     var field = rootLib.variables.singleWhere((v) => v.name == name);
@@ -135,7 +135,7 @@ var tests = [
   expect(res is Instance, isTrue); // Not error.
   expect(breaksHit, equals(1));
 
-  await subscription.cancel();
+  await cancelFutureSubscription(subscriptionFuture);
 },
 
 (Isolate isolate) async {
@@ -143,14 +143,14 @@ var tests = [
 
   var breaksHit = 0;
 
-  var subscription;
-  subscription = isolate.vm.events.stream.listen((ServiceEvent event) {
-    if (event.kind == ServiceEvent.kPauseBreakpoint) {
-      print("Hit breakpoint ${event.breakpoint}");
-      breaksHit++;
-      isolate.resume();
-    }
-  });
+  var subscriptionFuture = isolate.vm.listenEventStream(
+      VM.kDebugStream, (ServiceEvent event) {
+        if (event.kind == ServiceEvent.kPauseBreakpoint) {
+          print("Hit breakpoint ${event.breakpoint}");
+          breaksHit++;
+          isolate.resume();
+        }
+      });
 
   valueOfField(String name) async {
     var field = rootLib.variables.singleWhere((v) => v.name == name);
@@ -200,7 +200,7 @@ var tests = [
   expect(res is Instance, isTrue); // Not error.
   expect(breaksHit, equals(4));
 
-  await subscription.cancel();
+  await cancelFutureSubscription(subscriptionFuture);
 },
 
 ];

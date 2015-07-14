@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+part of dart2js.js_emitter.full_emitter;
 
 /**
  * A data structure for collecting fragments of a class definition.

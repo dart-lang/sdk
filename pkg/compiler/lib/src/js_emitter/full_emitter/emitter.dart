@@ -2,12 +2,101 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.js_emitter;
+library dart2js.js_emitter.full_emitter;
+
+import 'dart:convert';
+import 'dart:collection' show HashMap;
+
+import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
+import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
+
+import '../js_emitter.dart' hide Emitter;
+import '../js_emitter.dart' as js_emitter show Emitter;
+
+import '../model.dart';
+import '../program_builder/program_builder.dart';
+
+import '../../common.dart';
+
+import '../../constants/values.dart';
+
+import '../../deferred_load.dart' show OutputUnit;
+
+import '../../elements/elements.dart' show
+    ConstructorBodyElement,
+    ElementKind,
+    FieldElement,
+    ParameterElement,
+    TypeVariableElement,
+    MethodElement,
+    MemberElement;
+
+import '../../hash/sha1.dart' show Hasher;
+
+import '../../io/code_output.dart';
+
+import '../../io/line_column_provider.dart' show
+    LineColumnCollector,
+    LineColumnProvider;
+
+import '../../io/source_map_builder.dart' show
+    SourceMapBuilder;
+
+import '../../js/js.dart' as jsAst;
+import '../../js/js.dart' show js;
+
+import '../../js_backend/js_backend.dart' show
+    CheckedModeHelper,
+    CompoundName,
+    ConstantEmitter,
+    CustomElementsAnalysis,
+    GetterName,
+    JavaScriptBackend,
+    JavaScriptConstantCompiler,
+    Namer,
+    RuntimeTypes,
+    SetterName,
+    Substitution,
+    TypeCheck,
+    TypeChecks,
+    TypeVariableHandler;
+
+import '../../util/characters.dart' show
+    $$,
+    $A,
+    $HASH,
+    $PERIOD,
+    $Z,
+    $a,
+    $z;
+
+import '../../util/uri_extras.dart' show
+    relativize;
+
+import '../../util/util.dart' show
+    NO_LOCATION_SPANNABLE,
+    equalElements;
+
+part 'class_builder.dart';
+part 'class_emitter.dart';
+part 'code_emitter_helper.dart';
+part 'container_builder.dart';
+part 'declarations.dart';
+part 'deferred_output_unit_hash.dart';
+part 'interceptor_emitter.dart';
+part 'nsm_emitter.dart';
+part 'setup_program_builder.dart';
 
 
-class OldEmitter implements Emitter {
+class Emitter implements js_emitter.Emitter {
   final Compiler compiler;
   final CodeEmitterTask task;
+
+  // The following fields will be set to copies of the program-builder's
+  // collector.
+  Map<OutputUnit, List<VariableElement>> outputStaticNonFinalFieldLists;
+  Map<OutputUnit, Set<LibraryElement>> outputLibraryLists;
+  List<TypedefElement> typedefsNeededForReflection;
 
   final ContainerBuilder containerBuilder = new ContainerBuilder();
   final ClassEmitter classEmitter = new ClassEmitter();
@@ -43,9 +132,6 @@ class OldEmitter implements Emitter {
   final Map<jsAst.Name, String> mangledGlobalFieldNames =
       new HashMap<jsAst.Name, String>();
   final Set<jsAst.Name> recordedMangledNames = new Set<jsAst.Name>();
-
-  List<TypedefElement> get typedefsNeededForReflection =>
-      task.typedefsNeededForReflection;
 
   JavaScriptBackend get backend => compiler.backend;
   TypeVariableHandler get typeVariableHandler => backend.typeVariableHandler;
@@ -83,7 +169,7 @@ class OldEmitter implements Emitter {
 
   final bool generateSourceMap;
 
-  OldEmitter(Compiler compiler, Namer namer, this.generateSourceMap, this.task)
+  Emitter(Compiler compiler, Namer namer, this.generateSourceMap, this.task)
       : this.compiler = compiler,
         this.namer = namer,
         cachedEmittedConstants = compiler.cacheStrategy.newSet(),
@@ -524,8 +610,7 @@ class OldEmitter implements Emitter {
       OutputUnit outputUnit) {
     jsAst.Statement buildInitialization(Element element,
                                        jsAst.Expression initialValue) {
-      // Note: `namer.currentIsolate` refers to the isolate properties here.
-      return js.statement('${namer.currentIsolate}.# = #',
+      return js.statement('${namer.staticStateHolder}.# = #',
                           [namer.globalPropertyName(element), initialValue]);
     }
 
@@ -533,7 +618,7 @@ class OldEmitter implements Emitter {
     JavaScriptConstantCompiler handler = backend.constants;
     List<jsAst.Statement> parts = <jsAst.Statement>[];
 
-    Iterable<Element> fields = task.outputStaticNonFinalFieldLists[outputUnit];
+    Iterable<Element> fields = outputStaticNonFinalFieldLists[outputUnit];
     // If the outputUnit does not contain any static non-final fields, then
     // [fields] is `null`.
     if (fields != null) {
@@ -545,10 +630,10 @@ class OldEmitter implements Emitter {
       }
     }
 
-    if (inMainUnit && task.outputStaticNonFinalFieldLists.length > 1) {
+    if (inMainUnit && outputStaticNonFinalFieldLists.length > 1) {
       // In the main output-unit we output a stub initializer for deferred
       // variables, so that `isolateProperties` stays a fast object.
-      task.outputStaticNonFinalFieldLists.forEach(
+      outputStaticNonFinalFieldLists.forEach(
           (OutputUnit fieldsOutputUnit, Iterable<VariableElement> fields) {
         if (fieldsOutputUnit == outputUnit) return;  // Skip the main unit.
         for (Element element in fields) {
@@ -710,8 +795,8 @@ class OldEmitter implements Emitter {
     return js('${namer.isolateName}.#(#)', [makeConstListProperty, array]);
   }
 
-  jsAst.Statement buildMakeConstantList() {
-    if (task.outputContainsConstantList) {
+  jsAst.Statement buildMakeConstantList(bool outputContainsConstantList) {
+    if (outputContainsConstantList) {
       return js.statement(r'''
           // Functions are stored in the hidden class and not as properties in
           // the object. We never actually look at the value, but only want
@@ -758,7 +843,7 @@ class OldEmitter implements Emitter {
     return new jsAst.Block(parts);
   }
 
-  jsAst.Statement buildInitFunction() {
+  jsAst.Statement buildInitFunction(bool outputContainsConstantList) {
     jsAst.Expression allClassesAccess =
         generateEmbeddedGlobalAccess(embeddedNames.ALL_CLASSES);
     jsAst.Expression getTypeFromNameAccess =
@@ -892,7 +977,7 @@ class OldEmitter implements Emitter {
             'needsLazyInitializer': needsLazyInitializer,
             'lazies': laziesAccess, 'cyclicThrow': cyclicThrow,
             'isolatePropertiesName': namer.isolatePropertiesName,
-            'outputContainsConstantList': task.outputContainsConstantList,
+            'outputContainsConstantList': outputContainsConstantList,
             'makeConstListProperty': makeConstListProperty,
             'functionThatReturnsNullProperty':
                 backend.rti.getFunctionThatReturnsNullName,
@@ -1277,8 +1362,7 @@ class OldEmitter implements Emitter {
 
     checkEverythingEmitted(descriptors.keys);
 
-    Iterable<LibraryElement> libraries =
-        task.outputLibraryLists[mainOutputUnit];
+    Iterable<LibraryElement> libraries = outputLibraryLists[mainOutputUnit];
     if (libraries == null) libraries = <LibraryElement>[];
 
     List<jsAst.Expression> parts = <jsAst.Expression>[];
@@ -1381,7 +1465,7 @@ class OldEmitter implements Emitter {
        // We abuse the short name used for the isolate here to store
        // the isolate properties. This is safe as long as the real isolate
        // object does not exist yet.
-       var ${namer.currentIsolate} = #isolatePropertiesName;
+       var ${namer.staticStateHolder} = #isolatePropertiesName;
 
        // Constants in checked mode call into RTI code to set type information
        // which may need getInterceptor (and one-shot interceptor) methods, so
@@ -1393,7 +1477,7 @@ class OldEmitter implements Emitter {
        // constants to be set up.
        #staticNonFinalInitializers;
 
-       ${namer.currentIsolate} = null;
+       ${namer.staticStateHolder} = null;
 
        #deferredBoilerPlate;
 
@@ -1403,7 +1487,7 @@ class OldEmitter implements Emitter {
 
        #isolateName = $finishIsolateConstructorName(#isolateName);
 
-       ${namer.currentIsolate} = new #isolateName();
+       ${namer.staticStateHolder} = new #isolateName();
 
        #metadata;
 
@@ -1438,7 +1522,8 @@ class OldEmitter implements Emitter {
       "cspPrecompiledFunctions": buildCspPrecompiledFunctionFor(mainOutputUnit),
       "getInterceptorMethods": interceptorEmitter.buildGetInterceptorMethods(),
       "oneShotInterceptors": interceptorEmitter.buildOneShotInterceptors(),
-      "makeConstantList": buildMakeConstantList(),
+      "makeConstantList":
+          buildMakeConstantList(program.outputContainsConstantList),
       "compileTimeConstants":  buildCompileTimeConstants(mainFragment.constants,
                                                          isMainFragment: true),
       "deferredBoilerPlate": buildDeferredBoilerPlate(deferredLoadHashes),
@@ -1453,7 +1538,7 @@ class OldEmitter implements Emitter {
       "convertGlobalObjectsToFastObjects":
           buildConvertGlobalObjectToFastObjects(),
       "debugFastObjects": buildDebugFastObjectCode(),
-      "init": buildInitFunction(),
+      "init": buildInitFunction(program.outputContainsConstantList),
       "main": buildMain(mainFragment.invokeMain)
     }));
 
@@ -1623,8 +1708,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
       Map<Element, ClassBuilder> descriptors = elementDescriptors[fragment];
 
       if (descriptors != null && descriptors.isNotEmpty) {
-        Iterable<LibraryElement> libraries =
-            task.outputLibraryLists[outputUnit];
+        Iterable<LibraryElement> libraries = outputLibraryLists[outputUnit];
         if (libraries == null) libraries = [];
 
         // TODO(johnniwinther): Avoid creating [CodeBuffer]s.
@@ -1654,8 +1738,14 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   }
 
   int emitProgram(ProgramBuilder programBuilder) {
-    Program program = programBuilder.buildProgram(
-        storeFunctionTypesInMetadata: true);
+    Program program =
+        programBuilder.buildProgram(storeFunctionTypesInMetadata: true);
+
+    outputStaticNonFinalFieldLists =
+        programBuilder.collector.outputStaticNonFinalFieldLists;
+    outputLibraryLists = programBuilder.collector.outputLibraryLists;
+    typedefsNeededForReflection =
+       programBuilder.collector.typedefsNeededForReflection;
 
     assembleProgram(program);
 
@@ -1710,7 +1800,6 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
   ClassBuilder getElementDescriptor(Element element, Fragment fragment) {
     Element owner = element.library;
-    bool isClass = false;
     if (!element.isLibrary && !element.isTopLevel && !element.isNative) {
       // For static (not top level) elements, record their code in a buffer
       // specific to the class. For now, not supported for native classes and
@@ -1753,7 +1842,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
           // Function for initializing a loaded hunk, given its hash.
           #initializeLoadedHunk = function(hunkHash) {
             $deferredInitializers[hunkHash](
-            #globalsHolder, ${namer.currentIsolate});
+            #globalsHolder, ${namer.staticStateHolder});
             #deferredInitialized[hunkHash] = true;
           };
         }
@@ -1862,9 +1951,9 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
           ..add(js.statement('${typesAccess}.push.apply(${typesAccess}, '
                              '${namer.deferredTypesName});'));
 
-      // Set the currentIsolate variable to the current isolate (which is
-      // provided as second argument).
-      body.add(js.statement("${namer.currentIsolate} = arguments[1];"));
+      // Sets the static state variable to the state of the current isolate
+      // (which is provided as second argument).
+      body.add(js.statement("${namer.staticStateHolder} = arguments[1];"));
 
       body.add(buildCompileTimeConstants(fragment.constants,
                                          isMainFragment: false));

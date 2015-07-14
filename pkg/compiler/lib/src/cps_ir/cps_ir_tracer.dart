@@ -110,10 +110,8 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitLetCont(cps_ir.LetCont node) {
     if (IR_TRACE_LET_CONT) {
       String dummy = names.name(node);
-      for (cps_ir.Continuation continuation in node.continuations) {
-        String id = names.name(continuation);
-        printStmt(dummy, "LetCont $id = <$id>");
-      }
+      String ids = node.continuations.map(names.name).join(', ');
+      printStmt(dummy, "LetCont $ids");
     }
     visit(node.body);
   }
@@ -192,20 +190,18 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitLiteralList(cps_ir.LiteralList node) {
-    String dummy = names.name(node);
     String values = node.values.map(formatReference).join(', ');
-    printStmt(dummy, "LiteralList ($values)");
+    return "LiteralList ($values)";
   }
 
   visitLiteralMap(cps_ir.LiteralMap node) {
-    String dummy = names.name(node);
     List<String> entries = new List<String>();
     for (cps_ir.LiteralMapEntry entry in node.entries) {
       String key = formatReference(entry.key);
       String value = formatReference(entry.value);
       entries.add("$key: $value");
     }
-    printStmt(dummy, "LiteralMap (${entries.join(', ')})");
+    return "LiteralMap (${entries.join(', ')})";
   }
 
   visitTypeCast(cps_ir.TypeCast node) {
@@ -373,6 +369,24 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
         : ' ${formatReference(node.continuation)}';
     printStmt(id, "ForeignCode ${node.type} ${node.codeTemplate.source} "
         "$arguments $continuation");
+  }
+
+  visitGetLength(cps_ir.GetLength node) {
+    String object = formatReference(node.object);
+    return 'GetLength $object';
+  }
+
+  visitGetIndex(cps_ir.GetIndex node) {
+    String object = formatReference(node.object);
+    String index = formatReference(node.index);
+    return 'GetIndex $object $index';
+  }
+
+  visitSetIndex(cps_ir.SetIndex node) {
+    String object = formatReference(node.object);
+    String index = formatReference(node.index);
+    String value = formatReference(node.value);
+    return 'SetIndex $object $index $value';
   }
 }
 
@@ -630,6 +644,18 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
+    unexpectedNode(node);
+  }
+
+  visitGetLength(cps_ir.GetLength node) {
+    unexpectedNode(node);
+  }
+
+  visitGetIndex(cps_ir.GetIndex node) {
+    unexpectedNode(node);
+  }
+
+  visitSetIndex(cps_ir.SetIndex node) {
     unexpectedNode(node);
   }
 

@@ -6,7 +6,8 @@ part of dart2js.js_emitter;
 
 class NativeEmitter {
 
-  final Map<Element, ClassBuilder> cachedBuilders;
+  // TODO(floitsch): the native-emitter should not know about ClassBuilders.
+  final Map<Element, full_js_emitter.ClassBuilder> cachedBuilders;
 
   final CodeEmitterTask emitterTask;
 
@@ -61,8 +62,16 @@ class NativeEmitter {
    *
    * [classes] contains native classes, mixin applications, and user subclasses
    * of native classes.
+   *
+   * [interceptorClassesNeededByConstants] contains the interceptors that are
+   * referenced by constants.
+   *
+   * [classesModifiedByEmitRTISupport] contains the list of classes that must
+   * exist, because runtime-type support adds information to the class.
    */
-  Set<Class> prepareNativeClasses(List<Class> classes) {
+  Set<Class> prepareNativeClasses(List<Class> classes,
+      Set<ClassElement> interceptorClassesNeededByConstants,
+      Set<ClassElement> classesModifiedByEmitRTISupport) {
     assert(classes.every((Class cls) => cls != null));
 
     hasNativeClasses = classes.isNotEmpty;
@@ -103,11 +112,6 @@ class NativeEmitter {
 
     neededClasses.add(objectClass);
 
-    Set<ClassElement> neededByConstant = emitterTask
-        .computeInterceptorsReferencedFromConstants();
-    Set<ClassElement> modifiedClasses = emitterTask.typeTestRegistry
-        .computeClassesModifiedByEmitRuntimeTypeSupport();
-
     for (Class cls in preOrder.reversed) {
       ClassElement classElement = cls.element;
       // Post-order traversal ensures we visit the subclasses before their
@@ -121,9 +125,9 @@ class NativeEmitter {
         needed = true;
       } else if (!isTrivialClass(cls)) {
         needed = true;
-      } else if (neededByConstant.contains(classElement)) {
+      } else if (interceptorClassesNeededByConstants.contains(classElement)) {
         needed = true;
-      } else if (modifiedClasses.contains(classElement)) {
+      } else if (classesModifiedByEmitRTISupport.contains(classElement)) {
         // TODO(9556): Remove this test when [emitRuntimeTypeSupport] no longer
         // adds information to a class prototype or constructor.
         needed = true;

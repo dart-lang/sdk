@@ -38,7 +38,7 @@ vars = {
 
   # Revisions of /third_party/* dependencies.
   "7zip_rev" : "@19997",
-  "analyzer_cli_rev" : "@8bf3516dd645ca289d7ebc641f7c228d5b3d37c4",
+  "analyzer_cli_rev" : "@5069b75f6ccef59b2ba4e2c382bc000037290125",
   "args_tag": "@0.13.0",
   "async_tag": "@1.2.0",
   "barback_rev" : "@29ee90dbcf77cfd64632fa2797a4c8a4f29a4b51",
@@ -49,7 +49,7 @@ vars = {
   "collection_rev": "@1da9a07f32efa2ba0c391b289e2037391e31da0e",
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
-  "dartdoc_rev" : "@9f677ec40f9beeb8933374885ef3af4c63d35d25",
+  "dartdoc_tag" : "@v0.0.3",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
   "dart_style_tag": "@0.1.8+1",
   "dev_compiler_rev": "@0.1.1",
@@ -79,12 +79,12 @@ vars = {
   "observe_rev": "@eee2b8ec34236fa46982575fbccff84f61202ac6",
   "observatory_pub_packages_rev": "@45565",
   "package_config_tag": "@0.1.1",
-  "path_rev": "@93b3e2aa1db0ac0c8bab9d341588d77acda60320",
+  "path_tag": "@1.3.6",
   "petitparser_rev" : "@37878",
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_rev": "@e454b4b54d2987e8d2f0fbd3ac519641ada9bd0f",
-  "pub_rev": "@e05cfca67574acfdbce55a8422c6bc458be93d10",
+  "pub_rev": "@072c5d85f4741bd4eede3eb8d309669b887e3c54",
   "pub_cache_tag": "@v0.0.1+2",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
@@ -199,7 +199,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg_tested/dart_style":
       (Var("github_mirror") % "dart_style") + Var("dart_style_tag"),
   Var("dart_root") + "/third_party/pkg/dartdoc":  
-      "https://github.com/dart-lang/dartdoc.git" + Var("dartdoc_rev"),
+      "https://github.com/dart-lang/dartdoc.git" + Var("dartdoc_tag"),
   Var("dart_root") + "/third_party/pkg/dev_compiler":
       "https://github.com/dart-lang/dev_compiler.git" + Var("dev_compiler_rev"),
   Var("dart_root") + "/third_party/pkg/glob":
@@ -245,7 +245,7 @@ deps = {
       (Var("github_mirror") % "package_config") +
       Var("package_config_tag"),
   Var("dart_root") + "/third_party/pkg/path":
-      (Var("github_mirror") % "path") + Var("path_rev"),
+      (Var("github_mirror") % "path") + Var("path_tag"),
   Var("dart_root") + "/third_party/pkg/plugin":
       (Var("github_mirror") % "plugin") + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":

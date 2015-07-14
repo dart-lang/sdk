@@ -29,7 +29,7 @@ main() {
                                    diagnosticHandler,
                                    libraryRoot,
                                    packageRoot,
-                                   ['--analyze-only'],
+                                   ['--analyze-all'],
                                    {});
   asyncTest(() => compiler.run(Uri.parse('memory:main.dart')).then((_) {
     diagnostics.sort();
@@ -38,10 +38,10 @@ main() {
         "memory:library.dart:41:45:'hest' is defined here.:info",
         "memory:main.dart:0:22:'hest' is imported here.:info",
         "memory:main.dart:23:46:'hest' is imported here.:info",
-        "memory:main.dart:86:92:Duplicate import of 'hest'.:error"
+        "memory:main.dart:86:92:Duplicate import of 'hest'.:warning",
     ];
     Expect.listEquals(expected, diagnostics);
-    Expect.isTrue(compiler.compilationFailed);
+    Expect.isFalse(compiler.compilationFailed);
   }));
 }
 

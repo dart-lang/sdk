@@ -50,11 +50,11 @@ class FlatTypeMask implements TypeMask {
       return new FlatTypeMask.internal(base, flags);
     }
     if ((flags >> 1) == SUBTYPE) {
-      if (!world.hasAnySubtype(base) || world.hasOnlySubclasses(base)) {
+      if (!world.hasAnyStrictSubtype(base) || world.hasOnlySubclasses(base)) {
         flags = (flags & 0x1) | (SUBCLASS << 1);
       }
     }
-    if (((flags >> 1) == SUBCLASS) && !world.hasAnySubclass(base)) {
+    if (((flags >> 1) == SUBCLASS) && !world.hasAnyStrictSubclass(base)) {
       flags = (flags & 0x1) | (EXACT << 1);
     }
     Map<ClassElement, TypeMask> cachedMasks =
@@ -631,10 +631,10 @@ class FlatTypeMask implements TypeMask {
 
     Iterable<ClassElement> subclassesToCheck;
     if (isSubtype) {
-      subclassesToCheck = classWorld.subtypesOf(base);
+      subclassesToCheck = classWorld.strictSubtypesOf(base);
     } else {
       assert(isSubclass);
-      subclassesToCheck = classWorld.subclassesOf(base);
+      subclassesToCheck = classWorld.strictSubclassesOf(base);
     }
 
     return subclassesToCheck != null &&
@@ -704,10 +704,10 @@ class FlatTypeMask implements TypeMask {
     if (x.isExact) {
       return null;
     } else if (x.isSubclass) {
-      return classWorld.subclassesOf(element);
+      return classWorld.strictSubclassesOf(element);
     } else {
       assert(x.isSubtype);
-      return classWorld.subtypesOf(element);
+      return classWorld.strictSubtypesOf(element);
     }
   }
 }

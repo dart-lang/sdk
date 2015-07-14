@@ -1693,58 +1693,78 @@ ASSEMBLER_TEST_RUN(LoadImmediatePPLarge, test) {
 }
 
 
+#if defined(USING_SIMULATOR)
+#define ASSEMBLER_TEST_RUN_WITH_THREAD(var_name) \
+  Thread* thread = Thread::Current(); \
+  int64_t var_name = Simulator::Current()->Call( \
+      bit_cast<intptr_t, uword>(test->entry()), \
+      reinterpret_cast<intptr_t>(thread), 0, 0, 0)
+#else
+#define ASSEMBER_TEST_RUN_WITH_THREAD(var_name) \
+  typedef int64_t (*Int64Return)(Thread* thread); \
+  Int64Return test_code = reinterpret_cast<Int64Return>(test->entry()); \
+  int64_t var_name = test_code(thread)
+#endif
+
+
 // LoadObject null.
 ASSEMBLER_TEST_GENERATE(LoadObjectNull, assembler) {
   __ SetupDartSP(kTestStackSpace);
+  __ Push(THR);
+  __ mov(THR, R0);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Object::null_object(), PP);
   __ PopAndUntagPP();
+  __ Pop(THR);
   __ mov(CSP, SP);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(LoadObjectNull, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(reinterpret_cast<int64_t>(Object::null()),
-            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  ASSEMBLER_TEST_RUN_WITH_THREAD(result);
+  EXPECT_EQ(reinterpret_cast<int64_t>(Object::null()), result);
 }
 
 
 ASSEMBLER_TEST_GENERATE(LoadObjectTrue, assembler) {
   __ SetupDartSP(kTestStackSpace);
+  __ Push(THR);
+  __ mov(THR, R0);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Bool::True(), PP);
   __ PopAndUntagPP();
+  __ Pop(THR);
   __ mov(CSP, SP);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(LoadObjectTrue, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(reinterpret_cast<int64_t>(Bool::True().raw()),
-            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  ASSEMBLER_TEST_RUN_WITH_THREAD(result);
+  EXPECT_EQ(reinterpret_cast<int64_t>(Bool::True().raw()), result);
 }
 
 
 ASSEMBLER_TEST_GENERATE(LoadObjectFalse, assembler) {
   __ SetupDartSP(kTestStackSpace);
+  __ Push(THR);
+  __ mov(THR, R0);
   __ TagAndPushPP();  // Save caller's pool pointer and load a new one here.
   __ LoadPoolPointer(PP);
   __ LoadObject(R0, Bool::False(), PP);
   __ PopAndUntagPP();
+  __ Pop(THR);
   __ mov(CSP, SP);
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(LoadObjectFalse, test) {
-  typedef int64_t (*Int64Return)() DART_UNUSED;
-  EXPECT_EQ(reinterpret_cast<int64_t>(Bool::False().raw()),
-            EXECUTE_TEST_CODE_INT64(Int64Return, test->entry()));
+  ASSEMBLER_TEST_RUN_WITH_THREAD(result);
+  EXPECT_EQ(reinterpret_cast<int64_t>(Bool::False().raw()), result);
 }
 
 

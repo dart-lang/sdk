@@ -48,6 +48,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   final tree_ir.FallthroughStack fallthrough = new tree_ir.FallthroughStack();
 
+  /// Stacks whose top element is the current target of an unlabeled break
+  /// or continue. For continues, this is the loop node itself.
+  final tree_ir.FallthroughStack shortBreak = new tree_ir.FallthroughStack();
+  final tree_ir.FallthroughStack shortContinue =
+      new tree_ir.FallthroughStack();
+
   Set<tree_ir.Label> usedLabels = new Set<tree_ir.Label>();
 
   List<js.Statement> accumulator = new List<js.Statement>();
@@ -177,14 +183,18 @@ class CodeGenerator extends tree_ir.StatementVisitor
         visitExpression(node.elseExpression));
   }
 
-  js.Expression buildConstant(ConstantValue constant) {
+  js.Expression buildConstant(ConstantValue constant,
+                              {SourceInformation sourceInformation}) {
     registry.registerCompileTimeConstant(constant);
-    return glue.constantReference(constant);
+    return glue.constantReference(constant)
+        .withSourceInformation(sourceInformation);
   }
 
   @override
   js.Expression visitConstant(tree_ir.Constant node) {
-    return buildConstant(node.value);
+    return buildConstant(
+        node.value,
+        sourceInformation: node.sourceInformation);
   }
 
   js.Expression compileConstant(ParameterElement parameter) {
@@ -207,7 +217,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registry.registerInstantiatedType(node.type);
     FunctionElement target = node.target;
     List<js.Expression> arguments = visitExpressionList(node.arguments);
-    return buildStaticInvoke(target, arguments);
+    return buildStaticInvoke(
+        target, arguments, sourceInformation: node.sourceInformation);
   }
 
   void registerMethodInvoke(tree_ir.InvokeMethod node) {
@@ -234,7 +245,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registerMethodInvoke(node);
     return js.propertyCall(visitExpression(node.receiver),
                            glue.invocationName(node.selector),
-                           visitExpressionList(node.arguments));
+                           visitExpressionList(node.arguments))
+        .withSourceInformation(node.sourceInformation);
   }
 
   @override
@@ -254,13 +266,15 @@ class CodeGenerator extends tree_ir.StatementVisitor
       return js.js('#.#(#)',
           [visitExpression(node.receiver),
            glue.instanceMethodName(node.target),
-           visitExpressionList(node.arguments)]);
+           visitExpressionList(node.arguments)])
+          .withSourceInformation(node.sourceInformation);
     }
     return js.js('#.#.call(#, #)',
         [glue.prototypeAccess(node.target.enclosingClass),
          glue.invocationName(node.selector),
          visitExpression(node.receiver),
-         visitExpressionList(node.arguments)]);
+         visitExpressionList(node.arguments)])
+        .withSourceInformation(node.sourceInformation);
   }
 
   @override
@@ -390,27 +404,36 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   void visitContinue(tree_ir.Continue node) {
     tree_ir.Statement next = fallthrough.target;
-    if (node.target.binding == next) {
-      // Fall through to continue target
+    if (node.target.binding == next ||
+        next is tree_ir.Continue && node.target == next.target) {
+      // Fall through to continue target or to equivalent continue.
       fallthrough.use();
-    } else if (next is tree_ir.Continue && next.target == node.target) {
-      // Fall through to equivalent continue
-      fallthrough.use();
+    } else if (node.target.binding == shortContinue.target) {
+      // The target is the immediately enclosing loop.
+      shortContinue.use();
+      accumulator.add(new js.Continue(null));
     } else {
       usedLabels.add(node.target);
       accumulator.add(new js.Continue(node.target.name));
     }
   }
 
+  /// True if [other] is the target of [node] or is a [Break] with the same
+  /// target. This means jumping to [other] is equivalent to executing [node].
+  bool isEffectiveBreakTarget(tree_ir.Break node, tree_ir.Statement other) {
+    return node.target.binding.next == other ||
+           other is tree_ir.Break && node.target == other.target;
+  }
+
   @override
   void visitBreak(tree_ir.Break node) {
-    tree_ir.Statement next = fallthrough.target;
-    if (node.target.binding.next == next) {
-      // Fall through to break target
+    if (isEffectiveBreakTarget(node, fallthrough.target)) {
+      // Fall through to break target or to equivalent break.
       fallthrough.use();
-    } else if (next is tree_ir.Break && next.target == node.target) {
-      // Fall through to equivalent break
-      fallthrough.use();
+    } else if (isEffectiveBreakTarget(node, shortBreak.target)) {
+      // Unlabeled break to the break target or to an equivalent break.
+      shortBreak.use();
+      accumulator.add(new js.Break(null));
     } else {
       usedLabels.add(node.target);
       accumulator.add(new js.Break(node.target.name));
@@ -443,22 +466,20 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   void visitLabeledStatement(tree_ir.LabeledStatement node) {
-    accumulator.add(buildLabeled(() => buildBodyStatement(node.body),
-                                 node.label,
-                                 node.next));
+    fallthrough.push(node.next);
+    js.Statement body = buildBodyStatement(node.body);
+    fallthrough.pop();
+    accumulator.add(insertLabel(node.label, body));
     visitStatement(node.next);
   }
 
-  js.Statement buildLabeled(js.Statement buildBody(),
-                            tree_ir.Label label,
-                            tree_ir.Statement fallthroughStatement) {
-    fallthrough.push(fallthroughStatement);
-    js.Statement result = buildBody();
+  /// Wraps a node in a labeled statement unless the label is unused.
+  js.Statement insertLabel(tree_ir.Label label, js.Statement node) {
     if (usedLabels.remove(label)) {
-      result = new js.LabeledStatement(label.name, result);
+      return new js.LabeledStatement(label.name, node);
+    } else {
+      return node;
     }
-    fallthrough.pop();
-    return result;
   }
 
   /// Returns the current [accumulator] wrapped in a block if neccessary.
@@ -491,29 +512,36 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return result;
   }
 
-  js.Statement buildWhile(js.Expression condition,
-                          tree_ir.Statement body,
-                          tree_ir.Label label,
-                          tree_ir.Statement fallthroughStatement) {
-    return buildLabeled(() => new js.While(condition, buildBodyStatement(body)),
-                        label,
-                        fallthroughStatement);
-  }
-
   @override
   void visitWhileCondition(tree_ir.WhileCondition node) {
-    accumulator.add(
-        buildWhile(visitExpression(node.condition),
-                   node.body,
-                   node.label,
-                   node));
+    js.Expression condition = visitExpression(node.condition);
+    shortBreak.push(node.next);
+    shortContinue.push(node);
+    fallthrough.push(node);
+    js.Statement jsBody = buildBodyStatement(node.body);
+    fallthrough.pop();
+    shortContinue.pop();
+    shortBreak.pop();
+    accumulator.add(insertLabel(node.label, new js.While(condition, jsBody)));
     visitStatement(node.next);
   }
 
   @override
   void visitWhileTrue(tree_ir.WhileTrue node) {
-    accumulator.add(
-        buildWhile(new js.LiteralBool(true), node.body, node.label, node));
+    js.Expression condition = new js.LiteralBool(true);
+    // A short break in the while will jump to the current fallthrough target.
+    shortBreak.push(fallthrough.target);
+    shortContinue.push(node);
+    fallthrough.push(node);
+    js.Statement jsBody = buildBodyStatement(node.body);
+    fallthrough.pop();
+    shortContinue.pop();
+    if (shortBreak.useCount > 0) {
+      // Short breaks use the current fallthrough target.
+      fallthrough.use();
+    }
+    shortBreak.pop();
+    accumulator.add(insertLabel(node.label, new js.While(condition, jsBody)));
   }
 
   bool isNull(tree_ir.Expression node) {
@@ -527,7 +555,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       registry.registerCompileTimeConstant(new NullConstantValue());
       fallthrough.use();
     } else {
-      accumulator.add(new js.Return(visitExpression(node.value)));
+      accumulator.add(new js.Return(visitExpression(node.value))
+            .withSourceInformation(node.sourceInformation));
     }
   }
 
@@ -576,7 +605,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     }
     js.Expression instance = new js.New(
         glue.constructorAccess(classElement),
-        visitExpressionList(node.arguments));
+        visitExpressionList(node.arguments))
+        .withSourceInformation(node.sourceInformation);
 
     List<tree_ir.Expression> typeInformation = node.typeInformation;
     assert(typeInformation.isEmpty ||
@@ -586,7 +616,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       js.Expression typeArguments = new js.ArrayInitializer(
           visitExpressionList(typeInformation));
       return buildStaticHelperInvocation(helper,
-          <js.Expression>[instance, typeArguments]);
+          <js.Expression>[instance, typeArguments],
+          sourceInformation: node.sourceInformation);
     } else {
       return instance;
     }
@@ -664,19 +695,45 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return new js.Assignment(field, value);
   }
 
-  js.Expression buildStaticHelperInvocation(FunctionElement helper,
-                                            List<js.Expression> arguments) {
+  @override
+  js.Expression visitGetLength(tree_ir.GetLength node) {
+    return new js.PropertyAccess.field(visitExpression(node.object), 'length');
+  }
+
+  @override
+  js.Expression visitGetIndex(tree_ir.GetIndex node) {
+    return new js.PropertyAccess(
+        visitExpression(node.object),
+        visitExpression(node.index));
+  }
+
+  @override
+  js.Expression visitSetIndex(tree_ir.SetIndex node) {
+    return js.js('#[#] = #',
+        [visitExpression(node.object),
+         visitExpression(node.index),
+         visitExpression(node.value)]);
+  }
+
+  js.Expression buildStaticHelperInvocation(
+      FunctionElement helper,
+      List<js.Expression> arguments,
+      {SourceInformation sourceInformation}) {
     registry.registerStaticUse(helper);
-    return buildStaticInvoke(helper, arguments);
+    return buildStaticInvoke(
+        helper, arguments, sourceInformation: sourceInformation);
   }
 
   @override
   js.Expression visitReifyRuntimeType(tree_ir.ReifyRuntimeType node) {
-    FunctionElement createType = glue.getCreateRuntimeType();
-    FunctionElement typeToString = glue.getRuntimeTypeToString();
-    return buildStaticHelperInvocation(createType,
-        [buildStaticHelperInvocation(typeToString,
-            [visitExpression(node.value)])]);
+    js.Expression typeToString = buildStaticHelperInvocation(
+        glue.getRuntimeTypeToString(),
+        [visitExpression(node.value)],
+        sourceInformation: node.sourceInformation);
+    return buildStaticHelperInvocation(
+        glue.getCreateRuntimeType(),
+        [typeToString],
+        sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -687,11 +744,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
       js.Expression typeName = glue.getRuntimeTypeName(context);
       return buildStaticHelperInvocation(
           glue.getRuntimeTypeArgument(),
-          [visitExpression(node.target), typeName, index]);
+          [visitExpression(node.target), typeName, index],
+          sourceInformation: node.sourceInformation);
     } else {
       return buildStaticHelperInvocation(
           glue.getTypeArgumentByIndex(),
-          [visitExpression(node.target), index]);
+          [visitExpression(node.target), index],
+          sourceInformation: node.sourceInformation);
     }
   }
 

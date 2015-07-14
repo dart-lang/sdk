@@ -2191,8 +2191,10 @@ class SsaBuilder extends ast.Visitor
           constructorArguments,
           instantiatedTypes);
       if (function != null) {
+        // TODO(johnniwinther): Provide source information for creation
+        // through synthetic constructors.
         newObject.sourceInformation =
-            sourceInformationBuilder.buildGeneric(function);
+            sourceInformationBuilder.buildCreate(function);
       }
       add(newObject);
     } else {
@@ -3147,7 +3149,7 @@ class SsaBuilder extends ast.Visitor
     TypeMask type =
         new TypeMask.nonNullExact(compiler.functionClass, compiler.world);
     push(new HForeignNew(closureClassElement, type, capturedVariables)
-        ..sourceInformation = sourceInformationBuilder.buildGeneric(node));
+        ..sourceInformation = sourceInformationBuilder.buildCreate(node));
 
     Element methodElement = nestedClosureData.closureElement;
     registry.registerInstantiatedClosure(methodElement);
@@ -4064,8 +4066,8 @@ class SsaBuilder extends ast.Visitor
 
     if (!compiler.hasIsolateSupport) {
       // If the isolate library is not used, we just generate code
-      // to fetch the current isolate.
-      String name = backend.namer.currentIsolate;
+      // to fetch the static state.
+      String name = backend.namer.staticStateHolder;
       push(new HForeignCode(js.js.parseForeignJS(name),
                             backend.dynamicType,
                             <HInstruction>[]));
@@ -4331,13 +4333,13 @@ class SsaBuilder extends ast.Visitor
     handleForeignRawFunctionRef(node, name);
   }
 
-  void handleForeignSetCurrentIsolate(ast.Send node) {
+  void handleForeignJsSetStaticState(ast.Send node) {
     if (node.arguments.isEmpty || !node.arguments.tail.isEmpty) {
       compiler.internalError(node.argumentsNode,
           'Exactly one argument required.');
     }
     visit(node.arguments.head);
-    String isolateName = backend.namer.currentIsolate;
+    String isolateName = backend.namer.staticStateHolder;
     SideEffects sideEffects = new SideEffects.empty();
     sideEffects.setAllSideEffects();
     push(new HForeignCode(
@@ -4348,11 +4350,11 @@ class SsaBuilder extends ast.Visitor
         effects: sideEffects));
   }
 
-  void handleForeignJsCurrentIsolate(ast.Send node) {
+  void handleForeignJsGetStaticState(ast.Send node) {
     if (!node.arguments.isEmpty) {
       compiler.internalError(node.argumentsNode, 'Too many arguments.');
     }
-    push(new HForeignCode(js.js.parseForeignJS(backend.namer.currentIsolate),
+    push(new HForeignCode(js.js.parseForeignJS(backend.namer.staticStateHolder),
                           backend.dynamicType,
                           <HInstruction>[]));
   }
@@ -4369,10 +4371,10 @@ class SsaBuilder extends ast.Visitor
       handleForeignDartClosureToJs(node, 'DART_CLOSURE_TO_JS');
     } else if (name == 'RAW_DART_FUNCTION_REF') {
       handleForeignRawFunctionRef(node, 'RAW_DART_FUNCTION_REF');
-    } else if (name == 'JS_SET_CURRENT_ISOLATE') {
-      handleForeignSetCurrentIsolate(node);
-    } else if (name == 'JS_CURRENT_ISOLATE') {
-      handleForeignJsCurrentIsolate(node);
+    } else if (name == 'JS_SET_STATIC_STATE') {
+      handleForeignJsSetStaticState(node);
+    } else if (name == 'JS_GET_STATIC_STATE') {
+      handleForeignJsGetStaticState(node);
     } else if (name == 'JS_GET_NAME') {
       handleForeignJsGetName(node);
     } else if (name == 'JS_EMBEDDED_GLOBAL') {

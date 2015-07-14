@@ -86,7 +86,7 @@ RawString* DoubleToStringAsFixed(double d, int fraction_digits) {
       kDoubleToStringCommonExponentChar,
       0, 0, 0, 0);  // Last four values are ignored in fixed mode.
 
-  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(kBufferSize);
+  char* buffer = Thread::Current()->zone()->Alloc<char>(kBufferSize);
   buffer[kBufferSize - 1] = '\0';
   double_conversion::StringBuilder builder(buffer, kBufferSize);
   bool status = converter.ToFixed(d, fraction_digits, &builder);
@@ -119,7 +119,7 @@ RawString* DoubleToStringAsExponential(double d, int fraction_digits) {
       kDoubleToStringCommonExponentChar,
       0, 0, 0, 0);  // Last four values are ignored in exponential mode.
 
-  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(kBufferSize);
+  char* buffer = Thread::Current()->zone()->Alloc<char>(kBufferSize);
   buffer[kBufferSize - 1] = '\0';
   double_conversion::StringBuilder builder(buffer, kBufferSize);
   bool status = converter.ToExponential(d, fraction_digits, &builder);
@@ -158,7 +158,7 @@ RawString* DoubleToStringAsPrecision(double d, int precision) {
       kMaxLeadingPaddingZeroes,
       kMaxTrailingPaddingZeroes);
 
-  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(kBufferSize);
+  char* buffer = Thread::Current()->zone()->Alloc<char>(kBufferSize);
   buffer[kBufferSize - 1] = '\0';
   double_conversion::StringBuilder builder(buffer, kBufferSize);
   bool status = converter.ToPrecision(d, precision, &builder);

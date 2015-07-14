@@ -1168,7 +1168,7 @@ static RawObject* LookupHeapObjectCode(Isolate* isolate,
 static RawObject* LookupHeapObject(Isolate* isolate,
                                    const char* id_original,
                                    ObjectIdRing::LookupResult* result) {
-  char* id = isolate->current_zone()->MakeCopyOfString(id_original);
+  char* id = Thread::Current()->zone()->MakeCopyOfString(id_original);
 
   // Parse the id by splitting at each '/'.
   const int MAX_PARTS = 8;
@@ -1296,7 +1296,7 @@ static bool PrintMessage(JSONStream* js, Isolate* isolate, const char* id) {
       MessageSnapshotReader reader(message->data(),
                                    message->len(),
                                    isolate,
-                                   isolate->current_zone());
+                                   Thread::Current()->zone());
       const Object& msg_obj = Object::Handle(reader.ReadObject());
       msg_obj.PrintJSON(js);
       return true;

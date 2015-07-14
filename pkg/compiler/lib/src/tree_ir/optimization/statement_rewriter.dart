@@ -6,6 +6,7 @@ library tree_ir.optimization.statement_rewriter;
 
 import 'optimization.dart' show Pass;
 import '../tree_ir_nodes.dart';
+import '../../io/source_information.dart';
 
 /**
  * Translates to direct-style.
@@ -350,6 +351,7 @@ class StatementRewriter extends Transformer implements Pass {
     return exp is Constant ||
            exp is This ||
            exp is CreateInvocationMirror ||
+           exp is GetStatic && exp.element.isFunction ||
            exp is Interceptor ||
            exp is ApplyBuiltinOperator ||
            exp is VariableUse && constantEnvironment.containsKey(exp.variable);
@@ -583,17 +585,15 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Statement visitIf(If node) {
-    node.condition = visitExpression(node.condition);
-
-    // Do not propagate assignments into branches.  Doing so will lead to code
-    // duplication.
-    // TODO(kmillikin): Rethink this. Propagating some assignments
-    // (e.g. variables) is benign.  If they can occur here, they should
-    // be handled well.
+    // Do not propagate assignments into branches.
     inEmptyEnvironment(() {
       node.thenStatement = visitStatement(node.thenStatement);
       node.elseStatement = visitStatement(node.elseStatement);
+    });
 
+    node.condition = visitExpression(node.condition);
+
+    inEmptyEnvironment(() {
       tryCollapseIf(node);
     });
 
@@ -714,6 +714,24 @@ class StatementRewriter extends Transformer implements Pass {
 
   Expression visitInterceptor(Interceptor node) {
     node.input = visitExpression(node.input);
+    return node;
+  }
+
+  Expression visitGetLength(GetLength node) {
+    node.object = visitExpression(node.object);
+    return node;
+  }
+
+  Expression visitGetIndex(GetIndex node) {
+    node.index = visitExpression(node.index);
+    node.object = visitExpression(node.object);
+    return node;
+  }
+
+  Expression visitSetIndex(SetIndex node) {
+    node.value = visitExpression(node.value);
+    node.index = visitExpression(node.index);
+    node.object = visitExpression(node.object);
     return node;
   }
 
@@ -907,7 +925,11 @@ class StatementRewriter extends Transformer implements Pass {
     if (s is Return && t is Return) {
       CombinedExpressions values = combineExpressions(s.value, t.value);
       if (values != null) {
-        return new Return(values.combined);
+        // TODO(johnniwinther): Handle multiple source informations.
+        SourceInformation sourceInformation = s.sourceInformation != null
+            ? s.sourceInformation : t.sourceInformation;
+        return new Return(values.combined,
+            sourceInformation: sourceInformation);
       }
     }
     if (s is ExpressionStatement && t is ExpressionStatement) {

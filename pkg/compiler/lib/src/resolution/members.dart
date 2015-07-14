@@ -46,7 +46,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   Scope scope;
   ClassElement currentClass;
   ExpressionStatement currentExpressionStatement;
+
+  /// `true` if a [Send] or [SendSet] is visited as the prefix of member access.
+  /// For instance `Class` in `Class.staticField` or `prefix.Class` in
+  /// `prefix.Class.staticMethod()`.
   bool sendIsMemberAccess = false;
+
   StatementScope statementScope;
   int allowedCategory = ElementCategory.VARIABLE | ElementCategory.FUNCTION
       | ElementCategory.IMPLIES_TYPE;
@@ -1332,7 +1337,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (leftResult.isConstant && rightResult.isConstant) {
         bool isValidConstant;
         ConstantExpression leftConstant = leftResult.constant;
-        ConstantExpression rightConstant = leftResult.constant;
+        ConstantExpression rightConstant = rightResult.constant;
         DartType knownLeftType = leftConstant.getKnownType(coreTypes);
         DartType knownRightType = rightConstant.getKnownType(coreTypes);
         switch (operator.kind) {
@@ -1770,16 +1775,197 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
+  /// Handle access to a type literal of type variable [element]. Like `T` or
+  /// `T()` where 'T' is type variable.
+  // TODO(johnniwinther): Remove [name] when [Selector] is not required for the
+  // the [GetStructure].
+  // TODO(johnniwinther): Remove [element] when it is no longer needed for
+  // evaluating constants.
+  ResolutionResult handleTypeVariableTypeLiteralAccess(
+      Send node,
+      Name name,
+      TypeVariableElement element) {
+    if (!Elements.hasAccessToTypeVariables(enclosingElement)) {
+      compiler.reportError(node,
+          MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
+          {'typeVariableName': node.selector});
+      // TODO(johnniwinther): Add another access semantics for this.
+    }
+    registry.registerClassUsingVariableExpression(element.enclosingClass);
+    registry.registerTypeVariableExpression();
+
+    AccessSemantics semantics =
+        new StaticAccess.typeParameterTypeLiteral(element);
+    registry.useElement(node, element);
+    registry.registerTypeLiteral(node, element.type);
+
+    if (node.isCall) {
+      CallStructure callStructure =
+          resolveArguments(node.argumentsNode).callStructure;
+      Selector selector = callStructure.callSelector;
+      // TODO(johnniwinther): Remove this when all information goes through
+      // the [SendStructure].
+      registry.setSelector(node, selector);
+
+      registry.registerSendStructure(node,
+          new InvokeStructure(semantics, selector));
+    } else {
+      // TODO(johnniwinther): Avoid the need for a [Selector] here.
+      registry.registerSendStructure(node,
+          new GetStructure(semantics,
+              new Selector(SelectorKind.GETTER, name, CallStructure.NO_ARGS)));
+    }
+    return const NoneResult();
+  }
+
+  /// Handle access to a constant type literal of [type].
+  // TODO(johnniwinther): Remove [name] when [Selector] is not required for the
+  // the [GetStructure].
+  // TODO(johnniwinther): Remove [element] when it is no longer needed for
+  // evaluating constants.
+  ResolutionResult handleConstantTypeLiteralAccess(
+      Send node,
+      Name name,
+      TypeDeclarationElement element,
+      DartType type,
+      ConstantAccess semantics) {
+    registry.useElement(node, element);
+    registry.registerTypeLiteral(node, type);
+
+    if (node.isCall) {
+      CallStructure callStructure =
+          resolveArguments(node.argumentsNode).callStructure;
+      Selector selector = callStructure.callSelector;
+      // TODO(johnniwinther): Remove this when all information goes through
+      // the [SendStructure].
+      registry.setSelector(node, selector);
+
+      // The node itself is not a constant but we register the selector (the
+      // identifier that refers to the class/typedef) as a constant.
+      registry.useElement(node.selector, element);
+      analyzeConstantDeferred(node.selector, enforceConst: false);
+
+      registry.registerSendStructure(node,
+          new InvokeStructure(semantics, selector));
+      return const NoneResult();
+    } else {
+      analyzeConstantDeferred(node, enforceConst: false);
+
+      // TODO(johnniwinther): Avoid the need for a [Selector] here.
+      registry.registerSendStructure(node,
+          new GetStructure(semantics,
+              new Selector(SelectorKind.GETTER, name, CallStructure.NO_ARGS)));
+      return new ConstantResult(node, semantics.constant);
+    }
+  }
+
+  /// Handle access to a type literal of a typedef. Like `F` or
+  /// `F()` where 'F' is typedef.
+  ResolutionResult handleTypedefTypeLiteralAccess(
+      Send node,
+      Name name,
+      TypedefElement typdef) {
+    typdef.ensureResolved(compiler);
+    DartType type = typdef.rawType;
+    ConstantExpression constant = new TypeConstantExpression(type);
+    AccessSemantics semantics = new ConstantAccess.typedefTypeLiteral(constant);
+    return handleConstantTypeLiteralAccess(node, name, typdef, type, semantics);
+  }
+
+  /// Handle access to a type literal of the type 'dynamic'. Like `dynamic` or
+  /// `dynamic()`.
+  ResolutionResult handleDynamicTypeLiteralAccess(Send node) {
+    DartType type = const DynamicType();
+    ConstantExpression constant = new TypeConstantExpression(
+        // TODO(johnniwinther): Use [type] when evaluation of constants is done
+        // directly on the constant expressions.
+        node.isCall ? coreTypes.typeType : type);
+    AccessSemantics semantics = new ConstantAccess.dynamicTypeLiteral(constant);
+    return handleConstantTypeLiteralAccess(
+        node, const PublicName('dynamic'), compiler.typeClass, type, semantics);
+  }
+
+  /// Handle access to a type literal of a class. Like `C` or
+  /// `C()` where 'C' is class.
+  ResolutionResult handleClassTypeLiteralAccess(
+      Send node,
+      Name name,
+      ClassElement cls) {
+    DartType type = cls.rawType;
+    ConstantExpression constant = new TypeConstantExpression(type);
+    AccessSemantics semantics = new ConstantAccess.classTypeLiteral(constant);
+    return handleConstantTypeLiteralAccess(node, name, cls, type, semantics);
+  }
+
+  /// Handle a [Send] that resolves to a [prefix]. Like `prefix` in
+  /// `prefix.Class` or `prefix` in `prefix()`, the latter being a compile time
+  /// error.
+  ResolutionResult handleClassSend(
+      Send node,
+      Name name,
+      ClassElement cls) {
+    cls.ensureResolved(compiler);
+    if (sendIsMemberAccess) {
+      registry.useElement(node, cls);
+      return new ElementResult(cls);
+    } else {
+      // `C` or `C()` where 'C' is a class.
+      return handleClassTypeLiteralAccess(node, name, cls);
+    }
+  }
+
+  /// Handle qualified [Send] where the receiver resolves to a [prefix],
+  /// like `prefix.toplevelFunction()` or `prefix.Class.staticField` where
+  /// `prefix` is a library prefix.
+  ResolutionResult handleLibraryPrefixSend(
+      Send node, PrefixElement prefix, Name name) {
+    Element member = prefix.lookupLocalMember(name.text);
+    if (member == null) {
+      registry.registerThrowNoSuchMethod();
+      Element error = reportAndCreateErroneousElement(
+          node, name.text, MessageKind.NO_SUCH_LIBRARY_MEMBER,
+          {'libraryName': prefix.name, 'memberName': name});
+      registry.useElement(node, error);
+      return new ElementResult(error);
+    } else {
+      return handleResolvedSend(node, name, member);
+    }
+  }
+
+  /// Handle a [Send] that resolves to a [prefix]. Like `prefix` in
+  /// `prefix.Class` or `prefix` in `prefix()`, the latter being a compile time
+  /// error.
+  ResolutionResult handleLibraryPrefix(
+      Send node,
+      Name name,
+      PrefixElement prefix) {
+    if ((ElementCategory.PREFIX & allowedCategory) == 0) {
+      compiler.reportError(
+          node,
+          MessageKind.PREFIX_AS_EXPRESSION,
+          {'prefix': name});
+      return const NoneResult();
+    }
+    if (prefix.isDeferred) {
+      // TODO(johnniwinther): Remove this when deferred access is detected
+      // through a [SendStructure].
+      registry.useElement(node.selector, prefix);
+    }
+    registry.useElement(node, prefix);
+    return new ElementResult(prefix);
+  }
+
   /// Handle qualified [Send] where the receiver resolves to an [Element], like
   /// `a.b` where `a` is a local, field, class, or prefix, etc.
   ResolutionResult handleResolvedQualifiedSend(
       Send node, Name name, Element element) {
     if (element.isPrefix) {
-      return oldVisitSend(node);
+      return handleLibraryPrefixSend(node, element, name);
     } else if (element.isClass) {
       return handleStaticMemberAccess(node, name, element);
     }
-    return oldVisitSend(node);
+    // TODO(johnniwinther): Use the [element].
+    return handleDynamicPropertyAccess(node, name);
   }
 
   /// Handle dynamic access of [semantics].
@@ -1909,15 +2095,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Name name,
       AmbiguousElement element) {
 
-    compiler.reportError(
-        node, element.messageKind, element.messageArguments);
-    element.diagnose(enclosingElement, compiler);
-
-    ErroneousElement error = new ErroneousElementX(
-        element.messageKind,
-        element.messageArguments,
+    ErroneousElement error = reportAndCreateErroneousElement(
+        node,
         name.text,
-        enclosingElement);
+        element.messageKind,
+        element.messageArguments);
+    element.diagnose(enclosingElement, compiler);
+    registry.registerThrowNoSuchMethod();
 
     // TODO(johnniwinther): Support ambiguous access as an [AccessSemantics].
     AccessSemantics accessSemantics = new StaticAccess.unresolved(error);
@@ -2055,6 +2239,15 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // of parse errors to make [element] erroneous. Fix this!
     member.computeType(compiler);
 
+
+    if (member == compiler.mirrorSystemGetNameFunction &&
+        !compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(enclosingElement)) {
+      compiler.reportHint(
+          node.selector, MessageKind.STATIC_FUNCTION_BLOAT,
+          {'class': compiler.mirrorSystemClass.name,
+           'name': compiler.mirrorSystemGetNameFunction.name});
+    }
+
     Selector selector;
     AccessSemantics semantics =
         computeStaticOrTopLevelAccessSemantics(node, member);
@@ -2187,12 +2380,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         return handleStaticInstanceSend(node, name, element);
       }
     }
-    if (element.isClass || element.isTypedef) {
-      return oldVisitSend(node);
+    if (element.isClass) {
+      // `C`, `C()`, or 'C.b` where 'C' is a class.
+      return handleClassSend(node, name, element);
+    } else if (element.isTypedef) {
+      // `F` or `F()` where 'F' is a typedef.
+      return handleTypedefTypeLiteralAccess(node, name, element);
     } else if (element.isTypeVariable) {
-      return oldVisitSend(node);
+      return handleTypeVariableTypeLiteralAccess(node, name, element);
     } else if (element.isPrefix) {
-      return oldVisitSend(node);
+      return handleLibraryPrefix(node, name, element);
     } else if (element.isLocal) {
       return handleLocalAccess(node, name, element);
     } else if (element.isStatic || element.isTopLevel) {
@@ -2216,16 +2413,16 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     } else if (text == 'this') {
       // `this()`.
       return handleThisAccess(node);
-    } else if (text == 'dynamic') {
-      // `dynamic` || `dynamic()`.
-      // TODO(johnniwinther): Handle dynamic type literal access.
-      return oldVisitSend(node);
     }
     // `name` or `name()`
     Name name = new Name(text, enclosingElement.library);
     Element element = lookupInScope(compiler, node, scope, text);
     if (element == null) {
-      if (inInstanceContext) {
+      if (text == 'dynamic') {
+        // `dynamic` or `dynamic()` where 'dynamic' is not declared in the
+        // current scope.
+        return handleDynamicTypeLiteralAccess(node);
+      } else if (inInstanceContext) {
         // Implicitly `this.name`.
         return handleThisPropertyAccess(node, name);
       } else {
@@ -2260,101 +2457,6 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         }
       }
     }
-  }
-
-  ResolutionResult oldVisitSend(Send node) {
-    bool oldSendIsMemberAccess = sendIsMemberAccess;
-    sendIsMemberAccess = node.isPropertyAccess || node.isCall;
-
-    ResolutionResult result = resolveSend(node);
-    sendIsMemberAccess = oldSendIsMemberAccess;
-
-    Element target = result.element;
-
-    if (target != null
-        && target == compiler.mirrorSystemGetNameFunction
-        && !compiler.mirrorUsageAnalyzerTask.hasMirrorUsage(enclosingElement)) {
-      compiler.reportHint(
-          node.selector, MessageKind.STATIC_FUNCTION_BLOAT,
-          {'class': compiler.mirrorSystemClass.name,
-           'name': compiler.mirrorSystemGetNameFunction.name});
-    }
-
-    if (target != null) {
-      if (target.isErroneous) {
-        registry.registerThrowNoSuchMethod();
-      } else if (target.isAbstractField) {
-        AbstractFieldElement field = target;
-        target = field.getter;
-        if (target == null) {
-          if (!inInstanceContext || field.isTopLevel || field.isStatic) {
-            registry.registerThrowNoSuchMethod();
-            target = reportAndCreateErroneousElement(node.selector, field.name,
-                MessageKind.CANNOT_RESOLVE_GETTER, const {});
-          }
-        }
-      } else if (target.isTypeVariable) {
-        ClassElement cls = target.enclosingClass;
-        assert(enclosingElement.enclosingClass == cls);
-        if (!Elements.hasAccessToTypeVariables(enclosingElement)) {
-          compiler.reportError(node,
-              MessageKind.TYPE_VARIABLE_WITHIN_STATIC_MEMBER,
-              {'typeVariableName': node.selector});
-        }
-        registry.registerClassUsingVariableExpression(cls);
-        registry.registerTypeVariableExpression();
-        registerTypeLiteralAccess(node, target);
-      } else if (target.impliesType && (!sendIsMemberAccess || node.isCall)) {
-        registerTypeLiteralAccess(node, target);
-      }
-      registerPotentialAccessInClosure(node, target);
-    }
-
-    resolveArguments(node.argumentsNode);
-
-    // If the selector is null, it means that we will not be generating
-    // code for this as a send.
-    Selector selector = registry.getSelector(node);
-    if (selector == null) return const NoneResult();
-
-    if (node.isCall) {
-      if (Elements.isUnresolved(target) ||
-          target.isGetter ||
-          target.isField ||
-          Elements.isClosureSend(node, target)) {
-        // If we don't know what we're calling or if we are calling a getter,
-        // we need to register that fact that we may be calling a closure
-        // with the same arguments.
-        Selector call = new Selector.callClosureFrom(selector);
-        registry.registerDynamicInvocation(
-            new UniverseSelector(selector, null));
-      } else if (target.impliesType) {
-        // We call 'call()' on a Type instance returned from the reference to a
-        // class or typedef literal. We do not need to register this call as a
-        // dynamic invocation, because we statically know what the target is.
-      } else {
-        if (target is FunctionElement) {
-          FunctionElement function = target;
-          function.computeType(compiler);
-        }
-        if (!selector.applies(target, compiler.world)) {
-          registry.registerThrowNoSuchMethod();
-          if (node.isSuperCall) {
-            internalError(node, "Unexpected super call $node");
-          }
-        }
-      }
-
-      handleForeignCall(node, target, selector);
-    }
-
-    registry.useElement(node, target);
-    registerSend(selector, target);
-    if (node.isPropertyAccess && Elements.isStaticOrTopLevelFunction(target)) {
-      registry.registerGetOfStaticFunction(target.declaration);
-    }
-    return node.isPropertyAccess
-        ? new ResolutionResult.forElement(target) : const NoneResult();
   }
 
   // TODO(johnniwinther): Move this to the backend resolution callbacks.

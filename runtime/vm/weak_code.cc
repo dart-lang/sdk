@@ -8,6 +8,7 @@
 
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"
 
@@ -60,6 +61,7 @@ void WeakCodeReferences::DisableCode() {
   if (code_objects.IsNull()) {
     return;
   }
+  ASSERT(Compiler::allow_recompilation());
   UpdateArrayTo(Object::null_array());
   // Disable all code on stack.
   Code& code = Code::Handle();

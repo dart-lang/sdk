@@ -38,15 +38,17 @@
 namespace dart {
 
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
+DEFINE_FLAG(bool, enable_mirrors, true,
+    "Disable to make importing dart:mirrors an error.");
 DEFINE_FLAG(bool, load_deferred_eagerly, false,
     "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
+
+DECLARE_FLAG(bool, lazy_dispatchers);
+DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, warn_on_javascript_compatibility);
-DEFINE_FLAG(bool, enable_mirrors, true,
-    "Disable to make importing dart:mirrors an error.");
-DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Quick access to the current isolate and zone.
 #define I (isolate())
@@ -172,6 +174,9 @@ void ParsedFunction::SetRegExpCompileData(
 
 
 void ParsedFunction::AddDeferredPrefix(const LibraryPrefix& prefix) {
+  // 'deferred_prefixes_' are used to invalidate code, but no invalidation is
+  // needed if --load_deferred_eagerly.
+  ASSERT(!FLAG_load_deferred_eagerly);
   ASSERT(prefix.is_deferred_load());
   ASSERT(!prefix.is_loaded());
   for (intptr_t i = 0; i < deferred_prefixes_->length(); i++) {
@@ -10038,8 +10043,19 @@ SequenceNode* Parser::NodeAsSequenceNode(intptr_t sequence_pos,
 }
 
 
-AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
+// Call _throwNewIfNotLoaded if prefix is not NULL, otherwise call _throwNew.
+AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type,
+                                LibraryPrefix* prefix) {
   ArgumentListNode* arguments = new(Z) ArgumentListNode(type_pos);
+
+  String& method_name = String::Handle(Z);
+  if (prefix == NULL) {
+    method_name = Library::PrivateCoreLibName(Symbols::ThrowNew()).raw();
+  } else {
+    arguments->Add(new(Z) LiteralNode(type_pos, *prefix));
+    method_name = Library::PrivateCoreLibName(
+        Symbols::ThrowNewIfNotLoaded()).raw();
+  }
   // Location argument.
   arguments->Add(new(Z) LiteralNode(
       type_pos, Integer::ZoneHandle(Z, Integer::New(type_pos))));
@@ -10054,20 +10070,29 @@ AstNode* Parser::ThrowTypeError(intptr_t type_pos, const AbstractType& type) {
   ASSERT(!error.IsNull());
   arguments->Add(new(Z) LiteralNode(type_pos, String::ZoneHandle(Z,
       Symbols::New(error.ToErrorCString()))));
-  return MakeStaticCall(Symbols::TypeError(),
-                        Library::PrivateCoreLibName(Symbols::ThrowNew()),
-                        arguments);
+  return MakeStaticCall(Symbols::TypeError(), method_name, arguments);
 }
 
 
+// Call _throwNewIfNotLoaded if prefix is not NULL, otherwise call _throwNew.
 AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
                                         const Class& cls,
                                         const String& function_name,
                                         ArgumentListNode* function_arguments,
                                         InvocationMirror::Call im_call,
                                         InvocationMirror::Type im_type,
-                                        const Function* func) {
+                                        const Function* func,
+                                        const LibraryPrefix* prefix) {
   ArgumentListNode* arguments = new(Z) ArgumentListNode(call_pos);
+
+  String& method_name = String::Handle(Z);
+  if (prefix == NULL) {
+    method_name = Library::PrivateCoreLibName(Symbols::ThrowNew()).raw();
+  } else {
+    arguments->Add(new(Z) LiteralNode(call_pos, *prefix));
+    method_name = Library::PrivateCoreLibName(
+        Symbols::ThrowNewIfNotLoaded()).raw();
+  }
   // Object receiver.
   // If the function is external and dynamic, pass the actual receiver,
   // otherwise, pass a class literal of the unresolved method's owner.
@@ -10140,9 +10165,7 @@ AstNode* Parser::ThrowNoSuchMethodError(intptr_t call_pos,
   }
   arguments->Add(new(Z) LiteralNode(call_pos, array));
 
-  return MakeStaticCall(Symbols::NoSuchMethodError(),
-                        Library::PrivateCoreLibName(Symbols::ThrowNew()),
-                        arguments);
+  return MakeStaticCall(Symbols::NoSuchMethodError(), method_name, arguments);
 }
 
 
@@ -11816,7 +11839,7 @@ AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
     return NULL;
   }
   Object& obj = Object::Handle(Z);
-  if (prefix.is_loaded()) {
+  if (prefix.is_loaded() || FLAG_load_deferred_eagerly) {
     obj = prefix.LookupObject(ident);
   } else {
     // Remember that this function depends on an import prefix of an
@@ -11952,16 +11975,25 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
 }
 
 
-// Parses type = [ident "."] ident ["<" type { "," type } ">"], then resolve and
-// finalize it according to the given type finalization mode.
 RawAbstractType* Parser::ParseType(
     ClassFinalizer::FinalizationKind finalization,
     bool allow_deferred_type,
     bool consume_unresolved_prefix) {
+  LibraryPrefix& prefix = LibraryPrefix::Handle(Z);
+  return ParseType(finalization, allow_deferred_type,
+                         consume_unresolved_prefix, &prefix);
+}
+
+// Parses type = [ident "."] ident ["<" type { "," type } ">"], then resolve and
+// finalize it according to the given type finalization mode. Returns prefix.
+RawAbstractType* Parser::ParseType(
+    ClassFinalizer::FinalizationKind finalization,
+    bool allow_deferred_type,
+    bool consume_unresolved_prefix,
+    LibraryPrefix* prefix) {
   TRACE_PARSER("ParseType");
   CheckToken(Token::kIDENT, "type name expected");
   intptr_t ident_pos = TokenPos();
-  LibraryPrefix& prefix = LibraryPrefix::Handle(Z);
   String& type_name = String::Handle(Z);
 
   if (finalization == ClassFinalizer::kIgnore) {
@@ -11972,7 +12004,7 @@ RawAbstractType* Parser::ParseType(
     }
     SkipQualIdent();
   } else {
-    prefix = ParsePrefix();
+    *prefix = ParsePrefix();
     type_name = CurrentLiteral()->raw();
     ConsumeToken();
 
@@ -11982,7 +12014,7 @@ RawAbstractType* Parser::ParseType(
     // a period and another identifier, consume the qualified identifier
     // and create a malformed type.
     if (consume_unresolved_prefix &&
-        prefix.IsNull() &&
+        prefix->IsNull() &&
         (CurrentToken() == Token::kPERIOD) &&
         (Token::IsIdentifier(LookaheadToken(1)))) {
       if (!is_top_level_ && (current_block_ != NULL)) {
@@ -12009,7 +12041,7 @@ RawAbstractType* Parser::ParseType(
     // If parsing inside a local scope, check whether the type name
     // is shadowed by a local declaration.
     if (!is_top_level_ &&
-        (prefix.IsNull()) &&
+        (prefix->IsNull()) &&
         ResolveIdentInLocalScope(ident_pos, type_name, NULL)) {
       // The type is malformed. Skip over its type arguments.
       ParseTypeArguments(ClassFinalizer::kIgnore);
@@ -12020,29 +12052,30 @@ RawAbstractType* Parser::ParseType(
           "using '%s' in this context is invalid",
           type_name.ToCString());
     }
-    if (!prefix.IsNull() && prefix.is_deferred_load()) {
+    if ((!FLAG_load_deferred_eagerly || !allow_deferred_type) &&
+        !prefix->IsNull() && prefix->is_deferred_load()) {
       // If deferred prefixes are allowed but it is not yet loaded,
       // remember that this function depends on the prefix.
-      if (allow_deferred_type && !prefix.is_loaded()) {
+      if (allow_deferred_type && !prefix->is_loaded()) {
         if (parsed_function() != NULL) {
-          parsed_function()->AddDeferredPrefix(prefix);
+          parsed_function()->AddDeferredPrefix(*prefix);
         }
       }
       // If the deferred prefixes are not allowed, or if the prefix is not yet
       // loaded when finalization is requested, return a malformed type.
       // Otherwise, handle resolution below, as needed.
       if (!allow_deferred_type ||
-          (!prefix.is_loaded()
+          (!prefix->is_loaded()
               && (finalization > ClassFinalizer::kResolveTypeParameters))) {
         ParseTypeArguments(ClassFinalizer::kIgnore);
         return ClassFinalizer::NewFinalizedMalformedType(
             Error::Handle(Z),  // No previous error.
             script_,
             ident_pos,
-            !prefix.is_loaded()
+            !prefix->is_loaded() && allow_deferred_type
                 ? "deferred type '%s.%s' is not yet loaded"
                 : "using deferred type '%s.%s' is invalid",
-            String::Handle(Z, prefix.name()).ToCString(),
+            String::Handle(Z, prefix->name()).ToCString(),
             type_name.ToCString());
       }
     }
@@ -12050,7 +12083,7 @@ RawAbstractType* Parser::ParseType(
   Object& type_class = Object::Handle(Z);
   // Leave type_class as null if type finalization mode is kIgnore.
   if (finalization != ClassFinalizer::kIgnore) {
-    type_class = UnresolvedClass::New(prefix, type_name, ident_pos);
+    type_class = UnresolvedClass::New(*prefix, type_name, ident_pos);
   }
   TypeArguments& type_arguments = TypeArguments::Handle(
       Z, ParseTypeArguments(finalization));
@@ -12599,10 +12632,28 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   const bool allow_deferred_type = !is_const;
   const bool consume_unresolved_prefix = (LookaheadToken(3) == Token::kLT) ||
                                          (LookaheadToken(3) == Token::kPERIOD);
+  LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z);
   AbstractType& type = AbstractType::Handle(Z,
       ParseType(ClassFinalizer::kCanonicalizeWellFormed,
                 allow_deferred_type,
-                consume_unresolved_prefix));
+                consume_unresolved_prefix,
+                &prefix));
+  if (FLAG_load_deferred_eagerly &&
+      !prefix.IsNull() && prefix.is_deferred_load() && !prefix.is_loaded()) {
+    // Add runtime check.
+    Type& malformed_type = Type::Handle(Z);
+    malformed_type = ClassFinalizer::NewFinalizedMalformedType(
+        Error::Handle(Z),  // No previous error.
+        script_,
+        type_pos,
+        "deferred type '%s.%s' is not yet loaded",
+        String::Handle(Z, prefix.name()).ToCString(),
+        String::Handle(type.Name()).ToCString());
+    // Note: Adding a statement to current block is a hack, parsing an
+    // expression should have no side-effect.
+    current_block_->statements->Add(
+        ThrowTypeError(type_pos, malformed_type, &prefix));
+  }
   // In case the type is malformed, throw a dynamic type error after finishing
   // parsing the instance creation expression.
   if (!type.IsMalformed() && (type.IsTypeParameter() || type.IsDynamicType())) {
@@ -13083,6 +13134,26 @@ AstNode* Parser::ParsePrimary() {
                                            call_type,
                                            NULL);  // No existing function.
         }
+      } else if (FLAG_load_deferred_eagerly && prefix.is_deferred_load()) {
+        // primary != NULL.
+        String& qualified_name = String::ZoneHandle(Z, prefix.name());
+        qualified_name = String::Concat(qualified_name, Symbols::Dot());
+        qualified_name = String::Concat(qualified_name, ident);
+        qualified_name = Symbols::New(qualified_name);
+        InvocationMirror::Type call_type =
+            CurrentToken() == Token::kLPAREN ?
+                InvocationMirror::kMethod : InvocationMirror::kGetter;
+        // Note: Adding a statement to current block is a hack, parsing an
+        // espression should have no side-effect.
+        current_block_->statements->Add(ThrowNoSuchMethodError(
+                                            qual_ident_pos,
+                                            current_class(),
+                                            qualified_name,
+                                            NULL,  // No arguments.
+                                            InvocationMirror::kTopLevel,
+                                            call_type,
+                                            NULL,  // No existing function.
+                                            &prefix));
       }
     }
     ASSERT(primary != NULL);

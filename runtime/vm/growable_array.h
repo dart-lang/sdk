@@ -161,10 +161,10 @@ class GrowableArray : public BaseGrowableArray<T, ValueObject> {
   explicit GrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ValueObject>(
           initial_capacity,
-          ASSERT_NOTNULL(Isolate::Current()->current_zone())) {}
+          ASSERT_NOTNULL(Thread::Current()->zone())) {}
   GrowableArray()
       : BaseGrowableArray<T, ValueObject>(
-          ASSERT_NOTNULL(Isolate::Current()->current_zone())) {}
+          ASSERT_NOTNULL(Thread::Current()->zone())) {}
 };
 
 
@@ -177,10 +177,10 @@ class ZoneGrowableArray : public BaseGrowableArray<T, ZoneAllocated> {
   explicit ZoneGrowableArray(intptr_t initial_capacity)
       : BaseGrowableArray<T, ZoneAllocated>(
           initial_capacity,
-          ASSERT_NOTNULL(Isolate::Current()->current_zone())) {}
+          ASSERT_NOTNULL(Thread::Current()->zone())) {}
   ZoneGrowableArray()
       : BaseGrowableArray<T, ZoneAllocated>(
-          ASSERT_NOTNULL(Isolate::Current()->current_zone())) {}
+          ASSERT_NOTNULL(Thread::Current()->zone())) {}
 };
 
 

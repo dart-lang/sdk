@@ -208,8 +208,7 @@ class GCSNamerApiDocs(object):
 
   def dartdocs_dirpath(self, revision):
     assert len('%s' % revision) > 0
-    return '%s/channels/%s/gen-dartdocs/%s' % (self.bucket, 
-                                               self.channel, revision)
+    return '%s/gen-dartdocs/%s' % (self.bucket, revision)
 
   def docs_latestpath(self, revision):
     assert len('%s' % revision) > 0

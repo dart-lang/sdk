@@ -130,6 +130,7 @@ void Intrinsifier::GrowableArray_add(Assembler* assembler) {
 #define TYPED_ARRAY_ALLOCATION(type_name, cid, max_len, scale_factor)          \
   Label fall_through;                                                          \
   const intptr_t kArrayLengthStackOffset = 1 * kWordSize;                      \
+  __ MaybeTraceAllocation(cid, &fall_through, false);                          \
   __ movq(RDI, Address(RSP, kArrayLengthStackOffset));  /* Array length. */    \
   /* Check that length is a positive Smi. */                                   \
   /* RDI: requested array length argument. */                                  \
@@ -1237,9 +1238,9 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
                                      Label* not_double_smi) {
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(ZERO, is_smi, Assembler::kNearJump);  // Jump if Smi.
+  __ j(ZERO, is_smi);  // Jump if Smi.
   __ CompareClassId(RAX, kDoubleCid);
-  __ j(NOT_EQUAL, not_double_smi, Assembler::kNearJump);
+  __ j(NOT_EQUAL, not_double_smi);
   // Fall through if double.
 }
 
@@ -1319,7 +1320,7 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class,
                  &fall_through,
-                 Assembler::kNearJump,
+                 Assembler::kFarJump,
                  RAX,  // Result register.
                  kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
@@ -1353,7 +1354,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   // Only smis allowed.
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  __ j(NOT_ZERO, &fall_through);
   // Is Smi.
   __ SmiUntag(RAX);
   __ cvtsi2sdq(XMM1, RAX);
@@ -1364,7 +1365,7 @@ void Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class,
                  &fall_through,
-                 Assembler::kNearJump,
+                 Assembler::kFarJump,
                  RAX,  // Result register.
                  kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
@@ -1378,7 +1379,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
   Label fall_through;
   __ movq(RAX, Address(RSP, +1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  __ j(NOT_ZERO, &fall_through);
   // Is Smi.
   __ SmiUntag(RAX);
   __ cvtsi2sdq(XMM0, RAX);
@@ -1386,7 +1387,7 @@ void Intrinsifier::DoubleFromInteger(Assembler* assembler) {
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class,
                  &fall_through,
-                 Assembler::kNearJump,
+                 Assembler::kFarJump,
                  RAX,  // Result register.
                  kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
@@ -1460,7 +1461,7 @@ void Intrinsifier::MathSqrt(Assembler* assembler) {
       Isolate::Current()->object_store()->double_class());
   __ TryAllocate(double_class,
                  &fall_through,
-                 Assembler::kNearJump,
+                 Assembler::kFarJump,
                  RAX,  // Result register.
                  kNoRegister);  // Pool pointer might not be loaded.
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
@@ -1726,6 +1727,7 @@ static void TryAllocateOnebyteString(Assembler* assembler,
                                      Label* ok,
                                      Label* failure,
                                      Register length_reg) {
+  __ MaybeTraceAllocation(kOneByteStringCid, failure, false);
   if (length_reg != RDI) {
     __ movq(RDI, length_reg);
   }

@@ -23,7 +23,7 @@ import 'dart:mirrors';
 import 'dart:_foreign_helper' show
     JS,
     JS_GET_FLAG,
-    JS_CURRENT_ISOLATE,
+    JS_GET_STATIC_STATE,
     JS_CURRENT_ISOLATE_CONTEXT,
     JS_EMBEDDED_GLOBAL,
     JS_GET_NAME,
@@ -447,17 +447,17 @@ class JsLibraryMirror extends JsDeclarationMirror with JsObjectMirror
     // TODO(ahe): What about lazily initialized fields? See
     // [JsClassMirror.getField].
 
-    // '$' (JS_CURRENT_ISOLATE()) stores state which is read directly, so we
+    // '$' (JS_GET_STATIC_STATE()) stores state which is read directly, so we
     // shouldn't use [_globalObject] here.
-    assert(JS('bool', '# in #', name, JS_CURRENT_ISOLATE()));
-    return JS('', '#[#]', JS_CURRENT_ISOLATE(), name);
+    assert(JS('bool', '# in #', name, JS_GET_STATIC_STATE()));
+    return JS('', '#[#]', JS_GET_STATIC_STATE(), name);
   }
 
   void _storeField(String name, Object arg) {
-    // '$' (JS_CURRENT_ISOLATE()) stores state which is stored directly, so we
+    // '$' (JS_GET_STATIC_STATE()) stores state which is stored directly, so we
     // shouldn't use [_globalObject] here.
-    assert(JS('bool', '# in #', name, JS_CURRENT_ISOLATE()));
-    JS('void', '#[#] = #', JS_CURRENT_ISOLATE(), name, arg);
+    assert(JS('bool', '# in #', name, JS_GET_STATIC_STATE()));
+    JS('void', '#[#] = #', JS_GET_STATIC_STATE(), name, arg);
   }
 
   List<JsMethodMirror> get _functionMirrors {
@@ -1859,13 +1859,13 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
   InstanceMirror setField(Symbol fieldName, Object arg) {
     JsVariableMirror mirror = __variables[fieldName];
     if (mirror != null && mirror.isStatic && !mirror.isFinal) {
-      // '$' (JS_CURRENT_ISOLATE()) stores state which is stored directly, so
+      // '$' (JS_GET_STATIC_STATE()) stores state which is stored directly, so
       // we shouldn't use [JsLibraryMirror._globalObject] here.
       String jsName = mirror._jsName;
-      if (!JS('bool', '# in #', jsName, JS_CURRENT_ISOLATE())) {
+      if (!JS('bool', '# in #', jsName, JS_GET_STATIC_STATE())) {
         throw new RuntimeError('Cannot find "$jsName" in current isolate.');
       }
-      JS('void', '#[#] = #', JS_CURRENT_ISOLATE(), jsName, arg);
+      JS('void', '#[#] = #', JS_GET_STATIC_STATE(), jsName, arg);
       return reflect(arg);
     }
     Symbol setterName = setterSymbol(fieldName);
@@ -1890,17 +1890,17 @@ class JsClassMirror extends JsTypeMirror with JsObjectMirror
     JsVariableMirror mirror = __variables[fieldName];
     if (mirror != null && mirror.isStatic) {
       String jsName = mirror._jsName;
-      // '$' (JS_CURRENT_ISOLATE()) stores state which is read directly, so
+      // '$' (JS_GET_STATIC_STATE()) stores state which is read directly, so
       // we shouldn't use [JsLibraryMirror._globalObject] here.
-      if (!JS('bool', '# in #', jsName, JS_CURRENT_ISOLATE())) {
+      if (!JS('bool', '# in #', jsName, JS_GET_STATIC_STATE())) {
         throw new RuntimeError('Cannot find "$jsName" in current isolate.');
       }
       var lazies = JS_EMBEDDED_GLOBAL('', LAZIES);
       if (JS('bool', '# in #', jsName, lazies)) {
         String getterName = JS('String', '#[#]', lazies, jsName);
-        return reflect(JS('', '#[#]()', JS_CURRENT_ISOLATE(), getterName));
+        return reflect(JS('', '#[#]()', JS_GET_STATIC_STATE(), getterName));
       } else {
-        return reflect(JS('', '#[#]', JS_CURRENT_ISOLATE(), jsName));
+        return reflect(JS('', '#[#]', JS_GET_STATIC_STATE(), jsName));
       }
     }
     JsMethodMirror getter = __getters[fieldName];
@@ -2449,11 +2449,11 @@ class JsMethodMirror extends JsDeclarationMirror implements MethodMirror {
         positionalArguments.add(parameter.defaultValue.reflectee);
       }
     }
-    // Using JS_CURRENT_ISOLATE() ('$') here is actually correct, although
+    // Using JS_GET_STATIC_STATE() ('$') here is actually correct, although
     // _jsFunction may not be a property of '$', most static functions do not
     // care who their receiver is. But to lazy getters, it is important that
     // 'this' is '$'.
-    return JS('', r'#.apply(#, #)', _jsFunction, JS_CURRENT_ISOLATE(),
+    return JS('', r'#.apply(#, #)', _jsFunction, JS_GET_STATIC_STATE(),
               new List.from(positionalArguments));
   }
 

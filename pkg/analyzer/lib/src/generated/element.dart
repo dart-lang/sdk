@@ -3593,6 +3593,12 @@ abstract class ExecutableElement implements Element {
    * Return the type of function defined by this executable element.
    */
   FunctionType get type;
+
+  /**
+   * Return a list containing all of the type parameters defined for this
+   * executable element.
+   */
+  List<TypeParameterElement> get typeParameters;
 }
 
 /**
@@ -3628,6 +3634,12 @@ abstract class ExecutableElementImpl extends ElementImpl
    * A list containing all of the parameters defined by this executable element.
    */
   List<ParameterElement> _parameters = ParameterElement.EMPTY_LIST;
+
+  /**
+   * A list containing all of the type parameters defined for this executable
+   * element.
+   */
+  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
 
   /**
    * The return type defined by this executable element.
@@ -3746,8 +3758,33 @@ abstract class ExecutableElementImpl extends ElementImpl
   }
 
   @override
+  List<TypeParameterElement> get typeParameters => _typeParameters;
+
+  /**
+   * Set the type parameters defined by this executable element to the given
+   * [typeParameters].
+   */
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    for (TypeParameterElement parameter in typeParameters) {
+      (parameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    this._typeParameters = typeParameters;
+  }
+
+  @override
   void appendTo(StringBuffer buffer) {
     if (this.kind != ElementKind.GETTER) {
+      int typeParameterCount = _typeParameters.length;
+      if (typeParameterCount > 0) {
+        buffer.write('<');
+        for (int i = 0; i < typeParameterCount; i++) {
+          if (i > 0) {
+            buffer.write(", ");
+          }
+          (_typeParameters[i] as TypeParameterElementImpl).appendTo(buffer);
+        }
+        buffer.write('>');
+      }
       buffer.write("(");
       String closing = null;
       ParameterKind kind = ParameterKind.REQUIRED;
@@ -3901,6 +3938,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   FunctionType get type => substituteFor(baseElement.type);
+
+  @override
+  List<TypeParameterElement> get typeParameters => baseElement.typeParameters;
 
   @override
   void visitChildren(ElementVisitor visitor) {
@@ -8604,6 +8644,13 @@ abstract class ParameterElement
    */
   List<ParameterElement> get parameters;
 
+  /**
+   * Return a list containing all of the type parameters defined by this
+   * parameter. A parameter will only define other parameters if it is a
+   * function typed parameter.
+   */
+  List<TypeParameterElement> get typeParameters;
+
   @override
   FormalParameter computeNode();
 }
@@ -8625,6 +8672,13 @@ class ParameterElementImpl extends VariableElementImpl
    * parameter.
    */
   List<ParameterElement> _parameters = ParameterElement.EMPTY_LIST;
+
+  /**
+   * A list containing all of the type parameters defined for this parameter
+   * element. There will only be parameters if this parameter is a function
+   * typed parameter.
+   */
+  List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
 
   /**
    * The kind of this parameter.
@@ -8694,6 +8748,20 @@ class ParameterElementImpl extends VariableElementImpl
       (parameter as ParameterElementImpl).enclosingElement = this;
     }
     this._parameters = parameters;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters => _typeParameters;
+
+  /**
+   * Set the type parameters defined by this parameter element to the given
+   * [typeParameters].
+   */
+  void set typeParameters(List<TypeParameterElement> typeParameters) {
+    for (TypeParameterElement parameter in typeParameters) {
+      (parameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    this._typeParameters = typeParameters;
   }
 
   @override
@@ -8850,6 +8918,9 @@ class ParameterMember extends VariableMember implements ParameterElement {
     }
     return parameterizedParameters;
   }
+
+  @override
+  List<TypeParameterElement> get typeParameters => baseElement.typeParameters;
 
   @override
   SourceRange get visibleRange => baseElement.visibleRange;

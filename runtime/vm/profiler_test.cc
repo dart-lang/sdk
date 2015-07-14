@@ -103,7 +103,7 @@ TEST_CASE(Profiler_AllocationSampleTest) {
 
 static RawClass* GetClass(const Library& lib, const char* name) {
   const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(name))));
+      lib.LookupClassAllowPrivate(String::Handle(Symbols::New(name))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   return cls.raw();
 }
@@ -310,6 +310,424 @@ TEST_CASE(Profiler_ToggleRecordAllocation) {
     profile.Build(&filter, Profile::kNoTags);
     // We should still only have one allocation sample.
     EXPECT_EQ(1, profile.sample_count());
+  }
+}
+
+
+TEST_CASE(Profiler_IntrinsicAllocation) {
+  const char* kScript = "double foo(double a, double b) => a + b;";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = Isolate::Current();
+
+  const Class& double_class =
+      Class::Handle(isolate->object_store()->double_class());
+  EXPECT(!double_class.IsNull());
+
+  Dart_Handle args[2] = { Dart_NewDouble(1.0), Dart_NewDouble(2.0), };
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, double_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  double_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, double_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_Double._add", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_Double.+", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+
+  double_class.SetTraceAllocation(false);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, double_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+}
+
+
+TEST_CASE(Profiler_ArrayAllocation) {
+  const char* kScript =
+      "List foo() => new List(4);\n"
+      "List bar() => new List();\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = Isolate::Current();
+
+  const Class& array_class =
+      Class::Handle(isolate->object_store()->array_class());
+  EXPECT(!array_class.IsNull());
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, array_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  array_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, array_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_List._List", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("List.List", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+
+  array_class.SetTraceAllocation(false);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, array_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+
+  // Clear the samples.
+  ProfilerService::ClearSamples();
+
+  // Compile bar (many List objects allocated).
+  result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Enable again.
+  array_class.SetTraceAllocation(true);
+
+  // Run bar.
+  result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, array_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_List._List", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_GrowableList._GrowableList", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("List.List", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("bar", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+}
+
+
+TEST_CASE(Profiler_TypedArrayAllocation) {
+  const char* kScript =
+      "import 'dart:typed_data';\n"
+      "List foo() => new Float32List(4);\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = Isolate::Current();
+
+  const Library& typed_data_library =
+      Library::Handle(isolate->object_store()->typed_data_library());
+
+  const Class& float32_list_class =
+      Class::Handle(GetClass(typed_data_library, "_Float32Array"));
+  EXPECT(!float32_list_class.IsNull());
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, float32_list_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  float32_list_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, float32_list_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_Float32Array._new", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_Float32Array._Float32Array", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("Float32List.Float32List", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+
+  float32_list_class.SetTraceAllocation(false);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, float32_list_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+
+  float32_list_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, float32_list_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should now have two allocation samples.
+    EXPECT_EQ(2, profile.sample_count());
+  }
+}
+
+
+TEST_CASE(Profiler_StringAllocation) {
+  const char* kScript = "String foo(String a, String b) => a + b;";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = Isolate::Current();
+
+  const Class& one_byte_string_class =
+      Class::Handle(isolate->object_store()->one_byte_string_class());
+  EXPECT(!one_byte_string_class.IsNull());
+
+  Dart_Handle args[2] = { NewString("a"), NewString("b"), };
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  one_byte_string_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_StringBase.+", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+
+  one_byte_string_class.SetTraceAllocation(false);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+
+  one_byte_string_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should now have two allocation samples.
+    EXPECT_EQ(2, profile.sample_count());
+  }
+}
+
+
+TEST_CASE(Profiler_StringInterpolation) {
+  const char* kScript = "String foo(String a, String b) => '$a | $b';";
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+  Isolate* isolate = Isolate::Current();
+
+  const Class& one_byte_string_class =
+      Class::Handle(isolate->object_store()->one_byte_string_class());
+  EXPECT(!one_byte_string_class.IsNull());
+
+  Dart_Handle args[2] = { NewString("a"), NewString("b"), };
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should have no allocation samples.
+    EXPECT_EQ(0, profile.sample_count());
+  }
+
+  one_byte_string_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    walker.Reset(Profile::kExclusiveCode);
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_OneByteString._allocate", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_OneByteString._concatAll", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("_StringBase._interpolate", walker.CurrentName());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("foo", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+
+  one_byte_string_class.SetTraceAllocation(false);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should still only have one allocation sample.
+    EXPECT_EQ(1, profile.sample_count());
+  }
+
+  one_byte_string_class.SetTraceAllocation(true);
+  result = Dart_Invoke(lib, NewString("foo"), 2, &args[0]);
+  EXPECT_VALID(result);
+
+  {
+    StackZone zone(isolate);
+    HANDLESCOPE(isolate);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, one_byte_string_class.id());
+    profile.Build(&filter, Profile::kNoTags);
+    // We should now have two allocation samples.
+    EXPECT_EQ(2, profile.sample_count());
   }
 }
 

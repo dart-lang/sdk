@@ -12,6 +12,7 @@ namespace dart {
 
 class HandleScope;
 class StackResource;
+class Thread;
 class Zone;
 
 // A BaseIsolate contains just enough functionality to allocate
@@ -19,18 +20,6 @@ class Zone;
 // constructor/destructor for performance.
 class BaseIsolate {
  public:
-  StackResource* top_resource() const { return top_resource_; }
-  void set_top_resource(StackResource* value) { top_resource_ = value; }
-  static intptr_t top_resource_offset() {
-    return OFFSET_OF(BaseIsolate, top_resource_);
-  }
-
-  // DEPRECATED: Use Thread::current_zone.
-  Zone* current_zone() const {
-    AssertCurrentThreadIsMutator();
-    return current_zone_;
-  }
-  void set_current_zone(Zone* zone) { current_zone_ = zone; }
 #if defined(DEBUG)
   void AssertCurrentThreadIsMutator() const;
 #else
@@ -115,8 +104,7 @@ class BaseIsolate {
 
  protected:
   BaseIsolate()
-      : top_resource_(NULL),
-        current_zone_(NULL),
+      : mutator_thread_(NULL),
 #if defined(DEBUG)
         top_handle_scope_(NULL),
         no_handle_scope_depth_(0),
@@ -129,8 +117,7 @@ class BaseIsolate {
     // Do not delete stack resources: top_resource_ and current_zone_.
   }
 
-  StackResource* top_resource_;
-  Zone* current_zone_;
+  Thread* mutator_thread_;
 #if defined(DEBUG)
   HandleScope* top_handle_scope_;
   int32_t no_handle_scope_depth_;
@@ -139,6 +126,9 @@ class BaseIsolate {
   int32_t no_callback_scope_depth_;
 
  private:
+  // During migration, some deprecated interfaces will default to using the
+  // mutator_thread_ (can't use accessor in Isolate due to circular deps).
+  friend class StackResource;
   DISALLOW_COPY_AND_ASSIGN(BaseIsolate);
 };
 

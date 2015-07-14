@@ -1,12 +1,11 @@
 // Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--compile-all --error_on_bad_type --error_on_bad_override
+// VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
-import 'dart:async';
 import 'dart:developer';
 
 testFunction() {
@@ -17,13 +16,13 @@ testFunction() {
     try {
       for (int i = 0; i < 10; i++) {
         var x = () => i + a + b;
-        return x;  // line 20
+        return x;  // line 19
       }
     } finally {
-      b = 10;  // line 23
+      b = 10;  // line 22
     }
   } finally {
-    a = 1;  // line 26
+    a = 1;  // line 25
   }
 }
 
@@ -45,32 +44,32 @@ hasStoppedAtBreakpoint,
 
   // Add 3 breakpoints.
   {
-    var result = await isolate.addBreakpoint(script, 20);
+    var result = await isolate.addBreakpoint(script, 19);
     expect(result is Breakpoint, isTrue);
     Breakpoint bpt = result;
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.location.script.id, equals(script.id));
-    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(20));
+    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(19));
     expect(isolate.breakpoints.length, equals(1));
   }
 
   {
-    var result = await isolate.addBreakpoint(script, 23);
+    var result = await isolate.addBreakpoint(script, 22);
     expect(result is Breakpoint, isTrue);
     Breakpoint bpt = result;
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.location.script.id, equals(script.id));
-    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(23));
+    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(22));
     expect(isolate.breakpoints.length, equals(2));
   }
 
   {
-    var result = await isolate.addBreakpoint(script, 26);
+    var result = await isolate.addBreakpoint(script, 25);
     expect(result is Breakpoint, isTrue);
     Breakpoint bpt = result;
     expect(bpt.type, equals('Breakpoint'));
     expect(bpt.location.script.id, equals(script.id));
-    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(26));
+    expect(bpt.location.script.tokenToLine(bpt.location.tokenPos), equals(25));
     expect(isolate.breakpoints.length, equals(3));
   }
 
@@ -81,42 +80,42 @@ resumeIsolate,
 
 hasStoppedAtBreakpoint,
 
-// We are at the breakpoint on line 20.
+// We are at the breakpoint on line 19.
 (Isolate isolate) async {
   ServiceMap stack = await isolate.getStack();
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
   Script script = stack['frames'][0].location.script;
-  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(20));
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(19));
 },
 
 resumeIsolate,
 
 hasStoppedAtBreakpoint,
 
-// We are at the breakpoint on line 23.
+// We are at the breakpoint on line 22.
 (Isolate isolate) async {
   ServiceMap stack = await isolate.getStack();
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
   Script script = stack['frames'][0].location.script;
-  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(23));
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(22));
 },
 
 resumeIsolate,
 
 hasStoppedAtBreakpoint,
 
-// We are at the breakpoint on line 26.
+// We are at the breakpoint on line 25.
 (Isolate isolate) async {
   ServiceMap stack = await isolate.getStack();
   expect(stack.type, equals('Stack'));
   expect(stack['frames'].length, greaterThanOrEqualTo(1));
 
   Script script = stack['frames'][0].location.script;
-  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(26));
+  expect(script.tokenToLine(stack['frames'][0].location.tokenPos), equals(25));
 },
 
 resumeIsolate,

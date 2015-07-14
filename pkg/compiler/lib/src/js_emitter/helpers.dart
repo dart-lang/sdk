@@ -12,22 +12,3 @@ ClassElement computeMixinClass(MixinApplicationElement mixinApplication) {
   }
   return mixin;
 }
-
-class _DeferredOutputUnitHash extends jsAst.DeferredString {
-  String _hash;
-  final OutputUnit _outputUnit;
-
-  _DeferredOutputUnitHash(this._outputUnit);
-
-  void setHash(String hash) {
-    assert(_hash == null);
-    _hash = hash;
-  }
-
-  String get value {
-    assert(_hash != null);
-    return '"$_hash"';
-  }
-
-  String toString() => "HashCode for ${_outputUnit} [$_hash]";
-}

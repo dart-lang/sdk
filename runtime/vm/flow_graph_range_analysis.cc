@@ -1516,7 +1516,7 @@ class BoundsCheckGeneralizer {
     char buffer[1024];
     BufferFormatter f(buffer, sizeof(buffer));
     PrettyPrintIndexBoundRecursively(&f, index_bound);
-    return Isolate::Current()->current_zone()->MakeCopyOfString(buffer);
+    return Thread::Current()->zone()->MakeCopyOfString(buffer);
   }
 
   RangeAnalysis* range_analysis_;

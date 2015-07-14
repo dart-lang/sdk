@@ -7,7 +7,6 @@ library debugger_page_element;
 import 'dart:async';
 import 'dart:html';
 import 'observatory_element.dart';
-import 'package:observatory/app.dart';
 import 'package:observatory/cli.dart';
 import 'package:observatory/debugger.dart';
 import 'package:observatory/service.dart';
@@ -921,9 +920,6 @@ class ObservatoryDebugger extends Debugger {
           }
         }
         Future.wait(pending).then((_) {
-          if (_subscription == null) {
-            _subscription = vm.events.stream.listen(_onEvent);
-          }
           _refreshStack(isolate.pauseEvent).then((_) {
             reportStatus();
           });
@@ -948,7 +944,6 @@ class ObservatoryDebugger extends Debugger {
   }
   Isolate get isolate => _isolate;
   Isolate _isolate;
-  var _subscription;
 
   void init() {
     console.newline();
@@ -1080,7 +1075,7 @@ class ObservatoryDebugger extends Debugger {
     });
   }
 
-  void _onEvent(ServiceEvent event) {
+  void onEvent(ServiceEvent event) {
     switch(event.kind) {
       case ServiceEvent.kIsolateStart:
         {
@@ -1226,7 +1221,6 @@ class ObservatoryDebugger extends Debugger {
 
 @CustomTag('debugger-page')
 class DebuggerPageElement extends ObservatoryElement {
-  @published ObservatoryApplication app;
   @published Isolate isolate;
 
   isolateChanged(oldValue) {
@@ -1239,6 +1233,9 @@ class DebuggerPageElement extends ObservatoryElement {
   DebuggerPageElement.created() : super.created() {
     debugger.page = this;
   }
+
+  Future<StreamSubscription> _isolateSubscriptionFuture;
+  Future<StreamSubscription> _debugSubscriptionFuture;
 
   @override
   void attached() {
@@ -1267,6 +1264,20 @@ class DebuggerPageElement extends ObservatoryElement {
     debugger.input = $['commandline'];
     debugger.input.debugger = debugger;
     debugger.init();
+
+    _isolateSubscriptionFuture =
+        app.vm.listenEventStream(VM.kIsolateStream, debugger.onEvent);
+    _debugSubscriptionFuture =
+        app.vm.listenEventStream(VM.kDebugStream, debugger.onEvent);
+  }
+
+  @override
+  void detached() {
+    cancelFutureSubscription(_isolateSubscriptionFuture);
+    _isolateSubscriptionFuture = null;
+    cancelFutureSubscription(_debugSubscriptionFuture);
+    _debugSubscriptionFuture = null;
+    super.detached();
   }
 }
 

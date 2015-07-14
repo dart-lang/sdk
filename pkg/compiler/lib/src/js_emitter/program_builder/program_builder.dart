@@ -4,10 +4,11 @@
 
 library dart2js.js_emitter.program_builder;
 
-import '../js_emitter.dart' show computeMixinClass;
+import '../js_emitter.dart' show computeMixinClass, Emitter;
 import '../model.dart';
 
 import '../../common.dart';
+import '../../closure.dart' show ClosureFieldElement;
 import '../../js/js.dart' as js;
 
 import '../../js_backend/js_backend.dart' show
@@ -24,12 +25,17 @@ import '../js_emitter.dart' show
     RuntimeTypeGenerator,
     TypeTestProperties;
 
-import '../../elements/elements.dart' show ParameterElement, MethodElement;
+import '../../elements/elements.dart' show
+    FieldElement,
+    MethodElement,
+    ParameterElement;
 
 import '../../universe/universe.dart' show Universe, TypeMaskSet;
 import '../../deferred_load.dart' show DeferredLoadTask, OutputUnit;
 
+part 'collector.dart';
 part 'registry.dart';
+part 'field_visitor.dart';
 
 /// Builds a self-contained representation of the program that can then be
 /// emitted more easily by the individual emitters.
@@ -38,15 +44,27 @@ class ProgramBuilder {
   final Namer namer;
   final CodeEmitterTask _task;
 
+  /// Contains the collected information the program builder used to build
+  /// the model.
+  // The collector will be filled on the first call to `buildProgram`.
+  // It is stored and publicly exposed for backwards compatibility. New code
+  // (and in particular new emitters) should not use it.
+  final Collector collector;
+
   final Registry _registry;
 
   /// True if the program should store function types in the metadata.
   bool _storeFunctionTypesInMetadata = false;
 
   ProgramBuilder(Compiler compiler,
-                 this.namer,
-                 this._task)
+                 Namer namer,
+                 this._task,
+                 Emitter emitter,
+                 Set<ClassElement> rtiNeededClasses)
       : this._compiler = compiler,
+        this.namer = namer,
+        this.collector =
+            new Collector(compiler, namer, rtiNeededClasses, emitter),
         this._registry = new Registry(compiler);
 
   JavaScriptBackend get backend => _compiler.backend;
@@ -67,25 +85,28 @@ class ProgramBuilder {
   Set<Class> _unneededNativeClasses;
 
   Program buildProgram({bool storeFunctionTypesInMetadata: false}) {
+    collector.collect();
+
     this._storeFunctionTypesInMetadata = storeFunctionTypesInMetadata;
     // Note: In rare cases (mostly tests) output units can be empty. This
     // happens when the deferred code is dead-code eliminated but we still need
     // to check that the library has been loaded.
     _compiler.deferredLoadTask.allOutputUnits.forEach(
         _registry.registerOutputUnit);
-    _task.outputClassLists.forEach(_registry.registerElements);
-    _task.outputStaticLists.forEach(_registry.registerElements);
-    _task.outputConstantLists.forEach(_registerConstants);
-    _task.outputStaticNonFinalFieldLists.forEach(_registry.registerElements);
+    collector.outputClassLists.forEach(_registry.registerElements);
+    collector.outputStaticLists.forEach(_registry.registerElements);
+    collector.outputConstantLists.forEach(_registerConstants);
+    collector.outputStaticNonFinalFieldLists.forEach(
+        _registry.registerElements);
 
-    // TODO(kasperl): There's code that implicitly needs access to the special
-    // $ holder so we have to register that. Can we track if we have to?
-    _registry.registerHolder(r'$');
+    // We always add the current isolate holder.
+    _registry.registerHolder(
+        namer.staticStateHolder, isStaticStateHolder: true);
 
     // We need to run the native-preparation before we build the output. The
     // preparation code, in turn needs the classes to be set up.
     // We thus build the classes before building their containers.
-    _task.outputClassLists.forEach((OutputUnit _, List<ClassElement> classes) {
+    collector.outputClassLists.forEach((OutputUnit _, List<ClassElement> classes) {
       classes.forEach(_buildClass);
     });
 
@@ -101,12 +122,19 @@ class ProgramBuilder {
       }
     });
 
-    List<Class> nativeClasses = _task.nativeClassesAndSubclasses
+    List<Class> nativeClasses = collector.nativeClassesAndSubclasses
         .map((ClassElement classElement) => _classes[classElement])
         .toList();
 
-    _unneededNativeClasses =
-        _task.nativeEmitter.prepareNativeClasses(nativeClasses);
+    Set<ClassElement> interceptorClassesNeededByConstants =
+        collector.computeInterceptorsReferencedFromConstants();
+    Set<ClassElement> classesModifiedByEmitRTISupport =
+        _task.typeTestRegistry.computeClassesModifiedByEmitRuntimeTypeSupport();
+
+
+    _unneededNativeClasses = _task.nativeEmitter.prepareNativeClasses(
+        nativeClasses, interceptorClassesNeededByConstants,
+        classesModifiedByEmitRTISupport);
 
     MainFragment mainFragment = _buildMainFragment(_registry.mainLibrariesMap);
     Iterable<Fragment> deferredFragments =
@@ -139,7 +167,7 @@ class ProgramBuilder {
         _task.metadataCollector,
         finalizers,
         needsNativeSupport: needsNativeSupport,
-        outputContainsConstantList: _task.outputContainsConstantList,
+        outputContainsConstantList: collector.outputContainsConstantList,
         hasIsolateSupport: _compiler.hasIsolateSupport);
   }
 
@@ -200,7 +228,7 @@ class ProgramBuilder {
 
   List<Constant> _buildConstants(LibrariesMap librariesMap) {
     List<ConstantValue> constantValues =
-        _task.outputConstantLists[librariesMap.outputUnit];
+        collector.outputConstantLists[librariesMap.outputUnit];
     if (constantValues == null) return const <Constant>[];
     return constantValues.map((ConstantValue value) => _constants[value])
         .toList(growable: false);
@@ -208,7 +236,7 @@ class ProgramBuilder {
 
   List<StaticField> _buildStaticNonFinalFields(LibrariesMap librariesMap) {
     List<VariableElement> staticNonFinalFields =
-         _task.outputStaticNonFinalFieldLists[librariesMap.outputUnit];
+         collector.outputStaticNonFinalFieldLists[librariesMap.outputUnit];
     if (staticNonFinalFields == null) return const <StaticField>[];
 
     return staticNonFinalFields
@@ -325,7 +353,7 @@ class ProgramBuilder {
   }
 
   Class _buildClass(ClassElement element) {
-    bool onlyForRti = _task.classesOnlyNeededForRti.contains(element);
+    bool onlyForRti = collector.classesOnlyNeededForRti.contains(element);
 
     List<Method> methods = [];
     List<StubMethod> callStubs = <StubMethod>[];
@@ -638,7 +666,7 @@ class ProgramBuilder {
 
   List<Field> _buildFields(Element holder, bool visitStatics) {
     List<Field> fields = <Field>[];
-    _task.oldEmitter.classEmitter.visitFields(
+    new FieldVisitor(_compiler, namer).visitFields(
         holder, visitStatics, (VariableElement field,
                                js.Name name,
                                js.Name accessorName,

@@ -557,12 +557,12 @@ class ConcreteTypeSystem extends TypeSystem<ConcreteType> {
 
   @override
   ConcreteType nonNullSubclass(ClassElement cls) {
-    return nonNullSubX(cls, compiler.world.subclassesOf);
+    return nonNullSubX(cls, compiler.world.strictSubclassesOf);
   }
 
   @override
   ConcreteType nonNullSubtype(ClassElement cls) {
-    return nonNullSubX(cls, compiler.world.subtypesOf);
+    return nonNullSubX(cls, compiler.world.strictSubtypesOf);
   }
 
   @override

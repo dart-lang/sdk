@@ -22,32 +22,26 @@ class RawCode;
 #define VM_STUB_CODE_LIST(V)                                                   \
   V(GetStackPointer)                                                           \
   V(JumpToExceptionHandler)                                                    \
-
-// Is it permitted for the stubs above to refer to Object::null(), which is
-// allocated in the VM isolate and shared across all isolates.
-// However, in cases where a simple GC-safe placeholder is needed on the stack,
-// using Smi 0 instead of Object::null() is slightly more efficient, since a Smi
-// does not require relocation.
-
-// List of stubs created per isolate, these stubs could potentially contain
-// embedded objects and hence cannot be shared across isolates.
-// The initial stubs are needed for loading bootstrapping scripts and have to
-// be generated before Object::Init is called.
-#define BOOTSTRAP_STUB_CODE_LIST(V)                                            \
+  V(UpdateStoreBuffer)                                                         \
   V(PrintStopMessage)                                                          \
   V(CallToRuntime)                                                             \
   V(LazyCompile)                                                               \
-
-#define REST_STUB_CODE_LIST(V)                                                 \
   V(CallBootstrapCFunction)                                                    \
   V(CallNativeCFunction)                                                       \
   V(FixCallersTarget)                                                          \
   V(CallStaticFunction)                                                        \
+  V(OptimizeFunction)                                                          \
+  V(InvokeDartCode)                                                            \
+  V(DebugStepCheck)                                                            \
+  V(MegamorphicLookup)                                                         \
   V(FixAllocationStubTarget)                                                   \
   V(FixAllocateArrayStubTarget)                                                \
-  V(CallClosureNoSuchMethod)                                                   \
-  V(AllocateContext)                                                           \
-  V(UpdateStoreBuffer)                                                         \
+  V(Deoptimize)                                                                \
+  V(DeoptimizeLazy)                                                            \
+  V(UnoptimizedIdenticalWithNumberCheck)                                       \
+  V(OptimizedIdenticalWithNumberCheck)                                         \
+  V(ICCallBreakpoint)                                                          \
+  V(RuntimeCallBreakpoint)                                                     \
   V(OneArgCheckInlineCache)                                                    \
   V(TwoArgsCheckInlineCache)                                                   \
   V(SmiAddInlineCache)                                                         \
@@ -60,23 +54,22 @@ class RawCode;
   V(ZeroArgsUnoptimizedStaticCall)                                             \
   V(OneArgUnoptimizedStaticCall)                                               \
   V(TwoArgsUnoptimizedStaticCall)                                              \
-  V(OptimizeFunction)                                                          \
-  V(InvokeDartCode)                                                            \
   V(Subtype1TestCache)                                                         \
   V(Subtype2TestCache)                                                         \
   V(Subtype3TestCache)                                                         \
-  V(Deoptimize)                                                                \
-  V(DeoptimizeLazy)                                                            \
-  V(ICCallBreakpoint)                                                          \
-  V(RuntimeCallBreakpoint)                                                     \
-  V(UnoptimizedIdenticalWithNumberCheck)                                       \
-  V(OptimizedIdenticalWithNumberCheck)                                         \
-  V(DebugStepCheck)                                                            \
-  V(MegamorphicLookup)                                                         \
 
+// Is it permitted for the stubs above to refer to Object::null(), which is
+// allocated in the VM isolate and shared across all isolates.
+// However, in cases where a simple GC-safe placeholder is needed on the stack,
+// using Smi 0 instead of Object::null() is slightly more efficient, since a Smi
+// does not require relocation.
+
+// List of stubs created per isolate, these stubs could potentially contain
+// embedded objects and hence cannot be shared across isolates.
 #define STUB_CODE_LIST(V)                                                      \
-  BOOTSTRAP_STUB_CODE_LIST(V)                                                  \
-  REST_STUB_CODE_LIST(V)
+  V(CallClosureNoSuchMethod)                                                   \
+  V(AllocateContext)                                                           \
+
 
 // class StubEntry is used to describe stub methods generated in dart to
 // abstract out common code executed from generated dart code.
@@ -121,9 +114,6 @@ class StubCode {
 
   // Generate all stubs which are generated on a per isolate basis as they
   // have embedded objects which are isolate specific.
-  // Bootstrap stubs are needed before Object::Init to compile the bootstrap
-  // scripts.
-  static void InitBootstrapStubs(Isolate* isolate);
   static void Init(Isolate* isolate);
 
   static void VisitObjectPointers(ObjectPointerVisitor* visitor);
@@ -185,7 +175,6 @@ class StubCode {
       Assembler*, Register recv, Register cache, Register target);
 
  private:
-  void GenerateBootstrapStubsFor(Isolate* isolate);
   void GenerateStubsFor(Isolate* isolate);
 
   friend class MegamorphicCacheTable;

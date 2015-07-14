@@ -30,7 +30,7 @@ bool StackFrame::IsStubFrame() const {
 
 const char* StackFrame::ToCString() const {
   ASSERT(isolate_ == Isolate::Current());
-  Zone* zone = Isolate::Current()->current_zone();
+  Zone* zone = Thread::Current()->zone();
   if (IsDartFrame()) {
     const Code& code = Code::Handle(LookupDartCode());
     ASSERT(!code.IsNull());

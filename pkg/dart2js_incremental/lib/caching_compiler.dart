@@ -65,9 +65,11 @@ Future<Compiler> reuseCompiler(
         null);
     JavaScriptBackend backend = compiler.backend;
 
+    full.Emitter emitter = backend.emitter.emitter;
+
     // Much like a scout, an incremental compiler is always prepared. For
     // mixins, classes, and lazy statics, at least.
-    backend.emitter.oldEmitter
+    emitter
         ..needsClassSupport = true
         ..needsMixinSupport = true
         ..needsLazyInitializer = true
@@ -100,19 +102,20 @@ Future<Compiler> reuseCompiler(
         ..enqueuer.codegen.hasEnqueuedReflectiveStaticFields = false
         ..compilationFailed = false;
     JavaScriptBackend backend = compiler.backend;
+    full.Emitter emitter = backend.emitter.emitter;
 
     // TODO(ahe): Seems this cache only serves to tell
-    // [OldEmitter.invalidateCaches] if it was invoked on a full compile (in
+    // [emitter.invalidateCaches] if it was invoked on a full compile (in
     // which case nothing should be invalidated), or if it is an incremental
     // compilation (in which case, holders/owners of newly compiled methods
     // must be invalidated).
-    backend.emitter.oldEmitter.cachedElements.add(null);
+    emitter.cachedElements.add(null);
 
     compiler.enqueuer.codegen
         ..newlyEnqueuedElements.clear()
         ..newlySeenSelectors.clear();
 
-    backend.emitter.oldEmitter.nsmEmitter
+    emitter.nsmEmitter
         ..trivialNsmHandlers.clear();
 
     backend.emitter.typeTestRegistry
@@ -121,7 +124,7 @@ Future<Compiler> reuseCompiler(
         ..rtiNeededClasses.clear()
         ..cachedClassesUsingTypeVariableTests = null;
 
-    backend.emitter.oldEmitter.interceptorEmitter
+    emitter.interceptorEmitter
         ..interceptorInvocationNames.clear();
 
     backend.emitter.nativeEmitter
@@ -130,7 +133,7 @@ Future<Compiler> reuseCompiler(
 
     backend.emitter.readTypeVariables.clear();
 
-    backend.emitter.oldEmitter
+    emitter
         ..outputBuffers.clear()
         ..classesCollector = null
         ..mangledFieldNames.clear()
@@ -138,16 +141,6 @@ Future<Compiler> reuseCompiler(
         ..recordedMangledNames.clear()
         ..clearCspPrecompiledNodes()
         ..elementDescriptors.clear();
-
-    backend.emitter
-        ..nativeClassesAndSubclasses.clear()
-        ..outputContainsConstantList = false
-        ..neededClasses.clear()
-        ..outputClassLists.clear()
-        ..outputConstantLists.clear()
-        ..outputStaticLists.clear()
-        ..outputStaticNonFinalFieldLists.clear()
-        ..outputLibraryLists.clear();
 
     backend
         ..preMirrorsMethodCount = 0;

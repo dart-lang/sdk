@@ -54,7 +54,7 @@ void BitmapBuilder::Set(intptr_t bit_offset, bool value) {
       data_size_in_bytes_ =
           Utils::RoundUp(byte_offset + 1, kIncrementSizeInBytes);
       ASSERT(data_size_in_bytes_ > 0);
-      data_ = Isolate::Current()->current_zone()->Alloc<uint8_t>(
+      data_ = Thread::Current()->zone()->Alloc<uint8_t>(
           data_size_in_bytes_);
       ASSERT(data_ != NULL);
       memmove(data_, old_data, old_size);

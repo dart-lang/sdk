@@ -5536,7 +5536,7 @@ class Place : public ValueObject {
     if (def == NULL) {
       return "*";
     } else {
-      return Isolate::Current()->current_zone()->PrintToString(
+      return Thread::Current()->zone()->PrintToString(
             "v%" Pd, def->ssa_temp_index());
     }
   }
@@ -5549,34 +5549,34 @@ class Place : public ValueObject {
       case kField: {
         const char* field_name = String::Handle(field().name()).ToCString();
         if (field().is_static()) {
-          return Isolate::Current()->current_zone()->PrintToString(
+          return Thread::Current()->zone()->PrintToString(
               "<%s>", field_name);
         } else {
-          return Isolate::Current()->current_zone()->PrintToString(
+          return Thread::Current()->zone()->PrintToString(
               "<%s.%s>", DefinitionName(instance()), field_name);
         }
       }
 
       case kVMField:
-        return Isolate::Current()->current_zone()->PrintToString(
+        return Thread::Current()->zone()->PrintToString(
             "<%s.@%" Pd ">",
             DefinitionName(instance()),
             offset_in_bytes());
 
       case kIndexed:
-        return Isolate::Current()->current_zone()->PrintToString(
+        return Thread::Current()->zone()->PrintToString(
             "<%s[%s]>",
             DefinitionName(instance()),
             DefinitionName(index()));
 
       case kConstantIndexed:
         if (element_size() == kNoSize) {
-          return Isolate::Current()->current_zone()->PrintToString(
+          return Thread::Current()->zone()->PrintToString(
               "<%s[%" Pd "]>",
               DefinitionName(instance()),
               index_constant());
         } else {
-          return Isolate::Current()->current_zone()->PrintToString(
+          return Thread::Current()->zone()->PrintToString(
               "<%s[%" Pd "|%" Pd "]>",
               DefinitionName(instance()),
               index_constant(),

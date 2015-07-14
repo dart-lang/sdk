@@ -441,6 +441,13 @@
           always choosing a region that starts at the beginning of a line and
           ends at the end of a (possibly different) line in the file.
         </p>
+        <p>
+          If a request is made for a file which does not exist, or
+          which is not currently subject to analysis (e.g. because it
+          is not associated with any analysis root specified to
+          analysis.setAnalysisRoots), an error of type
+          <tt>GET_NAVIGATION_INVALID_FILE</tt> will be generated.
+        </p>
         <params>
           <field name="file">
             <ref>FilePath</ref>
@@ -3154,6 +3161,14 @@
           </value>
           <value>
             <code>GET_ERRORS_INVALID_FILE</code>
+            <p>
+              An "analysis.getErrors" request specified a FilePath
+              which does not match a file currently subject to
+              analysis.
+            </p>
+          </value>
+          <value>
+            <code>GET_NAVIGATION_INVALID_FILE</code>
             <p>
               An "analysis.getErrors" request specified a FilePath
               which does not match a file currently subject to

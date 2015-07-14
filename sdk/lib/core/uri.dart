@@ -157,13 +157,12 @@ class Uri {
    * to `end` is parsed as a URI.
    *
    * If the string is not valid as a URI or URI reference,
-   * invalid characters will be percent escaped where possible.
-   * The resulting `Uri` will represent a valid URI or URI reference.
+   * a [FormatException] is thrown.
    */
   static Uri parse(String uri, [int start = 0, int end]) {
-    // This parsing will not validate percent-encoding, IPv6, etc. When done
-    // it will call `new Uri(...)` which will perform these validations.
-    // This is purely splitting up the URI string into components.
+    // This parsing will not validate percent-encoding, IPv6, etc.
+    // When done splitting into parts, it will call, e.g., [_makeFragment]
+    // to do the final parsing.
     //
     // Important parts of the RFC 3986 used here:
     // URI           = scheme ":" hier-part [ "?" query ] [ "#" fragment ]
