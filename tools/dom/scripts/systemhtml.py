@@ -671,7 +671,9 @@ class HtmlDartInterfaceGenerator(object):
         isElement = True
 
     # Write out the JsInterop code.
-    if implementation_members_emitter and self._options.templates._conditions['DARTIUM']:
+    if (implementation_members_emitter and
+        self._options.templates._conditions['DARTIUM'] and
+        self._options.dart_js_interop):
       implementation_members_emitter.Emit(js_interop_wrapper)
 
     if isElement and self._interface.id != 'Element':
