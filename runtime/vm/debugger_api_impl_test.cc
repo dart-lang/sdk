@@ -658,17 +658,21 @@ TEST_CASE(Debug_StepOut) {
 }
 
 static const char* step_into_expected_bpts[] = {
-    "main",
-      "foo",
-        "f1",
-      "foo",
-      "foo",
-        "X.kvmk",
-          "f2",
-        "X.kvmk",
-        "X.kvmk",
-      "foo",
-    "main"
+    "main",        // entry
+    "main",        // call foo
+      "foo",       // entry
+      "foo",       // call f1
+        "f1",      // entry
+      "foo",       // call initializer
+      "foo",       // call kvmk
+        "X.kvmk",  // entry
+        "X.kvmk",  // call
+          "f2",    // entry
+          "f2",    // return
+        "X.kvmk",  // call +
+        "X.kvmk",  // return
+      "foo",       // return
+    "main"         // return
 };
 
 void TestStepIntoHandler(Dart_IsolateId isolate_id,

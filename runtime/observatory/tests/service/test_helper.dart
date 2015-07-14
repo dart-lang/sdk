@@ -155,7 +155,9 @@ Future processServiceEvents(VM vm,
 }
 
 
-Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
+Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) async {
+  await isolate.reload();  // Might have missed pauseEvent.
+
   if ((isolate.pauseEvent != null) &&
       (isolate.pauseEvent.kind == ServiceEvent.kPauseBreakpoint)) {
     // Already waiting at a breakpoint.

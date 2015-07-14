@@ -33,7 +33,7 @@ main(List<String> arguments) {
 
 var testScript = [
   MatchFrames(["main"]),
-  MatchLine(15),
+  MatchLine(14),
   SetBreakpoint(18),
   SetBreakpoint(21),
   SetBreakpoint(10),
