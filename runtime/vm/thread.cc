@@ -27,6 +27,12 @@ static void DeleteThread(void* thread) {
 }
 
 
+Thread::~Thread() {
+  // We should cleanly exit any isolate before destruction.
+  ASSERT(isolate_ == NULL);
+}
+
+
 void Thread::InitOnceBeforeIsolate() {
   ASSERT(thread_key_ == OSThread::kUnsetThreadLocalKey);
   thread_key_ = OSThread::CreateThreadLocal(DeleteThread);

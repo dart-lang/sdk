@@ -75,6 +75,8 @@ class Thread {
   static void InitOnceBeforeIsolate();
   static void InitOnceAfterObjectAndStubCode();
 
+  ~Thread();
+
   // The topmost zone used for allocation in this thread.
   Zone* zone() const { return state_.zone; }
 

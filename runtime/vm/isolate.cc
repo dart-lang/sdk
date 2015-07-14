@@ -1437,6 +1437,15 @@ void Isolate::Shutdown() {
   // avoid exposing it in a state of decay.
   RemoveIsolateFromList(this);
 
+  if (heap_ != NULL) {
+    // Wait for any concurrent GC tasks to finish before shutting down.
+    PageSpace* old_space = heap_->old_space();
+    MonitorLocker ml(old_space->tasks_lock());
+    while (old_space->tasks() > 0) {
+      ml.Wait();
+    }
+  }
+
   // Create an area where we do have a zone and a handle scope so that we can
   // call VM functions while tearing this isolate down.
   {
@@ -1490,6 +1499,8 @@ void Isolate::Shutdown() {
   // TODO(5411455): For now just make sure there are no current isolates
   // as we are shutting down the isolate.
   Thread::ExitIsolate();
+  // All threads should have exited by now.
+  thread_registry()->CheckNotScheduled(this);
   Profiler::ShutdownProfilingForIsolate(this);
 }
 

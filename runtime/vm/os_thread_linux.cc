@@ -24,6 +24,14 @@ namespace dart {
   }
 
 
+#if defined(DEBUG)
+#define ASSERT_PTHREAD_SUCCESS(result) VALIDATE_PTHREAD_RESULT(result)
+#else
+// NOTE: This (currently) expands to a no-op.
+#define ASSERT_PTHREAD_SUCCESS(result) ASSERT(result == 0)
+#endif
+
+
 #ifdef DEBUG
 #define RETURN_ON_PTHREAD_FAILURE(result) \
   if (result != 0) { \
@@ -218,7 +226,7 @@ void Mutex::Lock() {
   int result = pthread_mutex_lock(data_.mutex());
   // Specifically check for dead lock to help debugging.
   ASSERT(result != EDEADLK);
-  ASSERT(result == 0);  // Verify no other errors.
+  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
   owner_ = OSThread::GetCurrentThreadId();
@@ -232,7 +240,7 @@ bool Mutex::TryLock() {
   if (result == EBUSY) {
     return false;
   }
-  ASSERT(result == 0);  // Verify no other errors.
+  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
   // When running with assertions enabled we do track the owner.
 #if defined(DEBUG)
   owner_ = OSThread::GetCurrentThreadId();
@@ -250,7 +258,7 @@ void Mutex::Unlock() {
   int result = pthread_mutex_unlock(data_.mutex());
   // Specifically check for wrong thread unlocking to aid debugging.
   ASSERT(result != EPERM);
-  ASSERT(result == 0);  // Verify no other errors.
+  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
 }
 
 

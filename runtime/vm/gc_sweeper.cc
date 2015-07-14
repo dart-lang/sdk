@@ -137,13 +137,14 @@ class SweeperTask : public ThreadPool::Task {
       if (page == last_) break;
       page = next_page;
     }
+    // Exit isolate cleanly *before* notifying it, to avoid shutdown race.
+    Thread::ExitIsolateAsHelper();
     // This sweeper task is done. Notify the original isolate.
     {
       MonitorLocker ml(old_space_->tasks_lock());
       old_space_->set_tasks(old_space_->tasks() - 1);
       ml.Notify();
     }
-    Thread::ExitIsolateAsHelper();
   }
 
  private:
