@@ -54,6 +54,8 @@
 * `dart:core`
   * `Iterable` added an `empty` constructor.
     [dcf0286](https://github.com/dart-lang/sdk/commit/dcf0286f5385187a68ce9e66318d3bf19abf454b)
+  * `Iterable` can now be extended directly. An alternative to extending
+    `IterableBase` from `dart:collection`.
   * `List` added an `unmodifiable` constructor.
     [r45334](https://code.google.com/p/dart/source/detail?r=45334)
   * `Map` added an `unmodifiable` constructor.
