@@ -593,6 +593,12 @@ static inline T ReadUnaligned(const T* ptr) {
 #define PRINTF_ATTRIBUTE(string_index, first_to_check)
 #endif
 
+#if defined(_WIN32)
+#define STDIN_FILENO 0
+#define STDOUT_FILENO 1
+#define STDERR_FILENO 2
+#endif
+
 }  // namespace dart
 
 #endif  // PLATFORM_GLOBALS_H_
