@@ -237,8 +237,8 @@ class NsmEmitter extends CodeEmitterHelper {
         for (var j = 0; j < shortNames.length; j++) {
           var type = 0;
           var shortName = shortNames[j];
-          if (shortName[0] == "${namer.getterPrefix[0]}") type = 1;
-          if (shortName[0] == "${namer.setterPrefix[0]}") type = 2;
+          if (shortName.indexOf("${namer.getterPrefix}") == 0) type = 1;
+          if (shortName.indexOf("${namer.setterPrefix}") == 0) type = 2;
           // Generate call to:
           //
           //     createInvocationMirror(String name, internalName, type,
