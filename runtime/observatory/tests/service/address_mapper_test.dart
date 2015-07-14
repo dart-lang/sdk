@@ -4,27 +4,52 @@
 // VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/object_graph.dart';
-import 'package:expect/expect.dart';
+import 'package:unittest/unittest.dart';
+
+dynamic confuse() {
+  if (true) {
+    return "5";
+  }
+  return 5;
+}
 
 main() {
   var map = new AddressMapper(42);
 
-  Expect.equals(null, map.get(1, 2, 3));
-  Expect.equals(4, map.put(1, 2, 3, 4));
-  Expect.equals(4, map.get(1, 2, 3));
+  expect(map.get(1, 2, 3), isNull);
+  expect(map.put(1, 2, 3, 4), equals(4));
+  expect(map.get(1, 2, 3), equals(4));
 
-  Expect.equals(null, map.get(2, 3, 1));
-  Expect.equals(null, map.get(3, 1, 2));
+  expect(map.get(2, 3, 1), isNull);
+  expect(map.get(3, 1, 2), isNull);
 
-  Expect.throws(() => map.put(1, 2, 3, 44),
-                (e) => true,
-                "Overwrite key");
+  bool exceptionThrown = false;
+  try {
+    expect(exceptionThrown, isFalse);
+    map.put(1, 2, 3, 44);
+    expect(true, isFalse);
+  } catch (e) {
+    exceptionThrown = true;
+  }
+  expect(exceptionThrown, isTrue);
 
-  Expect.throws(() => map.put(5, 6, 7, 0),
-                (e) => true,
-                "Invalid value");
+  exceptionThrown = false;
+  try {
+    expect(exceptionThrown, isFalse);
+    map.put(5, 6, 7, 0);
+    expect(true, isFalse);
+  } catch (e) {
+    exceptionThrown = true;
+  }
+  expect(exceptionThrown, isTrue);
 
-  Expect.throws(() => map.put("5", 6, 7, 0),
-                (e) => true,
-                "Invalid key");
+  exceptionThrown = false;
+  try {
+    expect(exceptionThrown, isFalse);
+    map.put(confuse(), 6, 7, 0);
+    expect(true, isFalse);
+  } catch (e) {
+    exceptionThrown = true;
+  }
+  expect(exceptionThrown, isTrue);
 }

@@ -4,7 +4,7 @@
 // VMOptions=--compile_all --error_on_bad_type --error_on_bad_override
 
 import 'package:observatory/object_graph.dart';
-import 'package:expect/expect.dart';
+import 'package:unittest/unittest.dart';
 import 'dart:typed_data';
 
 testRoundTrip(final int n) {
@@ -22,20 +22,20 @@ testRoundTrip(final int n) {
   var stream = new ReadStream([typedBytes]);
   stream.readUnsigned();
 
-  Expect.equals(n == 0, stream.isZero);
+  expect(stream.isZero, equals(n == 0));
 
-  Expect.equals((n >>  0) & 0xFFFFFFF, stream.low);
-  Expect.equals((n >> 28) & 0xFFFFFFF, stream.mid);
-  Expect.equals((n >> 56) & 0xFFFFFFF, stream.high);
+  expect(stream.low, equals((n >>  0) & 0xFFFFFFF));
+  expect(stream.mid, equals((n >> 28) & 0xFFFFFFF));
+  expect(stream.high, equals((n >> 56) & 0xFFFFFFF));
 
   const kMaxUint32 = (1 << 32) - 1;
   if (n > kMaxUint32) {
-    Expect.equals(kMaxUint32, stream.clampedUint32);
+    expect(stream.clampedUint32, equals(kMaxUint32));
   } else {
-    Expect.equals(n, stream.clampedUint32);
+    expect(stream.clampedUint32, equals(n));
   }
 
-  Expect.equals(bytes.length, stream.position);
+  expect(stream.position, equals(bytes.length));
 }
 
 main() {

@@ -15,7 +15,8 @@ var tests = [
 
 (Isolate isolate) async {
   var lib = await isolate.rootLibrary.load();
-
+  // Use mirrors to shutup the analyzer.
+  mirrors.currentMirrorSystem();
   importOf(String uri) {
     return lib.dependencies.singleWhere((dep) => dep.target.uri == uri);
   }
@@ -35,6 +36,10 @@ var tests = [
   expect(importOf("dart:convert").isDeferred, isTrue);
   expect(importOf("dart:convert").prefix, equals("convert"));
 },
+
+(Isolate isolate) async {
+  return convert.loadLibrary();
+}
 ];
 
 main(args) => runIsolateTests(args, tests);
