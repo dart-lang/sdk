@@ -1238,7 +1238,7 @@ class ProfileBuilder : public ValueObject {
             current,
             i,
             (j == 0),
-            sample->first_frame_executing(),
+            sample->first_frame_executing() || sample->IsAllocationSample(),
             true);
       }
     }
@@ -1266,7 +1266,7 @@ class ProfileBuilder : public ValueObject {
             current,
             i,
             (j == 0),
-            sample->first_frame_executing(),
+            sample->first_frame_executing() || sample->IsAllocationSample(),
             false);
       }
 

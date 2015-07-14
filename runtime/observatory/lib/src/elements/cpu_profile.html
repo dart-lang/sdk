@@ -6,6 +6,78 @@
 <link rel="import" href="sliding_checkbox.html">
 <link rel="import" href="view_footer.html">
 
+<polymer-element name="cpu-profile-tree" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+    .infoBox {
+      position: absolute;
+      top: 100%;
+      left: 0%;
+      z-index: 999;
+      opacity: 1;
+      padding: 1em;
+      background-color: #ffffff;
+      border-left: solid 2px #ECECEC;
+      border-bottom: solid 2px #ECECEC;
+      border-right: solid 2px #ECECEC;
+    }
+    .full-width {
+      width: 100%;
+    }
+    .tree {
+      border-spacing: 0px;
+      width: 100%;
+      margin-bottom: 20px
+      vertical-align: middle;
+    }
+    .tree tbody tr {
+      animation: fadeIn 0.5s;
+      -moz-animation: fadeIn 0.5s;
+      -webkit-animation: fadeIn 0.5s;
+    }
+    .tree tbody tr:hover {
+      background-color: #FAFAFA;
+    }
+    .tree tr td:first-child,
+    .tree tr th:first-child {
+      width: 100%;
+    }
+    .tree thead > tr > th {
+      padding: 8px;
+      vertical-align: bottom;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+    tr {
+      background-color: #FFFFFF;
+    }
+    tbody tr {
+      animation: fadeIn 0.5s;
+      -moz-animation: fadeIn 0.5s;
+      -webkit-animation: fadeIn 0.5s;
+    }
+    tbody tr:hover {
+      background-color: #FAFAFA;
+    }
+    tr td:first-child,
+    tr th:first-child {
+      width: 100%;
+    }
+    </style>
+    <table class="full-width tree">
+      <thead id="treeHeader">
+      <tr>
+        <th>Method</th>
+        <th>Executing</th>
+      </tr>
+      </thead>
+      <tbody id="treeBody">
+      </tbody>
+    </table>
+  </template>
+</polymer-element>
+
 <polymer-element name="cpu-profile-table" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
@@ -269,16 +341,7 @@
     </div>
     <div class="flex-row centered">
       <div class="flex-item-90-percent outlined" style="margin: 16px; margin-left: 8px; margin-right: 8px">
-        <table class="full-width tree">
-          <thead id="treeHeader">
-          <tr>
-            <th>Method</th>
-            <th>Executing</th>
-          </tr>
-          </thead>
-          <tbody id="treeBody">
-          </tbody>
-        </table>
+        <cpu-profile-tree id="cpuProfileTree"></cpu-profile-tree>
       </div>
     </div>
   </template>
@@ -300,53 +363,6 @@
         background-color: #ECECEC;
         padding: 0.2em;
       }
-
-      .table {
-        border-spacing: 0px;
-        width: 100%;
-        margin-bottom: 20px
-        vertical-align: middle;
-      }
-
-      tr {
-        background-color: #FFFFFF;
-      }
-
-      tbody tr {
-        animation: fadeIn 0.5s;
-        -moz-animation: fadeIn 0.5s;
-        -webkit-animation: fadeIn 0.5s;
-      }
-
-      tbody tr:hover {
-        background-color: #FAFAFA;
-      }
-
-      tr td:first-child,
-      tr th:first-child {
-        width: 100%;
-      }
-
-      .table thead > tr > th {
-        padding: 8px;
-        vertical-align: bottom;
-        text-align: left;
-        border-bottom: 1px solid #ddd;
-      }
-
-      .infoBox {
-        position: absolute;
-        top: 100%;
-        left: 0%;
-        z-index: 999;
-        opacity: 1;
-        padding: 1em;
-        background-color: #ffffff;
-        border-left: solid 2px #ECECEC;
-        border-bottom: solid 2px #ECECEC;
-        border-right: solid 2px #ECECEC;
-      }
-
       .statusMessage {
         font-size: 150%;
         font-weight: bold;
@@ -479,16 +495,7 @@
       </template>
       <br><br>
       <div class="tableWell shadow">
-        <table class="table">
-          <thead id="treeHeader">
-          <tr>
-            <th>Method</th>
-            <th>Executing</th>
-          </tr>
-          </thead>
-          <tbody id="treeBody">
-          </tbody>
-        </table>
+        <cpu-profile-tree id="cpuProfileTree"></cpu-profile-tree>
       </div>
     </div>
     <view-footer></view-footer>

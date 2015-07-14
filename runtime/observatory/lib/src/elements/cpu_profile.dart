@@ -521,14 +521,6 @@ class CpuProfileElement extends ObservatoryElement {
 
   Future _getCpuProfile() async {
     profile.clear();
-    if (functionTree != null) {
-      functionTree.clear();
-      functionTree = null;
-    }
-    if (codeTree != null) {
-      codeTree.clear();
-      codeTree = null;
-    }
     if (isolate == null) {
       return new Future.value(null);
     }
@@ -565,52 +557,20 @@ class CpuProfileElement extends ObservatoryElement {
     stackDepth = profile.stackDepth.toString();
     sampleRate = profile.sampleRate.toStringAsFixed(0);
     timeSpan = formatTime(profile.timeSpan);
-    bool exclusive = directionSelector == 'Up';
-    if (functionTree != null) {
-      functionTree.clear();
-      functionTree = null;
+    CpuProfileTreeElement cpuProfileTreeElement =
+        shadowRoot.querySelector('#cpuProfileTree');
+    ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
+    if (directionSelector != 'Up') {
+      direction = ProfileTreeDirection.Inclusive;
     }
-    if (codeTree != null) {
-      codeTree.clear();
-      codeTree = null;
-    }
+    ProfileTreeMode mode = ProfileTreeMode.Function;
     if (modeSelector == 'Code') {
-      _buildCodeTree(exclusive);
-    } else {
-      _buildFunctionTree(exclusive);
+      mode = ProfileTreeMode.Code;
     }
-  }
-
-  TableTree codeTree;
-  TableTree functionTree;
-
-  void _buildFunctionTree(bool exclusive) {
-    if (functionTree == null) {
-      var tableBody = shadowRoot.querySelector('#treeBody');
-      assert(tableBody != null);
-      functionTree = new TableTree(tableBody, 2);
-    }
-    var tree = profile.loadFunctionTree(exclusive ? 'exclusive' : 'inclusive');
-    if (tree == null) {
-      return;
-    }
-    var rootRow =
-        new FunctionProfileTreeRow(functionTree, null, profile, tree.root);
-    functionTree.initialize(rootRow);
-  }
-
-  void _buildCodeTree(bool exclusive) {
-    if (codeTree == null) {
-      var tableBody = shadowRoot.querySelector('#treeBody');
-      assert(tableBody != null);
-      codeTree = new TableTree(tableBody, 2);
-    }
-    var tree = profile.loadCodeTree(exclusive ? 'exclusive' : 'inclusive');
-    if (tree == null) {
-      return;
-    }
-    var rootRow = new CodeProfileTreeRow(codeTree, null, profile, tree.root);
-    codeTree.initialize(rootRow);
+    cpuProfileTreeElement.profile = profile;
+    cpuProfileTreeElement.direction = direction;
+    cpuProfileTreeElement.mode = mode;
+    cpuProfileTreeElement.render();
   }
 }
 
@@ -1100,33 +1060,101 @@ class CpuProfileTableElement extends ObservatoryElement {
   ///
   TableTree functionTree;
   _updateFunctionTreeView() {
+    CpuProfileTreeElement cpuProfileTreeElement =
+        shadowRoot.querySelector('#cpuProfileTree');
+    ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
+    if (directionSelector != 'Up') {
+      direction = ProfileTreeDirection.Inclusive;
+    }
+    ProfileTreeMode mode = ProfileTreeMode.Function;
+    cpuProfileTreeElement.profile = profile;
+    cpuProfileTreeElement.direction = direction;
+    cpuProfileTreeElement.mode = mode;
+    cpuProfileTreeElement.functionFilter = (FunctionCallTreeNode node) {
+      return node.profileFunction.function == focusedFunction;
+    };
+    cpuProfileTreeElement.render();
+  }
+}
+
+enum ProfileTreeDirection {
+  Exclusive,
+  Inclusive
+}
+
+enum ProfileTreeMode {
+  Code,
+  Function,
+}
+
+@CustomTag('cpu-profile-tree')
+class CpuProfileTreeElement extends ObservatoryElement {
+  ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
+  ProfileTreeMode mode = ProfileTreeMode.Function;
+  CpuProfile profile;
+  TableTree codeTree;
+  TableTree functionTree;
+  FunctionCallTreeNodeFilter functionFilter;
+
+  CpuProfileTreeElement.created() : super.created();
+
+  void render() {
+    _updateView();
+  }
+
+  void _updateView() {
     if (functionTree != null) {
       functionTree.clear();
       functionTree = null;
     }
-    _buildFunctionTree();
+    if (codeTree != null) {
+      codeTree.clear();
+      codeTree = null;
+    }
+    bool exclusive = direction == ProfileTreeDirection.Exclusive;
+    if (mode == ProfileTreeMode.Code) {
+      _buildCodeTree(exclusive);
+    } else {
+      assert(mode == ProfileTreeMode.Function);
+      _buildFunctionTree(exclusive);
+    }
   }
 
-  void _buildFunctionTree() {
+  void _buildFunctionTree(bool exclusive) {
     if (functionTree == null) {
       var tableBody = shadowRoot.querySelector('#treeBody');
       assert(tableBody != null);
       functionTree = new TableTree(tableBody, 2);
     }
-    if (focusedFunction == null) {
+    if (profile == null) {
       return;
     }
-    bool exclusive = directionSelector == 'Up';
     var tree = profile.loadFunctionTree(exclusive ? 'exclusive' : 'inclusive');
     if (tree == null) {
       return;
     }
-    var filter = (FunctionCallTreeNode node) {
-      return node.profileFunction.function == focusedFunction;
-    };
-    tree = tree.filtered(filter);
+    if (functionFilter != null) {
+      tree = tree.filtered(functionFilter);
+    }
     var rootRow =
         new FunctionProfileTreeRow(functionTree, null, profile, tree.root);
     functionTree.initialize(rootRow);
+  }
+
+  void _buildCodeTree(bool exclusive) {
+    if (codeTree == null) {
+      var tableBody = shadowRoot.querySelector('#treeBody');
+      assert(tableBody != null);
+      codeTree = new TableTree(tableBody, 2);
+    }
+    if (profile == null) {
+      return;
+    }
+    var tree = profile.loadCodeTree(exclusive ? 'exclusive' : 'inclusive');
+    if (tree == null) {
+      return;
+    }
+    var rootRow = new CodeProfileTreeRow(codeTree, null, profile, tree.root);
+    codeTree.initialize(rootRow);
   }
 }

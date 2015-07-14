@@ -472,6 +472,10 @@ class ProcessedSample : public ZoneAllocated {
   intptr_t allocation_cid() const { return allocation_cid_; }
   void set_allocation_cid(intptr_t cid) { allocation_cid_ = cid; }
 
+  bool IsAllocationSample() const {
+    return allocation_cid_ > 0;
+  }
+
   // Was the stack trace truncated?
   bool truncated() const { return truncated_; }
   void set_truncated(bool truncated) { truncated_ = truncated; }

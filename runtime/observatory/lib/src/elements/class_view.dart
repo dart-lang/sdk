@@ -6,6 +6,8 @@ library class_view_element;
 
 import 'dart:async';
 import 'observatory_element.dart';
+import 'package:observatory/cpu_profile.dart';
+import 'package:observatory/elements.dart';
 import 'package:observatory/service.dart';
 import 'package:polymer/polymer.dart';
 
@@ -60,5 +62,25 @@ class ClassViewElement extends ObservatoryElement {
 
   Future refreshCoverage() {
     return cls.refreshCoverage();
+  }
+
+  final CpuProfile profile = new CpuProfile();
+
+  Future refreshAllocationProfile() async {
+    var profileResponse = await cls.getAllocationSamples('UserVM');
+    profile.load(profileResponse.isolate, profileResponse);
+    CpuProfileTreeElement cpuProfileTreeElement =
+        shadowRoot.querySelector('#cpuProfileTree');
+    cpuProfileTreeElement.profile = profile;
+    cpuProfileTreeElement.direction = ProfileTreeDirection.Exclusive;
+    cpuProfileTreeElement.mode = ProfileTreeMode.Function;
+    cpuProfileTreeElement.render();
+  }
+
+  Future toggleAllocationTrace() {
+    if (cls == null) {
+      return new Future(refresh);
+    }
+    return cls.setTraceAllocations(!cls.traceAllocations).whenComplete(refresh);
   }
 }
