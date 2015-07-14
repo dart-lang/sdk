@@ -485,7 +485,7 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
 
 
 void IsolateMessageHandler::NotifyPauseOnStart() {
-  if (Service::NeedsDebugEvents()) {
+  if (Service::debug_stream.enabled()) {
     StartIsolateScope start_isolate(isolate());
     StackZone zone(I);
     HandleScope handle_scope(I);
@@ -496,7 +496,7 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
 
 
 void IsolateMessageHandler::NotifyPauseOnExit() {
-  if (Service::NeedsDebugEvents()) {
+  if (Service::debug_stream.enabled()) {
     StartIsolateScope start_isolate(isolate());
     StackZone zone(I);
     HandleScope handle_scope(I);

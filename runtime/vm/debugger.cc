@@ -236,8 +236,8 @@ ActivationFrame::ActivationFrame(
 
 bool Debugger::HasEventHandler() {
   return ((event_handler_ != NULL) ||
-          Service::NeedsIsolateEvents() ||
-          Service::NeedsDebugEvents());
+          Service::isolate_stream.enabled() ||
+          Service::debug_stream.enabled());
 }
 
 
@@ -251,11 +251,11 @@ static bool ServiceNeedsDebuggerEvent(DebuggerEvent::EventType type) {
     case DebuggerEvent::kBreakpointReached:
     case DebuggerEvent::kExceptionThrown:
     case DebuggerEvent::kIsolateInterrupted:
-      return Service::NeedsDebugEvents();
+      return Service::debug_stream.enabled();
 
     case DebuggerEvent::kIsolateCreated:
     case DebuggerEvent::kIsolateShutdown:
-      return Service::NeedsIsolateEvents();
+      return Service::isolate_stream.enabled();
 
     default:
       UNREACHABLE();
@@ -324,10 +324,10 @@ void Debugger::SignalIsolateInterrupted() {
 
 // The vm service handles breakpoint notifications in a different way
 // than the regular debugger breakpoint notifications.
-static void SendServiceBreakpointEvent(ServiceEvent::EventType type,
+static void SendServiceBreakpointEvent(ServiceEvent::EventKind kind,
                                        Breakpoint* bpt) {
-  if (Service::NeedsDebugEvents()) {
-    ServiceEvent service_event(Isolate::Current(), type);
+  if (Service::debug_stream.enabled()) {
+    ServiceEvent service_event(Isolate::Current(), kind);
     service_event.set_breakpoint(bpt);
     Service::HandleEvent(&service_event);
   }

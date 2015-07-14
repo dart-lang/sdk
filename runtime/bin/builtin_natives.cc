@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "include/dart_api.h"
+#include "include/dart_tools_api.h"
 
 #include "platform/assert.h"
 
@@ -119,6 +120,9 @@ const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
 }
 
 
+extern bool capture_stdout;
+
+
 // Implementation of native functions which are used for some
 // test/debug functionality in standalone dart mode.
 void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
@@ -126,18 +130,19 @@ void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   uint8_t* chars = NULL;
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
   Dart_Handle result = Dart_StringToUTF8(str, &chars, &length);
-  if (Dart_IsError(result)) {
-    // TODO(turnidge): Consider propagating some errors here.  What if
-    // an isolate gets interrupted by the embedder in the middle of
-    // Dart_StringToUTF8?  We need to make sure not to swallow the
-    // interrupt.
-    fprintf(stdout, "%s\n", Dart_GetError(result));
-  } else {
-    // Uses fwrite to support printing NUL bytes.
-    fwrite(chars, 1, length, stdout);
-    fputs("\n", stdout);
-  }
+  if (Dart_IsError(result)) Dart_PropagateError(result);
+
+  // Uses fwrite to support printing NUL bytes.
+  fwrite(chars, 1, length, stdout);
+  fputs("\n", stdout);
   fflush(stdout);
+  if (capture_stdout) {
+    // For now we report print output on the Stdout stream.
+    uint8_t newline[] = { '\n' };
+    Dart_ServiceSendDataEvent("Stdout", "WriteEvent", chars, length);
+    Dart_ServiceSendDataEvent("Stdout", "WriteEvent",
+                              newline, sizeof(newline));
+  }
 }
 
 }  // namespace bin

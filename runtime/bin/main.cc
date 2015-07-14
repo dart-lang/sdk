@@ -859,6 +859,37 @@ static const char* ServiceGetIOHandler(
 }
 
 
+extern bool capture_stdio;
+extern bool capture_stdout;
+extern bool capture_stderr;
+static const char* kStdoutStreamId = "Stdout";
+static const char* kStderrStreamId = "Stderr";
+
+
+static bool ServiceStreamListenCallback(const char* stream_id) {
+  if (strcmp(stream_id, kStdoutStreamId) == 0) {
+    capture_stdio = true;
+    capture_stdout = true;
+    return true;
+  } else if (strcmp(stream_id, kStderrStreamId) == 0) {
+    capture_stdio = true;
+    capture_stderr = true;
+    return true;
+  }
+  return false;
+}
+
+
+static void ServiceStreamCancelCallback(const char* stream_id) {
+  if (strcmp(stream_id, kStdoutStreamId) == 0) {
+    capture_stdout = false;
+  } else if (strcmp(stream_id, kStderrStreamId) == 0) {
+    capture_stderr = false;
+  }
+  capture_stdio = (capture_stdout || capture_stderr);
+}
+
+
 void main(int argc, char** argv) {
   char* script_name;
   const int EXTRA_VM_ARGUMENTS = 2;
@@ -947,6 +978,8 @@ void main(int argc, char** argv) {
 
   Dart_RegisterIsolateServiceRequestCallback(
         "getIO", &ServiceGetIOHandler, NULL);
+  Dart_SetServiceStreamCallbacks(&ServiceStreamListenCallback,
+                                 &ServiceStreamCancelCallback);
 
   // Call CreateIsolateAndSetup which creates an isolate and loads up
   // the specified application script.

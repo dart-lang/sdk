@@ -304,7 +304,8 @@ class ServiceIsolateNatives : public AllStatic {
     Zone* zone = stack_zone.GetZone();  // Used by GET_NON_NULL_NATIVE_ARGUMENT.
     HANDLESCOPE(isolate);
     GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-    Service::ListenStream(stream_id.ToCString());
+    bool result = Service::ListenStream(stream_id.ToCString());
+    arguments->SetReturn(Bool::Get(result));
   }
 
   static void CancelStream(Dart_NativeArguments args) {

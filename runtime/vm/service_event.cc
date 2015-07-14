@@ -7,9 +7,9 @@
 namespace dart {
 
 // Translate from the legacy DebugEvent to a ServiceEvent.
-static ServiceEvent::EventType TranslateEventType(
-    DebuggerEvent::EventType type) {
-    switch (type) {
+static ServiceEvent::EventKind TranslateEventKind(
+    DebuggerEvent::EventType kind) {
+    switch (kind) {
       case DebuggerEvent::kIsolateCreated:
         return ServiceEvent::kIsolateStart;
 
@@ -24,7 +24,6 @@ static ServiceEvent::EventType TranslateEventType(
 
       case DebuggerEvent::kExceptionThrown:
         return ServiceEvent::kPauseException;
-
       default:
         UNREACHABLE();
         return ServiceEvent::kIllegal;
@@ -33,12 +32,14 @@ static ServiceEvent::EventType TranslateEventType(
 
 ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
     : isolate_(debugger_event->isolate()),
-      type_(TranslateEventType(debugger_event->type())),
+      kind_(TranslateEventKind(debugger_event->type())),
       breakpoint_(NULL),
       top_frame_(NULL),
       exception_(NULL),
       inspectee_(NULL),
-      gc_stats_(NULL) {
+      gc_stats_(NULL),
+      bytes_(NULL),
+      bytes_length_(0) {
   DebuggerEvent::EventType type = debugger_event->type();
   if (type == DebuggerEvent::kBreakpointReached) {
     set_breakpoint(debugger_event->breakpoint());
@@ -54,8 +55,8 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
 }
 
 
-const char* ServiceEvent::EventTypeToCString(EventType type) {
-  switch (type) {
+const char* ServiceEvent::KindAsCString() const {
+  switch (kind()) {
     case kIsolateStart:
       return "IsolateStart";
     case kIsolateExit:
@@ -84,6 +85,8 @@ const char* ServiceEvent::EventTypeToCString(EventType type) {
       return "GC";  // TODO(koda): Change to GarbageCollected.
     case kInspect:
       return "Inspect";
+    case kEmbedder:
+      return embedder_kind();
     case kDebuggerSettingsUpdate:
       return "_DebuggerSettingsUpdate";
     case kIllegal:
@@ -96,11 +99,11 @@ const char* ServiceEvent::EventTypeToCString(EventType type) {
 
 
 const char* ServiceEvent::stream_id() const {
-  switch (type()) {
+  switch (kind()) {
     case kIsolateStart:
     case kIsolateExit:
     case kIsolateUpdate:
-      return "Isolate";
+      return Service::isolate_stream.id();
 
     case kPauseStart:
     case kPauseExit:
@@ -113,10 +116,13 @@ const char* ServiceEvent::stream_id() const {
     case kBreakpointRemoved:
     case kInspect:
     case kDebuggerSettingsUpdate:
-      return "Debug";
+      return Service::debug_stream.id();
 
     case kGC:
-      return "GC";
+      return Service::gc_stream.id();
+
+    case kEmbedder:
+      return embedder_stream_id_;
 
     default:
       UNREACHABLE();
@@ -128,9 +134,9 @@ const char* ServiceEvent::stream_id() const {
 void ServiceEvent::PrintJSON(JSONStream* js) const {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Event");
-  jsobj.AddProperty("kind", EventTypeToCString(type()));
+  jsobj.AddProperty("kind", KindAsCString());
   jsobj.AddProperty("isolate", isolate());
-  if (type() == kPauseBreakpoint) {
+  if (kind() == kPauseBreakpoint) {
     JSONArray jsarr(&jsobj, "pauseBreakpoints");
     // TODO(rmacnak): If we are paused at more than one breakpoint,
     // provide it here.
@@ -142,7 +148,7 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
       jsobj.AddProperty("breakpoint", breakpoint());
     }
   }
-  if (type() == kDebuggerSettingsUpdate) {
+  if (kind() == kDebuggerSettingsUpdate) {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
     isolate()->debugger()->PrintSettingsToJSONObject(&jssettings);
   }
@@ -162,6 +168,9 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     jsobj.AddProperty("reason", Heap::GCReasonToString(gc_stats()->reason_));
     isolate()->heap()->PrintToJSONObject(Heap::kNew, &jsobj);
     isolate()->heap()->PrintToJSONObject(Heap::kOld, &jsobj);
+  }
+  if (bytes() != NULL) {
+    jsobj.AddPropertyBase64("bytes", bytes(), bytes_length());
   }
 }
 

@@ -5,6 +5,7 @@
 #include "vm/service.h"
 
 #include "include/dart_api.h"
+#include "include/dart_native_api.h"
 #include "platform/globals.h"
 
 #include "vm/compiler.h"
@@ -74,32 +75,46 @@ EmbedderServiceHandler* Service::root_service_handler_head_ = NULL;
 struct ServiceMethodDescriptor;
 ServiceMethodDescriptor* FindMethod(const char* method_name);
 
-// TODO(turnidge): Build a general framework later.  For now, we have
-// a small set of well-known streams.
-bool Service::needs_isolate_events_ = false;
-bool Service::needs_debug_events_ = false;
-bool Service::needs_gc_events_ = false;
-bool Service::needs_echo_events_ = false;
-bool Service::needs_graph_events_ = false;
 
-void Service::ListenStream(const char* stream_id) {
+// Support for streams defined in embedders.
+Dart_ServiceStreamListenCallback Service::stream_listen_callback_ = NULL;
+Dart_ServiceStreamCancelCallback Service::stream_cancel_callback_ = NULL;
+
+
+// These are the set of streams known to the core VM.
+StreamInfo Service::isolate_stream("Isolate");
+StreamInfo Service::debug_stream("Debug");
+StreamInfo Service::gc_stream("GC");
+StreamInfo Service::echo_stream("_Echo");
+StreamInfo Service::graph_stream("_Graph");
+
+
+static StreamInfo* streams_[] = {
+  &Service::isolate_stream,
+  &Service::debug_stream,
+  &Service::gc_stream,
+  &Service::echo_stream,
+  &Service::graph_stream,
+};
+
+
+bool Service::ListenStream(const char* stream_id) {
   if (FLAG_trace_service) {
     OS::Print("vm-service: starting stream '%s'\n",
               stream_id);
   }
-  if (strcmp(stream_id, "Isolate") == 0) {
-    needs_isolate_events_ = true;
-  } else if (strcmp(stream_id, "Debug") == 0) {
-    needs_debug_events_ = true;
-  } else if (strcmp(stream_id, "GC") == 0) {
-    needs_gc_events_ = true;
-  } else if (strcmp(stream_id, "_Echo") == 0) {
-    needs_echo_events_ = true;
-  } else if (strcmp(stream_id, "_Graph") == 0) {
-    needs_graph_events_ = true;
-  } else {
-    UNREACHABLE();
+  intptr_t num_streams = sizeof(streams_) /
+                         sizeof(streams_[0]);
+  for (intptr_t i = 0; i < num_streams; i++) {
+    if (strcmp(stream_id, streams_[i]->id()) == 0) {
+      streams_[i]->set_enabled(true);
+      return true;
+    }
   }
+  if (stream_listen_callback_) {
+    return (*stream_listen_callback_)(stream_id);
+  }
+  return false;
 }
 
 void Service::CancelStream(const char* stream_id) {
@@ -107,18 +122,16 @@ void Service::CancelStream(const char* stream_id) {
     OS::Print("vm-service: stopping stream '%s'\n",
               stream_id);
   }
-  if (strcmp(stream_id, "Isolate") == 0) {
-    needs_isolate_events_ = false;
-  } else if (strcmp(stream_id, "Debug") == 0) {
-    needs_debug_events_ = false;
-  } else if (strcmp(stream_id, "GC") == 0) {
-    needs_gc_events_ = false;
-  } else if (strcmp(stream_id, "_Echo") == 0) {
-    needs_echo_events_ = false;
-  } else if (strcmp(stream_id, "_Graph") == 0) {
-    needs_graph_events_ = false;
-  } else {
-    UNREACHABLE();
+  intptr_t num_streams = sizeof(streams_) /
+                         sizeof(streams_[0]);
+  for (intptr_t i = 0; i < num_streams; i++) {
+    if (strcmp(stream_id, streams_[i]->id()) == 0) {
+      streams_[i]->set_enabled(false);
+      return;
+    }
+  }
+  if (stream_cancel_callback_) {
+    return (*stream_cancel_callback_)(stream_id);
   }
 }
 
@@ -623,6 +636,7 @@ void Service::SendEvent(const char* stream_id,
 }
 
 
+// TODO(turnidge): Rewrite this method to use Post_CObject instead.
 void Service::SendEventWithData(const char* stream_id,
                                 const char* event_type,
                                 const String& meta,
@@ -658,6 +672,9 @@ void Service::HandleEvent(ServiceEvent* event) {
   if (ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
     return;
   }
+  if (!ServiceIsolate::IsRunning()) {
+    return;
+  }
   JSONStream js;
   const char* stream_id = event->stream_id();
   ASSERT(stream_id != NULL);
@@ -666,9 +683,35 @@ void Service::HandleEvent(ServiceEvent* event) {
     jsobj.AddProperty("event", event);
     jsobj.AddProperty("streamId", stream_id);
   }
-  const String& message = String::Handle(String::New(js.ToCString()));
-  SendEvent(stream_id, ServiceEvent::EventTypeToCString(event->type()),
-            message);
+
+  // Message is of the format [<stream id>, <json string>].
+  //
+  // Build the event message in the C heap to avoid dart heap
+  // allocation.  This method can be called while we have acquired a
+  // direct pointer to typed data, so we can't allocate here.
+  Dart_CObject list_cobj;
+  Dart_CObject* list_values[2];
+  list_cobj.type = Dart_CObject_kArray;
+  list_cobj.value.as_array.length = 2;
+  list_cobj.value.as_array.values = list_values;
+
+  Dart_CObject stream_id_cobj;
+  stream_id_cobj.type = Dart_CObject_kString;
+  stream_id_cobj.value.as_string = const_cast<char*>(stream_id);
+  list_values[0] = &stream_id_cobj;
+
+  Dart_CObject json_cobj;
+  json_cobj.type = Dart_CObject_kString;
+  json_cobj.value.as_string = const_cast<char*>(js.ToCString());
+  list_values[1] = &json_cobj;
+
+  if (FLAG_trace_service) {
+    OS::Print(
+        "vm-service: Pushing event of type %s to stream %s\n",
+        event->KindAsCString(), stream_id);
+  }
+
+  Dart_PostCObject(ServiceIsolate::Port(), &list_cobj);
 }
 
 
@@ -792,6 +835,14 @@ void Service::RegisterRootEmbedderCallback(
 }
 
 
+void Service::SetEmbedderStreamCallbacks(
+    Dart_ServiceStreamListenCallback listen_callback,
+    Dart_ServiceStreamCancelCallback cancel_callback) {
+  stream_listen_callback_ = listen_callback;
+  stream_cancel_callback_ = cancel_callback;
+}
+
+
 EmbedderServiceHandler* Service::FindRootEmbedderHandler(
     const char* name) {
   EmbedderServiceHandler* current = root_service_handler_head_;
@@ -875,16 +926,16 @@ void Service::SendEchoEvent(Isolate* isolate, const char* text) {
         event.AddProperty("text", text);
       }
     }
-    jsobj.AddProperty("streamId", "_Echo");
+    jsobj.AddProperty("streamId", echo_stream.id());
   }
   const String& message = String::Handle(String::New(js.ToCString()));
   uint8_t data[] = {0, 128, 255};
-  SendEventWithData("_Echo", "_Echo", message, data, sizeof(data));
+  SendEventWithData(echo_stream.id(), "_Echo", message, data, sizeof(data));
 }
 
 
 static bool TriggerEchoEvent(Isolate* isolate, JSONStream* js) {
-  if (Service::NeedsEchoEvents()) {
+  if (Service::echo_stream.enabled()) {
     Service::SendEchoEvent(isolate, js->LookupParam("text"));
   }
   JSONObject jsobj(js);
@@ -2190,7 +2241,7 @@ static bool Resume(Isolate* isolate, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   if (isolate->message_handler()->paused_on_start()) {
     isolate->message_handler()->set_pause_on_start(false);
-    if (Service::NeedsDebugEvents()) {
+    if (Service::debug_stream.enabled()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
     }
@@ -2384,7 +2435,7 @@ static const MethodParameter* request_heap_snapshot_params[] = {
 
 
 static bool RequestHeapSnapshot(Isolate* isolate, JSONStream* js) {
-  if (Service::NeedsGraphEvents()) {
+  if (Service::graph_stream.enabled()) {
     Service::SendGraphEvent(isolate);
   }
   // TODO(koda): Provide some id that ties this request to async response(s).
@@ -2419,7 +2470,7 @@ void Service::SendGraphEvent(Isolate* isolate) {
         event.AddProperty("chunkCount", num_chunks);
         event.AddProperty("nodeCount", node_count);
       }
-      jsobj.AddProperty("streamId", "_Graph");
+      jsobj.AddProperty("streamId", graph_stream.id());
     }
 
     const String& message = String::Handle(String::New(js.ToCString()));
@@ -2429,17 +2480,34 @@ void Service::SendGraphEvent(Isolate* isolate) {
         ? stream.bytes_written() - (i * kChunkSize)
         : kChunkSize;
 
-    SendEventWithData("_Graph", "_Graph", message, chunk_start, chunk_size);
+    SendEventWithData(graph_stream.id(), "_Graph", message,
+                      chunk_start, chunk_size);
   }
 }
 
 
 void Service::SendInspectEvent(Isolate* isolate, const Object& inspectee) {
-  if (!Service::NeedsDebugEvents()) {
+  if (!Service::debug_stream.enabled()) {
     return;
   }
   ServiceEvent event(isolate, ServiceEvent::kInspect);
   event.set_inspectee(&inspectee);
+  Service::HandleEvent(&event);
+}
+
+
+void Service::SendEmbedderEvent(Isolate* isolate,
+                                const char* stream_id,
+                                const char* event_kind,
+                                const uint8_t* bytes,
+                                intptr_t bytes_len) {
+  if (!Service::debug_stream.enabled()) {
+    return;
+  }
+  ServiceEvent event(isolate, ServiceEvent::kEmbedder);
+  event.set_embedder_kind(event_kind);
+  event.set_embedder_stream_id(stream_id);
+  event.set_bytes(bytes, bytes_len);
   Service::HandleEvent(&event);
 }
 
@@ -2726,7 +2794,7 @@ static bool SetExceptionPauseInfo(Isolate* isolate, JSONStream* js) {
   }
 
   isolate->debugger()->SetExceptionPauseInfo(info);
-  if (Service::NeedsDebugEvents()) {
+  if (Service::debug_stream.enabled()) {
     ServiceEvent event(isolate, ServiceEvent::kDebuggerSettingsUpdate);
     Service::HandleEvent(&event);
   }
@@ -2812,7 +2880,7 @@ static const MethodParameter* set_name_params[] = {
 
 static bool SetName(Isolate* isolate, JSONStream* js) {
   isolate->set_debugger_name(js->LookupParam("name"));
-  if (Service::NeedsIsolateEvents()) {
+  if (Service::isolate_stream.enabled()) {
     ServiceEvent event(isolate, ServiceEvent::kIsolateUpdate);
     Service::HandleEvent(&event);
   }

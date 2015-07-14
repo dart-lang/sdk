@@ -680,7 +680,7 @@ void Heap::RecordAfterGC() {
   stats_.after_.old_ = old_space_->GetCurrentUsage();
   ASSERT(gc_in_progress_);
   gc_in_progress_ = false;
-  if (Service::NeedsGCEvents()) {
+  if (Service::gc_stream.enabled()) {
     ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);
     Service::HandleEvent(&event);

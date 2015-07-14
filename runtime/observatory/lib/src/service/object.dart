@@ -697,6 +697,8 @@ abstract class VM extends ServiceObjectOwner {
   static const kIsolateStream = 'Isolate';
   static const kDebugStream = 'Debug';
   static const kGCStream = 'GC';
+  static const kStdoutStream = 'Stdout';
+  static const kStderrStream = 'Stderr';
   static const _kGraphStream = '_Graph';
 
   /// Returns a single-subscription Stream object for a VM event stream.
@@ -1625,6 +1627,7 @@ class ServiceEvent extends ServiceObject {
   @observable int count;
   @observable String reason;
   @observable String exceptions;
+  @observable String bytesAsString;
   int chunkIndex, chunkCount, nodeCount;
 
   @observable bool get isPauseEvent {
@@ -1679,6 +1682,10 @@ class ServiceEvent extends ServiceObject {
     if (map['_debuggerSettings'] != null &&
         map['_debuggerSettings']['_exceptions'] != null) {
       exceptions = map['_debuggerSettings']['_exceptions'];
+    }
+    if (map['bytes'] != null) {
+      var bytes = decodeBase64(map['bytes']);
+      bytesAsString = UTF8.decode(bytes);
     }
   }
 
