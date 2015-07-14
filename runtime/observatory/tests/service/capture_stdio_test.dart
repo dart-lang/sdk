@@ -32,7 +32,7 @@ var tests = [
       (ServiceEvent event) {
         expect(event.kind, equals('WriteEvent'));
         expect(event.bytesAsString, equals('stdout'));
-        cancelFutureSubscription(stdoutSub).then((_) {
+        stdoutSub.cancel().then((_) {
           completer.complete();
         });
       });
@@ -54,7 +54,7 @@ var tests = [
           expect(event.bytesAsString, equals('print'));
         } else if (eventNumber == 2) {
           expect(event.bytesAsString, equals('\n'));
-          cancelFutureSubscription(stdoutSub).then((_) {
+          stdoutSub.cancel().then((_) {
             completer.complete();
           });
         } else {
@@ -76,7 +76,7 @@ var tests = [
       (ServiceEvent event) {
         expect(event.kind, equals('WriteEvent'));
         expect(event.bytesAsString, equals('stderr'));
-        cancelFutureSubscription(stderrSub).then((_) {
+        stderrSub.cancel().then((_) {
           completer.complete();
         });
       });
