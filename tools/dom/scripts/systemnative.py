@@ -1183,7 +1183,7 @@ class DartiumBackend(HtmlDartGenerator):
       dart_declaration, False, return_type, parameters,
       'Callback', True, False)
 
-  def EmitOperation(self, info, html_name):
+  def EmitOperation(self, info, html_name, dart_js_interop=False):
     """
     Arguments:
       info: An OperationInfo object.
@@ -1192,7 +1192,7 @@ class DartiumBackend(HtmlDartGenerator):
 
     formals = info.ParametersAsDeclaration(self._DartType)
 
-    parameters = info.ParametersAsListOfVariables(None, self._type_registry if self._dart_use_blink else None)
+    parameters = info.ParametersAsListOfVariables(None, self._type_registry if self._dart_use_blink else None, dart_js_interop)
     dart_declaration = '%s%s %s(%s)' % (
         'static ' if info.IsStatic() else '',
         return_type,

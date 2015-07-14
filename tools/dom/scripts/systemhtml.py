@@ -693,7 +693,7 @@ class HtmlDartInterfaceGenerator(object):
       self._backend.AddMembers(self._database.GetInterface(merged_interface),
         not self._backend.ImplementsMergedMembers())
 
-    self._backend.AddMembers(self._interface)
+    self._backend.AddMembers(self._interface, self._options.dart_js_interop)
     self._backend.AddSecondaryMembers(self._interface)
     self._event_generator.EmitStreamGetters(
         self._interface,
@@ -1029,7 +1029,7 @@ class Dart2JSBackend(HtmlDartGenerator):
   def OmitOperationOverrides(self):
     return True
 
-  def EmitOperation(self, info, html_name):
+  def EmitOperation(self, info, html_name, dart_js_interop=False):
     """
     Arguments:
       info: An OperationInfo object.

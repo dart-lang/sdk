@@ -2328,7 +2328,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   
   @DomName('HTMLCanvasElement.getContext')
   @DocsEditable()
-  Object getContext(String contextId, [Map attrs]) => wrap_jso(_blink.BlinkHTMLCanvasElement.instance.getContext_Callback_2_(unwrap_jso(this), contextId, attrs != null ? new js.JsObject.jsify(attrs) : attrs));
+  Object getContext(String contextId, [Map attrs]) => wrap_jso(_blink.BlinkHTMLCanvasElement.instance.getContext_Callback_2_(unwrap_jso(this), contextId, attrs));
   
   @DomName('HTMLCanvasElement.toDataURL')
   @DocsEditable()
@@ -2723,7 +2723,7 @@ class CanvasRenderingContext2D extends NativeFieldWrapperClass2 implements Canva
   
   void addHitRegion([Map options]) {
     if (options != null) {
-      _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_1_(unwrap_jso(this), options);
       return;
     }
     _blink.BlinkCanvasRenderingContext2D.instance.addHitRegion_Callback_0_(unwrap_jso(this));
@@ -3818,7 +3818,7 @@ class CredentialsContainer extends NativeFieldWrapperClass2 {
   
   Future request([Map options]) {
     if (options != null) {
-      return _blink.BlinkCredentialsContainer.instance.request_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkCredentialsContainer.instance.request_Callback_1_(unwrap_jso(this), options);
     }
     return _blink.BlinkCredentialsContainer.instance.request_Callback_0_(unwrap_jso(this));
   }
@@ -8351,15 +8351,15 @@ class DirectoryEntry extends Entry {
   
   void __getDirectory(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_4_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_4_(unwrap_jso(this), path, options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_3_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso(successCallback));
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_3_(unwrap_jso(this), path, options, unwrap_jso(successCallback));
       return;
     }
     if (options != null) {
-      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_2_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_2_(unwrap_jso(this), path, options);
       return;
     }
     _blink.BlinkDirectoryEntry.instance.getDirectory_Callback_1_(unwrap_jso(this), path);
@@ -8376,15 +8376,15 @@ class DirectoryEntry extends Entry {
 
   void __getFile(String path, {Map options, _EntryCallback successCallback, _ErrorCallback errorCallback}) {
     if (errorCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_4_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_4_(unwrap_jso(this), path, options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
       return;
     }
     if (successCallback != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_3_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options, unwrap_jso(successCallback));
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_3_(unwrap_jso(this), path, options, unwrap_jso(successCallback));
       return;
     }
     if (options != null) {
-      _blink.BlinkDirectoryEntry.instance.getFile_Callback_2_(unwrap_jso(this), path, options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkDirectoryEntry.instance.getFile_Callback_2_(unwrap_jso(this), path, options);
       return;
     }
     _blink.BlinkDirectoryEntry.instance.getFile_Callback_1_(unwrap_jso(this), path);
@@ -15031,11 +15031,11 @@ class EventTarget extends NativeFieldWrapperClass2 {
 
   void _addEventListener([String type, EventListener listener, bool useCapture]) {
     if (useCapture != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso((Event event) => listener(wrap_jso(event))), useCapture);
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_3_(unwrap_jso(this), type, unwrap_jso(listener), useCapture);
       return;
     }
     if (listener != null) {
-      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso((Event event) => listener(wrap_jso(event))));
+      _blink.BlinkEventTarget.instance.addEventListener_Callback_2_(unwrap_jso(this), type, unwrap_jso(listener));
       return;
     }
     if (type != null) {
@@ -16223,7 +16223,7 @@ class FormElement extends HtmlElement {
   @DocsEditable()
   // http://lists.whatwg.org/htdig.cgi/whatwg-whatwg.org/2012-October/037711.html
   @Experimental()
-  void requestAutocomplete(Map details) => _blink.BlinkHTMLFormElement.instance.requestAutocomplete_Callback_1_(unwrap_jso(this), details != null ? new js.JsObject.jsify(details) : details);
+  void requestAutocomplete(Map details) => _blink.BlinkHTMLFormElement.instance.requestAutocomplete_Callback_1_(unwrap_jso(this), details);
   
   @DomName('HTMLFormElement.reset')
   @DocsEditable()
@@ -16460,7 +16460,7 @@ class Geolocation extends NativeFieldWrapperClass2 {
   
   void _getCurrentPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback), options != null ? new js.JsObject.jsify(options) : options);
+      _blink.BlinkGeolocation.instance.getCurrentPosition_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback), options);
       return;
     }
     if (errorCallback != null) {
@@ -16473,7 +16473,7 @@ class Geolocation extends NativeFieldWrapperClass2 {
 
   int _watchPosition(_PositionCallback successCallback, [_PositionErrorCallback errorCallback, Map options]) {
     if (options != null) {
-      return _blink.BlinkGeolocation.instance.watchPosition_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback), options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkGeolocation.instance.watchPosition_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback), options);
     }
     if (errorCallback != null) {
       return _blink.BlinkGeolocation.instance.watchPosition_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(errorCallback));
@@ -22108,7 +22108,7 @@ class MediaQueryList extends EventTarget {
   
   @DomName('MediaQueryList.addListener')
   @DocsEditable()
-  void addListener(EventListener listener) => _blink.BlinkMediaQueryList.instance.addListener_Callback_1_(unwrap_jso(this), unwrap_jso((Event event) => listener(wrap_jso(event))));
+  void addListener(EventListener listener) => _blink.BlinkMediaQueryList.instance.addListener_Callback_1_(unwrap_jso(this), unwrap_jso(listener));
   
   @DomName('MediaQueryList.removeListener')
   @DocsEditable()
@@ -23601,7 +23601,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
   
   @DomName('MutationObserver.observe')
   @DocsEditable()
-  void _observe(Node target, Map options) => _blink.BlinkMutationObserver.instance.observe_Callback_2_(unwrap_jso(this), unwrap_jso(target), options != null ? new js.JsObject.jsify(options) : options);
+  void _observe(Node target, Map options) => _blink.BlinkMutationObserver.instance.observe_Callback_2_(unwrap_jso(this), unwrap_jso(target), options);
   
   @DomName('MutationObserver.takeRecords')
   @DocsEditable()
@@ -23615,15 +23615,7 @@ class MutationObserver extends NativeFieldWrapperClass2 {
     return true;
   }
   @DocsEditable()
-  static MutationObserver _create(callback) => _blink.BlinkMutationObserver.instance.constructorCallback_1_((List<MutationRecord> mutations, MutationObserver observer) {
-      var wrapped_mutations = [];
-      for (var mutation in mutations) {
-        // Wrap the Javascript object for each MutationRecord.
-        wrapped_mutations.add(wrap_jso(mutation));
-      }
-      // Wrap the MutationObserver too.
-      callback(wrapped_mutations, wrap_jso(observer));
-  });
+  static MutationObserver _create(callback) => _blink.BlinkMutationObserver.instance.constructorCallback_1_(callback);
 
   /**
    * Observes the target for the specified changes.
@@ -23945,7 +23937,7 @@ class Navigator extends NativeFieldWrapperClass2 implements NavigatorCpu, Naviga
   @DocsEditable()
   // http://dev.w3.org/2011/webrtc/editor/getusermedia.html#navigatorusermedia
   @Experimental()
-  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, _NavigatorUserMediaErrorCallback errorCallback) => _blink.BlinkNavigator.instance.webkitGetUserMedia_Callback_3_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
+  void _getUserMedia(Map options, _NavigatorUserMediaSuccessCallback successCallback, _NavigatorUserMediaErrorCallback errorCallback) => _blink.BlinkNavigator.instance.webkitGetUserMedia_Callback_3_(unwrap_jso(this), options, unwrap_jso(successCallback), unwrap_jso(errorCallback));
   
   @DomName('Navigator.hardwareConcurrency')
   @DocsEditable()
@@ -27414,7 +27406,7 @@ class RtcPeerConnection extends EventTarget {
   
   void addStream(MediaStream stream, [Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.addStream_Callback_2_(unwrap_jso(this), unwrap_jso(stream), mediaConstraints != null ? new js.JsObject.jsify(mediaConstraints) : mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.addStream_Callback_2_(unwrap_jso(this), unwrap_jso(stream), mediaConstraints);
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.addStream_Callback_1_(unwrap_jso(this), unwrap_jso(stream));
@@ -27427,7 +27419,7 @@ class RtcPeerConnection extends EventTarget {
   
   void _createAnswer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback), mediaConstraints != null ? new js.JsObject.jsify(mediaConstraints) : mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback), mediaConstraints);
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.createAnswer_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback));
@@ -27440,14 +27432,14 @@ class RtcPeerConnection extends EventTarget {
   
   RtcDataChannel createDataChannel(String label, [Map options]) {
     if (options != null) {
-      return _blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_2_(unwrap_jso(this), label, options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_2_(unwrap_jso(this), label, options);
     }
     return _blink.BlinkRTCPeerConnection.instance.createDataChannel_Callback_1_(unwrap_jso(this), label);
   }
 
   void _createOffer(_RtcSessionDescriptionCallback successCallback, [_RtcErrorCallback failureCallback, Map rtcOfferOptions]) {
     if (rtcOfferOptions != null) {
-      _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback), rtcOfferOptions != null ? new js.JsObject.jsify(rtcOfferOptions) : rtcOfferOptions);
+      _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_3_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback), rtcOfferOptions);
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.createOffer_Callback_2_(unwrap_jso(this), unwrap_jso(successCallback), unwrap_jso(failureCallback));
@@ -27500,11 +27492,11 @@ class RtcPeerConnection extends EventTarget {
 
   void updateIce([Map configuration, Map mediaConstraints]) {
     if (mediaConstraints != null) {
-      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_2_(unwrap_jso(this), configuration != null ? new js.JsObject.jsify(configuration) : configuration, mediaConstraints != null ? new js.JsObject.jsify(mediaConstraints) : mediaConstraints);
+      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_2_(unwrap_jso(this), configuration, mediaConstraints);
       return;
     }
     if (configuration != null) {
-      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_1_(unwrap_jso(this), configuration != null ? new js.JsObject.jsify(configuration) : configuration);
+      _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_1_(unwrap_jso(this), configuration);
       return;
     }
     _blink.BlinkRTCPeerConnection.instance.updateIce_Callback_0_(unwrap_jso(this));
@@ -28258,7 +28250,7 @@ class ServiceWorkerClients extends NativeFieldWrapperClass2 {
 
   Future getAll([Map options]) {
     if (options != null) {
-      return _blink.BlinkServiceWorkerClients.instance.getAll_Callback_1_(unwrap_jso(this), options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkServiceWorkerClients.instance.getAll_Callback_1_(unwrap_jso(this), options);
     }
     return _blink.BlinkServiceWorkerClients.instance.getAll_Callback_0_(unwrap_jso(this));
   }
@@ -28297,7 +28289,7 @@ class ServiceWorkerContainer extends NativeFieldWrapperClass2 {
 
   Future register(String url, [Map options]) {
     if (options != null) {
-      return _blink.BlinkServiceWorkerContainer.instance.register_Callback_2_(unwrap_jso(this), url, options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkServiceWorkerContainer.instance.register_Callback_2_(unwrap_jso(this), url, options);
     }
     return _blink.BlinkServiceWorkerContainer.instance.register_Callback_1_(unwrap_jso(this), url);
   }
@@ -28347,13 +28339,13 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
       return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (request is String || request == null)) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict != null ? new js.JsObject.jsify(requestInitDict) : requestInitDict);
+      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict);
     }
     if ((request is _Request || request == null) && requestInitDict == null) {
       return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_1_(unwrap_jso(this), unwrap_jso(request));
     }
     if ((requestInitDict is Map || requestInitDict == null) && (request is _Request || request == null)) {
-      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict != null ? new js.JsObject.jsify(requestInitDict) : requestInitDict);
+      return _blink.BlinkServiceWorkerGlobalScope.instance.fetch_Callback_2_(unwrap_jso(this), unwrap_jso(request), requestInitDict);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
@@ -34128,7 +34120,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -34136,7 +34128,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scroll_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -34148,7 +34140,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -34156,7 +34148,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollBy_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -34168,7 +34160,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is num) && (x is num)) {
-      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     if ((y is int) && (x is int) && scrollOptions == null) {
@@ -34176,7 +34168,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
       return;
     }
     if ((scrollOptions is Map) && (y is int) && (x is int)) {
-      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions != null ? new js.JsObject.jsify(scrollOptions) : scrollOptions);
+      _blink.BlinkWindow.instance.scrollTo_Callback_3_(unwrap_jso(this), unwrap_jso(x), unwrap_jso(y), scrollOptions);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");

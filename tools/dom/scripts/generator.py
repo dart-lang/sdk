@@ -525,7 +525,7 @@ class OperationInfo(object):
             return_type == 'Object' or return_type.startswith('Html') or
             return_type == 'MutationObserver')
 
-  def ParametersAsListOfVariables(self, parameter_count=None, type_registry=None):
+  def ParametersAsListOfVariables(self, parameter_count=None, type_registry=None, dart_js_interop=False):
     """Returns a list of the first parameter_count parameter names
     as raw variables.
     """
@@ -546,16 +546,20 @@ class OperationInfo(object):
         #
         # JsObject maybe stored in the Dart class.
         if (self.wrap_unwrap_type_blink(type_id, type_registry)):
-          if type_id == 'EventListener' and (self.name == 'addEventListener' or self.name == 'addListener'):
+          if dart_js_interop and type_id == 'EventListener' and (self.name == 'addEventListener' or
+                                                                 self.name == 'addListener'):
             # Events fired need to wrap the Javascript Object passed as a parameter in event.
             parameters.append('unwrap_jso((Event event) => %s(wrap_jso(event)))' % p.name)
           else:
             parameters.append('unwrap_jso(%s)' % p.name)
         else:
-          passParam = p.name
-          if type_id == 'Dictionary':
-            # Need to pass the IDL Dictionary from Dart Map to JavaScript object.
-            passParam = '{0} != null ? new js.JsObject.jsify({0}) : {0}'.format(p.name)
+          if dart_js_interop:
+            passParam = p.name
+            if type_id == 'Dictionary':
+              # Need to pass the IDL Dictionary from Dart Map to JavaScript object.
+              passParam = '{0} != null ? new js.JsObject.jsify({0}) : {0}'.format(p.name)
+          else:
+            passParam = p.name
           parameters.append(passParam)
 
       return parameters

@@ -309,7 +309,7 @@ class Database extends EventTarget {
   
   ObjectStore _createObjectStore(String name, [Map options]) {
     if (options != null) {
-      return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_2_(unwrap_jso(this), name, options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_2_(unwrap_jso(this), name, options);
     }
     return _blink.BlinkIDBDatabase.instance.createObjectStore_Callback_1_(unwrap_jso(this), name);
   }
@@ -911,13 +911,13 @@ class ObjectStore extends NativeFieldWrapperClass2 {
       return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath));
     }
     if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options);
     }
     if ((keyPath is List<String> || keyPath == null) && (name is String || name == null) && options == null) {
       return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath));
     }
     if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
-      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options != null ? new js.JsObject.jsify(options) : options);
+      return _blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), options);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
