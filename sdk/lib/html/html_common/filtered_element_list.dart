@@ -9,7 +9,7 @@ part of html_common;
  * filtered so that only elements are in the collection.
  */
 class FilteredElementList<T extends Element> extends ListBase<T>
-    implements NodeListWrapper{
+    implements NodeListWrapper {
   final Node _node;
   final List<Node> _childNodes;
 
@@ -21,15 +21,17 @@ class FilteredElementList<T extends Element> extends ListBase<T>
    *     var filteredElements = new FilteredElementList(query("#container"));
    *     // filteredElements is [a, b, c].
    */
-  FilteredElementList(Node node): _childNodes = node.nodes, _node = node;
+  FilteredElementList(Node node)
+      : _childNodes = node.nodes,
+        _node = node;
 
   // We can't memoize this, since it's possible that children will be messed
   // with externally to this class.
   //
   // TODO(nweiz): we don't always need to create a new list. For example
   // forEach, every, any, ... could directly work on the _childNodes.
-  List<T> get _filtered =>
-    new List<T>.from(_childNodes.where((n) => n is Element));
+  Iterable<T> get _iterable => _childNodes.where((n) => n is Element);
+  List<T> get _filtered => new List<T>.from(_iterable, growable: false);
 
   void forEach(void f(T element)) {
     _filtered.forEach(f);
@@ -72,8 +74,7 @@ class FilteredElementList<T extends Element> extends ListBase<T>
     throw new UnsupportedError('Cannot sort filtered list');
   }
 
-  void setRange(int start, int end, Iterable<T> iterable,
-                [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<T> iterable, [int skipCount = 0]) {
     throw new UnsupportedError('Cannot setRange on filtered list');
   }
 
@@ -104,11 +105,13 @@ class FilteredElementList<T extends Element> extends ListBase<T>
   }
 
   void insert(int index, T value) {
-    _childNodes.insert(index, value);
+    var element = _iterable.elementAt(index);
+    element.parentNode.insertBefore(value, element);
   }
 
   void insertAll(int index, Iterable<T> iterable) {
-    _childNodes.insertAll(index, iterable);
+    var element = _iterable.elementAt(index);
+    element.parentNode.insertAllBefore(iterable, element);
   }
 
   T removeAt(int index) {
