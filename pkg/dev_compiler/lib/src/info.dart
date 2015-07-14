@@ -460,7 +460,8 @@ abstract class InvalidOverride extends StaticError {
 
   ClassElement get parent => element.enclosingElement;
 
-  @override List<Object> get arguments => [parent.name, element.name, subType, base, baseType];
+  @override List<Object> get arguments =>
+      [parent.name, element.name, subType, base, baseType];
 
   String _messageHelper(String errorName) {
     var lcErrorName = errorName.toLowerCase();
@@ -505,8 +506,7 @@ class MissingTypeError extends StaticInfo {
   MissingTypeError(this.node);
 
   @override List<Object> get arguments => [node, node.runtimeType];
-  String get message =>
-      "type analysis didn't compute the type of: {0} {1}";
+  String get message => "type analysis didn't compute the type of: {0} {1}";
 }
 
 /// Dart constructors have one weird quirk, illustrated with this example:

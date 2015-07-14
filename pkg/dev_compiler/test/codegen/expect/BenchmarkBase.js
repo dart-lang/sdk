@@ -8,19 +8,19 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
   class Expect extends core.Object {
     static equals(expected, actual) {
       if (!dart.equals(expected, actual)) {
-        throw `Values not equal: ${expected} vs ${actual}`;
+        dart.throw(`Values not equal: ${expected} vs ${actual}`);
       }
     }
     static listEquals(expected, actual) {
       if (expected[dartx.length] != actual[dartx.length]) {
-        throw `Lists have different lengths: ${expected[dartx.length]} vs ${actual[dartx.length]}`;
+        dart.throw(`Lists have different lengths: ${expected[dartx.length]} vs ${actual[dartx.length]}`);
       }
       for (let i = 0; dart.notNull(i) < dart.notNull(actual[dartx.length]); i = dart.notNull(i) + 1) {
         Expect.equals(expected[dartx.get](i), actual[dartx.get](i));
       }
     }
     fail(message) {
-      throw message;
+      dart.throw(message);
     }
   }
   dart.setSignature(Expect, {

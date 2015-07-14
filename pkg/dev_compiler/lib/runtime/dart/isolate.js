@@ -53,16 +53,16 @@ dart_library.library('dart/isolate', null, /* Imports */[
       let paused = opts && 'paused' in opts ? opts.paused : false;
       let packageRoot = opts && 'packageRoot' in opts ? opts.packageRoot : null;
       if (packageRoot != null)
-        throw new core.UnimplementedError("packageRoot");
+        dart.throw(new core.UnimplementedError("packageRoot"));
       try {
         if (dart.is(args, core.List)) {
           for (let i = 0; dart.notNull(i) < dart.notNull(args[dartx.length]); i = dart.notNull(i) + 1) {
             if (!(typeof args[dartx.get](i) == 'string')) {
-              throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
+              dart.throw(new core.ArgumentError(`Args must be a list of Strings ${args}`));
             }
           }
         } else if (args != null) {
-          throw new core.ArgumentError(`Args must be a list of Strings ${args}`);
+          dart.throw(new core.ArgumentError(`Args must be a list of Strings ${args}`));
         }
         return dart.as(_isolate_helper.IsolateNatives.spawnUri(uri, args, message, paused).then(dart.fn(msg => new Isolate(dart.as(dart.dindex(msg, 1), SendPort), {pauseCapability: dart.as(dart.dindex(msg, 2), Capability), terminateCapability: dart.as(dart.dindex(msg, 3), Capability)}), Isolate, [dart.dynamic])), async.Future$(Isolate));
       } catch (e) {

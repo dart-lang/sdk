@@ -265,9 +265,9 @@ dart_library.library('dart/math', null, /* Imports */[
   let SQRT2 = 1.4142135623730951;
   function min(a, b) {
     if (!dart.is(a, core.num))
-      throw new core.ArgumentError(a);
+      dart.throw(new core.ArgumentError(a));
     if (!dart.is(b, core.num))
-      throw new core.ArgumentError(b);
+      dart.throw(new core.ArgumentError(b));
     if (dart.notNull(a) > dart.notNull(b))
       return b;
     if (dart.notNull(a) < dart.notNull(b))
@@ -287,9 +287,9 @@ dart_library.library('dart/math', null, /* Imports */[
   dart.fn(min, core.num, [core.num, core.num]);
   function max(a, b) {
     if (!dart.is(a, core.num))
-      throw new core.ArgumentError(a);
+      dart.throw(new core.ArgumentError(a));
     if (!dart.is(b, core.num))
-      throw new core.ArgumentError(b);
+      dart.throw(new core.ArgumentError(b));
     if (dart.notNull(a) > dart.notNull(b))
       return a;
     if (dart.notNull(a) < dart.notNull(b))
@@ -361,7 +361,7 @@ dart_library.library('dart/math', null, /* Imports */[
     }
     nextInt(max) {
       if (dart.notNull(max) <= 0 || dart.notNull(max) > dart.notNull(_POW2_32)) {
-        throw new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`);
+        dart.throw(new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`));
       }
       return Math.random() * max >>> 0;
     }
@@ -455,7 +455,7 @@ dart_library.library('dart/math', null, /* Imports */[
     }
     nextInt(max) {
       if (dart.notNull(max) <= 0 || dart.notNull(max) > dart.notNull(_POW2_32)) {
-        throw new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`);
+        dart.throw(new core.RangeError(`max must be in range 0 < max ≤ 2^32, was ${max}`));
       }
       if ((dart.notNull(max) & dart.notNull(max) - 1) == 0) {
         this[_nextState]();

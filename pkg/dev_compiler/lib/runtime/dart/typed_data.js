@@ -214,10 +214,10 @@ dart_library.library('dart/typed_data', null, /* Imports */[
   Uint32List.BYTES_PER_ELEMENT = 4;
   class Int64List extends core.Object {
     static new(length) {
-      throw new core.UnsupportedError("Int64List not supported by dart2js.");
+      dart.throw(new core.UnsupportedError("Int64List not supported by dart2js."));
     }
     static fromList(elements) {
-      throw new core.UnsupportedError("Int64List not supported by dart2js.");
+      dart.throw(new core.UnsupportedError("Int64List not supported by dart2js."));
     }
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)
@@ -238,10 +238,10 @@ dart_library.library('dart/typed_data', null, /* Imports */[
   Int64List.BYTES_PER_ELEMENT = 8;
   class Uint64List extends core.Object {
     static new(length) {
-      throw new core.UnsupportedError("Uint64List not supported by dart2js.");
+      dart.throw(new core.UnsupportedError("Uint64List not supported by dart2js."));
     }
     static fromList(elements) {
-      throw new core.UnsupportedError("Uint64List not supported by dart2js.");
+      dart.throw(new core.UnsupportedError("Uint64List not supported by dart2js."));
     }
     static view(buffer, offsetInBytes, length) {
       if (offsetInBytes === void 0)

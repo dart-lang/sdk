@@ -2322,9 +2322,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   visitThrowExpression(ThrowExpression node) {
     var expr = _visit(node.expression);
     if (node.parent is ExpressionStatement) {
-      return js.statement('throw #;', expr);
+      return js.statement('dart.throw(#);', expr);
     } else {
-      return js.call('dart.throw_(#)', expr);
+      return js.call('dart.throw(#)', expr);
     }
   }
 
@@ -2333,7 +2333,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
     if (node.parent is ExpressionStatement) {
       return js.statement('throw #;', _visit(_catchParameter));
     } else {
-      return js.call('dart.throw_(#)', _visit(_catchParameter));
+      return js.call('throw #', _visit(_catchParameter));
     }
   }
 
@@ -2599,7 +2599,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
       _unimplementedCall('Unimplemented ${node.runtimeType}: $node');
 
   JS.Expression _unimplementedCall(String comment) {
-    return js.call('dart.throw_(#)', [js.escapedString(comment)]);
+    return js.call('dart.throw(#)', [js.escapedString(comment)]);
   }
 
   @override

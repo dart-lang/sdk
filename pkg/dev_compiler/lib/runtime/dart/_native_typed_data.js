@@ -72,14 +72,14 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
         offsetInBytes = 0;
       if (length === void 0)
         length = null;
-      throw new core.UnsupportedError("Uint64List not supported by dart2js.");
+      dart.throw(new core.UnsupportedError("Uint64List not supported by dart2js."));
     }
     asInt64List(offsetInBytes, length) {
       if (offsetInBytes === void 0)
         offsetInBytes = 0;
       if (length === void 0)
         length = null;
-      throw new core.UnsupportedError("Int64List not supported by dart2js.");
+      dart.throw(new core.UnsupportedError("Int64List not supported by dart2js."));
     }
     asInt32x4List(offsetInBytes, length) {
       if (offsetInBytes === void 0)
@@ -194,11 +194,11 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     [_invalidIndex](index, length) {
       if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
         if (length == this.length) {
-          throw core.RangeError.index(index, this);
+          dart.throw(core.RangeError.index(index, this));
         }
-        throw new core.RangeError.range(index, 0, dart.notNull(length) - 1);
+        dart.throw(new core.RangeError.range(index, 0, dart.notNull(length) - 1));
       } else {
-        throw new core.ArgumentError(`Invalid list index ${index}`);
+        dart.throw(new core.ArgumentError(`Invalid list index ${index}`));
       }
     }
     [_checkIndex](index, length) {
@@ -212,7 +212,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
         return length;
       this[_checkIndex](end, dart.notNull(length) + 1);
       if (dart.notNull(start) > dart.notNull(end))
-        throw new core.RangeError.range(start, 0, end);
+        dart.throw(new core.RangeError.range(start, 0, end));
       return end;
     }
     get length() {
@@ -302,11 +302,11 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     [_invalidIndex](index, length) {
       if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
         if (length == this.length) {
-          throw core.RangeError.index(index, this);
+          dart.throw(core.RangeError.index(index, this));
         }
-        throw new core.RangeError.range(index, 0, dart.notNull(length) - 1);
+        dart.throw(new core.RangeError.range(index, 0, dart.notNull(length) - 1));
       } else {
-        throw new core.ArgumentError(`Invalid list index ${index}`);
+        dart.throw(new core.ArgumentError(`Invalid list index ${index}`));
       }
     }
     [_checkIndex](index, length) {
@@ -320,7 +320,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
         return length;
       this[_checkIndex](end, dart.notNull(length) + 1);
       if (dart.notNull(start) > dart.notNull(end))
-        throw new core.RangeError.range(start, 0, end);
+        dart.throw(new core.RangeError.range(start, 0, end));
       return end;
     }
     get length() {
@@ -408,11 +408,11 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     [_invalidIndex](index, length) {
       if (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(length)) {
         if (length == this.length) {
-          throw core.RangeError.index(index, this);
+          dart.throw(core.RangeError.index(index, this));
         }
-        throw new core.RangeError.range(index, 0, dart.notNull(length) - 1);
+        dart.throw(new core.RangeError.range(index, 0, dart.notNull(length) - 1));
       } else {
-        throw new core.ArgumentError(`Invalid list index ${index}`);
+        dart.throw(new core.ArgumentError(`Invalid list index ${index}`));
       }
     }
     [_checkIndex](index, length) {
@@ -426,7 +426,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
         return length;
       this[_checkIndex](end, dart.notNull(length) + 1);
       if (dart.notNull(start) > dart.notNull(end))
-        throw new core.RangeError.range(start, 0, end);
+        dart.throw(new core.RangeError.range(start, 0, end));
       return end;
     }
     get length() {
@@ -482,12 +482,12 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
         if (dart.is(this, core.List)) {
           let list = this;
           if (dart.equals(length, list.length)) {
-            throw core.RangeError.index(index, this);
+            dart.throw(core.RangeError.index(index, this));
           }
         }
-        throw new core.RangeError.range(index, 0, dart.notNull(length) - 1);
+        dart.throw(new core.RangeError.range(index, 0, dart.notNull(length) - 1));
       } else {
-        throw new core.ArgumentError(`Invalid list index ${index}`);
+        dart.throw(new core.ArgumentError(`Invalid list index ${index}`));
       }
     }
     [_checkIndex](index, length) {
@@ -501,7 +501,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
         return length;
       this[_checkIndex](end, dart.notNull(length) + 1);
       if (dart.notNull(start) > dart.notNull(end))
-        throw new core.RangeError.range(start, 0, end);
+        dart.throw(new core.RangeError.range(start, 0, end));
       return end;
     }
   }
@@ -516,19 +516,19 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
   NativeTypedData[dart.metadata] = () => [dart.const(new _js_helper.Native("ArrayBufferView"))];
   function _checkLength(length) {
     if (!(typeof length == 'number'))
-      throw new core.ArgumentError(`Invalid length ${length}`);
+      dart.throw(new core.ArgumentError(`Invalid length ${length}`));
     return dart.as(length, core.int);
   }
   dart.fn(_checkLength, core.int, [dart.dynamic]);
   function _checkViewArguments(buffer, offsetInBytes, length) {
     if (!dart.is(buffer, NativeByteBuffer)) {
-      throw new core.ArgumentError('Invalid view buffer');
+      dart.throw(new core.ArgumentError('Invalid view buffer'));
     }
     if (!(typeof offsetInBytes == 'number')) {
-      throw new core.ArgumentError(`Invalid view offsetInBytes ${offsetInBytes}`);
+      dart.throw(new core.ArgumentError(`Invalid view offsetInBytes ${offsetInBytes}`));
     }
     if (length != null && !(typeof length == 'number')) {
-      throw new core.ArgumentError(`Invalid view length ${length}`);
+      dart.throw(new core.ArgumentError(`Invalid view length ${length}`));
     }
   }
   dart.fn(_checkViewArguments, dart.void, [dart.dynamic, dart.dynamic, dart.dynamic]);
@@ -591,7 +591,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     getInt64(byteOffset, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      throw new core.UnsupportedError('Int64 accessor not supported by dart2js.');
+      dart.throw(new core.UnsupportedError('Int64 accessor not supported by dart2js.'));
     }
     getUint16(byteOffset, endian) {
       if (endian === void 0)
@@ -606,7 +606,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     getUint64(byteOffset, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      throw new core.UnsupportedError('Uint64 accessor not supported by dart2js.');
+      dart.throw(new core.UnsupportedError('Uint64 accessor not supported by dart2js.'));
     }
     setFloat32(byteOffset, value, endian) {
       if (endian === void 0)
@@ -631,7 +631,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     setInt64(byteOffset, value, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      throw new core.UnsupportedError('Int64 accessor not supported by dart2js.');
+      dart.throw(new core.UnsupportedError('Int64 accessor not supported by dart2js.'));
     }
     setUint16(byteOffset, value, endian) {
       if (endian === void 0)
@@ -646,7 +646,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     setUint64(byteOffset, value, endian) {
       if (endian === void 0)
         endian = typed_data.Endianness.BIG_ENDIAN;
-      throw new core.UnsupportedError('Uint64 accessor not supported by dart2js.');
+      dart.throw(new core.UnsupportedError('Uint64 accessor not supported by dart2js.'));
     }
     static _create1(arg) {
       return dart.as(new DataView(new ArrayBuffer(arg)), NativeByteData);
@@ -716,13 +716,13 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       this[_checkIndex](start, dart.notNull(targetLength) + 1);
       this[_checkIndex](end, dart.notNull(targetLength) + 1);
       if (dart.notNull(start) > dart.notNull(end))
-        throw new core.RangeError.range(start, 0, end);
+        dart.throw(new core.RangeError.range(start, 0, end));
       let count = dart.notNull(end) - dart.notNull(start);
       if (dart.notNull(skipCount) < 0)
-        throw new core.ArgumentError(skipCount);
+        dart.throw(new core.ArgumentError(skipCount));
       let sourceLength = source.length;
       if (dart.notNull(sourceLength) - dart.notNull(skipCount) < dart.notNull(count)) {
-        throw new core.StateError('Not enough elements');
+        dart.throw(new core.StateError('Not enough elements'));
       }
       if (skipCount != 0 || sourceLength != count) {
         source = dart.as(source.subarray(skipCount, dart.notNull(skipCount) + dart.notNull(count)), NativeTypedArray);
@@ -1288,13 +1288,13 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       this.z = dart.as(NativeFloat32x4._truncate(z), core.double);
       this.w = dart.as(NativeFloat32x4._truncate(w), core.double);
       if (!dart.is(x, core.num))
-        throw new core.ArgumentError(x);
+        dart.throw(new core.ArgumentError(x));
       if (!dart.is(y, core.num))
-        throw new core.ArgumentError(y);
+        dart.throw(new core.ArgumentError(y));
       if (!dart.is(z, core.num))
-        throw new core.ArgumentError(z);
+        dart.throw(new core.ArgumentError(z));
       if (!dart.is(w, core.num))
-        throw new core.ArgumentError(w);
+        dart.throw(new core.ArgumentError(w));
     }
     splat(v) {
       this.NativeFloat32x4(v, v, v, v);
@@ -1452,7 +1452,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     }
     shuffle(m) {
       if (dart.notNull(m) < 0 || dart.notNull(m) > 255) {
-        throw new core.RangeError(`mask ${m} must be in the range [0..256)`);
+        dart.throw(new core.RangeError(`mask ${m} must be in the range [0..256)`));
       }
       NativeFloat32x4._list.set(0, this.x);
       NativeFloat32x4._list.set(1, this.y);
@@ -1466,7 +1466,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     }
     shuffleMix(other, m) {
       if (dart.notNull(m) < 0 || dart.notNull(m) > 255) {
-        throw new core.RangeError(`mask ${m} must be in the range [0..256)`);
+        dart.throw(new core.RangeError(`mask ${m} must be in the range [0..256)`));
       }
       NativeFloat32x4._list.set(0, this.x);
       NativeFloat32x4._list.set(1, this.y);
@@ -1595,13 +1595,13 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       this.z = dart.as(NativeInt32x4._truncate(z), core.int);
       this.w = dart.as(NativeInt32x4._truncate(w), core.int);
       if (x != this.x && !(typeof x == 'number'))
-        throw new core.ArgumentError(x);
+        dart.throw(new core.ArgumentError(x));
       if (y != this.y && !(typeof y == 'number'))
-        throw new core.ArgumentError(y);
+        dart.throw(new core.ArgumentError(y));
       if (z != this.z && !(typeof z == 'number'))
-        throw new core.ArgumentError(z);
+        dart.throw(new core.ArgumentError(z));
       if (w != this.w && !(typeof w == 'number'))
-        throw new core.ArgumentError(w);
+        dart.throw(new core.ArgumentError(w));
     }
     bool(x, y, z, w) {
       this.x = dart.notNull(x) ? -1 : 0;
@@ -1654,7 +1654,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     }
     shuffle(mask) {
       if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
-        throw new core.RangeError(`mask ${mask} must be in the range [0..256)`);
+        dart.throw(new core.RangeError(`mask ${mask} must be in the range [0..256)`));
       }
       NativeInt32x4._list.set(0, this.x);
       NativeInt32x4._list.set(1, this.y);
@@ -1668,7 +1668,7 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     }
     shuffleMix(other, mask) {
       if (dart.notNull(mask) < 0 || dart.notNull(mask) > 255) {
-        throw new core.RangeError(`mask ${mask} must be in the range [0..256)`);
+        dart.throw(new core.RangeError(`mask ${mask} must be in the range [0..256)`));
       }
       NativeInt32x4._list.set(0, this.x);
       NativeInt32x4._list.set(1, this.y);
@@ -1800,9 +1800,9 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
       this.x = x;
       this.y = y;
       if (!dart.is(this.x, core.num))
-        throw new core.ArgumentError(this.x);
+        dart.throw(new core.ArgumentError(this.x));
       if (!dart.is(this.y, core.num))
-        throw new core.ArgumentError(this.y);
+        dart.throw(new core.ArgumentError(this.y));
     }
     splat(v) {
       this.NativeFloat64x2(v, v);
@@ -1864,12 +1864,12 @@ dart_library.library('dart/_native_typed_data', null, /* Imports */[
     }
     withX(x) {
       if (!dart.is(x, core.num))
-        throw new core.ArgumentError(x);
+        dart.throw(new core.ArgumentError(x));
       return new NativeFloat64x2._doubles(x, this.y);
     }
     withY(y) {
       if (!dart.is(y, core.num))
-        throw new core.ArgumentError(y);
+        dart.throw(new core.ArgumentError(y));
       return new NativeFloat64x2._doubles(this.x, y);
     }
     min(other) {

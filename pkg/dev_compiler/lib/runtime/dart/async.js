@@ -278,7 +278,7 @@ dart_library.library('dart/async', null, /* Imports */[
         }, dart.dynamic, [T]), {onError: dart.bind(result, _completeError), onDone: dart.fn(() => {
             if (!dart.notNull(seenFirst)) {
               try {
-                throw _internal.IterableElementError.noElement();
+                dart.throw(_internal.IterableElementError.noElement());
               } catch (e) {
                 let s = dart.stackTrace(e);
                 _completeWithErrorCallback(result, e, s);
@@ -469,7 +469,7 @@ dart_library.library('dart/async', null, /* Imports */[
           _cancelAndValue(subscription, future, value);
         }, dart.dynamic, [T]), {onError: dart.bind(future, _completeError), onDone: dart.fn(() => {
             try {
-              throw _internal.IterableElementError.noElement();
+              dart.throw(_internal.IterableElementError.noElement());
             } catch (e) {
               let s = dart.stackTrace(e);
               _completeWithErrorCallback(future, e, s);
@@ -493,7 +493,7 @@ dart_library.library('dart/async', null, /* Imports */[
               return;
             }
             try {
-              throw _internal.IterableElementError.noElement();
+              dart.throw(_internal.IterableElementError.noElement());
             } catch (e) {
               let s = dart.stackTrace(e);
               _completeWithErrorCallback(future, e, s);
@@ -511,7 +511,7 @@ dart_library.library('dart/async', null, /* Imports */[
           dart.as(value, T);
           if (dart.notNull(foundResult)) {
             try {
-              throw _internal.IterableElementError.tooMany();
+              dart.throw(_internal.IterableElementError.tooMany());
             } catch (e) {
               let s = dart.stackTrace(e);
               _cancelAndErrorWithReplacement(subscription, future, e, s);
@@ -527,7 +527,7 @@ dart_library.library('dart/async', null, /* Imports */[
               return;
             }
             try {
-              throw _internal.IterableElementError.noElement();
+              dart.throw(_internal.IterableElementError.noElement());
             } catch (e) {
               let s = dart.stackTrace(e);
               _completeWithErrorCallback(future, e, s);
@@ -555,7 +555,7 @@ dart_library.library('dart/async', null, /* Imports */[
               return;
             }
             try {
-              throw _internal.IterableElementError.noElement();
+              dart.throw(_internal.IterableElementError.noElement());
             } catch (e) {
               let s = dart.stackTrace(e);
               _completeWithErrorCallback(future, e, s);
@@ -590,7 +590,7 @@ dart_library.library('dart/async', null, /* Imports */[
               return;
             }
             try {
-              throw _internal.IterableElementError.noElement();
+              dart.throw(_internal.IterableElementError.noElement());
             } catch (e) {
               let s = dart.stackTrace(e);
               _completeWithErrorCallback(future, e, s);
@@ -611,7 +611,7 @@ dart_library.library('dart/async', null, /* Imports */[
             if (dart.notNull(isMatch)) {
               if (dart.notNull(foundResult)) {
                 try {
-                  throw _internal.IterableElementError.tooMany();
+                  dart.throw(_internal.IterableElementError.tooMany());
                 } catch (e) {
                   let s = dart.stackTrace(e);
                   _cancelAndErrorWithReplacement(subscription, future, e, s);
@@ -629,7 +629,7 @@ dart_library.library('dart/async', null, /* Imports */[
               return;
             }
             try {
-              throw _internal.IterableElementError.noElement();
+              dart.throw(_internal.IterableElementError.noElement());
             } catch (e) {
               let s = dart.stackTrace(e);
               _completeWithErrorCallback(future, e, s);
@@ -640,7 +640,7 @@ dart_library.library('dart/async', null, /* Imports */[
       }
       elementAt(index) {
         if (!(typeof index == 'number') || dart.notNull(index) < 0)
-          throw new core.ArgumentError(index);
+          dart.throw(new core.ArgumentError(index));
         let future = new (_Future$(T))();
         let subscription = null;
         let elementIndex = 0;
@@ -1425,7 +1425,7 @@ dart_library.library('dart/async', null, /* Imports */[
       add(data) {
         dart.as(data, T);
         if (!dart.notNull(this[_mayAddEvent]))
-          throw this[_addEventError]();
+          dart.throw(this[_addEventError]());
         this[_sendData](data);
       }
       addError(error, stackTrace) {
@@ -1433,7 +1433,7 @@ dart_library.library('dart/async', null, /* Imports */[
           stackTrace = null;
         error = _nonNullError(error);
         if (!dart.notNull(this[_mayAddEvent]))
-          throw this[_addEventError]();
+          dart.throw(this[_addEventError]());
         let replacement = Zone.current.errorCallback(error, stackTrace);
         if (replacement != null) {
           error = _nonNullError(replacement.error);
@@ -1447,7 +1447,7 @@ dart_library.library('dart/async', null, /* Imports */[
           return this[_doneFuture];
         }
         if (!dart.notNull(this[_mayAddEvent]))
-          throw this[_addEventError]();
+          dart.throw(this[_addEventError]());
         this[_state] = dart.notNull(this[_state]) | dart.notNull(_BroadcastStreamController$()._STATE_CLOSED);
         let doneFuture = this[_ensureDoneFuture]();
         this[_sendDone]();
@@ -1460,7 +1460,7 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.as(stream, Stream$(T));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : true;
         if (!dart.notNull(this[_mayAddEvent]))
-          throw this[_addEventError]();
+          dart.throw(this[_addEventError]());
         this[_state] = dart.notNull(this[_state]) | dart.notNull(_BroadcastStreamController$()._STATE_ADDSTREAM);
         this[_addStreamState] = new (_AddStreamState$(T))(this, stream, cancelOnError);
         return this[_addStreamState].addStreamFuture;
@@ -1482,7 +1482,7 @@ dart_library.library('dart/async', null, /* Imports */[
       [_forEachListener](action) {
         dart.as(action, dart.functionType(dart.void, [_BufferingStreamSubscription$(T)]));
         if (dart.notNull(this[_isFiring])) {
-          throw new core.StateError("Cannot fire new event. Controller is already firing an event");
+          dart.throw(new core.StateError("Cannot fire new event. Controller is already firing an event"));
         }
         if (dart.notNull(this[_isEmpty]))
           return;
@@ -1681,7 +1681,7 @@ dart_library.library('dart/async', null, /* Imports */[
           return;
         }
         if (!dart.notNull(this[_mayAddEvent]))
-          throw this[_addEventError]();
+          dart.throw(this[_addEventError]());
         this[_sendError](error, stackTrace);
         while (dart.notNull(this[_hasPending])) {
           this[_pending].handleNext(this);
@@ -1785,7 +1785,7 @@ dart_library.library('dart/async', null, /* Imports */[
       this.uri = uri;
     }
     load() {
-      throw 'DeferredLibrary not supported. ' + 'please use the `import "lib.dart" deferred as lib` syntax.';
+      dart.throw('DeferredLibrary not supported. ' + 'please use the `import "lib.dart" deferred as lib` syntax.');
     }
   }
   dart.setSignature(DeferredLibrary, {
@@ -2056,7 +2056,7 @@ dart_library.library('dart/async', null, /* Imports */[
           stackTrace = null;
         error = _nonNullError(error);
         if (!dart.notNull(this.future[_mayComplete]))
-          throw new core.StateError("Future already completed");
+          dart.throw(new core.StateError("Future already completed"));
         let replacement = Zone.current.errorCallback(error, stackTrace);
         if (replacement != null) {
           error = _nonNullError(replacement.error);
@@ -2085,7 +2085,7 @@ dart_library.library('dart/async', null, /* Imports */[
         if (value === void 0)
           value = null;
         if (!dart.notNull(this.future[_mayComplete]))
-          throw new core.StateError("Future already completed");
+          dart.throw(new core.StateError("Future already completed"));
         this.future[_asyncComplete](value);
       }
       [_completeError](error, stackTrace) {
@@ -2110,7 +2110,7 @@ dart_library.library('dart/async', null, /* Imports */[
         if (value === void 0)
           value = null;
         if (!dart.notNull(this.future[_mayComplete]))
-          throw new core.StateError("Future already completed");
+          dart.throw(new core.StateError("Future already completed"));
         this.future[_complete](value);
       }
       [_completeError](error, stackTrace) {
@@ -2308,7 +2308,7 @@ dart_library.library('dart/async', null, /* Imports */[
       }
       [_markPendingCompletion]() {
         if (!dart.notNull(this[_mayComplete]))
-          throw new core.StateError("Future already completed");
+          dart.throw(new core.StateError("Future already completed"));
         this[_state] = _Future$()._PENDING_COMPLETE;
       }
       get [_value]() {
@@ -3093,7 +3093,7 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.as(source, Stream$(T));
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : true;
         if (!dart.notNull(this[_mayAddEvent]))
-          throw this[_badEventState]();
+          dart.throw(this[_badEventState]());
         if (dart.notNull(this[_isCanceled]))
           return new _Future.immediate(null);
         let addState = new _StreamControllerAddStreamState(this, this[_varData], source, cancelOnError);
@@ -3113,7 +3113,7 @@ dart_library.library('dart/async', null, /* Imports */[
       add(value) {
         dart.as(value, T);
         if (!dart.notNull(this[_mayAddEvent]))
-          throw this[_badEventState]();
+          dart.throw(this[_badEventState]());
         this[_add](value);
       }
       addError(error, stackTrace) {
@@ -3121,7 +3121,7 @@ dart_library.library('dart/async', null, /* Imports */[
           stackTrace = null;
         error = _nonNullError(error);
         if (!dart.notNull(this[_mayAddEvent]))
-          throw this[_badEventState]();
+          dart.throw(this[_badEventState]());
         let replacement = Zone.current.errorCallback(error, stackTrace);
         if (replacement != null) {
           error = _nonNullError(replacement.error);
@@ -3134,7 +3134,7 @@ dart_library.library('dart/async', null, /* Imports */[
           return this[_ensureDoneFuture]();
         }
         if (!dart.notNull(this[_mayAddEvent]))
-          throw this[_badEventState]();
+          dart.throw(this[_badEventState]());
         this[_closeUnchecked]();
         return this[_ensureDoneFuture]();
       }
@@ -3172,7 +3172,7 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.as(onData, dart.functionType(dart.void, [T]));
         dart.as(onDone, dart.functionType(dart.void, []));
         if (!dart.notNull(this[_isInitialState])) {
-          throw new core.StateError("Stream has already been listened to.");
+          dart.throw(new core.StateError("Stream has already been listened to."));
         }
         let subscription = new _ControllerSubscription(this, onData, onError, onDone, cancelOnError);
         let pendingEvents = this[_pendingEvents];
@@ -3526,7 +3526,7 @@ dart_library.library('dart/async', null, /* Imports */[
         dart.as(onData, dart.functionType(dart.void, [T]));
         dart.as(onDone, dart.functionType(dart.void, []));
         if (dart.notNull(this[_isUsed]))
-          throw new core.StateError("Stream has already been listened to.");
+          dart.throw(new core.StateError("Stream has already been listened to."));
         this[_isUsed] = true;
         return dart.as((() => {
           let _ = new _BufferingStreamSubscription(onData, onError, onDone, cancelOnError);
@@ -3594,7 +3594,7 @@ dart_library.library('dart/async', null, /* Imports */[
       }
       handleNext(dispatch) {
         if (this[_iterator] == null) {
-          throw new core.StateError("No events pending.");
+          dart.throw(new core.StateError("No events pending."));
         }
         let isDone = null;
         try {
@@ -3698,7 +3698,7 @@ dart_library.library('dart/async', null, /* Imports */[
       return null;
     }
     set next(_) {
-      throw new core.StateError("No events after a done.");
+      dart.throw(new core.StateError("No events after a done."));
     }
   }
   _DelayedDone[dart.implements] = () => [_DelayedEvent];
@@ -3964,14 +3964,14 @@ dart_library.library('dart/async', null, /* Imports */[
       }
       onData(handleData) {
         dart.as(handleData, dart.functionType(dart.void, [T]));
-        throw new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
+        dart.throw(new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription."));
       }
       onError(handleError) {
-        throw new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
+        dart.throw(new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription."));
       }
       onDone(handleDone) {
         dart.as(handleDone, dart.functionType(dart.void, []));
-        throw new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
+        dart.throw(new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription."));
       }
       pause(resumeSignal) {
         if (resumeSignal === void 0)
@@ -3991,7 +3991,7 @@ dart_library.library('dart/async', null, /* Imports */[
       asFuture(futureValue) {
         if (futureValue === void 0)
           futureValue = null;
-        throw new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription.");
+        dart.throw(new core.UnsupportedError("Cannot change handlers of asBroadcastStream source subscription."));
       }
     }
     _BroadcastSubscriptionWrapper[dart.implements] = () => [StreamSubscription$(T)];
@@ -4030,7 +4030,7 @@ dart_library.library('dart/async', null, /* Imports */[
           return new (_Future$(core.bool)).immediate(false);
         }
         if (this[_state] == _StreamIteratorImpl$()._STATE_MOVING) {
-          throw new core.StateError("Already waiting for next.");
+          dart.throw(new core.StateError("Already waiting for next."));
         }
         if (this[_state] == _StreamIteratorImpl$()._STATE_FOUND) {
           this[_state] = _StreamIteratorImpl$()._STATE_MOVING;
@@ -4470,7 +4470,7 @@ dart_library.library('dart/async', null, /* Imports */[
         this[_remaining] = count;
         super._ForwardingStream(source);
         if (!(typeof count == 'number'))
-          throw new core.ArgumentError(count);
+          dart.throw(new core.ArgumentError(count));
       }
       [_handleData](inputEvent, sink) {
         dart.as(inputEvent, T);
@@ -4530,7 +4530,7 @@ dart_library.library('dart/async', null, /* Imports */[
         this[_remaining] = count;
         super._ForwardingStream(source);
         if (!(typeof count == 'number') || dart.notNull(count) < 0)
-          throw new core.ArgumentError(count);
+          dart.throw(new core.ArgumentError(count));
       }
       [_handleData](inputEvent, sink) {
         dart.as(inputEvent, T);
@@ -4688,19 +4688,19 @@ dart_library.library('dart/async', null, /* Imports */[
       [_add](data) {
         dart.as(data, T);
         if (dart.notNull(this[_isClosed])) {
-          throw new core.StateError("Stream is already closed");
+          dart.throw(new core.StateError("Stream is already closed"));
         }
         super[_add](data);
       }
       [_addError](error, stackTrace) {
         if (dart.notNull(this[_isClosed])) {
-          throw new core.StateError("Stream is already closed");
+          dart.throw(new core.StateError("Stream is already closed"));
         }
         super[_addError](error, stackTrace);
       }
       [_close]() {
         if (dart.notNull(this[_isClosed])) {
-          throw new core.StateError("Stream is already closed");
+          dart.throw(new core.StateError("Stream is already closed"));
         }
         super[_close]();
       }
@@ -5673,7 +5673,7 @@ dart_library.library('dart/async', null, /* Imports */[
   });
   function _rootHandleUncaughtError(self, parent, zone, error, stackTrace) {
     _schedulePriorityAsyncCallback(dart.fn(() => {
-      throw new _UncaughtAsyncError(error, stackTrace);
+      dart.throw(new _UncaughtAsyncError(error, stackTrace));
     }));
   }
   dart.fn(_rootHandleUncaughtError, dart.void, [Zone, ZoneDelegate, Zone, dart.dynamic, core.StackTrace]);
@@ -5761,7 +5761,7 @@ dart_library.library('dart/async', null, /* Imports */[
     if (specification == null) {
       specification = dart.const(ZoneSpecification.new());
     } else if (!dart.is(specification, _ZoneSpecification)) {
-      throw new core.ArgumentError("ZoneSpecifications must be instantiated" + " with the provided constructor.");
+      dart.throw(new core.ArgumentError("ZoneSpecifications must be instantiated" + " with the provided constructor."));
     }
     let valueMap = null;
     if (zoneValues == null) {

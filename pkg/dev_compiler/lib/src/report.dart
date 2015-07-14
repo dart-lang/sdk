@@ -97,8 +97,8 @@ class SummaryReporter implements AnalysisErrorListener {
     if (summary is LibrarySummary) {
       summary.countSourceLines(_context, error.source);
     }
-    summary.messages.add(new MessageSummary(
-        errorCodeName(code), code.errorSeverity.displayName, span, error.message));
+    summary.messages.add(new MessageSummary(errorCodeName(code),
+        code.errorSeverity.displayName, span, error.message));
   }
 
   void clearLibrary(Uri uri) {

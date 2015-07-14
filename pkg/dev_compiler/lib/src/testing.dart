@@ -209,8 +209,8 @@ class _ExpectedErrorVisitor extends UnifyingAstVisitor {
   }
 
   SourceSpan _createSpan(int offset, int len) {
-    return createSpanHelper(
-        _unit.lineInfo, offset, offset + len, _unit.element.source, _unitSourceCode);
+    return createSpanHelper(_unit.lineInfo, offset, offset + len,
+        _unit.element.source, _unitSourceCode);
   }
 }
 

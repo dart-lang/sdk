@@ -267,7 +267,7 @@ dart_library.library('expect', null, /* Imports */[
       return reason == null ? "" : `, '${reason}'`;
     }
     static _fail(message) {
-      throw new ExpectException(message);
+      dart.throw(new ExpectException(message));
     }
   }
   dart.setSignature(Expect, {

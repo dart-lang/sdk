@@ -12,12 +12,12 @@ dart_library.library('dart/_js_mirrors', null, /* Imports */[
   }
   dart.fn(getName, core.String, [core.Symbol]);
   function getSymbol(name, library) {
-    return dart.throw_(new core.UnimplementedError("MirrorSystem.getSymbol unimplemented"));
+    return dart.throw(new core.UnimplementedError("MirrorSystem.getSymbol unimplemented"));
   }
   dart.fn(getSymbol, core.Symbol, [dart.dynamic, dart.dynamic]);
   dart.defineLazyProperties(exports, {
     get currentJsMirrorSystem() {
-      return dart.throw_(new core.UnimplementedError("MirrorSystem.currentJsMirrorSystem unimplemented"));
+      return dart.throw(new core.UnimplementedError("MirrorSystem.currentJsMirrorSystem unimplemented"));
     }
   });
   function reflect(reflectee) {

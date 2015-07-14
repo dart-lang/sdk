@@ -29,13 +29,13 @@ dart_library.library('dart/js', null, /* Imports */[
     }
     static fromBrowserObject(object) {
       if (dart.is(object, core.num) || typeof object == 'string' || typeof object == 'boolean' || object == null) {
-        throw new core.ArgumentError("object cannot be a num, string, bool, or null");
+        dart.throw(new core.ArgumentError("object cannot be a num, string, bool, or null"));
       }
       return dart.as(_wrapToDart(_convertToJS(object)), JsObject);
     }
     static jsify(object) {
       if (!dart.is(object, core.Map) && !dart.is(object, core.Iterable)) {
-        throw new core.ArgumentError("object must be a Map or Iterable");
+        dart.throw(new core.ArgumentError("object must be a Map or Iterable"));
       }
       return dart.as(_wrapToDart(JsObject._convertDataTree(object)), JsObject);
     }
@@ -66,13 +66,13 @@ dart_library.library('dart/js', null, /* Imports */[
     }
     get(property) {
       if (!(typeof property == 'string') && !dart.is(property, core.num)) {
-        throw new core.ArgumentError("property is not a String or num");
+        dart.throw(new core.ArgumentError("property is not a String or num"));
       }
       return _convertToDart(this[_jsObject][property]);
     }
     set(property, value) {
       if (!(typeof property == 'string') && !dart.is(property, core.num)) {
-        throw new core.ArgumentError("property is not a String or num");
+        dart.throw(new core.ArgumentError("property is not a String or num"));
       }
       this[_jsObject][property] = _convertToJS(value);
     }
@@ -84,13 +84,13 @@ dart_library.library('dart/js', null, /* Imports */[
     }
     hasProperty(property) {
       if (!(typeof property == 'string') && !dart.is(property, core.num)) {
-        throw new core.ArgumentError("property is not a String or num");
+        dart.throw(new core.ArgumentError("property is not a String or num"));
       }
       return property in this[_jsObject];
     }
     deleteProperty(property) {
       if (!(typeof property == 'string') && !dart.is(property, core.num)) {
-        throw new core.ArgumentError("property is not a String or num");
+        dart.throw(new core.ArgumentError("property is not a String or num"));
       }
       delete this[_jsObject][property];
     }
@@ -109,13 +109,13 @@ dart_library.library('dart/js', null, /* Imports */[
       if (args === void 0)
         args = null;
       if (!(typeof method == 'string') && !dart.is(method, core.num)) {
-        throw new core.ArgumentError("method is not a String or num");
+        dart.throw(new core.ArgumentError("method is not a String or num"));
       }
       if (args != null)
         args = core.List.from(args[dartx.map](_convertToJS));
       let fn = this[_jsObject][method];
       if (!(fn instanceof Function)) {
-        throw new core.NoSuchMethodError(this[_jsObject], core.Symbol.new(dart.as(method, core.String)), args, dart.map());
+        dart.throw(new core.NoSuchMethodError(this[_jsObject], core.Symbol.new(dart.as(method, core.String)), args, dart.map()));
       }
       return _convertToDart(fn.apply(this[_jsObject], args));
     }
@@ -184,20 +184,20 @@ dart_library.library('dart/js', null, /* Imports */[
       }
       [_checkIndex](index) {
         if (typeof index == 'number' && (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(this.length))) {
-          throw new core.RangeError.range(index, 0, this.length);
+          dart.throw(new core.RangeError.range(index, 0, this.length));
         }
       }
       [_checkInsertIndex](index) {
         if (typeof index == 'number' && (dart.notNull(index) < 0 || dart.notNull(index) >= dart.notNull(this.length) + 1)) {
-          throw new core.RangeError.range(index, 0, this.length);
+          dart.throw(new core.RangeError.range(index, 0, this.length));
         }
       }
       static _checkRange(start, end, length) {
         if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(length)) {
-          throw new core.RangeError.range(start, 0, length);
+          dart.throw(new core.RangeError.range(start, 0, length));
         }
         if (dart.notNull(end) < dart.notNull(start) || dart.notNull(end) > dart.notNull(length)) {
-          throw new core.RangeError.range(end, start, length);
+          dart.throw(new core.RangeError.range(end, start, length));
         }
       }
       get(index) {
@@ -218,7 +218,7 @@ dart_library.library('dart/js', null, /* Imports */[
         if (typeof len === "number" && len >>> 0 === len) {
           return len;
         }
-        throw new core.StateError('Bad JsArray length');
+        dart.throw(new core.StateError('Bad JsArray length'));
       }
       set length(length) {
         super.set('length', length);
@@ -243,7 +243,7 @@ dart_library.library('dart/js', null, /* Imports */[
       }
       removeLast() {
         if (this.length == 0)
-          throw new core.RangeError(-1);
+          dart.throw(new core.RangeError(-1));
         return dart.as(this.callMethod('pop'), E);
       }
       removeRange(start, end) {
@@ -259,7 +259,7 @@ dart_library.library('dart/js', null, /* Imports */[
         if (length == 0)
           return;
         if (dart.notNull(skipCount) < 0)
-          throw new core.ArgumentError(skipCount);
+          dart.throw(new core.ArgumentError(skipCount));
         let args = [start, length];
         args[dartx.addAll](iterable[dartx.skip](skipCount)[dartx.take](length));
         this.callMethod('splice', args);

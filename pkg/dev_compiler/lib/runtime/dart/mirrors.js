@@ -37,11 +37,11 @@ dart_library.library('dart/mirrors', null, /* Imports */[
   dart.fn(reflect, () => dart.definiteFunctionType(InstanceMirror, [core.Object]));
   function reflectClass(key) {
     if (!dart.is(key, core.Type) || dart.equals(key, dart.dynamic)) {
-      throw new core.ArgumentError(`${key} does not denote a class`);
+      dart.throw(new core.ArgumentError(`${key} does not denote a class`));
     }
     let tm = reflectType(key);
     if (!dart.is(tm, ClassMirror)) {
-      throw new core.ArgumentError(`${key} does not denote a class`);
+      dart.throw(new core.ArgumentError(`${key} does not denote a class`));
     }
     return dart.as(dart.as(tm, ClassMirror).originalDeclaration, ClassMirror);
   }

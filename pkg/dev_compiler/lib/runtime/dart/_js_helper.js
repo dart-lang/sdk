@@ -128,7 +128,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       if (regexp instanceof RegExp)
         return regexp;
       let errorMessage = String(regexp);
-      throw new core.FormatException(`Illegal RegExp pattern: ${source}, ${errorMessage}`);
+      dart.throw(new core.FormatException(`Illegal RegExp pattern: ${source}, ${errorMessage}`));
     }
     firstMatch(string) {
       let m = dart.as(this[_nativeRegExp].exec(checkString(string)), core.List$(core.String));
@@ -151,7 +151,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       checkString(string);
       checkInt(start);
       if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(string[dartx.length])) {
-        throw new core.RangeError.range(start, 0, string[dartx.length]);
+        dart.throw(new core.RangeError.range(start, 0, string[dartx.length]));
       }
       return new _AllMatchesIterable(this, string, start);
     }
@@ -178,7 +178,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       if (start === void 0)
         start = 0;
       if (dart.notNull(start) < 0 || dart.notNull(start) > dart.notNull(string[dartx.length])) {
-        throw new core.RangeError.range(start, 0, string[dartx.length]);
+        dart.throw(new core.RangeError.range(start, 0, string[dartx.length]));
       }
       return this[_execAnchored](string, start);
     }
@@ -325,7 +325,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     }
     group(group_) {
       if (group_ != 0) {
-        throw new core.RangeError.value(group_);
+        dart.throw(new core.RangeError.value(group_));
       }
       return this.pattern;
     }
@@ -421,7 +421,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       return stringReplaceJS(receiver, re, to);
     } else {
       checkNull(from);
-      throw "String.replaceAll(Pattern) UNIMPLEMENTED";
+      dart.throw("String.replaceAll(Pattern) UNIMPLEMENTED");
     }
   }
   dart.fn(stringReplaceAllUnchecked);
@@ -435,7 +435,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   dart.fn(_stringIdentity, core.String, [core.String]);
   function stringReplaceAllFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
     if (!dart.is(pattern, core.Pattern)) {
-      throw new core.ArgumentError(`${pattern} is not a Pattern`);
+      dart.throw(new core.ArgumentError(`${pattern} is not a Pattern`));
     }
     if (onMatch == null)
       onMatch = _matchString;
@@ -512,7 +512,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       return startIndex == 0 ? stringReplaceJS(receiver, regExpGetNative(dart.as(from, JSSyntaxRegExp)), to) : stringReplaceFirstRE(receiver, from, to, startIndex);
     } else {
       checkNull(from);
-      throw "String.replace(Pattern) UNIMPLEMENTED";
+      dart.throw("String.replace(Pattern) UNIMPLEMENTED");
     }
   }
   dart.fn(stringReplaceFirstUnchecked, dart.dynamic, [dart.dynamic, dart.dynamic, dart.dynamic], [core.int]);
@@ -561,7 +561,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       return hash;
     }
     static _throwFormatException(string) {
-      throw new core.FormatException(string);
+      dart.throw(new core.FormatException(string));
     }
     static parseInt(source, radix, handleError) {
       if (handleError == null)
@@ -585,9 +585,9 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
         }
       } else {
         if (!(typeof radix == 'number'))
-          throw new core.ArgumentError("Radix is not an integer");
+          dart.throw(new core.ArgumentError("Radix is not an integer"));
         if (dart.notNull(radix) < 2 || dart.notNull(radix) > 36) {
-          throw new core.RangeError(`Radix ${radix} not in range 2..36`);
+          dart.throw(new core.RangeError(`Radix ${radix} not in range 2..36`));
         }
         if (match != null) {
           if (radix == 10 && dart.dindex(match, decimalIndex) != null) {
@@ -690,14 +690,14 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       let a = dart.list([], core.int);
       for (let i of dart.as(codePoints, core.Iterable)) {
         if (!(typeof i == 'number'))
-          throw new core.ArgumentError(i);
+          dart.throw(new core.ArgumentError(i));
         if (dart.notNull(dart.as(dart.dsend(i, '<=', 65535), core.bool))) {
           a[dartx.add](dart.as(i, core.int));
         } else if (dart.notNull(dart.as(dart.dsend(i, '<=', 1114111), core.bool))) {
           a[dartx.add]((55296)[dartx['+']](dart.as(dart.dsend(dart.dsend(dart.dsend(i, '-', 65536), '>>', 10), '&', 1023), core.num)));
           a[dartx.add]((56320)[dartx['+']](dart.as(dart.dsend(i, '&', 1023), core.num)));
         } else {
-          throw new core.ArgumentError(i);
+          dart.throw(new core.ArgumentError(i));
         }
       }
       return Primitives._fromCharCodeApply(a);
@@ -705,9 +705,9 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     static stringFromCharCodes(charCodes) {
       for (let i of dart.as(charCodes, core.Iterable)) {
         if (!(typeof i == 'number'))
-          throw new core.ArgumentError(i);
+          dart.throw(new core.ArgumentError(i));
         if (dart.notNull(dart.as(dart.dsend(i, '<', 0), core.bool)))
-          throw new core.ArgumentError(i);
+          dart.throw(new core.ArgumentError(i));
         if (dart.notNull(dart.as(dart.dsend(i, '>', 65535), core.bool)))
           return Primitives.stringFromCodePoints(charCodes);
       }
@@ -725,7 +725,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
           return String.fromCharCode(high, low);
         }
       }
-      throw new core.RangeError.range(dart.as(charCode, core.num), 0, 1114111);
+      dart.throw(new core.RangeError.range(dart.as(charCode, core.num), 0, 1114111));
     }
     static stringConcatUnchecked(string1, string2) {
       return _foreign_helper.JS_STRING_CONCAT(string1, string2);
@@ -815,21 +815,21 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     }
     static valueFromDateString(str) {
       if (!(typeof str == 'string'))
-        throw new core.ArgumentError(str);
+        dart.throw(new core.ArgumentError(str));
       let value = Date.parse(str);
       if (dart.notNull(value[dartx.isNaN]))
-        throw new core.ArgumentError(str);
+        dart.throw(new core.ArgumentError(str));
       return value;
     }
     static getProperty(object, key) {
       if (object == null || typeof object == 'boolean' || dart.is(object, core.num) || typeof object == 'string') {
-        throw new core.ArgumentError(object);
+        dart.throw(new core.ArgumentError(object));
       }
       return object[key];
     }
     static setProperty(object, key, value) {
       if (object == null || typeof object == 'boolean' || dart.is(object, core.num) || typeof object == 'string') {
-        throw new core.ArgumentError(object);
+        dart.throw(new core.ArgumentError(object));
       }
       object[key] = value;
     }
@@ -890,44 +890,44 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
   dart.fn(stringLastIndexOfUnchecked);
   function checkNull(object) {
     if (object == null)
-      throw new core.ArgumentError(null);
+      dart.throw(new core.ArgumentError(null));
     return object;
   }
   dart.fn(checkNull);
   function checkNum(value) {
     if (!dart.is(value, core.num)) {
-      throw new core.ArgumentError(value);
+      dart.throw(new core.ArgumentError(value));
     }
     return value;
   }
   dart.fn(checkNum);
   function checkInt(value) {
     if (!(typeof value == 'number')) {
-      throw new core.ArgumentError(value);
+      dart.throw(new core.ArgumentError(value));
     }
     return value;
   }
   dart.fn(checkInt);
   function checkBool(value) {
     if (!(typeof value == 'boolean')) {
-      throw new core.ArgumentError(value);
+      dart.throw(new core.ArgumentError(value));
     }
     return value;
   }
   dart.fn(checkBool);
   function checkString(value) {
     if (!(typeof value == 'string')) {
-      throw new core.ArgumentError(value);
+      dart.throw(new core.ArgumentError(value));
     }
     return value;
   }
   dart.fn(checkString);
   function throwRuntimeError(message) {
-    throw new RuntimeError(message);
+    dart.throw(new RuntimeError(message));
   }
   dart.fn(throwRuntimeError);
   function throwAbstractClassInstantiationError(className) {
-    throw new core.AbstractClassInstantiationError(dart.as(className, core.String));
+    dart.throw(new core.AbstractClassInstantiationError(dart.as(className, core.String)));
   }
   dart.fn(throwAbstractClassInstantiationError);
   let _message = Symbol('_message');

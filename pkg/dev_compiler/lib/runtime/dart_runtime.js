@@ -79,8 +79,9 @@ dart_library.library('dart_runtime/dart', null, /* Imports */[
     'map',
     'noSuchMethod',
     'notNull',
+    'stackPrint',
     'stackTrace',
-    'throw_',
+    'throw',
     'toString',
   ])
   // Renames

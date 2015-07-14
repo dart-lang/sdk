@@ -240,8 +240,8 @@ class HtmlSourceNode extends SourceNode {
 
     // TODO(jmesserly): should these be errors or warnings?
     var errorCode = new HtmlWarningCode('dev_compiler.$runtimeType', message);
-    graph._reporter.onError(new AnalysisError(
-        _source, span.start.offset, span.length, errorCode));
+    graph._reporter.onError(
+        new AnalysisError(_source, span.start.offset, span.length, errorCode));
   }
 }
 
@@ -370,8 +370,8 @@ class DartSourceNode extends SourceNode {
   }
 
   void _reportError(SourceGraph graph, String message, AstNode node) {
-    graph._reporter.onError(new AnalysisError(_source, node.offset,
-        node.length, new CompileTimeErrorCode('dev_compiler.$runtimeType', message)));
+    graph._reporter.onError(new AnalysisError(_source, node.offset, node.length,
+        new CompileTimeErrorCode('dev_compiler.$runtimeType', message)));
   }
 }
 

@@ -119,8 +119,13 @@ var dart_library;
     if (_bootstrapped) return;
     _bootstrapped = true;
 
-   // Force import of core.
-    import_('dart/core');
+    // Force import of core.
+    var core = import_('dart/core');
+    core.Object.toString = function() {
+      // Interface types are represented by the corresponding constructor
+      // function.  This ensures that Dart interface types print properly.
+      return this.name;
+    }
 
     // TODO(vsm): DOM facades?
     // See: https://github.com/dart-lang/dev_compiler/issues/173

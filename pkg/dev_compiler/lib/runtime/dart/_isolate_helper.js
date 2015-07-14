@@ -75,7 +75,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         message = null;
       if (message == null)
         message = "Can't transmit:";
-      throw new core.UnsupportedError(`${message} ${x}`);
+      dart.throw(new core.UnsupportedError(`${message} ${x}`));
     }
     makeRef(serializationId) {
       return ["ref", serializationId];
@@ -200,7 +200,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       if (dart.notNull(this.isPrimitive(x)))
         return this.deserializePrimitive(x);
       if (!dart.is(x, _interceptors.JSArray))
-        throw new core.ArgumentError(`Bad serialized message: ${x}`);
+        dart.throw(new core.ArgumentError(`Bad serialized message: ${x}`));
       switch (dart.dload(x, 'first')) {
         case "ref":
         {
@@ -256,7 +256,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         }
         default:
         {
-          throw `couldn't deserialize: ${x}`;
+          dart.throw(`couldn't deserialize: ${x}`);
         }
       }
     }
@@ -435,7 +435,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     if (args == null)
       args = [];
     if (!dart.is(args, core.List)) {
-      throw new core.ArgumentError(`Arguments to main must be a List: ${args}`);
+      dart.throw(new core.ArgumentError(`Arguments to main must be a List: ${args}`));
     }
     exports._globalState = new _Manager(dart.as(entry, core.Function));
     if (dart.notNull(exports._globalState.isWorker))
@@ -757,7 +757,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     [_addRegistration](portId, port) {
       if (dart.notNull(this.ports.containsKey(portId))) {
-        throw core.Exception.new("Registry: ports must be registered only once.");
+        dart.throw(core.Exception.new("Registry: ports must be registered only once."));
       }
       this.ports.set(portId, port);
     }
@@ -845,7 +845,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     checkOpenReceivePortsFromCommandLine() {
       if (exports._globalState.rootContext != null && dart.notNull(exports._globalState.isolates.containsKey(exports._globalState.rootContext.id)) && dart.notNull(exports._globalState.fromCommandLine) && dart.notNull(exports._globalState.rootContext.ports.isEmpty)) {
-        throw core.Exception.new("Program exited with open ReceivePorts.");
+        dart.throw(core.Exception.new("Program exited with open ReceivePorts."));
       }
     }
     runIteration() {
@@ -972,7 +972,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
 
         })();
         if (stack == null)
-          throw new core.UnsupportedError('No stack trace');
+          dart.throw(new core.UnsupportedError('No stack trace'));
       }
       let pattern = null, matches = null;
       pattern = new RegExp("^ *at [^(]*\\((.*):[0-9]*:[0-9]*\\)$", "m");
@@ -983,7 +983,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       matches = stack.match(pattern);
       if (matches != null)
         return matches[1];
-      throw new core.UnsupportedError(`Cannot extract URI from "${stack}"`);
+      dart.throw(new core.UnsupportedError(`Cannot extract URI from "${stack}"`));
     }
     static _getEventData(e) {
       return e.data;
@@ -1047,7 +1047,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         }
         case 'error':
         {
-          throw dart.dindex(msg, 'msg');
+          dart.throw(dart.dindex(msg, 'msg'));
         }
       }
     }
@@ -1067,7 +1067,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
           IsolateNatives._consoleLog(msg);
         } catch (e) {
           let trace = dart.stackTrace(e);
-          throw core.Exception.new(trace);
+          dart.throw(core.Exception.new(trace));
         }
 
       }
@@ -1089,7 +1089,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       IsolateNatives.enableSpawnWorker = true;
       let name = IsolateNatives._getJSFunctionName(topLevelFunction);
       if (name == null) {
-        throw new core.UnsupportedError("only top-level functions can be spawned.");
+        dart.throw(new core.UnsupportedError("only top-level functions can be spawned."));
       }
       let isLight = false;
       let isSpawnUri = false;
@@ -1134,7 +1134,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     static _startNonWorker(functionName, uri, args, message, isSpawnUri, startPaused, replyPort) {
       if (uri != null) {
-        throw new core.UnsupportedError("Currently spawnUri is not supported without web workers.");
+        dart.throw(new core.UnsupportedError("Currently spawnUri is not supported without web workers."));
       }
       message = _clone(message);
       if (args != null)
@@ -1250,7 +1250,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     [_checkReplyTo](replyTo) {
       if (replyTo != null && !dart.is(replyTo, _NativeJsSendPort) && !dart.is(replyTo, _WorkerSendPort)) {
-        throw core.Exception.new("SendPort.send: Illegal replyTo port type");
+        dart.throw(core.Exception.new("SendPort.send: Illegal replyTo port type"));
       }
     }
   }
@@ -1462,7 +1462,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         this[_handle] = self.setTimeout(internalCallback, milliseconds);
       } else {
         dart.assert(dart.notNull(milliseconds) > 0);
-        throw new core.UnsupportedError("Timer greater than 0.");
+        dart.throw(new core.UnsupportedError("Timer greater than 0."));
       }
     }
     periodic(milliseconds, callback) {
@@ -1475,13 +1475,13 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
           callback(this);
         }), milliseconds);
       } else {
-        throw new core.UnsupportedError("Periodic timer.");
+        dart.throw(new core.UnsupportedError("Periodic timer."));
       }
     }
     cancel() {
       if (dart.notNull(hasTimer())) {
         if (dart.notNull(this[_inEventLoop])) {
-          throw new core.UnsupportedError("Timer in event loop cannot be canceled.");
+          dart.throw(new core.UnsupportedError("Timer in event loop cannot be canceled."));
         }
         if (this[_handle] == null)
           return;
@@ -1493,7 +1493,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         }
         this[_handle] = null;
       } else {
-        throw new core.UnsupportedError("Canceling a timer.");
+        dart.throw(new core.UnsupportedError("Canceling a timer."));
       }
     }
     get isActive() {

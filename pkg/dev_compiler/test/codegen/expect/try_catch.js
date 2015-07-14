@@ -7,7 +7,7 @@ dart_library.library('try_catch', null, /* Imports */[
   let dartx = dart.dartx;
   function foo() {
     try {
-      throw "hi there";
+      dart.throw("hi there");
     } catch (e$) {
       if (dart.is(e$, core.String)) {
         let e = e$;
@@ -23,7 +23,7 @@ dart_library.library('try_catch', null, /* Imports */[
   dart.fn(foo);
   function bar() {
     try {
-      throw "hi there";
+      dart.throw("hi there");
     } catch (e$) {
       let e = e$;
       let t = dart.stackTrace(e);
@@ -33,7 +33,7 @@ dart_library.library('try_catch', null, /* Imports */[
   dart.fn(bar);
   function baz() {
     try {
-      throw "finally only";
+      dart.throw("finally only");
     } finally {
       return true;
     }
@@ -41,7 +41,7 @@ dart_library.library('try_catch', null, /* Imports */[
   dart.fn(baz);
   function qux() {
     try {
-      throw "on only";
+      dart.throw("on only");
     } catch (e) {
       if (dart.is(e, core.String)) {
         let t = dart.stackTrace(e);
@@ -54,7 +54,7 @@ dart_library.library('try_catch', null, /* Imports */[
   dart.fn(qux);
   function wub() {
     try {
-      throw "on without exception parameter";
+      dart.throw("on without exception parameter");
     } catch (e) {
       if (dart.is(e, core.String)) {
       } else

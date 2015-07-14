@@ -269,12 +269,29 @@ dart_library.library('dart_runtime/_operations', null, /* Imports */[
   }
   exports.assert = assert;
 
-  function throw_(obj) { throw obj; }
-  exports.throw_ = throw_;
+  let _stack = Symbol('_stack');
 
+  function throw_(obj) {
+    obj[_stack] = new Error();
+    throw obj;
+  }
+  exports.throw = throw_;
+
+  function getError(exception) {
+    return exception[_stack] ? exception[_stack] : exception;
+  }
+
+  // This is a utility function: it is only intended to be called from dev
+  // tools.
+  function stackPrint(exception) {
+    var error = getError(exception);
+    console.log(error.stack ? error.stack : 'No stack trace for: ' + error);
+  }
+  exports.stackPrint = stackPrint;
 
   function stackTrace(exception) {
-    return _js_helper.getTraceFromException(exception);
+    var error = getError(exception);
+    return _js_helper.getTraceFromException(error);
   }
   exports.stackTrace = stackTrace;
 

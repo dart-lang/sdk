@@ -106,7 +106,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       }
       startChunkedConversion(sink) {
         dart.as(sink, core.Sink$(T));
-        throw new core.UnsupportedError(`This converter does not support chunked conversions: ${this}`);
+        dart.throw(new core.UnsupportedError(`This converter does not support chunked conversions: ${this}`));
       }
       bind(source) {
         dart.as(source, async.Stream$(S));
@@ -145,7 +145,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       for (let i = 0; dart.notNull(i) < dart.notNull(length); i = dart.notNull(i) + 1) {
         let codeUnit = string[dartx.codeUnitAt](dart.notNull(start) + dart.notNull(i));
         if ((dart.notNull(codeUnit) & ~dart.notNull(this[_subsetMask])) != 0) {
-          throw new core.ArgumentError("String contains invalid characters.");
+          dart.throw(new core.ArgumentError("String contains invalid characters."));
         }
         result[dartx.set](i, codeUnit);
       }
@@ -211,7 +211,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
         let codeUnit = source[dartx.codeUnitAt](i);
         if ((dart.notNull(codeUnit) & ~dart.notNull(this[_subsetMask])) != 0) {
-          throw new core.ArgumentError(`Source contains invalid character with code point: ${codeUnit}.`);
+          dart.throw(new core.ArgumentError(`Source contains invalid character with code point: ${codeUnit}.`));
         }
       }
       this[_sink].add(source[dartx.codeUnits][dartx.sublist](start, end));
@@ -248,7 +248,7 @@ dart_library.library('dart/convert', null, /* Imports */[
         let byte = bytes[dartx.get](i);
         if ((dart.notNull(byte) & ~dart.notNull(this[_subsetMask])) != 0) {
           if (!dart.notNull(this[_allowInvalid])) {
-            throw new core.FormatException(`Invalid value in input: ${byte}`);
+            dart.throw(new core.FormatException(`Invalid value in input: ${byte}`));
           }
           return this[_convertInvalid](bytes, start, end);
         }
@@ -394,7 +394,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     add(source) {
       for (let i = 0; dart.notNull(i) < dart.notNull(source[dartx.length]); i = dart.notNull(i) + 1) {
         if ((dart.notNull(source[dartx.get](i)) & ~dart.notNull(_ASCII_MASK)) != 0) {
-          throw new core.FormatException("Source contains non-ASCII bytes.");
+          dart.throw(new core.FormatException("Source contains non-ASCII bytes."));
         }
       }
       this[_sink].add(core.String.fromCharCodes(source));
@@ -1006,7 +1006,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
     add(o) {
       if (dart.notNull(this[_isDone])) {
-        throw new core.StateError("Only one call to add allowed");
+        dart.throw(new core.StateError("Only one call to add allowed"));
       }
       this[_isDone] = true;
       let stringSink = this[_sink].asStringSink();
@@ -1037,7 +1037,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
     add(object) {
       if (dart.notNull(this[_isDone])) {
-        throw new core.StateError("Only one call to add allowed");
+        dart.throw(new core.StateError("Only one call to add allowed"));
       }
       this[_isDone] = true;
       _JsonUtf8Stringifier.stringify(object, this[_indent], dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])), this[_bufferSize], dart.bind(this, _addChunk));
@@ -1085,12 +1085,12 @@ dart_library.library('dart/convert', null, /* Imports */[
   });
   function _parseJson(source, reviver) {
     if (!(typeof source == 'string'))
-      throw new core.ArgumentError(source);
+      dart.throw(new core.ArgumentError(source));
     let parsed = null;
     try {
       parsed = JSON.parse(source);
     } catch (e) {
-      throw new core.FormatException(String(e));
+      dart.throw(new core.FormatException(String(e)));
     }
 
     if (reviver == null) {
@@ -1180,7 +1180,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     [_checkCycle](object) {
       for (let i = 0; dart.notNull(i) < dart.notNull(this[_seen][dartx.length]); i = dart.notNull(i) + 1) {
         if (dart.notNull(core.identical(object, this[_seen][dartx.get](i)))) {
-          throw new JsonCyclicError(object);
+          dart.throw(new JsonCyclicError(object));
         }
       }
       this[_seen][dartx.add](object);
@@ -1197,11 +1197,11 @@ dart_library.library('dart/convert', null, /* Imports */[
       try {
         let customJson = dart.dcall(this[_toEncodable$], object);
         if (!dart.notNull(this.writeJsonValue(customJson))) {
-          throw new JsonUnsupportedObjectError(object);
+          dart.throw(new JsonUnsupportedObjectError(object));
         }
         this[_removeSeen](object);
       } catch (e) {
-        throw new JsonUnsupportedObjectError(object, {cause: e});
+        dart.throw(new JsonUnsupportedObjectError(object, {cause: e}));
       }
 
     }
@@ -1641,7 +1641,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       for (let i = start; dart.notNull(i) < dart.notNull(end); i = dart.notNull(i) + 1) {
         let char = source[dartx.get](i);
         if (dart.notNull(char) > dart.notNull(_LATIN1_MASK) || dart.notNull(char) < 0) {
-          throw new core.FormatException("Source contains non-Latin-1 characters.");
+          dart.throw(new core.FormatException("Source contains non-Latin-1 characters."));
         }
       }
       if (dart.notNull(start) < dart.notNull(end)) {
@@ -2426,7 +2426,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     flush() {
       if (dart.notNull(this.hasPartialInput)) {
         if (!dart.notNull(this[_allowMalformed])) {
-          throw new core.FormatException("Unfinished UTF-8 octet sequence");
+          dart.throw(new core.FormatException("Unfinished UTF-8 octet sequence"));
         }
         this[_stringSink].writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
         this[_value] = 0;
@@ -2471,7 +2471,7 @@ dart_library.library('dart/convert', null, /* Imports */[
                 if ((dart.notNull(unit) & 192) != 128) {
                   expectedUnits = 0;
                   if (!dart.notNull(this[_allowMalformed])) {
-                    throw new core.FormatException(`Bad UTF-8 encoding 0x${unit[dartx.toRadixString](16)}`);
+                    dart.throw(new core.FormatException(`Bad UTF-8 encoding 0x${unit[dartx.toRadixString](16)}`));
                   }
                   this[_isFirstCharacter] = false;
                   this[_stringSink].writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
@@ -2484,14 +2484,14 @@ dart_library.library('dart/convert', null, /* Imports */[
               } while (dart.notNull(expectedUnits) > 0);
               if (dart.notNull(value) <= dart.notNull(_Utf8Decoder._LIMITS[dartx.get](dart.notNull(extraUnits) - 1))) {
                 if (!dart.notNull(this[_allowMalformed])) {
-                  throw new core.FormatException(`Overlong encoding of 0x${value[dartx.toRadixString](16)}`);
+                  dart.throw(new core.FormatException(`Overlong encoding of 0x${value[dartx.toRadixString](16)}`));
                 }
                 expectedUnits = extraUnits = 0;
                 value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
               }
               if (dart.notNull(value) > dart.notNull(_FOUR_BYTE_LIMIT)) {
                 if (!dart.notNull(this[_allowMalformed])) {
-                  throw new core.FormatException("Character outside valid Unicode range: " + `0x${value[dartx.toRadixString](16)}`);
+                  dart.throw(new core.FormatException("Character outside valid Unicode range: " + `0x${value[dartx.toRadixString](16)}`));
                 }
                 value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
               }
@@ -2516,7 +2516,7 @@ dart_library.library('dart/convert', null, /* Imports */[
             })());
             if (dart.notNull(unit) < 0) {
               if (!dart.notNull(this[_allowMalformed])) {
-                throw new core.FormatException(`Negative UTF-8 code unit: -0x${(-dart.notNull(unit))[dartx.toRadixString](16)}`);
+                dart.throw(new core.FormatException(`Negative UTF-8 code unit: -0x${(-dart.notNull(unit))[dartx.toRadixString](16)}`));
               }
               this[_stringSink].writeCharCode(UNICODE_REPLACEMENT_CHARACTER_RUNE);
             } else {
@@ -2537,7 +2537,7 @@ dart_library.library('dart/convert', null, /* Imports */[
                 continue loop;
               }
               if (!dart.notNull(this[_allowMalformed])) {
-                throw new core.FormatException(`Bad UTF-8 encoding 0x${unit[dartx.toRadixString](16)}`);
+                dart.throw(new core.FormatException(`Bad UTF-8 encoding 0x${unit[dartx.toRadixString](16)}`));
               }
               value = UNICODE_REPLACEMENT_CHARACTER_RUNE;
               expectedUnits = extraUnits = 0;
@@ -2725,7 +2725,7 @@ dart_library.library('dart/convert', null, /* Imports */[
         }
         dart.dcall(f, key, value);
         if (!dart.notNull(core.identical(keys, this[_data]))) {
-          throw new core.ConcurrentModificationError(this);
+          dart.throw(new core.ConcurrentModificationError(this));
         }
       }
     }
