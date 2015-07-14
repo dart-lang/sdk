@@ -1269,6 +1269,15 @@ class DebuggerPageElement extends ObservatoryElement {
         app.vm.listenEventStream(VM.kIsolateStream, debugger.onEvent);
     _debugSubscriptionFuture =
         app.vm.listenEventStream(VM.kDebugStream, debugger.onEvent);
+
+    onClick.listen((event) {
+      // Random clicks should focus on the text box.  If the user selects
+      // a range, don't interfere.
+      var selection = window.getSelection();
+      if (selection == null || selection.type == 'Caret') {
+        debugger.input.focus();
+      }
+    });
   }
 
   @override
