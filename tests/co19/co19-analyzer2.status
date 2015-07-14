@@ -289,12 +289,4 @@ Language/15_Types/4_Interface_Types_A10_t07: StaticWarning # co19 issue 745
 Language/15_Types/4_Interface_Types_A10_t09: StaticWarning # co19 issue 745
 Language/13_Statements/15_Assert_A04_t07: StaticWarning # Issue 23663
 Language/13_Statements/15_Assert_A03_t08: StaticWarning # Issue 23663
-LayoutTests/fast/xpath/attr-namespace_t02: StaticWarning # Issue 23839
-LayoutTests/fast/xpath/py-dom-xpath/data_t01: StaticWarning # Issue 23839
-LayoutTests/fast/xpath/py-dom-xpath/data_t01LayoutTests/fast/xpath/node-name-case-sensitivity_t02: StaticWarning # Issue 23839
-LayoutTests/fast/xpath/4XPath/Core/test_node_test_t01: StaticWarning # Issue 23839
-LayoutTests/fast/xpath/4XPath/Core/test_core_functions_t02: StaticWarning # Issue 23839
-LayoutTests/fast/xpath/4XPath/Core/test_node_test_t02: StaticWarning # Issue 23839
-LayoutTests/fast/xpath/node-name-case-sensitivity_t01: StaticWarning # Issue 23839
-LayoutTests/fast/xpath/attr-namespace_t01: StaticWarning # Issue 23839
-LayoutTests/fast/svg/getbbox_t01: StaticWarning # Issue 23839
+

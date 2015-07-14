@@ -12734,59 +12734,59 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
 
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  int get offsetHeight => _blink.BlinkElement.offsetHeight_Getter_(this).round();
+  int get offsetHeight => _blink.BlinkElement.offsetHeight_Getter(this).round();
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  int get offsetLeft => _blink.BlinkElement.offsetLeft_Getter_(this).round();
+  int get offsetLeft => _blink.BlinkElement.offsetLeft_Getter(this).round();
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  int get offsetTop => _blink.BlinkElement.offsetTop_Getter_(this).round();
+  int get offsetTop => _blink.BlinkElement.offsetTop_Getter(this).round();
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  int get offsetWidth => _blink.BlinkElement.offsetWidth_Getter_(this).round();
+  int get offsetWidth => _blink.BlinkElement.offsetWidth_Getter(this).round();
 
   @DomName('Element.clientHeight')
   @DocsEditable()
-  int get clientHeight => _blink.BlinkElement.clientHeight_Getter_(this).round();
+  int get clientHeight => _blink.BlinkElement.clientHeight_Getter(this).round();
 
   @DomName('Element.clientLeft')
   @DocsEditable()
-  int get clientLeft => _blink.BlinkElement.clientLeft_Getter_(this).round();
+  int get clientLeft => _blink.BlinkElement.clientLeft_Getter(this).round();
 
   @DomName('Element.clientTop')
   @DocsEditable()
-  int get clientTop => _blink.BlinkElement.clientTop_Getter_(this).round();
+  int get clientTop => _blink.BlinkElement.clientTop_Getter(this).round();
 
   @DomName('Element.clientWidth')
   @DocsEditable()
-  int get clientWidth => _blink.BlinkElement.clientWidth_Getter_(this).round();
+  int get clientWidth => _blink.BlinkElement.clientWidth_Getter(this).round();
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
-  int get scrollHeight => _blink.BlinkElement.scrollHeight_Getter_(this).round();
+  int get scrollHeight => _blink.BlinkElement.scrollHeight_Getter(this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  int get scrollLeft => _blink.BlinkElement.scrollLeft_Getter_(this).round();
+  int get scrollLeft => _blink.BlinkElement.scrollLeft_Getter(this).round();
 
   @DomName('Element.scrollLeft')
   @DocsEditable()
-  void set scrollLeft(int value) => _blink.BlinkElement.scrollLeft_Setter_(this, value.round());
+  void set scrollLeft(int value) => _blink.BlinkElement.scrollLeft_Setter(this, value.round());
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  int get scrollTop => _blink.BlinkElement.scrollTop_Getter_(this).round();
+  int get scrollTop => _blink.BlinkElement.scrollTop_Getter(this).round();
 
   @DomName('Element.scrollTop')
   @DocsEditable()
-  void set scrollTop(int value) => _blink.BlinkElement.scrollTop_Setter_(this, value.round());
+  void set scrollTop(int value) => _blink.BlinkElement.scrollTop_Setter(this, value.round());
 
   @DomName('Element.scrollWidth')
   @DocsEditable()
-  int get scrollWidth => _blink.BlinkElement.scrollWidth_Getter_(this).round();
+  int get scrollWidth => _blink.BlinkElement.scrollWidth_Getter(this).round();
 
   // To suppress missing implicit constructor warnings.
   factory Element._() { throw new UnsupportedError("Not supported"); }
@@ -24456,8 +24456,7 @@ class Node extends EventTarget {
   @DocsEditable()
   @Returns('NodeList')
   @Creates('NodeList')
-  final List<Node> childNodes;
-
+  List<Node> get childNodes => _blink.BlinkNode.instance.childNodes_Getter_(this);
   // To suppress missing implicit constructor warnings.
   factory Node._() { throw new UnsupportedError("Not supported"); }
 
@@ -41641,7 +41640,10 @@ class _Utils {
     return element;
   }
 
-  static window() => wrap_jso(_blink.Blink_Utils.window()['window']);
+  // TODO(terry): Enable below for Dartium w/ interop and remove other static window().
+  // static window() => wrap_jso(_blink.Blink_Utils.window()['window']);
+  static window() => _blink.Blink_Utils.window();
+
   static forwardingPrint(String message) => _blink.Blink_Utils.forwardingPrint(message);
   static void spawnDomHelper(Function f, int replyTo) =>
       _blink.Blink_Utils.spawnDomHelper(f, replyTo);

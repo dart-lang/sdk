@@ -187,7 +187,10 @@ class _Utils {
     return element;
   }
 
-  static window() => wrap_jso(_blink.Blink_Utils.window()['window']);
+  // TODO(terry): Enable below for Dartium w/ interop and remove other static window().
+  // static window() => wrap_jso(_blink.Blink_Utils.window()['window']);
+  static window() => _blink.Blink_Utils.window();
+
   static forwardingPrint(String message) => _blink.Blink_Utils.forwardingPrint(message);
   static void spawnDomHelper(Function f, int replyTo) =>
       _blink.Blink_Utils.spawnDomHelper(f, replyTo);
