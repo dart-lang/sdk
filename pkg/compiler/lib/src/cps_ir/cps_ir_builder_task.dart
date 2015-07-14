@@ -3207,7 +3207,7 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         }
         return irBuilder.buildForeignCode(
             js.js.expressionTemplateYielding(
-                        backend.emitter.staticFunctionAccess(function)),
+                backend.emitter.staticFunctionAccess(closure)),
             <ir.Primitive>[],
             NativeBehavior.PURE,
             dependency: closure);
@@ -3307,6 +3307,16 @@ class JsIrBuilderVisitor extends IrBuilderVisitor {
         return irBuilder.buildForeignCode(
             js.js.parseForeignJS(backend.namer.staticStateHolder),
             const <ir.Primitive>[],
+            NativeBehavior.PURE);
+
+      case 'JS_SET_STATIC_STATE':
+        validateArgumentCount(exactly: 1);
+
+        ir.Primitive value = visit(argumentNodes.single);
+        String isolateName = backend.namer.staticStateHolder;
+        return irBuilder.buildForeignCode(
+            js.js.parseForeignJS("$isolateName = #"),
+            <ir.Primitive>[value],
             NativeBehavior.PURE);
 
       case 'JS_CALL_IN_ISOLATE':

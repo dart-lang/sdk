@@ -343,56 +343,53 @@ await_not_started_immediately_test: Crash # (foo()async{x++ ;await 1;x++ ;}): ca
 await_postfix_expr_test: Crash # (test()async{Expect....  cannot handle async/sync*/async* functions
 await_regression_test: Crash # (main()async{testNes...  cannot handle async/sync*/async* functions
 await_test: Crash # (others()async{var a...  cannot handle async/sync*/async* functions
-cha_deopt1_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-cha_deopt2_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-cha_deopt3_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-closure_cycles_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
+cha_deopt1_test: RuntimeError # V.loadLibrary is not a function
+cha_deopt2_test: RuntimeError # R.loadLibrary is not a function
+cha_deopt3_test: RuntimeError # K.loadLibrary is not a function
 closure_in_constructor_test: Crash # Invalid argument(s)
 closure_type_variables_test: Crash # Invalid argument(s)
-const_evaluation_test/01: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 constructor12_test: RuntimeError # Please triage this failure.
 crash_6725_test/01: Crash # The null object does not have a getter '_element'.
 custom_await_stack_trace_test: Crash # (main()async{try {va...  cannot handle async/sync*/async* functions
-deferred_closurize_load_library_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constant_list_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_constants_test/none: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-deferred_constraints_constants_test/reference_after_load: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/as_operation: RuntimeError # receiver._addHashTableEntry$2 is not a function
+deferred_closurize_load_library_test: RuntimeError # D.loadLibrary is not a function
+deferred_constant_list_test: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_constants_test/none: RuntimeError # S.loadLibrary is not a function
+deferred_constraints_constants_test/reference_after_load: RuntimeError # G.loadLibrary is not a function
+deferred_constraints_type_annotation_test/as_operation: RuntimeError # Z.loadLibrary is not a function
 deferred_constraints_type_annotation_test/catch_check: Crash # The null object does not have a getter '_element'.
-deferred_constraints_type_annotation_test/is_check: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/new: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/new_before_load: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/new_generic1: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/new_generic2: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/new_generic3: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/none: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/static_method: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_function_type_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_global_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_inlined_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_load_constants_test/none: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_load_inval_code_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_load_library_wrong_args_test/none: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_mixin_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_no_such_method_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
+deferred_constraints_type_annotation_test/is_check: RuntimeError # L.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new: RuntimeError # R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_before_load: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic1: RuntimeError # R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic2: RuntimeError # X.loadLibrary is not a function
+deferred_constraints_type_annotation_test/new_generic3: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/none: RuntimeError # D.loadLibrary is not a function
+deferred_constraints_type_annotation_test/static_method: RuntimeError # F.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation1: RuntimeError # K.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic1: RuntimeError # T.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic2: RuntimeError # Q.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic3: RuntimeError # Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_generic4: RuntimeError # Q.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_non_deferred: RuntimeError # R.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_null: RuntimeError # Z.loadLibrary is not a function
+deferred_constraints_type_annotation_test/type_annotation_top_level: RuntimeError # U.loadLibrary is not a function
+deferred_function_type_test: RuntimeError # N.loadLibrary is not a function
+deferred_global_test: RuntimeError # Y.loadLibrary is not a function
+deferred_inlined_test: RuntimeError # B.loadLibrary is not a function
+deferred_load_constants_test/none: RuntimeError # Please triage this failure.
+deferred_load_inval_code_test: RuntimeError # O.loadLibrary is not a function
+deferred_load_library_wrong_args_test/none: RuntimeError # Y.loadLibrary is not a function
+deferred_mixin_test: RuntimeError # X.loadLibrary is not a function
+deferred_no_such_method_test: RuntimeError # D.loadLibrary is not a function
 deferred_not_loaded_check_test: RuntimeError # Please triage this failure.
-deferred_only_constant_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_optimized_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
+deferred_only_constant_test: RuntimeError # O.loadLibrary is not a function
+deferred_optimized_test: RuntimeError # Q.loadLibrary is not a function
 deferred_redirecting_factory_test: Crash # (test()async{await t...  cannot handle async/sync*/async* functions
-deferred_regression_22995_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_shadow_load_library_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_shared_and_unshared_classes_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
-deferred_static_seperate_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
+deferred_regression_22995_test: RuntimeError # U.loadLibrary is not a function
+deferred_shadow_load_library_test: RuntimeError # Y.loadLibrary is not a function
+deferred_shared_and_unshared_classes_test: RuntimeError # U.loadLibrary is not a function
+deferred_static_seperate_test: RuntimeError # L.loadLibrary is not a function
 dynamic_prefix_core_test/01: Crash # The null object does not have a getter 'name'.
-enum_mirror_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 final_super_field_set_test/01: RuntimeError # Please triage this failure.
 flatten_test/01: Crash # (test()async{int x=await new Derived<int>();}): cannot handle async/sync*/async* functions
 flatten_test/02: Crash # (test()async{Future<int> f()async=>new Derived<int>();}): cannot handle async/sync*/async* functions
@@ -426,25 +423,12 @@ if_null_assignment_static_test/39: RuntimeError # v0.get$b is not a function
 if_null_assignment_static_test/40: RuntimeError # v0.get$a is not a function
 import_self_test/01: Crash # The null object does not have a getter 'name'.
 infinite_switch_label_test: Crash # (switch (target){l0:...  continue to a labeled switch case
-instance_creation_in_function_annotation_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 instanceof4_test/01: RuntimeError # Please triage this failure.
 invocation_mirror_invoke_on_test: RuntimeError # Please triage this failure.
 invocation_mirror_test: Crash # (super[37]=42): visitUnresolvedSuperIndexSet
-issue_1751477_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
+issue_1751477_test: RuntimeError # O.loadLibrary is not a function
 large_class_declaration_test: Crash # Stack Overflow
 list_test: RuntimeError # Please triage this failure.
-main_test/01: RuntimeError # receiver._addHashTableEntry$2 is not a function
-main_test/02: RuntimeError # receiver._addHashTableEntry$2 is not a function
-main_test/04: RuntimeError # receiver._addHashTableEntry$2 is not a function
-main_test/05: RuntimeError # receiver._addHashTableEntry$2 is not a function
-main_test/20: RuntimeError # receiver._addHashTableEntry$2 is not a function
-main_test/21: RuntimeError # receiver._addHashTableEntry$2 is not a function
-main_test/22: RuntimeError # receiver._addHashTableEntry$2 is not a function
-main_test/41: RuntimeError # receiver._addHashTableEntry$2 is not a function
-main_test/42: RuntimeError # receiver._addHashTableEntry$2 is not a function
-main_test/43: RuntimeError # receiver._addHashTableEntry$2 is not a function
-main_test/44: RuntimeError # receiver._addHashTableEntry$2 is not a function
-main_test/45: RuntimeError # receiver._addHashTableEntry$2 is not a function
 many_overridden_no_such_method_test: RuntimeError # Please triage this failure.
 mixin_type_parameters_mixin_extends_test: Crash # The null object does not have a getter '_element'.
 mixin_type_parameters_mixin_test: Crash # The null object does not have a getter '_element'.
@@ -452,22 +436,19 @@ mixin_type_parameters_super_extends_test: Crash # The null object does not have 
 mixin_type_parameters_super_test: Crash # The null object does not have a getter '_element'.
 nested_switch_label_test: Crash # (switch (target){out...  continue to a labeled switch case
 no_such_method_test: RuntimeError # Please triage this failure.
-null_test/none: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 overridden_no_such_method_test: RuntimeError # Please triage this failure.
 prefix12_negative_test: Crash # The null object does not have a getter 'name'.
 prefix2_negative_test: Crash # The null object does not have a getter 'name'.
 private_access_test/02: Crash # The null object does not have a getter 'name'.
-redirecting_factory_reflection_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
-regress_18535_test: RuntimeError # receiver._collection$_addHashTableEntry$2 is not a function
 regress_22438_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
-regress_22443_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
+regress_22443_test: RuntimeError # M.loadLibrary is not a function
 regress_22445_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22579_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_22728_test: Crash # (main()async{bool fa...  cannot handle async/sync*/async* functions
 regress_22777_test: Crash # (test()async{try {te...  cannot handle async/sync*/async* functions
 regress_22936_test/01: Crash # The null object does not have a getter '_element'.
 regress_22936_test/none: Crash # The null object does not have a getter '_element'.
-regress_23408_test: RuntimeError # receiver._addHashTableEntry$2 is not a function
+regress_23408_test: RuntimeError # G.loadLibrary is not a function
 regress_23498_test: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/01: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
 regress_23500_test/02: Crash # (main()async{var err...  cannot handle async/sync*/async* functions
