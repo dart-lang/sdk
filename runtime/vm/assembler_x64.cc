@@ -3492,6 +3492,7 @@ void Assembler::MaybeTraceAllocation(intptr_t cid,
     // temp_reg gets address of class table pointer.
     ClassTable* class_table = Isolate::Current()->class_table();
     movq(temp_reg, Immediate(class_table->ClassStatsTableAddress()));
+    movq(temp_reg, Address(temp_reg, 0));
     state_address = Address(temp_reg, class_offset + state_offset);
   }
   testb(state_address, Immediate(ClassHeapStats::TraceAllocationMask()));
