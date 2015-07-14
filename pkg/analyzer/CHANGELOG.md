@@ -1,3 +1,8 @@
+## 0.25.2
+
+* Enable null-aware operators (DEP 9) by default.
+* Generic method support in the element model.
+
 ## 0.25.2-alpha.1
 
 * `dart:sdk` extension `.sdkext` changed to `_sdkext` (to play nicer with pub).
