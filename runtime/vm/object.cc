@@ -4205,6 +4205,7 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_finalized", is_finalized());
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", is_patch());
+  jsobj.AddProperty("_traceAllocations", trace_allocation());
   const Class& superClass = Class::Handle(SuperClass());
   if (!superClass.IsNull()) {
     jsobj.AddProperty("super", superClass);

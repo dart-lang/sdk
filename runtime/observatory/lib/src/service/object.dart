@@ -1896,7 +1896,7 @@ class Class extends ServiceObject with Coverage {
   final AllocationCount promotedByLastNewGC = new AllocationCount();
 
   @observable bool get hasNoAllocations => newSpace.empty && oldSpace.empty;
-
+  @observable bool traceAllocations = false;
   @reflectable final fields = new ObservableList<Field>();
   @reflectable final functions = new ObservableList<ServiceFunction>();
 
@@ -1963,6 +1963,9 @@ class Class extends ServiceObject with Coverage {
     }
     error = map['error'];
 
+    traceAllocations =
+        (map['_traceAllocations'] != null) ? map['_traceAllocations'] : false;
+
     var allocationStats = map['_allocationStats'];
     if (allocationStats != null) {
       newSpace.update(allocationStats['new']);
@@ -1983,6 +1986,19 @@ class Class extends ServiceObject with Coverage {
 
   Future<ServiceObject> evaluate(String expression) {
     return isolate._eval(this, expression);
+  }
+
+  Future<ServiceObject> setTraceAllocations(bool enable) {
+    return isolate.invokeRpc('_setTraceClassAllocation', {
+        'enable': enable,
+        'classId': id,
+      });
+  }
+
+  Future<ServiceObject> getAllocationSamples([String tags = 'None']) {
+    var params = { 'tags': tags,
+                   'classId': id };
+    return isolate.invokeRpc('_getAllocationSamples', params);
   }
 
   String toString() => 'Class($vmName)';

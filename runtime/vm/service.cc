@@ -259,6 +259,48 @@ static bool GetCodeId(const char* s, int64_t* timestamp, uword* address) {
 }
 
 
+// Verifies that |s| begins with |prefix| and then calls |GetIntegerId| on
+// the remainder of |s|.
+static bool GetPrefixedIntegerId(const char* s,
+                                 const char* prefix,
+                                 intptr_t* service_id) {
+  if (s == NULL) {
+    return false;
+  }
+  ASSERT(prefix != NULL);
+  const intptr_t kInputLen = strlen(s);
+  const intptr_t kPrefixLen = strlen(prefix);
+  ASSERT(kPrefixLen > 0);
+  if (kInputLen <= kPrefixLen) {
+    return false;
+  }
+  if (strncmp(s, prefix, kPrefixLen) != 0) {
+    return false;
+  }
+  // Prefix satisfied. Move forward.
+  s += kPrefixLen;
+  // Attempt to read integer id.
+  return GetIntegerId(s, service_id);
+}
+
+
+static bool IsValidClassId(Isolate* isolate, intptr_t cid) {
+  ASSERT(isolate != NULL);
+  ClassTable* class_table = isolate->class_table();
+  ASSERT(class_table != NULL);
+  return class_table->IsValidIndex(cid) && class_table->HasValidClassAt(cid);
+}
+
+
+static RawClass* GetClassForId(Isolate* isolate, intptr_t cid) {
+  ASSERT(isolate == Isolate::Current());
+  ASSERT(isolate != NULL);
+  ClassTable* class_table = isolate->class_table();
+  ASSERT(class_table != NULL);
+  return class_table->At(cid);
+}
+
+
 // TODO(johnmccutchan): Split into separate file and write unit tests.
 class MethodParameter {
  public:
@@ -342,6 +384,9 @@ class UIntParameter : public MethodParameter {
   }
 
   static intptr_t Parse(const char* value) {
+    if (value == NULL) {
+      return -1;
+    }
     char* end_ptr = NULL;
     uintptr_t result = strtoul(value, &end_ptr, 10);
     ASSERT(*end_ptr == '\0');  // Parsed full string
@@ -2236,10 +2281,35 @@ static const MethodParameter* get_cpu_profile_params[] = {
 };
 
 
+// TODO(johnmccutchan): Rename this to GetCpuSamples.
 static bool GetCpuProfile(Isolate* isolate, JSONStream* js) {
   Profile::TagOrder tag_order =
       EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
   ProfilerService::PrintJSON(js, tag_order);
+  return true;
+}
+
+
+static const MethodParameter* get_allocation_samples_params[] = {
+  ISOLATE_PARAMETER,
+  new EnumParameter("tags", true, tags_enum_names),
+  new IdParameter("classId", false),
+  NULL,
+};
+
+
+static bool GetAllocationSamples(Isolate* isolate, JSONStream* js) {
+  Profile::TagOrder tag_order =
+      EnumMapper(js->LookupParam("tags"), tags_enum_names, tags_enum_values);
+  const char* class_id = js->LookupParam("classId");
+  intptr_t cid = -1;
+  GetPrefixedIntegerId(class_id, "classes/", &cid);
+  if (IsValidClassId(isolate, cid)) {
+    const Class& cls = Class::Handle(GetClassForId(isolate, cid));
+    ProfilerService::PrintAllocationJSON(js, tag_order, cls);
+  } else {
+    PrintInvalidParamError(js, "classId");
+  }
   return true;
 }
 
@@ -2751,6 +2821,31 @@ static bool SetName(Isolate* isolate, JSONStream* js) {
 }
 
 
+static const MethodParameter* set_trace_class_allocation_params[] = {
+  ISOLATE_PARAMETER,
+  new IdParameter("classId", true),
+  new BoolParameter("enable", true),
+  NULL,
+};
+
+
+static bool SetTraceClassAllocation(Isolate* isolate, JSONStream* js) {
+  const char* class_id = js->LookupParam("classId");
+  const bool enable = BoolParameter::Parse(js->LookupParam("enable"));
+  intptr_t cid = -1;
+  GetPrefixedIntegerId(class_id, "classes/", &cid);
+  if (!IsValidClassId(isolate, cid)) {
+    PrintInvalidParamError(js, "classId");
+    return true;
+  }
+  const Class& cls = Class::Handle(GetClassForId(isolate, cid));
+  ASSERT(!cls.IsNull());
+  cls.SetTraceAllocation(enable);
+  PrintSuccess(js);
+  return true;
+}
+
+
 static ServiceMethodDescriptor service_methods_[] = {
   { "_dumpIdZone", DumpIdZone, NULL },
   { "_echo", Echo,
@@ -2775,6 +2870,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     evaluate_in_frame_params },
   { "_getAllocationProfile", GetAllocationProfile,
     get_allocation_profile_params },
+  { "_getAllocationSamples", GetAllocationSamples,
+      get_allocation_samples_params },
   { "_getCallSiteData", GetCallSiteData,
     get_call_site_data_params },
   { "getClassList", GetClassList,
@@ -2837,6 +2934,8 @@ static ServiceMethodDescriptor service_methods_[] = {
     set_library_debuggable_params },
   { "setName", SetName,
     set_name_params },
+  { "_setTraceClassAllocation", SetTraceClassAllocation,
+    set_trace_class_allocation_params },
 };
 
 

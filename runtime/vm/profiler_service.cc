@@ -1964,21 +1964,10 @@ bool ProfileTrieWalker::NextSibling() {
 }
 
 
-class NoAllocationSampleFilter : public SampleFilter {
- public:
-  explicit NoAllocationSampleFilter(Isolate* isolate)
-      : SampleFilter(isolate) {
-  }
-
-  bool FilterSample(Sample* sample) {
-    return !sample->is_allocation_sample();
-  }
-};
-
-
-void ProfilerService::PrintJSON(JSONStream* stream,
-                                Profile::TagOrder tag_order) {
-  Isolate* isolate = Isolate::Current();
+void ProfilerService::PrintJSONImpl(Isolate* isolate,
+                                    JSONStream* stream,
+                                    Profile::TagOrder tag_order,
+                                    SampleFilter* filter) {
   // Disable profile interrupts while processing the buffer.
   Profiler::EndExecution(isolate);
 
@@ -1995,13 +1984,59 @@ void ProfilerService::PrintJSON(JSONStream* stream,
     StackZone zone(isolate);
     HANDLESCOPE(isolate);
     Profile profile(isolate);
-    NoAllocationSampleFilter filter(isolate);
-    profile.Build(&filter, tag_order);
+    profile.Build(filter, tag_order);
     profile.PrintJSON(stream);
   }
 
   // Enable profile interrupts.
   Profiler::BeginExecution(isolate);
+}
+
+
+class NoAllocationSampleFilter : public SampleFilter {
+ public:
+  explicit NoAllocationSampleFilter(Isolate* isolate)
+      : SampleFilter(isolate) {
+  }
+
+  bool FilterSample(Sample* sample) {
+    return !sample->is_allocation_sample();
+  }
+};
+
+
+void ProfilerService::PrintJSON(JSONStream* stream,
+                                Profile::TagOrder tag_order) {
+  Isolate* isolate = Isolate::Current();
+  NoAllocationSampleFilter filter(isolate);
+  PrintJSONImpl(isolate, stream, tag_order, &filter);
+}
+
+
+class ClassAllocationSampleFilter : public SampleFilter {
+ public:
+  ClassAllocationSampleFilter(Isolate* isolate, const Class& cls)
+      : SampleFilter(isolate),
+        cls_(Class::Handle(cls.raw())) {
+    ASSERT(!cls_.IsNull());
+  }
+
+  bool FilterSample(Sample* sample) {
+    return sample->is_allocation_sample() &&
+           (sample->allocation_cid() == cls_.id());
+  }
+
+ private:
+  const Class& cls_;
+};
+
+
+void ProfilerService::PrintAllocationJSON(JSONStream* stream,
+                                          Profile::TagOrder tag_order,
+                                          const Class& cls) {
+  Isolate* isolate = Isolate::Current();
+  ClassAllocationSampleFilter filter(isolate, cls);
+  PrintJSONImpl(isolate, stream, tag_order, &filter);
 }
 
 

@@ -366,7 +366,17 @@ class ProfilerService : public AllStatic {
   static void PrintJSON(JSONStream* stream,
                         Profile::TagOrder tag_order);
 
+  static void PrintAllocationJSON(JSONStream* stream,
+                                  Profile::TagOrder tag_order,
+                                  const Class& cls);
+
   static void ClearSamples();
+
+ private:
+  static void PrintJSONImpl(Isolate* isolate,
+                            JSONStream* stream,
+                            Profile::TagOrder tag_order,
+                            SampleFilter* filter);
 };
 
 }  // namespace dart
