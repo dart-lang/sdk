@@ -131,7 +131,7 @@ main(arguments) {
       test('devc dart:core', () {
         // Get the test SDK. We use a checked in copy so test expectations can
         // be generated against a specific SDK version.
-        var testSdk = path.join(testDirectory, 'generated_sdk');
+        var testSdk = path.join(testDirectory, '..', 'tool', 'generated_sdk');
         var result = compile('dart:core', testSdk, checkSdk: true);
         var outputDir = new Directory(path.join(expectDir, 'core'));
         var outFile = new File(path.join(expectDir, 'dart/core.js'));
