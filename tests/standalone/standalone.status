@@ -160,6 +160,9 @@ io/skipping_dart2js_compilations_test: Fail # Issue 19551.
 verbose_gc_to_bmu_test: Skip
 io/platform_resolved_executable_test/06: RuntimeError  # Issue 23641
 
+[ $system == windows && $runtime == vm && $mode == release]
+full_coverage_test: Pass, RuntimeError  # Issue 23848
+
 [ $arch != ia32 && $arch != x64 && $arch != simarm && $arch != simarmv5te && $mode == debug ]
 verified_mem_test: Skip  # Not yet implemented.
 
