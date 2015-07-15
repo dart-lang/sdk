@@ -10,6 +10,9 @@
     'configurations': {
       'Dart_Linux_Base': {
         'abstract': 1,
+        'defines': [
+          '_FORTIFY_SOURCE=2',
+        ],
         'cflags': [
           '-Werror',
           '<@(common_gcc_warning_flags)',
