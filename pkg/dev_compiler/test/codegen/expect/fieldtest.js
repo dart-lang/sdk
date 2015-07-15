@@ -92,12 +92,31 @@ dart_library.library('fieldtest', null, /* Imports */[
   StaticFieldOrder2.c = dart.notNull(StaticFieldOrder2.d) + 2;
   StaticFieldOrder2.b = dart.notNull(StaticFieldOrder2.c) + 3;
   StaticFieldOrder2.a = dart.notNull(StaticFieldOrder2.b) + 1;
+  class MyEnum extends core.Object {
+    MyEnum(index) {
+      this.index = index;
+    }
+    toString() {
+      return {
+        0: "MyEnum.Val1",
+        1: "MyEnum.Val2",
+        2: "MyEnum.Val3",
+        3: "MyEnum.Val4"
+      }[this.index];
+    }
+  };
+  MyEnum.Val1 = dart.const(new MyEnum(0));
+  MyEnum.Val2 = dart.const(new MyEnum(1));
+  MyEnum.Val3 = dart.const(new MyEnum(2));
+  MyEnum.Val4 = dart.const(new MyEnum(3));
+  MyEnum.values = dart.const(dart.list([MyEnum.Val1, MyEnum.Val2, MyEnum.Val3, MyEnum.Val4], MyEnum));
   function main() {
     let a = new A();
     foo(a);
     bar(a);
     core.print(baz(a));
     core.print(new (Generic$(core.String))().foo(' world'));
+    core.print(MyEnum.values);
   }
   dart.fn(main, dart.void, []);
   // Exports:

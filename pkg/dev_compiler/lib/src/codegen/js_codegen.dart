@@ -420,8 +420,57 @@ class JSCodegenVisitor extends GeneralizingAstVisitor {
   }
 
   @override
-  JS.Statement visitEnumDeclaration(EnumDeclaration node) =>
-      _unimplementedCall("Unimplemented enum: $node").toStatement();
+  JS.Statement visitEnumDeclaration(EnumDeclaration node) {
+    var element = node.element;
+    var type = element.type;
+    var name = js.string(type.name);
+    var id = new JS.Identifier(type.name);
+
+    // Generate a class per section 13 of the spec.
+    // TODO(vsm): Generate any accompanying metadata
+
+    // Create constructor and initialize index
+    var constructor =
+        new JS.Method(name, js.call('function(index) { this.index = index; }'));
+    var fields = new List<ConstFieldElementImpl>.from(
+        element.fields.where((f) => f.type == type));
+
+    // Create toString() method
+    var properties = new List<JS.Property>();
+    for (var i = 0; i < fields.length; ++i) {
+      properties.add(new JS.Property(
+          js.number(i), js.string('${type.name}.${fields[i].name}')));
+    }
+    var nameMap = new JS.ObjectInitializer(properties, multiline: true);
+    var toStringF = new JS.Method(js.string('toString'),
+        js.call('function () { return #[this.index]; }', nameMap));
+
+    // Create enum class
+    var classExpr = new JS.ClassExpression(
+        id, _classHeritage(element), [constructor, toStringF]);
+    var result = [js.statement('#', classExpr)];
+
+    // Create static fields for each enum value
+    for (var i = 0; i < fields.length; ++i) {
+      result.add(js.statement('#.# = dart.const(new #(#));', [
+        id,
+        fields[i].name,
+        id,
+        js.number(i)
+      ]));
+    }
+
+    // Create static values list
+    var values = new JS.ArrayInitializer(
+        fields.map((f) => js.call('#.#', [id, f.name])).toList());
+    result.add(js.statement('#.values = dart.const(dart.list(#, #));', [
+      id,
+      values,
+      _emitTypeName(type)
+    ]));
+
+    return _statement(result);
+  }
 
   /// Given a class element and body, complete the class declaration.
   /// This handles generic type parameters, laziness (in library-cycle cases),

@@ -64,6 +64,8 @@ class StaticFieldOrder2 {
   static const d = 4;
 }
 
+enum MyEnum { Val1, Val2, Val3, Val4 }
+
 void main() {
   var a = new A();
   foo(a);
@@ -71,4 +73,6 @@ void main() {
   print(baz(a));
 
   print(new Generic<String>().foo(' world'));
+
+  print(MyEnum.values);
 }
