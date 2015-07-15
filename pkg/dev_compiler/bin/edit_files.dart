@@ -23,6 +23,7 @@ import 'package:source_span/source_span.dart';
 import 'package:dev_compiler/src/analysis_context.dart';
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/summary.dart';
+import 'package:dev_compiler/strong_mode.dart';
 
 final ArgParser argParser = new ArgParser()
   ..addOption('level', help: 'Minimum error level', defaultsTo: "info")

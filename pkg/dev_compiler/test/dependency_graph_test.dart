@@ -1110,7 +1110,7 @@ void main() {
       });
 
       test('non-existing files are tracked in dependencies', () {
-        var s1 = testResourceProvider
+        testResourceProvider
             .newFile('/foo.dart', "import 'bar.dart';")
             .createSource();
         var node = nodeOf('/foo.dart');
@@ -1119,7 +1119,7 @@ void main() {
         expect(node.allDeps.contains(nodeOf('/bar.dart')), isTrue);
         expect(nodeOf('/bar.dart').source.exists(), isFalse);
 
-        var s2 = testResourceProvider.newFile('/bar.dart', 'hi').createSource();
+        testResourceProvider.newFile('/bar.dart', 'hi').createSource();
         results = [];
         rebuild(node, buildWithTransitiveChange);
         expect(results, ['bar.dart', 'foo.dart']);

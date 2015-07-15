@@ -7,11 +7,9 @@
 /// groups the logs by level.
 library polymer.build.log_injector;
 
-import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 
-import 'package:path/path.dart' as path;
 import 'package:source_span/source_span.dart';
 import 'package:dev_compiler/src/summary.dart';
 
@@ -61,7 +59,6 @@ void displayMessages(String data) {
             '  <span class="text">');
         if (span is SourceSpanWithContext) {
           var context = span.context;
-          var text = span.text;
           sb.write(_escape(context.substring(0, span.start.column)));
           sb.write('<span class="$level">');
           sb.write(_escape(span.text));

@@ -5,11 +5,9 @@
 /// Tests that run the checker end-to-end using the file system.
 library dev_compiler.test.end_to_end;
 
-import 'dart:io';
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:dev_compiler/devc.dart' show Compiler;
 import 'package:dev_compiler/src/options.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import '../test_util.dart' show testDirectory;
 

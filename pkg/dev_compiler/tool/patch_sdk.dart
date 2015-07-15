@@ -37,8 +37,6 @@ void main(List<String> argv) {
   var patchIn = path.join(input, 'patch');
   var privateIn = path.join(input, 'private');
   var sdkOut = path.join(argv[1], 'lib');
-  var privateLibOut =
-      path.normalize(path.join(sdkOut, '_internal', 'compiler', 'js_lib'));
 
   var INTERNAL_PATH = '_internal/compiler/js_lib/';
 
