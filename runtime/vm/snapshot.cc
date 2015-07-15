@@ -191,7 +191,8 @@ SnapshotReader::SnapshotReader(
       typed_data_(TypedData::Handle(isolate)),
       error_(UnhandledException::Handle(isolate)),
       max_vm_isolate_object_id_(
-          Object::vm_isolate_snapshot_object_table().Length()),
+          (kind == Snapshot::kFull) ?
+              Object::vm_isolate_snapshot_object_table().Length() : 0),
       backward_references_(backward_refs) {
 }
 
@@ -2266,7 +2267,7 @@ ScriptSnapshotWriter::ScriptSnapshotWriter(uint8_t** buffer,
                      kInitialSize,
                      &forward_list_,
                      true),
-      forward_list_(SnapshotWriter::FirstObjectId()) {
+      forward_list_(kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
 }
@@ -2324,7 +2325,7 @@ MessageWriter::MessageWriter(uint8_t** buffer,
                      kInitialSize,
                      &forward_list_,
                      can_send_any_object),
-      forward_list_(SnapshotWriter::FirstObjectId()) {
+      forward_list_(kMaxPredefinedObjectIds) {
   ASSERT(buffer != NULL);
   ASSERT(alloc != NULL);
 }
