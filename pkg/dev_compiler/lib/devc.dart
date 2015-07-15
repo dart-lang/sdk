@@ -139,7 +139,8 @@ class Compiler implements AbstractCompiler {
     // location. These can be external dependencies or pieces of the
     // dev_compiler runtime.
     if (outputDir == null) return;
-    var filepath = resourceOutputPath(node.uri, _entryNode.uri);
+    var filepath =
+        resourceOutputPath(node.uri, _entryNode.uri, options.runtimeDir);
     assert(filepath != null);
     filepath = path.join(outputDir, filepath);
     var dir = path.dirname(filepath);

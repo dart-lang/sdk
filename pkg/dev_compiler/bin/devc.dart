@@ -4,7 +4,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// Command line tool to run the checker on a Dart program.
-library dev_compiler.bin.checker;
+library dev_compiler.bin.devc;
 
 import 'dart:io';
 

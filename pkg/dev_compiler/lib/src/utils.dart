@@ -30,7 +30,6 @@ import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/analyzer.dart' show parseDirectives;
 import 'package:crypto/crypto.dart' show CryptoUtils, MD5;
 import 'package:source_span/source_span.dart';
-import 'package:yaml/yaml.dart';
 
 import 'codegen/js_names.dart' show invalidVariableName;
 
@@ -311,36 +310,19 @@ String computeHashFromFile(String filepath) {
   return CryptoUtils.bytesToHex((new MD5()..add(bytes)).close());
 }
 
-String resourceOutputPath(Uri resourceUri, Uri entryUri) {
+String resourceOutputPath(Uri resourceUri, Uri entryUri, String runtimeDir) {
   if (resourceUri.scheme == 'package') return resourceUri.path;
 
   if (resourceUri.scheme != 'file') return null;
-  var filepath = resourceUri.path;
-  var relativePath = path.relative(filepath, from: path.dirname(entryUri.path));
 
-  // File:/// urls can be for resources in the same project or resources from
-  // the dev_compiler package. For now we only support relative paths going
-  // further inside the folder where the entrypoint is located, otherwise we
-  // assume this is a runtime resource from the dev_compiler.
-  if (!relativePath.startsWith('..')) return relativePath;
+  var entryDir = path.dirname(entryUri.path);
+  var filepath = path.normalize(path.join(entryDir, resourceUri.path));
+  if (path.isWithin(runtimeDir, filepath)) {
+    filepath = path.relative(filepath, from: runtimeDir);
+    return path.join('dev_compiler', 'runtime', filepath);
+  }
 
-  // Since this is a URI path we can assume forward slash and use lastIndexOf.
-  var runtimePath = '/lib/runtime/';
-  var pos = filepath.lastIndexOf(runtimePath);
-  if (pos == -1) return null;
-
-  var filename = filepath.substring(pos + runtimePath.length);
-  var dir = filepath.substring(0, pos);
-
-  // TODO(jmesserly): can we implement this without repeatedly reading pubspec?
-  // It seems like we should know our package's root directory without needing
-  // to search like this.
-  var pubspec =
-      loadYaml(new File(path.join(dir, 'pubspec.yaml')).readAsStringSync());
-
-  // Ensure this is loaded from the dev_compiler package.
-  if (pubspec['name'] != 'dev_compiler') return null;
-  return path.join('dev_compiler', 'runtime', filename);
+  return path.relative(resourceUri.path, from: entryDir);
 }
 
 /// Given an annotated [node] and a [test] function, returns the first matching

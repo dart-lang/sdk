@@ -51,7 +51,8 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
     // Make sure we don't try and add this node again.
     resources.remove(resource);
 
-    var resourcePath = resourceOutputPath(resource.uri, root.uri);
+    var resourcePath =
+        resourceOutputPath(resource.uri, root.uri, options.runtimeDir);
     if (resource.cachingHash != null) {
       resourcePath = _addHash(resourcePath, resource.cachingHash);
     }
@@ -65,7 +66,8 @@ String generateEntryHtml(HtmlSourceNode root, CompilerOptions options) {
 
   var fragment = new DocumentFragment();
   for (var resource in resources) {
-    var resourcePath = resourceOutputPath(resource.uri, root.uri);
+    var resourcePath =
+        resourceOutputPath(resource.uri, root.uri, options.runtimeDir);
     var ext = path.extension(resourcePath);
     if (resource.cachingHash != null) {
       resourcePath = _addHash(resourcePath, resource.cachingHash);
