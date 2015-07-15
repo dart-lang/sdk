@@ -903,6 +903,10 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     _subscription.pause();
     _controller = new StreamController(sync: true,
                                        onListen: _subscription.resume,
+                                       onCancel: () {
+                                         _subscription.cancel();
+                                         _subscription = null;
+                                       },
                                        onPause: _subscription.pause,
                                        onResume: _subscription.resume);
 
@@ -965,7 +969,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       //      processed if received.
       //   2) set a timer terminate the connection if a close frame is
       //      not received.
-      if (!_controller.hasListener) {
+      if (!_controller.hasListener && _subscription != null) {
         _controller.stream.drain().catchError((_) => {});
       }
       if (_closeTimer == null) {
@@ -974,7 +978,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           // Reuse code and reason from the local close.
           _closeCode = _outCloseCode;
           _closeReason = _outCloseReason;
-          _subscription.cancel();
+          if (_subscription != null) _subscription.cancel();
           _controller.close();
           _webSockets.remove(_serviceId);
         });
