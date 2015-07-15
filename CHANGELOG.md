@@ -2,6 +2,9 @@
 
 ### Core library changes
 
+* `dart:convert`
+  * `LineSplitter` added a `split` static method returning an `Iterable`.
+
 * `dart:html`
   * `NodeTreeSanitizer` added the `const trusted` field. It can be used
     instead of defining a `NullTreeSanitizer` class when calling
