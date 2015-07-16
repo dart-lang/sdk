@@ -28,8 +28,10 @@
           '-fno-exceptions',
           # '-fvisibility=hidden',
           # '-fvisibility-inlines-hidden',
+          '-fstack-protector',
         ],
         'ldflags': [
+          '-Wa,--noexecstack',
           '-Wl,-z,now',
           '-Wl,-z,relro',
         ],
