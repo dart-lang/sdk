@@ -279,7 +279,7 @@ function $setupProgramName(programData, typesOffset) {
 
       #initializeEmptyInstance = function(name, o, fields) {
         #allClasses[name].apply(o, fields);
-        return o; //
+        return o;
       }
     }
 
