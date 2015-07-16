@@ -383,6 +383,7 @@ class DartiumBackend(HtmlDartGenerator):
     self._cpp_impl_includes = None
     self._cpp_definitions_emitter = None
     self._cpp_resolver_emitter = None
+    self._dart_js_interop = options.dart_js_interop
 
   def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because
@@ -1249,7 +1250,9 @@ class DartiumBackend(HtmlDartGenerator):
     def GenerateCall(
         stmts_emitter, call_emitter, version, operation, argument_count):
       native_suffix = 'Callback'
-      actuals = info.ParametersAsListOfVariables(argument_count, self._type_registry if self._dart_use_blink else None)
+      actuals = info.ParametersAsListOfVariables(argument_count,
+                                                 self._type_registry if self._dart_use_blink else None,
+                                                 self._dart_js_interop)
       actuals_s = ", ".join(actuals)
       formals=actuals
       return_type = self.SecureOutputType(operation.type.id)

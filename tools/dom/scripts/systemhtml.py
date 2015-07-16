@@ -693,7 +693,7 @@ class HtmlDartInterfaceGenerator(object):
       self._backend.AddMembers(self._database.GetInterface(merged_interface),
         not self._backend.ImplementsMergedMembers())
 
-    self._backend.AddMembers(self._interface, self._options.dart_js_interop)
+    self._backend.AddMembers(self._interface, False, self._options.dart_js_interop)
     self._backend.AddSecondaryMembers(self._interface)
     self._event_generator.EmitStreamGetters(
         self._interface,

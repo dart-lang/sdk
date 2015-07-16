@@ -295,7 +295,6 @@ $if JSINTEROP
   @Creates('NodeList')
   List<Node> get childNodes {
     if (_childNodes == null) {
-       window.console.log(">>> construct childNodes collection/list");
        List<Node> nodes = new List<Node>();
        var jsCollection = _blink.BlinkNode.instance.childNodes_Getter_(unwrap_jso(this));
        var collectionLen = jsCollection['length'];
