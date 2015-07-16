@@ -92,6 +92,7 @@ class FunctionVisitor : public ObjectVisitor {
       // TypeParameter.
       typeHandle_ ^= funcHandle_.result_type();
       ASSERT(typeHandle_.IsNull() ||
+             !typeHandle_.IsResolved() ||
              typeHandle_.IsTypeParameter() ||
              typeHandle_.IsCanonical());
       // Verify that the types in the function signature are all canonical or
@@ -99,7 +100,9 @@ class FunctionVisitor : public ObjectVisitor {
       const intptr_t num_parameters = funcHandle_.NumParameters();
       for (intptr_t i = 0; i < num_parameters; i++) {
         typeHandle_ = funcHandle_.ParameterTypeAt(i);
-        ASSERT(typeHandle_.IsTypeParameter() || typeHandle_.IsCanonical());
+        ASSERT(typeHandle_.IsTypeParameter() ||
+               !typeHandle_.IsResolved() ||
+               typeHandle_.IsCanonical());
       }
     }
   }
