@@ -867,7 +867,15 @@ class AnalysisServer {
     if (stackTrace != null) {
       stackTraceString = stackTrace.toString();
     } else {
-      stackTraceString = 'null stackTrace';
+      try {
+        throw 'ignored';
+      } catch (ignored, stackTrace) {
+        stackTraceString = stackTrace.toString();
+      }
+      if (stackTraceString == null) {
+        // This code should be unreachable.
+        stackTraceString = 'null stackTrace';
+      }
     }
     // send the notification
     channel.sendNotification(
