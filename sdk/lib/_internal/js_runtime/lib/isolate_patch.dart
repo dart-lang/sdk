@@ -23,7 +23,8 @@ class Isolate {
 
   @patch
   static Future<Isolate> spawn(void entryPoint(message), var message,
-                                     { bool paused: false }) {
+                               {bool paused: false, bool errorsAreFatal,
+                                SendPort onExit, SendPort onError}) {
     try {
       return IsolateNatives.spawnFunction(entryPoint, message, paused)
           .then((msg) => new Isolate(msg[1],
@@ -36,9 +37,9 @@ class Isolate {
 
   @patch
   static Future<Isolate> spawnUri(
-      Uri uri, List<String> args, var message, { bool paused: false,
-                                                 bool checked,
-                                                 Uri packageRoot }) {
+      Uri uri, List<String> args, var message,
+      {bool paused: false, bool checked, Uri packageRoot, bool errorsAreFatal,
+       SendPort onExit, SendPort onError}) {
     if (packageRoot != null) throw new UnimplementedError("packageRoot");
     try {
       if (args is List<String>) {

@@ -274,7 +274,9 @@ patch class Isolate {
   /* patch */ static Isolate get current => _currentIsolate;
 
   /* patch */ static Future<Isolate> spawn(
-      void entryPoint(message), var message, { bool paused: false }) {
+      void entryPoint(message), var message,
+      {bool paused: false, bool errorsAreFatal,
+       SendPort onExit, SendPort onError}) {
     // `paused` isn't handled yet.
     RawReceivePort readyPort;
     try {
@@ -303,7 +305,8 @@ patch class Isolate {
 
   /* patch */ static Future<Isolate> spawnUri(
       Uri uri, List<String> args, var message,
-      { bool paused: false, bool checked, Uri packageRoot }) {
+      {bool paused: false, bool checked, Uri packageRoot, bool errorsAreFatal,
+       SendPort onExit, SendPort onError}) {
     RawReceivePort readyPort;
     try {
       // The VM will invoke [_startIsolate] and not `main`.
