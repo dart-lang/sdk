@@ -29,6 +29,10 @@
           # '-fvisibility=hidden',
           # '-fvisibility-inlines-hidden',
         ],
+        'ldflags': [
+          '-Wl,-z,now',
+          '-Wl,-z,relro',
+        ],
       },
 
       'Dart_Linux_ia32_Base': {
