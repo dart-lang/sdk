@@ -63,7 +63,7 @@ Launch Chrome Canary at the URL shown by the above.  You will need to
 explicitly enable ES6 (harmony) features: this can be done via the
 command line.  E.g., on a Mac:
 
-    $ /Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary --js-flags="--harmony-arrow-functions --harmony-classes --harmony-computed-property-names" http://localhost:8080
+    $ /Applications/Google\ Chrome\ Canary.app/Contents/MacOS/Google\ Chrome\ Canary --js-flags="--harmony" http://localhost:8080
 
 Remember to open the Developer Tools to see the output of a print.
 

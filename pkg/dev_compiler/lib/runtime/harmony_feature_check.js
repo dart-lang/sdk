@@ -19,9 +19,7 @@
 
   var message = 'This script needs EcmaScript 6 features ' +
       'like `class` and `=>`. Please run in a browser with support, ' +
-      'for example: chrome --js-flags="--harmony-arrow-functions' +
-      ' --harmony-classes --harmony-computed-property-names' +
-      ' --harmony-spreadcalls"';
+      'for example: chrome --js-flags="--harmony"';
   console.error(message);
   alert(message);
 

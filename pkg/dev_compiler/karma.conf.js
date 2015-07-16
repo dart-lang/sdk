@@ -3,10 +3,7 @@
 
 module.exports = function(config) {
   var harmony_flags = '--js-flags="' + [
-    '--harmony-arrow-functions',
-    '--harmony-classes',
-    '--harmony-computed-property-names',
-    '--harmony-spreadcalls',
+    '--harmony',
   ].join(' ') + '"';
 
   var configuration = {
