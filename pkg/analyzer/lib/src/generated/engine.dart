@@ -209,8 +209,10 @@ class AnalysisCache {
 
   /**
    * Remove all information related to the given [source] from this cache.
+   * Return the entry associated with the source, or `null` if there was cache
+   * entry for the source.
    */
-  void remove(Source source) {
+  SourceEntry remove(Source source) {
     int count = _partitions.length;
     for (int i = 0; i < count; i++) {
       if (_partitions[i].contains(source)) {
@@ -223,10 +225,10 @@ class AnalysisCache {
             JavaSystem.currentTimeMillis();
           }
         }
-        _partitions[i].remove(source);
-        return;
+        return _partitions[i].remove(source);
       }
     }
+    return null;
   }
 
   /**
@@ -351,6 +353,12 @@ abstract class AnalysisContext {
    * represent HTML files. The contents of the list can be incomplete.
    */
   List<Source> get htmlSources;
+
+  /**
+   * The stream that is notified when a source either starts or stops being
+   * analyzed implicitly.
+   */
+  Stream<ImplicitAnalysisEvent> get implicitAnalysisEvents;
 
   /**
    * Returns `true` if this context was disposed using [dispose].
@@ -1034,6 +1042,12 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   StreamController<SourcesChangedEvent> _onSourcesChangedController;
 
   /**
+   * A subscription for a stream of events indicating when files are (and are
+   * not) being implicitly analyzed.
+   */
+  StreamController<ImplicitAnalysisEvent> _implicitAnalysisEventsController;
+
+  /**
    * The listeners that are to be notified when various analysis results are
    * produced in this context.
    */
@@ -1084,6 +1098,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     _cache = createCacheFromSourceFactory(null);
     _onSourcesChangedController =
         new StreamController<SourcesChangedEvent>.broadcast();
+    _implicitAnalysisEventsController =
+        new StreamController<ImplicitAnalysisEvent>.broadcast();
   }
 
   @override
@@ -1196,6 +1212,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 
   @override
   List<Source> get htmlSources => _getSources(SourceKind.HTML);
+
+  @override
+  Stream<ImplicitAnalysisEvent> get implicitAnalysisEvents =>
+      _implicitAnalysisEventsController.stream;
 
   @override
   bool get isDisposed => _disposed;
@@ -2410,7 +2430,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         } else {
           unitEntry.recordResolutionError(thrownException);
         }
-        _cache.remove(unitSource);
+        _removeFromCache(unitSource);
         if (thrownException != null) {
           throw new AnalysisException('<rethrow>', thrownException);
         }
@@ -2483,7 +2503,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         } else {
           unitEntry.recordResolutionError(thrownException);
         }
-        _cache.remove(unitSource);
+        _removeFromCache(unitSource);
         if (thrownException != null) {
           throw new AnalysisException('<rethrow>', thrownException);
         }
@@ -2513,7 +2533,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
           } else {
             dartEntry.recordResolutionErrorInLibrary(
                 librarySource, thrownException);
-            _cache.remove(source);
+            _removeFromCache(source);
           }
           if (source != librarySource) {
             _workManager.add(source, SourcePriority.PRIORITY_PART);
@@ -2615,7 +2635,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     for (Source source in missingSources) {
       if (getLibrariesContaining(source).isEmpty &&
           getLibrariesDependingOn(source).isEmpty) {
-        _cache.remove(source);
+        _removeFromCache(source);
         removalCount++;
       }
     }
@@ -3385,12 +3405,20 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       htmlEntry.modificationTime = getModificationStamp(source);
       htmlEntry.explicitlyAdded = explicitlyAdded;
       _cache.put(source, htmlEntry);
+      if (!explicitlyAdded) {
+        _implicitAnalysisEventsController
+            .add(new ImplicitAnalysisEvent(source, true));
+      }
       return htmlEntry;
     } else {
       DartEntry dartEntry = new DartEntry();
       dartEntry.modificationTime = getModificationStamp(source);
       dartEntry.explicitlyAdded = explicitlyAdded;
       _cache.put(source, dartEntry);
+      if (!explicitlyAdded) {
+        _implicitAnalysisEventsController
+            .add(new ImplicitAnalysisEvent(source, true));
+      }
       return dartEntry;
     }
   }
@@ -4108,6 +4136,16 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     AnalysisEngine.instance.logger.logInformation(message);
   }
 
+  /**
+   * Notify all of the analysis listeners that a task is about to be performed.
+   */
+  void _notifyAboutToPerformTask(String taskDescription) {
+    int count = _listeners.length;
+    for (int i = 0; i < count; i++) {
+      _listeners[i].aboutToPerformTask(this, taskDescription);
+    }
+  }
+
 //  /**
 //   * Notify all of the analysis listeners that the given source is no longer included in the set of
 //   * sources that are being analyzed.
@@ -4185,16 +4223,6 @@ class AnalysisContextImpl implements InternalAnalysisContext {
 //      _listeners[i].resolvedHtml(this, source, unit);
 //    }
 //  }
-
-  /**
-   * Notify all of the analysis listeners that a task is about to be performed.
-   */
-  void _notifyAboutToPerformTask(String taskDescription) {
-    int count = _listeners.length;
-    for (int i = 0; i < count; i++) {
-      _listeners[i].aboutToPerformTask(this, taskDescription);
-    }
-  }
 
   /**
    * Notify all of the analysis listeners that the errors associated with the
@@ -4569,6 +4597,14 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     return dartEntry;
   }
 
+  void _removeFromCache(Source source) {
+    SourceEntry entry = _cache.remove(source);
+    if (entry != null && entry.explicitlyAdded) {
+      _implicitAnalysisEventsController
+          .add(new ImplicitAnalysisEvent(source, false));
+    }
+  }
+
   /**
    * Remove the given [librarySource] from the list of containing libraries for
    * all of the parts referenced by the given [dartEntry].
@@ -4581,7 +4617,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (partEntry != null && !identical(partEntry, dartEntry)) {
         partEntry.removeContainingLibrary(librarySource);
         if (partEntry.containingLibraries.length == 0 && !exists(partSource)) {
-          _cache.remove(partSource);
+          _removeFromCache(partSource);
         }
       }
     }
@@ -4601,7 +4637,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
             partEntry.removeContainingLibrary(librarySource);
             if (partEntry.containingLibraries.length == 0 &&
                 !exists(partSource)) {
-              _cache.remove(partSource);
+              _removeFromCache(partSource);
             }
           }
         }
@@ -4630,6 +4666,10 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * that referenced the source before it existed.
    */
   void _sourceAvailable(Source source) {
+    // TODO(brianwilkerson) This method needs to check whether the source was
+    // previously being implicitly analyzed. If so, the cache entry needs to be
+    // update to reflect the new status and an event needs to be generated to
+    // inform clients that it is no longer being implicitly analyzed.
     SourceEntry sourceEntry = _cache.get(source);
     if (sourceEntry == null) {
       sourceEntry = _createSourceEntry(source, true);
@@ -4718,7 +4758,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         _invalidateLibraryResolution(librarySource);
       }
     }
-    _cache.remove(source);
+    _removeFromCache(source);
     _workManager.remove(source);
     _removeFromPriorityOrder(source);
   }
@@ -6752,11 +6792,13 @@ abstract class CachePartition {
   }
 
   /**
-   * Remove all information related to the given [source] from this cache.
+   * Remove all information related to the given [source] from this partition.
+   * Return the entry associated with the source, or `null` if there was cache
+   * entry for the source.
    */
-  void remove(Source source) {
+  SourceEntry remove(Source source) {
     _recentlyUsed.remove(source);
-    _sourceMap.remove(source);
+    return _sourceMap.remove(source);
   }
 
   /**
@@ -8850,6 +8892,32 @@ class HtmlEntry extends SourceEntry {
     _writeStateOn(buffer, "referencedLibraries", REFERENCED_LIBRARIES);
     _writeStateOn(buffer, "element", ELEMENT);
   }
+}
+
+/**
+ * An event indicating when a source either starts or stops being implicitly
+ * analyzed.
+ */
+class ImplicitAnalysisEvent {
+  /**
+   * The source whose status has changed.
+   */
+  final Source source;
+
+  /**
+   * A flag indicating whether the source is now being analyzed.
+   */
+  final bool isAnalyzed;
+
+  /**
+   * Initialize a newly created event to indicate that the given [source] has
+   * changed it status to match the [isAnalyzed] flag.
+   */
+  ImplicitAnalysisEvent(this.source, this.isAnalyzed);
+
+  @override
+  String toString() =>
+      '${isAnalyzed ? '' : 'not '}analyzing ${source.fullName}';
 }
 
 /**
