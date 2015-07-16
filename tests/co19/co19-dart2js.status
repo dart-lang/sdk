@@ -7510,6 +7510,7 @@ WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-th
 WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/content-attribute_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/node-document-changes_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01 : RuntimeError # In IE, setting innerHTML on a Frameset element does nothing.
 WebPlatformTest/html-templates/template-element/template-content-node-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: Skip # Times out. Please triage this failure
@@ -9375,6 +9376,7 @@ WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-th
 WebPlatformTest/html-templates/serializing-html-templates/outerhtml_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/content-attribute_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/node-document-changes_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01 : RuntimeError # In IE, setting innerHTML on a Frameset element does nothing.
 WebPlatformTest/html-templates/template-element/template-content-node-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: Skip # Times out. Please triage this failure
