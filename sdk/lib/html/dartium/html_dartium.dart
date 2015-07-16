@@ -12638,6 +12638,12 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
+	
+      // Workaround for Safari bug. Was also previously Chrome bug 229142
+      // - URIs are not resolved in new doc.	
+      var base = _parseDocument.createElement('base');	
+      base.href = document.baseUri;	
+      _parseDocument.head.append(base);
     }
     var contextElement;
     if (this is BodyElement) {
@@ -31966,10 +31972,10 @@ class Url extends NativeFieldWrapperClass2 implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");

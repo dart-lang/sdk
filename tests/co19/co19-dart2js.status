@@ -236,7 +236,7 @@ WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeE
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Element-childElementCount-nochild_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 LayoutTests/fast/loader/loadInProgress_t01: Skip # Issue 23466
-LayoutTests/fast/dom/css-innerHTML_t01: RuntimeError # Test is incorrect.
+LayoutTests/fast/dom/css-innerHTML_t01: SkipByDesign # Test is incorrect.
 
 [ $compiler == dart2js && $checked ]
 Language/13_Statements/09_Switch_A05_t01: Fail # Missing type check in switch expression
@@ -2901,6 +2901,7 @@ WebPlatformTest/html-templates/innerhtml-on-templates/innerhtml_t01: RuntimeErro
 WebPlatformTest/html-templates/parsing-html-templates/additions-to-the-in-head-insertion-mode/generating-of-implied-end-tags_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/parsing-html-templates/creating-an-element-for-the-token/template-owner-document_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html-templates/template-element/node-document-changes_t01: RuntimeError # Please triage this failure
+WebPlatformTest/html-templates/template-element/template-as-a-descendant_t01 : RuntimeError # In Firefox, setting innerHTML on a Frameset element does nothing.
 WebPlatformTest/html-templates/template-element/template-content_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-image_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/browsers/browsing-the-web/read-media/pageload-video_t01: RuntimeError # Please triage this failure

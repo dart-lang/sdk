@@ -13181,6 +13181,12 @@ abstract class Element extends Node implements GlobalEventHandlers, ParentNode, 
     if (_parseDocument == null) {
       _parseDocument = document.implementation.createHtmlDocument('');
       _parseRange = _parseDocument.createRange();
+	
+      // Workaround for Safari bug. Was also previously Chrome bug 229142
+      // - URIs are not resolved in new doc.	
+      var base = _parseDocument.createElement('base');	
+      base.href = document.baseUri;	
+      _parseDocument.head.append(base);
     }
     var contextElement;
     if (this is BodyElement) {
