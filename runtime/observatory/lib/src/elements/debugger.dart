@@ -349,6 +349,35 @@ class StepCommand extends DebuggerCommand {
       'Syntax: step\n';
 }
 
+class AsyncStepCommand extends DebuggerCommand {
+  AsyncStepCommand(Debugger debugger) : super(debugger, 'astep', []) {
+  }
+
+  Future run(List<String> args) async {
+    if (debugger.isolatePaused()) {
+      var event = debugger.isolate.pauseEvent;
+      if (event.asyncContinuation == null) {
+        debugger.console.print("No async continuation at this location");
+        return;
+      }
+      var bpt = await
+          debugger.isolate.addBreakOnActivation(event.asyncContinuation);
+      return debugger.isolate.resume();
+    } else {
+      debugger.console.print('The program is already running');
+    }
+  }
+
+  String helpShort =
+      'Step into asynchronous continuation';
+
+  String helpLong =
+      'Continue running the isolate until control returns to the current '
+      'activation of an async or async* function.\n'
+      '\n'
+      'Syntax: astep\n';
+}
+
 class FinishCommand extends DebuggerCommand {
   FinishCommand(Debugger debugger) : super(debugger, 'finish', []);
 
@@ -950,6 +979,7 @@ class ObservatoryDebugger extends Debugger {
         new ContinueCommand(this),
         new NextCommand(this),
         new StepCommand(this),
+        new AsyncStepCommand(this),
         new FinishCommand(this),
         new BreakCommand(this),
         new SetCommand(this),
@@ -1101,6 +1131,9 @@ class ObservatoryDebugger extends Debugger {
           console.printRef(event.exception);
         } else {
           console.print('Paused at ${script.name}:${line}:${col}');
+        }
+        if (event.asyncContinuation != null) {
+          console.print("Paused in async function: 'astep' available");
         }
       });
     }

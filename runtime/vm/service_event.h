@@ -45,6 +45,7 @@ class ServiceEvent {
         breakpoint_(NULL),
         top_frame_(NULL),
         exception_(NULL),
+        async_continuation_(NULL),
         inspectee_(NULL),
         gc_stats_(NULL),
         bytes_(NULL),
@@ -100,6 +101,14 @@ class ServiceEvent {
     exception_ = exception;
   }
 
+  const Object* async_continuation() const {
+    return async_continuation_;
+  }
+  void set_async_continuation(const Object* closure) {
+    ASSERT(kind_ == kPauseBreakpoint);
+    async_continuation_ = closure;
+  }
+
   const Object* inspectee() const {
     return inspectee_;
   }
@@ -139,6 +148,7 @@ class ServiceEvent {
   Breakpoint* breakpoint_;
   ActivationFrame* top_frame_;
   const Object* exception_;
+  const Object* async_continuation_;
   const Object* inspectee_;
   const Heap::GCStats* gc_stats_;
   const uint8_t* bytes_;

@@ -36,6 +36,7 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
       breakpoint_(NULL),
       top_frame_(NULL),
       exception_(NULL),
+      async_continuation_(NULL),
       inspectee_(NULL),
       gc_stats_(NULL),
       bytes_(NULL),
@@ -43,6 +44,7 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
   DebuggerEvent::EventType type = debugger_event->type();
   if (type == DebuggerEvent::kBreakpointReached) {
     set_breakpoint(debugger_event->breakpoint());
+    set_async_continuation(debugger_event->async_continuation());
   }
   if (type == DebuggerEvent::kExceptionThrown) {
     set_exception(debugger_event->exception());
@@ -160,6 +162,9 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   }
   if (exception() != NULL) {
     jsobj.AddProperty("exception", *(exception()));
+  }
+  if (async_continuation() != NULL) {
+    jsobj.AddProperty("_asyncContinuation", *(async_continuation()));
   }
   if (inspectee() != NULL) {
     jsobj.AddProperty("inspectee", *(inspectee()));

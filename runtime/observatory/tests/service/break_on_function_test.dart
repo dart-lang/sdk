@@ -40,31 +40,11 @@ hasStoppedAtBreakpoint,
 resumeIsolate,
 
 hasStoppedAtBreakpoint,
-
-// We are at the breakpoint on line 11.
-(Isolate isolate) async {
-  ServiceMap stack = await isolate.getStack();
-  expect(stack.type, equals('Stack'));
-  expect(stack['frames'].length, greaterThanOrEqualTo(1));
-
-  Script script = stack['frames'][0].location.script;
-  expect(stack['frames'][0].location.tokenPos, equals(22));
-},
-
+stoppedAtLine(11),
 resumeIsolate,
 
 hasStoppedAtBreakpoint,
-
-// We are at the breakpoint on line 11.
-(Isolate isolate) async {
-  ServiceMap stack = await isolate.getStack();
-  expect(stack.type, equals('Stack'));
-  expect(stack['frames'].length, greaterThanOrEqualTo(1));
-
-  Script script = stack['frames'][0].location.script;
-  expect(stack['frames'][0].location.tokenPos, equals(22));
-},
-
+stoppedAtLine(11),
 resumeIsolate,
 
 ];

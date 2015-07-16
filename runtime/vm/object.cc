@@ -11247,6 +11247,9 @@ static const char* VarKindString(int kind) {
     case RawLocalVarDescriptors::kSavedCurrentContext:
       return "CurrentCtx";
       break;
+    case RawLocalVarDescriptors::kAsyncOperation:
+      return "AsyncOperation";
+      break;
     default:
       UNREACHABLE();
       return "Unknown";
@@ -11360,6 +11363,8 @@ const char* LocalVarDescriptors::KindToStr(intptr_t kind) {
       return "ContextLevel";
     case RawLocalVarDescriptors::kSavedCurrentContext:
       return "SavedCurrentContext";
+    case RawLocalVarDescriptors::kAsyncOperation:
+      return "AsyncOperation";
     default:
       UNIMPLEMENTED();
       return NULL;

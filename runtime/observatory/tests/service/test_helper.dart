@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
+import 'package:unittest/unittest.dart';
 
 bool _isWebSocketDisconnect(e) {
   return e is NetworkRpcException;
@@ -155,30 +156,68 @@ Future processServiceEvents(VM vm,
 }
 
 
-Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) async {
-  await isolate.reload();  // Might have missed pauseEvent.
-
-  if ((isolate.pauseEvent != null) &&
-      (isolate.pauseEvent.kind == ServiceEvent.kPauseBreakpoint)) {
-    // Already waiting at a breakpoint.
-    print('Breakpoint reached');
-    return new Future.value(isolate);
-  }
-
+Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
   // Set up a listener to wait for breakpoint events.
   Completer completer = new Completer();
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
+        print("Event: $event");
         if (event.kind == ServiceEvent.kPauseBreakpoint) {
           print('Breakpoint reached');
           subscription.cancel();
-          completer.complete();
+          if (completer != null) {
+            completer.complete(isolate);
+            completer = null;
+          }
         }
+    });
+
+    // Pause may have happened before we subscribed.
+    isolate.reload().then((_) {
+      if ((isolate.pauseEvent != null) &&
+         (isolate.pauseEvent.kind == ServiceEvent.kPauseBreakpoint)) {
+        // Already waiting at a breakpoint.
+        print('Breakpoint reached');
+        subscription.cancel();
+        if (completer != null) {
+          completer.complete(isolate);
+          completer = null;
+        }
+      }
     });
   });
 
   return completer.future;  // Will complete when breakpoint hit.
+}
+
+
+// Currying is your friend.
+IsolateTest setBreakpointAtLine(int line) {
+  return (Isolate isolate) async {
+    print("Setting breakpoint for line $line");
+    Library lib = await isolate.rootLibrary.load();
+    Script script = lib.scripts.single;
+
+    Breakpoint bpt = await isolate.addBreakpoint(script, line);
+    print("Breakpoint is $bpt");
+    expect(bpt, isNotNull);
+    expect(bpt is Breakpoint, isTrue);
+  };
+}
+
+IsolateTest stoppedAtLine(int line) {
+  return (Isolate isolate) async {
+    print("Checking we are at line $line");
+
+    ServiceMap stack = await isolate.getStack();
+    expect(stack.type, equals('Stack'));
+    expect(stack['frames'].length, greaterThanOrEqualTo(1));
+
+    Frame top = stack['frames'][0];
+    Script script = await top.location.script.load();
+    expect(script.tokenToLine(top.location.tokenPos), equals(line));
+  };
 }
 
 

@@ -658,12 +658,27 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
         OS::PrintErr("\tFound saved current ctx at index %d\n",
             var_info.index());
       }
-      ctx_ ^= GetLocalVar(var_info.index());
+      ctx_ ^= GetStackVar(var_info.index());
       return ctx_;
     }
   }
   UNREACHABLE();
   return Context::ZoneHandle(Context::null());
+}
+
+
+RawObject* ActivationFrame::GetAsyncOperation() {
+  GetVarDescriptors();
+  intptr_t var_desc_len = var_descriptors_.Length();
+  for (intptr_t i = 0; i < var_desc_len; i++) {
+    RawLocalVarDescriptors::VarInfo var_info;
+    var_descriptors_.GetInfo(i, &var_info);
+    const int8_t kind = var_info.kind();
+    if (kind == RawLocalVarDescriptors::kAsyncOperation) {
+      return GetContextVar(var_info.scope_id, var_info.index());
+    }
+  }
+  return Object::null();
 }
 
 
@@ -816,7 +831,7 @@ RawObject* ActivationFrame::GetClosure() {
 }
 
 
-RawObject* ActivationFrame::GetLocalVar(intptr_t slot_index) {
+RawObject* ActivationFrame::GetStackVar(intptr_t slot_index) {
   if (deopt_frame_.IsNull()) {
     uword var_address = fp() + slot_index * kWordSize;
     return reinterpret_cast<RawObject*>(
@@ -827,25 +842,15 @@ RawObject* ActivationFrame::GetLocalVar(intptr_t slot_index) {
 }
 
 
-RawInstance* ActivationFrame::GetLocalInstanceVar(intptr_t slot_index) {
-  Instance& instance = Instance::Handle();
-  instance ^= GetLocalVar(slot_index);
-  return instance.raw();
-}
-
-
 void ActivationFrame::PrintContextMismatchError(
-    const String& var_name,
     intptr_t ctx_slot,
     intptr_t frame_ctx_level,
     intptr_t var_ctx_level) {
   OS::PrintErr("-------------------------\n"
                "Encountered context mismatch\n"
-               "\tvar name: %s\n"
                "\tctx_slot: %" Pd "\n"
                "\tframe_ctx_level: %" Pd "\n"
                "\tvar_ctx_level: %" Pd "\n\n",
-               var_name.ToCString(),
                ctx_slot,
                frame_ctx_level,
                var_ctx_level);
@@ -903,44 +908,45 @@ void ActivationFrame::VariableAt(intptr_t i,
   ASSERT(value != NULL);
   const int8_t kind = var_info.kind();
   if (kind == RawLocalVarDescriptors::kStackVar) {
-    *value = GetLocalInstanceVar(var_info.index());
+    *value = GetStackVar(var_info.index());
   } else {
     ASSERT(kind == RawLocalVarDescriptors::kContextVar);
-    const Context& ctx = GetSavedCurrentContext();
-    ASSERT(!ctx.IsNull());
+    *value = GetContextVar(var_info.scope_id, var_info.index());
+  }
+}
 
-    // The context level at the PC/token index of this activation frame.
-    intptr_t frame_ctx_level = ContextLevel();
 
-    // The context level of the variable.
-    intptr_t var_ctx_level = var_info.scope_id;
-    intptr_t level_diff = frame_ctx_level - var_ctx_level;
-    intptr_t ctx_slot = var_info.index();
-    if (level_diff == 0) {
-      if ((ctx_slot < 0) ||
-          (ctx_slot >= ctx.num_variables())) {
-        PrintContextMismatchError(*name, ctx_slot,
-                                  frame_ctx_level, var_ctx_level);
-      }
-      ASSERT((ctx_slot >= 0) && (ctx_slot < ctx.num_variables()));
-      *value = ctx.At(ctx_slot);
-    } else {
-      ASSERT(level_diff > 0);
-      Context& var_ctx = Context::Handle(ctx.raw());
-      while (level_diff > 0 && !var_ctx.IsNull()) {
-        level_diff--;
-        var_ctx = var_ctx.parent();
-      }
-      if (var_ctx.IsNull() ||
-          (ctx_slot < 0) ||
-          (ctx_slot >= var_ctx.num_variables())) {
-        PrintContextMismatchError(*name, ctx_slot,
-                                  frame_ctx_level, var_ctx_level);
-      }
-      ASSERT(!var_ctx.IsNull());
-      ASSERT((ctx_slot >= 0) && (ctx_slot < var_ctx.num_variables()));
-      *value = var_ctx.At(ctx_slot);
+RawObject* ActivationFrame::GetContextVar(intptr_t var_ctx_level,
+                                          intptr_t ctx_slot) {
+  const Context& ctx = GetSavedCurrentContext();
+  ASSERT(!ctx.IsNull());
+
+  // The context level at the PC/token index of this activation frame.
+  intptr_t frame_ctx_level = ContextLevel();
+
+  intptr_t level_diff = frame_ctx_level - var_ctx_level;
+  if (level_diff == 0) {
+    if ((ctx_slot < 0) ||
+        (ctx_slot >= ctx.num_variables())) {
+      PrintContextMismatchError(ctx_slot, frame_ctx_level, var_ctx_level);
     }
+    ASSERT((ctx_slot >= 0) && (ctx_slot < ctx.num_variables()));
+    return ctx.At(ctx_slot);
+  } else {
+    ASSERT(level_diff > 0);
+    Context& var_ctx = Context::Handle(ctx.raw());
+    while (level_diff > 0 && !var_ctx.IsNull()) {
+      level_diff--;
+      var_ctx = var_ctx.parent();
+    }
+    if (var_ctx.IsNull() ||
+        (ctx_slot < 0) ||
+        (ctx_slot >= var_ctx.num_variables())) {
+      PrintContextMismatchError(ctx_slot, frame_ctx_level, var_ctx_level);
+    }
+    ASSERT(!var_ctx.IsNull());
+    ASSERT((ctx_slot >= 0) && (ctx_slot < var_ctx.num_variables()));
+    return var_ctx.At(ctx_slot);
   }
 }
 
@@ -1844,8 +1850,8 @@ RawFunction* Debugger::FindBestFit(const Script& script,
 
 
 BreakpointLocation* Debugger::SetBreakpoint(const Script& script,
-                                          intptr_t token_pos,
-                                          intptr_t last_token_pos) {
+                                            intptr_t token_pos,
+                                            intptr_t last_token_pos) {
   Function& func = Function::Handle(isolate_);
   func = FindBestFit(script, token_pos);
   if (func.IsNull()) {
@@ -2376,9 +2382,12 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame,
     RemoveBreakpoint(bpt->id());
     bpt = NULL;
   }
+
   DebuggerEvent event(isolate_, DebuggerEvent::kBreakpointReached);
   event.set_top_frame(top_frame);
   event.set_breakpoint(bpt);
+  Object& closure_or_null = Object::Handle(top_frame->GetAsyncOperation());
+  event.set_async_continuation(&closure_or_null);
   Pause(&event);
 }
 

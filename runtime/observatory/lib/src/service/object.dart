@@ -1622,6 +1622,7 @@ class ServiceEvent extends ServiceObject {
   @observable Breakpoint breakpoint;
   @observable Frame topFrame;
   @observable Instance exception;
+  @observable Instance asyncContinuation;
   @observable ServiceObject inspectee;
   @observable ByteData data;
   @observable int count;
@@ -1660,6 +1661,9 @@ class ServiceEvent extends ServiceObject {
     topFrame = map['topFrame'];
     if (map['exception'] != null) {
       exception = map['exception'];
+    }
+    if (map['_asyncContinuation'] != null) {
+      asyncContinuation = map['_asyncContinuation'];
     }
     if (map['inspectee'] != null) {
       inspectee = map['inspectee'];

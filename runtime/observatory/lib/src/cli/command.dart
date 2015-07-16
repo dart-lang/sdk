@@ -170,12 +170,12 @@ class RootCommand extends _CommandBase {
     var commands =  _match(args, true);
     if (commands.isEmpty) {
       // TODO(turnidge): Add a proper exception class for this.
-      return new Future.error('notfound');
+      return new Future.error('No such command');
     } else if (commands.length == 1) {
       return commands[0].run(args.sublist(commands[0]._depth));
     } else {
       // TODO(turnidge): Add a proper exception class for this.
-      return new Future.error('ambiguous');
+      return new Future.error('Ambiguous command');
     }
   }
 
